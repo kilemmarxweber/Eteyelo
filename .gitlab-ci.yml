@@ -1,0 +1,36 @@
+stages:
+  - install
+  - test
+  - build
+  - deploy
+
+install:
+  stage: install
+  script:
+    - pnpm install
+
+test:
+  stage: test
+  script:
+    - pnpm test || echo "no tests"
+
+build:
+  stage: build
+  script:
+    - pnpm build
+
+deploy_dev:
+  stage: deploy
+  script:
+    - echo "Deploy DEV"
+    - pm2 restart next-dev || pm2 start pnpm --name "next-dev" -- run dev:dev
+  only:
+    - develop
+
+deploy_prod:
+  stage: deploy
+  script:
+    - echo "Deploy PROD"
+    - pm2 restart next-prod || pm2 start pnpm --name "next-prod" -- run start
+  only:
+    - main

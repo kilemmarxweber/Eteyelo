@@ -1,0 +1,152 @@
+/**
+ * Slugs de rôles, presets Better Auth (`adminAc`, `ownerAc`, …),
+ * premières grilles métier pour les rôles d’organisation, et AC partagée pour `betterAuth`.
+ */
+
+import { createAccessControl } from "better-auth/plugins/access";
+import {
+  adminAc as adminPluginAdminAc,
+  defaultStatements as adminPluginSchemaStatements,
+  userAc as adminPluginUserAc,
+} from "better-auth/plugins/admin/access";
+import {
+  adminAc as organizationPluginAdminAc,
+  defaultStatements as organizationPluginSchemaStatements,
+  ownerAc,
+  memberAc as organizationPluginMemberAc,
+} from "better-auth/plugins/organization/access";
+
+export const APP_ROLE = {
+  ADMIN: "admin",
+  USER: "user",
+} as const;
+export const BRANCH_ROLE = {
+  DIRECTEUR: "directeur",
+  RESPONSABLE: "responsable",
+  MONITEUR: "moniteur",
+  ACCUEIL: "accueil",
+} as const;
+export function isAppAdminRole(role: string | null | undefined): boolean {
+  return role === APP_ROLE.ADMIN;
+}
+
+export const ORG_ROLE = {
+  OWNER: "owner",
+  GESTIONNAIRE: "gestionnaire",
+  PARENT: "parent",
+  STUDENT: "student",
+  TEACHER: "teacher",
+  MONITEUR: "moniteur",
+  RESPONSABLE: "responsable",
+  SURVEILLANT: "surveillant",
+} as const;
+
+export const ALL_ORG_ROLE_SLUGS = [
+  ORG_ROLE.OWNER,
+  ORG_ROLE.GESTIONNAIRE,
+  ORG_ROLE.PARENT,
+  ORG_ROLE.STUDENT,
+  ORG_ROLE.TEACHER,
+  ORG_ROLE.MONITEUR,
+  ORG_ROLE.RESPONSABLE,
+  ORG_ROLE.SURVEILLANT,
+] as const;
+
+export const accessControlStatements = {
+  ...adminPluginSchemaStatements,
+  ...organizationPluginSchemaStatements,
+  inscription: ["create", "share", "update", "delete"],
+  member: ["create", "read", "update", "delete"],
+  branch: ["create", "read", "update", "delete"],
+  teacher: ["create", "read", "update", "delete"],
+  parent: ["create", "read", "update", "delete"],
+  personnel: ["create", "read", "update", "delete"],
+  schedule: ["create", "read", "update", "delete"],
+} as const;
+
+type StatementShape = {
+  [K in keyof typeof accessControlStatements]?: ReadonlyArray<
+    (typeof accessControlStatements)[K][number]
+  >;
+};
+
+/** Preset plugin Admin (`adminAc`) + même niveau organisation que `organization.adminAc`, plus domaine. */
+export const applicationRoleStatements: Record<string, StatementShape> = {
+  [APP_ROLE.ADMIN]: {
+    ...adminPluginAdminAc.statements,
+    ...organizationPluginAdminAc.statements,
+    schedule: ["create", "read", "update", "delete"],
+  },
+  [APP_ROLE.USER]: {
+    ...adminPluginUserAc.statements,
+  },
+};
+
+/** Preset `ownerAc` pour le créateur ; autres rôles = grille métier initiale partagée. */
+export const organizationRoleStatements: Record<string, StatementShape> = {
+  [ORG_ROLE.OWNER]: {
+    ...ownerAc.statements,
+    inscription: ["create", "share", "update", "delete"],
+    schedule: ["create", "read", "update", "delete"],
+  },
+  [ORG_ROLE.GESTIONNAIRE]: {
+    ...organizationPluginMemberAc.statements,
+    ...organizationPluginAdminAc.statements,
+    schedule: ["create", "read", "update", "delete"],
+  },
+  [ORG_ROLE.PARENT]: { ...organizationPluginMemberAc.statements },
+  [ORG_ROLE.STUDENT]: { ...organizationPluginMemberAc.statements },
+  [ORG_ROLE.TEACHER]: {
+    ...organizationPluginMemberAc.statements,
+    schedule: ["read"],
+  },
+  [ORG_ROLE.MONITEUR]: {
+    ...organizationPluginMemberAc.statements,
+    schedule: ["read"],
+  },
+  [ORG_ROLE.RESPONSABLE]: {
+    ...organizationPluginMemberAc.statements,
+    schedule: ["read"],
+  },
+  [ORG_ROLE.SURVEILLANT]: { ...organizationPluginMemberAc.statements },
+};
+
+const authAccessControl = createAccessControl(accessControlStatements);
+
+type NewPluginRoleArg = Parameters<typeof authAccessControl.newRole>[0];
+
+function rolesFromStatements(defs: Record<string, StatementShape>) {
+  return Object.fromEntries(
+    Object.entries(defs).map(([role, statements]) => [
+      role,
+      authAccessControl.newRole(statements as NewPluginRoleArg),
+    ]),
+  );
+}
+
+/** Rôles plugin `admin` : `Record<slug, Role>` attendu par better-auth (`authorize` + `statements`). */
+export const applicationRoles = rolesFromStatements(applicationRoleStatements);
+
+/** Rôles plugin `organization` : même forme que `applicationRoles`. */
+export const organizationRoles = rolesFromStatements(
+  organizationRoleStatements,
+);
+type AccessStatements = Record<string, readonly (string | number)[]>;
+
+const PERMISSION_GROUPS = Object.entries(
+  accessControlStatements as AccessStatements,
+).map(
+  ([resource, actions]) =>
+    [
+      resource,
+      actions.map(String), // ✅ FORCE string ici
+    ] as const,
+);
+// format: "resource:action"
+export const ALL_PERMISSIONS = PERMISSION_GROUPS.flatMap(
+  ([resource, actions]) => actions.map((action) => `${resource}:${action}`),
+);
+export const ORGANIZATION_ROLE_SLUGS = Object.keys(organizationRoles) as Array<
+  keyof typeof organizationRoles
+>;
+export { authAccessControl };

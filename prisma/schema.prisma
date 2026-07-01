@@ -1,0 +1,1075 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../prisma/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id            String      @id @default(cuid())
+  username      String?     @unique
+  email         String?     @unique
+  telephone     String?
+  postnom       String?
+  prenom        String?
+  dateOfBirth   DateTime?
+  sexe          String?
+  emailVerified Boolean @default(false)
+  image         String?
+  address       String?
+  statusUser    Boolean?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  name        String
+  role        String?
+  banned      Boolean?     @default(false)
+  banReason   String?
+  banExpires  DateTime?
+  sessions    Session[]
+  accounts    Account[]
+  members     Member[]
+  invitations Invitation[]
+
+  @@index([telephone])
+  @@index([role])
+  @@index([statusUser])
+  @@map("user")
+}
+
+model Parent {
+  id             String           @id @default(cuid())
+  branchMemberId         String
+  branchMember           BranchMember?            @relation(fields: [branchMemberId], references: [id], onDelete: Cascade)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  paymentBatches PaymentBatch[]
+  familyPayments FamilyPayment[]
+  discountRules  DiscountRule[]
+  students       Student[]
+  feedbacks      ParentFeedback[]
+
+  @@unique([branchMemberId])
+}
+
+model Student {
+  id                String              @id @default(cuid())
+  branchMemberId            String
+  parentId          String
+  parent            Parent              @relation(fields: [parentId], references: [id])
+  category          StudentCategory     @default(NORMAL) // 🔥 AJOUT
+  classEnrollment   ClassEnrollment[]
+  branchMember              BranchMember                @relation(fields: [branchMemberId], references: [id], onDelete: Cascade)
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  studentAttendance StudentAttendance[]
+  grades            StudentGrade[]
+
+  @@index([parentId])
+  @@unique([branchMemberId])
+}
+
+model AttendanceSession {
+  id                   String              @id @default(cuid())
+  teachingId           String
+  teaching             Teaching            @relation(fields: [teachingId], references: [id])
+  validatedByTeacherId String?
+  validatedByTeacher   Teacher?            @relation(fields: [validatedByTeacherId], references: [id])
+  date                 DateTime
+  startTime            DateTime
+  endTime              DateTime
+  isClosed             Boolean             @default(false)
+  closedAt             DateTime?
+  schoolYearId         String
+  schoolYear           SchoolYear          @relation(fields: [schoolYearId], references: [id])
+  createdAt            DateTime            @default(now())
+  attendances          StudentAttendance[]
+  teacherAttendance    TeacherAttendance[]
+  branchId             String?
+  branch               Branch?             @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  @@unique([teachingId, date, startTime])
+  @@index([branchId])
+  @@index([schoolYearId])
+  @@index([validatedByTeacherId])
+}
+
+model StudentAttendance {
+  id            String            @id @default(cuid())
+  sessionId     String
+  justification String?
+  session       AttendanceSession @relation(fields: [sessionId], references: [id])
+  studentId     String
+  student       Student           @relation(fields: [studentId], references: [id])
+  status        AttendanceStatus
+  remark        String?
+  createdAt     DateTime          @default(now())
+  recordedAt    DateTime          @default(now())
+  branchId             String
+  branch               Branch             @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  @@unique([branchId, sessionId, studentId])
+  @@index([studentId])
+  @@index([status])
+  @@index([recordedAt])
+}
+
+model TeacherAttendance {
+  id        String            @id @default(cuid())
+  teacherId String
+  teacher   Teacher           @relation(fields: [teacherId], references: [id])
+  sessionId String
+  date      DateTime
+  status    AttendanceStatus
+  remark    String?
+  createdAt DateTime          @default(now())
+  session   AttendanceSession @relation(fields: [sessionId], references: [id])
+  branchId             String
+  branch               Branch             @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  @@unique([teacherId, sessionId, branchId])
+  @@index([branchId])
+  @@index([branchId, date])
+}
+
+model PersonnelAttendance {
+  id          String           @id @default(cuid())
+  personnelId String
+  personnel   Personnel        @relation(fields: [personnelId], references: [id])
+  date        DateTime
+  checkIn     DateTime?
+  checkOut    DateTime?
+  status      AttendanceStatus
+  remark      String?
+  createdAt   DateTime         @default(now())
+  branchId             String
+  branch               Branch             @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  @@unique([personnelId, date,branchId])
+  @@index([branchId])
+  @@index([branchId, date])
+}
+
+model ParentFeedback {
+  id           String      @id @default(cuid())
+  parentId     String
+  rating       Int
+  comment      String?
+  month        Int // 1-12
+  schoolYearId String
+  createdAt    DateTime    @default(now())
+  schoolYear   SchoolYear? @relation(fields: [schoolYearId], references: [id]) // ✅ RELATION
+  parent       Parent      @relation(fields: [parentId], references: [id])
+  branchId             String
+  branch               Branch             @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  @@unique([parentId, month, schoolYearId])
+  @@index([branchId])
+  @@index([branchId, schoolYearId])
+}
+
+model StudentGrade {
+  id           String     @id @default(cuid())
+  studentId    String
+  student      Student    @relation(fields: [studentId], references: [id])
+  schoolYearId String
+  schoolYear   SchoolYear @relation(fields: [schoolYearId], references: [id])
+  periodId     Int
+  period       period     @relation(fields: [periodId], references: [id])
+  score        Float
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  branchId             String
+  branch               Branch             @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  // Empêche plusieurs notes pour le même élève dans la même période
+  @@index([studentId])
+  @@index([schoolYearId])
+  @@index([periodId])
+  @@unique([studentId, periodId])
+  @@index([branchId])
+  @@index([branchId, schoolYearId])
+  @@index([branchId, periodId])
+}
+
+model Personnel {
+  id                  String                @id @default(cuid())
+  branchMemberId              String
+  branchMember                BranchMember?                 @relation(fields: [branchMemberId], references: [id], onDelete: Cascade)
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime              @updatedAt
+  personnelAttendance PersonnelAttendance[]
+
+  @@unique([branchMemberId])
+}
+
+model Frais {
+  id           String          @id @default(cuid())
+  nameFrais    String
+  montantFrais Decimal         @db.Decimal(10, 2)
+  statusFrais  Boolean         @default(true)
+  classeId     String
+  typeFraisId  String
+  echeance     DateTime?
+  schoolYearId String? // 👈 TEMPORAIRE (optionnel)
+  priority     Int             @default(99) // 🔥 AJOUT (1 = haute priorité)
+  paiement     FamilyPayment[]
+  classe       Classe          @relation(fields: [classeId], references: [id])
+  typeFrais    TypeFrais       @relation(fields: [typeFraisId], references: [id])
+  schoolYear   SchoolYear?     @relation(fields: [schoolYearId], references: [id]) // ✅ RELATION
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+  branchId             String
+  branch               Branch             @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  // ✅ IMPORTANT
+  @@index([classeId])
+  @@index([schoolYearId])
+  @@index([typeFraisId])
+  @@index([branchId])
+  @@index([branchId, schoolYearId])
+  @@index([branchId, classeId])
+}
+
+model TypeFrais {
+  id          String  @id @default(cuid())
+  codeType    String  @unique
+  nameType    String
+  description String?
+  statusType  Boolean @default(true)
+  branchId             String
+  branch               Branch             @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  frais     Frais[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([branchId])
+}
+
+model Classe {
+  id              String            @id @default(cuid())
+  codeClasse      String            @unique
+  nameClasse      String
+  optionId        String?
+  statusClasse    Boolean?
+  creneauId       String?
+  branchId        String?
+  branch          Branch?           @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  classEnrollment ClassEnrollment[]
+  teaching        Teaching[]
+  Frais           Frais[]
+  option          Option?           @relation(fields: [optionId], references: [id])
+  creneau         Creneau?          @relation(fields: [creneauId], references: [id])
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  CalendarEvent   CalendarEvent[]
+  fiche           fiche[]
+  @@index([branchId])
+  @@index([optionId])
+  @@index([branchId, optionId])
+}
+
+model Creneau {
+  id                 String   @id @default(cuid())
+  nameCreneau        String
+  startTime          DateTime @db.Time
+  endTime            DateTime @db.Time
+  durationCourse     Int
+  recreationHour     DateTime @db.Time
+  recreationDuration Int
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  branchId             String
+  branch               Branch             @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  @@index([branchId])
+  classe Classe[]
+}
+
+model Option {
+  id           String   @id @default(cuid())
+  codeOption   String   @unique
+  nameOption   String
+  sectionId    String?
+  section      Section? @relation(fields: [sectionId], references: [id])
+  classe       Classe[]
+  statusOption Boolean?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  branchId             String
+  branch               Branch             @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  @@index([branchId])
+  @@index([sectionId])
+  @@index([branchId, sectionId])
+}
+
+model Section {
+  id            String   @id @default(cuid())
+  codeSection   String   @unique
+  nameSection   String   @unique
+  option        Option[]
+  statusSection Boolean
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  branchId             String
+  branch               Branch             @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  @@index([branchId])
+}
+
+model SchoolYear {
+  id                String              @id @default(cuid())
+  nameYear          String              @unique
+  startYear         DateTime
+  endYear           DateTime
+  isCurrentYear     Boolean             @default(false)
+  classEnrollment   ClassEnrollment[]
+  teaching          Teaching[]
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  frais             Frais[] // ✅ OPTIONNEL MAIS PROPRE
+  CalendarEvent     CalendarEvent[]
+  invoices          Invoice[]
+  grades            StudentGrade[]
+  parentFeedback    ParentFeedback[]
+  attendanceSession AttendanceSession[]
+  branchId             String
+  branch               Branch             @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  @@index([branchId, startYear, endYear])
+  @@index([branchId, isCurrentYear])
+  @@unique([branchId, startYear, endYear])
+}
+
+model ClassEnrollment {
+  id               String          @id @default(cuid())
+  schoolYearId     String
+  classeId         String
+  studentId        String
+  paiement         FamilyPayment[]
+  schoolYear       SchoolYear      @relation(fields: [schoolYearId], references: [id])
+  classe           Classe?         @relation(fields: [classeId], references: [id])
+  student          Student?        @relation(fields: [studentId], references: [id])
+  statusEnrollment Boolean?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  invoices         Invoice[]
+  branchId             String
+  branch               Branch             @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  @@unique([schoolYearId, studentId])
+  @@index([schoolYearId])
+  @@index([classeId])
+  @@index([studentId])
+  @@index([branchId])
+  @@index([branchId, classeId])
+  @@index([branchId, schoolYearId])
+}
+
+model Teacher {
+  id                String              @id @default(cuid())
+  branchMemberId            String?
+  teaching          Teaching[]
+  branchMember              BranchMember?               @relation(fields: [branchMemberId], references: [id])
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  fiche             fiche[]
+  teacherAttendance TeacherAttendance[]
+  attendanceSession AttendanceSession[]
+
+  @@unique([branchMemberId])
+}
+
+model Teaching {
+  id                String              @id @default(cuid())
+  teacherId         String
+  classeId          String
+  schoolYearId      String
+  titulaire         Boolean?
+  statusTeaching    Boolean?
+  branchId          String?
+  branch            Branch?             @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  teacher           Teacher?            @relation(fields: [teacherId], references: [id])
+  classe            Classe?             @relation(fields: [classeId], references: [id])
+  schoolYear        SchoolYear?         @relation(fields: [schoolYearId], references: [id])
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  cours             Cours               @relation(fields: [coursId], references: [id])
+  coursId           String
+  CalendarEvent     CalendarEvent[]
+  Schedule          Schedule[]
+  fiche             fiche[]
+  attendanceSession AttendanceSession[]
+
+  @@unique([classeId, schoolYearId, coursId])
+  @@index([teacherId])
+  @@index([classeId])
+  @@index([schoolYearId])
+  @@index([branchId])
+  @@index([branchId, teacherId])
+  @@index([branchId, classeId])
+  @@index([branchId, schoolYearId])
+}
+
+model Cours {
+  id          String     @id @default(cuid())
+  codeCours   String     @unique
+  nameCours   String
+  description String?
+  ponderation Int
+  teaching    Teaching[]
+  statusCours Boolean?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  period      period[]   @relation("PeriodSubjects")
+  branchId             String
+  branch               Branch             @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  @@index([branchId])
+}
+
+model Schedule {
+  id         String    @id @default(cuid())
+  day        Day
+  hour       DateTime  @db.Time
+  teachingId String?
+  createdBy  String?
+  branchMember       BranchMember?     @relation(fields: [createdBy], references: [id])
+  teaching   Teaching? @relation(fields: [teachingId], references: [id])
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@unique([day, hour, teachingId], map: "unique_schedule_per_teacher")
+  @@index([teachingId])
+  @@index([createdBy])
+}
+
+enum Day {
+  Dimanche
+  Lundi
+  Mardi
+  Mercredi
+  Jeudi
+  Vendredi
+  Samedi
+}
+
+model CalendarEvent {
+  id           String    @id @default(cuid())
+  title        String?
+  dateStart    DateTime
+  dateEnd      DateTime?
+  allDay       Boolean   @default(false)
+  location     String?
+  description  String?
+  createdBy    String
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  schoolYearId String
+  teachingId   String?
+  typeId       String?
+  classeId     String?
+  branchId             String
+  branch               Branch             @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  teaching   Teaching?   @relation(fields: [teachingId], references: [id])
+  schoolYear SchoolYear? @relation(fields: [schoolYearId], references: [id])
+  eventType  EventType?  @relation(fields: [typeId], references: [id])
+
+  recurrence Recurrence? @default(HEBDOMADAIRE)
+  classe     Classe?     @relation(fields: [classeId], references: [id])
+
+  @@index([schoolYearId])
+  @@index([typeId])
+  @@index([branchId])
+  @@index([branchId, schoolYearId])
+  @@index([branchId, dateStart])
+}
+
+model EventType {
+  id     String          @id @default(cuid())
+  name   String          @unique
+  events CalendarEvent[]
+  branchId             String
+  branch               Branch             @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([branchId])
+  @@unique([branchId, name])
+}
+
+model semester {
+  id        Int      @id @default(autoincrement())
+  label     String   @unique(map: "Semester_label_key")
+  startDate DateTime
+  endDate   DateTime
+  period    period[]
+  branchId             String
+  branch               Branch             @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  @@index([branchId])
+  @@unique([branchId, label])
+}
+
+model period {
+  id                Int            @id @default(autoincrement())
+  label             String
+  startDate         DateTime
+  endDate           DateTime
+  semesterId        Int
+  fiche             fiche[]
+  gradesGenerated   Boolean        @default(false) // 👈 AJOUT
+  gradesGeneratedAt DateTime?
+  semester          semester       @relation(fields: [semesterId], references: [id])
+  subject           Cours[]        @relation("PeriodSubjects")
+  grades            StudentGrade[]
+  branchId             String
+  branch               Branch             @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  @@index([semesterId], map: "Period_semesterId_fkey")
+  @@index([branchId])
+  @@index([branchId, semesterId])
+  @@unique([branchId, semesterId, label])
+}
+
+model PeriodResultLock {
+  id        String   @id @default(cuid())
+  periodId  Int
+  status    String
+  createdAt DateTime @default(now())
+  updateAT  DateTime @default(now())
+  branchId             String
+  branch               Branch             @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  @@unique([periodId])
+  @@index([branchId])
+  @@unique([branchId, periodId])
+}
+
+model fiche {
+  id             String   @id
+  dateCreated    DateTime @default(now())
+  dateUpdated    DateTime
+  status         Boolean  @default(false)
+  teacherId      String
+  typeFiche      String
+  classSectionId String
+  lessonId       String
+  coursName      String
+  classeName     String
+  periodId       Int
+  periodeName    String
+  anneeId        String
+  anneeName      String
+  notes          String   @db.Text
+  autres         String   @db.Text
+  ClassSection   Classe   @relation(fields: [classSectionId], references: [id], map: "Fiche_Id_fkey")
+  lesson         Teaching @relation(fields: [lessonId], references: [id])
+  period         period   @relation(fields: [periodId], references: [id])
+  teacher        Teacher  @relation(fields: [teacherId], references: [id], map: "Fiche_teacherId_fkey")
+  branchId             String
+  branch               Branch             @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  @@index([lessonId], map: "Fiche_lessonId_fkey")
+  @@index([periodId], map: "Fiche_periodId_fkey")
+  @@index([branchId])
+  @@index([branchId, anneeId])
+  @@index([branchId, periodId])
+  @@index([branchId, teacherId])
+}
+
+enum Recurrence {
+  JOURNALIER
+  HEBDOMADAIRE
+  MENSUEL
+  SEMESTRIEL
+  TRIMESTRIEL
+  ANNUEL
+}
+
+enum ActionType {
+  LOGIN
+  LOGOUT
+  VISITED_PAGE
+  ACTION
+}
+
+enum DeviceType {
+  MOBILE
+  DESKTOP
+  TABLET
+  OTHER
+}
+
+//////////////////////////////////////////////////////
+// INVOICES
+//////////////////////////////////////////////////////
+
+model Invoice {
+  id           Int    @id @default(autoincrement())
+  enrollmentId String
+  YearId       String
+
+  totalAmount Float
+  discount    Float @default(0)
+  finalAmount Float
+  paidAmount  Float @default(0)
+  branchId             String
+  branch               Branch             @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  status InvoiceStatus @default(UNPAID)
+
+  enrollment ClassEnrollment @relation(fields: [enrollmentId], references: [id])
+  schoolYear SchoolYear      @relation(fields: [YearId], references: [id])
+
+  allocations PaymentAllocation[]
+  @@index([branchId])
+  @@index([branchId, YearId])
+  @@unique([branchId, enrollmentId, YearId])
+}
+
+//////////////////////////////////////////////////////
+// PAYMENT BATCH (PAIEMENT GROUPÉ)
+//////////////////////////////////////////////////////
+
+model PaymentBatch {
+  id          Int             @id @default(autoincrement())
+  parentId    String
+  totalAmount Float
+  status      PaymentStatus   @default(EN_ATTENTE)
+  createdAt   DateTime        @default(now())
+  parent      Parent          @relation(fields: [parentId], references: [id])
+  payments    FamilyPayment[]
+  branchId             String
+  branch               Branch             @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  @@index([branchId])
+  @@index([branchId, parentId])
+}
+
+//////////////////////////////////////////////////////
+// PAYMENTS
+//////////////////////////////////////////////////////
+
+model FamilyPayment {
+  id                String                  @id @default(cuid())
+  parentId          String
+  batchId           Int?
+  amount            Float
+  method            PaymentMethod
+  transactionRef    String
+  notes             String?
+  status            PaymentStatus           @default(EN_ATTENTE)
+  createdAt         DateTime                @default(now())
+  updatedAt         DateTime                @default(now())
+  parent            Parent                  @relation(fields: [parentId], references: [id])
+  batch             PaymentBatch?           @relation(fields: [batchId], references: [id])
+  allocations       PaymentAllocation[]
+  mobileTx          MobileMoneyTransaction?
+  events            PaymentEvent[]
+  fraisId           String
+  frais             Frais?                  @relation(fields: [fraisId], references: [id], onDelete: Restrict)
+  classEnrollment   ClassEnrollment?        @relation(fields: [classEnrollmentId], references: [id], onDelete: Cascade)
+  classEnrollmentId String
+  branchId             String
+  branch               Branch             @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  @@index([fraisId])
+  @@index([classEnrollmentId])
+  @@index([transactionRef])
+  @@index([branchId])
+  @@index([branchId, parentId])
+  @@index([branchId, createdAt])
+  @@unique([branchId, transactionRef])
+}
+
+model CashierExpense {
+  id             String   @id @default(cuid())
+  transactionRef String
+  amount         Float
+  description    String?
+  category       String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  branchId             String
+  branch               Branch             @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  @@index([branchId])
+  @@unique([branchId, transactionRef])
+}
+
+model PaymentAllocation {
+  id              Int    @id @default(autoincrement())
+  familyPaymentId String
+  invoiceId       Int
+  amount          Float
+  branchId             String
+  branch               Branch             @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  familyPayment FamilyPayment @relation(fields: [familyPaymentId], references: [id])
+  invoice       Invoice       @relation(fields: [invoiceId], references: [id])
+
+  @@unique([familyPaymentId, invoiceId])
+  @@index([branchId])
+}
+
+//////////////////////////////////////////////////////
+// MOBILE MONEY
+//////////////////////////////////////////////////////
+
+model MobileMoneyTransaction {
+  id          Int           @id @default(autoincrement())
+  paymentId   String        @unique
+  provider    PaymentMethod
+  phoneNumber String
+  externalId  String        @unique
+  status      PaymentStatus
+  rawResponse String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  branchId             String
+  branch               Branch             @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  payment FamilyPayment @relation(fields: [paymentId], references: [id])
+  @@index([branchId])
+  @@index([branchId, externalId])
+}
+
+//////////////////////////////////////////////////////
+// LOGS / EVENTS
+//////////////////////////////////////////////////////
+
+model PaymentEvent {
+  id        Int      @id @default(autoincrement())
+  paymentId String
+  type      String
+  message   String?
+  createdAt DateTime @default(now())
+  branchId             String
+  branch               Branch             @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  payment FamilyPayment @relation(fields: [paymentId], references: [id])
+  @@index([branchId])
+  @@index([branchId, paymentId])
+}
+
+//////////////////////////////////////////////////////
+// DISCOUNTS
+//////////////////////////////////////////////////////
+
+enum DiscountScope {
+  PARENT
+  GROUP
+  ORPHAN
+}
+
+model DiscountRule {
+  id          Int              @id @default(autoincrement())
+  scope       DiscountScope // 🔥 PARENT / ORPHAN / GROUP
+  category    StudentCategory? // ORPHAN, VIP, etc (optionnel)
+  parentId    String? // si scope = PARENT
+  minChildren Int?
+  percentage  Float
+  createdAt   DateTime         @default(now())
+  parent      Parent?          @relation(fields: [parentId], references: [id])
+  branchId             String
+  branch               Branch             @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  @@index([branchId])
+  @@index([branchId, scope])
+}
+
+model Transaction {
+  id        String   @id @default(uuid())
+  reference String   @unique
+  updatedAt DateTime @default(now())
+  createdAt DateTime @default(now())
+  branchId             String
+  branch               Branch             @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  @@index([branchId])
+}
+
+enum ModePaiement {
+  ESPECES
+  CHEQUE
+  VIREMENT
+  MOBILE_MONEY
+  CARTE_BANCAIRE
+}
+
+//////////////////////////////////////////////////////
+// ENUMS
+//////////////////////////////////////////////////////
+
+enum PaymentMethod {
+  ESPECES
+  MPESA
+  AIRTEL_MONEY
+  ORANGE_MONEY
+  CARTE
+  BANQUE
+}
+
+enum PaymentStatus {
+  VALIDE
+  ANNULE
+  EN_ATTENTE
+  REMBOURSE
+}
+
+enum InvoiceStatus {
+  UNPAID
+  PARTIAL
+  PAID
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  LATE
+  EXCUSED
+}
+
+enum StudentCategory {
+  NORMAL
+  ORPHAN
+  VIP
+  SPONSORED
+  GROUPE
+}
+
+model Session {
+  id                   String   @id
+  expiresAt            DateTime
+  token                String
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  ipAddress            String?
+  userAgent            String?
+  userId               String
+  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  impersonatedBy       String?
+  activeOrganizationId String?
+  activeBranchId String?
+
+  @@unique([token])
+  @@index([userId])
+  @@index([activeOrganizationId])
+  @@index([activeBranchId])
+  @@index([userId, activeOrganizationId])
+  @@index([userId, activeBranchId])
+  @@index([expiresAt])
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([providerId])
+  @@index([accountId])
+  @@unique([providerId, accountId])
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+  @@index([expiresAt])
+  @@map("verification")
+}
+
+model Organization {
+  id                String             @id
+  name              String
+  slug              String
+  logo              String?
+  createdAt         DateTime
+  metadata          String?
+  organizationroles OrganizationRole[]
+  members           Member[]
+  branches          Branch[]
+  invitations       Invitation[]
+
+  @@unique([slug])
+  @@map("organization")
+}
+
+model OrganizationRole {
+  id             String       @id
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  role           String
+  permission     String
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime?    @updatedAt
+
+  @@index([organizationId])
+  @@index([role])
+  @@unique([organizationId, role])
+  @@map("organizationRole")
+}
+
+model Member {
+  id             String         @id
+  organizationId String
+  organization   Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role           String         @default("member")
+  createdAt      DateTime
+  branchMember   BranchMember[]
+
+  @@index([organizationId])
+  @@index([userId])
+  @@index([organizationId, role])
+  @@unique([organizationId, userId])
+  @@map("member")
+}
+
+model Invitation {
+  id             String       @id
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  email          String
+  role           String?
+  status         String       @default("pending")
+  expiresAt      DateTime
+  createdAt      DateTime     @default(now())
+  inviterId      String
+  user           User         @relation(fields: [inviterId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([email])
+  @@index([organizationId, status])
+  @@index([expiresAt])
+  @@index([inviterId])
+  @@index([organizationId, email])
+  @@map("invitation")
+}
+
+model Branch {
+  id               String       @id @default(cuid())
+  name             String
+  code             String?
+  latitude         Float
+  longitude        Float
+  attendanceRadius Int          @default(100)
+  organizationId   String
+  organization     Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  studentAttendance StudentAttendance[]
+  branchemembers            BranchMember[]
+  classes            Classe[]
+  paymentBatch PaymentBatch[]
+  familyPayment FamilyPayment[]
+  fiche fiche[]
+  eventType EventType[]
+  period period[]
+  cours Cours[]
+  schoolYear SchoolYear[]
+  typeFrais TypeFrais[]
+  option Option[]
+  classEnrollment ClassEnrollment[]
+  section Section[]
+  semester semester[]
+  frais Frais[]
+  calendarEvent CalendarEvent[]
+  periodResultLock PeriodResultLock[]
+  cashierExpense CashierExpense[]
+  invoice Invoice[]
+  creneau Creneau[]
+  paymentAllocation PaymentAllocation[]
+  teaching           Teaching[]
+  mobileMoneyTransaction MobileMoneyTransaction[]
+  branchInvitation   BranchInvitation[]
+  attendanceSessions AttendanceSession[]
+  teacherAttendance TeacherAttendance[]
+  personnelAttendance PersonnelAttendance[]
+  studentGrade StudentGrade[]
+  parentFeedback ParentFeedback[]
+  transaction Transaction[]
+  discountRule DiscountRule[]
+  paymentEvent PaymentEvent[]
+
+  @@index([organizationId])
+  @@index([organizationId, isActive])
+  @@index([code])
+  @@unique([organizationId, code])
+}
+
+model BranchMember {
+  id String @id @default(cuid())
+
+  branchId String
+  memberId String
+  role BranchRole
+  teacher Teacher[]
+  parent Parent[]
+  schedule Schedule[]
+  personel Personnel[]
+  student Student[]
+  branch Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  member Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([branchId, memberId])
+  @@index([branchId])
+  @@index([memberId])
+  @@index([branchId, role])
+  @@index([memberId, role])
+}
+
+enum BranchRole {
+  DIRECTOR
+  CAISSIER
+  ADMIN
+  TEACHER
+  PARENT
+  STUDENT
+}
+
+model BranchInvitation {
+  id String @id @default(cuid())
+
+  email    String
+  branchId String
+
+  role  BranchRole
+  token String     @unique
+
+  expiresAt DateTime
+  accepted  Boolean  @default(false)
+
+  createdAt DateTime @default(now())
+
+  branch Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  @@index([branchId])
+  @@index([email])
+  @@unique([branchId, email])
+}
