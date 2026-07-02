@@ -14,22 +14,33 @@ async function isPeriodLocked(periodId: number) {
   return !!lock;
 }
 
-async function lockPeriod(periodId: number) {
+async function lockPeriod(periodId: number, branchId: string) {
   try {
     const existing = await prisma.periodResultLock.findUnique({
-      where: { periodId },
+      where: {
+        branchId_periodId: {
+          periodId,
+          branchId,
+        },
+      },
     });
 
     if (existing?.status === "DONE") return "DONE";
     if (existing?.status === "PROCESSING") return "PROCESSING";
 
     await prisma.periodResultLock.upsert({
-      where: { periodId },
+      where: {
+        branchId_periodId: {
+          periodId,
+          branchId,
+        },
+      },
       update: {
         status: "PROCESSING",
       },
       create: {
         periodId,
+        branchId,
         status: "PROCESSING",
       },
     });
@@ -41,7 +52,7 @@ async function lockPeriod(periodId: number) {
 }
 
 async function finishLock(periodId: number) {
-  await prisma.periodResultLock.update({
+  await prisma.periodResultLock.updateMany({
     where: { periodId },
     data: {
       status: "DONE",
@@ -50,10 +61,13 @@ async function finishLock(periodId: number) {
   });
 }
 
-async function acquireLock(periodId: number) {
+async function acquireLock(periodId: number, branchId: string) {
   return prisma.$transaction(async (tx) => {
-    const lock = await tx.periodResultLock.findUnique({
-      where: { periodId },
+    const lock = await tx.periodResultLock.findFirst({
+      where: {
+        periodId,
+        branchId,
+      },
     });
 
     // DONE = verrou final
@@ -68,13 +82,19 @@ async function acquireLock(periodId: number) {
 
     // lock atomique
     await tx.periodResultLock.upsert({
-      where: { periodId },
+      where: {
+        branchId_periodId: {
+          periodId,
+          branchId,
+        },
+      },
       update: {
         status: "PROCESSING",
         createdAt: new Date(),
       },
       create: {
         periodId,
+        branchId,
         status: "PROCESSING",
         createdAt: new Date(),
       },
@@ -95,10 +115,14 @@ function isLockStale(lock: any) {
 /**
  * GENERATE GRADES
  */
-export async function generateStudentGradesForPeriod(periodId: number) {
+export async function generateStudentGradesForPeriod(
+  periodId: number,
+  branchId: string,
+) {
   try {
     const fiches = await prisma.fiche.findMany({
       where: {
+        branchId,
         periodId,
         typeFiche: "ficheCote",
       },
@@ -108,6 +132,7 @@ export async function generateStudentGradesForPeriod(periodId: number) {
         anneeId: true,
         status: true,
         classSectionId: true,
+        branchId: true,
       },
     });
 
@@ -117,6 +142,7 @@ export async function generateStudentGradesForPeriod(periodId: number) {
     }
     const expectedCount = await prisma.teaching.count({
       where: {
+        branchId,
         schoolYearId: fiches[0].anneeId,
         classeId: fiches[0].classSectionId,
       },
@@ -195,9 +221,10 @@ export async function generateStudentGradesForPeriod(periodId: number) {
       const percentageInt = Number.isFinite(raw) ? Math.round(raw) : 0;
       await prisma.studentGrade.upsert({
         where: {
-          studentId_periodId: {
+          studentId_periodId_branchId: {
             studentId,
             periodId,
+            branchId,
           },
         },
         update: {
@@ -205,6 +232,7 @@ export async function generateStudentGradesForPeriod(periodId: number) {
         },
         create: {
           studentId,
+          branchId,
           schoolYearId,
           periodId,
           score: percentageInt,
@@ -271,8 +299,8 @@ export function startGradeCron() {
 
     for (const period of periods) {
       try {
-        const lock = await prisma.periodResultLock.findUnique({
-          where: { periodId: period.id },
+        const lock = await prisma.periodResultLock.findFirst({
+          where: { periodId: period.id, branchId: period.branchId },
         });
 
         // 🔥 DONE = jamais rejoué
@@ -283,23 +311,36 @@ export function startGradeCron() {
           console.log(`♻️ unlocking stale period ${period.id}`);
 
           await prisma.periodResultLock.update({
-            where: { periodId: period.id },
+            where: {
+              branchId_periodId: {
+                periodId: period.id,
+                branchId: period.branchId,
+              },
+            },
             data: {
               status: "FAILED",
             },
           });
         }
 
-        const lockResult = await acquireLock(period.id);
+        const lockResult = await acquireLock(period.id, period.branchId);
 
         if (lockResult === "DONE") continue;
         if (lockResult === "PROCESSING") continue;
 
         // 🚀 JOB EXECUTION
-        const success = await generateStudentGradesForPeriod(period.id);
+        const success = await generateStudentGradesForPeriod(
+          period.id,
+          period.branchId,
+        );
 
         await prisma.periodResultLock.update({
-          where: { periodId: period.id },
+          where: {
+            branchId_periodId: {
+              periodId: period.id,
+              branchId: period.branchId,
+            },
+          },
           data: {
             status: success ? "DONE" : "FAILED",
           },
@@ -308,7 +349,12 @@ export function startGradeCron() {
         console.error("❌ period error", period.id, e);
 
         await prisma.periodResultLock.update({
-          where: { periodId: period.id },
+          where: {
+            branchId_periodId: {
+              periodId: period.id,
+              branchId: period.branchId,
+            },
+          },
           data: { status: "FAILED" },
         });
       }

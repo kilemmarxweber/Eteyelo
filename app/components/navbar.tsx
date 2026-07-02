@@ -11,6 +11,7 @@ import {
   Menu,
   X,
   ChevronDown,
+  LogOut,
 } from "lucide-react";
 import type { SubmitHandler } from "react-hook-form";
 import { Button } from "@/components/ui/button";
@@ -54,6 +55,7 @@ export default function Navbar() {
   const [servicesOpen, setServicesOpen] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
+  const [isSigningOut, setIsSigningOut] = useState(false);
   const router = useRouter();
   const { data: session } = authClient.useSession();
   const [authMode, setAuthMode] = useState<"login" | "signup">("login");
@@ -92,6 +94,24 @@ export default function Navbar() {
     router.refresh();
     router.push(destination);
     setIsRedirecting(false);
+  };
+
+  const handleSignOut = async () => {
+    setIsSigningOut(true);
+
+    try {
+      await authClient.signOut();
+      setAuthOpen(false);
+      setOpen(false);
+      setServicesOpen(false);
+      toast.success("Déconnecté.");
+      router.push("/");
+      router.refresh();
+    } catch {
+      toast.error("Déconnexion impossible.");
+    } finally {
+      setIsSigningOut(false);
+    }
   };
 
   const onSubmit: SubmitHandler<AuthValues> = async (values) => {
@@ -146,18 +166,24 @@ export default function Navbar() {
       name: "",
     });
   };
+
+  const navLinkClass =
+    "relative py-2 text-sm font-medium text-blue-100/85 transition hover:text-white after:absolute after:bottom-0 after:left-0 after:h-[2px] after:w-0 after:rounded-full after:bg-blue-100 after:transition-all after:duration-300 hover:after:w-full";
+  const mobileLinkClass =
+    "block rounded-xl px-3 py-2 text-sm text-blue-100/85 transition hover:bg-white/10 hover:text-white";
+
   return (
     <header className="sticky top-0 z-[999] px-4 pt-4">
       <div
         className={`
           mx-auto max-w-6xl overflow-hidden
-          rounded-3xl border border-border/60
-          bg-background/100
-          supports-[backdrop-filter]:bg-background/80
+          rounded-3xl border border-blue-100/15
+          bg-blue-950
           backdrop-blur-2xl
-          shadow-[0_8px_30px_rgb(0,0,0,0.12)]
+          text-blue-50
+          shadow-[0_8px_30px_rgb(8,47,73,0.25)]
           transition-all duration-500
-          hover:shadow-[0_12px_40px_rgb(37,99,235,0.10)]
+          hover:shadow-[0_12px_40px_rgb(8,47,73,0.28)]
           ${servicesOpen ? "pb-4" : "pb-0"}
         `}
         onMouseLeave={() => setServicesOpen(false)}
@@ -165,14 +191,20 @@ export default function Navbar() {
         {/* TOP NAVBAR */}
         <div className="flex h-16 items-center justify-between px-6">
           {/* LOGO */}
-          <Link href="/" className="flex items-center gap-3">
-            <div className="rounded-2xl bg-primary p-2 shadow">
-              <GraduationCap className="size-5 text-primary-foreground" />
+          <Link
+            href="/"
+            className="flex items-center gap-3"
+            onMouseEnter={() => setServicesOpen(false)}
+          >
+            <div className="rounded-2xl bg-white/10 p-2 shadow">
+              <GraduationCap className="size-5 text-blue-50" />
             </div>
 
             <div>
-              <h1 className="text-lg font-bold leading-none">Kalasa Edu</h1>
-              <p className="text-xs text-muted-foreground">
+              <h1 className="text-lg font-bold leading-none">
+                Klambocore Sarl
+              </h1>
+              <p className="text-xs text-blue-100/70">
                 Gestion scolaire RDC
               </p>
             </div>
@@ -182,21 +214,23 @@ export default function Navbar() {
           <nav className="hidden md:flex items-center gap-6">
             <Link
               href="/"
-              className="text-sm font-medium hover:text-primary transition"
+              className={navLinkClass}
+              onMouseEnter={() => setServicesOpen(false)}
             >
               Accueil
             </Link>
 
             <Link
               href="/etablissements"
-              className="text-sm font-medium hover:text-primary transition"
+              className={navLinkClass}
+              onMouseEnter={() => setServicesOpen(false)}
             >
               Établissements
             </Link>
 
             <button
               onMouseEnter={() => setServicesOpen(true)}
-              className="flex items-center gap-1 text-sm font-medium hover:text-primary transition"
+              className={`${navLinkClass} flex items-center gap-1`}
             >
               Services
               <ChevronDown
@@ -208,27 +242,38 @@ export default function Navbar() {
 
             <Link
               href="/filieres"
-              className="text-sm font-medium hover:text-primary transition"
+              className={navLinkClass}
+              onMouseEnter={() => setServicesOpen(false)}
             >
               Filières
             </Link>
 
             <Link
-              href="/blog"
-              className="text-sm font-medium hover:text-primary transition"
+              href="/contact"
+              className={navLinkClass}
+              onMouseEnter={() => setServicesOpen(false)}
             >
-              Blog
+              Contact
             </Link>
           </nav>
 
           {/* ACTIONS */}
-          <div className="hidden md:flex items-center gap-2">
+          <div
+            className="hidden md:flex items-center gap-2"
+            onMouseEnter={() => setServicesOpen(false)}
+          >
             {session?.user ? (
-              <Button size="sm" onClick={goToDashboard} disabled={isRedirecting}>
-                Dashboard
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={handleSignOut}
+                disabled={isSigningOut}
+              >
+                <LogOut className="mr-2 size-4" />
+                {isSigningOut ? "Déconnexion..." : "Se déconnecter"}
               </Button>
             ) : (
-              <Button size="sm" onClick={() => setAuthOpen(true)}>
+              <Button size="sm" variant="secondary" onClick={() => setAuthOpen(true)}>
                 Se connecter
               </Button>
             )}
@@ -237,7 +282,7 @@ export default function Navbar() {
           {/* MOBILE BUTTON */}
           <button
             onClick={() => setOpen(!open)}
-            className="md:hidden rounded-xl border p-2"
+            className="rounded-xl border border-blue-100/20 p-2 text-blue-50 transition hover:bg-white/10 md:hidden"
           >
             {open ? <X className="size-5" /> : <Menu className="size-5" />}
           </button>
@@ -255,14 +300,15 @@ export default function Navbar() {
           `}
         >
           <div className="overflow-hidden">
-            <div className="border-t px-6 py-5">
+            <div className="border-t border-blue-100/15 px-6 py-5">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <Link
                   href="/etablissements"
-                  className="group rounded-2xl border p-4 hover:bg-muted/60 transition-all hover:-translate-y-1 hover:shadow-lg"
+                  onClick={() => setServicesOpen(false)}
+                  className="group rounded-2xl border border-blue-100/15 bg-white p-4 text-slate-950 transition-all hover:-translate-y-1 hover:shadow-lg"
                 >
-                  <div className="mb-3 flex size-11 items-center justify-center rounded-2xl bg-primary/10">
-                    <School className="size-5 text-primary" />
+                  <div className="mb-3 flex size-11 items-center justify-center rounded-2xl bg-blue-950/10">
+                    <School className="size-5 text-blue-950" />
                   </div>
                   <h3 className="font-semibold">Établissements</h3>
                   <p className="mt-1 text-sm text-muted-foreground">
@@ -272,10 +318,11 @@ export default function Navbar() {
 
                 <Link
                   href="/filieres"
-                  className="group rounded-2xl border p-4 hover:bg-muted/60 transition-all hover:-translate-y-1 hover:shadow-lg"
+                  onClick={() => setServicesOpen(false)}
+                  className="group rounded-2xl border border-blue-100/15 bg-white p-4 text-slate-950 transition-all hover:-translate-y-1 hover:shadow-lg"
                 >
-                  <div className="mb-3 flex size-11 items-center justify-center rounded-2xl bg-primary/10">
-                    <BookOpen className="size-5 text-primary" />
+                  <div className="mb-3 flex size-11 items-center justify-center rounded-2xl bg-blue-950/10">
+                    <BookOpen className="size-5 text-blue-950" />
                   </div>
                   <h3 className="font-semibold">Filières</h3>
                   <p className="mt-1 text-sm text-muted-foreground">
@@ -285,10 +332,11 @@ export default function Navbar() {
 
                 <Link
                   href="/inscription"
-                  className="group rounded-2xl border p-4 hover:bg-muted/60 transition-all hover:-translate-y-1 hover:shadow-lg"
+                  onClick={() => setServicesOpen(false)}
+                  className="group rounded-2xl border border-blue-100/15 bg-white p-4 text-slate-950 transition-all hover:-translate-y-1 hover:shadow-lg"
                 >
-                  <div className="mb-3 flex size-11 items-center justify-center rounded-2xl bg-primary/10">
-                    <Users className="size-5 text-primary" />
+                  <div className="mb-3 flex size-11 items-center justify-center rounded-2xl bg-blue-950/10">
+                    <Users className="size-5 text-blue-950" />
                   </div>
                   <h3 className="font-semibold">Inscrire une école</h3>
                   <p className="mt-1 text-sm text-muted-foreground">
@@ -302,47 +350,49 @@ export default function Navbar() {
 
         {/* MOBILE MENU */}
         {open && (
-          <div className="border-t bg-background md:hidden">
+          <div className="border-t border-blue-100/15 bg-blue-950 md:hidden">
             <div className="space-y-1 p-4">
               <Link
                 href="/"
-                className="block rounded-xl px-3 py-2 text-sm hover:bg-muted"
+                className={mobileLinkClass}
               >
                 Accueil
               </Link>
               <Link
                 href="/etablissements"
-                className="block rounded-xl px-3 py-2 text-sm hover:bg-muted"
+                className={mobileLinkClass}
               >
                 Établissements
               </Link>
               <Link
                 href="/filieres"
-                className="block rounded-xl px-3 py-2 text-sm hover:bg-muted"
+                className={mobileLinkClass}
               >
                 Filières
               </Link>
               <Link
                 href="/inscription"
-                className="block rounded-xl px-3 py-2 text-sm hover:bg-muted"
+                className={mobileLinkClass}
               >
                 Inscrire une école
               </Link>
               <Link
-                href="/blog"
-                className="block rounded-xl px-3 py-2 text-sm hover:bg-muted"
+                href="/contact"
+                className={mobileLinkClass}
               >
-                Blog
+                Contact
               </Link>
 
               {session?.user ? (
                 <div className="pt-3">
                   <Button
                     className="w-full"
-                    onClick={goToDashboard}
-                    disabled={isRedirecting}
+                    variant="secondary"
+                    onClick={handleSignOut}
+                    disabled={isSigningOut}
                   >
-                    Dashboard
+                    <LogOut className="mr-2 size-4" />
+                    {isSigningOut ? "Déconnexion..." : "Se déconnecter"}
                   </Button>
                 </div>
               ) : (
@@ -384,7 +434,7 @@ export default function Navbar() {
       >
         <div className="relative flex h-full flex-col overflow-hidden">
           {/* Glow */}
-          <div className="absolute -top-20 -right-20 h-72 w-72 rounded-full bg-blue-500/10 blur-3xl" />
+          <div className="absolute -top-20 -right-20 h-72 w-72 rounded-full bg-blue-950/10 blur-3xl" />
 
           {/* HEADER */}
           <div className="flex items-center justify-between border-b p-6">
@@ -394,8 +444,8 @@ export default function Navbar() {
               </h2>
               <p className="text-sm text-muted-foreground">
                 {authMode === "login"
-                  ? "Accédez à votre espace Kalasa Edu"
-                  : "Rejoignez Kalasa Edu"}
+                  ? "Accédez à votre espace Klambocore Sarl"
+                  : "Rejoignez Klambocore Sarl"}
               </p>
             </div>
 
@@ -465,7 +515,7 @@ export default function Navbar() {
                             <Input
                               {...field}
                               type="email"
-                              placeholder="vous@kalasa.example"
+                              placeholder="vous@klambocore.example"
                               className="h-13 w-full rounded-2xl border px-4 py-3 focus:ring-2 focus:ring-primary"
                             />
                           </FormControl>

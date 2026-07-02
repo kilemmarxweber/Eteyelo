@@ -6,7 +6,7 @@ import { Sparkles, Search, ArrowRight } from "lucide-react";
 function AnimatedBackground({ stars, squares, mouse, active }: any) {
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      <div className="absolute inset-0 bg-gradient-to-b from-blue-50 via-white to-white" />
+      <div className="absolute inset-0 bg-gradient-to-b from-blue-950/10 via-white to-white" />
 
       {/* STARS */}
       <div className="stars">
@@ -120,13 +120,13 @@ export default function HeroSection({
       {/* CONTENT */}
       <div className="relative z-10">
         <div className="inline-flex items-center gap-2 rounded-full border bg-white px-3 py-1.5 text-xs shadow-sm">
-          <Sparkles className="size-4 text-blue-600" />
+          <Sparkles className="size-4 text-blue-950" />
           Plateforme SaaS de marketing scolaire
         </div>
 
         <h1 className="mt-5 text-4xl font-black">
           Trouvez les meilleurs{" "}
-          <span className="text-blue-600">établissements</span>
+          <span className="text-blue-950">établissements</span>
         </h1>
 
         <p className="mt-3 text-gray-500">
@@ -134,7 +134,7 @@ export default function HeroSection({
         </p>
 
         <div className="mt-6 flex flex-col sm:flex-row justify-center gap-3 sm:gap-4">
-          <button className="rounded-2xl px-6 h-11 w-full sm:w-auto bg-blue-600 text-white">
+          <button className="rounded-2xl px-6 h-11 w-full sm:w-auto bg-blue-950 text-white">
             Voir établissements <ArrowRight className="ml-2 inline size-4" />
           </button>
 
@@ -161,7 +161,7 @@ export default function HeroSection({
               key={city}
               onClick={() => setCityFilter(city)}
               className={`px-4 py-1 rounded-full text-sm border ${
-                cityFilter === city ? "bg-blue-600 text-white" : "bg-white"
+                cityFilter === city ? "bg-blue-950 text-white" : "bg-white"
               }`}
             >
               {city}

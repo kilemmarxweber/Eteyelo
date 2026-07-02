@@ -96,6 +96,7 @@ export const ModelName = {
   Member: 'Member',
   Invitation: 'Invitation',
   Branch: 'Branch',
+  Partnaire: 'Partnaire',
   BranchMember: 'BranchMember',
   BranchInvitation: 'BranchInvitation'
 } as const
@@ -752,6 +753,12 @@ export const BranchScalarFieldEnum = {
   id: 'id',
   name: 'name',
   code: 'code',
+  image: 'image',
+  adresse: 'adresse',
+  ville: 'ville',
+  pays: 'pays',
+  idnat: 'idnat',
+  tel: 'tel',
   latitude: 'latitude',
   longitude: 'longitude',
   attendanceRadius: 'attendanceRadius',
@@ -762,6 +769,38 @@ export const BranchScalarFieldEnum = {
 } as const
 
 export type BranchScalarFieldEnum = (typeof BranchScalarFieldEnum)[keyof typeof BranchScalarFieldEnum]
+
+
+export const PartnaireScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  slug: 'slug',
+  type: 'type',
+  secteur: 'secteur',
+  description: 'description',
+  image: 'image',
+  tel: 'tel',
+  email: 'email',
+  website: 'website',
+  adresse: 'adresse',
+  ville: 'ville',
+  pays: 'pays',
+  contactName: 'contactName',
+  contactRole: 'contactRole',
+  logo: 'logo',
+  documentUrl: 'documentUrl',
+  contractRef: 'contractRef',
+  contractStart: 'contractStart',
+  contractEnd: 'contractEnd',
+  isActive: 'isActive',
+  isFeatured: 'isFeatured',
+  notes: 'notes',
+  branchId: 'branchId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PartnaireScalarFieldEnum = (typeof PartnaireScalarFieldEnum)[keyof typeof PartnaireScalarFieldEnum]
 
 
 export const BranchMemberScalarFieldEnum = {

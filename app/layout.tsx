@@ -7,8 +7,8 @@ import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/components/theme-provider";
 
 export const metadata: Metadata = {
-  title: "kalasa",
-  description: "Application de gestion scolaire.",
+  title: "Klambocore Sarl",
+  description: "Application de gestion scolaire par Klambocore Sarl.",
 };
 
 export default async function RootLayout({

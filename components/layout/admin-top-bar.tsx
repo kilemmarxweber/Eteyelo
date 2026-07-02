@@ -14,12 +14,14 @@ function useAdminTitle(): string {
 
   if (pathname === "/admin") return "Accueil";
 
-  if (pathname.startsWith("/admin/organizations/new")) return "Nouvelle organisation";
+  if (pathname.startsWith("/admin/organizations/new"))
+    return "Nouvelle organisation";
 
   const orgId = params.organizationId as string | undefined;
   if (orgId && pathname.startsWith(`/admin/organizations/${orgId}`)) {
     if (pathname.includes(`/${orgId}/members/new`)) return "Nouveau membre";
-    if (pathname.includes(`/${orgId}/members/`) && pathname.endsWith("/edit")) return "Modifier le membre";
+    if (pathname.includes(`/${orgId}/members/`) && pathname.endsWith("/edit"))
+      return "Modifier le membre";
     if (pathname.includes(`/${orgId}/members`)) return "Membres";
     if (pathname.includes(`/${orgId}/roles`)) return "Rôles & permissions";
 
@@ -47,7 +49,9 @@ export function AdminTopBar() {
         "supports-backdrop-filter:bg-background/80 md:px-6",
       )}
     >
-      <h1 className="min-w-0 truncate text-lg font-semibold leading-tight">{title}</h1>
+      <h1 className="min-w-0 truncate text-lg font-semibold leading-tight">
+        {title}
+      </h1>
       <div className="flex shrink-0 items-center gap-1">
         <Button
           type="button"
@@ -60,13 +64,13 @@ export function AdminTopBar() {
           <Bell className="size-5" />
         </Button>
         <Button
+          asChild
           type="button"
           variant="ghost"
           size="sm"
           className="hidden sm:inline-flex"
-          render={<Link href="/" />}
         >
-          Site
+          <Link href="/"> Site</Link>
         </Button>
       </div>
     </header>

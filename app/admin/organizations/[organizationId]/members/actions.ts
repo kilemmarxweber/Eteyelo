@@ -1,5 +1,6 @@
 "use server";
 
+import z from "zod";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import type { ZodError } from "zod";
@@ -16,6 +17,7 @@ import {
   updateOrgMemberSchema,
   type CreateOrgMemberInput,
   type RemoveOrgMemberInput,
+  updateUserSchema,
   type UpdateOrgMemberInput,
 } from "./schema";
 import { sendResetPasswordEmail } from "@/lib/email/send-reset-password-email";
@@ -174,6 +176,60 @@ export async function updateOrganizationMemberAction(
   }
 }
 
+export async function updateUserAction(
+  input: z.infer<typeof updateUserSchema>,
+): Promise<{ ok: true } | { ok: false; message: string }> {
+  const parsed = updateUserSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false, message: zodFirstMessage(parsed.error) };
+  }
+  const {
+    id,
+    nom,
+    postnom,
+    prenom,
+    dateOfBirth,
+    sexe,
+    telephone,
+    email,
+    address,
+  } = parsed.data;
+
+  try {
+    const existUser = await prisma.user.findUnique({
+      where: { id },
+    });
+
+    if (!existUser) {
+      return { ok: false, message: "L'utilisateur n'existe pas" };
+    }
+
+    const sexeMap: Record<string, "M" | "F"> = {
+      masculin: "M",
+      feminin: "F",
+    };
+
+    await prisma.user.update({
+      where: {
+        id: id,
+      },
+      data: {
+        name: `${nom} ${postnom} ${prenom}`,
+        postnom,
+        prenom,
+        dateOfBirth,
+        email,
+        sexe: sexe ? sexeMap[sexe] : undefined,
+        telephone,
+        address,
+      },
+    });
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, message: errMessage(e) };
+  }
+}
+
 export async function removeOrganizationMemberAction(
   input: RemoveOrgMemberInput,
 ): Promise<{ ok: true } | { ok: false; message: string }> {
@@ -198,56 +254,6 @@ export async function removeOrganizationMemberAction(
   }
 }
 
-// export async function resetUserPasswordAction(input: { email: string }) {
-//   const email = input.email.toLowerCase();
-
-//   try {
-//     // 1. find user
-//     const user = await prisma.user.findFirst({
-//       where: { email },
-//       include: { accounts: true },
-//     });
-
-//     if (!user) {
-//       return { ok: false, message: "Utilisateur introuvable" };
-//     }
-
-//     // 2. generate password
-
-//     const password = generateSecurePassword(16);
-//     stashAdminCreatedUserPlainPassword(email, password);
-
-//     // 4. update password via Better Auth
-//     // Mets à jour directement via Prisma
-//     // 4. update ACCOUNT password (IMPORTANT)
-//     await prisma.account.updateMany({
-//       where: {
-//         userId: user.id,
-//         // si tu utilises credential provider (recommandé)
-//         // providerId: "credential",
-//       },
-//       data: {
-//         password,
-//       },
-//     });
-
-//     // 5. send email
-//     await sendResetPasswordEmail({
-//       to: email,
-//       name: user.name,
-//       temporaryPassword: password,
-//     });
-
-//     // 6. consume stash (optionnel si tu veux cleanup immédiat)
-//     consumeAdminCreatedUserPlainPassword(email);
-
-//     return { ok: true };
-//   } catch (e) {
-//     consumeAdminCreatedUserPlainPassword(email);
-
-//     return { ok: false, message: errMessage(e) };
-//   }
-// }
 import { hashPassword } from "better-auth/crypto";
 
 export async function resetUserPasswordAction(input: { email: string }) {
@@ -267,16 +273,6 @@ export async function resetUserPasswordAction(input: { email: string }) {
 
     // 🔐 Hash le mot de passe AVANT de le stocker
     const hashedPassword = await hashPassword(plainPassword);
-
-    // Mets à jour le mot de passe (vérifie où il est stocké dans ton schéma)
-    // Option A: Si le password est dans la table User (ton cas semble être ça)
-    // await prisma.user.update({
-    //   where: { id: user.id },
-    //   data: {
-    //     password: hashedPassword,
-    //     updatedAt: new Date(),
-    //   },
-    // });
 
     // Option B: Si le password est dans la table Account (Better Auth standard)
     await prisma.account.updateMany({

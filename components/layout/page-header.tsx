@@ -64,7 +64,9 @@ export function PageHeader({
             {title}
           </h1>
           {subtitle && (
-            <p className="mt-0.5 truncate text-sm text-muted-foreground">{subtitle}</p>
+            <p className="mt-0.5 truncate text-sm text-muted-foreground">
+              {subtitle}
+            </p>
           )}
         </div>
 
@@ -73,7 +75,9 @@ export function PageHeader({
             {actions.map((action, index) => (
               <Button
                 key={index}
-                variant={action.variant === "destructive" ? "destructive" : "outline"}
+                variant={
+                  action.variant === "destructive" ? "destructive" : "outline"
+                }
                 size="sm"
                 onClick={action.onClick}
               >
@@ -86,11 +90,11 @@ export function PageHeader({
 
         {actions.length > 0 && (
           <DropdownMenu>
-            <DropdownMenuTrigger
-              render={<Button variant="ghost" size="icon" className="-mr-2 md:hidden" />}
-            >
-              <MoreVertical className="size-5" />
-              <span className="sr-only">Actions</span>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="-mr-2 md:hidden">
+                <MoreVertical className="size-5" />
+                <span className="sr-only">Actions</span>
+              </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
               <DropdownMenuGroup>
@@ -98,8 +102,11 @@ export function PageHeader({
                   <DropdownMenuItem
                     key={index}
                     onClick={action.onClick}
-                    variant={action.variant === "destructive" ? "destructive" : "default"}
-                    className="min-h-11"
+                    className={cn(
+                      "min-h-11",
+                      action.variant === "destructive" &&
+                        "text-destructive focus:bg-destructive focus:text-destructive-foreground",
+                    )}
                   >
                     {action.icon}
                     {action.label}

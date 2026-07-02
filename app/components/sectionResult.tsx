@@ -1,40 +1,39 @@
 "use client";
 
-import { useMemo, useState, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { Pause, Play, School, Trophy } from "lucide-react";
 
-const studentsData = [
-  { name: "Jean Paul", school: "UNIKIN", class: "L2 Info", score: 89 },
-  { name: "Marie Claire", school: "Boboto", class: "6e", score: 76 },
-  { name: "Kevin", school: "Saint Joseph", class: "L1 Math", score: 92 },
-  { name: "Aline", school: "UNIKIN", class: "L3 Info", score: 81 },
-  { name: "David", school: "Boboto", class: "5e", score: 70 },
-  { name: "Sarah", school: "Saint Joseph", class: "L2 Math", score: 95 },
-];
+export type StudentRanking = {
+  id: string;
+  name: string;
+  school: string;
+  className: string;
+  score: number;
+};
 
 const ITEMS_PER_PAGE = 3;
 
-export default function StudentsSection() {
+type StudentsSectionProps = {
+  rankings: StudentRanking[];
+};
+
+export default function StudentsSection({ rankings }: StudentsSectionProps) {
   const [page, setPage] = useState(0);
   const [autoPlay, setAutoPlay] = useState(true);
-
   const [schoolFilter, setSchoolFilter] = useState("Tous");
   const [classFilter, setClassFilter] = useState("Tous");
 
-  // LISTES FILTRES
-  const schools = ["Tous", ...new Set(studentsData.map((s) => s.school))];
-  const classes = ["Tous", ...new Set(studentsData.map((s) => s.class))];
+  const schools = ["Tous", ...new Set(rankings.map((s) => s.school))];
+  const classes = ["Tous", ...new Set(rankings.map((s) => s.className))];
 
   const filtered = useMemo(() => {
-    return studentsData.filter((s) => {
-      const matchSchool =
-        schoolFilter === "Tous" || s.school === schoolFilter;
-
-      const matchClass =
-        classFilter === "Tous" || s.class === classFilter;
+    return rankings.filter((s) => {
+      const matchSchool = schoolFilter === "Tous" || s.school === schoolFilter;
+      const matchClass = classFilter === "Tous" || s.className === classFilter;
 
       return matchSchool && matchClass;
     });
-  }, [schoolFilter, classFilter]);
+  }, [rankings, schoolFilter, classFilter]);
 
   const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
 
@@ -43,12 +42,10 @@ export default function StudentsSection() {
     return filtered.slice(start, start + ITEMS_PER_PAGE);
   }, [filtered, page]);
 
-  // RESET PAGE si filtre change
   useEffect(() => {
     setPage(0);
   }, [schoolFilter, classFilter]);
 
-  // AUTO PAGINATION
   useEffect(() => {
     if (!autoPlay || totalPages <= 1) return;
 
@@ -60,15 +57,31 @@ export default function StudentsSection() {
   }, [autoPlay, totalPages]);
 
   return (
-    <section className="mx-auto max-w-6xl px-4 mt-20 mb-20">
-      <h2 className="text-2xl font-bold mb-4">
-        Classements des élèves
-      </h2>
+    <section className="mx-auto mb-20 mt-20 max-w-6xl px-4">
+      <div className="mb-5 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+        <div>
+          <p className="text-sm font-semibold uppercase tracking-wide text-blue-950">
+            Résultats
+          </p>
+          <h2 className="text-2xl font-bold">Classements des élèves</h2>
+        </div>
 
-      {/* FILTERS */}
-      <div className="flex flex-col md:flex-row gap-3 mb-4">
+        <button
+          onClick={() => setAutoPlay((v) => !v)}
+          className={`inline-flex w-fit items-center gap-2 rounded-xl border px-4 py-2 text-sm font-medium transition ${
+            autoPlay
+              ? "border-blue-950 bg-blue-950 text-white"
+              : "border-gray-200 bg-white text-gray-700 hover:border-blue-950/30 hover:text-blue-950"
+          }`}
+        >
+          {autoPlay ? <Pause className="size-4" /> : <Play className="size-4" />}
+          Auto pagination: {autoPlay ? "ON" : "OFF"}
+        </button>
+      </div>
+
+      <div className="mb-4 grid gap-3 md:grid-cols-2">
         <select
-          className="border rounded-xl px-3 py-2"
+          className="h-11 rounded-xl border bg-white px-3 text-sm"
           value={schoolFilter}
           onChange={(e) => setSchoolFilter(e.target.value)}
         >
@@ -78,7 +91,7 @@ export default function StudentsSection() {
         </select>
 
         <select
-          className="border rounded-xl px-3 py-2"
+          className="h-11 rounded-xl border bg-white px-3 text-sm"
           value={classFilter}
           onChange={(e) => setClassFilter(e.target.value)}
         >
@@ -86,65 +99,83 @@ export default function StudentsSection() {
             <option key={c}>{c}</option>
           ))}
         </select>
-
-        <button
-          onClick={() => setAutoPlay((v) => !v)}
-          className={`px-4 py-2 rounded-xl border ${
-            autoPlay ? "bg-green-600 text-white" : "bg-white"
-          }`}
-        >
-          Auto pagination: {autoPlay ? "ON" : "OFF"}
-        </button>
       </div>
 
-      {/* TABLE */}
-      <div className="bg-white border rounded-3xl overflow-hidden">
-        <div className="grid grid-cols-4 bg-gray-50 p-4 text-sm font-semibold">
-          <div>Élève</div>
-          <div>École</div>
-          <div>Classe</div>
-          <div>Performance</div>
-        </div>
+      <div className="space-y-3">
+        {paginated.length ? (
+          paginated.map((s, index) => (
+            <article
+              key={s.id}
+              className="group grid gap-4 rounded-2xl border bg-white p-4 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-blue-950/30 hover:shadow-lg hover:shadow-blue-950/10 sm:grid-cols-[minmax(0,1fr)_auto] lg:grid-cols-[minmax(0,1fr)_auto_minmax(190px,280px)] lg:items-center"
+            >
+              <div className="flex min-w-0 items-center gap-4">
+                <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-blue-950/10 text-blue-950">
+                  <span className="text-sm font-black">
+                    #{page * ITEMS_PER_PAGE + index + 1}
+                  </span>
+                </div>
 
-        {paginated.map((s) => (
-          <div
-            key={s.name}
-            className="grid grid-cols-4 p-4 border-t text-sm"
-          >
-            <div className="font-medium">{s.name}</div>
-            <div className="text-gray-600">{s.school}</div>
-            <div className="text-gray-600">{s.class}</div>
-
-            <div className="flex items-center gap-2">
-              <div className="w-full h-2 bg-gray-100 rounded-full">
-                <div
-                  className="h-2 bg-purple-600 rounded-full"
-                  style={{ width: `${s.score}%` }}
-                />
+                <div className="min-w-0">
+                  <h3 className="truncate font-semibold text-gray-950">
+                    {s.name}
+                  </h3>
+                  <p className="mt-1 flex items-center gap-1 text-sm text-gray-500">
+                    <School className="size-4 shrink-0 text-blue-950" />
+                    <span className="truncate">{s.school}</span>
+                  </p>
+                </div>
               </div>
-              <span className="text-xs">{s.score}%</span>
-            </div>
+
+              <div className="inline-flex w-fit items-center rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-700 sm:justify-self-end lg:justify-self-start">
+                {s.className}
+              </div>
+
+              <div className="w-full sm:col-span-2 lg:col-span-1">
+                <div className="mb-2 flex items-center justify-between gap-3 text-xs font-medium text-gray-500">
+                  <span className="flex min-w-0 items-center gap-1">
+                    <Trophy className="size-4 shrink-0 text-blue-950" />
+                    <span className="truncate">Performance</span>
+                  </span>
+                  <span className="shrink-0 font-bold text-blue-950">
+                    {s.score}%
+                  </span>
+                </div>
+                <div className="h-2 rounded-full bg-gray-100">
+                  <div
+                    className="h-2 rounded-full bg-blue-950 transition-all duration-500"
+                    style={{ width: `${s.score}%` }}
+                  />
+                </div>
+              </div>
+            </article>
+          ))
+        ) : (
+          <div className="rounded-2xl border border-dashed bg-white p-6 text-center text-sm text-gray-500">
+            Aucun classement disponible pour le moment.
           </div>
-        ))}
+        )}
       </div>
 
-      {/* PAGINATION CONTROLS */}
-      <div className="flex justify-center gap-2 mt-4">
-        {Array.from({ length: totalPages }).map((_, i) => (
-          <button
-            key={i}
-            onClick={() => {
-              setPage(i);
-              setAutoPlay(false); // switch en manuel
-            }}
-            className={`w-8 h-8 rounded-lg border text-sm ${
-              page === i ? "bg-purple-600 text-white" : "bg-white"
-            }`}
-          >
-            {i + 1}
-          </button>
-        ))}
-      </div>
+      {totalPages > 1 && (
+        <div className="mt-4 flex justify-center gap-2">
+          {Array.from({ length: totalPages }).map((_, i) => (
+            <button
+              key={i}
+              onClick={() => {
+                setPage(i);
+                setAutoPlay(false);
+              }}
+              className={`h-8 w-8 rounded-lg border text-sm transition ${
+                page === i
+                  ? "border-blue-950 bg-blue-950 text-white"
+                  : "bg-white hover:border-blue-950/30 hover:text-blue-950"
+              }`}
+            >
+              {i + 1}
+            </button>
+          ))}
+        </div>
+      )}
     </section>
   );
 }

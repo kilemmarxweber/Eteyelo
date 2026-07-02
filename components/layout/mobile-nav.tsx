@@ -56,8 +56,13 @@ function getUserInitials(name?: string | null, email?: string | null) {
   return display.charAt(0).toUpperCase();
 }
 
-function resolveEcodimBasePath(pathname: string, organizationId?: string | null): string {
-  const fromPath = pathname.match(/^(\/admin\/organizations\/[^/]+\/ecodim)/)?.[1];
+function resolveEcodimBasePath(
+  pathname: string,
+  organizationId?: string | null,
+): string {
+  const fromPath = pathname.match(
+    /^(\/admin\/organizations\/[^/]+\/ecodim)/,
+  )?.[1];
   if (fromPath) return fromPath;
   if (organizationId) return `/admin/organizations/${organizationId}/ecodim`;
   return "/ecodim";
@@ -70,7 +75,8 @@ function MobileNavMoreMenu() {
   const user = session?.user;
 
   const moreActive =
-    pathname.startsWith("/admin/account") || pathname.startsWith("/admin/settings");
+    pathname.startsWith("/admin/account") ||
+    pathname.startsWith("/admin/settings");
 
   const initials = getUserInitials(user?.name, user?.email);
 
@@ -101,14 +107,22 @@ function MobileNavMoreMenu() {
           )}
         >
           {user?.image ? (
-            <AvatarImage src={user.image} alt={getUserDisplayName(user.name, user.email)} />
+            <AvatarImage
+              src={user.image}
+              alt={getUserDisplayName(user.name, user.email)}
+            />
           ) : null}
           <AvatarFallback className="bg-primary/10 text-xs font-semibold text-primary">
             {initials}
           </AvatarFallback>
         </Avatar>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="center" side="top" sideOffset={8} className="min-w-48">
+      <DropdownMenuContent
+        align="center"
+        side="top"
+        sideOffset={8}
+        className="min-w-48"
+      >
         <DropdownMenuItem
           className="min-h-10 cursor-pointer"
           onClick={() => router.push("/admin/account")}
@@ -125,8 +139,9 @@ function MobileNavMoreMenu() {
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem
-          variant="destructive"
-          className="min-h-10 cursor-pointer"
+          className={cn(
+            "min-h-10 cursor-pointer text-destructive focus:bg-destructive focus:text-destructive-foreground",
+          )}
           onClick={() => void handleSignOut()}
         >
           <LogOut className="size-4" />
@@ -152,7 +167,8 @@ function EcodimMobileNav() {
   return (
     <div className="flex flex-1 items-stretch justify-around">
       {navItems.map((item) => {
-        const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
+        const isActive =
+          pathname === item.href || pathname.startsWith(`${item.href}/`);
         const Icon = item.icon;
 
         return (
@@ -162,7 +178,9 @@ function EcodimMobileNav() {
             className={cn(
               "flex min-h-[60px] flex-1 flex-col items-center justify-center gap-1 px-2 py-3 transition-colors",
               "touch-manipulation active:bg-muted/50",
-              isActive ? "text-primary" : "text-muted-foreground hover:text-foreground",
+              isActive
+                ? "text-primary"
+                : "text-muted-foreground hover:text-foreground",
             )}
           >
             <Icon className={cn("size-5", isActive && "stroke-[2.5px]")} />
@@ -195,10 +213,14 @@ function AdminMobileNav() {
         className={cn(
           "flex min-h-[60px] flex-1 flex-col items-center justify-center gap-1 px-2 py-3 transition-colors",
           "touch-manipulation active:bg-muted/50",
-          homeActive ? "text-primary" : "text-muted-foreground hover:text-foreground",
+          homeActive
+            ? "text-primary"
+            : "text-muted-foreground hover:text-foreground",
         )}
       >
-        <LayoutDashboard className={cn("size-5", homeActive && "stroke-[2.5px]")} />
+        <LayoutDashboard
+          className={cn("size-5", homeActive && "stroke-[2.5px]")}
+        />
         <span
           className={cn(
             "text-[10px] font-medium leading-none",
@@ -214,7 +236,9 @@ function AdminMobileNav() {
         className={cn(
           "flex min-h-[60px] flex-1 flex-col items-center justify-center gap-1 px-2 py-3 transition-colors",
           "touch-manipulation active:bg-muted/50",
-          orgActive ? "text-primary" : "text-muted-foreground hover:text-foreground",
+          orgActive
+            ? "text-primary"
+            : "text-muted-foreground hover:text-foreground",
         )}
       >
         <Building2 className={cn("size-5", orgActive && "stroke-[2.5px]")} />

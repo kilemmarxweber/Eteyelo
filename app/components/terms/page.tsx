@@ -1,59 +1,50 @@
 import Navbar from "@/app/components/navbar";
 
+const sections = [
+  {
+    title: "1. Utilisation du service",
+    text: "La plateforme doit être utilisée pour la gestion scolaire, la consultation d'établissements et les services numériques associés.",
+  },
+  {
+    title: "2. Comptes utilisateurs",
+    text: "Chaque utilisateur est responsable de la confidentialité de ses accès et des actions effectuées depuis son compte.",
+  },
+  {
+    title: "3. Données scolaires",
+    text: "Les établissements restent responsables de l'exactitude des informations, résultats, inscriptions et paiements enregistrés.",
+  },
+  {
+    title: "4. Evolution du service",
+    text: "Klambocore Sarl peut améliorer ou modifier la plateforme afin de renforcer la sécurité, la performance et la qualité du service.",
+  },
+];
+
 export default function TermsPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/40">
+    <div className="min-h-screen bg-slate-50">
       <Navbar />
 
       <main className="mx-auto max-w-4xl px-4 py-16">
-        <h1 className="text-4xl font-bold mb-6">Conditions d’utilisation</h1>
+        <p className="text-sm font-semibold uppercase tracking-wide text-blue-950">
+          Conditions
+        </p>
+        <h1 className="mt-2 text-4xl font-bold tracking-tight text-slate-950">
+          Conditions d'utilisation
+        </h1>
+        <p className="mt-4 text-sm leading-relaxed text-slate-600">
+          En utilisant les services de Klambocore Sarl, vous acceptez ces
+          conditions d'utilisation.
+        </p>
 
-        <div className="space-y-6 text-sm text-muted-foreground leading-relaxed">
-          <p>
-            En utilisant Kalasa, vous acceptez les présentes conditions
-            d’utilisation.
-          </p>
-
-          <div>
-            <h2 className="text-lg font-semibold text-foreground mb-2">
-              1. Utilisation du service
-            </h2>
-            <p>
-              Vous vous engagez à utiliser la plateforme uniquement à des fins
-              légales liées à la réservation de voyages et d’expédition de
-              colis.
-            </p>
-          </div>
-
-          <div>
-            <h2 className="text-lg font-semibold text-foreground mb-2">
-              2. Comptes utilisateurs
-            </h2>
-            <p>
-              Vous êtes responsable de la sécurité de votre compte et des
-              activités effectuées depuis celui-ci.
-            </p>
-          </div>
-
-          <div>
-            <h2 className="text-lg font-semibold text-foreground mb-2">
-              3. Réservations
-            </h2>
-            <p>
-              Les réservations sont soumises à disponibilité et confirmation des
-              transporteurs partenaires.
-            </p>
-          </div>
-
-          <div>
-            <h2 className="text-lg font-semibold text-foreground mb-2">
-              4. Modifications
-            </h2>
-            <p>
-              Nous pouvons modifier ces conditions à tout moment pour améliorer
-              le service.
-            </p>
-          </div>
+        <div className="mt-8 space-y-4">
+          {sections.map((section) => (
+            <section key={section.title} className="rounded-2xl border bg-white p-5 shadow-sm">
+              <h2 className="font-semibold text-slate-950">{section.title}</h2>
+              <p className="mt-2 text-sm leading-relaxed text-slate-600">
+                {section.text}
+              </p>
+            </section>
+          ))}
         </div>
       </main>
     </div>

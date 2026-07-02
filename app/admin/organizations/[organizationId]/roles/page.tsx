@@ -62,11 +62,13 @@ export default function OrganizationRolesPage() {
       </div>
 
       <Button
+        asChild
         variant="ghost"
         className="h-11 min-h-[44px] w-full touch-manipulation sm:w-fit sm:px-3"
-        render={<Link href={`/admin/organizations/${organizationId}`} />}
       >
-        ← Accueil organisation
+        <Link href={`/admin/organizations/${organizationId}`}>
+          ← Accueil organisation
+        </Link>
       </Button>
     </div>
   );

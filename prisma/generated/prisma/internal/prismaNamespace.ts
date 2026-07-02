@@ -429,6 +429,7 @@ export const ModelName = {
   Member: 'Member',
   Invitation: 'Invitation',
   Branch: 'Branch',
+  Partnaire: 'Partnaire',
   BranchMember: 'BranchMember',
   BranchInvitation: 'BranchInvitation'
 } as const
@@ -446,7 +447,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "parent" | "student" | "attendanceSession" | "studentAttendance" | "teacherAttendance" | "personnelAttendance" | "parentFeedback" | "studentGrade" | "personnel" | "frais" | "typeFrais" | "classe" | "creneau" | "option" | "section" | "schoolYear" | "classEnrollment" | "teacher" | "teaching" | "cours" | "schedule" | "calendarEvent" | "eventType" | "semester" | "period" | "periodResultLock" | "fiche" | "invoice" | "paymentBatch" | "familyPayment" | "cashierExpense" | "paymentAllocation" | "mobileMoneyTransaction" | "paymentEvent" | "discountRule" | "transaction" | "session" | "account" | "verification" | "organization" | "organizationRole" | "member" | "invitation" | "branch" | "branchMember" | "branchInvitation"
+    modelProps: "user" | "parent" | "student" | "attendanceSession" | "studentAttendance" | "teacherAttendance" | "personnelAttendance" | "parentFeedback" | "studentGrade" | "personnel" | "frais" | "typeFrais" | "classe" | "creneau" | "option" | "section" | "schoolYear" | "classEnrollment" | "teacher" | "teaching" | "cours" | "schedule" | "calendarEvent" | "eventType" | "semester" | "period" | "periodResultLock" | "fiche" | "invoice" | "paymentBatch" | "familyPayment" | "cashierExpense" | "paymentAllocation" | "mobileMoneyTransaction" | "paymentEvent" | "discountRule" | "transaction" | "session" | "account" | "verification" | "organization" | "organizationRole" | "member" | "invitation" | "branch" | "partnaire" | "branchMember" | "branchInvitation"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -3780,6 +3781,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    Partnaire: {
+      payload: Prisma.$PartnairePayload<ExtArgs>
+      fields: Prisma.PartnaireFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.PartnaireFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PartnairePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.PartnaireFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PartnairePayload>
+        }
+        findFirst: {
+          args: Prisma.PartnaireFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PartnairePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.PartnaireFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PartnairePayload>
+        }
+        findMany: {
+          args: Prisma.PartnaireFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PartnairePayload>[]
+        }
+        create: {
+          args: Prisma.PartnaireCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PartnairePayload>
+        }
+        createMany: {
+          args: Prisma.PartnaireCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.PartnaireCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PartnairePayload>[]
+        }
+        delete: {
+          args: Prisma.PartnaireDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PartnairePayload>
+        }
+        update: {
+          args: Prisma.PartnaireUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PartnairePayload>
+        }
+        deleteMany: {
+          args: Prisma.PartnaireDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.PartnaireUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.PartnaireUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PartnairePayload>[]
+        }
+        upsert: {
+          args: Prisma.PartnaireUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PartnairePayload>
+        }
+        aggregate: {
+          args: Prisma.PartnaireAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregatePartnaire>
+        }
+        groupBy: {
+          args: Prisma.PartnaireGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PartnaireGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.PartnaireCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PartnaireCountAggregateOutputType> | number
+        }
+      }
+    }
     BranchMember: {
       payload: Prisma.$BranchMemberPayload<ExtArgs>
       fields: Prisma.BranchMemberFieldRefs
@@ -4603,6 +4678,12 @@ export const BranchScalarFieldEnum = {
   id: 'id',
   name: 'name',
   code: 'code',
+  image: 'image',
+  adresse: 'adresse',
+  ville: 'ville',
+  pays: 'pays',
+  idnat: 'idnat',
+  tel: 'tel',
   latitude: 'latitude',
   longitude: 'longitude',
   attendanceRadius: 'attendanceRadius',
@@ -4613,6 +4694,38 @@ export const BranchScalarFieldEnum = {
 } as const
 
 export type BranchScalarFieldEnum = (typeof BranchScalarFieldEnum)[keyof typeof BranchScalarFieldEnum]
+
+
+export const PartnaireScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  slug: 'slug',
+  type: 'type',
+  secteur: 'secteur',
+  description: 'description',
+  image: 'image',
+  tel: 'tel',
+  email: 'email',
+  website: 'website',
+  adresse: 'adresse',
+  ville: 'ville',
+  pays: 'pays',
+  contactName: 'contactName',
+  contactRole: 'contactRole',
+  logo: 'logo',
+  documentUrl: 'documentUrl',
+  contractRef: 'contractRef',
+  contractStart: 'contractStart',
+  contractEnd: 'contractEnd',
+  isActive: 'isActive',
+  isFeatured: 'isFeatured',
+  notes: 'notes',
+  branchId: 'branchId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PartnaireScalarFieldEnum = (typeof PartnaireScalarFieldEnum)[keyof typeof PartnaireScalarFieldEnum]
 
 
 export const BranchMemberScalarFieldEnum = {
@@ -5027,6 +5140,7 @@ export type GlobalOmitConfig = {
   member?: Prisma.MemberOmit
   invitation?: Prisma.InvitationOmit
   branch?: Prisma.BranchOmit
+  partnaire?: Prisma.PartnaireOmit
   branchMember?: Prisma.BranchMemberOmit
   branchInvitation?: Prisma.BranchInvitationOmit
 }

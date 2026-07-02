@@ -267,7 +267,7 @@ export type StudentGradeOrderByWithRelationInput = {
 
 export type StudentGradeWhereUniqueInput = Prisma.AtLeast<{
   id?: string
-  studentId_periodId?: Prisma.StudentGradeStudentIdPeriodIdCompoundUniqueInput
+  studentId_periodId_branchId?: Prisma.StudentGradeStudentIdPeriodIdBranchIdCompoundUniqueInput
   AND?: Prisma.StudentGradeWhereInput | Prisma.StudentGradeWhereInput[]
   OR?: Prisma.StudentGradeWhereInput[]
   NOT?: Prisma.StudentGradeWhereInput | Prisma.StudentGradeWhereInput[]
@@ -282,7 +282,7 @@ export type StudentGradeWhereUniqueInput = Prisma.AtLeast<{
   schoolYear?: Prisma.XOR<Prisma.SchoolYearScalarRelationFilter, Prisma.SchoolYearWhereInput>
   period?: Prisma.XOR<Prisma.PeriodScalarRelationFilter, Prisma.periodWhereInput>
   branch?: Prisma.XOR<Prisma.BranchScalarRelationFilter, Prisma.BranchWhereInput>
-}, "id" | "studentId_periodId">
+}, "id" | "studentId_periodId_branchId">
 
 export type StudentGradeOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
@@ -397,9 +397,10 @@ export type StudentGradeOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
 }
 
-export type StudentGradeStudentIdPeriodIdCompoundUniqueInput = {
+export type StudentGradeStudentIdPeriodIdBranchIdCompoundUniqueInput = {
   studentId: string
   periodId: number
+  branchId: string
 }
 
 export type StudentGradeCountOrderByAggregateInput = {

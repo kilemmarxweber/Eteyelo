@@ -683,9 +683,10 @@ export async function createStudentGrades(periodId: number) {
 
       await prisma.studentGrade.upsert({
         where: {
-          studentId_periodId: {
+          studentId_periodId_branchId: {
             studentId: enrollment.studentId,
             periodId,
+            branchId: enrollment.branchId,
           },
         },
         update: {

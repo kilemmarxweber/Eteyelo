@@ -193,7 +193,7 @@ model StudentGrade {
   @@index([studentId])
   @@index([schoolYearId])
   @@index([periodId])
-  @@unique([studentId, periodId])
+  @@unique([studentId, periodId, branchId])
   @@index([branchId])
   @@index([branchId, schoolYearId])
   @@index([branchId, periodId])
@@ -971,6 +971,12 @@ model Branch {
   id               String       @id @default(cuid())
   name             String
   code             String?
+  image            String?
+  adresse          String?
+  ville            String?
+  pays             String?
+  idnat            String?
+  tel              String?
   latitude         Float
   longitude        Float
   attendanceRadius Int          @default(100)
@@ -1014,11 +1020,49 @@ model Branch {
   transaction Transaction[]
   discountRule DiscountRule[]
   paymentEvent PaymentEvent[]
+  partnaires Partnaire[]
 
   @@index([organizationId])
   @@index([organizationId, isActive])
   @@index([code])
   @@unique([organizationId, code])
+}
+
+model Partnaire {
+  id          String    @id @default(cuid())
+  name        String
+  slug        String?
+  type        String?
+  secteur     String?
+  description String?   @db.Text
+  image       String
+  tel         String
+  email       String?
+  website     String?
+  adresse     String?
+  ville       String?
+  pays        String?
+  contactName String?
+  contactRole String?
+  logo        String?
+  documentUrl String?
+  contractRef String?
+  contractStart DateTime?
+  contractEnd   DateTime?
+  isActive    Boolean   @default(true)
+  isFeatured  Boolean   @default(false)
+  notes       String?   @db.Text
+  branchId    String?
+  branch      Branch?   @relation(fields: [branchId], references: [id], onDelete: SetNull)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([slug])
+  @@index([branchId])
+  @@index([isActive])
+  @@index([isFeatured])
+  @@index([ville])
+  @@index([pays])
 }
 
 model BranchMember {

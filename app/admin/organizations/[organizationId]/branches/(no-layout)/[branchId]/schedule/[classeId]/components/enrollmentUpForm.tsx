@@ -24,8 +24,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
-import { updateUserAction } from "@/app/auth/user.action";
+import {
+  createOrganizationMemberAction,
+  updateUserAction,
+} from "@/app/admin/organizations/[organizationId]/members/actions";
 import {
   Popover,
   PopoverContent,
@@ -33,34 +35,36 @@ import {
 } from "@/components/ui/popover";
 import { IconCalendar } from "@tabler/icons-react";
 import { Calendar } from "@/components/ui/calendar";
-
 import { PhoneInput } from "@/components/ui/phone-input";
 import generateUsername from "@/src/hooks/generateUsername";
-import { createTeacherAction } from "../../../teacher/teacher.action";
 
 const phoneRegex = new RegExp(
   /^([+]?[\s0-9]+)?(\d{3}|[(]?[0-9]+[)])?([-]?[\s]?[0-9])+$/,
 );
 
-export const userSchema = z.object({
+export const enrollmentSchema = z.object({
   id: z.string().optional(),
-  username: z.string().min(4, {
-    message: "Veuillez saisir votre Code d'acces",
-  }),
+  memberId: z.string().optional(),
+  organizationId: z.string(),
+  username: z.string().optional(),
   nom: z.string().min(3, { message: "Veuillez saisir le nom" }),
   postnom: z.string().min(3, { message: "Veuillez saisir le postnom" }),
   prenom: z.string().min(3, { message: "Veuillez saisir le prenom" }),
   dateOfBirth: z.date(),
   sexe: z.string().min(4, { message: "Veuillez saisir le sexe" }),
   telephone: z.string().regex(phoneRegex, "Invalid Number!"),
-  email: z.string().email({ message: "Veuillez saisir l'email" }),
+  email: z.string().email({ message: "Veuillez saisir un email valide" }),
   address: z.string().optional(), // 👈 optionnel ici
+  orgRole: z.enum(["owner", "admin", "member"]),
+  name: z.string().optional(),
+  statusUser: z.string().optional(),
 });
 
 interface TeacherUpFormProps extends HTMLAttributes<HTMLDivElement> {
   onTeacherCreated?: () => void;
-  initialData?: z.infer<typeof userSchema>;
+  initialData?: z.infer<typeof enrollmentSchema>;
   onTeacherUpdate?: () => void;
+  organizationId: string;
   mode: "create" | "update";
 }
 
@@ -68,6 +72,7 @@ export function EnrollmentUpForm({
   className,
   onTeacherCreated,
   initialData,
+  organizationId,
   mode,
   ...props
 }: TeacherUpFormProps) {
@@ -75,19 +80,22 @@ export function EnrollmentUpForm({
   const [errorMessage, setErrorMessage] = useState("");
   const [userCreated, setUserCreated] = useState(false);
 
-  const form = useForm<z.infer<typeof userSchema>>({
-    resolver: zodResolver(userSchema),
+  const form = useForm<z.infer<typeof enrollmentSchema>>({
+    resolver: zodResolver(enrollmentSchema),
     defaultValues: initialData || {
       id: "",
+      memberId: "",
+      organizationId: organizationId,
       username: "",
       nom: "",
       prenom: "",
       postnom: "",
       sexe: "",
       dateOfBirth: new Date(),
-      address: "",
       telephone: "",
       email: "",
+      address: "",
+      orgRole: "member",
     },
   });
 
@@ -96,7 +104,7 @@ export function EnrollmentUpForm({
     const prenom = form.getValues("prenom");
 
     if (nom && prenom) {
-      const username = generateUsername("Teacher", nom, prenom);
+      const username = generateUsername("prof", nom, prenom);
       if (mode === "create") {
         form.setValue("username", username);
       } else if (!form.getValues("username")) {
@@ -105,46 +113,51 @@ export function EnrollmentUpForm({
     }
   }, [form.watch("nom"), form.watch("prenom"), mode]);
 
-  async function onSubmit(data: z.infer<typeof userSchema>) {
+  async function onSubmit(data: z.infer<typeof enrollmentSchema>) {
     setIsLoading(true);
     setErrorMessage("");
 
     try {
       if (mode === "create") {
-        const { id, ...cleanData } = data;
-        const [teacher, err] = await createTeacherAction({
-          username: data.username,
-          nom: data.nom,
-          postnom: data.postnom,
-          prenom: data.prenom,
-          sexe: data.sexe,
-          telephone: data.telephone,
-          email: data.email,
-          dateOfBirth: data.dateOfBirth,
-          address: data.address || "",
+        const res = await createOrganizationMemberAction({
+          ...data,
+          name: `${data.nom} ${data.postnom} ${data.prenom}`,
+          statusUser: "enseignant",
         });
-        if (err) {
-          throw new Error(err.message);
+        if (!res.ok) {
+          throw new Error(res.message);
         }
         toast.success("Enseignant créé avec succès");
       } else {
-        const [teacher, err] = await updateUserAction({
-          id: data.id || "", // Assuming username is used as ID, adjust if needed
-          ...data,
+        if (!data.memberId) {
+          throw new Error("L'identifiant du membre est manquant.");
+        }
+        const res = await updateUserAction({
+          id: data.id,
+          nom: data.nom,
+          postnom: data.postnom,
+          prenom: data.prenom,
+          dateOfBirth: data.dateOfBirth,
+          sexe: data.sexe,
+          telephone: data.telephone,
+          email: data.email,
+          address: data.address,
         });
-        // Action de mise à jour
-        if (err) {
-          throw new Error(err.message);
+
+        if (!res.ok) {
+          throw new Error(res.message);
         }
         toast.success("Enseignant mis à jour avec succès");
       }
       setUserCreated(true);
       onTeacherCreated && onTeacherCreated(); // Appeler la fonction de rafraîchissement
-    } catch (error) {
+    } catch (error: any) {
+      setErrorMessage(error.message);
       toast.error(
-        mode === "create"
-          ? "Échec de la création de l'enseignant"
-          : "Échec de la mise à jour de l' enseignant",
+        error.message ||
+          (mode === "create"
+            ? "Échec de la création de l'enseignant"
+            : "Échec de la mise à jour de l' enseignant"),
       );
     } finally {
       setIsLoading(false);
@@ -204,7 +217,7 @@ export function EnrollmentUpForm({
               name="dateOfBirth"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Date d'affectation</FormLabel>
+                  <FormLabel>Date de naissance</FormLabel>
                   <Popover>
                     <PopoverTrigger asChild>
                       <FormControl>
@@ -324,7 +337,7 @@ export function EnrollmentUpForm({
                   <FormLabel>Code d'acces</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="votre code sera generé automatiquement"
+                      placeholder="Le code sera généré automatiquement"
                       {...field}
                       disabled
                     />
@@ -336,8 +349,8 @@ export function EnrollmentUpForm({
 
             <Button className="mt-2" loading={isLoading}>
               {mode === "create"
-                ? "Enregistrer l'utilisateur"
-                : "Mettre à jour l'utilisateur"}
+                ? "Enregistrer l'enseignant"
+                : "Mettre à jour l'enseignant"}
             </Button>
             {userCreated && <DialogClose />}
             {errorMessage && (

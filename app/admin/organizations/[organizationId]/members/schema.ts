@@ -46,6 +46,18 @@ export const removeOrgMemberSchema = z.object({
   memberId: z.string().min(1),
 });
 
+export const updateUserSchema = z.object({
+  id: z.string().optional(),
+  nom: z.string().min(3, { message: "Veuillez saisir le nom" }),
+  postnom: z.string().min(3, { message: "Veuillez saisir le postnom" }),
+  prenom: z.string().min(3, { message: "Veuillez saisir le prenom" }),
+  dateOfBirth: z.date(),
+  sexe: z.string().min(4, { message: "Veuillez saisir le sexe" }),
+  telephone: z.string().regex(phoneRegex, "Invalid Number!"),
+  email: z.string().email({ message: "Veuillez saisir un email valide" }),
+  address: z.string().optional(),
+});
+
 export type CreateOrgMemberInput = z.infer<typeof createOrgMemberSchema>;
 export type UpdateOrgMemberInput = z.infer<typeof updateOrgMemberSchema>;
 export type RemoveOrgMemberInput = z.infer<typeof removeOrgMemberSchema>;

@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { IconReload, IconTrash } from "@tabler/icons-react";
+import { IconReload } from "@tabler/icons-react";
 import { type Row } from "@tanstack/react-table";
 import { toast } from "sonner";
 
@@ -18,7 +18,6 @@ import {
 } from "@/components/ui/dialog";
 import { IUser } from "@/src/interfaces/User";
 import { resetUserPasswordAction } from "@/app/admin/organizations/[organizationId]/members/actions";
-// import { resetUserPasswordAction } from "@/app/auth/user.action";
 
 interface ResetUsersDialogProps extends React.ComponentPropsWithoutRef<
   typeof Dialog
@@ -41,8 +40,8 @@ export function ResetUsersDialog({
       {showTrigger ? (
         <DialogTrigger asChild>
           <Button variant="outline" size="sm">
-            <IconTrash className="mr-2 size-4" aria-hidden="true" />
-            Reset ({email.length})
+            <IconReload className="mr-2 size-4" aria-hidden="true" />
+            Réinitialiser
           </Button>
         </DialogTrigger>
       ) : null}

@@ -18,6 +18,7 @@ export const gradeWorker = new Worker(
       },
       create: {
         periodId,
+        branchId: job.data.branchId,
         status: "PROCESSING",
       },
     });
@@ -28,7 +29,10 @@ export const gradeWorker = new Worker(
     }
 
     try {
-      const success = await generateStudentGradesForPeriod(periodId);
+      const success = await generateStudentGradesForPeriod(
+        periodId,
+        job.data.branchId,
+      );
 
       await prisma.periodResultLock.update({
         where: { periodId },

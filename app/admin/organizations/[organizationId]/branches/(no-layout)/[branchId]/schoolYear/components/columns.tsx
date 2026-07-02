@@ -79,6 +79,7 @@ export const columns: ColumnDef<ISchoolYear>[] = [
           startYear={row.original.startYear}
           endYear={row.original.endYear}
           isCurrentYear={row.original.isCurrentYear}
+          branchId={row.original.branchId}
           //refetchData={() => fetchSchoolYears()}
         />
       );
@@ -105,7 +106,8 @@ export const columns: ColumnDef<ISchoolYear>[] = [
           <UpdateSchoolYearDialog
             open={showUpdateTaskSheet}
             onOpenChange={setShowUpdateTaskSheet}
-            schoolYear={row.original} // Passerlesdonnéesactuellesdel'élèveonSuccess={() => row.toggleSelected(false)}
+            schoolYear={row.original} 
+            branchId={row.original.branchId}// Passerlesdonnéesactuellesdel'élèveonSuccess={() => row.toggleSelected(false)}
           />
 
           <DeleteSchoolYearsDialog

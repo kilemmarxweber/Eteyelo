@@ -1,42 +1,48 @@
 import Navbar from "@/app/components/navbar";
 
+const supportItems = [
+  {
+    title: "Assistance compte",
+    text: "Aide à la connexion, aux accès administrateurs et à la gestion des utilisateurs.",
+  },
+  {
+    title: "Support établissement",
+    text: "Accompagnement pour les classes, élèves, enseignants, paiements et bulletins.",
+  },
+  {
+    title: "Incident technique",
+    text: "Analyse des erreurs, lenteurs, imports de données ou problèmes d'affichage.",
+  },
+];
+
 export default function SupportPage() {
-    return (
-        <div className="min-h-screen bg-gradient-to-b from-background to-muted/40">
-            <Navbar />
+  return (
+    <div className="min-h-screen bg-slate-50">
+      <Navbar />
 
-            <main className="mx-auto max-w-4xl px-4 py-16">
-                <h1 className="text-4xl font-bold mb-6">Support client</h1>
+      <main className="mx-auto max-w-5xl px-4 py-16">
+        <p className="text-sm font-semibold uppercase tracking-wide text-blue-950">
+          Support
+        </p>
+        <h1 className="mt-2 text-4xl font-bold tracking-tight text-slate-950">
+          Nous aidons votre équipe à avancer rapidement
+        </h1>
+        <p className="mt-4 max-w-2xl text-sm leading-relaxed text-slate-600">
+          Le support Klambocore Sarl accompagne les écoles dans la configuration,
+          l'utilisation quotidienne et la résolution des incidents.
+        </p>
 
-                <div className="space-y-6 text-sm text-muted-foreground">
-                    <p>
-                        Besoin d’aide ? Notre équipe est disponible pour vous assister.
-                    </p>
-
-                    <div className="space-y-4">
-                        <div className="rounded-2xl border p-5 bg-background">
-                            <h2 className="font-semibold text-foreground">
-                                🚍 Problème de réservation
-                            </h2>
-                            <p>Contactez-nous avec votre numéro de ticket.</p>
-                        </div>
-
-                        <div className="rounded-2xl border p-5 bg-background">
-                            <h2 className="font-semibold text-foreground">
-                                ✈️ Vols et billets
-                            </h2>
-                            <p>Assistance pour modifications ou annulations.</p>
-                        </div>
-
-                        <div className="rounded-2xl border p-5 bg-background">
-                            <h2 className="font-semibold text-foreground">
-                                📦 Colis
-                            </h2>
-                            <p>Suivi et support des expéditions.</p>
-                        </div>
-                    </div>
-                </div>
-            </main>
+        <div className="mt-8 grid gap-4 md:grid-cols-3">
+          {supportItems.map((item) => (
+            <div key={item.title} className="rounded-2xl border bg-white p-5 shadow-sm">
+              <h2 className="font-semibold text-slate-950">{item.title}</h2>
+              <p className="mt-3 text-sm leading-relaxed text-slate-600">
+                {item.text}
+              </p>
+            </div>
+          ))}
         </div>
-    );
+      </main>
+    </div>
+  );
 }
