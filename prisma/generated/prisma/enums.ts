@@ -136,3 +136,13 @@ export const BranchRole = {
 } as const
 
 export type BranchRole = (typeof BranchRole)[keyof typeof BranchRole]
+
+
+export const PlatformSupportEscalationStatus = {
+  OPEN: 'OPEN',
+  IN_PROGRESS: 'IN_PROGRESS',
+  RESOLVED: 'RESOLVED',
+  CLOSED: 'CLOSED'
+} as const
+
+export type PlatformSupportEscalationStatus = (typeof PlatformSupportEscalationStatus)[keyof typeof PlatformSupportEscalationStatus]

@@ -98,7 +98,11 @@ export const ModelName = {
   Branch: 'Branch',
   Partnaire: 'Partnaire',
   BranchMember: 'BranchMember',
-  BranchInvitation: 'BranchInvitation'
+  BranchInvitation: 'BranchInvitation',
+  PlatformSupportAgent: 'PlatformSupportAgent',
+  OrganizationSupportAgent: 'OrganizationSupportAgent',
+  OrganizationSupportBranchScope: 'OrganizationSupportBranchScope',
+  PlatformSupportEscalation: 'PlatformSupportEscalation'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -826,6 +830,66 @@ export const BranchInvitationScalarFieldEnum = {
 } as const
 
 export type BranchInvitationScalarFieldEnum = (typeof BranchInvitationScalarFieldEnum)[keyof typeof BranchInvitationScalarFieldEnum]
+
+
+export const PlatformSupportAgentScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  displayTitle: 'displayTitle',
+  bio: 'bio',
+  specialties: 'specialties',
+  image: 'image',
+  isActive: 'isActive',
+  isLead: 'isLead',
+  sortOrder: 'sortOrder',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PlatformSupportAgentScalarFieldEnum = (typeof PlatformSupportAgentScalarFieldEnum)[keyof typeof PlatformSupportAgentScalarFieldEnum]
+
+
+export const OrganizationSupportAgentScalarFieldEnum = {
+  id: 'id',
+  memberId: 'memberId',
+  organizationId: 'organizationId',
+  displayTitle: 'displayTitle',
+  bio: 'bio',
+  specialties: 'specialties',
+  isActive: 'isActive',
+  isPrimary: 'isPrimary',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type OrganizationSupportAgentScalarFieldEnum = (typeof OrganizationSupportAgentScalarFieldEnum)[keyof typeof OrganizationSupportAgentScalarFieldEnum]
+
+
+export const OrganizationSupportBranchScopeScalarFieldEnum = {
+  id: 'id',
+  supportId: 'supportId',
+  branchId: 'branchId'
+} as const
+
+export type OrganizationSupportBranchScopeScalarFieldEnum = (typeof OrganizationSupportBranchScopeScalarFieldEnum)[keyof typeof OrganizationSupportBranchScopeScalarFieldEnum]
+
+
+export const PlatformSupportEscalationScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  organizationSupportId: 'organizationSupportId',
+  requesterUserId: 'requesterUserId',
+  assignedPlatformAgentId: 'assignedPlatformAgentId',
+  subject: 'subject',
+  message: 'message',
+  status: 'status',
+  priority: 'priority',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  resolvedAt: 'resolvedAt'
+} as const
+
+export type PlatformSupportEscalationScalarFieldEnum = (typeof PlatformSupportEscalationScalarFieldEnum)[keyof typeof PlatformSupportEscalationScalarFieldEnum]
 
 
 export const SortOrder = {

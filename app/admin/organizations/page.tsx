@@ -22,18 +22,30 @@ export default function AdminOrganizationsPage() {
             ? "Chargement…"
             : `${orgs.length} organisation${orgs.length > 1 ? "s" : ""}`}
         </p>
-        {canCreateOrganization ? (
-          <Button
-            size="sm"
-            className="h-11 min-h-[44px] gap-1.5 touch-manipulation sm:h-9 sm:min-h-0"
-            asChild
-          >
-            <Link href="/admin/organizations/new">
-              <Plus className="size-4" />
-              Créer{" "}
-            </Link>
-          </Button>
-        ) : null}
+        <div className="flex flex-wrap gap-2">
+          {canCreateOrganization ? (
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-11 min-h-[44px] touch-manipulation sm:h-9 sm:min-h-0"
+              asChild
+            >
+              <Link href="/admin/platform-support">Support Klambocore</Link>
+            </Button>
+          ) : null}
+          {canCreateOrganization ? (
+            <Button
+              size="sm"
+              className="h-11 min-h-[44px] gap-1.5 touch-manipulation sm:h-9 sm:min-h-0"
+              asChild
+            >
+              <Link href="/admin/organizations/new">
+                <Plus className="size-4" />
+                Créer{" "}
+              </Link>
+            </Button>
+          ) : null}
+        </div>
       </div>
 
       {orgs.length === 0 && !isPending ? (

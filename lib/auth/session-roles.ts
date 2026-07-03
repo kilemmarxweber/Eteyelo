@@ -75,6 +75,13 @@ export function canManageOrganization(
   );
 }
 
+export function isOrganizationSupportRole(
+  session: any,
+  ...extraRoles: unknown[]
+): boolean {
+  return hasSessionRole(session, [ORG_ROLE.SUPPORT, "support"], ...extraRoles);
+}
+
 export function canAccessTeachingArea(
   session: any,
   ...extraRoles: unknown[]

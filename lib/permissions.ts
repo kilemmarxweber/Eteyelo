@@ -19,6 +19,7 @@ import {
 export const APP_ROLE = {
   ADMIN: "admin",
   USER: "user",
+  PLATFORM_SUPPORT: "platform_support",
 } as const;
 export const BRANCH_ROLE = {
   DIRECTEUR: "directeur",
@@ -30,6 +31,19 @@ export function isAppAdminRole(role: string | null | undefined): boolean {
   return role === APP_ROLE.ADMIN;
 }
 
+export function isPlatformSupportAppRole(
+  role: string | null | undefined,
+): boolean {
+  return role === APP_ROLE.PLATFORM_SUPPORT;
+}
+
+/** Admin plateforme ou agent support Klambocore (permissions élevées). */
+export function hasPlatformSupportPrivileges(
+  role: string | null | undefined,
+): boolean {
+  return isAppAdminRole(role) || isPlatformSupportAppRole(role);
+}
+
 export const ORG_ROLE = {
   OWNER: "owner",
   GESTIONNAIRE: "gestionnaire",
@@ -39,6 +53,7 @@ export const ORG_ROLE = {
   MONITEUR: "moniteur",
   RESPONSABLE: "responsable",
   SURVEILLANT: "surveillant",
+  SUPPORT: "support",
 } as const;
 
 export const ALL_ORG_ROLE_SLUGS = [
@@ -50,6 +65,7 @@ export const ALL_ORG_ROLE_SLUGS = [
   ORG_ROLE.MONITEUR,
   ORG_ROLE.RESPONSABLE,
   ORG_ROLE.SURVEILLANT,
+  ORG_ROLE.SUPPORT,
 ] as const;
 
 export const accessControlStatements = {
@@ -62,6 +78,9 @@ export const accessControlStatements = {
   parent: ["create", "read", "update", "delete"],
   personnel: ["create", "read", "update", "delete"],
   schedule: ["create", "read", "update", "delete"],
+  platformSupport: ["create", "read", "update", "delete"],
+  organizationSupport: ["create", "read", "update", "delete"],
+  platformEscalation: ["create", "read", "update", "assign", "close"],
 } as const;
 
 type StatementShape = {
@@ -76,6 +95,17 @@ export const applicationRoleStatements: Record<string, StatementShape> = {
     ...adminPluginAdminAc.statements,
     ...organizationPluginAdminAc.statements,
     schedule: ["create", "read", "update", "delete"],
+    platformSupport: ["create", "read", "update", "delete"],
+    organizationSupport: ["create", "read", "update", "delete"],
+    platformEscalation: ["create", "read", "update", "assign", "close"],
+  },
+  [APP_ROLE.PLATFORM_SUPPORT]: {
+    ...organizationPluginAdminAc.statements,
+    member: ["read"],
+    branch: ["read"],
+    platformSupport: ["read", "update"],
+    organizationSupport: ["read"],
+    platformEscalation: ["create", "read", "update", "assign", "close"],
   },
   [APP_ROLE.USER]: {
     ...adminPluginUserAc.statements,
@@ -88,11 +118,15 @@ export const organizationRoleStatements: Record<string, StatementShape> = {
     ...ownerAc.statements,
     inscription: ["create", "share", "update", "delete"],
     schedule: ["create", "read", "update", "delete"],
+    organizationSupport: ["create", "read", "update", "delete"],
+    platformEscalation: ["read"],
   },
   [ORG_ROLE.GESTIONNAIRE]: {
     ...organizationPluginMemberAc.statements,
     ...organizationPluginAdminAc.statements,
     schedule: ["create", "read", "update", "delete"],
+    organizationSupport: ["create", "read", "update", "delete"],
+    platformEscalation: ["read"],
   },
   [ORG_ROLE.PARENT]: { ...organizationPluginMemberAc.statements },
   [ORG_ROLE.STUDENT]: { ...organizationPluginMemberAc.statements },
@@ -109,6 +143,13 @@ export const organizationRoleStatements: Record<string, StatementShape> = {
     schedule: ["read"],
   },
   [ORG_ROLE.SURVEILLANT]: { ...organizationPluginMemberAc.statements },
+  [ORG_ROLE.SUPPORT]: {
+    ...organizationPluginMemberAc.statements,
+    member: ["read"],
+    branch: ["read"],
+    organizationSupport: ["read"],
+    platformEscalation: ["create", "read"],
+  },
 };
 
 const authAccessControl = createAccessControl(accessControlStatements);

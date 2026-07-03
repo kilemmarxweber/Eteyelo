@@ -431,7 +431,11 @@ export const ModelName = {
   Branch: 'Branch',
   Partnaire: 'Partnaire',
   BranchMember: 'BranchMember',
-  BranchInvitation: 'BranchInvitation'
+  BranchInvitation: 'BranchInvitation',
+  PlatformSupportAgent: 'PlatformSupportAgent',
+  OrganizationSupportAgent: 'OrganizationSupportAgent',
+  OrganizationSupportBranchScope: 'OrganizationSupportBranchScope',
+  PlatformSupportEscalation: 'PlatformSupportEscalation'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -447,7 +451,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "parent" | "student" | "attendanceSession" | "studentAttendance" | "teacherAttendance" | "personnelAttendance" | "parentFeedback" | "studentGrade" | "personnel" | "frais" | "typeFrais" | "classe" | "creneau" | "option" | "section" | "schoolYear" | "classEnrollment" | "teacher" | "teaching" | "cours" | "schedule" | "calendarEvent" | "eventType" | "semester" | "period" | "periodResultLock" | "fiche" | "invoice" | "paymentBatch" | "familyPayment" | "cashierExpense" | "paymentAllocation" | "mobileMoneyTransaction" | "paymentEvent" | "discountRule" | "transaction" | "session" | "account" | "verification" | "organization" | "organizationRole" | "member" | "invitation" | "branch" | "partnaire" | "branchMember" | "branchInvitation"
+    modelProps: "user" | "parent" | "student" | "attendanceSession" | "studentAttendance" | "teacherAttendance" | "personnelAttendance" | "parentFeedback" | "studentGrade" | "personnel" | "frais" | "typeFrais" | "classe" | "creneau" | "option" | "section" | "schoolYear" | "classEnrollment" | "teacher" | "teaching" | "cours" | "schedule" | "calendarEvent" | "eventType" | "semester" | "period" | "periodResultLock" | "fiche" | "invoice" | "paymentBatch" | "familyPayment" | "cashierExpense" | "paymentAllocation" | "mobileMoneyTransaction" | "paymentEvent" | "discountRule" | "transaction" | "session" | "account" | "verification" | "organization" | "organizationRole" | "member" | "invitation" | "branch" | "partnaire" | "branchMember" | "branchInvitation" | "platformSupportAgent" | "organizationSupportAgent" | "organizationSupportBranchScope" | "platformSupportEscalation"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -4003,6 +4007,302 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    PlatformSupportAgent: {
+      payload: Prisma.$PlatformSupportAgentPayload<ExtArgs>
+      fields: Prisma.PlatformSupportAgentFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.PlatformSupportAgentFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PlatformSupportAgentPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.PlatformSupportAgentFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PlatformSupportAgentPayload>
+        }
+        findFirst: {
+          args: Prisma.PlatformSupportAgentFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PlatformSupportAgentPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.PlatformSupportAgentFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PlatformSupportAgentPayload>
+        }
+        findMany: {
+          args: Prisma.PlatformSupportAgentFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PlatformSupportAgentPayload>[]
+        }
+        create: {
+          args: Prisma.PlatformSupportAgentCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PlatformSupportAgentPayload>
+        }
+        createMany: {
+          args: Prisma.PlatformSupportAgentCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.PlatformSupportAgentCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PlatformSupportAgentPayload>[]
+        }
+        delete: {
+          args: Prisma.PlatformSupportAgentDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PlatformSupportAgentPayload>
+        }
+        update: {
+          args: Prisma.PlatformSupportAgentUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PlatformSupportAgentPayload>
+        }
+        deleteMany: {
+          args: Prisma.PlatformSupportAgentDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.PlatformSupportAgentUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.PlatformSupportAgentUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PlatformSupportAgentPayload>[]
+        }
+        upsert: {
+          args: Prisma.PlatformSupportAgentUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PlatformSupportAgentPayload>
+        }
+        aggregate: {
+          args: Prisma.PlatformSupportAgentAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregatePlatformSupportAgent>
+        }
+        groupBy: {
+          args: Prisma.PlatformSupportAgentGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PlatformSupportAgentGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.PlatformSupportAgentCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PlatformSupportAgentCountAggregateOutputType> | number
+        }
+      }
+    }
+    OrganizationSupportAgent: {
+      payload: Prisma.$OrganizationSupportAgentPayload<ExtArgs>
+      fields: Prisma.OrganizationSupportAgentFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.OrganizationSupportAgentFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrganizationSupportAgentPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.OrganizationSupportAgentFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrganizationSupportAgentPayload>
+        }
+        findFirst: {
+          args: Prisma.OrganizationSupportAgentFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrganizationSupportAgentPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.OrganizationSupportAgentFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrganizationSupportAgentPayload>
+        }
+        findMany: {
+          args: Prisma.OrganizationSupportAgentFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrganizationSupportAgentPayload>[]
+        }
+        create: {
+          args: Prisma.OrganizationSupportAgentCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrganizationSupportAgentPayload>
+        }
+        createMany: {
+          args: Prisma.OrganizationSupportAgentCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.OrganizationSupportAgentCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrganizationSupportAgentPayload>[]
+        }
+        delete: {
+          args: Prisma.OrganizationSupportAgentDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrganizationSupportAgentPayload>
+        }
+        update: {
+          args: Prisma.OrganizationSupportAgentUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrganizationSupportAgentPayload>
+        }
+        deleteMany: {
+          args: Prisma.OrganizationSupportAgentDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.OrganizationSupportAgentUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.OrganizationSupportAgentUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrganizationSupportAgentPayload>[]
+        }
+        upsert: {
+          args: Prisma.OrganizationSupportAgentUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrganizationSupportAgentPayload>
+        }
+        aggregate: {
+          args: Prisma.OrganizationSupportAgentAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateOrganizationSupportAgent>
+        }
+        groupBy: {
+          args: Prisma.OrganizationSupportAgentGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.OrganizationSupportAgentGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.OrganizationSupportAgentCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.OrganizationSupportAgentCountAggregateOutputType> | number
+        }
+      }
+    }
+    OrganizationSupportBranchScope: {
+      payload: Prisma.$OrganizationSupportBranchScopePayload<ExtArgs>
+      fields: Prisma.OrganizationSupportBranchScopeFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.OrganizationSupportBranchScopeFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrganizationSupportBranchScopePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.OrganizationSupportBranchScopeFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrganizationSupportBranchScopePayload>
+        }
+        findFirst: {
+          args: Prisma.OrganizationSupportBranchScopeFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrganizationSupportBranchScopePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.OrganizationSupportBranchScopeFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrganizationSupportBranchScopePayload>
+        }
+        findMany: {
+          args: Prisma.OrganizationSupportBranchScopeFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrganizationSupportBranchScopePayload>[]
+        }
+        create: {
+          args: Prisma.OrganizationSupportBranchScopeCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrganizationSupportBranchScopePayload>
+        }
+        createMany: {
+          args: Prisma.OrganizationSupportBranchScopeCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.OrganizationSupportBranchScopeCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrganizationSupportBranchScopePayload>[]
+        }
+        delete: {
+          args: Prisma.OrganizationSupportBranchScopeDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrganizationSupportBranchScopePayload>
+        }
+        update: {
+          args: Prisma.OrganizationSupportBranchScopeUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrganizationSupportBranchScopePayload>
+        }
+        deleteMany: {
+          args: Prisma.OrganizationSupportBranchScopeDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.OrganizationSupportBranchScopeUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.OrganizationSupportBranchScopeUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrganizationSupportBranchScopePayload>[]
+        }
+        upsert: {
+          args: Prisma.OrganizationSupportBranchScopeUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrganizationSupportBranchScopePayload>
+        }
+        aggregate: {
+          args: Prisma.OrganizationSupportBranchScopeAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateOrganizationSupportBranchScope>
+        }
+        groupBy: {
+          args: Prisma.OrganizationSupportBranchScopeGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.OrganizationSupportBranchScopeGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.OrganizationSupportBranchScopeCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.OrganizationSupportBranchScopeCountAggregateOutputType> | number
+        }
+      }
+    }
+    PlatformSupportEscalation: {
+      payload: Prisma.$PlatformSupportEscalationPayload<ExtArgs>
+      fields: Prisma.PlatformSupportEscalationFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.PlatformSupportEscalationFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PlatformSupportEscalationPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.PlatformSupportEscalationFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PlatformSupportEscalationPayload>
+        }
+        findFirst: {
+          args: Prisma.PlatformSupportEscalationFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PlatformSupportEscalationPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.PlatformSupportEscalationFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PlatformSupportEscalationPayload>
+        }
+        findMany: {
+          args: Prisma.PlatformSupportEscalationFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PlatformSupportEscalationPayload>[]
+        }
+        create: {
+          args: Prisma.PlatformSupportEscalationCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PlatformSupportEscalationPayload>
+        }
+        createMany: {
+          args: Prisma.PlatformSupportEscalationCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.PlatformSupportEscalationCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PlatformSupportEscalationPayload>[]
+        }
+        delete: {
+          args: Prisma.PlatformSupportEscalationDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PlatformSupportEscalationPayload>
+        }
+        update: {
+          args: Prisma.PlatformSupportEscalationUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PlatformSupportEscalationPayload>
+        }
+        deleteMany: {
+          args: Prisma.PlatformSupportEscalationDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.PlatformSupportEscalationUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.PlatformSupportEscalationUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PlatformSupportEscalationPayload>[]
+        }
+        upsert: {
+          args: Prisma.PlatformSupportEscalationUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PlatformSupportEscalationPayload>
+        }
+        aggregate: {
+          args: Prisma.PlatformSupportEscalationAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregatePlatformSupportEscalation>
+        }
+        groupBy: {
+          args: Prisma.PlatformSupportEscalationGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PlatformSupportEscalationGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.PlatformSupportEscalationCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PlatformSupportEscalationCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -4753,6 +5053,66 @@ export const BranchInvitationScalarFieldEnum = {
 export type BranchInvitationScalarFieldEnum = (typeof BranchInvitationScalarFieldEnum)[keyof typeof BranchInvitationScalarFieldEnum]
 
 
+export const PlatformSupportAgentScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  displayTitle: 'displayTitle',
+  bio: 'bio',
+  specialties: 'specialties',
+  image: 'image',
+  isActive: 'isActive',
+  isLead: 'isLead',
+  sortOrder: 'sortOrder',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PlatformSupportAgentScalarFieldEnum = (typeof PlatformSupportAgentScalarFieldEnum)[keyof typeof PlatformSupportAgentScalarFieldEnum]
+
+
+export const OrganizationSupportAgentScalarFieldEnum = {
+  id: 'id',
+  memberId: 'memberId',
+  organizationId: 'organizationId',
+  displayTitle: 'displayTitle',
+  bio: 'bio',
+  specialties: 'specialties',
+  isActive: 'isActive',
+  isPrimary: 'isPrimary',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type OrganizationSupportAgentScalarFieldEnum = (typeof OrganizationSupportAgentScalarFieldEnum)[keyof typeof OrganizationSupportAgentScalarFieldEnum]
+
+
+export const OrganizationSupportBranchScopeScalarFieldEnum = {
+  id: 'id',
+  supportId: 'supportId',
+  branchId: 'branchId'
+} as const
+
+export type OrganizationSupportBranchScopeScalarFieldEnum = (typeof OrganizationSupportBranchScopeScalarFieldEnum)[keyof typeof OrganizationSupportBranchScopeScalarFieldEnum]
+
+
+export const PlatformSupportEscalationScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  organizationSupportId: 'organizationSupportId',
+  requesterUserId: 'requesterUserId',
+  assignedPlatformAgentId: 'assignedPlatformAgentId',
+  subject: 'subject',
+  message: 'message',
+  status: 'status',
+  priority: 'priority',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  resolvedAt: 'resolvedAt'
+} as const
+
+export type PlatformSupportEscalationScalarFieldEnum = (typeof PlatformSupportEscalationScalarFieldEnum)[keyof typeof PlatformSupportEscalationScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -4985,6 +5345,20 @@ export type EnumBranchRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$Prism
 export type ListEnumBranchRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BranchRole[]'>
     
 
+
+/**
+ * Reference to a field of type 'PlatformSupportEscalationStatus'
+ */
+export type EnumPlatformSupportEscalationStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PlatformSupportEscalationStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'PlatformSupportEscalationStatus[]'
+ */
+export type ListEnumPlatformSupportEscalationStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PlatformSupportEscalationStatus[]'>
+    
+
 /**
  * Batch Payload for updateMany & deleteMany & createMany
  */
@@ -5143,6 +5517,10 @@ export type GlobalOmitConfig = {
   partnaire?: Prisma.PartnaireOmit
   branchMember?: Prisma.BranchMemberOmit
   branchInvitation?: Prisma.BranchInvitationOmit
+  platformSupportAgent?: Prisma.PlatformSupportAgentOmit
+  organizationSupportAgent?: Prisma.OrganizationSupportAgentOmit
+  organizationSupportBranchScope?: Prisma.OrganizationSupportBranchScopeOmit
+  platformSupportEscalation?: Prisma.PlatformSupportEscalationOmit
 }
 
 /* Types for Logging */

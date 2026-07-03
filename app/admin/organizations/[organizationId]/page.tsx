@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { CirclePlus, Shield, Users, School } from "lucide-react";
+import { CirclePlus, Headphones, Shield, Users, School } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 
@@ -101,6 +101,26 @@ export default function AdminOrganizationHomePage() {
 
                   <span className="text-sm text-muted-foreground">
                     Configurer les rôles métier et les droits associés.
+                  </span>
+                </div>
+              </Link>
+            </Button>
+
+            <Button
+              variant="outline"
+              asChild
+              className="h-auto min-h-24 justify-start p-4"
+            >
+              <Link href={`${base}/support`}>
+                <div className="flex min-w-0 flex-col gap-2 text-left">
+                  <Headphones className="size-7 text-primary" aria-hidden />
+
+                  <span className="text-base font-semibold">
+                    Support établissement
+                  </span>
+
+                  <span className="text-sm text-muted-foreground">
+                    Agents internes et escalade vers Klambocore.
                   </span>
                 </div>
               </Link>

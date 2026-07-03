@@ -303,6 +303,7 @@ export function getPrimaryRoleLabel(session: any) {
 
   const labels: Record<string, string> = {
     [APP_ROLE.ADMIN]: "Administrateur",
+    [APP_ROLE.PLATFORM_SUPPORT]: "Support plateforme",
     [APP_ROLE.USER]: "Utilisateur",
     [ORG_ROLE.OWNER]: "Propriétaire",
     [ORG_ROLE.GESTIONNAIRE]: "Gestionnaire",

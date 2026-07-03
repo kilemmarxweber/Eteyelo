@@ -5,13 +5,35 @@ import { Mail, Phone, Send, UserRound } from "lucide-react";
 
 type ContactFormProps = {
   partnaire?: string;
+  supportAgent?: string;
+  recipientEmail?: string;
+  showSupportAgentPicker?: boolean;
+  supportAgents?: Array<{
+    id: string;
+    name: string;
+    email: string;
+  }>;
 };
 
-export default function ContactForm({ partnaire }: ContactFormProps) {
+export default function ContactForm({
+  partnaire,
+  supportAgent: initialSupportAgent,
+  recipientEmail: initialRecipientEmail,
+  showSupportAgentPicker = false,
+  supportAgents = [],
+}: ContactFormProps) {
   const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">(
     "idle",
   );
   const [error, setError] = useState("");
+  const [selectedAgentId, setSelectedAgentId] = useState(
+    supportAgents.find((agent) => agent.email === initialRecipientEmail)?.id ??
+      "",
+  );
+
+  const selectedAgent = supportAgents.find(
+    (agent) => agent.id === selectedAgentId,
+  );
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -26,6 +48,10 @@ export default function ContactForm({ partnaire }: ContactFormProps) {
       subject: String(formData.get("subject") || ""),
       message: String(formData.get("message") || ""),
       partnaire,
+      supportAgent:
+        selectedAgent?.name || initialSupportAgent || undefined,
+      recipientEmail:
+        selectedAgent?.email || initialRecipientEmail || undefined,
     };
 
     const response = await fetch("/api/contact", {
@@ -58,6 +84,31 @@ export default function ContactForm({ partnaire }: ContactFormProps) {
       {partnaire && (
         <div className="relative mb-5 rounded-2xl border bg-blue-950/10 px-4 py-3 text-sm text-blue-950">
           Message lie au partenaire: <strong>{partnaire}</strong>
+        </div>
+      )}
+
+      {showSupportAgentPicker && supportAgents.length > 0 && (
+        <label className="relative mb-5 block space-y-2 text-sm font-medium">
+          Contacter un membre du support
+          <select
+            value={selectedAgentId}
+            onChange={(event) => setSelectedAgentId(event.target.value)}
+            className="h-12 w-full rounded-2xl border bg-white px-4 text-sm outline-none"
+          >
+            {supportAgents.map((agent) => (
+              <option key={agent.id} value={agent.id}>
+                {agent.name}
+              </option>
+            ))}
+            <option value="">Toute l&apos;equipe support</option>
+          </select>
+        </label>
+      )}
+
+      {(selectedAgent || initialSupportAgent) && !showSupportAgentPicker && (
+        <div className="relative mb-5 rounded-2xl border bg-blue-950/10 px-4 py-3 text-sm text-blue-950">
+          Message adresse a:{" "}
+          <strong>{selectedAgent?.name || initialSupportAgent}</strong>
         </div>
       )}
 

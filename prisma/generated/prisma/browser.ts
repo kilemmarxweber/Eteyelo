@@ -257,3 +257,23 @@ export type BranchMember = Prisma.BranchMemberModel
  * 
  */
 export type BranchInvitation = Prisma.BranchInvitationModel
+/**
+ * Model PlatformSupportAgent
+ * 
+ */
+export type PlatformSupportAgent = Prisma.PlatformSupportAgentModel
+/**
+ * Model OrganizationSupportAgent
+ * 
+ */
+export type OrganizationSupportAgent = Prisma.OrganizationSupportAgentModel
+/**
+ * Model OrganizationSupportBranchScope
+ * 
+ */
+export type OrganizationSupportBranchScope = Prisma.OrganizationSupportBranchScopeModel
+/**
+ * Model PlatformSupportEscalation
+ * 
+ */
+export type PlatformSupportEscalation = Prisma.PlatformSupportEscalationModel

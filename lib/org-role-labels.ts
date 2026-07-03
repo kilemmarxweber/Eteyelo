@@ -13,6 +13,7 @@ export const ORG_ROLE_LABEL: Record<
   [ORG_ROLE.MONITEUR]: "Moniteur",
   [ORG_ROLE.RESPONSABLE]: "Responsable",
   [ORG_ROLE.SURVEILLANT]: "Surveillant",
+  [ORG_ROLE.SUPPORT]: "Support établissement",
 };
 
 export function orgRoleLabel(slug: string): string {

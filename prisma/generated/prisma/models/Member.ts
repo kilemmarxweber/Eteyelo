@@ -185,6 +185,7 @@ export type MemberWhereInput = {
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   branchMember?: Prisma.BranchMemberListRelationFilter
+  organizationSupportAgent?: Prisma.XOR<Prisma.OrganizationSupportAgentNullableScalarRelationFilter, Prisma.OrganizationSupportAgentWhereInput> | null
 }
 
 export type MemberOrderByWithRelationInput = {
@@ -196,6 +197,7 @@ export type MemberOrderByWithRelationInput = {
   organization?: Prisma.OrganizationOrderByWithRelationInput
   user?: Prisma.UserOrderByWithRelationInput
   branchMember?: Prisma.BranchMemberOrderByRelationAggregateInput
+  organizationSupportAgent?: Prisma.OrganizationSupportAgentOrderByWithRelationInput
 }
 
 export type MemberWhereUniqueInput = Prisma.AtLeast<{
@@ -211,6 +213,7 @@ export type MemberWhereUniqueInput = Prisma.AtLeast<{
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   branchMember?: Prisma.BranchMemberListRelationFilter
+  organizationSupportAgent?: Prisma.XOR<Prisma.OrganizationSupportAgentNullableScalarRelationFilter, Prisma.OrganizationSupportAgentWhereInput> | null
 }, "id" | "organizationId_userId">
 
 export type MemberOrderByWithAggregationInput = {
@@ -242,6 +245,7 @@ export type MemberCreateInput = {
   organization: Prisma.OrganizationCreateNestedOneWithoutMembersInput
   user: Prisma.UserCreateNestedOneWithoutMembersInput
   branchMember?: Prisma.BranchMemberCreateNestedManyWithoutMemberInput
+  organizationSupportAgent?: Prisma.OrganizationSupportAgentCreateNestedOneWithoutMemberInput
 }
 
 export type MemberUncheckedCreateInput = {
@@ -251,6 +255,7 @@ export type MemberUncheckedCreateInput = {
   role?: string
   createdAt: Date | string
   branchMember?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutMemberInput
+  organizationSupportAgent?: Prisma.OrganizationSupportAgentUncheckedCreateNestedOneWithoutMemberInput
 }
 
 export type MemberUpdateInput = {
@@ -260,6 +265,7 @@ export type MemberUpdateInput = {
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutMembersNestedInput
   user?: Prisma.UserUpdateOneRequiredWithoutMembersNestedInput
   branchMember?: Prisma.BranchMemberUpdateManyWithoutMemberNestedInput
+  organizationSupportAgent?: Prisma.OrganizationSupportAgentUpdateOneWithoutMemberNestedInput
 }
 
 export type MemberUncheckedUpdateInput = {
@@ -269,6 +275,7 @@ export type MemberUncheckedUpdateInput = {
   role?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branchMember?: Prisma.BranchMemberUncheckedUpdateManyWithoutMemberNestedInput
+  organizationSupportAgent?: Prisma.OrganizationSupportAgentUncheckedUpdateOneWithoutMemberNestedInput
 }
 
 export type MemberCreateManyInput = {
@@ -435,12 +442,27 @@ export type MemberUpdateOneRequiredWithoutBranchMemberNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.MemberUpdateToOneWithWhereWithoutBranchMemberInput, Prisma.MemberUpdateWithoutBranchMemberInput>, Prisma.MemberUncheckedUpdateWithoutBranchMemberInput>
 }
 
+export type MemberCreateNestedOneWithoutOrganizationSupportAgentInput = {
+  create?: Prisma.XOR<Prisma.MemberCreateWithoutOrganizationSupportAgentInput, Prisma.MemberUncheckedCreateWithoutOrganizationSupportAgentInput>
+  connectOrCreate?: Prisma.MemberCreateOrConnectWithoutOrganizationSupportAgentInput
+  connect?: Prisma.MemberWhereUniqueInput
+}
+
+export type MemberUpdateOneRequiredWithoutOrganizationSupportAgentNestedInput = {
+  create?: Prisma.XOR<Prisma.MemberCreateWithoutOrganizationSupportAgentInput, Prisma.MemberUncheckedCreateWithoutOrganizationSupportAgentInput>
+  connectOrCreate?: Prisma.MemberCreateOrConnectWithoutOrganizationSupportAgentInput
+  upsert?: Prisma.MemberUpsertWithoutOrganizationSupportAgentInput
+  connect?: Prisma.MemberWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.MemberUpdateToOneWithWhereWithoutOrganizationSupportAgentInput, Prisma.MemberUpdateWithoutOrganizationSupportAgentInput>, Prisma.MemberUncheckedUpdateWithoutOrganizationSupportAgentInput>
+}
+
 export type MemberCreateWithoutUserInput = {
   id: string
   role?: string
   createdAt: Date | string
   organization: Prisma.OrganizationCreateNestedOneWithoutMembersInput
   branchMember?: Prisma.BranchMemberCreateNestedManyWithoutMemberInput
+  organizationSupportAgent?: Prisma.OrganizationSupportAgentCreateNestedOneWithoutMemberInput
 }
 
 export type MemberUncheckedCreateWithoutUserInput = {
@@ -449,6 +471,7 @@ export type MemberUncheckedCreateWithoutUserInput = {
   role?: string
   createdAt: Date | string
   branchMember?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutMemberInput
+  organizationSupportAgent?: Prisma.OrganizationSupportAgentUncheckedCreateNestedOneWithoutMemberInput
 }
 
 export type MemberCreateOrConnectWithoutUserInput = {
@@ -494,6 +517,7 @@ export type MemberCreateWithoutOrganizationInput = {
   createdAt: Date | string
   user: Prisma.UserCreateNestedOneWithoutMembersInput
   branchMember?: Prisma.BranchMemberCreateNestedManyWithoutMemberInput
+  organizationSupportAgent?: Prisma.OrganizationSupportAgentCreateNestedOneWithoutMemberInput
 }
 
 export type MemberUncheckedCreateWithoutOrganizationInput = {
@@ -502,6 +526,7 @@ export type MemberUncheckedCreateWithoutOrganizationInput = {
   role?: string
   createdAt: Date | string
   branchMember?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutMemberInput
+  organizationSupportAgent?: Prisma.OrganizationSupportAgentUncheckedCreateNestedOneWithoutMemberInput
 }
 
 export type MemberCreateOrConnectWithoutOrganizationInput = {
@@ -536,6 +561,7 @@ export type MemberCreateWithoutBranchMemberInput = {
   createdAt: Date | string
   organization: Prisma.OrganizationCreateNestedOneWithoutMembersInput
   user: Prisma.UserCreateNestedOneWithoutMembersInput
+  organizationSupportAgent?: Prisma.OrganizationSupportAgentCreateNestedOneWithoutMemberInput
 }
 
 export type MemberUncheckedCreateWithoutBranchMemberInput = {
@@ -544,6 +570,7 @@ export type MemberUncheckedCreateWithoutBranchMemberInput = {
   userId: string
   role?: string
   createdAt: Date | string
+  organizationSupportAgent?: Prisma.OrganizationSupportAgentUncheckedCreateNestedOneWithoutMemberInput
 }
 
 export type MemberCreateOrConnectWithoutBranchMemberInput = {
@@ -568,6 +595,7 @@ export type MemberUpdateWithoutBranchMemberInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutMembersNestedInput
   user?: Prisma.UserUpdateOneRequiredWithoutMembersNestedInput
+  organizationSupportAgent?: Prisma.OrganizationSupportAgentUpdateOneWithoutMemberNestedInput
 }
 
 export type MemberUncheckedUpdateWithoutBranchMemberInput = {
@@ -576,6 +604,59 @@ export type MemberUncheckedUpdateWithoutBranchMemberInput = {
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  organizationSupportAgent?: Prisma.OrganizationSupportAgentUncheckedUpdateOneWithoutMemberNestedInput
+}
+
+export type MemberCreateWithoutOrganizationSupportAgentInput = {
+  id: string
+  role?: string
+  createdAt: Date | string
+  organization: Prisma.OrganizationCreateNestedOneWithoutMembersInput
+  user: Prisma.UserCreateNestedOneWithoutMembersInput
+  branchMember?: Prisma.BranchMemberCreateNestedManyWithoutMemberInput
+}
+
+export type MemberUncheckedCreateWithoutOrganizationSupportAgentInput = {
+  id: string
+  organizationId: string
+  userId: string
+  role?: string
+  createdAt: Date | string
+  branchMember?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutMemberInput
+}
+
+export type MemberCreateOrConnectWithoutOrganizationSupportAgentInput = {
+  where: Prisma.MemberWhereUniqueInput
+  create: Prisma.XOR<Prisma.MemberCreateWithoutOrganizationSupportAgentInput, Prisma.MemberUncheckedCreateWithoutOrganizationSupportAgentInput>
+}
+
+export type MemberUpsertWithoutOrganizationSupportAgentInput = {
+  update: Prisma.XOR<Prisma.MemberUpdateWithoutOrganizationSupportAgentInput, Prisma.MemberUncheckedUpdateWithoutOrganizationSupportAgentInput>
+  create: Prisma.XOR<Prisma.MemberCreateWithoutOrganizationSupportAgentInput, Prisma.MemberUncheckedCreateWithoutOrganizationSupportAgentInput>
+  where?: Prisma.MemberWhereInput
+}
+
+export type MemberUpdateToOneWithWhereWithoutOrganizationSupportAgentInput = {
+  where?: Prisma.MemberWhereInput
+  data: Prisma.XOR<Prisma.MemberUpdateWithoutOrganizationSupportAgentInput, Prisma.MemberUncheckedUpdateWithoutOrganizationSupportAgentInput>
+}
+
+export type MemberUpdateWithoutOrganizationSupportAgentInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  organization?: Prisma.OrganizationUpdateOneRequiredWithoutMembersNestedInput
+  user?: Prisma.UserUpdateOneRequiredWithoutMembersNestedInput
+  branchMember?: Prisma.BranchMemberUpdateManyWithoutMemberNestedInput
+}
+
+export type MemberUncheckedUpdateWithoutOrganizationSupportAgentInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  organizationId?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  branchMember?: Prisma.BranchMemberUncheckedUpdateManyWithoutMemberNestedInput
 }
 
 export type MemberCreateManyUserInput = {
@@ -591,6 +672,7 @@ export type MemberUpdateWithoutUserInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutMembersNestedInput
   branchMember?: Prisma.BranchMemberUpdateManyWithoutMemberNestedInput
+  organizationSupportAgent?: Prisma.OrganizationSupportAgentUpdateOneWithoutMemberNestedInput
 }
 
 export type MemberUncheckedUpdateWithoutUserInput = {
@@ -599,6 +681,7 @@ export type MemberUncheckedUpdateWithoutUserInput = {
   role?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branchMember?: Prisma.BranchMemberUncheckedUpdateManyWithoutMemberNestedInput
+  organizationSupportAgent?: Prisma.OrganizationSupportAgentUncheckedUpdateOneWithoutMemberNestedInput
 }
 
 export type MemberUncheckedUpdateManyWithoutUserInput = {
@@ -621,6 +704,7 @@ export type MemberUpdateWithoutOrganizationInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutMembersNestedInput
   branchMember?: Prisma.BranchMemberUpdateManyWithoutMemberNestedInput
+  organizationSupportAgent?: Prisma.OrganizationSupportAgentUpdateOneWithoutMemberNestedInput
 }
 
 export type MemberUncheckedUpdateWithoutOrganizationInput = {
@@ -629,6 +713,7 @@ export type MemberUncheckedUpdateWithoutOrganizationInput = {
   role?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branchMember?: Prisma.BranchMemberUncheckedUpdateManyWithoutMemberNestedInput
+  organizationSupportAgent?: Prisma.OrganizationSupportAgentUncheckedUpdateOneWithoutMemberNestedInput
 }
 
 export type MemberUncheckedUpdateManyWithoutOrganizationInput = {
@@ -678,6 +763,7 @@ export type MemberSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   branchMember?: boolean | Prisma.Member$branchMemberArgs<ExtArgs>
+  organizationSupportAgent?: boolean | Prisma.Member$organizationSupportAgentArgs<ExtArgs>
   _count?: boolean | Prisma.MemberCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["member"]>
 
@@ -714,6 +800,7 @@ export type MemberInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   branchMember?: boolean | Prisma.Member$branchMemberArgs<ExtArgs>
+  organizationSupportAgent?: boolean | Prisma.Member$organizationSupportAgentArgs<ExtArgs>
   _count?: boolean | Prisma.MemberCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type MemberIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -731,6 +818,7 @@ export type $MemberPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     organization: Prisma.$OrganizationPayload<ExtArgs>
     user: Prisma.$UserPayload<ExtArgs>
     branchMember: Prisma.$BranchMemberPayload<ExtArgs>[]
+    organizationSupportAgent: Prisma.$OrganizationSupportAgentPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1135,6 +1223,7 @@ export interface Prisma__MemberClient<T, Null = never, ExtArgs extends runtime.T
   organization<T extends Prisma.OrganizationDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.OrganizationDefaultArgs<ExtArgs>>): Prisma.Prisma__OrganizationClient<runtime.Types.Result.GetResult<Prisma.$OrganizationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   user<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   branchMember<T extends Prisma.Member$branchMemberArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Member$branchMemberArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$BranchMemberPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  organizationSupportAgent<T extends Prisma.Member$organizationSupportAgentArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Member$organizationSupportAgentArgs<ExtArgs>>): Prisma.Prisma__OrganizationSupportAgentClient<runtime.Types.Result.GetResult<Prisma.$OrganizationSupportAgentPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1591,6 +1680,25 @@ export type Member$branchMemberArgs<ExtArgs extends runtime.Types.Extensions.Int
   take?: number
   skip?: number
   distinct?: Prisma.BranchMemberScalarFieldEnum | Prisma.BranchMemberScalarFieldEnum[]
+}
+
+/**
+ * Member.organizationSupportAgent
+ */
+export type Member$organizationSupportAgentArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the OrganizationSupportAgent
+   */
+  select?: Prisma.OrganizationSupportAgentSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the OrganizationSupportAgent
+   */
+  omit?: Prisma.OrganizationSupportAgentOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.OrganizationSupportAgentInclude<ExtArgs> | null
+  where?: Prisma.OrganizationSupportAgentWhereInput
 }
 
 /**

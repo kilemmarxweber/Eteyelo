@@ -3,6 +3,7 @@ allowBuilds:
   bcrypt: false
   core-js: false
   esbuild: false
+  msgpackr-extract: false
   prisma: true
   sharp: false
   unrs-resolver: false
