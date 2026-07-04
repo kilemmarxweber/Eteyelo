@@ -10,6 +10,10 @@ import { initClasses, clearClasses } from "./initClasses";
 import { initCours, clearCours } from "./initCours";
 import { initUsers, clearUsers } from "./initUsers";
 import { initAdmin, clearAdmin } from "./initAdmin";
+import {
+  initPlatformSupport,
+  clearPlatformSupport,
+} from "./initPlatformSupport";
 import { initTeachers, clearTeachers } from "./initTeachers";
 import { initParents, clearParents } from "./initParents";
 import { initStudents, clearStudents } from "./initStudents";
@@ -40,6 +44,11 @@ const INIT_ORDER = [
   { name: "cours", init: initCours, clear: clearCours },
   { name: "users", init: initUsers, clear: clearUsers },
   { name: "admin", init: initAdmin, clear: clearAdmin },
+  {
+    name: "platformSupport",
+    init: initPlatformSupport,
+    clear: clearPlatformSupport,
+  },
   { name: "teachers", init: initTeachers, clear: clearTeachers },
   { name: "parents", init: initParents, clear: clearParents },
   { name: "students", init: initStudents, clear: clearStudents },

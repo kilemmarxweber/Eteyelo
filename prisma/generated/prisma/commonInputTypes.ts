@@ -439,6 +439,23 @@ export type EnumBranchRoleWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedEnumBranchRoleFilter<$PrismaModel>
 }
 
+export type EnumPlatformSupportEscalationStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.PlatformSupportEscalationStatus | Prisma.EnumPlatformSupportEscalationStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.PlatformSupportEscalationStatus[] | Prisma.ListEnumPlatformSupportEscalationStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.PlatformSupportEscalationStatus[] | Prisma.ListEnumPlatformSupportEscalationStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumPlatformSupportEscalationStatusFilter<$PrismaModel> | $Enums.PlatformSupportEscalationStatus
+}
+
+export type EnumPlatformSupportEscalationStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.PlatformSupportEscalationStatus | Prisma.EnumPlatformSupportEscalationStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.PlatformSupportEscalationStatus[] | Prisma.ListEnumPlatformSupportEscalationStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.PlatformSupportEscalationStatus[] | Prisma.ListEnumPlatformSupportEscalationStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumPlatformSupportEscalationStatusWithAggregatesFilter<$PrismaModel> | $Enums.PlatformSupportEscalationStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumPlatformSupportEscalationStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumPlatformSupportEscalationStatusFilter<$PrismaModel>
+}
+
 export type NestedStringFilter<$PrismaModel = never> = {
   equals?: string | Prisma.StringFieldRefInput<$PrismaModel>
   in?: string[] | Prisma.ListStringFieldRefInput<$PrismaModel>
@@ -864,6 +881,23 @@ export type NestedEnumBranchRoleWithAggregatesFilter<$PrismaModel = never> = {
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumBranchRoleFilter<$PrismaModel>
   _max?: Prisma.NestedEnumBranchRoleFilter<$PrismaModel>
+}
+
+export type NestedEnumPlatformSupportEscalationStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.PlatformSupportEscalationStatus | Prisma.EnumPlatformSupportEscalationStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.PlatformSupportEscalationStatus[] | Prisma.ListEnumPlatformSupportEscalationStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.PlatformSupportEscalationStatus[] | Prisma.ListEnumPlatformSupportEscalationStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumPlatformSupportEscalationStatusFilter<$PrismaModel> | $Enums.PlatformSupportEscalationStatus
+}
+
+export type NestedEnumPlatformSupportEscalationStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.PlatformSupportEscalationStatus | Prisma.EnumPlatformSupportEscalationStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.PlatformSupportEscalationStatus[] | Prisma.ListEnumPlatformSupportEscalationStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.PlatformSupportEscalationStatus[] | Prisma.ListEnumPlatformSupportEscalationStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumPlatformSupportEscalationStatusWithAggregatesFilter<$PrismaModel> | $Enums.PlatformSupportEscalationStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumPlatformSupportEscalationStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumPlatformSupportEscalationStatusFilter<$PrismaModel>
 }
 
 

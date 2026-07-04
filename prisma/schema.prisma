@@ -37,6 +37,8 @@ model User {
   accounts    Account[]
   members     Member[]
   invitations Invitation[]
+  platformSupportAgent     PlatformSupportAgent?
+  platformEscalationsRequested PlatformSupportEscalation[] @relation("EscalationRequester")
 
   @@index([telephone])
   @@index([role])
@@ -909,6 +911,8 @@ model Organization {
   members           Member[]
   branches          Branch[]
   invitations       Invitation[]
+  organizationSupportAgents OrganizationSupportAgent[]
+  platformSupportEscalations PlatformSupportEscalation[]
 
   @@unique([slug])
   @@map("organization")
@@ -938,6 +942,7 @@ model Member {
   role           String         @default("member")
   createdAt      DateTime
   branchMember   BranchMember[]
+  organizationSupportAgent OrganizationSupportAgent?
 
   @@index([organizationId])
   @@index([userId])
@@ -1021,6 +1026,7 @@ model Branch {
   discountRule DiscountRule[]
   paymentEvent PaymentEvent[]
   partnaires Partnaire[]
+  organizationSupportBranchScopes OrganizationSupportBranchScope[]
 
   @@index([organizationId])
   @@index([organizationId, isActive])
@@ -1116,4 +1122,95 @@ model BranchInvitation {
   @@index([branchId])
   @@index([email])
   @@unique([branchId, email])
+}
+
+// ─── Support plateforme (équipe Klambocore) ───────────────────────────────────
+
+model PlatformSupportAgent {
+  id           String   @id @default(cuid())
+  userId       String   @unique
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  displayTitle String?
+  bio          String?  @db.Text
+  specialties  String[] @default([])
+  image        String?
+  isActive     Boolean  @default(true)
+  isLead       Boolean  @default(false)
+  sortOrder    Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  assignedEscalations PlatformSupportEscalation[]
+
+  @@index([isActive])
+  @@index([sortOrder])
+  @@map("platformSupportAgent")
+}
+
+// ─── Support organisation (agents internes à une école) ─────────────────────
+
+model OrganizationSupportAgent {
+  id             String   @id @default(cuid())
+  memberId       String   @unique
+  member         Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  displayTitle   String?
+  bio            String?  @db.Text
+  specialties    String[] @default([])
+  isActive       Boolean  @default(true)
+  isPrimary      Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  branchScopes   OrganizationSupportBranchScope[]
+  escalations    PlatformSupportEscalation[]
+
+  @@index([organizationId])
+  @@index([organizationId, isActive])
+  @@map("organizationSupportAgent")
+}
+
+model OrganizationSupportBranchScope {
+  id        String  @id @default(cuid())
+  supportId String
+  support   OrganizationSupportAgent @relation(fields: [supportId], references: [id], onDelete: Cascade)
+  branchId  String?
+  branch    Branch? @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  @@unique([supportId, branchId])
+  @@index([supportId])
+  @@index([branchId])
+  @@map("organizationSupportBranchScope")
+}
+
+enum PlatformSupportEscalationStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+// Demande d'escalade : un support organisation contacte l'équipe Klambocore
+model PlatformSupportEscalation {
+  id                      String   @id @default(cuid())
+  organizationId          String
+  organization            Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizationSupportId   String?
+  organizationSupport     OrganizationSupportAgent? @relation(fields: [organizationSupportId], references: [id], onDelete: SetNull)
+  requesterUserId         String
+  requesterUser           User @relation("EscalationRequester", fields: [requesterUserId], references: [id], onDelete: Cascade)
+  assignedPlatformAgentId String?
+  assignedPlatformAgent   PlatformSupportAgent? @relation(fields: [assignedPlatformAgentId], references: [id], onDelete: SetNull)
+  subject                 String
+  message                 String   @db.Text
+  status                  PlatformSupportEscalationStatus @default(OPEN)
+  priority                String   @default("normal")
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+  resolvedAt              DateTime?
+
+  @@index([organizationId])
+  @@index([requesterUserId])
+  @@index([status])
+  @@index([assignedPlatformAgentId])
+  @@map("platformSupportEscalation")
 }
