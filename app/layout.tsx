@@ -4,7 +4,6 @@ import { GeistMono } from "geist/font/mono";
 import type { ReactNode } from "react";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
-import { ThemeProvider } from "@/components/theme-provider";
 
 export const metadata: Metadata = {
   title: "Klambocore Sarl",
@@ -21,15 +20,8 @@ export default async function RootLayout({
       suppressHydrationWarning
     >
       <body className="min-h-svh font-sans antialiased">
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="light"
-          enableSystem
-          disableTransitionOnChange
-        >
-          {children}
-          <Toaster richColors closeButton />
-        </ThemeProvider>
+        {children}
+        <Toaster richColors closeButton />
       </body>
     </html>
   );

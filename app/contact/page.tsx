@@ -1,6 +1,6 @@
 import { Mail, MapPin, MessageCircle, Phone } from "lucide-react";
-import Navbar from "@/app/components/navbar";
 import ContactForm from "./contact-form";
+import { HomeNavbar } from "@/components/home-navbar";
 
 type ContactPageProps = {
   searchParams: Promise<{ partnaire?: string }>;
@@ -12,7 +12,7 @@ export default async function ContactPage({ searchParams }: ContactPageProps) {
 
   return (
     <div className="min-h-screen bg-[#f8fafc]">
-      <Navbar />
+      <HomeNavbar />
 
       <main className="mx-auto grid max-w-6xl gap-8 px-4 py-14 lg:grid-cols-[0.9fr_1.1fr]">
         <section className="flex flex-col justify-between rounded-3xl bg-blue-950 p-7 text-white shadow-2xl shadow-blue-950/10 md:p-9">

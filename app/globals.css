@@ -134,7 +134,40 @@
     opacity: 0;
   }
 }
+@keyframes school-result-fade {
+  0%,
+  28% {
+    opacity: 1;
+    transform: translateY(0);
+  }
 
+  33%,
+  100% {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+@keyframes hero-school-slide {
+  0%,
+  28% {
+    opacity: 1;
+  }
+
+  33%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes partner-scroll {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-50%);
+  }
+}
 .floating-squares .square {
   position: absolute;
   background: rgba(23, 37, 84, 0.2);

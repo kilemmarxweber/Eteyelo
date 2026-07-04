@@ -1,4 +1,4 @@
-import Navbar from "@/app/components/navbar";
+import { HomeNavbar } from "@/components/home-navbar";
 
 const supportItems = [
   {
@@ -18,7 +18,7 @@ const supportItems = [
 export default function SupportPage() {
   return (
     <div className="min-h-screen bg-slate-50">
-      <Navbar />
+      <HomeNavbar />
 
       <main className="mx-auto max-w-5xl px-4 py-16">
         <p className="text-sm font-semibold uppercase tracking-wide text-blue-950">
@@ -28,13 +28,17 @@ export default function SupportPage() {
           Nous aidons votre équipe à avancer rapidement
         </h1>
         <p className="mt-4 max-w-2xl text-sm leading-relaxed text-slate-600">
-          Le support Klambocore Sarl accompagne les écoles dans la configuration,
-          l'utilisation quotidienne et la résolution des incidents.
+          Le support Klambocore Sarl accompagne les écoles dans la
+          configuration, l'utilisation quotidienne et la résolution des
+          incidents.
         </p>
 
         <div className="mt-8 grid gap-4 md:grid-cols-3">
           {supportItems.map((item) => (
-            <div key={item.title} className="rounded-2xl border bg-white p-5 shadow-sm">
+            <div
+              key={item.title}
+              className="rounded-2xl border bg-white p-5 shadow-sm"
+            >
               <h2 className="font-semibold text-slate-950">{item.title}</h2>
               <p className="mt-3 text-sm leading-relaxed text-slate-600">
                 {item.text}

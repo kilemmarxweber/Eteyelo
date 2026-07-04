@@ -1,9 +1,9 @@
-import Navbar from "@/app/components/navbar";
+import { HomeNavbar } from "@/components/home-navbar";
 
 export default function AboutPage() {
   return (
     <div className="min-h-screen bg-slate-50">
-      <Navbar />
+      <HomeNavbar />
 
       <main className="mx-auto max-w-5xl px-4 py-16">
         <p className="text-sm font-semibold uppercase tracking-wide text-blue-950">
