@@ -492,29 +492,32 @@ export default async function HomePage() {
             <Badge className="mb-5 rounded-full bg-white/20 text-white">
               Plateforme SaaS de marketing scolaire
             </Badge>
-
-            <h2 className="text-4xl font-black leading-tight sm:text-5xl md:text-6xl">
-              Trouvez les meilleurs établissements en RDC
+            <h2 className="text-4xl font-black leading-tight sm:text-5xl md:text-6xl text-white">
+              Trouvez les meilleurs établissements en{" "}
+              <span className="text-yellow-300 text-xl sm:text-2xl md:text-3xl">
+                Afrique
+              </span>
             </h2>
-
             <p className="mx-auto mt-6 w-full text-base leading-7 text-blue-50 sm:w-[36rem] sm:text-lg lg:mx-0">
               Découvrez les écoles partenaires, leurs filières, événements,
-              photos, résultats scolaires, inscriptions et classements en ligne.
+              photos, résultats scolaires, inscriptions et résultats en ligne.
             </p>
-
             <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row sm:flex-wrap lg:justify-start">
-              <Button className="rounded-full bg-blue-950 px-7 text-white hover:bg-blue-900">
-                Voir établissements
+              <Button
+                asChild
+                className="rounded-full bg-blue-950 px-7 text-white hover:bg-blue-900"
+              >
+                <Link href="/inscription-eleve">Inscrire un élève</Link>
               </Button>
 
               <Button
+                asChild
                 variant="outline"
                 className="rounded-full border-white bg-white text-slate-950 hover:bg-slate-100 hover:text-slate-950"
               >
-                Rejoindre Klambocore
+                <Link href="/inscription-ecole">Rejoindre Klambocore</Link>
               </Button>
             </div>
-
             <div className="mx-auto mt-10 grid w-full gap-3 sm:w-[36rem] sm:grid-cols-3 lg:mx-0">
               {[
                 ["300+", "Établissements"],
@@ -976,8 +979,11 @@ export default async function HomePage() {
             </p>
 
             <div className="mt-6 flex flex-wrap gap-3">
-              <Button className="rounded-full bg-blue-950 px-6 text-white hover:bg-blue-900">
-                Inscrire un élève
+              <Button
+                asChild
+                className="rounded-full bg-blue-950 px-6 text-white hover:bg-blue-900"
+              >
+                <Link href="/inscription-eleve">Inscrire un élève</Link>
               </Button>
 
               <Button
@@ -1411,7 +1417,7 @@ export default async function HomePage() {
             <h4 className="font-black text-white">Contact</h4>
             <div className="mt-5 space-y-4 text-sm text-blue-100/70">
               <p className="flex items-center gap-2">
-                <Phone className="h-4 w-4" /> +243 999 000 000
+                <Phone className="h-4 w-4" /> +243 844 952 966
               </p>
               <p className="flex items-center gap-2">
                 <Mail className="h-4 w-4" /> contact@klambocore.com

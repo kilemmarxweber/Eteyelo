@@ -1,4 +1,13 @@
-import { Facebook, Globe, Instagram, Mail, MapPin, Phone, School, Youtube } from "lucide-react";
+import {
+  Facebook,
+  Globe,
+  Instagram,
+  Mail,
+  MapPin,
+  Phone,
+  School,
+  Youtube,
+} from "lucide-react";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
@@ -92,7 +101,7 @@ export function HomeFooter() {
           <h4 className="font-black text-white">Contact</h4>
           <div className="mt-5 space-y-4 text-sm text-blue-100/70">
             <p className="flex items-center gap-2">
-              <Phone className="h-4 w-4" /> +243 999 000 000
+              <Phone className="h-4 w-4" /> +243 844 952 966
             </p>
             <p className="flex items-center gap-2">
               <Mail className="h-4 w-4" /> contact@klambocore.com
@@ -115,7 +124,11 @@ export function HomeFooter() {
             ["Confidentialite", "/privacy"],
             ["Cookies", "/cookies"],
           ].map(([label, href]) => (
-            <Link key={label} href={href} className="transition hover:text-white">
+            <Link
+              key={label}
+              href={href}
+              className="transition hover:text-white"
+            >
               {label}
             </Link>
           ))}
