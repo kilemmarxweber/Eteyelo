@@ -8,9 +8,10 @@ import ContactForm from "@/app/contact/contact-form";
 
 type SupportTeamSectionProps = {
   team: SupportAgentPublic[];
+  organizationId?: string;
 };
 
-export function SupportTeamSection({ team }: SupportTeamSectionProps) {
+export function SupportTeamSection({ team, organizationId }: SupportTeamSectionProps) {
   const [selectedAgent, setSelectedAgent] = useState<SupportAgentPublic | null>(
     null,
   );
@@ -130,6 +131,7 @@ export function SupportTeamSection({ team }: SupportTeamSectionProps) {
         <ContactForm
           key={selectedAgent?.id ?? "all"}
           showSupportAgentPicker
+          organizationId={organizationId}
           supportAgents={team.map(({ id, name, email }) => ({ id, name, email }))}
           supportAgent={selectedAgent?.name}
           recipientEmail={selectedAgent?.email}

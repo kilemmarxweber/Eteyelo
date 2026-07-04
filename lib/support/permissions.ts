@@ -31,6 +31,14 @@ export async function canManagePlatformSupport(): Promise<boolean> {
   return false;
 }
 
+/** Accès à l'espace support plateforme (agents ou escalades). */
+export async function canAccessPlatformSupportArea(): Promise<boolean> {
+  return (
+    (await canManagePlatformSupport()) ||
+    (await canManagePlatformEscalations())
+  );
+}
+
 /** Peut traiter les escalades Klambocore. */
 export async function canManagePlatformEscalations(): Promise<boolean> {
   const session = await getAuthSession();

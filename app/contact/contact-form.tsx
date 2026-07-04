@@ -5,6 +5,7 @@ import { Mail, Phone, Send, UserRound } from "lucide-react";
 
 type ContactFormProps = {
   partnaire?: string;
+  organizationId?: string;
   supportAgent?: string;
   recipientEmail?: string;
   showSupportAgentPicker?: boolean;
@@ -17,6 +18,7 @@ type ContactFormProps = {
 
 export default function ContactForm({
   partnaire,
+  organizationId,
   supportAgent: initialSupportAgent,
   recipientEmail: initialRecipientEmail,
   showSupportAgentPicker = false,
@@ -48,6 +50,7 @@ export default function ContactForm({
       subject: String(formData.get("subject") || ""),
       message: String(formData.get("message") || ""),
       partnaire,
+      organizationId,
       supportAgent:
         selectedAgent?.name || initialSupportAgent || undefined,
       recipientEmail:

@@ -66,6 +66,29 @@ export async function getOrganizationSupportAgentForUser(
   });
 }
 
+export async function getOrganizationBySlug(slug: string) {
+  return prisma.organization.findUnique({
+    where: { slug },
+    select: { id: true, name: true, slug: true },
+  });
+}
+
+export async function listOrganizationSupportEmails(
+  organizationId: string,
+): Promise<string[]> {
+  const agents = await listActiveOrganizationSupportAgents(organizationId);
+  return agents.map((a) => a.email).filter(Boolean);
+}
+
+export async function isOrganizationSupportEmail(
+  organizationId: string,
+  email: string,
+): Promise<boolean> {
+  const normalized = email.trim().toLowerCase();
+  const emails = await listOrganizationSupportEmails(organizationId);
+  return emails.some((e) => e.toLowerCase() === normalized);
+}
+
 export async function listOrganizationSupportAgents(organizationId: string) {
   return prisma.organizationSupportAgent.findMany({
     where: { organizationId },

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { HeadphonesIcon, LifeBuoy } from "lucide-react";
+import { ExternalLink, HeadphonesIcon, LifeBuoy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { prisma } from "@/lib/prisma";
 import {
@@ -10,6 +10,11 @@ import {
 import { listOrganizationSupportAgents } from "@/lib/support/organization-support";
 import { listOrganizationEscalationsAction } from "@/lib/support/actions";
 import { OrganizationSupportClient } from "./organization-support-client";
+import {
+  ESCALATION_PRIORITY_LABELS,
+  ESCALATION_STATUS_LABELS,
+  type EscalationStatus,
+} from "@/lib/support/constants";
 
 type PageProps = {
   params: Promise<{ organizationId: string }>;
@@ -31,7 +36,7 @@ export default async function OrganizationSupportPage({ params }: PageProps) {
     [
       prisma.organization.findUnique({
         where: { id: organizationId },
-        select: { id: true, name: true },
+        select: { id: true, name: true, slug: true },
       }),
       listOrganizationSupportAgents(organizationId),
       prisma.branch.findMany({
@@ -61,6 +66,17 @@ export default async function OrganizationSupportPage({ params }: PageProps) {
           Agents internes qui assistent les utilisateurs de votre organisation.
           Ils peuvent escalader vers l&apos;équipe Klambocore si nécessaire.
         </p>
+        {organization.slug ? (
+          <Button variant="outline" size="sm" className="mt-2" asChild>
+            <Link
+              href={`/support/organization/${organization.slug}`}
+              target="_blank"
+            >
+              <ExternalLink className="mr-1.5 size-3.5" />
+              Page publique support
+            </Link>
+          </Button>
+        ) : null}
       </div>
 
       {canManage && (
@@ -99,20 +115,30 @@ export default async function OrganizationSupportPage({ params }: PageProps) {
           <p className="text-sm text-muted-foreground">Aucune escalade.</p>
         ) : (
           <ul className="flex flex-col gap-3">
-            {escalations.map((item) => (
-              <li key={item.id} className="rounded-xl border bg-card p-4">
-                <div className="flex justify-between gap-2">
-                  <p className="font-medium">{item.subject}</p>
-                  <span className="text-xs text-muted-foreground">
-                    {item.status}
-                  </span>
-                </div>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {item.requesterUser.name} ·{" "}
-                  {new Date(item.createdAt).toLocaleDateString("fr-FR")}
-                </p>
-              </li>
-            ))}
+            {escalations.map((item) => {
+              const priorityLabel =
+                ESCALATION_PRIORITY_LABELS[
+                  item.priority as keyof typeof ESCALATION_PRIORITY_LABELS
+                ] ?? item.priority;
+              const statusLabel =
+                ESCALATION_STATUS_LABELS[item.status as EscalationStatus] ??
+                item.status;
+
+              return (
+                <li key={item.id} className="rounded-xl border bg-card p-4">
+                  <div className="flex justify-between gap-2">
+                    <p className="font-medium">{item.subject}</p>
+                    <span className="text-xs text-muted-foreground">
+                      {statusLabel}
+                    </span>
+                  </div>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {item.requesterUser.name} · Priorité {priorityLabel} ·{" "}
+                    {new Date(item.createdAt).toLocaleDateString("fr-FR")}
+                  </p>
+                </li>
+              );
+            })}
           </ul>
         )}
       </section>

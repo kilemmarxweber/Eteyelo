@@ -19,7 +19,10 @@ export async function POST(request: Request) {
     );
   }
 
-  const result = await createPlatformEscalationAction(payload.data);
+  const result = await createPlatformEscalationAction({
+    ...payload.data,
+    priority: payload.data.priority ?? "normal",
+  });
 
   if (!result.ok) {
     return NextResponse.json({ error: result.message }, { status: 403 });

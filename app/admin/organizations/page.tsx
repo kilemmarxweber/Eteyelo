@@ -12,7 +12,10 @@ export default function AdminOrganizationsPage() {
   const { data: session } = authClient.useSession();
   const { data: orgsData, isPending } = authClient.useListOrganizations();
   const orgs = Array.isArray(orgsData) ? orgsData : [];
-  const canCreateOrganization = session?.user?.role === APP_ROLE.ADMIN;
+  const isPlatformAdmin = session?.user?.role === APP_ROLE.ADMIN;
+  const isPlatformSupport =
+    session?.user?.role === APP_ROLE.PLATFORM_SUPPORT;
+  const canCreateOrganization = isPlatformAdmin;
 
   return (
     <div className="mx-auto flex w-full min-w-0 max-w-2xl flex-col gap-4 px-[max(1rem,env(safe-area-inset-left))] py-5 pr-[max(1rem,env(safe-area-inset-right))] md:max-w-4xl md:px-6">
@@ -23,7 +26,7 @@ export default function AdminOrganizationsPage() {
             : `${orgs.length} organisation${orgs.length > 1 ? "s" : ""}`}
         </p>
         <div className="flex flex-wrap gap-2">
-          {canCreateOrganization ? (
+          {isPlatformAdmin || isPlatformSupport ? (
             <Button
               size="sm"
               variant="outline"

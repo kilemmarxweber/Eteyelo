@@ -1,7 +1,14 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { isSmtpConfigured, sendMail } from "@/lib/email/mailer";
-import { isPlatformSupportEmail, listPlatformSupportEmails } from "@/lib/support-team";
+import {
+  isPlatformSupportEmail,
+  listPlatformSupportEmails,
+} from "@/lib/support-team";
+import {
+  isOrganizationSupportEmail,
+  listOrganizationSupportEmails,
+} from "@/lib/support/organization-support";
 
 const contactSchema = z.object({
   name: z.string().trim().min(2).max(120),
@@ -12,6 +19,7 @@ const contactSchema = z.object({
   partnaire: z.string().trim().max(160).optional(),
   supportAgent: z.string().trim().max(120).optional(),
   recipientEmail: z.string().trim().email().max(160).optional(),
+  organizationId: z.string().trim().min(1).optional(),
 });
 
 function escapeHtml(value: string) {
@@ -48,23 +56,37 @@ export async function POST(request: Request) {
     partnaire,
     supportAgent,
     recipientEmail,
+    organizationId,
   } = payload.data;
 
-  if (recipientEmail && !(await isPlatformSupportEmail(recipientEmail))) {
-    return NextResponse.json(
-      { error: "Destinataire support invalide." },
-      { status: 400 },
-    );
+  if (recipientEmail) {
+    const isValidRecipient = organizationId
+      ? await isOrganizationSupportEmail(organizationId, recipientEmail)
+      : await isPlatformSupportEmail(recipientEmail);
+
+    if (!isValidRecipient) {
+      return NextResponse.json(
+        { error: "Destinataire support invalide." },
+        { status: 400 },
+      );
+    }
   }
 
-  const platformEmails = await listPlatformSupportEmails();
+  const defaultEmails = organizationId
+    ? await listOrganizationSupportEmails(organizationId)
+    : await listPlatformSupportEmails();
+
   const recipients = recipientEmail
     ? recipientEmail
-    : platformEmails.join(", ");
+    : defaultEmails.join(", ");
 
   if (!recipients) {
     return NextResponse.json(
-      { error: "Aucun agent support plateforme configuré." },
+      {
+        error: organizationId
+          ? "Aucun agent support établissement configuré."
+          : "Aucun agent support plateforme configuré.",
+      },
       { status: 503 },
     );
   }
@@ -89,9 +111,13 @@ export async function POST(request: Request) {
   const safeSubject = escapeHtml(subject);
   const safeMessage = escapeHtml(message).replace(/\n/g, "<br />");
 
+  const mailSubject = organizationId
+    ? `[Kalasa Edu - Établissement] ${subject}`
+    : `[Kalasa Edu] ${subject}`;
+
   await sendMail({
     to: recipients,
-    subject: `[Kalasa Edu] ${subject}`,
+    subject: mailSubject,
     text,
     html: `
       <div style="font-family: Arial, sans-serif; line-height: 1.6;">

@@ -54,12 +54,20 @@ const TITULAIRE_CURSUS_ROLES = [...STUDENT_ROLES, TEACHER_TITULAIRE_ROLE];
 
 const TITULAIRE_TEACHER_ROLES = [TEACHER_TITULAIRE_ROLE];
 
+const PLATFORM_SUPPORT_ROLES = [APP_ROLE.ADMIN, APP_ROLE.PLATFORM_SUPPORT];
+
 const staticSidebarMenu: StaticMenuItem[] = [
   {
     title: "Dashboard",
     href: "/admin",
     icon: "dashboard",
     roles: ["*"],
+  },
+  {
+    title: "Support Klambocore",
+    href: "/admin/platform-support",
+    icon: "settings",
+    roles: PLATFORM_SUPPORT_ROLES,
   },
   {
     title: "Utilisateurs",
