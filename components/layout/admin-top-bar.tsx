@@ -1,8 +1,9 @@
 "use client";
 
-import Link from "next/link";
-import { useParams, usePathname } from "next/navigation";
-import { Bell } from "lucide-react";
+import { useParams, usePathname, useRouter } from "next/navigation";
+import { Bell, LogOut } from "lucide-react";
+import { toast } from "sonner";
+
 import { Button } from "@/components/ui/button";
 import { authClient } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
@@ -23,7 +24,8 @@ function useAdminTitle(): string {
     if (pathname.includes(`/${orgId}/members/`) && pathname.endsWith("/edit"))
       return "Modifier le membre";
     if (pathname.includes(`/${orgId}/members`)) return "Membres";
-    if (pathname.includes(`/${orgId}/roles`)) return "Rôles & permissions";
+    if (pathname.includes(`/${orgId}/roles`)) return "Roles & permissions";
+    if (pathname.includes(`/${orgId}/support`)) return "Support etablissement";
 
     const list = Array.isArray(orgs) ? orgs : [];
     const org = list.find((o) => o.id === orgId);
@@ -33,44 +35,63 @@ function useAdminTitle(): string {
   if (pathname.startsWith("/admin/organizations")) return "Organisations";
 
   if (pathname.startsWith("/admin/account")) return "Compte";
-  if (pathname.startsWith("/admin/settings")) return "Paramètres";
-  if (pathname.startsWith("/admin/help")) return "Centre d’aide";
+  if (pathname.startsWith("/admin/settings")) return "Parametres";
+  if (pathname.startsWith("/admin/help")) return "Centre d'aide";
 
   return "Administration";
 }
 
 export function AdminTopBar() {
   const title = useAdminTitle();
+  const router = useRouter();
+
+  async function handleSignOut() {
+    try {
+      await authClient.signOut();
+      router.push("/auth/sign-in");
+      router.refresh();
+    } catch {
+      toast.error("Deconnexion impossible.");
+    }
+  }
 
   return (
     <header
       className={cn(
-        "sticky top-0 z-40 flex min-h-14 shrink-0 items-center justify-between gap-3 border-b bg-background/95 px-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))] pt-[max(0px,env(safe-area-inset-top))] backdrop-blur",
-        "supports-backdrop-filter:bg-background/80 md:px-6",
+        "sticky top-0 z-40 flex min-h-16 shrink-0 items-center justify-between gap-3 border-b bg-white/95 px-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))] pt-[max(0px,env(safe-area-inset-top))] shadow-sm backdrop-blur",
+        "supports-backdrop-filter:bg-white/85 md:px-6",
       )}
     >
-      <h1 className="min-w-0 truncate text-lg font-semibold leading-tight">
-        {title}
-      </h1>
-      <div className="flex shrink-0 items-center gap-1">
+      <div className="min-w-0">
+        <p className="text-xs font-semibold uppercase tracking-wide text-blue-950/60">
+          Administration
+        </p>
+        <h1 className="truncate text-lg font-bold leading-tight text-slate-950 sm:text-xl">
+          {title}
+        </h1>
+      </div>
+
+      <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
         <Button
           type="button"
           variant="ghost"
           size="icon"
-          className="size-10"
+          className="size-10 rounded-full text-slate-600 hover:bg-slate-100 hover:text-blue-950"
           aria-label="Notifications"
-          title="Notifications (bientôt)"
+          title="Notifications (bientot)"
         >
           <Bell className="size-5" />
         </Button>
+
         <Button
-          asChild
           type="button"
-          variant="ghost"
+          variant="outline"
           size="sm"
-          className="hidden sm:inline-flex"
+          onClick={() => void handleSignOut()}
+          className="h-10 rounded-full border-blue-950/20 px-3 text-blue-950 hover:bg-blue-950 hover:text-white sm:px-4"
         >
-          <Link href="/"> Site</Link>
+          <LogOut className="size-4 sm:mr-2" />
+          <span className="hidden sm:inline">Deconnexion</span>
         </Button>
       </div>
     </header>

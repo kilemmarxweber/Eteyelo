@@ -3,12 +3,21 @@
 import dynamic from "next/dynamic";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
-import { Building2, MapPin, Phone, ImageIcon, Navigation } from "lucide-react";
+import {
+  BadgeCheck,
+  Building2,
+  ImageIcon,
+  MapPin,
+  Navigation,
+  Phone,
+  School,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { createBranch } from "./ecole.action";
 import { HomeNavbar } from "@/components/home-navbar";
+
+import { createBranch } from "./ecole.action";
 
 const BranchMapPicker = dynamic(() => import("./branch-map-picker"), {
   ssr: false,
@@ -38,6 +47,7 @@ export function BranchCreateForm({
   const update = (key: keyof typeof form, value: string | number) => {
     setForm((current) => ({ ...current, [key]: value }));
   };
+
   const reverseGeocode = async (lat: number, lng: number) => {
     try {
       const res = await fetch(
@@ -59,7 +69,7 @@ export function BranchCreateForm({
 
       update("pays", address.country || "");
     } catch {
-      toast.error("Impossible de récupérer la ville et le pays.");
+      toast.error("Impossible de recuperer la ville et le pays.");
     }
   };
 
@@ -74,10 +84,10 @@ export function BranchCreateForm({
 
         await reverseGeocode(lat, lng);
 
-        toast.success("Position récupérée avec succès.");
+        toast.success("Position recuperee avec succes.");
       },
       () => {
-        toast.error("Impossible de récupérer votre position.");
+        toast.error("Impossible de recuperer votre position.");
       },
     );
   };
@@ -102,19 +112,62 @@ export function BranchCreateForm({
   };
 
   return (
-    <main className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-50">
       <HomeNavbar />
 
-      <section className="mx-auto -mt-0 mb-1 max-w-7xl px-6 pb-20">
-        <div className="grid gap-6 lg:grid-cols-[1fr_1.1fr]">
-          <div className="rounded-[2rem] border border-blue-100 bg-white p-6 shadow-xl shadow-blue-950/10 sm:p-8">
-            <h2 className="text-3xl font-black text-blue-950">
-              Informations de l’école
-            </h2>
+      <main className="mx-auto grid max-w-6xl gap-8 px-4 py-14 lg:grid-cols-[0.9fr_1.1fr]">
+        <section className="flex flex-col justify-between rounded-3xl bg-blue-950 p-7 text-white shadow-2xl shadow-blue-950/10 md:p-9">
+          <div>
+            <div className="mb-5 inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1.5 text-xs font-semibold">
+              <School className="size-4" />
+              Inscription ecole
+            </div>
 
-            <div className="mt-8 grid gap-4">
+            <h1 className="text-4xl font-black tracking-tight md:text-5xl">
+              Ajoutez votre etablissement sur Klambocore
+            </h1>
+
+            <p className="mt-4 max-w-[430px] text-sm leading-7 text-blue-50 md:text-base">
+              Creez la fiche de votre ecole, indiquez ses coordonnees et
+              positionnez-la sur la carte pour la rendre visible aux familles.
+            </p>
+          </div>
+
+          <div className="mt-10 grid gap-3 text-sm">
+            <div className="flex items-start gap-3 rounded-2xl bg-white/10 p-4">
+              <BadgeCheck className="mt-0.5 size-5 shrink-0" />
+              <span>
+                Une fiche publique claire pour presenter votre etablissement.
+              </span>
+            </div>
+            <div className="flex items-start gap-3 rounded-2xl bg-white/10 p-4">
+              <MapPin className="mt-0.5 size-5 shrink-0" />
+              <span>
+                Une localisation precise pour faciliter la recherche locale.
+              </span>
+            </div>
+          </div>
+        </section>
+
+        <section className="grid gap-5">
+          <div className="rounded-3xl border bg-white p-6 shadow-sm md:p-7">
+            <div className="flex items-center gap-3">
+              <span className="flex size-11 items-center justify-center rounded-2xl bg-blue-950 text-white">
+                <Building2 className="size-5" />
+              </span>
+              <div>
+                <h2 className="text-2xl font-bold text-slate-950">
+                  Informations de l'ecole
+                </h2>
+                <p className="text-sm text-slate-500">
+                  Les champs essentiels permettent de creer la fiche de base.
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-7 grid gap-4">
               <Input
-                placeholder="Nom de l’école *"
+                placeholder="Nom de l'ecole *"
                 value={form.name}
                 onChange={(e) => update("name", e.target.value)}
                 className="h-12 rounded-2xl"
@@ -122,7 +175,7 @@ export function BranchCreateForm({
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <Input
-                  placeholder="Code école"
+                  placeholder="Code ecole"
                   value={form.code}
                   onChange={(e) => update("code", e.target.value)}
                   className="h-12 rounded-2xl"
@@ -139,7 +192,7 @@ export function BranchCreateForm({
               <div className="relative">
                 <Phone className="absolute left-3 top-4 h-4 w-4 text-slate-400" />
                 <Input
-                  placeholder="Téléphone"
+                  placeholder="Telephone"
                   value={form.tel}
                   onChange={(e) => update("tel", e.target.value)}
                   className="h-12 rounded-2xl pl-10"
@@ -198,7 +251,7 @@ export function BranchCreateForm({
 
                 <Input
                   type="number"
-                  placeholder="Rayon présence"
+                  placeholder="Rayon presence"
                   value={form.attendanceRadius}
                   onChange={(e) =>
                     update("attendanceRadius", Number(e.target.value))
@@ -211,7 +264,7 @@ export function BranchCreateForm({
                 type="button"
                 onClick={useCurrentLocation}
                 variant="outline"
-                className="h-12 rounded-full border-blue-200 text-blue-700 hover:bg-blue-50"
+                className="h-12 rounded-full border-blue-950/20 text-blue-950 hover:bg-blue-50"
               >
                 <Navigation className="mr-2 h-4 w-4" />
                 Utiliser ma position actuelle
@@ -221,18 +274,18 @@ export function BranchCreateForm({
                 type="button"
                 onClick={submit}
                 disabled={isPending}
-                className="h-14 rounded-full bg-gradient-to-r from-blue-700 via-cyan-500 to-blue-700 text-base font-black text-white shadow-[0_0_30px_rgba(34,211,238,.35)] hover:shadow-[0_0_45px_rgba(34,211,238,.65)]"
+                className="h-14 rounded-full bg-blue-950 text-base font-semibold text-white hover:bg-blue-900"
               >
-                {isPending ? "Création en cours..." : "Créer l’école"}
+                {isPending ? "Creation en cours..." : "Creer l'ecole"}
               </Button>
             </div>
           </div>
 
-          <div className="overflow-hidden rounded-[2rem] border border-blue-100 bg-white p-4 shadow-xl shadow-blue-950/10">
+          <div className="overflow-hidden rounded-3xl border bg-white p-4 shadow-sm">
             <div className="mb-4 flex items-center gap-2 px-2">
-              <MapPin className="h-5 w-5 text-blue-700" />
-              <h2 className="text-xl font-black text-blue-950">
-                Emplacement de l’école
+              <MapPin className="h-5 w-5 text-blue-950" />
+              <h2 className="text-xl font-bold text-slate-950">
+                Emplacement de l'ecole
               </h2>
             </div>
 
@@ -247,12 +300,12 @@ export function BranchCreateForm({
               }}
             />
             <p className="mt-4 px-2 text-sm text-slate-500">
-              Cliquez sur la carte pour pointer l’emplacement exact de l’école.
-              Par défaut, la carte est centrée sur Kinshasa, RDC.
+              Cliquez sur la carte pour pointer l'emplacement exact de l'ecole.
+              Par defaut, la carte est centree sur Kinshasa, RDC.
             </p>
           </div>
-        </div>
-      </section>
-    </main>
+        </section>
+      </main>
+    </div>
   );
 }

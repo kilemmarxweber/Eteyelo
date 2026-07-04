@@ -515,7 +515,7 @@ export default async function HomePage() {
                 variant="outline"
                 className="rounded-full border-white bg-white text-slate-950 hover:bg-slate-100 hover:text-slate-950"
               >
-                <Link href="/inscription-ecole">Rejoindre Klambocore</Link>
+                <Link href="/rejoindre-klambocore">Rejoindre Klambocore</Link>
               </Button>
             </div>
             <div className="mx-auto mt-10 grid w-full gap-3 sm:w-[36rem] sm:grid-cols-3 lg:mx-0">

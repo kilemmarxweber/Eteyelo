@@ -4381,6 +4381,8 @@ export const StudentScalarFieldEnum = {
   id: 'id',
   branchMemberId: 'branchMemberId',
   parentId: 'parentId',
+  statusStudent: 'statusStudent',
+  observation: 'observation',
   category: 'category',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'

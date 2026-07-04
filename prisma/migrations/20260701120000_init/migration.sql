@@ -1,0 +1,2 @@
+-- Baseline migration restored from the local development database history.
+-- The schema changes from this migration are already present in the database.

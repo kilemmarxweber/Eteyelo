@@ -279,9 +279,9 @@ export function HomeNavbar() {
           </div>
 
           {[
-            ["Établissements", "#etablissements"],
+            ["Support", "/support"],
             ["Résultats", "#resultats"],
-            ["Contact", "#contact"],
+            ["Contact", "/contact"],
           ].map(([label, href]) => (
             <Link
               key={label}
