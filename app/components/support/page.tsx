@@ -17,7 +17,7 @@ export default async function SupportPage() {
         <section className="max-w-3xl">
           <div className="inline-flex items-center gap-2 rounded-full bg-blue-950/10 px-3 py-1.5 text-xs font-semibold text-blue-950">
             <LifeBuoy className="size-4" />
-            Support Kalasa Edu
+            Support technique
           </div>
 
           <h1 className="mt-4 text-4xl font-bold tracking-tight text-slate-950 md:text-5xl">

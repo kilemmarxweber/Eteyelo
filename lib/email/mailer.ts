@@ -7,36 +7,26 @@ function createTransporter() {
   if (transporter) return transporter;
 
   const host = process.env.SMTP_HOST;
-  const port = process.env.SMTP_PORT ? Number(process.env.SMTP_PORT) : 465;
-  const secure = process.env.SMTP_SECURE
-    ? process.env.SMTP_SECURE === "true"
-    : port === 465;
-  const smtpUser = process.env.SMTP_USER;
-  const smtpPass = process.env.SMTP_PASS;
-  const emailUser = process.env.EMAIL_USER;
-  const emailPass = process.env.EMAIL_PASS;
+  const port = Number(process.env.SMTP_PORT ?? 465);
+  const secure = process.env.SMTP_SECURE === "true";
+  const user = process.env.SMTP_USER;
+  const pass = process.env.SMTP_PASS;
 
-  if (host && smtpUser && smtpPass) {
+  if (host && user && pass) {
     transporter = nodemailer.createTransport({
       host,
       port,
       secure,
-      auth: { user: smtpUser, pass: smtpPass },
+      auth: {
+        user,
+        pass,
+      },
     });
+
     return transporter;
   }
 
-  if (emailUser && emailPass) {
-    transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: { user: emailUser, pass: emailPass },
-    });
-    return transporter;
-  }
-
-  throw new Error(
-    "La configuration email est incomplète. Définissez SMTP_HOST/SMTP_USER/SMTP_PASS ou EMAIL_USER/EMAIL_PASS.",
-  );
+  throw new Error("SMTP non configuré.");
 }
 
 export function getDefaultMailFrom() {
@@ -78,9 +68,7 @@ export async function sendMail({
 
 export function isSmtpConfigured() {
   return !!(
-    (process.env.SMTP_HOST &&
-      process.env.SMTP_USER &&
-      process.env.SMTP_PASS) ||
+    (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) ||
     (process.env.EMAIL_USER && process.env.EMAIL_PASS)
   );
 }

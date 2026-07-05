@@ -8,12 +8,12 @@ import { headers } from "next/headers";
 export async function getBranchNameAction(branchId: string) {
   if (!branchId) return null;
 
-  const branch = await prisma.branch.findUnique({
+  const branch = await prisma.branch.findFirst({
     where: { id: branchId },
-    select: { name: true },
+    select: { name: true, image: true },
   });
 
-  return branch?.name ?? null;
+  return branch;
 }
 
 export async function createBranchAction(
@@ -46,6 +46,12 @@ export async function createBranchAction(
       organizationId,
       name: parsed.data.name,
       code: parsed.data.code?.trim() || null,
+      adresse: parsed.data.adresse?.trim() || null,
+      tel: parsed.data.tel?.trim() || null,
+      ville: parsed.data.ville?.trim() || null,
+      pays: parsed.data.pays?.trim() || null,
+      idnat: parsed.data.idnat?.trim() || null,
+      image: parsed.data.image?.trim() || null,
       latitude: parsed.data.latitude,
       longitude: parsed.data.longitude,
       attendanceRadius: parsed.data.attendanceRadius,

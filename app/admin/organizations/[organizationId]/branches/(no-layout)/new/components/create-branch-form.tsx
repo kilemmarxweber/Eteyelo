@@ -1,9 +1,20 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import {
+  BadgeCheck,
+  Building2,
+  ImageIcon,
+  MapPin,
+  Navigation,
+  Phone,
+  School,
+} from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -16,10 +27,22 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
   createBranchFormSchema,
   type CreateBranchFormValues,
 } from "../../schema";
 import { createBranchAction } from "../../branche.action";
+import { useState } from "react";
+
+const BranchMapPicker = dynamic(() => import("./branch-map-picker"), {
+  ssr: false,
+});
 
 type CreateBranchFormProps = {
   organizationId: string;
@@ -27,13 +50,21 @@ type CreateBranchFormProps = {
 
 export function CreateBranchForm({ organizationId }: CreateBranchFormProps) {
   const router = useRouter();
+  const [showMapDialog, setShowMapDialog] = useState(false);
+  const [showMap, setShowMap] = useState(false);
   const form = useForm<CreateBranchFormValues>({
     resolver: zodResolver(createBranchFormSchema),
     defaultValues: {
       name: "",
       code: "",
-      latitude: 0,
-      longitude: 0,
+      image: "",
+      adresse: "",
+      ville: "",
+      pays: "RDC",
+      idnat: "",
+      tel: "",
+      latitude: -4.4419,
+      longitude: 15.2663,
       attendanceRadius: 100,
     },
     mode: "onSubmit",
@@ -41,6 +72,53 @@ export function CreateBranchForm({ organizationId }: CreateBranchFormProps) {
   });
 
   const { isSubmitting } = form.formState;
+
+  async function reverseGeocode(lat: number, lng: number) {
+    try {
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=10&addressdetails=1`,
+      );
+
+      const data = await res.json();
+      const address = data.address;
+
+      form.setValue(
+        "ville",
+        address.city ||
+          address.town ||
+          address.village ||
+          address.municipality ||
+          address.county ||
+          "",
+        { shouldValidate: true },
+      );
+
+      form.setValue("pays", address.country || "", {
+        shouldValidate: true,
+      });
+    } catch {
+      toast.error("Impossible de récupérer la ville et le pays.");
+    }
+  }
+
+  function useCurrentLocation() {
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+
+        form.setValue("latitude", lat, { shouldValidate: true });
+        form.setValue("longitude", lng, { shouldValidate: true });
+
+        await reverseGeocode(lat, lng);
+
+        toast.success("Position récupérée avec succès.");
+      },
+      () => {
+        toast.error("Impossible de récupérer votre position.");
+      },
+    );
+  }
 
   async function onSubmit(values: CreateBranchFormValues) {
     form.clearErrors("root");
@@ -62,150 +140,443 @@ export function CreateBranchForm({ organizationId }: CreateBranchFormProps) {
       router.refresh();
     } catch (cause) {
       const message =
-        cause instanceof Error ? cause.message : "Impossible de joindre le serveur.";
+        cause instanceof Error
+          ? cause.message
+          : "Impossible de joindre le serveur.";
+
       form.setError("root", {
         type: "server",
         message: "Création impossible. Réessayez plus tard.",
       });
+
       toast.error(message);
     }
   }
 
+  const latitude = form.watch("latitude");
+  const longitude = form.watch("longitude");
+
   return (
-    <Form {...form}>
-      <form
-        className="flex flex-col gap-5"
-        noValidate
-        onSubmit={(e) => {
-          e.preventDefault();
-          void form.handleSubmit(onSubmit)(e);
-        }}
-      >
-        <FormField
-          control={form.control}
-          name="name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Nom de l’établissement</FormLabel>
-              <FormControl>
-                <Input
-                  {...field}
-                  type="text"
-                  autoComplete="organization"
-                  placeholder="Campus Kinshasa"
-                  className="h-11"
-                  disabled={isSubmitting}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+    <>
+      <Form {...form}>
+        <form
+          noValidate
+          onSubmit={(e) => {
+            e.preventDefault();
+            void form.handleSubmit(onSubmit)(e);
+          }}
+        >
+          <div className="grid gap-8 lg:grid-cols-[0.9fr_1.1fr]">
+            <section className="flex flex-col rounded-3xl bg-blue-950 p-7 text-white shadow-2xl shadow-blue-950/10 md:p-9">
+              <div className="mb-5 inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1.5 text-xs font-semibold">
+                <School className="size-4" />
+                Inscription école
+              </div>
 
-        <FormField
-          control={form.control}
-          name="code"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Code</FormLabel>
-              <FormControl>
-                <Input
-                  {...field}
-                  type="text"
-                  autoCapitalize="characters"
-                  placeholder="KIN"
-                  className="h-11"
-                  disabled={isSubmitting}
-                  onChange={(e) => field.onChange(e.target.value.toUpperCase())}
-                />
-              </FormControl>
-              <FormDescription>
-                Optionnel. Sert à identifier rapidement l’établissement.
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+              <h1 className="text-4xl font-black tracking-tight md:text-5xl">
+                Ajoutez votre établissement
+              </h1>
 
-        <div className="grid gap-5 md:grid-cols-2">
-          <FormField
-            control={form.control}
-            name="latitude"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Latitude</FormLabel>
-                <FormControl>
-                  <Input
-                    {...field}
-                    type="number"
-                    step="any"
-                    placeholder="-4.325"
-                    className="h-11"
-                    disabled={isSubmitting}
+              <p className="mt-4 max-w-[430px] text-sm leading-7 text-blue-50 md:text-base">
+                Créez la fiche de votre école, indiquez ses coordonnées et
+                positionnez-la sur la carte pour faciliter la recherche locale.
+              </p>
+
+              {/* Les cartes sont maintenant juste sous le texte */}
+              <div className="mt-6 grid gap-3 text-sm">
+                <div className="flex items-start gap-3 rounded-2xl bg-white/10 p-4">
+                  <BadgeCheck className="mt-0.5 size-5 shrink-0" />
+                  <span>
+                    Une fiche claire pour présenter votre établissement.
+                  </span>
+                </div>
+
+                <div className="flex items-start gap-3 rounded-2xl bg-white/10 p-4">
+                  <MapPin className="mt-0.5 size-5 shrink-0" />
+                  <span>
+                    Une localisation précise pour les élèves et les parents.
+                  </span>
+                </div>
+              </div>
+            </section>
+
+            <section className="grid gap-5">
+              <div className="rounded-3xl border bg-white p-6 shadow-sm md:p-7">
+                <div className="flex items-center gap-3">
+                  <span className="flex size-11 items-center justify-center rounded-2xl bg-blue-950 text-white">
+                    <Building2 className="size-5" />
+                  </span>
+
+                  <div>
+                    <h2 className="text-2xl font-bold text-slate-950">
+                      Informations de l’école
+                    </h2>
+                    <p className="text-sm text-slate-500">
+                      Les champs essentiels permettent de créer la fiche de
+                      base.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="mt-7 grid gap-4">
+                  <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Nom de l’établissement</FormLabel>
+                        <FormControl>
+                          <Input
+                            {...field}
+                            placeholder="Nom de l’école *"
+                            autoComplete="organization"
+                            className="h-12 rounded-2xl"
+                            disabled={isSubmitting}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
                   />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
 
-          <FormField
-            control={form.control}
-            name="longitude"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Longitude</FormLabel>
-                <FormControl>
-                  <Input
-                    {...field}
-                    type="number"
-                    step="any"
-                    placeholder="15.322"
-                    className="h-11"
-                    disabled={isSubmitting}
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <FormField
+                      control={form.control}
+                      name="code"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Code école</FormLabel>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              placeholder="KIN"
+                              autoCapitalize="characters"
+                              className="h-12 rounded-2xl"
+                              disabled={isSubmitting}
+                              onChange={(e) =>
+                                field.onChange(e.target.value.toUpperCase())
+                              }
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="idnat"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>ID NAT</FormLabel>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              placeholder="ID NAT"
+                              className="h-12 rounded-2xl"
+                              disabled={isSubmitting}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <FormField
+                      control={form.control}
+                      name="tel"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Téléphone</FormLabel>
+                          <FormControl>
+                            <div className="relative">
+                              <Phone className="absolute left-3 top-4 h-4 w-4 text-slate-400" />
+                              <Input
+                                {...field}
+                                type="tel"
+                                inputMode="tel"
+                                maxLength={15}
+                                placeholder="+243xxxxxxxxx"
+                                className="h-12 rounded-2xl pl-10"
+                                disabled={isSubmitting}
+                                onChange={(e) => {
+                                  const value = e.target.value
+                                    .replace(/[^\d+]/g, "")
+                                    .slice(0, 15);
+
+                                  field.onChange(value);
+                                }}
+                              />
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="image"
+                      render={({ field: { value, onChange, ...field } }) => (
+                        <FormItem>
+                          <FormLabel>Image</FormLabel>
+                          <FormControl>
+                            <div className="relative">
+                              <ImageIcon className="absolute left-3 top-4 h-4 w-4 text-slate-400" />
+
+                              <Input
+                                {...field}
+                                type="file"
+                                accept="image/png,image/jpeg,image/jpg,image/webp"
+                                className="h-12 cursor-pointer rounded-2xl pl-10 file:mr-3 file:rounded-xl file:border-0 file:bg-blue-950 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-white hover:file:bg-blue-900"
+                                disabled={isSubmitting}
+                                onChange={(e) => {
+                                  const file = e.target.files?.[0];
+
+                                  if (!file) {
+                                    onChange("");
+                                    return;
+                                  }
+
+                                  onChange(file.name);
+                                }}
+                              />
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <FormField
+                    control={form.control}
+                    name="adresse"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Adresse</FormLabel>
+                        <FormControl>
+                          <Input
+                            {...field}
+                            placeholder="Adresse"
+                            className="h-12 rounded-2xl"
+                            disabled={isSubmitting}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
                   />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
 
-        <FormField
-          control={form.control}
-          name="attendanceRadius"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Rayon de présence</FormLabel>
-              <FormControl>
-                <Input
-                  {...field}
-                  type="number"
-                  min={10}
-                  step={1}
-                  placeholder="100"
-                  className="h-11"
-                  disabled={isSubmitting}
-                />
-              </FormControl>
-              <FormDescription>
-                Distance en mètres autorisée pour valider une présence.
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <FormField
+                      control={form.control}
+                      name="ville"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Ville</FormLabel>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              placeholder="Ville"
+                              className="h-12 rounded-2xl"
+                              disabled={isSubmitting}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-        {form.formState.errors.root && (
-          <p className="text-sm text-destructive" role="alert">
-            {form.formState.errors.root.message}
-          </p>
-        )}
+                    <FormField
+                      control={form.control}
+                      name="pays"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Pays</FormLabel>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              placeholder="Pays"
+                              className="h-12 rounded-2xl"
+                              disabled={isSubmitting}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
 
-        <Button type="submit" className="h-11 w-full" disabled={isSubmitting}>
-          {isSubmitting ? "Création…" : "Créer l’établissement"}
-        </Button>
-      </form>
-    </Form>
+                  <div className="grid gap-4 sm:grid-cols-3">
+                    <FormField
+                      control={form.control}
+                      name="latitude"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Latitude</FormLabel>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              type="number"
+                              step="any"
+                              placeholder="-4.4419"
+                              className="h-12 rounded-2xl"
+                              disabled={isSubmitting}
+                              onChange={(e) =>
+                                field.onChange(Number(e.target.value))
+                              }
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="longitude"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Longitude</FormLabel>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              type="number"
+                              step="any"
+                              placeholder="15.2663"
+                              className="h-12 rounded-2xl"
+                              disabled={isSubmitting}
+                              onChange={(e) =>
+                                field.onChange(Number(e.target.value))
+                              }
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="attendanceRadius"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Rayon présence</FormLabel>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              type="number"
+                              min={10}
+                              step={1}
+                              placeholder="100"
+                              className="h-12 rounded-2xl"
+                              disabled={isSubmitting}
+                              onChange={(e) =>
+                                field.onChange(Number(e.target.value))
+                              }
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <FormDescription>
+                    Le rayon est exprimé en mètres pour valider une présence.
+                  </FormDescription>
+
+                  <div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-center">
+                    <Button
+                      type="button"
+                      onClick={useCurrentLocation}
+                      variant="outline"
+                      disabled={isSubmitting}
+                      className="h-12 rounded-full border-blue-950/20 text-blue-950 hover:bg-blue-50"
+                    >
+                      <Navigation className="mr-2 h-4 w-4" />
+                      Utiliser ma position actuelle
+                    </Button>
+
+                    <div className="flex h-12 items-center justify-between gap-3 rounded-full border border-blue-950/10 bg-blue-50/60 px-4">
+                      <span className="text-sm font-medium text-blue-950">
+                        Utiliser la carte
+                      </span>
+
+                      <Switch
+                        checked={showMapDialog}
+                        onCheckedChange={(checked) => {
+                          setShowMapDialog(checked);
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  {form.formState.errors.root && (
+                    <p className="text-sm text-destructive" role="alert">
+                      {form.formState.errors.root.message}
+                    </p>
+                  )}
+
+                  <div className="sticky bottom-4 z-20 mt-5 rounded-3xl border bg-white/90 p-3 shadow-xl backdrop-blur">
+                    <Button
+                      type="submit"
+                      disabled={isSubmitting}
+                      className="h-14 w-full rounded-full bg-blue-950 text-base font-semibold text-white hover:bg-blue-900"
+                    >
+                      {isSubmitting ? "Création en cours..." : "Créer l’école"}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </section>
+          </div>
+        </form>
+      </Form>
+      <Dialog open={showMapDialog} onOpenChange={setShowMapDialog}>
+        <DialogContent className="max-w-5xl rounded-3xl p-0">
+          <DialogHeader className="px-6 pt-6">
+            <DialogTitle className="text-2xl font-bold text-slate-950">
+              Emplacement de l’école
+            </DialogTitle>
+            <DialogDescription>
+              Cliquez sur la carte pour pointer l’emplacement exact de l’école.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="px-4 pb-4">
+            <BranchMapPicker
+              latitude={Number(latitude)}
+              longitude={Number(longitude)}
+              onChange={async (lat, lng) => {
+                form.setValue("latitude", lat, { shouldValidate: true });
+                form.setValue("longitude", lng, { shouldValidate: true });
+
+                await reverseGeocode(lat, lng);
+              }}
+            />
+
+            <div className="mt-4 grid gap-3 text-sm md:grid-cols-2">
+              <div className="flex items-start gap-3 rounded-2xl bg-blue-50 p-4 text-blue-950">
+                <BadgeCheck className="mt-0.5 size-5 shrink-0" />
+                <span>
+                  Une fiche claire pour présenter votre établissement.
+                </span>
+              </div>
+
+              <div className="flex items-start gap-3 rounded-2xl bg-blue-50 p-4 text-blue-950">
+                <MapPin className="mt-0.5 size-5 shrink-0" />
+                <span>
+                  Une localisation précise pour les élèves et les parents.
+                </span>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }

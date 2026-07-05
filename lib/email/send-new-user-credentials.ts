@@ -46,10 +46,19 @@ export async function sendNewUserCredentialsEmail(input: {
   `;
 
   const from =
+    process.env.MAIL_FROM ??
     process.env.EMAIL_FROM ??
-    (process.env.EMAIL_USER
-      ? `${APP_NAME} <${process.env.EMAIL_USER}>`
-      : `no-reply@example.com`);
+    (process.env.SMTP_USER
+      ? `${APP_NAME} <${process.env.SMTP_USER}>`
+      : undefined);
+
+  if (!from) {
+    throw new Error("Aucun expéditeur configuré.");
+  }
+
+  if (!from) {
+    throw new Error("Aucun expéditeur configuré.");
+  }
 
   if (isSmtpConfigured()) {
     try {

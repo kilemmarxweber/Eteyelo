@@ -1,11 +1,6 @@
 import Link from "next/link";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { ArrowLeft } from "lucide-react";
+
 import { CreateBranchForm } from "./components/create-branch-form";
 
 type NewBranchPageProps = {
@@ -17,25 +12,18 @@ export default async function NewBranchPage({ params }: NewBranchPageProps) {
   const branchesHref = `/admin/organizations/${organizationId}/branches`;
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-5 md:max-w-4xl md:px-6">
-      <Card>
-        <CardHeader className="space-y-1 pb-2">
-          <CardTitle className="text-lg">Informations</CardTitle>
-          <CardDescription>
-            Créez un établissement pour cette organisation.{" "}
-            <Link
-              href={branchesHref}
-              className="text-primary underline-offset-4 hover:underline"
-            >
-              Retour à la liste
-            </Link>
-            .
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="pt-2">
-          <CreateBranchForm organizationId={organizationId} />
-        </CardContent>
-      </Card>
+    <div className="min-h-screen bg-slate-50">
+      <main className="mx-auto max-w-6xl px-4 py-10 md:px-6 lg:py-14">
+        <Link
+          href={branchesHref}
+          className="mb-6 inline-flex items-center gap-2 text-sm font-medium text-blue-950 underline-offset-4 hover:underline"
+        >
+          <ArrowLeft className="size-4" />
+          Retour à la liste
+        </Link>
+
+        <CreateBranchForm organizationId={organizationId} />
+      </main>
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Plus, School } from "lucide-react";
+import { ArrowLeft, ArrowRight, Plus, School } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { prisma } from "@/lib/prisma";
 import { BranchCard } from "./branchCard";
@@ -42,61 +42,80 @@ export default async function BranchesPage({ params }: BranchesPageProps) {
   const base = `/admin/organizations/${organizationId}/branches`;
 
   return (
-    <div className="mx-auto flex w-full max-w-4xl flex-col gap-6 px-4 py-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-xl font-semibold">Établissements</h1>
+    <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
+      <section className="rounded-3xl bg-blue-950 p-6 text-white shadow-2xl shadow-blue-950/10 sm:p-8">
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+          <div className="max-w-3xl">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1.5 text-xs font-semibold text-blue-50">
+              <School className="size-4" />
+              Établissements
+            </div>
 
-          <p className="text-sm text-muted-foreground">
-            Gérez les établissements de cette organisation.
-          </p>
-        </div>
+            <h1 className="mt-4 text-3xl font-black tracking-tight sm:text-4xl">
+              Gérez les établissements
+            </h1>
 
-        <Button asChild>
-          <Link href={`${base}/new`}>
-            <Plus className="size-4" />
-            Créer un établissement
-          </Link>
-        </Button>
-      </div>
+            <p className="mt-3 text-sm leading-7 text-blue-50 sm:text-base">
+              Consultez, créez et administrez les établissements, campus ou
+              antennes liés à cette organisation.
+            </p>
+          </div>
 
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        {branches.map((branch) => (
-          <BranchCard
-            key={branch.id}
-            branchId={branch.id}
-            href={`${base}/${branch.id}`}
+          <Button
+            variant="secondary"
+            className="h-11 rounded-full bg-white text-blue-950 hover:bg-blue-50"
+            asChild
           >
-            <Button
-              variant="outline"
-              className="h-auto min-h-24 w-full justify-start p-4"
-            >
-              <div className="flex min-w-0 flex-col gap-2 text-left">
-                <School className="size-7 shrink-0 text-primary" aria-hidden />
+            <Link href={`${base}/new`}>
+              <Plus className="mr-2 size-4" />
+              Créer un établissement
+            </Link>
+          </Button>
+        </div>
+      </section>
 
-                <span className="text-base font-semibold leading-snug">
-                  {branch.name}
+      {branches.length > 0 ? (
+        <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          {branches.map((branch) => (
+            <BranchCard
+              key={branch.id}
+              branchId={branch.id}
+              href={`${base}/${branch.id}`}
+            >
+              <div className="group flex min-h-44 flex-col justify-between rounded-3xl border bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-blue-950/25 hover:shadow-xl hover:shadow-blue-950/10">
+                <span className="flex items-start justify-between gap-4">
+                  <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-blue-950 text-white">
+                    <School className="size-5" />
+                  </span>
+
+                  <ArrowRight className="size-4 text-slate-400 transition group-hover:translate-x-1 group-hover:text-blue-950" />
                 </span>
 
-                <span className="text-sm text-muted-foreground">
-                  {branch.studentsCount} élève
-                  {branch.studentsCount > 1 ? "s" : ""}
+                <span className="mt-6">
+                  <span className="block text-lg font-bold text-slate-950">
+                    {branch.name}
+                  </span>
+
+                  <span className="mt-2 block text-sm leading-6 text-slate-600">
+                    {branch.studentsCount} élève
+                    {branch.studentsCount > 1 ? "s" : ""} inscrit
+                    {branch.studentsCount > 1 ? "s" : ""}
+                  </span>
                 </span>
               </div>
-            </Button>
-          </BranchCard>
-        ))}
-      </div>
-
-      {!branches.length && (
-        <p className="rounded-md border border-dashed p-4 text-sm text-muted-foreground">
+            </BranchCard>
+          ))}
+        </section>
+      ) : (
+        <section className="rounded-3xl border border-dashed bg-white p-6 text-sm text-slate-600 shadow-sm">
           Aucun établissement trouvé pour cette organisation.
-        </p>
+        </section>
       )}
 
-      <Button variant="ghost" asChild>
+      <Button variant="ghost" asChild className="w-fit rounded-full">
         <Link href={`/admin/organizations/${organizationId}`}>
-          ← Retour à l’organisation
+          <ArrowLeft className="mr-2 size-4" />
+          Retour organisation
         </Link>
       </Button>
     </div>

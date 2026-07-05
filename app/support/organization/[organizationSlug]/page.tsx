@@ -1,12 +1,12 @@
 import { notFound } from "next/navigation";
 import { HeadphonesIcon } from "lucide-react";
-import Navbar from "@/app/components/navbar";
 import { SUPPORT_TOPICS } from "@/lib/support/types";
 import {
   getOrganizationBySlug,
   listActiveOrganizationSupportAgents,
 } from "@/lib/support/organization-support";
 import { SupportTeamSection } from "@/app/components/support/support-team-section";
+import { HomeNavbar } from "@/components/home-navbar";
 
 type PageProps = {
   params: Promise<{ organizationSlug: string }>;
@@ -33,7 +33,7 @@ export default async function OrganizationSupportPublicPage({
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <Navbar />
+      <HomeNavbar />
 
       <main className="mx-auto max-w-6xl px-4 py-14">
         <section className="max-w-3xl">

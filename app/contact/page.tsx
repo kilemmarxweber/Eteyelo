@@ -3,12 +3,12 @@ import ContactForm from "./contact-form";
 import { HomeNavbar } from "@/components/home-navbar";
 
 type ContactPageProps = {
-  searchParams: Promise<{ partnaire?: string }>;
+  searchParams: Promise<{ user?: string }>;
 };
 
 export default async function ContactPage({ searchParams }: ContactPageProps) {
-  const { partnaire } = await searchParams;
-  const contactEmail = "contact@klambocore.com"; //process.env.MAIL_FROM || process.env.SMTP_USER || "";
+  const { user } = await searchParams;
+  const contactEmail = process.env.MAIL_FROM || process.env.SMTP_USER || "";
 
   return (
     <div className="min-h-screen bg-[#f8fafc]">
@@ -51,7 +51,7 @@ export default async function ContactPage({ searchParams }: ContactPageProps) {
         </section>
 
         <section>
-          <ContactForm partnaire={partnaire} />
+          <ContactForm recipientId={user} subject="Demande de contact" />
         </section>
       </main>
     </div>

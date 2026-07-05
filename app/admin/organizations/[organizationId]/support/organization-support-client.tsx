@@ -1,17 +1,15 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useRouter } from "next/navigation";
 import {
   Select,
   SelectContent,
@@ -89,7 +87,7 @@ export function OrganizationSupportClient({
   const [name, setName] = useState("");
   const [displayTitle, setDisplayTitle] = useState("Support établissement");
   const [selectedBranchIds, setSelectedBranchIds] = useState<string[]>([]);
-
+  const router = useRouter();
   const [escalationSubject, setEscalationSubject] = useState("");
   const [escalationMessage, setEscalationMessage] = useState("");
   const [escalationPriority, setEscalationPriority] = useState<
@@ -103,6 +101,9 @@ export function OrganizationSupportClient({
   const [editIsPrimary, setEditIsPrimary] = useState(false);
   const [editBranchIds, setEditBranchIds] = useState<string[]>([]);
 
+  useEffect(() => {
+    setAgents(initialAgents);
+  }, [initialAgents]);
   function toggleBranchSelection(
     branchId: string,
     current: string[],
@@ -147,7 +148,12 @@ export function OrganizationSupportClient({
       }
 
       toast.success("Agent support ajouté.");
-      window.location.reload();
+      setEmail("");
+      setName("");
+      setDisplayTitle("Support établissement");
+      setSelectedBranchIds([]);
+
+      router.refresh();
     });
   }
 
@@ -173,7 +179,7 @@ export function OrganizationSupportClient({
 
       toast.success("Profil mis à jour.");
       setEditingAgent(null);
-      window.location.reload();
+      router.refresh();
     });
   }
 
@@ -213,6 +219,7 @@ export function OrganizationSupportClient({
 
       setAgents((prev) => prev.filter((a) => a.id !== agentId));
       toast.success("Agent retiré.");
+      router.refresh();
     });
   }
 
@@ -239,7 +246,7 @@ export function OrganizationSupportClient({
       setEscalationSubject("");
       setEscalationMessage("");
       setEscalationPriority("normal");
-      window.location.reload();
+      router.refresh();
     });
   }
 
@@ -507,11 +514,7 @@ export function OrganizationSupportClient({
             )}
           </div>
 
-          <Button
-            type="button"
-            disabled={isPending}
-            onClick={handleSaveEdit}
-          >
+          <Button type="button" disabled={isPending} onClick={handleSaveEdit}>
             Enregistrer
           </Button>
         </DialogContent>

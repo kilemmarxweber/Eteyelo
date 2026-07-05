@@ -1,119 +1,71 @@
 "use client";
 
-import { useState } from "react";
+import { useTransition } from "react";
 import { Mail, Phone, Send, UserRound } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { toast } from "sonner";
+
+import { sendContactMessageAction } from "./actions";
+import { contactSchema, type ContactInput } from "./schema";
 
 type ContactFormProps = {
-  partnaire?: string;
-  organizationId?: string;
-  supportAgent?: string;
-  recipientEmail?: string;
-  showSupportAgentPicker?: boolean;
-  supportAgents?: Array<{
-    id: string;
-    name: string;
-    email: string;
-  }>;
+  recipientId?: string;
+  subject?: string;
 };
 
 export default function ContactForm({
-  partnaire,
-  organizationId,
-  supportAgent: initialSupportAgent,
-  recipientEmail: initialRecipientEmail,
-  showSupportAgentPicker = false,
-  supportAgents = [],
+  recipientId,
+  subject,
 }: ContactFormProps) {
-  const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">(
-    "idle",
-  );
-  const [error, setError] = useState("");
-  const [selectedAgentId, setSelectedAgentId] = useState(
-    supportAgents.find((agent) => agent.email === initialRecipientEmail)?.id ??
-      "",
-  );
+  const [pending, startTransition] = useTransition();
 
-  const selectedAgent = supportAgents.find(
-    (agent) => agent.id === selectedAgentId,
-  );
+  const form = useForm<ContactInput>({
+    resolver: zodResolver(contactSchema),
+    defaultValues: {
+      recipientId,
+      subject: subject ?? "",
+      name: "",
+      email: "",
+      phone: "",
+      message: "",
+    },
+  });
 
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setStatus("sending");
-    setError("");
+  function onSubmit(values: ContactInput) {
+    startTransition(async () => {
+      const res = await sendContactMessageAction({
+        ...values,
+        recipientId,
+        subject: values.subject,
+      });
 
-    const formData = new FormData(event.currentTarget);
-    const body = {
-      name: String(formData.get("name") || ""),
-      email: String(formData.get("email") || ""),
-      phone: String(formData.get("phone") || ""),
-      subject: String(formData.get("subject") || ""),
-      message: String(formData.get("message") || ""),
-      partnaire,
-      organizationId,
-      supportAgent:
-        selectedAgent?.name || initialSupportAgent || undefined,
-      recipientEmail:
-        selectedAgent?.email || initialRecipientEmail || undefined,
-    };
+      if (!res.ok) {
+        toast.error(res.message);
+        return;
+      }
 
-    const response = await fetch("/api/contact", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
+      toast.success("Message envoyé. Nous vous répondrons rapidement.");
+
+      form.reset({
+        recipientId,
+        subject: subject ?? "",
+        name: "",
+        email: "",
+        phone: "",
+        message: "",
+      });
     });
-
-    if (!response.ok) {
-      const data = (await response.json().catch(() => null)) as {
-        error?: string;
-      } | null;
-
-      setError(data?.error || "Impossible d'envoyer le message.");
-      setStatus("error");
-      return;
-    }
-
-    event.currentTarget.reset();
-    setStatus("sent");
   }
 
   return (
     <form
-      onSubmit={handleSubmit}
+      onSubmit={form.handleSubmit(onSubmit)}
       className="relative overflow-hidden rounded-3xl border bg-white/85 p-5 shadow-xl shadow-blue-950/5 backdrop-blur-xl md:p-7"
     >
       <div className="absolute -right-20 -top-20 h-52 w-52 rounded-full bg-blue-950/10 blur-3xl" />
 
-      {partnaire && (
-        <div className="relative mb-5 rounded-2xl border bg-blue-950/10 px-4 py-3 text-sm text-blue-950">
-          Message lie au partenaire: <strong>{partnaire}</strong>
-        </div>
-      )}
-
-      {showSupportAgentPicker && supportAgents.length > 0 && (
-        <label className="relative mb-5 block space-y-2 text-sm font-medium">
-          Contacter un membre du support
-          <select
-            value={selectedAgentId}
-            onChange={(event) => setSelectedAgentId(event.target.value)}
-            className="h-12 w-full rounded-2xl border bg-white px-4 text-sm outline-none"
-          >
-            {supportAgents.map((agent) => (
-              <option key={agent.id} value={agent.id}>
-                {agent.name}
-              </option>
-            ))}
-            <option value="">Toute l&apos;equipe support</option>
-          </select>
-        </label>
-      )}
-
-      {(selectedAgent || initialSupportAgent) && !showSupportAgentPicker && (
-        <div className="relative mb-5 rounded-2xl border bg-blue-950/10 px-4 py-3 text-sm text-blue-950">
-          Message adresse a:{" "}
-          <strong>{selectedAgent?.name || initialSupportAgent}</strong>
-        </div>
-      )}
+      <input type="hidden" {...form.register("recipientId")} />
 
       <div className="relative grid gap-4 md:grid-cols-2">
         <label className="space-y-2 text-sm font-medium">
@@ -121,13 +73,13 @@ export default function ContactForm({
           <div className="flex items-center gap-2 rounded-2xl border bg-white px-3">
             <UserRound className="size-4 text-muted-foreground" />
             <input
-              name="name"
-              required
-              minLength={2}
+              {...form.register("name")}
+              disabled={pending}
               placeholder="Votre nom"
               className="h-12 w-full bg-transparent text-sm outline-none"
             />
           </div>
+          <FormError message={form.formState.errors.name?.message} />
         </label>
 
         <label className="space-y-2 text-sm font-medium">
@@ -135,72 +87,68 @@ export default function ContactForm({
           <div className="flex items-center gap-2 rounded-2xl border bg-white px-3">
             <Mail className="size-4 text-muted-foreground" />
             <input
-              name="email"
-              required
+              {...form.register("email")}
+              disabled={pending}
               type="email"
               placeholder="vous@example.com"
               className="h-12 w-full bg-transparent text-sm outline-none"
             />
           </div>
+          <FormError message={form.formState.errors.email?.message} />
         </label>
 
         <label className="space-y-2 text-sm font-medium">
-          Telephone
+          Téléphone
           <div className="flex items-center gap-2 rounded-2xl border bg-white px-3">
             <Phone className="size-4 text-muted-foreground" />
             <input
-              name="phone"
+              {...form.register("phone")}
+              disabled={pending}
               placeholder="+243..."
               className="h-12 w-full bg-transparent text-sm outline-none"
             />
           </div>
+          <FormError message={form.formState.errors.phone?.message} />
         </label>
 
         <label className="space-y-2 text-sm font-medium">
           Sujet
           <input
-            name="subject"
-            required
-            minLength={3}
-            defaultValue={partnaire ? `Demande concernant ${partnaire}` : ""}
+            {...form.register("subject")}
+            disabled={pending}
             placeholder="Objet du message"
             className="h-12 w-full rounded-2xl border bg-white px-4 text-sm outline-none"
           />
+          <FormError message={form.formState.errors.subject?.message} />
         </label>
       </div>
 
       <label className="relative mt-4 block space-y-2 text-sm font-medium">
         Message
         <textarea
-          name="message"
-          required
-          minLength={10}
+          {...form.register("message")}
+          disabled={pending}
           rows={6}
           placeholder="Expliquez-nous votre besoin..."
           className="w-full resize-none rounded-2xl border bg-white px-4 py-3 text-sm outline-none"
         />
+        <FormError message={form.formState.errors.message?.message} />
       </label>
-
-      {status === "sent" && (
-        <p className="relative mt-4 rounded-2xl bg-green-50 px-4 py-3 text-sm text-green-700">
-          Message envoye. Nous vous repondrons rapidement.
-        </p>
-      )}
-
-      {status === "error" && (
-        <p className="relative mt-4 rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-700">
-          {error}
-        </p>
-      )}
 
       <button
         type="submit"
-        disabled={status === "sending"}
+        disabled={pending}
         className="relative mt-5 inline-flex h-12 w-full items-center justify-center gap-2 rounded-2xl bg-blue-950 px-5 text-sm font-semibold text-white shadow-lg shadow-blue-950/20 transition hover:bg-blue-950/90 disabled:cursor-not-allowed disabled:opacity-70"
       >
         <Send className="size-4" />
-        {status === "sending" ? "Envoi..." : "Envoyer le message"}
+        {pending ? "Envoi..." : "Envoyer le message"}
       </button>
     </form>
   );
+}
+
+function FormError({ message }: { message?: string }) {
+  if (!message) return null;
+
+  return <p className="text-xs text-red-600">{message}</p>;
 }

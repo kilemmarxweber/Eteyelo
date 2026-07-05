@@ -12,6 +12,16 @@ export const createBranchFormSchema = z.object({
     .max(32, "Le code est trop long.")
     .optional()
     .or(z.literal("")),
+  adresse: z.string().optional(),
+  ville: z.string().optional(),
+  pays: z.string().optional(),
+  idnat: z.string().optional(),
+  image: z.string().trim().optional(),
+  tel: z
+    .string()
+    .trim()
+    .max(15, "Le numéro ne doit pas dépasser 15 caractères.")
+    .optional(),
   latitude: z.coerce
     .number({ invalid_type_error: "La latitude est requise." })
     .min(-90, "La latitude doit être comprise entre -90 et 90.")

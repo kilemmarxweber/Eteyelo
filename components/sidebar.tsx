@@ -11,6 +11,7 @@ import { getBranchNameAction } from "@/app/admin/organizations/[organizationId]/
 import { useTheme } from "next-themes";
 import Image from "next/image";
 import cmj from "@/public/cmj.jpg";
+import { normalizeImageSrc } from "@/lib/utils";
 import { usePathname, useRouter } from "next/navigation";
 interface SidebarProps extends React.HTMLAttributes<HTMLElement> {
   isCollapsed: boolean;
@@ -31,6 +32,7 @@ export default function Sidebar({
     isSSR ? true : false,
   );
   const [branchName, setBranchName] = useState<string | null>(null);
+  const [branchLogo, setBranchLogo] = useState<string | null>(null);
   const { data: session } = authClient.useSession();
 
   const links = buildStaticSideLinks(session, pathname);
@@ -50,17 +52,24 @@ export default function Sidebar({
   useEffect(() => {
     if (!branchId) {
       setBranchName(null);
+      setBranchLogo(null);
       return;
     }
 
     let ignore = false;
 
     getBranchNameAction(branchId)
-      .then((name) => {
-        if (!ignore) setBranchName(name);
+      .then((branch) => {
+        if (ignore) return;
+
+        setBranchName(branch?.name ?? null);
+        setBranchLogo(branch?.image ?? null);
       })
       .catch(() => {
-        if (!ignore) setBranchName(null);
+        if (ignore) return;
+
+        setBranchName(null);
+        setBranchLogo(null);
       });
 
     return () => {
@@ -68,7 +77,6 @@ export default function Sidebar({
     };
   }, [branchId]);
 
-  const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
   const isBackButtonPage =
@@ -94,11 +102,11 @@ export default function Sidebar({
           >
             {
               <Image
-                src={theme === "dark" ? cmj : cmj}
-                alt=""
-                width={"1225"}
-                height={649}
-                className={`transition-all ${
+                src={normalizeImageSrc(branchLogo)}
+                alt={branchName ?? "Logo établissement"}
+                width={120}
+                height={120}
+                className={`object-contain transition-all ${
                   isCollapsed ? "w-full" : "ml-2 w-11"
                 }`}
               />

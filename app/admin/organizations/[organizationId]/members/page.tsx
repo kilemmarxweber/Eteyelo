@@ -1,12 +1,21 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { MoreHorizontal } from "lucide-react";
+import {
+  ArrowLeft,
+  Mail,
+  MoreHorizontal,
+  Plus,
+  RefreshCcw,
+  Search,
+  Users,
+} from "lucide-react";
 import { toast } from "sonner";
 import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { orgRoleLabel } from "@/lib/org-role-labels";
 import {
   DropdownMenu,
@@ -14,7 +23,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Separator } from "@/components/ui/separator";
 
 type MemberRow = {
   id: string;
@@ -31,9 +39,11 @@ export default function OrganizationMembersPage() {
 
   const [members, setMembers] = useState<MemberRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
 
   const loadMembers = useCallback(async () => {
     setLoading(true);
+
     try {
       const res = await authClient.organization.listMembers({
         query: { organizationId, limit: 100 },
@@ -59,103 +69,165 @@ export default function OrganizationMembersPage() {
     void loadMembers();
   }, [loadMembers]);
 
+  const filteredMembers = useMemo(() => {
+    const q = search.trim().toLowerCase();
+
+    if (!q) return members;
+
+    return members.filter((member) => {
+      const role = member.role.split(",")[0]?.trim();
+
+      return (
+        member.user.name?.toLowerCase().includes(q) ||
+        member.user.email?.toLowerCase().includes(q) ||
+        orgRoleLabel(role).toLowerCase().includes(q)
+      );
+    });
+  }, [members, search]);
+
   return (
-    <div className="mx-auto flex w-full max-w-4xl flex-col gap-6 px-4 py-6 sm:px-6">
-      {/* HEADER RESPONSIVE */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <Button asChild className="w-full sm:w-auto h-11 sm:h-10">
-          <Link href={`/admin/organizations/${organizationId}/members/new`}>
-            Ajouter un membre
-          </Link>
-        </Button>
+    <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
+      <section className="rounded-3xl bg-blue-950 p-6 text-white shadow-2xl shadow-blue-950/10 sm:p-8">
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+          <div className="max-w-3xl">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1.5 text-xs font-semibold text-blue-50">
+              <Users className="size-4" />
+              Membres
+            </div>
 
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => void loadMembers()}
-          disabled={loading}
-          className="w-full sm:w-auto h-11 sm:h-10"
-        >
-          Actualiser
-        </Button>
-      </div>
+            <h1 className="mt-4 text-3xl font-black tracking-tight sm:text-4xl">
+              Gérez les membres
+            </h1>
 
-      {/* TITLE */}
-      <div className="flex flex-col gap-1">
-        <h2 className="text-base font-semibold">Membres</h2>
-        <Separator />
-      </div>
+            <p className="mt-3 text-sm leading-7 text-blue-50 sm:text-base">
+              Créez des comptes, attribuez des rôles et modifiez les accès des
+              utilisateurs de cette organisation.
+            </p>
+          </div>
 
-      {/* CONTENT */}
-      {loading ? (
-        <p className="text-sm text-muted-foreground">Chargement…</p>
-      ) : members.length === 0 ? (
-        <p className="text-sm text-muted-foreground">
-          Aucun membre pour le moment.
-        </p>
-      ) : (
-        <ul className="flex flex-col gap-3">
-          {members.map((m) => (
-            <li
-              key={m.id}
-              className="rounded-xl border bg-card p-4 shadow-sm transition hover:bg-accent/30"
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <Button
+              variant="secondary"
+              className="h-11 rounded-full bg-white text-blue-950 hover:bg-blue-50"
+              asChild
             >
-              <div className="flex items-start justify-between gap-3">
-                {/* LEFT */}
-                <div className="flex min-w-0 flex-1 gap-3">
-                  <div className="flex size-9 sm:size-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-medium text-primary">
-                    {m.user.name?.charAt(0).toUpperCase()}
-                  </div>
+              <Link href={`/admin/organizations/${organizationId}/members/new`}>
+                <Plus className="mr-2 size-4" />
+                Ajouter un membre
+              </Link>
+            </Button>
 
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm sm:text-base font-medium">
-                      {m.user.name}
-                    </p>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => void loadMembers()}
+              disabled={loading}
+              className="h-11 rounded-full border-white/30 bg-white/10 text-white hover:bg-white hover:text-blue-950"
+            >
+              <RefreshCcw className="mr-2 size-4" />
+              Actualiser
+            </Button>
+          </div>
+        </div>
+      </section>
 
-                    <p className="truncate text-xs sm:text-sm text-muted-foreground">
-                      {m.user.email}
-                    </p>
+      <section className="rounded-3xl border bg-white p-4 shadow-sm sm:p-5">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-lg font-bold text-slate-950">
+              Liste des membres
+            </h2>
+            <p className="text-sm text-slate-600">
+              {members.length} membre{members.length > 1 ? "s" : ""} enregistré
+              {members.length > 1 ? "s" : ""}.
+            </p>
+          </div>
 
-                    <div className="mt-2">
-                      <span className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-xs text-primary">
-                        {orgRoleLabel(m.role.split(",")[0]?.trim())}
-                      </span>
+          <div className="w-full sm:w-[340px]">
+            <div className="flex h-12 items-center rounded-full border bg-white px-4 shadow-sm transition focus-within:border-blue-950 focus-within:ring-2 focus-within:ring-blue-950/10">
+              <Search className="mr-3 size-4 shrink-0 text-slate-400" />
+
+              <Input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Rechercher un membre..."
+                className="h-auto border-0 bg-transparent p-0 shadow-none focus-visible:ring-0"
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {loading ? (
+        <section className="rounded-3xl border bg-white p-6 text-sm text-slate-500 shadow-sm">
+          Chargement…
+        </section>
+      ) : filteredMembers.length === 0 ? (
+        <section className="rounded-3xl border border-dashed bg-white p-6 text-sm text-slate-600 shadow-sm">
+          Aucun membre trouvé.
+        </section>
+      ) : (
+        <section className="overflow-hidden rounded-3xl border bg-white shadow-sm">
+          <ul className="divide-y">
+            {filteredMembers.map((member) => {
+              const role = member.role.split(",")[0]?.trim();
+
+              return (
+                <li
+                  key={member.id}
+                  className="flex flex-col gap-4 p-4 transition hover:bg-slate-50 sm:flex-row sm:items-center sm:justify-between sm:p-5"
+                >
+                  <div className="flex min-w-0 items-center gap-4">
+                    <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-blue-950 text-base font-bold text-white">
+                      {member.user.name?.charAt(0).toUpperCase() || "?"}
+                    </div>
+
+                    <div className="min-w-0">
+                      <h3 className="truncate font-bold text-slate-950">
+                        {member.user.name}
+                      </h3>
+
+                      <p className="mt-1 flex items-center gap-1 truncate text-sm text-slate-600">
+                        <Mail className="size-3.5 shrink-0" />
+                        {member.user.email}
+                      </p>
                     </div>
                   </div>
-                </div>
 
-                {/* ACTION */}
-                <DropdownMenu>
-                  <DropdownMenuTrigger className="inline-flex size-9 items-center justify-center rounded-md hover:bg-muted">
-                    <MoreHorizontal className="size-4" />
-                  </DropdownMenuTrigger>
+                  <div className="flex items-center justify-between gap-3 sm:justify-end">
+                    <span className="inline-flex rounded-full bg-blue-950/10 px-3 py-1 text-xs font-semibold text-blue-950">
+                      {orgRoleLabel(role)}
+                    </span>
 
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem
-                      onClick={() =>
-                        router.push(
-                          `/admin/organizations/${organizationId}/members/${m.id}/edit`,
-                        )
-                      }
-                    >
-                      Modifier
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            </li>
-          ))}
-        </ul>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger className="inline-flex size-9 items-center justify-center rounded-xl text-slate-400 transition hover:bg-slate-100 hover:text-blue-950">
+                        <MoreHorizontal className="size-4" />
+                      </DropdownMenuTrigger>
+
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem
+                          onClick={() =>
+                            router.push(
+                              `/admin/organizations/${organizationId}/members/${member.id}/edit`,
+                            )
+                          }
+                        >
+                          Modifier
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
       )}
 
-      {/* BACK */}
-      <Button
-        variant="ghost"
-        asChild
-        className="w-full sm:w-fit justify-center sm:justify-start"
-      >
+      <Button variant="ghost" asChild className="w-fit rounded-full">
         <Link href={`/admin/organizations/${organizationId}`}>
-          ← Accueil organisation
+          <ArrowLeft className="mr-2 size-4" />
+          Retour organisation
         </Link>
       </Button>
     </div>

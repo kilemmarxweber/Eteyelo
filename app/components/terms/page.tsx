@@ -1,4 +1,4 @@
-import Navbar from "@/app/components/navbar";
+import { HomeNavbar } from "@/components/home-navbar";
 
 const sections = [
   {
@@ -22,7 +22,7 @@ const sections = [
 export default function TermsPage() {
   return (
     <div className="min-h-screen bg-slate-50">
-      <Navbar />
+      <HomeNavbar />
 
       <main className="mx-auto max-w-4xl px-4 py-16">
         <p className="text-sm font-semibold uppercase tracking-wide text-blue-950">
@@ -38,7 +38,10 @@ export default function TermsPage() {
 
         <div className="mt-8 space-y-4">
           {sections.map((section) => (
-            <section key={section.title} className="rounded-2xl border bg-white p-5 shadow-sm">
+            <section
+              key={section.title}
+              className="rounded-2xl border bg-white p-5 shadow-sm"
+            >
               <h2 className="font-semibold text-slate-950">{section.title}</h2>
               <p className="mt-2 text-sm leading-relaxed text-slate-600">
                 {section.text}
