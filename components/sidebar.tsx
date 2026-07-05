@@ -34,7 +34,7 @@ export default function Sidebar({
   const [branchName, setBranchName] = useState<string | null>(null);
   const [branchLogo, setBranchLogo] = useState<string | null>(null);
   const { data: session } = authClient.useSession();
-
+  const [branchLoaded, setBranchLoaded] = useState(false);
   const links = buildStaticSideLinks(session, pathname);
   const branchId = pathname.match(
     /^\/admin\/organizations\/[^/]+\/branches\/([^/]+)/,
@@ -42,12 +42,37 @@ export default function Sidebar({
 
   /* Make body not scrollable when navBar is opened */
   useEffect(() => {
-    if (navOpened) {
-      document.body.classList.add("overflow-hidden");
-    } else {
-      document.body.classList.remove("overflow-hidden");
+    if (!branchId) {
+      setBranchName(null);
+      setBranchLogo(null);
+      setBranchLoaded(true);
+      return;
     }
-  }, [navOpened]);
+
+    let ignore = false;
+
+    setBranchLoaded(false);
+
+    getBranchNameAction(branchId)
+      .then((branch) => {
+        if (ignore) return;
+
+        setBranchName(branch?.name ?? null);
+        setBranchLogo(branch?.image ?? null);
+        setBranchLoaded(true);
+      })
+      .catch(() => {
+        if (ignore) return;
+
+        setBranchName(null);
+        setBranchLogo(null);
+        setBranchLoaded(true);
+      });
+
+    return () => {
+      ignore = true;
+    };
+  }, [branchId]);
 
   useEffect(() => {
     if (!branchId) {
@@ -102,11 +127,16 @@ export default function Sidebar({
           >
             {
               <Image
-                src={normalizeImageSrc(branchLogo)}
+                src={
+                  branchLoaded && branchLogo
+                    ? normalizeImageSrc(branchLogo)
+                    : cmj
+                }
                 alt={branchName ?? "Logo établissement"}
                 width={120}
                 height={120}
-                className={`object-contain transition-all ${
+                priority
+                className={`object-contain transition-all duration-300 ${
                   isCollapsed ? "w-full" : "ml-2 w-11"
                 }`}
               />
