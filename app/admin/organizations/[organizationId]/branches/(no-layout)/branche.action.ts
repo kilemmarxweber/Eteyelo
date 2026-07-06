@@ -51,7 +51,7 @@ export async function createBranchAction(
       ville: parsed.data.ville?.trim() || null,
       pays: parsed.data.pays?.trim() || null,
       idnat: parsed.data.idnat?.trim() || null,
-      image: parsed.data.image?.trim() || null,
+      image: parsed.data.image ?? [],
       latitude: parsed.data.latitude,
       longitude: parsed.data.longitude,
       attendanceRadius: parsed.data.attendanceRadius,
@@ -98,5 +98,83 @@ export async function switchBranchAction(branchId: string) {
 
   return {
     success: true,
+  };
+}
+export async function getBranchByIdAction(branchId: string) {
+  if (!branchId) return null;
+
+  return prisma.branch.findUnique({
+    where: { id: branchId },
+    select: {
+      id: true,
+      name: true,
+      code: true,
+      adresse: true,
+      tel: true,
+      ville: true,
+      pays: true,
+      idnat: true,
+      image: true,
+      latitude: true,
+      longitude: true,
+      attendanceRadius: true,
+      organizationId: true,
+    },
+  });
+}
+
+export async function updateBranchAction(
+  branchId: string,
+  values: CreateBranchFormValues,
+) {
+  const parsed = createBranchFormSchema.safeParse(values);
+
+  if (!parsed.success) {
+    return {
+      data: null,
+      error: parsed.error.issues[0]?.message ?? "Données invalides.",
+    };
+  }
+
+  const existingBranch = await prisma.branch.findUnique({
+    where: { id: branchId },
+    select: { id: true, organizationId: true },
+  });
+
+  if (!existingBranch) {
+    return {
+      data: null,
+      error: "Établissement introuvable.",
+    };
+  }
+
+  const branch = await prisma.branch.update({
+    where: { id: branchId },
+    data: {
+      name: parsed.data.name,
+      code: parsed.data.code?.trim() || null,
+      adresse: parsed.data.adresse?.trim() || null,
+      tel: parsed.data.tel?.trim() || null,
+      ville: parsed.data.ville?.trim() || null,
+      pays: parsed.data.pays?.trim() || null,
+      idnat: parsed.data.idnat?.trim() || null,
+      image: JSON.stringify(parsed.data.image ?? []),
+      latitude: parsed.data.latitude,
+      longitude: parsed.data.longitude,
+      attendanceRadius: parsed.data.attendanceRadius,
+    },
+    select: { id: true },
+  });
+
+  revalidatePath(
+    `/admin/organizations/${existingBranch.organizationId}/branches`,
+  );
+  revalidatePath(
+    `/admin/organizations/${existingBranch.organizationId}/branches/${branchId}/edit`,
+  );
+
+  return {
+    data: branch,
+    error: null,
   };
 }

@@ -37,8 +37,9 @@ import {
   createBranchFormSchema,
   type CreateBranchFormValues,
 } from "../../schema";
-import { createBranchAction } from "../../branche.action";
+import { createBranchAction, updateBranchAction } from "../../branche.action";
 import { useState } from "react";
+import { z } from "zod";
 
 const BranchMapPicker = dynamic(() => import("./branch-map-picker"), {
   ssr: false,
@@ -46,26 +47,39 @@ const BranchMapPicker = dynamic(() => import("./branch-map-picker"), {
 
 type CreateBranchFormProps = {
   organizationId: string;
+  mode?: "create" | "update";
+  branchId?: string;
+  defaultValues?: Partial<CreateBranchFormValues>;
 };
 
-export function CreateBranchForm({ organizationId }: CreateBranchFormProps) {
+export function CreateBranchForm({
+  organizationId,
+  mode = "create",
+  branchId,
+  defaultValues,
+}: CreateBranchFormProps) {
   const router = useRouter();
   const [showMapDialog, setShowMapDialog] = useState(false);
   const [showMap, setShowMap] = useState(false);
   const form = useForm<CreateBranchFormValues>({
     resolver: zodResolver(createBranchFormSchema),
     defaultValues: {
-      name: "",
-      code: "",
-      image: "",
-      adresse: "",
-      ville: "",
-      pays: "RDC",
-      idnat: "",
-      tel: "",
-      latitude: -4.4419,
-      longitude: 15.2663,
-      attendanceRadius: 100,
+      name: defaultValues?.name ?? "",
+      code: defaultValues?.code ?? "",
+      image: defaultValues?.image ?? {
+        logo: "",
+        event: [],
+        gallery: [],
+        ecole: [],
+      },
+      adresse: defaultValues?.adresse ?? "",
+      ville: defaultValues?.ville ?? "",
+      pays: defaultValues?.pays ?? "RDC",
+      idnat: defaultValues?.idnat ?? "",
+      tel: defaultValues?.tel ?? "",
+      latitude: defaultValues?.latitude ?? -4.4419,
+      longitude: defaultValues?.longitude ?? 15.2663,
+      attendanceRadius: defaultValues?.attendanceRadius ?? 100,
     },
     mode: "onSubmit",
     reValidateMode: "onBlur",
@@ -124,7 +138,10 @@ export function CreateBranchForm({ organizationId }: CreateBranchFormProps) {
     form.clearErrors("root");
 
     try {
-      const result = await createBranchAction(organizationId, values);
+      const result =
+        mode === "update" && branchId
+          ? await updateBranchAction(branchId, values)
+          : await createBranchAction(organizationId, values);
 
       if (result.error) {
         form.setError("root", {
@@ -135,7 +152,10 @@ export function CreateBranchForm({ organizationId }: CreateBranchFormProps) {
         return;
       }
 
-      toast.success("Établissement créé.");
+      toast.success(
+        mode === "update" ? "Établissement modifié." : "Établissement créé.",
+      );
+
       router.push(`/admin/organizations/${organizationId}/branches`);
       router.refresh();
     } catch (cause) {
@@ -146,7 +166,10 @@ export function CreateBranchForm({ organizationId }: CreateBranchFormProps) {
 
       form.setError("root", {
         type: "server",
-        message: "Création impossible. Réessayez plus tard.",
+        message:
+          mode === "update"
+            ? "Modification impossible. Réessayez plus tard."
+            : "Création impossible. Réessayez plus tard.",
       });
 
       toast.error(message);
@@ -156,6 +179,57 @@ export function CreateBranchForm({ organizationId }: CreateBranchFormProps) {
   const latitude = form.watch("latitude");
   const longitude = form.watch("longitude");
 
+  const images = form.watch("image") ?? {
+    logo: "",
+    event: [],
+    gallery: [],
+    ecole: [],
+  };
+
+  function setLogo(files: FileList | null) {
+    const file = files?.[0];
+    if (!file) return;
+
+    form.setValue("image.logo", file.name, {
+      shouldValidate: true,
+      shouldDirty: true,
+    });
+  }
+
+  function addImages(
+    type: "event" | "gallery" | "ecole",
+    files: FileList | null,
+  ) {
+    if (!files?.length) return;
+
+    const names = Array.from(files).map((file) => file.name);
+    const current = form.getValues(`image.${type}`) ?? [];
+
+    form.setValue(`image.${type}`, [...current, ...names], {
+      shouldValidate: true,
+      shouldDirty: true,
+    });
+  }
+
+  function removeImage(type: "event" | "gallery" | "ecole", index: number) {
+    const current = form.getValues(`image.${type}`) ?? [];
+
+    form.setValue(
+      `image.${type}`,
+      current.filter((_, i) => i !== index),
+      {
+        shouldValidate: true,
+        shouldDirty: true,
+      },
+    );
+  }
+
+  function removeLogo() {
+    form.setValue("image.logo", "", {
+      shouldValidate: true,
+      shouldDirty: true,
+    });
+  }
   return (
     <>
       <Form {...form}>
@@ -307,40 +381,6 @@ export function CreateBranchForm({ organizationId }: CreateBranchFormProps) {
                                     .slice(0, 15);
 
                                   field.onChange(value);
-                                }}
-                              />
-                            </div>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="image"
-                      render={({ field: { value, onChange, ...field } }) => (
-                        <FormItem>
-                          <FormLabel>Image</FormLabel>
-                          <FormControl>
-                            <div className="relative">
-                              <ImageIcon className="absolute left-3 top-4 h-4 w-4 text-slate-400" />
-
-                              <Input
-                                {...field}
-                                type="file"
-                                accept="image/png,image/jpeg,image/jpg,image/webp"
-                                className="h-12 cursor-pointer rounded-2xl pl-10 file:mr-3 file:rounded-xl file:border-0 file:bg-blue-950 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-white hover:file:bg-blue-900"
-                                disabled={isSubmitting}
-                                onChange={(e) => {
-                                  const file = e.target.files?.[0];
-
-                                  if (!file) {
-                                    onChange("");
-                                    return;
-                                  }
-
-                                  onChange(file.name);
                                 }}
                               />
                             </div>
@@ -520,14 +560,158 @@ export function CreateBranchForm({ organizationId }: CreateBranchFormProps) {
                       {form.formState.errors.root.message}
                     </p>
                   )}
+                  <div className="rounded-3xl border bg-white p-5">
+                    <h3 className="text-lg font-bold text-slate-950">
+                      Images de l’établissement
+                    </h3>
 
+                    <div className="mt-4 grid gap-4 sm:grid-cols-3">
+                      <div>
+                        <FormLabel>Logo</FormLabel>
+                        <Input
+                          type="file"
+                          accept="image/png,image/jpeg,image/jpg,image/webp"
+                          className="mt-2 h-12 rounded-2xl"
+                          disabled={isSubmitting}
+                          onChange={(e) => setLogo(e.target.files)}
+                        />
+                      </div>
+
+                      <div>
+                        <FormLabel>Images événements</FormLabel>
+                        <Input
+                          type="file"
+                          multiple
+                          accept="image/png,image/jpeg,image/jpg,image/webp"
+                          className="mt-2 h-12 rounded-2xl"
+                          disabled={isSubmitting}
+                          onChange={(e) => addImages("event", e.target.files)}
+                        />
+                      </div>
+
+                      <div>
+                        <FormLabel>Galerie</FormLabel>
+                        <Input
+                          type="file"
+                          multiple
+                          accept="image/png,image/jpeg,image/jpg,image/webp"
+                          className="mt-2 h-12 rounded-2xl"
+                          disabled={isSubmitting}
+                          onChange={(e) => addImages("gallery", e.target.files)}
+                        />
+                      </div>
+                      <div>
+                        <FormLabel>Ecole</FormLabel>
+                        <Input
+                          type="file"
+                          multiple
+                          accept="image/png,image/jpeg,image/jpg,image/webp"
+                          className="mt-2 h-12 rounded-2xl"
+                          disabled={isSubmitting}
+                          onChange={(e) => addImages("ecole", e.target.files)}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="mt-5 grid gap-3">
+                      {images.logo && (
+                        <div className="flex items-center justify-between rounded-2xl bg-slate-50 p-3 text-sm">
+                          <span className="truncate">
+                            <strong>Logo : </strong>
+                            {images.logo}
+                          </span>
+
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="sm"
+                            className="rounded-full"
+                            onClick={removeLogo}
+                          >
+                            Retirer
+                          </Button>
+                        </div>
+                      )}
+
+                      {images.event.map((fileName, index) => (
+                        <div
+                          key={`event-${fileName}-${index}`}
+                          className="flex items-center justify-between rounded-2xl bg-slate-50 p-3 text-sm"
+                        >
+                          <span className="truncate">
+                            <strong>Événement : </strong>
+                            {fileName}
+                          </span>
+
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="sm"
+                            className="rounded-full"
+                            onClick={() => removeImage("event", index)}
+                          >
+                            Retirer
+                          </Button>
+                        </div>
+                      ))}
+
+                      {images.gallery.map((fileName, index) => (
+                        <div
+                          key={`gallery-${fileName}-${index}`}
+                          className="flex items-center justify-between rounded-2xl bg-slate-50 p-3 text-sm"
+                        >
+                          <span className="truncate">
+                            <strong>Galerie : </strong>
+                            {fileName}
+                          </span>
+
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="sm"
+                            className="rounded-full"
+                            onClick={() => removeImage("gallery", index)}
+                          >
+                            Retirer
+                          </Button>
+                        </div>
+                      ))}
+                      {images.ecole.map((fileName, index) => (
+                        <div
+                          key={`ecole-${fileName}-${index}`}
+                          className="flex items-center justify-between rounded-2xl bg-slate-50 p-3 text-sm"
+                        >
+                          <span className="truncate">
+                            <strong>École : </strong>
+                            {fileName}
+                          </span>
+
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="sm"
+                            className="rounded-full"
+                            onClick={() => removeImage("ecole", index)}
+                          >
+                            Retirer
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                   <div className="sticky bottom-4 z-20 mt-5 rounded-3xl border bg-white/90 p-3 shadow-xl backdrop-blur">
                     <Button
                       type="submit"
                       disabled={isSubmitting}
                       className="h-14 w-full rounded-full bg-blue-950 text-base font-semibold text-white hover:bg-blue-900"
                     >
-                      {isSubmitting ? "Création en cours..." : "Créer l’école"}
+                      {isSubmitting
+                        ? mode === "update"
+                          ? "Modification en cours..."
+                          : "Création en cours..."
+                        : mode === "update"
+                          ? "Modifier l’établissement"
+                          : "Créer l’école"}
                     </Button>
                   </div>
                 </div>

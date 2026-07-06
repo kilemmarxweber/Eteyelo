@@ -64,3 +64,54 @@ export function average(nums: number[]) {
     ? +(nums.reduce((a, b) => a + b, 0) / nums.length).toFixed(2)
     : 0;
 }
+
+export type BranchImages = {
+  logo?: string;
+  ecole: string[];
+  event: string[];
+  gallery: string[];
+};
+
+export function getBranchImage(value: unknown): BranchImages {
+  const empty: BranchImages = {
+    logo: undefined,
+    ecole: [],
+    event: [],
+    gallery: [],
+  };
+
+  if (!value) return empty;
+
+  let images = value;
+
+  if (typeof value === "string") {
+    try {
+      images = JSON.parse(value);
+    } catch {
+      return empty;
+    }
+  }
+
+  if (!images || typeof images !== "object") {
+    return empty;
+  }
+
+  const data = images as Record<string, unknown>;
+
+  return {
+    logo:
+      typeof data.logo === "string" ? normalizeImageSrc(data.logo) : undefined,
+
+    ecole: Array.isArray(data.ecole)
+      ? data.ecole.map((x) => normalizeImageSrc(String(x)))
+      : [],
+
+    event: Array.isArray(data.event)
+      ? data.event.map((x) => normalizeImageSrc(String(x)))
+      : [],
+
+    gallery: Array.isArray(data.gallery)
+      ? data.gallery.map((x) => normalizeImageSrc(String(x)))
+      : [],
+  };
+}

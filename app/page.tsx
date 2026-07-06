@@ -30,7 +30,7 @@ import { AnimatedCounter } from "@/components/animated-counter";
 import { HomeFooter } from "@/components/home-footer";
 import { HomeNavbar } from "@/components/home-navbar";
 import { prisma } from "@/lib/prisma";
-import { normalizeImageSrc } from "@/lib/utils";
+import { getBranchImage, normalizeImageSrc } from "@/lib/utils";
 const schools = [
   {
     name: "CS La Fortune",
@@ -38,8 +38,10 @@ const schools = [
     students: 1200,
     heroLabel: "École partenaire vérifiée",
     heroTitle: "CS La Fortune accompagne 1 200 élèves à Lubumbashi",
-    image:
-      "https://images.unsplash.com/photo-1580582932707-520aed937b7b?q=80&w=1200&auto=format&fit=crop",
+    logo: "",
+    ecole: [],
+    event: [],
+    gallery: [],
   },
   {
     name: "Bakhitafhhfjkk",
@@ -47,8 +49,10 @@ const schools = [
     students: 850,
     heroLabel: "Institut actif à Cabinda",
     heroTitle: "Bakhita valorise ses filières, événements et résultats",
-    image:
-      "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?q=80&w=1200&auto=format&fit=crop",
+    logo: "",
+    ecole: [],
+    event: [],
+    gallery: [],
   },
   {
     name: "Complexo Escolar Privado Padre Pitra",
@@ -56,8 +60,10 @@ const schools = [
     students: 970,
     heroLabel: "Complexe scolaire partenaire",
     heroTitle: "Padre Pitra gagne en visibilité auprès des familles",
-    image:
-      "https://images.unsplash.com/photo-1509062522246-3755977927d7?q=80&w=1200&auto=format&fit=crop",
+    logo: "",
+    ecole: [],
+    event: [],
+    gallery: [],
   },
 ];
 
@@ -86,13 +92,34 @@ const events = [
 ];
 
 const partners = [
-  "CS La Fortune",
-  "Bakhita",
-  "Padre Pitra",
-  "Marguerite",
-  "Institut Lumumba",
+  {
+    name: "CS La Fortune",
+    type: "École partenaire",
+    secteur: "Éducation",
+    city: "Lubumbashi",
+    image: "",
+    logo: "",
+    website: "",
+  },
+  {
+    name: "Bakhita",
+    type: "Institut partenaire",
+    secteur: "Éducation",
+    city: "Cabinda",
+    image: "",
+    logo: "",
+    website: "",
+  },
 ];
-
+type HomePartner = {
+  name: string;
+  type: string;
+  secteur: string;
+  city: string;
+  image: string;
+  logo: string;
+  website: string;
+};
 const galleryImages = [
   "/uploads/galery-1.jpeg",
   "/uploads/galery-2.jpeg",
@@ -153,7 +180,23 @@ type ResultSlide = {
     image: string;
   }[];
 };
-
+export type BranchImages = {
+  logo?: string;
+  ecole: string[];
+  event: string[];
+  gallery: string[];
+};
+export type HomeSchools = {
+  name: string;
+  city: string;
+  students: number;
+  heroLabel: string;
+  heroTitle: string;
+  logo: string;
+  ecole: string[];
+  event: string[];
+  gallery: string[];
+};
 const fallbackNewSchools: NewSchool[] = [
   {
     name: "Groupe Scolaire Sainte Marie",
@@ -217,7 +260,17 @@ async function getHomeData() {
       orderBy: [{ isFeatured: "desc" }, { createdAt: "desc" }],
       take: 10,
       select: {
+        id: true,
         name: true,
+        type: true,
+        secteur: true,
+        description: true,
+        image: true,
+        logo: true,
+        website: true,
+        ville: true,
+        pays: true,
+        isFeatured: true,
       },
     }),
     prisma.calendarEvent.findMany({
@@ -231,11 +284,11 @@ async function getHomeData() {
       select: {
         id: true,
         title: true,
+        image: true,
         dateStart: true,
         branch: {
           select: {
             name: true,
-            image: true,
           },
         },
       },
@@ -282,34 +335,99 @@ async function getHomeData() {
     }),
   ]);
 
-  const dynamicSchools: HomeSchool[] = branches
+  const dynamicSchools: HomeSchools[] = branches
     .slice(0, 6)
     .map((branch, index) => {
       const studentsCount = branch.branchemembers.reduce(
         (total, member) => total + member._count.student,
         0,
       );
+
       const city = branch.ville || branch.pays || "RDC";
 
+      const images = getBranchImage(branch.image);
+
+      // console.log("BRANCH:", branch.name);
+      // console.log("RAW IMAGE:", branch.image);
+      // console.log("PARSED IMAGES:", images);
+      // console.log("ECOLE:", images.ecole);
+      // console.log("EVENT:", images.event);
+      // console.log("GALLERY:", images.gallery);
       return {
         name: branch.name,
         city,
         students: studentsCount,
+
         heroLabel: "Ecole partenaire verifiee",
-        heroTitle: `${branch.name} accueille ${studentsCount || "plusieurs"} eleves a ${city}`,
-        image:
-          normalizeImageSrc(branch.image) ||
-          schools[index % schools.length].image,
+
+        heroTitle: `${branch.name} accueille ${
+          studentsCount || "plusieurs"
+        } eleves a ${city}`,
+        logo: images.logo ?? "",
+
+        ecole:
+          images.ecole.length > 0
+            ? images.ecole
+            : schools[index % schools.length].ecole,
+
+        event:
+          images.event.length > 0
+            ? images.event
+            : schools[index % schools.length].event,
+
+        gallery:
+          images.gallery.length > 0
+            ? images.gallery
+            : schools[index % schools.length].gallery,
       };
     });
+  // const dynamicSchoolsEvent: HomeSchools[] = branches
+  //   .slice(0, 6)
+  //   .map((branch, index) => {
+  //     const studentsCount = branch.branchemembers.reduce(
+  //       (total, member) => total + member._count.student,
+  //       0,
+  //     );
+
+  //     const city = branch.ville || branch.pays || "RDC";
+
+  //     const images = getBranchImage(branch.image);
+
+  //     return {
+  //       name: branch.name,
+  //       city,
+  //       students: studentsCount,
+
+  //       heroLabel: "Ecole partenaire verifiee",
+
+  //       heroTitle: `${branch.name} accueille ${
+  //         studentsCount || "plusieurs"
+  //       } eleves a ${city}`,
+  //       logo: images.logo ?? "",
+  //       ecole:
+  //         images.ecole.length > 0
+  //           ? images.ecole
+  //           : schools[index % schools.length].ecole,
+
+  //       event:
+  //         images.event.length > 0
+  //           ? images.event
+  //           : schools[index % schools.length].event,
+
+  //       gallery:
+  //         images.gallery.length > 0
+  //           ? images.gallery
+  //           : schools[index % schools.length].gallery,
+  //     };
+  //   });
 
   const dynamicEvents: HomeEvent[] = calendarEvents.map((event, index) => ({
     title: event.title || "Evenement scolaire",
     school: event.branch.name,
     date: formatShortDate(event.dateStart),
-    image:
-      normalizeImageSrc(event.branch.image) ||
-      events[index % events.length].image,
+    image: event.image
+      ? normalizeImageSrc(event.image)
+      : events[index % events.length].image,
   }));
 
   const dynamicNewSchools: NewSchool[] = branches.slice(0, 4).map((branch) => ({
@@ -317,7 +435,13 @@ async function getHomeData() {
     city: branch.ville || branch.pays || "RDC",
     date: formatRegistrationDate(branch.createdAt),
   }));
-
+  const dynamicPartners = partnaires.map((partnaire) => ({
+    name: partnaire.name,
+    type: partnaire.type,
+    image: normalizeImageSrc(partnaire.image),
+    logo: partnaire.logo ? normalizeImageSrc(partnaire.logo) : "",
+    website: partnaire.website ?? "",
+  }));
   const groupedResults = new Map<string, ResultSlide>();
 
   for (const grade of grades) {
@@ -348,9 +472,7 @@ async function getHomeData() {
   return {
     schools: dynamicSchools.length ? dynamicSchools : schools,
     events: dynamicEvents.length ? dynamicEvents : events,
-    partners: partnaires.length
-      ? partnaires.map((partnaire) => partnaire.name)
-      : partners,
+    partners: dynamicPartners.length ? dynamicPartners : partners,
     newSchools: dynamicNewSchools.length
       ? dynamicNewSchools
       : fallbackNewSchools,
@@ -375,7 +497,14 @@ async function getHomeData() {
 export default async function HomePage() {
   const { schools, events, partners, newSchools, resultSlides, stats } =
     await getHomeData();
-  const heroSlideDuration = `${schools.length * 5}s`;
+
+  const schoolImageSlides = schools.filter((school) => school.ecole.length > 0);
+
+  const galleryFromBranches = schools.flatMap((school) => school.gallery);
+
+  const galleryToShow = Array.from(
+    new Set([...galleryFromBranches, ...galleryImages]),
+  ).filter(Boolean);
 
   return (
     <main className="min-h-screen bg-slate-50 text-slate-900">
@@ -560,36 +689,44 @@ export default async function HomePage() {
               })}
             </div>
           </div>
-
+          {/* Ecole images schools*/}
           <div className="mx-auto w-full rounded-[1.5rem] bg-white/15 p-2 shadow-2xl backdrop-blur sm:w-[36rem] sm:rounded-[2rem] sm:p-3 lg:w-full">
             <div className="relative min-h-[300px] overflow-hidden rounded-[1.25rem] bg-blue-950 sm:min-h-[400px] sm:rounded-[1.5rem] lg:min-h-[460px]">
-              {schools.map((school, index) => (
-                <div
-                  key={school.name}
-                  className="absolute inset-0 opacity-0 motion-reduce:animate-none"
-                  style={{
-                    animation: `hero-school-slide ${heroSlideDuration} infinite`,
-                    animationDelay: `${index * 5}s`,
-                    opacity: index === 0 ? 1 : 0,
-                  }}
-                >
-                  <div
-                    className="absolute inset-0 bg-cover bg-center"
-                    style={{ backgroundImage: `url('${school.image}')` }}
-                  />
+              {schoolImageSlides.map((school, index) => {
+                const image = school.ecole[0];
 
-                  <div className="relative z-10 flex min-h-[300px] items-end rounded-[1.25rem] bg-blue-950/45 p-4 sm:min-h-[400px] sm:rounded-[1.5rem] sm:p-6 lg:min-h-[460px]">
-                    <div className="w-full rounded-2xl bg-white p-4 text-slate-900 shadow-xl sm:w-[26rem] sm:p-5">
-                      <p className="text-sm font-bold text-blue-600">
-                        {school.heroLabel}
-                      </p>
-                      <h3 className="mt-1 text-lg font-black sm:text-xl">
-                        {school.heroTitle}
-                      </h3>
+                if (!image) return null;
+
+                return (
+                  <div
+                    key={school.name}
+                    className="absolute inset-0 opacity-0 motion-reduce:animate-none"
+                    style={{
+                      animation: `hero-school-slide ${schoolImageSlides.length * 5}s infinite`,
+                      animationDelay: `${index * 5}s`,
+                      opacity: index === 0 ? 1 : 0,
+                    }}
+                  >
+                    <div
+                      className="absolute inset-0 bg-cover bg-center"
+                      style={{
+                        backgroundImage: `url('${image}')`,
+                      }}
+                    />
+
+                    <div className="relative z-10 flex min-h-[300px] items-end rounded-[1.25rem] bg-blue-950/45 p-4 sm:min-h-[400px] sm:rounded-[1.5rem] sm:p-6 lg:min-h-[460px]">
+                      <div className="w-full rounded-2xl bg-white p-4 text-slate-900 shadow-xl sm:w-[26rem] sm:p-5">
+                        <p className="text-sm font-bold text-blue-600">
+                          {school.heroLabel}
+                        </p>
+                        <h3 className="mt-1 text-lg font-black sm:text-xl">
+                          {school.heroTitle}
+                        </h3>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
 
               <div className="hidden">
                 <div className="w-full rounded-2xl bg-white p-4 text-slate-900 shadow-xl sm:w-[26rem] sm:p-5">
@@ -697,7 +834,7 @@ export default async function HomePage() {
         </div>
 
         <div className="grid gap-6 lg:grid-cols-[1.75fr_0.85fr] lg:items-start">
-          {/* CARDS ÉTABLISSEMENTS */}
+          {/* CARDS ÉTABLISSEMENTS schoolEvents */}
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {schools.slice(0, 3).map((school) => (
               <article
@@ -707,101 +844,68 @@ export default async function HomePage() {
                 <div className="relative h-48 overflow-hidden">
                   <div
                     className="absolute inset-0 bg-cover bg-center transition duration-500 group-hover:scale-105"
-                    style={{ backgroundImage: `url('${school.image}')` }}
+                    style={{
+                      backgroundImage: `url('${school.event[0]}')`,
+                    }}
                   />
+
                   <div className="absolute inset-0 bg-gradient-to-t from-blue-950/70 via-blue-950/10 to-transparent" />
+
                   <Badge className="absolute left-4 top-4 bg-white/90 text-blue-950 backdrop-blur">
                     {school.city}
                   </Badge>
-                  <span className="absolute right-4 top-4 flex items-center gap-1 rounded-full bg-white/90 px-3 py-1 text-xs font-bold text-amber-500 backdrop-blur">
-                    <Star className="h-3.5 w-3.5 fill-current" />
-                    4.8
-                  </span>
                 </div>
 
                 <div className="p-5">
-                  <div className="hidden">
-                    <Badge className="bg-cyan-100 text-cyan-700">
-                      {school.city}
-                    </Badge>
-
-                    <span className="flex items-center gap-1 text-xs font-bold text-amber-500">
-                      <Star className="h-3.5 w-3.5 fill-current" />
-                      4.8
-                    </span>
-                  </div>
-
                   <h3 className="line-clamp-2 text-lg font-black text-blue-950">
                     {school.name}
                   </h3>
-
-                  <a
-                    href={`/etablissements/${school.name
-                      .toLowerCase()
-                      .replaceAll(" ", "-")}`}
-                    className="mt-2 flex items-center gap-1.5 text-sm text-slate-500 hover:text-blue-600"
-                  >
-                    <MapPin className="h-4 w-4 shrink-0 text-blue-600" />
-                    {school.city}, RDC
-                  </a>
 
                   <p className="mt-4 inline-flex items-center gap-2 rounded-2xl bg-blue-50 px-3 py-2 text-sm text-blue-950">
                     <Users className="h-4 w-4 text-blue-700" />
                     {school.students} élèves inscrits
                   </p>
-
-                  <div className="mt-5 flex items-center justify-between">
-                    <span className="text-sm font-bold text-blue-700">
-                      Voir plus
-                    </span>
-
-                    <Button
-                      size="icon"
-                      className="h-10 w-10 rounded-full bg-blue-950 hover:bg-blue-900"
-                      aria-label={`Voir ${school.name}`}
-                    >
-                      <ArrowUpRight className="h-4 w-4" />
-                    </Button>
-                  </div>
                 </div>
               </article>
             ))}
           </div>
 
-          {/* BLOC IMAGE DROITE */}
-          <div
-            className="h-[500px] self-start overflow-hidden rounded-3xl bg-cover bg-center shadow-2xl shadow-blue-950/15"
-            style={{
-              backgroundImage: `url('${schools[0]?.image}')`,
-            }}
-          >
-            <div className="flex h-full items-end bg-gradient-to-t from-blue-950 via-blue-950/70 to-blue-950/10 p-8">
-              <div>
-                <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-white text-blue-950 shadow-lg">
-                  <GraduationCap className="h-7 w-7" />
+          {/* BLOC IMAGE DROITE schoolEvents */}
+          <div className="relative h-[500px] self-start overflow-hidden rounded-3xl shadow-2xl shadow-blue-950/15">
+            {schools.map((school, index) => (
+              <div
+                key={`${school.name}-event-slider`}
+                className="absolute inset-0 opacity-0 motion-reduce:animate-none"
+                style={{
+                  animation: `hero-school-slide ${schools.length * 60}s infinite`,
+                  animationDelay: `${index * 60}s`,
+                  opacity: index === 0 ? 1 : 0,
+                }}
+              >
+                <div
+                  className="absolute inset-0 bg-cover bg-center"
+                  style={{
+                    backgroundImage: `url('${school.event[0]}')`,
+                  }}
+                />
+
+                <div className="relative z-10 flex h-full items-end bg-gradient-to-t from-blue-950 via-blue-950/70 to-blue-950/10 p-8">
+                  <div>
+                    <Badge className="mb-4 bg-white/20 text-white backdrop-blur">
+                      {school.city}
+                    </Badge>
+
+                    <h3 className="text-3xl font-black leading-tight text-white">
+                      {school.name}
+                    </h3>
+
+                    <p className="mt-4 text-sm leading-6 text-blue-100">
+                      {school.heroTitle}
+                    </p>
+                  </div>
                 </div>
-
-                <Badge className="mb-4 bg-white/20 text-white backdrop-blur">
-                  Vie scolaire
-                </Badge>
-
-                <h3 className="text-3xl font-black leading-tight text-white">
-                  Photos, activités
-                  <br />
-                  et vie scolaire
-                </h3>
-
-                <p className="mt-4 text-sm leading-6 text-blue-100">
-                  Découvrez les événements, activités culturelles, annonces et
-                  réalisations des établissements partenaires à travers une
-                  galerie dynamique.
-                </p>
-
-                <Button className="mt-6 rounded-full bg-white px-6 text-blue-700 hover:bg-slate-100">
-                  Découvrir les galeries
-                </Button>
               </div>
-            </div>
+            ))}
           </div>
         </div>
       </section>
@@ -901,7 +1005,7 @@ export default async function HomePage() {
                 Voir tous →
               </a>
             </div>
-
+            {/* Evenement events*/}
             <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {events.slice(0, 3).map((event) => (
                 <article
@@ -910,7 +1014,9 @@ export default async function HomePage() {
                 >
                   <div
                     className="h-32 bg-cover bg-center"
-                    style={{ backgroundImage: `url('${event.image}')` }}
+                    style={{
+                      backgroundImage: `url('${event.image}')`,
+                    }}
                   />
 
                   <div className="p-4">
@@ -932,7 +1038,7 @@ export default async function HomePage() {
             </div>
           </div>
 
-          {/* GALERIE À DROITE */}
+          {/* GALERIE À DROITE gallery*/}
           <div className="self-start rounded-3xl border border-blue-100 bg-white p-4 shadow-sm">
             <div className="mb-4 flex items-center justify-between gap-3">
               <div className="flex items-center gap-2">
@@ -951,11 +1057,13 @@ export default async function HomePage() {
             </div>
 
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-              {galleryImages.slice(0, 6).map((image) => (
+              {galleryToShow.slice(0, 6).map((image, index) => (
                 <div
-                  key={image}
+                  key={`${image}-${index}`}
                   className="aspect-square rounded-xl bg-cover bg-center"
-                  style={{ backgroundImage: `url('${image}')` }}
+                  style={{
+                    backgroundImage: `url('${image}')`,
+                  }}
                 />
               ))}
             </div>
@@ -1307,17 +1415,49 @@ export default async function HomePage() {
           <div className="mt-8 flex flex-wrap items-center justify-center gap-x-12 gap-y-6">
             {partners.map((partner, index) => (
               <div
-                key={`${partner}-${index}`}
+                key={`${partner.name}-${index}`}
                 className="flex min-w-[120px] flex-col items-center justify-center gap-2"
               >
-                <div className="flex h-11 w-11 items-center justify-center rounded-full bg-blue-50 text-blue-700 ring-1 ring-blue-100">
-                  <School className="h-5 w-5" />
-                </div>
+                {partner.website ? (
+                  <Link
+                    href={partner.website}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group"
+                  >
+                    <div className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-full bg-blue-50 ring-1 ring-blue-100 transition group-hover:scale-110">
+                      {partner.logo || partner.image ? (
+                        <img
+                          src={partner.logo || partner.image}
+                          alt={partner.name}
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <School className="h-5 w-5 text-blue-700" />
+                      )}
+                    </div>
+                  </Link>
+                ) : (
+                  <div className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-full bg-blue-50 ring-1 ring-blue-100">
+                    {partner.logo || partner.image ? (
+                      <img
+                        src={partner.logo || partner.image}
+                        alt={partner.name}
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <School className="h-5 w-5 text-blue-700" />
+                    )}
+                  </div>
+                )}
 
                 <div className="text-center leading-tight">
-                  <p className="text-xs font-bold text-blue-900">{partner}</p>
+                  <p className="text-xs font-bold text-blue-900">
+                    {partner.name}
+                  </p>
+
                   <p className="mt-0.5 text-[10px] font-medium text-blue-500">
-                    Partenaire
+                    {partner.type || "Partenaire"}
                   </p>
                 </div>
               </div>

@@ -4,7 +4,7 @@ import { IconChevronsLeft, IconMenu2, IconX } from "@tabler/icons-react";
 import { Layout, LayoutHeader } from "./custom/layout";
 import { Button } from "./custom/button";
 import Nav from "./nav";
-import { cn } from "@/lib/utils";
+import { cn, getBranchImage } from "@/lib/utils";
 import { authClient } from "@/lib/auth-client";
 import { buildStaticSideLinks } from "@/lib/sidebar-menu";
 import { getBranchNameAction } from "@/app/admin/organizations/[organizationId]/branches/(no-layout)/branche.action";
@@ -58,7 +58,7 @@ export default function Sidebar({
         if (ignore) return;
 
         setBranchName(branch?.name ?? null);
-        setBranchLogo(branch?.image ?? null);
+        setBranchLogo(getBranchImage(branch?.image, "logo"));
         setBranchLoaded(true);
       })
       .catch(() => {
@@ -88,7 +88,7 @@ export default function Sidebar({
         if (ignore) return;
 
         setBranchName(branch?.name ?? null);
-        setBranchLogo(branch?.image ?? null);
+        setBranchLogo(getBranchImage(branch?.image, "logo"));
       })
       .catch(() => {
         if (ignore) return;

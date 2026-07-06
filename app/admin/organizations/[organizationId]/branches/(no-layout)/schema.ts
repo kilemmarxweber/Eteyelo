@@ -1,5 +1,11 @@
 import { z } from "zod";
 
+const branchImagesSchema = z.object({
+  logo: z.string(),
+  event: z.array(z.string()),
+  gallery: z.array(z.string()),
+  ecole: z.array(z.string()),
+});
 export const createBranchFormSchema = z.object({
   name: z
     .string()
@@ -16,7 +22,6 @@ export const createBranchFormSchema = z.object({
   ville: z.string().optional(),
   pays: z.string().optional(),
   idnat: z.string().optional(),
-  image: z.string().trim().optional(),
   tel: z
     .string()
     .trim()
@@ -35,6 +40,12 @@ export const createBranchFormSchema = z.object({
     .int("Le rayon doit être un nombre entier.")
     .min(10, "Le rayon doit être au moins 10 mètres.")
     .max(10000, "Le rayon est trop grand."),
+  image: branchImagesSchema.default({
+    logo: "",
+    event: [],
+    gallery: [],
+    ecole: [],
+  }),
 });
-
-export type CreateBranchFormValues = z.infer<typeof createBranchFormSchema>;
+export type CreateBranchFormValues = z.input<typeof createBranchFormSchema>;
+//export type CreateBranchFormValues = z.infer<typeof createBranchFormSchema>;

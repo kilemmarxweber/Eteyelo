@@ -467,6 +467,7 @@ model CalendarEvent {
   title        String?
   dateStart    DateTime
   dateEnd      DateTime?
+  image        String?
   allDay       Boolean   @default(false)
   location     String?
   description  String?
@@ -978,7 +979,7 @@ model Branch {
   id               String       @id @default(cuid())
   name             String
   code             String?
-  image            String?
+  image            Json?
   adresse          String?
   ville            String?
   pays             String?

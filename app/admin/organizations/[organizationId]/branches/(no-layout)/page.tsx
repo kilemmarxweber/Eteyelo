@@ -1,5 +1,12 @@
 import Link from "next/link";
-import { ArrowLeft, ArrowRight, Plus, School } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Pencil,
+  Plus,
+  School,
+  Trash2,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { prisma } from "@/lib/prisma";
 import { BranchCard } from "./branchCard";
@@ -81,6 +88,7 @@ export default async function BranchesPage({ params }: BranchesPageProps) {
               key={branch.id}
               branchId={branch.id}
               href={`${base}/${branch.id}`}
+              editHref={`${base}/edit?branchId=${branch.id}`}
             >
               <div className="group flex min-h-44 flex-col justify-between rounded-3xl border bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-blue-950/25 hover:shadow-xl hover:shadow-blue-950/10">
                 <span className="flex items-start justify-between gap-4">
