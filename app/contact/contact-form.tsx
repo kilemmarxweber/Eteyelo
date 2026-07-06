@@ -8,6 +8,8 @@ type ContactFormProps = {
   organizationId?: string;
   supportAgent?: string;
   recipientEmail?: string;
+  defaultName?: string;
+  defaultEmail?: string;
   showSupportAgentPicker?: boolean;
   supportAgents?: Array<{
     id: string;
@@ -21,6 +23,8 @@ export default function ContactForm({
   organizationId,
   supportAgent: initialSupportAgent,
   recipientEmail: initialRecipientEmail,
+  defaultName = "",
+  defaultEmail = "",
   showSupportAgentPicker = false,
   supportAgents = [],
 }: ContactFormProps) {
@@ -124,6 +128,7 @@ export default function ContactForm({
               name="name"
               required
               minLength={2}
+              defaultValue={defaultName}
               placeholder="Votre nom"
               className="h-12 w-full bg-transparent text-sm outline-none"
             />
@@ -138,6 +143,7 @@ export default function ContactForm({
               name="email"
               required
               type="email"
+              defaultValue={defaultEmail}
               placeholder="vous@example.com"
               className="h-12 w-full bg-transparent text-sm outline-none"
             />

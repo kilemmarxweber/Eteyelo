@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { IconPalette, IconSettings } from "@tabler/icons-react";
+import { IconHeadphones, IconPalette, IconSettings } from "@tabler/icons-react";
 
 import { Layout, LayoutBody } from "@/components/custom/layout";
 import SidebarNav from "./components/sidebar-nav";
@@ -24,6 +24,12 @@ export default function Settings({ children }: { children: React.ReactNode }) {
       title: "Apparence",
       icon: <IconPalette size={18} />,
       href: `${settingsBasePath}/appearance`,
+      permission: null,
+    },
+    {
+      title: "Support de l'établissement",
+      icon: <IconHeadphones size={18} />,
+      href: `${settingsBasePath}/support`,
       permission: null,
     },
   ];
