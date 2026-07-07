@@ -88,8 +88,8 @@ const FraissList = ({ params }: { params: { classeId: string } }) => {
       cell: (frais: IFrais) => (
         <div className="text-green-700 font-semibold">
           {frais.montantFrais.toLocaleString("fr-FR", {
-            style: "currency",
-            currency: "USD",
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
           })}
         </div>
       ),
@@ -145,8 +145,8 @@ const FraissList = ({ params }: { params: { classeId: string } }) => {
       {
         label: "Montant",
         value: frais.montantFrais.toLocaleString("fr-FR", {
-          style: "currency",
-          currency: "USD",
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
         }),
       },
       {

@@ -10,13 +10,25 @@ import { sendContactMessageAction } from "./actions";
 import { contactSchema, type ContactInput } from "./schema";
 
 type ContactFormProps = {
-  recipientId?: string;
-  subject?: string;
+  partnaire?: string;
+  organizationId?: string;
+  supportAgent?: string;
+  recipientEmail?: string;
+  showSupportAgentPicker?: boolean;
+  supportAgents?: Array<{
+    id: string;
+    name: string;
+    email: string;
+  }>;
 };
 
 export default function ContactForm({
-  recipientId,
-  subject,
+  partnaire,
+  organizationId,
+  supportAgent: initialSupportAgent,
+  recipientEmail: initialRecipientEmail,
+  showSupportAgentPicker = false,
+  supportAgents = [],
 }: ContactFormProps) {
   const [pending, startTransition] = useTransition();
 
@@ -73,8 +85,9 @@ export default function ContactForm({
           <div className="flex items-center gap-2 rounded-2xl border bg-white px-3">
             <UserRound className="size-4 text-muted-foreground" />
             <input
-              {...form.register("name")}
-              disabled={pending}
+              name="name"
+              required
+              minLength={2}
               placeholder="Votre nom"
               className="h-12 w-full bg-transparent text-sm outline-none"
             />
@@ -90,6 +103,7 @@ export default function ContactForm({
               {...form.register("email")}
               disabled={pending}
               type="email"
+              defaultValue={defaultEmail}
               placeholder="vous@example.com"
               className="h-12 w-full bg-transparent text-sm outline-none"
             />
