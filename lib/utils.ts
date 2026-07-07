@@ -50,10 +50,57 @@ export const adjustScheduleToCurrentWeek = (
   });
 };
 
-export function normalizeImageSrc(src?: string | null): string {
-  if (!src) return "/uploads/1752330108714.jpeg";
-  if (src.startsWith("http") || src.startsWith("data:")) return src;
-  return `/uploads/${src}`;
+// export function normalizeImageSrc(src?: string | null): string {
+//   if (!src) return "/uploads/1752330108714.jpeg";
+//   if (src.startsWith("http") || src.startsWith("data:")) return src;
+//   return `/uploads/${src}`;
+// }
+export function normalizeImageSrc(src: unknown): string {
+  const fallback = "/uploads/1752330108714.jpeg";
+
+  if (!src) return fallback;
+
+  // Cas normal
+  if (typeof src === "string") {
+    if (
+      src.startsWith("http") ||
+      src.startsWith("data:") ||
+      src.startsWith("/")
+    ) {
+      return src;
+    }
+
+    return `/uploads/${src}`;
+  }
+
+  // Si on reçoit un tableau
+  if (Array.isArray(src)) {
+    return normalizeImageSrc(src[0]);
+  }
+
+  // Si on reçoit un objet { logo: ... }
+  if (typeof src === "object") {
+    const data = src as Record<string, unknown>;
+
+    if (typeof data.logo === "string") {
+      return normalizeImageSrc(data.logo);
+    }
+
+    // éventuellement prendre la première image disponible
+    if (Array.isArray(data.ecole) && data.ecole.length) {
+      return normalizeImageSrc(data.ecole[0]);
+    }
+
+    if (Array.isArray(data.event) && data.event.length) {
+      return normalizeImageSrc(data.event[0]);
+    }
+
+    if (Array.isArray(data.gallery) && data.gallery.length) {
+      return normalizeImageSrc(data.gallery[0]);
+    }
+  }
+
+  return fallback;
 }
 export function normalizeError(error: unknown): FieldError | undefined {
   if (Array.isArray(error)) return undefined;

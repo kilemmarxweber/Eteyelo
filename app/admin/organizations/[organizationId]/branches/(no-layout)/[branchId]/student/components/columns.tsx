@@ -23,6 +23,22 @@ import { DetailsStudentDialog } from "./details-student-dialog";
 import { ResetUsersDialog } from "./reset-users-dialog";
 import { UpdateStudentDialog } from "./edit-student-dialog";
 
+function getStudentImage(student: IStudent): string | undefined {
+  const image = student.image || undefined;
+
+  if (!image || typeof image !== "string") return undefined;
+
+  if (
+    image.startsWith("http") ||
+    image.startsWith("data:") ||
+    image.startsWith("/")
+  ) {
+    return image;
+  }
+
+  return `/uploads/${image}`;
+}
+
 export const createStudentColumns = (
   onRefresh?: () => void,
   canManageStudents = true,
@@ -50,11 +66,51 @@ export const createStudentColumns = (
     enableHiding: false,
   },
   {
+    id: "photo",
+    header: "PHOTO",
+    cell: ({ row }) => {
+      const student = row.original;
+      const image = getStudentImage(student);
+
+      const fullName = [student.nom, student.postnom, student.prenom]
+        .filter(Boolean)
+        .join(" ");
+
+      const initials =
+        `${student.nom?.[0] ?? ""}${student.prenom?.[0] ?? ""}`.toUpperCase() ||
+        "EL";
+
+      return (
+        <div className="flex items-center justify-center">
+          <div className="flex size-11 items-center justify-center overflow-hidden rounded-full border border-blue-100 bg-blue-50 ring-2 ring-white">
+            {image ? (
+              <img
+                src={image}
+                alt={fullName || "Élève"}
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <span className="text-sm font-black text-blue-700">
+                {initials}
+              </span>
+            )}
+          </div>
+        </div>
+      );
+    },
+    enableSorting: false,
+    enableHiding: false,
+  },
+  {
     accessorKey: "nom",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Nom" />
     ),
-    cell: ({ row }) => row.original.nom ?? "N/A",
+    cell: ({ row }) => (
+      <span className="font-semibold text-blue-950">
+        {row.original.nom ?? "N/A"}
+      </span>
+    ),
     filterFn: (row, id, value) => {
       const search = String(value).toLowerCase().trim();
       const nom = String(row.getValue(id) ?? "").toLowerCase();
@@ -73,14 +129,18 @@ export const createStudentColumns = (
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Postnom" />
     ),
-    cell: ({ row }) => row.original.postnom ?? "N/A",
+    cell: ({ row }) => (
+      <span className="text-blue-950/80">{row.original.postnom ?? "N/A"}</span>
+    ),
   },
   {
     accessorKey: "prenom",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Prenom" />
+      <DataTableColumnHeader column={column} title="Prénom" />
     ),
-    cell: ({ row }) => row.original.prenom ?? "N/A",
+    cell: ({ row }) => (
+      <span className="text-blue-950/80">{row.original.prenom ?? "N/A"}</span>
+    ),
   },
   {
     accessorKey: "sexe",
@@ -110,11 +170,11 @@ export const createStudentColumns = (
   {
     accessorKey: "telephone",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Telephone" />
+      <DataTableColumnHeader column={column} title="Téléphone" />
     ),
     cell: ({ row }) => (
       <Link
-        className="text-primary underline-offset-4 hover:underline"
+        className="font-medium text-blue-700 underline-offset-4 hover:underline"
         href={`tel:${row.original.parent?.telephone ?? ""}`}
       >
         {row.original.parent?.telephone ?? "N/A"}
@@ -128,7 +188,7 @@ export const createStudentColumns = (
         ? new Date(row.getValue() as string).toLocaleDateString()
         : "N/A",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Created at" />
+      <DataTableColumnHeader column={column} title="Créé le" />
     ),
   },
   {
@@ -142,6 +202,7 @@ export const createStudentColumns = (
         React.useState(false);
       const [showResetTaskDialog, setShowResetTaskDialog] =
         React.useState(false);
+
       const params = useParams<{ organizationId: string; branchId: string }>();
       const studentHref = `/admin/organizations/${params.organizationId}/branches/${params.branchId}/student/${row.original.id}`;
 
@@ -160,11 +221,13 @@ export const createStudentColumns = (
               onSuccess={handleSuccess}
             />
           ) : null}
+
           <DetailsStudentDialog
             open={showDetailsTaskDialog}
             onOpenChange={setShowDetailsTaskDialog}
             student={row.original}
           />
+
           {canManageStudents ? (
             <>
               <DeleteStudentsDialog
@@ -174,6 +237,7 @@ export const createStudentColumns = (
                 showTrigger={false}
                 onSuccess={handleSuccess}
               />
+
               <ResetUsersDialog
                 open={showResetTaskDialog}
                 onOpenChange={setShowResetTaskDialog}
@@ -189,35 +253,42 @@ export const createStudentColumns = (
               <Button
                 aria-label="Open menu"
                 variant="ghost"
-                className="flex size-8 p-0 data-[state=open]:bg-muted"
+                className="flex size-8 p-0 text-blue-950 hover:bg-blue-50 data-[state=open]:bg-blue-50"
               >
                 <IconDots className="size-4" aria-hidden="true" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-40">
+
+            <DropdownMenuContent align="end" className="w-44">
               <DropdownMenuItem asChild>
                 <Link href={studentHref}>Voir</Link>
               </DropdownMenuItem>
+
               <DropdownMenuItem onSelect={() => setShowDetailsTaskDialog(true)}>
-                Details
+                Détails
               </DropdownMenuItem>
+
               {canManageStudents ? (
                 <>
                   <DropdownMenuItem
                     onSelect={() => setShowUpdateTaskSheet(true)}
                   >
-                    Edit
+                    Modifier
                   </DropdownMenuItem>
+
                   <DropdownMenuItem
                     onSelect={() => setShowResetTaskDialog(true)}
                   >
-                    Reinitialiser
+                    Réinitialiser
                   </DropdownMenuItem>
+
                   <DropdownMenuSeparator />
+
                   <DropdownMenuItem
+                    className="text-red-600 focus:text-red-600"
                     onSelect={() => setShowDeleteTaskDialog(true)}
                   >
-                    Delete
+                    Supprimer
                     <DropdownMenuShortcut>Del</DropdownMenuShortcut>
                   </DropdownMenuItem>
                 </>

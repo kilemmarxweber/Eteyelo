@@ -972,10 +972,13 @@ export default async function HomePage() {
                 </p>
 
                 <div className="mt-6">
-                  <span className="inline-flex items-center rounded-full bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition group-hover:bg-blue-600 group-hover:text-white">
-                    En savoir plus →
-                  </span>
-                </div>
+  <Link
+    href="/produits-digitaux"
+    className="inline-flex items-center rounded-full bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition group-hover:bg-blue-600 group-hover:text-white"
+  >
+    En savoir plus →
+  </Link>
+</div>
               </div>
             ))}
           </div>
