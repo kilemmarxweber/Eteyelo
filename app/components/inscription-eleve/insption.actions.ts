@@ -2,6 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { v4 as uuidv4 } from "uuid";
 
 type RegisterStudentInput = {
   branchId: string;
@@ -74,14 +75,24 @@ export async function registerStudentOnline(data: RegisterStudentInput) {
       data: {
         name: data.parentName,
         email: data.parentEmail,
-        phone: data.parentPhone || null,
+        telephone: data.parentPhone || "+243",
+      },
+    });
+
+    const parentMember = await tx.member.create({
+      data: {
+        id: uuidv4(),
+        userId: parentUser.id,
+        organizationId: branch.organizationId,
+        role: "parent",
+        createdAt: new Date(),
       },
     });
 
     const parentBranchMember = await tx.branchMember.create({
       data: {
         branchId: branch.id,
-        userId: parentUser.id,
+        memberId: parentMember.id,
         role: "PARENT",
       },
     });
@@ -96,14 +107,24 @@ export async function registerStudentOnline(data: RegisterStudentInput) {
       data: {
         name: data.studentName,
         email: data.studentEmail || null,
-        phone: data.studentPhone || null,
+        telephone: data.parentPhone || "+243",
+      },
+    });
+
+    const studentMember = await tx.member.create({
+      data: {
+        id: uuidv4(),
+        userId: studentUser.id,
+        organizationId: branch.organizationId,
+        role: "student",
+        createdAt: new Date(),
       },
     });
 
     const studentBranchMember = await tx.branchMember.create({
       data: {
         branchId: branch.id,
-        userId: studentUser.id,
+        memberId: studentMember.id,
         role: "STUDENT",
       },
     });

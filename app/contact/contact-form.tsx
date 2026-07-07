@@ -10,6 +10,8 @@ import { sendContactMessageAction } from "./actions";
 import { contactSchema, type ContactInput } from "./schema";
 
 type ContactFormProps = {
+  recipientId?: string;
+  subject?: string;
   partnaire?: string;
   organizationId?: string;
   supportAgent?: string;
@@ -23,6 +25,8 @@ type ContactFormProps = {
 };
 
 export default function ContactForm({
+  recipientId,
+  subject,
   partnaire,
   organizationId,
   supportAgent: initialSupportAgent,
@@ -32,11 +36,15 @@ export default function ContactForm({
 }: ContactFormProps) {
   const [pending, startTransition] = useTransition();
 
+  const defaultRecipientId = recipientId ?? initialSupportAgent ?? "";
+  const defaultSubject =
+    subject ??
+    (partnaire ? `Demande de contact - ${partnaire}` : "Demande de contact");
   const form = useForm<ContactInput>({
     resolver: zodResolver(contactSchema),
     defaultValues: {
-      recipientId,
-      subject: subject ?? "",
+      recipientId: defaultRecipientId,
+      subject: defaultSubject,
       name: "",
       email: "",
       phone: "",
@@ -48,8 +56,8 @@ export default function ContactForm({
     startTransition(async () => {
       const res = await sendContactMessageAction({
         ...values,
-        recipientId,
-        subject: values.subject,
+        recipientId: values.recipientId || defaultRecipientId,
+        subject: values.subject || defaultSubject,
       });
 
       if (!res.ok) {
@@ -60,8 +68,8 @@ export default function ContactForm({
       toast.success("Message envoyé. Nous vous répondrons rapidement.");
 
       form.reset({
-        recipientId,
-        subject: subject ?? "",
+        recipientId: defaultRecipientId,
+        subject: defaultSubject,
         name: "",
         email: "",
         phone: "",
@@ -79,13 +87,33 @@ export default function ContactForm({
 
       <input type="hidden" {...form.register("recipientId")} />
 
+      {showSupportAgentPicker && supportAgents.length > 0 ? (
+        <label className="relative mb-4 block space-y-2 text-sm font-medium">
+          Destinataire
+          <select
+            {...form.register("recipientId")}
+            disabled={pending}
+            className="h-12 w-full rounded-2xl border bg-white px-4 text-sm outline-none"
+          >
+            <option value="">Choisir un destinataire</option>
+            {supportAgents.map((agent) => (
+              <option key={agent.id} value={agent.id}>
+                {agent.name} - {agent.email}
+              </option>
+            ))}
+          </select>
+          <FormError message={form.formState.errors.recipientId?.message} />
+        </label>
+      ) : null}
+
       <div className="relative grid gap-4 md:grid-cols-2">
         <label className="space-y-2 text-sm font-medium">
           Nom complet
           <div className="flex items-center gap-2 rounded-2xl border bg-white px-3">
             <UserRound className="size-4 text-muted-foreground" />
             <input
-              name="name"
+              {...form.register("name")}
+              disabled={pending}
               required
               minLength={2}
               placeholder="Votre nom"
@@ -103,7 +131,6 @@ export default function ContactForm({
               {...form.register("email")}
               disabled={pending}
               type="email"
-              defaultValue={defaultEmail}
               placeholder="vous@example.com"
               className="h-12 w-full bg-transparent text-sm outline-none"
             />

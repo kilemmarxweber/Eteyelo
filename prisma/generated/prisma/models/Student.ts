@@ -30,6 +30,10 @@ export type StudentMinAggregateOutputType = {
   parentId: string | null
   statusStudent: boolean | null
   observation: string | null
+  provenanceEcole: string | null
+  suppositionClasseName: string | null
+  suppositionSection: string | null
+  suppositionOption: string | null
   category: $Enums.StudentCategory | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -41,6 +45,10 @@ export type StudentMaxAggregateOutputType = {
   parentId: string | null
   statusStudent: boolean | null
   observation: string | null
+  provenanceEcole: string | null
+  suppositionClasseName: string | null
+  suppositionSection: string | null
+  suppositionOption: string | null
   category: $Enums.StudentCategory | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -52,6 +60,10 @@ export type StudentCountAggregateOutputType = {
   parentId: number
   statusStudent: number
   observation: number
+  provenanceEcole: number
+  suppositionClasseName: number
+  suppositionSection: number
+  suppositionOption: number
   category: number
   createdAt: number
   updatedAt: number
@@ -65,6 +77,10 @@ export type StudentMinAggregateInputType = {
   parentId?: true
   statusStudent?: true
   observation?: true
+  provenanceEcole?: true
+  suppositionClasseName?: true
+  suppositionSection?: true
+  suppositionOption?: true
   category?: true
   createdAt?: true
   updatedAt?: true
@@ -76,6 +92,10 @@ export type StudentMaxAggregateInputType = {
   parentId?: true
   statusStudent?: true
   observation?: true
+  provenanceEcole?: true
+  suppositionClasseName?: true
+  suppositionSection?: true
+  suppositionOption?: true
   category?: true
   createdAt?: true
   updatedAt?: true
@@ -87,6 +107,10 @@ export type StudentCountAggregateInputType = {
   parentId?: true
   statusStudent?: true
   observation?: true
+  provenanceEcole?: true
+  suppositionClasseName?: true
+  suppositionSection?: true
+  suppositionOption?: true
   category?: true
   createdAt?: true
   updatedAt?: true
@@ -171,6 +195,10 @@ export type StudentGroupByOutputType = {
   parentId: string
   statusStudent: boolean | null
   observation: string | null
+  provenanceEcole: string | null
+  suppositionClasseName: string | null
+  suppositionSection: string | null
+  suppositionOption: string | null
   category: $Enums.StudentCategory
   createdAt: Date
   updatedAt: Date
@@ -203,6 +231,10 @@ export type StudentWhereInput = {
   parentId?: Prisma.StringFilter<"Student"> | string
   statusStudent?: Prisma.BoolNullableFilter<"Student"> | boolean | null
   observation?: Prisma.StringNullableFilter<"Student"> | string | null
+  provenanceEcole?: Prisma.StringNullableFilter<"Student"> | string | null
+  suppositionClasseName?: Prisma.StringNullableFilter<"Student"> | string | null
+  suppositionSection?: Prisma.StringNullableFilter<"Student"> | string | null
+  suppositionOption?: Prisma.StringNullableFilter<"Student"> | string | null
   category?: Prisma.EnumStudentCategoryFilter<"Student"> | $Enums.StudentCategory
   createdAt?: Prisma.DateTimeFilter<"Student"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Student"> | Date | string
@@ -219,6 +251,10 @@ export type StudentOrderByWithRelationInput = {
   parentId?: Prisma.SortOrder
   statusStudent?: Prisma.SortOrderInput | Prisma.SortOrder
   observation?: Prisma.SortOrderInput | Prisma.SortOrder
+  provenanceEcole?: Prisma.SortOrderInput | Prisma.SortOrder
+  suppositionClasseName?: Prisma.SortOrderInput | Prisma.SortOrder
+  suppositionSection?: Prisma.SortOrderInput | Prisma.SortOrder
+  suppositionOption?: Prisma.SortOrderInput | Prisma.SortOrder
   category?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -238,6 +274,10 @@ export type StudentWhereUniqueInput = Prisma.AtLeast<{
   parentId?: Prisma.StringFilter<"Student"> | string
   statusStudent?: Prisma.BoolNullableFilter<"Student"> | boolean | null
   observation?: Prisma.StringNullableFilter<"Student"> | string | null
+  provenanceEcole?: Prisma.StringNullableFilter<"Student"> | string | null
+  suppositionClasseName?: Prisma.StringNullableFilter<"Student"> | string | null
+  suppositionSection?: Prisma.StringNullableFilter<"Student"> | string | null
+  suppositionOption?: Prisma.StringNullableFilter<"Student"> | string | null
   category?: Prisma.EnumStudentCategoryFilter<"Student"> | $Enums.StudentCategory
   createdAt?: Prisma.DateTimeFilter<"Student"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Student"> | Date | string
@@ -254,6 +294,10 @@ export type StudentOrderByWithAggregationInput = {
   parentId?: Prisma.SortOrder
   statusStudent?: Prisma.SortOrderInput | Prisma.SortOrder
   observation?: Prisma.SortOrderInput | Prisma.SortOrder
+  provenanceEcole?: Prisma.SortOrderInput | Prisma.SortOrder
+  suppositionClasseName?: Prisma.SortOrderInput | Prisma.SortOrder
+  suppositionSection?: Prisma.SortOrderInput | Prisma.SortOrder
+  suppositionOption?: Prisma.SortOrderInput | Prisma.SortOrder
   category?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -271,6 +315,10 @@ export type StudentScalarWhereWithAggregatesInput = {
   parentId?: Prisma.StringWithAggregatesFilter<"Student"> | string
   statusStudent?: Prisma.BoolNullableWithAggregatesFilter<"Student"> | boolean | null
   observation?: Prisma.StringNullableWithAggregatesFilter<"Student"> | string | null
+  provenanceEcole?: Prisma.StringNullableWithAggregatesFilter<"Student"> | string | null
+  suppositionClasseName?: Prisma.StringNullableWithAggregatesFilter<"Student"> | string | null
+  suppositionSection?: Prisma.StringNullableWithAggregatesFilter<"Student"> | string | null
+  suppositionOption?: Prisma.StringNullableWithAggregatesFilter<"Student"> | string | null
   category?: Prisma.EnumStudentCategoryWithAggregatesFilter<"Student"> | $Enums.StudentCategory
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Student"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Student"> | Date | string
@@ -280,6 +328,10 @@ export type StudentCreateInput = {
   id?: string
   statusStudent?: boolean | null
   observation?: string | null
+  provenanceEcole?: string | null
+  suppositionClasseName?: string | null
+  suppositionSection?: string | null
+  suppositionOption?: string | null
   category?: $Enums.StudentCategory
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -296,6 +348,10 @@ export type StudentUncheckedCreateInput = {
   parentId: string
   statusStudent?: boolean | null
   observation?: string | null
+  provenanceEcole?: string | null
+  suppositionClasseName?: string | null
+  suppositionSection?: string | null
+  suppositionOption?: string | null
   category?: $Enums.StudentCategory
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -308,6 +364,10 @@ export type StudentUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   statusStudent?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   observation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  provenanceEcole?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  suppositionClasseName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  suppositionSection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  suppositionOption?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   category?: Prisma.EnumStudentCategoryFieldUpdateOperationsInput | $Enums.StudentCategory
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -324,6 +384,10 @@ export type StudentUncheckedUpdateInput = {
   parentId?: Prisma.StringFieldUpdateOperationsInput | string
   statusStudent?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   observation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  provenanceEcole?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  suppositionClasseName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  suppositionSection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  suppositionOption?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   category?: Prisma.EnumStudentCategoryFieldUpdateOperationsInput | $Enums.StudentCategory
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -338,6 +402,10 @@ export type StudentCreateManyInput = {
   parentId: string
   statusStudent?: boolean | null
   observation?: string | null
+  provenanceEcole?: string | null
+  suppositionClasseName?: string | null
+  suppositionSection?: string | null
+  suppositionOption?: string | null
   category?: $Enums.StudentCategory
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -347,6 +415,10 @@ export type StudentUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   statusStudent?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   observation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  provenanceEcole?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  suppositionClasseName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  suppositionSection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  suppositionOption?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   category?: Prisma.EnumStudentCategoryFieldUpdateOperationsInput | $Enums.StudentCategory
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -358,6 +430,10 @@ export type StudentUncheckedUpdateManyInput = {
   parentId?: Prisma.StringFieldUpdateOperationsInput | string
   statusStudent?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   observation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  provenanceEcole?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  suppositionClasseName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  suppositionSection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  suppositionOption?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   category?: Prisma.EnumStudentCategoryFieldUpdateOperationsInput | $Enums.StudentCategory
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -379,6 +455,10 @@ export type StudentCountOrderByAggregateInput = {
   parentId?: Prisma.SortOrder
   statusStudent?: Prisma.SortOrder
   observation?: Prisma.SortOrder
+  provenanceEcole?: Prisma.SortOrder
+  suppositionClasseName?: Prisma.SortOrder
+  suppositionSection?: Prisma.SortOrder
+  suppositionOption?: Prisma.SortOrder
   category?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -390,6 +470,10 @@ export type StudentMaxOrderByAggregateInput = {
   parentId?: Prisma.SortOrder
   statusStudent?: Prisma.SortOrder
   observation?: Prisma.SortOrder
+  provenanceEcole?: Prisma.SortOrder
+  suppositionClasseName?: Prisma.SortOrder
+  suppositionSection?: Prisma.SortOrder
+  suppositionOption?: Prisma.SortOrder
   category?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -401,6 +485,10 @@ export type StudentMinOrderByAggregateInput = {
   parentId?: Prisma.SortOrder
   statusStudent?: Prisma.SortOrder
   observation?: Prisma.SortOrder
+  provenanceEcole?: Prisma.SortOrder
+  suppositionClasseName?: Prisma.SortOrder
+  suppositionSection?: Prisma.SortOrder
+  suppositionOption?: Prisma.SortOrder
   category?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -552,6 +640,10 @@ export type StudentCreateWithoutParentInput = {
   id?: string
   statusStudent?: boolean | null
   observation?: string | null
+  provenanceEcole?: string | null
+  suppositionClasseName?: string | null
+  suppositionSection?: string | null
+  suppositionOption?: string | null
   category?: $Enums.StudentCategory
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -566,6 +658,10 @@ export type StudentUncheckedCreateWithoutParentInput = {
   branchMemberId: string
   statusStudent?: boolean | null
   observation?: string | null
+  provenanceEcole?: string | null
+  suppositionClasseName?: string | null
+  suppositionSection?: string | null
+  suppositionOption?: string | null
   category?: $Enums.StudentCategory
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -609,6 +705,10 @@ export type StudentScalarWhereInput = {
   parentId?: Prisma.StringFilter<"Student"> | string
   statusStudent?: Prisma.BoolNullableFilter<"Student"> | boolean | null
   observation?: Prisma.StringNullableFilter<"Student"> | string | null
+  provenanceEcole?: Prisma.StringNullableFilter<"Student"> | string | null
+  suppositionClasseName?: Prisma.StringNullableFilter<"Student"> | string | null
+  suppositionSection?: Prisma.StringNullableFilter<"Student"> | string | null
+  suppositionOption?: Prisma.StringNullableFilter<"Student"> | string | null
   category?: Prisma.EnumStudentCategoryFilter<"Student"> | $Enums.StudentCategory
   createdAt?: Prisma.DateTimeFilter<"Student"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Student"> | Date | string
@@ -618,6 +718,10 @@ export type StudentCreateWithoutStudentAttendanceInput = {
   id?: string
   statusStudent?: boolean | null
   observation?: string | null
+  provenanceEcole?: string | null
+  suppositionClasseName?: string | null
+  suppositionSection?: string | null
+  suppositionOption?: string | null
   category?: $Enums.StudentCategory
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -633,6 +737,10 @@ export type StudentUncheckedCreateWithoutStudentAttendanceInput = {
   parentId: string
   statusStudent?: boolean | null
   observation?: string | null
+  provenanceEcole?: string | null
+  suppositionClasseName?: string | null
+  suppositionSection?: string | null
+  suppositionOption?: string | null
   category?: $Enums.StudentCategory
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -660,6 +768,10 @@ export type StudentUpdateWithoutStudentAttendanceInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   statusStudent?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   observation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  provenanceEcole?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  suppositionClasseName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  suppositionSection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  suppositionOption?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   category?: Prisma.EnumStudentCategoryFieldUpdateOperationsInput | $Enums.StudentCategory
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -675,6 +787,10 @@ export type StudentUncheckedUpdateWithoutStudentAttendanceInput = {
   parentId?: Prisma.StringFieldUpdateOperationsInput | string
   statusStudent?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   observation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  provenanceEcole?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  suppositionClasseName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  suppositionSection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  suppositionOption?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   category?: Prisma.EnumStudentCategoryFieldUpdateOperationsInput | $Enums.StudentCategory
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -686,6 +802,10 @@ export type StudentCreateWithoutGradesInput = {
   id?: string
   statusStudent?: boolean | null
   observation?: string | null
+  provenanceEcole?: string | null
+  suppositionClasseName?: string | null
+  suppositionSection?: string | null
+  suppositionOption?: string | null
   category?: $Enums.StudentCategory
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -701,6 +821,10 @@ export type StudentUncheckedCreateWithoutGradesInput = {
   parentId: string
   statusStudent?: boolean | null
   observation?: string | null
+  provenanceEcole?: string | null
+  suppositionClasseName?: string | null
+  suppositionSection?: string | null
+  suppositionOption?: string | null
   category?: $Enums.StudentCategory
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -728,6 +852,10 @@ export type StudentUpdateWithoutGradesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   statusStudent?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   observation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  provenanceEcole?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  suppositionClasseName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  suppositionSection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  suppositionOption?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   category?: Prisma.EnumStudentCategoryFieldUpdateOperationsInput | $Enums.StudentCategory
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -743,6 +871,10 @@ export type StudentUncheckedUpdateWithoutGradesInput = {
   parentId?: Prisma.StringFieldUpdateOperationsInput | string
   statusStudent?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   observation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  provenanceEcole?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  suppositionClasseName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  suppositionSection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  suppositionOption?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   category?: Prisma.EnumStudentCategoryFieldUpdateOperationsInput | $Enums.StudentCategory
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -754,6 +886,10 @@ export type StudentCreateWithoutClassEnrollmentInput = {
   id?: string
   statusStudent?: boolean | null
   observation?: string | null
+  provenanceEcole?: string | null
+  suppositionClasseName?: string | null
+  suppositionSection?: string | null
+  suppositionOption?: string | null
   category?: $Enums.StudentCategory
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -769,6 +905,10 @@ export type StudentUncheckedCreateWithoutClassEnrollmentInput = {
   parentId: string
   statusStudent?: boolean | null
   observation?: string | null
+  provenanceEcole?: string | null
+  suppositionClasseName?: string | null
+  suppositionSection?: string | null
+  suppositionOption?: string | null
   category?: $Enums.StudentCategory
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -796,6 +936,10 @@ export type StudentUpdateWithoutClassEnrollmentInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   statusStudent?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   observation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  provenanceEcole?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  suppositionClasseName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  suppositionSection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  suppositionOption?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   category?: Prisma.EnumStudentCategoryFieldUpdateOperationsInput | $Enums.StudentCategory
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -811,6 +955,10 @@ export type StudentUncheckedUpdateWithoutClassEnrollmentInput = {
   parentId?: Prisma.StringFieldUpdateOperationsInput | string
   statusStudent?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   observation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  provenanceEcole?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  suppositionClasseName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  suppositionSection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  suppositionOption?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   category?: Prisma.EnumStudentCategoryFieldUpdateOperationsInput | $Enums.StudentCategory
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -822,6 +970,10 @@ export type StudentCreateWithoutBranchMemberInput = {
   id?: string
   statusStudent?: boolean | null
   observation?: string | null
+  provenanceEcole?: string | null
+  suppositionClasseName?: string | null
+  suppositionSection?: string | null
+  suppositionOption?: string | null
   category?: $Enums.StudentCategory
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -836,6 +988,10 @@ export type StudentUncheckedCreateWithoutBranchMemberInput = {
   parentId: string
   statusStudent?: boolean | null
   observation?: string | null
+  provenanceEcole?: string | null
+  suppositionClasseName?: string | null
+  suppositionSection?: string | null
+  suppositionOption?: string | null
   category?: $Enums.StudentCategory
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -875,6 +1031,10 @@ export type StudentCreateManyParentInput = {
   branchMemberId: string
   statusStudent?: boolean | null
   observation?: string | null
+  provenanceEcole?: string | null
+  suppositionClasseName?: string | null
+  suppositionSection?: string | null
+  suppositionOption?: string | null
   category?: $Enums.StudentCategory
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -884,6 +1044,10 @@ export type StudentUpdateWithoutParentInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   statusStudent?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   observation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  provenanceEcole?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  suppositionClasseName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  suppositionSection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  suppositionOption?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   category?: Prisma.EnumStudentCategoryFieldUpdateOperationsInput | $Enums.StudentCategory
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -898,6 +1062,10 @@ export type StudentUncheckedUpdateWithoutParentInput = {
   branchMemberId?: Prisma.StringFieldUpdateOperationsInput | string
   statusStudent?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   observation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  provenanceEcole?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  suppositionClasseName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  suppositionSection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  suppositionOption?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   category?: Prisma.EnumStudentCategoryFieldUpdateOperationsInput | $Enums.StudentCategory
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -911,6 +1079,10 @@ export type StudentUncheckedUpdateManyWithoutParentInput = {
   branchMemberId?: Prisma.StringFieldUpdateOperationsInput | string
   statusStudent?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   observation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  provenanceEcole?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  suppositionClasseName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  suppositionSection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  suppositionOption?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   category?: Prisma.EnumStudentCategoryFieldUpdateOperationsInput | $Enums.StudentCategory
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -921,6 +1093,10 @@ export type StudentCreateManyBranchMemberInput = {
   parentId: string
   statusStudent?: boolean | null
   observation?: string | null
+  provenanceEcole?: string | null
+  suppositionClasseName?: string | null
+  suppositionSection?: string | null
+  suppositionOption?: string | null
   category?: $Enums.StudentCategory
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -930,6 +1106,10 @@ export type StudentUpdateWithoutBranchMemberInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   statusStudent?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   observation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  provenanceEcole?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  suppositionClasseName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  suppositionSection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  suppositionOption?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   category?: Prisma.EnumStudentCategoryFieldUpdateOperationsInput | $Enums.StudentCategory
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -944,6 +1124,10 @@ export type StudentUncheckedUpdateWithoutBranchMemberInput = {
   parentId?: Prisma.StringFieldUpdateOperationsInput | string
   statusStudent?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   observation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  provenanceEcole?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  suppositionClasseName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  suppositionSection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  suppositionOption?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   category?: Prisma.EnumStudentCategoryFieldUpdateOperationsInput | $Enums.StudentCategory
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -957,6 +1141,10 @@ export type StudentUncheckedUpdateManyWithoutBranchMemberInput = {
   parentId?: Prisma.StringFieldUpdateOperationsInput | string
   statusStudent?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   observation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  provenanceEcole?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  suppositionClasseName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  suppositionSection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  suppositionOption?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   category?: Prisma.EnumStudentCategoryFieldUpdateOperationsInput | $Enums.StudentCategory
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1017,6 +1205,10 @@ export type StudentSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   parentId?: boolean
   statusStudent?: boolean
   observation?: boolean
+  provenanceEcole?: boolean
+  suppositionClasseName?: boolean
+  suppositionSection?: boolean
+  suppositionOption?: boolean
   category?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -1034,6 +1226,10 @@ export type StudentSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   parentId?: boolean
   statusStudent?: boolean
   observation?: boolean
+  provenanceEcole?: boolean
+  suppositionClasseName?: boolean
+  suppositionSection?: boolean
+  suppositionOption?: boolean
   category?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -1047,6 +1243,10 @@ export type StudentSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   parentId?: boolean
   statusStudent?: boolean
   observation?: boolean
+  provenanceEcole?: boolean
+  suppositionClasseName?: boolean
+  suppositionSection?: boolean
+  suppositionOption?: boolean
   category?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -1060,12 +1260,16 @@ export type StudentSelectScalar = {
   parentId?: boolean
   statusStudent?: boolean
   observation?: boolean
+  provenanceEcole?: boolean
+  suppositionClasseName?: boolean
+  suppositionSection?: boolean
+  suppositionOption?: boolean
   category?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type StudentOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "branchMemberId" | "parentId" | "statusStudent" | "observation" | "category" | "createdAt" | "updatedAt", ExtArgs["result"]["student"]>
+export type StudentOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "branchMemberId" | "parentId" | "statusStudent" | "observation" | "provenanceEcole" | "suppositionClasseName" | "suppositionSection" | "suppositionOption" | "category" | "createdAt" | "updatedAt", ExtArgs["result"]["student"]>
 export type StudentInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   parent?: boolean | Prisma.ParentDefaultArgs<ExtArgs>
   classEnrollment?: boolean | Prisma.Student$classEnrollmentArgs<ExtArgs>
@@ -1098,6 +1302,10 @@ export type $StudentPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     parentId: string
     statusStudent: boolean | null
     observation: string | null
+    provenanceEcole: string | null
+    suppositionClasseName: string | null
+    suppositionSection: string | null
+    suppositionOption: string | null
     category: $Enums.StudentCategory
     createdAt: Date
     updatedAt: Date
@@ -1534,6 +1742,10 @@ export interface StudentFieldRefs {
   readonly parentId: Prisma.FieldRef<"Student", 'String'>
   readonly statusStudent: Prisma.FieldRef<"Student", 'Boolean'>
   readonly observation: Prisma.FieldRef<"Student", 'String'>
+  readonly provenanceEcole: Prisma.FieldRef<"Student", 'String'>
+  readonly suppositionClasseName: Prisma.FieldRef<"Student", 'String'>
+  readonly suppositionSection: Prisma.FieldRef<"Student", 'String'>
+  readonly suppositionOption: Prisma.FieldRef<"Student", 'String'>
   readonly category: Prisma.FieldRef<"Student", 'StudentCategory'>
   readonly createdAt: Prisma.FieldRef<"Student", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Student", 'DateTime'>

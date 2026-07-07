@@ -67,6 +67,10 @@ model Student {
   parentId          String
   statusStudent     Boolean?             @default(false)
   observation      String?
+  provenanceEcole String?
+  suppositionClasseName String?
+  suppositionSection String?
+  suppositionOption String?
   parent            Parent              @relation(fields: [parentId], references: [id])
   category          StudentCategory     @default(NORMAL) // 🔥 AJOUT
   classEnrollment   ClassEnrollment[]

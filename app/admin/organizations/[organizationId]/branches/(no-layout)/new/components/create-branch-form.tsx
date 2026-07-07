@@ -8,7 +8,6 @@ import { toast } from "sonner";
 import {
   BadgeCheck,
   Building2,
-  ImageIcon,
   MapPin,
   Navigation,
   Phone,

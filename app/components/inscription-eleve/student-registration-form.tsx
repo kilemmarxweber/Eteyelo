@@ -24,7 +24,7 @@ type Branch = {
   name: string;
   ville: string | null;
   pays: string | null;
-  image: string | null;
+  image: unknown;
 };
 
 export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {

@@ -22,7 +22,7 @@
   UserPlus,
 } from "lucide-react";
 import Link from "next/link";
-
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -972,13 +972,13 @@ export default async function HomePage() {
                 </p>
 
                 <div className="mt-6">
-  <Link
-    href="/produits-digitaux"
-    className="inline-flex items-center rounded-full bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition group-hover:bg-blue-600 group-hover:text-white"
-  >
-    En savoir plus →
-  </Link>
-</div>
+                  <Link
+                    href="/produits-digitaux"
+                    className="inline-flex items-center rounded-full bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition group-hover:bg-blue-600 group-hover:text-white"
+                  >
+                    En savoir plus →
+                  </Link>
+                </div>
               </div>
             ))}
           </div>
@@ -1430,7 +1430,7 @@ export default async function HomePage() {
                   >
                     <div className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-full bg-blue-50 ring-1 ring-blue-100 transition group-hover:scale-110">
                       {partner.logo || partner.image ? (
-                        <img
+                        <Image
                           src={partner.logo || partner.image}
                           alt={partner.name}
                           className="h-full w-full object-cover"
@@ -1443,7 +1443,7 @@ export default async function HomePage() {
                 ) : (
                   <div className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-full bg-blue-50 ring-1 ring-blue-100">
                     {partner.logo || partner.image ? (
-                      <img
+                      <Image
                         src={partner.logo || partner.image}
                         alt={partner.name}
                         className="h-full w-full object-cover"

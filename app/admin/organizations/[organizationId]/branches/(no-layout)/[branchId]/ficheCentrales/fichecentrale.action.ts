@@ -1,7 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { gradeQueue } from "@/src/redis/queues/grade.queue";
+
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
 import { revalidatePath } from "next/cache";
 
@@ -118,11 +118,13 @@ export async function validateFicheCentrale(params: {
     },
   });
 
+  const { gradeQueue } = await import("@/src/redis/queues/grade.queue");
+
   await gradeQueue.add(
     "generate-grades",
     { periodId: fiche.periodId },
     {
-      jobId: `period-${fiche.periodId}`, // 👈 ULTRA IMPORTANT
+      jobId: `period-${fiche.periodId}`,
       removeOnComplete: true,
       removeOnFail: true,
     },

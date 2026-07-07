@@ -2,6 +2,7 @@ import { Worker } from "bullmq";
 import { connection } from "../redis/redis";
 import { prisma } from "@/lib/prisma";
 import { generateStudentGradesForPeriod } from "../server/cron/gradeCron";
+import { any } from "better-auth";
 
 export const gradeWorker = new Worker(
   "grade-queue",

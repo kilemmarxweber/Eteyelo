@@ -1,7 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, Building2, LayoutDashboard, ShieldCheck, Users } from "lucide-react";
+import {
+  ArrowRight,
+  Building2,
+  LayoutDashboard,
+  ShieldCheck,
+  Users,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { useSession } from "@/lib/auth-client";
@@ -45,7 +51,7 @@ export default function AdminPage() {
               Bienvenue dans votre espace admin
             </h2>
 
-            <p className="mt-4 max-w-xl text-sm leading-7 text-blue-50 sm:text-base">
+            <p className="mt-4 max-w-7xl text-sm leading-7 text-blue-50 sm:text-base">
               {isPending
                 ? "Chargement de votre session..."
                 : `Connecte en tant que ${name}.`}{" "}

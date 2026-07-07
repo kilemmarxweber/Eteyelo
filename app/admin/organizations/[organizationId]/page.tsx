@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import {
   ArrowLeft,
   ArrowRight,
+  ChartBar,
   CirclePlus,
   Headphones,
   School,
@@ -42,10 +43,10 @@ const sections = [
     icon: Headphones,
   },
   {
-    title: "Familles",
+    title: "Rapports et statistiques",
     description: "Gerer les parents, tuteurs et responsables legaux.",
-    path: "families",
-    icon: CirclePlus,
+    path: "rapport",
+    icon: ChartBar,
   },
 ];
 

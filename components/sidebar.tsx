@@ -56,9 +56,9 @@ export default function Sidebar({
     getBranchNameAction(branchId)
       .then((branch) => {
         if (ignore) return;
-
+        const images = getBranchImage(branch?.image);
+        setBranchLogo(images.logo ?? null);
         setBranchName(branch?.name ?? null);
-        setBranchLogo(getBranchImage(branch?.image, "logo"));
         setBranchLoaded(true);
       })
       .catch(() => {
@@ -86,9 +86,9 @@ export default function Sidebar({
     getBranchNameAction(branchId)
       .then((branch) => {
         if (ignore) return;
-
+        const images = getBranchImage(branch?.image);
+        setBranchLogo(images.logo ?? null);
         setBranchName(branch?.name ?? null);
-        setBranchLogo(getBranchImage(branch?.image, "logo"));
       })
       .catch(() => {
         if (ignore) return;

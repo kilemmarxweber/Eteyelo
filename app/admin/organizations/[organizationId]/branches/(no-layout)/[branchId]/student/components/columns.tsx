@@ -22,6 +22,7 @@ import { DeleteStudentsDialog } from "./delete-students-dialog";
 import { DetailsStudentDialog } from "./details-student-dialog";
 import { ResetUsersDialog } from "./reset-users-dialog";
 import { UpdateStudentDialog } from "./edit-student-dialog";
+import Image from "next/image";
 
 function getStudentImage(student: IStudent): string | undefined {
   const image = student.image || undefined;
@@ -84,7 +85,7 @@ export const createStudentColumns = (
         <div className="flex items-center justify-center">
           <div className="flex size-11 items-center justify-center overflow-hidden rounded-full border border-blue-100 bg-blue-50 ring-2 ring-white">
             {image ? (
-              <img
+              <Image
                 src={image}
                 alt={fullName || "Élève"}
                 className="h-full w-full object-cover"

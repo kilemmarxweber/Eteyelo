@@ -30,7 +30,7 @@ export async function createBranch(data: CreateBranchInput) {
     data: {
       name: data.name,
       code: data.code || null,
-      image: data.image || null,
+      image: data.image || "/uploads/1752330108714.jpeg",
       adresse: data.adresse || null,
       ville: data.ville || null,
       pays: data.pays || "RDC",
