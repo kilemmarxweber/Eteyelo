@@ -9,7 +9,6 @@
   Camera,
   ChevronDown,
   MapPin,
-  Star,
   Facebook,
   Instagram,
   Youtube,
@@ -17,7 +16,6 @@
   Phone,
   Globe,
   ArrowRight,
-  ArrowUpRight,
   CheckCircle2,
   UserPlus,
 } from "lucide-react";
@@ -33,6 +31,7 @@ import { prisma } from "@/lib/prisma";
 import { getBranchImage, normalizeImageSrc } from "@/lib/utils";
 const schools = [
   {
+    id: crypto.randomUUID(),
     name: "CS La Fortune",
     city: "Lubumbashi",
     students: 1200,
@@ -44,7 +43,8 @@ const schools = [
     gallery: [],
   },
   {
-    name: "Bakhitafhhfjkk",
+    id: crypto.randomUUID(),
+    name: "Bakhita",
     city: "Cabinda",
     students: 850,
     heroLabel: "Institut actif à Cabinda",
@@ -55,6 +55,7 @@ const schools = [
     gallery: [],
   },
   {
+    id: crypto.randomUUID(),
     name: "Complexo Escolar Privado Padre Pitra",
     city: "Cabinda",
     students: 970,
@@ -187,6 +188,7 @@ export type BranchImages = {
   gallery: string[];
 };
 export type HomeSchools = {
+  id: string;
   name: string;
   city: string;
   students: number;
@@ -244,6 +246,7 @@ async function getHomeData() {
         ville: true,
         pays: true,
         createdAt: true,
+        isActive: true,
         branchemembers: {
           select: {
             _count: {
@@ -346,20 +349,13 @@ async function getHomeData() {
       const city = branch.ville || branch.pays || "RDC";
 
       const images = getBranchImage(branch.image);
-
-      // console.log("BRANCH:", branch.name);
-      // console.log("RAW IMAGE:", branch.image);
-      // console.log("PARSED IMAGES:", images);
-      // console.log("ECOLE:", images.ecole);
-      // console.log("EVENT:", images.event);
-      // console.log("GALLERY:", images.gallery);
       return {
         name: branch.name,
         city,
         students: studentsCount,
 
         heroLabel: "Ecole partenaire verifiee",
-
+        id: branch.id,
         heroTitle: `${branch.name} accueille ${
           studentsCount || "plusieurs"
         } eleves a ${city}`,
@@ -381,45 +377,6 @@ async function getHomeData() {
             : schools[index % schools.length].gallery,
       };
     });
-  // const dynamicSchoolsEvent: HomeSchools[] = branches
-  //   .slice(0, 6)
-  //   .map((branch, index) => {
-  //     const studentsCount = branch.branchemembers.reduce(
-  //       (total, member) => total + member._count.student,
-  //       0,
-  //     );
-
-  //     const city = branch.ville || branch.pays || "RDC";
-
-  //     const images = getBranchImage(branch.image);
-
-  //     return {
-  //       name: branch.name,
-  //       city,
-  //       students: studentsCount,
-
-  //       heroLabel: "Ecole partenaire verifiee",
-
-  //       heroTitle: `${branch.name} accueille ${
-  //         studentsCount || "plusieurs"
-  //       } eleves a ${city}`,
-  //       logo: images.logo ?? "",
-  //       ecole:
-  //         images.ecole.length > 0
-  //           ? images.ecole
-  //           : schools[index % schools.length].ecole,
-
-  //       event:
-  //         images.event.length > 0
-  //           ? images.event
-  //           : schools[index % schools.length].event,
-
-  //       gallery:
-  //         images.gallery.length > 0
-  //           ? images.gallery
-  //           : schools[index % schools.length].gallery,
-  //     };
-  //   });
 
   const dynamicEvents: HomeEvent[] = calendarEvents.map((event, index) => ({
     title: event.title || "Evenement scolaire",
@@ -438,8 +395,8 @@ async function getHomeData() {
   const dynamicPartners = partnaires.map((partnaire) => ({
     name: partnaire.name,
     type: partnaire.type,
-    image: normalizeImageSrc(partnaire.image),
     logo: partnaire.logo ? normalizeImageSrc(partnaire.logo) : "",
+    image: partnaire.image ? normalizeImageSrc(partnaire.image) : "",
     website: partnaire.website ?? "",
   }));
   const groupedResults = new Map<string, ResultSlide>();
@@ -649,22 +606,17 @@ export default async function HomePage() {
             </div>
             <div className="mx-auto mt-10 grid w-full gap-3 sm:w-[36rem] sm:grid-cols-3 lg:mx-0">
               {[
-                ["300+", "Établissements"],
-                ["50K+", "Élèves inscrits"],
-                ["98%", "Vérifié"],
-              ].map(([, label], index) => {
+                ["Établissements", stats.schools, "+"],
+                ["Élèves inscrits", stats.students, "+"],
+                ["Vérifié", stats.verified, "%"],
+              ].map(([label, value, suffix], index) => {
                 const Icon = [School, Users, CheckCircle2][index];
+
                 const iconClassName = [
                   "bg-blue-100 text-blue-700",
                   "bg-cyan-100 text-cyan-700",
                   "bg-emerald-100 text-emerald-600",
                 ][index];
-                const countTo = [
-                  Math.max(1, Math.round(stats.schools / 1000)),
-                  Math.max(1, Math.round(stats.students / 1000)),
-                  100,
-                ][index];
-                const suffix = ["K+", "K+", "%"][index];
 
                 return (
                   <div
@@ -676,10 +628,15 @@ export default async function HomePage() {
                     >
                       <Icon className="h-5 w-5" />
                     </div>
+
                     <div>
                       <p className="text-2xl font-black leading-none sm:text-3xl">
-                        <AnimatedCounter end={countTo} suffix={suffix} />
+                        <AnimatedCounter
+                          end={Number(value)}
+                          suffix={String(suffix)}
+                        />
                       </p>
+
                       <p className="mt-1 whitespace-normal text-sm leading-tight text-blue-50">
                         {label}
                       </p>
@@ -826,7 +783,7 @@ export default async function HomePage() {
           </div>
 
           <a
-            href="/etablissements"
+            href={`/etablissements`}
             className="rounded-full bg-blue-100 px-4 py-2 text-sm font-bold text-blue-700 hover:bg-blue-200"
           >
             Voir tous <ArrowRight className="inline h-4 w-4" />
@@ -837,36 +794,38 @@ export default async function HomePage() {
           {/* CARDS ÉTABLISSEMENTS schoolEvents */}
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {schools.slice(0, 3).map((school) => (
-              <article
-                key={school.name}
-                className="group overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-blue-100 transition duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-blue-950/10"
-              >
-                <div className="relative h-48 overflow-hidden">
-                  <div
-                    className="absolute inset-0 bg-cover bg-center transition duration-500 group-hover:scale-105"
-                    style={{
-                      backgroundImage: `url('${school.event[0]}')`,
-                    }}
-                  />
+              <Link href={`/etablissements/${school.id}`} key={school.name}>
+                <article
+                  key={school.name}
+                  className="group overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-blue-100 transition duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-blue-950/10"
+                >
+                  <div className="relative h-48 overflow-hidden">
+                    <div
+                      className="absolute inset-0 bg-cover bg-center transition duration-500 group-hover:scale-105"
+                      style={{
+                        backgroundImage: `url('${school.event[0]}')`,
+                      }}
+                    />
 
-                  <div className="absolute inset-0 bg-gradient-to-t from-blue-950/70 via-blue-950/10 to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-blue-950/70 via-blue-950/10 to-transparent" />
 
-                  <Badge className="absolute left-4 top-4 bg-white/90 text-blue-950 backdrop-blur">
-                    {school.city}
-                  </Badge>
-                </div>
+                    <Badge className="absolute left-4 top-4 bg-white/90 text-blue-950 backdrop-blur">
+                      {school.city}
+                    </Badge>
+                  </div>
 
-                <div className="p-5">
-                  <h3 className="line-clamp-2 text-lg font-black text-blue-950">
-                    {school.name}
-                  </h3>
+                  <div className="p-5">
+                    <h3 className="line-clamp-2 text-lg font-black text-blue-950">
+                      {school.name}
+                    </h3>
 
-                  <p className="mt-4 inline-flex items-center gap-2 rounded-2xl bg-blue-50 px-3 py-2 text-sm text-blue-950">
-                    <Users className="h-4 w-4 text-blue-700" />
-                    {school.students} élèves inscrits
-                  </p>
-                </div>
-              </article>
+                    <p className="mt-4 inline-flex items-center gap-2 rounded-2xl bg-blue-50 px-3 py-2 text-sm text-blue-950">
+                      <Users className="h-4 w-4 text-blue-700" />
+                      {school.students} élèves inscrits
+                    </p>
+                  </div>
+                </article>
+              </Link>
             ))}
           </div>
 
@@ -1430,11 +1389,14 @@ export default async function HomePage() {
                   >
                     <div className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-full bg-blue-50 ring-1 ring-blue-100 transition group-hover:scale-110">
                       {partner.logo || partner.image ? (
-                        <Image
-                          src={partner.logo || partner.image}
-                          alt={partner.name}
-                          className="h-full w-full object-cover"
-                        />
+                        <div className="relative flex h-11 w-11 items-center justify-center overflow-hidden rounded-full bg-blue-50 ring-1 ring-blue-100">
+                          <Image
+                            src={partner.logo || partner.image}
+                            alt={partner.name}
+                            fill
+                            className="object-cover"
+                          />
+                        </div>
                       ) : (
                         <School className="h-5 w-5 text-blue-700" />
                       )}
@@ -1443,11 +1405,14 @@ export default async function HomePage() {
                 ) : (
                   <div className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-full bg-blue-50 ring-1 ring-blue-100">
                     {partner.logo || partner.image ? (
-                      <Image
-                        src={partner.logo || partner.image}
-                        alt={partner.name}
-                        className="h-full w-full object-cover"
-                      />
+                      <div className="relative flex h-11 w-11 items-center justify-center overflow-hidden rounded-full bg-blue-50 ring-1 ring-blue-100">
+                        <Image
+                          src={partner.logo || partner.image}
+                          alt={partner.name}
+                          fill
+                          className="object-cover"
+                        />
+                      </div>
                     ) : (
                       <School className="h-5 w-5 text-blue-700" />
                     )}

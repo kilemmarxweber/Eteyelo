@@ -158,7 +158,12 @@ export async function updateBranchAction(
       ville: parsed.data.ville?.trim() || null,
       pays: parsed.data.pays?.trim() || null,
       idnat: parsed.data.idnat?.trim() || null,
-      image: JSON.stringify(parsed.data.image ?? []),
+      image: parsed.data.image ?? {
+        logo: "",
+        event: [],
+        gallery: [],
+        ecole: [],
+      },
       latitude: parsed.data.latitude,
       longitude: parsed.data.longitude,
       attendanceRadius: parsed.data.attendanceRadius,
