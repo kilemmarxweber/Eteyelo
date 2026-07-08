@@ -56,9 +56,10 @@ export function EstablishmentSupportForm({
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const form = event.currentTarget;
     setIsSubmitting(true);
 
-    const formData = new FormData(event.currentTarget);
+    const formData = new FormData(form);
     const body = {
       name: String(formData.get("name") || ""),
       email: String(formData.get("email") || ""),
@@ -84,7 +85,7 @@ export function EstablishmentSupportForm({
         throw new Error(data?.error || "Impossible d'envoyer le message.");
       }
 
-      event.currentTarget.reset();
+      form.reset();
       toast.success("Message envoyé. L'équipe support vous répondra rapidement.");
     } catch (error) {
       toast.error(

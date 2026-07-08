@@ -43,10 +43,11 @@ export default function ContactForm({
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const form = event.currentTarget;
     setStatus("sending");
     setError("");
 
-    const formData = new FormData(event.currentTarget);
+    const formData = new FormData(form);
     const body = {
       name: String(formData.get("name") || ""),
       email: String(formData.get("email") || ""),
@@ -77,7 +78,7 @@ export default function ContactForm({
       return;
     }
 
-    event.currentTarget.reset();
+    form.reset();
     setStatus("sent");
   }
 
