@@ -53,7 +53,7 @@ export const gradeWorker = new Worker(
     }
   },
   {
-    connection,
+    connection: connection as any,
   },
 );
 

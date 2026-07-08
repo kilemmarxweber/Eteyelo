@@ -1160,8 +1160,11 @@ export default async function HomePage() {
                   les performances scolaires en temps réel.
                 </p>
 
-                <Button className="mt-8 rounded-full bg-cyan-400 text-blue-950 hover:bg-cyan-300">
-                  Consulter les résultats
+                <Button
+                  asChild
+                  className="mt-8 rounded-full bg-cyan-400 text-blue-950 hover:bg-cyan-300"
+                >
+                  <Link href="/resultats">Consulter les résultats</Link>
                 </Button>
               </div>
 
