@@ -7,6 +7,7 @@ import {
   ArrowRight,
   ChartBar,
   CirclePlus,
+  Handshake,
   Headphones,
   School,
   Shield,
@@ -47,6 +48,12 @@ const sections = [
     description: "Gerer les parents, tuteurs et responsables legaux.",
     path: "rapport",
     icon: ChartBar,
+  },
+  {
+    title: "Partenaires",
+    description: "Créer, afficher et gérer les partenaires de l’organisation.",
+    path: "partenaires",
+    icon: Handshake,
   },
 ];
 

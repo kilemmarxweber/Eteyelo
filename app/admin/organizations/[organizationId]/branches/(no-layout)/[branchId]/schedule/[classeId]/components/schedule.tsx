@@ -91,6 +91,10 @@ export default function Schedule({
   const canDeleteSchedule = canManageSchedules;
 
   useEffect(() => {
+    if (!classeId) {
+      setLoading(false);
+      return;
+    }
     const fetchCours = async () => {
       try {
         const [rawCours, err] = await getScheduleCoursByClasseAction({
@@ -276,75 +280,75 @@ export default function Schedule({
       </CardHeader>
       <CardContent>
         {canCreateSchedule && (
-        <form onSubmit={ajouterHoraire} className="space-y-4 mb-6">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="jour">Jour</Label>
-              <Select value={jour} onValueChange={handleValueChange}>
-                <SelectTrigger id="jour">
-                  <SelectValue placeholder="Sélectionnez un jour" />
-                </SelectTrigger>
-                <SelectContent>
-                  {Object.values(JOURS).map((j) => (
-                    <SelectItem key={j} value={j}>
-                      {j}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+          <form onSubmit={ajouterHoraire} className="space-y-4 mb-6">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="jour">Jour</Label>
+                <Select value={jour} onValueChange={handleValueChange}>
+                  <SelectTrigger id="jour">
+                    <SelectValue placeholder="Sélectionnez un jour" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.values(JOURS).map((j) => (
+                      <SelectItem key={j} value={j}>
+                        {j}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="cours">Cours</Label>
+                <Select value={selectedCours} onValueChange={setSelectedCours}>
+                  <SelectTrigger id="cours">
+                    <SelectValue placeholder="Sélectionnez un cours" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {uniqueCours.map((c) => (
+                      <SelectItem key={c.id} value={c.id}>
+                        {c.nameCours}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="cours">Cours</Label>
-              <Select value={selectedCours} onValueChange={setSelectedCours}>
-                <SelectTrigger id="cours">
-                  <SelectValue placeholder="Sélectionnez un cours" />
-                </SelectTrigger>
-                <SelectContent>
-                  {uniqueCours.map((c) => (
-                    <SelectItem key={c.id} value={c.id}>
-                      {c.nameCours}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="heureDebut">Heure de début</Label>
+                <Select value={heureDebut} onValueChange={setHeureDebut}>
+                  <SelectTrigger id="heureDebut">
+                    <SelectValue placeholder="Heure de début" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {filteredHeuresDebut.map((h) => (
+                      <SelectItem key={h} value={h}>
+                        {h}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="heureFin">Heure de fin</Label>
+                <Select value={heureFin} disabled>
+                  <SelectTrigger id="heureFin">
+                    <SelectValue placeholder="Heure de fin" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {heuresDebut.map((h) => (
+                      <SelectItem key={h} value={h}>
+                        {h}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="heureDebut">Heure de début</Label>
-              <Select value={heureDebut} onValueChange={setHeureDebut}>
-                <SelectTrigger id="heureDebut">
-                  <SelectValue placeholder="Heure de début" />
-                </SelectTrigger>
-                <SelectContent>
-                  {filteredHeuresDebut.map((h) => (
-                    <SelectItem key={h} value={h}>
-                      {h}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="heureFin">Heure de fin</Label>
-              <Select value={heureFin} disabled>
-                <SelectTrigger id="heureFin">
-                  <SelectValue placeholder="Heure de fin" />
-                </SelectTrigger>
-                <SelectContent>
-                  {heuresDebut.map((h) => (
-                    <SelectItem key={h} value={h}>
-                      {h}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <Button type="submit" className="w-full">
-            Ajouter l'horaire
-          </Button>
-        </form>
+            <Button type="submit" className="w-full">
+              Ajouter l'horaire
+            </Button>
+          </form>
         )}
 
         <div className="overflow-x-auto">

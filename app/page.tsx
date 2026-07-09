@@ -1034,107 +1034,71 @@ export default async function HomePage() {
       </section>
 
       {/* INSCRIPTION */}
-      <section className="bg-gradient-to-br from-blue-700 to-cyan-500 py-14 text-white">
-        <div className="mx-auto grid max-w-7xl items-start gap-6 px-6 lg:grid-cols-2">
+      <section className="bg-gradient-to-br from-blue-700 to-cyan-500 py-10 text-white sm:py-14">
+        <div className="mx-auto grid max-w-7xl items-stretch gap-5 px-4 sm:px-6 lg:grid-cols-2">
           {/* Gauche */}
-          <div className="rounded-3xl bg-white/15 p-8 backdrop-blur">
-            <h2 className="text-3xl font-black">
+          <div className="rounded-3xl bg-white/15 p-5 backdrop-blur sm:p-8">
+            <h2 className="text-2xl font-black leading-tight sm:text-3xl">
               Candidature & inscriptions en ligne
             </h2>
 
-            <p className="mt-3 text-sm leading-6 text-blue-50">
+            <p className="mt-3 text-sm leading-6 text-blue-50 sm:text-base">
               Les parents peuvent inscrire leurs enfants, les candidats peuvent
               postuler, et les écoles reçoivent les demandes directement depuis
               leur espace d'administration.
             </p>
 
-            <div className="mt-6 flex flex-wrap gap-3">
+            <div className="mt-6 grid gap-3 sm:flex sm:flex-wrap">
               <Button
                 asChild
-                className="rounded-full bg-blue-950 px-6 text-white hover:bg-blue-900"
+                className="w-full rounded-full bg-blue-950 px-6 text-white hover:bg-blue-900 sm:w-auto"
               >
                 <Link href="/inscription-eleve">Inscrire un élève</Link>
               </Button>
 
               <Button
+                asChild
                 variant="outline"
-                className="rounded-full border-white bg-white px-6 text-slate-950 hover:bg-slate-100 hover:text-slate-950"
+                className="w-full rounded-full border-white bg-white px-6 text-slate-950 hover:bg-slate-100 hover:text-slate-950 sm:w-auto"
               >
-                Déposer une candidature
+                <Link href="/depot-candidature">Déposer une candidature</Link>
               </Button>
             </div>
           </div>
 
           {/* Droite */}
-          <div className="rounded-3xl bg-white p-8 text-slate-900 shadow-lg">
-            <div className="flex items-center justify-between">
-              <h3 className="text-xl font-black">Nouvelles écoles inscrites</h3>
+          <div className="min-w-0 rounded-3xl bg-white p-5 text-slate-900 shadow-lg sm:p-8">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <h3 className="text-lg font-black sm:text-xl">
+                Nouvelles écoles inscrites
+              </h3>
 
               <Button
                 variant="ghost"
-                className="h-auto p-0 text-sm text-blue-600 hover:bg-transparent hover:text-blue-700"
+                className="h-auto justify-start p-0 text-sm text-blue-600 hover:bg-transparent hover:text-blue-700 sm:justify-center"
               >
                 Voir toutes →
               </Button>
             </div>
 
-            <div className="hidden">
-              {[
-                {
-                  name: "Groupe Scolaire Sainte Marie",
-                  city: "Kinshasa",
-                  date: "Inscrite le 28/07/2025",
-                },
-                {
-                  name: "Académie Les Génies",
-                  city: "Lubumbashi",
-                  date: "Inscrite le 26/07/2025",
-                },
-                {
-                  name: "Institut Moderne La Réussite",
-                  city: "Goma",
-                  date: "Inscrite le 24/07/2025",
-                },
-                {
-                  name: "Complexe Scolaire Lumière",
-                  city: "Kolwezi",
-                  date: "Inscrite le 22/07/2025",
-                },
-              ].map((school) => (
-                <div
-                  key={school.name}
-                  className="flex items-start gap-3 rounded-xl border border-slate-100 px-3 py-2 transition hover:bg-slate-50"
-                >
-                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-green-500" />
-
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-semibold text-slate-900">
-                      {school.name}
-                    </p>
-
-                    <p className="text-xs text-slate-500">{school.city}</p>
-                  </div>
-
-                  <span className="whitespace-nowrap text-[11px] text-slate-400">
-                    {school.date}
-                  </span>
-                </div>
-              ))}
-            </div>
             <div className="mt-5 space-y-2">
               {newSchools.map((school) => (
                 <div
                   key={school.name}
-                  className="flex items-start gap-3 rounded-xl border border-slate-100 px-3 py-2 transition hover:bg-slate-50"
+                  className="grid gap-2 rounded-xl border border-slate-100 px-3 py-3 transition hover:bg-slate-50 sm:flex sm:items-start sm:gap-3 sm:py-2"
                 >
-                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-green-500" />
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-semibold text-slate-900">
-                      {school.name}
-                    </p>
-                    <p className="text-xs text-slate-500">{school.city}</p>
+                  <div className="flex min-w-0 items-start gap-3">
+                    <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-green-500" />
+
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-semibold text-slate-900">
+                        {school.name}
+                      </p>
+                      <p className="text-xs text-slate-500">{school.city}</p>
+                    </div>
                   </div>
-                  <span className="whitespace-nowrap text-[11px] text-slate-400">
+
+                  <span className="ml-7 text-[11px] text-slate-400 sm:ml-auto sm:whitespace-nowrap">
                     {school.date}
                   </span>
                 </div>
