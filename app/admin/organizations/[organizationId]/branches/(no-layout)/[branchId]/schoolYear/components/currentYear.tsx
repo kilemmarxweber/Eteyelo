@@ -1,14 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
+
 import { Switch } from "@/components/ui/switch";
-import { updateSchoolYearAction } from "../schoolYear.action";
 import { ISchoolYear } from "@/src/interfaces/SchoolYear";
 import { useRefresh } from "@/src/hooks/RefreshContext";
 
-interface CurrentYearProps extends ISchoolYear {
-  refresh: () => void;
-}
+import { updateSchoolYearAction } from "../schoolYear.action";
 
 export const CurrentYear: React.FC<ISchoolYear> = ({
   id,
@@ -25,20 +24,39 @@ export const CurrentYear: React.FC<ISchoolYear> = ({
   }, [isCurrentYear]);
 
   const handleSwitchChange = async (newChecked: boolean) => {
+    const confirmed = window.confirm(
+      newChecked
+        ? `Definir ${nameYear} comme annee scolaire courante ? Les modules metier utiliseront cette annee par defaut.`
+        : `Retirer ${nameYear} comme annee scolaire courante ?`,
+    );
+
+    if (!confirmed) {
+      setChecked(!!isCurrentYear);
+      return;
+    }
+
     setChecked(newChecked);
 
     try {
-      await updateSchoolYearAction({
+      const [, err] = await updateSchoolYearAction({
         id,
         nameYear,
         startYear,
         endYear,
         isCurrentYear: newChecked,
       });
+
+      if (err) {
+        throw new Error(err.message);
+      }
+
       refresh();
       window.dispatchEvent(new Event("school-year-refresh"));
-    } catch (error) {
-      console.error("Erreur lors de la mise à jour de l'année :", error);
+      toast.success("Annee courante mise a jour");
+    } catch (error: any) {
+      console.error("Erreur lors de la mise a jour de l'annee :", error);
+      toast.error(error.message || "Erreur lors de la mise a jour de l'annee");
+      setChecked(!!isCurrentYear);
     }
   };
 

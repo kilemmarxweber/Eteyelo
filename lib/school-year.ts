@@ -1,8 +1,12 @@
 "use server";
-import { Prisma } from "@/prisma/generated/prisma/client";
+
 import { prisma } from "@/lib/prisma";
+import { requireBranchContext } from "@/lib/auth/require-branch-context";
+
 export async function getSchoolYear() {
+  const { branchId } = await requireBranchContext();
+
   return await prisma.schoolYear.findFirst({
-    where: { isCurrentYear: true },
+    where: { isCurrentYear: true, branchId },
   });
 }

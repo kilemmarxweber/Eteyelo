@@ -66,7 +66,15 @@ export const updateCreneauAction = action
   .input(creneauSchema)
   .handler(async ({ input }) => {
     const { branchId, organizationId } = await requireBranchContext();
-    const { id, nameCreneau, endTime, startTime, durationCourse } = input;
+    const {
+      id,
+      nameCreneau,
+      endTime,
+      startTime,
+      durationCourse,
+      recreationDuration,
+      recreationHour,
+    } = input;
     const existing = await prisma.creneau.findFirst({
       where: { id, branchId },
       select: { id: true },
@@ -83,6 +91,7 @@ export const updateCreneauAction = action
 
     const [heuresDebut, minutesDebut] = startTime.split(":").map(Number);
     const [heuresFin, minutesFin] = endTime.split(":").map(Number);
+    const [RecreHeure, RecreMinutes] = recreationHour.split(":").map(Number);
     // MET À JOURLE CRENEAU AVEC LES NOUVELLES DONNÉES
     const updatedCreneau = await prisma.creneau.update({
       where: {
@@ -93,6 +102,10 @@ export const updateCreneauAction = action
         startTime: new Date(Date.UTC(2000, 1, 1, heuresDebut, minutesDebut)),
         endTime: new Date(Date.UTC(2000, 1, 1, heuresFin, minutesFin)),
         durationCourse,
+        recreationDuration,
+        recreationHour: new Date(
+          Date.UTC(2000, 1, 1, RecreHeure, RecreMinutes),
+        ),
       },
     });
     revalidateCreneauPages(organizationId, branchId);

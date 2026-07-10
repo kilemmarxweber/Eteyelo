@@ -68,10 +68,12 @@ export function EnrollmentUpForm({
   const [SchoolYears, setSchoolYears] = useState<ISchoolYear[]>([]);
   const { data: session } = useSession();
   const branchId = session?.branch?.id ?? session?.session?.activeBranchId;
+  const currentSchoolYearId =
+    SchoolYears.find((schoolYear) => schoolYear.isCurrentYear)?.id ?? "";
   const form = useForm<z.infer<typeof classEnrollmentSchema>>({
     resolver: zodResolver(classEnrollmentSchema),
     defaultValues: initialData || {
-      schoolYearId: "",
+      schoolYearId: currentSchoolYearId,
       studentId: "",
       classeId: classeId, // 🔥 IMPORTANT
     },
@@ -80,7 +82,7 @@ export function EnrollmentUpForm({
   useEffect(() => {
     form.reset(
       initialData || {
-        schoolYearId: "",
+        schoolYearId: currentSchoolYearId,
         studentId: "",
         classeId: classeId ?? "",
       },
@@ -108,6 +110,12 @@ export function EnrollmentUpForm({
         throw err.message;
       }
       setSchoolYears(rawSchoolYears);
+      const currentYear = rawSchoolYears.find(
+        (schoolYear) => schoolYear.isCurrentYear,
+      );
+      if (mode === "create" && currentYear && !form.getValues("schoolYearId")) {
+        form.setValue("schoolYearId", currentYear.id);
+      }
     };
     fecthSchoolYears();
   }, [branchId]);
@@ -129,7 +137,7 @@ export function EnrollmentUpForm({
         }
         toast.success("Classe créée avec succès");
         form.reset({
-          schoolYearId: "",
+          schoolYearId: currentSchoolYearId,
           studentId: "",
           classeId,
         });

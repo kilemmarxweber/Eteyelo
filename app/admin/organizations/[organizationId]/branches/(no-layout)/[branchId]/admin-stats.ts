@@ -2,6 +2,7 @@
 
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { requireBranchContext } from "@/lib/auth/require-branch-context";
 import { action } from "@/lib/zsa";
 import { headers } from "next/headers";
 import { z } from "zod";
@@ -364,6 +365,7 @@ export async function getAdminStats({
 }
 
 export const getDashboardMetrics = action.handler(async () => {
+  const { branchId } = await requireBranchContext();
   const totalAttendance = await prisma.studentAttendance.count();
 
   const presents = await prisma.studentAttendance.count({
@@ -376,17 +378,19 @@ export const getDashboardMetrics = action.handler(async () => {
     totalAttendance > 0 ? Math.round((presents / totalAttendance) * 100) : 0;
 
   const currentYear = await prisma.schoolYear.findFirst({
-    where: { isCurrentYear: true },
+    where: { isCurrentYear: true, branchId },
   });
 
   const totalGrades = await prisma.studentGrade.count({
     where: {
+      branchId,
       schoolYearId: currentYear?.id,
     },
   });
 
   const passed = await prisma.studentGrade.count({
     where: {
+      branchId,
       schoolYearId: currentYear?.id,
       score: {
         gte: 50,

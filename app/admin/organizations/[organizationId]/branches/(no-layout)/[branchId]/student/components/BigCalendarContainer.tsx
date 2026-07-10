@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import BigCalendar from "./BigCalender";
 import { adjustScheduleToCurrentWeek } from "@/lib/utils";
+import { requireBranchContext } from "@/lib/auth/require-branch-context";
 
 const BigCalendarContainer = async ({
   type,
@@ -10,12 +11,14 @@ const BigCalendarContainer = async ({
   id: string;
 }) => {
   // 🔥 On récupère le vrai planning depuis Schedule
+  const { branchId } = await requireBranchContext();
   const currentYear = await prisma.schoolYear.findFirst({
-    where: { isCurrentYear: true },
+    where: { isCurrentYear: true, branchId },
   });
   const scheduleRes = await prisma.schedule.findMany({
     where: {
       teaching: {
+        branchId,
         schoolYearId: currentYear?.id, // ✅ FILTRE IMPORTANT
 
         ...(type === "teacherId" ? { teacherId: id } : { classeId: id }),

@@ -17,21 +17,47 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useTheme } from "next-themes";
 import { createCreneauAction, updateCreneauAction } from "../creneau.action";
-import { getSectionsAction } from "../../section/section.action";
 import { creneauSchema } from "@/src/interfaces/creneau";
-import { ISection } from "@/src/interfaces/Section";
 
 // Fonction pour convertir une chaîne de caractères HH:MM en objet Date
-const timeStringToDate = (timeString: string): Date => {
-  const [hours, minutes] = timeString.split(":").map(Number);
-  const date = new Date();
-  date.setHours(hours, minutes, 0, 0);
-  return date;
-};
+type CreneauFormValues = z.infer<typeof creneauSchema>;
 
 // Fonction pour convertir un objet Date en chaîne de caractères HH:MM
-const formatDateToTimeString = (date: Date): string => {
-  return date.toTimeString().slice(0, 5);
+const emptyCreneauValues = (): CreneauFormValues => ({
+  nameCreneau: "",
+  startTime: "",
+  endTime: "",
+  durationCourse: undefined as unknown as number,
+  recreationHour: "",
+  recreationDuration: undefined as unknown as number,
+});
+
+const normalizeCreneauValues = (
+  initialData?: Partial<CreneauFormValues>,
+): CreneauFormValues => ({
+  ...emptyCreneauValues(),
+  ...initialData,
+  nameCreneau: initialData?.nameCreneau ?? "",
+  startTime: initialData?.startTime ?? "",
+  endTime: initialData?.endTime ?? "",
+  durationCourse:
+    initialData?.durationCourse ?? (undefined as unknown as number),
+  recreationHour: initialData?.recreationHour ?? "",
+  recreationDuration:
+    initialData?.recreationDuration ?? (undefined as unknown as number),
+});
+
+const controlledTime = (value: unknown) =>
+  typeof value === "string" ? value : "";
+
+const controlledNumber = (value: unknown) =>
+  typeof value === "number" && Number.isFinite(value) ? value : "";
+
+const toOptionalPositiveInteger = (value: string) => {
+  if (value === "") return undefined;
+
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : undefined;
 };
 
 interface CreneauUpFormProps extends HTMLAttributes<HTMLDivElement> {
@@ -55,30 +81,15 @@ export function CreneauUpForm({
 }: CreneauUpFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const [Sections, setSections] = useState<ISection[]>([]);
-  const [searchTerm, setSearchTerm] = useState("");
 
   const form = useForm<z.infer<typeof creneauSchema>>({
     resolver: zodResolver(creneauSchema),
-    defaultValues: initialData || {
-      nameCreneau: "",
-    },
+    defaultValues: normalizeCreneauValues(initialData),
   });
 
   useEffect(() => {
-    const fetchSections = async () => {
-      const [rawSections, err] = await getSectionsAction();
-      if (err) {
-        throw err.message;
-      }
-      setSections(rawSections);
-    };
-    fetchSections();
-  }, []);
-
-  const filteredSections = Sections.filter((section) =>
-    section.nameSection.toLowerCase().includes(searchTerm.toLowerCase()),
-  );
+    form.reset(normalizeCreneauValues(initialData));
+  }, [form, initialData]);
 
   const onSubmit: SubmitHandler<z.infer<typeof creneauSchema>> = async (
     data,
@@ -106,14 +117,7 @@ export function CreneauUpForm({
       }
 
       if (mode === "create") {
-        form.reset({
-          nameCreneau: "",
-          startTime: "",
-          endTime: "",
-          durationCourse: undefined,
-          recreationHour: "",
-          recreationDuration: undefined,
-        });
+        form.reset(emptyCreneauValues());
         onCreated?.();
       } else {
         onUpdated?.();
@@ -150,7 +154,11 @@ export function CreneauUpForm({
                 <FormItem className="space-y-1">
                   <FormLabel>Nom de la vacation</FormLabel>
                   <FormControl>
-                    <Input placeholder="Le nom de le creneau" {...field} />
+                    <Input
+                      placeholder="Le nom de le creneau"
+                      {...field}
+                      value={field.value ?? ""}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -165,7 +173,12 @@ export function CreneauUpForm({
                     <FormItem className="space-y-2">
                       <FormLabel>Debut</FormLabel>
                       <FormControl>
-                        <Input type="time" placeholder="Début" {...field} />
+                        <Input
+                          type="time"
+                          placeholder="Début"
+                          {...field}
+                          value={controlledTime(field.value)}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -180,7 +193,12 @@ export function CreneauUpForm({
                     <FormItem className="space-y-2">
                       <FormLabel>Fin</FormLabel>{" "}
                       <FormControl>
-                        <Input type="time" placeholder="Fin" {...field} />
+                        <Input
+                          type="time"
+                          placeholder="Fin"
+                          {...field}
+                          value={controlledTime(field.value)}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -199,8 +217,11 @@ export function CreneauUpForm({
                           type="number"
                           placeholder="Durée en minutes"
                           {...field}
+                          value={controlledNumber(field.value)}
                           onChange={(e) =>
-                            field.onChange(parseInt(e.target.value))
+                            field.onChange(
+                              toOptionalPositiveInteger(e.target.value),
+                            )
                           }
                         />
                       </FormControl>
@@ -219,7 +240,12 @@ export function CreneauUpForm({
                     <FormItem className="space-y-2">
                       <FormLabel>Heure de récré</FormLabel>{" "}
                       <FormControl>
-                        <Input type="time" placeholder="Fin" {...field} />
+                        <Input
+                          type="time"
+                          placeholder="Fin"
+                          {...field}
+                          value={controlledTime(field.value)}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -238,8 +264,11 @@ export function CreneauUpForm({
                           type="number"
                           placeholder="Durée en minutes"
                           {...field}
+                          value={controlledNumber(field.value)}
                           onChange={(e) =>
-                            field.onChange(parseInt(e.target.value))
+                            field.onChange(
+                              toOptionalPositiveInteger(e.target.value),
+                            )
                           }
                         />
                       </FormControl>

@@ -11,6 +11,10 @@ import {
 import { Prisma } from "@/prisma/generated/prisma/client";
 import { z } from "zod";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
+import {
+  canPrepareNextAcademicYear,
+  getNextAcademicYearForDate,
+} from "@/lib/academic-year";
 
 function revalidateSchoolYearPages(organizationId: string, branchId: string) {
   revalidatePath(`/admin/organizations/${organizationId}/branches/${branchId}/schoolYear`);
@@ -53,21 +57,23 @@ export const createSchoolYearAction = action
       throw new Error("L'année scolaire existe déjà");
     }
 
-    if (isCurrentYear) {
-      await prisma.schoolYear.updateMany({
-        where: { branchId, isCurrentYear: true },
-        data: { isCurrentYear: false },
-      });
-    }
+    const schoolYear = await prisma.$transaction(async (tx) => {
+      if (isCurrentYear) {
+        await tx.schoolYear.updateMany({
+          where: { branchId, isCurrentYear: true },
+          data: { isCurrentYear: false },
+        });
+      }
 
-    const schoolYear = await prisma.schoolYear.create({
-      data: {
-        branchId,
-        nameYear,
-        startYear,
-        endYear,
-        isCurrentYear,
-      },
+      return tx.schoolYear.create({
+        data: {
+          branchId,
+          nameYear,
+          startYear,
+          endYear,
+          isCurrentYear,
+        },
+      });
     });
     revalidateSchoolYearPages(organizationId, branchId);
     return schoolYear;
@@ -133,6 +139,50 @@ export const getSchoolYearsAction1 = action
     });
   });
 
+export const getCurrentSchoolYearAction = action.handler(async () => {
+  const { branchId } = await getCurrentBranch();
+
+  return prisma.schoolYear.findFirst({
+    where: {
+      branchId,
+      isCurrentYear: true,
+    },
+  });
+});
+
+export const prepareNextSchoolYearAction = action.handler(async () => {
+  const { branchId, organizationId } = await getCurrentBranch();
+
+  if (!canPrepareNextAcademicYear()) {
+    throw new Error("La prochaine annee scolaire peut etre preparee a partir du mois d'aout");
+  }
+
+  const nextAcademicYear = getNextAcademicYearForDate();
+
+  const schoolYear = await prisma.schoolYear.upsert({
+    where: {
+      branchId_nameYear: {
+        branchId,
+        nameYear: nextAcademicYear.nameYear,
+      },
+    },
+    create: {
+      branchId,
+      nameYear: nextAcademicYear.nameYear,
+      startYear: nextAcademicYear.startYear,
+      endYear: nextAcademicYear.endYear,
+      isCurrentYear: false,
+    },
+    update: {
+      startYear: nextAcademicYear.startYear,
+      endYear: nextAcademicYear.endYear,
+    },
+  });
+
+  revalidateSchoolYearPages(organizationId, branchId);
+  return schoolYear;
+});
+
 export const updateSchoolYearAction = action
   .input(schoolYearSchema)
   .handler(async ({ input }) => {
@@ -160,29 +210,31 @@ export const updateSchoolYearAction = action
       throw new Error("L'année scolaire existe deja dans cette branche");
     }
 
-    if (isCurrentYear) {
-      await prisma.schoolYear.updateMany({
+    const updatedSchoolYear = await prisma.$transaction(async (tx) => {
+      if (isCurrentYear) {
+        await tx.schoolYear.updateMany({
+          where: {
+            branchId,
+            id: { not: id },
+            isCurrentYear: true,
+          },
+          data: {
+            isCurrentYear: false,
+          },
+        });
+      }
+
+      return tx.schoolYear.update({
         where: {
-          branchId,
-          id: { not: id },
-          isCurrentYear: true,
+          id,
         },
         data: {
-          isCurrentYear: false,
+          nameYear,
+          startYear,
+          endYear,
+          isCurrentYear,
         },
       });
-    }
-
-    const updatedSchoolYear = await prisma.schoolYear.update({
-      where: {
-        id,
-      },
-      data: {
-        nameYear,
-        startYear,
-        endYear,
-        isCurrentYear,
-      },
     });
     revalidateSchoolYearPages(organizationId, branchId);
     return updatedSchoolYear;

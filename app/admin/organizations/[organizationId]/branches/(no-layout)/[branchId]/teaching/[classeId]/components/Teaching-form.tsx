@@ -71,11 +71,13 @@ export function EnrollmentUpForm({
   const [SchoolYears, setSchoolYears] = useState<ISchoolYear[]>([]);
   const { data: session } = useSession();
   const branchId = session?.branch?.id ?? session?.session?.activeBranchId;
+  const currentSchoolYearId =
+    SchoolYears.find((schoolYear) => schoolYear.isCurrentYear)?.id ?? "";
 
   const form = useForm<z.infer<typeof teachingSchema>>({
     resolver: zodResolver(teachingSchema),
     defaultValues: {
-      schoolYearId: initialData?.schoolYearId ?? "",
+      schoolYearId: initialData?.schoolYearId ?? currentSchoolYearId,
       teacherId: initialData?.teacherId ?? "",
       coursId: initialData?.coursId ?? "",
       classeId: initialData?.classeId ?? classeId ?? "",
@@ -93,6 +95,12 @@ export function EnrollmentUpForm({
         throw err.message;
       }
       setSchoolYears(rawSchoolYears);
+      const currentYear = rawSchoolYears.find(
+        (schoolYear) => schoolYear.isCurrentYear,
+      );
+      if (mode === "create" && currentYear && !form.getValues("schoolYearId")) {
+        form.setValue("schoolYearId", currentYear.id);
+      }
     };
     fecthSchoolYears();
     const fecthCours = async () => {
@@ -127,7 +135,7 @@ export function EnrollmentUpForm({
         }
         toast.success("Affectation effectuée avec succès");
         form.reset({
-          schoolYearId: "",
+          schoolYearId: currentSchoolYearId,
           teacherId: "",
           coursId: "",
           classeId,

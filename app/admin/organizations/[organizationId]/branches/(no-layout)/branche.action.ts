@@ -6,6 +6,7 @@ import { createBranchFormSchema, type CreateBranchFormValues } from "./schema";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { ensureAcademicPeriodsForBranch } from "@/lib/academic-periods";
+import { getAcademicYearForDate } from "@/lib/academic-year";
 import {
   ensureUniqueIdentifier,
   generateCode,
@@ -184,23 +185,39 @@ export async function createBranchAction(
       ),
   });
 
-  const branch = await prisma.branch.create({
-    data: {
-      organizationId,
-      name: parsed.data.name,
-      code,
-      adresse: parsed.data.adresse?.trim() || null,
-      tel: parsed.data.tel?.trim() || null,
-      ville: parsed.data.ville?.trim() || null,
-      pays: parsed.data.pays?.trim() || null,
-      idnat: parsed.data.idnat?.trim() || null,
-      image: parsed.data.image ?? [],
-      latitude: parsed.data.latitude,
-      longitude: parsed.data.longitude,
-      attendanceRadius: parsed.data.attendanceRadius,
-      typebranch: parsed.data.typebranch,
-    },
-    select: { id: true },
+  const academicYear = getAcademicYearForDate();
+
+  const branch = await prisma.$transaction(async (tx) => {
+    const createdBranch = await tx.branch.create({
+      data: {
+        organizationId,
+        name: parsed.data.name,
+        code,
+        adresse: parsed.data.adresse?.trim() || null,
+        tel: parsed.data.tel?.trim() || null,
+        ville: parsed.data.ville?.trim() || null,
+        pays: parsed.data.pays?.trim() || null,
+        idnat: parsed.data.idnat?.trim() || null,
+        image: parsed.data.image ?? [],
+        latitude: parsed.data.latitude,
+        longitude: parsed.data.longitude,
+        attendanceRadius: parsed.data.attendanceRadius,
+        typebranch: parsed.data.typebranch,
+      },
+      select: { id: true },
+    });
+
+    await tx.schoolYear.create({
+      data: {
+        branchId: createdBranch.id,
+        nameYear: academicYear.nameYear,
+        startYear: academicYear.startYear,
+        endYear: academicYear.endYear,
+        isCurrentYear: true,
+      },
+    });
+
+    return createdBranch;
   });
 
   await ensureAcademicPeriodsForBranch({
