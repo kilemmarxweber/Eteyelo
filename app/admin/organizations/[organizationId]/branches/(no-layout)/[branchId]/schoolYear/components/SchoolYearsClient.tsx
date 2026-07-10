@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { Button } from "@/components/custom/button";
 import {
   Dialog,
@@ -19,7 +20,13 @@ interface Props {
 }
 
 export default function SchoolYearsClient({ branchId }: Props) {
+  const [open, setOpen] = useState(false);
   const { refreshKey, refresh } = useRefresh();
+
+  const handleCreated = () => {
+    refresh();
+    setOpen(false);
+  };
 
   return (
     <Layout>
@@ -31,7 +38,7 @@ export default function SchoolYearsClient({ branchId }: Props) {
         </div>
 
         <div className="p-1">
-          <Dialog>
+          <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
               <Button variant="default">Ajouter</Button>
             </DialogTrigger>
@@ -49,7 +56,7 @@ export default function SchoolYearsClient({ branchId }: Props) {
               <SchoolYearUpForm
                 mode="create"
                 branchId={branchId}
-                onSchoolYearAction={refresh}
+                onCreated={handleCreated}
               />
             </DialogContent>
           </Dialog>

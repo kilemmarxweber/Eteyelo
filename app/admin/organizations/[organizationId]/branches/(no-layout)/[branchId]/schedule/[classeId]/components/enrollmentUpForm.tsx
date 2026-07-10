@@ -16,7 +16,6 @@ import { Button } from "@/components/custom/button";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useTheme } from "next-themes";
-import { DialogClose } from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
@@ -62,6 +61,9 @@ export const enrollmentSchema = z.object({
 
 interface TeacherUpFormProps extends HTMLAttributes<HTMLDivElement> {
   onTeacherCreated?: () => void;
+  onSuccess?: () => void;
+  onCreated?: () => void;
+  onUpdated?: () => void;
   initialData?: z.infer<typeof enrollmentSchema>;
   onTeacherUpdate?: () => void;
   organizationId: string;
@@ -71,6 +73,9 @@ interface TeacherUpFormProps extends HTMLAttributes<HTMLDivElement> {
 export function EnrollmentUpForm({
   className,
   onTeacherCreated,
+  onSuccess,
+  onCreated,
+  onUpdated,
   initialData,
   organizationId,
   mode,
@@ -78,7 +83,6 @@ export function EnrollmentUpForm({
 }: TeacherUpFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const [userCreated, setUserCreated] = useState(false);
 
   const form = useForm<z.infer<typeof enrollmentSchema>>({
     resolver: zodResolver(enrollmentSchema),
@@ -128,6 +132,7 @@ export function EnrollmentUpForm({
           throw new Error(res.message);
         }
         toast.success("Enseignant créé avec succès");
+        onCreated?.();
       } else {
         if (!data.memberId) {
           throw new Error("L'identifiant du membre est manquant.");
@@ -149,8 +154,11 @@ export function EnrollmentUpForm({
         }
         toast.success("Enseignant mis à jour avec succès");
       }
-      setUserCreated(true);
-      onTeacherCreated && onTeacherCreated(); // Appeler la fonction de rafraîchissement
+      if (mode === "update") {
+        onUpdated?.();
+      }
+      onSuccess?.();
+      onTeacherCreated?.();
     } catch (error: any) {
       setErrorMessage(error.message);
       toast.error(
@@ -352,7 +360,6 @@ export function EnrollmentUpForm({
                 ? "Enregistrer l'enseignant"
                 : "Mettre à jour l'enseignant"}
             </Button>
-            {userCreated && <DialogClose />}
             {errorMessage && (
               <p className="mt-2 text-center text-red-500">{errorMessage}</p>
             )}

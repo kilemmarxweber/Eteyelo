@@ -15,7 +15,6 @@ import { Button } from "@/components/custom/button";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useTheme } from "next-themes";
-import { DialogClose } from "@/components/ui/dialog";
 import { IconSelector, IconCheck } from "@tabler/icons-react";
 
 import {
@@ -44,6 +43,9 @@ import { useSession } from "@/lib/auth-client";
 
 interface EnrollmentUpFormProps extends HTMLAttributes<HTMLDivElement> {
   onEnrollmentAction?: () => void;
+  onSuccess?: () => void;
+  onCreated?: () => void;
+  onUpdated?: () => void;
   initialData?: z.infer<typeof classEnrollmentSchema>;
   classeId?: string;
   mode: "create" | "update";
@@ -52,6 +54,9 @@ interface EnrollmentUpFormProps extends HTMLAttributes<HTMLDivElement> {
 export function EnrollmentUpForm({
   className,
   onEnrollmentAction,
+  onSuccess,
+  onCreated,
+  onUpdated,
   initialData,
   mode,
   classeId,
@@ -59,7 +64,6 @@ export function EnrollmentUpForm({
 }: EnrollmentUpFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const [ClasseCreated, setClasseCreated] = useState(false);
   const [Students, setStudents] = useState<IStudent[]>([]);
   const [SchoolYears, setSchoolYears] = useState<ISchoolYear[]>([]);
   const { data: session } = useSession();
@@ -129,6 +133,7 @@ export function EnrollmentUpForm({
           studentId: "",
           classeId,
         });
+        onCreated?.();
       } else {
         const [classEnrollment, err] = await updateClassEnrollmentAction({
           ...data,
@@ -139,10 +144,14 @@ export function EnrollmentUpForm({
         toast.success("Classe mis à jour avec succès");
       }
 
-      setClasseCreated(true);
-      onEnrollmentAction && onEnrollmentAction(); // Appeler la fonction de rafraîchissement
-    } catch (error) {
+      if (mode === "update") {
+        onUpdated?.();
+      }
+      onSuccess?.();
+      onEnrollmentAction?.();
+    } catch (error: any) {
       console.log(error);
+      setErrorMessage(error.message ?? "");
       toast.error(
         mode === "create"
           ? "Échec de la création de la classEnrollment"
@@ -291,7 +300,6 @@ export function EnrollmentUpForm({
                 ? "Enregistrer la classEnrollment"
                 : "Mettre à jour de la classEnrollment"}
             </Button>
-            {ClasseCreated && <DialogClose />}
             {errorMessage && (
               <p className="mt-2 text-center text-red-500">{errorMessage}</p>
             )}

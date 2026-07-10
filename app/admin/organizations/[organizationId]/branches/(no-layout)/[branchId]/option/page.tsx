@@ -1,4 +1,5 @@
 "use client";
+import { useState } from "react";
 import { Button } from "@/components/custom/button";
 import {
   Dialog,
@@ -14,10 +15,12 @@ import OptionList from "./components/OptionsTable";
 import { useRefresh } from "@/src/hooks/RefreshContext";
 
 export default function Options() {
+  const [open, setOpen] = useState(false);
   const { refreshKey, refresh } = useRefresh(); // État pour gérer le rafraîchissement
   // Fonction de rappel pour rafraîchir la liste
   const handleOptionAction = () => {
     refresh();
+    setOpen(false);
   };
 
   return (
@@ -31,7 +34,7 @@ export default function Options() {
         <div className="p-1">
           <div className=" ">
             <div>
-              <Dialog>
+              <Dialog open={open} onOpenChange={setOpen}>
                 {/* Bouton pour ouvrir le formulaire */}
                 <DialogTrigger asChild>
                   <Button variant="default">Créer</Button>
@@ -49,7 +52,7 @@ export default function Options() {
                     {/* Formulaire de création de option */}
                     <OptionUpForm
                       mode="create"
-                      onOptionAction={handleOptionAction}
+                      onCreated={handleOptionAction}
                     />
                   </div>
                   <div className="grid gap-4 py-4">

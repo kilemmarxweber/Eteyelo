@@ -1,4 +1,5 @@
 "use client";
+import { useState } from "react";
 import { Button } from "@/components/custom/button";
 import {
   Dialog,
@@ -20,12 +21,14 @@ import { useSession } from "@/lib/auth-client";
 import { canManageOrganization } from "@/lib/auth/session-roles";
 
 export default function Cours() {
+  const [open, setOpen] = useState(false);
   const { refreshKey, refresh } = useRefresh(); // État pour gérer le rafraîchissement
   const { data: session } = useSession();
   const canCreate = canManageOrganization(session);
   // Fonction de rappel pour rafraîchir la liste
   const handleCoursAction = () => {
     refresh();
+    setOpen(false);
   };
 
   return (
@@ -40,7 +43,7 @@ export default function Cours() {
             </Badge>
           }
           actions={
-            <Dialog>
+            <Dialog open={open} onOpenChange={setOpen}>
               {/* Bouton pour ouvrir le formulaire */}
               {canCreate && (
                 <DialogTrigger asChild>
@@ -60,7 +63,7 @@ export default function Cours() {
                   {/* Formulaire de création de cours */}
                   <CoursUpForm
                     mode="create"
-                    onCoursAction={handleCoursAction}
+                    onCreated={handleCoursAction}
                   />
                 </div>
                 <div className="grid gap-4 py-4">

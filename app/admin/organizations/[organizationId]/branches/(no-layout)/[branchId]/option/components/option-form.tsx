@@ -16,7 +16,6 @@ import { Button } from "@/components/custom/button";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useTheme } from "next-themes";
-import { DialogClose } from "@/components/ui/dialog";
 import { IconSelector, IconCheck } from "@tabler/icons-react";
 import { createOptionAction, updateOptionAction } from "../option.action";
 import {
@@ -38,6 +37,9 @@ import { ISection } from "@/src/interfaces/Section";
 
 interface OptionUpFormProps extends HTMLAttributes<HTMLDivElement> {
   onOptionAction?: () => void;
+  onSuccess?: () => void;
+  onCreated?: () => void;
+  onUpdated?: () => void;
   initialData?: z.infer<typeof optionSchema>;
   mode: "create" | "update";
 }
@@ -45,13 +47,15 @@ interface OptionUpFormProps extends HTMLAttributes<HTMLDivElement> {
 export function OptionUpForm({
   className,
   onOptionAction,
+  onSuccess,
+  onCreated,
+  onUpdated,
   initialData,
   mode,
   ...props
 }: OptionUpFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const [OptionCreated, setOptionCreated] = useState(false);
   const [Sections, setSections] = useState<ISection[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -102,14 +106,22 @@ export function OptionUpForm({
         toast.success("Option mise à jour avec succès");
       }
 
-      setOptionCreated(true);
-      onOptionAction && onOptionAction();
-    } catch (error) {
+      if (mode === "create") {
+        form.reset({ nameOption: "", sectionId: "" });
+        setSearchTerm("");
+        onCreated?.();
+      } else {
+        onUpdated?.();
+      }
+      onSuccess?.();
+      onOptionAction?.();
+    } catch (error: any) {
       console.log(error);
+      setErrorMessage(error.message ?? "");
       toast.error(
         mode === "create"
-          ? "Échec de la création de l'option"
-          : "Échec de la mise à jour de l'option"
+          ? error.message || "Échec de la création de l'option"
+          : error.message || "Échec de la mise à jour de l'option"
       );
     } finally {
       setIsLoading(false);
@@ -210,7 +222,6 @@ export function OptionUpForm({
                 ? "Enregistrer l'option"
                 : "Mettre à jour l'option"}
             </Button>
-            {OptionCreated && <DialogClose />}
             {errorMessage && (
               <p className="mt-2 text-center text-red-500">{errorMessage}</p>
             )}

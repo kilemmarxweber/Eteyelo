@@ -11,7 +11,6 @@ import {
 } from "@/components/ui/dialog";
 import { SchoolYearUpForm } from "./SchoolYear-form"; // Importez votre formulaire d'éditionimport { ISchoolYear } from"@/src/interfaces/SchoolYear";
 import { ISchoolYear } from "@/src/interfaces/SchoolYear";
-import { useRefresh } from "@/src/hooks/RefreshContext";
 
 interface UpdateSchoolYearDialogProps extends React.ComponentPropsWithoutRef<
   typeof Dialog
@@ -29,17 +28,12 @@ export function UpdateSchoolYearDialog({
   branchId,
   ...props
 }: UpdateSchoolYearDialogProps) {
-  const [open, setOpen] = React.useState(false);
-
-  const { refresh } = useRefresh();
   const handleUpdate = () => {
-    setTimeout(() => {
-      refresh(); // Rafraîchir le composant SchoolYearList
-    }, 1000);
+    onSuccess?.();
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen} {...props}>
+    <Dialog {...props}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Éditer l'année scolaire</DialogTitle>
@@ -51,7 +45,7 @@ export function UpdateSchoolYearDialog({
         <SchoolYearUpForm
           mode="update"
           initialData={schoolYear} // Pass the schoolYear data for editing
-          onSchoolYearAction={handleUpdate}
+          onUpdated={handleUpdate}
           branchId={branchId}
         />
       </DialogContent>

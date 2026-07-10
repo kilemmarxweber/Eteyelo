@@ -35,6 +35,9 @@ import generateUsername from "@/src/hooks/generateUsername";
 
 interface ParentUpFormProps extends HTMLAttributes<HTMLDivElement> {
   onParentCreated?: () => void;
+  onSuccess?: () => void;
+  onCreated?: () => void;
+  onUpdated?: () => void;
   initialData?: z.input<typeof parentSchema>;
   mode: "create" | "update";
 }
@@ -42,6 +45,9 @@ interface ParentUpFormProps extends HTMLAttributes<HTMLDivElement> {
 export function ParentUpForm({
   className,
   onParentCreated,
+  onSuccess,
+  onCreated,
+  onUpdated,
   initialData,
   mode,
   ...props
@@ -111,6 +117,22 @@ export function ParentUpForm({
         }
 
         toast.success("Parent créé avec succès");
+        form.reset({
+          username: "",
+          name: "",
+          prenom: "",
+          postnom: "",
+          sexe: "",
+          telephone: "",
+          email: "",
+          address: "",
+          discount: {
+            scope: "PARENT",
+            percentage: 0,
+            minChildren: 0,
+          },
+        });
+        onCreated?.();
         onParentCreated?.();
       } else {
         const [, err] = await updateParentAction({
@@ -120,8 +142,10 @@ export function ParentUpForm({
         if (err) throw new Error(err.message);
 
         toast.success("Parent mis à jour avec succès");
+        onUpdated?.();
       }
 
+      onSuccess?.();
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Une erreur est survenue";

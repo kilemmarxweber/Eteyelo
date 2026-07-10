@@ -16,7 +16,6 @@ import { Button } from "@/components/custom/button";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useTheme } from "next-themes";
-import { DialogClose } from "@/components/ui/dialog";
 import { createCreneauAction, updateCreneauAction } from "../creneau.action";
 import { getSectionsAction } from "../../section/section.action";
 import { creneauSchema } from "@/src/interfaces/creneau";
@@ -37,6 +36,9 @@ const formatDateToTimeString = (date: Date): string => {
 
 interface CreneauUpFormProps extends HTMLAttributes<HTMLDivElement> {
   onCreneauAction?: () => void;
+  onSuccess?: () => void;
+  onCreated?: () => void;
+  onUpdated?: () => void;
   initialData?: z.infer<typeof creneauSchema>;
   mode: "create" | "update";
 }
@@ -44,13 +46,15 @@ interface CreneauUpFormProps extends HTMLAttributes<HTMLDivElement> {
 export function CreneauUpForm({
   className,
   onCreneauAction,
+  onSuccess,
+  onCreated,
+  onUpdated,
   initialData,
   mode,
   ...props
 }: CreneauUpFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const [CreneauCreated, setCreneauCreated] = useState(false);
   const [Sections, setSections] = useState<ISection[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -101,14 +105,28 @@ export function CreneauUpForm({
         toast.success("Vacation mise à jour avec succès");
       }
 
-      setCreneauCreated(true);
-      onCreneauAction && onCreneauAction();
-    } catch (error) {
+      if (mode === "create") {
+        form.reset({
+          nameCreneau: "",
+          startTime: "",
+          endTime: "",
+          durationCourse: undefined,
+          recreationHour: "",
+          recreationDuration: undefined,
+        });
+        onCreated?.();
+      } else {
+        onUpdated?.();
+      }
+      onSuccess?.();
+      onCreneauAction?.();
+    } catch (error: any) {
       console.log(error);
+      setErrorMessage(error.message ?? "");
       toast.error(
         mode === "create"
-          ? "Échec de la création de le creneau"
-          : "Échec de la mise à jour de le creneau",
+          ? error.message || "Échec de la création de le creneau"
+          : error.message || "Échec de la mise à jour de le creneau",
       );
     } finally {
       setIsLoading(false);
@@ -237,7 +255,6 @@ export function CreneauUpForm({
                 ? "Enregistrer la vacation"
                 : "Mettre à jour la vacation"}
             </Button>
-            {CreneauCreated && <DialogClose />}
             {errorMessage && (
               <p className="mt-2 text-center text-red-500">{errorMessage}</p>
             )}

@@ -16,13 +16,15 @@ import { Button } from "@/components/custom/button";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useTheme } from "next-themes";
-import { DialogClose } from "@/components/ui/dialog";
 import { createCoursAction, updateCoursAction } from "../cours.action";
 import { coursSchema } from "@/src/interfaces/Cours";
 import { Textarea } from "@/components/ui/textarea";
 
 interface CoursUpFormProps extends HTMLAttributes<HTMLDivElement> {
   onCoursAction?: () => void;
+  onSuccess?: () => void;
+  onCreated?: () => void;
+  onUpdated?: () => void;
   initialData?: z.infer<typeof coursSchema>;
   mode: "create" | "update";
 }
@@ -30,13 +32,15 @@ interface CoursUpFormProps extends HTMLAttributes<HTMLDivElement> {
 export function CoursUpForm({
   className,
   onCoursAction,
+  onSuccess,
+  onCreated,
+  onUpdated,
   initialData,
   mode,
   ...props
 }: CoursUpFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const [CoursCreated, setCoursCreated] = useState(false);
 
   const form = useForm<z.infer<typeof coursSchema>>({
     resolver: zodResolver(coursSchema),
@@ -70,10 +74,17 @@ export function CoursUpForm({
         toast.success("Cours mis à jour avec succès");
       }
 
-      setCoursCreated(true);
-      onCoursAction && onCoursAction(); // Appeler la fonction de rafraîchissement
+      if (mode === "create") {
+        form.reset({ nameCours: "", codeCours: "", description: "" });
+        onCreated?.();
+      } else {
+        onUpdated?.();
+      }
+      onSuccess?.();
+      onCoursAction?.();
     } catch (error: any) {
       console.log(error);
+      setErrorMessage(error.message ?? "");
       toast.error(
         mode === "create"
           ? error.message || "Échec de la création de la cours"
@@ -129,7 +140,6 @@ export function CoursUpForm({
                 ? "Enregistrer la cours"
                 : "Mettre à jour de la cours"}
             </Button>
-            {CoursCreated && <DialogClose />}
             {errorMessage && (
               <p className="mt-2 text-center text-red-500">{errorMessage}</p>
             )}

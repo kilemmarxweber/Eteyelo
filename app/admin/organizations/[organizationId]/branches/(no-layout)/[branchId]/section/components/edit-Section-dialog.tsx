@@ -11,7 +11,6 @@ import {
 } from "@/components/ui/dialog";
 import { SectionUpForm } from "./section-form"; // Importez votre formulaire d'éditionimport { ISection } from"@/src/interfaces/Section";
 import { ISection } from "@/src/interfaces/Section";
-import { useRefresh } from "@/src/hooks/RefreshContext";
 
 interface UpdateSectionDialogProps extends React.ComponentPropsWithoutRef<
   typeof Dialog
@@ -27,17 +26,12 @@ export function UpdateSectionDialog({
   section,
   ...props
 }: UpdateSectionDialogProps) {
-  const [open, setOpen] = React.useState(false);
-
-  const { refresh } = useRefresh();
   const handleUpdate = () => {
-    setTimeout(() => {
-      refresh(); // Rafraîchir le composant SectionList
-    }, 1000);
+    onSuccess?.();
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen} {...props}>
+    <Dialog {...props}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Éditer l'élève</DialogTitle>
@@ -54,7 +48,7 @@ export function UpdateSectionDialog({
             nameSection: section.nameSection,
             statusSection: section.statusSection,
           }} // Pass the section data for editing
-          onSectionAction={handleUpdate}
+          onUpdated={handleUpdate}
         />
       </DialogContent>
     </Dialog>

@@ -18,7 +18,6 @@ import {
 } from "@/components/ui/dialog";
 import { ISchoolYear } from "@/src/interfaces/SchoolYear";
 import { deleteSchoolYearAction } from "../schoolYear.action";
-import { useRefresh } from "@/src/hooks/RefreshContext";
 
 interface DeleteSchoolYearsDialogProps extends React.ComponentPropsWithoutRef<
   typeof Dialog
@@ -36,7 +35,6 @@ export function DeleteSchoolYearsDialog({
 }: DeleteSchoolYearsDialogProps) {
   const [isDeletePending, startDeleteTransition] = React.useTransition();
 
-  const { refresh } = useRefresh();
   const handleDelete = async () => {
     startDeleteTransition(async () => {
       for (const schoolYear of SchoolYears) {
@@ -51,10 +49,6 @@ export function DeleteSchoolYearsDialog({
 
       onSuccess?.();
       window.dispatchEvent(new Event("school-year-refresh"));
-      setTimeout(() => {
-        console.log("Component refreshed");
-        refresh();
-      }, 1000);
     });
   };
 
@@ -87,8 +81,6 @@ export function DeleteSchoolYearsDialog({
             variant="destructive"
             onClick={() => {
               props.onOpenChange?.(false);
-              toast.success("SchoolYears deleted");
-              onSuccess?.();
               handleDelete();
             }}
             disabled={isDeletePending}

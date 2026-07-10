@@ -179,7 +179,7 @@ export default function Students() {
 
                   <StudentUpForm
                     mode="create"
-                    onStudentCreate={() => {
+                    onCreated={() => {
                       handleUserAction();
                       setOpen(false);
                     }}

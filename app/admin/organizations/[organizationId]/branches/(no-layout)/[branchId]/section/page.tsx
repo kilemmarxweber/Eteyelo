@@ -1,4 +1,5 @@
 "use client";
+import { useState } from "react";
 import { Button } from "@/components/custom/button";
 import {
   Dialog,
@@ -14,10 +15,12 @@ import SectionList from "./components/SectionsTable";
 import { useRefresh } from "@/src/hooks/RefreshContext";
 
 export default function Sections() {
+  const [open, setOpen] = useState(false);
   const { refreshKey, refresh } = useRefresh(); // État pour gérer le rafraîchissement
   // Fonction de rappel pour rafraîchir la liste
   const handleSectionAction = () => {
     refresh();
+    setOpen(false);
   };
 
   return (
@@ -31,7 +34,7 @@ export default function Sections() {
         <div className="p-1 ">
           <div className=" ">
             <div>
-              <Dialog>
+              <Dialog open={open} onOpenChange={setOpen}>
                 {/* Bouton pour ouvrir le formulaire */}
                 <DialogTrigger asChild>
                   <Button variant="default">Créer</Button>
@@ -49,7 +52,7 @@ export default function Sections() {
                     {/* Formulaire de création de section */}
                     <SectionUpForm
                       mode="create"
-                      onSectionAction={handleSectionAction}
+                      onCreated={handleSectionAction}
                     />
                   </div>
                 </DialogContent>

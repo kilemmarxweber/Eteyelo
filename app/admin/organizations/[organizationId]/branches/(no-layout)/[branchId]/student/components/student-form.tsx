@@ -15,7 +15,6 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/custom/button";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import { DialogClose } from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
@@ -53,6 +52,9 @@ interface StudentUpFormProps extends HTMLAttributes<HTMLDivElement> {
   onStudentUpdate?: () => void;
   initialData?: StudentInitialData;
   onStudentCreate?: () => void;
+  onSuccess?: () => void;
+  onCreated?: () => void;
+  onUpdated?: () => void;
   mode: "create" | "update";
 }
 //export type StudentCategory = "NORMAL" | "ORPHAN" | "VIP";
@@ -70,13 +72,15 @@ export function StudentUpForm({
   className,
   onStudentCreate,
   onStudentUpdate,
+  onSuccess,
+  onCreated,
+  onUpdated,
   initialData,
   mode,
   ...props
 }: StudentUpFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const [userCreated, setUserCreated] = useState(false);
   const [Parents, setParents] = useState<IParent[]>([]);
   const sexeToUi: Record<string, "masculin" | "feminin"> = {
     M: "masculin",
@@ -141,7 +145,21 @@ export function StudentUpForm({
         if (!result?.ok) throw new Error(result?.message);
 
         toast.success("Élève créé avec succès");
-        onStudentCreate && onStudentCreate(); // ✅ ici seulement
+        form.reset({
+          username: "",
+          name: "",
+          prenom: "",
+          postnom: "",
+          sexe: "",
+          dateOfBirth: new Date(),
+          parentId: "",
+          address: "",
+          category: StudentCategory.NORMAL,
+          telephone: "+243000000000",
+          email: "",
+        });
+        onCreated?.();
+        onStudentCreate?.();
       } else {
         const [result, err] = await updateStudentAction({
           ...data,
@@ -150,10 +168,11 @@ export function StudentUpForm({
         if (!result?.ok) throw new Error(result?.message);
 
         toast.success("Élève mis à jour avec succès");
-        onStudentUpdate && onStudentUpdate(); // ✅ ici seulement
+        onUpdated?.();
+        onStudentUpdate?.();
       }
 
-      setUserCreated(true);
+      onSuccess?.();
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Une erreur est survenue";
@@ -486,7 +505,6 @@ export function StudentUpForm({
                 ? "Enregistrer l'utilisateur"
                 : "Mettre à jour l'utilisateur"}
             </Button>
-            {userCreated && <DialogClose />}
             {errorMessage && (
               <p className="mt-2 text-center text-red-500">{errorMessage}</p>
             )}

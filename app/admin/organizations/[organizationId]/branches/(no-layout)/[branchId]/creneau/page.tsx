@@ -1,4 +1,5 @@
 "use client";
+import { useState } from "react";
 import { Button } from "@/components/custom/button";
 import {
   Dialog,
@@ -15,10 +16,12 @@ import { useRefresh } from "@/src/hooks/RefreshContext";
 import { Card } from "@/components/ui/card";
 
 export default function Creneaus() {
+  const [open, setOpen] = useState(false);
   const { refreshKey, refresh } = useRefresh(); // État pour gérer le rafraîchissement
   // Fonction de rappel pour rafraîchir la liste
   const handleCreneauAction = () => {
     refresh();
+    setOpen(false);
   };
 
   return (
@@ -32,7 +35,7 @@ export default function Creneaus() {
         <div className="p-1">
           <div className=" ">
             <div>
-              <Dialog>
+              <Dialog open={open} onOpenChange={setOpen}>
                 {/* Bouton pour ouvrir le formulaire */}
                 <DialogTrigger asChild>
                   <Button variant="default">Ajouter</Button>
@@ -50,7 +53,7 @@ export default function Creneaus() {
                     {/* Formulaire de création de creneau */}
                     <CreneauUpForm
                       mode="create"
-                      onCreneauAction={handleCreneauAction}
+                      onCreated={handleCreneauAction}
                     />
                   </div>
                   <div className="grid gap-4 py-4">

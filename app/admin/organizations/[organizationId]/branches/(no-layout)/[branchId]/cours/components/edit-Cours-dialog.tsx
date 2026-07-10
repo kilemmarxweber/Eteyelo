@@ -11,7 +11,6 @@ import {
 } from "@/components/ui/dialog";
 import { CoursUpForm } from "./cours-form"; // Importez votre formulaire d'éditionimport { ICours } from"@/src/interfaces/Cours";
 import { ICours } from "@/src/interfaces/Cours";
-import { useRefresh } from "@/src/hooks/RefreshContext";
 
 interface UpdateCoursDialogProps extends React.ComponentPropsWithoutRef<
   typeof Dialog
@@ -27,17 +26,12 @@ export function UpdateCoursDialog({
   cours,
   ...props
 }: UpdateCoursDialogProps) {
-  const [open, setOpen] = React.useState(false);
-
-  const { refresh } = useRefresh();
   const handleUpdate = () => {
-    setTimeout(() => {
-      refresh(); // Rafraîchir le composant CoursList
-    }, 1000);
+    onSuccess?.();
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen} {...props}>
+    <Dialog {...props}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Éditer l'élève</DialogTitle>
@@ -54,7 +48,7 @@ export function UpdateCoursDialog({
             nameCours: cours.nameCours,
             description: cours.description,
           }} // Pass the cours data for editing
-          onCoursAction={handleUpdate}
+          onUpdated={handleUpdate}
         />
       </DialogContent>
     </Dialog>

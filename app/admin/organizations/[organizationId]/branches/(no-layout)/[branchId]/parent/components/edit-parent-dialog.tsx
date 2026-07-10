@@ -11,7 +11,6 @@ import {
 } from "@/components/ui/dialog";
 import { ParentUpForm } from "./parent-form"; // Importez votre formulaire d'éditionimport { IParent } from"@/src/interfaces/Parent";
 import { IParent } from "@/src/interfaces/Parent";
-import { useRefresh } from "@/src/hooks/RefreshContext";
 
 interface UpdateParentDialogProps extends React.ComponentPropsWithoutRef<
   typeof Dialog
@@ -27,18 +26,12 @@ export function UpdateParentDialog({
   parent,
   ...props
 }: UpdateParentDialogProps) {
-  const [open, setOpen] = React.useState(false);
-  const { refresh } = useRefresh();
-
   const handleUpdate = () => {
-    setTimeout(() => {
-      console.log("Delayed for 1 second.");
-      refresh(); // Rafraîchir le composant UserList
-    }, 1000);
+    onSuccess?.();
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen} {...props}>
+    <Dialog {...props}>
       <DialogContent className="max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Éditer l'parent</DialogTitle>
@@ -66,7 +59,7 @@ export function UpdateParentDialog({
               minChildren: parent.discount?.minChildren ?? 0,
             },
           }}
-          onParentCreated={handleUpdate}
+          onUpdated={handleUpdate}
         />
       </DialogContent>
     </Dialog>

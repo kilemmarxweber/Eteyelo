@@ -16,7 +16,6 @@ import { Button } from "@/components/custom/button";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useTheme } from "next-themes";
-import { DialogClose } from "@/components/ui/dialog";
 import { IconSelector, IconCheck } from "@tabler/icons-react";
 import { createClasseAction, updateClasseAction } from "../classe.action";
 import {
@@ -40,6 +39,9 @@ import { getOptionsAction } from "../../option/option.action";
 
 interface ClasseUpFormProps extends HTMLAttributes<HTMLDivElement> {
   onClasseAction?: () => void;
+  onSuccess?: () => void;
+  onCreated?: () => void;
+  onUpdated?: () => void;
   initialData?: z.infer<typeof classeSchema>;
   mode: "create" | "update";
 }
@@ -47,13 +49,15 @@ interface ClasseUpFormProps extends HTMLAttributes<HTMLDivElement> {
 export function ClasseUpForm({
   className,
   onClasseAction,
+  onSuccess,
+  onCreated,
+  onUpdated,
   initialData,
   mode,
   ...props
 }: ClasseUpFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const [ClasseCreated, setClasseCreated] = useState(false);
   const [Options, setOptions] = useState<IOption[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [creneaux, setCreneaux] = useState<ICreneau[]>([]);
@@ -103,8 +107,13 @@ export function ClasseUpForm({
           throw new Error(err.message);
         }
         toast.success("Classe créée avec succès");
-        form.reset();
-        onClasseAction?.();
+        form.reset({
+          nameClasse: "",
+          codeClasse: "",
+          creneauId: "",
+          optionId: "",
+        });
+        onCreated?.();
       } else {
         const [classe, err] = await updateClasseAction({
           ...data,
@@ -113,16 +122,17 @@ export function ClasseUpForm({
           throw new Error(err.message);
         }
         toast.success("Classe mis à jour avec succès");
-        form.reset();
-        onClasseAction?.();
+        onUpdated?.();
       }
-      setClasseCreated(true);
-    } catch (error) {
+      onSuccess?.();
+      onClasseAction?.();
+    } catch (error: any) {
       console.log(error);
+      setErrorMessage(error.message ?? "");
       toast.error(
         mode === "create"
-          ? "Échec de la création de la classe"
-          : "Échec de la mise à jour de la classe",
+          ? error.message || "Échec de la création de la classe"
+          : error.message || "Échec de la mise à jour de la classe",
       );
     } finally {
       setIsLoading(false);
@@ -291,7 +301,6 @@ export function ClasseUpForm({
                 ? "Enregistrer la classe"
                 : "Mettre à jour de la classe"}
             </Button>
-            {ClasseCreated}
             {errorMessage && (
               <p className="mt-2 text-center text-red-500">{errorMessage}</p>
             )}

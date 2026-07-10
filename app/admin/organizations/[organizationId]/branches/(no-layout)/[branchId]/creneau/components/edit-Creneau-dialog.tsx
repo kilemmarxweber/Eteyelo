@@ -11,7 +11,6 @@ import {
 } from "@/components/ui/dialog";
 import { CreneauUpForm } from "./creneau-form"; // Importez votre formulaire d'éditionimport { ICreneau } from"@/src/interfaces/Creneau";
 import { ICreneau } from "@/src/interfaces/creneau";
-import { useRefresh } from "@/src/hooks/RefreshContext";
 
 interface UpdateCreneauDialogProps extends React.ComponentPropsWithoutRef<
   typeof Dialog
@@ -27,17 +26,12 @@ export function UpdateCreneauDialog({
   creneau,
   ...props
 }: UpdateCreneauDialogProps) {
-  const [open, setOpen] = React.useState(false);
-
-  const { refresh } = useRefresh();
   const handleUpdate = () => {
-    setTimeout(() => {
-      refresh(); // Rafraîchir le composant CreneauList
-    }, 1000);
+    onSuccess?.();
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen} {...props}>
+    <Dialog {...props}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Éditer la vacation</DialogTitle>
@@ -48,7 +42,7 @@ export function UpdateCreneauDialog({
         <CreneauUpForm
           mode="update"
           initialData={creneau} // Pass the creneau data for editing
-          onCreneauAction={handleUpdate}
+          onUpdated={handleUpdate}
         />
       </DialogContent>
     </Dialog>

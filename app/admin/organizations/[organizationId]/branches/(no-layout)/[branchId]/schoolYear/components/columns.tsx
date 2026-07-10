@@ -108,6 +108,10 @@ export const columns: ColumnDef<ISchoolYear>[] = [
             onOpenChange={setShowUpdateTaskSheet}
             schoolYear={row.original} 
             branchId={row.original.branchId}// Passerlesdonnéesactuellesdel'élèveonSuccess={() => row.toggleSelected(false)}
+            onSuccess={() => {
+              row.toggleSelected(false);
+              setShowUpdateTaskSheet(false);
+            }}
           />
 
           <DeleteSchoolYearsDialog
@@ -115,7 +119,10 @@ export const columns: ColumnDef<ISchoolYear>[] = [
             onOpenChange={setShowDeleteTaskDialog}
             SchoolYears={[row.original]}
             showTrigger={false}
-            onSuccess={() => row.toggleSelected(false)}
+            onSuccess={() => {
+              row.toggleSelected(false);
+              setShowDeleteTaskDialog(false);
+            }}
           />
 
           <DropdownMenu>

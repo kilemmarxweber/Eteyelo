@@ -15,7 +15,6 @@ import { Button } from "@/components/custom/button";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useTheme } from "next-themes";
-import { DialogClose } from "@/components/ui/dialog";
 import { IconSelector, IconCheck } from "@tabler/icons-react";
 
 import { createTeachingAction, updateTeachingAction } from "../teaching.action";
@@ -43,6 +42,9 @@ import { useSession } from "@/lib/auth-client";
 
 interface EnrollmentUpFormProps extends HTMLAttributes<HTMLDivElement> {
   onEnrollmentAction?: () => void;
+  onSuccess?: () => void;
+  onCreated?: () => void;
+  onUpdated?: () => void;
   initialData?: z.infer<typeof teachingSchema>;
   classeId?: string;
   mode: "create" | "update";
@@ -51,6 +53,9 @@ interface EnrollmentUpFormProps extends HTMLAttributes<HTMLDivElement> {
 export function EnrollmentUpForm({
   className,
   onEnrollmentAction,
+  onSuccess,
+  onCreated,
+  onUpdated,
   initialData,
   mode,
   classeId,
@@ -58,7 +63,6 @@ export function EnrollmentUpForm({
 }: EnrollmentUpFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const [ClasseCreated, setClasseCreated] = useState(false);
   const [Teachers, setTeachers] = useState<ITeacher[]>([]);
   const [Cours, setCours] = useState<ICours[]>([]);
   const [SchoolYears, setSchoolYears] = useState<ISchoolYear[]>([]);
@@ -127,10 +131,16 @@ export function EnrollmentUpForm({
         toast.success("Affectation mis à jour avec succès");
       }
 
-      setClasseCreated(true);
-      onEnrollmentAction && onEnrollmentAction(); // Appeler la fonction de rafraîchissement
-    } catch (error) {
+      if (mode === "create") {
+        onCreated?.();
+      } else {
+        onUpdated?.();
+      }
+      onSuccess?.();
+      onEnrollmentAction?.();
+    } catch (error: any) {
       console.log(error);
+      setErrorMessage(error.message ?? "");
       toast.error(
         mode === "create"
           ? "Cet enseignant est déjà assigné à ce cours dans cette classe pour cette année."
@@ -338,7 +348,6 @@ export function EnrollmentUpForm({
                 ? "Enregistrer la teaching"
                 : "Mettre à jour de la teaching"}
             </Button>
-            {ClasseCreated && <DialogClose />}
             {errorMessage && (
               <p className="mt-2 text-center text-red-500">{errorMessage}</p>
             )}

@@ -17,13 +17,15 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/custom/button";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import { DialogClose } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { createTypeFraisAction, updateTypeFraisAction } from "../frais.action";
 import { typeFraisSchema } from "@/src/interfaces/Frais";
 
 interface TypeFraisUpFormProps extends HTMLAttributes<HTMLDivElement> {
   onTypeFraisCreated?: () => void;
+  onSuccess?: () => void;
+  onCreated?: () => void;
+  onUpdated?: () => void;
   initialData?: z.infer<typeof typeFraisSchema>;
   mode: "create" | "update";
 }
@@ -31,13 +33,15 @@ interface TypeFraisUpFormProps extends HTMLAttributes<HTMLDivElement> {
 export function TypeFraisUpForm({
   className,
   onTypeFraisCreated,
+  onSuccess,
+  onCreated,
+  onUpdated,
   initialData,
   mode,
   ...props
 }: TypeFraisUpFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const [typeFraisCreated, setTypeFraisCreated] = useState(false);
 
   const form = useForm<z.infer<typeof typeFraisSchema>>({
     resolver: zodResolver(typeFraisSchema),
@@ -75,6 +79,7 @@ export function TypeFraisUpForm({
           description: "",
           statusType: true,
         });
+        onCreated?.();
       } else {
         const [, err] = await updateTypeFraisAction({
           ...data,
@@ -86,7 +91,10 @@ export function TypeFraisUpForm({
         toast.success("Type de frais mis a jour avec succes");
       }
 
-      setTypeFraisCreated(true);
+      if (mode === "update") {
+        onUpdated?.();
+      }
+      onSuccess?.();
       onTypeFraisCreated?.();
     } catch (error) {
       const message =
@@ -169,7 +177,6 @@ export function TypeFraisUpForm({
                 : "Mettre à jour le type de frais"}
             </Button>
 
-            {typeFraisCreated && <DialogClose />}
             {errorMessage && (
               <p className="mt-2 text-center text-red-500 text-sm">
                 {errorMessage}

@@ -16,12 +16,14 @@ import { Button } from "@/components/custom/button";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useTheme } from "next-themes";
-import { DialogClose } from "@/components/ui/dialog";
 import { createSectionAction, updateSectionAction } from "../section.action";
 import { sectionSchema } from "@/src/interfaces/Section";
 
 interface SectionUpFormProps extends HTMLAttributes<HTMLDivElement> {
   onSectionAction?: () => void;
+  onSuccess?: () => void;
+  onCreated?: () => void;
+  onUpdated?: () => void;
   initialData?: z.infer<typeof sectionSchema>;
   mode: "create" | "update";
 }
@@ -29,13 +31,15 @@ interface SectionUpFormProps extends HTMLAttributes<HTMLDivElement> {
 export function SectionUpForm({
   className,
   onSectionAction,
+  onSuccess,
+  onCreated,
+  onUpdated,
   initialData,
   mode,
   ...props
 }: SectionUpFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const [SectionCreated, setSectionCreated] = useState(false);
 
   const form = useForm<z.infer<typeof sectionSchema>>({
     resolver: zodResolver(sectionSchema),
@@ -71,10 +75,14 @@ export function SectionUpForm({
         form.reset({
           nameSection: "",
         });
+        onCreated?.();
+      } else {
+        onUpdated?.();
       }
-      setSectionCreated(true);
-      onSectionAction && onSectionAction(); // Appeler la fonction de rafraîchissement
+      onSuccess?.();
+      onSectionAction?.();
     } catch (error: any) {
+      setErrorMessage(error.message ?? "");
       toast.error(
         mode === "create"
           ? error.message || "Échec de la création de la section"
@@ -113,7 +121,6 @@ export function SectionUpForm({
                 ? "Enregistrer la section"
                 : "Mettre à jour de la section"}
             </Button>
-            {SectionCreated && <DialogClose />}
             {errorMessage && (
               <p className="mt-2 text-center text-red-500">{errorMessage}</p>
             )}

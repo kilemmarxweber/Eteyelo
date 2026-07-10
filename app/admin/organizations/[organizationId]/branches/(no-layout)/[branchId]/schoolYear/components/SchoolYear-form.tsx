@@ -16,7 +16,6 @@ import { Button } from "@/components/custom/button";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useTheme } from "next-themes";
-import { DialogClose } from "@/components/ui/dialog";
 import {
   createSchoolYearAction,
   updateSchoolYearAction,
@@ -32,6 +31,9 @@ import { IconCalendar } from "@tabler/icons-react";
 
 interface SchoolYearUpFormProps extends HTMLAttributes<HTMLDivElement> {
   onSchoolYearAction?: () => void;
+  onSuccess?: () => void;
+  onCreated?: () => void;
+  onUpdated?: () => void;
   initialData?: z.infer<typeof schoolYearSchema>;
   mode: "create" | "update";
   branchId: string;
@@ -40,6 +42,9 @@ interface SchoolYearUpFormProps extends HTMLAttributes<HTMLDivElement> {
 export function SchoolYearUpForm({
   className,
   onSchoolYearAction,
+  onSuccess,
+  onCreated,
+  onUpdated,
   initialData,
   mode,
   branchId,
@@ -47,7 +52,6 @@ export function SchoolYearUpForm({
 }: SchoolYearUpFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const [SchoolYearCreated, setSchoolYearCreated] = useState(false);
 
   const form = useForm<z.infer<typeof schoolYearSchema>>({
     resolver: zodResolver(schoolYearSchema) as any,
@@ -105,9 +109,12 @@ export function SchoolYearUpForm({
           endYear: new Date(),
           isCurrentYear: false,
         });
+        onCreated?.();
+      } else {
+        onUpdated?.();
       }
       window.dispatchEvent(new Event("school-year-refresh"));
-      setSchoolYearCreated(true);
+      onSuccess?.();
       onSchoolYearAction?.();
     } catch (error: any) {
       setErrorMessage(error.message);
@@ -276,7 +283,6 @@ export function SchoolYearUpForm({
                 ? "Enregistrer la schoolYear"
                 : "Mettre à jour de la schoolYear"}
             </Button>
-            {SchoolYearCreated && <DialogClose />}
             {errorMessage && (
               <p className="mt-2 text-center text-red-500">{errorMessage}</p>
             )}
