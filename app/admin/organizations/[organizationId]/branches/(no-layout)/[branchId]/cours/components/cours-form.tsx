@@ -43,7 +43,6 @@ export function CoursUpForm({
     defaultValues: initialData || {
       nameCours: "",
       codeCours: "",
-      ponderation: 0,
       description: "",
     },
   });
@@ -78,7 +77,7 @@ export function CoursUpForm({
       toast.error(
         mode === "create"
           ? error.message || "Échec de la création de la cours"
-          : "Échec de la mise à jour de la cours"
+          : "Échec de la mise à jour de la cours",
       );
     } finally {
       setIsLoading(false);
@@ -103,37 +102,6 @@ export function CoursUpForm({
                   <FormLabel>Nom du cours</FormLabel>
                   <FormControl>
                     <Input placeholder="Le nom de la cours" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="codeCours"
-              render={({ field }) => (
-                <FormItem className="space-y-1">
-                  <FormLabel>code du cours</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Le code de la cours" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="ponderation"
-              render={({ field }) => (
-                <FormItem className="space-y-1">
-                  <FormLabel>Ponderation</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="Ponderation du cours "
-                      {...field}
-                      type="number"
-                      {...form.register("ponderation", { valueAsNumber: true })}
-                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

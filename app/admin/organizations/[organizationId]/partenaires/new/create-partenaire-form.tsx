@@ -61,9 +61,29 @@ export function CreatePartenaireForm({ organizationId, branches }: Props) {
 
   function onSubmit(values: CreatePartenaireInput) {
     startTransition(async () => {
-      const res = await createPartenaireAction({
-        ...values,
+      const formData = new FormData();
+
+      Object.entries(values).forEach(([key, value]) => {
+        formData.append(key, String(value ?? ""));
       });
+
+      const imageFile = document.querySelector<HTMLInputElement>(
+        'input[name="imageFile"]',
+      )?.files?.[0];
+
+      const logoFile = document.querySelector<HTMLInputElement>(
+        'input[name="logoFile"]',
+      )?.files?.[0];
+
+      const documentFile = document.querySelector<HTMLInputElement>(
+        'input[name="documentFile"]',
+      )?.files?.[0];
+
+      if (imageFile) formData.append("imageFile", imageFile);
+      if (logoFile) formData.append("logoFile", logoFile);
+      if (documentFile) formData.append("documentFile", documentFile);
+
+      const res = await createPartenaireAction(formData);
 
       if (!res.ok) {
         toast.error(res.message);
@@ -173,6 +193,7 @@ export function CreatePartenaireForm({ organizationId, branches }: Props) {
           <div className="flex items-center gap-2 rounded-2xl border bg-white px-3">
             <ImageIcon className="size-4 text-muted-foreground" />
             <input
+              name="imageFile"
               type="file"
               disabled={pending}
               accept="image/png,image/jpeg,image/jpg,image/webp"
@@ -189,6 +210,7 @@ export function CreatePartenaireForm({ organizationId, branches }: Props) {
           <div className="flex items-center gap-2 rounded-2xl border bg-white px-3">
             <ImageIcon className="size-4 text-muted-foreground" />
             <input
+              name="logoFile"
               type="file"
               disabled={pending}
               accept="image/png,image/jpeg,image/jpg,image/webp"
@@ -213,16 +235,6 @@ export function CreatePartenaireForm({ organizationId, branches }: Props) {
               </option>
             ))}
           </select>
-        </label>
-
-        <label className="space-y-2 text-sm font-medium">
-          Slug
-          <input
-            {...form.register("slug")}
-            disabled={pending}
-            placeholder="partenaire-slug"
-            className="h-12 w-full rounded-2xl border bg-white px-4 text-sm outline-none"
-          />
         </label>
 
         <label className="space-y-2 text-sm font-medium">
@@ -291,6 +303,7 @@ export function CreatePartenaireForm({ organizationId, branches }: Props) {
         <label className="space-y-2 text-sm font-medium">
           Document
           <input
+            name="documentFile"
             type="file"
             disabled={pending}
             onChange={(e) => setFileName("documentUrl", e.target.files)}

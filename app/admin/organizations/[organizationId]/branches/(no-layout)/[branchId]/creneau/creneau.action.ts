@@ -1,17 +1,24 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { revalidatePath } from "next/cache";
 import { action } from "@/lib/zsa";
 import { ICreneau, creneauSchema } from "@/src/interfaces/creneau";
 import { z } from "zod";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
+
+function revalidateCreneauPages(organizationId: string, branchId: string) {
+  revalidatePath(`/admin/organizations/${organizationId}/branches/${branchId}/creneau`);
+  revalidatePath(`/admin/organizations/${organizationId}/branches/${branchId}/classe`);
+  revalidatePath(`/admin/organizations/${organizationId}/branches/${branchId}/schedule`);
+}
 
 // ACTION POUR CRÉER UNE NOUVELLE CRENEAU
 export const createCreneauAction = action
   .input(creneauSchema)
   .handler(async ({ input }) => {
     try {
-      const { branchId } = await requireBranchContext();
+      const { branchId, organizationId } = await requireBranchContext();
       const {
         nameCreneau,
         startTime,
@@ -23,6 +30,13 @@ export const createCreneauAction = action
       const [heuresDebut, minutesDebut] = startTime.split(":").map(Number);
       const [heuresFin, minutesFin] = endTime.split(":").map(Number);
       const [RecreHeure, RecreMinutes] = recreationHour.split(":").map(Number);
+      const existingCreneau = await prisma.creneau.findFirst({
+        where: { branchId, nameCreneau },
+        select: { id: true },
+      });
+      if (existingCreneau) {
+        throw new Error("La vacation existe deja dans cette branche");
+      }
 
       // VÉRIFIE SILE CRENEAU EXISTE DÉJÀ
 
@@ -40,6 +54,7 @@ export const createCreneauAction = action
           ),
         },
       });
+      revalidateCreneauPages(organizationId, branchId);
       return creneau;
     } catch (error: any) {
       throw new Error(error.message);
@@ -50,13 +65,21 @@ export const createCreneauAction = action
 export const updateCreneauAction = action
   .input(creneauSchema)
   .handler(async ({ input }) => {
-    const { branchId } = await requireBranchContext();
+    const { branchId, organizationId } = await requireBranchContext();
     const { id, nameCreneau, endTime, startTime, durationCourse } = input;
     const existing = await prisma.creneau.findFirst({
       where: { id, branchId },
       select: { id: true },
     });
     if (!existing) throw new Error("Creneau introuvable dans cette branche");
+
+    const duplicate = await prisma.creneau.findFirst({
+      where: { branchId, nameCreneau, id: { not: id } },
+      select: { id: true },
+    });
+    if (duplicate) {
+      throw new Error("La vacation existe deja dans cette branche");
+    }
 
     const [heuresDebut, minutesDebut] = startTime.split(":").map(Number);
     const [heuresFin, minutesFin] = endTime.split(":").map(Number);
@@ -72,6 +95,7 @@ export const updateCreneauAction = action
         durationCourse,
       },
     });
+    revalidateCreneauPages(organizationId, branchId);
     return updatedCreneau;
   });
 
@@ -79,7 +103,7 @@ export const updateCreneauAction = action
 export const deleteCreneauAction = action
   .input(creneauSchema)
   .handler(async ({ input }) => {
-    const { branchId } = await requireBranchContext();
+    const { branchId, organizationId } = await requireBranchContext();
     const { id, nameCreneau } = input;
 
     // VÉRIFIE SILE CRENEAU EXISTE
@@ -100,6 +124,7 @@ export const deleteCreneauAction = action
         id: id,
       },
     });
+    revalidateCreneauPages(organizationId, branchId);
     return deletedCreneau;
   });
 

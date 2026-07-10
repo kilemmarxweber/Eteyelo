@@ -281,6 +281,7 @@ export type CreneauOrderByWithRelationInput = {
 
 export type CreneauWhereUniqueInput = Prisma.AtLeast<{
   id?: string
+  branchId_nameCreneau?: Prisma.CreneauBranchIdNameCreneauCompoundUniqueInput
   AND?: Prisma.CreneauWhereInput | Prisma.CreneauWhereInput[]
   OR?: Prisma.CreneauWhereInput[]
   NOT?: Prisma.CreneauWhereInput | Prisma.CreneauWhereInput[]
@@ -295,7 +296,7 @@ export type CreneauWhereUniqueInput = Prisma.AtLeast<{
   branchId?: Prisma.StringFilter<"Creneau"> | string
   branch?: Prisma.XOR<Prisma.BranchScalarRelationFilter, Prisma.BranchWhereInput>
   classe?: Prisma.ClasseListRelationFilter
-}, "id">
+}, "id" | "branchId_nameCreneau">
 
 export type CreneauOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
@@ -428,6 +429,11 @@ export type CreneauUncheckedUpdateManyInput = {
 export type CreneauNullableScalarRelationFilter = {
   is?: Prisma.CreneauWhereInput | null
   isNot?: Prisma.CreneauWhereInput | null
+}
+
+export type CreneauBranchIdNameCreneauCompoundUniqueInput = {
+  branchId: string
+  nameCreneau: string
 }
 
 export type CreneauCountOrderByAggregateInput = {

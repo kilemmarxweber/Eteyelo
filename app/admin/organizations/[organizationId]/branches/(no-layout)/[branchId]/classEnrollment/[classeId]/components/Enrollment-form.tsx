@@ -73,6 +73,16 @@ export function EnrollmentUpForm({
     },
   });
 
+  useEffect(() => {
+    form.reset(
+      initialData || {
+        schoolYearId: "",
+        studentId: "",
+        classeId: classeId ?? "",
+      },
+    );
+  }, [classeId, form, initialData]);
+
   //FETCH STUDENT
   useEffect(() => {
     const fecthStudents = async () => {
@@ -96,7 +106,7 @@ export function EnrollmentUpForm({
       setSchoolYears(rawSchoolYears);
     };
     fecthSchoolYears();
-  }, []);
+  }, [branchId]);
   async function onSubmit(data: z.infer<typeof classEnrollmentSchema>) {
     setIsLoading(true);
     setErrorMessage("");
@@ -114,6 +124,11 @@ export function EnrollmentUpForm({
           throw new Error(err.message);
         }
         toast.success("Classe créée avec succès");
+        form.reset({
+          schoolYearId: "",
+          studentId: "",
+          classeId,
+        });
       } else {
         const [classEnrollment, err] = await updateClassEnrollmentAction({
           ...data,

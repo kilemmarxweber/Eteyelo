@@ -32,15 +32,8 @@ import {
   drawMatiere,
   generauxConfig,
 } from "@/lib/types";
+import { getAcademicPeriodOrder } from "@/lib/academic-structure";
 
-const periodOrder: PeriodLabel[] = [
-  "1st Period",
-  "2nd Period",
-  "Exam 1st semester",
-  "3tr Period",
-  "4th Period",
-  "Exam 2nd semester",
-];
 // Convertit un fichier en base64
 const getImageBase64 = (file: File) =>
   new Promise<string>((resolve, reject) => {
@@ -727,15 +720,34 @@ export default function BulletinPDF({
       const selectedPeriod = [...validPeriods]
         .sort(
           (a, b) =>
-            periodOrder.indexOf(a.periodName) -
-            periodOrder.indexOf(b.periodName),
+            getAcademicPeriodOrder(a.periodName) -
+            getAcademicPeriodOrder(b.periodName),
         )
         .at(-1)?.periodName as PeriodLabel;
 
       if (!selectedPeriod) {
         throw new Error("Période invalide ou inconnue");
       }
-      const semesterPeriods: Record<PeriodLabel, string[]> = {
+      const semesterPeriods: Partial<Record<PeriodLabel, string[]>> = {
+        "1ere Periode": ["p1"],
+        "2e Periode": ["p1", "p2"],
+        "Examen 1er semestre": ["p1", "p2", "exam1"],
+        "3e Periode": ["p1", "p2", "exam1", "p3"],
+        "4e Periode": ["p1", "p2", "exam1", "p3", "p4"],
+        "Examen 2e semestre": ["p1", "p2", "exam1", "p3", "p4", "exam2"],
+        "Examen 1er trimestre": ["p1", "p2", "exam1"],
+        "Examen 2e trimestre": ["p1", "p2", "exam1", "p3", "p4", "exam2"],
+        "Examen 3e trimestre": [
+          "p1",
+          "p2",
+          "exam1",
+          "p3",
+          "p4",
+          "exam2",
+          "p5",
+          "p6",
+          "exam3",
+        ],
         "1st Period": ["p1"],
         "2nd Period": ["p1", "p2"],
         "Exam 1st semester": ["p1", "p2", "exam1"],
@@ -766,11 +778,12 @@ export default function BulletinPDF({
 
       for (const subjectName of allSubjects) {
         subjectMap[subjectName] = {
-          name: subjectName,
-          sem1: { p1: 0, p2: 0, exam1: 0 },
-          sem2: { p3: 0, p4: 0, exam2: 0 },
-          baseMaxScore: 0,
-        };
+        name: subjectName,
+        sem1: { p1: 0, p2: 0, exam1: 0 },
+        sem2: { p3: 0, p4: 0, exam2: 0 },
+        sem3: { p5: 0, p6: 0, exam3: 0 },
+        baseMaxScore: 0,
+      };
       }
       student.periods.forEach((period: StudentPeriod) => {
         const periodKey = periodKeyMap[period.periodName as PeriodLabel];
@@ -783,6 +796,7 @@ export default function BulletinPDF({
           const subject = subjectMap[subjectName];
           if (!subject) return;
 
+          subject[semester] = subject[semester] ?? {};
           subject[semester][periodKey] = Number(note.score) || 0;
 
           if (
@@ -1207,11 +1221,15 @@ export default function BulletinPDF({
           // Toujours inclure sem1
           const sem1Keys = ["p1", "p2", "exam1"];
           // Ajouter sem2 selon la période
-          if (selectedPeriod === "3tr Period") {
+          if (selectedPeriod === "3tr Period" || selectedPeriod === "3e Periode") {
             filteredPeriodKeys = [...sem1Keys, "p3"]; // sem1 + p3 seulement
-          } else if (selectedPeriod === "4th Period") {
+          } else if (selectedPeriod === "4th Period" || selectedPeriod === "4e Periode") {
             filteredPeriodKeys = [...sem1Keys, "p3", "p4"];
-          } else if (selectedPeriod === "Exam 2nd semester") {
+          } else if (
+            selectedPeriod === "Exam 2nd semester" ||
+            selectedPeriod === "Examen 2e semestre" ||
+            selectedPeriod === "Examen 2e trimestre"
+          ) {
             filteredPeriodKeys = [...sem1Keys, "p3", "p4", "exam2"]; // sem1 + sem2 complet
           } else {
             // pour les autres périodes, on garde ce qui est dans activePeriodKeys

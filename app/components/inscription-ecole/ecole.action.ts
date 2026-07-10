@@ -2,10 +2,15 @@
 
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { ensureAcademicPeriodsForBranch } from "@/lib/academic-periods";
+import {
+  isManagedBranchType,
+  type ManagedBranchType,
+} from "@/lib/academic-structure";
+import { ensureUniqueIdentifier, generateCode } from "@/lib/generated-identifiers";
 
 type CreateBranchInput = {
   name: string;
-  code?: string;
   image?: string;
   adresse?: string;
   ville?: string;
@@ -16,6 +21,7 @@ type CreateBranchInput = {
   longitude: number;
   attendanceRadius?: number;
   organizationId: string;
+  typebranch: ManagedBranchType;
 };
 
 export async function createBranch(data: CreateBranchInput) {
@@ -26,10 +32,29 @@ export async function createBranch(data: CreateBranchInput) {
     };
   }
 
-  await prisma.branch.create({
+  if (!isManagedBranchType(data.typebranch)) {
+    return {
+      success: false,
+      message: "Le type de branche est obligatoire.",
+    };
+  }
+
+  const code = await ensureUniqueIdentifier({
+    base: generateCode(data.name, "ECOLE"),
+    separator: "",
+    exists: async (value) =>
+      Boolean(
+        await prisma.branch.findFirst({
+          where: { organizationId: data.organizationId, code: value },
+          select: { id: true },
+        }),
+      ),
+  });
+
+  const branch = await prisma.branch.create({
     data: {
       name: data.name,
-      code: data.code || null,
+      code,
       image: data.image || "/uploads/1752330108714.jpeg",
       adresse: data.adresse || null,
       ville: data.ville || null,
@@ -40,7 +65,14 @@ export async function createBranch(data: CreateBranchInput) {
       longitude: data.longitude,
       attendanceRadius: data.attendanceRadius || 100,
       organizationId: data.organizationId,
+      typebranch: data.typebranch,
     },
+    select: { id: true },
+  });
+
+  await ensureAcademicPeriodsForBranch({
+    branchId: branch.id,
+    typebranch: data.typebranch,
   });
 
   revalidatePath("/inscription-ecole");

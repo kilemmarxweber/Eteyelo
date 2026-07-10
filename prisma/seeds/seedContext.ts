@@ -44,6 +44,7 @@ export async function ensureSeedBranch() {
       longitude: 15.322,
       attendanceRadius: 100,
       organizationId: organization.id,
+      typebranch: "SECONDAIRE",
       isActive: true,
     },
   });

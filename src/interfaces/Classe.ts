@@ -14,17 +14,14 @@ export interface IClasse {
   createdAt: Date;
   updatedAt: Date;
 }
+
 export const classeSchema = z.object({
   id: z.string().optional(),
-  codeClasse: z
-    .string({ message: "veuillez entrez le code de la classe" })
-    .min(2, {
-      message: "Le code de la classe doit avoir au moins 5 caractères",
-    }),
+  codeClasse: z.string().trim().optional().or(z.literal("")),
   nameClasse: z
-    .string({ message: "veuillez entrez le nom de la classe" })
+    .string({ message: "veuillez entrer le nom de la classe" })
     .min(5, {
-      message: "Le nom de la classe doit avoir au moins 5 caractères",
+      message: "Le nom de la classe doit avoir au moins 5 caracteres",
     }),
   optionId: z.string().optional(),
   creneauId: z.string().optional(),

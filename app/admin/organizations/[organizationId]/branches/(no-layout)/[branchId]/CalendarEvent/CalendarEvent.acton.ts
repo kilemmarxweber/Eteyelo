@@ -180,7 +180,7 @@ export const getCalendarEvents = action.handler(
                   coursId: event.teaching.coursId || "",
                   codeCours: event.teaching.cours?.codeCours,
                   nameCours: event.teaching.cours?.nameCours || "",
-                  ponderation: event.teaching.cours?.ponderation || 0,
+                  ponderation: 0,
                   description: event.teaching.cours?.description || "",
                 }
               : undefined,

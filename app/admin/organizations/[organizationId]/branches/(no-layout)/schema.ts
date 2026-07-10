@@ -1,5 +1,10 @@
 import { z } from "zod";
 
+const branchTypeSchema = z.enum(["PRIMAIRE", "SECONDAIRE"], {
+  required_error: "Le type de branche est requis.",
+  invalid_type_error: "Le type de branche est invalide.",
+});
+
 const branchImagesSchema = z.object({
   logo: z.string(),
   event: z.array(z.string()),
@@ -40,6 +45,7 @@ export const createBranchFormSchema = z.object({
     .int("Le rayon doit être un nombre entier.")
     .min(10, "Le rayon doit être au moins 10 mètres.")
     .max(10000, "Le rayon est trop grand."),
+  typebranch: branchTypeSchema,
   image: branchImagesSchema.default({
     logo: "",
     event: [],

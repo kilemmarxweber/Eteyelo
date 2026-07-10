@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import {
   Accordion,
   AccordionContent,
@@ -22,6 +22,9 @@ export function OptionSidebar() {
   const [page, setPage] = useState(0);
   const ITEMS_PER_PAGE = 5;
   const router = useRouter();
+  const params = useParams();
+  const organizationId = params?.organizationId as string;
+  const branchId = params?.branchId as string;
 
   useEffect(() => {
     const fetchOptions = async () => {
@@ -42,8 +45,10 @@ export function OptionSidebar() {
     fetchOptions();
   }, []);
 
-  const handleClassClick = (optionSlug: string, classId: string) => {
-    router.push(`/admin/classEnrollment/${classId}`);
+  const handleClassClick = (classId: string) => {
+    router.push(
+      `/admin/organizations/${organizationId}/branches/${branchId}/classEnrollment/${classId}`,
+    );
   };
   const start = page * ITEMS_PER_PAGE;
   const end = start + ITEMS_PER_PAGE;
@@ -96,7 +101,7 @@ export function OptionSidebar() {
               {option.classes?.map((classe) => (
                 <li key={classe.id}>
                   <button
-                    onClick={() => handleClassClick(option.id, classe.id)}
+                    onClick={() => handleClassClick(classe.id)}
                     className="flex items-center px-4 py-2 text-sm hover:bg-muted/50 transition-colors w-full text-left"
                   >
                     <IconBook className="mr-2 h-4 w-4" />

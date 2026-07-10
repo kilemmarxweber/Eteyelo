@@ -32,7 +32,6 @@ export function BranchCreateForm({
 
   const [form, setForm] = useState({
     name: "",
-    code: "",
     image: "",
     adresse: "",
     ville: "",
@@ -42,6 +41,7 @@ export function BranchCreateForm({
     latitude: -4.4419,
     longitude: 15.2663,
     attendanceRadius: 100,
+    typebranch: "SECONDAIRE",
   });
 
   const update = (key: keyof typeof form, value: string | number) => {
@@ -97,6 +97,8 @@ export function BranchCreateForm({
       const res = await createBranch({
         ...form,
         organizationId,
+        typebranch:
+          form.typebranch === "PRIMAIRE" ? "PRIMAIRE" : "SECONDAIRE",
         latitude: Number(form.latitude),
         longitude: Number(form.longitude),
         attendanceRadius: Number(form.attendanceRadius),
@@ -174,12 +176,14 @@ export function BranchCreateForm({
               />
 
               <div className="grid gap-4 sm:grid-cols-2">
-                <Input
-                  placeholder="Code ecole"
-                  value={form.code}
-                  onChange={(e) => update("code", e.target.value)}
-                  className="h-12 rounded-2xl"
-                />
+                <select
+                  value={form.typebranch}
+                  onChange={(e) => update("typebranch", e.target.value)}
+                  className="h-12 rounded-2xl border border-input bg-background px-3 text-sm"
+                >
+                  <option value="PRIMAIRE">Primaire</option>
+                  <option value="SECONDAIRE">Secondaire</option>
+                </select>
 
                 <Input
                   placeholder="ID NAT"

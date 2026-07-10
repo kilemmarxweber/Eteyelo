@@ -216,18 +216,20 @@ export type SectionOrderByWithRelationInput = {
 
 export type SectionWhereUniqueInput = Prisma.AtLeast<{
   id?: string
-  codeSection?: string
-  nameSection?: string
+  branchId_codeSection?: Prisma.SectionBranchIdCodeSectionCompoundUniqueInput
+  branchId_nameSection?: Prisma.SectionBranchIdNameSectionCompoundUniqueInput
   AND?: Prisma.SectionWhereInput | Prisma.SectionWhereInput[]
   OR?: Prisma.SectionWhereInput[]
   NOT?: Prisma.SectionWhereInput | Prisma.SectionWhereInput[]
+  codeSection?: Prisma.StringFilter<"Section"> | string
+  nameSection?: Prisma.StringFilter<"Section"> | string
   statusSection?: Prisma.BoolFilter<"Section"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Section"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Section"> | Date | string
   branchId?: Prisma.StringFilter<"Section"> | string
   option?: Prisma.OptionListRelationFilter
   branch?: Prisma.XOR<Prisma.BranchScalarRelationFilter, Prisma.BranchWhereInput>
-}, "id" | "codeSection" | "nameSection">
+}, "id" | "branchId_codeSection" | "branchId_nameSection">
 
 export type SectionOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
@@ -331,6 +333,16 @@ export type SectionUncheckedUpdateManyInput = {
 export type SectionNullableScalarRelationFilter = {
   is?: Prisma.SectionWhereInput | null
   isNot?: Prisma.SectionWhereInput | null
+}
+
+export type SectionBranchIdCodeSectionCompoundUniqueInput = {
+  branchId: string
+  codeSection: string
+}
+
+export type SectionBranchIdNameSectionCompoundUniqueInput = {
+  branchId: string
+  nameSection: string
 }
 
 export type SectionCountOrderByAggregateInput = {

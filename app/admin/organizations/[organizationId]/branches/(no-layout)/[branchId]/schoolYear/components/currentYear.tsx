@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Switch } from "@/components/ui/switch";
 import { updateSchoolYearAction } from "../schoolYear.action";
 import { ISchoolYear } from "@/src/interfaces/SchoolYear";
@@ -20,6 +20,10 @@ export const CurrentYear: React.FC<ISchoolYear> = ({
   const [checked, setChecked] = useState(!!isCurrentYear);
   const { refresh } = useRefresh();
 
+  useEffect(() => {
+    setChecked(!!isCurrentYear);
+  }, [isCurrentYear]);
+
   const handleSwitchChange = async (newChecked: boolean) => {
     setChecked(newChecked);
 
@@ -32,6 +36,7 @@ export const CurrentYear: React.FC<ISchoolYear> = ({
         isCurrentYear: newChecked,
       });
       refresh();
+      window.dispatchEvent(new Event("school-year-refresh"));
     } catch (error) {
       console.error("Erreur lors de la mise à jour de l'année :", error);
     }

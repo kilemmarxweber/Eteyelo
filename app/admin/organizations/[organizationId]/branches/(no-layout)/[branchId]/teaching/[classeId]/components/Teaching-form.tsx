@@ -122,6 +122,12 @@ export function EnrollmentUpForm({
           throw new Error(err.message);
         }
         toast.success("Affectation effectuée avec succès");
+        form.reset({
+          schoolYearId: "",
+          teacherId: "",
+          coursId: "",
+          classeId,
+        });
       } else {
         const [teaching, err] = await updateTeachingAction({
           ...data,

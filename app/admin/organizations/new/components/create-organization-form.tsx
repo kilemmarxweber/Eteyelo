@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -20,17 +19,7 @@ import {
   createOrganizationFormSchema,
   type CreateOrganizationFormValues,
 } from "@/app/admin/organizations/schema";
-
-function slugifyName(name: string): string {
-  return name
-    .trim()
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 64);
-}
+import { generateSlug } from "@/lib/generated-identifiers";
 
 export function CreateOrganizationForm() {
   const router = useRouter();
@@ -46,10 +35,21 @@ export function CreateOrganizationForm() {
   async function onSubmit(values: CreateOrganizationFormValues) {
     form.clearErrors("root");
     try {
-      const { data, error } = await authClient.organization.create({
-        name: values.name.trim(),
-        slug: values.slug.trim(),
-      });
+      const baseSlug = generateSlug(values.slug || values.name, "organisation").slice(0, 64);
+      let data: any = null;
+      let error: any = null;
+
+      for (let index = 1; index <= 5; index += 1) {
+        const suffix = index === 1 ? "" : `-${index}`;
+        const slug = `${baseSlug.slice(0, 64 - suffix.length)}${suffix}`;
+        const result = await authClient.organization.create({
+          name: values.name.trim(),
+          slug,
+        });
+        data = result.data;
+        error = result.error;
+        if (!error) break;
+      }
 
       if (error) {
         form.setError("root", {
@@ -117,9 +117,9 @@ export function CreateOrganizationForm() {
                   disabled={isSubmitting}
                   onBlur={(e) => {
                     field.onBlur();
-                    const slug = form.getValues("slug");
+                    const slug = form.getValues("slug") ?? "";
                     if (!slug.trim()) {
-                      const generated = slugifyName(e.target.value);
+                      const generated = generateSlug(e.target.value, "").slice(0, 64);
                       if (generated.length >= 2) {
                         form.setValue("slug", generated, {
                           shouldValidate: true,
@@ -134,34 +134,7 @@ export function CreateOrganizationForm() {
           )}
         />
 
-        <FormField
-          control={form.control}
-          name="slug"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Identifiant URL (slug)</FormLabel>
-              <FormControl>
-                <Input
-                  {...field}
-                  type="text"
-                  autoCapitalize="none"
-                  autoCorrect="off"
-                  spellCheck={false}
-                  placeholder="mon-organisation"
-                  className="h-11 font-mono text-sm"
-                  disabled={isSubmitting}
-                  onChange={(e) => {
-                    field.onChange(e.target.value.toLowerCase());
-                  }}
-                />
-              </FormControl>
-              <FormDescription>
-                Unique, en minuscules. Sert d’identifiant technique (ex. pour les invitations).
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <input type="hidden" {...form.register("slug")} />
 
         {form.formState.errors.root && (
           <p className="text-sm text-destructive" role="alert">

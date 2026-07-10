@@ -67,6 +67,11 @@ export function SectionUpForm({
         toast.success("Section mis à jour avec succès");
       }
 
+      if (mode === "create") {
+        form.reset({
+          nameSection: "",
+        });
+      }
       setSectionCreated(true);
       onSectionAction && onSectionAction(); // Appeler la fonction de rafraîchissement
     } catch (error: any) {
@@ -103,20 +108,6 @@ export function SectionUpForm({
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="codeSection"
-              render={({ field }) => (
-                <FormItem className="space-y-1">
-                  <FormLabel>code de la section</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Le code de la section" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
             <Button className="mt-2" loading={isLoading}>
               {mode === "create"
                 ? "Enregistrer la section"

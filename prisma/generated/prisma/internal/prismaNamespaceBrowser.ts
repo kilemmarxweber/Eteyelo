@@ -72,6 +72,7 @@ export const ModelName = {
   Teacher: 'Teacher',
   Teaching: 'Teaching',
   Cours: 'Cours',
+  CoursOptionPonderation: 'CoursOptionPonderation',
   Schedule: 'Schedule',
   CalendarEvent: 'CalendarEvent',
   EventType: 'EventType',
@@ -422,7 +423,6 @@ export const CoursScalarFieldEnum = {
   codeCours: 'codeCours',
   nameCours: 'nameCours',
   description: 'description',
-  ponderation: 'ponderation',
   statusCours: 'statusCours',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
@@ -430,6 +430,19 @@ export const CoursScalarFieldEnum = {
 } as const
 
 export type CoursScalarFieldEnum = (typeof CoursScalarFieldEnum)[keyof typeof CoursScalarFieldEnum]
+
+
+export const CoursOptionPonderationScalarFieldEnum = {
+  id: 'id',
+  coursId: 'coursId',
+  optionId: 'optionId',
+  ponderation: 'ponderation',
+  branchId: 'branchId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type CoursOptionPonderationScalarFieldEnum = (typeof CoursOptionPonderationScalarFieldEnum)[keyof typeof CoursOptionPonderationScalarFieldEnum]
 
 
 export const ScheduleScalarFieldEnum = {
@@ -774,6 +787,7 @@ export const BranchScalarFieldEnum = {
   longitude: 'longitude',
   attendanceRadius: 'attendanceRadius',
   organizationId: 'organizationId',
+  typebranch: 'typebranch',
   isActive: 'isActive',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'

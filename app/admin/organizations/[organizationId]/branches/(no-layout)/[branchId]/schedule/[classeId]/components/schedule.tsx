@@ -65,6 +65,24 @@ interface ScheduleUpFormProps extends HTMLAttributes<HTMLDivElement> {
 }
 const JOURS = Day;
 
+function timeToMinutes(value: string) {
+  const [hours, minutes] = value.split(":").map(Number);
+  if (!Number.isFinite(hours) || !Number.isFinite(minutes)) return 0;
+  return hours * 60 + minutes;
+}
+
+function buildDisplayTimeSlots(slots: string[], recreationHour: string) {
+  const uniqueSlots = new Set(slots.filter(Boolean));
+
+  if (recreationHour) {
+    uniqueSlots.add(recreationHour);
+  }
+
+  return Array.from(uniqueSlots).sort(
+    (a, b) => timeToMinutes(a) - timeToMinutes(b),
+  );
+}
+
 export default function Schedule({
   className,
   onScheduleAction,
@@ -89,6 +107,10 @@ export default function Schedule({
   const canManageSchedules = canManageOrganization(session);
   const canCreateSchedule = canManageSchedules;
   const canDeleteSchedule = canManageSchedules;
+  const displayHeuresDebut = useMemo(
+    () => buildDisplayTimeSlots(heuresDebut, recreationHour),
+    [heuresDebut, recreationHour],
+  );
 
   useEffect(() => {
     if (!classeId) {
@@ -171,14 +193,14 @@ export default function Schedule({
 
   useEffect(() => {
     if (heureDebut) {
-      const index = heuresDebut.indexOf(heureDebut);
-      if (index !== -1 && index + 1 < heuresDebut.length) {
-        setHeureFin(heuresDebut[index + 1]);
+      const index = displayHeuresDebut.indexOf(heureDebut);
+      if (index !== -1 && index + 1 < displayHeuresDebut.length) {
+        setHeureFin(displayHeuresDebut[index + 1]);
       } else {
         setHeureFin("");
       }
     }
-  }, [heureDebut, heuresDebut]);
+  }, [displayHeuresDebut, heureDebut]);
 
   const ajouterHoraire = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -271,7 +293,9 @@ export default function Schedule({
     });
     return Array.from(map.values());
   }, [Cours]);
-  const filteredHeuresDebut = heuresDebut.filter((h) => h !== recreationHour);
+  const filteredHeuresDebut = displayHeuresDebut.filter(
+    (h) => h !== recreationHour,
+  );
 
   return (
     <Card className="w-full max-w-6xl mx-auto">
@@ -336,7 +360,7 @@ export default function Schedule({
                     <SelectValue placeholder="Heure de fin" />
                   </SelectTrigger>
                   <SelectContent>
-                    {heuresDebut.map((h) => (
+                    {displayHeuresDebut.map((h) => (
                       <SelectItem key={h} value={h}>
                         {h}
                       </SelectItem>
@@ -362,7 +386,7 @@ export default function Schedule({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {heuresDebut.map((heure, index) =>
+              {displayHeuresDebut.map((heure, index) =>
                 heure === recreationHour ? ( // Utiliser recreationHour ici
                   <TableRow key={heure}>
                     <TableCell
@@ -371,14 +395,14 @@ export default function Schedule({
                     >
                       <span className="text-2xl tracking-widest	">
                         R É C R É A T I O N ({heure} -{" "}
-                        {heuresDebut[index + 1] || endTime})
+                        {displayHeuresDebut[index + 1] || endTime})
                       </span>
                     </TableCell>
                   </TableRow>
                 ) : (
                   <TableRow key={heure}>
                     <TableCell>
-                      {`${heure} - ${heuresDebut[index + 1] || endTime}`}
+                      {`${heure} - ${displayHeuresDebut[index + 1] || endTime}`}
                     </TableCell>
                     {Object.values(JOURS).map((jour) => {
                       const horaire = horaires.find(

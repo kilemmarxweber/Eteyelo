@@ -6,6 +6,10 @@ import { ICours, coursSchema } from "@/src/interfaces/Cours";
 import { Prisma } from "@/prisma/generated/prisma/client";
 import z from "zod";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
+import {
+  ensureUniqueIdentifier,
+  generateCourseCode,
+} from "@/lib/generated-identifiers";
 
 // CREATE COURS
 export const createCoursAction = action
@@ -23,9 +27,22 @@ export const createCoursAction = action
         throw new Error("Le cours existe déjà");
       }
 
+      const codeCours = await ensureUniqueIdentifier({
+        base: generateCourseCode(input.nameCours),
+        separator: "",
+        exists: async (value) =>
+          Boolean(
+            await prisma.cours.findFirst({
+              where: { branchId, codeCours: value },
+              select: { id: true },
+            }),
+          ),
+      });
+
       const cours = await prisma.cours.create({
         data: {
           ...input,
+          codeCours,
           branchId,
         },
       });
@@ -54,10 +71,22 @@ export const updateCoursAction = action
       select: { id: true },
     });
     if (!existing) throw new Error("Cours introuvable dans cette branche");
+    const codeCours = await ensureUniqueIdentifier({
+      base: generateCourseCode(input.nameCours),
+      separator: "",
+      exists: async (value) =>
+        Boolean(
+          await prisma.cours.findFirst({
+            where: { branchId, codeCours: value, id: { not: id } },
+            select: { id: true },
+          }),
+        ),
+    });
 
     const cours = await prisma.cours.update({
       data: {
         ...input,
+        codeCours,
         branchId,
       },
       where: {
@@ -161,7 +190,6 @@ export const getCoursByClasseAction = action
       codeCours: cours.cours?.codeCours || "",
       nameCours: cours.cours?.nameCours || "",
       description: cours.cours?.description || "",
-      ponderation: cours.cours?.ponderation || 0,
     }));
     return transformedCourses;
   });

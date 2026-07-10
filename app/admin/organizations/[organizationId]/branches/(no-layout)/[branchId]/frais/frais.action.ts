@@ -12,6 +12,10 @@ import {
   deleteFraisSchema,
 } from "@/src/interfaces/Frais";
 import { z } from "zod";
+import {
+  ensureUniqueIdentifier,
+  generateCode,
+} from "@/lib/generated-identifiers";
 
 type FraisWithRelations = Prisma.FraisGetPayload<{
   include: {
@@ -121,10 +125,21 @@ export const createTypeFraisAction = action
   .input(typeFraisSchema)
   .handler(async ({ input }) => {
     const { branchId } = await requireBranchContext();
-    const { codeType, nameType, description, statusType } = input;
+    const { nameType, description, statusType } = input;
+    const codeType = await ensureUniqueIdentifier({
+      base: generateCode(nameType, "TYPE", 16),
+      separator: "",
+      exists: async (value) =>
+        Boolean(
+          await prisma.typeFrais.findUnique({
+            where: { codeType: value },
+            select: { id: true },
+          }),
+        ),
+    });
 
-    const existingType = await prisma.typeFrais.findUnique({
-      where: { codeType },
+    const existingType = await prisma.typeFrais.findFirst({
+      where: { nameType, branchId },
     });
 
     if (existingType) {
@@ -144,12 +159,76 @@ export const createTypeFraisAction = action
     });
   });
 
+export const updateTypeFraisAction = action
+  .input(typeFraisSchema)
+  .handler(async ({ input }) => {
+    const { branchId } = await requireBranchContext();
+    const { id, nameType, description, statusType } = input;
+
+    if (!id) {
+      throw new Error("ID requis pour la mise a jour");
+    }
+
+    const existingType = await prisma.typeFrais.findFirst({
+      where: { id, branchId },
+      select: { id: true },
+    });
+
+    if (!existingType) {
+      throw new Error("Type de frais introuvable dans cette branche");
+    }
+
+    const codeType = await ensureUniqueIdentifier({
+      base: generateCode(nameType, "TYPE", 16),
+      separator: "",
+      exists: async (value) =>
+        Boolean(
+          await prisma.typeFrais.findFirst({
+            where: { codeType: value, id: { not: id } },
+            select: { id: true },
+          }),
+        ),
+    });
+
+    return await prisma.typeFrais.update({
+      where: { id },
+      data: {
+        codeType,
+        nameType,
+        description,
+        statusType: statusType ?? true,
+      },
+    });
+  });
+
 export const getTypeFraisAction = action.handler(
   async (): Promise<ITypeFrais[]> => {
     const { branchId } = await requireBranchContext();
     const typeFrais = await prisma.typeFrais.findMany({
       where: {
         statusType: true,
+        branchId,
+      },
+      orderBy: { nameType: "asc" },
+    });
+
+    return typeFrais.map((type) => ({
+      id: type.id,
+      codeType: type.codeType,
+      nameType: type.nameType,
+      description: type.description || undefined,
+      statusType: type.statusType,
+      createdAt: type.createdAt,
+      updatedAt: type.updatedAt,
+    }));
+  },
+);
+
+export const getTypeFraisSettingsAction = action.handler(
+  async (): Promise<ITypeFrais[]> => {
+    const { branchId } = await requireBranchContext();
+    const typeFrais = await prisma.typeFrais.findMany({
+      where: {
         branchId,
       },
       orderBy: { nameType: "asc" },

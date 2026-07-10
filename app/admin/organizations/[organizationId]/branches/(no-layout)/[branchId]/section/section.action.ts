@@ -1,17 +1,37 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { revalidatePath } from "next/cache";
 import { action } from "@/lib/zsa";
 import { ISection, sectionSchema } from "@/src/interfaces/Section";
 import { Prisma } from "@/prisma/generated/prisma/client";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
+import {
+  ensureUniqueIdentifier,
+  generateCode,
+} from "@/lib/generated-identifiers";
+
+function revalidateSectionPages(organizationId: string, branchId: string) {
+  revalidatePath(`/admin/organizations/${organizationId}/branches/${branchId}/section`);
+}
 
 export const createSectionAction = action
   .input(sectionSchema)
   .handler(async ({ input }) => {
     try {
-      const { branchId } = await requireBranchContext();
+      const { branchId, organizationId } = await requireBranchContext();
       const { nameSection } = input;
+      const codeSection = await ensureUniqueIdentifier({
+        base: generateCode(nameSection, "SEC", 16),
+        separator: "",
+        exists: async (value) =>
+          Boolean(
+            await prisma.section.findFirst({
+              where: { branchId, codeSection: value },
+              select: { id: true },
+            }),
+          ),
+      });
 
       const existSection = await prisma.section.findMany({
         where: {
@@ -24,8 +44,9 @@ export const createSectionAction = action
       }
 
       const section = await prisma.section.create({
-        data: { ...input, statusSection: true, branchId },
+        data: { ...input, codeSection, statusSection: true, branchId },
       });
+      revalidateSectionPages(organizationId, branchId);
       return section;
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
@@ -45,7 +66,7 @@ export const createSectionAction = action
 export const deleteSectionAction = action
   .input(sectionSchema)
   .handler(async ({ input }) => {
-    const { branchId } = await requireBranchContext();
+    const { branchId, organizationId } = await requireBranchContext();
     const { id } = input;
     const section = await prisma.section.findFirst({
       where: { id, branchId },
@@ -58,19 +79,37 @@ export const deleteSectionAction = action
         id,
       },
     });
+    revalidateSectionPages(organizationId, branchId);
     return deleteSection;
   });
 
 export const updateSectionAction = action
   .input(sectionSchema)
   .handler(async ({ input }) => {
-    const { branchId } = await requireBranchContext();
-    const { nameSection, id, codeSection } = input;
+    const { branchId, organizationId } = await requireBranchContext();
+    const { nameSection, id } = input;
     const existSection = await prisma.section.findFirst({
       where: { id, branchId },
       select: { id: true },
     });
     if (!existSection) throw new Error("Section introuvable dans cette branche");
+    const codeSection = await ensureUniqueIdentifier({
+      base: generateCode(nameSection, "SEC", 16),
+      separator: "",
+      exists: async (value) =>
+        Boolean(
+          await prisma.section.findFirst({
+            where: { branchId, codeSection: value, id: { not: id } },
+            select: { id: true },
+          }),
+        ),
+    });
+
+    const duplicate = await prisma.section.findFirst({
+      where: { branchId, nameSection, id: { not: id } },
+      select: { id: true },
+    });
+    if (duplicate) throw new Error("la section existe deja dans cette branche");
 
     const section = await prisma.section.update({
       data: {
@@ -81,6 +120,8 @@ export const updateSectionAction = action
         id,
       },
     });
+    revalidateSectionPages(organizationId, branchId);
+    return section;
   });
 
 export const getSectionsAction = action.handler(
@@ -100,7 +141,7 @@ export const getSectionsAction = action.handler(
 export const statuSectionAction = action
   .input(sectionSchema)
   .handler(async ({ input }) => {
-    const { branchId } = await requireBranchContext();
+    const { branchId, organizationId } = await requireBranchContext();
     const { id, statusSection } = input;
     const section = await prisma.section.findFirst({
       where: { id, branchId },
@@ -116,5 +157,6 @@ export const statuSectionAction = action
         statusSection,
       },
     });
+    revalidateSectionPages(organizationId, branchId);
     return updateStatuSection;
   });

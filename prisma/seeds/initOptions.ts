@@ -119,7 +119,12 @@ export async function initOptions() {
     }
 
     await Prisma.option.upsert({
-      where: { codeOption: option.codeOption },
+      where: {
+        branchId_codeOption: {
+          branchId,
+          codeOption: option.codeOption,
+        },
+      },
       update: {
         nameOption: option.nameOption,
         sectionId,

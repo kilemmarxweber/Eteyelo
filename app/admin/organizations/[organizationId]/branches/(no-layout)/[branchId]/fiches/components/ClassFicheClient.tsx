@@ -29,6 +29,7 @@ import {
 } from "@/lib/types";
 import { PageHeader } from "@/components/ui/page-header";
 import { IconClipboardText } from "@tabler/icons-react";
+import { getAcademicPeriodOrder } from "@/lib/academic-structure";
 type StudentNote = {
   studentId: string;
   nom: string;
@@ -61,60 +62,29 @@ export default function ClassFicheClient({
   // ================= PERIOD AGGREGATION RULES =================
   const getAggregatedPeriods = useCallback(
     (selectedPeriod: string): string[] => {
-      const PERIOD_GROUPS: Record<string, string[]> = {
-        "Exam 1st semester": ["1st Period", "2nd Period", "Exam 1st semester"],
-        "Exam 2nd semester": [
-          "1st Period",
-          "2nd Period",
-          "Exam 1st semester",
-          "3tr Period",
-          "4th Period",
-          "Exam 2nd semester",
-        ],
-      };
+      const selectedOrder = getAcademicPeriodOrder(selectedPeriod);
+      if (selectedOrder === Number.MAX_SAFE_INTEGER) return [selectedPeriod];
 
-      const ORDERED_PERIODS = [
-        "1st Period",
-        "2nd Period",
-        "Exam 1st semester",
-        "3tr Period",
-        "4th Period",
-        "Exam 2nd semester",
-      ];
-
-      if (PERIOD_GROUPS[selectedPeriod]) {
-        return PERIOD_GROUPS[selectedPeriod];
-      }
-
-      const index = ORDERED_PERIODS.indexOf(selectedPeriod);
-      if (index === -1) return [selectedPeriod];
-
-      return ORDERED_PERIODS.slice(0, index + 1);
+      return Array.from(new Set(fiches.map((f) => f.periodName)))
+        .filter(
+          (periodName) => getAcademicPeriodOrder(periodName) <= selectedOrder,
+        )
+        .sort(
+          (a, b) => getAcademicPeriodOrder(a) - getAcademicPeriodOrder(b),
+        );
     },
-    [],
+    [fiches],
   );
   const availablePeriodsOrdered = useMemo(() => {
-    // Ordre voulu
-    const ORDERED_PERIODS = [
-      "1st Period",
-      "2nd Period",
-      "Exam 1st semester",
-      "3tr Period",
-      "4th Period",
-      "Exam 2nd semester",
-    ];
-
-    // Récupérer toutes les périodes uniques disponibles dans les fiches
     const uniquePeriods = Array.from(new Set(fiches.map((f) => f.periodName)));
 
-    // Filtrer l'ordre pour ne garder que les périodes existantes
-    return ORDERED_PERIODS.filter((p) => uniquePeriods.includes(p)).map(
-      (p) => ({
-        id: p, // ⚡ id obligatoire pour le type
+    return uniquePeriods
+      .sort((a, b) => getAcademicPeriodOrder(a) - getAcademicPeriodOrder(b))
+      .map((p) => ({
+        id: p,
         value: p,
         label: p,
-      }),
-    );
+      }));
   }, [fiches]);
   // Fusionne toutes les notes des périodes actives pour un élève
   const getNotesForPeriods = useCallback(
@@ -414,7 +384,12 @@ export default function ClassFicheClient({
     // Cas normal
     if (
       period.periodName !== "Exam 1st semester" &&
-      period.periodName !== "Exam 2nd semester"
+      period.periodName !== "Exam 2nd semester" &&
+      period.periodName !== "Examen 1er semestre" &&
+      period.periodName !== "Examen 2e semestre" &&
+      period.periodName !== "Examen 1er trimestre" &&
+      period.periodName !== "Examen 2e trimestre" &&
+      period.periodName !== "Examen 3e trimestre"
     ) {
       return Object.values(period.notes).reduce((s, n) => s + n.maxScore, 0);
     }
@@ -423,7 +398,12 @@ export default function ClassFicheClient({
     const basePeriods = semesterPeriods.filter(
       (p) =>
         p.periodName !== "Exam 1st semester" &&
-        p.periodName !== "Exam 2nd semester",
+        p.periodName !== "Exam 2nd semester" &&
+        p.periodName !== "Examen 1er semestre" &&
+        p.periodName !== "Examen 2e semestre" &&
+        p.periodName !== "Examen 1er trimestre" &&
+        p.periodName !== "Examen 2e trimestre" &&
+        p.periodName !== "Examen 3e trimestre",
     );
 
     return basePeriods.reduce(
@@ -489,11 +469,30 @@ export default function ClassFicheClient({
     ): boolean {
       const required =
         semester === 1
-          ? ["1st Period", "2nd Period", "Exam 1st semester"]
-          : ["3tr Period", "4th Period", "Exam 2nd semester"];
+          ? ["1ere Periode", "2e Periode", "Examen 1er semestre"]
+          : ["3e Periode", "4e Periode", "Examen 2e semestre"];
+
+      const aliases: Record<string, string[]> = {
+        "1ere Periode": ["1st Period", "1er Periode"],
+        "Examen 1er semestre": [
+          "Exam 1st semester",
+          "Examen 1er trimestre",
+          "Exam 1er trimestre",
+        ],
+        "Examen 2e semestre": [
+          "Exam 2nd semester",
+          "Examen 2e trimestre",
+          "Exam 2e trimestre",
+        ],
+        "3e Periode": ["3tr Period"],
+        "4e Periode": ["4th Period"],
+      };
 
       return required.every((name) =>
-        periods.some((p) => p.periodName === name),
+        periods.some(
+          (p) =>
+            p.periodName === name || (aliases[name] ?? []).includes(p.periodName),
+        ),
       );
     }
 
@@ -557,6 +556,17 @@ export default function ClassFicheClient({
       "3tr Period": { sem: "sem2", field: "p3" },
       "4th Period": { sem: "sem2", field: "p4" },
       "Exam 2nd semester": { sem: "sem2", field: "exam2" },
+      "Examen 1er semestre": { sem: "sem1", field: "exam1" },
+      "Examen 2e semestre": { sem: "sem2", field: "exam2" },
+      "1ere Periode": { sem: "sem1", field: "p1" },
+      "1er Periode": { sem: "sem1", field: "p1" },
+      "2e Periode": { sem: "sem1", field: "p2" },
+      "Exam 1er trimestre": { sem: "sem1", field: "exam1" },
+      "Examen 1er trimestre": { sem: "sem1", field: "exam1" },
+      "3e Periode": { sem: "sem2", field: "p3" },
+      "4e Periode": { sem: "sem2", field: "p4" },
+      "Exam 2e trimestre": { sem: "sem2", field: "exam2" },
+      "Examen 2e trimestre": { sem: "sem2", field: "exam2" },
     };
 
     return ficheRecappdf.map((student) => {
@@ -717,13 +727,26 @@ export default function ClassFicheClient({
           placeObj[field] = placeStr;
           semCondObj[field] = conduiteValue;
           // -------------------- Calcul TT --------------------
-          if (p.periodName === "Exam 1st semester") {
+          if (
+            p.periodName === "Exam 1st semester" ||
+            p.periodName === "Examen 1er semestre" ||
+            p.periodName === "Examen 1er trimestre" ||
+            p.periodName === "Exam 1er trimestre"
+          ) {
             // 🏆 1. Calcul global TT1 pour tous les élèves
             const allTT1 = ficheRecappdf.map((s) => {
               const sem1Periods = s.periods.filter((pr) =>
-                ["1st Period", "2nd Period", "Exam 1st semester"].includes(
-                  pr.periodName,
-                ),
+                [
+                  "1st Period",
+                  "1er Periode",
+                  "1ere Periode",
+                  "2nd Period",
+                  "2e Periode",
+                  "Exam 1st semester",
+                  "Examen 1er semestre",
+                  "Exam 1er trimestre",
+                  "Examen 1er trimestre",
+                ].includes(pr.periodName),
               );
 
               const scoreTT1 = sem1Periods.reduce(
@@ -769,13 +792,25 @@ export default function ClassFicheClient({
             (autres["PLACE/NOMBRE D'ELEVES"].sem1 as any).tt1 = tt1Place;
           }
 
-          if (p.periodName === "Exam 2nd semester") {
+          if (
+            p.periodName === "Exam 2nd semester" ||
+            p.periodName === "Examen 2e semestre" ||
+            p.periodName === "Examen 2e trimestre" ||
+            p.periodName === "Exam 2e trimestre"
+          ) {
             // 🏆 1. Calcul global TT2
             const allTT2 = ficheRecappdf.map((s) => {
               const sem2Periods = s.periods.filter((pr) =>
-                ["3tr Period", "4th Period", "Exam 2nd semester"].includes(
-                  pr.periodName,
-                ),
+                [
+                  "3tr Period",
+                  "3e Periode",
+                  "4th Period",
+                  "4e Periode",
+                  "Exam 2nd semester",
+                  "Examen 2e semestre",
+                  "Exam 2e trimestre",
+                  "Examen 2e trimestre",
+                ].includes(pr.periodName),
               );
 
               const scoreTT2 = sem2Periods.reduce(
@@ -830,14 +865,29 @@ export default function ClassFicheClient({
               // 🔢 calcul global TG
               const allTG = ficheRecappdf.map((s) => {
                 const sem1 = s.periods.filter((p) =>
-                  ["1st Period", "2nd Period", "Exam 1st semester"].includes(
-                    p.periodName,
-                  ),
+                  [
+                    "1st Period",
+                    "1er Periode",
+                    "1ere Periode",
+                    "2nd Period",
+                    "2e Periode",
+                    "Exam 1st semester",
+                    "Examen 1er semestre",
+                    "Exam 1er trimestre",
+                    "Examen 1er trimestre",
+                  ].includes(p.periodName),
                 );
                 const sem2 = s.periods.filter((p) =>
-                  ["3tr Period", "4th Period", "Exam 2nd semester"].includes(
-                    p.periodName,
-                  ),
+                  [
+                    "3tr Period",
+                    "3e Periode",
+                    "4th Period",
+                    "4e Periode",
+                    "Exam 2nd semester",
+                    "Examen 2e semestre",
+                    "Exam 2e trimestre",
+                    "Examen 2e trimestre",
+                  ].includes(p.periodName),
                 );
 
                 if (

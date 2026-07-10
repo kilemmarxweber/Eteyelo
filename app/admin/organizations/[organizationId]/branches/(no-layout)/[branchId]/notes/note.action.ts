@@ -14,6 +14,10 @@ import {
   CreateFicheResult,
   typeFichesDefault,
 } from "./components/types";
+import {
+  getCoursePonderationMap,
+  resolveCoursePonderation,
+} from "@/lib/course-ponderation";
 
 export async function getSchoolYear() {
   const { branchId } = await requireBranchContext();
@@ -219,13 +223,11 @@ export async function createFiche(
 
     // 🔁 UPDATE
     // Compter les scores différents de 0
-    const nonZeroScores = data.notes.filter((n) => n.score !== 0);
 
     // Vérifier s'il y en a au moins 2
-    const hasAtLeastTwo = nonZeroScores.length >= 2;
 
     // Définir le status
-    data.status = hasAtLeastTwo;
+    data.status = false;
 
     if (existing) {
       await prisma.fiche.update({
@@ -234,7 +236,7 @@ export async function createFiche(
           notes: JSON.stringify(data.notes),
           autres:
             JSON.stringify(data.autres) || JSON.stringify(typeFichesDefault),
-          status: data.status,
+          status: false,
           dateUpdated: new Date(),
         },
       });
@@ -300,7 +302,14 @@ export async function createFiche(
               },
             ],
           },
-          include: { cours: true },
+          include: { cours: true, classe: true },
+        });
+        const ponderationMap = await getCoursePonderationMap({
+          branchId,
+          pairs: lessons.map((lesson) => ({
+            coursId: lesson.coursId,
+            optionId: lesson.classe?.optionId,
+          })),
         });
 
         const fichesToCreate = lessons.map((lesson) =>
@@ -314,7 +323,11 @@ export async function createFiche(
                 : data.notes.map((n) => ({
                     ...n,
                     score: 0,
-                    maxScore: (lesson.cours?.ponderation ?? 1) * 10,
+                    maxScore:
+                      resolveCoursePonderation(ponderationMap, {
+                        coursId: lesson.coursId,
+                        optionId: lesson.classe?.optionId,
+                      }) * 10,
                   })),
           }),
         );

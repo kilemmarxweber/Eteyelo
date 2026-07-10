@@ -71,7 +71,6 @@ function mapTeaching(teaching: TeachingWithRelations): ITeaching {
     coursId: teaching.coursId || "",
     codeCours: teaching.cours?.codeCours || "",
     nameCours: teaching.cours?.nameCours || "",
-    ponderation: teaching.cours?.ponderation || 0,
     description: teaching.cours?.description || "",
   };
 }

@@ -2,8 +2,9 @@
 
 import { Combobox } from "@/components/ui/combox";
 import { MultiSelect } from "../paiement/components/MultiSelect";
-import { PeriodLabel, StudentType } from "@/lib/types";
+import { StudentType } from "@/lib/types";
 import { useEffect } from "react";
+import { getAcademicPeriodOrder } from "@/lib/academic-structure";
 
 type ClassType = {
   id: string;
@@ -54,19 +55,8 @@ export default function FiltersCombox({
   );
 
   // ✅ Ordre des périodes
-  const periodOrder: PeriodLabel[] = [
-    "1st Period",
-    "2nd Period",
-    "Exam 1st semester",
-    "3tr Period",
-    "4th Period",
-    "Exam 2nd semester",
-  ];
-
   const sortedPeriods = [...periods].sort(
-    (a, b) =>
-      periodOrder.indexOf(a as PeriodLabel) -
-      periodOrder.indexOf(b as PeriodLabel),
+    (a, b) => getAcademicPeriodOrder(a) - getAcademicPeriodOrder(b),
   );
 
   // ✅ Admin seulement → filtre par classe

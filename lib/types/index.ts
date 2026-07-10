@@ -152,12 +152,22 @@ export interface StudentPeriod {
 export type StudentPeriodUI = StudentPeriod & {
   active?: boolean;
 };
-export type PeriodKey = "p1" | "p2" | "p3" | "p4" | "exam1" | "exam2";
+export type PeriodKey =
+  | "p1"
+  | "p2"
+  | "p3"
+  | "p4"
+  | "p5"
+  | "p6"
+  | "exam1"
+  | "exam2"
+  | "exam3";
 
 export type Subject = {
   name: string;
   sem1: Record<string, number>;
   sem2: Record<string, number>;
+  sem3?: Record<string, number>;
   baseMaxScore: MaxScore; // ✅ BARÈME MATIÈRE (FIXE)
 };
 
@@ -170,12 +180,27 @@ export type TotalKey = "tt1" | "tt2" | "tg";
 export type SemKey = PeriodKey | TotalKey;
 
 export type PeriodLabel =
+  | "1ere Periode"
+  | "2e Periode"
+  | "3e Periode"
+  | "4e Periode"
+  | "5e Periode"
+  | "6e Periode"
+  | "Examen 1er semestre"
+  | "Examen 2e semestre"
+  | "Examen 1er trimestre"
+  | "Examen 2e trimestre"
+  | "Examen 3e trimestre"
   | "1st Period"
   | "2nd Period"
   | "3tr Period"
   | "4th Period"
   | "Exam 1st semester"
-  | "Exam 2nd semester";
+  | "Exam 2nd semester"
+  | "1er Periode"
+  | "Exam 1er trimestre"
+  | "Exam 2e trimestre"
+  | "Exam 3e trimestre";
 
 export type ApplicationType = {
   sem1: Record<SemKey, string>;
@@ -192,12 +217,27 @@ export type TypeFiche = {
 };
 
 export const periodKeyMap: Record<PeriodLabel, PeriodKey> = {
+  "1ere Periode": "p1",
+  "2e Periode": "p2",
+  "3e Periode": "p3",
+  "4e Periode": "p4",
+  "5e Periode": "p5",
+  "6e Periode": "p6",
+  "Examen 1er semestre": "exam1",
+  "Examen 2e semestre": "exam2",
+  "Examen 1er trimestre": "exam1",
+  "Examen 2e trimestre": "exam2",
+  "Examen 3e trimestre": "exam3",
   "1st Period": "p1",
   "2nd Period": "p2",
   "Exam 1st semester": "exam1",
   "3tr Period": "p3",
   "4th Period": "p4",
   "Exam 2nd semester": "exam2",
+  "1er Periode": "p1",
+  "Exam 1er trimestre": "exam1",
+  "Exam 2e trimestre": "exam2",
+  "Exam 3e trimestre": "exam3",
 };
 
 export const SEM_ORDER: Record<
@@ -366,7 +406,7 @@ export function getMaximaType(maxScore: MaxScore): MaximaType {
 }
 
 // Map period indices to semester and periodKey
-export type SemesterKey = "sem1" | "sem2";
+export type SemesterKey = "sem1" | "sem2" | "sem3";
 
 // Define period keys and semester mapping
 export const periodKeyDefinitions: Record<PeriodKey, SemesterKey> = {
@@ -376,6 +416,9 @@ export const periodKeyDefinitions: Record<PeriodKey, SemesterKey> = {
   p3: "sem2",
   p4: "sem2",
   exam2: "sem2", // exam 1er semestre
+  p5: "sem3",
+  p6: "sem3",
+  exam3: "sem3",
 };
 export type Lesson = { id: string; subjectName: string };
 export type ClassType = {

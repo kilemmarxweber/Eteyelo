@@ -23,6 +23,7 @@ interface SectionsTableProps {
 const SectionsTable: React.FC<SectionsTableProps> = ({ refreshKey }) => {
   const [sections, setSections] = useState<ISection[]>([]);
   const [loading, setLoading] = useState(true);
+  const [localRefreshKey, setLocalRefreshKey] = useState(0);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
 
@@ -47,7 +48,7 @@ const SectionsTable: React.FC<SectionsTableProps> = ({ refreshKey }) => {
     };
 
     fetchSections();
-  }, [refreshKey]);
+  }, [refreshKey, localRefreshKey]);
 
   // Filtrer les données
   const filteredSections = sections.filter((section) => {
@@ -75,7 +76,10 @@ const SectionsTable: React.FC<SectionsTableProps> = ({ refreshKey }) => {
 
   const handleActionSuccess = () => {
     // Rafraîchir les données après une action
-    window.location.reload();
+    setShowUpdateDialog(false);
+    setShowDeleteDialog(false);
+    setSelectedSection(null);
+    setLocalRefreshKey((value) => value + 1);
   };
 
   // Configuration des colonnes pour desktop

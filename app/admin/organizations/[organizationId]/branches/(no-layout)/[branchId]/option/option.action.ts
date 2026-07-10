@@ -1,16 +1,40 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { revalidatePath } from "next/cache";
 import { action } from "@/lib/zsa";
 import { IOption, optionSchema } from "@/src/interfaces/Option";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
+import { z } from "zod";
+import {
+  ensureUniqueIdentifier,
+  generateCode,
+} from "@/lib/generated-identifiers";
+
+function revalidateOptionPages(organizationId: string, branchId: string) {
+  revalidatePath(`/admin/organizations/${organizationId}/branches/${branchId}/option`);
+  revalidatePath(
+    `/admin/organizations/${organizationId}/branches/${branchId}/coursPonderationOption`,
+  );
+}
 
 /* ================= CREATE OPTION ================= */
 export const createOptionAction = action
   .input(optionSchema)
   .handler(async ({ input }) => {
-    const { branchId } = await requireBranchContext();
-    const { nameOption, sectionId, codeOption } = input;
+    const { branchId, organizationId } = await requireBranchContext();
+    const { nameOption, sectionId } = input;
+    const codeOption = await ensureUniqueIdentifier({
+      base: generateCode(nameOption, "OPT", 16),
+      separator: "",
+      exists: async (value) =>
+        Boolean(
+          await prisma.option.findFirst({
+            where: { branchId, codeOption: value },
+            select: { id: true },
+          }),
+        ),
+    });
 
     const existOption = await prisma.option.findFirst({
       where: { nameOption, branchId },
@@ -34,13 +58,31 @@ export const createOptionAction = action
     const option = await prisma.option.create({
       data: {
         nameOption,
-        codeOption: codeOption ?? null,
+        codeOption,
         sectionId: sectionId ?? null,
         statusOption: true,
         branchId,
       },
     });
 
+    const cours = await prisma.cours.findMany({
+      where: { branchId },
+      select: { id: true },
+    });
+
+    if (cours.length) {
+      await prisma.coursOptionPonderation.createMany({
+        data: cours.map((item) => ({
+          branchId,
+          coursId: item.id,
+          optionId: option.id,
+          ponderation: 1,
+        })),
+        skipDuplicates: true,
+      });
+    }
+
+    revalidateOptionPages(organizationId, branchId);
     return option;
   });
 
@@ -48,8 +90,8 @@ export const createOptionAction = action
 export const updateOptionAction = action
   .input(optionSchema)
   .handler(async ({ input }) => {
-    const { branchId } = await requireBranchContext();
-    const { id, nameOption, codeOption, sectionId, statusOption } = input;
+    const { branchId, organizationId } = await requireBranchContext();
+    const { id, nameOption, sectionId, statusOption } = input;
 
     if (!id) throw new Error("ID requis");
     const option = await prisma.option.findFirst({
@@ -57,6 +99,23 @@ export const updateOptionAction = action
       select: { id: true },
     });
     if (!option) throw new Error("Option introuvable dans cette branche");
+    const codeOption = await ensureUniqueIdentifier({
+      base: generateCode(nameOption, "OPT", 16),
+      separator: "",
+      exists: async (value) =>
+        Boolean(
+          await prisma.option.findFirst({
+            where: { branchId, codeOption: value, id: { not: id } },
+            select: { id: true },
+          }),
+        ),
+    });
+
+    const duplicate = await prisma.option.findFirst({
+      where: { branchId, nameOption, id: { not: id } },
+      select: { id: true },
+    });
+    if (duplicate) throw new Error("L'option existe deja dans cette branche");
 
     if (sectionId) {
       const section = await prisma.section.findFirst({
@@ -69,7 +128,7 @@ export const updateOptionAction = action
       }
     }
 
-    return prisma.option.update({
+    const updatedOption = await prisma.option.update({
       where: { id },
       data: {
         nameOption,
@@ -78,13 +137,15 @@ export const updateOptionAction = action
         statusOption: statusOption ?? true,
       },
     });
+    revalidateOptionPages(organizationId, branchId);
+    return updatedOption;
   });
 
 /* ================= DELETE OPTION ================= */
 export const deleteOptionAction = action
   .input(optionSchema)
   .handler(async ({ input }) => {
-    const { branchId } = await requireBranchContext();
+    const { branchId, organizationId } = await requireBranchContext();
     const { id } = input;
 
     if (!id) throw new Error("ID requis");
@@ -97,9 +158,11 @@ export const deleteOptionAction = action
       throw new Error("Option introuvable");
     }
 
-    return prisma.option.delete({
+    const deletedOption = await prisma.option.delete({
       where: { id },
     });
+    revalidateOptionPages(organizationId, branchId);
+    return deletedOption;
   });
 
 /* ================= GET OPTIONS ================= */
@@ -162,7 +225,7 @@ export const getOptionsAction = action.handler(async (): Promise<IOption[]> => {
 export const statusOptionAction = action
   .input(optionSchema)
   .handler(async ({ input }) => {
-    const { branchId } = await requireBranchContext();
+    const { branchId, organizationId } = await requireBranchContext();
     const { id, statusOption } = input;
 
     if (!id) throw new Error("ID requis");
@@ -172,10 +235,87 @@ export const statusOptionAction = action
     });
     if (!option) throw new Error("Option introuvable dans cette branche");
 
-    return prisma.option.update({
+    const updatedOption = await prisma.option.update({
       where: { id },
       data: {
         statusOption: statusOption ?? false,
+      },
+    });
+    revalidateOptionPages(organizationId, branchId);
+    return updatedOption;
+  });
+
+export const getOptionPonderationsAction = action
+  .input(
+    z.object({
+      optionId: z.string().optional(),
+    }),
+  )
+  .handler(async ({ input }) => {
+    const { branchId } = await requireBranchContext();
+    const [options, cours, ponderations] = await Promise.all([
+      prisma.option.findMany({
+        where: { branchId, statusOption: true },
+        orderBy: { nameOption: "asc" },
+        select: { id: true, nameOption: true, codeOption: true },
+      }),
+      prisma.cours.findMany({
+        where: { branchId },
+        orderBy: { nameCours: "asc" },
+        select: { id: true, nameCours: true, codeCours: true },
+      }),
+      input.optionId
+        ? prisma.coursOptionPonderation.findMany({
+            where: { branchId, optionId: input.optionId },
+            select: { id: true, coursId: true, optionId: true, ponderation: true },
+          })
+        : Promise.resolve([]),
+    ]);
+
+    return { options, cours, ponderations };
+  });
+
+export const upsertOptionPonderationAction = action
+  .input(
+    z.object({
+      optionId: z.string(),
+      coursId: z.string(),
+      ponderation: z.coerce.number().int().min(0).max(100),
+    }),
+  )
+  .handler(async ({ input }) => {
+    const { branchId } = await requireBranchContext();
+
+    const [option, cours] = await Promise.all([
+      prisma.option.findFirst({
+        where: { id: input.optionId, branchId },
+        select: { id: true },
+      }),
+      prisma.cours.findFirst({
+        where: { id: input.coursId, branchId },
+        select: { id: true },
+      }),
+    ]);
+
+    if (!option) throw new Error("Option introuvable dans cette branche");
+    if (!cours) throw new Error("Cours introuvable dans cette branche");
+
+    return prisma.coursOptionPonderation.upsert({
+      where: {
+        branchId_coursId_optionId: {
+          branchId,
+          coursId: input.coursId,
+          optionId: input.optionId,
+        },
+      },
+      update: {
+        ponderation: input.ponderation,
+      },
+      create: {
+        branchId,
+        coursId: input.coursId,
+        optionId: input.optionId,
+        ponderation: input.ponderation,
       },
     });
   });

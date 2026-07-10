@@ -30,6 +30,7 @@ import {
   getSchoolYear,
   getStudentsByClass,
 } from "./note.action";
+import { getAcademicPeriodOrder } from "@/lib/academic-structure";
 
 /* ===== DYNAMIC ===== */
 const TeacherCombobox = dynamic(
@@ -72,8 +73,7 @@ export default function FicheSaisieClient({
     getPeriods().then(setPeriods);
   }, []);
   const isExamPeriod = (period?: Period | null) =>
-    period?.label === "Exam 1st semester" ||
-    period?.label === "Exam 2nd semester";
+    Boolean(period?.label?.startsWith("Exam"));
   /* ===== LOAD STUDENTS ===== */
   useEffect(() => {
     let ignore = false;
@@ -509,25 +509,16 @@ export default function FicheSaisieClient({
                 width={240}
               />
               {(() => {
-                const periodOrder = [
-                  "1st Period",
-                  "2nd Period",
-                  "Exam 1st semester",
-                  "3tr Period",
-                  "4th Period",
-                  "Exam 2nd semester",
-                ];
-
-                const orderedPeriods = periodOrder
-                  .map((label) => periods.find((p) => p.label === label))
-                  .filter((p): p is Period => Boolean(p))
+                const orderedPeriods = [...periods]
+                  .sort(
+                    (a, b) =>
+                      getAcademicPeriodOrder(a.label) -
+                      getAcademicPeriodOrder(b.label),
+                  )
                   .filter((p) => {
                     if (isAdmin) return true;
 
-                    return (
-                      p.label !== "Exam 1st semester" &&
-                      p.label !== "Exam 2nd semester"
-                    );
+                    return !p.label.startsWith("Exam");
                   });
                 return (
                   <Combobox

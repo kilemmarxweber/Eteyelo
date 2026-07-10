@@ -18,7 +18,8 @@ import { Button } from "@/components/custom/button";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { DialogClose } from "@/components/ui/dialog";
-import { createTypeFraisAction } from "../frais.action";
+import { Checkbox } from "@/components/ui/checkbox";
+import { createTypeFraisAction, updateTypeFraisAction } from "../frais.action";
 import { typeFraisSchema } from "@/src/interfaces/Frais";
 
 interface TypeFraisUpFormProps extends HTMLAttributes<HTMLDivElement> {
@@ -75,7 +76,14 @@ export function TypeFraisUpForm({
           statusType: true,
         });
       } else {
-        throw new Error("La modification des types de frais n'est pas encore disponible");
+        const [, err] = await updateTypeFraisAction({
+          ...data,
+          statusType: data.statusType ?? true,
+        });
+        if (err) {
+          throw new Error(err.message);
+        }
+        toast.success("Type de frais mis a jour avec succes");
       }
 
       setTypeFraisCreated(true);
@@ -99,20 +107,7 @@ export function TypeFraisUpForm({
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <div className="grid gap-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="codeType"
-                render={({ field }) => (
-                  <FormItem className="space-y-1">
-                    <FormLabel>Code</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Ex: SCOL" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+            <div className="grid grid-cols-1 gap-4">
               <FormField
                 control={form.control}
                 name="nameType"
@@ -144,6 +139,25 @@ export function TypeFraisUpForm({
                       {...field}
                     />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="statusType"
+              render={({ field }) => (
+                <FormItem className="flex items-center gap-2 space-y-0 rounded-md border p-3">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value ?? true}
+                      onCheckedChange={(checked) =>
+                        field.onChange(Boolean(checked))
+                      }
+                    />
+                  </FormControl>
+                  <FormLabel className="font-normal">Type actif</FormLabel>
                   <FormMessage />
                 </FormItem>
               )}

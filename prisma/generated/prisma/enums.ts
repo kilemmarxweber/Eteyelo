@@ -138,6 +138,14 @@ export const BranchRole = {
 export type BranchRole = (typeof BranchRole)[keyof typeof BranchRole]
 
 
+export const TypeBrache = {
+  PRIMAIRE: 'PRIMAIRE',
+  SECONDAIRE: 'SECONDAIRE'
+} as const
+
+export type TypeBrache = (typeof TypeBrache)[keyof typeof TypeBrache]
+
+
 export const PlatformSupportEscalationStatus = {
   OPEN: 'OPEN',
   IN_PROGRESS: 'IN_PROGRESS',

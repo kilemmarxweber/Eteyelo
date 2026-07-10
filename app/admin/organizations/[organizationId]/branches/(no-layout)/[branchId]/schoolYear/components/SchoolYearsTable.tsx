@@ -19,6 +19,7 @@ export default function SchoolYearsList({ branchId }: Props) {
   const [schoolYears, setSchoolYears] = useState<ISchoolYear[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [localRefreshKey, setLocalRefreshKey] = useState(0);
 
   useEffect(() => {
     if (!branchId) return;
@@ -49,7 +50,18 @@ export default function SchoolYearsList({ branchId }: Props) {
     };
 
     fetchSchoolYears();
-  }, [branchId]);
+  }, [branchId, localRefreshKey]);
+
+  useEffect(() => {
+    const handleRefresh = () => {
+      setLocalRefreshKey((value) => value + 1);
+    };
+
+    window.addEventListener("school-year-refresh", handleRefresh);
+    return () => {
+      window.removeEventListener("school-year-refresh", handleRefresh);
+    };
+  }, []);
 
   if (loading) {
     return (

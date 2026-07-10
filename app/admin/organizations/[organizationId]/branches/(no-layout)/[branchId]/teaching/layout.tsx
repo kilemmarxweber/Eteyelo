@@ -14,7 +14,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/components/ui/page-header";
-import { redirect, useParams } from "next/navigation";
+import { redirect, useParams, useRouter } from "next/navigation";
 import { getClassesByIdAction } from "../classe/classe.action";
 import { useEffect, useState } from "react";
 import { useSession } from "@/lib/auth-client";
@@ -34,6 +34,7 @@ export default function RootLayout({
 }) {
   const { refreshKey, refresh } = useRefresh(); // État pour gérer le rafraîchissement
   // Fonction de rappel pour rafraîchir la liste
+  const router = useRouter();
   const handleFraisAction = () => {
     refresh();
   };
@@ -47,6 +48,7 @@ export default function RootLayout({
   //const hasClasse = Boolean(classeId);
   const handleEnrollmentAction = () => {
     refresh();
+    router.refresh();
     setOpen(false); // 🔥 fermeture du dialog ici
   };
   useEffect(() => {
@@ -99,7 +101,7 @@ export default function RootLayout({
           }
           actions={
             hasClasse && canCreateTeaching && (
-              <Dialog>
+              <Dialog open={open} onOpenChange={setOpen}>
                 <DialogTrigger asChild>
                   <Button variant="default">Assigner un cours</Button>
                 </DialogTrigger>

@@ -232,17 +232,17 @@ export type semesterOrderByWithRelationInput = {
 
 export type semesterWhereUniqueInput = Prisma.AtLeast<{
   id?: number
-  label?: string
   branchId_label?: Prisma.semesterBranchIdLabelCompoundUniqueInput
   AND?: Prisma.semesterWhereInput | Prisma.semesterWhereInput[]
   OR?: Prisma.semesterWhereInput[]
   NOT?: Prisma.semesterWhereInput | Prisma.semesterWhereInput[]
+  label?: Prisma.StringFilter<"semester"> | string
   startDate?: Prisma.DateTimeFilter<"semester"> | Date | string
   endDate?: Prisma.DateTimeFilter<"semester"> | Date | string
   branchId?: Prisma.StringFilter<"semester"> | string
   period?: Prisma.PeriodListRelationFilter
   branch?: Prisma.XOR<Prisma.BranchScalarRelationFilter, Prisma.BranchWhereInput>
-}, "id" | "label" | "branchId_label">
+}, "id" | "branchId_label">
 
 export type semesterOrderByWithAggregationInput = {
   id?: Prisma.SortOrder

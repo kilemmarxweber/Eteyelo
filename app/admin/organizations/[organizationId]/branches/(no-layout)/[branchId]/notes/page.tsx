@@ -7,6 +7,10 @@ import {
   canManageOrganization,
   hasSessionRole,
 } from "@/lib/auth/session-roles";
+import {
+  getCoursePonderationMap,
+  resolveCoursePonderation,
+} from "@/lib/course-ponderation";
 
 type LessonType = {
   id: string;
@@ -88,7 +92,6 @@ export default async function NotesPage() {
             select: {
               id: true,
               nameCours: true,
-              ponderation: true,
             },
           },
 
@@ -142,7 +145,6 @@ export default async function NotesPage() {
       select: {
         id: true,
         nameCours: true,
-        ponderation: true,
       },
     }),
 
@@ -158,6 +160,7 @@ export default async function NotesPage() {
         id: true,
         codeClasse: true,
         nameClasse: true,
+        optionId: true,
       },
     }),
   ]);
@@ -167,6 +170,21 @@ export default async function NotesPage() {
   const coursMap = new Map(coursList.map((cours) => [cours.id, cours]));
 
   const classeMap = new Map(classesList.map((classe) => [classe.id, classe]));
+  const ponderationMap = await getCoursePonderationMap({
+    branchId,
+    pairs: teachersFromDB.flatMap((teacher) =>
+      teacher.teaching.map((teaching) => {
+        const classe =
+          classesList.find((item) => item.id === teaching.classeId) ||
+          teaching.classe;
+
+        return {
+          coursId: teaching.coursId,
+          optionId: classe?.optionId,
+        };
+      }),
+    ),
+  });
 
   const teacherMap = new Map<string, TeacherType>();
 
@@ -210,7 +228,11 @@ export default async function NotesPage() {
 
         subjectName: cours?.nameCours || "Cours non defini",
 
-        maxScore: cours?.ponderation ? cours.ponderation * 10 : 10,
+        maxScore:
+          resolveCoursePonderation(ponderationMap, {
+            coursId: teaching.coursId,
+            optionId: classe?.optionId,
+          }) * 10,
 
         fiches:
           teaching.fiche?.map((f) => ({
@@ -238,7 +260,11 @@ export default async function NotesPage() {
         codeclasse: classe?.codeClasse || "N/A",
         subjectId: teaching.coursId || "N/A",
         subjectName: cours?.nameCours || "Cours non défini",
-        maxScore: cours?.ponderation ? cours.ponderation * 10 : 10,
+        maxScore:
+          resolveCoursePonderation(ponderationMap, {
+            coursId: teaching.coursId,
+            optionId: classe?.optionId,
+          }) * 10,
         fiches: teaching.fiche.map((f) => ({
           id: f.id,
           status: f.status,

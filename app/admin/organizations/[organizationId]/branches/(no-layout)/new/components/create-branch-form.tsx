@@ -26,6 +26,13 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -79,6 +86,7 @@ export function CreateBranchForm({
       latitude: defaultValues?.latitude ?? -4.4419,
       longitude: defaultValues?.longitude ?? 15.2663,
       attendanceRadius: defaultValues?.attendanceRadius ?? 100,
+      typebranch: defaultValues?.typebranch ?? "SECONDAIRE",
     },
     mode: "onSubmit",
     reValidateMode: "onBlur",
@@ -137,10 +145,54 @@ export function CreateBranchForm({
     form.clearErrors("root");
 
     try {
+      const formData = new FormData();
+
+      formData.append("name", values.name ?? "");
+      formData.append("code", values.code ?? "");
+      formData.append("adresse", values.adresse ?? "");
+      formData.append("ville", values.ville ?? "");
+      formData.append("pays", values.pays ?? "");
+      formData.append("idnat", values.idnat ?? "");
+      formData.append("tel", values.tel ?? "");
+      formData.append("latitude", String(values.latitude ?? ""));
+      formData.append("longitude", String(values.longitude ?? ""));
+      formData.append("attendanceRadius", String(values.attendanceRadius ?? ""));
+      formData.append("typebranch", values.typebranch ?? "SECONDAIRE");
+      formData.append("image", JSON.stringify(values.image ?? {
+        logo: "",
+        event: [],
+        gallery: [],
+        ecole: [],
+      }));
+
+      const logoFile = document.querySelector<HTMLInputElement>(
+        'input[name="logoFile"]',
+      )?.files?.[0];
+      const eventFiles = document.querySelector<HTMLInputElement>(
+        'input[name="eventFiles"]',
+      )?.files;
+      const galleryFiles = document.querySelector<HTMLInputElement>(
+        'input[name="galleryFiles"]',
+      )?.files;
+      const ecoleFiles = document.querySelector<HTMLInputElement>(
+        'input[name="ecoleFiles"]',
+      )?.files;
+
+      if (logoFile) formData.append("logoFile", logoFile);
+      Array.from(eventFiles ?? []).forEach((file) =>
+        formData.append("eventFiles", file),
+      );
+      Array.from(galleryFiles ?? []).forEach((file) =>
+        formData.append("galleryFiles", file),
+      );
+      Array.from(ecoleFiles ?? []).forEach((file) =>
+        formData.append("ecoleFiles", file),
+      );
+
       const result =
         mode === "update" && branchId
-          ? await updateBranchAction(branchId, values)
-          : await createBranchAction(organizationId, values);
+          ? await updateBranchAction(branchId, formData)
+          : await createBranchAction(organizationId, formData);
 
       if (result.error) {
         form.setError("root", {
@@ -315,29 +367,6 @@ export function CreateBranchForm({
                   <div className="grid gap-4 sm:grid-cols-2">
                     <FormField
                       control={form.control}
-                      name="code"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Code école</FormLabel>
-                          <FormControl>
-                            <Input
-                              {...field}
-                              placeholder="KIN"
-                              autoCapitalize="characters"
-                              className="h-12 rounded-2xl"
-                              disabled={isSubmitting}
-                              onChange={(e) =>
-                                field.onChange(e.target.value.toUpperCase())
-                              }
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
                       name="idnat"
                       render={({ field }) => (
                         <FormItem>
@@ -357,6 +386,34 @@ export function CreateBranchForm({
                   </div>
 
                   <div className="grid gap-4 sm:grid-cols-2">
+                    <FormField
+                      control={form.control}
+                      name="typebranch"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Type de branche</FormLabel>
+                          <Select
+                            value={field.value}
+                            onValueChange={field.onChange}
+                            disabled={isSubmitting}
+                          >
+                            <FormControl>
+                              <SelectTrigger className="h-12 rounded-2xl">
+                                <SelectValue placeholder="Selectionner le type" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="PRIMAIRE">Primaire</SelectItem>
+                              <SelectItem value="SECONDAIRE">
+                                Secondaire
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
                     <FormField
                       control={form.control}
                       name="tel"
@@ -568,6 +625,7 @@ export function CreateBranchForm({
                       <div>
                         <FormLabel>Logo</FormLabel>
                         <Input
+                          name="logoFile"
                           type="file"
                           accept="image/png,image/jpeg,image/jpg,image/webp"
                           className="mt-2 h-12 rounded-2xl"
@@ -579,6 +637,7 @@ export function CreateBranchForm({
                       <div>
                         <FormLabel>Images événements</FormLabel>
                         <Input
+                          name="eventFiles"
                           type="file"
                           multiple
                           accept="image/png,image/jpeg,image/jpg,image/webp"
@@ -591,6 +650,7 @@ export function CreateBranchForm({
                       <div>
                         <FormLabel>Galerie</FormLabel>
                         <Input
+                          name="galleryFiles"
                           type="file"
                           multiple
                           accept="image/png,image/jpeg,image/jpg,image/webp"
@@ -602,6 +662,7 @@ export function CreateBranchForm({
                       <div>
                         <FormLabel>Ecole</FormLabel>
                         <Input
+                          name="ecoleFiles"
                           type="file"
                           multiple
                           accept="image/png,image/jpeg,image/jpg,image/webp"

@@ -103,7 +103,12 @@ export async function initClasses() {
     }
 
     await Prisma.classe.upsert({
-      where: { codeClasse: classe.codeClasse },
+      where: {
+        branchId_codeClasse: {
+          branchId,
+          codeClasse: classe.codeClasse,
+        },
+      },
       update: {
         nameClasse: classe.nameClasse,
         optionId,

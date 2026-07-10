@@ -239,11 +239,12 @@ export type SchoolYearOrderByWithRelationInput = {
 
 export type SchoolYearWhereUniqueInput = Prisma.AtLeast<{
   id?: string
-  nameYear?: string
   branchId_startYear_endYear?: Prisma.SchoolYearBranchIdStartYearEndYearCompoundUniqueInput
+  branchId_nameYear?: Prisma.SchoolYearBranchIdNameYearCompoundUniqueInput
   AND?: Prisma.SchoolYearWhereInput | Prisma.SchoolYearWhereInput[]
   OR?: Prisma.SchoolYearWhereInput[]
   NOT?: Prisma.SchoolYearWhereInput | Prisma.SchoolYearWhereInput[]
+  nameYear?: Prisma.StringFilter<"SchoolYear"> | string
   startYear?: Prisma.DateTimeFilter<"SchoolYear"> | Date | string
   endYear?: Prisma.DateTimeFilter<"SchoolYear"> | Date | string
   isCurrentYear?: Prisma.BoolFilter<"SchoolYear"> | boolean
@@ -259,7 +260,7 @@ export type SchoolYearWhereUniqueInput = Prisma.AtLeast<{
   parentFeedback?: Prisma.ParentFeedbackListRelationFilter
   attendanceSession?: Prisma.AttendanceSessionListRelationFilter
   branch?: Prisma.XOR<Prisma.BranchScalarRelationFilter, Prisma.BranchWhereInput>
-}, "id" | "nameYear" | "branchId_startYear_endYear">
+}, "id" | "branchId_startYear_endYear" | "branchId_nameYear">
 
 export type SchoolYearOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
@@ -411,6 +412,11 @@ export type SchoolYearBranchIdStartYearEndYearCompoundUniqueInput = {
   branchId: string
   startYear: Date | string
   endYear: Date | string
+}
+
+export type SchoolYearBranchIdNameYearCompoundUniqueInput = {
+  branchId: string
+  nameYear: string
 }
 
 export type SchoolYearCountOrderByAggregateInput = {

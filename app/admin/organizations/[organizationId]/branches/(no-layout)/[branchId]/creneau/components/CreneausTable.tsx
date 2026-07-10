@@ -27,6 +27,7 @@ const CreneausTable: React.FC<CreneausTableProps> = ({ refreshKey }) => {
   const [showUpdateDialog, setShowUpdateDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [selectedCreneau, setSelectedCreneau] = useState<ICreneau | null>(null);
+  const [localRefreshKey, setLocalRefreshKey] = useState(0);
 
   useEffect(() => {
     const fetchCreneaus = async () => {
@@ -45,7 +46,7 @@ const CreneausTable: React.FC<CreneausTableProps> = ({ refreshKey }) => {
     };
 
     fetchCreneaus();
-  }, [refreshKey]);
+  }, [refreshKey, localRefreshKey]);
 
   // Filtrer les données
   const filteredCreneaux = creneaux.filter((creneau) => {
@@ -69,7 +70,10 @@ const CreneausTable: React.FC<CreneausTableProps> = ({ refreshKey }) => {
 
   const handleActionSuccess = () => {
     // Rafraîchir les données après une action
-    window.location.reload();
+    setShowUpdateDialog(false);
+    setShowDeleteDialog(false);
+    setSelectedCreneau(null);
+    setLocalRefreshKey((value) => value + 1);
   };
 
   // Configuration des colonnes pour desktop

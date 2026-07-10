@@ -241,29 +241,51 @@ export const coursData = [
 export async function initCours() {
   const branchId = await getSeedBranchId();
   console.log("📖 Initialisation des cours...");
+  const options = await Prisma.option.findMany({
+    where: { branchId },
+    select: { id: true },
+  });
 
   for (const cours of coursData) {
     try {
-      await Prisma.cours.upsert({
+      const { ponderation, ...coursValues } = cours;
+      const savedCours = await Prisma.cours.upsert({
         where: {
-          codeCours: cours.codeCours,
+          branchId_codeCours: {
+            branchId,
+            codeCours: cours.codeCours,
+          },
         },
         update: {
-          nameCours: cours.nameCours,
-          description: cours.description,
-          ponderation: cours.ponderation,
-          statusCours: cours.statusCours,
+          nameCours: coursValues.nameCours,
+          description: coursValues.description,
+          statusCours: coursValues.statusCours,
           branchId,
         },
         create: {
-          codeCours: cours.codeCours,
-          nameCours: cours.nameCours,
-          description: cours.description,
-          ponderation: cours.ponderation,
-          statusCours: cours.statusCours,
+          ...coursValues,
           branchId,
         },
       });
+
+      for (const option of options) {
+        await Prisma.coursOptionPonderation.upsert({
+          where: {
+            branchId_coursId_optionId: {
+              branchId,
+              coursId: savedCours.id,
+              optionId: option.id,
+            },
+          },
+          update: { ponderation },
+          create: {
+            branchId,
+            coursId: savedCours.id,
+            optionId: option.id,
+            ponderation,
+          },
+        });
+      }
     } catch (err) {
       console.error(`❌ erreur cours ${cours.codeCours}`, err);
     }

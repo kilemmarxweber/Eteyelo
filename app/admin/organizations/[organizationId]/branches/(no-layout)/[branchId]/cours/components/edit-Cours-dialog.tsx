@@ -52,7 +52,6 @@ export function UpdateCoursDialog({
             id: cours.id,
             codeCours: cours.codeCours,
             nameCours: cours.nameCours,
-            ponderation: cours.ponderation,
             description: cours.description,
           }} // Pass the cours data for editing
           onCoursAction={handleUpdate}

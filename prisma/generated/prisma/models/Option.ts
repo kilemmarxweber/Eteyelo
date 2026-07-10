@@ -208,6 +208,7 @@ export type OptionWhereInput = {
   branchId?: Prisma.StringFilter<"Option"> | string
   section?: Prisma.XOR<Prisma.SectionNullableScalarRelationFilter, Prisma.SectionWhereInput> | null
   classe?: Prisma.ClasseListRelationFilter
+  coursPonderations?: Prisma.CoursOptionPonderationListRelationFilter
   branch?: Prisma.XOR<Prisma.BranchScalarRelationFilter, Prisma.BranchWhereInput>
 }
 
@@ -222,15 +223,18 @@ export type OptionOrderByWithRelationInput = {
   branchId?: Prisma.SortOrder
   section?: Prisma.SectionOrderByWithRelationInput
   classe?: Prisma.ClasseOrderByRelationAggregateInput
+  coursPonderations?: Prisma.CoursOptionPonderationOrderByRelationAggregateInput
   branch?: Prisma.BranchOrderByWithRelationInput
 }
 
 export type OptionWhereUniqueInput = Prisma.AtLeast<{
   id?: string
-  codeOption?: string
+  branchId_codeOption?: Prisma.OptionBranchIdCodeOptionCompoundUniqueInput
+  branchId_nameOption?: Prisma.OptionBranchIdNameOptionCompoundUniqueInput
   AND?: Prisma.OptionWhereInput | Prisma.OptionWhereInput[]
   OR?: Prisma.OptionWhereInput[]
   NOT?: Prisma.OptionWhereInput | Prisma.OptionWhereInput[]
+  codeOption?: Prisma.StringFilter<"Option"> | string
   nameOption?: Prisma.StringFilter<"Option"> | string
   sectionId?: Prisma.StringNullableFilter<"Option"> | string | null
   statusOption?: Prisma.BoolNullableFilter<"Option"> | boolean | null
@@ -239,8 +243,9 @@ export type OptionWhereUniqueInput = Prisma.AtLeast<{
   branchId?: Prisma.StringFilter<"Option"> | string
   section?: Prisma.XOR<Prisma.SectionNullableScalarRelationFilter, Prisma.SectionWhereInput> | null
   classe?: Prisma.ClasseListRelationFilter
+  coursPonderations?: Prisma.CoursOptionPonderationListRelationFilter
   branch?: Prisma.XOR<Prisma.BranchScalarRelationFilter, Prisma.BranchWhereInput>
-}, "id" | "codeOption">
+}, "id" | "branchId_codeOption" | "branchId_nameOption">
 
 export type OptionOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
@@ -279,6 +284,7 @@ export type OptionCreateInput = {
   updatedAt?: Date | string
   section?: Prisma.SectionCreateNestedOneWithoutOptionInput
   classe?: Prisma.ClasseCreateNestedManyWithoutOptionInput
+  coursPonderations?: Prisma.CoursOptionPonderationCreateNestedManyWithoutOptionInput
   branch: Prisma.BranchCreateNestedOneWithoutOptionInput
 }
 
@@ -292,6 +298,7 @@ export type OptionUncheckedCreateInput = {
   updatedAt?: Date | string
   branchId: string
   classe?: Prisma.ClasseUncheckedCreateNestedManyWithoutOptionInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedCreateNestedManyWithoutOptionInput
 }
 
 export type OptionUpdateInput = {
@@ -303,6 +310,7 @@ export type OptionUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   section?: Prisma.SectionUpdateOneWithoutOptionNestedInput
   classe?: Prisma.ClasseUpdateManyWithoutOptionNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUpdateManyWithoutOptionNestedInput
   branch?: Prisma.BranchUpdateOneRequiredWithoutOptionNestedInput
 }
 
@@ -316,6 +324,7 @@ export type OptionUncheckedUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
   classe?: Prisma.ClasseUncheckedUpdateManyWithoutOptionNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedUpdateManyWithoutOptionNestedInput
 }
 
 export type OptionCreateManyInput = {
@@ -352,6 +361,16 @@ export type OptionUncheckedUpdateManyInput = {
 export type OptionNullableScalarRelationFilter = {
   is?: Prisma.OptionWhereInput | null
   isNot?: Prisma.OptionWhereInput | null
+}
+
+export type OptionBranchIdCodeOptionCompoundUniqueInput = {
+  branchId: string
+  codeOption: string
+}
+
+export type OptionBranchIdNameOptionCompoundUniqueInput = {
+  branchId: string
+  nameOption: string
 }
 
 export type OptionCountOrderByAggregateInput = {
@@ -395,6 +414,11 @@ export type OptionListRelationFilter = {
 
 export type OptionOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
+}
+
+export type OptionScalarRelationFilter = {
+  is?: Prisma.OptionWhereInput
+  isNot?: Prisma.OptionWhereInput
 }
 
 export type OptionCreateNestedOneWithoutClasseInput = {
@@ -455,6 +479,20 @@ export type OptionUncheckedUpdateManyWithoutSectionNestedInput = {
   deleteMany?: Prisma.OptionScalarWhereInput | Prisma.OptionScalarWhereInput[]
 }
 
+export type OptionCreateNestedOneWithoutCoursPonderationsInput = {
+  create?: Prisma.XOR<Prisma.OptionCreateWithoutCoursPonderationsInput, Prisma.OptionUncheckedCreateWithoutCoursPonderationsInput>
+  connectOrCreate?: Prisma.OptionCreateOrConnectWithoutCoursPonderationsInput
+  connect?: Prisma.OptionWhereUniqueInput
+}
+
+export type OptionUpdateOneRequiredWithoutCoursPonderationsNestedInput = {
+  create?: Prisma.XOR<Prisma.OptionCreateWithoutCoursPonderationsInput, Prisma.OptionUncheckedCreateWithoutCoursPonderationsInput>
+  connectOrCreate?: Prisma.OptionCreateOrConnectWithoutCoursPonderationsInput
+  upsert?: Prisma.OptionUpsertWithoutCoursPonderationsInput
+  connect?: Prisma.OptionWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.OptionUpdateToOneWithWhereWithoutCoursPonderationsInput, Prisma.OptionUpdateWithoutCoursPonderationsInput>, Prisma.OptionUncheckedUpdateWithoutCoursPonderationsInput>
+}
+
 export type OptionCreateNestedManyWithoutBranchInput = {
   create?: Prisma.XOR<Prisma.OptionCreateWithoutBranchInput, Prisma.OptionUncheckedCreateWithoutBranchInput> | Prisma.OptionCreateWithoutBranchInput[] | Prisma.OptionUncheckedCreateWithoutBranchInput[]
   connectOrCreate?: Prisma.OptionCreateOrConnectWithoutBranchInput | Prisma.OptionCreateOrConnectWithoutBranchInput[]
@@ -505,6 +543,7 @@ export type OptionCreateWithoutClasseInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   section?: Prisma.SectionCreateNestedOneWithoutOptionInput
+  coursPonderations?: Prisma.CoursOptionPonderationCreateNestedManyWithoutOptionInput
   branch: Prisma.BranchCreateNestedOneWithoutOptionInput
 }
 
@@ -517,6 +556,7 @@ export type OptionUncheckedCreateWithoutClasseInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   branchId: string
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedCreateNestedManyWithoutOptionInput
 }
 
 export type OptionCreateOrConnectWithoutClasseInput = {
@@ -543,6 +583,7 @@ export type OptionUpdateWithoutClasseInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   section?: Prisma.SectionUpdateOneWithoutOptionNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUpdateManyWithoutOptionNestedInput
   branch?: Prisma.BranchUpdateOneRequiredWithoutOptionNestedInput
 }
 
@@ -555,6 +596,7 @@ export type OptionUncheckedUpdateWithoutClasseInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedUpdateManyWithoutOptionNestedInput
 }
 
 export type OptionCreateWithoutSectionInput = {
@@ -565,6 +607,7 @@ export type OptionCreateWithoutSectionInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   classe?: Prisma.ClasseCreateNestedManyWithoutOptionInput
+  coursPonderations?: Prisma.CoursOptionPonderationCreateNestedManyWithoutOptionInput
   branch: Prisma.BranchCreateNestedOneWithoutOptionInput
 }
 
@@ -577,6 +620,7 @@ export type OptionUncheckedCreateWithoutSectionInput = {
   updatedAt?: Date | string
   branchId: string
   classe?: Prisma.ClasseUncheckedCreateNestedManyWithoutOptionInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedCreateNestedManyWithoutOptionInput
 }
 
 export type OptionCreateOrConnectWithoutSectionInput = {
@@ -619,6 +663,70 @@ export type OptionScalarWhereInput = {
   branchId?: Prisma.StringFilter<"Option"> | string
 }
 
+export type OptionCreateWithoutCoursPonderationsInput = {
+  id?: string
+  codeOption: string
+  nameOption: string
+  statusOption?: boolean | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  section?: Prisma.SectionCreateNestedOneWithoutOptionInput
+  classe?: Prisma.ClasseCreateNestedManyWithoutOptionInput
+  branch: Prisma.BranchCreateNestedOneWithoutOptionInput
+}
+
+export type OptionUncheckedCreateWithoutCoursPonderationsInput = {
+  id?: string
+  codeOption: string
+  nameOption: string
+  sectionId?: string | null
+  statusOption?: boolean | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  branchId: string
+  classe?: Prisma.ClasseUncheckedCreateNestedManyWithoutOptionInput
+}
+
+export type OptionCreateOrConnectWithoutCoursPonderationsInput = {
+  where: Prisma.OptionWhereUniqueInput
+  create: Prisma.XOR<Prisma.OptionCreateWithoutCoursPonderationsInput, Prisma.OptionUncheckedCreateWithoutCoursPonderationsInput>
+}
+
+export type OptionUpsertWithoutCoursPonderationsInput = {
+  update: Prisma.XOR<Prisma.OptionUpdateWithoutCoursPonderationsInput, Prisma.OptionUncheckedUpdateWithoutCoursPonderationsInput>
+  create: Prisma.XOR<Prisma.OptionCreateWithoutCoursPonderationsInput, Prisma.OptionUncheckedCreateWithoutCoursPonderationsInput>
+  where?: Prisma.OptionWhereInput
+}
+
+export type OptionUpdateToOneWithWhereWithoutCoursPonderationsInput = {
+  where?: Prisma.OptionWhereInput
+  data: Prisma.XOR<Prisma.OptionUpdateWithoutCoursPonderationsInput, Prisma.OptionUncheckedUpdateWithoutCoursPonderationsInput>
+}
+
+export type OptionUpdateWithoutCoursPonderationsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  codeOption?: Prisma.StringFieldUpdateOperationsInput | string
+  nameOption?: Prisma.StringFieldUpdateOperationsInput | string
+  statusOption?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  section?: Prisma.SectionUpdateOneWithoutOptionNestedInput
+  classe?: Prisma.ClasseUpdateManyWithoutOptionNestedInput
+  branch?: Prisma.BranchUpdateOneRequiredWithoutOptionNestedInput
+}
+
+export type OptionUncheckedUpdateWithoutCoursPonderationsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  codeOption?: Prisma.StringFieldUpdateOperationsInput | string
+  nameOption?: Prisma.StringFieldUpdateOperationsInput | string
+  sectionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  statusOption?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  branchId?: Prisma.StringFieldUpdateOperationsInput | string
+  classe?: Prisma.ClasseUncheckedUpdateManyWithoutOptionNestedInput
+}
+
 export type OptionCreateWithoutBranchInput = {
   id?: string
   codeOption: string
@@ -628,6 +736,7 @@ export type OptionCreateWithoutBranchInput = {
   updatedAt?: Date | string
   section?: Prisma.SectionCreateNestedOneWithoutOptionInput
   classe?: Prisma.ClasseCreateNestedManyWithoutOptionInput
+  coursPonderations?: Prisma.CoursOptionPonderationCreateNestedManyWithoutOptionInput
 }
 
 export type OptionUncheckedCreateWithoutBranchInput = {
@@ -639,6 +748,7 @@ export type OptionUncheckedCreateWithoutBranchInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   classe?: Prisma.ClasseUncheckedCreateNestedManyWithoutOptionInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedCreateNestedManyWithoutOptionInput
 }
 
 export type OptionCreateOrConnectWithoutBranchInput = {
@@ -685,6 +795,7 @@ export type OptionUpdateWithoutSectionInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   classe?: Prisma.ClasseUpdateManyWithoutOptionNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUpdateManyWithoutOptionNestedInput
   branch?: Prisma.BranchUpdateOneRequiredWithoutOptionNestedInput
 }
 
@@ -697,6 +808,7 @@ export type OptionUncheckedUpdateWithoutSectionInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
   classe?: Prisma.ClasseUncheckedUpdateManyWithoutOptionNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedUpdateManyWithoutOptionNestedInput
 }
 
 export type OptionUncheckedUpdateManyWithoutSectionInput = {
@@ -728,6 +840,7 @@ export type OptionUpdateWithoutBranchInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   section?: Prisma.SectionUpdateOneWithoutOptionNestedInput
   classe?: Prisma.ClasseUpdateManyWithoutOptionNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUpdateManyWithoutOptionNestedInput
 }
 
 export type OptionUncheckedUpdateWithoutBranchInput = {
@@ -739,6 +852,7 @@ export type OptionUncheckedUpdateWithoutBranchInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   classe?: Prisma.ClasseUncheckedUpdateManyWithoutOptionNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedUpdateManyWithoutOptionNestedInput
 }
 
 export type OptionUncheckedUpdateManyWithoutBranchInput = {
@@ -758,10 +872,12 @@ export type OptionUncheckedUpdateManyWithoutBranchInput = {
 
 export type OptionCountOutputType = {
   classe: number
+  coursPonderations: number
 }
 
 export type OptionCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   classe?: boolean | OptionCountOutputTypeCountClasseArgs
+  coursPonderations?: boolean | OptionCountOutputTypeCountCoursPonderationsArgs
 }
 
 /**
@@ -781,6 +897,13 @@ export type OptionCountOutputTypeCountClasseArgs<ExtArgs extends runtime.Types.E
   where?: Prisma.ClasseWhereInput
 }
 
+/**
+ * OptionCountOutputType without action
+ */
+export type OptionCountOutputTypeCountCoursPonderationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.CoursOptionPonderationWhereInput
+}
+
 
 export type OptionSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -793,6 +916,7 @@ export type OptionSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   branchId?: boolean
   section?: boolean | Prisma.Option$sectionArgs<ExtArgs>
   classe?: boolean | Prisma.Option$classeArgs<ExtArgs>
+  coursPonderations?: boolean | Prisma.Option$coursPonderationsArgs<ExtArgs>
   branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
   _count?: boolean | Prisma.OptionCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["option"]>
@@ -838,6 +962,7 @@ export type OptionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
 export type OptionInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   section?: boolean | Prisma.Option$sectionArgs<ExtArgs>
   classe?: boolean | Prisma.Option$classeArgs<ExtArgs>
+  coursPonderations?: boolean | Prisma.Option$coursPonderationsArgs<ExtArgs>
   branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
   _count?: boolean | Prisma.OptionCountOutputTypeDefaultArgs<ExtArgs>
 }
@@ -855,6 +980,7 @@ export type $OptionPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
   objects: {
     section: Prisma.$SectionPayload<ExtArgs> | null
     classe: Prisma.$ClassePayload<ExtArgs>[]
+    coursPonderations: Prisma.$CoursOptionPonderationPayload<ExtArgs>[]
     branch: Prisma.$BranchPayload<ExtArgs>
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
@@ -1262,6 +1388,7 @@ export interface Prisma__OptionClient<T, Null = never, ExtArgs extends runtime.T
   readonly [Symbol.toStringTag]: "PrismaPromise"
   section<T extends Prisma.Option$sectionArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Option$sectionArgs<ExtArgs>>): Prisma.Prisma__SectionClient<runtime.Types.Result.GetResult<Prisma.$SectionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   classe<T extends Prisma.Option$classeArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Option$classeArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ClassePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  coursPonderations<T extends Prisma.Option$coursPonderationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Option$coursPonderationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CoursOptionPonderationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   branch<T extends Prisma.BranchDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.BranchDefaultArgs<ExtArgs>>): Prisma.Prisma__BranchClient<runtime.Types.Result.GetResult<Prisma.$BranchPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -1741,6 +1868,30 @@ export type Option$classeArgs<ExtArgs extends runtime.Types.Extensions.InternalA
   take?: number
   skip?: number
   distinct?: Prisma.ClasseScalarFieldEnum | Prisma.ClasseScalarFieldEnum[]
+}
+
+/**
+ * Option.coursPonderations
+ */
+export type Option$coursPonderationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the CoursOptionPonderation
+   */
+  select?: Prisma.CoursOptionPonderationSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the CoursOptionPonderation
+   */
+  omit?: Prisma.CoursOptionPonderationOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.CoursOptionPonderationInclude<ExtArgs> | null
+  where?: Prisma.CoursOptionPonderationWhereInput
+  orderBy?: Prisma.CoursOptionPonderationOrderByWithRelationInput | Prisma.CoursOptionPonderationOrderByWithRelationInput[]
+  cursor?: Prisma.CoursOptionPonderationWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.CoursOptionPonderationScalarFieldEnum | Prisma.CoursOptionPonderationScalarFieldEnum[]
 }
 
 /**

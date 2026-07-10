@@ -1,6 +1,7 @@
 "use server";
 
 import { headers } from "next/headers";
+import { revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth";
 import { canManageOrganization } from "@/lib/auth/session-roles";
 import { prisma } from "@/lib/prisma";
@@ -21,6 +22,12 @@ type ScheduleContext = {
   canUpdateSchedules: boolean;
   canDeleteSchedules: boolean;
 };
+
+function revalidateSchedulePages(ctx: ScheduleContext) {
+  revalidatePath(
+    `/admin/organizations/${ctx.organizationId}/branches/${ctx.branchId}/schedule`,
+  );
+}
 
 function assertScheduleWriteAccess(
   ctx: ScheduleContext,
@@ -120,6 +127,7 @@ function scopedTeachingWhere(
     },
     schoolYear: {
       branchId: ctx.branchId,
+      isCurrentYear: true,
       branch: { organizationId: ctx.organizationId },
     },
     teacher: {
@@ -191,7 +199,7 @@ export const createScheduleAction = action
       );
     }
 
-    return prisma.schedule.create({
+    const schedule = await prisma.schedule.create({
       data: {
         hour: scheduleHour,
         teachingId: teaching.id,
@@ -199,6 +207,8 @@ export const createScheduleAction = action
         createdBy: ctx.branchMemberId ?? undefined,
       },
     });
+    revalidateSchedulePages(ctx);
+    return schedule;
   });
 
 // UPDATE SCHEDULE
@@ -263,7 +273,7 @@ export const updateScheduleAction = action
       );
     }
 
-    return prisma.schedule.update({
+    const schedule = await prisma.schedule.update({
       data: {
         hour: scheduleHour,
         teachingId: teaching.id,
@@ -274,6 +284,8 @@ export const updateScheduleAction = action
         id,
       },
     });
+    revalidateSchedulePages(ctx);
+    return schedule;
   });
 
 // GET SCHEDULES BY CLASS
@@ -412,11 +424,13 @@ export const deleteScheduleAction = action
       throw new Error("Horaire introuvable dans cette branche");
     }
 
-    return prisma.schedule.delete({
+    const deletedSchedule = await prisma.schedule.delete({
       where: {
         id: input.id,
       },
     });
+    revalidateSchedulePages(ctx);
+    return deletedSchedule;
   });
 
 export const getScheduleCoursByClasseAction = action
@@ -450,7 +464,7 @@ export const getScheduleCoursByClasseAction = action
       codeCours: teaching.cours?.codeCours || "",
       nameCours: teaching.cours?.nameCours || "",
       description: teaching.cours?.description || "",
-      ponderation: teaching.cours?.ponderation || 0,
+      ponderation: 0,
     }));
   });
 

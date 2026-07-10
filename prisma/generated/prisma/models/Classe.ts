@@ -178,7 +178,7 @@ export type ClasseGroupByOutputType = {
   optionId: string | null
   statusClasse: boolean | null
   creneauId: string | null
-  branchId: string | null
+  branchId: string
   createdAt: Date
   updatedAt: Date
   _count: ClasseCountAggregateOutputType | null
@@ -211,10 +211,10 @@ export type ClasseWhereInput = {
   optionId?: Prisma.StringNullableFilter<"Classe"> | string | null
   statusClasse?: Prisma.BoolNullableFilter<"Classe"> | boolean | null
   creneauId?: Prisma.StringNullableFilter<"Classe"> | string | null
-  branchId?: Prisma.StringNullableFilter<"Classe"> | string | null
+  branchId?: Prisma.StringFilter<"Classe"> | string
   createdAt?: Prisma.DateTimeFilter<"Classe"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Classe"> | Date | string
-  branch?: Prisma.XOR<Prisma.BranchNullableScalarRelationFilter, Prisma.BranchWhereInput> | null
+  branch?: Prisma.XOR<Prisma.BranchScalarRelationFilter, Prisma.BranchWhereInput>
   classEnrollment?: Prisma.ClassEnrollmentListRelationFilter
   teaching?: Prisma.TeachingListRelationFilter
   Frais?: Prisma.FraisListRelationFilter
@@ -231,7 +231,7 @@ export type ClasseOrderByWithRelationInput = {
   optionId?: Prisma.SortOrderInput | Prisma.SortOrder
   statusClasse?: Prisma.SortOrderInput | Prisma.SortOrder
   creneauId?: Prisma.SortOrderInput | Prisma.SortOrder
-  branchId?: Prisma.SortOrderInput | Prisma.SortOrder
+  branchId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   branch?: Prisma.BranchOrderByWithRelationInput
@@ -246,18 +246,20 @@ export type ClasseOrderByWithRelationInput = {
 
 export type ClasseWhereUniqueInput = Prisma.AtLeast<{
   id?: string
-  codeClasse?: string
+  branchId_codeClasse?: Prisma.ClasseBranchIdCodeClasseCompoundUniqueInput
+  branchId_nameClasse?: Prisma.ClasseBranchIdNameClasseCompoundUniqueInput
   AND?: Prisma.ClasseWhereInput | Prisma.ClasseWhereInput[]
   OR?: Prisma.ClasseWhereInput[]
   NOT?: Prisma.ClasseWhereInput | Prisma.ClasseWhereInput[]
+  codeClasse?: Prisma.StringFilter<"Classe"> | string
   nameClasse?: Prisma.StringFilter<"Classe"> | string
   optionId?: Prisma.StringNullableFilter<"Classe"> | string | null
   statusClasse?: Prisma.BoolNullableFilter<"Classe"> | boolean | null
   creneauId?: Prisma.StringNullableFilter<"Classe"> | string | null
-  branchId?: Prisma.StringNullableFilter<"Classe"> | string | null
+  branchId?: Prisma.StringFilter<"Classe"> | string
   createdAt?: Prisma.DateTimeFilter<"Classe"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Classe"> | Date | string
-  branch?: Prisma.XOR<Prisma.BranchNullableScalarRelationFilter, Prisma.BranchWhereInput> | null
+  branch?: Prisma.XOR<Prisma.BranchScalarRelationFilter, Prisma.BranchWhereInput>
   classEnrollment?: Prisma.ClassEnrollmentListRelationFilter
   teaching?: Prisma.TeachingListRelationFilter
   Frais?: Prisma.FraisListRelationFilter
@@ -265,7 +267,7 @@ export type ClasseWhereUniqueInput = Prisma.AtLeast<{
   creneau?: Prisma.XOR<Prisma.CreneauNullableScalarRelationFilter, Prisma.CreneauWhereInput> | null
   CalendarEvent?: Prisma.CalendarEventListRelationFilter
   fiche?: Prisma.FicheListRelationFilter
-}, "id" | "codeClasse">
+}, "id" | "branchId_codeClasse" | "branchId_nameClasse">
 
 export type ClasseOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
@@ -274,7 +276,7 @@ export type ClasseOrderByWithAggregationInput = {
   optionId?: Prisma.SortOrderInput | Prisma.SortOrder
   statusClasse?: Prisma.SortOrderInput | Prisma.SortOrder
   creneauId?: Prisma.SortOrderInput | Prisma.SortOrder
-  branchId?: Prisma.SortOrderInput | Prisma.SortOrder
+  branchId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.ClasseCountOrderByAggregateInput
@@ -292,7 +294,7 @@ export type ClasseScalarWhereWithAggregatesInput = {
   optionId?: Prisma.StringNullableWithAggregatesFilter<"Classe"> | string | null
   statusClasse?: Prisma.BoolNullableWithAggregatesFilter<"Classe"> | boolean | null
   creneauId?: Prisma.StringNullableWithAggregatesFilter<"Classe"> | string | null
-  branchId?: Prisma.StringNullableWithAggregatesFilter<"Classe"> | string | null
+  branchId?: Prisma.StringWithAggregatesFilter<"Classe"> | string
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Classe"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Classe"> | Date | string
 }
@@ -304,7 +306,7 @@ export type ClasseCreateInput = {
   statusClasse?: boolean | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  branch?: Prisma.BranchCreateNestedOneWithoutClassesInput
+  branch: Prisma.BranchCreateNestedOneWithoutClassesInput
   classEnrollment?: Prisma.ClassEnrollmentCreateNestedManyWithoutClasseInput
   teaching?: Prisma.TeachingCreateNestedManyWithoutClasseInput
   Frais?: Prisma.FraisCreateNestedManyWithoutClasseInput
@@ -321,7 +323,7 @@ export type ClasseUncheckedCreateInput = {
   optionId?: string | null
   statusClasse?: boolean | null
   creneauId?: string | null
-  branchId?: string | null
+  branchId: string
   createdAt?: Date | string
   updatedAt?: Date | string
   classEnrollment?: Prisma.ClassEnrollmentUncheckedCreateNestedManyWithoutClasseInput
@@ -338,7 +340,7 @@ export type ClasseUpdateInput = {
   statusClasse?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  branch?: Prisma.BranchUpdateOneWithoutClassesNestedInput
+  branch?: Prisma.BranchUpdateOneRequiredWithoutClassesNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUpdateManyWithoutClasseNestedInput
   teaching?: Prisma.TeachingUpdateManyWithoutClasseNestedInput
   Frais?: Prisma.FraisUpdateManyWithoutClasseNestedInput
@@ -355,7 +357,7 @@ export type ClasseUncheckedUpdateInput = {
   optionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusClasse?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   creneauId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  branchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  branchId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   classEnrollment?: Prisma.ClassEnrollmentUncheckedUpdateManyWithoutClasseNestedInput
@@ -372,7 +374,7 @@ export type ClasseCreateManyInput = {
   optionId?: string | null
   statusClasse?: boolean | null
   creneauId?: string | null
-  branchId?: string | null
+  branchId: string
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -393,7 +395,7 @@ export type ClasseUncheckedUpdateManyInput = {
   optionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusClasse?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   creneauId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  branchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  branchId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -401,6 +403,16 @@ export type ClasseUncheckedUpdateManyInput = {
 export type ClasseScalarRelationFilter = {
   is?: Prisma.ClasseWhereInput
   isNot?: Prisma.ClasseWhereInput
+}
+
+export type ClasseBranchIdCodeClasseCompoundUniqueInput = {
+  branchId: string
+  codeClasse: string
+}
+
+export type ClasseBranchIdNameClasseCompoundUniqueInput = {
+  branchId: string
+  nameClasse: string
 }
 
 export type ClasseCountOrderByAggregateInput = {
@@ -663,7 +675,7 @@ export type ClasseCreateWithoutFraisInput = {
   statusClasse?: boolean | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  branch?: Prisma.BranchCreateNestedOneWithoutClassesInput
+  branch: Prisma.BranchCreateNestedOneWithoutClassesInput
   classEnrollment?: Prisma.ClassEnrollmentCreateNestedManyWithoutClasseInput
   teaching?: Prisma.TeachingCreateNestedManyWithoutClasseInput
   option?: Prisma.OptionCreateNestedOneWithoutClasseInput
@@ -679,7 +691,7 @@ export type ClasseUncheckedCreateWithoutFraisInput = {
   optionId?: string | null
   statusClasse?: boolean | null
   creneauId?: string | null
-  branchId?: string | null
+  branchId: string
   createdAt?: Date | string
   updatedAt?: Date | string
   classEnrollment?: Prisma.ClassEnrollmentUncheckedCreateNestedManyWithoutClasseInput
@@ -711,7 +723,7 @@ export type ClasseUpdateWithoutFraisInput = {
   statusClasse?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  branch?: Prisma.BranchUpdateOneWithoutClassesNestedInput
+  branch?: Prisma.BranchUpdateOneRequiredWithoutClassesNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUpdateManyWithoutClasseNestedInput
   teaching?: Prisma.TeachingUpdateManyWithoutClasseNestedInput
   option?: Prisma.OptionUpdateOneWithoutClasseNestedInput
@@ -727,7 +739,7 @@ export type ClasseUncheckedUpdateWithoutFraisInput = {
   optionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusClasse?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   creneauId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  branchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  branchId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   classEnrollment?: Prisma.ClassEnrollmentUncheckedUpdateManyWithoutClasseNestedInput
@@ -743,7 +755,7 @@ export type ClasseCreateWithoutCreneauInput = {
   statusClasse?: boolean | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  branch?: Prisma.BranchCreateNestedOneWithoutClassesInput
+  branch: Prisma.BranchCreateNestedOneWithoutClassesInput
   classEnrollment?: Prisma.ClassEnrollmentCreateNestedManyWithoutClasseInput
   teaching?: Prisma.TeachingCreateNestedManyWithoutClasseInput
   Frais?: Prisma.FraisCreateNestedManyWithoutClasseInput
@@ -758,7 +770,7 @@ export type ClasseUncheckedCreateWithoutCreneauInput = {
   nameClasse: string
   optionId?: string | null
   statusClasse?: boolean | null
-  branchId?: string | null
+  branchId: string
   createdAt?: Date | string
   updatedAt?: Date | string
   classEnrollment?: Prisma.ClassEnrollmentUncheckedCreateNestedManyWithoutClasseInput
@@ -804,7 +816,7 @@ export type ClasseScalarWhereInput = {
   optionId?: Prisma.StringNullableFilter<"Classe"> | string | null
   statusClasse?: Prisma.BoolNullableFilter<"Classe"> | boolean | null
   creneauId?: Prisma.StringNullableFilter<"Classe"> | string | null
-  branchId?: Prisma.StringNullableFilter<"Classe"> | string | null
+  branchId?: Prisma.StringFilter<"Classe"> | string
   createdAt?: Prisma.DateTimeFilter<"Classe"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Classe"> | Date | string
 }
@@ -816,7 +828,7 @@ export type ClasseCreateWithoutOptionInput = {
   statusClasse?: boolean | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  branch?: Prisma.BranchCreateNestedOneWithoutClassesInput
+  branch: Prisma.BranchCreateNestedOneWithoutClassesInput
   classEnrollment?: Prisma.ClassEnrollmentCreateNestedManyWithoutClasseInput
   teaching?: Prisma.TeachingCreateNestedManyWithoutClasseInput
   Frais?: Prisma.FraisCreateNestedManyWithoutClasseInput
@@ -831,7 +843,7 @@ export type ClasseUncheckedCreateWithoutOptionInput = {
   nameClasse: string
   statusClasse?: boolean | null
   creneauId?: string | null
-  branchId?: string | null
+  branchId: string
   createdAt?: Date | string
   updatedAt?: Date | string
   classEnrollment?: Prisma.ClassEnrollmentUncheckedCreateNestedManyWithoutClasseInput
@@ -874,7 +886,7 @@ export type ClasseCreateWithoutClassEnrollmentInput = {
   statusClasse?: boolean | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  branch?: Prisma.BranchCreateNestedOneWithoutClassesInput
+  branch: Prisma.BranchCreateNestedOneWithoutClassesInput
   teaching?: Prisma.TeachingCreateNestedManyWithoutClasseInput
   Frais?: Prisma.FraisCreateNestedManyWithoutClasseInput
   option?: Prisma.OptionCreateNestedOneWithoutClasseInput
@@ -890,7 +902,7 @@ export type ClasseUncheckedCreateWithoutClassEnrollmentInput = {
   optionId?: string | null
   statusClasse?: boolean | null
   creneauId?: string | null
-  branchId?: string | null
+  branchId: string
   createdAt?: Date | string
   updatedAt?: Date | string
   teaching?: Prisma.TeachingUncheckedCreateNestedManyWithoutClasseInput
@@ -922,7 +934,7 @@ export type ClasseUpdateWithoutClassEnrollmentInput = {
   statusClasse?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  branch?: Prisma.BranchUpdateOneWithoutClassesNestedInput
+  branch?: Prisma.BranchUpdateOneRequiredWithoutClassesNestedInput
   teaching?: Prisma.TeachingUpdateManyWithoutClasseNestedInput
   Frais?: Prisma.FraisUpdateManyWithoutClasseNestedInput
   option?: Prisma.OptionUpdateOneWithoutClasseNestedInput
@@ -938,7 +950,7 @@ export type ClasseUncheckedUpdateWithoutClassEnrollmentInput = {
   optionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusClasse?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   creneauId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  branchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  branchId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   teaching?: Prisma.TeachingUncheckedUpdateManyWithoutClasseNestedInput
@@ -954,7 +966,7 @@ export type ClasseCreateWithoutTeachingInput = {
   statusClasse?: boolean | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  branch?: Prisma.BranchCreateNestedOneWithoutClassesInput
+  branch: Prisma.BranchCreateNestedOneWithoutClassesInput
   classEnrollment?: Prisma.ClassEnrollmentCreateNestedManyWithoutClasseInput
   Frais?: Prisma.FraisCreateNestedManyWithoutClasseInput
   option?: Prisma.OptionCreateNestedOneWithoutClasseInput
@@ -970,7 +982,7 @@ export type ClasseUncheckedCreateWithoutTeachingInput = {
   optionId?: string | null
   statusClasse?: boolean | null
   creneauId?: string | null
-  branchId?: string | null
+  branchId: string
   createdAt?: Date | string
   updatedAt?: Date | string
   classEnrollment?: Prisma.ClassEnrollmentUncheckedCreateNestedManyWithoutClasseInput
@@ -1002,7 +1014,7 @@ export type ClasseUpdateWithoutTeachingInput = {
   statusClasse?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  branch?: Prisma.BranchUpdateOneWithoutClassesNestedInput
+  branch?: Prisma.BranchUpdateOneRequiredWithoutClassesNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUpdateManyWithoutClasseNestedInput
   Frais?: Prisma.FraisUpdateManyWithoutClasseNestedInput
   option?: Prisma.OptionUpdateOneWithoutClasseNestedInput
@@ -1018,7 +1030,7 @@ export type ClasseUncheckedUpdateWithoutTeachingInput = {
   optionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusClasse?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   creneauId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  branchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  branchId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   classEnrollment?: Prisma.ClassEnrollmentUncheckedUpdateManyWithoutClasseNestedInput
@@ -1034,7 +1046,7 @@ export type ClasseCreateWithoutCalendarEventInput = {
   statusClasse?: boolean | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  branch?: Prisma.BranchCreateNestedOneWithoutClassesInput
+  branch: Prisma.BranchCreateNestedOneWithoutClassesInput
   classEnrollment?: Prisma.ClassEnrollmentCreateNestedManyWithoutClasseInput
   teaching?: Prisma.TeachingCreateNestedManyWithoutClasseInput
   Frais?: Prisma.FraisCreateNestedManyWithoutClasseInput
@@ -1050,7 +1062,7 @@ export type ClasseUncheckedCreateWithoutCalendarEventInput = {
   optionId?: string | null
   statusClasse?: boolean | null
   creneauId?: string | null
-  branchId?: string | null
+  branchId: string
   createdAt?: Date | string
   updatedAt?: Date | string
   classEnrollment?: Prisma.ClassEnrollmentUncheckedCreateNestedManyWithoutClasseInput
@@ -1082,7 +1094,7 @@ export type ClasseUpdateWithoutCalendarEventInput = {
   statusClasse?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  branch?: Prisma.BranchUpdateOneWithoutClassesNestedInput
+  branch?: Prisma.BranchUpdateOneRequiredWithoutClassesNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUpdateManyWithoutClasseNestedInput
   teaching?: Prisma.TeachingUpdateManyWithoutClasseNestedInput
   Frais?: Prisma.FraisUpdateManyWithoutClasseNestedInput
@@ -1098,7 +1110,7 @@ export type ClasseUncheckedUpdateWithoutCalendarEventInput = {
   optionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusClasse?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   creneauId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  branchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  branchId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   classEnrollment?: Prisma.ClassEnrollmentUncheckedUpdateManyWithoutClasseNestedInput
@@ -1114,7 +1126,7 @@ export type ClasseCreateWithoutFicheInput = {
   statusClasse?: boolean | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  branch?: Prisma.BranchCreateNestedOneWithoutClassesInput
+  branch: Prisma.BranchCreateNestedOneWithoutClassesInput
   classEnrollment?: Prisma.ClassEnrollmentCreateNestedManyWithoutClasseInput
   teaching?: Prisma.TeachingCreateNestedManyWithoutClasseInput
   Frais?: Prisma.FraisCreateNestedManyWithoutClasseInput
@@ -1130,7 +1142,7 @@ export type ClasseUncheckedCreateWithoutFicheInput = {
   optionId?: string | null
   statusClasse?: boolean | null
   creneauId?: string | null
-  branchId?: string | null
+  branchId: string
   createdAt?: Date | string
   updatedAt?: Date | string
   classEnrollment?: Prisma.ClassEnrollmentUncheckedCreateNestedManyWithoutClasseInput
@@ -1162,7 +1174,7 @@ export type ClasseUpdateWithoutFicheInput = {
   statusClasse?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  branch?: Prisma.BranchUpdateOneWithoutClassesNestedInput
+  branch?: Prisma.BranchUpdateOneRequiredWithoutClassesNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUpdateManyWithoutClasseNestedInput
   teaching?: Prisma.TeachingUpdateManyWithoutClasseNestedInput
   Frais?: Prisma.FraisUpdateManyWithoutClasseNestedInput
@@ -1178,7 +1190,7 @@ export type ClasseUncheckedUpdateWithoutFicheInput = {
   optionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusClasse?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   creneauId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  branchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  branchId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   classEnrollment?: Prisma.ClassEnrollmentUncheckedUpdateManyWithoutClasseNestedInput
@@ -1251,7 +1263,7 @@ export type ClasseCreateManyCreneauInput = {
   nameClasse: string
   optionId?: string | null
   statusClasse?: boolean | null
-  branchId?: string | null
+  branchId: string
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -1263,7 +1275,7 @@ export type ClasseUpdateWithoutCreneauInput = {
   statusClasse?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  branch?: Prisma.BranchUpdateOneWithoutClassesNestedInput
+  branch?: Prisma.BranchUpdateOneRequiredWithoutClassesNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUpdateManyWithoutClasseNestedInput
   teaching?: Prisma.TeachingUpdateManyWithoutClasseNestedInput
   Frais?: Prisma.FraisUpdateManyWithoutClasseNestedInput
@@ -1278,7 +1290,7 @@ export type ClasseUncheckedUpdateWithoutCreneauInput = {
   nameClasse?: Prisma.StringFieldUpdateOperationsInput | string
   optionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusClasse?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
-  branchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  branchId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   classEnrollment?: Prisma.ClassEnrollmentUncheckedUpdateManyWithoutClasseNestedInput
@@ -1294,7 +1306,7 @@ export type ClasseUncheckedUpdateManyWithoutCreneauInput = {
   nameClasse?: Prisma.StringFieldUpdateOperationsInput | string
   optionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusClasse?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
-  branchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  branchId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1305,7 +1317,7 @@ export type ClasseCreateManyOptionInput = {
   nameClasse: string
   statusClasse?: boolean | null
   creneauId?: string | null
-  branchId?: string | null
+  branchId: string
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -1317,7 +1329,7 @@ export type ClasseUpdateWithoutOptionInput = {
   statusClasse?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  branch?: Prisma.BranchUpdateOneWithoutClassesNestedInput
+  branch?: Prisma.BranchUpdateOneRequiredWithoutClassesNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUpdateManyWithoutClasseNestedInput
   teaching?: Prisma.TeachingUpdateManyWithoutClasseNestedInput
   Frais?: Prisma.FraisUpdateManyWithoutClasseNestedInput
@@ -1332,7 +1344,7 @@ export type ClasseUncheckedUpdateWithoutOptionInput = {
   nameClasse?: Prisma.StringFieldUpdateOperationsInput | string
   statusClasse?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   creneauId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  branchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  branchId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   classEnrollment?: Prisma.ClassEnrollmentUncheckedUpdateManyWithoutClasseNestedInput
@@ -1348,7 +1360,7 @@ export type ClasseUncheckedUpdateManyWithoutOptionInput = {
   nameClasse?: Prisma.StringFieldUpdateOperationsInput | string
   statusClasse?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   creneauId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  branchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  branchId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1484,7 +1496,7 @@ export type ClasseSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   branchId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
-  branch?: boolean | Prisma.Classe$branchArgs<ExtArgs>
+  branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
   classEnrollment?: boolean | Prisma.Classe$classEnrollmentArgs<ExtArgs>
   teaching?: boolean | Prisma.Classe$teachingArgs<ExtArgs>
   Frais?: boolean | Prisma.Classe$FraisArgs<ExtArgs>
@@ -1505,7 +1517,7 @@ export type ClasseSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extens
   branchId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
-  branch?: boolean | Prisma.Classe$branchArgs<ExtArgs>
+  branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
   option?: boolean | Prisma.Classe$optionArgs<ExtArgs>
   creneau?: boolean | Prisma.Classe$creneauArgs<ExtArgs>
 }, ExtArgs["result"]["classe"]>
@@ -1520,7 +1532,7 @@ export type ClasseSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extens
   branchId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
-  branch?: boolean | Prisma.Classe$branchArgs<ExtArgs>
+  branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
   option?: boolean | Prisma.Classe$optionArgs<ExtArgs>
   creneau?: boolean | Prisma.Classe$creneauArgs<ExtArgs>
 }, ExtArgs["result"]["classe"]>
@@ -1539,7 +1551,7 @@ export type ClasseSelectScalar = {
 
 export type ClasseOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "codeClasse" | "nameClasse" | "optionId" | "statusClasse" | "creneauId" | "branchId" | "createdAt" | "updatedAt", ExtArgs["result"]["classe"]>
 export type ClasseInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  branch?: boolean | Prisma.Classe$branchArgs<ExtArgs>
+  branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
   classEnrollment?: boolean | Prisma.Classe$classEnrollmentArgs<ExtArgs>
   teaching?: boolean | Prisma.Classe$teachingArgs<ExtArgs>
   Frais?: boolean | Prisma.Classe$FraisArgs<ExtArgs>
@@ -1550,12 +1562,12 @@ export type ClasseInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   _count?: boolean | Prisma.ClasseCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type ClasseIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  branch?: boolean | Prisma.Classe$branchArgs<ExtArgs>
+  branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
   option?: boolean | Prisma.Classe$optionArgs<ExtArgs>
   creneau?: boolean | Prisma.Classe$creneauArgs<ExtArgs>
 }
 export type ClasseIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  branch?: boolean | Prisma.Classe$branchArgs<ExtArgs>
+  branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
   option?: boolean | Prisma.Classe$optionArgs<ExtArgs>
   creneau?: boolean | Prisma.Classe$creneauArgs<ExtArgs>
 }
@@ -1563,7 +1575,7 @@ export type ClasseIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
 export type $ClassePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Classe"
   objects: {
-    branch: Prisma.$BranchPayload<ExtArgs> | null
+    branch: Prisma.$BranchPayload<ExtArgs>
     classEnrollment: Prisma.$ClassEnrollmentPayload<ExtArgs>[]
     teaching: Prisma.$TeachingPayload<ExtArgs>[]
     Frais: Prisma.$FraisPayload<ExtArgs>[]
@@ -1579,7 +1591,7 @@ export type $ClassePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     optionId: string | null
     statusClasse: boolean | null
     creneauId: string | null
-    branchId: string | null
+    branchId: string
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["classe"]>
@@ -1976,7 +1988,7 @@ readonly fields: ClasseFieldRefs;
  */
 export interface Prisma__ClasseClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
-  branch<T extends Prisma.Classe$branchArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Classe$branchArgs<ExtArgs>>): Prisma.Prisma__BranchClient<runtime.Types.Result.GetResult<Prisma.$BranchPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  branch<T extends Prisma.BranchDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.BranchDefaultArgs<ExtArgs>>): Prisma.Prisma__BranchClient<runtime.Types.Result.GetResult<Prisma.$BranchPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   classEnrollment<T extends Prisma.Classe$classEnrollmentArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Classe$classEnrollmentArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ClassEnrollmentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   teaching<T extends Prisma.Classe$teachingArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Classe$teachingArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TeachingPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   Frais<T extends Prisma.Classe$FraisArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Classe$FraisArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$FraisPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -2420,25 +2432,6 @@ export type ClasseDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Intern
    * Limit how many Classes to delete.
    */
   limit?: number
-}
-
-/**
- * Classe.branch
- */
-export type Classe$branchArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the Branch
-   */
-  select?: Prisma.BranchSelect<ExtArgs> | null
-  /**
-   * Omit specific fields from the Branch
-   */
-  omit?: Prisma.BranchOmit<ExtArgs> | null
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.BranchInclude<ExtArgs> | null
-  where?: Prisma.BranchWhereInput
 }
 
 /**

@@ -106,6 +106,12 @@ const staticSidebarMenu: StaticMenuItem[] = [
         roles: COURSE_ROLES,
       },
       {
+        title: "Ponderations options",
+        href: "/admin/coursPonderationOption",
+        icon: "options",
+        roles: COURSE_ROLES,
+      },
+      {
         title: "Affectations",
         href: "/admin/teaching",
         icon: "affectations",

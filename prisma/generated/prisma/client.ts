@@ -147,6 +147,11 @@ export type Teaching = Prisma.TeachingModel
  */
 export type Cours = Prisma.CoursModel
 /**
+ * Model CoursOptionPonderation
+ * 
+ */
+export type CoursOptionPonderation = Prisma.CoursOptionPonderationModel
+/**
  * Model Schedule
  * 
  */

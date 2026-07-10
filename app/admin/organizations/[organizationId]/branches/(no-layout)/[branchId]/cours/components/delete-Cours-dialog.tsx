@@ -44,7 +44,6 @@ export function DeleteCoursDialog({
             id: cours.id,
             codeCours: cours.codeCours,
             nameCours: cours.codeCours,
-            ponderation: cours.ponderation,
           })
         } catch (err) {
           toast.error(`Failed to delete cours ${cours.id}: ${err}`);

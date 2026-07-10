@@ -446,6 +446,13 @@ export type JsonNullableFilterBase<$PrismaModel = never> = {
   not?: runtime.InputJsonValue | Prisma.JsonFieldRefInput<$PrismaModel> | Prisma.JsonNullValueFilter
 }
 
+export type EnumTypeBracheFilter<$PrismaModel = never> = {
+  equals?: $Enums.TypeBrache | Prisma.EnumTypeBracheFieldRefInput<$PrismaModel>
+  in?: $Enums.TypeBrache[] | Prisma.ListEnumTypeBracheFieldRefInput<$PrismaModel>
+  notIn?: $Enums.TypeBrache[] | Prisma.ListEnumTypeBracheFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumTypeBracheFilter<$PrismaModel> | $Enums.TypeBrache
+}
+
 export type JsonNullableWithAggregatesFilter<$PrismaModel = never> =
 | Prisma.PatchUndefined<
     Prisma.Either<Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, 'path'>>,
@@ -471,6 +478,16 @@ export type JsonNullableWithAggregatesFilterBase<$PrismaModel = never> = {
   _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
   _min?: Prisma.NestedJsonNullableFilter<$PrismaModel>
   _max?: Prisma.NestedJsonNullableFilter<$PrismaModel>
+}
+
+export type EnumTypeBracheWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.TypeBrache | Prisma.EnumTypeBracheFieldRefInput<$PrismaModel>
+  in?: $Enums.TypeBrache[] | Prisma.ListEnumTypeBracheFieldRefInput<$PrismaModel>
+  notIn?: $Enums.TypeBrache[] | Prisma.ListEnumTypeBracheFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumTypeBracheWithAggregatesFilter<$PrismaModel> | $Enums.TypeBrache
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumTypeBracheFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumTypeBracheFilter<$PrismaModel>
 }
 
 export type EnumBranchRoleFilter<$PrismaModel = never> = {
@@ -917,6 +934,13 @@ export type NestedEnumStudentCategoryNullableWithAggregatesFilter<$PrismaModel =
   _max?: Prisma.NestedEnumStudentCategoryNullableFilter<$PrismaModel>
 }
 
+export type NestedEnumTypeBracheFilter<$PrismaModel = never> = {
+  equals?: $Enums.TypeBrache | Prisma.EnumTypeBracheFieldRefInput<$PrismaModel>
+  in?: $Enums.TypeBrache[] | Prisma.ListEnumTypeBracheFieldRefInput<$PrismaModel>
+  notIn?: $Enums.TypeBrache[] | Prisma.ListEnumTypeBracheFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumTypeBracheFilter<$PrismaModel> | $Enums.TypeBrache
+}
+
 export type NestedJsonNullableFilter<$PrismaModel = never> =
 | Prisma.PatchUndefined<
     Prisma.Either<Required<NestedJsonNullableFilterBase<$PrismaModel>>, Exclude<keyof Required<NestedJsonNullableFilterBase<$PrismaModel>>, 'path'>>,
@@ -939,6 +963,16 @@ export type NestedJsonNullableFilterBase<$PrismaModel = never> = {
   gt?: runtime.InputJsonValue | Prisma.JsonFieldRefInput<$PrismaModel>
   gte?: runtime.InputJsonValue | Prisma.JsonFieldRefInput<$PrismaModel>
   not?: runtime.InputJsonValue | Prisma.JsonFieldRefInput<$PrismaModel> | Prisma.JsonNullValueFilter
+}
+
+export type NestedEnumTypeBracheWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.TypeBrache | Prisma.EnumTypeBracheFieldRefInput<$PrismaModel>
+  in?: $Enums.TypeBrache[] | Prisma.ListEnumTypeBracheFieldRefInput<$PrismaModel>
+  notIn?: $Enums.TypeBrache[] | Prisma.ListEnumTypeBracheFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumTypeBracheWithAggregatesFilter<$PrismaModel> | $Enums.TypeBrache
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumTypeBracheFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumTypeBracheFilter<$PrismaModel>
 }
 
 export type NestedEnumBranchRoleFilter<$PrismaModel = never> = {

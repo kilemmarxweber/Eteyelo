@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { redirect } from "next/navigation";
+import { redirect, useRouter } from "next/navigation";
 import { IconUserPlus, IconUsers } from "@tabler/icons-react";
 
 import { Button } from "@/components/custom/button";
@@ -26,6 +26,8 @@ import { ClasseUpForm } from "./components/classe-form";
 
 export default function Page() {
   const [open, setOpen] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const router = useRouter();
   const { data: session, isPending } = useSession();
 
   if (isPending) {
@@ -69,6 +71,8 @@ export default function Page() {
                 <ClasseUpForm
                   mode="create"
                   onClasseAction={() => {
+                    setRefreshKey((value) => value + 1);
+                    router.refresh();
                     setOpen(false);
                   }}
                 />
@@ -78,7 +82,7 @@ export default function Page() {
         />
 
         <Card variant="elevated" padding="none">
-          <Classes />
+          <Classes refreshKey={refreshKey} />
         </Card>
       </LayoutBody>
     </Layout>

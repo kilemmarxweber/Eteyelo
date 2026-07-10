@@ -28,7 +28,12 @@ export async function initSchoolYears() {
 
   for (const schoolYear of schoolYearsData) {
     await Prisma.schoolYear.upsert({
-      where: { nameYear: schoolYear.nameYear },
+      where: {
+        branchId_nameYear: {
+          branchId,
+          nameYear: schoolYear.nameYear,
+        },
+      },
       update: {
         ...schoolYear,
         branchId,

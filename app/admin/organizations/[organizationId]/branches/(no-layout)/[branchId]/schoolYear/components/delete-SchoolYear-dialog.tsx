@@ -50,6 +50,7 @@ export function DeleteSchoolYearsDialog({
       }
 
       onSuccess?.();
+      window.dispatchEvent(new Event("school-year-refresh"));
       setTimeout(() => {
         console.log("Component refreshed");
         refresh();

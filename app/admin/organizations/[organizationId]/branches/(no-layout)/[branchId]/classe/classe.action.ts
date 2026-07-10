@@ -1,19 +1,48 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { revalidatePath } from "next/cache";
 import { action } from "@/lib/zsa";
 import { classeSchema, IClasse } from "@/src/interfaces/Classe";
 import { Prisma } from "@/prisma/generated/prisma/client";
 import { z } from "zod";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
+import {
+  ensureUniqueIdentifier,
+  generateClassCode,
+} from "@/lib/generated-identifiers";
+
+function revalidateClassePages(organizationId: string, branchId: string) {
+  revalidatePath(`/admin/organizations/${organizationId}/branches/${branchId}/classe`);
+  revalidatePath(`/admin/organizations/${organizationId}/branches/${branchId}/schedule`);
+}
+
 // CREATION DE LA CLASSE
 export const createClasseAction = action
   .input(classeSchema)
   .handler(async ({ input }) => {
     try {
-      const { branchId } = await requireBranchContext();
-      const { nameClasse, codeClasse, optionId, statusClasse, creneauId } =
-        input;
+      const { branchId, organizationId } = await requireBranchContext();
+      const { nameClasse, optionId, statusClasse, creneauId } = input;
+      const codeClasse = await ensureUniqueIdentifier({
+        base: generateClassCode(nameClasse),
+        separator: "",
+        exists: async (value) =>
+          Boolean(
+            await prisma.classe.findFirst({
+              where: { branchId, codeClasse: value },
+              select: { id: true },
+            }),
+          ),
+      });
+      const duplicate = await prisma.classe.findFirst({
+        where: { branchId, nameClasse },
+        select: { id: true },
+      });
+      if (duplicate) {
+        throw new Error("La classe existe deja dans cette branche");
+      }
+
       const [option, creneau] = await Promise.all([
         optionId
           ? prisma.option.findFirst({
@@ -40,9 +69,11 @@ export const createClasseAction = action
       const classe = await prisma.classe.create({
         data: {
           ...input,
+          codeClasse,
           branchId,
         },
       });
+      revalidateClassePages(organizationId, branchId);
       return classe;
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
@@ -175,9 +206,8 @@ export const getClassesByIdAction = action
 export const updateClasseAction = action
   .input(classeSchema)
   .handler(async ({ input }) => {
-    const { branchId } = await requireBranchContext();
-    const { nameClasse, codeClasse, id, optionId, statusClasse, creneauId } =
-      input;
+    const { branchId, organizationId } = await requireBranchContext();
+    const { nameClasse, id, optionId, statusClasse, creneauId } = input;
     const existing = await prisma.classe.findFirst({
       where: { id, branchId },
       select: { id: true },
@@ -205,6 +235,23 @@ export const updateClasseAction = action
     if (creneauId && !creneau) {
       throw new Error("Creneau introuvable dans cette branche");
     }
+    const codeClasse = await ensureUniqueIdentifier({
+      base: generateClassCode(nameClasse),
+      separator: "",
+      exists: async (value) =>
+        Boolean(
+          await prisma.classe.findFirst({
+            where: { branchId, codeClasse: value, id: { not: id } },
+            select: { id: true },
+          }),
+        ),
+    });
+
+    const duplicate = await prisma.classe.findFirst({
+      where: { branchId, nameClasse, id: { not: id } },
+      select: { id: true },
+    });
+    if (duplicate) throw new Error("La classe existe deja dans cette branche");
 
     const updatedClasse = await prisma.classe.update({
       where: {
@@ -218,13 +265,14 @@ export const updateClasseAction = action
         creneauId,
       },
     });
+    revalidateClassePages(organizationId, branchId);
     return updatedClasse;
   });
 //DELETE CLASSE
 export const deleteClasseAction = action
   .input(classeSchema)
   .handler(async ({ input }) => {
-    const { branchId } = await requireBranchContext();
+    const { branchId, organizationId } = await requireBranchContext();
     const { id } = input;
 
     const existClass = await prisma.classe.findMany({
@@ -241,6 +289,7 @@ export const deleteClasseAction = action
         id,
       },
     });
+    revalidateClassePages(organizationId, branchId);
     return deletedClasse;
   });
 
@@ -248,7 +297,7 @@ export const deleteClasseAction = action
 export const statusClasseAction = action
   .input(classeSchema)
   .handler(async ({ input }) => {
-    const { branchId } = await requireBranchContext();
+    const { branchId, organizationId } = await requireBranchContext();
     const { statusClasse, id } = input;
     const existing = await prisma.classe.findFirst({
       where: { id, branchId },
@@ -264,4 +313,6 @@ export const statusClasseAction = action
         statusClasse,
       },
     });
+    revalidateClassePages(organizationId, branchId);
+    return updateStatusClasse;
   });

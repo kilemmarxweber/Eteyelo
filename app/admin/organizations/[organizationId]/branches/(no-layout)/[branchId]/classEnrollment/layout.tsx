@@ -19,7 +19,7 @@ import { getClassesByIdAction } from "../classe/classe.action";
 import { use, useEffect, useState } from "react";
 import { IClasse } from "@/src/interfaces/Classe";
 import { useRefresh } from "@/src/hooks/RefreshContext";
-import { redirect, useParams } from "next/navigation";
+import { redirect, useParams, useRouter } from "next/navigation";
 import { useSession } from "@/lib/auth-client";
 import {
   canAccessTeachingArea,
@@ -34,6 +34,7 @@ export default function RootLayout({
 }) {
   const { refreshKey, refresh } = useRefresh(); // État pour gérer le rafraîchissement
   // Fonction de rappel pour rafraîchir la liste
+  const router = useRouter();
   const handleFraisAction = () => {
     refresh();
   };
@@ -47,6 +48,7 @@ export default function RootLayout({
   //const hasClasse = Boolean(classeId);
   const handleEnrollmentAction = () => {
     refresh();
+    router.refresh();
     setOpen(false); // 🔥 fermeture du dialog ici
   };
   useEffect(() => {
@@ -99,7 +101,7 @@ export default function RootLayout({
           }
           actions={
             hasClasse && canCreateEnrollment && (
-              <Dialog>
+              <Dialog open={open} onOpenChange={setOpen}>
                 <DialogTrigger asChild>
                   <Button variant="default">S'inscrire</Button>
                 </DialogTrigger>

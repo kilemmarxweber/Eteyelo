@@ -154,20 +154,6 @@ export function ClasseUpForm({
             />
             <FormField
               control={form.control}
-              name="codeClasse"
-              render={({ field }) => (
-                <FormItem className="space-y-1">
-                  <FormLabel>code de la classe</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Le code de la classe" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
               name="optionId"
               render={({ field }) => (
                 <FormItem className="flex flex-col">

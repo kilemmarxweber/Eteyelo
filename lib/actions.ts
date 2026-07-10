@@ -546,7 +546,15 @@ export async function getLessonsWithFichesByClass(
   const lessons = await prisma.teaching.findMany({
     ...teachingWithFicheArgs(branchId, currentYear.id),
     where: {
-      branchId,
+      OR: [
+        { branchId },
+        {
+          branchId: null,
+          classe: {
+            branchId,
+          },
+        },
+      ],
       classeId: classId,
       schoolYearId: currentYear.id,
       classe: {

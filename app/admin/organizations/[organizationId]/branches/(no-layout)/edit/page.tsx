@@ -80,6 +80,7 @@ export default async function EditBranchPage({
             latitude: branch.latitude,
             longitude: branch.longitude,
             attendanceRadius: branch.attendanceRadius,
+            typebranch: branch.typebranch,
           }}
         />
       </main>

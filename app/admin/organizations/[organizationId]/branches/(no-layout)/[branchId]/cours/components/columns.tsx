@@ -70,15 +70,6 @@ export const columns: ColumnDef<ICours>[] = [
     ),
   },
   {
-    accessorKey: "ponderation",
-    cell: ({ row }) => {
-      return row.original.ponderation;
-    },
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Ponderation" />
-    ),
-  },
-  {
     id: "actions",
     cell: function Cell({ row }) {
       const { data: session } = useSession();

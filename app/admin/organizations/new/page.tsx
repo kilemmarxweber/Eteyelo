@@ -9,9 +9,9 @@ export default function NewOrganizationPage() {
         <CardHeader className="space-y-1 pb-2">
           <CardTitle className="text-lg">Informations</CardTitle>
           <CardDescription>
-            Slug unique pour votre organisation.{" "}
+            Le slug de votre organisation sera genere automatiquement.{" "}
             <Link href="/admin/organizations" className="text-primary underline-offset-4 hover:underline">
-              Retour à la liste
+              Retour a la liste
             </Link>
             .
           </CardDescription>

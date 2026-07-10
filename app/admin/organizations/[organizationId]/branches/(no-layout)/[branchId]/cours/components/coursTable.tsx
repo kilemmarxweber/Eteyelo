@@ -78,7 +78,7 @@ const CoursList = () => {
         mobileCardTitle={(row) => row.nameCours}
         mobileCardSubtitle={(row) => `Code: ${row.codeCours}`}
         mobileCardBadges={(row) => [
-          { label: `Pondération: ${row.ponderation}`, variant: 'secondary' }
+          { label: row.description || "Sans description", variant: "secondary" },
         ]}
       />
     </div>

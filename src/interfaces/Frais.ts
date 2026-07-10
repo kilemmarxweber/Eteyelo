@@ -1,6 +1,5 @@
 import z from "zod";
 import { IClasse } from "./Classe";
-import { ISchoolYear } from "./SchoolYear";
 
 export interface ITypeFrais {
   id: string;
@@ -15,7 +14,7 @@ export interface ITypeFrais {
 export interface IFrais {
   id: string;
   nameFrais: string;
-  montantFrais: number; // Will be converted from Decimal
+  montantFrais: number;
   classeId: string;
   typeFraisId?: string;
   echeance?: Date;
@@ -34,8 +33,8 @@ export interface IFrais {
 
 export const typeFraisSchema = z.object({
   id: z.string().optional(),
-  codeType: z.string().min(2, { message: "Code requis (min 2 caractères)" }),
-  nameType: z.string().min(3, { message: "Nom requis (min 3 caractères)" }),
+  codeType: z.string().trim().optional().or(z.literal("")),
+  nameType: z.string().min(3, { message: "Nom requis (min 3 caracteres)" }),
   description: z.string().optional(),
   statusType: z.boolean().optional(),
 });
@@ -45,15 +44,14 @@ export const fraisSchema = z.object({
   nameFrais: z.string().min(4, { message: "Veuillez saisir le nom du frais" }),
   montantFrais: z
     .number()
-    .min(0.01, { message: "Le montant doit être supérieur à 0" }),
+    .min(0.01, { message: "Le montant doit etre superieur a 0" }),
   statusFrais: z.boolean().optional(),
   classeId: z.string().min(1, { message: "Classe requise" }),
-  typeFraisId: z.string().optional(), // ✅ optionnel
+  typeFraisId: z.string().optional(),
   echeance: z.date().optional(),
   priority: z.number().optional(),
   schoolYearId: z.string().optional(),
 });
-// frais.schema.ts
 
 export const deleteFraisSchema = z.object({
   id: z.string(),

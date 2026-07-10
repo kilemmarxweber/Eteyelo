@@ -14,7 +14,6 @@ import {
 } from "@/components/ui/dialog";
 import { DialogTrigger } from "@/components/ui/dialog";
 import { FraisUpForm } from "./[classeId]/components/frais-form";
-import { TypeFraisUpForm } from "./components/type-frais-form";
 import { Button } from "@/components/ui/button";
 import { getClassesByIdAction } from "../classe/classe.action";
 import { useEffect, useState } from "react";
@@ -48,16 +47,10 @@ function FraisLayoutContent({
   const { refresh } = useRefresh();
   const router = useRouter();
   const [addDialogOpen, setAddDialogOpen] = useState(false);
-  const [addTypeFraisDialogOpen, setAddTypeFraisDialogOpen] = useState(false);
   const handleFraisAction = () => {
     refresh();
     router.refresh();
     setAddDialogOpen(false);
-  };
-  const handleTypeFraisAction = () => {
-    refresh();
-    router.refresh();
-    setAddTypeFraisDialogOpen(false);
   };
   const { data: session, isPending } = useSession();
   const [classes, setClasses] = useState<IClasse | null>(null);
@@ -121,28 +114,6 @@ function FraisLayoutContent({
           actions={
             canCreateFrais && (
               <div className="flex flex-wrap items-center gap-2">
-                <Dialog
-                  open={addTypeFraisDialogOpen}
-                  onOpenChange={setAddTypeFraisDialogOpen}
-                >
-                  <DialogTrigger asChild>
-                    <Button variant="outline">Ajouter un type de frais</Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Ajouter un type de frais</DialogTitle>
-                      <DialogDescription>
-                        Créez un nouveau type de frais pour catégoriser les
-                        frais scolaires.
-                      </DialogDescription>
-                    </DialogHeader>
-                    <TypeFraisUpForm
-                      mode="create"
-                      onTypeFraisCreated={handleTypeFraisAction}
-                    />
-                  </DialogContent>
-                </Dialog>
-
                 {hasClasse && (
                   <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
                     <DialogTrigger asChild>

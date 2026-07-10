@@ -22,6 +22,7 @@ async function getOrganizationBranches(organizationId: string) {
     select: {
       id: true,
       name: true,
+      typebranch: true,
       branchemembers: {
         select: {
           _count: {
@@ -35,6 +36,7 @@ async function getOrganizationBranches(organizationId: string) {
   return branches.map((branch) => ({
     id: branch.id,
     name: branch.name,
+    typebranch: branch.typebranch,
     studentsCount: branch.branchemembers.reduce(
       (total, member) => total + member._count.student,
       0,
@@ -105,6 +107,13 @@ export default async function BranchesPage({ params }: BranchesPageProps) {
                   </span>
 
                   <span className="mt-2 block text-sm leading-6 text-slate-600">
+                    Type:{" "}
+                    {branch.typebranch === "PRIMAIRE"
+                      ? "Primaire"
+                      : "Secondaire"}
+                  </span>
+
+                  <span className="mt-1 block text-sm leading-6 text-slate-600">
                     {branch.studentsCount} élève
                     {branch.studentsCount > 1 ? "s" : ""} inscrit
                     {branch.studentsCount > 1 ? "s" : ""}

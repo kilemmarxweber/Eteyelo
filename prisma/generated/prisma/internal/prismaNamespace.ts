@@ -405,6 +405,7 @@ export const ModelName = {
   Teacher: 'Teacher',
   Teaching: 'Teaching',
   Cours: 'Cours',
+  CoursOptionPonderation: 'CoursOptionPonderation',
   Schedule: 'Schedule',
   CalendarEvent: 'CalendarEvent',
   EventType: 'EventType',
@@ -451,7 +452,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "parent" | "student" | "attendanceSession" | "studentAttendance" | "teacherAttendance" | "personnelAttendance" | "parentFeedback" | "studentGrade" | "personnel" | "frais" | "typeFrais" | "classe" | "creneau" | "option" | "section" | "schoolYear" | "classEnrollment" | "teacher" | "teaching" | "cours" | "schedule" | "calendarEvent" | "eventType" | "semester" | "period" | "periodResultLock" | "fiche" | "invoice" | "paymentBatch" | "familyPayment" | "cashierExpense" | "paymentAllocation" | "mobileMoneyTransaction" | "paymentEvent" | "discountRule" | "transaction" | "session" | "account" | "verification" | "organization" | "organizationRole" | "member" | "invitation" | "branch" | "partnaire" | "branchMember" | "branchInvitation" | "platformSupportAgent" | "organizationSupportAgent" | "organizationSupportBranchScope" | "platformSupportEscalation"
+    modelProps: "user" | "parent" | "student" | "attendanceSession" | "studentAttendance" | "teacherAttendance" | "personnelAttendance" | "parentFeedback" | "studentGrade" | "personnel" | "frais" | "typeFrais" | "classe" | "creneau" | "option" | "section" | "schoolYear" | "classEnrollment" | "teacher" | "teaching" | "cours" | "coursOptionPonderation" | "schedule" | "calendarEvent" | "eventType" | "semester" | "period" | "periodResultLock" | "fiche" | "invoice" | "paymentBatch" | "familyPayment" | "cashierExpense" | "paymentAllocation" | "mobileMoneyTransaction" | "paymentEvent" | "discountRule" | "transaction" | "session" | "account" | "verification" | "organization" | "organizationRole" | "member" | "invitation" | "branch" | "partnaire" | "branchMember" | "branchInvitation" | "platformSupportAgent" | "organizationSupportAgent" | "organizationSupportBranchScope" | "platformSupportEscalation"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -2006,6 +2007,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.CoursCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.CoursCountAggregateOutputType> | number
+        }
+      }
+    }
+    CoursOptionPonderation: {
+      payload: Prisma.$CoursOptionPonderationPayload<ExtArgs>
+      fields: Prisma.CoursOptionPonderationFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.CoursOptionPonderationFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CoursOptionPonderationPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.CoursOptionPonderationFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CoursOptionPonderationPayload>
+        }
+        findFirst: {
+          args: Prisma.CoursOptionPonderationFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CoursOptionPonderationPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.CoursOptionPonderationFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CoursOptionPonderationPayload>
+        }
+        findMany: {
+          args: Prisma.CoursOptionPonderationFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CoursOptionPonderationPayload>[]
+        }
+        create: {
+          args: Prisma.CoursOptionPonderationCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CoursOptionPonderationPayload>
+        }
+        createMany: {
+          args: Prisma.CoursOptionPonderationCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.CoursOptionPonderationCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CoursOptionPonderationPayload>[]
+        }
+        delete: {
+          args: Prisma.CoursOptionPonderationDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CoursOptionPonderationPayload>
+        }
+        update: {
+          args: Prisma.CoursOptionPonderationUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CoursOptionPonderationPayload>
+        }
+        deleteMany: {
+          args: Prisma.CoursOptionPonderationDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.CoursOptionPonderationUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.CoursOptionPonderationUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CoursOptionPonderationPayload>[]
+        }
+        upsert: {
+          args: Prisma.CoursOptionPonderationUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CoursOptionPonderationPayload>
+        }
+        aggregate: {
+          args: Prisma.CoursOptionPonderationAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateCoursOptionPonderation>
+        }
+        groupBy: {
+          args: Prisma.CoursOptionPonderationGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.CoursOptionPonderationGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.CoursOptionPonderationCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.CoursOptionPonderationCountAggregateOutputType> | number
         }
       }
     }
@@ -4643,7 +4718,6 @@ export const CoursScalarFieldEnum = {
   codeCours: 'codeCours',
   nameCours: 'nameCours',
   description: 'description',
-  ponderation: 'ponderation',
   statusCours: 'statusCours',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
@@ -4651,6 +4725,19 @@ export const CoursScalarFieldEnum = {
 } as const
 
 export type CoursScalarFieldEnum = (typeof CoursScalarFieldEnum)[keyof typeof CoursScalarFieldEnum]
+
+
+export const CoursOptionPonderationScalarFieldEnum = {
+  id: 'id',
+  coursId: 'coursId',
+  optionId: 'optionId',
+  ponderation: 'ponderation',
+  branchId: 'branchId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type CoursOptionPonderationScalarFieldEnum = (typeof CoursOptionPonderationScalarFieldEnum)[keyof typeof CoursOptionPonderationScalarFieldEnum]
 
 
 export const ScheduleScalarFieldEnum = {
@@ -4995,6 +5082,7 @@ export const BranchScalarFieldEnum = {
   longitude: 'longitude',
   attendanceRadius: 'attendanceRadius',
   organizationId: 'organizationId',
+  typebranch: 'typebranch',
   isActive: 'isActive',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -5371,6 +5459,20 @@ export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$Prisma
 
 
 /**
+ * Reference to a field of type 'TypeBrache'
+ */
+export type EnumTypeBracheFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TypeBrache'>
+    
+
+
+/**
+ * Reference to a field of type 'TypeBrache[]'
+ */
+export type ListEnumTypeBracheFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TypeBrache[]'>
+    
+
+
+/**
  * Reference to a field of type 'BranchRole'
  */
 export type EnumBranchRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BranchRole'>
@@ -5528,6 +5630,7 @@ export type GlobalOmitConfig = {
   teacher?: Prisma.TeacherOmit
   teaching?: Prisma.TeachingOmit
   cours?: Prisma.CoursOmit
+  coursOptionPonderation?: Prisma.CoursOptionPonderationOmit
   schedule?: Prisma.ScheduleOmit
   calendarEvent?: Prisma.CalendarEventOmit
   eventType?: Prisma.EventTypeOmit

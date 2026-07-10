@@ -29,6 +29,7 @@ const OptionsTable: React.FC<OptionsTableProps> = ({ refreshKey }) => {
   const [showUpdateDialog, setShowUpdateDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [selectedOption, setSelectedOption] = useState<IOption | null>(null);
+  const [localRefreshKey, setLocalRefreshKey] = useState(0);
 
   useEffect(() => {
     const fetchOptions = async () => {
@@ -47,7 +48,7 @@ const OptionsTable: React.FC<OptionsTableProps> = ({ refreshKey }) => {
     };
 
     fetchOptions();
-  }, [refreshKey]);
+  }, [refreshKey, localRefreshKey]);
 
   // Filtrer les données
   const filteredOptions = options.filter((option) => {
@@ -77,7 +78,10 @@ const OptionsTable: React.FC<OptionsTableProps> = ({ refreshKey }) => {
 
   const handleActionSuccess = () => {
     // Rafraîchir les données après une action
-    window.location.reload();
+    setShowUpdateDialog(false);
+    setShowDeleteDialog(false);
+    setSelectedOption(null);
+    setLocalRefreshKey((value) => value + 1);
   };
 
   // Configuration des colonnes pour desktop

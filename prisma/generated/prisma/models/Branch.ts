@@ -51,6 +51,7 @@ export type BranchMinAggregateOutputType = {
   longitude: number | null
   attendanceRadius: number | null
   organizationId: string | null
+  typebranch: $Enums.TypeBrache | null
   isActive: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -69,6 +70,7 @@ export type BranchMaxAggregateOutputType = {
   longitude: number | null
   attendanceRadius: number | null
   organizationId: string | null
+  typebranch: $Enums.TypeBrache | null
   isActive: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -88,6 +90,7 @@ export type BranchCountAggregateOutputType = {
   longitude: number
   attendanceRadius: number
   organizationId: number
+  typebranch: number
   isActive: number
   createdAt: number
   updatedAt: number
@@ -120,6 +123,7 @@ export type BranchMinAggregateInputType = {
   longitude?: true
   attendanceRadius?: true
   organizationId?: true
+  typebranch?: true
   isActive?: true
   createdAt?: true
   updatedAt?: true
@@ -138,6 +142,7 @@ export type BranchMaxAggregateInputType = {
   longitude?: true
   attendanceRadius?: true
   organizationId?: true
+  typebranch?: true
   isActive?: true
   createdAt?: true
   updatedAt?: true
@@ -157,6 +162,7 @@ export type BranchCountAggregateInputType = {
   longitude?: true
   attendanceRadius?: true
   organizationId?: true
+  typebranch?: true
   isActive?: true
   createdAt?: true
   updatedAt?: true
@@ -263,6 +269,7 @@ export type BranchGroupByOutputType = {
   longitude: number
   attendanceRadius: number
   organizationId: string
+  typebranch: $Enums.TypeBrache
   isActive: boolean
   createdAt: Date
   updatedAt: Date
@@ -305,6 +312,7 @@ export type BranchWhereInput = {
   longitude?: Prisma.FloatFilter<"Branch"> | number
   attendanceRadius?: Prisma.IntFilter<"Branch"> | number
   organizationId?: Prisma.StringFilter<"Branch"> | string
+  typebranch?: Prisma.EnumTypeBracheFilter<"Branch"> | $Enums.TypeBrache
   isActive?: Prisma.BoolFilter<"Branch"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Branch"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Branch"> | Date | string
@@ -321,6 +329,7 @@ export type BranchWhereInput = {
   schoolYear?: Prisma.SchoolYearListRelationFilter
   typeFrais?: Prisma.TypeFraisListRelationFilter
   option?: Prisma.OptionListRelationFilter
+  coursPonderations?: Prisma.CoursOptionPonderationListRelationFilter
   classEnrollment?: Prisma.ClassEnrollmentListRelationFilter
   section?: Prisma.SectionListRelationFilter
   semester?: Prisma.SemesterListRelationFilter
@@ -360,6 +369,7 @@ export type BranchOrderByWithRelationInput = {
   longitude?: Prisma.SortOrder
   attendanceRadius?: Prisma.SortOrder
   organizationId?: Prisma.SortOrder
+  typebranch?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -376,6 +386,7 @@ export type BranchOrderByWithRelationInput = {
   schoolYear?: Prisma.SchoolYearOrderByRelationAggregateInput
   typeFrais?: Prisma.TypeFraisOrderByRelationAggregateInput
   option?: Prisma.OptionOrderByRelationAggregateInput
+  coursPonderations?: Prisma.CoursOptionPonderationOrderByRelationAggregateInput
   classEnrollment?: Prisma.ClassEnrollmentOrderByRelationAggregateInput
   section?: Prisma.SectionOrderByRelationAggregateInput
   semester?: Prisma.semesterOrderByRelationAggregateInput
@@ -419,6 +430,7 @@ export type BranchWhereUniqueInput = Prisma.AtLeast<{
   longitude?: Prisma.FloatFilter<"Branch"> | number
   attendanceRadius?: Prisma.IntFilter<"Branch"> | number
   organizationId?: Prisma.StringFilter<"Branch"> | string
+  typebranch?: Prisma.EnumTypeBracheFilter<"Branch"> | $Enums.TypeBrache
   isActive?: Prisma.BoolFilter<"Branch"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Branch"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Branch"> | Date | string
@@ -435,6 +447,7 @@ export type BranchWhereUniqueInput = Prisma.AtLeast<{
   schoolYear?: Prisma.SchoolYearListRelationFilter
   typeFrais?: Prisma.TypeFraisListRelationFilter
   option?: Prisma.OptionListRelationFilter
+  coursPonderations?: Prisma.CoursOptionPonderationListRelationFilter
   classEnrollment?: Prisma.ClassEnrollmentListRelationFilter
   section?: Prisma.SectionListRelationFilter
   semester?: Prisma.SemesterListRelationFilter
@@ -474,6 +487,7 @@ export type BranchOrderByWithAggregationInput = {
   longitude?: Prisma.SortOrder
   attendanceRadius?: Prisma.SortOrder
   organizationId?: Prisma.SortOrder
+  typebranch?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -501,6 +515,7 @@ export type BranchScalarWhereWithAggregatesInput = {
   longitude?: Prisma.FloatWithAggregatesFilter<"Branch"> | number
   attendanceRadius?: Prisma.IntWithAggregatesFilter<"Branch"> | number
   organizationId?: Prisma.StringWithAggregatesFilter<"Branch"> | string
+  typebranch?: Prisma.EnumTypeBracheWithAggregatesFilter<"Branch"> | $Enums.TypeBrache
   isActive?: Prisma.BoolWithAggregatesFilter<"Branch"> | boolean
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Branch"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Branch"> | Date | string
@@ -519,6 +534,7 @@ export type BranchCreateInput = {
   latitude: number
   longitude: number
   attendanceRadius?: number
+  typebranch: $Enums.TypeBrache
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -535,6 +551,7 @@ export type BranchCreateInput = {
   schoolYear?: Prisma.SchoolYearCreateNestedManyWithoutBranchInput
   typeFrais?: Prisma.TypeFraisCreateNestedManyWithoutBranchInput
   option?: Prisma.OptionCreateNestedManyWithoutBranchInput
+  coursPonderations?: Prisma.CoursOptionPonderationCreateNestedManyWithoutBranchInput
   classEnrollment?: Prisma.ClassEnrollmentCreateNestedManyWithoutBranchInput
   section?: Prisma.SectionCreateNestedManyWithoutBranchInput
   semester?: Prisma.semesterCreateNestedManyWithoutBranchInput
@@ -574,6 +591,7 @@ export type BranchUncheckedCreateInput = {
   longitude: number
   attendanceRadius?: number
   organizationId: string
+  typebranch: $Enums.TypeBrache
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -589,6 +607,7 @@ export type BranchUncheckedCreateInput = {
   schoolYear?: Prisma.SchoolYearUncheckedCreateNestedManyWithoutBranchInput
   typeFrais?: Prisma.TypeFraisUncheckedCreateNestedManyWithoutBranchInput
   option?: Prisma.OptionUncheckedCreateNestedManyWithoutBranchInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedCreateNestedManyWithoutBranchInput
   classEnrollment?: Prisma.ClassEnrollmentUncheckedCreateNestedManyWithoutBranchInput
   section?: Prisma.SectionUncheckedCreateNestedManyWithoutBranchInput
   semester?: Prisma.semesterUncheckedCreateNestedManyWithoutBranchInput
@@ -627,6 +646,7 @@ export type BranchUpdateInput = {
   latitude?: Prisma.FloatFieldUpdateOperationsInput | number
   longitude?: Prisma.FloatFieldUpdateOperationsInput | number
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -643,6 +663,7 @@ export type BranchUpdateInput = {
   schoolYear?: Prisma.SchoolYearUpdateManyWithoutBranchNestedInput
   typeFrais?: Prisma.TypeFraisUpdateManyWithoutBranchNestedInput
   option?: Prisma.OptionUpdateManyWithoutBranchNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUpdateManyWithoutBranchNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUpdateManyWithoutBranchNestedInput
   section?: Prisma.SectionUpdateManyWithoutBranchNestedInput
   semester?: Prisma.semesterUpdateManyWithoutBranchNestedInput
@@ -682,6 +703,7 @@ export type BranchUncheckedUpdateInput = {
   longitude?: Prisma.FloatFieldUpdateOperationsInput | number
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
+  typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -697,6 +719,7 @@ export type BranchUncheckedUpdateInput = {
   schoolYear?: Prisma.SchoolYearUncheckedUpdateManyWithoutBranchNestedInput
   typeFrais?: Prisma.TypeFraisUncheckedUpdateManyWithoutBranchNestedInput
   option?: Prisma.OptionUncheckedUpdateManyWithoutBranchNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedUpdateManyWithoutBranchNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUncheckedUpdateManyWithoutBranchNestedInput
   section?: Prisma.SectionUncheckedUpdateManyWithoutBranchNestedInput
   semester?: Prisma.semesterUncheckedUpdateManyWithoutBranchNestedInput
@@ -736,6 +759,7 @@ export type BranchCreateManyInput = {
   longitude: number
   attendanceRadius?: number
   organizationId: string
+  typebranch: $Enums.TypeBrache
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -754,6 +778,7 @@ export type BranchUpdateManyMutationInput = {
   latitude?: Prisma.FloatFieldUpdateOperationsInput | number
   longitude?: Prisma.FloatFieldUpdateOperationsInput | number
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -773,6 +798,7 @@ export type BranchUncheckedUpdateManyInput = {
   longitude?: Prisma.FloatFieldUpdateOperationsInput | number
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
+  typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -817,6 +843,7 @@ export type BranchCountOrderByAggregateInput = {
   longitude?: Prisma.SortOrder
   attendanceRadius?: Prisma.SortOrder
   organizationId?: Prisma.SortOrder
+  typebranch?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -841,6 +868,7 @@ export type BranchMaxOrderByAggregateInput = {
   longitude?: Prisma.SortOrder
   attendanceRadius?: Prisma.SortOrder
   organizationId?: Prisma.SortOrder
+  typebranch?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -859,6 +887,7 @@ export type BranchMinOrderByAggregateInput = {
   longitude?: Prisma.SortOrder
   attendanceRadius?: Prisma.SortOrder
   organizationId?: Prisma.SortOrder
+  typebranch?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -990,12 +1019,10 @@ export type BranchCreateNestedOneWithoutClassesInput = {
   connect?: Prisma.BranchWhereUniqueInput
 }
 
-export type BranchUpdateOneWithoutClassesNestedInput = {
+export type BranchUpdateOneRequiredWithoutClassesNestedInput = {
   create?: Prisma.XOR<Prisma.BranchCreateWithoutClassesInput, Prisma.BranchUncheckedCreateWithoutClassesInput>
   connectOrCreate?: Prisma.BranchCreateOrConnectWithoutClassesInput
   upsert?: Prisma.BranchUpsertWithoutClassesInput
-  disconnect?: Prisma.BranchWhereInput | boolean
-  delete?: Prisma.BranchWhereInput | boolean
   connect?: Prisma.BranchWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.BranchUpdateToOneWithWhereWithoutClassesInput, Prisma.BranchUpdateWithoutClassesInput>, Prisma.BranchUncheckedUpdateWithoutClassesInput>
 }
@@ -1098,6 +1125,20 @@ export type BranchUpdateOneRequiredWithoutCoursNestedInput = {
   upsert?: Prisma.BranchUpsertWithoutCoursInput
   connect?: Prisma.BranchWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.BranchUpdateToOneWithWhereWithoutCoursInput, Prisma.BranchUpdateWithoutCoursInput>, Prisma.BranchUncheckedUpdateWithoutCoursInput>
+}
+
+export type BranchCreateNestedOneWithoutCoursPonderationsInput = {
+  create?: Prisma.XOR<Prisma.BranchCreateWithoutCoursPonderationsInput, Prisma.BranchUncheckedCreateWithoutCoursPonderationsInput>
+  connectOrCreate?: Prisma.BranchCreateOrConnectWithoutCoursPonderationsInput
+  connect?: Prisma.BranchWhereUniqueInput
+}
+
+export type BranchUpdateOneRequiredWithoutCoursPonderationsNestedInput = {
+  create?: Prisma.XOR<Prisma.BranchCreateWithoutCoursPonderationsInput, Prisma.BranchUncheckedCreateWithoutCoursPonderationsInput>
+  connectOrCreate?: Prisma.BranchCreateOrConnectWithoutCoursPonderationsInput
+  upsert?: Prisma.BranchUpsertWithoutCoursPonderationsInput
+  connect?: Prisma.BranchWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.BranchUpdateToOneWithWhereWithoutCoursPonderationsInput, Prisma.BranchUpdateWithoutCoursPonderationsInput>, Prisma.BranchUncheckedUpdateWithoutCoursPonderationsInput>
 }
 
 export type BranchCreateNestedOneWithoutCalendarEventInput = {
@@ -1352,6 +1393,10 @@ export type BranchUncheckedUpdateManyWithoutOrganizationNestedInput = {
   deleteMany?: Prisma.BranchScalarWhereInput | Prisma.BranchScalarWhereInput[]
 }
 
+export type EnumTypeBracheFieldUpdateOperationsInput = {
+  set?: $Enums.TypeBrache
+}
+
 export type BranchCreateNestedOneWithoutPartnairesInput = {
   create?: Prisma.XOR<Prisma.BranchCreateWithoutPartnairesInput, Prisma.BranchUncheckedCreateWithoutPartnairesInput>
   connectOrCreate?: Prisma.BranchCreateOrConnectWithoutPartnairesInput
@@ -1425,6 +1470,7 @@ export type BranchCreateWithoutAttendanceSessionsInput = {
   latitude: number
   longitude: number
   attendanceRadius?: number
+  typebranch: $Enums.TypeBrache
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1441,6 +1487,7 @@ export type BranchCreateWithoutAttendanceSessionsInput = {
   schoolYear?: Prisma.SchoolYearCreateNestedManyWithoutBranchInput
   typeFrais?: Prisma.TypeFraisCreateNestedManyWithoutBranchInput
   option?: Prisma.OptionCreateNestedManyWithoutBranchInput
+  coursPonderations?: Prisma.CoursOptionPonderationCreateNestedManyWithoutBranchInput
   classEnrollment?: Prisma.ClassEnrollmentCreateNestedManyWithoutBranchInput
   section?: Prisma.SectionCreateNestedManyWithoutBranchInput
   semester?: Prisma.semesterCreateNestedManyWithoutBranchInput
@@ -1479,6 +1526,7 @@ export type BranchUncheckedCreateWithoutAttendanceSessionsInput = {
   longitude: number
   attendanceRadius?: number
   organizationId: string
+  typebranch: $Enums.TypeBrache
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1494,6 +1542,7 @@ export type BranchUncheckedCreateWithoutAttendanceSessionsInput = {
   schoolYear?: Prisma.SchoolYearUncheckedCreateNestedManyWithoutBranchInput
   typeFrais?: Prisma.TypeFraisUncheckedCreateNestedManyWithoutBranchInput
   option?: Prisma.OptionUncheckedCreateNestedManyWithoutBranchInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedCreateNestedManyWithoutBranchInput
   classEnrollment?: Prisma.ClassEnrollmentUncheckedCreateNestedManyWithoutBranchInput
   section?: Prisma.SectionUncheckedCreateNestedManyWithoutBranchInput
   semester?: Prisma.semesterUncheckedCreateNestedManyWithoutBranchInput
@@ -1547,6 +1596,7 @@ export type BranchUpdateWithoutAttendanceSessionsInput = {
   latitude?: Prisma.FloatFieldUpdateOperationsInput | number
   longitude?: Prisma.FloatFieldUpdateOperationsInput | number
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1563,6 +1613,7 @@ export type BranchUpdateWithoutAttendanceSessionsInput = {
   schoolYear?: Prisma.SchoolYearUpdateManyWithoutBranchNestedInput
   typeFrais?: Prisma.TypeFraisUpdateManyWithoutBranchNestedInput
   option?: Prisma.OptionUpdateManyWithoutBranchNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUpdateManyWithoutBranchNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUpdateManyWithoutBranchNestedInput
   section?: Prisma.SectionUpdateManyWithoutBranchNestedInput
   semester?: Prisma.semesterUpdateManyWithoutBranchNestedInput
@@ -1601,6 +1652,7 @@ export type BranchUncheckedUpdateWithoutAttendanceSessionsInput = {
   longitude?: Prisma.FloatFieldUpdateOperationsInput | number
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
+  typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1616,6 +1668,7 @@ export type BranchUncheckedUpdateWithoutAttendanceSessionsInput = {
   schoolYear?: Prisma.SchoolYearUncheckedUpdateManyWithoutBranchNestedInput
   typeFrais?: Prisma.TypeFraisUncheckedUpdateManyWithoutBranchNestedInput
   option?: Prisma.OptionUncheckedUpdateManyWithoutBranchNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedUpdateManyWithoutBranchNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUncheckedUpdateManyWithoutBranchNestedInput
   section?: Prisma.SectionUncheckedUpdateManyWithoutBranchNestedInput
   semester?: Prisma.semesterUncheckedUpdateManyWithoutBranchNestedInput
@@ -1653,6 +1706,7 @@ export type BranchCreateWithoutStudentAttendanceInput = {
   latitude: number
   longitude: number
   attendanceRadius?: number
+  typebranch: $Enums.TypeBrache
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1668,6 +1722,7 @@ export type BranchCreateWithoutStudentAttendanceInput = {
   schoolYear?: Prisma.SchoolYearCreateNestedManyWithoutBranchInput
   typeFrais?: Prisma.TypeFraisCreateNestedManyWithoutBranchInput
   option?: Prisma.OptionCreateNestedManyWithoutBranchInput
+  coursPonderations?: Prisma.CoursOptionPonderationCreateNestedManyWithoutBranchInput
   classEnrollment?: Prisma.ClassEnrollmentCreateNestedManyWithoutBranchInput
   section?: Prisma.SectionCreateNestedManyWithoutBranchInput
   semester?: Prisma.semesterCreateNestedManyWithoutBranchInput
@@ -1707,6 +1762,7 @@ export type BranchUncheckedCreateWithoutStudentAttendanceInput = {
   longitude: number
   attendanceRadius?: number
   organizationId: string
+  typebranch: $Enums.TypeBrache
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1721,6 +1777,7 @@ export type BranchUncheckedCreateWithoutStudentAttendanceInput = {
   schoolYear?: Prisma.SchoolYearUncheckedCreateNestedManyWithoutBranchInput
   typeFrais?: Prisma.TypeFraisUncheckedCreateNestedManyWithoutBranchInput
   option?: Prisma.OptionUncheckedCreateNestedManyWithoutBranchInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedCreateNestedManyWithoutBranchInput
   classEnrollment?: Prisma.ClassEnrollmentUncheckedCreateNestedManyWithoutBranchInput
   section?: Prisma.SectionUncheckedCreateNestedManyWithoutBranchInput
   semester?: Prisma.semesterUncheckedCreateNestedManyWithoutBranchInput
@@ -1775,6 +1832,7 @@ export type BranchUpdateWithoutStudentAttendanceInput = {
   latitude?: Prisma.FloatFieldUpdateOperationsInput | number
   longitude?: Prisma.FloatFieldUpdateOperationsInput | number
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1790,6 +1848,7 @@ export type BranchUpdateWithoutStudentAttendanceInput = {
   schoolYear?: Prisma.SchoolYearUpdateManyWithoutBranchNestedInput
   typeFrais?: Prisma.TypeFraisUpdateManyWithoutBranchNestedInput
   option?: Prisma.OptionUpdateManyWithoutBranchNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUpdateManyWithoutBranchNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUpdateManyWithoutBranchNestedInput
   section?: Prisma.SectionUpdateManyWithoutBranchNestedInput
   semester?: Prisma.semesterUpdateManyWithoutBranchNestedInput
@@ -1829,6 +1888,7 @@ export type BranchUncheckedUpdateWithoutStudentAttendanceInput = {
   longitude?: Prisma.FloatFieldUpdateOperationsInput | number
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
+  typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1843,6 +1903,7 @@ export type BranchUncheckedUpdateWithoutStudentAttendanceInput = {
   schoolYear?: Prisma.SchoolYearUncheckedUpdateManyWithoutBranchNestedInput
   typeFrais?: Prisma.TypeFraisUncheckedUpdateManyWithoutBranchNestedInput
   option?: Prisma.OptionUncheckedUpdateManyWithoutBranchNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedUpdateManyWithoutBranchNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUncheckedUpdateManyWithoutBranchNestedInput
   section?: Prisma.SectionUncheckedUpdateManyWithoutBranchNestedInput
   semester?: Prisma.semesterUncheckedUpdateManyWithoutBranchNestedInput
@@ -1881,6 +1942,7 @@ export type BranchCreateWithoutTeacherAttendanceInput = {
   latitude: number
   longitude: number
   attendanceRadius?: number
+  typebranch: $Enums.TypeBrache
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1897,6 +1959,7 @@ export type BranchCreateWithoutTeacherAttendanceInput = {
   schoolYear?: Prisma.SchoolYearCreateNestedManyWithoutBranchInput
   typeFrais?: Prisma.TypeFraisCreateNestedManyWithoutBranchInput
   option?: Prisma.OptionCreateNestedManyWithoutBranchInput
+  coursPonderations?: Prisma.CoursOptionPonderationCreateNestedManyWithoutBranchInput
   classEnrollment?: Prisma.ClassEnrollmentCreateNestedManyWithoutBranchInput
   section?: Prisma.SectionCreateNestedManyWithoutBranchInput
   semester?: Prisma.semesterCreateNestedManyWithoutBranchInput
@@ -1935,6 +1998,7 @@ export type BranchUncheckedCreateWithoutTeacherAttendanceInput = {
   longitude: number
   attendanceRadius?: number
   organizationId: string
+  typebranch: $Enums.TypeBrache
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1950,6 +2014,7 @@ export type BranchUncheckedCreateWithoutTeacherAttendanceInput = {
   schoolYear?: Prisma.SchoolYearUncheckedCreateNestedManyWithoutBranchInput
   typeFrais?: Prisma.TypeFraisUncheckedCreateNestedManyWithoutBranchInput
   option?: Prisma.OptionUncheckedCreateNestedManyWithoutBranchInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedCreateNestedManyWithoutBranchInput
   classEnrollment?: Prisma.ClassEnrollmentUncheckedCreateNestedManyWithoutBranchInput
   section?: Prisma.SectionUncheckedCreateNestedManyWithoutBranchInput
   semester?: Prisma.semesterUncheckedCreateNestedManyWithoutBranchInput
@@ -2003,6 +2068,7 @@ export type BranchUpdateWithoutTeacherAttendanceInput = {
   latitude?: Prisma.FloatFieldUpdateOperationsInput | number
   longitude?: Prisma.FloatFieldUpdateOperationsInput | number
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2019,6 +2085,7 @@ export type BranchUpdateWithoutTeacherAttendanceInput = {
   schoolYear?: Prisma.SchoolYearUpdateManyWithoutBranchNestedInput
   typeFrais?: Prisma.TypeFraisUpdateManyWithoutBranchNestedInput
   option?: Prisma.OptionUpdateManyWithoutBranchNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUpdateManyWithoutBranchNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUpdateManyWithoutBranchNestedInput
   section?: Prisma.SectionUpdateManyWithoutBranchNestedInput
   semester?: Prisma.semesterUpdateManyWithoutBranchNestedInput
@@ -2057,6 +2124,7 @@ export type BranchUncheckedUpdateWithoutTeacherAttendanceInput = {
   longitude?: Prisma.FloatFieldUpdateOperationsInput | number
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
+  typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2072,6 +2140,7 @@ export type BranchUncheckedUpdateWithoutTeacherAttendanceInput = {
   schoolYear?: Prisma.SchoolYearUncheckedUpdateManyWithoutBranchNestedInput
   typeFrais?: Prisma.TypeFraisUncheckedUpdateManyWithoutBranchNestedInput
   option?: Prisma.OptionUncheckedUpdateManyWithoutBranchNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedUpdateManyWithoutBranchNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUncheckedUpdateManyWithoutBranchNestedInput
   section?: Prisma.SectionUncheckedUpdateManyWithoutBranchNestedInput
   semester?: Prisma.semesterUncheckedUpdateManyWithoutBranchNestedInput
@@ -2109,6 +2178,7 @@ export type BranchCreateWithoutPersonnelAttendanceInput = {
   latitude: number
   longitude: number
   attendanceRadius?: number
+  typebranch: $Enums.TypeBrache
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -2125,6 +2195,7 @@ export type BranchCreateWithoutPersonnelAttendanceInput = {
   schoolYear?: Prisma.SchoolYearCreateNestedManyWithoutBranchInput
   typeFrais?: Prisma.TypeFraisCreateNestedManyWithoutBranchInput
   option?: Prisma.OptionCreateNestedManyWithoutBranchInput
+  coursPonderations?: Prisma.CoursOptionPonderationCreateNestedManyWithoutBranchInput
   classEnrollment?: Prisma.ClassEnrollmentCreateNestedManyWithoutBranchInput
   section?: Prisma.SectionCreateNestedManyWithoutBranchInput
   semester?: Prisma.semesterCreateNestedManyWithoutBranchInput
@@ -2163,6 +2234,7 @@ export type BranchUncheckedCreateWithoutPersonnelAttendanceInput = {
   longitude: number
   attendanceRadius?: number
   organizationId: string
+  typebranch: $Enums.TypeBrache
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -2178,6 +2250,7 @@ export type BranchUncheckedCreateWithoutPersonnelAttendanceInput = {
   schoolYear?: Prisma.SchoolYearUncheckedCreateNestedManyWithoutBranchInput
   typeFrais?: Prisma.TypeFraisUncheckedCreateNestedManyWithoutBranchInput
   option?: Prisma.OptionUncheckedCreateNestedManyWithoutBranchInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedCreateNestedManyWithoutBranchInput
   classEnrollment?: Prisma.ClassEnrollmentUncheckedCreateNestedManyWithoutBranchInput
   section?: Prisma.SectionUncheckedCreateNestedManyWithoutBranchInput
   semester?: Prisma.semesterUncheckedCreateNestedManyWithoutBranchInput
@@ -2231,6 +2304,7 @@ export type BranchUpdateWithoutPersonnelAttendanceInput = {
   latitude?: Prisma.FloatFieldUpdateOperationsInput | number
   longitude?: Prisma.FloatFieldUpdateOperationsInput | number
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2247,6 +2321,7 @@ export type BranchUpdateWithoutPersonnelAttendanceInput = {
   schoolYear?: Prisma.SchoolYearUpdateManyWithoutBranchNestedInput
   typeFrais?: Prisma.TypeFraisUpdateManyWithoutBranchNestedInput
   option?: Prisma.OptionUpdateManyWithoutBranchNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUpdateManyWithoutBranchNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUpdateManyWithoutBranchNestedInput
   section?: Prisma.SectionUpdateManyWithoutBranchNestedInput
   semester?: Prisma.semesterUpdateManyWithoutBranchNestedInput
@@ -2285,6 +2360,7 @@ export type BranchUncheckedUpdateWithoutPersonnelAttendanceInput = {
   longitude?: Prisma.FloatFieldUpdateOperationsInput | number
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
+  typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2300,6 +2376,7 @@ export type BranchUncheckedUpdateWithoutPersonnelAttendanceInput = {
   schoolYear?: Prisma.SchoolYearUncheckedUpdateManyWithoutBranchNestedInput
   typeFrais?: Prisma.TypeFraisUncheckedUpdateManyWithoutBranchNestedInput
   option?: Prisma.OptionUncheckedUpdateManyWithoutBranchNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedUpdateManyWithoutBranchNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUncheckedUpdateManyWithoutBranchNestedInput
   section?: Prisma.SectionUncheckedUpdateManyWithoutBranchNestedInput
   semester?: Prisma.semesterUncheckedUpdateManyWithoutBranchNestedInput
@@ -2337,6 +2414,7 @@ export type BranchCreateWithoutParentFeedbackInput = {
   latitude: number
   longitude: number
   attendanceRadius?: number
+  typebranch: $Enums.TypeBrache
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -2353,6 +2431,7 @@ export type BranchCreateWithoutParentFeedbackInput = {
   schoolYear?: Prisma.SchoolYearCreateNestedManyWithoutBranchInput
   typeFrais?: Prisma.TypeFraisCreateNestedManyWithoutBranchInput
   option?: Prisma.OptionCreateNestedManyWithoutBranchInput
+  coursPonderations?: Prisma.CoursOptionPonderationCreateNestedManyWithoutBranchInput
   classEnrollment?: Prisma.ClassEnrollmentCreateNestedManyWithoutBranchInput
   section?: Prisma.SectionCreateNestedManyWithoutBranchInput
   semester?: Prisma.semesterCreateNestedManyWithoutBranchInput
@@ -2391,6 +2470,7 @@ export type BranchUncheckedCreateWithoutParentFeedbackInput = {
   longitude: number
   attendanceRadius?: number
   organizationId: string
+  typebranch: $Enums.TypeBrache
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -2406,6 +2486,7 @@ export type BranchUncheckedCreateWithoutParentFeedbackInput = {
   schoolYear?: Prisma.SchoolYearUncheckedCreateNestedManyWithoutBranchInput
   typeFrais?: Prisma.TypeFraisUncheckedCreateNestedManyWithoutBranchInput
   option?: Prisma.OptionUncheckedCreateNestedManyWithoutBranchInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedCreateNestedManyWithoutBranchInput
   classEnrollment?: Prisma.ClassEnrollmentUncheckedCreateNestedManyWithoutBranchInput
   section?: Prisma.SectionUncheckedCreateNestedManyWithoutBranchInput
   semester?: Prisma.semesterUncheckedCreateNestedManyWithoutBranchInput
@@ -2459,6 +2540,7 @@ export type BranchUpdateWithoutParentFeedbackInput = {
   latitude?: Prisma.FloatFieldUpdateOperationsInput | number
   longitude?: Prisma.FloatFieldUpdateOperationsInput | number
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2475,6 +2557,7 @@ export type BranchUpdateWithoutParentFeedbackInput = {
   schoolYear?: Prisma.SchoolYearUpdateManyWithoutBranchNestedInput
   typeFrais?: Prisma.TypeFraisUpdateManyWithoutBranchNestedInput
   option?: Prisma.OptionUpdateManyWithoutBranchNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUpdateManyWithoutBranchNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUpdateManyWithoutBranchNestedInput
   section?: Prisma.SectionUpdateManyWithoutBranchNestedInput
   semester?: Prisma.semesterUpdateManyWithoutBranchNestedInput
@@ -2513,6 +2596,7 @@ export type BranchUncheckedUpdateWithoutParentFeedbackInput = {
   longitude?: Prisma.FloatFieldUpdateOperationsInput | number
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
+  typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2528,6 +2612,7 @@ export type BranchUncheckedUpdateWithoutParentFeedbackInput = {
   schoolYear?: Prisma.SchoolYearUncheckedUpdateManyWithoutBranchNestedInput
   typeFrais?: Prisma.TypeFraisUncheckedUpdateManyWithoutBranchNestedInput
   option?: Prisma.OptionUncheckedUpdateManyWithoutBranchNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedUpdateManyWithoutBranchNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUncheckedUpdateManyWithoutBranchNestedInput
   section?: Prisma.SectionUncheckedUpdateManyWithoutBranchNestedInput
   semester?: Prisma.semesterUncheckedUpdateManyWithoutBranchNestedInput
@@ -2565,6 +2650,7 @@ export type BranchCreateWithoutStudentGradeInput = {
   latitude: number
   longitude: number
   attendanceRadius?: number
+  typebranch: $Enums.TypeBrache
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -2581,6 +2667,7 @@ export type BranchCreateWithoutStudentGradeInput = {
   schoolYear?: Prisma.SchoolYearCreateNestedManyWithoutBranchInput
   typeFrais?: Prisma.TypeFraisCreateNestedManyWithoutBranchInput
   option?: Prisma.OptionCreateNestedManyWithoutBranchInput
+  coursPonderations?: Prisma.CoursOptionPonderationCreateNestedManyWithoutBranchInput
   classEnrollment?: Prisma.ClassEnrollmentCreateNestedManyWithoutBranchInput
   section?: Prisma.SectionCreateNestedManyWithoutBranchInput
   semester?: Prisma.semesterCreateNestedManyWithoutBranchInput
@@ -2619,6 +2706,7 @@ export type BranchUncheckedCreateWithoutStudentGradeInput = {
   longitude: number
   attendanceRadius?: number
   organizationId: string
+  typebranch: $Enums.TypeBrache
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -2634,6 +2722,7 @@ export type BranchUncheckedCreateWithoutStudentGradeInput = {
   schoolYear?: Prisma.SchoolYearUncheckedCreateNestedManyWithoutBranchInput
   typeFrais?: Prisma.TypeFraisUncheckedCreateNestedManyWithoutBranchInput
   option?: Prisma.OptionUncheckedCreateNestedManyWithoutBranchInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedCreateNestedManyWithoutBranchInput
   classEnrollment?: Prisma.ClassEnrollmentUncheckedCreateNestedManyWithoutBranchInput
   section?: Prisma.SectionUncheckedCreateNestedManyWithoutBranchInput
   semester?: Prisma.semesterUncheckedCreateNestedManyWithoutBranchInput
@@ -2687,6 +2776,7 @@ export type BranchUpdateWithoutStudentGradeInput = {
   latitude?: Prisma.FloatFieldUpdateOperationsInput | number
   longitude?: Prisma.FloatFieldUpdateOperationsInput | number
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2703,6 +2793,7 @@ export type BranchUpdateWithoutStudentGradeInput = {
   schoolYear?: Prisma.SchoolYearUpdateManyWithoutBranchNestedInput
   typeFrais?: Prisma.TypeFraisUpdateManyWithoutBranchNestedInput
   option?: Prisma.OptionUpdateManyWithoutBranchNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUpdateManyWithoutBranchNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUpdateManyWithoutBranchNestedInput
   section?: Prisma.SectionUpdateManyWithoutBranchNestedInput
   semester?: Prisma.semesterUpdateManyWithoutBranchNestedInput
@@ -2741,6 +2832,7 @@ export type BranchUncheckedUpdateWithoutStudentGradeInput = {
   longitude?: Prisma.FloatFieldUpdateOperationsInput | number
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
+  typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2756,6 +2848,7 @@ export type BranchUncheckedUpdateWithoutStudentGradeInput = {
   schoolYear?: Prisma.SchoolYearUncheckedUpdateManyWithoutBranchNestedInput
   typeFrais?: Prisma.TypeFraisUncheckedUpdateManyWithoutBranchNestedInput
   option?: Prisma.OptionUncheckedUpdateManyWithoutBranchNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedUpdateManyWithoutBranchNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUncheckedUpdateManyWithoutBranchNestedInput
   section?: Prisma.SectionUncheckedUpdateManyWithoutBranchNestedInput
   semester?: Prisma.semesterUncheckedUpdateManyWithoutBranchNestedInput
@@ -2793,6 +2886,7 @@ export type BranchCreateWithoutFraisInput = {
   latitude: number
   longitude: number
   attendanceRadius?: number
+  typebranch: $Enums.TypeBrache
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -2809,6 +2903,7 @@ export type BranchCreateWithoutFraisInput = {
   schoolYear?: Prisma.SchoolYearCreateNestedManyWithoutBranchInput
   typeFrais?: Prisma.TypeFraisCreateNestedManyWithoutBranchInput
   option?: Prisma.OptionCreateNestedManyWithoutBranchInput
+  coursPonderations?: Prisma.CoursOptionPonderationCreateNestedManyWithoutBranchInput
   classEnrollment?: Prisma.ClassEnrollmentCreateNestedManyWithoutBranchInput
   section?: Prisma.SectionCreateNestedManyWithoutBranchInput
   semester?: Prisma.semesterCreateNestedManyWithoutBranchInput
@@ -2847,6 +2942,7 @@ export type BranchUncheckedCreateWithoutFraisInput = {
   longitude: number
   attendanceRadius?: number
   organizationId: string
+  typebranch: $Enums.TypeBrache
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -2862,6 +2958,7 @@ export type BranchUncheckedCreateWithoutFraisInput = {
   schoolYear?: Prisma.SchoolYearUncheckedCreateNestedManyWithoutBranchInput
   typeFrais?: Prisma.TypeFraisUncheckedCreateNestedManyWithoutBranchInput
   option?: Prisma.OptionUncheckedCreateNestedManyWithoutBranchInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedCreateNestedManyWithoutBranchInput
   classEnrollment?: Prisma.ClassEnrollmentUncheckedCreateNestedManyWithoutBranchInput
   section?: Prisma.SectionUncheckedCreateNestedManyWithoutBranchInput
   semester?: Prisma.semesterUncheckedCreateNestedManyWithoutBranchInput
@@ -2915,6 +3012,7 @@ export type BranchUpdateWithoutFraisInput = {
   latitude?: Prisma.FloatFieldUpdateOperationsInput | number
   longitude?: Prisma.FloatFieldUpdateOperationsInput | number
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2931,6 +3029,7 @@ export type BranchUpdateWithoutFraisInput = {
   schoolYear?: Prisma.SchoolYearUpdateManyWithoutBranchNestedInput
   typeFrais?: Prisma.TypeFraisUpdateManyWithoutBranchNestedInput
   option?: Prisma.OptionUpdateManyWithoutBranchNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUpdateManyWithoutBranchNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUpdateManyWithoutBranchNestedInput
   section?: Prisma.SectionUpdateManyWithoutBranchNestedInput
   semester?: Prisma.semesterUpdateManyWithoutBranchNestedInput
@@ -2969,6 +3068,7 @@ export type BranchUncheckedUpdateWithoutFraisInput = {
   longitude?: Prisma.FloatFieldUpdateOperationsInput | number
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
+  typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2984,6 +3084,7 @@ export type BranchUncheckedUpdateWithoutFraisInput = {
   schoolYear?: Prisma.SchoolYearUncheckedUpdateManyWithoutBranchNestedInput
   typeFrais?: Prisma.TypeFraisUncheckedUpdateManyWithoutBranchNestedInput
   option?: Prisma.OptionUncheckedUpdateManyWithoutBranchNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedUpdateManyWithoutBranchNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUncheckedUpdateManyWithoutBranchNestedInput
   section?: Prisma.SectionUncheckedUpdateManyWithoutBranchNestedInput
   semester?: Prisma.semesterUncheckedUpdateManyWithoutBranchNestedInput
@@ -3021,6 +3122,7 @@ export type BranchCreateWithoutTypeFraisInput = {
   latitude: number
   longitude: number
   attendanceRadius?: number
+  typebranch: $Enums.TypeBrache
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -3036,6 +3138,7 @@ export type BranchCreateWithoutTypeFraisInput = {
   cours?: Prisma.CoursCreateNestedManyWithoutBranchInput
   schoolYear?: Prisma.SchoolYearCreateNestedManyWithoutBranchInput
   option?: Prisma.OptionCreateNestedManyWithoutBranchInput
+  coursPonderations?: Prisma.CoursOptionPonderationCreateNestedManyWithoutBranchInput
   classEnrollment?: Prisma.ClassEnrollmentCreateNestedManyWithoutBranchInput
   section?: Prisma.SectionCreateNestedManyWithoutBranchInput
   semester?: Prisma.semesterCreateNestedManyWithoutBranchInput
@@ -3075,6 +3178,7 @@ export type BranchUncheckedCreateWithoutTypeFraisInput = {
   longitude: number
   attendanceRadius?: number
   organizationId: string
+  typebranch: $Enums.TypeBrache
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -3089,6 +3193,7 @@ export type BranchUncheckedCreateWithoutTypeFraisInput = {
   cours?: Prisma.CoursUncheckedCreateNestedManyWithoutBranchInput
   schoolYear?: Prisma.SchoolYearUncheckedCreateNestedManyWithoutBranchInput
   option?: Prisma.OptionUncheckedCreateNestedManyWithoutBranchInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedCreateNestedManyWithoutBranchInput
   classEnrollment?: Prisma.ClassEnrollmentUncheckedCreateNestedManyWithoutBranchInput
   section?: Prisma.SectionUncheckedCreateNestedManyWithoutBranchInput
   semester?: Prisma.semesterUncheckedCreateNestedManyWithoutBranchInput
@@ -3143,6 +3248,7 @@ export type BranchUpdateWithoutTypeFraisInput = {
   latitude?: Prisma.FloatFieldUpdateOperationsInput | number
   longitude?: Prisma.FloatFieldUpdateOperationsInput | number
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -3158,6 +3264,7 @@ export type BranchUpdateWithoutTypeFraisInput = {
   cours?: Prisma.CoursUpdateManyWithoutBranchNestedInput
   schoolYear?: Prisma.SchoolYearUpdateManyWithoutBranchNestedInput
   option?: Prisma.OptionUpdateManyWithoutBranchNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUpdateManyWithoutBranchNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUpdateManyWithoutBranchNestedInput
   section?: Prisma.SectionUpdateManyWithoutBranchNestedInput
   semester?: Prisma.semesterUpdateManyWithoutBranchNestedInput
@@ -3197,6 +3304,7 @@ export type BranchUncheckedUpdateWithoutTypeFraisInput = {
   longitude?: Prisma.FloatFieldUpdateOperationsInput | number
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
+  typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -3211,6 +3319,7 @@ export type BranchUncheckedUpdateWithoutTypeFraisInput = {
   cours?: Prisma.CoursUncheckedUpdateManyWithoutBranchNestedInput
   schoolYear?: Prisma.SchoolYearUncheckedUpdateManyWithoutBranchNestedInput
   option?: Prisma.OptionUncheckedUpdateManyWithoutBranchNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedUpdateManyWithoutBranchNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUncheckedUpdateManyWithoutBranchNestedInput
   section?: Prisma.SectionUncheckedUpdateManyWithoutBranchNestedInput
   semester?: Prisma.semesterUncheckedUpdateManyWithoutBranchNestedInput
@@ -3249,6 +3358,7 @@ export type BranchCreateWithoutClassesInput = {
   latitude: number
   longitude: number
   attendanceRadius?: number
+  typebranch: $Enums.TypeBrache
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -3264,6 +3374,7 @@ export type BranchCreateWithoutClassesInput = {
   schoolYear?: Prisma.SchoolYearCreateNestedManyWithoutBranchInput
   typeFrais?: Prisma.TypeFraisCreateNestedManyWithoutBranchInput
   option?: Prisma.OptionCreateNestedManyWithoutBranchInput
+  coursPonderations?: Prisma.CoursOptionPonderationCreateNestedManyWithoutBranchInput
   classEnrollment?: Prisma.ClassEnrollmentCreateNestedManyWithoutBranchInput
   section?: Prisma.SectionCreateNestedManyWithoutBranchInput
   semester?: Prisma.semesterCreateNestedManyWithoutBranchInput
@@ -3303,6 +3414,7 @@ export type BranchUncheckedCreateWithoutClassesInput = {
   longitude: number
   attendanceRadius?: number
   organizationId: string
+  typebranch: $Enums.TypeBrache
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -3317,6 +3429,7 @@ export type BranchUncheckedCreateWithoutClassesInput = {
   schoolYear?: Prisma.SchoolYearUncheckedCreateNestedManyWithoutBranchInput
   typeFrais?: Prisma.TypeFraisUncheckedCreateNestedManyWithoutBranchInput
   option?: Prisma.OptionUncheckedCreateNestedManyWithoutBranchInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedCreateNestedManyWithoutBranchInput
   classEnrollment?: Prisma.ClassEnrollmentUncheckedCreateNestedManyWithoutBranchInput
   section?: Prisma.SectionUncheckedCreateNestedManyWithoutBranchInput
   semester?: Prisma.semesterUncheckedCreateNestedManyWithoutBranchInput
@@ -3371,6 +3484,7 @@ export type BranchUpdateWithoutClassesInput = {
   latitude?: Prisma.FloatFieldUpdateOperationsInput | number
   longitude?: Prisma.FloatFieldUpdateOperationsInput | number
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -3386,6 +3500,7 @@ export type BranchUpdateWithoutClassesInput = {
   schoolYear?: Prisma.SchoolYearUpdateManyWithoutBranchNestedInput
   typeFrais?: Prisma.TypeFraisUpdateManyWithoutBranchNestedInput
   option?: Prisma.OptionUpdateManyWithoutBranchNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUpdateManyWithoutBranchNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUpdateManyWithoutBranchNestedInput
   section?: Prisma.SectionUpdateManyWithoutBranchNestedInput
   semester?: Prisma.semesterUpdateManyWithoutBranchNestedInput
@@ -3425,6 +3540,7 @@ export type BranchUncheckedUpdateWithoutClassesInput = {
   longitude?: Prisma.FloatFieldUpdateOperationsInput | number
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
+  typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -3439,6 +3555,7 @@ export type BranchUncheckedUpdateWithoutClassesInput = {
   schoolYear?: Prisma.SchoolYearUncheckedUpdateManyWithoutBranchNestedInput
   typeFrais?: Prisma.TypeFraisUncheckedUpdateManyWithoutBranchNestedInput
   option?: Prisma.OptionUncheckedUpdateManyWithoutBranchNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedUpdateManyWithoutBranchNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUncheckedUpdateManyWithoutBranchNestedInput
   section?: Prisma.SectionUncheckedUpdateManyWithoutBranchNestedInput
   semester?: Prisma.semesterUncheckedUpdateManyWithoutBranchNestedInput
@@ -3477,6 +3594,7 @@ export type BranchCreateWithoutCreneauInput = {
   latitude: number
   longitude: number
   attendanceRadius?: number
+  typebranch: $Enums.TypeBrache
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -3493,6 +3611,7 @@ export type BranchCreateWithoutCreneauInput = {
   schoolYear?: Prisma.SchoolYearCreateNestedManyWithoutBranchInput
   typeFrais?: Prisma.TypeFraisCreateNestedManyWithoutBranchInput
   option?: Prisma.OptionCreateNestedManyWithoutBranchInput
+  coursPonderations?: Prisma.CoursOptionPonderationCreateNestedManyWithoutBranchInput
   classEnrollment?: Prisma.ClassEnrollmentCreateNestedManyWithoutBranchInput
   section?: Prisma.SectionCreateNestedManyWithoutBranchInput
   semester?: Prisma.semesterCreateNestedManyWithoutBranchInput
@@ -3531,6 +3650,7 @@ export type BranchUncheckedCreateWithoutCreneauInput = {
   longitude: number
   attendanceRadius?: number
   organizationId: string
+  typebranch: $Enums.TypeBrache
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -3546,6 +3666,7 @@ export type BranchUncheckedCreateWithoutCreneauInput = {
   schoolYear?: Prisma.SchoolYearUncheckedCreateNestedManyWithoutBranchInput
   typeFrais?: Prisma.TypeFraisUncheckedCreateNestedManyWithoutBranchInput
   option?: Prisma.OptionUncheckedCreateNestedManyWithoutBranchInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedCreateNestedManyWithoutBranchInput
   classEnrollment?: Prisma.ClassEnrollmentUncheckedCreateNestedManyWithoutBranchInput
   section?: Prisma.SectionUncheckedCreateNestedManyWithoutBranchInput
   semester?: Prisma.semesterUncheckedCreateNestedManyWithoutBranchInput
@@ -3599,6 +3720,7 @@ export type BranchUpdateWithoutCreneauInput = {
   latitude?: Prisma.FloatFieldUpdateOperationsInput | number
   longitude?: Prisma.FloatFieldUpdateOperationsInput | number
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -3615,6 +3737,7 @@ export type BranchUpdateWithoutCreneauInput = {
   schoolYear?: Prisma.SchoolYearUpdateManyWithoutBranchNestedInput
   typeFrais?: Prisma.TypeFraisUpdateManyWithoutBranchNestedInput
   option?: Prisma.OptionUpdateManyWithoutBranchNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUpdateManyWithoutBranchNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUpdateManyWithoutBranchNestedInput
   section?: Prisma.SectionUpdateManyWithoutBranchNestedInput
   semester?: Prisma.semesterUpdateManyWithoutBranchNestedInput
@@ -3653,6 +3776,7 @@ export type BranchUncheckedUpdateWithoutCreneauInput = {
   longitude?: Prisma.FloatFieldUpdateOperationsInput | number
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
+  typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -3668,6 +3792,7 @@ export type BranchUncheckedUpdateWithoutCreneauInput = {
   schoolYear?: Prisma.SchoolYearUncheckedUpdateManyWithoutBranchNestedInput
   typeFrais?: Prisma.TypeFraisUncheckedUpdateManyWithoutBranchNestedInput
   option?: Prisma.OptionUncheckedUpdateManyWithoutBranchNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedUpdateManyWithoutBranchNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUncheckedUpdateManyWithoutBranchNestedInput
   section?: Prisma.SectionUncheckedUpdateManyWithoutBranchNestedInput
   semester?: Prisma.semesterUncheckedUpdateManyWithoutBranchNestedInput
@@ -3705,6 +3830,7 @@ export type BranchCreateWithoutOptionInput = {
   latitude: number
   longitude: number
   attendanceRadius?: number
+  typebranch: $Enums.TypeBrache
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -3720,6 +3846,7 @@ export type BranchCreateWithoutOptionInput = {
   cours?: Prisma.CoursCreateNestedManyWithoutBranchInput
   schoolYear?: Prisma.SchoolYearCreateNestedManyWithoutBranchInput
   typeFrais?: Prisma.TypeFraisCreateNestedManyWithoutBranchInput
+  coursPonderations?: Prisma.CoursOptionPonderationCreateNestedManyWithoutBranchInput
   classEnrollment?: Prisma.ClassEnrollmentCreateNestedManyWithoutBranchInput
   section?: Prisma.SectionCreateNestedManyWithoutBranchInput
   semester?: Prisma.semesterCreateNestedManyWithoutBranchInput
@@ -3759,6 +3886,7 @@ export type BranchUncheckedCreateWithoutOptionInput = {
   longitude: number
   attendanceRadius?: number
   organizationId: string
+  typebranch: $Enums.TypeBrache
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -3773,6 +3901,7 @@ export type BranchUncheckedCreateWithoutOptionInput = {
   cours?: Prisma.CoursUncheckedCreateNestedManyWithoutBranchInput
   schoolYear?: Prisma.SchoolYearUncheckedCreateNestedManyWithoutBranchInput
   typeFrais?: Prisma.TypeFraisUncheckedCreateNestedManyWithoutBranchInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedCreateNestedManyWithoutBranchInput
   classEnrollment?: Prisma.ClassEnrollmentUncheckedCreateNestedManyWithoutBranchInput
   section?: Prisma.SectionUncheckedCreateNestedManyWithoutBranchInput
   semester?: Prisma.semesterUncheckedCreateNestedManyWithoutBranchInput
@@ -3827,6 +3956,7 @@ export type BranchUpdateWithoutOptionInput = {
   latitude?: Prisma.FloatFieldUpdateOperationsInput | number
   longitude?: Prisma.FloatFieldUpdateOperationsInput | number
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -3842,6 +3972,7 @@ export type BranchUpdateWithoutOptionInput = {
   cours?: Prisma.CoursUpdateManyWithoutBranchNestedInput
   schoolYear?: Prisma.SchoolYearUpdateManyWithoutBranchNestedInput
   typeFrais?: Prisma.TypeFraisUpdateManyWithoutBranchNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUpdateManyWithoutBranchNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUpdateManyWithoutBranchNestedInput
   section?: Prisma.SectionUpdateManyWithoutBranchNestedInput
   semester?: Prisma.semesterUpdateManyWithoutBranchNestedInput
@@ -3881,6 +4012,7 @@ export type BranchUncheckedUpdateWithoutOptionInput = {
   longitude?: Prisma.FloatFieldUpdateOperationsInput | number
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
+  typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -3895,6 +4027,7 @@ export type BranchUncheckedUpdateWithoutOptionInput = {
   cours?: Prisma.CoursUncheckedUpdateManyWithoutBranchNestedInput
   schoolYear?: Prisma.SchoolYearUncheckedUpdateManyWithoutBranchNestedInput
   typeFrais?: Prisma.TypeFraisUncheckedUpdateManyWithoutBranchNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedUpdateManyWithoutBranchNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUncheckedUpdateManyWithoutBranchNestedInput
   section?: Prisma.SectionUncheckedUpdateManyWithoutBranchNestedInput
   semester?: Prisma.semesterUncheckedUpdateManyWithoutBranchNestedInput
@@ -3933,6 +4066,7 @@ export type BranchCreateWithoutSectionInput = {
   latitude: number
   longitude: number
   attendanceRadius?: number
+  typebranch: $Enums.TypeBrache
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -3949,6 +4083,7 @@ export type BranchCreateWithoutSectionInput = {
   schoolYear?: Prisma.SchoolYearCreateNestedManyWithoutBranchInput
   typeFrais?: Prisma.TypeFraisCreateNestedManyWithoutBranchInput
   option?: Prisma.OptionCreateNestedManyWithoutBranchInput
+  coursPonderations?: Prisma.CoursOptionPonderationCreateNestedManyWithoutBranchInput
   classEnrollment?: Prisma.ClassEnrollmentCreateNestedManyWithoutBranchInput
   semester?: Prisma.semesterCreateNestedManyWithoutBranchInput
   frais?: Prisma.FraisCreateNestedManyWithoutBranchInput
@@ -3987,6 +4122,7 @@ export type BranchUncheckedCreateWithoutSectionInput = {
   longitude: number
   attendanceRadius?: number
   organizationId: string
+  typebranch: $Enums.TypeBrache
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -4002,6 +4138,7 @@ export type BranchUncheckedCreateWithoutSectionInput = {
   schoolYear?: Prisma.SchoolYearUncheckedCreateNestedManyWithoutBranchInput
   typeFrais?: Prisma.TypeFraisUncheckedCreateNestedManyWithoutBranchInput
   option?: Prisma.OptionUncheckedCreateNestedManyWithoutBranchInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedCreateNestedManyWithoutBranchInput
   classEnrollment?: Prisma.ClassEnrollmentUncheckedCreateNestedManyWithoutBranchInput
   semester?: Prisma.semesterUncheckedCreateNestedManyWithoutBranchInput
   frais?: Prisma.FraisUncheckedCreateNestedManyWithoutBranchInput
@@ -4055,6 +4192,7 @@ export type BranchUpdateWithoutSectionInput = {
   latitude?: Prisma.FloatFieldUpdateOperationsInput | number
   longitude?: Prisma.FloatFieldUpdateOperationsInput | number
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -4071,6 +4209,7 @@ export type BranchUpdateWithoutSectionInput = {
   schoolYear?: Prisma.SchoolYearUpdateManyWithoutBranchNestedInput
   typeFrais?: Prisma.TypeFraisUpdateManyWithoutBranchNestedInput
   option?: Prisma.OptionUpdateManyWithoutBranchNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUpdateManyWithoutBranchNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUpdateManyWithoutBranchNestedInput
   semester?: Prisma.semesterUpdateManyWithoutBranchNestedInput
   frais?: Prisma.FraisUpdateManyWithoutBranchNestedInput
@@ -4109,6 +4248,7 @@ export type BranchUncheckedUpdateWithoutSectionInput = {
   longitude?: Prisma.FloatFieldUpdateOperationsInput | number
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
+  typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -4124,6 +4264,7 @@ export type BranchUncheckedUpdateWithoutSectionInput = {
   schoolYear?: Prisma.SchoolYearUncheckedUpdateManyWithoutBranchNestedInput
   typeFrais?: Prisma.TypeFraisUncheckedUpdateManyWithoutBranchNestedInput
   option?: Prisma.OptionUncheckedUpdateManyWithoutBranchNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedUpdateManyWithoutBranchNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUncheckedUpdateManyWithoutBranchNestedInput
   semester?: Prisma.semesterUncheckedUpdateManyWithoutBranchNestedInput
   frais?: Prisma.FraisUncheckedUpdateManyWithoutBranchNestedInput
@@ -4161,6 +4302,7 @@ export type BranchCreateWithoutSchoolYearInput = {
   latitude: number
   longitude: number
   attendanceRadius?: number
+  typebranch: $Enums.TypeBrache
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -4176,6 +4318,7 @@ export type BranchCreateWithoutSchoolYearInput = {
   cours?: Prisma.CoursCreateNestedManyWithoutBranchInput
   typeFrais?: Prisma.TypeFraisCreateNestedManyWithoutBranchInput
   option?: Prisma.OptionCreateNestedManyWithoutBranchInput
+  coursPonderations?: Prisma.CoursOptionPonderationCreateNestedManyWithoutBranchInput
   classEnrollment?: Prisma.ClassEnrollmentCreateNestedManyWithoutBranchInput
   section?: Prisma.SectionCreateNestedManyWithoutBranchInput
   semester?: Prisma.semesterCreateNestedManyWithoutBranchInput
@@ -4215,6 +4358,7 @@ export type BranchUncheckedCreateWithoutSchoolYearInput = {
   longitude: number
   attendanceRadius?: number
   organizationId: string
+  typebranch: $Enums.TypeBrache
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -4229,6 +4373,7 @@ export type BranchUncheckedCreateWithoutSchoolYearInput = {
   cours?: Prisma.CoursUncheckedCreateNestedManyWithoutBranchInput
   typeFrais?: Prisma.TypeFraisUncheckedCreateNestedManyWithoutBranchInput
   option?: Prisma.OptionUncheckedCreateNestedManyWithoutBranchInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedCreateNestedManyWithoutBranchInput
   classEnrollment?: Prisma.ClassEnrollmentUncheckedCreateNestedManyWithoutBranchInput
   section?: Prisma.SectionUncheckedCreateNestedManyWithoutBranchInput
   semester?: Prisma.semesterUncheckedCreateNestedManyWithoutBranchInput
@@ -4283,6 +4428,7 @@ export type BranchUpdateWithoutSchoolYearInput = {
   latitude?: Prisma.FloatFieldUpdateOperationsInput | number
   longitude?: Prisma.FloatFieldUpdateOperationsInput | number
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -4298,6 +4444,7 @@ export type BranchUpdateWithoutSchoolYearInput = {
   cours?: Prisma.CoursUpdateManyWithoutBranchNestedInput
   typeFrais?: Prisma.TypeFraisUpdateManyWithoutBranchNestedInput
   option?: Prisma.OptionUpdateManyWithoutBranchNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUpdateManyWithoutBranchNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUpdateManyWithoutBranchNestedInput
   section?: Prisma.SectionUpdateManyWithoutBranchNestedInput
   semester?: Prisma.semesterUpdateManyWithoutBranchNestedInput
@@ -4337,6 +4484,7 @@ export type BranchUncheckedUpdateWithoutSchoolYearInput = {
   longitude?: Prisma.FloatFieldUpdateOperationsInput | number
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
+  typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -4351,6 +4499,7 @@ export type BranchUncheckedUpdateWithoutSchoolYearInput = {
   cours?: Prisma.CoursUncheckedUpdateManyWithoutBranchNestedInput
   typeFrais?: Prisma.TypeFraisUncheckedUpdateManyWithoutBranchNestedInput
   option?: Prisma.OptionUncheckedUpdateManyWithoutBranchNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedUpdateManyWithoutBranchNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUncheckedUpdateManyWithoutBranchNestedInput
   section?: Prisma.SectionUncheckedUpdateManyWithoutBranchNestedInput
   semester?: Prisma.semesterUncheckedUpdateManyWithoutBranchNestedInput
@@ -4389,6 +4538,7 @@ export type BranchCreateWithoutClassEnrollmentInput = {
   latitude: number
   longitude: number
   attendanceRadius?: number
+  typebranch: $Enums.TypeBrache
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -4405,6 +4555,7 @@ export type BranchCreateWithoutClassEnrollmentInput = {
   schoolYear?: Prisma.SchoolYearCreateNestedManyWithoutBranchInput
   typeFrais?: Prisma.TypeFraisCreateNestedManyWithoutBranchInput
   option?: Prisma.OptionCreateNestedManyWithoutBranchInput
+  coursPonderations?: Prisma.CoursOptionPonderationCreateNestedManyWithoutBranchInput
   section?: Prisma.SectionCreateNestedManyWithoutBranchInput
   semester?: Prisma.semesterCreateNestedManyWithoutBranchInput
   frais?: Prisma.FraisCreateNestedManyWithoutBranchInput
@@ -4443,6 +4594,7 @@ export type BranchUncheckedCreateWithoutClassEnrollmentInput = {
   longitude: number
   attendanceRadius?: number
   organizationId: string
+  typebranch: $Enums.TypeBrache
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -4458,6 +4610,7 @@ export type BranchUncheckedCreateWithoutClassEnrollmentInput = {
   schoolYear?: Prisma.SchoolYearUncheckedCreateNestedManyWithoutBranchInput
   typeFrais?: Prisma.TypeFraisUncheckedCreateNestedManyWithoutBranchInput
   option?: Prisma.OptionUncheckedCreateNestedManyWithoutBranchInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedCreateNestedManyWithoutBranchInput
   section?: Prisma.SectionUncheckedCreateNestedManyWithoutBranchInput
   semester?: Prisma.semesterUncheckedCreateNestedManyWithoutBranchInput
   frais?: Prisma.FraisUncheckedCreateNestedManyWithoutBranchInput
@@ -4511,6 +4664,7 @@ export type BranchUpdateWithoutClassEnrollmentInput = {
   latitude?: Prisma.FloatFieldUpdateOperationsInput | number
   longitude?: Prisma.FloatFieldUpdateOperationsInput | number
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -4527,6 +4681,7 @@ export type BranchUpdateWithoutClassEnrollmentInput = {
   schoolYear?: Prisma.SchoolYearUpdateManyWithoutBranchNestedInput
   typeFrais?: Prisma.TypeFraisUpdateManyWithoutBranchNestedInput
   option?: Prisma.OptionUpdateManyWithoutBranchNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUpdateManyWithoutBranchNestedInput
   section?: Prisma.SectionUpdateManyWithoutBranchNestedInput
   semester?: Prisma.semesterUpdateManyWithoutBranchNestedInput
   frais?: Prisma.FraisUpdateManyWithoutBranchNestedInput
@@ -4565,6 +4720,7 @@ export type BranchUncheckedUpdateWithoutClassEnrollmentInput = {
   longitude?: Prisma.FloatFieldUpdateOperationsInput | number
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
+  typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -4580,6 +4736,7 @@ export type BranchUncheckedUpdateWithoutClassEnrollmentInput = {
   schoolYear?: Prisma.SchoolYearUncheckedUpdateManyWithoutBranchNestedInput
   typeFrais?: Prisma.TypeFraisUncheckedUpdateManyWithoutBranchNestedInput
   option?: Prisma.OptionUncheckedUpdateManyWithoutBranchNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedUpdateManyWithoutBranchNestedInput
   section?: Prisma.SectionUncheckedUpdateManyWithoutBranchNestedInput
   semester?: Prisma.semesterUncheckedUpdateManyWithoutBranchNestedInput
   frais?: Prisma.FraisUncheckedUpdateManyWithoutBranchNestedInput
@@ -4617,6 +4774,7 @@ export type BranchCreateWithoutTeachingInput = {
   latitude: number
   longitude: number
   attendanceRadius?: number
+  typebranch: $Enums.TypeBrache
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -4633,6 +4791,7 @@ export type BranchCreateWithoutTeachingInput = {
   schoolYear?: Prisma.SchoolYearCreateNestedManyWithoutBranchInput
   typeFrais?: Prisma.TypeFraisCreateNestedManyWithoutBranchInput
   option?: Prisma.OptionCreateNestedManyWithoutBranchInput
+  coursPonderations?: Prisma.CoursOptionPonderationCreateNestedManyWithoutBranchInput
   classEnrollment?: Prisma.ClassEnrollmentCreateNestedManyWithoutBranchInput
   section?: Prisma.SectionCreateNestedManyWithoutBranchInput
   semester?: Prisma.semesterCreateNestedManyWithoutBranchInput
@@ -4671,6 +4830,7 @@ export type BranchUncheckedCreateWithoutTeachingInput = {
   longitude: number
   attendanceRadius?: number
   organizationId: string
+  typebranch: $Enums.TypeBrache
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -4686,6 +4846,7 @@ export type BranchUncheckedCreateWithoutTeachingInput = {
   schoolYear?: Prisma.SchoolYearUncheckedCreateNestedManyWithoutBranchInput
   typeFrais?: Prisma.TypeFraisUncheckedCreateNestedManyWithoutBranchInput
   option?: Prisma.OptionUncheckedCreateNestedManyWithoutBranchInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedCreateNestedManyWithoutBranchInput
   classEnrollment?: Prisma.ClassEnrollmentUncheckedCreateNestedManyWithoutBranchInput
   section?: Prisma.SectionUncheckedCreateNestedManyWithoutBranchInput
   semester?: Prisma.semesterUncheckedCreateNestedManyWithoutBranchInput
@@ -4739,6 +4900,7 @@ export type BranchUpdateWithoutTeachingInput = {
   latitude?: Prisma.FloatFieldUpdateOperationsInput | number
   longitude?: Prisma.FloatFieldUpdateOperationsInput | number
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -4755,6 +4917,7 @@ export type BranchUpdateWithoutTeachingInput = {
   schoolYear?: Prisma.SchoolYearUpdateManyWithoutBranchNestedInput
   typeFrais?: Prisma.TypeFraisUpdateManyWithoutBranchNestedInput
   option?: Prisma.OptionUpdateManyWithoutBranchNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUpdateManyWithoutBranchNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUpdateManyWithoutBranchNestedInput
   section?: Prisma.SectionUpdateManyWithoutBranchNestedInput
   semester?: Prisma.semesterUpdateManyWithoutBranchNestedInput
@@ -4793,6 +4956,7 @@ export type BranchUncheckedUpdateWithoutTeachingInput = {
   longitude?: Prisma.FloatFieldUpdateOperationsInput | number
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
+  typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -4808,6 +4972,7 @@ export type BranchUncheckedUpdateWithoutTeachingInput = {
   schoolYear?: Prisma.SchoolYearUncheckedUpdateManyWithoutBranchNestedInput
   typeFrais?: Prisma.TypeFraisUncheckedUpdateManyWithoutBranchNestedInput
   option?: Prisma.OptionUncheckedUpdateManyWithoutBranchNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedUpdateManyWithoutBranchNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUncheckedUpdateManyWithoutBranchNestedInput
   section?: Prisma.SectionUncheckedUpdateManyWithoutBranchNestedInput
   semester?: Prisma.semesterUncheckedUpdateManyWithoutBranchNestedInput
@@ -4845,6 +5010,7 @@ export type BranchCreateWithoutCoursInput = {
   latitude: number
   longitude: number
   attendanceRadius?: number
+  typebranch: $Enums.TypeBrache
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -4860,6 +5026,7 @@ export type BranchCreateWithoutCoursInput = {
   schoolYear?: Prisma.SchoolYearCreateNestedManyWithoutBranchInput
   typeFrais?: Prisma.TypeFraisCreateNestedManyWithoutBranchInput
   option?: Prisma.OptionCreateNestedManyWithoutBranchInput
+  coursPonderations?: Prisma.CoursOptionPonderationCreateNestedManyWithoutBranchInput
   classEnrollment?: Prisma.ClassEnrollmentCreateNestedManyWithoutBranchInput
   section?: Prisma.SectionCreateNestedManyWithoutBranchInput
   semester?: Prisma.semesterCreateNestedManyWithoutBranchInput
@@ -4899,6 +5066,7 @@ export type BranchUncheckedCreateWithoutCoursInput = {
   longitude: number
   attendanceRadius?: number
   organizationId: string
+  typebranch: $Enums.TypeBrache
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -4913,6 +5081,7 @@ export type BranchUncheckedCreateWithoutCoursInput = {
   schoolYear?: Prisma.SchoolYearUncheckedCreateNestedManyWithoutBranchInput
   typeFrais?: Prisma.TypeFraisUncheckedCreateNestedManyWithoutBranchInput
   option?: Prisma.OptionUncheckedCreateNestedManyWithoutBranchInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedCreateNestedManyWithoutBranchInput
   classEnrollment?: Prisma.ClassEnrollmentUncheckedCreateNestedManyWithoutBranchInput
   section?: Prisma.SectionUncheckedCreateNestedManyWithoutBranchInput
   semester?: Prisma.semesterUncheckedCreateNestedManyWithoutBranchInput
@@ -4967,6 +5136,7 @@ export type BranchUpdateWithoutCoursInput = {
   latitude?: Prisma.FloatFieldUpdateOperationsInput | number
   longitude?: Prisma.FloatFieldUpdateOperationsInput | number
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -4982,6 +5152,7 @@ export type BranchUpdateWithoutCoursInput = {
   schoolYear?: Prisma.SchoolYearUpdateManyWithoutBranchNestedInput
   typeFrais?: Prisma.TypeFraisUpdateManyWithoutBranchNestedInput
   option?: Prisma.OptionUpdateManyWithoutBranchNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUpdateManyWithoutBranchNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUpdateManyWithoutBranchNestedInput
   section?: Prisma.SectionUpdateManyWithoutBranchNestedInput
   semester?: Prisma.semesterUpdateManyWithoutBranchNestedInput
@@ -5021,6 +5192,7 @@ export type BranchUncheckedUpdateWithoutCoursInput = {
   longitude?: Prisma.FloatFieldUpdateOperationsInput | number
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
+  typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -5032,6 +5204,243 @@ export type BranchUncheckedUpdateWithoutCoursInput = {
   fiche?: Prisma.ficheUncheckedUpdateManyWithoutBranchNestedInput
   eventType?: Prisma.EventTypeUncheckedUpdateManyWithoutBranchNestedInput
   period?: Prisma.periodUncheckedUpdateManyWithoutBranchNestedInput
+  schoolYear?: Prisma.SchoolYearUncheckedUpdateManyWithoutBranchNestedInput
+  typeFrais?: Prisma.TypeFraisUncheckedUpdateManyWithoutBranchNestedInput
+  option?: Prisma.OptionUncheckedUpdateManyWithoutBranchNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedUpdateManyWithoutBranchNestedInput
+  classEnrollment?: Prisma.ClassEnrollmentUncheckedUpdateManyWithoutBranchNestedInput
+  section?: Prisma.SectionUncheckedUpdateManyWithoutBranchNestedInput
+  semester?: Prisma.semesterUncheckedUpdateManyWithoutBranchNestedInput
+  frais?: Prisma.FraisUncheckedUpdateManyWithoutBranchNestedInput
+  calendarEvent?: Prisma.CalendarEventUncheckedUpdateManyWithoutBranchNestedInput
+  periodResultLock?: Prisma.PeriodResultLockUncheckedUpdateManyWithoutBranchNestedInput
+  cashierExpense?: Prisma.CashierExpenseUncheckedUpdateManyWithoutBranchNestedInput
+  invoice?: Prisma.InvoiceUncheckedUpdateManyWithoutBranchNestedInput
+  creneau?: Prisma.CreneauUncheckedUpdateManyWithoutBranchNestedInput
+  paymentAllocation?: Prisma.PaymentAllocationUncheckedUpdateManyWithoutBranchNestedInput
+  teaching?: Prisma.TeachingUncheckedUpdateManyWithoutBranchNestedInput
+  mobileMoneyTransaction?: Prisma.MobileMoneyTransactionUncheckedUpdateManyWithoutBranchNestedInput
+  branchInvitation?: Prisma.BranchInvitationUncheckedUpdateManyWithoutBranchNestedInput
+  attendanceSessions?: Prisma.AttendanceSessionUncheckedUpdateManyWithoutBranchNestedInput
+  teacherAttendance?: Prisma.TeacherAttendanceUncheckedUpdateManyWithoutBranchNestedInput
+  personnelAttendance?: Prisma.PersonnelAttendanceUncheckedUpdateManyWithoutBranchNestedInput
+  studentGrade?: Prisma.StudentGradeUncheckedUpdateManyWithoutBranchNestedInput
+  parentFeedback?: Prisma.ParentFeedbackUncheckedUpdateManyWithoutBranchNestedInput
+  transaction?: Prisma.TransactionUncheckedUpdateManyWithoutBranchNestedInput
+  discountRule?: Prisma.DiscountRuleUncheckedUpdateManyWithoutBranchNestedInput
+  paymentEvent?: Prisma.PaymentEventUncheckedUpdateManyWithoutBranchNestedInput
+  partnaires?: Prisma.PartnaireUncheckedUpdateManyWithoutBranchNestedInput
+  organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedUpdateManyWithoutBranchNestedInput
+}
+
+export type BranchCreateWithoutCoursPonderationsInput = {
+  id?: string
+  name: string
+  code?: string | null
+  image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  adresse?: string | null
+  ville?: string | null
+  pays?: string | null
+  idnat?: string | null
+  tel?: string | null
+  latitude: number
+  longitude: number
+  attendanceRadius?: number
+  typebranch: $Enums.TypeBrache
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  organization: Prisma.OrganizationCreateNestedOneWithoutBranchesInput
+  studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
+  branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
+  classes?: Prisma.ClasseCreateNestedManyWithoutBranchInput
+  paymentBatch?: Prisma.PaymentBatchCreateNestedManyWithoutBranchInput
+  familyPayment?: Prisma.FamilyPaymentCreateNestedManyWithoutBranchInput
+  fiche?: Prisma.ficheCreateNestedManyWithoutBranchInput
+  eventType?: Prisma.EventTypeCreateNestedManyWithoutBranchInput
+  period?: Prisma.periodCreateNestedManyWithoutBranchInput
+  cours?: Prisma.CoursCreateNestedManyWithoutBranchInput
+  schoolYear?: Prisma.SchoolYearCreateNestedManyWithoutBranchInput
+  typeFrais?: Prisma.TypeFraisCreateNestedManyWithoutBranchInput
+  option?: Prisma.OptionCreateNestedManyWithoutBranchInput
+  classEnrollment?: Prisma.ClassEnrollmentCreateNestedManyWithoutBranchInput
+  section?: Prisma.SectionCreateNestedManyWithoutBranchInput
+  semester?: Prisma.semesterCreateNestedManyWithoutBranchInput
+  frais?: Prisma.FraisCreateNestedManyWithoutBranchInput
+  calendarEvent?: Prisma.CalendarEventCreateNestedManyWithoutBranchInput
+  periodResultLock?: Prisma.PeriodResultLockCreateNestedManyWithoutBranchInput
+  cashierExpense?: Prisma.CashierExpenseCreateNestedManyWithoutBranchInput
+  invoice?: Prisma.InvoiceCreateNestedManyWithoutBranchInput
+  creneau?: Prisma.CreneauCreateNestedManyWithoutBranchInput
+  paymentAllocation?: Prisma.PaymentAllocationCreateNestedManyWithoutBranchInput
+  teaching?: Prisma.TeachingCreateNestedManyWithoutBranchInput
+  mobileMoneyTransaction?: Prisma.MobileMoneyTransactionCreateNestedManyWithoutBranchInput
+  branchInvitation?: Prisma.BranchInvitationCreateNestedManyWithoutBranchInput
+  attendanceSessions?: Prisma.AttendanceSessionCreateNestedManyWithoutBranchInput
+  teacherAttendance?: Prisma.TeacherAttendanceCreateNestedManyWithoutBranchInput
+  personnelAttendance?: Prisma.PersonnelAttendanceCreateNestedManyWithoutBranchInput
+  studentGrade?: Prisma.StudentGradeCreateNestedManyWithoutBranchInput
+  parentFeedback?: Prisma.ParentFeedbackCreateNestedManyWithoutBranchInput
+  transaction?: Prisma.TransactionCreateNestedManyWithoutBranchInput
+  discountRule?: Prisma.DiscountRuleCreateNestedManyWithoutBranchInput
+  paymentEvent?: Prisma.PaymentEventCreateNestedManyWithoutBranchInput
+  partnaires?: Prisma.PartnaireCreateNestedManyWithoutBranchInput
+  organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeCreateNestedManyWithoutBranchInput
+}
+
+export type BranchUncheckedCreateWithoutCoursPonderationsInput = {
+  id?: string
+  name: string
+  code?: string | null
+  image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  adresse?: string | null
+  ville?: string | null
+  pays?: string | null
+  idnat?: string | null
+  tel?: string | null
+  latitude: number
+  longitude: number
+  attendanceRadius?: number
+  organizationId: string
+  typebranch: $Enums.TypeBrache
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
+  branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
+  classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
+  paymentBatch?: Prisma.PaymentBatchUncheckedCreateNestedManyWithoutBranchInput
+  familyPayment?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutBranchInput
+  fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutBranchInput
+  eventType?: Prisma.EventTypeUncheckedCreateNestedManyWithoutBranchInput
+  period?: Prisma.periodUncheckedCreateNestedManyWithoutBranchInput
+  cours?: Prisma.CoursUncheckedCreateNestedManyWithoutBranchInput
+  schoolYear?: Prisma.SchoolYearUncheckedCreateNestedManyWithoutBranchInput
+  typeFrais?: Prisma.TypeFraisUncheckedCreateNestedManyWithoutBranchInput
+  option?: Prisma.OptionUncheckedCreateNestedManyWithoutBranchInput
+  classEnrollment?: Prisma.ClassEnrollmentUncheckedCreateNestedManyWithoutBranchInput
+  section?: Prisma.SectionUncheckedCreateNestedManyWithoutBranchInput
+  semester?: Prisma.semesterUncheckedCreateNestedManyWithoutBranchInput
+  frais?: Prisma.FraisUncheckedCreateNestedManyWithoutBranchInput
+  calendarEvent?: Prisma.CalendarEventUncheckedCreateNestedManyWithoutBranchInput
+  periodResultLock?: Prisma.PeriodResultLockUncheckedCreateNestedManyWithoutBranchInput
+  cashierExpense?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutBranchInput
+  invoice?: Prisma.InvoiceUncheckedCreateNestedManyWithoutBranchInput
+  creneau?: Prisma.CreneauUncheckedCreateNestedManyWithoutBranchInput
+  paymentAllocation?: Prisma.PaymentAllocationUncheckedCreateNestedManyWithoutBranchInput
+  teaching?: Prisma.TeachingUncheckedCreateNestedManyWithoutBranchInput
+  mobileMoneyTransaction?: Prisma.MobileMoneyTransactionUncheckedCreateNestedManyWithoutBranchInput
+  branchInvitation?: Prisma.BranchInvitationUncheckedCreateNestedManyWithoutBranchInput
+  attendanceSessions?: Prisma.AttendanceSessionUncheckedCreateNestedManyWithoutBranchInput
+  teacherAttendance?: Prisma.TeacherAttendanceUncheckedCreateNestedManyWithoutBranchInput
+  personnelAttendance?: Prisma.PersonnelAttendanceUncheckedCreateNestedManyWithoutBranchInput
+  studentGrade?: Prisma.StudentGradeUncheckedCreateNestedManyWithoutBranchInput
+  parentFeedback?: Prisma.ParentFeedbackUncheckedCreateNestedManyWithoutBranchInput
+  transaction?: Prisma.TransactionUncheckedCreateNestedManyWithoutBranchInput
+  discountRule?: Prisma.DiscountRuleUncheckedCreateNestedManyWithoutBranchInput
+  paymentEvent?: Prisma.PaymentEventUncheckedCreateNestedManyWithoutBranchInput
+  partnaires?: Prisma.PartnaireUncheckedCreateNestedManyWithoutBranchInput
+  organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedCreateNestedManyWithoutBranchInput
+}
+
+export type BranchCreateOrConnectWithoutCoursPonderationsInput = {
+  where: Prisma.BranchWhereUniqueInput
+  create: Prisma.XOR<Prisma.BranchCreateWithoutCoursPonderationsInput, Prisma.BranchUncheckedCreateWithoutCoursPonderationsInput>
+}
+
+export type BranchUpsertWithoutCoursPonderationsInput = {
+  update: Prisma.XOR<Prisma.BranchUpdateWithoutCoursPonderationsInput, Prisma.BranchUncheckedUpdateWithoutCoursPonderationsInput>
+  create: Prisma.XOR<Prisma.BranchCreateWithoutCoursPonderationsInput, Prisma.BranchUncheckedCreateWithoutCoursPonderationsInput>
+  where?: Prisma.BranchWhereInput
+}
+
+export type BranchUpdateToOneWithWhereWithoutCoursPonderationsInput = {
+  where?: Prisma.BranchWhereInput
+  data: Prisma.XOR<Prisma.BranchUpdateWithoutCoursPonderationsInput, Prisma.BranchUncheckedUpdateWithoutCoursPonderationsInput>
+}
+
+export type BranchUpdateWithoutCoursPonderationsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pays?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  idnat?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  latitude?: Prisma.FloatFieldUpdateOperationsInput | number
+  longitude?: Prisma.FloatFieldUpdateOperationsInput | number
+  attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  organization?: Prisma.OrganizationUpdateOneRequiredWithoutBranchesNestedInput
+  studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
+  branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
+  classes?: Prisma.ClasseUpdateManyWithoutBranchNestedInput
+  paymentBatch?: Prisma.PaymentBatchUpdateManyWithoutBranchNestedInput
+  familyPayment?: Prisma.FamilyPaymentUpdateManyWithoutBranchNestedInput
+  fiche?: Prisma.ficheUpdateManyWithoutBranchNestedInput
+  eventType?: Prisma.EventTypeUpdateManyWithoutBranchNestedInput
+  period?: Prisma.periodUpdateManyWithoutBranchNestedInput
+  cours?: Prisma.CoursUpdateManyWithoutBranchNestedInput
+  schoolYear?: Prisma.SchoolYearUpdateManyWithoutBranchNestedInput
+  typeFrais?: Prisma.TypeFraisUpdateManyWithoutBranchNestedInput
+  option?: Prisma.OptionUpdateManyWithoutBranchNestedInput
+  classEnrollment?: Prisma.ClassEnrollmentUpdateManyWithoutBranchNestedInput
+  section?: Prisma.SectionUpdateManyWithoutBranchNestedInput
+  semester?: Prisma.semesterUpdateManyWithoutBranchNestedInput
+  frais?: Prisma.FraisUpdateManyWithoutBranchNestedInput
+  calendarEvent?: Prisma.CalendarEventUpdateManyWithoutBranchNestedInput
+  periodResultLock?: Prisma.PeriodResultLockUpdateManyWithoutBranchNestedInput
+  cashierExpense?: Prisma.CashierExpenseUpdateManyWithoutBranchNestedInput
+  invoice?: Prisma.InvoiceUpdateManyWithoutBranchNestedInput
+  creneau?: Prisma.CreneauUpdateManyWithoutBranchNestedInput
+  paymentAllocation?: Prisma.PaymentAllocationUpdateManyWithoutBranchNestedInput
+  teaching?: Prisma.TeachingUpdateManyWithoutBranchNestedInput
+  mobileMoneyTransaction?: Prisma.MobileMoneyTransactionUpdateManyWithoutBranchNestedInput
+  branchInvitation?: Prisma.BranchInvitationUpdateManyWithoutBranchNestedInput
+  attendanceSessions?: Prisma.AttendanceSessionUpdateManyWithoutBranchNestedInput
+  teacherAttendance?: Prisma.TeacherAttendanceUpdateManyWithoutBranchNestedInput
+  personnelAttendance?: Prisma.PersonnelAttendanceUpdateManyWithoutBranchNestedInput
+  studentGrade?: Prisma.StudentGradeUpdateManyWithoutBranchNestedInput
+  parentFeedback?: Prisma.ParentFeedbackUpdateManyWithoutBranchNestedInput
+  transaction?: Prisma.TransactionUpdateManyWithoutBranchNestedInput
+  discountRule?: Prisma.DiscountRuleUpdateManyWithoutBranchNestedInput
+  paymentEvent?: Prisma.PaymentEventUpdateManyWithoutBranchNestedInput
+  partnaires?: Prisma.PartnaireUpdateManyWithoutBranchNestedInput
+  organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUpdateManyWithoutBranchNestedInput
+}
+
+export type BranchUncheckedUpdateWithoutCoursPonderationsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pays?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  idnat?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  latitude?: Prisma.FloatFieldUpdateOperationsInput | number
+  longitude?: Prisma.FloatFieldUpdateOperationsInput | number
+  attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  organizationId?: Prisma.StringFieldUpdateOperationsInput | string
+  typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
+  branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
+  classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
+  paymentBatch?: Prisma.PaymentBatchUncheckedUpdateManyWithoutBranchNestedInput
+  familyPayment?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutBranchNestedInput
+  fiche?: Prisma.ficheUncheckedUpdateManyWithoutBranchNestedInput
+  eventType?: Prisma.EventTypeUncheckedUpdateManyWithoutBranchNestedInput
+  period?: Prisma.periodUncheckedUpdateManyWithoutBranchNestedInput
+  cours?: Prisma.CoursUncheckedUpdateManyWithoutBranchNestedInput
   schoolYear?: Prisma.SchoolYearUncheckedUpdateManyWithoutBranchNestedInput
   typeFrais?: Prisma.TypeFraisUncheckedUpdateManyWithoutBranchNestedInput
   option?: Prisma.OptionUncheckedUpdateManyWithoutBranchNestedInput
@@ -5073,6 +5482,7 @@ export type BranchCreateWithoutCalendarEventInput = {
   latitude: number
   longitude: number
   attendanceRadius?: number
+  typebranch: $Enums.TypeBrache
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -5089,6 +5499,7 @@ export type BranchCreateWithoutCalendarEventInput = {
   schoolYear?: Prisma.SchoolYearCreateNestedManyWithoutBranchInput
   typeFrais?: Prisma.TypeFraisCreateNestedManyWithoutBranchInput
   option?: Prisma.OptionCreateNestedManyWithoutBranchInput
+  coursPonderations?: Prisma.CoursOptionPonderationCreateNestedManyWithoutBranchInput
   classEnrollment?: Prisma.ClassEnrollmentCreateNestedManyWithoutBranchInput
   section?: Prisma.SectionCreateNestedManyWithoutBranchInput
   semester?: Prisma.semesterCreateNestedManyWithoutBranchInput
@@ -5127,6 +5538,7 @@ export type BranchUncheckedCreateWithoutCalendarEventInput = {
   longitude: number
   attendanceRadius?: number
   organizationId: string
+  typebranch: $Enums.TypeBrache
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -5142,6 +5554,7 @@ export type BranchUncheckedCreateWithoutCalendarEventInput = {
   schoolYear?: Prisma.SchoolYearUncheckedCreateNestedManyWithoutBranchInput
   typeFrais?: Prisma.TypeFraisUncheckedCreateNestedManyWithoutBranchInput
   option?: Prisma.OptionUncheckedCreateNestedManyWithoutBranchInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedCreateNestedManyWithoutBranchInput
   classEnrollment?: Prisma.ClassEnrollmentUncheckedCreateNestedManyWithoutBranchInput
   section?: Prisma.SectionUncheckedCreateNestedManyWithoutBranchInput
   semester?: Prisma.semesterUncheckedCreateNestedManyWithoutBranchInput
@@ -5195,6 +5608,7 @@ export type BranchUpdateWithoutCalendarEventInput = {
   latitude?: Prisma.FloatFieldUpdateOperationsInput | number
   longitude?: Prisma.FloatFieldUpdateOperationsInput | number
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -5211,6 +5625,7 @@ export type BranchUpdateWithoutCalendarEventInput = {
   schoolYear?: Prisma.SchoolYearUpdateManyWithoutBranchNestedInput
   typeFrais?: Prisma.TypeFraisUpdateManyWithoutBranchNestedInput
   option?: Prisma.OptionUpdateManyWithoutBranchNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUpdateManyWithoutBranchNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUpdateManyWithoutBranchNestedInput
   section?: Prisma.SectionUpdateManyWithoutBranchNestedInput
   semester?: Prisma.semesterUpdateManyWithoutBranchNestedInput
@@ -5249,6 +5664,7 @@ export type BranchUncheckedUpdateWithoutCalendarEventInput = {
   longitude?: Prisma.FloatFieldUpdateOperationsInput | number
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
+  typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -5264,6 +5680,7 @@ export type BranchUncheckedUpdateWithoutCalendarEventInput = {
   schoolYear?: Prisma.SchoolYearUncheckedUpdateManyWithoutBranchNestedInput
   typeFrais?: Prisma.TypeFraisUncheckedUpdateManyWithoutBranchNestedInput
   option?: Prisma.OptionUncheckedUpdateManyWithoutBranchNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedUpdateManyWithoutBranchNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUncheckedUpdateManyWithoutBranchNestedInput
   section?: Prisma.SectionUncheckedUpdateManyWithoutBranchNestedInput
   semester?: Prisma.semesterUncheckedUpdateManyWithoutBranchNestedInput
@@ -5301,6 +5718,7 @@ export type BranchCreateWithoutEventTypeInput = {
   latitude: number
   longitude: number
   attendanceRadius?: number
+  typebranch: $Enums.TypeBrache
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -5316,6 +5734,7 @@ export type BranchCreateWithoutEventTypeInput = {
   schoolYear?: Prisma.SchoolYearCreateNestedManyWithoutBranchInput
   typeFrais?: Prisma.TypeFraisCreateNestedManyWithoutBranchInput
   option?: Prisma.OptionCreateNestedManyWithoutBranchInput
+  coursPonderations?: Prisma.CoursOptionPonderationCreateNestedManyWithoutBranchInput
   classEnrollment?: Prisma.ClassEnrollmentCreateNestedManyWithoutBranchInput
   section?: Prisma.SectionCreateNestedManyWithoutBranchInput
   semester?: Prisma.semesterCreateNestedManyWithoutBranchInput
@@ -5355,6 +5774,7 @@ export type BranchUncheckedCreateWithoutEventTypeInput = {
   longitude: number
   attendanceRadius?: number
   organizationId: string
+  typebranch: $Enums.TypeBrache
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -5369,6 +5789,7 @@ export type BranchUncheckedCreateWithoutEventTypeInput = {
   schoolYear?: Prisma.SchoolYearUncheckedCreateNestedManyWithoutBranchInput
   typeFrais?: Prisma.TypeFraisUncheckedCreateNestedManyWithoutBranchInput
   option?: Prisma.OptionUncheckedCreateNestedManyWithoutBranchInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedCreateNestedManyWithoutBranchInput
   classEnrollment?: Prisma.ClassEnrollmentUncheckedCreateNestedManyWithoutBranchInput
   section?: Prisma.SectionUncheckedCreateNestedManyWithoutBranchInput
   semester?: Prisma.semesterUncheckedCreateNestedManyWithoutBranchInput
@@ -5423,6 +5844,7 @@ export type BranchUpdateWithoutEventTypeInput = {
   latitude?: Prisma.FloatFieldUpdateOperationsInput | number
   longitude?: Prisma.FloatFieldUpdateOperationsInput | number
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -5438,6 +5860,7 @@ export type BranchUpdateWithoutEventTypeInput = {
   schoolYear?: Prisma.SchoolYearUpdateManyWithoutBranchNestedInput
   typeFrais?: Prisma.TypeFraisUpdateManyWithoutBranchNestedInput
   option?: Prisma.OptionUpdateManyWithoutBranchNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUpdateManyWithoutBranchNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUpdateManyWithoutBranchNestedInput
   section?: Prisma.SectionUpdateManyWithoutBranchNestedInput
   semester?: Prisma.semesterUpdateManyWithoutBranchNestedInput
@@ -5477,6 +5900,7 @@ export type BranchUncheckedUpdateWithoutEventTypeInput = {
   longitude?: Prisma.FloatFieldUpdateOperationsInput | number
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
+  typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -5491,6 +5915,7 @@ export type BranchUncheckedUpdateWithoutEventTypeInput = {
   schoolYear?: Prisma.SchoolYearUncheckedUpdateManyWithoutBranchNestedInput
   typeFrais?: Prisma.TypeFraisUncheckedUpdateManyWithoutBranchNestedInput
   option?: Prisma.OptionUncheckedUpdateManyWithoutBranchNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedUpdateManyWithoutBranchNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUncheckedUpdateManyWithoutBranchNestedInput
   section?: Prisma.SectionUncheckedUpdateManyWithoutBranchNestedInput
   semester?: Prisma.semesterUncheckedUpdateManyWithoutBranchNestedInput
@@ -5529,6 +5954,7 @@ export type BranchCreateWithoutSemesterInput = {
   latitude: number
   longitude: number
   attendanceRadius?: number
+  typebranch: $Enums.TypeBrache
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -5545,6 +5971,7 @@ export type BranchCreateWithoutSemesterInput = {
   schoolYear?: Prisma.SchoolYearCreateNestedManyWithoutBranchInput
   typeFrais?: Prisma.TypeFraisCreateNestedManyWithoutBranchInput
   option?: Prisma.OptionCreateNestedManyWithoutBranchInput
+  coursPonderations?: Prisma.CoursOptionPonderationCreateNestedManyWithoutBranchInput
   classEnrollment?: Prisma.ClassEnrollmentCreateNestedManyWithoutBranchInput
   section?: Prisma.SectionCreateNestedManyWithoutBranchInput
   frais?: Prisma.FraisCreateNestedManyWithoutBranchInput
@@ -5583,6 +6010,7 @@ export type BranchUncheckedCreateWithoutSemesterInput = {
   longitude: number
   attendanceRadius?: number
   organizationId: string
+  typebranch: $Enums.TypeBrache
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -5598,6 +6026,7 @@ export type BranchUncheckedCreateWithoutSemesterInput = {
   schoolYear?: Prisma.SchoolYearUncheckedCreateNestedManyWithoutBranchInput
   typeFrais?: Prisma.TypeFraisUncheckedCreateNestedManyWithoutBranchInput
   option?: Prisma.OptionUncheckedCreateNestedManyWithoutBranchInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedCreateNestedManyWithoutBranchInput
   classEnrollment?: Prisma.ClassEnrollmentUncheckedCreateNestedManyWithoutBranchInput
   section?: Prisma.SectionUncheckedCreateNestedManyWithoutBranchInput
   frais?: Prisma.FraisUncheckedCreateNestedManyWithoutBranchInput
@@ -5651,6 +6080,7 @@ export type BranchUpdateWithoutSemesterInput = {
   latitude?: Prisma.FloatFieldUpdateOperationsInput | number
   longitude?: Prisma.FloatFieldUpdateOperationsInput | number
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -5667,6 +6097,7 @@ export type BranchUpdateWithoutSemesterInput = {
   schoolYear?: Prisma.SchoolYearUpdateManyWithoutBranchNestedInput
   typeFrais?: Prisma.TypeFraisUpdateManyWithoutBranchNestedInput
   option?: Prisma.OptionUpdateManyWithoutBranchNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUpdateManyWithoutBranchNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUpdateManyWithoutBranchNestedInput
   section?: Prisma.SectionUpdateManyWithoutBranchNestedInput
   frais?: Prisma.FraisUpdateManyWithoutBranchNestedInput
@@ -5705,6 +6136,7 @@ export type BranchUncheckedUpdateWithoutSemesterInput = {
   longitude?: Prisma.FloatFieldUpdateOperationsInput | number
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
+  typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -5720,6 +6152,7 @@ export type BranchUncheckedUpdateWithoutSemesterInput = {
   schoolYear?: Prisma.SchoolYearUncheckedUpdateManyWithoutBranchNestedInput
   typeFrais?: Prisma.TypeFraisUncheckedUpdateManyWithoutBranchNestedInput
   option?: Prisma.OptionUncheckedUpdateManyWithoutBranchNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedUpdateManyWithoutBranchNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUncheckedUpdateManyWithoutBranchNestedInput
   section?: Prisma.SectionUncheckedUpdateManyWithoutBranchNestedInput
   frais?: Prisma.FraisUncheckedUpdateManyWithoutBranchNestedInput
@@ -5757,6 +6190,7 @@ export type BranchCreateWithoutPeriodInput = {
   latitude: number
   longitude: number
   attendanceRadius?: number
+  typebranch: $Enums.TypeBrache
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -5772,6 +6206,7 @@ export type BranchCreateWithoutPeriodInput = {
   schoolYear?: Prisma.SchoolYearCreateNestedManyWithoutBranchInput
   typeFrais?: Prisma.TypeFraisCreateNestedManyWithoutBranchInput
   option?: Prisma.OptionCreateNestedManyWithoutBranchInput
+  coursPonderations?: Prisma.CoursOptionPonderationCreateNestedManyWithoutBranchInput
   classEnrollment?: Prisma.ClassEnrollmentCreateNestedManyWithoutBranchInput
   section?: Prisma.SectionCreateNestedManyWithoutBranchInput
   semester?: Prisma.semesterCreateNestedManyWithoutBranchInput
@@ -5811,6 +6246,7 @@ export type BranchUncheckedCreateWithoutPeriodInput = {
   longitude: number
   attendanceRadius?: number
   organizationId: string
+  typebranch: $Enums.TypeBrache
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -5825,6 +6261,7 @@ export type BranchUncheckedCreateWithoutPeriodInput = {
   schoolYear?: Prisma.SchoolYearUncheckedCreateNestedManyWithoutBranchInput
   typeFrais?: Prisma.TypeFraisUncheckedCreateNestedManyWithoutBranchInput
   option?: Prisma.OptionUncheckedCreateNestedManyWithoutBranchInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedCreateNestedManyWithoutBranchInput
   classEnrollment?: Prisma.ClassEnrollmentUncheckedCreateNestedManyWithoutBranchInput
   section?: Prisma.SectionUncheckedCreateNestedManyWithoutBranchInput
   semester?: Prisma.semesterUncheckedCreateNestedManyWithoutBranchInput
@@ -5879,6 +6316,7 @@ export type BranchUpdateWithoutPeriodInput = {
   latitude?: Prisma.FloatFieldUpdateOperationsInput | number
   longitude?: Prisma.FloatFieldUpdateOperationsInput | number
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -5894,6 +6332,7 @@ export type BranchUpdateWithoutPeriodInput = {
   schoolYear?: Prisma.SchoolYearUpdateManyWithoutBranchNestedInput
   typeFrais?: Prisma.TypeFraisUpdateManyWithoutBranchNestedInput
   option?: Prisma.OptionUpdateManyWithoutBranchNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUpdateManyWithoutBranchNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUpdateManyWithoutBranchNestedInput
   section?: Prisma.SectionUpdateManyWithoutBranchNestedInput
   semester?: Prisma.semesterUpdateManyWithoutBranchNestedInput
@@ -5933,6 +6372,7 @@ export type BranchUncheckedUpdateWithoutPeriodInput = {
   longitude?: Prisma.FloatFieldUpdateOperationsInput | number
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
+  typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -5947,6 +6387,7 @@ export type BranchUncheckedUpdateWithoutPeriodInput = {
   schoolYear?: Prisma.SchoolYearUncheckedUpdateManyWithoutBranchNestedInput
   typeFrais?: Prisma.TypeFraisUncheckedUpdateManyWithoutBranchNestedInput
   option?: Prisma.OptionUncheckedUpdateManyWithoutBranchNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedUpdateManyWithoutBranchNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUncheckedUpdateManyWithoutBranchNestedInput
   section?: Prisma.SectionUncheckedUpdateManyWithoutBranchNestedInput
   semester?: Prisma.semesterUncheckedUpdateManyWithoutBranchNestedInput
@@ -5985,6 +6426,7 @@ export type BranchCreateWithoutPeriodResultLockInput = {
   latitude: number
   longitude: number
   attendanceRadius?: number
+  typebranch: $Enums.TypeBrache
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -6001,6 +6443,7 @@ export type BranchCreateWithoutPeriodResultLockInput = {
   schoolYear?: Prisma.SchoolYearCreateNestedManyWithoutBranchInput
   typeFrais?: Prisma.TypeFraisCreateNestedManyWithoutBranchInput
   option?: Prisma.OptionCreateNestedManyWithoutBranchInput
+  coursPonderations?: Prisma.CoursOptionPonderationCreateNestedManyWithoutBranchInput
   classEnrollment?: Prisma.ClassEnrollmentCreateNestedManyWithoutBranchInput
   section?: Prisma.SectionCreateNestedManyWithoutBranchInput
   semester?: Prisma.semesterCreateNestedManyWithoutBranchInput
@@ -6039,6 +6482,7 @@ export type BranchUncheckedCreateWithoutPeriodResultLockInput = {
   longitude: number
   attendanceRadius?: number
   organizationId: string
+  typebranch: $Enums.TypeBrache
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -6054,6 +6498,7 @@ export type BranchUncheckedCreateWithoutPeriodResultLockInput = {
   schoolYear?: Prisma.SchoolYearUncheckedCreateNestedManyWithoutBranchInput
   typeFrais?: Prisma.TypeFraisUncheckedCreateNestedManyWithoutBranchInput
   option?: Prisma.OptionUncheckedCreateNestedManyWithoutBranchInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedCreateNestedManyWithoutBranchInput
   classEnrollment?: Prisma.ClassEnrollmentUncheckedCreateNestedManyWithoutBranchInput
   section?: Prisma.SectionUncheckedCreateNestedManyWithoutBranchInput
   semester?: Prisma.semesterUncheckedCreateNestedManyWithoutBranchInput
@@ -6107,6 +6552,7 @@ export type BranchUpdateWithoutPeriodResultLockInput = {
   latitude?: Prisma.FloatFieldUpdateOperationsInput | number
   longitude?: Prisma.FloatFieldUpdateOperationsInput | number
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -6123,6 +6569,7 @@ export type BranchUpdateWithoutPeriodResultLockInput = {
   schoolYear?: Prisma.SchoolYearUpdateManyWithoutBranchNestedInput
   typeFrais?: Prisma.TypeFraisUpdateManyWithoutBranchNestedInput
   option?: Prisma.OptionUpdateManyWithoutBranchNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUpdateManyWithoutBranchNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUpdateManyWithoutBranchNestedInput
   section?: Prisma.SectionUpdateManyWithoutBranchNestedInput
   semester?: Prisma.semesterUpdateManyWithoutBranchNestedInput
@@ -6161,6 +6608,7 @@ export type BranchUncheckedUpdateWithoutPeriodResultLockInput = {
   longitude?: Prisma.FloatFieldUpdateOperationsInput | number
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
+  typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -6176,6 +6624,7 @@ export type BranchUncheckedUpdateWithoutPeriodResultLockInput = {
   schoolYear?: Prisma.SchoolYearUncheckedUpdateManyWithoutBranchNestedInput
   typeFrais?: Prisma.TypeFraisUncheckedUpdateManyWithoutBranchNestedInput
   option?: Prisma.OptionUncheckedUpdateManyWithoutBranchNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedUpdateManyWithoutBranchNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUncheckedUpdateManyWithoutBranchNestedInput
   section?: Prisma.SectionUncheckedUpdateManyWithoutBranchNestedInput
   semester?: Prisma.semesterUncheckedUpdateManyWithoutBranchNestedInput
@@ -6213,6 +6662,7 @@ export type BranchCreateWithoutFicheInput = {
   latitude: number
   longitude: number
   attendanceRadius?: number
+  typebranch: $Enums.TypeBrache
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -6228,6 +6678,7 @@ export type BranchCreateWithoutFicheInput = {
   schoolYear?: Prisma.SchoolYearCreateNestedManyWithoutBranchInput
   typeFrais?: Prisma.TypeFraisCreateNestedManyWithoutBranchInput
   option?: Prisma.OptionCreateNestedManyWithoutBranchInput
+  coursPonderations?: Prisma.CoursOptionPonderationCreateNestedManyWithoutBranchInput
   classEnrollment?: Prisma.ClassEnrollmentCreateNestedManyWithoutBranchInput
   section?: Prisma.SectionCreateNestedManyWithoutBranchInput
   semester?: Prisma.semesterCreateNestedManyWithoutBranchInput
@@ -6267,6 +6718,7 @@ export type BranchUncheckedCreateWithoutFicheInput = {
   longitude: number
   attendanceRadius?: number
   organizationId: string
+  typebranch: $Enums.TypeBrache
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -6281,6 +6733,7 @@ export type BranchUncheckedCreateWithoutFicheInput = {
   schoolYear?: Prisma.SchoolYearUncheckedCreateNestedManyWithoutBranchInput
   typeFrais?: Prisma.TypeFraisUncheckedCreateNestedManyWithoutBranchInput
   option?: Prisma.OptionUncheckedCreateNestedManyWithoutBranchInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedCreateNestedManyWithoutBranchInput
   classEnrollment?: Prisma.ClassEnrollmentUncheckedCreateNestedManyWithoutBranchInput
   section?: Prisma.SectionUncheckedCreateNestedManyWithoutBranchInput
   semester?: Prisma.semesterUncheckedCreateNestedManyWithoutBranchInput
@@ -6335,6 +6788,7 @@ export type BranchUpdateWithoutFicheInput = {
   latitude?: Prisma.FloatFieldUpdateOperationsInput | number
   longitude?: Prisma.FloatFieldUpdateOperationsInput | number
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -6350,6 +6804,7 @@ export type BranchUpdateWithoutFicheInput = {
   schoolYear?: Prisma.SchoolYearUpdateManyWithoutBranchNestedInput
   typeFrais?: Prisma.TypeFraisUpdateManyWithoutBranchNestedInput
   option?: Prisma.OptionUpdateManyWithoutBranchNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUpdateManyWithoutBranchNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUpdateManyWithoutBranchNestedInput
   section?: Prisma.SectionUpdateManyWithoutBranchNestedInput
   semester?: Prisma.semesterUpdateManyWithoutBranchNestedInput
@@ -6389,6 +6844,7 @@ export type BranchUncheckedUpdateWithoutFicheInput = {
   longitude?: Prisma.FloatFieldUpdateOperationsInput | number
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
+  typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -6403,6 +6859,7 @@ export type BranchUncheckedUpdateWithoutFicheInput = {
   schoolYear?: Prisma.SchoolYearUncheckedUpdateManyWithoutBranchNestedInput
   typeFrais?: Prisma.TypeFraisUncheckedUpdateManyWithoutBranchNestedInput
   option?: Prisma.OptionUncheckedUpdateManyWithoutBranchNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedUpdateManyWithoutBranchNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUncheckedUpdateManyWithoutBranchNestedInput
   section?: Prisma.SectionUncheckedUpdateManyWithoutBranchNestedInput
   semester?: Prisma.semesterUncheckedUpdateManyWithoutBranchNestedInput
@@ -6441,6 +6898,7 @@ export type BranchCreateWithoutInvoiceInput = {
   latitude: number
   longitude: number
   attendanceRadius?: number
+  typebranch: $Enums.TypeBrache
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -6457,6 +6915,7 @@ export type BranchCreateWithoutInvoiceInput = {
   schoolYear?: Prisma.SchoolYearCreateNestedManyWithoutBranchInput
   typeFrais?: Prisma.TypeFraisCreateNestedManyWithoutBranchInput
   option?: Prisma.OptionCreateNestedManyWithoutBranchInput
+  coursPonderations?: Prisma.CoursOptionPonderationCreateNestedManyWithoutBranchInput
   classEnrollment?: Prisma.ClassEnrollmentCreateNestedManyWithoutBranchInput
   section?: Prisma.SectionCreateNestedManyWithoutBranchInput
   semester?: Prisma.semesterCreateNestedManyWithoutBranchInput
@@ -6495,6 +6954,7 @@ export type BranchUncheckedCreateWithoutInvoiceInput = {
   longitude: number
   attendanceRadius?: number
   organizationId: string
+  typebranch: $Enums.TypeBrache
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -6510,6 +6970,7 @@ export type BranchUncheckedCreateWithoutInvoiceInput = {
   schoolYear?: Prisma.SchoolYearUncheckedCreateNestedManyWithoutBranchInput
   typeFrais?: Prisma.TypeFraisUncheckedCreateNestedManyWithoutBranchInput
   option?: Prisma.OptionUncheckedCreateNestedManyWithoutBranchInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedCreateNestedManyWithoutBranchInput
   classEnrollment?: Prisma.ClassEnrollmentUncheckedCreateNestedManyWithoutBranchInput
   section?: Prisma.SectionUncheckedCreateNestedManyWithoutBranchInput
   semester?: Prisma.semesterUncheckedCreateNestedManyWithoutBranchInput
@@ -6563,6 +7024,7 @@ export type BranchUpdateWithoutInvoiceInput = {
   latitude?: Prisma.FloatFieldUpdateOperationsInput | number
   longitude?: Prisma.FloatFieldUpdateOperationsInput | number
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -6579,6 +7041,7 @@ export type BranchUpdateWithoutInvoiceInput = {
   schoolYear?: Prisma.SchoolYearUpdateManyWithoutBranchNestedInput
   typeFrais?: Prisma.TypeFraisUpdateManyWithoutBranchNestedInput
   option?: Prisma.OptionUpdateManyWithoutBranchNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUpdateManyWithoutBranchNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUpdateManyWithoutBranchNestedInput
   section?: Prisma.SectionUpdateManyWithoutBranchNestedInput
   semester?: Prisma.semesterUpdateManyWithoutBranchNestedInput
@@ -6617,6 +7080,7 @@ export type BranchUncheckedUpdateWithoutInvoiceInput = {
   longitude?: Prisma.FloatFieldUpdateOperationsInput | number
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
+  typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -6632,6 +7096,7 @@ export type BranchUncheckedUpdateWithoutInvoiceInput = {
   schoolYear?: Prisma.SchoolYearUncheckedUpdateManyWithoutBranchNestedInput
   typeFrais?: Prisma.TypeFraisUncheckedUpdateManyWithoutBranchNestedInput
   option?: Prisma.OptionUncheckedUpdateManyWithoutBranchNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedUpdateManyWithoutBranchNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUncheckedUpdateManyWithoutBranchNestedInput
   section?: Prisma.SectionUncheckedUpdateManyWithoutBranchNestedInput
   semester?: Prisma.semesterUncheckedUpdateManyWithoutBranchNestedInput
@@ -6669,6 +7134,7 @@ export type BranchCreateWithoutPaymentBatchInput = {
   latitude: number
   longitude: number
   attendanceRadius?: number
+  typebranch: $Enums.TypeBrache
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -6684,6 +7150,7 @@ export type BranchCreateWithoutPaymentBatchInput = {
   schoolYear?: Prisma.SchoolYearCreateNestedManyWithoutBranchInput
   typeFrais?: Prisma.TypeFraisCreateNestedManyWithoutBranchInput
   option?: Prisma.OptionCreateNestedManyWithoutBranchInput
+  coursPonderations?: Prisma.CoursOptionPonderationCreateNestedManyWithoutBranchInput
   classEnrollment?: Prisma.ClassEnrollmentCreateNestedManyWithoutBranchInput
   section?: Prisma.SectionCreateNestedManyWithoutBranchInput
   semester?: Prisma.semesterCreateNestedManyWithoutBranchInput
@@ -6723,6 +7190,7 @@ export type BranchUncheckedCreateWithoutPaymentBatchInput = {
   longitude: number
   attendanceRadius?: number
   organizationId: string
+  typebranch: $Enums.TypeBrache
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -6737,6 +7205,7 @@ export type BranchUncheckedCreateWithoutPaymentBatchInput = {
   schoolYear?: Prisma.SchoolYearUncheckedCreateNestedManyWithoutBranchInput
   typeFrais?: Prisma.TypeFraisUncheckedCreateNestedManyWithoutBranchInput
   option?: Prisma.OptionUncheckedCreateNestedManyWithoutBranchInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedCreateNestedManyWithoutBranchInput
   classEnrollment?: Prisma.ClassEnrollmentUncheckedCreateNestedManyWithoutBranchInput
   section?: Prisma.SectionUncheckedCreateNestedManyWithoutBranchInput
   semester?: Prisma.semesterUncheckedCreateNestedManyWithoutBranchInput
@@ -6791,6 +7260,7 @@ export type BranchUpdateWithoutPaymentBatchInput = {
   latitude?: Prisma.FloatFieldUpdateOperationsInput | number
   longitude?: Prisma.FloatFieldUpdateOperationsInput | number
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -6806,6 +7276,7 @@ export type BranchUpdateWithoutPaymentBatchInput = {
   schoolYear?: Prisma.SchoolYearUpdateManyWithoutBranchNestedInput
   typeFrais?: Prisma.TypeFraisUpdateManyWithoutBranchNestedInput
   option?: Prisma.OptionUpdateManyWithoutBranchNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUpdateManyWithoutBranchNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUpdateManyWithoutBranchNestedInput
   section?: Prisma.SectionUpdateManyWithoutBranchNestedInput
   semester?: Prisma.semesterUpdateManyWithoutBranchNestedInput
@@ -6845,6 +7316,7 @@ export type BranchUncheckedUpdateWithoutPaymentBatchInput = {
   longitude?: Prisma.FloatFieldUpdateOperationsInput | number
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
+  typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -6859,6 +7331,7 @@ export type BranchUncheckedUpdateWithoutPaymentBatchInput = {
   schoolYear?: Prisma.SchoolYearUncheckedUpdateManyWithoutBranchNestedInput
   typeFrais?: Prisma.TypeFraisUncheckedUpdateManyWithoutBranchNestedInput
   option?: Prisma.OptionUncheckedUpdateManyWithoutBranchNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedUpdateManyWithoutBranchNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUncheckedUpdateManyWithoutBranchNestedInput
   section?: Prisma.SectionUncheckedUpdateManyWithoutBranchNestedInput
   semester?: Prisma.semesterUncheckedUpdateManyWithoutBranchNestedInput
@@ -6897,6 +7370,7 @@ export type BranchCreateWithoutFamilyPaymentInput = {
   latitude: number
   longitude: number
   attendanceRadius?: number
+  typebranch: $Enums.TypeBrache
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -6912,6 +7386,7 @@ export type BranchCreateWithoutFamilyPaymentInput = {
   schoolYear?: Prisma.SchoolYearCreateNestedManyWithoutBranchInput
   typeFrais?: Prisma.TypeFraisCreateNestedManyWithoutBranchInput
   option?: Prisma.OptionCreateNestedManyWithoutBranchInput
+  coursPonderations?: Prisma.CoursOptionPonderationCreateNestedManyWithoutBranchInput
   classEnrollment?: Prisma.ClassEnrollmentCreateNestedManyWithoutBranchInput
   section?: Prisma.SectionCreateNestedManyWithoutBranchInput
   semester?: Prisma.semesterCreateNestedManyWithoutBranchInput
@@ -6951,6 +7426,7 @@ export type BranchUncheckedCreateWithoutFamilyPaymentInput = {
   longitude: number
   attendanceRadius?: number
   organizationId: string
+  typebranch: $Enums.TypeBrache
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -6965,6 +7441,7 @@ export type BranchUncheckedCreateWithoutFamilyPaymentInput = {
   schoolYear?: Prisma.SchoolYearUncheckedCreateNestedManyWithoutBranchInput
   typeFrais?: Prisma.TypeFraisUncheckedCreateNestedManyWithoutBranchInput
   option?: Prisma.OptionUncheckedCreateNestedManyWithoutBranchInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedCreateNestedManyWithoutBranchInput
   classEnrollment?: Prisma.ClassEnrollmentUncheckedCreateNestedManyWithoutBranchInput
   section?: Prisma.SectionUncheckedCreateNestedManyWithoutBranchInput
   semester?: Prisma.semesterUncheckedCreateNestedManyWithoutBranchInput
@@ -7019,6 +7496,7 @@ export type BranchUpdateWithoutFamilyPaymentInput = {
   latitude?: Prisma.FloatFieldUpdateOperationsInput | number
   longitude?: Prisma.FloatFieldUpdateOperationsInput | number
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -7034,6 +7512,7 @@ export type BranchUpdateWithoutFamilyPaymentInput = {
   schoolYear?: Prisma.SchoolYearUpdateManyWithoutBranchNestedInput
   typeFrais?: Prisma.TypeFraisUpdateManyWithoutBranchNestedInput
   option?: Prisma.OptionUpdateManyWithoutBranchNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUpdateManyWithoutBranchNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUpdateManyWithoutBranchNestedInput
   section?: Prisma.SectionUpdateManyWithoutBranchNestedInput
   semester?: Prisma.semesterUpdateManyWithoutBranchNestedInput
@@ -7073,6 +7552,7 @@ export type BranchUncheckedUpdateWithoutFamilyPaymentInput = {
   longitude?: Prisma.FloatFieldUpdateOperationsInput | number
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
+  typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -7087,6 +7567,7 @@ export type BranchUncheckedUpdateWithoutFamilyPaymentInput = {
   schoolYear?: Prisma.SchoolYearUncheckedUpdateManyWithoutBranchNestedInput
   typeFrais?: Prisma.TypeFraisUncheckedUpdateManyWithoutBranchNestedInput
   option?: Prisma.OptionUncheckedUpdateManyWithoutBranchNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedUpdateManyWithoutBranchNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUncheckedUpdateManyWithoutBranchNestedInput
   section?: Prisma.SectionUncheckedUpdateManyWithoutBranchNestedInput
   semester?: Prisma.semesterUncheckedUpdateManyWithoutBranchNestedInput
@@ -7125,6 +7606,7 @@ export type BranchCreateWithoutCashierExpenseInput = {
   latitude: number
   longitude: number
   attendanceRadius?: number
+  typebranch: $Enums.TypeBrache
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -7141,6 +7623,7 @@ export type BranchCreateWithoutCashierExpenseInput = {
   schoolYear?: Prisma.SchoolYearCreateNestedManyWithoutBranchInput
   typeFrais?: Prisma.TypeFraisCreateNestedManyWithoutBranchInput
   option?: Prisma.OptionCreateNestedManyWithoutBranchInput
+  coursPonderations?: Prisma.CoursOptionPonderationCreateNestedManyWithoutBranchInput
   classEnrollment?: Prisma.ClassEnrollmentCreateNestedManyWithoutBranchInput
   section?: Prisma.SectionCreateNestedManyWithoutBranchInput
   semester?: Prisma.semesterCreateNestedManyWithoutBranchInput
@@ -7179,6 +7662,7 @@ export type BranchUncheckedCreateWithoutCashierExpenseInput = {
   longitude: number
   attendanceRadius?: number
   organizationId: string
+  typebranch: $Enums.TypeBrache
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -7194,6 +7678,7 @@ export type BranchUncheckedCreateWithoutCashierExpenseInput = {
   schoolYear?: Prisma.SchoolYearUncheckedCreateNestedManyWithoutBranchInput
   typeFrais?: Prisma.TypeFraisUncheckedCreateNestedManyWithoutBranchInput
   option?: Prisma.OptionUncheckedCreateNestedManyWithoutBranchInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedCreateNestedManyWithoutBranchInput
   classEnrollment?: Prisma.ClassEnrollmentUncheckedCreateNestedManyWithoutBranchInput
   section?: Prisma.SectionUncheckedCreateNestedManyWithoutBranchInput
   semester?: Prisma.semesterUncheckedCreateNestedManyWithoutBranchInput
@@ -7247,6 +7732,7 @@ export type BranchUpdateWithoutCashierExpenseInput = {
   latitude?: Prisma.FloatFieldUpdateOperationsInput | number
   longitude?: Prisma.FloatFieldUpdateOperationsInput | number
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -7263,6 +7749,7 @@ export type BranchUpdateWithoutCashierExpenseInput = {
   schoolYear?: Prisma.SchoolYearUpdateManyWithoutBranchNestedInput
   typeFrais?: Prisma.TypeFraisUpdateManyWithoutBranchNestedInput
   option?: Prisma.OptionUpdateManyWithoutBranchNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUpdateManyWithoutBranchNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUpdateManyWithoutBranchNestedInput
   section?: Prisma.SectionUpdateManyWithoutBranchNestedInput
   semester?: Prisma.semesterUpdateManyWithoutBranchNestedInput
@@ -7301,6 +7788,7 @@ export type BranchUncheckedUpdateWithoutCashierExpenseInput = {
   longitude?: Prisma.FloatFieldUpdateOperationsInput | number
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
+  typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -7316,6 +7804,7 @@ export type BranchUncheckedUpdateWithoutCashierExpenseInput = {
   schoolYear?: Prisma.SchoolYearUncheckedUpdateManyWithoutBranchNestedInput
   typeFrais?: Prisma.TypeFraisUncheckedUpdateManyWithoutBranchNestedInput
   option?: Prisma.OptionUncheckedUpdateManyWithoutBranchNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedUpdateManyWithoutBranchNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUncheckedUpdateManyWithoutBranchNestedInput
   section?: Prisma.SectionUncheckedUpdateManyWithoutBranchNestedInput
   semester?: Prisma.semesterUncheckedUpdateManyWithoutBranchNestedInput
@@ -7353,6 +7842,7 @@ export type BranchCreateWithoutPaymentAllocationInput = {
   latitude: number
   longitude: number
   attendanceRadius?: number
+  typebranch: $Enums.TypeBrache
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -7369,6 +7859,7 @@ export type BranchCreateWithoutPaymentAllocationInput = {
   schoolYear?: Prisma.SchoolYearCreateNestedManyWithoutBranchInput
   typeFrais?: Prisma.TypeFraisCreateNestedManyWithoutBranchInput
   option?: Prisma.OptionCreateNestedManyWithoutBranchInput
+  coursPonderations?: Prisma.CoursOptionPonderationCreateNestedManyWithoutBranchInput
   classEnrollment?: Prisma.ClassEnrollmentCreateNestedManyWithoutBranchInput
   section?: Prisma.SectionCreateNestedManyWithoutBranchInput
   semester?: Prisma.semesterCreateNestedManyWithoutBranchInput
@@ -7407,6 +7898,7 @@ export type BranchUncheckedCreateWithoutPaymentAllocationInput = {
   longitude: number
   attendanceRadius?: number
   organizationId: string
+  typebranch: $Enums.TypeBrache
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -7422,6 +7914,7 @@ export type BranchUncheckedCreateWithoutPaymentAllocationInput = {
   schoolYear?: Prisma.SchoolYearUncheckedCreateNestedManyWithoutBranchInput
   typeFrais?: Prisma.TypeFraisUncheckedCreateNestedManyWithoutBranchInput
   option?: Prisma.OptionUncheckedCreateNestedManyWithoutBranchInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedCreateNestedManyWithoutBranchInput
   classEnrollment?: Prisma.ClassEnrollmentUncheckedCreateNestedManyWithoutBranchInput
   section?: Prisma.SectionUncheckedCreateNestedManyWithoutBranchInput
   semester?: Prisma.semesterUncheckedCreateNestedManyWithoutBranchInput
@@ -7475,6 +7968,7 @@ export type BranchUpdateWithoutPaymentAllocationInput = {
   latitude?: Prisma.FloatFieldUpdateOperationsInput | number
   longitude?: Prisma.FloatFieldUpdateOperationsInput | number
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -7491,6 +7985,7 @@ export type BranchUpdateWithoutPaymentAllocationInput = {
   schoolYear?: Prisma.SchoolYearUpdateManyWithoutBranchNestedInput
   typeFrais?: Prisma.TypeFraisUpdateManyWithoutBranchNestedInput
   option?: Prisma.OptionUpdateManyWithoutBranchNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUpdateManyWithoutBranchNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUpdateManyWithoutBranchNestedInput
   section?: Prisma.SectionUpdateManyWithoutBranchNestedInput
   semester?: Prisma.semesterUpdateManyWithoutBranchNestedInput
@@ -7529,6 +8024,7 @@ export type BranchUncheckedUpdateWithoutPaymentAllocationInput = {
   longitude?: Prisma.FloatFieldUpdateOperationsInput | number
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
+  typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -7544,6 +8040,7 @@ export type BranchUncheckedUpdateWithoutPaymentAllocationInput = {
   schoolYear?: Prisma.SchoolYearUncheckedUpdateManyWithoutBranchNestedInput
   typeFrais?: Prisma.TypeFraisUncheckedUpdateManyWithoutBranchNestedInput
   option?: Prisma.OptionUncheckedUpdateManyWithoutBranchNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedUpdateManyWithoutBranchNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUncheckedUpdateManyWithoutBranchNestedInput
   section?: Prisma.SectionUncheckedUpdateManyWithoutBranchNestedInput
   semester?: Prisma.semesterUncheckedUpdateManyWithoutBranchNestedInput
@@ -7581,6 +8078,7 @@ export type BranchCreateWithoutMobileMoneyTransactionInput = {
   latitude: number
   longitude: number
   attendanceRadius?: number
+  typebranch: $Enums.TypeBrache
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -7597,6 +8095,7 @@ export type BranchCreateWithoutMobileMoneyTransactionInput = {
   schoolYear?: Prisma.SchoolYearCreateNestedManyWithoutBranchInput
   typeFrais?: Prisma.TypeFraisCreateNestedManyWithoutBranchInput
   option?: Prisma.OptionCreateNestedManyWithoutBranchInput
+  coursPonderations?: Prisma.CoursOptionPonderationCreateNestedManyWithoutBranchInput
   classEnrollment?: Prisma.ClassEnrollmentCreateNestedManyWithoutBranchInput
   section?: Prisma.SectionCreateNestedManyWithoutBranchInput
   semester?: Prisma.semesterCreateNestedManyWithoutBranchInput
@@ -7635,6 +8134,7 @@ export type BranchUncheckedCreateWithoutMobileMoneyTransactionInput = {
   longitude: number
   attendanceRadius?: number
   organizationId: string
+  typebranch: $Enums.TypeBrache
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -7650,6 +8150,7 @@ export type BranchUncheckedCreateWithoutMobileMoneyTransactionInput = {
   schoolYear?: Prisma.SchoolYearUncheckedCreateNestedManyWithoutBranchInput
   typeFrais?: Prisma.TypeFraisUncheckedCreateNestedManyWithoutBranchInput
   option?: Prisma.OptionUncheckedCreateNestedManyWithoutBranchInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedCreateNestedManyWithoutBranchInput
   classEnrollment?: Prisma.ClassEnrollmentUncheckedCreateNestedManyWithoutBranchInput
   section?: Prisma.SectionUncheckedCreateNestedManyWithoutBranchInput
   semester?: Prisma.semesterUncheckedCreateNestedManyWithoutBranchInput
@@ -7703,6 +8204,7 @@ export type BranchUpdateWithoutMobileMoneyTransactionInput = {
   latitude?: Prisma.FloatFieldUpdateOperationsInput | number
   longitude?: Prisma.FloatFieldUpdateOperationsInput | number
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -7719,6 +8221,7 @@ export type BranchUpdateWithoutMobileMoneyTransactionInput = {
   schoolYear?: Prisma.SchoolYearUpdateManyWithoutBranchNestedInput
   typeFrais?: Prisma.TypeFraisUpdateManyWithoutBranchNestedInput
   option?: Prisma.OptionUpdateManyWithoutBranchNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUpdateManyWithoutBranchNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUpdateManyWithoutBranchNestedInput
   section?: Prisma.SectionUpdateManyWithoutBranchNestedInput
   semester?: Prisma.semesterUpdateManyWithoutBranchNestedInput
@@ -7757,6 +8260,7 @@ export type BranchUncheckedUpdateWithoutMobileMoneyTransactionInput = {
   longitude?: Prisma.FloatFieldUpdateOperationsInput | number
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
+  typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -7772,6 +8276,7 @@ export type BranchUncheckedUpdateWithoutMobileMoneyTransactionInput = {
   schoolYear?: Prisma.SchoolYearUncheckedUpdateManyWithoutBranchNestedInput
   typeFrais?: Prisma.TypeFraisUncheckedUpdateManyWithoutBranchNestedInput
   option?: Prisma.OptionUncheckedUpdateManyWithoutBranchNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedUpdateManyWithoutBranchNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUncheckedUpdateManyWithoutBranchNestedInput
   section?: Prisma.SectionUncheckedUpdateManyWithoutBranchNestedInput
   semester?: Prisma.semesterUncheckedUpdateManyWithoutBranchNestedInput
@@ -7809,6 +8314,7 @@ export type BranchCreateWithoutPaymentEventInput = {
   latitude: number
   longitude: number
   attendanceRadius?: number
+  typebranch: $Enums.TypeBrache
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -7825,6 +8331,7 @@ export type BranchCreateWithoutPaymentEventInput = {
   schoolYear?: Prisma.SchoolYearCreateNestedManyWithoutBranchInput
   typeFrais?: Prisma.TypeFraisCreateNestedManyWithoutBranchInput
   option?: Prisma.OptionCreateNestedManyWithoutBranchInput
+  coursPonderations?: Prisma.CoursOptionPonderationCreateNestedManyWithoutBranchInput
   classEnrollment?: Prisma.ClassEnrollmentCreateNestedManyWithoutBranchInput
   section?: Prisma.SectionCreateNestedManyWithoutBranchInput
   semester?: Prisma.semesterCreateNestedManyWithoutBranchInput
@@ -7863,6 +8370,7 @@ export type BranchUncheckedCreateWithoutPaymentEventInput = {
   longitude: number
   attendanceRadius?: number
   organizationId: string
+  typebranch: $Enums.TypeBrache
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -7878,6 +8386,7 @@ export type BranchUncheckedCreateWithoutPaymentEventInput = {
   schoolYear?: Prisma.SchoolYearUncheckedCreateNestedManyWithoutBranchInput
   typeFrais?: Prisma.TypeFraisUncheckedCreateNestedManyWithoutBranchInput
   option?: Prisma.OptionUncheckedCreateNestedManyWithoutBranchInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedCreateNestedManyWithoutBranchInput
   classEnrollment?: Prisma.ClassEnrollmentUncheckedCreateNestedManyWithoutBranchInput
   section?: Prisma.SectionUncheckedCreateNestedManyWithoutBranchInput
   semester?: Prisma.semesterUncheckedCreateNestedManyWithoutBranchInput
@@ -7931,6 +8440,7 @@ export type BranchUpdateWithoutPaymentEventInput = {
   latitude?: Prisma.FloatFieldUpdateOperationsInput | number
   longitude?: Prisma.FloatFieldUpdateOperationsInput | number
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -7947,6 +8457,7 @@ export type BranchUpdateWithoutPaymentEventInput = {
   schoolYear?: Prisma.SchoolYearUpdateManyWithoutBranchNestedInput
   typeFrais?: Prisma.TypeFraisUpdateManyWithoutBranchNestedInput
   option?: Prisma.OptionUpdateManyWithoutBranchNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUpdateManyWithoutBranchNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUpdateManyWithoutBranchNestedInput
   section?: Prisma.SectionUpdateManyWithoutBranchNestedInput
   semester?: Prisma.semesterUpdateManyWithoutBranchNestedInput
@@ -7985,6 +8496,7 @@ export type BranchUncheckedUpdateWithoutPaymentEventInput = {
   longitude?: Prisma.FloatFieldUpdateOperationsInput | number
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
+  typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -8000,6 +8512,7 @@ export type BranchUncheckedUpdateWithoutPaymentEventInput = {
   schoolYear?: Prisma.SchoolYearUncheckedUpdateManyWithoutBranchNestedInput
   typeFrais?: Prisma.TypeFraisUncheckedUpdateManyWithoutBranchNestedInput
   option?: Prisma.OptionUncheckedUpdateManyWithoutBranchNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedUpdateManyWithoutBranchNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUncheckedUpdateManyWithoutBranchNestedInput
   section?: Prisma.SectionUncheckedUpdateManyWithoutBranchNestedInput
   semester?: Prisma.semesterUncheckedUpdateManyWithoutBranchNestedInput
@@ -8037,6 +8550,7 @@ export type BranchCreateWithoutDiscountRuleInput = {
   latitude: number
   longitude: number
   attendanceRadius?: number
+  typebranch: $Enums.TypeBrache
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -8053,6 +8567,7 @@ export type BranchCreateWithoutDiscountRuleInput = {
   schoolYear?: Prisma.SchoolYearCreateNestedManyWithoutBranchInput
   typeFrais?: Prisma.TypeFraisCreateNestedManyWithoutBranchInput
   option?: Prisma.OptionCreateNestedManyWithoutBranchInput
+  coursPonderations?: Prisma.CoursOptionPonderationCreateNestedManyWithoutBranchInput
   classEnrollment?: Prisma.ClassEnrollmentCreateNestedManyWithoutBranchInput
   section?: Prisma.SectionCreateNestedManyWithoutBranchInput
   semester?: Prisma.semesterCreateNestedManyWithoutBranchInput
@@ -8091,6 +8606,7 @@ export type BranchUncheckedCreateWithoutDiscountRuleInput = {
   longitude: number
   attendanceRadius?: number
   organizationId: string
+  typebranch: $Enums.TypeBrache
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -8106,6 +8622,7 @@ export type BranchUncheckedCreateWithoutDiscountRuleInput = {
   schoolYear?: Prisma.SchoolYearUncheckedCreateNestedManyWithoutBranchInput
   typeFrais?: Prisma.TypeFraisUncheckedCreateNestedManyWithoutBranchInput
   option?: Prisma.OptionUncheckedCreateNestedManyWithoutBranchInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedCreateNestedManyWithoutBranchInput
   classEnrollment?: Prisma.ClassEnrollmentUncheckedCreateNestedManyWithoutBranchInput
   section?: Prisma.SectionUncheckedCreateNestedManyWithoutBranchInput
   semester?: Prisma.semesterUncheckedCreateNestedManyWithoutBranchInput
@@ -8159,6 +8676,7 @@ export type BranchUpdateWithoutDiscountRuleInput = {
   latitude?: Prisma.FloatFieldUpdateOperationsInput | number
   longitude?: Prisma.FloatFieldUpdateOperationsInput | number
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -8175,6 +8693,7 @@ export type BranchUpdateWithoutDiscountRuleInput = {
   schoolYear?: Prisma.SchoolYearUpdateManyWithoutBranchNestedInput
   typeFrais?: Prisma.TypeFraisUpdateManyWithoutBranchNestedInput
   option?: Prisma.OptionUpdateManyWithoutBranchNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUpdateManyWithoutBranchNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUpdateManyWithoutBranchNestedInput
   section?: Prisma.SectionUpdateManyWithoutBranchNestedInput
   semester?: Prisma.semesterUpdateManyWithoutBranchNestedInput
@@ -8213,6 +8732,7 @@ export type BranchUncheckedUpdateWithoutDiscountRuleInput = {
   longitude?: Prisma.FloatFieldUpdateOperationsInput | number
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
+  typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -8228,6 +8748,7 @@ export type BranchUncheckedUpdateWithoutDiscountRuleInput = {
   schoolYear?: Prisma.SchoolYearUncheckedUpdateManyWithoutBranchNestedInput
   typeFrais?: Prisma.TypeFraisUncheckedUpdateManyWithoutBranchNestedInput
   option?: Prisma.OptionUncheckedUpdateManyWithoutBranchNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedUpdateManyWithoutBranchNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUncheckedUpdateManyWithoutBranchNestedInput
   section?: Prisma.SectionUncheckedUpdateManyWithoutBranchNestedInput
   semester?: Prisma.semesterUncheckedUpdateManyWithoutBranchNestedInput
@@ -8265,6 +8786,7 @@ export type BranchCreateWithoutTransactionInput = {
   latitude: number
   longitude: number
   attendanceRadius?: number
+  typebranch: $Enums.TypeBrache
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -8281,6 +8803,7 @@ export type BranchCreateWithoutTransactionInput = {
   schoolYear?: Prisma.SchoolYearCreateNestedManyWithoutBranchInput
   typeFrais?: Prisma.TypeFraisCreateNestedManyWithoutBranchInput
   option?: Prisma.OptionCreateNestedManyWithoutBranchInput
+  coursPonderations?: Prisma.CoursOptionPonderationCreateNestedManyWithoutBranchInput
   classEnrollment?: Prisma.ClassEnrollmentCreateNestedManyWithoutBranchInput
   section?: Prisma.SectionCreateNestedManyWithoutBranchInput
   semester?: Prisma.semesterCreateNestedManyWithoutBranchInput
@@ -8319,6 +8842,7 @@ export type BranchUncheckedCreateWithoutTransactionInput = {
   longitude: number
   attendanceRadius?: number
   organizationId: string
+  typebranch: $Enums.TypeBrache
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -8334,6 +8858,7 @@ export type BranchUncheckedCreateWithoutTransactionInput = {
   schoolYear?: Prisma.SchoolYearUncheckedCreateNestedManyWithoutBranchInput
   typeFrais?: Prisma.TypeFraisUncheckedCreateNestedManyWithoutBranchInput
   option?: Prisma.OptionUncheckedCreateNestedManyWithoutBranchInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedCreateNestedManyWithoutBranchInput
   classEnrollment?: Prisma.ClassEnrollmentUncheckedCreateNestedManyWithoutBranchInput
   section?: Prisma.SectionUncheckedCreateNestedManyWithoutBranchInput
   semester?: Prisma.semesterUncheckedCreateNestedManyWithoutBranchInput
@@ -8387,6 +8912,7 @@ export type BranchUpdateWithoutTransactionInput = {
   latitude?: Prisma.FloatFieldUpdateOperationsInput | number
   longitude?: Prisma.FloatFieldUpdateOperationsInput | number
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -8403,6 +8929,7 @@ export type BranchUpdateWithoutTransactionInput = {
   schoolYear?: Prisma.SchoolYearUpdateManyWithoutBranchNestedInput
   typeFrais?: Prisma.TypeFraisUpdateManyWithoutBranchNestedInput
   option?: Prisma.OptionUpdateManyWithoutBranchNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUpdateManyWithoutBranchNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUpdateManyWithoutBranchNestedInput
   section?: Prisma.SectionUpdateManyWithoutBranchNestedInput
   semester?: Prisma.semesterUpdateManyWithoutBranchNestedInput
@@ -8441,6 +8968,7 @@ export type BranchUncheckedUpdateWithoutTransactionInput = {
   longitude?: Prisma.FloatFieldUpdateOperationsInput | number
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
+  typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -8456,6 +8984,7 @@ export type BranchUncheckedUpdateWithoutTransactionInput = {
   schoolYear?: Prisma.SchoolYearUncheckedUpdateManyWithoutBranchNestedInput
   typeFrais?: Prisma.TypeFraisUncheckedUpdateManyWithoutBranchNestedInput
   option?: Prisma.OptionUncheckedUpdateManyWithoutBranchNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedUpdateManyWithoutBranchNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUncheckedUpdateManyWithoutBranchNestedInput
   section?: Prisma.SectionUncheckedUpdateManyWithoutBranchNestedInput
   semester?: Prisma.semesterUncheckedUpdateManyWithoutBranchNestedInput
@@ -8493,6 +9022,7 @@ export type BranchCreateWithoutOrganizationInput = {
   latitude: number
   longitude: number
   attendanceRadius?: number
+  typebranch: $Enums.TypeBrache
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -8508,6 +9038,7 @@ export type BranchCreateWithoutOrganizationInput = {
   schoolYear?: Prisma.SchoolYearCreateNestedManyWithoutBranchInput
   typeFrais?: Prisma.TypeFraisCreateNestedManyWithoutBranchInput
   option?: Prisma.OptionCreateNestedManyWithoutBranchInput
+  coursPonderations?: Prisma.CoursOptionPonderationCreateNestedManyWithoutBranchInput
   classEnrollment?: Prisma.ClassEnrollmentCreateNestedManyWithoutBranchInput
   section?: Prisma.SectionCreateNestedManyWithoutBranchInput
   semester?: Prisma.semesterCreateNestedManyWithoutBranchInput
@@ -8546,6 +9077,7 @@ export type BranchUncheckedCreateWithoutOrganizationInput = {
   latitude: number
   longitude: number
   attendanceRadius?: number
+  typebranch: $Enums.TypeBrache
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -8561,6 +9093,7 @@ export type BranchUncheckedCreateWithoutOrganizationInput = {
   schoolYear?: Prisma.SchoolYearUncheckedCreateNestedManyWithoutBranchInput
   typeFrais?: Prisma.TypeFraisUncheckedCreateNestedManyWithoutBranchInput
   option?: Prisma.OptionUncheckedCreateNestedManyWithoutBranchInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedCreateNestedManyWithoutBranchInput
   classEnrollment?: Prisma.ClassEnrollmentUncheckedCreateNestedManyWithoutBranchInput
   section?: Prisma.SectionUncheckedCreateNestedManyWithoutBranchInput
   semester?: Prisma.semesterUncheckedCreateNestedManyWithoutBranchInput
@@ -8629,6 +9162,7 @@ export type BranchScalarWhereInput = {
   longitude?: Prisma.FloatFilter<"Branch"> | number
   attendanceRadius?: Prisma.IntFilter<"Branch"> | number
   organizationId?: Prisma.StringFilter<"Branch"> | string
+  typebranch?: Prisma.EnumTypeBracheFilter<"Branch"> | $Enums.TypeBrache
   isActive?: Prisma.BoolFilter<"Branch"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Branch"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Branch"> | Date | string
@@ -8647,6 +9181,7 @@ export type BranchCreateWithoutPartnairesInput = {
   latitude: number
   longitude: number
   attendanceRadius?: number
+  typebranch: $Enums.TypeBrache
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -8663,6 +9198,7 @@ export type BranchCreateWithoutPartnairesInput = {
   schoolYear?: Prisma.SchoolYearCreateNestedManyWithoutBranchInput
   typeFrais?: Prisma.TypeFraisCreateNestedManyWithoutBranchInput
   option?: Prisma.OptionCreateNestedManyWithoutBranchInput
+  coursPonderations?: Prisma.CoursOptionPonderationCreateNestedManyWithoutBranchInput
   classEnrollment?: Prisma.ClassEnrollmentCreateNestedManyWithoutBranchInput
   section?: Prisma.SectionCreateNestedManyWithoutBranchInput
   semester?: Prisma.semesterCreateNestedManyWithoutBranchInput
@@ -8701,6 +9237,7 @@ export type BranchUncheckedCreateWithoutPartnairesInput = {
   longitude: number
   attendanceRadius?: number
   organizationId: string
+  typebranch: $Enums.TypeBrache
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -8716,6 +9253,7 @@ export type BranchUncheckedCreateWithoutPartnairesInput = {
   schoolYear?: Prisma.SchoolYearUncheckedCreateNestedManyWithoutBranchInput
   typeFrais?: Prisma.TypeFraisUncheckedCreateNestedManyWithoutBranchInput
   option?: Prisma.OptionUncheckedCreateNestedManyWithoutBranchInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedCreateNestedManyWithoutBranchInput
   classEnrollment?: Prisma.ClassEnrollmentUncheckedCreateNestedManyWithoutBranchInput
   section?: Prisma.SectionUncheckedCreateNestedManyWithoutBranchInput
   semester?: Prisma.semesterUncheckedCreateNestedManyWithoutBranchInput
@@ -8769,6 +9307,7 @@ export type BranchUpdateWithoutPartnairesInput = {
   latitude?: Prisma.FloatFieldUpdateOperationsInput | number
   longitude?: Prisma.FloatFieldUpdateOperationsInput | number
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -8785,6 +9324,7 @@ export type BranchUpdateWithoutPartnairesInput = {
   schoolYear?: Prisma.SchoolYearUpdateManyWithoutBranchNestedInput
   typeFrais?: Prisma.TypeFraisUpdateManyWithoutBranchNestedInput
   option?: Prisma.OptionUpdateManyWithoutBranchNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUpdateManyWithoutBranchNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUpdateManyWithoutBranchNestedInput
   section?: Prisma.SectionUpdateManyWithoutBranchNestedInput
   semester?: Prisma.semesterUpdateManyWithoutBranchNestedInput
@@ -8823,6 +9363,7 @@ export type BranchUncheckedUpdateWithoutPartnairesInput = {
   longitude?: Prisma.FloatFieldUpdateOperationsInput | number
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
+  typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -8838,6 +9379,7 @@ export type BranchUncheckedUpdateWithoutPartnairesInput = {
   schoolYear?: Prisma.SchoolYearUncheckedUpdateManyWithoutBranchNestedInput
   typeFrais?: Prisma.TypeFraisUncheckedUpdateManyWithoutBranchNestedInput
   option?: Prisma.OptionUncheckedUpdateManyWithoutBranchNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedUpdateManyWithoutBranchNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUncheckedUpdateManyWithoutBranchNestedInput
   section?: Prisma.SectionUncheckedUpdateManyWithoutBranchNestedInput
   semester?: Prisma.semesterUncheckedUpdateManyWithoutBranchNestedInput
@@ -8875,6 +9417,7 @@ export type BranchCreateWithoutBranchemembersInput = {
   latitude: number
   longitude: number
   attendanceRadius?: number
+  typebranch: $Enums.TypeBrache
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -8890,6 +9433,7 @@ export type BranchCreateWithoutBranchemembersInput = {
   schoolYear?: Prisma.SchoolYearCreateNestedManyWithoutBranchInput
   typeFrais?: Prisma.TypeFraisCreateNestedManyWithoutBranchInput
   option?: Prisma.OptionCreateNestedManyWithoutBranchInput
+  coursPonderations?: Prisma.CoursOptionPonderationCreateNestedManyWithoutBranchInput
   classEnrollment?: Prisma.ClassEnrollmentCreateNestedManyWithoutBranchInput
   section?: Prisma.SectionCreateNestedManyWithoutBranchInput
   semester?: Prisma.semesterCreateNestedManyWithoutBranchInput
@@ -8929,6 +9473,7 @@ export type BranchUncheckedCreateWithoutBranchemembersInput = {
   longitude: number
   attendanceRadius?: number
   organizationId: string
+  typebranch: $Enums.TypeBrache
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -8943,6 +9488,7 @@ export type BranchUncheckedCreateWithoutBranchemembersInput = {
   schoolYear?: Prisma.SchoolYearUncheckedCreateNestedManyWithoutBranchInput
   typeFrais?: Prisma.TypeFraisUncheckedCreateNestedManyWithoutBranchInput
   option?: Prisma.OptionUncheckedCreateNestedManyWithoutBranchInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedCreateNestedManyWithoutBranchInput
   classEnrollment?: Prisma.ClassEnrollmentUncheckedCreateNestedManyWithoutBranchInput
   section?: Prisma.SectionUncheckedCreateNestedManyWithoutBranchInput
   semester?: Prisma.semesterUncheckedCreateNestedManyWithoutBranchInput
@@ -8997,6 +9543,7 @@ export type BranchUpdateWithoutBranchemembersInput = {
   latitude?: Prisma.FloatFieldUpdateOperationsInput | number
   longitude?: Prisma.FloatFieldUpdateOperationsInput | number
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -9012,6 +9559,7 @@ export type BranchUpdateWithoutBranchemembersInput = {
   schoolYear?: Prisma.SchoolYearUpdateManyWithoutBranchNestedInput
   typeFrais?: Prisma.TypeFraisUpdateManyWithoutBranchNestedInput
   option?: Prisma.OptionUpdateManyWithoutBranchNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUpdateManyWithoutBranchNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUpdateManyWithoutBranchNestedInput
   section?: Prisma.SectionUpdateManyWithoutBranchNestedInput
   semester?: Prisma.semesterUpdateManyWithoutBranchNestedInput
@@ -9051,6 +9599,7 @@ export type BranchUncheckedUpdateWithoutBranchemembersInput = {
   longitude?: Prisma.FloatFieldUpdateOperationsInput | number
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
+  typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -9065,6 +9614,7 @@ export type BranchUncheckedUpdateWithoutBranchemembersInput = {
   schoolYear?: Prisma.SchoolYearUncheckedUpdateManyWithoutBranchNestedInput
   typeFrais?: Prisma.TypeFraisUncheckedUpdateManyWithoutBranchNestedInput
   option?: Prisma.OptionUncheckedUpdateManyWithoutBranchNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedUpdateManyWithoutBranchNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUncheckedUpdateManyWithoutBranchNestedInput
   section?: Prisma.SectionUncheckedUpdateManyWithoutBranchNestedInput
   semester?: Prisma.semesterUncheckedUpdateManyWithoutBranchNestedInput
@@ -9103,6 +9653,7 @@ export type BranchCreateWithoutBranchInvitationInput = {
   latitude: number
   longitude: number
   attendanceRadius?: number
+  typebranch: $Enums.TypeBrache
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -9119,6 +9670,7 @@ export type BranchCreateWithoutBranchInvitationInput = {
   schoolYear?: Prisma.SchoolYearCreateNestedManyWithoutBranchInput
   typeFrais?: Prisma.TypeFraisCreateNestedManyWithoutBranchInput
   option?: Prisma.OptionCreateNestedManyWithoutBranchInput
+  coursPonderations?: Prisma.CoursOptionPonderationCreateNestedManyWithoutBranchInput
   classEnrollment?: Prisma.ClassEnrollmentCreateNestedManyWithoutBranchInput
   section?: Prisma.SectionCreateNestedManyWithoutBranchInput
   semester?: Prisma.semesterCreateNestedManyWithoutBranchInput
@@ -9157,6 +9709,7 @@ export type BranchUncheckedCreateWithoutBranchInvitationInput = {
   longitude: number
   attendanceRadius?: number
   organizationId: string
+  typebranch: $Enums.TypeBrache
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -9172,6 +9725,7 @@ export type BranchUncheckedCreateWithoutBranchInvitationInput = {
   schoolYear?: Prisma.SchoolYearUncheckedCreateNestedManyWithoutBranchInput
   typeFrais?: Prisma.TypeFraisUncheckedCreateNestedManyWithoutBranchInput
   option?: Prisma.OptionUncheckedCreateNestedManyWithoutBranchInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedCreateNestedManyWithoutBranchInput
   classEnrollment?: Prisma.ClassEnrollmentUncheckedCreateNestedManyWithoutBranchInput
   section?: Prisma.SectionUncheckedCreateNestedManyWithoutBranchInput
   semester?: Prisma.semesterUncheckedCreateNestedManyWithoutBranchInput
@@ -9225,6 +9779,7 @@ export type BranchUpdateWithoutBranchInvitationInput = {
   latitude?: Prisma.FloatFieldUpdateOperationsInput | number
   longitude?: Prisma.FloatFieldUpdateOperationsInput | number
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -9241,6 +9796,7 @@ export type BranchUpdateWithoutBranchInvitationInput = {
   schoolYear?: Prisma.SchoolYearUpdateManyWithoutBranchNestedInput
   typeFrais?: Prisma.TypeFraisUpdateManyWithoutBranchNestedInput
   option?: Prisma.OptionUpdateManyWithoutBranchNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUpdateManyWithoutBranchNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUpdateManyWithoutBranchNestedInput
   section?: Prisma.SectionUpdateManyWithoutBranchNestedInput
   semester?: Prisma.semesterUpdateManyWithoutBranchNestedInput
@@ -9279,6 +9835,7 @@ export type BranchUncheckedUpdateWithoutBranchInvitationInput = {
   longitude?: Prisma.FloatFieldUpdateOperationsInput | number
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
+  typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -9294,6 +9851,7 @@ export type BranchUncheckedUpdateWithoutBranchInvitationInput = {
   schoolYear?: Prisma.SchoolYearUncheckedUpdateManyWithoutBranchNestedInput
   typeFrais?: Prisma.TypeFraisUncheckedUpdateManyWithoutBranchNestedInput
   option?: Prisma.OptionUncheckedUpdateManyWithoutBranchNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedUpdateManyWithoutBranchNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUncheckedUpdateManyWithoutBranchNestedInput
   section?: Prisma.SectionUncheckedUpdateManyWithoutBranchNestedInput
   semester?: Prisma.semesterUncheckedUpdateManyWithoutBranchNestedInput
@@ -9331,6 +9889,7 @@ export type BranchCreateWithoutOrganizationSupportBranchScopesInput = {
   latitude: number
   longitude: number
   attendanceRadius?: number
+  typebranch: $Enums.TypeBrache
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -9347,6 +9906,7 @@ export type BranchCreateWithoutOrganizationSupportBranchScopesInput = {
   schoolYear?: Prisma.SchoolYearCreateNestedManyWithoutBranchInput
   typeFrais?: Prisma.TypeFraisCreateNestedManyWithoutBranchInput
   option?: Prisma.OptionCreateNestedManyWithoutBranchInput
+  coursPonderations?: Prisma.CoursOptionPonderationCreateNestedManyWithoutBranchInput
   classEnrollment?: Prisma.ClassEnrollmentCreateNestedManyWithoutBranchInput
   section?: Prisma.SectionCreateNestedManyWithoutBranchInput
   semester?: Prisma.semesterCreateNestedManyWithoutBranchInput
@@ -9385,6 +9945,7 @@ export type BranchUncheckedCreateWithoutOrganizationSupportBranchScopesInput = {
   longitude: number
   attendanceRadius?: number
   organizationId: string
+  typebranch: $Enums.TypeBrache
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -9400,6 +9961,7 @@ export type BranchUncheckedCreateWithoutOrganizationSupportBranchScopesInput = {
   schoolYear?: Prisma.SchoolYearUncheckedCreateNestedManyWithoutBranchInput
   typeFrais?: Prisma.TypeFraisUncheckedCreateNestedManyWithoutBranchInput
   option?: Prisma.OptionUncheckedCreateNestedManyWithoutBranchInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedCreateNestedManyWithoutBranchInput
   classEnrollment?: Prisma.ClassEnrollmentUncheckedCreateNestedManyWithoutBranchInput
   section?: Prisma.SectionUncheckedCreateNestedManyWithoutBranchInput
   semester?: Prisma.semesterUncheckedCreateNestedManyWithoutBranchInput
@@ -9453,6 +10015,7 @@ export type BranchUpdateWithoutOrganizationSupportBranchScopesInput = {
   latitude?: Prisma.FloatFieldUpdateOperationsInput | number
   longitude?: Prisma.FloatFieldUpdateOperationsInput | number
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -9469,6 +10032,7 @@ export type BranchUpdateWithoutOrganizationSupportBranchScopesInput = {
   schoolYear?: Prisma.SchoolYearUpdateManyWithoutBranchNestedInput
   typeFrais?: Prisma.TypeFraisUpdateManyWithoutBranchNestedInput
   option?: Prisma.OptionUpdateManyWithoutBranchNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUpdateManyWithoutBranchNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUpdateManyWithoutBranchNestedInput
   section?: Prisma.SectionUpdateManyWithoutBranchNestedInput
   semester?: Prisma.semesterUpdateManyWithoutBranchNestedInput
@@ -9507,6 +10071,7 @@ export type BranchUncheckedUpdateWithoutOrganizationSupportBranchScopesInput = {
   longitude?: Prisma.FloatFieldUpdateOperationsInput | number
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
+  typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -9522,6 +10087,7 @@ export type BranchUncheckedUpdateWithoutOrganizationSupportBranchScopesInput = {
   schoolYear?: Prisma.SchoolYearUncheckedUpdateManyWithoutBranchNestedInput
   typeFrais?: Prisma.TypeFraisUncheckedUpdateManyWithoutBranchNestedInput
   option?: Prisma.OptionUncheckedUpdateManyWithoutBranchNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedUpdateManyWithoutBranchNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUncheckedUpdateManyWithoutBranchNestedInput
   section?: Prisma.SectionUncheckedUpdateManyWithoutBranchNestedInput
   semester?: Prisma.semesterUncheckedUpdateManyWithoutBranchNestedInput
@@ -9559,6 +10125,7 @@ export type BranchCreateManyOrganizationInput = {
   latitude: number
   longitude: number
   attendanceRadius?: number
+  typebranch: $Enums.TypeBrache
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -9577,6 +10144,7 @@ export type BranchUpdateWithoutOrganizationInput = {
   latitude?: Prisma.FloatFieldUpdateOperationsInput | number
   longitude?: Prisma.FloatFieldUpdateOperationsInput | number
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -9592,6 +10160,7 @@ export type BranchUpdateWithoutOrganizationInput = {
   schoolYear?: Prisma.SchoolYearUpdateManyWithoutBranchNestedInput
   typeFrais?: Prisma.TypeFraisUpdateManyWithoutBranchNestedInput
   option?: Prisma.OptionUpdateManyWithoutBranchNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUpdateManyWithoutBranchNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUpdateManyWithoutBranchNestedInput
   section?: Prisma.SectionUpdateManyWithoutBranchNestedInput
   semester?: Prisma.semesterUpdateManyWithoutBranchNestedInput
@@ -9630,6 +10199,7 @@ export type BranchUncheckedUpdateWithoutOrganizationInput = {
   latitude?: Prisma.FloatFieldUpdateOperationsInput | number
   longitude?: Prisma.FloatFieldUpdateOperationsInput | number
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -9645,6 +10215,7 @@ export type BranchUncheckedUpdateWithoutOrganizationInput = {
   schoolYear?: Prisma.SchoolYearUncheckedUpdateManyWithoutBranchNestedInput
   typeFrais?: Prisma.TypeFraisUncheckedUpdateManyWithoutBranchNestedInput
   option?: Prisma.OptionUncheckedUpdateManyWithoutBranchNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedUpdateManyWithoutBranchNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUncheckedUpdateManyWithoutBranchNestedInput
   section?: Prisma.SectionUncheckedUpdateManyWithoutBranchNestedInput
   semester?: Prisma.semesterUncheckedUpdateManyWithoutBranchNestedInput
@@ -9683,6 +10254,7 @@ export type BranchUncheckedUpdateManyWithoutOrganizationInput = {
   latitude?: Prisma.FloatFieldUpdateOperationsInput | number
   longitude?: Prisma.FloatFieldUpdateOperationsInput | number
   attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -9706,6 +10278,7 @@ export type BranchCountOutputType = {
   schoolYear: number
   typeFrais: number
   option: number
+  coursPonderations: number
   classEnrollment: number
   section: number
   semester: number
@@ -9744,6 +10317,7 @@ export type BranchCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions
   schoolYear?: boolean | BranchCountOutputTypeCountSchoolYearArgs
   typeFrais?: boolean | BranchCountOutputTypeCountTypeFraisArgs
   option?: boolean | BranchCountOutputTypeCountOptionArgs
+  coursPonderations?: boolean | BranchCountOutputTypeCountCoursPonderationsArgs
   classEnrollment?: boolean | BranchCountOutputTypeCountClassEnrollmentArgs
   section?: boolean | BranchCountOutputTypeCountSectionArgs
   semester?: boolean | BranchCountOutputTypeCountSemesterArgs
@@ -9861,6 +10435,13 @@ export type BranchCountOutputTypeCountTypeFraisArgs<ExtArgs extends runtime.Type
  */
 export type BranchCountOutputTypeCountOptionArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.OptionWhereInput
+}
+
+/**
+ * BranchCountOutputType without action
+ */
+export type BranchCountOutputTypeCountCoursPonderationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.CoursOptionPonderationWhereInput
 }
 
 /**
@@ -10039,6 +10620,7 @@ export type BranchSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   longitude?: boolean
   attendanceRadius?: boolean
   organizationId?: boolean
+  typebranch?: boolean
   isActive?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -10055,6 +10637,7 @@ export type BranchSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   schoolYear?: boolean | Prisma.Branch$schoolYearArgs<ExtArgs>
   typeFrais?: boolean | Prisma.Branch$typeFraisArgs<ExtArgs>
   option?: boolean | Prisma.Branch$optionArgs<ExtArgs>
+  coursPonderations?: boolean | Prisma.Branch$coursPonderationsArgs<ExtArgs>
   classEnrollment?: boolean | Prisma.Branch$classEnrollmentArgs<ExtArgs>
   section?: boolean | Prisma.Branch$sectionArgs<ExtArgs>
   semester?: boolean | Prisma.Branch$semesterArgs<ExtArgs>
@@ -10095,6 +10678,7 @@ export type BranchSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extens
   longitude?: boolean
   attendanceRadius?: boolean
   organizationId?: boolean
+  typebranch?: boolean
   isActive?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -10115,6 +10699,7 @@ export type BranchSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extens
   longitude?: boolean
   attendanceRadius?: boolean
   organizationId?: boolean
+  typebranch?: boolean
   isActive?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -10135,12 +10720,13 @@ export type BranchSelectScalar = {
   longitude?: boolean
   attendanceRadius?: boolean
   organizationId?: boolean
+  typebranch?: boolean
   isActive?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type BranchOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "code" | "image" | "adresse" | "ville" | "pays" | "idnat" | "tel" | "latitude" | "longitude" | "attendanceRadius" | "organizationId" | "isActive" | "createdAt" | "updatedAt", ExtArgs["result"]["branch"]>
+export type BranchOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "code" | "image" | "adresse" | "ville" | "pays" | "idnat" | "tel" | "latitude" | "longitude" | "attendanceRadius" | "organizationId" | "typebranch" | "isActive" | "createdAt" | "updatedAt", ExtArgs["result"]["branch"]>
 export type BranchInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   studentAttendance?: boolean | Prisma.Branch$studentAttendanceArgs<ExtArgs>
@@ -10155,6 +10741,7 @@ export type BranchInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   schoolYear?: boolean | Prisma.Branch$schoolYearArgs<ExtArgs>
   typeFrais?: boolean | Prisma.Branch$typeFraisArgs<ExtArgs>
   option?: boolean | Prisma.Branch$optionArgs<ExtArgs>
+  coursPonderations?: boolean | Prisma.Branch$coursPonderationsArgs<ExtArgs>
   classEnrollment?: boolean | Prisma.Branch$classEnrollmentArgs<ExtArgs>
   section?: boolean | Prisma.Branch$sectionArgs<ExtArgs>
   semester?: boolean | Prisma.Branch$semesterArgs<ExtArgs>
@@ -10203,6 +10790,7 @@ export type $BranchPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     schoolYear: Prisma.$SchoolYearPayload<ExtArgs>[]
     typeFrais: Prisma.$TypeFraisPayload<ExtArgs>[]
     option: Prisma.$OptionPayload<ExtArgs>[]
+    coursPonderations: Prisma.$CoursOptionPonderationPayload<ExtArgs>[]
     classEnrollment: Prisma.$ClassEnrollmentPayload<ExtArgs>[]
     section: Prisma.$SectionPayload<ExtArgs>[]
     semester: Prisma.$semesterPayload<ExtArgs>[]
@@ -10241,6 +10829,7 @@ export type $BranchPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     longitude: number
     attendanceRadius: number
     organizationId: string
+    typebranch: $Enums.TypeBrache
     isActive: boolean
     createdAt: Date
     updatedAt: Date
@@ -10651,6 +11240,7 @@ export interface Prisma__BranchClient<T, Null = never, ExtArgs extends runtime.T
   schoolYear<T extends Prisma.Branch$schoolYearArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Branch$schoolYearArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SchoolYearPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   typeFrais<T extends Prisma.Branch$typeFraisArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Branch$typeFraisArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TypeFraisPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   option<T extends Prisma.Branch$optionArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Branch$optionArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OptionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  coursPonderations<T extends Prisma.Branch$coursPonderationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Branch$coursPonderationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CoursOptionPonderationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   classEnrollment<T extends Prisma.Branch$classEnrollmentArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Branch$classEnrollmentArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ClassEnrollmentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   section<T extends Prisma.Branch$sectionArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Branch$sectionArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SectionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   semester<T extends Prisma.Branch$semesterArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Branch$semesterArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$semesterPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -10716,6 +11306,7 @@ export interface BranchFieldRefs {
   readonly longitude: Prisma.FieldRef<"Branch", 'Float'>
   readonly attendanceRadius: Prisma.FieldRef<"Branch", 'Int'>
   readonly organizationId: Prisma.FieldRef<"Branch", 'String'>
+  readonly typebranch: Prisma.FieldRef<"Branch", 'TypeBrache'>
   readonly isActive: Prisma.FieldRef<"Branch", 'Boolean'>
   readonly createdAt: Prisma.FieldRef<"Branch", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Branch", 'DateTime'>
@@ -11405,6 +11996,30 @@ export type Branch$optionArgs<ExtArgs extends runtime.Types.Extensions.InternalA
   take?: number
   skip?: number
   distinct?: Prisma.OptionScalarFieldEnum | Prisma.OptionScalarFieldEnum[]
+}
+
+/**
+ * Branch.coursPonderations
+ */
+export type Branch$coursPonderationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the CoursOptionPonderation
+   */
+  select?: Prisma.CoursOptionPonderationSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the CoursOptionPonderation
+   */
+  omit?: Prisma.CoursOptionPonderationOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.CoursOptionPonderationInclude<ExtArgs> | null
+  where?: Prisma.CoursOptionPonderationWhereInput
+  orderBy?: Prisma.CoursOptionPonderationOrderByWithRelationInput | Prisma.CoursOptionPonderationOrderByWithRelationInput[]
+  cursor?: Prisma.CoursOptionPonderationWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.CoursOptionPonderationScalarFieldEnum | Prisma.CoursOptionPonderationScalarFieldEnum[]
 }
 
 /**

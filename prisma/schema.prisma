@@ -263,13 +263,13 @@ model TypeFrais {
 
 model Classe {
   id              String            @id @default(cuid())
-  codeClasse      String            @unique
+  codeClasse      String
   nameClasse      String
   optionId        String?
   statusClasse    Boolean?
   creneauId       String?
-  branchId        String?
-  branch          Branch?           @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  branchId        String
+  branch          Branch            @relation(fields: [branchId], references: [id], onDelete: Cascade)
   classEnrollment ClassEnrollment[]
   teaching        Teaching[]
   Frais           Frais[]
@@ -282,6 +282,8 @@ model Classe {
   @@index([branchId])
   @@index([optionId])
   @@index([branchId, optionId])
+  @@unique([branchId, codeClasse])
+  @@unique([branchId, nameClasse])
 }
 
 model Creneau {
@@ -297,16 +299,18 @@ model Creneau {
   branchId             String
   branch               Branch             @relation(fields: [branchId], references: [id], onDelete: Cascade)
   @@index([branchId])
+  @@unique([branchId, nameCreneau])
   classe Classe[]
 }
 
 model Option {
   id           String   @id @default(cuid())
-  codeOption   String   @unique
+  codeOption   String
   nameOption   String
   sectionId    String?
   section      Section? @relation(fields: [sectionId], references: [id])
   classe       Classe[]
+  coursPonderations CoursOptionPonderation[]
   statusOption Boolean?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
@@ -315,12 +319,14 @@ model Option {
   @@index([branchId])
   @@index([sectionId])
   @@index([branchId, sectionId])
+  @@unique([branchId, codeOption])
+  @@unique([branchId, nameOption])
 }
 
 model Section {
   id            String   @id @default(cuid())
-  codeSection   String   @unique
-  nameSection   String   @unique
+  codeSection   String
+  nameSection   String
   option        Option[]
   statusSection Boolean
   createdAt     DateTime @default(now())
@@ -328,11 +334,13 @@ model Section {
   branchId             String
   branch               Branch             @relation(fields: [branchId], references: [id], onDelete: Cascade)
   @@index([branchId])
+  @@unique([branchId, codeSection])
+  @@unique([branchId, nameSection])
 }
 
 model SchoolYear {
   id                String              @id @default(cuid())
-  nameYear          String              @unique
+  nameYear          String
   startYear         DateTime
   endYear           DateTime
   isCurrentYear     Boolean             @default(false)
@@ -351,6 +359,7 @@ model SchoolYear {
   @@index([branchId, startYear, endYear])
   @@index([branchId, isCurrentYear])
   @@unique([branchId, startYear, endYear])
+  @@unique([branchId, nameYear])
 }
 
 model ClassEnrollment {
@@ -425,10 +434,9 @@ model Teaching {
 
 model Cours {
   id          String     @id @default(cuid())
-  codeCours   String     @unique
+  codeCours   String 
   nameCours   String
   description String?
-  ponderation Int
   teaching    Teaching[]
   statusCours Boolean?
   createdAt   DateTime   @default(now())
@@ -436,10 +444,28 @@ model Cours {
   period      period[]   @relation("PeriodSubjects")
   branchId             String
   branch               Branch             @relation(fields: [branchId], references: [id], onDelete: Cascade)
-
+  coursPonderations CoursOptionPonderation[]
   @@index([branchId])
+  @@unique([branchId, codeCours])
+  @@unique([branchId, nameCours])
 }
+model CoursOptionPonderation {
+  id          String   @id @default(cuid())
+  coursId     String
+  cours       Cours    @relation(fields: [coursId], references: [id], onDelete: Cascade)
+  optionId    String
+  option      Option   @relation(fields: [optionId], references: [id], onDelete: Cascade)
+  ponderation Int
+  branchId    String
+  branch      Branch   @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
+  @@unique([branchId, coursId, optionId])
+  @@index([branchId])
+  @@index([coursId])
+  @@index([optionId])
+}
 model Schedule {
   id         String    @id @default(cuid())
   day        Day
@@ -514,7 +540,7 @@ model EventType {
 
 model semester {
   id        Int      @id @default(autoincrement())
-  label     String   @unique(map: "Semester_label_key")
+  label     String
   startDate DateTime
   endDate   DateTime
   period    period[]
@@ -993,6 +1019,7 @@ model Branch {
   longitude        Float
   attendanceRadius Int          @default(100)
   organizationId   String
+  typebranch      TypeBrache
   organization     Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   isActive Boolean @default(true)
@@ -1011,6 +1038,7 @@ model Branch {
   schoolYear SchoolYear[]
   typeFrais TypeFrais[]
   option Option[]
+  coursPonderations CoursOptionPonderation[]
   classEnrollment ClassEnrollment[]
   section Section[]
   semester semester[]
@@ -1037,6 +1065,7 @@ model Branch {
 
   @@index([organizationId])
   @@index([organizationId, isActive])
+  @@index([organizationId, typebranch])
   @@index([code])
   @@unique([organizationId, code])
 }
@@ -1108,6 +1137,10 @@ enum BranchRole {
   TEACHER
   PARENT
   STUDENT
+}
+enum TypeBrache {
+  PRIMAIRE
+  SECONDAIRE
 }
 
 model BranchInvitation {

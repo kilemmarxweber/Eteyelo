@@ -3,6 +3,7 @@
 import { useState, useMemo, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { Result } from "@/lib/types";
+import { getAcademicGroupLabels } from "@/lib/academic-structure";
 
 const FiltersCombox = dynamic(() => import("./FiltersCombox"), {
   ssr: false,
@@ -51,15 +52,8 @@ export default function FiltersWrapper({
   const allowedPeriods = useMemo(() => {
     if (!selectedPeriod) return [];
 
-    const sem1Group = ["1st Period", "2nd Period", "Exam 1st semester"];
-    const sem2Group = ["3tr Period", "4th Period", "Exam 2nd semester"];
-
-    if (selectedPeriod === "Exam 1st semester") {
-      return sem1Group;
-    }
-
-    if (selectedPeriod === "Exam 2nd semester") {
-      return sem2Group;
+    if (selectedPeriod.startsWith("Exam")) {
+      return getAcademicGroupLabels(selectedPeriod);
     }
 
     return [selectedPeriod];

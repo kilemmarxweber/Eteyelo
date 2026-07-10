@@ -131,7 +131,7 @@ const StudentResultPage = async ({
         status: note.score === 0 ? " En cours" : "",
         periodName: fiche.periodeName,
 
-        Maxscore: (fiche.lesson.cours?.ponderation ?? 0) * 10,
+        Maxscore: note.maxScore ?? 0,
         TypeFiche: fiche.typeFiche,
         Comment: note.comment ?? "",
 

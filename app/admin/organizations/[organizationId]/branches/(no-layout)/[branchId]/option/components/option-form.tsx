@@ -141,19 +141,6 @@ export function OptionUpForm({
             />
             <FormField
               control={form.control}
-              name="codeOption"
-              render={({ field }) => (
-                <FormItem className="space-y-1">
-                  <FormLabel>Code de l'option</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Le code de l'option" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
               name="sectionId"
               render={({ field }) => (
                 <FormItem className="flex flex-col">

@@ -98,6 +98,15 @@ export function SchoolYearUpForm({
           : "Année scolaire mise à jour",
       );
 
+      if (mode === "create") {
+        form.reset({
+          nameYear: "",
+          startYear: new Date(),
+          endYear: new Date(),
+          isCurrentYear: false,
+        });
+      }
+      window.dispatchEvent(new Event("school-year-refresh"));
       setSchoolYearCreated(true);
       onSchoolYearAction?.();
     } catch (error: any) {

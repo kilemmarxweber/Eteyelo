@@ -20,18 +20,8 @@ export type CoursModel = runtime.Types.Result.DefaultSelection<Prisma.$CoursPayl
 
 export type AggregateCours = {
   _count: CoursCountAggregateOutputType | null
-  _avg: CoursAvgAggregateOutputType | null
-  _sum: CoursSumAggregateOutputType | null
   _min: CoursMinAggregateOutputType | null
   _max: CoursMaxAggregateOutputType | null
-}
-
-export type CoursAvgAggregateOutputType = {
-  ponderation: number | null
-}
-
-export type CoursSumAggregateOutputType = {
-  ponderation: number | null
 }
 
 export type CoursMinAggregateOutputType = {
@@ -39,7 +29,6 @@ export type CoursMinAggregateOutputType = {
   codeCours: string | null
   nameCours: string | null
   description: string | null
-  ponderation: number | null
   statusCours: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -51,7 +40,6 @@ export type CoursMaxAggregateOutputType = {
   codeCours: string | null
   nameCours: string | null
   description: string | null
-  ponderation: number | null
   statusCours: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -63,7 +51,6 @@ export type CoursCountAggregateOutputType = {
   codeCours: number
   nameCours: number
   description: number
-  ponderation: number
   statusCours: number
   createdAt: number
   updatedAt: number
@@ -72,20 +59,11 @@ export type CoursCountAggregateOutputType = {
 }
 
 
-export type CoursAvgAggregateInputType = {
-  ponderation?: true
-}
-
-export type CoursSumAggregateInputType = {
-  ponderation?: true
-}
-
 export type CoursMinAggregateInputType = {
   id?: true
   codeCours?: true
   nameCours?: true
   description?: true
-  ponderation?: true
   statusCours?: true
   createdAt?: true
   updatedAt?: true
@@ -97,7 +75,6 @@ export type CoursMaxAggregateInputType = {
   codeCours?: true
   nameCours?: true
   description?: true
-  ponderation?: true
   statusCours?: true
   createdAt?: true
   updatedAt?: true
@@ -109,7 +86,6 @@ export type CoursCountAggregateInputType = {
   codeCours?: true
   nameCours?: true
   description?: true
-  ponderation?: true
   statusCours?: true
   createdAt?: true
   updatedAt?: true
@@ -155,18 +131,6 @@ export type CoursAggregateArgs<ExtArgs extends runtime.Types.Extensions.Internal
   /**
    * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
    * 
-   * Select which fields to average
-  **/
-  _avg?: CoursAvgAggregateInputType
-  /**
-   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-   * 
-   * Select which fields to sum
-  **/
-  _sum?: CoursSumAggregateInputType
-  /**
-   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-   * 
    * Select which fields to find the minimum value
   **/
   _min?: CoursMinAggregateInputType
@@ -197,8 +161,6 @@ export type CoursGroupByArgs<ExtArgs extends runtime.Types.Extensions.InternalAr
   take?: number
   skip?: number
   _count?: CoursCountAggregateInputType | true
-  _avg?: CoursAvgAggregateInputType
-  _sum?: CoursSumAggregateInputType
   _min?: CoursMinAggregateInputType
   _max?: CoursMaxAggregateInputType
 }
@@ -208,14 +170,11 @@ export type CoursGroupByOutputType = {
   codeCours: string
   nameCours: string
   description: string | null
-  ponderation: number
   statusCours: boolean | null
   createdAt: Date
   updatedAt: Date
   branchId: string
   _count: CoursCountAggregateOutputType | null
-  _avg: CoursAvgAggregateOutputType | null
-  _sum: CoursSumAggregateOutputType | null
   _min: CoursMinAggregateOutputType | null
   _max: CoursMaxAggregateOutputType | null
 }
@@ -243,7 +202,6 @@ export type CoursWhereInput = {
   codeCours?: Prisma.StringFilter<"Cours"> | string
   nameCours?: Prisma.StringFilter<"Cours"> | string
   description?: Prisma.StringNullableFilter<"Cours"> | string | null
-  ponderation?: Prisma.IntFilter<"Cours"> | number
   statusCours?: Prisma.BoolNullableFilter<"Cours"> | boolean | null
   createdAt?: Prisma.DateTimeFilter<"Cours"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Cours"> | Date | string
@@ -251,6 +209,7 @@ export type CoursWhereInput = {
   teaching?: Prisma.TeachingListRelationFilter
   period?: Prisma.PeriodListRelationFilter
   branch?: Prisma.XOR<Prisma.BranchScalarRelationFilter, Prisma.BranchWhereInput>
+  coursPonderations?: Prisma.CoursOptionPonderationListRelationFilter
 }
 
 export type CoursOrderByWithRelationInput = {
@@ -258,7 +217,6 @@ export type CoursOrderByWithRelationInput = {
   codeCours?: Prisma.SortOrder
   nameCours?: Prisma.SortOrder
   description?: Prisma.SortOrderInput | Prisma.SortOrder
-  ponderation?: Prisma.SortOrder
   statusCours?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -266,17 +224,19 @@ export type CoursOrderByWithRelationInput = {
   teaching?: Prisma.TeachingOrderByRelationAggregateInput
   period?: Prisma.periodOrderByRelationAggregateInput
   branch?: Prisma.BranchOrderByWithRelationInput
+  coursPonderations?: Prisma.CoursOptionPonderationOrderByRelationAggregateInput
 }
 
 export type CoursWhereUniqueInput = Prisma.AtLeast<{
   id?: string
-  codeCours?: string
+  branchId_codeCours?: Prisma.CoursBranchIdCodeCoursCompoundUniqueInput
+  branchId_nameCours?: Prisma.CoursBranchIdNameCoursCompoundUniqueInput
   AND?: Prisma.CoursWhereInput | Prisma.CoursWhereInput[]
   OR?: Prisma.CoursWhereInput[]
   NOT?: Prisma.CoursWhereInput | Prisma.CoursWhereInput[]
+  codeCours?: Prisma.StringFilter<"Cours"> | string
   nameCours?: Prisma.StringFilter<"Cours"> | string
   description?: Prisma.StringNullableFilter<"Cours"> | string | null
-  ponderation?: Prisma.IntFilter<"Cours"> | number
   statusCours?: Prisma.BoolNullableFilter<"Cours"> | boolean | null
   createdAt?: Prisma.DateTimeFilter<"Cours"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Cours"> | Date | string
@@ -284,23 +244,21 @@ export type CoursWhereUniqueInput = Prisma.AtLeast<{
   teaching?: Prisma.TeachingListRelationFilter
   period?: Prisma.PeriodListRelationFilter
   branch?: Prisma.XOR<Prisma.BranchScalarRelationFilter, Prisma.BranchWhereInput>
-}, "id" | "codeCours">
+  coursPonderations?: Prisma.CoursOptionPonderationListRelationFilter
+}, "id" | "branchId_codeCours" | "branchId_nameCours">
 
 export type CoursOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   codeCours?: Prisma.SortOrder
   nameCours?: Prisma.SortOrder
   description?: Prisma.SortOrderInput | Prisma.SortOrder
-  ponderation?: Prisma.SortOrder
   statusCours?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   branchId?: Prisma.SortOrder
   _count?: Prisma.CoursCountOrderByAggregateInput
-  _avg?: Prisma.CoursAvgOrderByAggregateInput
   _max?: Prisma.CoursMaxOrderByAggregateInput
   _min?: Prisma.CoursMinOrderByAggregateInput
-  _sum?: Prisma.CoursSumOrderByAggregateInput
 }
 
 export type CoursScalarWhereWithAggregatesInput = {
@@ -311,7 +269,6 @@ export type CoursScalarWhereWithAggregatesInput = {
   codeCours?: Prisma.StringWithAggregatesFilter<"Cours"> | string
   nameCours?: Prisma.StringWithAggregatesFilter<"Cours"> | string
   description?: Prisma.StringNullableWithAggregatesFilter<"Cours"> | string | null
-  ponderation?: Prisma.IntWithAggregatesFilter<"Cours"> | number
   statusCours?: Prisma.BoolNullableWithAggregatesFilter<"Cours"> | boolean | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Cours"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Cours"> | Date | string
@@ -323,13 +280,13 @@ export type CoursCreateInput = {
   codeCours: string
   nameCours: string
   description?: string | null
-  ponderation: number
   statusCours?: boolean | null
   createdAt?: Date | string
   updatedAt?: Date | string
   teaching?: Prisma.TeachingCreateNestedManyWithoutCoursInput
   period?: Prisma.periodCreateNestedManyWithoutSubjectInput
   branch: Prisma.BranchCreateNestedOneWithoutCoursInput
+  coursPonderations?: Prisma.CoursOptionPonderationCreateNestedManyWithoutCoursInput
 }
 
 export type CoursUncheckedCreateInput = {
@@ -337,13 +294,13 @@ export type CoursUncheckedCreateInput = {
   codeCours: string
   nameCours: string
   description?: string | null
-  ponderation: number
   statusCours?: boolean | null
   createdAt?: Date | string
   updatedAt?: Date | string
   branchId: string
   teaching?: Prisma.TeachingUncheckedCreateNestedManyWithoutCoursInput
   period?: Prisma.periodUncheckedCreateNestedManyWithoutSubjectInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedCreateNestedManyWithoutCoursInput
 }
 
 export type CoursUpdateInput = {
@@ -351,13 +308,13 @@ export type CoursUpdateInput = {
   codeCours?: Prisma.StringFieldUpdateOperationsInput | string
   nameCours?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  ponderation?: Prisma.IntFieldUpdateOperationsInput | number
   statusCours?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   teaching?: Prisma.TeachingUpdateManyWithoutCoursNestedInput
   period?: Prisma.periodUpdateManyWithoutSubjectNestedInput
   branch?: Prisma.BranchUpdateOneRequiredWithoutCoursNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUpdateManyWithoutCoursNestedInput
 }
 
 export type CoursUncheckedUpdateInput = {
@@ -365,13 +322,13 @@ export type CoursUncheckedUpdateInput = {
   codeCours?: Prisma.StringFieldUpdateOperationsInput | string
   nameCours?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  ponderation?: Prisma.IntFieldUpdateOperationsInput | number
   statusCours?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
   teaching?: Prisma.TeachingUncheckedUpdateManyWithoutCoursNestedInput
   period?: Prisma.periodUncheckedUpdateManyWithoutSubjectNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedUpdateManyWithoutCoursNestedInput
 }
 
 export type CoursCreateManyInput = {
@@ -379,7 +336,6 @@ export type CoursCreateManyInput = {
   codeCours: string
   nameCours: string
   description?: string | null
-  ponderation: number
   statusCours?: boolean | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -391,7 +347,6 @@ export type CoursUpdateManyMutationInput = {
   codeCours?: Prisma.StringFieldUpdateOperationsInput | string
   nameCours?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  ponderation?: Prisma.IntFieldUpdateOperationsInput | number
   statusCours?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -402,7 +357,6 @@ export type CoursUncheckedUpdateManyInput = {
   codeCours?: Prisma.StringFieldUpdateOperationsInput | string
   nameCours?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  ponderation?: Prisma.IntFieldUpdateOperationsInput | number
   statusCours?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -414,20 +368,25 @@ export type CoursScalarRelationFilter = {
   isNot?: Prisma.CoursWhereInput
 }
 
+export type CoursBranchIdCodeCoursCompoundUniqueInput = {
+  branchId: string
+  codeCours: string
+}
+
+export type CoursBranchIdNameCoursCompoundUniqueInput = {
+  branchId: string
+  nameCours: string
+}
+
 export type CoursCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   codeCours?: Prisma.SortOrder
   nameCours?: Prisma.SortOrder
   description?: Prisma.SortOrder
-  ponderation?: Prisma.SortOrder
   statusCours?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   branchId?: Prisma.SortOrder
-}
-
-export type CoursAvgOrderByAggregateInput = {
-  ponderation?: Prisma.SortOrder
 }
 
 export type CoursMaxOrderByAggregateInput = {
@@ -435,7 +394,6 @@ export type CoursMaxOrderByAggregateInput = {
   codeCours?: Prisma.SortOrder
   nameCours?: Prisma.SortOrder
   description?: Prisma.SortOrder
-  ponderation?: Prisma.SortOrder
   statusCours?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -447,15 +405,10 @@ export type CoursMinOrderByAggregateInput = {
   codeCours?: Prisma.SortOrder
   nameCours?: Prisma.SortOrder
   description?: Prisma.SortOrder
-  ponderation?: Prisma.SortOrder
   statusCours?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   branchId?: Prisma.SortOrder
-}
-
-export type CoursSumOrderByAggregateInput = {
-  ponderation?: Prisma.SortOrder
 }
 
 export type CoursListRelationFilter = {
@@ -480,6 +433,20 @@ export type CoursUpdateOneRequiredWithoutTeachingNestedInput = {
   upsert?: Prisma.CoursUpsertWithoutTeachingInput
   connect?: Prisma.CoursWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.CoursUpdateToOneWithWhereWithoutTeachingInput, Prisma.CoursUpdateWithoutTeachingInput>, Prisma.CoursUncheckedUpdateWithoutTeachingInput>
+}
+
+export type CoursCreateNestedOneWithoutCoursPonderationsInput = {
+  create?: Prisma.XOR<Prisma.CoursCreateWithoutCoursPonderationsInput, Prisma.CoursUncheckedCreateWithoutCoursPonderationsInput>
+  connectOrCreate?: Prisma.CoursCreateOrConnectWithoutCoursPonderationsInput
+  connect?: Prisma.CoursWhereUniqueInput
+}
+
+export type CoursUpdateOneRequiredWithoutCoursPonderationsNestedInput = {
+  create?: Prisma.XOR<Prisma.CoursCreateWithoutCoursPonderationsInput, Prisma.CoursUncheckedCreateWithoutCoursPonderationsInput>
+  connectOrCreate?: Prisma.CoursCreateOrConnectWithoutCoursPonderationsInput
+  upsert?: Prisma.CoursUpsertWithoutCoursPonderationsInput
+  connect?: Prisma.CoursWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.CoursUpdateToOneWithWhereWithoutCoursPonderationsInput, Prisma.CoursUpdateWithoutCoursPonderationsInput>, Prisma.CoursUncheckedUpdateWithoutCoursPonderationsInput>
 }
 
 export type CoursCreateNestedManyWithoutPeriodInput = {
@@ -567,12 +534,12 @@ export type CoursCreateWithoutTeachingInput = {
   codeCours: string
   nameCours: string
   description?: string | null
-  ponderation: number
   statusCours?: boolean | null
   createdAt?: Date | string
   updatedAt?: Date | string
   period?: Prisma.periodCreateNestedManyWithoutSubjectInput
   branch: Prisma.BranchCreateNestedOneWithoutCoursInput
+  coursPonderations?: Prisma.CoursOptionPonderationCreateNestedManyWithoutCoursInput
 }
 
 export type CoursUncheckedCreateWithoutTeachingInput = {
@@ -580,12 +547,12 @@ export type CoursUncheckedCreateWithoutTeachingInput = {
   codeCours: string
   nameCours: string
   description?: string | null
-  ponderation: number
   statusCours?: boolean | null
   createdAt?: Date | string
   updatedAt?: Date | string
   branchId: string
   period?: Prisma.periodUncheckedCreateNestedManyWithoutSubjectInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedCreateNestedManyWithoutCoursInput
 }
 
 export type CoursCreateOrConnectWithoutTeachingInput = {
@@ -609,12 +576,12 @@ export type CoursUpdateWithoutTeachingInput = {
   codeCours?: Prisma.StringFieldUpdateOperationsInput | string
   nameCours?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  ponderation?: Prisma.IntFieldUpdateOperationsInput | number
   statusCours?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   period?: Prisma.periodUpdateManyWithoutSubjectNestedInput
   branch?: Prisma.BranchUpdateOneRequiredWithoutCoursNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUpdateManyWithoutCoursNestedInput
 }
 
 export type CoursUncheckedUpdateWithoutTeachingInput = {
@@ -622,11 +589,79 @@ export type CoursUncheckedUpdateWithoutTeachingInput = {
   codeCours?: Prisma.StringFieldUpdateOperationsInput | string
   nameCours?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  ponderation?: Prisma.IntFieldUpdateOperationsInput | number
   statusCours?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
+  period?: Prisma.periodUncheckedUpdateManyWithoutSubjectNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedUpdateManyWithoutCoursNestedInput
+}
+
+export type CoursCreateWithoutCoursPonderationsInput = {
+  id?: string
+  codeCours: string
+  nameCours: string
+  description?: string | null
+  statusCours?: boolean | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  teaching?: Prisma.TeachingCreateNestedManyWithoutCoursInput
+  period?: Prisma.periodCreateNestedManyWithoutSubjectInput
+  branch: Prisma.BranchCreateNestedOneWithoutCoursInput
+}
+
+export type CoursUncheckedCreateWithoutCoursPonderationsInput = {
+  id?: string
+  codeCours: string
+  nameCours: string
+  description?: string | null
+  statusCours?: boolean | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  branchId: string
+  teaching?: Prisma.TeachingUncheckedCreateNestedManyWithoutCoursInput
+  period?: Prisma.periodUncheckedCreateNestedManyWithoutSubjectInput
+}
+
+export type CoursCreateOrConnectWithoutCoursPonderationsInput = {
+  where: Prisma.CoursWhereUniqueInput
+  create: Prisma.XOR<Prisma.CoursCreateWithoutCoursPonderationsInput, Prisma.CoursUncheckedCreateWithoutCoursPonderationsInput>
+}
+
+export type CoursUpsertWithoutCoursPonderationsInput = {
+  update: Prisma.XOR<Prisma.CoursUpdateWithoutCoursPonderationsInput, Prisma.CoursUncheckedUpdateWithoutCoursPonderationsInput>
+  create: Prisma.XOR<Prisma.CoursCreateWithoutCoursPonderationsInput, Prisma.CoursUncheckedCreateWithoutCoursPonderationsInput>
+  where?: Prisma.CoursWhereInput
+}
+
+export type CoursUpdateToOneWithWhereWithoutCoursPonderationsInput = {
+  where?: Prisma.CoursWhereInput
+  data: Prisma.XOR<Prisma.CoursUpdateWithoutCoursPonderationsInput, Prisma.CoursUncheckedUpdateWithoutCoursPonderationsInput>
+}
+
+export type CoursUpdateWithoutCoursPonderationsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  codeCours?: Prisma.StringFieldUpdateOperationsInput | string
+  nameCours?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  statusCours?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  teaching?: Prisma.TeachingUpdateManyWithoutCoursNestedInput
+  period?: Prisma.periodUpdateManyWithoutSubjectNestedInput
+  branch?: Prisma.BranchUpdateOneRequiredWithoutCoursNestedInput
+}
+
+export type CoursUncheckedUpdateWithoutCoursPonderationsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  codeCours?: Prisma.StringFieldUpdateOperationsInput | string
+  nameCours?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  statusCours?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  branchId?: Prisma.StringFieldUpdateOperationsInput | string
+  teaching?: Prisma.TeachingUncheckedUpdateManyWithoutCoursNestedInput
   period?: Prisma.periodUncheckedUpdateManyWithoutSubjectNestedInput
 }
 
@@ -635,12 +670,12 @@ export type CoursCreateWithoutPeriodInput = {
   codeCours: string
   nameCours: string
   description?: string | null
-  ponderation: number
   statusCours?: boolean | null
   createdAt?: Date | string
   updatedAt?: Date | string
   teaching?: Prisma.TeachingCreateNestedManyWithoutCoursInput
   branch: Prisma.BranchCreateNestedOneWithoutCoursInput
+  coursPonderations?: Prisma.CoursOptionPonderationCreateNestedManyWithoutCoursInput
 }
 
 export type CoursUncheckedCreateWithoutPeriodInput = {
@@ -648,12 +683,12 @@ export type CoursUncheckedCreateWithoutPeriodInput = {
   codeCours: string
   nameCours: string
   description?: string | null
-  ponderation: number
   statusCours?: boolean | null
   createdAt?: Date | string
   updatedAt?: Date | string
   branchId: string
   teaching?: Prisma.TeachingUncheckedCreateNestedManyWithoutCoursInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedCreateNestedManyWithoutCoursInput
 }
 
 export type CoursCreateOrConnectWithoutPeriodInput = {
@@ -685,7 +720,6 @@ export type CoursScalarWhereInput = {
   codeCours?: Prisma.StringFilter<"Cours"> | string
   nameCours?: Prisma.StringFilter<"Cours"> | string
   description?: Prisma.StringNullableFilter<"Cours"> | string | null
-  ponderation?: Prisma.IntFilter<"Cours"> | number
   statusCours?: Prisma.BoolNullableFilter<"Cours"> | boolean | null
   createdAt?: Prisma.DateTimeFilter<"Cours"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Cours"> | Date | string
@@ -697,12 +731,12 @@ export type CoursCreateWithoutBranchInput = {
   codeCours: string
   nameCours: string
   description?: string | null
-  ponderation: number
   statusCours?: boolean | null
   createdAt?: Date | string
   updatedAt?: Date | string
   teaching?: Prisma.TeachingCreateNestedManyWithoutCoursInput
   period?: Prisma.periodCreateNestedManyWithoutSubjectInput
+  coursPonderations?: Prisma.CoursOptionPonderationCreateNestedManyWithoutCoursInput
 }
 
 export type CoursUncheckedCreateWithoutBranchInput = {
@@ -710,12 +744,12 @@ export type CoursUncheckedCreateWithoutBranchInput = {
   codeCours: string
   nameCours: string
   description?: string | null
-  ponderation: number
   statusCours?: boolean | null
   createdAt?: Date | string
   updatedAt?: Date | string
   teaching?: Prisma.TeachingUncheckedCreateNestedManyWithoutCoursInput
   period?: Prisma.periodUncheckedCreateNestedManyWithoutSubjectInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedCreateNestedManyWithoutCoursInput
 }
 
 export type CoursCreateOrConnectWithoutBranchInput = {
@@ -749,12 +783,12 @@ export type CoursUpdateWithoutPeriodInput = {
   codeCours?: Prisma.StringFieldUpdateOperationsInput | string
   nameCours?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  ponderation?: Prisma.IntFieldUpdateOperationsInput | number
   statusCours?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   teaching?: Prisma.TeachingUpdateManyWithoutCoursNestedInput
   branch?: Prisma.BranchUpdateOneRequiredWithoutCoursNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUpdateManyWithoutCoursNestedInput
 }
 
 export type CoursUncheckedUpdateWithoutPeriodInput = {
@@ -762,12 +796,12 @@ export type CoursUncheckedUpdateWithoutPeriodInput = {
   codeCours?: Prisma.StringFieldUpdateOperationsInput | string
   nameCours?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  ponderation?: Prisma.IntFieldUpdateOperationsInput | number
   statusCours?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
   teaching?: Prisma.TeachingUncheckedUpdateManyWithoutCoursNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedUpdateManyWithoutCoursNestedInput
 }
 
 export type CoursUncheckedUpdateManyWithoutPeriodInput = {
@@ -775,7 +809,6 @@ export type CoursUncheckedUpdateManyWithoutPeriodInput = {
   codeCours?: Prisma.StringFieldUpdateOperationsInput | string
   nameCours?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  ponderation?: Prisma.IntFieldUpdateOperationsInput | number
   statusCours?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -787,7 +820,6 @@ export type CoursCreateManyBranchInput = {
   codeCours: string
   nameCours: string
   description?: string | null
-  ponderation: number
   statusCours?: boolean | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -798,12 +830,12 @@ export type CoursUpdateWithoutBranchInput = {
   codeCours?: Prisma.StringFieldUpdateOperationsInput | string
   nameCours?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  ponderation?: Prisma.IntFieldUpdateOperationsInput | number
   statusCours?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   teaching?: Prisma.TeachingUpdateManyWithoutCoursNestedInput
   period?: Prisma.periodUpdateManyWithoutSubjectNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUpdateManyWithoutCoursNestedInput
 }
 
 export type CoursUncheckedUpdateWithoutBranchInput = {
@@ -811,12 +843,12 @@ export type CoursUncheckedUpdateWithoutBranchInput = {
   codeCours?: Prisma.StringFieldUpdateOperationsInput | string
   nameCours?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  ponderation?: Prisma.IntFieldUpdateOperationsInput | number
   statusCours?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   teaching?: Prisma.TeachingUncheckedUpdateManyWithoutCoursNestedInput
   period?: Prisma.periodUncheckedUpdateManyWithoutSubjectNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedUpdateManyWithoutCoursNestedInput
 }
 
 export type CoursUncheckedUpdateManyWithoutBranchInput = {
@@ -824,7 +856,6 @@ export type CoursUncheckedUpdateManyWithoutBranchInput = {
   codeCours?: Prisma.StringFieldUpdateOperationsInput | string
   nameCours?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  ponderation?: Prisma.IntFieldUpdateOperationsInput | number
   statusCours?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -838,11 +869,13 @@ export type CoursUncheckedUpdateManyWithoutBranchInput = {
 export type CoursCountOutputType = {
   teaching: number
   period: number
+  coursPonderations: number
 }
 
 export type CoursCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   teaching?: boolean | CoursCountOutputTypeCountTeachingArgs
   period?: boolean | CoursCountOutputTypeCountPeriodArgs
+  coursPonderations?: boolean | CoursCountOutputTypeCountCoursPonderationsArgs
 }
 
 /**
@@ -869,13 +902,19 @@ export type CoursCountOutputTypeCountPeriodArgs<ExtArgs extends runtime.Types.Ex
   where?: Prisma.periodWhereInput
 }
 
+/**
+ * CoursCountOutputType without action
+ */
+export type CoursCountOutputTypeCountCoursPonderationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.CoursOptionPonderationWhereInput
+}
+
 
 export type CoursSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   codeCours?: boolean
   nameCours?: boolean
   description?: boolean
-  ponderation?: boolean
   statusCours?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -883,6 +922,7 @@ export type CoursSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   teaching?: boolean | Prisma.Cours$teachingArgs<ExtArgs>
   period?: boolean | Prisma.Cours$periodArgs<ExtArgs>
   branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
+  coursPonderations?: boolean | Prisma.Cours$coursPonderationsArgs<ExtArgs>
   _count?: boolean | Prisma.CoursCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["cours"]>
 
@@ -891,7 +931,6 @@ export type CoursSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   codeCours?: boolean
   nameCours?: boolean
   description?: boolean
-  ponderation?: boolean
   statusCours?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -904,7 +943,6 @@ export type CoursSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   codeCours?: boolean
   nameCours?: boolean
   description?: boolean
-  ponderation?: boolean
   statusCours?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -917,18 +955,18 @@ export type CoursSelectScalar = {
   codeCours?: boolean
   nameCours?: boolean
   description?: boolean
-  ponderation?: boolean
   statusCours?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   branchId?: boolean
 }
 
-export type CoursOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "codeCours" | "nameCours" | "description" | "ponderation" | "statusCours" | "createdAt" | "updatedAt" | "branchId", ExtArgs["result"]["cours"]>
+export type CoursOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "codeCours" | "nameCours" | "description" | "statusCours" | "createdAt" | "updatedAt" | "branchId", ExtArgs["result"]["cours"]>
 export type CoursInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   teaching?: boolean | Prisma.Cours$teachingArgs<ExtArgs>
   period?: boolean | Prisma.Cours$periodArgs<ExtArgs>
   branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
+  coursPonderations?: boolean | Prisma.Cours$coursPonderationsArgs<ExtArgs>
   _count?: boolean | Prisma.CoursCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type CoursIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -944,13 +982,13 @@ export type $CoursPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     teaching: Prisma.$TeachingPayload<ExtArgs>[]
     period: Prisma.$periodPayload<ExtArgs>[]
     branch: Prisma.$BranchPayload<ExtArgs>
+    coursPonderations: Prisma.$CoursOptionPonderationPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     codeCours: string
     nameCours: string
     description: string | null
-    ponderation: number
     statusCours: boolean | null
     createdAt: Date
     updatedAt: Date
@@ -1352,6 +1390,7 @@ export interface Prisma__CoursClient<T, Null = never, ExtArgs extends runtime.Ty
   teaching<T extends Prisma.Cours$teachingArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Cours$teachingArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TeachingPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   period<T extends Prisma.Cours$periodArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Cours$periodArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$periodPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   branch<T extends Prisma.BranchDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.BranchDefaultArgs<ExtArgs>>): Prisma.Prisma__BranchClient<runtime.Types.Result.GetResult<Prisma.$BranchPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  coursPonderations<T extends Prisma.Cours$coursPonderationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Cours$coursPonderationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CoursOptionPonderationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1385,7 +1424,6 @@ export interface CoursFieldRefs {
   readonly codeCours: Prisma.FieldRef<"Cours", 'String'>
   readonly nameCours: Prisma.FieldRef<"Cours", 'String'>
   readonly description: Prisma.FieldRef<"Cours", 'String'>
-  readonly ponderation: Prisma.FieldRef<"Cours", 'Int'>
   readonly statusCours: Prisma.FieldRef<"Cours", 'Boolean'>
   readonly createdAt: Prisma.FieldRef<"Cours", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Cours", 'DateTime'>
@@ -1836,6 +1874,30 @@ export type Cours$periodArgs<ExtArgs extends runtime.Types.Extensions.InternalAr
   take?: number
   skip?: number
   distinct?: Prisma.PeriodScalarFieldEnum | Prisma.PeriodScalarFieldEnum[]
+}
+
+/**
+ * Cours.coursPonderations
+ */
+export type Cours$coursPonderationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the CoursOptionPonderation
+   */
+  select?: Prisma.CoursOptionPonderationSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the CoursOptionPonderation
+   */
+  omit?: Prisma.CoursOptionPonderationOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.CoursOptionPonderationInclude<ExtArgs> | null
+  where?: Prisma.CoursOptionPonderationWhereInput
+  orderBy?: Prisma.CoursOptionPonderationOrderByWithRelationInput | Prisma.CoursOptionPonderationOrderByWithRelationInput[]
+  cursor?: Prisma.CoursOptionPonderationWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.CoursOptionPonderationScalarFieldEnum | Prisma.CoursOptionPonderationScalarFieldEnum[]
 }
 
 /**
