@@ -29,8 +29,8 @@ import { HomeFooter } from "@/components/home-footer";
 import { HomeNavbar } from "@/components/home-navbar";
 import { galleryImages, getHomeData } from "@/lib/home/home-data";
 
-export const revalidate = 300;
-
+//export const revalidate = 300;
+export const dynamic = "force-dynamic";
 const socialLinks = [
   { icon: Facebook, label: "Facebook", className: "bg-blue-600" },
   { icon: Instagram, label: "Instagram", className: "bg-pink-600" },

@@ -133,7 +133,9 @@ export function EnrollmentUpForm({
         if (err) {
           throw new Error(err.message);
         }
-        toast.success("Classe créée avec succès");
+        toast.success(
+          `Élève affecté à ${classEnrollment.classe?.nameClasse ?? "une classe disponible"}`,
+        );
         form.reset({
           schoolYearId: currentSchoolYearId,
           studentId: "",
@@ -147,7 +149,7 @@ export function EnrollmentUpForm({
         if (err) {
           throw new Error(err.message);
         }
-        toast.success("Classe mis à jour avec succès");
+        toast.success("Inscription mise à jour avec succès");
       }
 
       if (mode === "update") {
@@ -158,9 +160,10 @@ export function EnrollmentUpForm({
       console.log(error);
       setErrorMessage(error.message ?? "");
       toast.error(
-        mode === "create"
-          ? "Échec de la création de la classEnrollment"
-          : "Échec de la mise à jour de la classEnrollment",
+        error.message ||
+          (mode === "create"
+            ? "Échec de l'inscription"
+            : "Échec de la mise à jour de l'inscription"),
       );
     } finally {
       setIsLoading(false);

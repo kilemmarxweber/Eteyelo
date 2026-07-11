@@ -63,6 +63,12 @@ const staticSidebarMenu: StaticMenuItem[] = [
     roles: ["*"],
   },
   {
+    title: "Inscription",
+    href: "/admin/registration",
+    icon: "inscriptions",
+    roles: ADMIN_ROLES,
+  },
+  {
     title: "Utilisateurs",
     href: "/admin/settings",
     icon: "users",
@@ -160,12 +166,6 @@ const staticSidebarMenu: StaticMenuItem[] = [
         title: "Classe",
         href: "/admin/classe",
         icon: "classe",
-        roles: ADMIN_ROLES,
-      },
-      {
-        title: "Inscriptions",
-        href: "/admin/classEnrollment",
-        icon: "inscriptions",
         roles: ADMIN_ROLES,
       },
     ],

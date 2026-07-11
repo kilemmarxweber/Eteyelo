@@ -11,25 +11,15 @@ import {
   IconUsersGroup,
 } from "@tabler/icons-react";
 
-import { Button } from "@/components/custom/button";
 import { Layout, LayoutBody } from "@/components/custom/layout";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import { PageHeader } from "@/components/ui/page-header";
 import { useSession } from "@/lib/auth-client";
 import { canManageOrganization } from "@/lib/auth/session-roles";
 
 import Loading from "../loading";
 import { getStudentsAction } from "./student.action";
-import { StudentUpForm } from "./components/student-form";
 import UserList from "./components/StudentsTable";
 
 type StudentStats = {
@@ -62,7 +52,6 @@ function getCurrentQuarterRange() {
 
 export default function Students() {
   const [refreshKey, setRefreshKey] = useState(0);
-  const [open, setOpen] = useState(false);
   const [stats, setStats] = useState<StudentStats>(emptyStats);
 
   const { data: session, isPending } = useSession();
@@ -156,37 +145,6 @@ export default function Students() {
             <Badge variant="outline-primary" icon={<IconUsers size={14} />}>
               Élèves
             </Badge>
-          }
-          actions={
-            canManage ? (
-              <Dialog open={open} onOpenChange={setOpen}>
-                <DialogTrigger asChild>
-                  <Button
-                    className="bg-blue-700 text-white hover:bg-blue-800"
-                    leftSection={<IconUserPlus size={16} />}
-                  >
-                    Nouvel élève
-                  </Button>
-                </DialogTrigger>
-
-                <DialogContent className="max-h-[90vh] w-full max-w-4xl overflow-y-auto">
-                  <DialogHeader>
-                    <DialogTitle>Créer un élève</DialogTitle>
-                    <DialogDescription>
-                      Remplir les informations de l’élève
-                    </DialogDescription>
-                  </DialogHeader>
-
-                  <StudentUpForm
-                    mode="create"
-                    onCreated={() => {
-                      handleUserAction();
-                      setOpen(false);
-                    }}
-                  />
-                </DialogContent>
-              </Dialog>
-            ) : null
           }
         />
 

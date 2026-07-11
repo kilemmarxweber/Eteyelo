@@ -9,6 +9,8 @@ import {
 } from "@/src/interfaces/classEnrollment";
 import z from "zod";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
+import { findAvailableClassForLevel } from "@/lib/class-enrollment/find-available-class";
+import { Prisma } from "@/prisma/generated/prisma/client";
 
 function revalidateClassEnrollmentPages(organizationId: string, branchId: string) {
   revalidatePath(
@@ -21,9 +23,12 @@ export const createClassEnrollmentAction = action
   .handler(async ({ input }) => {
     const { branchId, organizationId } = await requireBranchContext();
     const { schoolYearId, classeId, studentId } = input;
-    const [schoolYear, classe, student] = await Promise.all([
+    const [schoolYear, requestedClass, student] = await Promise.all([
       prisma.schoolYear.findFirst({ where: { id: schoolYearId, branchId } }),
-      prisma.classe.findFirst({ where: { id: classeId, branchId } }),
+      prisma.classe.findFirst({
+        where: { id: classeId, branchId },
+        select: { id: true, level: true, optionId: true },
+      }),
       prisma.student.findFirst({
         where: {
           id: studentId,
@@ -34,21 +39,71 @@ export const createClassEnrollmentAction = action
       }),
     ]);
 
-    if (!schoolYear || !classe || !student) {
+    if (!schoolYear || !requestedClass || !student) {
       throw new Error("Inscription impossible dans cette branche");
     }
 
-    const ClassEnrollment = await prisma.classEnrollment.create({
-      data: {
-        schoolYearId,
-        studentId,
-        classeId,
-        branchId,
-        statusEnrollment: true,
-      },
-    });
+    if (!requestedClass.level) {
+      throw new Error(
+        "Le niveau de la classe doit être renseigné avant l'affectation automatique.",
+      );
+    }
+
+    let classEnrollment;
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      try {
+        classEnrollment = await prisma.$transaction(
+          async (tx) => {
+            const availableClass = await findAvailableClassForLevel(tx, {
+              branchId,
+              schoolYearId,
+              level: requestedClass.level!,
+              optionId: requestedClass.optionId,
+            });
+
+            if (!availableClass) {
+              throw new Error(
+                `Aucune classe disponible pour le niveau ${requestedClass.level}. Créez la prochaine parallèle ou augmentez une capacité.`,
+              );
+            }
+
+            return tx.classEnrollment.create({
+              data: {
+                schoolYearId,
+                studentId,
+                classeId: availableClass.id,
+                branchId,
+                statusEnrollment: true,
+              },
+              include: { classe: true },
+            });
+          },
+          { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
+        );
+        break;
+      } catch (error) {
+        if (
+          error instanceof Prisma.PrismaClientKnownRequestError &&
+          error.code === "P2034" &&
+          attempt < 2
+        ) {
+          continue;
+        }
+        if (
+          error instanceof Prisma.PrismaClientKnownRequestError &&
+          error.code === "P2002"
+        ) {
+          throw new Error("Cet élève est déjà inscrit pour cette année scolaire.");
+        }
+        throw error;
+      }
+    }
+
+    if (!classEnrollment) {
+      throw new Error("L'inscription n'a pas pu être finalisée. Réessayez.");
+    }
     revalidateClassEnrollmentPages(organizationId, branchId);
-    return ClassEnrollment;
+    return classEnrollment;
   });
 
 //archive ClassEnrollment
