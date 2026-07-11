@@ -123,7 +123,7 @@ export default function AdminDashboard() {
   const quickActions = [
     {
       title: "Gérer les élèves",
-      description: "Ajouter, modifier ou supprimer des élèves",
+      description: "Ajouter, modifier ou archiver des eleves",
       icon: <IconUsers className="h-6 w-6" />,
       href: "/admin/student",
       color: "bg-blue-500",

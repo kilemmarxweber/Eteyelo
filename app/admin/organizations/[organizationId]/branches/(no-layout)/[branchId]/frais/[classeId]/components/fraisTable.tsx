@@ -38,7 +38,7 @@ const FraissList = ({ params }: { params: { classeId: string } }) => {
           }
           setFraiss(rawFraiss);
         } else {
-          const [rawFraiss, err] = await getFraisAction();
+          const [rawFraiss, err] = await getFraisAction({});
           if (err) {
             throw new Error("Failed to fetch Frais");
           }

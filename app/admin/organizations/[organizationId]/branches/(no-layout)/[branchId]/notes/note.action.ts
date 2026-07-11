@@ -51,8 +51,11 @@ export async function checkExistingFiche(params: {
   typeFiche: FicheTypes;
 }) {
   try {
+    const { branchId } = await requireBranchContext();
+
     const existing = await prisma.fiche.findFirst({
       where: {
+        branchId,
         teacherId: params.teacherId,
         classSectionId: params.classId,
         lessonId: params.lessonId,

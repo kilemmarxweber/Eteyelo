@@ -1,14 +1,33 @@
 import { usePathname } from "next/navigation";
 
+function normalizePath(path: string) {
+  if (!path || path === "#") return "";
+  return path.replace(/\/$/, "") || "/";
+}
+
 export default function useCheckActiveNav() {
   const pathname = usePathname();
 
   const checkActiveNav = (nav: string) => {
-    const pathArray = pathname.split("/").filter((item) => item !== "");
+    const current = normalizePath(pathname);
+    const target = normalizePath(nav);
 
-    if (nav === "/" && pathArray.length < 1) return true;
+    if (!target) return false;
+    if (current === target) return true;
 
-    return pathArray.includes(nav.replace(/^\/admin\//, ""));
+    const branchRoot = target.match(
+      /^\/admin\/organizations\/[^/]+\/branches\/[^/]+$/,
+    )?.[0];
+
+    if (branchRoot) {
+      return current === branchRoot;
+    }
+
+    if (target === "/admin") {
+      return current === "/admin";
+    }
+
+    return current.startsWith(`${target}/`);
   };
 
   return { checkActiveNav };

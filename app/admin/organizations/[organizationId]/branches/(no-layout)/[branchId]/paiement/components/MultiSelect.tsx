@@ -36,6 +36,8 @@ interface MultiSelectProps {
   closeOnSelect?: boolean;
   className?: string;
   disabled?: boolean;
+  /** Affiche uniquement le placeholder (ou un compteur), pas les badges des éléments sélectionnés */
+  hideSelected?: boolean;
 }
 
 export function MultiSelect({
@@ -48,6 +50,7 @@ export function MultiSelect({
   closeOnSelect = false,
   className,
   disabled = false,
+  hideSelected = false,
 }: MultiSelectProps) {
   const [open, setOpen] = React.useState(false);
   const [search, setSearch] = React.useState("");
@@ -89,8 +92,12 @@ export function MultiSelect({
           className={cn("w-full justify-between min-h-9 text-sm", className)}
         >
           <div className="flex gap-1 flex-wrap items-center">
-            {selected.length === 0 ? (
-              <span className="text-muted-foreground">{placeholder}</span>
+            {selected.length === 0 || hideSelected ? (
+              <span className="text-muted-foreground">
+                {selected.length > 0 && hideSelected
+                  ? `${selected.length} frais sélectionné${selected.length > 1 ? "s" : ""}`
+                  : placeholder}
+              </span>
             ) : (
               <>
                 {selected.slice(0, maxCount).map((val) => {
@@ -113,7 +120,7 @@ export function MultiSelect({
 
                 {selected.length > maxCount && (
                   <Badge variant="outline" className="ml-1 flex ">
-                    +{selected.length - maxCount} more
+                    +{selected.length - maxCount} autres
                   </Badge>
                 )}
               </>
@@ -129,7 +136,7 @@ export function MultiSelect({
           <div className="flex items-center border-b px-2">
             {searchable && (
               <CommandInput
-                placeholder="Search..."
+                placeholder="Rechercher..."
                 value={search}
                 onValueChange={setSearch}
                 className="flex-1 h-9 text-sm border-none shadow-none focus-visible:ring-0"
@@ -140,13 +147,13 @@ export function MultiSelect({
                 variant="outline"
                 className="ml-1 flex whitespace-nowrap h-6 shrink-0"
               >
-                +{selected.length - maxCount} more
+                +{selected.length - maxCount} autres
               </Badge>
             )}
           </div>
 
           <CommandList className="max-h-60 overflow-y-auto">
-            <CommandEmpty>No results.</CommandEmpty>
+            <CommandEmpty>Aucun résultat.</CommandEmpty>
 
             <CommandGroup>
               {filteredOptions.map((opt) => {
@@ -181,7 +188,7 @@ export function MultiSelect({
                   className="w-full"
                   onClick={clear}
                 >
-                  Clear selection
+                  Effacer la sélection
                 </Button>
               </div>
             )}

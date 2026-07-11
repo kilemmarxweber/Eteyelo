@@ -2,6 +2,8 @@
 
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
+import { IconCalendarEvent, IconPlus } from "@tabler/icons-react";
+
 import { Button } from "@/components/custom/button";
 import {
   Dialog,
@@ -9,7 +11,6 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Layout, LayoutBody } from "@/components/custom/layout";
 import { SchoolYearUpForm } from "./SchoolYear-form";
@@ -17,6 +18,9 @@ import SchoolYearsList from "./SchoolYearsTable";
 import { useRefresh } from "@/src/hooks/RefreshContext";
 import { prepareNextSchoolYearAction } from "../schoolYear.action";
 import { canPrepareNextAcademicYear } from "@/lib/academic-year";
+import { PageHeader } from "@/components/ui/page-header";
+import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
 
 interface Props {
   branchId: string;
@@ -54,57 +58,62 @@ export default function SchoolYearsClient({ branchId }: Props) {
 
   return (
     <Layout>
-      <LayoutBody>
-        <div className="flex items-center justify-between mb-0">
-          <h1 className="text-2xl font-bold tracking-tight text-primary md:text-3xl dark:text-white">
-            Liste des Années scolaires
-          </h1>
-        </div>
-
-        <div className="p-1">
-          <div className="flex flex-wrap gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              loading={isPreparing}
-              disabled={!canPrepareNextYear}
-              title={
-                canPrepareNextYear
-                  ? undefined
-                  : "Disponible a partir du mois d'aout"
-              }
-              onClick={handlePrepareNextYear}
+      <LayoutBody className="space-y-4">
+        <PageHeader
+          title="Liste des annees scolaires"
+          description="Gerez les annees scolaires actives et preparez la suivante."
+          badge={
+            <Badge
+              variant="outline-primary"
+              icon={<IconCalendarEvent size={14} />}
             >
-              Preparer la prochaine annee
-            </Button>
-          <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-              <Button variant="default">Ajouter</Button>
-            </DialogTrigger>
+              Annees scolaires
+            </Badge>
+          }
+          actions={
+            <>
+              <Button
+                type="button"
+                variant="outline"
+                loading={isPreparing}
+                disabled={!canPrepareNextYear}
+                title={
+                  canPrepareNextYear
+                    ? undefined
+                    : "Disponible a partir du mois d'aout"
+                }
+                onClick={handlePrepareNextYear}
+              >
+                Preparer la prochaine annee
+              </Button>
+              <Button type="button" variant="default" onClick={() => setOpen(true)}>
+                <IconPlus size={16} className="mr-2" />
+                Ajouter une annee
+              </Button>
+            </>
+          }
+        />
 
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Ajouter une année scolaire</DialogTitle>
+        <Dialog open={open} onOpenChange={setOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Ajouter une annee scolaire</DialogTitle>
+              <DialogDescription>
+                Renseignez les informations de l'annee scolaire puis enregistrez.
+              </DialogDescription>
+            </DialogHeader>
 
-                <DialogDescription>
-                  Apporter des modifications à l'année scolaire ici. Cliquez sur
-                  Enregistrer lorsque vous êtes fait.
-                </DialogDescription>
-              </DialogHeader>
+            <SchoolYearUpForm
+              mode="create"
+              branchId={branchId}
+              onCreated={handleCreated}
+            />
+          </DialogContent>
+        </Dialog>
 
-              <SchoolYearUpForm
-                mode="create"
-                branchId={branchId}
-                onCreated={handleCreated}
-              />
-            </DialogContent>
-          </Dialog>
-          </div>
-
-          <div className="mt-8 border p-1 md:p-6 rounded-lg shadow-md">
-            <SchoolYearsList refreshKey={refreshKey} branchId={branchId} />
-          </div>
-        </div>
+        <Card variant="elevated" padding="none" className="border p-1 md:p-6">
+          <SchoolYearsList refreshKey={refreshKey} branchId={branchId} />
+        </Card>
       </LayoutBody>
     </Layout>
   );

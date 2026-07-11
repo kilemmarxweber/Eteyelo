@@ -9,13 +9,12 @@ import {
 } from "@/src/interfaces/Personnel";
 import z from "zod";
 import { createOrganizationMemberAction } from "../../../../members/actions";
-import { auth } from "@/lib/auth";
 import {
   consumeAdminCreatedUserPlainPassword,
   stashAdminCreatedUserPlainPassword,
 } from "@/lib/admin-created-user-password";
 import { generateSecurePassword } from "@/lib/generate-password";
-import { headers } from "next/headers";
+import { requireBranchContext } from "@/lib/auth/require-branch-context";
 
 function errMessage(err: unknown): string {
   if (
@@ -46,22 +45,42 @@ async function getAvailableUsername(username: string): Promise<string> {
 }
 
 export async function getCurrentBranch() {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
-
-  const branchId = session?.session?.activeBranchId;
-  const organizationId = session?.session?.activeOrganizationId;
-
-  if (!branchId || !organizationId) {
-    throw new Error("Aucune branche active");
-  }
+  const { branchId, organizationId, userId } = await requireBranchContext();
 
   return {
     branchId,
     organizationId,
-    userId: session.user.id,
+    userId,
   };
+}
+
+async function requirePersonnelInBranch(
+  personnelId: string,
+  branchId: string,
+  organizationId: string,
+) {
+  const personnel = await prisma.personnel.findFirst({
+    where: {
+      id: personnelId,
+      branchMember: {
+        branchId,
+        branch: { organizationId },
+      },
+    },
+    include: {
+      branchMember: {
+        include: {
+          member: true,
+        },
+      },
+    },
+  });
+
+  if (!personnel) {
+    throw new Error("Personnel introuvable dans cette branche");
+  }
+
+  return personnel;
 }
 // export async function getCurrentBranch() {
 //   const session = await auth.api.getSession({
@@ -216,7 +235,21 @@ export const updatePersonnelFullAction = action
     }),
   )
   .handler(async ({ input }) => {
+    const { branchId, organizationId } = await requireBranchContext();
     const { personnelId, memberId, userId, orgRole, ...userData } = input;
+
+    const personnel = await requirePersonnelInBranch(
+      personnelId,
+      branchId,
+      organizationId,
+    );
+
+    if (
+      personnel.branchMember?.member?.id !== memberId ||
+      personnel.branchMember?.member?.userId !== userId
+    ) {
+      throw new Error("Personnel introuvable dans cette branche");
+    }
 
     const result = await prisma.$transaction(async (tx) => {
       // 1. UPDATE USER
@@ -317,24 +350,18 @@ export const getPersonnelsAction = action.handler(
 export const updatePersonnelAction = action
   .input(updatePersonnelSchema)
   .handler(async ({ input }) => {
+    const { branchId, organizationId } = await requireBranchContext();
     const { orgRole, ...data } = input;
 
-    const personnel = await prisma.personnel.findUnique({
-      where: {
-        id: input.personnelId,
-      },
-      include: {
-        branchMember: {
-          include: {
-            member: true,
-          },
-        },
-      },
-    });
-
-    if (!personnel) {
+    if (!input.personnelId) {
       throw new Error("Personnel introuvable");
     }
+
+    const personnel = await requirePersonnelInBranch(
+      input.personnelId,
+      branchId,
+      organizationId,
+    );
 
     const memberId = personnel.branchMember?.member?.id;
 

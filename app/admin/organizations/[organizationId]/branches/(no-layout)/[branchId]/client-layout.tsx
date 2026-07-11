@@ -44,7 +44,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
         <main
           className={`h-full overflow-x-hidden pt-16 transition-[margin] md:pt-0 ${
-            isCollapsed ? "md:ml-14" : "md:ml-40"
+            isCollapsed ? "md:ml-14" : "md:ml-44"
           }`}
         >
           <LayoutHeader>

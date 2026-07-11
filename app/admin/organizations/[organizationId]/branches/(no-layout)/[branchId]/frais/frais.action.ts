@@ -408,25 +408,45 @@ export const updateFraisAction = action
     return mapFrais(frais);
   });
 
-export const getFraisAction = action.handler(async (): Promise<IFrais[]> => {
-  const { branchId } = await requireBranchContext();
-  const currentYear = await getCurrentBranchSchoolYear(branchId);
+export const getFraisAction = action
+  .input(
+    z
+      .object({
+        schoolYearId: z.string().optional(),
+      })
+      .optional(),
+  )
+  .handler(async ({ input }): Promise<IFrais[]> => {
+    const { branchId } = await requireBranchContext();
+    const schoolYear = input?.schoolYearId
+      ? await prisma.schoolYear.findFirst({
+          where: {
+            id: input.schoolYearId,
+            branchId,
+            isArchived: false,
+          },
+        })
+      : await getCurrentBranchSchoolYear(branchId);
 
-  const frais = await prisma.frais.findMany({
-    where: {
-      branchId,
-      schoolYearId: currentYear.id,
-    },
-    include: {
-      classe: true,
-      typeFrais: true,
-      schoolYear: true,
-    },
-    orderBy: { createdAt: "desc" },
+    if (!schoolYear) {
+      throw new Error("Annee scolaire introuvable pour cette branche");
+    }
+
+    const frais = await prisma.frais.findMany({
+      where: {
+        branchId,
+        schoolYearId: schoolYear.id,
+      },
+      include: {
+        classe: true,
+        typeFrais: true,
+        schoolYear: true,
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    return frais.map(mapFrais);
   });
-
-  return frais.map(mapFrais);
-});
 
 export const getFraisByClassAction = action
   .input(z.object({ classeId: z.string() }))

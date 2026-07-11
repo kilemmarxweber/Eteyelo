@@ -302,13 +302,16 @@ export function getBetterAuthMenuRoles(session: any) {
 export function buildStaticSideLinks(
   session: any,
   pathname: string,
+  typebranch?: unknown,
 ): SideLink[] {
   const roles = getBetterAuthMenuRoles(session);
   const branchBasePath = resolveBranchBasePath(pathname);
-  const typebranch = session?.branch?.typebranch;
+  const resolvedTypebranch = typebranch ?? session?.branch?.typebranch;
 
   return staticSidebarMenu
-    .map((item) => mapMenuItem(item, roles, branchBasePath, typebranch))
+    .map((item) =>
+      mapMenuItem(item, roles, branchBasePath, resolvedTypebranch),
+    )
     .filter(Boolean) as SideLink[];
 }
 

@@ -1,31 +1,42 @@
 import type { Prisma } from "@/prisma/generated/prisma/client";
+import { matchesClassForLevel } from "@/lib/class-enrollment/match-class-for-level";
 
 type FindAvailableClassInput = {
   branchId: string;
   schoolYearId: string;
   level: string;
   optionId: string | null;
+  typebranch: unknown;
+  optionName?: string | null;
 };
 
 /** Must run in the same transaction as the enrollment insert. */
 export async function findAvailableClassForLevel(
   tx: Prisma.TransactionClient,
-  { branchId, schoolYearId, level, optionId }: FindAvailableClassInput,
+  {
+    branchId,
+    schoolYearId,
+    level,
+    optionId,
+    typebranch,
+    optionName,
+  }: FindAvailableClassInput,
 ) {
   const classes = await tx.classe.findMany({
     where: {
       branchId,
-      level,
-      optionId,
-      statusClasse: true,
+      OR: [{ statusClasse: true }, { statusClasse: null }],
       capacity: { gt: 0 },
     },
     select: {
       id: true,
       codeClasse: true,
       nameClasse: true,
+      level: true,
       parallel: true,
+      optionId: true,
       capacity: true,
+      option: { select: { id: true, nameOption: true } },
       _count: {
         select: {
           classEnrollment: {
@@ -36,7 +47,11 @@ export async function findAvailableClassForLevel(
     },
   });
 
-  classes.sort((left, right) =>
+  const matchingClasses = classes.filter((classe) =>
+    matchesClassForLevel(classe, { typebranch, level, optionId, optionName }),
+  );
+
+  matchingClasses.sort((left, right) =>
     (left.parallel ?? "").localeCompare(right.parallel ?? "", "fr", {
       numeric: true,
       sensitivity: "base",
@@ -44,7 +59,7 @@ export async function findAvailableClassForLevel(
   );
 
   return (
-    classes.find(
+    matchingClasses.find(
       (classe) =>
         classe.capacity !== null &&
         classe._count.classEnrollment < classe.capacity,

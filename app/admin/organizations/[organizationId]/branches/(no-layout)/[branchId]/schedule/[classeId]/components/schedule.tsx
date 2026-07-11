@@ -262,9 +262,17 @@ export default function Schedule({
     }
   };
 
-  const supprimerHoraire = async (id: string) => {
+  const desactiverHoraire = async (id: string) => {
     if (!canDeleteSchedule) {
       toast.error("Action non autorisee");
+      return;
+    }
+
+    if (
+      !window.confirm(
+        "Desactiver cet horaire ? Il sera masque des listes actives mais l'historique sera conserve.",
+      )
+    ) {
       return;
     }
 
@@ -273,9 +281,9 @@ export default function Schedule({
       if (err) throw err;
 
       setHoraires(horaires.filter((horaire) => horaire.id !== id));
-      toast.success("Horaire supprimer avec succes");
+      toast.success("Horaire desactive avec succes");
     } catch (error) {
-      toast.error("Erreur lors de la suppression");
+      toast.error("Erreur lors de la desactivation");
     }
   };
 
@@ -417,10 +425,10 @@ export default function Schedule({
                                 <Button
                                   variant="ghost"
                                   size="icon"
-                                  onClick={() => supprimerHoraire(horaire.id)}
+                                  onClick={() => desactiverHoraire(horaire.id)}
                                 >
                                   <Trash2 className="h-4 w-4" />
-                                  <span className="sr-only">Masquer</span>
+                                  <span className="sr-only">Desactiver</span>
                                 </Button>
                               )}
                             </div>

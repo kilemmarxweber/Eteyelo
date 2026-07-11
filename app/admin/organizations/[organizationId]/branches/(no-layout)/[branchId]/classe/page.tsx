@@ -14,7 +14,6 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { PageHeader } from "@/components/ui/page-header";
 import { useSession } from "@/lib/auth-client";
@@ -49,35 +48,34 @@ export default function Page() {
             </Badge>
           }
           actions={
-            <Dialog open={open} onOpenChange={setOpen}>
-              <DialogTrigger asChild>
-                <Button
-                  variant="default"
-                  leftSection={<IconUserPlus size={16} />}
-                >
-                  Creer une classe
-                </Button>
-              </DialogTrigger>
-
-              <DialogContent className="w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle>Creer une classe</DialogTitle>
-                  <DialogDescription>
-                    Remplir les informations de la classe
-                  </DialogDescription>
-                </DialogHeader>
-
-                <ClasseUpForm
-                  mode="create"
-                  onCreated={() => {
-                    setRefreshKey((value) => value + 1);
-                    setOpen(false);
-                  }}
-                />
-              </DialogContent>
-            </Dialog>
+            <Button type="button" variant="default" onClick={() => setOpen(true)}>
+              <IconUserPlus size={16} className="mr-2" />
+              Creer une classe
+            </Button>
           }
         />
+
+        <Dialog open={open} onOpenChange={setOpen}>
+          <DialogContent className="w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Creer une classe</DialogTitle>
+              <DialogDescription>
+                Remplir les informations de la classe
+              </DialogDescription>
+            </DialogHeader>
+
+            {open ? (
+              <ClasseUpForm
+                key="create-classe"
+                mode="create"
+                onCreated={() => {
+                  setRefreshKey((value) => value + 1);
+                  setOpen(false);
+                }}
+              />
+            ) : null}
+          </DialogContent>
+        </Dialog>
 
         <Card variant="elevated" padding="none">
           <Classes refreshKey={refreshKey} />

@@ -1,12 +1,12 @@
 import { z } from "zod";
 
 const personSchema = z.object({
-  username: z.string().trim().min(4, "Code d'accès requis"),
+  username: z.string().trim().min(4, "Code d'accès requis").optional(),
   name: z.string().trim().min(2, "Nom requis"),
   postnom: z.string().trim().min(2, "Postnom requis"),
   prenom: z.string().trim().min(2, "Prénom requis"),
   email: z.string().trim().email("Adresse email invalide"),
-  telephone: z.string().trim().min(7, "Téléphone requis"),
+  telephone: z.string().trim().min(7, "Téléphone requis").optional(),
   sexe: z.enum(["masculin", "feminin"]),
   address: z.string().trim().min(5, "Adresse requise"),
   dateOfBirth: z.coerce.date().optional(),
@@ -22,6 +22,8 @@ export const registrationSchema = z
     student: personSchema
       .extend({
         username: z.string().optional(),
+        email: z.string().trim().email("Adresse email invalide").optional(),
+        telephone: z.string().trim().optional(),
         dateOfBirth: z.coerce.date(),
         category: z.enum(["NORMAL", "ORPHAN", "VIP", "SPONSORED", "GROUPE"]).default("NORMAL"),
         observation: z.string().trim().optional(),

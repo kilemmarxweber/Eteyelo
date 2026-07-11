@@ -1,210 +1,156 @@
 "use client";
 
-import {
-  IconLayoutDashboard,
-  IconUsers,
-  IconSchool,
-  IconSettings,
-  IconBook2,
-  IconReportMoney,
-  IconCalendarEvent,
-  IconClock,
-  IconTableOptions,
-  IconUserPlus,
-  IconUserPentagon,
-  IconCalendarClock,
-  IconComponents,
-  IconChartBar,
-  IconNotebook,
-  IconFolder,
-  IconFileDescription,
-  IconChevronDown,
-} from "@tabler/icons-react";
+import { IconChevronDown, IconLayoutDashboard } from "@tabler/icons-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
 
-import { Button, buttonVariants } from "./custom/button";
+import { buttonVariants } from "./custom/button";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "./ui/collapsible";
-
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
-
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "./ui/tooltip";
-
+import { TooltipProvider } from "./ui/tooltip";
 import { cn } from "@/lib/utils";
-import Link from "next/link";
 import useCheckActiveNav from "@/src/hooks/use-check-active-nav";
 import { SideLink } from "@/src/data/sidelinks";
-import { useEffect, useRef, useState } from "react";
+import { iconMap } from "@/lib/menu-mapper";
 
-/* ================= ICON MAP ================= */
-const iconMap: Record<string, any> = {
-  dashboard: IconLayoutDashboard,
-  users: IconUsers,
-  school: IconSchool,
-  settings: IconSettings,
-  book: IconBook2,
-  money: IconReportMoney,
-  calendar: IconCalendarEvent,
-  clock: IconClock,
-  table: IconTableOptions,
-  userplus: IconUserPlus,
-  userpentagon: IconUserPentagon,
-  calendarclock: IconCalendarClock,
-  components: IconComponents,
-  chart: IconChartBar,
-  notebook: IconNotebook,
-  folder: IconFolder,
-  file: IconFileDescription,
-};
-
-function normalizeIconKey(icon: string) {
-  return icon.toLowerCase().trim().replace(/^icon/, "");
-}
-
-function resolveIcon(icon: any) {
+function resolveIcon(icon: unknown) {
   if (!icon) return IconLayoutDashboard;
-  if (typeof icon === "string") {
-    const key = normalizeIconKey(icon);
-    return iconMap[key] ?? IconLayoutDashboard;
-  }
+  if (typeof icon === "string") return iconMap[icon] ?? IconLayoutDashboard;
   return icon;
 }
 
-/* ================= TYPES ================= */
 interface NavProps extends React.HTMLAttributes<HTMLDivElement> {
   isCollapsed: boolean;
   links: SideLink[];
   closeNav: () => void;
+  mobileNavOpen?: boolean;
 }
 
-/* ================= MAIN NAV ================= */
 export default function Nav({
   links,
   isCollapsed,
   className,
   closeNav,
+  mobileNavOpen = true,
 }: NavProps) {
+  const pathname = usePathname();
   const { checkActiveNav } = useCheckActiveNav();
   const [openMenu, setOpenMenu] = useState<string | null>(null);
-  const [activeSubLink, setActiveSubLink] = useState<string | null>(null);
-  const menuTransitionTimer = useRef<number | null>(null);
+
+  const activeParentTitle = useMemo(() => {
+    return (
+      links.find((link) =>
+        link.sub?.some((sub) => {
+          const current = pathname.replace(/\/$/, "") || "/";
+          const target = sub.href.replace(/\/$/, "") || "/";
+          if (!target || target === "#") return false;
+          if (current === target) return true;
+          const branchRoot = target.match(
+            /^\/admin\/organizations\/[^/]+\/branches\/[^/]+$/,
+          )?.[0];
+          if (branchRoot) return current === branchRoot;
+          if (target === "/admin") return current === "/admin";
+          return current.startsWith(`${target}/`);
+        }),
+      )?.title ?? null
+    );
+  }, [links, pathname]);
 
   useEffect(() => {
-    return () => {
-      if (menuTransitionTimer.current) {
-        window.clearTimeout(menuTransitionTimer.current);
-      }
-    };
-  }, []);
+    setOpenMenu(activeParentTitle);
+  }, [pathname, activeParentTitle]);
 
-  const switchMenu = (nextMenu: string | null) => {
-    if (menuTransitionTimer.current) {
-      window.clearTimeout(menuTransitionTimer.current);
+  useEffect(() => {
+    if (!mobileNavOpen) {
+      setOpenMenu(activeParentTitle);
     }
-
-    if (nextMenu === null || nextMenu === openMenu) {
-      setOpenMenu(null);
-      setActiveSubLink(null);
-      return;
-    }
-
-    setOpenMenu(null);
-    setActiveSubLink(null);
-
-    menuTransitionTimer.current = window.setTimeout(() => {
-      setOpenMenu(nextMenu);
-    }, 90);
-  };
-
-  const renderLink = ({ sub, ...rest }: any) => {
-    const key = `${rest.title}-${rest.href}`;
-    const Icon = resolveIcon(rest.icon);
-    const hasChildren = (sub?.length ?? 0) > 0;
-    const isDropdownParent = hasChildren;
-
-    if (isDropdownParent) {
-      return (
-        <NavLinkDropdown
-          {...rest}
-          icon={Icon}
-          sub={sub}
-          key={key}
-          closeNav={closeNav}
-          checkActiveNav={checkActiveNav}
-          openMenu={openMenu}
-          setOpenMenu={switchMenu}
-          activeSubLink={activeSubLink}
-          setActiveSubLink={setActiveSubLink}
-          isCollapsed={isCollapsed}
-        />
-      );
-    }
-
-    return (
-      <NavLink
-        {...rest}
-        icon={Icon}
-        key={key}
-        closeNav={closeNav}
-        checkActiveNav={checkActiveNav}
-        isCollapsed={isCollapsed}
-      />
-    );
-  };
+  }, [mobileNavOpen, activeParentTitle]);
 
   return (
     <div
       data-collapsed={isCollapsed}
       className={cn(
-        "group border-b bg-background py-2 transition-all md:border-none overflow-x-hidden",
+        "group overflow-x-hidden bg-background py-2 transition-all md:border-none",
         className,
       )}
     >
       <TooltipProvider delayDuration={0}>
         <nav
           className={cn(
-            "grid gap-1 overflow-y-auto max-h-[calc(100vh-4rem)] pr-1",
+            "grid gap-1 overflow-y-auto pr-1 md:max-h-[calc(100vh-4rem)]",
             isCollapsed && "items-center justify-center",
           )}
         >
-          {links.map(renderLink)}
+          {links.map((link) => {
+            const key = `${link.title}-${link.href}`;
+            const Icon = resolveIcon(link.icon);
+            const hasChildren = (link.sub?.length ?? 0) > 0;
+
+            if (hasChildren) {
+              return (
+                <NavLinkDropdown
+                  key={key}
+                  title={link.title}
+                  icon={Icon}
+                  sub={link.sub}
+                  closeNav={closeNav}
+                  checkActiveNav={checkActiveNav}
+                  openMenu={openMenu}
+                  onOpenChange={setOpenMenu}
+                  isCollapsed={isCollapsed}
+                />
+              );
+            }
+
+            return (
+              <NavLink
+                key={key}
+                title={link.title}
+                icon={Icon}
+                href={link.href}
+                closeNav={closeNav}
+                isCollapsed={isCollapsed}
+                isActive={checkActiveNav(link.href)}
+              />
+            );
+          })}
         </nav>
       </TooltipProvider>
     </div>
   );
 }
 
-/* ================= SIMPLE LINK ================= */
 function NavLink({
   title,
   icon: Icon,
   label,
   href,
   closeNav,
-  checkActiveNav,
   isCollapsed,
   isActive,
-  onClick,
-}: any) {
+}: {
+  title: string;
+  icon: React.ComponentType<{ size?: number }>;
+  label?: string;
+  href: string;
+  closeNav: () => void;
+  isCollapsed: boolean;
+  isActive: boolean;
+}) {
   return (
     <Link
       href={href}
       onClick={() => {
-        onClick?.();
         closeNav();
       }}
     >
@@ -221,9 +167,7 @@ function NavLink({
         )}
       >
         <Icon size={18} />
-
         {!isCollapsed && <span className="ml-2 truncate">{title}</span>}
-
         {!isCollapsed && label && (
           <div className="ml-auto rounded-lg bg-primary px-1 text-[0.625rem] text-primary-foreground">
             {label}
@@ -234,7 +178,6 @@ function NavLink({
   );
 }
 
-/* ================= COLLAPSIBLE MENU ================= */
 function NavLinkDropdown({
   title,
   icon: Icon,
@@ -242,97 +185,113 @@ function NavLinkDropdown({
   closeNav,
   checkActiveNav,
   openMenu,
-  setOpenMenu,
-  activeSubLink,
-  setActiveSubLink,
+  onOpenChange,
   isCollapsed,
-}: any) {
+}: {
+  title: string;
+  icon: React.ComponentType<{ size?: number }>;
+  sub?: SideLink[];
+  closeNav: () => void;
+  checkActiveNav: (href: string) => boolean;
+  openMenu: string | null;
+  onOpenChange: (title: string | null) => void;
+  isCollapsed: boolean;
+}) {
   const isOpen = openMenu === title;
-  const isChildActive = sub?.some((s: any) => checkActiveNav(s.href));
-  const activeChildHref =
-    activeSubLink ?? sub?.find((item: any) => checkActiveNav(item.href))?.href;
-  const containerRef = useRef<HTMLDivElement>(null);
+  const isChildActive = sub?.some((item) => checkActiveNav(item.href)) ?? false;
 
-  useEffect(() => {
-    if (isChildActive) setOpenMenu(title);
-  }, [isChildActive, title, setOpenMenu]);
+  if (isCollapsed) {
+    return (
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button
+            type="button"
+            className={cn(
+              buttonVariants({
+                variant: isChildActive ? "secondary" : "ghost",
+                size: "sm",
+              }),
+              "h-12 w-full justify-center px-2",
+            )}
+            aria-label={title}
+          >
+            <Icon size={18} />
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent side="right" align="start" className="min-w-44">
+          {sub?.map((sublink) => {
+            const SubIcon = resolveIcon(sublink.icon);
+            const isActive = checkActiveNav(sublink.href);
 
-  useEffect(() => {
-    if (!isOpen) return;
-
-    const handlePointerDown = (event: MouseEvent) => {
-      if (
-        containerRef.current &&
-        !containerRef.current.contains(event.target as Node)
-      ) {
-        setOpenMenu(null);
-      }
-    };
-
-    document.addEventListener("mousedown", handlePointerDown);
-    return () => document.removeEventListener("mousedown", handlePointerDown);
-  }, [isOpen, setOpenMenu]);
+            return (
+              <DropdownMenuItem key={sublink.title} asChild>
+                <Link
+                  href={sublink.href}
+                  className={cn(
+                    "flex w-full items-center gap-2",
+                    isActive && "bg-accent text-accent-foreground",
+                  )}
+                  onClick={() => closeNav()}
+                >
+                  <SubIcon size={16} />
+                  <span>{sublink.title}</span>
+                </Link>
+              </DropdownMenuItem>
+            );
+          })}
+        </DropdownMenuContent>
+      </DropdownMenu>
+    );
+  }
 
   return (
-    <div ref={containerRef}>
-      <Collapsible
-        open={isOpen}
-        onOpenChange={(nextOpen) => {
-          if (nextOpen) {
-            setActiveSubLink(null);
-            setOpenMenu(title);
-            return;
-          }
-
-          setOpenMenu(null);
-          setActiveSubLink(null);
-        }}
+    <Collapsible
+      open={isOpen}
+      onOpenChange={(nextOpen) => onOpenChange(nextOpen ? title : null)}
+    >
+      <CollapsibleTrigger
+        type="button"
+        className={cn(
+          buttonVariants({
+            variant: isOpen || isChildActive ? "secondary" : "ghost",
+            size: "sm",
+          }),
+          "group h-12 w-full justify-start px-3",
+        )}
       >
-        <CollapsibleTrigger
+        <Icon size={18} />
+        <span className="ml-2">{title}</span>
+        <span
           className={cn(
-            buttonVariants({
-              variant: isOpen || isChildActive ? "secondary" : "ghost",
-              size: "sm",
-            }),
-            "group h-12 w-full justify-start px-3",
-            isCollapsed && "justify-center px-2",
+            "ml-auto transition-transform",
+            isOpen && "rotate-180",
           )}
         >
-          <Icon size={18} />
+          <IconChevronDown stroke={1} />
+        </span>
+      </CollapsibleTrigger>
 
-          {!isCollapsed && <span className="ml-2">{title}</span>}
+      <CollapsibleContent>
+        <ul>
+          {sub?.map((sublink) => {
+            const SubIcon = resolveIcon(sublink.icon);
+            const isActive = checkActiveNav(sublink.href);
 
-          {!isCollapsed && (
-            <span className="ml-auto transition group-data-[state=open]:rotate-180">
-              <IconChevronDown stroke={1} />
-            </span>
-          )}
-        </CollapsibleTrigger>
-
-        {!isCollapsed && (
-          <CollapsibleContent>
-            <ul>
-              {sub?.map((sublink: any) => {
-                const SubIcon = resolveIcon(sublink.icon);
-
-                return (
-                  <li key={sublink.title} className="ml-8 my-1">
-                    <NavLink
-                      {...sublink}
-                      icon={SubIcon}
-                      closeNav={closeNav}
-                      checkActiveNav={checkActiveNav}
-                      isCollapsed={false}
-                      isActive={activeChildHref === sublink.href}
-                      onClick={() => setActiveSubLink(sublink.href)}
-                    />
-                  </li>
-                );
-              })}
-            </ul>
-          </CollapsibleContent>
-        )}
-      </Collapsible>
-    </div>
+            return (
+              <li key={sublink.title} className="my-1 ml-8">
+                <NavLink
+                  title={sublink.title}
+                  icon={SubIcon}
+                  href={sublink.href}
+                  closeNav={closeNav}
+                  isCollapsed={false}
+                  isActive={isActive}
+                />
+              </li>
+            );
+          })}
+        </ul>
+      </CollapsibleContent>
+    </Collapsible>
   );
 }

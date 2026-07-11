@@ -43,10 +43,6 @@ export function DeleteTeachingsDialog({
       for (const teache of teaches) {
         const [, err] = await archiveTeachingAction({
           id: teache.id,
-          teacherId: teache.teacherId ?? "",
-          schoolYearId: teache.schoolYearId ?? "",
-          classeId: teache.classeId ?? "",
-          coursId: teache.coursId ?? "",
         });
         if (err) {
           toast.error(err.message ?? "Erreur lors de la désactivation");

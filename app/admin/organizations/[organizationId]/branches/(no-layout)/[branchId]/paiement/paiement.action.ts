@@ -26,6 +26,10 @@ function revalidatePaiementPages(organizationId: string, branchId: string) {
   revalidatePath(`/admin/organizations/${organizationId}/branches/${branchId}/paiement`);
 }
 
+function buildFamilyPaymentRef(baseRef: string, lineIndex: number) {
+  return `${baseRef}-${String(lineIndex + 1).padStart(2, "0")}`;
+}
+
 type ReceiptPayload = {
   invoiceNumber: string;
   sender: {
@@ -56,10 +60,8 @@ export async function getFraisWithBalance(
   classEnrollIds: string[],
   fraisIds: string[],
   parentId?: string,
-  branchId?: string,
 ) {
-  const context = branchId ? { branchId } : await requireBranchContext();
-  const activeBranchId = context.branchId;
+  const { branchId: activeBranchId } = await requireBranchContext();
   const discount = parentId
     ? await getBestDiscount(prisma, parentId, activeBranchId)
     : 0;
@@ -238,7 +240,6 @@ export const createPaiementAction = action
         classEnrollIds,
         fraisIds,
         parentId,
-        branchId,
       );
 
       type FlatItem = {
@@ -333,6 +334,7 @@ export const createPaiementAction = action
          DISTRIBUTION ENGINE
       ====================================================== */
       const results: any[] = [];
+      let paymentLineIndex = 0;
 
       for (const priority of sortedPriorities) {
         if (globalBudget <= 0) break;
@@ -354,12 +356,13 @@ export const createPaiementAction = action
                 parentId,
                 fraisId: item.fraisId,
                 classEnrollmentId: item.studentId,
-                transactionRef: reference,
+                transactionRef: buildFamilyPaymentRef(reference, paymentLineIndex),
                 notes,
                 branchId,
               },
             });
 
+            paymentLineIndex += 1;
             results.push(payment);
           }
 
@@ -404,12 +407,13 @@ export const createPaiementAction = action
               parentId,
               fraisId: t.item.fraisId,
               classEnrollmentId: t.item.studentId,
-              transactionRef: reference,
+              transactionRef: buildFamilyPaymentRef(reference, paymentLineIndex),
               notes,
               branchId,
             },
           });
 
+          paymentLineIndex += 1;
           results.push(payment);
         }
 

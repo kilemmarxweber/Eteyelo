@@ -13,7 +13,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/custom/button";
+import { Button, buttonVariants } from "@/components/custom/button";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { IconSelector, IconCheck } from "@tabler/icons-react";
@@ -297,13 +297,11 @@ export function ClasseUpForm({
                       <FormLabel>Niveau</FormLabel>
                       <Select
                         onValueChange={field.onChange}
-                        value={field.value ?? ""}
+                        value={field.value || undefined}
                       >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selectionner un niveau" />
-                          </SelectTrigger>
-                        </FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selectionner un niveau" />
+                        </SelectTrigger>
                         <SelectContent>
                           {classLevels.map((level) => (
                             <SelectItem key={level} value={level}>
@@ -360,22 +358,21 @@ export function ClasseUpForm({
                     <FormLabel>Option</FormLabel>
                     <Popover>
                       <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            variant="outline"
-                            role="combobox"
-                            className={cn(
-                              "justify-between",
-                              !field.value && "text-muted-foreground",
-                            )}
-                          >
-                            {field.value
-                              ? options.find((option) => option.id === field.value)
-                                  ?.nameOption
-                              : "Selectionner une option"}
-                            <IconSelector className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                          </Button>
-                        </FormControl>
+                        <button
+                          type="button"
+                          role="combobox"
+                          className={cn(
+                            buttonVariants({ variant: "outline" }),
+                            "h-10 w-full justify-between font-normal",
+                            !field.value && "text-muted-foreground",
+                          )}
+                        >
+                          {field.value
+                            ? options.find((option) => option.id === field.value)
+                                ?.nameOption
+                            : "Selectionner une option"}
+                          <IconSelector className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </button>
                       </PopoverTrigger>
                       <PopoverContent className="p-0">
                         <Command>
@@ -448,22 +445,21 @@ export function ClasseUpForm({
                   <FormLabel>Vacation</FormLabel>
                   <Popover>
                     <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          variant="outline"
-                          role="combobox"
-                          className={cn(
-                            "justify-between",
-                            !field.value && "text-muted-foreground",
-                          )}
-                        >
-                          {field.value
-                            ? creneaux.find((creneau) => creneau.id === field.value)
-                                ?.nameCreneau
-                            : "Selectionner une vacation"}
-                          <IconSelector className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                        </Button>
-                      </FormControl>
+                      <button
+                        type="button"
+                        role="combobox"
+                        className={cn(
+                          buttonVariants({ variant: "outline" }),
+                          "h-10 w-full justify-between font-normal",
+                          !field.value && "text-muted-foreground",
+                        )}
+                      >
+                        {field.value
+                          ? creneaux.find((creneau) => creneau.id === field.value)
+                              ?.nameCreneau
+                          : "Selectionner une vacation"}
+                        <IconSelector className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </button>
                     </PopoverTrigger>
                     <PopoverContent className="p-0">
                       <Command>

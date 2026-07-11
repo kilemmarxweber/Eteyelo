@@ -21,13 +21,20 @@ function revalidateClassEnrollmentPages(organizationId: string, branchId: string
 export const createClassEnrollmentAction = action
   .input(classEnrollmentSchema)
   .handler(async ({ input }) => {
-    const { branchId, organizationId } = await requireBranchContext();
+    const { branchId, organizationId, typebranch } = await requireBranchContext();
     const { schoolYearId, classeId, studentId } = input;
     const [schoolYear, requestedClass, student] = await Promise.all([
-      prisma.schoolYear.findFirst({ where: { id: schoolYearId, branchId } }),
+      prisma.schoolYear.findFirst({
+        where: { id: schoolYearId, branchId, isArchived: false },
+      }),
       prisma.classe.findFirst({
         where: { id: classeId, branchId },
-        select: { id: true, level: true, optionId: true },
+        select: {
+          id: true,
+          level: true,
+          optionId: true,
+          option: { select: { nameOption: true } },
+        },
       }),
       prisma.student.findFirst({
         where: {
@@ -59,6 +66,8 @@ export const createClassEnrollmentAction = action
               schoolYearId,
               level: requestedClass.level!,
               optionId: requestedClass.optionId,
+              typebranch,
+              optionName: requestedClass.option?.nameOption ?? null,
             });
 
             if (!availableClass) {

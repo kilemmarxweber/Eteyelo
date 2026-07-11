@@ -144,7 +144,7 @@ export const createTeachingAction = action
 
 //delete Teaching -> archive
 export const archiveTeachingAction = action
-  .input(teachingSchema)
+  .input(z.object({ id: z.string() }))
   .handler(async ({ input }) => {
     const { branchId, organizationId } = await requireBranchContext();
     const { id } = input;
@@ -201,12 +201,16 @@ export const getTeachingByClassAction = action
   )
   .handler(async ({ input }): Promise<ITeaching[]> => {
     try {
+      const { branchId } = await requireBranchContext();
       const { classeId } = input;
+
+      await requireClasseInBranch(classeId, branchId);
 
       const teachings = await prisma.teaching.findMany({
         include: teachingInclude,
         where: {
           classeId,
+          classe: { branchId },
         },
       });
       const transformedTeachings: ITeaching[] = teachings.map(mapTeaching);
@@ -223,12 +227,14 @@ export const getTeachingByCoursAction = action
   )
   .handler(async ({ input }): Promise<ITeaching[]> => {
     try {
+      const { branchId } = await requireBranchContext();
       const { coursId } = input;
 
       const teachings = await prisma.teaching.findMany({
         include: teachingInclude,
         where: {
           coursId,
+          cours: { branchId },
         },
       });
       const transformedTeachings: ITeaching[] = teachings.map(mapTeaching);
@@ -240,8 +246,13 @@ export const getTeachingByCoursAction = action
 
 export const getTeachings = action.handler(async (): Promise<ITeaching[]> => {
   try {
+    const { branchId } = await requireBranchContext();
+
     const teachings = await prisma.teaching.findMany({
       include: teachingInclude,
+      where: {
+        OR: [{ branchId }, { classe: { branchId } }],
+      },
     });
     const transformedTeachings: ITeaching[] = teachings.map(mapTeaching);
     return transformedTeachings;
@@ -258,12 +269,14 @@ export const getTeachingByTeacherAction = action
   )
   .handler(async ({ input }): Promise<ITeaching[]> => {
     try {
+      const { branchId } = await requireBranchContext();
       const { teacherId } = input;
 
       const teachings = await prisma.teaching.findMany({
         include: teachingInclude,
         where: {
           teacherId,
+          teacher: { branchMember: { branchId } },
         },
       });
       const transformedTeachings: ITeaching[] = teachings.map(mapTeaching);

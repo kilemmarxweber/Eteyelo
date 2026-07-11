@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { createBranchFormSchema, type CreateBranchFormValues } from "./schema";
 import { auth } from "@/lib/auth";
+import { canManageOrganization } from "@/lib/auth/session-roles";
 import { headers } from "next/headers";
 import { ensureAcademicPeriodsForBranch } from "@/lib/academic-periods";
 import { getAcademicYearForDate } from "@/lib/academic-year";
@@ -17,7 +18,7 @@ export async function getBranchNameAction(branchId: string) {
 
   const branch = await prisma.branch.findFirst({
     where: { id: branchId },
-    select: { name: true, image: true },
+    select: { name: true, image: true, typebranch: true },
   });
 
   return branch;
@@ -27,6 +28,18 @@ export async function createBranchAction(
   organizationId: string,
   values: CreateBranchFormValues,
 ) {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  if (!session?.user?.id) {
+    return { data: null, error: "Session introuvable." };
+  }
+
+  if (!canManageOrganization(session)) {
+    return { data: null, error: "Action non autorisee." };
+  }
+
   const parsed = createBranchFormSchema.safeParse(values);
 
   if (!parsed.success) {
@@ -122,14 +135,22 @@ export async function switchBranchAction(branchId: string) {
     throw new Error("Session introuvable");
   }
 
-  const branch = await prisma.branch.findUnique({
+  const organizationId =
+    session?.organization?.id ?? session?.session?.activeOrganizationId;
+
+  if (!organizationId) {
+    throw new Error("Organisation active introuvable");
+  }
+
+  const branch = await prisma.branch.findFirst({
     where: {
       id: branchId,
+      organizationId,
     },
   });
 
   if (!branch) {
-    throw new Error("Branche introuvable");
+    throw new Error("Branche introuvable dans cette organisation");
   }
 
   await prisma.session.update({
@@ -174,6 +195,18 @@ export async function updateBranchAction(
   branchId: string,
   values: CreateBranchFormValues,
 ) {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  if (!session?.user?.id) {
+    return { data: null, error: "Session introuvable." };
+  }
+
+  if (!canManageOrganization(session)) {
+    return { data: null, error: "Action non autorisee." };
+  }
+
   const parsed = createBranchFormSchema.safeParse(values);
 
   if (!parsed.success) {
@@ -193,6 +226,16 @@ export async function updateBranchAction(
       data: null,
       error: "Établissement introuvable.",
     };
+  }
+
+  const activeOrganizationId =
+    session?.organization?.id ?? session?.session?.activeOrganizationId;
+
+  if (
+    activeOrganizationId &&
+    existingBranch.organizationId !== activeOrganizationId
+  ) {
+    return { data: null, error: "Action non autorisee." };
   }
 
   const code = await ensureUniqueIdentifier({

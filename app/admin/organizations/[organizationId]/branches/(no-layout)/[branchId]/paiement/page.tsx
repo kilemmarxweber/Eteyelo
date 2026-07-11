@@ -9,10 +9,13 @@ import { notFound } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import PaymentClient from "./components/PaymentClient";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
+import { PageHeader } from "@/components/ui/page-header";
+import { Badge } from "@/components/ui/badge";
+import { IconWallet } from "@tabler/icons-react";
 export default async function PaymentPage() {
   await requireBranchContext();
 
-  const [fraisListResult, fraisError] = await getFraisAction();
+  const [fraisListResult, fraisError] = await getFraisAction({});
   if (fraisError) {
     console.error("Error loading frais:", fraisError);
     notFound();
@@ -34,11 +37,15 @@ export default async function PaymentPage() {
   return (
     <Layout>
       <LayoutBody className="space-y-4">
-        <div className="flex items-center justify-between space-y-2">
-          <h1 className="text-2xl font-bold tracking-tight text-primary md:text-3xl dark:text-white">
-            Gestion des paiements
-          </h1>
-        </div>
+        <PageHeader
+          title="Gestion des paiements"
+          description="Suivez les paiements des eleves et les soldes restants."
+          badge={
+            <Badge variant="outline-primary" icon={<IconWallet size={14} />}>
+              Paiements
+            </Badge>
+          }
+        />
 
         <Card className="p-1" variant="elevated">
           <PaymentClient

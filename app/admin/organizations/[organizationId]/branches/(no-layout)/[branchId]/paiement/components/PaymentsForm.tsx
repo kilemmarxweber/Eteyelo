@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -12,6 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 import {
   Select,
   SelectContent,
@@ -28,9 +29,10 @@ import {
   DialogHeader,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { CheckCircle2, Printer } from "lucide-react";
+import { CheckCircle2, Printer, Receipt, X } from "lucide-react";
 
 import { createPaiementAction, getFraisWithBalance } from "../paiement.action";
+import { getFraisAction } from "../../frais/frais.action";
 
 import FamilySelector from "./FamilySelector";
 import z from "zod";
@@ -59,6 +61,13 @@ function buildTransactionRef() {
 }
 
 const emptyAmount = undefined as unknown as number;
+
+function formatAmount(value: number) {
+  return value.toLocaleString("fr-FR", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  });
+}
 
 export default function PaymentsForm({
   fraisList,
@@ -89,11 +98,25 @@ export default function PaymentsForm({
   const [loading, setLoading] = useState(false);
   const [transactionRef, setTransactionRef] = useState(buildTransactionRef);
   const [schoolYearId, setSchoolYearId] = useState<string>("");
+  const [availableFrais, setAvailableFrais] = useState<any[]>(fraisList);
   const [familyResetKey, setFamilyResetKey] = useState(0);
   const [receiptDialogOpen, setReceiptDialogOpen] = useState(false);
   const [receiptData, setReceiptData] =
     useState<FacturePaymentStudentData | null>(null);
   const [printMessage, setPrintMessage] = useState("");
+  const [amountManuallyEdited, setAmountManuallyEdited] = useState(false);
+  const [amountInput, setAmountInput] = useState("");
+  const amountManuallyEditedRef = useRef(false);
+  const lastAutoFillKeyRef = useRef("");
+  const [isLargeScreen, setIsLargeScreen] = useState(false);
+
+  useEffect(() => {
+    const mql = window.matchMedia("(min-width: 1024px)");
+    const update = () => setIsLargeScreen(mql.matches);
+    update();
+    mql.addEventListener("change", update);
+    return () => mql.removeEventListener("change", update);
+  }, []);
   const rawAmount = watch("amount");
   const amount = Number.isFinite(Number(rawAmount)) ? Number(rawAmount) : 0;
   const fraisIds = watch("fraisIds") || [];
@@ -118,6 +141,37 @@ export default function PaymentsForm({
     setTransactionRef(buildTransactionRef());
   }, []);
 
+  useEffect(() => {
+    setAvailableFrais(fraisList);
+  }, [fraisList]);
+
+  useEffect(() => {
+    const initialYearId =
+      fraisList.find((frais: any) => frais?.schoolYearId)?.schoolYearId ?? "";
+
+    if (initialYearId) {
+      setSchoolYearId((current) => current || initialYearId);
+    }
+  }, [fraisList]);
+
+  useEffect(() => {
+    if (!schoolYearId) return;
+
+    let ignore = false;
+
+    const loadFrais = async () => {
+      const [data, err] = await getFraisAction({ schoolYearId });
+      if (ignore || err || !data) return;
+      setAvailableFrais(data);
+    };
+
+    void loadFrais();
+
+    return () => {
+      ignore = true;
+    };
+  }, [schoolYearId]);
+
   // ================= BALANCES =================
   useEffect(() => {
     const fetch = async () => {
@@ -138,7 +192,7 @@ export default function PaymentsForm({
     };
 
     fetch();
-  }, [selection.classEnrollIds, fraisIds]);
+  }, [selection.classEnrollIds, fraisIds, selection.parentId]);
   // 🔥 AUTO HIDE WARNING (30s)
   useEffect(() => {
     if (!amountWarning) return;
@@ -149,50 +203,147 @@ export default function PaymentsForm({
 
     return () => clearTimeout(timer);
   }, [amountWarning]);
-  // ================= MAP =================
-  const balanceMap = useMemo(() => {
-    return Object.fromEntries((balances || []).map((b: any) => [b.fraisId, b]));
-  }, [balances]);
 
-  // ================= SUMMARY =================
+  // ================= SUMMARY (aligné sur le moteur backend) =================
   const summary = useMemo(() => {
-    let totalDue = 0;
-    let alreadyPaid = 0;
+    const totalDue = balances.reduce(
+      (sum, b) => sum + Number(b.total ?? 0),
+      0,
+    );
+    const alreadyPaid = balances.reduce(
+      (sum, b) => sum + Number(b.alreadyPaid ?? 0),
+      0,
+    );
+    const remainingBeforeDiscount = balances.reduce(
+      (sum, b) =>
+        sum + Math.max(Number(b.total ?? 0) - Number(b.alreadyPaid ?? 0), 0),
+      0,
+    );
 
-    const studentCount = selection.classEnrollIds.length || 1;
-
-    for (const b of balances) {
-      totalDue += Number(b.total ?? 0);
-      alreadyPaid += Number(b.alreadyPaid ?? 0);
-    }
-
-    const totalGlobal = totalDue * studentCount;
-    const alreadyPaidGlobal = alreadyPaid * studentCount;
-
-    // ================= DISCOUNT =================
-    const discountAmount = (totalGlobal * discountValue) / 100;
-
-    // 🔥 STEP 1: TOTAL NET APRÈS REMISE
-    const totalDueNet = Math.max(totalGlobal - discountAmount, 0);
-
-    // 🔥 STEP 2: RESTE À PAYER
-    const remaining = Math.max(totalDueNet - alreadyPaidGlobal, 0);
+    const discountAmount = (remainingBeforeDiscount * discountValue) / 100;
+    const remaining = Math.max(remainingBeforeDiscount - discountAmount, 0);
 
     return {
-      transaction: transactionRef,
-      totalDue: totalGlobal,
-      totalDueNet, // ✅ IMPORTANT
-      alreadyPaid: alreadyPaidGlobal,
+      totalDue,
+      alreadyPaid,
       discount: discountValue,
       discountAmount,
       remaining,
-      studentCount,
+      studentCount: selection.classEnrollIds.length,
+      fraisCount: fraisIds.length,
     };
-  }, [balances, discountValue, selection.classEnrollIds, transactionRef]);
+  }, [balances, discountValue, selection.classEnrollIds.length, fraisIds.length]);
+
+  const selectedFraisDetails = useMemo(() => {
+    const studentCount = selection.classEnrollIds.length || 1;
+
+    return fraisIds.map((fraisId) => {
+      const frais = availableFrais.find((f: any) => f.id === fraisId);
+      const fraisBalances = balances.filter((b: any) => b.fraisId === fraisId);
+
+      if (fraisBalances.length > 0) {
+        const total = fraisBalances.reduce(
+          (sum, b) => sum + Number(b.total ?? 0),
+          0,
+        );
+        const alreadyPaid = fraisBalances.reduce(
+          (sum, b) => sum + Number(b.alreadyPaid ?? 0),
+          0,
+        );
+        const remaining = fraisBalances.reduce(
+          (sum, b) =>
+            sum + Math.max(Number(b.total ?? 0) - Number(b.alreadyPaid ?? 0), 0),
+          0,
+        );
+
+        return {
+          id: fraisId,
+          name: frais?.nameFrais ?? "Frais",
+          unitAmount: Number(frais?.montantFrais ?? fraisBalances[0]?.total ?? 0),
+          total,
+          alreadyPaid,
+          remaining,
+          studentCount: fraisBalances.length,
+        };
+      }
+
+      const unitAmount = Number(frais?.montantFrais ?? 0);
+      const total = unitAmount * studentCount;
+
+      return {
+        id: fraisId,
+        name: frais?.nameFrais ?? "Frais",
+        unitAmount,
+        total,
+        alreadyPaid: 0,
+        remaining: total,
+        studentCount,
+      };
+    });
+  }, [fraisIds, balances, availableFrais, selection.classEnrollIds.length]);
 
   // ================= 🏦 BANK SYSTEM: LOCKED STATES =================
   const isSolded = summary.remaining <= 0;
   const hasNoSelection = !selection.classEnrollIds.length || !fraisIds.length;
+
+  const selectionKey = useMemo(
+    () =>
+      `${selection.classEnrollIds.join(",")}|${fraisIds.join(",")}|${selection.parentId}`,
+    [selection.classEnrollIds, fraisIds, selection.parentId],
+  );
+
+  useEffect(() => {
+    if (hasNoSelection) {
+      setValue("amount", emptyAmount);
+      setAmountInput("");
+      amountManuallyEditedRef.current = false;
+      setAmountManuallyEdited(false);
+      lastAutoFillKeyRef.current = "";
+      return;
+    }
+
+    if (isSolded) {
+      setValue("amount", 0);
+      setAmountInput("0");
+      return;
+    }
+
+    // Ne jamais écraser une saisie manuelle en cours
+    if (amountManuallyEditedRef.current) return;
+
+    // Auto-remplir une seule fois par sélection, une fois les soldes chargés
+    if (lastAutoFillKeyRef.current === selectionKey) return;
+    if (balances.length === 0) return;
+
+    const remaining = summary.remaining;
+    setValue("amount", remaining, { shouldValidate: true });
+    setAmountInput(remaining > 0 ? String(remaining) : "");
+    lastAutoFillKeyRef.current = selectionKey;
+  }, [
+    hasNoSelection,
+    isSolded,
+    selectionKey,
+    balances.length,
+    summary.remaining,
+    setValue,
+  ]);
+
+  const handleAmountChange = (value: string) => {
+    // Ref synchrone pour bloquer l'auto-remplissage avant le prochain render
+    amountManuallyEditedRef.current = true;
+    setAmountManuallyEdited(true);
+    setAmountInput(value);
+
+    if (value.trim() === "" || value === ".") {
+      setValue("amount", emptyAmount);
+      return;
+    }
+
+    const parsed = Number(value.replace(",", "."));
+    if (Number.isFinite(parsed)) {
+      setValue("amount", parsed, { shouldValidate: true });
+    }
+  };
 
   const handlePrintReceipt = () => {
     if (!receiptData) return;
@@ -294,6 +445,10 @@ export default function PaymentsForm({
       setBalances([]);
       setDiscountValue(0);
       setAmountWarning(null);
+      setAmountManuallyEdited(false);
+      amountManuallyEditedRef.current = false;
+      setAmountInput("");
+      lastAutoFillKeyRef.current = "";
       setSchoolYearId("");
       setTransactionRef(buildTransactionRef());
       setFamilyResetKey((key) => key + 1);
@@ -313,20 +468,21 @@ export default function PaymentsForm({
 
   // ================= FILTER FRAIS BY SCHOOL YEAR =================
   const filteredFraisList = useMemo(() => {
-    if (!normalizedSchoolYearId) return [];
+    if (!normalizedSchoolYearId) return availableFrais;
 
-    return fraisList.filter((f: any) => {
+    return availableFrais.filter((f: any) => {
       const fYear = f?.schoolYearId?.trim?.() || "";
 
       return fYear === normalizedSchoolYearId;
     });
-  }, [fraisList, normalizedSchoolYearId]);
+  }, [availableFrais, normalizedSchoolYearId]);
 
   // ================= FILTER + CLASS + MAP OPTIONS =================
   const fraisOptions = useMemo(() => {
-    if (!normalizedSchoolYearId) return [];
+    const source = normalizedSchoolYearId ? filteredFraisList : availableFrais;
+    if (!source.length) return [];
 
-    return filteredFraisList
+    return source
       .filter((f: any) => {
         // sécurité classe : on compare aux classeId des inscriptions sélectionnées
         if (!selection.classEnrollIds.length) return true;
@@ -335,17 +491,49 @@ export default function PaymentsForm({
         return selectedClasseIds.includes(f.classeId);
       })
       .map((f: any) => ({
-        label: `${f.nameFrais} (${f.montantFrais})`,
+        label: `${f.nameFrais} (${formatAmount(Number(f.montantFrais))})`,
         value: f.id,
       }));
   }, [
+    availableFrais,
     filteredFraisList,
     selectedClasseIds,
     selection.classEnrollIds,
     normalizedSchoolYearId,
   ]);
-  const isSolde =
-    summary.alreadyPaid >= summary.totalDue - summary.discountAmount;
+
+  const handleFraisChange = (values: string[]) => {
+    amountManuallyEditedRef.current = false;
+    setAmountManuallyEdited(false);
+    lastAutoFillKeyRef.current = "";
+    setValue("fraisIds", values, { shouldValidate: true });
+  };
+
+  const removeFrais = (fraisId: string) => {
+    amountManuallyEditedRef.current = false;
+    setAmountManuallyEdited(false);
+    lastAutoFillKeyRef.current = "";
+    setValue(
+      "fraisIds",
+      fraisIds.filter((id) => id !== fraisId),
+      { shouldValidate: true },
+    );
+  };
+
+  const amountInputProps = {
+    type: "text" as const,
+    inputMode: "decimal" as const,
+    placeholder:
+      !hasNoSelection && isSolded ? "Déjà soldé" : "Montant payé",
+    value: amountInput,
+    onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
+      handleAmountChange(e.target.value),
+    disabled: !hasNoSelection && isSolded,
+    className: cn(
+      "h-9 text-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none",
+      !hasNoSelection && isSolded && "opacity-50 cursor-not-allowed",
+    ),
+  };
   // ================= UI (INCHANGÉ) =================
   return (
     <>
@@ -371,19 +559,22 @@ export default function PaymentsForm({
           </SelectContent>
         </Select>
 
-        {/* 💰 INPUT MONTANT - LIBRE (auto-cappé au submit) */}
-        <Input
-          type="number"
-          placeholder={
-            !hasNoSelection && isSolded ? "✅ Déjà soldé" : "Montant à payer"
-          }
-          {...register("amount", { valueAsNumber: true })}
-          className={
-            !hasNoSelection && isSolded
-              ? "opacity-50 cursor-not-allowed h-9 text-sm"
-              : " h-9 text-sm sm:w-[200px]"
-          }
-        />
+        {/* Montant payé — panneau gauche (desktop) */}
+        {isLargeScreen && (
+          <>
+            <Input
+              {...amountInputProps}
+              className={cn(amountInputProps.className, "sm:w-[200px]")}
+            />
+            {!hasNoSelection && !isSolded && (
+              <p className="text-[11px] text-muted-foreground -mt-1">
+                {amountManuallyEdited
+                  ? "Montant modifié manuellement"
+                  : "Calculé automatiquement"}
+              </p>
+            )}
+          </>
+        )}
 
         <Select
           value={watch("status")}
@@ -414,18 +605,11 @@ export default function PaymentsForm({
           disabled={loading || (!hasNoSelection && isSolded)}
         >
           {!hasNoSelection && isSolded
-            ? "✅ paiement soldé"
+            ? "Paiement soldé"
             : loading
               ? "Enregistrement..."
-              : " Valider le paiement"}
+              : "Valider le paiement"}
         </Button>
-
-        {/* 💰 REMINDER: Montant max */}
-        {!hasNoSelection && !isSolded && (
-          <div className="text-xs text-blue-600 bg-blue-50 p-2 rounded border border-blue-200">
-            💡 Montant max: {summary.remaining}
-          </div>
-        )}
       </div>
 
       {/* CENTER */}
@@ -433,8 +617,11 @@ export default function PaymentsForm({
         <FamilySelector
           resetKey={familyResetKey}
           onChange={(data) => {
+            amountManuallyEditedRef.current = false;
+            setAmountManuallyEdited(false);
+            lastAutoFillKeyRef.current = "";
             setSelection(data);
-            setSchoolYearId(data.schoolYearId); // ✅ IMPORTANT
+            setSchoolYearId(data.schoolYearId);
             setValue("parentId", data.parentId);
             setValue("classEnrollIds", data.classEnrollIds);
           }}
@@ -442,91 +629,192 @@ export default function PaymentsForm({
       </div>
 
       {/* RIGHT */}
-      <div className="w-full lg:w-96 border p-3 rounded-md">
+      <div className="w-full lg:w-96 border p-3 rounded-md space-y-3">
         <MultiSelect
           options={fraisOptions}
           value={watch("fraisIds") || []}
-          onValueChange={(values) =>
-            setValue("fraisIds", values, { shouldValidate: true })
-          }
+          onValueChange={handleFraisChange}
           placeholder="Sélectionner les frais"
           searchable
           closeOnSelect={false}
-          maxCount={3}
+          hideSelected
         />
 
-        <Card variant="default" className="mt-3">
-          <CardContent>
-            {/* HEADER */}
-            <p className="font-bold ">📊 Récapitulatif</p>
-
-            {/* MAIN INFO */}
-            <p>
-              💰 Total dû:{" "}
-              <span className="font-semibold">{summary.totalDue}</span>
-            </p>
-            <p>
-              ✅ Déjà payé:{" "}
-              <span className="font-semibold">{summary.alreadyPaid}</span>
-            </p>
-            <p>
-              🎁 Remise: {summary.discount}%{" "}
-              <span className="font-semibold">(-{summary.discountAmount})</span>
-            </p>
-
-            {/* REMAINING */}
-            <div className="border-t pt-2 mt-2">
-              {/* NET AFTER DISCOUNT */}
-              {fraisIds.length > 0 && (
-                <p>
-                  Net à payer:{" "}
-                  <span className="font-bold text-green-700">
-                    {summary.totalDueNet}
-                  </span>
-                </p>
-              )}
-              <p className="font-bold">
-                {!hasNoSelection && isSolded
-                  ? "✅ ENTIÈREMENT SOLDÉ"
-                  : `Reste à payer: ${summary.remaining}`}
+        {selectedFraisDetails.length > 0 && (
+          <div className="rounded-md border bg-muted/30">
+            <div className="flex items-center gap-2 px-3 py-2 border-b bg-muted/50">
+              <Receipt className="h-4 w-4 text-muted-foreground" />
+              <p className="text-sm font-medium">
+                Frais sélectionnés ({selectedFraisDetails.length})
               </p>
             </div>
+            <ul className="divide-y max-h-48 overflow-y-auto">
+              {selectedFraisDetails.map((frais) => (
+                <li
+                  key={frais.id}
+                  className="flex items-start justify-between gap-2 px-3 py-2 text-sm"
+                >
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium truncate">{frais.name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {formatAmount(frais.unitAmount)}
+                      {frais.studentCount > 1 &&
+                        ` × ${frais.studentCount} élèves`}
+                    </p>
+                    {frais.alreadyPaid > 0 && (
+                      <p className="text-xs text-green-700">
+                        Déjà payé : {formatAmount(frais.alreadyPaid)}
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex flex-col items-end gap-1 shrink-0">
+                    <span className="text-[10px] text-muted-foreground uppercase">
+                      Reste
+                    </span>
+                    <span className="font-semibold text-primary">
+                      {formatAmount(frais.remaining)}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => removeFrais(frais.id)}
+                      className="text-muted-foreground hover:text-destructive transition-colors"
+                      aria-label={`Retirer ${frais.name}`}
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
 
-            {/* REFUND INFO */}
-            {amount > summary.remaining && amount > 0 && (
-              <div className="border-t pt-2 bg-yellow-50 p-2 rounded">
-                <p className="text-yellow-800 text-xs font-bold">
-                  💰 Calcul remboursement:
-                </p>
-                <p className="text-xs">
-                  Montant saisi: <span className="font-bold">{amount}</span>
-                </p>
-                <p className="text-xs">
-                  À payer:{" "}
-                  <span className="font-bold text-green-700">
-                    {summary.remaining}
+        <Card variant="default">
+          <CardContent className="space-y-3 pt-4">
+            <p className="font-bold">Récapitulatif</p>
+
+            {hasNoSelection ? (
+              <p className="text-sm text-muted-foreground">
+                Sélectionnez un élève et au moins un frais pour voir le
+                récapitulatif.
+              </p>
+            ) : balances.length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                Calcul des soldes en cours…
+              </p>
+            ) : (
+              <>
+                {summary.studentCount > 0 && (
+                  <p className="text-xs text-muted-foreground">
+                    {summary.studentCount} élève
+                    {summary.studentCount > 1 ? "s" : ""} ·{" "}
+                    {summary.fraisCount} frais
+                  </p>
+                )}
+
+                <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 text-sm">
+                  <span className="text-muted-foreground">Total frais</span>
+                  <span className="text-right font-medium">
+                    {formatAmount(summary.totalDue)}
                   </span>
-                </p>
-                <p className="text-xs text-yellow-700">
-                  Remboursement:{" "}
+
+                  {summary.alreadyPaid > 0 && (
+                    <>
+                      <span className="text-muted-foreground">Déjà payé</span>
+                      <span className="text-right font-medium text-green-700">
+                        -{formatAmount(summary.alreadyPaid)}
+                      </span>
+                    </>
+                  )}
+
+                  {summary.discount > 0 && (
+                    <>
+                      <span className="text-muted-foreground">
+                        Remise ({summary.discount}%)
+                      </span>
+                      <span className="text-right font-medium text-orange-600">
+                        -{formatAmount(summary.discountAmount)}
+                      </span>
+                    </>
+                  )}
+                </div>
+
+                <div className="flex justify-between items-center border-t pt-2">
                   <span className="font-bold">
-                    {amount - summary.remaining}
+                    {isSolded ? "Entièrement soldé" : "Reste à payer"}
                   </span>
+                  <span
+                    className={cn(
+                      "text-lg font-bold",
+                      isSolded ? "text-green-600" : "text-primary",
+                    )}
+                  >
+                    {formatAmount(summary.remaining)}
+                  </span>
+                </div>
+
+                {!isSolded && amount > 0 && (
+                  <div className="flex justify-between text-sm border-t pt-2">
+                    <span className="text-muted-foreground">Montant saisi</span>
+                    <span className="font-semibold">
+                      {formatAmount(amount)}
+                    </span>
+                  </div>
+                )}
+              </>
+            )}
+
+            {/* Montant payé — mobile/tablette */}
+            {!isLargeScreen && !hasNoSelection && !isSolded && (
+              <div className="border-t pt-3 space-y-2">
+                <label className="text-sm font-medium">Montant payé</label>
+                <Input {...amountInputProps} />
+                <p className="text-[11px] text-muted-foreground">
+                  {amountManuallyEdited
+                    ? "Montant modifié manuellement"
+                    : "Calculé automatiquement"}
                 </p>
+                <Button
+                  type="submit"
+                  className="w-full"
+                  disabled={loading || (!hasNoSelection && isSolded)}
+                >
+                  {!hasNoSelection && isSolded
+                    ? "Paiement soldé"
+                    : loading
+                      ? "Enregistrement..."
+                      : "Valider le paiement"}
+                </Button>
               </div>
             )}
 
-            {/* WARNING */}
+            {/* Remboursement si montant saisi > reste */}
+            {!isSolded &&
+              amount > summary.remaining &&
+              amount > 0 &&
+              balances.length > 0 && (
+              <div className="border-t pt-2 bg-yellow-50 p-2 rounded space-y-1">
+                <p className="text-yellow-800 text-xs font-bold">
+                  Excédent — remboursement à prévoir
+                </p>
+                <div className="flex justify-between text-xs">
+                  <span className="text-yellow-700">Remboursement</span>
+                  <span className="font-bold text-yellow-700">
+                    {formatAmount(amount - summary.remaining)}
+                  </span>
+                </div>
+              </div>
+            )}
+
             {amountWarning && (
-              <p className="text-orange-600 text-xs mt-2 bg-orange-50 p-1 rounded">
-                ⚠️ {amountWarning}
+              <p className="text-orange-600 text-xs bg-orange-50 p-2 rounded">
+                {amountWarning}
               </p>
             )}
 
-            {/* SOLDED ALERT */}
-            {!hasNoSelection && isSolded && (
-              <p className="text-green-600 text-xs mt-2 bg-green-50 p-1 rounded font-bold">
-                ✓ Dossier soldé - Aucun paiement possible
+            {!hasNoSelection && isSolded && balances.length > 0 && (
+              <p className="text-green-600 text-xs bg-green-50 p-2 rounded font-medium">
+                Dossier soldé — aucun paiement possible
               </p>
             )}
           </CardContent>

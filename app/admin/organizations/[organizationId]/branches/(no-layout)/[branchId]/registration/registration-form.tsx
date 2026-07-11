@@ -26,11 +26,15 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   createRegistrationFlowAction,
   createNextParallelForRegistrationAction,
+  createCreneauForRegistrationAction,
   findParentForRegistrationAction,
   findStudentHistoryAction,
   getRegistrationOptionsAction,
   suggestNextClassAction,
 } from "./registration.action";
+import { generateSlug } from "@/lib/generated-identifiers";
+import { matchesClassForLevel } from "@/lib/class-enrollment/match-class-for-level";
+import { defaultCreneauValues, type CreneauFormValues } from "@/src/interfaces/creneau";
 
 type Person = {
   username: string;
@@ -74,7 +78,76 @@ function userOf(item: any) {
   return item.branchMember?.member?.user;
 }
 
+function previewStudentEmail(prenom: string, name: string) {
+  return `${generateSlug(`${prenom}.${name}`, "eleve")}@klambocore.com`;
+}
+
+function previewParentUsername(prenom: string, name: string) {
+  return `parent.${generateSlug(`${prenom}.${name}`, "parent")}`;
+}
+
+const emptyCreneau = (): CreneauFormValues => ({ ...defaultCreneauValues });
+
+function requiresOptionForLevel(typebranch: string | undefined, level: string, allowsOption: boolean) {
+  return allowsOption && typebranch === "SECONDAIRE" && ["1er", "2e", "3e", "4e"].includes(level);
+}
+
+function isStudentStepReady(
+  studentMode: "existing" | "new",
+  studentId: string,
+  student: StudentForm,
+) {
+  if (studentMode === "existing") return Boolean(studentId);
+  return Boolean(
+    student.name &&
+      student.postnom &&
+      student.prenom &&
+      student.dateOfBirth &&
+      student.address,
+  );
+}
+
+function isParentStepReady(
+  parentMode: "existing" | "new",
+  parentId: string,
+  parent: ParentForm,
+) {
+  if (parentMode === "existing") return Boolean(parentId);
+  return Boolean(
+    parent.name &&
+      parent.postnom &&
+      parent.prenom &&
+      parent.email &&
+      parent.address,
+  );
+}
+
+function isClassStepReady(
+  schoolYearId: string,
+  level: string,
+  optionId: string,
+  options: {
+    allowsOption?: boolean;
+    typebranch?: string;
+  },
+  predictedClass: { id: string } | null,
+) {
+  if (!schoolYearId || !level || !predictedClass) return false;
+  if (requiresOptionForLevel(options.typebranch, level, Boolean(options.allowsOption)) && !optionId) {
+    return false;
+  }
+  return true;
+}
+
+const historyLabels = {
+  new: "Nouvel élève",
+  passed: "Réussi — niveau supérieur",
+  failed: "Échoué — même niveau",
+  returning: "Retour après absence",
+} as const;
+
 function previewStudentCode(branchName: string, studentName: string, sequence: number) {
+
   const initials = branchName
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
@@ -92,9 +165,10 @@ function previewStudentCode(branchName: string, studentName: string, sequence: n
 export function RegistrationForm() {
   const router = useRouter();
   const [step, setStep] = useState(0);
+  const [autoAdvanceEnabled, setAutoAdvanceEnabled] = useState(true);
   const [loading, setLoading] = useState(false);
   const [loadingOptions, setLoadingOptions] = useState(true);
-  const [options, setOptions] = useState<any>({ schoolYears: [], classes: [], options: [], levels: [] });
+  const [options, setOptions] = useState<any>({ schoolYears: [], classes: [], options: [], levels: [], creneaux: [] });
   const [studentMode, setStudentMode] = useState<"existing" | "new">("new");
   const [studentId, setStudentId] = useState("");
   const [student, setStudent] = useState<StudentForm>(emptyStudent);
@@ -109,8 +183,11 @@ export function RegistrationForm() {
   const [schoolYearId, setSchoolYearId] = useState("");
   const [level, setLevel] = useState("");
   const [optionId, setOptionId] = useState("");
-  const [newClassCapacity, setNewClassCapacity] = useState(30);
+  const [creneauId, setCreneauId] = useState("");
+  const [classCapacity, setClassCapacity] = useState("30");
+  const [creneauForm, setCreneauForm] = useState<CreneauFormValues>(emptyCreneau());
   const [creatingClass, setCreatingClass] = useState(false);
+  const [creatingCreneau, setCreatingCreneau] = useState(false);
 
   useEffect(() => {
     void loadRegistrationOptions(true);
@@ -130,10 +207,17 @@ export function RegistrationForm() {
     }
   }
 
-  const selectedClasses = useMemo(
-    () => options.classes.filter((classe: any) => classe.level === level && (!optionId || classe.optionId === optionId)),
-    [level, optionId, options.classes],
-  );
+  const selectedClasses = useMemo(() => {
+    const optionName = options.options.find((item: any) => item.id === optionId)?.nameOption;
+    return options.classes.filter((classe: any) =>
+      matchesClassForLevel(classe, {
+        typebranch: options.typebranch,
+        level,
+        optionId: options.allowsOption ? (optionId || null) : null,
+        optionName,
+      }),
+    );
+  }, [level, optionId, options.classes, options.options, options.typebranch, options.allowsOption]);
   const generatedStudentCode = useMemo(
     () => previewStudentCode(
       options.branchName ?? "",
@@ -142,6 +226,102 @@ export function RegistrationForm() {
     ),
     [options.branchName, options.annualStudentCounts, schoolYearId, student.name],
   );
+  const generatedStudentEmail = useMemo(
+    () => previewStudentEmail(student.prenom, student.name),
+    [student.prenom, student.name],
+  );
+  const generatedParentUsername = useMemo(
+    () => previewParentUsername(parent.prenom, parent.name),
+    [parent.prenom, parent.name],
+  );
+  const classStats = useMemo(
+    () =>
+      selectedClasses.map((classe: any) => {
+        const occupied = classe.classEnrollment.filter((item: any) => item.schoolYearId === schoolYearId).length;
+        const full = classe.capacity !== null && classe.capacity > 0 && occupied >= classe.capacity;
+        return { ...classe, occupied, full };
+      }),
+    [selectedClasses, schoolYearId],
+  );
+  const predictedClass = useMemo(
+    () =>
+      [...classStats]
+        .sort((left, right) =>
+          (left.parallel ?? "").localeCompare(right.parallel ?? "", "fr", {
+            numeric: true,
+            sensitivity: "base",
+          }),
+        )
+        .find((classe) => classe.capacity > 0 && !classe.full) ?? null,
+    [classStats],
+  );
+  const allClassesFull = useMemo(
+    () => classStats.length > 0 && classStats.every((classe: { full: boolean }) => classe.full),
+    [classStats],
+  );
+  const selectedStudent = useMemo(
+    () => studentResults.find((item) => item.id === studentId),
+    [studentResults, studentId],
+  );
+  const selectedParent = useMemo(
+    () => parentResults.find((item) => item.id === parentId),
+    [parentResults, parentId],
+  );
+  const hasCreneaux = (options.creneaux?.length ?? 0) > 0;
+
+  function resetForm() {
+    setStep(0);
+    setAutoAdvanceEnabled(true);
+    setStudentMode("new");
+    setStudentId("");
+    setStudent(emptyStudent);
+    setParentMode("new");
+    setParentId("");
+    setParent(emptyParent);
+    setStudentQuery("");
+    setParentQuery("");
+    setStudentResults([]);
+    setParentResults([]);
+    setHistoryOutcome("new");
+    setLevel("");
+    setOptionId("");
+    setCreneauId("");
+    setClassCapacity("30");
+    setCreneauForm(emptyCreneau());
+  }
+
+  useEffect(() => {
+    if (!autoAdvanceEnabled || loading || step >= 3) return;
+    if (step === 0 && isStudentStepReady(studentMode, studentId, student)) {
+      setStep(1);
+      return;
+    }
+    if (step === 1 && isParentStepReady(parentMode, parentId, parent)) {
+      setStep(2);
+      return;
+    }
+    if (
+      step === 2 &&
+      isClassStepReady(schoolYearId, level, optionId, options, predictedClass)
+    ) {
+      setStep(3);
+    }
+  }, [
+    autoAdvanceEnabled,
+    loading,
+    step,
+    studentMode,
+    studentId,
+    student,
+    parentMode,
+    parentId,
+    parent,
+    schoolYearId,
+    level,
+    optionId,
+    options,
+    predictedClass,
+  ]);
 
   async function searchStudents() {
     const [data, error] = await findStudentHistoryAction({ query: studentQuery });
@@ -177,42 +357,74 @@ export function RegistrationForm() {
   }
   function goNext() {
     if (step === 0 && studentMode === "existing" && !studentId) return toast.error("Sélectionnez un élève.");
-    if (step === 0 && studentMode === "new" && (!student.name || !student.postnom || !student.prenom || !student.email || !student.dateOfBirth || !student.address)) return toast.error("Complétez toutes les informations obligatoires de l'élève.");
+    if (step === 0 && studentMode === "new" && !isStudentStepReady(studentMode, studentId, student)) return toast.error("Complétez toutes les informations obligatoires de l'élève.");
     if (step === 1 && parentMode === "existing" && !parentId) return toast.error("Sélectionnez un parent.");
-    if (step === 1 && parentMode === "new" && (!parent.username || !parent.name || !parent.postnom || !parent.prenom || !parent.email || !parent.address)) return toast.error("Complétez toutes les informations obligatoires du parent.");
-    if (step === 2 && (!schoolYearId || !level)) return toast.error("Choisissez l'année scolaire et la classe demandée.");
+    if (step === 1 && parentMode === "new" && !isParentStepReady(parentMode, parentId, parent)) return toast.error("Complétez toutes les informations obligatoires du parent.");
+    if (step === 2) {
+      if (!schoolYearId || !level) return toast.error("Choisissez l'année scolaire et la classe demandée.");
+      if (requiresOptionForLevel(options.typebranch, level, Boolean(options.allowsOption)) && !optionId) {
+        return toast.error("Choisissez une option pour ce niveau.");
+      }
+      if (selectedClasses.length === 0) return toast.error("Aucune classe n'est configurée pour ce niveau. Créez la première parallèle.");
+      if (allClassesFull) return toast.error("Toutes les parallèles sont pleines. Créez la prochaine parallèle avant de continuer.");
+    }
+    setAutoAdvanceEnabled(true);
     setStep((current) => current + 1);
+  }
+  function goPrevious() {
+    setAutoAdvanceEnabled(false);
+    setStep((current) => Math.max(0, current - 1));
   }
   async function submit() {
     setLoading(true);
     const [result, error] = await createRegistrationFlowAction({
       schoolYearId,
       level,
-      optionId: optionId || undefined,
+      optionId: options.allowsOption ? (optionId || undefined) : undefined,
       studentMode,
       studentId: studentId || undefined,
-      student: studentMode === "new" ? { ...student, username: generatedStudentCode, dateOfBirth: new Date(student.dateOfBirth) } : undefined,
+      student: studentMode === "new" ? { ...student, username: generatedStudentCode, email: generatedStudentEmail, dateOfBirth: new Date(student.dateOfBirth) } : undefined,
       parentMode,
       parentId: parentId || undefined,
-      parent: parentMode === "new" ? { ...parent, dateOfBirth: parent.dateOfBirth ? new Date(parent.dateOfBirth) : undefined } : undefined,
+      parent: parentMode === "new" ? { ...parent, username: generatedParentUsername, dateOfBirth: parent.dateOfBirth ? new Date(parent.dateOfBirth) : undefined } : undefined,
       historyOutcome,
     });
     setLoading(false);
     if (error) return toast.error(error.message);
     toast.success(`Inscription confirmée dans ${result.classeName}`);
     router.refresh();
-    setStep(0);
-    setStudentId("");
-    setParentId("");
+    resetForm();
+    void loadRegistrationOptions(true);
+  }
+
+  async function createCreneau() {
+    if (!creneauForm.nameCreneau || !creneauForm.startTime || !creneauForm.endTime || !creneauForm.recreationHour) {
+      return toast.error("Complétez toutes les informations de la vacation.");
+    }
+    setCreatingCreneau(true);
+    const [creneau, error] = await createCreneauForRegistrationAction(creneauForm);
+    setCreatingCreneau(false);
+    if (error) return toast.error(error.message);
+    toast.success(`Vacation ${creneau.nameCreneau} créée.`);
+    setCreneauId(creneau.id);
+    setCreneauForm(emptyCreneau());
+    await loadRegistrationOptions();
   }
 
   async function createNextParallel() {
-    if (!level) return toast.error("Choisissez d'abord la classe demandée.");
+    if (!level || !schoolYearId) return toast.error("Choisissez d'abord l'année scolaire et la classe demandée.");
+    if (!creneauId) return toast.error("Sélectionnez une vacation pour créer la classe.");
+    const capacity = Number(classCapacity);
+    if (!Number.isFinite(capacity) || capacity <= 0) {
+      return toast.error("Indiquez une capacité valide pour la classe.");
+    }
     setCreatingClass(true);
     const [classe, error] = await createNextParallelForRegistrationAction({
+      schoolYearId,
       level,
-      optionId: optionId || undefined,
-      capacity: newClassCapacity,
+      optionId: options.allowsOption ? (optionId || undefined) : undefined,
+      creneauId,
+      capacity,
     });
     setCreatingClass(false);
     if (error) return toast.error(error.message);
@@ -220,17 +432,94 @@ export function RegistrationForm() {
     await loadRegistrationOptions();
   }
 
+  function renderClassCreationPanel(title: string, description: string, buttonLabel: string) {
+    return (
+      <div className="mt-4 space-y-4 rounded-lg border border-amber-200 bg-amber-50 p-5 text-amber-950">
+        <div>
+          <p className="font-semibold">{title}</p>
+          <p className="mt-1 text-sm">{description}</p>
+        </div>
+        {!hasCreneaux ? (
+          <div className="space-y-4 rounded-lg border bg-background p-4 text-foreground">
+            <p className="font-medium">Aucune vacation disponible — créez-en une</p>
+            <div className="grid gap-4 md:grid-cols-2">
+              <Field label="Nom de la vacation *">
+                <Input value={creneauForm.nameCreneau} onChange={(event) => setCreneauForm((current) => ({ ...current, nameCreneau: event.target.value }))} />
+              </Field>
+              <Field label="Début *">
+                <Input type="time" value={creneauForm.startTime} onChange={(event) => setCreneauForm((current) => ({ ...current, startTime: event.target.value }))} />
+              </Field>
+              <Field label="Fin *">
+                <Input type="time" value={creneauForm.endTime} onChange={(event) => setCreneauForm((current) => ({ ...current, endTime: event.target.value }))} />
+              </Field>
+              <Field label="Heure de récréation *">
+                <Input type="time" value={creneauForm.recreationHour} onChange={(event) => setCreneauForm((current) => ({ ...current, recreationHour: event.target.value }))} />
+              </Field>
+              <Field label="Durée cours (min)">
+                <Input type="number" min={1} value={creneauForm.durationCourse} onChange={(event) => setCreneauForm((current) => ({ ...current, durationCourse: Number(event.target.value) || defaultCreneauValues.durationCourse }))} />
+              </Field>
+              <Field label="Durée récréation (min)">
+                <Input type="number" min={1} value={creneauForm.recreationDuration} onChange={(event) => setCreneauForm((current) => ({ ...current, recreationDuration: Number(event.target.value) || defaultCreneauValues.recreationDuration }))} />
+              </Field>
+            </div>
+            <Button disabled={creatingCreneau} onClick={createCreneau}>
+              {creatingCreneau ? "Création…" : "Créer la vacation"}
+            </Button>
+          </div>
+        ) : (
+          <div className="grid gap-4 md:grid-cols-2">
+            <Field label="Vacation *">
+              <Select value={creneauId || "none"} onValueChange={(value) => setCreneauId(value === "none" ? "" : value)}>
+                <SelectTrigger><SelectValue placeholder="Choisir une vacation" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Sélectionner…</SelectItem>
+                  {options.creneaux.map((item: any) => (
+                    <SelectItem key={item.id} value={item.id}>{item.nameCreneau}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Field>
+            <Field label="Capacité de la classe *">
+              <Input type="number" min={1} value={classCapacity} onChange={(event) => setClassCapacity(event.target.value)} />
+            </Field>
+          </div>
+        )}
+        {hasCreneaux && (
+          <Button disabled={creatingClass || !creneauId} onClick={createNextParallel}>
+            {creatingClass ? "Création…" : buttonLabel}
+          </Button>
+        )}
+      </div>
+    );
+  }
+
   function renderPersonFields(value: StudentForm | ParentForm, setter: (value: any) => void, studentFields = false) {
     return <div className="space-y-6">
       <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-        <Field label={studentFields ? "Matricule élève (automatique)" : "Code d'accès *"}><Input disabled={studentFields} className={studentFields ? "bg-muted font-mono text-foreground opacity-100" : ""} value={studentFields ? generatedStudentCode : value.username} onChange={(event) => updatePerson(value, setter, "username", event.target.value)} placeholder="Généré automatiquement" /></Field>
+        {studentFields ? (
+          <Field label="Matricule élève (automatique)">
+            <Input disabled className="bg-muted font-mono text-foreground opacity-100" value={generatedStudentCode} />
+          </Field>
+        ) : (
+          <Field label="Code d'accès (automatique)">
+            <Input disabled className="bg-muted font-mono text-foreground opacity-100" value={generatedParentUsername} />
+          </Field>
+        )}
         <Field label="Nom *"><Input value={value.name} onChange={(event) => updatePerson(value, setter, "name", event.target.value)} /></Field>
         <Field label="Postnom *"><Input value={value.postnom} onChange={(event) => updatePerson(value, setter, "postnom", event.target.value)} /></Field>
         <Field label="Prénom *"><Input value={value.prenom} onChange={(event) => updatePerson(value, setter, "prenom", event.target.value)} /></Field>
-        <Field label="Date de naissance"><Input type="date" value={value.dateOfBirth} onChange={(event) => updatePerson(value, setter, "dateOfBirth", event.target.value)} /></Field>
+        <Field label="Date de naissance *"><Input type="date" value={value.dateOfBirth} onChange={(event) => updatePerson(value, setter, "dateOfBirth", event.target.value)} /></Field>
         <Field label="Sexe *"><Select value={value.sexe} onValueChange={(next) => updatePerson(value, setter, "sexe", next)}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="masculin">Masculin</SelectItem><SelectItem value="feminin">Féminin</SelectItem></SelectContent></Select></Field>
-        <Field label="Téléphone *"><Input value={value.telephone} onChange={(event) => updatePerson(value, setter, "telephone", event.target.value)} /></Field>
-        <Field label="Email *"><Input type="email" value={value.email} onChange={(event) => updatePerson(value, setter, "email", event.target.value)} /></Field>
+        {studentFields ? (
+          <Field label="Email élève (automatique)">
+            <Input disabled className="bg-muted font-mono text-foreground opacity-100" value={generatedStudentEmail} />
+          </Field>
+        ) : (
+          <>
+            <Field label="Téléphone *"><Input value={value.telephone} onChange={(event) => updatePerson(value, setter, "telephone", event.target.value)} /></Field>
+            <Field label="Email *"><Input type="email" value={value.email} onChange={(event) => updatePerson(value, setter, "email", event.target.value)} /></Field>
+          </>
+        )}
         <Field label="Adresse complète *" className="xl:col-span-1"><Input value={value.address} onChange={(event) => updatePerson(value, setter, "address", event.target.value)} /></Field>
       </div>
       {studentFields && <><Separator /><div className="grid gap-5 md:grid-cols-2"><Field label="Catégorie"><Select value={(value as StudentForm).category} onValueChange={(next) => updatePerson(value, setter, "category", next)}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{["NORMAL", "ORPHAN", "VIP", "SPONSORED", "GROUPE"].map((item) => <SelectItem key={item} value={item}>{item}</SelectItem>)}</SelectContent></Select></Field><Field label="École de provenance (facultatif)"><Input value={(value as StudentForm).provenanceEcole} onChange={(event) => updatePerson(value, setter, "provenanceEcole", event.target.value)} /></Field><Field label="Observation (facultatif)" className="md:col-span-2"><Textarea value={(value as StudentForm).observation} onChange={(event) => updatePerson(value, setter, "observation", event.target.value)} rows={4} /></Field></div></>}
@@ -249,10 +538,114 @@ export function RegistrationForm() {
       <CardContent className="flex-1 space-y-6 p-6 lg:p-8">
         {step === 0 && <><RadioGroup className="grid gap-3 sm:grid-cols-2" value={studentMode} onValueChange={(value) => { setStudentMode(value as any); setHistoryOutcome(value === "new" ? "new" : "returning"); }}><ModeChoice id="student-new" value="new" title="Nouvel élève" description="Créer son compte et son dossier scolaire." /><ModeChoice id="student-existing" value="existing" title="Ancien élève" description="Retrouver son historique et le réinscrire." /></RadioGroup><Separator />{studentMode === "new" ? renderPersonFields(student, setStudent, true) : <SearchPanel query={studentQuery} setQuery={setStudentQuery} onSearch={searchStudents} placeholder="Nom, email ou téléphone de l'élève">{studentResults.map((item) => { const user = userOf(item); const last = item.classEnrollment?.[0]; return <ResultButton key={item.id} selected={studentId === item.id} onClick={() => chooseStudent(item)} title={`${user?.name ?? ""} ${user?.postnom ?? ""} ${user?.prenom ?? ""}`} subtitle={last ? `Dernière classe : ${last.classe?.nameClasse} — ${last.schoolYear.nameYear}` : "Aucune inscription précédente"} />; })}{studentId && <div className="rounded-lg border bg-muted/30 p-4"><Label className="mb-3 block">Situation de l'élève</Label><div className="flex flex-wrap gap-2"><Button variant={historyOutcome === "passed" ? "default" : "outline"} onClick={() => applyHistory("passed")}>Réussi</Button><Button variant={historyOutcome === "failed" ? "default" : "outline"} onClick={() => applyHistory("failed")}>Échoué</Button><Button variant={historyOutcome === "returning" ? "default" : "outline"} onClick={() => applyHistory("returning")}>Retour après absence</Button></div></div>}</SearchPanel>}</>}
         {step === 1 && <><RadioGroup className="grid gap-3 sm:grid-cols-2" value={parentMode} onValueChange={(value) => setParentMode(value as any)}><ModeChoice id="parent-new" value="new" title="Nouveau parent / tuteur" description="Créer le compte du responsable." /><ModeChoice id="parent-existing" value="existing" title="Parent existant" description="Lier l'élève à un responsable connu." /></RadioGroup><Separator />{parentMode === "new" ? renderPersonFields(parent, setParent) : <SearchPanel query={parentQuery} setQuery={setParentQuery} onSearch={searchParents} placeholder="Nom, email ou téléphone du parent">{parentResults.map((item) => { const user = userOf(item); return <ResultButton key={item.id} selected={parentId === item.id} onClick={() => setParentId(item.id)} title={`${user?.name ?? ""} ${user?.postnom ?? ""} ${user?.prenom ?? ""}`} subtitle={`${user?.telephone ?? "Sans téléphone"} — ${user?.email ?? "Sans email"}`} />; })}</SearchPanel>}</>}
-        {step === 2 && <div className="space-y-6">{loadingOptions ? <p className="text-muted-foreground">Chargement des classes…</p> : <><div className="grid gap-5 lg:grid-cols-3"><Field label="Année scolaire *"><Select value={schoolYearId} onValueChange={setSchoolYearId}><SelectTrigger><SelectValue placeholder="Choisir l'année" /></SelectTrigger><SelectContent>{options.schoolYears.map((year: any) => <SelectItem key={year.id} value={year.id}>{year.nameYear}{year.isCurrentYear ? " — actuelle" : ""}</SelectItem>)}</SelectContent></Select></Field><Field label="Classe / niveau demandé *"><Select value={level} onValueChange={(value) => { setLevel(value); setOptionId(""); }}><SelectTrigger><SelectValue placeholder="Choisir la classe" /></SelectTrigger><SelectContent>{options.levels.map((item: string) => <SelectItem key={item} value={item}>{item}</SelectItem>)}</SelectContent></Select></Field><Field label="Option"><Select value={optionId || "none"} onValueChange={(value) => setOptionId(value === "none" ? "" : value)}><SelectTrigger><SelectValue placeholder="Aucune option" /></SelectTrigger><SelectContent><SelectItem value="none">Aucune option</SelectItem>{options.options.map((item: any) => <SelectItem key={item.id} value={item.id}>{item.nameOption}</SelectItem>)}</SelectContent></Select></Field></div><Alert><IconSchool className="h-4 w-4" /><AlertTitle>Affectation automatique</AlertTitle><AlertDescription>Le système essayera A, puis B, puis C pour cette classe et cette option.</AlertDescription></Alert><div><div className="mb-3 flex items-center justify-between"><h3 className="font-semibold">Parallèles configurées</h3><Badge variant="outline">{selectedClasses.length} classe(s)</Badge></div>{!level ? <p className="rounded-lg border border-dashed p-8 text-center text-muted-foreground">Sélectionnez une classe pour voir les parallèles.</p> : selectedClasses.length === 0 ? <div className="space-y-4 rounded-lg border border-amber-200 bg-amber-50 p-5 text-amber-950"><div><p className="font-semibold">Aucune parallèle n'est encore créée</p><p className="mt-1 text-sm">Créez automatiquement la parallèle A pour ce niveau{optionId ? " et cette option" : ""}.</p></div><div className="flex flex-col gap-3 sm:flex-row sm:items-end"><Field label="Capacité de la classe"><Input className="w-40 bg-white" type="number" min={1} max={500} value={newClassCapacity} onChange={(event) => setNewClassCapacity(Number(event.target.value))} /></Field><Button disabled={creatingClass} onClick={createNextParallel}>{creatingClass ? "Création…" : "Créer la prochaine parallèle"}</Button></div></div> : <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">{selectedClasses.map((classe: any) => { const occupied = classe.classEnrollment.filter((item: any) => item.schoolYearId === schoolYearId).length; const full = classe.capacity !== null && occupied >= classe.capacity; return <div key={classe.id} className="rounded-lg border p-4"><div className="flex items-center justify-between"><b>{classe.nameClasse}</b><Badge variant={full ? "destructive" : "secondary"}>{full ? "Pleine" : "Disponible"}</Badge></div><p className="mt-2 text-sm text-muted-foreground">{occupied} inscription(s) / {classe.capacity ?? "capacité non définie"}</p>{classe.capacity ? <Progress className="mt-3" value={Math.min(100, occupied / classe.capacity * 100)} /> : null}</div>; })}</div>}</div></>}</div>}
-        {step === 3 && <div className="space-y-6"><Alert><IconCheck className="h-4 w-4" /><AlertTitle>Dossier prêt à être enregistré</AlertTitle><AlertDescription>Vérifiez les informations avant la création définitive.</AlertDescription></Alert><div className="grid gap-4 md:grid-cols-2"><Summary title="Élève" lines={[studentMode === "new" ? `${student.name} ${student.postnom} ${student.prenom}` : "Élève existant", studentMode === "new" ? student.email : studentId, studentMode === "new" ? `Catégorie : ${student.category}` : `Situation : ${historyOutcome}`]} /><Summary title="Parent / tuteur" lines={[parentMode === "new" ? `${parent.name} ${parent.postnom} ${parent.prenom}` : "Parent existant", parentMode === "new" ? parent.telephone : parentId, parentMode === "new" && parent.discountPercentage ? `Remise : ${parent.discountPercentage}%` : "Sans remise"]} /><Summary title="Scolarité" lines={[options.schoolYears.find((item: any) => item.id === schoolYearId)?.nameYear ?? "Année non choisie", `Classe demandée : ${level}`, options.options.find((item: any) => item.id === optionId)?.nameOption ?? "Sans option"]} /><Summary title="Affectation" lines={["Première parallèle disponible", "Capacité vérifiée à l'enregistrement", "Inscription protégée contre les doublons"]} /></div></div>}
+        {step === 2 && (
+          <div className="space-y-6">
+            {loadingOptions ? (
+              <p className="text-muted-foreground">Chargement des classes…</p>
+            ) : (
+              <>
+                <div className={`grid gap-5 ${options.allowsOption ? "lg:grid-cols-3" : "lg:grid-cols-2"}`}>
+                  <Field label="Année scolaire *">
+                    <Select value={schoolYearId} onValueChange={setSchoolYearId}>
+                      <SelectTrigger><SelectValue placeholder="Choisir l'année" /></SelectTrigger>
+                      <SelectContent>
+                        {options.schoolYears.map((year: any) => (
+                          <SelectItem key={year.id} value={year.id}>
+                            {year.nameYear}{year.isCurrentYear ? " — actuelle" : ""}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </Field>
+                  <Field label="Classe / niveau demandé *">
+                    <Select value={level} onValueChange={(value) => { setLevel(value); setOptionId(""); }}>
+                      <SelectTrigger><SelectValue placeholder="Choisir la classe" /></SelectTrigger>
+                      <SelectContent>
+                        {options.levels.map((item: string) => (
+                          <SelectItem key={item} value={item}>{item}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </Field>
+                  {options.allowsOption && (
+                    <Field label="Option">
+                      <Select value={optionId || "none"} onValueChange={(value) => setOptionId(value === "none" ? "" : value)}>
+                        <SelectTrigger><SelectValue placeholder="Aucune option" /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">Aucune option</SelectItem>
+                          {options.options.map((item: any) => (
+                            <SelectItem key={item.id} value={item.id}>{item.nameOption}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </Field>
+                  )}
+                </div>
+                <Alert>
+                  <IconSchool className="h-4 w-4" />
+                  <AlertTitle>Affectation automatique</AlertTitle>
+                  <AlertDescription>Le système affectera l'élève à la première parallèle disponible (A, puis B, puis C…).</AlertDescription>
+                </Alert>
+                <div>
+                  <div className="mb-3 flex items-center justify-between">
+                    <h3 className="font-semibold">Parallèles existantes</h3>
+                    <Badge variant="outline">{selectedClasses.length} classe(s)</Badge>
+                  </div>
+                  {!level ? (
+                    <p className="rounded-lg border border-dashed p-8 text-center text-muted-foreground">
+                      Sélectionnez une classe pour voir les parallèles.
+                    </p>
+                  ) : selectedClasses.length === 0 ? (
+                    renderClassCreationPanel(
+                      "Aucune classe configurée pour ce niveau",
+                      "Créez la première parallèle avec une vacation obligatoire.",
+                      "Créer la première parallèle",
+                    )
+                  ) : (
+                    <>
+                      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                        {classStats.map((classe: any) => (
+                          <div key={classe.id} className="rounded-lg border p-4">
+                            <div className="flex items-center justify-between">
+                              <b>{classe.nameClasse}</b>
+                              <Badge variant={classe.full ? "destructive" : "secondary"}>
+                                {classe.full ? "Pleine" : "Disponible"}
+                              </Badge>
+                            </div>
+                            <p className="mt-2 text-sm text-muted-foreground">
+                              {classe.occupied} inscription(s) / {classe.capacity ?? "capacité non définie"}
+                            </p>
+                            {classe.capacity ? (
+                              <Progress className="mt-3" value={Math.min(100, classe.occupied / classe.capacity * 100)} />
+                            ) : null}
+                          </div>
+                        ))}
+                      </div>
+                      {allClassesFull &&
+                        renderClassCreationPanel(
+                          "Toutes les parallèles sont pleines",
+                          "Une nouvelle parallèle sera créée avec la même capacité que les classes existantes.",
+                          "Créer la prochaine parallèle",
+                        )}
+                      {predictedClass && (
+                        <Alert className="mt-4">
+                          <IconCheck className="h-4 w-4" />
+                          <AlertTitle>Affectation prévue</AlertTitle>
+                          <AlertDescription>
+                            L'élève sera inscrit dans <strong>{predictedClass.nameClasse}</strong> ({predictedClass.occupied + 1} / {predictedClass.capacity} places).
+                          </AlertDescription>
+                        </Alert>
+                      )}
+                    </>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+        )}
+        {step === 3 && <div className="space-y-6"><Alert><IconCheck className="h-4 w-4" /><AlertTitle>Dossier prêt à être enregistré</AlertTitle><AlertDescription>Vérifiez les informations importantes avant la création définitive.</AlertDescription></Alert><div className="grid gap-4 md:grid-cols-2"><Summary title="Élève" lines={studentMode === "new" ? [`${student.name} ${student.postnom} ${student.prenom}`, `Matricule : ${generatedStudentCode}`, `Email : ${generatedStudentEmail}`, `Catégorie : ${student.category}`, student.provenanceEcole ? `Provenance : ${student.provenanceEcole}` : "Sans école de provenance"] : [`${userOf(selectedStudent)?.name ?? ""} ${userOf(selectedStudent)?.postnom ?? ""} ${userOf(selectedStudent)?.prenom ?? ""}`.trim() || "Élève existant", `Situation : ${historyLabels[historyOutcome]}`, selectedStudent?.classEnrollment?.[0]?.classe?.nameClasse ? `Dernière classe : ${selectedStudent.classEnrollment[0].classe.nameClasse}` : "Aucune inscription précédente"]} /><Summary title="Parent / tuteur" lines={parentMode === "new" ? [`${parent.name} ${parent.postnom} ${parent.prenom}`, `Code d'accès : ${generatedParentUsername}`, `Téléphone : ${parent.telephone}`, `Email : ${parent.email}`, parent.discountPercentage ? `Remise : ${parent.discountPercentage}%` : "Sans remise"] : [`${userOf(selectedParent)?.name ?? ""} ${userOf(selectedParent)?.postnom ?? ""} ${userOf(selectedParent)?.prenom ?? ""}`.trim() || "Parent existant", userOf(selectedParent)?.telephone ? `Téléphone : ${userOf(selectedParent)?.telephone}` : "Sans téléphone", userOf(selectedParent)?.email ? `Email : ${userOf(selectedParent)?.email}` : "Sans email"]} /><Summary title="Scolarité" lines={[options.schoolYears.find((item: any) => item.id === schoolYearId)?.nameYear ?? "Année non choisie", `Niveau demandé : ${level}`, ...(options.allowsOption ? [options.options.find((item: any) => item.id === optionId)?.nameOption ? `Option : ${options.options.find((item: any) => item.id === optionId)?.nameOption}` : "Sans option"] : [])]} /><Summary title="Affectation" lines={[predictedClass ? `Parallèle : ${predictedClass.nameClasse}` : "Aucune place disponible", predictedClass ? `Places : ${predictedClass.occupied + 1} / ${predictedClass.capacity}` : "Créez une parallèle avant de confirmer", "Inscription protégée contre les doublons"]} /></div></div>}
       </CardContent>
-      <div className="flex items-center justify-between border-t p-6"><Button variant="outline" disabled={step === 0 || loading} onClick={() => setStep((current) => current - 1)}><IconArrowLeft className="mr-2 h-4 w-4" />Précédent</Button>{step < 3 ? <Button onClick={goNext}>Continuer<IconArrowRight className="ml-2 h-4 w-4" /></Button> : <Button disabled={loading} onClick={submit}>{loading ? "Enregistrement…" : "Confirmer l'inscription"}</Button>}</div>
+      <div className="flex items-center justify-between border-t p-6"><Button variant="outline" disabled={step === 0 || loading} onClick={goPrevious}><IconArrowLeft className="mr-2 h-4 w-4" />Précédent</Button>{step < 3 ? <Button onClick={goNext}>Continuer<IconArrowRight className="ml-2 h-4 w-4" /></Button> : <Button disabled={loading} onClick={submit}>{loading ? "Enregistrement…" : "Confirmer l'inscription"}</Button>}</div>
     </Card>
   </div>;
 }
