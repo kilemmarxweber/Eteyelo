@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import {IconReload, IconTrash} from "@tabler/icons-react"
+import { IconArchive, IconReload } from "@tabler/icons-react";
 import { type Row } from "@tanstack/react-table";
 import { toast } from "sonner";
 
@@ -17,7 +17,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { ISection } from "@/src/interfaces/Section";
-import { deleteSectionAction } from "../section.action";
+import { archiveSectionAction } from "../section.action";
 import { useRefresh } from "@/src/hooks/RefreshContext";
 
 interface DeleteSectionsDialogProps
@@ -33,72 +33,76 @@ export function DeleteSectionsDialog({
   Sections,
   ...props
 }: DeleteSectionsDialogProps) {
-  const [isDeletePending, startDeleteTransition] = React.useTransition();
+  const [isArchivePending, startArchiveTransition] = React.useTransition();
 
-  const { refresh } = useRefresh()
-  const handleDelete = async () => {
-    startDeleteTransition(async () => {
+  const { refresh } = useRefresh();
+  const handleArchive = () => {
+    startArchiveTransition(async () => {
+      let hasError = false;
       for (const section of Sections) {
-        try {
-          await deleteSectionAction({
-            id: section.id,
-            codeSection: section.codeSection,
-            nameSection: section.nameSection,
-          })
-        } catch (err) {
-          toast.error(`Failed to delete section ${section.id}: ${err}`);
+        const [, err] = await archiveSectionAction({
+          id: section.id,
+          codeSection: section.codeSection,
+          nameSection: section.nameSection,
+        });
+        if (err) {
+          toast.error(err.message ?? "Erreur lors de l'archivage");
+          hasError = true;
         }
       }
-  
-      onSuccess?.()
-      setTimeout(() => {
-        console.log("Component refreshed")
-        refresh()
-      }, 1000)
+      if (!hasError) {
+        toast.success(
+          Sections.length === 1 ? "Section archivée" : "Sections archivées",
+        );
+        refresh();
+        onSuccess?.();
+        props.onOpenChange?.(false);
+      }
     });
   };
+
+  const count = Sections.length;
 
   return (
     <Dialog {...props}>
       {showTrigger ? (
         <DialogTrigger asChild>
           <Button variant="outline" size="sm">
-            <IconTrash className="mr-2 size-4" aria-hidden="true" />
-            Delete ({Sections.length})
+            <IconArchive className="mr-2 size-4" aria-hidden="true" />
+            Archiver ({count})
           </Button>
         </DialogTrigger>
       ) : null}
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Êtes-vous absolument sûr?</DialogTitle>
+          <DialogTitle>
+            {count === 1
+              ? "Archiver la section ?"
+              : `Archiver ${count} sections ?`}
+          </DialogTitle>
           <DialogDescription>
-            Cette action ne peut pas être annulée.Cela supprimera en permanence
-            votre <span className="font-medium">{Sections.length}</span>
-            {Sections.length === 1 ? " Section" : " Sections"} from our servers.
+            {count === 1
+              ? "La section sera masquée des listes actives mais l'historique sera conservé."
+              : "Ces sections seront masquées des listes actives mais l'historique sera conservé."}
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="gap-2 sm:space-x-0">
           <DialogClose asChild>
-            <Button variant="outline">Cancel</Button>
+            <Button variant="outline">Annuler</Button>
           </DialogClose>
           <Button
-            aria-label="Delete selected rows"
-            variant="destructive"
-            onClick={() => {
-              props.onOpenChange?.(false);
-              toast.success("Sections deleted");
-              onSuccess?.();
-              handleDelete()
-            }}
-            disabled={isDeletePending}
+            aria-label="Archiver la sélection"
+            variant="outline"
+            onClick={handleArchive}
+            disabled={isArchivePending}
           >
-            {isDeletePending && (
+            {isArchivePending && (
               <IconReload
                 className="mr-2 size-4 animate-spin"
                 aria-hidden="true"
               />
             )}
-            Delete
+            Archiver
           </Button>
         </DialogFooter>
       </DialogContent>

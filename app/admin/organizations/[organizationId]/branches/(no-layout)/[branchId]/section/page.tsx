@@ -61,7 +61,7 @@ export default function Sections() {
           </div>
           {/* Liste des sections */}
           <div className="mt-4 border p-1 md:p-6  rounded-lg shadow-md">
-            <SectionList key={refreshKey} />{" "}
+            <SectionList refreshKey={String(refreshKey)} />
             {/* Rafraîchissement de la liste */}
           </div>
         </div>

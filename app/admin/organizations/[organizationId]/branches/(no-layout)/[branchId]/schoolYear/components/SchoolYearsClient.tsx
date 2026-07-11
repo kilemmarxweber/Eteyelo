@@ -16,6 +16,7 @@ import { SchoolYearUpForm } from "./SchoolYear-form";
 import SchoolYearsList from "./SchoolYearsTable";
 import { useRefresh } from "@/src/hooks/RefreshContext";
 import { prepareNextSchoolYearAction } from "../schoolYear.action";
+import { canPrepareNextAcademicYear } from "@/lib/academic-year";
 
 interface Props {
   branchId: string;
@@ -30,6 +31,8 @@ export default function SchoolYearsClient({ branchId }: Props) {
     refresh();
     setOpen(false);
   };
+
+  const canPrepareNextYear = canPrepareNextAcademicYear();
 
   const handlePrepareNextYear = () => {
     startPreparing(async () => {
@@ -46,7 +49,6 @@ export default function SchoolYearsClient({ branchId }: Props) {
           : "Prochaine annee preparee",
       );
       refresh();
-      window.dispatchEvent(new Event("school-year-refresh"));
     });
   };
 
@@ -65,6 +67,12 @@ export default function SchoolYearsClient({ branchId }: Props) {
               type="button"
               variant="outline"
               loading={isPreparing}
+              disabled={!canPrepareNextYear}
+              title={
+                canPrepareNextYear
+                  ? undefined
+                  : "Disponible a partir du mois d'aout"
+              }
               onClick={handlePrepareNextYear}
             >
               Preparer la prochaine annee
@@ -94,7 +102,7 @@ export default function SchoolYearsClient({ branchId }: Props) {
           </div>
 
           <div className="mt-8 border p-1 md:p-6 rounded-lg shadow-md">
-            <SchoolYearsList key={refreshKey} branchId={branchId} />
+            <SchoolYearsList refreshKey={refreshKey} branchId={branchId} />
           </div>
         </div>
       </LayoutBody>

@@ -92,15 +92,19 @@ export const createTeachingAction = action
     return teaching;
   });
 
-export const deleteTeachingAction = action
+export const archiveTeachingAction = action
   .input(teachingSchema.pick({ id: true }))
   .handler(async ({ input }) => {
     const { id } = input;
 
-    return await prisma.teaching.delete({
+    return await prisma.teaching.update({
       where: { id },
+      data: { statusTeaching: false },
     });
   });
+
+/** @deprecated Utiliser archiveTeachingAction */
+export const deleteTeachingAction = archiveTeachingAction;
 
 export const updateTeachingAction = action
   .input(teachingSchema)

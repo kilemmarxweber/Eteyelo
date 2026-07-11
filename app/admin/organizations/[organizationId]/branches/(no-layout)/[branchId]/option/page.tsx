@@ -64,7 +64,7 @@ export default function Options() {
           </div>
           {/* Liste des options */}
           <div className="mt-8 border p-1 md:p-6">
-            <OptionList key={refreshKey} /> {/* Rafraîchissement de la liste */}
+            <OptionList refreshKey={String(refreshKey)} />
           </div>
         </div>
       </LayoutBody>

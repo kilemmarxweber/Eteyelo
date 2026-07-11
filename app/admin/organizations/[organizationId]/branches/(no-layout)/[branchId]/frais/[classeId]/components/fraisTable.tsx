@@ -129,7 +129,7 @@ const FraissList = ({ params }: { params: { classeId: string } }) => {
               className="text-destructive"
             >
               <Trash2 className="mr-2 h-4 w-4" />
-              Supprimer
+              Désactiver
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -162,7 +162,7 @@ const FraissList = ({ params }: { params: { classeId: string } }) => {
         variant: "outline" as const,
       },
       {
-        label: "Supprimer",
+        label: "Désactiver",
         icon: Trash2,
         onClick: () => handleDelete(frais),
         variant: "destructive" as const,

@@ -15,6 +15,8 @@ import {
   canPrepareNextAcademicYear,
   getNextAcademicYearForDate,
 } from "@/lib/academic-year";
+import { buildIsArchivedUpdate } from "@/lib/archive";
+import { canManageOrganization } from "@/lib/auth/session-roles";
 
 function revalidateSchoolYearPages(organizationId: string, branchId: string) {
   revalidatePath(`/admin/organizations/${organizationId}/branches/${branchId}/schoolYear`);
@@ -22,21 +24,35 @@ function revalidateSchoolYearPages(organizationId: string, branchId: string) {
 }
 
 export async function getCurrentBranch() {
-  const { branchId, organizationId, userId } = await requireBranchContext();
+  const { branchId, organizationId, userId, session } =
+    await requireBranchContext();
 
   return {
     branchId,
     organizationId,
     userId,
+    session,
   };
+}
+
+function assertCanManageCurrentSchoolYear(session: unknown) {
+  if (!canManageOrganization(session)) {
+    throw new Error(
+      "Seuls les gestionnaires peuvent modifier l'annee scolaire courante",
+    );
+  }
 }
 
 export const createSchoolYearAction = action
   .input(schoolYearSchema)
   .handler(async ({ input }) => {
-    const { branchId, organizationId } = await getCurrentBranch();
+    const { branchId, organizationId, session } = await getCurrentBranch();
 
     const { nameYear, startYear, endYear, isCurrentYear } = input;
+
+    if (isCurrentYear) {
+      assertCanManageCurrentSchoolYear(session);
+    }
 
     const branch = await prisma.branch.findUnique({
       where: { id: branchId },
@@ -79,11 +95,11 @@ export const createSchoolYearAction = action
     return schoolYear;
   });
 
-//deleteSchoolYear
-export const deleteSchoolYearAction = action
+//archiveSchoolYear
+export const archiveSchoolYearAction = action
   .input(deleteSchoolYearSchema)
   .handler(async ({ input }) => {
-    const { branchId, organizationId } = await getCurrentBranch();
+    const { branchId, organizationId, userId } = await getCurrentBranch();
 
     const schoolYear = await prisma.schoolYear.findFirst({
       where: {
@@ -96,24 +112,37 @@ export const deleteSchoolYearAction = action
       throw new Error("Année scolaire introuvable");
     }
 
-    const deletedSchoolYear = await prisma.schoolYear.delete({
+    if (schoolYear.isCurrentYear) {
+      throw new Error(
+        "Impossible de clôturer l'année scolaire en cours. Définissez d'abord une autre année comme année courante.",
+      );
+    }
+
+    const archivedSchoolYear = await prisma.schoolYear.update({
       where: { id: input.id },
+      data: buildIsArchivedUpdate(userId),
     });
     revalidateSchoolYearPages(organizationId, branchId);
-    return deletedSchoolYear;
+    return archivedSchoolYear;
   });
+
+/** @deprecated Utiliser archiveSchoolYearAction */
+export const deleteSchoolYearAction = archiveSchoolYearAction;
 
 export const getSchoolYearsAction = action
   .input(
     z.object({
       branchId: z.string(),
+      includeArchived: z.boolean().optional(),
     }),
   )
-  .handler(async () => {
+  .handler(async ({ input }) => {
     const { branchId } = await getCurrentBranch();
+    const includeArchived = input.includeArchived ?? false;
     return prisma.schoolYear.findMany({
       where: {
         branchId,
+        ...(includeArchived ? {} : { isArchived: false }),
       },
       orderBy: {
         startYear: "desc",
@@ -125,13 +154,16 @@ export const getSchoolYearsAction1 = action
   .input(
     z.object({
       branchId: z.string(),
+      includeArchived: z.boolean().optional(),
     }),
   )
-  .handler(async () => {
+  .handler(async ({ input }) => {
     const { branchId } = await getCurrentBranch();
+    const includeArchived = input.includeArchived ?? false;
     return prisma.schoolYear.findMany({
       where: {
         branchId,
+        ...(includeArchived ? {} : { isArchived: false }),
       },
       orderBy: {
         nameYear: "desc",
@@ -151,7 +183,9 @@ export const getCurrentSchoolYearAction = action.handler(async () => {
 });
 
 export const prepareNextSchoolYearAction = action.handler(async () => {
-  const { branchId, organizationId } = await getCurrentBranch();
+  const { branchId, organizationId, session } = await getCurrentBranch();
+
+  assertCanManageCurrentSchoolYear(session);
 
   if (!canPrepareNextAcademicYear()) {
     throw new Error("La prochaine annee scolaire peut etre preparee a partir du mois d'aout");
@@ -186,7 +220,7 @@ export const prepareNextSchoolYearAction = action.handler(async () => {
 export const updateSchoolYearAction = action
   .input(schoolYearSchema)
   .handler(async ({ input }) => {
-    const { branchId, organizationId } = await getCurrentBranch();
+    const { branchId, organizationId, session } = await getCurrentBranch();
 
     const { id, nameYear, startYear, endYear, isCurrentYear } = input;
 
@@ -194,9 +228,13 @@ export const updateSchoolYearAction = action
 
     const existing = await prisma.schoolYear.findFirst({
       where: { id, branchId },
-      select: { id: true },
+      select: { id: true, isCurrentYear: true },
     });
     if (!existing) throw new Error("Année scolaire introuvable");
+
+    if (isCurrentYear !== existing.isCurrentYear) {
+      assertCanManageCurrentSchoolYear(session);
+    }
 
     const duplicate = await prisma.schoolYear.findFirst({
       where: {

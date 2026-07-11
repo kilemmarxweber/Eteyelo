@@ -27,18 +27,19 @@ export function UpdateStudentDialog({
   teaching,
   ...props
 }: UpdateStudentDialogProps) {
-  const [open, setOpen] = React.useState(false);
-
   const { refresh } = useRefresh();
+
   const handleUpdate = () => {
-    setTimeout(() => {
-      console.log("Delayed for 1 second.");
-      refresh(); // Rafraîchir le composant UserList
-    }, 1000);
+    refresh();
+    props.onOpenChange?.(false);
+  };
+
+  const handleSuccess = () => {
+    onSuccess?.();
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen} {...props}>
+    <Dialog {...props}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Éditer l'enseignant</DialogTitle>
@@ -49,7 +50,7 @@ export function UpdateStudentDialog({
         </DialogHeader>
         <EnrollmentUpForm
           mode="update"
-          classeId={teaching.classeId} // ✅ AJOUT ICI
+          classeId={teaching.classeId}
           initialData={{
             id: teaching.id ?? "",
             classeId: teaching.classeId ?? "",
@@ -58,7 +59,8 @@ export function UpdateStudentDialog({
             schoolYearId: teaching.schoolYearId ?? "",
             coursId: teaching.coursId ?? "",
           }}
-          onEnrollmentAction={handleUpdate}
+          onUpdated={handleUpdate}
+          onSuccess={handleSuccess}
         />
       </DialogContent>
     </Dialog>

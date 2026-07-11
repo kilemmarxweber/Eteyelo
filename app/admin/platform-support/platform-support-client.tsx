@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Pencil, UserPlus } from "lucide-react";
 import { AutoComplete, type Option } from "@/components/autocomplete";
@@ -60,6 +61,7 @@ function parseSpecialties(value: string) {
 }
 
 export function PlatformSupportAdminClient({ initialAgents }: Props) {
+  const router = useRouter();
   const [agents, setAgents] = useState(initialAgents);
   const [selectedUser, setSelectedUser] = useState<Option | undefined>();
   const [displayTitle, setDisplayTitle] = useState("Support plateforme Klambocore");
@@ -75,6 +77,10 @@ export function PlatformSupportAdminClient({ initialAgents }: Props) {
   const [editImage, setEditImage] = useState("");
   const [editIsLead, setEditIsLead] = useState(false);
   const [editSortOrder, setEditSortOrder] = useState(0);
+
+  useEffect(() => {
+    setAgents(initialAgents);
+  }, [initialAgents]);
 
   const loadCandidates = useCallback(async (query: string) => {
     const trimmed = query.trim();
@@ -141,7 +147,9 @@ export function PlatformSupportAdminClient({ initialAgents }: Props) {
       }
 
       toast.success("Agent support plateforme ajouté.");
-      window.location.reload();
+      setSelectedUser(undefined);
+      setSearchQuery("");
+      router.refresh();
     });
   }
 

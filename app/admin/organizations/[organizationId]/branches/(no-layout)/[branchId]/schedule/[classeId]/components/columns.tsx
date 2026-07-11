@@ -12,6 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { UpdateStudentDialog } from "./edit-Teaching-dialog";
+import { DeleteTeachingsDialog } from "./delete-Teaching-dialog";
 
 import React from "react";
 import { ITeaching } from "@/src/interfaces/Teaching";
@@ -144,15 +145,14 @@ export const columns: ColumnDef<ITeaching>[] = [
             onOpenChange={setShowUpdateTaskSheet}
             teaching={row.original} // Passerlesdonnéesactuellesdel'enseignantonSuccess={() => row.toggleSelected(false)}
           />
-          {/* 
-          <UpdateStudentDialog
+          <DeleteTeachingsDialog
             open={showDeleteTaskDialog}
             onOpenChange={setShowDeleteTaskDialog}
-            users={[row.original]}
+            teaches={[row.original]}
             showTrigger={false}
             onSuccess={() => row.toggleSelected(false)}
           />
- */}
+
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
@@ -170,7 +170,7 @@ export const columns: ColumnDef<ITeaching>[] = [
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onSelect={() => setShowDeleteTaskDialog(true)}>
-                Effacer
+                Désactiver
                 <DropdownMenuShortcut>⌘⌫</DropdownMenuShortcut>
               </DropdownMenuItem>
             </DropdownMenuContent>

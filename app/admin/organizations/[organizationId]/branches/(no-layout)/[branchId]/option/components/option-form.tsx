@@ -36,7 +36,6 @@ import { optionSchema } from "@/src/interfaces/Option";
 import { ISection } from "@/src/interfaces/Section";
 
 interface OptionUpFormProps extends HTMLAttributes<HTMLDivElement> {
-  onOptionAction?: () => void;
   onSuccess?: () => void;
   onCreated?: () => void;
   onUpdated?: () => void;
@@ -46,7 +45,6 @@ interface OptionUpFormProps extends HTMLAttributes<HTMLDivElement> {
 
 export function OptionUpForm({
   className,
-  onOptionAction,
   onSuccess,
   onCreated,
   onUpdated,
@@ -114,7 +112,6 @@ export function OptionUpForm({
         onUpdated?.();
       }
       onSuccess?.();
-      onOptionAction?.();
     } catch (error: any) {
       console.log(error);
       setErrorMessage(error.message ?? "");

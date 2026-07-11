@@ -1,19 +1,9 @@
 "use server";
 
-import fs from "fs/promises";
-import path from "path";
+import type { UploadResponse } from "./upload-file";
+import { saveUploadedFile } from "./upload-file.server";
 
-export type UploadResponse =
-  | {
-      ok: true;
-      fileName: string;
-      url: string;
-    }
-  | {
-      ok: false;
-      message: string;
-    };
-
+/** @deprecated Préférer l'upload client via `/api/upload`. */
 export async function uploadFileAction(
   formData: FormData,
 ): Promise<UploadResponse> {
@@ -27,32 +17,26 @@ export async function uploadFileAction(
       };
     }
 
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
+    const saved = await saveUploadedFile(file);
 
-    const ext = path.extname(file.name);
-
-    const safeName = file.name
-      .replace(ext, "")
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/(^-|-$)+/g, "");
-
-    const fileName = `${Date.now()}-${safeName}${ext}`;
-    const uploadDir = path.join(process.cwd(), "public", "uploads");
-
-    await fs.mkdir(uploadDir, { recursive: true });
-    await fs.writeFile(path.join(uploadDir, fileName), buffer);
+    if (!saved) {
+      return {
+        ok: false,
+        message: "Erreur lors de l'upload du fichier.",
+      };
+    }
 
     return {
       ok: true,
-      fileName,
-      url: `/uploads/${fileName}`,
+      fileName: saved.fileName,
+      url: saved.url,
     };
   } catch {
     return {
       ok: false,
-      message: "Erreur lors de l’upload du fichier.",
+      message: "Erreur lors de l'upload du fichier.",
     };
   }
 }
+
+export type { UploadResponse };

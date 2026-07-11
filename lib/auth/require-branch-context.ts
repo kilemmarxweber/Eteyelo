@@ -23,6 +23,7 @@ export async function requireBranchContext() {
     },
     select: {
       id: true,
+      typebranch: true,
     },
   });
 
@@ -34,6 +35,7 @@ export async function requireBranchContext() {
     userId,
     organizationId,
     branchId,
+    typebranch: branch.typebranch,
     session,
   };
 }

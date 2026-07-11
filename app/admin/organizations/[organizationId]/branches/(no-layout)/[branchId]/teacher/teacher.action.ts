@@ -178,7 +178,7 @@ export const createTeacherAction = action
     }
   });
 
-export const deleteTeacherAction = action
+export const archiveTeacherAction = action
   .input(deleteTeacherSchema)
   .handler(async ({ input }) => {
     const { branchId, canManageTeachers } = await getCurrentBranch();
@@ -198,7 +198,6 @@ export const deleteTeacherAction = action
         },
       },
       include: {
-        teaching: true,
         branchMember: {
           include: {
             member: {
@@ -218,39 +217,31 @@ export const deleteTeacherAction = action
       };
     }
 
-    if (teacher.teaching.length > 0) {
-      return {
-        success: false,
-        message:
-          "Impossible de supprimer cet enseignant car il est affecte a un ou plusieurs enseignements",
-      };
-    }
-
     try {
       const userId = teacher.branchMember?.member?.user?.id;
 
-      await prisma.teacher.delete({
-        where: { id: teacher.id },
-      });
-
       if (userId) {
-        await prisma.user.delete({
+        await prisma.user.update({
           where: { id: userId },
+          data: { statusUser: false },
         });
       }
 
       return {
         success: true,
-        message: "Enseignant supprime avec succes",
+        message: "Enseignant archivé avec succès",
       };
     } catch (error) {
       return {
         success: false,
         message:
-          errMessage(error) || "Erreur lors de la suppression de l'enseignant",
+          errMessage(error) || "Erreur lors de l'archivage de l'enseignant",
       };
     }
   });
+
+/** @deprecated Utiliser archiveTeacherAction */
+export const deleteTeacherAction = archiveTeacherAction;
 
 export const getTeachersAction = action.handler(
   async (): Promise<ITeacher[]> => {

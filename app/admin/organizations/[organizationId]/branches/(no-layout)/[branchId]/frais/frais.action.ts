@@ -1,6 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { revalidatePath } from "next/cache";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
 import type { Prisma } from "@/prisma/generated/prisma/client";
 import { action } from "@/lib/zsa";
@@ -16,6 +17,7 @@ import {
   ensureUniqueIdentifier,
   generateCode,
 } from "@/lib/generated-identifiers";
+import { requireCurrentSchoolYear } from "@/lib/school-year";
 
 type FraisWithRelations = Prisma.FraisGetPayload<{
   include: {
@@ -25,19 +27,9 @@ type FraisWithRelations = Prisma.FraisGetPayload<{
   };
 }>;
 
+
 async function getCurrentBranchSchoolYear(branchId: string) {
-  const currentYear = await prisma.schoolYear.findFirst({
-    where: {
-      isCurrentYear: true,
-      branchId,
-    },
-  });
-
-  if (!currentYear) {
-    throw new Error("Annee scolaire non trouvee pour cette branche");
-  }
-
-  return currentYear;
+  return requireCurrentSchoolYear(branchId);
 }
 
 async function requireClasseInBranch(classeId: string, branchId: string) {
@@ -121,10 +113,14 @@ function mapFrais(frais: FraisWithRelations): IFrais {
   };
 }
 
+function revalidateFraisPages(organizationId: string, branchId: string) {
+  revalidatePath(`/admin/organizations/${organizationId}/branches/${branchId}/frais`);
+}
+
 export const createTypeFraisAction = action
   .input(typeFraisSchema)
   .handler(async ({ input }) => {
-    const { branchId } = await requireBranchContext();
+    const { branchId, organizationId } = await requireBranchContext();
     const { nameType, description, statusType } = input;
     const codeType = await ensureUniqueIdentifier({
       base: generateCode(nameType, "TYPE", 16),
@@ -146,7 +142,7 @@ export const createTypeFraisAction = action
       throw new Error("Ce type de frais existe deja");
     }
 
-    return await prisma.typeFrais.create({
+    const typeFrais = await prisma.typeFrais.create({
       data: {
         codeType,
         nameType,
@@ -157,12 +153,14 @@ export const createTypeFraisAction = action
         },
       },
     });
+    revalidateFraisPages(organizationId, branchId);
+    return typeFrais;
   });
 
 export const updateTypeFraisAction = action
   .input(typeFraisSchema)
   .handler(async ({ input }) => {
-    const { branchId } = await requireBranchContext();
+    const { branchId, organizationId } = await requireBranchContext();
     const { id, nameType, description, statusType } = input;
 
     if (!id) {
@@ -190,7 +188,7 @@ export const updateTypeFraisAction = action
         ),
     });
 
-    return await prisma.typeFrais.update({
+    const typeFrais = await prisma.typeFrais.update({
       where: { id },
       data: {
         codeType,
@@ -199,6 +197,8 @@ export const updateTypeFraisAction = action
         statusType: statusType ?? true,
       },
     });
+    revalidateFraisPages(organizationId, branchId);
+    return typeFrais;
   });
 
 export const getTypeFraisAction = action.handler(
@@ -249,7 +249,7 @@ export const getTypeFraisSettingsAction = action.handler(
 export const createFraisAction = action
   .input(fraisSchema)
   .handler(async ({ input }) => {
-    const { branchId } = await requireBranchContext();
+    const { branchId, organizationId } = await requireBranchContext();
     const {
       nameFrais,
       montantFrais,
@@ -306,13 +306,14 @@ export const createFraisAction = action
       },
     });
 
+    revalidateFraisPages(organizationId, branchId);
     return mapFrais(frais);
   });
 
-export const deleteFrais = action
+export const archiveFrais = action
   .input(deleteFraisSchema)
   .handler(async ({ input }) => {
-    const { branchId } = await requireBranchContext();
+    const { branchId, organizationId } = await requireBranchContext();
 
     const frais = await prisma.frais.findFirst({
       where: {
@@ -325,35 +326,25 @@ export const deleteFrais = action
       throw new Error("Frais introuvable dans cette branche");
     }
 
-    const paiements = await prisma.familyPayment.findMany({
-      where: {
-        fraisId: frais.id,
-        branchId,
-      },
+    const archivedFrais = await prisma.frais.update({
+      where: { id: frais.id },
+      data: { statusFrais: false },
     });
 
-    if (paiements.length > 0) {
-      throw new Error(
-        "Impossible de supprimer ce frais car il a des paiements associes",
-      );
-    }
-
-    const deletedFrais = await prisma.frais.delete({
-      where: {
-        id: frais.id,
-      },
-    });
-
+    revalidateFraisPages(organizationId, branchId);
     return {
-      ...deletedFrais,
-      montantFrais: Number(deletedFrais.montantFrais),
+      ...archivedFrais,
+      montantFrais: Number(archivedFrais.montantFrais),
     };
   });
+
+/** @deprecated Utiliser archiveFrais */
+export const deleteFrais = archiveFrais;
 
 export const updateFraisAction = action
   .input(fraisSchema)
   .handler(async ({ input }) => {
-    const { branchId } = await requireBranchContext();
+    const { branchId, organizationId } = await requireBranchContext();
     const {
       id,
       nameFrais,
@@ -413,6 +404,7 @@ export const updateFraisAction = action
       },
     });
 
+    revalidateFraisPages(organizationId, branchId);
     return mapFrais(frais);
   });
 
@@ -463,7 +455,7 @@ export const getFraisByClassAction = action
 export const statusFraisAction = action
   .input(fraisSchema)
   .handler(async ({ input }) => {
-    const { branchId } = await requireBranchContext();
+    const { branchId, organizationId } = await requireBranchContext();
     const { id, statusFrais } = input;
 
     if (!id) {
@@ -481,10 +473,12 @@ export const statusFraisAction = action
       throw new Error("Frais introuvable dans cette branche");
     }
 
-    return await prisma.frais.update({
+    const updatedFrais = await prisma.frais.update({
       where: { id },
       data: { statusFrais },
     });
+    revalidateFraisPages(organizationId, branchId);
+    return updatedFrais;
   });
 
 export const getFraisByStudent = action

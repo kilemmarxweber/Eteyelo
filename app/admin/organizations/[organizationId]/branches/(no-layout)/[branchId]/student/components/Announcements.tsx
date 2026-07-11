@@ -83,9 +83,10 @@ const Announcements = async () => {
     take: 3,
     orderBy: { dateStart: "desc" },
     where: canReadAll
-      ? { branchId }
+      ? { branchId, isArchived: false }
       : {
           branchId,
+          isArchived: false,
           OR: [
             { classeId: null },
             ...(classIds.length > 0 ? [{ classeId: { in: classIds } }] : []),

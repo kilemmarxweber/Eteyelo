@@ -265,6 +265,9 @@ model Classe {
   id              String            @id @default(cuid())
   codeClasse      String
   nameClasse      String
+  level           String?
+  parallel        String?
+  capacity        Int?
   optionId        String?
   statusClasse    Boolean?
   creneauId       String?
@@ -294,11 +297,15 @@ model Creneau {
   durationCourse     Int
   recreationHour     DateTime @db.Time
   recreationDuration Int
+  isArchived         Boolean  @default(false)
+  archivedAt         DateTime?
+  archivedById       String?
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
   branchId             String
   branch               Branch             @relation(fields: [branchId], references: [id], onDelete: Cascade)
   @@index([branchId])
+  @@index([branchId, isArchived])
   @@unique([branchId, nameCreneau])
   classe Classe[]
 }
@@ -344,6 +351,9 @@ model SchoolYear {
   startYear         DateTime
   endYear           DateTime
   isCurrentYear     Boolean             @default(false)
+  isArchived        Boolean             @default(false)
+  archivedAt        DateTime?
+  archivedById      String?
   classEnrollment   ClassEnrollment[]
   teaching          Teaching[]
   createdAt         DateTime            @default(now())
@@ -358,6 +368,7 @@ model SchoolYear {
   branch               Branch             @relation(fields: [branchId], references: [id], onDelete: Cascade)
   @@index([branchId, startYear, endYear])
   @@index([branchId, isCurrentYear])
+  @@index([branchId, isArchived])
   @@unique([branchId, startYear, endYear])
   @@unique([branchId, nameYear])
 }
@@ -467,11 +478,14 @@ model CoursOptionPonderation {
   @@index([optionId])
 }
 model Schedule {
-  id         String    @id @default(cuid())
-  day        Day
-  hour       DateTime  @db.Time
-  teachingId String?
-  createdBy  String?
+  id           String    @id @default(cuid())
+  day          Day
+  hour         DateTime  @db.Time
+  teachingId   String?
+  createdBy    String?
+  isArchived   Boolean   @default(false)
+  archivedAt   DateTime?
+  archivedById String?
   branchMember       BranchMember?     @relation(fields: [createdBy], references: [id])
   teaching   Teaching? @relation(fields: [teachingId], references: [id])
   createdAt  DateTime  @default(now())
@@ -480,6 +494,7 @@ model Schedule {
   @@unique([day, hour, teachingId], map: "unique_schedule_per_teacher")
   @@index([teachingId])
   @@index([createdBy])
+  @@index([isArchived])
 }
 
 enum Day {
@@ -502,6 +517,9 @@ model CalendarEvent {
   location     String?
   description  String?
   createdBy    String
+  isArchived   Boolean   @default(false)
+  archivedAt   DateTime?
+  archivedById String?
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
   schoolYearId String

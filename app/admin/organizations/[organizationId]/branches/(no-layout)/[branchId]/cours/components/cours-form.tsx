@@ -21,7 +21,6 @@ import { coursSchema } from "@/src/interfaces/Cours";
 import { Textarea } from "@/components/ui/textarea";
 
 interface CoursUpFormProps extends HTMLAttributes<HTMLDivElement> {
-  onCoursAction?: () => void;
   onSuccess?: () => void;
   onCreated?: () => void;
   onUpdated?: () => void;
@@ -31,7 +30,6 @@ interface CoursUpFormProps extends HTMLAttributes<HTMLDivElement> {
 
 export function CoursUpForm({
   className,
-  onCoursAction,
   onSuccess,
   onCreated,
   onUpdated,
@@ -81,7 +79,6 @@ export function CoursUpForm({
         onUpdated?.();
       }
       onSuccess?.();
-      onCoursAction?.();
     } catch (error: any) {
       console.log(error);
       setErrorMessage(error.message ?? "");

@@ -3,10 +3,19 @@
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { action } from "@/lib/zsa";
-import { classeSchema, IClasse } from "@/src/interfaces/Classe";
+import {
+  classeCreateSchema,
+  classeSchema,
+  IClasse,
+} from "@/src/interfaces/Classe";
 import { Prisma } from "@/prisma/generated/prisma/client";
 import { z } from "zod";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
+import {
+  buildClassCode,
+  buildClassName,
+  validateClassInput,
+} from "@/lib/class-structure";
 import {
   ensureUniqueIdentifier,
   generateClassCode,
@@ -17,15 +26,91 @@ function revalidateClassePages(organizationId: string, branchId: string) {
   revalidatePath(`/admin/organizations/${organizationId}/branches/${branchId}/schedule`);
 }
 
-// CREATION DE LA CLASSE
+async function resolveClassIdentity(params: {
+  typebranch: unknown;
+  level?: string | null;
+  parallel?: string | null;
+  optionId?: string | null;
+  nameClasse?: string | null;
+  branchId: string;
+  isLegacy?: boolean;
+}) {
+  const validated = validateClassInput({
+    typebranch: params.typebranch,
+    level: params.level,
+    parallel: params.parallel,
+    optionId: params.optionId,
+    nameClasse: params.nameClasse,
+    isLegacy: params.isLegacy,
+  });
+
+  if (params.isLegacy) {
+    return {
+      nameClasse: validated.nameClasse!,
+      codeBase: generateClassCode(validated.nameClasse!),
+      level: undefined,
+      parallel: validated.parallel ?? null,
+      optionId: validated.optionId ?? null,
+    };
+  }
+
+  const option = validated.optionId
+    ? await prisma.option.findFirst({
+        where: { id: validated.optionId, branchId: params.branchId },
+        select: { id: true, nameOption: true },
+      })
+    : null;
+
+  if (validated.optionId && !option) {
+    throw new Error("Option introuvable dans cette branche");
+  }
+
+  const nameClasse = buildClassName({
+    typebranch: params.typebranch,
+    level: validated.level!,
+    parallel: validated.parallel,
+    optionName: option?.nameOption,
+  });
+
+  const codeBase = buildClassCode({
+    typebranch: params.typebranch,
+    level: validated.level!,
+    parallel: validated.parallel,
+    optionName: option?.nameOption,
+  });
+
+  return {
+    nameClasse,
+    codeBase,
+    level: validated.level,
+    parallel: validated.parallel ?? null,
+    optionId: option?.id ?? null,
+  };
+}
+
+export const getBranchTypeAction = action.handler(async () => {
+  const { typebranch } = await requireBranchContext();
+  return { typebranch };
+});
+
 export const createClasseAction = action
-  .input(classeSchema)
+  .input(classeCreateSchema)
   .handler(async ({ input }) => {
     try {
-      const { branchId, organizationId } = await requireBranchContext();
-      const { nameClasse, optionId, statusClasse, creneauId } = input;
+      const { branchId, organizationId, typebranch } =
+        await requireBranchContext();
+      const { statusClasse, creneauId, capacity } = input;
+
+      const identity = await resolveClassIdentity({
+        typebranch,
+        level: input.level,
+        parallel: input.parallel,
+        optionId: input.optionId,
+        branchId,
+      });
+
       const codeClasse = await ensureUniqueIdentifier({
-        base: generateClassCode(nameClasse),
+        base: identity.codeBase,
         separator: "",
         exists: async (value) =>
           Boolean(
@@ -35,41 +120,35 @@ export const createClasseAction = action
             }),
           ),
       });
+
       const duplicate = await prisma.classe.findFirst({
-        where: { branchId, nameClasse },
+        where: { branchId, nameClasse: identity.nameClasse },
         select: { id: true },
       });
       if (duplicate) {
         throw new Error("La classe existe deja dans cette branche");
       }
 
-      const [option, creneau] = await Promise.all([
-        optionId
-          ? prisma.option.findFirst({
-              where: { id: optionId, branchId },
-              select: { id: true },
-            })
-          : null,
-        creneauId
-          ? prisma.creneau.findFirst({
-              where: { id: creneauId, branchId },
-              select: { id: true },
-            })
-          : null,
-      ]);
-
-      if (optionId && !option) {
-        throw new Error("Option introuvable dans cette branche");
-      }
-
-      if (creneauId && !creneau) {
-        throw new Error("Creneau introuvable dans cette branche");
+      if (creneauId) {
+        const creneau = await prisma.creneau.findFirst({
+          where: { id: creneauId, branchId },
+          select: { id: true },
+        });
+        if (!creneau) {
+          throw new Error("Creneau introuvable dans cette branche");
+        }
       }
 
       const classe = await prisma.classe.create({
         data: {
-          ...input,
+          nameClasse: identity.nameClasse,
           codeClasse,
+          level: identity.level,
+          parallel: identity.parallel,
+          capacity: capacity ?? null,
+          optionId: identity.optionId,
+          statusClasse,
+          creneauId: creneauId || null,
           branchId,
         },
       });
@@ -77,29 +156,73 @@ export const createClasseAction = action
       return classe;
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        // Vérifier si c'est une erreur P2002 (contrainte d'unicité)
         if (error.code === "P2002") {
           console.error(
-            "Erreur : la contrainte d'unicité a échoué sur les champs suivants :",
+            "Erreur : la contrainte d'unicite a echoue sur les champs suivants :",
             error.meta?.target,
           );
-          // Gérez l'erreur ici, par exemple en retournant un message d'erreur à l'utilisateur
           return {
             status: "error",
-            message: `Une entrée avec ce ${
+            message: `Une entree avec ce ${
               Array.isArray(error.meta?.target)
                 ? error.meta.target[0]
                 : "champ inconnu"
-            } existe déjà. Veuillez utiliser une autre valeur.`,
+            } existe deja. Veuillez utiliser une autre valeur.`,
           };
         }
       } else {
-        // Gérer d'autres erreurs ici
         throw error;
       }
     }
   });
-//SELECT ALL CLASSE
+
+function transformClasse(classe: any): IClasse {
+  return {
+    ...classe,
+    optionId: classe.optionId || "",
+    nameOption: classe?.option?.nameOption || "",
+    codeOption: classe?.option?.codeOption || "",
+    codeClasse: classe?.codeClasse || "",
+    nameClasse: classe.nameClasse || "",
+    level: classe.level ?? null,
+    parallel: classe.parallel ?? null,
+    capacity: classe.capacity ?? null,
+    statusClasse: classe.statusClasse ?? true,
+    creneauId: classe.creneauId || "",
+    nameCreneau: classe.creneau?.nameCreneau || "",
+    creneau: classe.creneau
+      ? {
+          ...classe.creneau,
+          nameCreneau: classe.creneau.nameCreneau || "",
+          startTime: classe.creneau.startTime
+            ? classe.creneau.startTime.toISOString().split("T")[1].slice(0, 5)
+            : new Date().toISOString().split("T")[1].slice(0, 5),
+          endTime: classe.creneau.endTime
+            ? classe.creneau.endTime.toISOString().split("T")[1].slice(0, 5)
+            : "",
+          durationCourse: classe.creneau.durationCourse,
+          recreationDuration: classe.creneau.recreationDuration,
+          recreationHour: classe.creneau.recreationHour
+            ? classe.creneau.recreationHour
+                .toISOString()
+                .split("T")[1]
+                .slice(0, 5)
+            : "",
+        }
+      : undefined,
+    option: classe.option
+      ? {
+          ...classe.option,
+          sectionId: classe.option.sectionId || "",
+          codeSection: "",
+          nameSection: "",
+          statusSection: true,
+          statusOption: classe.option.statusOption ?? true,
+        }
+      : undefined,
+  };
+}
+
 export const getClassesAction = action.handler(async (): Promise<IClasse[]> => {
   try {
     const { branchId } = await requireBranchContext();
@@ -110,53 +233,12 @@ export const getClassesAction = action.handler(async (): Promise<IClasse[]> => {
         creneau: true,
       },
     });
-    const tranformedClasses: IClasse[] = classes.map((classe: any) => ({
-      ...classe,
-      optionId: classe.optionId || "",
-      nameOption: classe?.option?.nameOption || "",
-      codeOption: classe?.option?.codeOption || "",
-      codeClasse: classe?.codeClasse || "",
-      nameClasse: classe.nameClasse || "",
-      statusClasse: classe.statusClasse || true,
-      creneauId: classe.creneauId || "",
-      nameCreneau: classe.creneau?.nameCreneau || "",
-      creneau: classe.creneau
-        ? {
-            ...classe.creneau,
-            nameCreneau: classe.creneau.nameCreneau || "",
-            startTime: classe.creneau.startTime
-              ? classe.creneau.startTime.toISOString().split("T")[1].slice(0, 5)
-              : new Date().toISOString().split("T")[1].slice(0, 5),
-            endTime: classe.creneau.endTime
-              ? classe.creneau.endTime.toISOString().split("T")[1].slice(0, 5)
-              : "",
-            durationCourse: classe.creneau.durationCourse,
-            recreationDuration: classe.creneau.recreationDuration,
-            recreationHour: classe.creneau.recreationHour
-              ? classe.creneau.recreationHour
-                  .toISOString()
-                  .split("T")[1]
-                  .slice(0, 5)
-              : "",
-          }
-        : undefined,
-      option: classe.option
-        ? {
-            ...classe.option,
-            sectionId: classe.option.sectionId || "",
-            codeSection: "",
-            nameSection: "",
-            statusSection: true,
-            statusOption: classe.option.statusOption || true,
-          }
-        : undefined,
-    }));
-    return tranformedClasses;
+    return classes.map(transformClasse);
   } catch (error: any) {
     throw new Error(error.message);
   }
 });
-//SELECT CLASSE BY ID
+
 export const getClassesByIdAction = action
   .input(
     z.object({
@@ -175,68 +257,50 @@ export const getClassesByIdAction = action
           branchId,
         },
       });
-      const tranformedClasses: IClasse[] = classes.map((classe: any) => ({
-        ...classe,
-        optionId: classe.optionId || "",
-        nameOption: classe?.option?.nameOption || "",
-        codeOption: classe?.option?.codeOption || "",
-        codeClasse: classe?.codeClasse || "",
-        nameClasse: classe.nameClasse || "",
-        statusClasse: classe.statusClasse || true,
-        creneauId: classe.creneauId || "",
-
-        option: classe.option
-          ? {
-              ...classe.option,
-              sectionId: classe.option.sectionId || "",
-              codeSection: "",
-              nameSection: "",
-              statusSection: true,
-              statusOption: classe.option.statusOption || true,
-            }
-          : undefined,
-      }));
-      return tranformedClasses;
+      return classes.map(transformClasse);
     } catch (error: any) {
       throw new Error(error.message);
     }
   });
 
-//UPDATE CLASSE
 export const updateClasseAction = action
   .input(classeSchema)
   .handler(async ({ input }) => {
-    const { branchId, organizationId } = await requireBranchContext();
-    const { nameClasse, id, optionId, statusClasse, creneauId } = input;
+    const { branchId, organizationId, typebranch } =
+      await requireBranchContext();
+    const { id, statusClasse, creneauId, capacity } = input;
+    if (!id) throw new Error("Identifiant de classe manquant");
+
     const existing = await prisma.classe.findFirst({
       where: { id, branchId },
-      select: { id: true },
+      select: { id: true, level: true },
     });
     if (!existing) throw new Error("Classe introuvable dans cette branche");
-    const [option, creneau] = await Promise.all([
-      optionId
-        ? prisma.option.findFirst({
-            where: { id: optionId, branchId },
-            select: { id: true },
-          })
-        : null,
-      creneauId
-        ? prisma.creneau.findFirst({
-            where: { id: creneauId, branchId },
-            select: { id: true },
-          })
-        : null,
-    ]);
 
-    if (optionId && !option) {
-      throw new Error("Option introuvable dans cette branche");
+    const isLegacy = !existing.level && !input.level;
+
+    const identity = await resolveClassIdentity({
+      typebranch,
+      level: input.level?.trim() || existing.level,
+      parallel: input.parallel,
+      optionId: input.optionId,
+      nameClasse: input.nameClasse,
+      branchId,
+      isLegacy,
+    });
+
+    if (creneauId) {
+      const creneau = await prisma.creneau.findFirst({
+        where: { id: creneauId, branchId },
+        select: { id: true },
+      });
+      if (!creneau) {
+        throw new Error("Creneau introuvable dans cette branche");
+      }
     }
 
-    if (creneauId && !creneau) {
-      throw new Error("Creneau introuvable dans cette branche");
-    }
     const codeClasse = await ensureUniqueIdentifier({
-      base: generateClassCode(nameClasse),
+      base: identity.codeBase,
       separator: "",
       exists: async (value) =>
         Boolean(
@@ -248,52 +312,67 @@ export const updateClasseAction = action
     });
 
     const duplicate = await prisma.classe.findFirst({
-      where: { branchId, nameClasse, id: { not: id } },
+      where: { branchId, nameClasse: identity.nameClasse, id: { not: id } },
       select: { id: true },
     });
     if (duplicate) throw new Error("La classe existe deja dans cette branche");
 
     const updatedClasse = await prisma.classe.update({
-      where: {
-        id,
-      },
+      where: { id },
       data: {
-        nameClasse,
+        nameClasse: identity.nameClasse,
         codeClasse,
-        optionId,
+        level: identity.level ?? null,
+        parallel: identity.parallel ?? null,
+        capacity: capacity ?? null,
+        optionId: identity.optionId,
         statusClasse,
-        creneauId,
+        creneauId: creneauId || null,
       },
     });
     revalidateClassePages(organizationId, branchId);
     return updatedClasse;
   });
-//DELETE CLASSE
-export const deleteClasseAction = action
+
+export const archiveClasseAction = action
   .input(classeSchema)
   .handler(async ({ input }) => {
     const { branchId, organizationId } = await requireBranchContext();
     const { id } = input;
 
-    const existClass = await prisma.classe.findMany({
-      where: {
-        id,
-        branchId,
-      },
+    const existClass = await prisma.classe.findFirst({
+      where: { id, branchId },
+      select: { id: true },
     });
-    if (existClass.length === 0) {
+    if (!existClass) {
       throw new Error("La classe n'existe pas");
     }
-    const deletedClasse = await prisma.classe.delete({
+
+    const activeEnrollments = await prisma.classEnrollment.count({
       where: {
-        id,
+        classeId: id,
+        branchId,
+        statusEnrollment: true,
       },
     });
+
+    if (activeEnrollments > 0) {
+      throw new Error(
+        "Impossible d'archiver cette classe : des inscriptions actives existent. Annulez-les ou cloturez-les d'abord.",
+      );
+    }
+
+    const archivedClasse = await prisma.classe.update({
+      where: { id },
+      data: { statusClasse: false },
+    });
     revalidateClassePages(organizationId, branchId);
-    return deletedClasse;
+    return archivedClasse;
   });
 
-//STATUS CLASSE
+/** @deprecated Utiliser archiveClasseAction */
+export const deleteClasseAction = archiveClasseAction;
+
 export const statusClasseAction = action
   .input(classeSchema)
   .handler(async ({ input }) => {

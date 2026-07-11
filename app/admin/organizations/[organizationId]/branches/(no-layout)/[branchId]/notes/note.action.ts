@@ -5,6 +5,7 @@ import { FicheTypes } from "@/lib/types";
 import { v4 as uuidv4 } from "uuid";
 import { ORG_ROLE } from "@/lib/permissions";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
+import { getSchoolYear as getCurrentSchoolYear } from "@/lib/school-year";
 import {
   canManageOrganization,
   hasSessionRole,
@@ -20,10 +21,7 @@ import {
 } from "@/lib/course-ponderation";
 
 export async function getSchoolYear() {
-  const { branchId } = await requireBranchContext();
-  return await prisma.schoolYear.findFirst({
-    where: { isCurrentYear: true, branchId },
-  });
+  return getCurrentSchoolYear();
 }
 export async function getStudentsByClass(
   classId: string,

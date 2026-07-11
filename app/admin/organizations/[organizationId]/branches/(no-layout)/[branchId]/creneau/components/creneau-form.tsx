@@ -2,10 +2,10 @@
 import { HTMLAttributes, useState, useEffect } from "react";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -14,22 +14,17 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/custom/button";
 import { cn } from "@/lib/utils";
-import { toast } from "sonner";
-import { useTheme } from "next-themes";
+import { toast } from "@/components/ui/sonner";
+import { Coffee } from "lucide-react";
 import { createCreneauAction, updateCreneauAction } from "../creneau.action";
-import { creneauSchema } from "@/src/interfaces/creneau";
+import {
+  creneauSchema,
+  defaultCreneauValues,
+  type CreneauFormValues,
+} from "@/src/interfaces/creneau";
 
-// Fonction pour convertir une chaîne de caractères HH:MM en objet Date
-type CreneauFormValues = z.infer<typeof creneauSchema>;
-
-// Fonction pour convertir un objet Date en chaîne de caractères HH:MM
 const emptyCreneauValues = (): CreneauFormValues => ({
-  nameCreneau: "",
-  startTime: "",
-  endTime: "",
-  durationCourse: undefined as unknown as number,
-  recreationHour: "",
-  recreationDuration: undefined as unknown as number,
+  ...defaultCreneauValues,
 });
 
 const normalizeCreneauValues = (
@@ -41,10 +36,16 @@ const normalizeCreneauValues = (
   startTime: initialData?.startTime ?? "",
   endTime: initialData?.endTime ?? "",
   durationCourse:
-    initialData?.durationCourse ?? (undefined as unknown as number),
+    typeof initialData?.durationCourse === "number" &&
+    Number.isFinite(initialData.durationCourse)
+      ? initialData.durationCourse
+      : defaultCreneauValues.durationCourse,
   recreationHour: initialData?.recreationHour ?? "",
   recreationDuration:
-    initialData?.recreationDuration ?? (undefined as unknown as number),
+    typeof initialData?.recreationDuration === "number" &&
+    Number.isFinite(initialData.recreationDuration)
+      ? initialData.recreationDuration
+      : defaultCreneauValues.recreationDuration,
 });
 
 const controlledTime = (value: unknown) =>
@@ -53,11 +54,11 @@ const controlledTime = (value: unknown) =>
 const controlledNumber = (value: unknown) =>
   typeof value === "number" && Number.isFinite(value) ? value : "";
 
-const toOptionalPositiveInteger = (value: string) => {
-  if (value === "") return undefined;
+const toFormNumber = (value: string, fallback: number) => {
+  if (value === "") return fallback;
 
   const parsed = Number(value);
-  return Number.isFinite(parsed) ? parsed : undefined;
+  return Number.isFinite(parsed) ? parsed : fallback;
 };
 
 interface CreneauUpFormProps extends HTMLAttributes<HTMLDivElement> {
@@ -65,7 +66,7 @@ interface CreneauUpFormProps extends HTMLAttributes<HTMLDivElement> {
   onSuccess?: () => void;
   onCreated?: () => void;
   onUpdated?: () => void;
-  initialData?: z.infer<typeof creneauSchema>;
+  initialData?: Partial<CreneauFormValues>;
   mode: "create" | "update";
 }
 
@@ -82,24 +83,22 @@ export function CreneauUpForm({
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
-  const form = useForm<z.infer<typeof creneauSchema>>({
+  const form = useForm<CreneauFormValues>({
     resolver: zodResolver(creneauSchema),
     defaultValues: normalizeCreneauValues(initialData),
   });
 
   useEffect(() => {
     form.reset(normalizeCreneauValues(initialData));
-  }, [form, initialData]);
+  }, [form, mode, initialData?.id]);
 
-  const onSubmit: SubmitHandler<z.infer<typeof creneauSchema>> = async (
-    data,
-  ) => {
+  const onSubmit: SubmitHandler<CreneauFormValues> = async (data) => {
     setIsLoading(true);
     setErrorMessage("");
 
     try {
       if (mode === "create") {
-        const [creneau, err] = await createCreneauAction({
+        const [, err] = await createCreneauAction({
           ...data,
         });
         if (err) {
@@ -107,7 +106,7 @@ export function CreneauUpForm({
         }
         toast.success("Vacation créée avec succès");
       } else {
-        const [creneau, err] = await updateCreneauAction({
+        const [, err] = await updateCreneauAction({
           ...data,
         });
         if (err) {
@@ -124,170 +123,195 @@ export function CreneauUpForm({
       }
       onSuccess?.();
       onCreneauAction?.();
-    } catch (error: any) {
-      console.log(error);
-      setErrorMessage(error.message ?? "");
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error ? error.message : "Une erreur est survenue";
+      setErrorMessage(message);
       toast.error(
         mode === "create"
-          ? error.message || "Échec de la création de le creneau"
-          : error.message || "Échec de la mise à jour de le creneau",
+          ? message || "Échec de la création de la vacation"
+          : message || "Échec de la mise à jour de la vacation",
       );
     } finally {
       setIsLoading(false);
     }
   };
 
-  const { theme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => setMounted(true), []);
-
   return (
     <div className={cn("grid gap-6", className)} {...props}>
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)}>
-          <div className="w-full max-w-md mx-auto grid gap-2">
-            <FormField
-              control={form.control}
-              name="nameCreneau"
-              render={({ field }) => (
-                <FormItem className="space-y-1">
-                  <FormLabel>Nom de la vacation</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="Le nom de le creneau"
-                      {...field}
-                      value={field.value ?? ""}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <div className="flex space-x-2">
-              <div className="flex-1">
-                <FormField
-                  control={form.control}
-                  name="startTime"
-                  render={({ field }) => (
-                    <FormItem className="space-y-2">
-                      <FormLabel>Debut</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="time"
-                          placeholder="Début"
-                          {...field}
-                          value={controlledTime(field.value)}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              <div className="flex-1">
-                <FormField
-                  control={form.control}
-                  name="endTime"
-                  render={({ field }) => (
-                    <FormItem className="space-y-2">
-                      <FormLabel>Fin</FormLabel>{" "}
-                      <FormControl>
-                        <Input
-                          type="time"
-                          placeholder="Fin"
-                          {...field}
-                          value={controlledTime(field.value)}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              <div className="flex-1">
-                <FormField
-                  control={form.control}
-                  name="durationCourse"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Durée</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          placeholder="Durée en minutes"
-                          {...field}
-                          value={controlledNumber(field.value)}
-                          onChange={(e) =>
-                            field.onChange(
-                              toOptionalPositiveInteger(e.target.value),
-                            )
-                          }
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </div>
-            <div className="flex space-x-2">
-              <div className="flex-1">
-                <FormField
-                  control={form.control}
-                  name="recreationHour"
-                  render={({ field }) => (
-                    <FormItem className="space-y-2">
-                      <FormLabel>Heure de récré</FormLabel>{" "}
-                      <FormControl>
-                        <Input
-                          type="time"
-                          placeholder="Fin"
-                          {...field}
-                          value={controlledTime(field.value)}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              <div className="flex-1">
-                <FormField
-                  control={form.control}
-                  name="recreationDuration"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Durée de la récréation</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          placeholder="Durée en minutes"
-                          {...field}
-                          value={controlledNumber(field.value)}
-                          onChange={(e) =>
-                            field.onChange(
-                              toOptionalPositiveInteger(e.target.value),
-                            )
-                          }
-                        />
-                      </FormControl>
-
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </div>
-            <Button className="mt-2" loading={isLoading}>
-              {mode === "create"
-                ? "Enregistrer la vacation"
-                : "Mettre à jour la vacation"}
-            </Button>
-            {errorMessage && (
-              <p className="mt-2 text-center text-red-500">{errorMessage}</p>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <FormField
+            control={form.control}
+            name="nameCreneau"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Nom de la vacation</FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="Ex. Matinée, Après-midi..."
+                    {...field}
+                    value={field.value ?? ""}
+                  />
+                </FormControl>
+                <FormDescription>
+                  Identifiant affiché dans les listes et les emplois du temps.
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
             )}
+          />
+
+          <div className="space-y-4">
+            <div>
+              <h3 className="text-sm font-medium">Horaires de la vacation</h3>
+              <p className="text-sm text-muted-foreground">
+                Plage horaire couverte par cette vacation.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <FormField
+                control={form.control}
+                name="startTime"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Heure de début</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="time"
+                        {...field}
+                        value={controlledTime(field.value)}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="endTime"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Heure de fin</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="time"
+                        {...field}
+                        value={controlledTime(field.value)}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
           </div>
+
+          <FormField
+            control={form.control}
+            name="durationCourse"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Durée d&apos;un cours (minutes)</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    placeholder="Durée du cours en minutes"
+                    {...field}
+                    value={controlledNumber(field.value)}
+                    onChange={(e) =>
+                      field.onChange(
+                        toFormNumber(
+                          e.target.value,
+                          defaultCreneauValues.durationCourse,
+                        ),
+                      )
+                    }
+                  />
+                </FormControl>
+                <FormDescription>
+                  Durée standard d&apos;une période de cours dans cette
+                  vacation.
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <div className="rounded-xl border border-dashed bg-muted/30 p-4 sm:p-5">
+            <div className="mb-4 flex items-center gap-2">
+              <span className="flex size-8 items-center justify-center rounded-full bg-background text-muted-foreground shadow-sm">
+                <Coffee className="size-4" />
+              </span>
+              <div>
+                <h3 className="text-sm font-medium">Récréation</h3>
+                <p className="text-sm text-muted-foreground">
+                  Pause prévue au milieu de la vacation.
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <FormField
+                control={form.control}
+                name="recreationHour"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Heure de la récréation</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="time"
+                        {...field}
+                        value={controlledTime(field.value)}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="recreationDuration"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Durée (minutes)</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        placeholder="Durée de la récréation en minutes"
+                        {...field}
+                        value={controlledNumber(field.value)}
+                        onChange={(e) =>
+                          field.onChange(
+                            toFormNumber(
+                              e.target.value,
+                              defaultCreneauValues.recreationDuration,
+                            ),
+                          )
+                        }
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          </div>
+
+          <Button className="w-full" loading={isLoading}>
+            {mode === "create"
+              ? "Enregistrer la vacation"
+              : "Mettre à jour la vacation"}
+          </Button>
+
+          {errorMessage && (
+            <p className="text-center text-sm text-destructive" role="alert">
+              {errorMessage}
+            </p>
+          )}
         </form>
       </Form>
     </div>

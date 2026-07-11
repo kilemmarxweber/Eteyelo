@@ -6,7 +6,7 @@ export default function Classes({ refreshKey = 0 }: { refreshKey?: number }) {
   //   if (!canRead()) {
   return (
     <Card variant="elevated" padding="none" className="animate-fade-in">
-      <ClasseList key={refreshKey} />
+      <ClasseList refreshKey={refreshKey} />
     </Card>
   );
 }

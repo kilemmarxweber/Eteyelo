@@ -153,7 +153,8 @@ export default function CoursPonderationOptionPage() {
                       coursId={item.id}
                       optionId={selectedOptionId}
                       defaultPonderation={ponderation?.ponderation ?? 1}
-                      onSaved={upsertLocal}
+                      onCreated={upsertLocal}
+                      onUpdated={upsertLocal}
                     />
                   ) : null}
                 </div>

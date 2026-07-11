@@ -28,9 +28,20 @@ import {
 import { Calendar } from "@/components/ui/calendar";
 import { schoolYearSchema } from "@/src/interfaces/SchoolYear";
 import { IconCalendar } from "@tabler/icons-react";
+import { getAcademicYearForDate } from "@/lib/academic-year";
+
+function getCreateDefaultValues() {
+  const academicYear = getAcademicYearForDate();
+
+  return {
+    nameYear: academicYear.nameYear,
+    startYear: academicYear.startYear,
+    endYear: academicYear.endYear,
+    isCurrentYear: false,
+  };
+}
 
 interface SchoolYearUpFormProps extends HTMLAttributes<HTMLDivElement> {
-  onSchoolYearAction?: () => void;
   onSuccess?: () => void;
   onCreated?: () => void;
   onUpdated?: () => void;
@@ -41,7 +52,6 @@ interface SchoolYearUpFormProps extends HTMLAttributes<HTMLDivElement> {
 
 export function SchoolYearUpForm({
   className,
-  onSchoolYearAction,
   onSuccess,
   onCreated,
   onUpdated,
@@ -55,12 +65,7 @@ export function SchoolYearUpForm({
 
   const form = useForm<z.infer<typeof schoolYearSchema>>({
     resolver: zodResolver(schoolYearSchema) as any,
-    defaultValues: {
-      nameYear: "",
-      startYear: new Date(),
-      endYear: new Date(),
-      isCurrentYear: false,
-    },
+    defaultValues: getCreateDefaultValues(),
   });
   async function onSubmit(data: z.infer<typeof schoolYearSchema>) {
     setIsLoading(true);
@@ -103,19 +108,12 @@ export function SchoolYearUpForm({
       );
 
       if (mode === "create") {
-        form.reset({
-          nameYear: "",
-          startYear: new Date(),
-          endYear: new Date(),
-          isCurrentYear: false,
-        });
+        form.reset(getCreateDefaultValues());
         onCreated?.();
       } else {
         onUpdated?.();
       }
-      window.dispatchEvent(new Event("school-year-refresh"));
       onSuccess?.();
-      onSchoolYearAction?.();
     } catch (error: any) {
       setErrorMessage(error.message);
       toast.error(error.message);

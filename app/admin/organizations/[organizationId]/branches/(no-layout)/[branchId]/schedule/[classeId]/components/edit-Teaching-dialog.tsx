@@ -47,17 +47,7 @@ export function UpdateStudentDialog({
             lorsque vous êtes fait.
           </DialogDescription>
         </DialogHeader>
-        {/* <EnrollmentUpForm
-          mode="update"
-          initialData={{
-            id: teaching.id ?? "",
-            classeId: teaching.classeId ?? "",
-            teacherId: teaching.teacherId ?? "",
-            titulaire: teaching.titulaire,
-            schoolYearId: teaching.schoolYearId ?? "",
-          }} // Pass the teaching data for editing
-          onEnrollmentAction={handleUpdate}
-        /> */}
+        {/* EnrollmentUpForm placeholder - wire onUpdated when form is enabled */}
       </DialogContent>
     </Dialog>
   );

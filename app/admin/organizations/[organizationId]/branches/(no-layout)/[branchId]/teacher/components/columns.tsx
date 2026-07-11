@@ -225,7 +225,7 @@ export const createTeacherColumns = (
                   <DropdownMenuItem
                     onSelect={() => setShowDeleteTaskDialog(true)}
                   >
-                    Delete
+                    Archiver
                     <DropdownMenuShortcut>Del</DropdownMenuShortcut>
                   </DropdownMenuItem>
                 </>

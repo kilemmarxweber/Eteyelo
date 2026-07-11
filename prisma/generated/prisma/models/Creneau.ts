@@ -44,6 +44,9 @@ export type CreneauMinAggregateOutputType = {
   durationCourse: number | null
   recreationHour: Date | null
   recreationDuration: number | null
+  isArchived: boolean | null
+  archivedAt: Date | null
+  archivedById: string | null
   createdAt: Date | null
   updatedAt: Date | null
   branchId: string | null
@@ -57,6 +60,9 @@ export type CreneauMaxAggregateOutputType = {
   durationCourse: number | null
   recreationHour: Date | null
   recreationDuration: number | null
+  isArchived: boolean | null
+  archivedAt: Date | null
+  archivedById: string | null
   createdAt: Date | null
   updatedAt: Date | null
   branchId: string | null
@@ -70,6 +76,9 @@ export type CreneauCountAggregateOutputType = {
   durationCourse: number
   recreationHour: number
   recreationDuration: number
+  isArchived: number
+  archivedAt: number
+  archivedById: number
   createdAt: number
   updatedAt: number
   branchId: number
@@ -95,6 +104,9 @@ export type CreneauMinAggregateInputType = {
   durationCourse?: true
   recreationHour?: true
   recreationDuration?: true
+  isArchived?: true
+  archivedAt?: true
+  archivedById?: true
   createdAt?: true
   updatedAt?: true
   branchId?: true
@@ -108,6 +120,9 @@ export type CreneauMaxAggregateInputType = {
   durationCourse?: true
   recreationHour?: true
   recreationDuration?: true
+  isArchived?: true
+  archivedAt?: true
+  archivedById?: true
   createdAt?: true
   updatedAt?: true
   branchId?: true
@@ -121,6 +136,9 @@ export type CreneauCountAggregateInputType = {
   durationCourse?: true
   recreationHour?: true
   recreationDuration?: true
+  isArchived?: true
+  archivedAt?: true
+  archivedById?: true
   createdAt?: true
   updatedAt?: true
   branchId?: true
@@ -221,6 +239,9 @@ export type CreneauGroupByOutputType = {
   durationCourse: number
   recreationHour: Date
   recreationDuration: number
+  isArchived: boolean
+  archivedAt: Date | null
+  archivedById: string | null
   createdAt: Date
   updatedAt: Date
   branchId: string
@@ -257,6 +278,9 @@ export type CreneauWhereInput = {
   durationCourse?: Prisma.IntFilter<"Creneau"> | number
   recreationHour?: Prisma.DateTimeFilter<"Creneau"> | Date | string
   recreationDuration?: Prisma.IntFilter<"Creneau"> | number
+  isArchived?: Prisma.BoolFilter<"Creneau"> | boolean
+  archivedAt?: Prisma.DateTimeNullableFilter<"Creneau"> | Date | string | null
+  archivedById?: Prisma.StringNullableFilter<"Creneau"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Creneau"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Creneau"> | Date | string
   branchId?: Prisma.StringFilter<"Creneau"> | string
@@ -272,6 +296,9 @@ export type CreneauOrderByWithRelationInput = {
   durationCourse?: Prisma.SortOrder
   recreationHour?: Prisma.SortOrder
   recreationDuration?: Prisma.SortOrder
+  isArchived?: Prisma.SortOrder
+  archivedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  archivedById?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   branchId?: Prisma.SortOrder
@@ -291,6 +318,9 @@ export type CreneauWhereUniqueInput = Prisma.AtLeast<{
   durationCourse?: Prisma.IntFilter<"Creneau"> | number
   recreationHour?: Prisma.DateTimeFilter<"Creneau"> | Date | string
   recreationDuration?: Prisma.IntFilter<"Creneau"> | number
+  isArchived?: Prisma.BoolFilter<"Creneau"> | boolean
+  archivedAt?: Prisma.DateTimeNullableFilter<"Creneau"> | Date | string | null
+  archivedById?: Prisma.StringNullableFilter<"Creneau"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Creneau"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Creneau"> | Date | string
   branchId?: Prisma.StringFilter<"Creneau"> | string
@@ -306,6 +336,9 @@ export type CreneauOrderByWithAggregationInput = {
   durationCourse?: Prisma.SortOrder
   recreationHour?: Prisma.SortOrder
   recreationDuration?: Prisma.SortOrder
+  isArchived?: Prisma.SortOrder
+  archivedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  archivedById?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   branchId?: Prisma.SortOrder
@@ -327,6 +360,9 @@ export type CreneauScalarWhereWithAggregatesInput = {
   durationCourse?: Prisma.IntWithAggregatesFilter<"Creneau"> | number
   recreationHour?: Prisma.DateTimeWithAggregatesFilter<"Creneau"> | Date | string
   recreationDuration?: Prisma.IntWithAggregatesFilter<"Creneau"> | number
+  isArchived?: Prisma.BoolWithAggregatesFilter<"Creneau"> | boolean
+  archivedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Creneau"> | Date | string | null
+  archivedById?: Prisma.StringNullableWithAggregatesFilter<"Creneau"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Creneau"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Creneau"> | Date | string
   branchId?: Prisma.StringWithAggregatesFilter<"Creneau"> | string
@@ -340,6 +376,9 @@ export type CreneauCreateInput = {
   durationCourse: number
   recreationHour: Date | string
   recreationDuration: number
+  isArchived?: boolean
+  archivedAt?: Date | string | null
+  archivedById?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   branch: Prisma.BranchCreateNestedOneWithoutCreneauInput
@@ -354,6 +393,9 @@ export type CreneauUncheckedCreateInput = {
   durationCourse: number
   recreationHour: Date | string
   recreationDuration: number
+  isArchived?: boolean
+  archivedAt?: Date | string | null
+  archivedById?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   branchId: string
@@ -368,6 +410,9 @@ export type CreneauUpdateInput = {
   durationCourse?: Prisma.IntFieldUpdateOperationsInput | number
   recreationHour?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   recreationDuration?: Prisma.IntFieldUpdateOperationsInput | number
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branch?: Prisma.BranchUpdateOneRequiredWithoutCreneauNestedInput
@@ -382,6 +427,9 @@ export type CreneauUncheckedUpdateInput = {
   durationCourse?: Prisma.IntFieldUpdateOperationsInput | number
   recreationHour?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   recreationDuration?: Prisma.IntFieldUpdateOperationsInput | number
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -396,6 +444,9 @@ export type CreneauCreateManyInput = {
   durationCourse: number
   recreationHour: Date | string
   recreationDuration: number
+  isArchived?: boolean
+  archivedAt?: Date | string | null
+  archivedById?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   branchId: string
@@ -409,6 +460,9 @@ export type CreneauUpdateManyMutationInput = {
   durationCourse?: Prisma.IntFieldUpdateOperationsInput | number
   recreationHour?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   recreationDuration?: Prisma.IntFieldUpdateOperationsInput | number
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -421,6 +475,9 @@ export type CreneauUncheckedUpdateManyInput = {
   durationCourse?: Prisma.IntFieldUpdateOperationsInput | number
   recreationHour?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   recreationDuration?: Prisma.IntFieldUpdateOperationsInput | number
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -444,6 +501,9 @@ export type CreneauCountOrderByAggregateInput = {
   durationCourse?: Prisma.SortOrder
   recreationHour?: Prisma.SortOrder
   recreationDuration?: Prisma.SortOrder
+  isArchived?: Prisma.SortOrder
+  archivedAt?: Prisma.SortOrder
+  archivedById?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   branchId?: Prisma.SortOrder
@@ -462,6 +522,9 @@ export type CreneauMaxOrderByAggregateInput = {
   durationCourse?: Prisma.SortOrder
   recreationHour?: Prisma.SortOrder
   recreationDuration?: Prisma.SortOrder
+  isArchived?: Prisma.SortOrder
+  archivedAt?: Prisma.SortOrder
+  archivedById?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   branchId?: Prisma.SortOrder
@@ -475,6 +538,9 @@ export type CreneauMinOrderByAggregateInput = {
   durationCourse?: Prisma.SortOrder
   recreationHour?: Prisma.SortOrder
   recreationDuration?: Prisma.SortOrder
+  isArchived?: Prisma.SortOrder
+  archivedAt?: Prisma.SortOrder
+  archivedById?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   branchId?: Prisma.SortOrder
@@ -561,6 +627,9 @@ export type CreneauCreateWithoutClasseInput = {
   durationCourse: number
   recreationHour: Date | string
   recreationDuration: number
+  isArchived?: boolean
+  archivedAt?: Date | string | null
+  archivedById?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   branch: Prisma.BranchCreateNestedOneWithoutCreneauInput
@@ -574,6 +643,9 @@ export type CreneauUncheckedCreateWithoutClasseInput = {
   durationCourse: number
   recreationHour: Date | string
   recreationDuration: number
+  isArchived?: boolean
+  archivedAt?: Date | string | null
+  archivedById?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   branchId: string
@@ -603,6 +675,9 @@ export type CreneauUpdateWithoutClasseInput = {
   durationCourse?: Prisma.IntFieldUpdateOperationsInput | number
   recreationHour?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   recreationDuration?: Prisma.IntFieldUpdateOperationsInput | number
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branch?: Prisma.BranchUpdateOneRequiredWithoutCreneauNestedInput
@@ -616,6 +691,9 @@ export type CreneauUncheckedUpdateWithoutClasseInput = {
   durationCourse?: Prisma.IntFieldUpdateOperationsInput | number
   recreationHour?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   recreationDuration?: Prisma.IntFieldUpdateOperationsInput | number
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -629,6 +707,9 @@ export type CreneauCreateWithoutBranchInput = {
   durationCourse: number
   recreationHour: Date | string
   recreationDuration: number
+  isArchived?: boolean
+  archivedAt?: Date | string | null
+  archivedById?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   classe?: Prisma.ClasseCreateNestedManyWithoutCreneauInput
@@ -642,6 +723,9 @@ export type CreneauUncheckedCreateWithoutBranchInput = {
   durationCourse: number
   recreationHour: Date | string
   recreationDuration: number
+  isArchived?: boolean
+  archivedAt?: Date | string | null
+  archivedById?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   classe?: Prisma.ClasseUncheckedCreateNestedManyWithoutCreneauInput
@@ -684,6 +768,9 @@ export type CreneauScalarWhereInput = {
   durationCourse?: Prisma.IntFilter<"Creneau"> | number
   recreationHour?: Prisma.DateTimeFilter<"Creneau"> | Date | string
   recreationDuration?: Prisma.IntFilter<"Creneau"> | number
+  isArchived?: Prisma.BoolFilter<"Creneau"> | boolean
+  archivedAt?: Prisma.DateTimeNullableFilter<"Creneau"> | Date | string | null
+  archivedById?: Prisma.StringNullableFilter<"Creneau"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Creneau"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Creneau"> | Date | string
   branchId?: Prisma.StringFilter<"Creneau"> | string
@@ -697,6 +784,9 @@ export type CreneauCreateManyBranchInput = {
   durationCourse: number
   recreationHour: Date | string
   recreationDuration: number
+  isArchived?: boolean
+  archivedAt?: Date | string | null
+  archivedById?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -709,6 +799,9 @@ export type CreneauUpdateWithoutBranchInput = {
   durationCourse?: Prisma.IntFieldUpdateOperationsInput | number
   recreationHour?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   recreationDuration?: Prisma.IntFieldUpdateOperationsInput | number
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   classe?: Prisma.ClasseUpdateManyWithoutCreneauNestedInput
@@ -722,6 +815,9 @@ export type CreneauUncheckedUpdateWithoutBranchInput = {
   durationCourse?: Prisma.IntFieldUpdateOperationsInput | number
   recreationHour?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   recreationDuration?: Prisma.IntFieldUpdateOperationsInput | number
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   classe?: Prisma.ClasseUncheckedUpdateManyWithoutCreneauNestedInput
@@ -735,6 +831,9 @@ export type CreneauUncheckedUpdateManyWithoutBranchInput = {
   durationCourse?: Prisma.IntFieldUpdateOperationsInput | number
   recreationHour?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   recreationDuration?: Prisma.IntFieldUpdateOperationsInput | number
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -778,6 +877,9 @@ export type CreneauSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   durationCourse?: boolean
   recreationHour?: boolean
   recreationDuration?: boolean
+  isArchived?: boolean
+  archivedAt?: boolean
+  archivedById?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   branchId?: boolean
@@ -794,6 +896,9 @@ export type CreneauSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   durationCourse?: boolean
   recreationHour?: boolean
   recreationDuration?: boolean
+  isArchived?: boolean
+  archivedAt?: boolean
+  archivedById?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   branchId?: boolean
@@ -808,6 +913,9 @@ export type CreneauSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   durationCourse?: boolean
   recreationHour?: boolean
   recreationDuration?: boolean
+  isArchived?: boolean
+  archivedAt?: boolean
+  archivedById?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   branchId?: boolean
@@ -822,12 +930,15 @@ export type CreneauSelectScalar = {
   durationCourse?: boolean
   recreationHour?: boolean
   recreationDuration?: boolean
+  isArchived?: boolean
+  archivedAt?: boolean
+  archivedById?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   branchId?: boolean
 }
 
-export type CreneauOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "nameCreneau" | "startTime" | "endTime" | "durationCourse" | "recreationHour" | "recreationDuration" | "createdAt" | "updatedAt" | "branchId", ExtArgs["result"]["creneau"]>
+export type CreneauOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "nameCreneau" | "startTime" | "endTime" | "durationCourse" | "recreationHour" | "recreationDuration" | "isArchived" | "archivedAt" | "archivedById" | "createdAt" | "updatedAt" | "branchId", ExtArgs["result"]["creneau"]>
 export type CreneauInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
   classe?: boolean | Prisma.Creneau$classeArgs<ExtArgs>
@@ -854,6 +965,9 @@ export type $CreneauPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     durationCourse: number
     recreationHour: Date
     recreationDuration: number
+    isArchived: boolean
+    archivedAt: Date | null
+    archivedById: string | null
     createdAt: Date
     updatedAt: Date
     branchId: string
@@ -1289,6 +1403,9 @@ export interface CreneauFieldRefs {
   readonly durationCourse: Prisma.FieldRef<"Creneau", 'Int'>
   readonly recreationHour: Prisma.FieldRef<"Creneau", 'DateTime'>
   readonly recreationDuration: Prisma.FieldRef<"Creneau", 'Int'>
+  readonly isArchived: Prisma.FieldRef<"Creneau", 'Boolean'>
+  readonly archivedAt: Prisma.FieldRef<"Creneau", 'DateTime'>
+  readonly archivedById: Prisma.FieldRef<"Creneau", 'String'>
   readonly createdAt: Prisma.FieldRef<"Creneau", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Creneau", 'DateTime'>
   readonly branchId: Prisma.FieldRef<"Creneau", 'String'>

@@ -78,7 +78,7 @@ export default function Cours() {
           variant="elevated"
           className="mt-8 border rounded-md shadow-sm p-1 md:p-6"
         >
-          <CoursList key={refreshKey} /> {/* Rafraîchissement de la liste */}
+          <CoursList refreshKey={refreshKey} />
         </Card>
       </LayoutBody>
     </Layout>

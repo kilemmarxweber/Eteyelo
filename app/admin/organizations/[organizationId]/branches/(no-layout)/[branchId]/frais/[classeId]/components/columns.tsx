@@ -112,7 +112,7 @@ export const columns: ColumnDef<IFrais>[] = [
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onSelect={() => setShowDeleteTaskDialog(true)}>
-                Delete
+                Désactiver
                 <DropdownMenuShortcut>⌘⌫</DropdownMenuShortcut>
               </DropdownMenuItem>
             </DropdownMenuContent>

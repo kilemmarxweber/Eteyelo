@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import {IconReload, IconTrash} from "@tabler/icons-react"
+import { IconArchive, IconReload } from "@tabler/icons-react";
 import { type Row } from "@tanstack/react-table";
 import { toast } from "sonner";
 
@@ -17,7 +17,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { ICours } from "@/src/interfaces/Cours";
-import { deleteCoursAction } from "../../cours/cours.action";
+import { archiveCoursAction } from "../../cours/cours.action";
 import { useRefresh } from "@/src/hooks/RefreshContext";
 
 interface DeleteCoursDialogProps
@@ -33,72 +33,76 @@ export function DeleteCoursDialog({
   Cours,
   ...props
 }: DeleteCoursDialogProps) {
-  const [isDeletePending, startDeleteTransition] = React.useTransition();
+  const [isArchivePending, startArchiveTransition] = React.useTransition();
 
-  const { refresh } = useRefresh()
-  const handleDelete = async () => {
-    startDeleteTransition(async () => {
+  const { refresh } = useRefresh();
+  const handleArchive = () => {
+    startArchiveTransition(async () => {
+      let hasError = false;
       for (const cours of Cours) {
-        try {
-          await deleteCoursAction({
-            id: cours.id,
-            codeCours: cours.codeCours,
-            nameCours: cours.codeCours,
-          })
-        } catch (err) {
-          toast.error(`Failed to delete cours ${cours.id}: ${err}`);
+        const [, err] = await archiveCoursAction({
+          id: cours.id,
+          codeCours: cours.codeCours,
+          nameCours: cours.codeCours,
+        });
+        if (err) {
+          toast.error(err.message ?? "Erreur lors de la désactivation");
+          hasError = true;
         }
       }
-  
-      onSuccess?.()
-      setTimeout(() => {
-        console.log("Component refreshed")
-        refresh()
-      }, 1000)
+      if (!hasError) {
+        toast.success(
+          Cours.length === 1 ? "Cours désactivé" : "Cours désactivés",
+        );
+        refresh();
+        onSuccess?.();
+        props.onOpenChange?.(false);
+      }
     });
   };
+
+  const count = Cours.length;
 
   return (
     <Dialog {...props}>
       {showTrigger ? (
         <DialogTrigger asChild>
           <Button variant="outline" size="sm">
-            <IconTrash className="mr-2 size-4" aria-hidden="true" />
-            Delete ({Cours.length})
+            <IconArchive className="mr-2 size-4" aria-hidden="true" />
+            Désactiver ({count})
           </Button>
         </DialogTrigger>
       ) : null}
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Êtes-vous absolument sûr?</DialogTitle>
+          <DialogTitle>
+            {count === 1
+              ? "Désactiver le cours ?"
+              : `Désactiver ${count} cours ?`}
+          </DialogTitle>
           <DialogDescription>
-            Cette action ne peut pas être annulée.Cela supprimera en permanence
-            votre <span className="font-medium">{Cours.length}</span>
-            {Cours.length === 1 ? " Cours" : " Cours"} from our servers.
+            {count === 1
+              ? "Le cours sera désactivé et masqué des listes actives mais l'historique sera conservé."
+              : "Ces cours seront désactivés et masqués des listes actives mais l'historique sera conservé."}
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="gap-2 sm:space-x-0">
           <DialogClose asChild>
-            <Button variant="outline">Cancel</Button>
+            <Button variant="outline">Annuler</Button>
           </DialogClose>
           <Button
-            aria-label="Delete selected rows"
-            variant="destructive"
-            onClick={() => {
-              props.onOpenChange?.(false);
-              toast.success("Cours deleted");
-              onSuccess?.();
-              handleDelete()
-            }}
-            disabled={isDeletePending}
+            aria-label="Désactiver la sélection"
+            variant="outline"
+            onClick={handleArchive}
+            disabled={isArchivePending}
           >
-            {isDeletePending && (
+            {isArchivePending && (
               <IconReload
                 className="mr-2 size-4 animate-spin"
                 aria-hidden="true"
               />
             )}
-            Delete
+            Désactiver
           </Button>
         </DialogFooter>
       </DialogContent>

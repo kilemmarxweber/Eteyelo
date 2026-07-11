@@ -10,12 +10,21 @@ import {
   updateCoursOptionPonderationAction,
 } from "../cours-ponderation-option.action";
 
+type PonderationPayload = {
+  id?: string;
+  coursId: string;
+  optionId: string;
+  ponderation: number;
+};
+
 type Props = {
   id?: string;
   coursId: string;
   optionId: string;
   defaultPonderation: number;
-  onSaved?: (payload: { id?: string; coursId: string; optionId: string; ponderation: number }) => void;
+  onCreated?: (payload: PonderationPayload) => void;
+  onUpdated?: (payload: PonderationPayload) => void;
+  onSuccess?: (payload: PonderationPayload) => void;
 };
 
 export function CoursPonderationOptionForm({
@@ -23,17 +32,19 @@ export function CoursPonderationOptionForm({
   coursId,
   optionId,
   defaultPonderation,
-  onSaved,
+  onCreated,
+  onUpdated,
+  onSuccess,
 }: Props) {
   const [ponderation, setPonderation] = useState(defaultPonderation);
   const [isPending, startTransition] = useTransition();
 
   const submit = () => {
     startTransition(async () => {
-      const payload = { id, coursId, optionId, ponderation };
+      const input = { id, coursId, optionId, ponderation };
       const [saved, err] = id
-        ? await updateCoursOptionPonderationAction(payload)
-        : await createCoursOptionPonderationAction(payload);
+        ? await updateCoursOptionPonderationAction(input)
+        : await createCoursOptionPonderationAction(input);
 
       if (err) {
         toast.error(err.message);
@@ -41,12 +52,18 @@ export function CoursPonderationOptionForm({
       }
 
       toast.success("Ponderation enregistree.");
-      onSaved?.({
+      const payload = {
         id: saved?.id ?? id,
         coursId,
         optionId,
         ponderation,
-      });
+      };
+      if (id) {
+        onUpdated?.(payload);
+      } else {
+        onCreated?.(payload);
+      }
+      onSuccess?.(payload);
     });
   };
 

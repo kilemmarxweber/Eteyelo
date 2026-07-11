@@ -289,7 +289,7 @@ export const createStudentColumns = (
                     className="text-red-600 focus:text-red-600"
                     onSelect={() => setShowDeleteTaskDialog(true)}
                   >
-                    Supprimer
+                    Archiver
                     <DropdownMenuShortcut>Del</DropdownMenuShortcut>
                   </DropdownMenuItem>
                 </>

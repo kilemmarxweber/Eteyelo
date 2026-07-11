@@ -22,11 +22,11 @@ export default function PaymentClient({ fraisList, classEnrollList }: Props) {
           <PaymentsForm
             fraisList={fraisList}
             classEnrollList={classEnrollList}
-            onPaymentCreated={() => setRefreshKey((k) => k + 1)}
+            onCreated={() => setRefreshKey((k) => k + 1)}
           />
           {showExpenseForm && (
             <CashierExpenseForm
-              onExpenseCreated={() => setRefreshKey((k) => k + 1)}
+              onCreated={() => setRefreshKey((k) => k + 1)}
               onClose={() => setShowExpenseForm(false)}
             />
           )}

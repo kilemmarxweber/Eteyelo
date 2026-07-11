@@ -1,5 +1,6 @@
 "use server";
 import { prisma } from "@/lib/prisma";
+import { revalidatePath } from "next/cache";
 import { action } from "@/lib/zsa";
 import {
   deleteParentSchema,
@@ -22,6 +23,10 @@ export async function getCurrentBranch() {
     organizationId,
     userId,
   };
+}
+
+function revalidateParentPages(organizationId: string, branchId: string) {
+  revalidatePath(`/admin/organizations/${organizationId}/branches/${branchId}/parent`);
 }
 
 function errMessage(err: unknown): string {
@@ -135,6 +140,7 @@ export const createParentAction = action
         },
       });
 
+      revalidateParentPages(organizationId, branchId);
       return {
         ok: true,
         parent,
@@ -157,7 +163,7 @@ export const createParentAction = action
     }
   });
 
-export const deleteParentAction = action
+export const archiveParentAction = action
   .input(deleteParentSchema)
   .handler(async ({ input }) => {
     const { branchId, organizationId } = await getCurrentBranch();
@@ -181,52 +187,32 @@ export const deleteParentAction = action
             },
           },
         },
-        students: {
-          where: {
-            branchMember: {
-              branchId,
-            },
-          },
-        },
-        familyPayments: {
-          where: {
-            branchId,
-          },
-        },
       },
     });
 
     if (!parent) {
-      throw new Error("Parent not found");
+      throw new Error("Parent introuvable");
     }
-    // ❌ BLOQUAGE SI LIÉ À DES DONNÉES IMPORTANTES
-    if (parent.students.length > 0 || parent.familyPayments.length > 0) {
-      return {
-        success: false,
-        message: "Impossible de supprimer ce parent (liens existants)",
-      };
-    }
-    await prisma.discountRule.deleteMany({
-      where: { parentId: parent.id, branchId },
-    });
 
     const userId = parent.branchMember?.member?.user?.id;
 
     if (userId) {
-      await prisma.user.delete({
+      await prisma.user.update({
         where: { id: userId },
-      });
-    } else {
-      await prisma.parent.delete({
-        where: { id: parent.id },
+        data: { statusUser: false },
       });
     }
+
+    revalidateParentPages(organizationId, branchId);
     return {
       success: true,
-      message: "Parent supprimé avec succès",
+      message: "Parent archivé avec succès",
       parentId: parent.id,
     };
   });
+
+/** @deprecated Utiliser archiveParentAction */
+export const deleteParentAction = archiveParentAction;
 
 export const getParentsAction = action.handler(async (): Promise<IParent[]> => {
   const { branchId, organizationId } = await getCurrentBranch();
@@ -439,6 +425,7 @@ export const updateParentAction = action
         }
       }
 
+      revalidateParentPages(organizationId, branchId);
       return parent;
     } catch (error: any) {
       console.error("UPDATE ERROR:", error);

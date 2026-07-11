@@ -18,6 +18,7 @@ function formatDate(date: Date) {
 export default async function EventsPage() {
   const events = await prisma.calendarEvent.findMany({
     where: {
+      isArchived: false,
       branch: {
         isActive: true,
       },

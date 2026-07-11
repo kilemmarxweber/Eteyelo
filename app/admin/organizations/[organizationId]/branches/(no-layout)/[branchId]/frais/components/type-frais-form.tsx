@@ -22,7 +22,6 @@ import { createTypeFraisAction, updateTypeFraisAction } from "../frais.action";
 import { typeFraisSchema } from "@/src/interfaces/Frais";
 
 interface TypeFraisUpFormProps extends HTMLAttributes<HTMLDivElement> {
-  onTypeFraisCreated?: () => void;
   onSuccess?: () => void;
   onCreated?: () => void;
   onUpdated?: () => void;
@@ -32,7 +31,6 @@ interface TypeFraisUpFormProps extends HTMLAttributes<HTMLDivElement> {
 
 export function TypeFraisUpForm({
   className,
-  onTypeFraisCreated,
   onSuccess,
   onCreated,
   onUpdated,
@@ -95,7 +93,6 @@ export function TypeFraisUpForm({
         onUpdated?.();
       }
       onSuccess?.();
-      onTypeFraisCreated?.();
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Une erreur est survenue";

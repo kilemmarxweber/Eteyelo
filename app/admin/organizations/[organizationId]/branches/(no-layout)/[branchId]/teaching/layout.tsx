@@ -14,7 +14,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/components/ui/page-header";
-import { redirect, useParams, useRouter } from "next/navigation";
+import { redirect, useParams } from "next/navigation";
 import { getClassesByIdAction } from "../classe/classe.action";
 import { useEffect, useState } from "react";
 import { useSession } from "@/lib/auth-client";
@@ -32,9 +32,7 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { refreshKey, refresh } = useRefresh(); // État pour gérer le rafraîchissement
-  // Fonction de rappel pour rafraîchir la liste
-  const router = useRouter();
+  const { refresh } = useRefresh();
   const handleFraisAction = () => {
     refresh();
   };
@@ -45,11 +43,9 @@ export default function RootLayout({
   const [loading, setLoading] = useState(true);
   const params = useParams();
   const classeId = params?.classeId as string;
-  //const hasClasse = Boolean(classeId);
   const handleEnrollmentAction = () => {
     refresh();
-    router.refresh();
-    setOpen(false); // 🔥 fermeture du dialog ici
+    setOpen(false);
   };
   useEffect(() => {
     if (!classeId) return;
@@ -117,7 +113,7 @@ export default function RootLayout({
                     {/* Formulaire de création d'élève */}
                     <EnrollmentUpForm
                       mode="create"
-                      onEnrollmentAction={handleEnrollmentAction}
+                      onCreated={handleEnrollmentAction}
                       classeId={classeId}
                     />
                   </div>

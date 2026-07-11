@@ -9,7 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { CreneauUpForm } from "./creneau-form"; // Importez votre formulaire d'éditionimport { ICreneau } from"@/src/interfaces/Creneau";
+import { CreneauUpForm } from "./creneau-form";
 import { ICreneau } from "@/src/interfaces/creneau";
 
 interface UpdateCreneauDialogProps extends React.ComponentPropsWithoutRef<
@@ -32,16 +32,16 @@ export function UpdateCreneauDialog({
 
   return (
     <Dialog {...props}>
-      <DialogContent>
+      <DialogContent className="max-h-[90vh]">
         <DialogHeader>
-          <DialogTitle>Éditer la vacation</DialogTitle>
+          <DialogTitle>Modifier la vacation</DialogTitle>
           <DialogDescription>
-            Modifiez les détails du vacation ici. Cliquez sur Enregistrer
+            Mettez à jour les horaires, la durée des cours et la récréation.
           </DialogDescription>
         </DialogHeader>
         <CreneauUpForm
           mode="update"
-          initialData={creneau} // Pass the creneau data for editing
+          initialData={creneau}
           onUpdated={handleUpdate}
         />
       </DialogContent>

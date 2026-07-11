@@ -142,7 +142,7 @@ export const columns: ColumnDef<ISchoolYear>[] = [
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onSelect={() => setShowDeleteTaskDialog(true)}>
-                Delete
+                Clôturer
                 <DropdownMenuShortcut>⌘⌫</DropdownMenuShortcut>
               </DropdownMenuItem>
             </DropdownMenuContent>

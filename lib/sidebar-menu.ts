@@ -1,4 +1,5 @@
 import { APP_ROLE, ORG_ROLE } from "@/lib/permissions";
+import { isPrimaryBranch } from "@/lib/class-structure";
 import type { SideLink } from "@/src/data/sidelinks";
 
 type StaticMenuItem = {
@@ -263,11 +264,19 @@ function mapMenuItem(
   item: StaticMenuItem,
   roles: string[],
   branchBasePath?: string,
+  typebranch?: unknown,
 ): SideLink | null {
   if (!canSeeMenu(item, roles)) return null;
 
+  if (
+    isPrimaryBranch(typebranch) &&
+    (item.href === "/admin/section" || item.href === "/admin/option")
+  ) {
+    return null;
+  }
+
   const sub = item.sub
-    ?.map((child) => mapMenuItem(child, roles, branchBasePath))
+    ?.map((child) => mapMenuItem(child, roles, branchBasePath, typebranch))
     .filter(Boolean) as SideLink[] | undefined;
 
   if (item.sub?.length && !sub?.length) return null;
@@ -296,9 +305,10 @@ export function buildStaticSideLinks(
 ): SideLink[] {
   const roles = getBetterAuthMenuRoles(session);
   const branchBasePath = resolveBranchBasePath(pathname);
+  const typebranch = session?.branch?.typebranch;
 
   return staticSidebarMenu
-    .map((item) => mapMenuItem(item, roles, branchBasePath))
+    .map((item) => mapMenuItem(item, roles, branchBasePath, typebranch))
     .filter(Boolean) as SideLink[];
 }
 

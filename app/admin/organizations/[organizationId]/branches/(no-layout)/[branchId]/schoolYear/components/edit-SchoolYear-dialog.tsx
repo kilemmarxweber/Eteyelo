@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { SchoolYearUpForm } from "./SchoolYear-form"; // Importez votre formulaire d'éditionimport { ISchoolYear } from"@/src/interfaces/SchoolYear";
 import { ISchoolYear } from "@/src/interfaces/SchoolYear";
+import { useRefresh } from "@/src/hooks/RefreshContext";
 
 interface UpdateSchoolYearDialogProps extends React.ComponentPropsWithoutRef<
   typeof Dialog
@@ -28,7 +29,10 @@ export function UpdateSchoolYearDialog({
   branchId,
   ...props
 }: UpdateSchoolYearDialogProps) {
+  const { refresh } = useRefresh();
+
   const handleUpdate = () => {
+    refresh();
     onSuccess?.();
   };
 

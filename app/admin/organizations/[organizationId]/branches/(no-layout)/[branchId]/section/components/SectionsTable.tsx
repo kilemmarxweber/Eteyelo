@@ -5,7 +5,7 @@ import { ResponsiveDataTable } from "@/components/ui/responsive-data-table";
 import { SearchAndFilter } from "@/components/ui/search-and-filter";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { Button } from "@/components/ui/button";
-import { Edit, Trash2, MoreHorizontal } from "lucide-react";
+import { Edit, Archive, MoreHorizontal } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -25,7 +25,7 @@ const SectionsTable: React.FC<SectionsTableProps> = ({ refreshKey }) => {
   const [loading, setLoading] = useState(true);
   const [localRefreshKey, setLocalRefreshKey] = useState(0);
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<string>("active");
 
   const [showUpdateDialog, setShowUpdateDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -135,10 +135,9 @@ const SectionsTable: React.FC<SectionsTableProps> = ({ refreshKey }) => {
             <DropdownMenuSeparator />
             <DropdownMenuItem 
               onClick={() => handleDelete(section)}
-              className="text-destructive"
             >
-              <Trash2 className="mr-2 h-4 w-4" />
-              Supprimer
+              <Archive className="mr-2 h-4 w-4" />
+              Archiver
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -173,10 +172,10 @@ const SectionsTable: React.FC<SectionsTableProps> = ({ refreshKey }) => {
         variant: "outline" as const,
       },
       {
-        label: "Supprimer",
-        icon: Trash2,
+        label: "Archiver",
+        icon: Archive,
         onClick: () => handleDelete(section),
-        variant: "destructive" as const,
+        variant: "outline" as const,
       },
     ],
   };

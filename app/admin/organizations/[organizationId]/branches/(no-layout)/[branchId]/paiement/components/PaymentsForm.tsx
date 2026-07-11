@@ -45,7 +45,8 @@ type FormData = z.infer<typeof paiementSchema>;
 interface Props {
   fraisList: any;
   classEnrollList: any;
-  onPaymentCreated?: () => void;
+  onCreated?: () => void;
+  onSuccess?: () => void;
 }
 
 function buildTransactionRef() {
@@ -62,7 +63,8 @@ const emptyAmount = undefined as unknown as number;
 export default function PaymentsForm({
   fraisList,
   classEnrollList,
-  onPaymentCreated,
+  onCreated,
+  onSuccess,
 }: Props) {
   const { register, handleSubmit, setValue, watch, reset } = useForm<FormData>({
     resolver: zodResolver(paiementSchema),
@@ -296,7 +298,8 @@ export default function PaymentsForm({
       setTransactionRef(buildTransactionRef());
       setFamilyResetKey((key) => key + 1);
 
-      onPaymentCreated && onPaymentCreated();
+      onCreated?.();
+      onSuccess?.();
     } catch (e: any) {
       toast.error(`❌ Erreur: ${e.message}`);
     } finally {

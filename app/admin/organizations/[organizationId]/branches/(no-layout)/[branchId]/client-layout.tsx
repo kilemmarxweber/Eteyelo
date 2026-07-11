@@ -9,6 +9,7 @@ import { Search } from "@/components/search";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 import Spinner from "./spinner";
+import { RefreshProvider } from "@/src/hooks/RefreshContext";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const { data: session, isPending } = authClient.useSession();
@@ -37,24 +38,26 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="relative h-full overflow-hidden bg-background">
-      <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
+    <RefreshProvider>
+      <div className="relative h-full overflow-hidden bg-background">
+        <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
 
-      <main
-        className={`h-full overflow-x-hidden pt-16 transition-[margin] md:pt-0 ${
-          isCollapsed ? "md:ml-14" : "md:ml-40"
-        }`}
-      >
-        <LayoutHeader>
-          <div className="ml-auto flex items-center space-x-4">
-            <Search />
-            <ThemeToggle />
-            <UserNav />
-          </div>
-        </LayoutHeader>
+        <main
+          className={`h-full overflow-x-hidden pt-16 transition-[margin] md:pt-0 ${
+            isCollapsed ? "md:ml-14" : "md:ml-40"
+          }`}
+        >
+          <LayoutHeader>
+            <div className="ml-auto flex items-center space-x-4">
+              <Search />
+              <ThemeToggle />
+              <UserNav />
+            </div>
+          </LayoutHeader>
 
-        {children}
-      </main>
-    </div>
+          {children}
+        </main>
+      </div>
+    </RefreshProvider>
   );
 }

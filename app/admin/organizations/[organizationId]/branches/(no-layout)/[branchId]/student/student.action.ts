@@ -1,6 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { revalidatePath } from "next/cache";
 import { action } from "@/lib/zsa";
 import {
   IStudent,
@@ -111,6 +112,10 @@ async function getAvailableUsername(username: string): Promise<string> {
   return candidate;
 }
 
+function revalidateStudentPages(organizationId: string, branchId: string) {
+  revalidatePath(`/admin/organizations/${organizationId}/branches/${branchId}/student`);
+}
+
 /* ======================================================
    CREATE
 ====================================================== */
@@ -193,6 +198,7 @@ export const createStudentAction = action
         },
       });
 
+      revalidateStudentPages(organizationId, branchId);
       return {
         ok: true,
         student,
@@ -365,7 +371,7 @@ export const updateStudentAction = action
   .input(studentSchema)
   .handler(async ({ input }) => {
     try {
-      const { branchId, canManageStudents } = await getCurrentBranch();
+      const { branchId, organizationId, canManageStudents } = await getCurrentBranch();
       if (!canManageStudents) {
         return {
           ok: false,
@@ -452,6 +458,7 @@ export const updateStudentAction = action
         },
       });
 
+      revalidateStudentPages(organizationId, branchId);
       return {
         ok: true,
         message: "Étudiant mis à jour avec succès",
@@ -464,12 +471,12 @@ export const updateStudentAction = action
   });
 
 /* ======================================================
-   DELETE
+   ARCHIVE
 ====================================================== */
-export const deleteStudentAction = action
+export const archiveStudentAction = action
   .input(deleteStudentSchema)
   .handler(async ({ input }) => {
-    const { branchId, canManageStudents } = await getCurrentBranch();
+    const { branchId, organizationId, canManageStudents } = await getCurrentBranch();
     if (!canManageStudents) {
       return {
         success: false,
@@ -489,11 +496,6 @@ export const deleteStudentAction = action
             },
           },
         },
-        classEnrollment: {
-          include: {
-            paiement: true,
-          },
-        },
       },
     });
 
@@ -504,7 +506,6 @@ export const deleteStudentAction = action
       };
     }
 
-    // ❌ BLOQUAGE SI PAIEMENT EXISTE
     if (student.branchMember?.branchId !== branchId) {
       return {
         success: false,
@@ -512,43 +513,33 @@ export const deleteStudentAction = action
       };
     }
 
-    const hasPayments = student.classEnrollment?.some(
-      (enrollment) => enrollment.paiement.length > 0,
-    );
-
-    if (hasPayments) {
-      return {
-        success: false,
-        message:
-          "Impossible de supprimer cet étudiant car il a déjà effectué des paiements",
-      };
-    }
-
     try {
-      // 1. delete user (si lié)
       const userId = student.branchMember?.member?.user?.id;
 
+      await prisma.student.update({
+        where: { id: student.id },
+        data: { statusStudent: false },
+      });
+
       if (userId) {
-        await prisma.user.delete({
+        await prisma.user.update({
           where: { id: userId },
+          data: { statusUser: false },
         });
       }
 
-      // 2. delete student
-      if (!userId) {
-        await prisma.student.delete({
-          where: { id: student.id },
-        });
-      }
-
+      revalidateStudentPages(organizationId, branchId);
       return {
         ok: true,
-        message: "Étudiant supprimé avec succès",
+        message: "Étudiant archivé avec succès",
       };
     } catch (error: any) {
       return {
         success: false,
-        message: error.message || "Erreur lors de la suppression",
+        message: error.message || "Erreur lors de l'archivage",
       };
     }
   });
+
+/** @deprecated Utiliser archiveStudentAction */
+export const deleteStudentAction = archiveStudentAction;

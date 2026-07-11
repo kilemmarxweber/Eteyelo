@@ -41,7 +41,6 @@ import { getCoursAction } from "../../cours/cours.action";
 import { useSession } from "@/lib/auth-client";
 
 interface EnrollmentUpFormProps extends HTMLAttributes<HTMLDivElement> {
-  onEnrollmentAction?: () => void;
   onSuccess?: () => void;
   onCreated?: () => void;
   onUpdated?: () => void;
@@ -52,7 +51,6 @@ interface EnrollmentUpFormProps extends HTMLAttributes<HTMLDivElement> {
 
 export function EnrollmentUpForm({
   className,
-  onEnrollmentAction,
   onSuccess,
   onCreated,
   onUpdated,
@@ -100,7 +98,7 @@ export function EnrollmentUpForm({
     };
     fecthSchoolYears();
     const fecthCours = async () => {
-      const [rawCours, err] = await getCoursAction();
+      const [rawCours, err] = await getCoursAction({});
       if (err) {
         throw err.message;
       }
@@ -129,6 +127,13 @@ export function EnrollmentUpForm({
           throw new Error(err.message);
         }
         toast.success("Affectation effectuée avec succès");
+        form.reset({
+          schoolYearId: currentSchoolYearId,
+          teacherId: "",
+          coursId: "",
+          classeId: classeId ?? "",
+        });
+        onCreated?.();
       } else {
         const [teaching, err] = await updateTeachingAction({
           ...data,
@@ -137,15 +142,10 @@ export function EnrollmentUpForm({
           throw new Error(err.message);
         }
         toast.success("Affectation mis à jour avec succès");
-      }
-
-      if (mode === "create") {
-        onCreated?.();
-      } else {
         onUpdated?.();
       }
+
       onSuccess?.();
-      onEnrollmentAction?.();
     } catch (error: any) {
       console.log(error);
       setErrorMessage(error.message ?? "");

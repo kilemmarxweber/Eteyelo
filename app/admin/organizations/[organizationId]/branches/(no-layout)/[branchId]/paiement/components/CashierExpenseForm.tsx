@@ -15,12 +15,14 @@ import z from "zod";
 type FormData = z.infer<typeof cashierExpenseSchema>;
 
 interface Props {
-  onExpenseCreated?: () => void;
+  onCreated?: () => void;
+  onSuccess?: () => void;
   onClose?: () => void;
 }
 
 export default function CashierExpenseForm({
-  onExpenseCreated,
+  onCreated,
+  onSuccess,
   onClose,
 }: Props) {
   const {
@@ -54,7 +56,8 @@ export default function CashierExpenseForm({
 
     toast.success("Dépense enregistrée avec succès");
     reset();
-    onExpenseCreated?.();
+    onCreated?.();
+    onSuccess?.();
   };
 
   return (

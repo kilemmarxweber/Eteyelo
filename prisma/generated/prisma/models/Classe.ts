@@ -20,14 +20,27 @@ export type ClasseModel = runtime.Types.Result.DefaultSelection<Prisma.$ClassePa
 
 export type AggregateClasse = {
   _count: ClasseCountAggregateOutputType | null
+  _avg: ClasseAvgAggregateOutputType | null
+  _sum: ClasseSumAggregateOutputType | null
   _min: ClasseMinAggregateOutputType | null
   _max: ClasseMaxAggregateOutputType | null
+}
+
+export type ClasseAvgAggregateOutputType = {
+  capacity: number | null
+}
+
+export type ClasseSumAggregateOutputType = {
+  capacity: number | null
 }
 
 export type ClasseMinAggregateOutputType = {
   id: string | null
   codeClasse: string | null
   nameClasse: string | null
+  level: string | null
+  parallel: string | null
+  capacity: number | null
   optionId: string | null
   statusClasse: boolean | null
   creneauId: string | null
@@ -40,6 +53,9 @@ export type ClasseMaxAggregateOutputType = {
   id: string | null
   codeClasse: string | null
   nameClasse: string | null
+  level: string | null
+  parallel: string | null
+  capacity: number | null
   optionId: string | null
   statusClasse: boolean | null
   creneauId: string | null
@@ -52,6 +68,9 @@ export type ClasseCountAggregateOutputType = {
   id: number
   codeClasse: number
   nameClasse: number
+  level: number
+  parallel: number
+  capacity: number
   optionId: number
   statusClasse: number
   creneauId: number
@@ -62,10 +81,21 @@ export type ClasseCountAggregateOutputType = {
 }
 
 
+export type ClasseAvgAggregateInputType = {
+  capacity?: true
+}
+
+export type ClasseSumAggregateInputType = {
+  capacity?: true
+}
+
 export type ClasseMinAggregateInputType = {
   id?: true
   codeClasse?: true
   nameClasse?: true
+  level?: true
+  parallel?: true
+  capacity?: true
   optionId?: true
   statusClasse?: true
   creneauId?: true
@@ -78,6 +108,9 @@ export type ClasseMaxAggregateInputType = {
   id?: true
   codeClasse?: true
   nameClasse?: true
+  level?: true
+  parallel?: true
+  capacity?: true
   optionId?: true
   statusClasse?: true
   creneauId?: true
@@ -90,6 +123,9 @@ export type ClasseCountAggregateInputType = {
   id?: true
   codeClasse?: true
   nameClasse?: true
+  level?: true
+  parallel?: true
+  capacity?: true
   optionId?: true
   statusClasse?: true
   creneauId?: true
@@ -137,6 +173,18 @@ export type ClasseAggregateArgs<ExtArgs extends runtime.Types.Extensions.Interna
   /**
    * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
    * 
+   * Select which fields to average
+  **/
+  _avg?: ClasseAvgAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
+   * Select which fields to sum
+  **/
+  _sum?: ClasseSumAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
    * Select which fields to find the minimum value
   **/
   _min?: ClasseMinAggregateInputType
@@ -167,6 +215,8 @@ export type ClasseGroupByArgs<ExtArgs extends runtime.Types.Extensions.InternalA
   take?: number
   skip?: number
   _count?: ClasseCountAggregateInputType | true
+  _avg?: ClasseAvgAggregateInputType
+  _sum?: ClasseSumAggregateInputType
   _min?: ClasseMinAggregateInputType
   _max?: ClasseMaxAggregateInputType
 }
@@ -175,6 +225,9 @@ export type ClasseGroupByOutputType = {
   id: string
   codeClasse: string
   nameClasse: string
+  level: string | null
+  parallel: string | null
+  capacity: number | null
   optionId: string | null
   statusClasse: boolean | null
   creneauId: string | null
@@ -182,6 +235,8 @@ export type ClasseGroupByOutputType = {
   createdAt: Date
   updatedAt: Date
   _count: ClasseCountAggregateOutputType | null
+  _avg: ClasseAvgAggregateOutputType | null
+  _sum: ClasseSumAggregateOutputType | null
   _min: ClasseMinAggregateOutputType | null
   _max: ClasseMaxAggregateOutputType | null
 }
@@ -208,6 +263,9 @@ export type ClasseWhereInput = {
   id?: Prisma.StringFilter<"Classe"> | string
   codeClasse?: Prisma.StringFilter<"Classe"> | string
   nameClasse?: Prisma.StringFilter<"Classe"> | string
+  level?: Prisma.StringNullableFilter<"Classe"> | string | null
+  parallel?: Prisma.StringNullableFilter<"Classe"> | string | null
+  capacity?: Prisma.IntNullableFilter<"Classe"> | number | null
   optionId?: Prisma.StringNullableFilter<"Classe"> | string | null
   statusClasse?: Prisma.BoolNullableFilter<"Classe"> | boolean | null
   creneauId?: Prisma.StringNullableFilter<"Classe"> | string | null
@@ -228,6 +286,9 @@ export type ClasseOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   codeClasse?: Prisma.SortOrder
   nameClasse?: Prisma.SortOrder
+  level?: Prisma.SortOrderInput | Prisma.SortOrder
+  parallel?: Prisma.SortOrderInput | Prisma.SortOrder
+  capacity?: Prisma.SortOrderInput | Prisma.SortOrder
   optionId?: Prisma.SortOrderInput | Prisma.SortOrder
   statusClasse?: Prisma.SortOrderInput | Prisma.SortOrder
   creneauId?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -253,6 +314,9 @@ export type ClasseWhereUniqueInput = Prisma.AtLeast<{
   NOT?: Prisma.ClasseWhereInput | Prisma.ClasseWhereInput[]
   codeClasse?: Prisma.StringFilter<"Classe"> | string
   nameClasse?: Prisma.StringFilter<"Classe"> | string
+  level?: Prisma.StringNullableFilter<"Classe"> | string | null
+  parallel?: Prisma.StringNullableFilter<"Classe"> | string | null
+  capacity?: Prisma.IntNullableFilter<"Classe"> | number | null
   optionId?: Prisma.StringNullableFilter<"Classe"> | string | null
   statusClasse?: Prisma.BoolNullableFilter<"Classe"> | boolean | null
   creneauId?: Prisma.StringNullableFilter<"Classe"> | string | null
@@ -273,6 +337,9 @@ export type ClasseOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   codeClasse?: Prisma.SortOrder
   nameClasse?: Prisma.SortOrder
+  level?: Prisma.SortOrderInput | Prisma.SortOrder
+  parallel?: Prisma.SortOrderInput | Prisma.SortOrder
+  capacity?: Prisma.SortOrderInput | Prisma.SortOrder
   optionId?: Prisma.SortOrderInput | Prisma.SortOrder
   statusClasse?: Prisma.SortOrderInput | Prisma.SortOrder
   creneauId?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -280,8 +347,10 @@ export type ClasseOrderByWithAggregationInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.ClasseCountOrderByAggregateInput
+  _avg?: Prisma.ClasseAvgOrderByAggregateInput
   _max?: Prisma.ClasseMaxOrderByAggregateInput
   _min?: Prisma.ClasseMinOrderByAggregateInput
+  _sum?: Prisma.ClasseSumOrderByAggregateInput
 }
 
 export type ClasseScalarWhereWithAggregatesInput = {
@@ -291,6 +360,9 @@ export type ClasseScalarWhereWithAggregatesInput = {
   id?: Prisma.StringWithAggregatesFilter<"Classe"> | string
   codeClasse?: Prisma.StringWithAggregatesFilter<"Classe"> | string
   nameClasse?: Prisma.StringWithAggregatesFilter<"Classe"> | string
+  level?: Prisma.StringNullableWithAggregatesFilter<"Classe"> | string | null
+  parallel?: Prisma.StringNullableWithAggregatesFilter<"Classe"> | string | null
+  capacity?: Prisma.IntNullableWithAggregatesFilter<"Classe"> | number | null
   optionId?: Prisma.StringNullableWithAggregatesFilter<"Classe"> | string | null
   statusClasse?: Prisma.BoolNullableWithAggregatesFilter<"Classe"> | boolean | null
   creneauId?: Prisma.StringNullableWithAggregatesFilter<"Classe"> | string | null
@@ -303,6 +375,9 @@ export type ClasseCreateInput = {
   id?: string
   codeClasse: string
   nameClasse: string
+  level?: string | null
+  parallel?: string | null
+  capacity?: number | null
   statusClasse?: boolean | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -320,6 +395,9 @@ export type ClasseUncheckedCreateInput = {
   id?: string
   codeClasse: string
   nameClasse: string
+  level?: string | null
+  parallel?: string | null
+  capacity?: number | null
   optionId?: string | null
   statusClasse?: boolean | null
   creneauId?: string | null
@@ -337,6 +415,9 @@ export type ClasseUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   codeClasse?: Prisma.StringFieldUpdateOperationsInput | string
   nameClasse?: Prisma.StringFieldUpdateOperationsInput | string
+  level?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  parallel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   statusClasse?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -354,6 +435,9 @@ export type ClasseUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   codeClasse?: Prisma.StringFieldUpdateOperationsInput | string
   nameClasse?: Prisma.StringFieldUpdateOperationsInput | string
+  level?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  parallel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   optionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusClasse?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   creneauId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -371,6 +455,9 @@ export type ClasseCreateManyInput = {
   id?: string
   codeClasse: string
   nameClasse: string
+  level?: string | null
+  parallel?: string | null
+  capacity?: number | null
   optionId?: string | null
   statusClasse?: boolean | null
   creneauId?: string | null
@@ -383,6 +470,9 @@ export type ClasseUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   codeClasse?: Prisma.StringFieldUpdateOperationsInput | string
   nameClasse?: Prisma.StringFieldUpdateOperationsInput | string
+  level?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  parallel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   statusClasse?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -392,6 +482,9 @@ export type ClasseUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   codeClasse?: Prisma.StringFieldUpdateOperationsInput | string
   nameClasse?: Prisma.StringFieldUpdateOperationsInput | string
+  level?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  parallel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   optionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusClasse?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   creneauId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -419,6 +512,9 @@ export type ClasseCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   codeClasse?: Prisma.SortOrder
   nameClasse?: Prisma.SortOrder
+  level?: Prisma.SortOrder
+  parallel?: Prisma.SortOrder
+  capacity?: Prisma.SortOrder
   optionId?: Prisma.SortOrder
   statusClasse?: Prisma.SortOrder
   creneauId?: Prisma.SortOrder
@@ -427,10 +523,17 @@ export type ClasseCountOrderByAggregateInput = {
   updatedAt?: Prisma.SortOrder
 }
 
+export type ClasseAvgOrderByAggregateInput = {
+  capacity?: Prisma.SortOrder
+}
+
 export type ClasseMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   codeClasse?: Prisma.SortOrder
   nameClasse?: Prisma.SortOrder
+  level?: Prisma.SortOrder
+  parallel?: Prisma.SortOrder
+  capacity?: Prisma.SortOrder
   optionId?: Prisma.SortOrder
   statusClasse?: Prisma.SortOrder
   creneauId?: Prisma.SortOrder
@@ -443,12 +546,19 @@ export type ClasseMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   codeClasse?: Prisma.SortOrder
   nameClasse?: Prisma.SortOrder
+  level?: Prisma.SortOrder
+  parallel?: Prisma.SortOrder
+  capacity?: Prisma.SortOrder
   optionId?: Prisma.SortOrder
   statusClasse?: Prisma.SortOrder
   creneauId?: Prisma.SortOrder
   branchId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+}
+
+export type ClasseSumOrderByAggregateInput = {
+  capacity?: Prisma.SortOrder
 }
 
 export type ClasseListRelationFilter = {
@@ -478,6 +588,14 @@ export type ClasseUpdateOneRequiredWithoutFraisNestedInput = {
   upsert?: Prisma.ClasseUpsertWithoutFraisInput
   connect?: Prisma.ClasseWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.ClasseUpdateToOneWithWhereWithoutFraisInput, Prisma.ClasseUpdateWithoutFraisInput>, Prisma.ClasseUncheckedUpdateWithoutFraisInput>
+}
+
+export type NullableIntFieldUpdateOperationsInput = {
+  set?: number | null
+  increment?: number
+  decrement?: number
+  multiply?: number
+  divide?: number
 }
 
 export type ClasseCreateNestedManyWithoutCreneauInput = {
@@ -672,6 +790,9 @@ export type ClasseCreateWithoutFraisInput = {
   id?: string
   codeClasse: string
   nameClasse: string
+  level?: string | null
+  parallel?: string | null
+  capacity?: number | null
   statusClasse?: boolean | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -688,6 +809,9 @@ export type ClasseUncheckedCreateWithoutFraisInput = {
   id?: string
   codeClasse: string
   nameClasse: string
+  level?: string | null
+  parallel?: string | null
+  capacity?: number | null
   optionId?: string | null
   statusClasse?: boolean | null
   creneauId?: string | null
@@ -720,6 +844,9 @@ export type ClasseUpdateWithoutFraisInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   codeClasse?: Prisma.StringFieldUpdateOperationsInput | string
   nameClasse?: Prisma.StringFieldUpdateOperationsInput | string
+  level?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  parallel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   statusClasse?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -736,6 +863,9 @@ export type ClasseUncheckedUpdateWithoutFraisInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   codeClasse?: Prisma.StringFieldUpdateOperationsInput | string
   nameClasse?: Prisma.StringFieldUpdateOperationsInput | string
+  level?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  parallel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   optionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusClasse?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   creneauId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -752,6 +882,9 @@ export type ClasseCreateWithoutCreneauInput = {
   id?: string
   codeClasse: string
   nameClasse: string
+  level?: string | null
+  parallel?: string | null
+  capacity?: number | null
   statusClasse?: boolean | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -768,6 +901,9 @@ export type ClasseUncheckedCreateWithoutCreneauInput = {
   id?: string
   codeClasse: string
   nameClasse: string
+  level?: string | null
+  parallel?: string | null
+  capacity?: number | null
   optionId?: string | null
   statusClasse?: boolean | null
   branchId: string
@@ -813,6 +949,9 @@ export type ClasseScalarWhereInput = {
   id?: Prisma.StringFilter<"Classe"> | string
   codeClasse?: Prisma.StringFilter<"Classe"> | string
   nameClasse?: Prisma.StringFilter<"Classe"> | string
+  level?: Prisma.StringNullableFilter<"Classe"> | string | null
+  parallel?: Prisma.StringNullableFilter<"Classe"> | string | null
+  capacity?: Prisma.IntNullableFilter<"Classe"> | number | null
   optionId?: Prisma.StringNullableFilter<"Classe"> | string | null
   statusClasse?: Prisma.BoolNullableFilter<"Classe"> | boolean | null
   creneauId?: Prisma.StringNullableFilter<"Classe"> | string | null
@@ -825,6 +964,9 @@ export type ClasseCreateWithoutOptionInput = {
   id?: string
   codeClasse: string
   nameClasse: string
+  level?: string | null
+  parallel?: string | null
+  capacity?: number | null
   statusClasse?: boolean | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -841,6 +983,9 @@ export type ClasseUncheckedCreateWithoutOptionInput = {
   id?: string
   codeClasse: string
   nameClasse: string
+  level?: string | null
+  parallel?: string | null
+  capacity?: number | null
   statusClasse?: boolean | null
   creneauId?: string | null
   branchId: string
@@ -883,6 +1028,9 @@ export type ClasseCreateWithoutClassEnrollmentInput = {
   id?: string
   codeClasse: string
   nameClasse: string
+  level?: string | null
+  parallel?: string | null
+  capacity?: number | null
   statusClasse?: boolean | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -899,6 +1047,9 @@ export type ClasseUncheckedCreateWithoutClassEnrollmentInput = {
   id?: string
   codeClasse: string
   nameClasse: string
+  level?: string | null
+  parallel?: string | null
+  capacity?: number | null
   optionId?: string | null
   statusClasse?: boolean | null
   creneauId?: string | null
@@ -931,6 +1082,9 @@ export type ClasseUpdateWithoutClassEnrollmentInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   codeClasse?: Prisma.StringFieldUpdateOperationsInput | string
   nameClasse?: Prisma.StringFieldUpdateOperationsInput | string
+  level?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  parallel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   statusClasse?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -947,6 +1101,9 @@ export type ClasseUncheckedUpdateWithoutClassEnrollmentInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   codeClasse?: Prisma.StringFieldUpdateOperationsInput | string
   nameClasse?: Prisma.StringFieldUpdateOperationsInput | string
+  level?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  parallel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   optionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusClasse?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   creneauId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -963,6 +1120,9 @@ export type ClasseCreateWithoutTeachingInput = {
   id?: string
   codeClasse: string
   nameClasse: string
+  level?: string | null
+  parallel?: string | null
+  capacity?: number | null
   statusClasse?: boolean | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -979,6 +1139,9 @@ export type ClasseUncheckedCreateWithoutTeachingInput = {
   id?: string
   codeClasse: string
   nameClasse: string
+  level?: string | null
+  parallel?: string | null
+  capacity?: number | null
   optionId?: string | null
   statusClasse?: boolean | null
   creneauId?: string | null
@@ -1011,6 +1174,9 @@ export type ClasseUpdateWithoutTeachingInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   codeClasse?: Prisma.StringFieldUpdateOperationsInput | string
   nameClasse?: Prisma.StringFieldUpdateOperationsInput | string
+  level?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  parallel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   statusClasse?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1027,6 +1193,9 @@ export type ClasseUncheckedUpdateWithoutTeachingInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   codeClasse?: Prisma.StringFieldUpdateOperationsInput | string
   nameClasse?: Prisma.StringFieldUpdateOperationsInput | string
+  level?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  parallel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   optionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusClasse?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   creneauId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1043,6 +1212,9 @@ export type ClasseCreateWithoutCalendarEventInput = {
   id?: string
   codeClasse: string
   nameClasse: string
+  level?: string | null
+  parallel?: string | null
+  capacity?: number | null
   statusClasse?: boolean | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1059,6 +1231,9 @@ export type ClasseUncheckedCreateWithoutCalendarEventInput = {
   id?: string
   codeClasse: string
   nameClasse: string
+  level?: string | null
+  parallel?: string | null
+  capacity?: number | null
   optionId?: string | null
   statusClasse?: boolean | null
   creneauId?: string | null
@@ -1091,6 +1266,9 @@ export type ClasseUpdateWithoutCalendarEventInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   codeClasse?: Prisma.StringFieldUpdateOperationsInput | string
   nameClasse?: Prisma.StringFieldUpdateOperationsInput | string
+  level?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  parallel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   statusClasse?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1107,6 +1285,9 @@ export type ClasseUncheckedUpdateWithoutCalendarEventInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   codeClasse?: Prisma.StringFieldUpdateOperationsInput | string
   nameClasse?: Prisma.StringFieldUpdateOperationsInput | string
+  level?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  parallel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   optionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusClasse?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   creneauId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1123,6 +1304,9 @@ export type ClasseCreateWithoutFicheInput = {
   id?: string
   codeClasse: string
   nameClasse: string
+  level?: string | null
+  parallel?: string | null
+  capacity?: number | null
   statusClasse?: boolean | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1139,6 +1323,9 @@ export type ClasseUncheckedCreateWithoutFicheInput = {
   id?: string
   codeClasse: string
   nameClasse: string
+  level?: string | null
+  parallel?: string | null
+  capacity?: number | null
   optionId?: string | null
   statusClasse?: boolean | null
   creneauId?: string | null
@@ -1171,6 +1358,9 @@ export type ClasseUpdateWithoutFicheInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   codeClasse?: Prisma.StringFieldUpdateOperationsInput | string
   nameClasse?: Prisma.StringFieldUpdateOperationsInput | string
+  level?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  parallel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   statusClasse?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1187,6 +1377,9 @@ export type ClasseUncheckedUpdateWithoutFicheInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   codeClasse?: Prisma.StringFieldUpdateOperationsInput | string
   nameClasse?: Prisma.StringFieldUpdateOperationsInput | string
+  level?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  parallel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   optionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusClasse?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   creneauId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1203,6 +1396,9 @@ export type ClasseCreateWithoutBranchInput = {
   id?: string
   codeClasse: string
   nameClasse: string
+  level?: string | null
+  parallel?: string | null
+  capacity?: number | null
   statusClasse?: boolean | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1219,6 +1415,9 @@ export type ClasseUncheckedCreateWithoutBranchInput = {
   id?: string
   codeClasse: string
   nameClasse: string
+  level?: string | null
+  parallel?: string | null
+  capacity?: number | null
   optionId?: string | null
   statusClasse?: boolean | null
   creneauId?: string | null
@@ -1261,6 +1460,9 @@ export type ClasseCreateManyCreneauInput = {
   id?: string
   codeClasse: string
   nameClasse: string
+  level?: string | null
+  parallel?: string | null
+  capacity?: number | null
   optionId?: string | null
   statusClasse?: boolean | null
   branchId: string
@@ -1272,6 +1474,9 @@ export type ClasseUpdateWithoutCreneauInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   codeClasse?: Prisma.StringFieldUpdateOperationsInput | string
   nameClasse?: Prisma.StringFieldUpdateOperationsInput | string
+  level?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  parallel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   statusClasse?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1288,6 +1493,9 @@ export type ClasseUncheckedUpdateWithoutCreneauInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   codeClasse?: Prisma.StringFieldUpdateOperationsInput | string
   nameClasse?: Prisma.StringFieldUpdateOperationsInput | string
+  level?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  parallel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   optionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusClasse?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1304,6 +1512,9 @@ export type ClasseUncheckedUpdateManyWithoutCreneauInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   codeClasse?: Prisma.StringFieldUpdateOperationsInput | string
   nameClasse?: Prisma.StringFieldUpdateOperationsInput | string
+  level?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  parallel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   optionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusClasse?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1315,6 +1526,9 @@ export type ClasseCreateManyOptionInput = {
   id?: string
   codeClasse: string
   nameClasse: string
+  level?: string | null
+  parallel?: string | null
+  capacity?: number | null
   statusClasse?: boolean | null
   creneauId?: string | null
   branchId: string
@@ -1326,6 +1540,9 @@ export type ClasseUpdateWithoutOptionInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   codeClasse?: Prisma.StringFieldUpdateOperationsInput | string
   nameClasse?: Prisma.StringFieldUpdateOperationsInput | string
+  level?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  parallel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   statusClasse?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1342,6 +1559,9 @@ export type ClasseUncheckedUpdateWithoutOptionInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   codeClasse?: Prisma.StringFieldUpdateOperationsInput | string
   nameClasse?: Prisma.StringFieldUpdateOperationsInput | string
+  level?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  parallel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   statusClasse?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   creneauId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1358,6 +1578,9 @@ export type ClasseUncheckedUpdateManyWithoutOptionInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   codeClasse?: Prisma.StringFieldUpdateOperationsInput | string
   nameClasse?: Prisma.StringFieldUpdateOperationsInput | string
+  level?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  parallel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   statusClasse?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   creneauId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1369,6 +1592,9 @@ export type ClasseCreateManyBranchInput = {
   id?: string
   codeClasse: string
   nameClasse: string
+  level?: string | null
+  parallel?: string | null
+  capacity?: number | null
   optionId?: string | null
   statusClasse?: boolean | null
   creneauId?: string | null
@@ -1380,6 +1606,9 @@ export type ClasseUpdateWithoutBranchInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   codeClasse?: Prisma.StringFieldUpdateOperationsInput | string
   nameClasse?: Prisma.StringFieldUpdateOperationsInput | string
+  level?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  parallel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   statusClasse?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1396,6 +1625,9 @@ export type ClasseUncheckedUpdateWithoutBranchInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   codeClasse?: Prisma.StringFieldUpdateOperationsInput | string
   nameClasse?: Prisma.StringFieldUpdateOperationsInput | string
+  level?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  parallel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   optionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusClasse?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   creneauId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1412,6 +1644,9 @@ export type ClasseUncheckedUpdateManyWithoutBranchInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   codeClasse?: Prisma.StringFieldUpdateOperationsInput | string
   nameClasse?: Prisma.StringFieldUpdateOperationsInput | string
+  level?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  parallel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   optionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusClasse?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   creneauId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1490,6 +1725,9 @@ export type ClasseSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   id?: boolean
   codeClasse?: boolean
   nameClasse?: boolean
+  level?: boolean
+  parallel?: boolean
+  capacity?: boolean
   optionId?: boolean
   statusClasse?: boolean
   creneauId?: boolean
@@ -1511,6 +1749,9 @@ export type ClasseSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extens
   id?: boolean
   codeClasse?: boolean
   nameClasse?: boolean
+  level?: boolean
+  parallel?: boolean
+  capacity?: boolean
   optionId?: boolean
   statusClasse?: boolean
   creneauId?: boolean
@@ -1526,6 +1767,9 @@ export type ClasseSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extens
   id?: boolean
   codeClasse?: boolean
   nameClasse?: boolean
+  level?: boolean
+  parallel?: boolean
+  capacity?: boolean
   optionId?: boolean
   statusClasse?: boolean
   creneauId?: boolean
@@ -1541,6 +1785,9 @@ export type ClasseSelectScalar = {
   id?: boolean
   codeClasse?: boolean
   nameClasse?: boolean
+  level?: boolean
+  parallel?: boolean
+  capacity?: boolean
   optionId?: boolean
   statusClasse?: boolean
   creneauId?: boolean
@@ -1549,7 +1796,7 @@ export type ClasseSelectScalar = {
   updatedAt?: boolean
 }
 
-export type ClasseOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "codeClasse" | "nameClasse" | "optionId" | "statusClasse" | "creneauId" | "branchId" | "createdAt" | "updatedAt", ExtArgs["result"]["classe"]>
+export type ClasseOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "codeClasse" | "nameClasse" | "level" | "parallel" | "capacity" | "optionId" | "statusClasse" | "creneauId" | "branchId" | "createdAt" | "updatedAt", ExtArgs["result"]["classe"]>
 export type ClasseInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
   classEnrollment?: boolean | Prisma.Classe$classEnrollmentArgs<ExtArgs>
@@ -1588,6 +1835,9 @@ export type $ClassePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     id: string
     codeClasse: string
     nameClasse: string
+    level: string | null
+    parallel: string | null
+    capacity: number | null
     optionId: string | null
     statusClasse: boolean | null
     creneauId: string | null
@@ -2028,6 +2278,9 @@ export interface ClasseFieldRefs {
   readonly id: Prisma.FieldRef<"Classe", 'String'>
   readonly codeClasse: Prisma.FieldRef<"Classe", 'String'>
   readonly nameClasse: Prisma.FieldRef<"Classe", 'String'>
+  readonly level: Prisma.FieldRef<"Classe", 'String'>
+  readonly parallel: Prisma.FieldRef<"Classe", 'String'>
+  readonly capacity: Prisma.FieldRef<"Classe", 'Int'>
   readonly optionId: Prisma.FieldRef<"Classe", 'String'>
   readonly statusClasse: Prisma.FieldRef<"Classe", 'Boolean'>
   readonly creneauId: Prisma.FieldRef<"Classe", 'String'>

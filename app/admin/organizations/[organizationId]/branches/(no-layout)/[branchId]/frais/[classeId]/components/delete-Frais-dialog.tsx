@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { IconReload, IconTrash } from "@tabler/icons-react";
+import { IconArchive, IconReload } from "@tabler/icons-react";
 import { type Row } from "@tanstack/react-table";
 import { toast } from "sonner";
 
@@ -17,9 +17,8 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { IFrais } from "@/src/interfaces/Frais";
-import { deleteFrais } from "../../frais.action";
+import { archiveFrais } from "../../frais.action";
 import { useRefresh } from "@/src/hooks/RefreshContext";
-import { useRouter } from "next/navigation";
 
 interface DeleteFraissDialogProps extends React.ComponentPropsWithoutRef<
   typeof Dialog
@@ -35,68 +34,74 @@ export function DeleteFraissDialog({
   Frais,
   ...props
 }: DeleteFraissDialogProps) {
-  const [isDeletePending, startDeleteTransition] = React.useTransition();
+  const [isArchivePending, startArchiveTransition] = React.useTransition();
 
   const { refresh } = useRefresh();
-  const router = useRouter();
-  const handleDelete = async () => {
-    startDeleteTransition(async () => {
+  const handleArchive = () => {
+    startArchiveTransition(async () => {
+      let hasError = false;
       for (const frais of Frais) {
-        try {
-          await deleteFrais({
-            id: frais.id,
-          });
-        } catch (err) {
-          toast.error(`Failed to delete frais ${frais.id}: ${err}`);
+        const [, err] = await archiveFrais({
+          id: frais.id,
+        });
+        if (err) {
+          toast.error(err.message ?? "Erreur lors de la désactivation");
+          hasError = true;
         }
       }
-
-      onSuccess?.();
-      refresh();
-      router.refresh();
-      props.onOpenChange?.(false);
+      if (!hasError) {
+        toast.success(
+          Frais.length === 1 ? "Frais désactivé" : "Frais désactivés",
+        );
+        refresh();
+        onSuccess?.();
+        props.onOpenChange?.(false);
+      }
     });
   };
+
+  const count = Frais.length;
 
   return (
     <Dialog {...props}>
       {showTrigger ? (
         <DialogTrigger asChild>
           <Button variant="outline" size="sm">
-            <IconTrash className="mr-2 size-4" aria-hidden="true" />
-            Delete ({Frais.length})
+            <IconArchive className="mr-2 size-4" aria-hidden="true" />
+            Désactiver ({count})
           </Button>
         </DialogTrigger>
       ) : null}
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Êtes-vous absolument sûr?</DialogTitle>
+          <DialogTitle>
+            {count === 1
+              ? "Désactiver le frais ?"
+              : `Désactiver ${count} frais ?`}
+          </DialogTitle>
           <DialogDescription>
-            Cette action ne peut pas être annulée.Cela supprimera en permanence
-            votre <span className="font-medium">{Frais.length}</span>
-            {Frais.length === 1 ? " frai" : " Frais"} from our servers.
+            {count === 1
+              ? "Le frais sera désactivé et masqué des listes actives mais l'historique sera conservé."
+              : "Ces frais seront désactivés et masqués des listes actives mais l'historique sera conservé."}
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="gap-2 sm:space-x-0">
           <DialogClose asChild>
-            <Button variant="outline">Cancel</Button>
+            <Button variant="outline">Annuler</Button>
           </DialogClose>
           <Button
-            aria-label="Delete selected rows"
-            variant="destructive"
-            onClick={() => {
-              toast.success("Fraiss deleted");
-              handleDelete();
-            }}
-            disabled={isDeletePending}
+            aria-label="Désactiver la sélection"
+            variant="outline"
+            onClick={handleArchive}
+            disabled={isArchivePending}
           >
-            {isDeletePending && (
+            {isArchivePending && (
               <IconReload
                 className="mr-2 size-4 animate-spin"
                 aria-hidden="true"
               />
             )}
-            Delete
+            Désactiver
           </Button>
         </DialogFooter>
       </DialogContent>

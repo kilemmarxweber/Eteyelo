@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { IconReload, IconTrash } from "@tabler/icons-react";
+import { IconArchive, IconReload } from "@tabler/icons-react";
 import { type Row } from "@tanstack/react-table";
 import { toast } from "sonner";
 
@@ -17,7 +17,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { IPersonnel } from "@/src/interfaces/Personnel";
-import { deletePersonalAction } from "../personnel.action";
+import { archivePersonalAction } from "../personnel.action";
 import { useRefresh } from "@/src/hooks/RefreshContext";
 
 interface DeletePersonalDialogProps extends React.ComponentPropsWithoutRef<
@@ -34,67 +34,72 @@ export function DeletePersonalDialog({
   personals,
   ...props
 }: DeletePersonalDialogProps) {
-  const [isDeletePending, startDeleteTransition] = React.useTransition();
+  const [isArchivePending, startArchiveTransition] = React.useTransition();
 
   const { refresh } = useRefresh();
-  const handleDelete = async () => {
-    startDeleteTransition(async () => {
+  const handleArchive = () => {
+    startArchiveTransition(async () => {
       try {
-        await deletePersonalAction({
+        await archivePersonalAction({
           ids: personals.map((p) => p.id),
         });
 
-        toast.success("personals deleted");
+        toast.success(
+          personals.length === 1
+            ? "Personnel archivé"
+            : "Personnels archivés",
+        );
         onSuccess?.();
         refresh();
-      } catch (err) {
-        toast.error("Failed to delete personnels");
+        props.onOpenChange?.(false);
+      } catch {
+        toast.error("Erreur lors de l'archivage du personnel");
       }
     });
   };
+
+  const count = personals.length;
 
   return (
     <Dialog {...props}>
       {showTrigger ? (
         <DialogTrigger asChild>
           <Button variant="outline" size="sm">
-            <IconTrash className="mr-2 size-4" aria-hidden="true" />
-            Delete ({personals.length})
+            <IconArchive className="mr-2 size-4" aria-hidden="true" />
+            Archiver ({count})
           </Button>
         </DialogTrigger>
       ) : null}
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Êtes-vous absolument sûr?</DialogTitle>
+          <DialogTitle>
+            {count === 1
+              ? "Archiver le personnel ?"
+              : `Archiver ${count} personnels ?`}
+          </DialogTitle>
           <DialogDescription>
-            Cette action ne peut pas être annulée. Cela supprimera en permanence
-            votre <span className="font-medium">{personals.length}</span>
-            {personals.length === 1 ? " personal" : " personals"} from our
-            servers.
+            {count === 1
+              ? "Le personnel sera masqué des listes actives mais l'historique sera conservé."
+              : "Ces personnels seront masqués des listes actives mais l'historique sera conservé."}
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="gap-2 sm:space-x-0">
           <DialogClose asChild>
-            <Button variant="outline">Cancel</Button>
+            <Button variant="outline">Annuler</Button>
           </DialogClose>
           <Button
-            aria-label="Delete selected rows"
-            variant="destructive"
-            onClick={() => {
-              props.onOpenChange?.(false);
-              toast.success("personals deleted");
-              onSuccess?.();
-              handleDelete();
-            }}
-            disabled={isDeletePending}
+            aria-label="Archiver la sélection"
+            variant="outline"
+            onClick={handleArchive}
+            disabled={isArchivePending}
           >
-            {isDeletePending && (
+            {isArchivePending && (
               <IconReload
                 className="mr-2 size-4 animate-spin"
                 aria-hidden="true"
               />
             )}
-            Delete
+            Archiver
           </Button>
         </DialogFooter>
       </DialogContent>

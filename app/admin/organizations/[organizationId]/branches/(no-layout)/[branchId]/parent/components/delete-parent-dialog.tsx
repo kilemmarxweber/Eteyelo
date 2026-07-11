@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { IconReload, IconTrash } from "@tabler/icons-react";
+import { IconArchive, IconReload } from "@tabler/icons-react";
 import { type Row } from "@tanstack/react-table";
 import { toast } from "sonner";
 
@@ -17,7 +17,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { IParent } from "@/src/interfaces/Parent";
-import { deleteParentAction } from "../parent.action";
+import { archiveParentAction } from "../parent.action";
 import { useRefresh } from "@/src/hooks/RefreshContext";
 
 interface DeleteParentDialogProps extends React.ComponentPropsWithoutRef<
@@ -34,75 +34,85 @@ export function DeleteParentDialog({
   parents,
   ...props
 }: DeleteParentDialogProps) {
-  const [isDeletePending, startDeleteTransition] = React.useTransition();
+  const [isArchivePending, startArchiveTransition] = React.useTransition();
 
   const { refresh } = useRefresh();
-  const handleDelete = async () => {
-    startDeleteTransition(async () => {
+  const handleArchive = () => {
+    startArchiveTransition(async () => {
       try {
+        let hasArchived = false;
         for (const parent of parents) {
-          const [result, error] = await deleteParentAction({
+          const [result, error] = await archiveParentAction({
             id: parent.id,
           });
 
           if (error) {
-            toast.error(error.message);
+            toast.error(error.message ?? "Erreur lors de l'archivage");
             continue;
           }
 
           if (result?.success) {
-            toast.success(result.message);
+            hasArchived = true;
+            toast.success(result.message ?? "Parent archivé");
           } else {
-            toast.error(result?.message);
+            toast.error(result?.message ?? "Erreur lors de l'archivage");
           }
         }
-        refresh();
-        onSuccess?.();
-      } catch (err: any) {
-        toast.error(err?.message || "Erreur serveur");
+        if (hasArchived) {
+          refresh();
+          onSuccess?.();
+          props.onOpenChange?.(false);
+        }
+      } catch (err: unknown) {
+        const message =
+          err instanceof Error ? err.message : "Erreur serveur";
+        toast.error(message);
       }
     });
   };
+
+  const count = parents.length;
 
   return (
     <Dialog {...props}>
       {showTrigger ? (
         <DialogTrigger asChild>
           <Button variant="outline" size="sm">
-            <IconTrash className="mr-2 size-4" aria-hidden="true" />
-            Delete ({parents.length})
+            <IconArchive className="mr-2 size-4" aria-hidden="true" />
+            Archiver ({count})
           </Button>
         </DialogTrigger>
       ) : null}
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Êtes-vous absolument sûr?</DialogTitle>
+          <DialogTitle>
+            {count === 1
+              ? "Archiver le parent ?"
+              : `Archiver ${count} parents ?`}
+          </DialogTitle>
           <DialogDescription>
-            Cette action ne peut pas être annulée.Cela supprimera en permanence
-            votre <span className="font-medium">{parents.length}</span>
-            {parents.length === 1 ? " parent" : " parents"} from our servers.
+            {count === 1
+              ? "Le parent sera masqué des listes actives mais l'historique sera conservé."
+              : "Ces parents seront masqués des listes actives mais l'historique sera conservé."}
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="gap-2 sm:space-x-0">
           <DialogClose asChild>
-            <Button variant="outline">Cancel</Button>
+            <Button variant="outline">Annuler</Button>
           </DialogClose>
           <Button
-            aria-label="Delete selected rows"
-            variant="destructive"
-            onClick={() => {
-              props.onOpenChange?.(false);
-              handleDelete();
-            }}
-            disabled={isDeletePending}
+            aria-label="Archiver la sélection"
+            variant="outline"
+            onClick={handleArchive}
+            disabled={isArchivePending}
           >
-            {isDeletePending && (
+            {isArchivePending && (
               <IconReload
                 className="mr-2 size-4 animate-spin"
                 aria-hidden="true"
               />
             )}
-            Delete
+            Archiver
           </Button>
         </DialogFooter>
       </DialogContent>

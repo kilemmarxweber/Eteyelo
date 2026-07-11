@@ -44,8 +44,36 @@ import {
   type CreateBranchFormValues,
 } from "../../schema";
 import { createBranchAction, updateBranchAction } from "../../branche.action";
+import { uploadFile, uploadFiles } from "@/lib/upload-file";
 import { useState } from "react";
-import { z } from "zod";
+
+type BranchImages = {
+  logo: string;
+  event: string[];
+  gallery: string[];
+  ecole: string[];
+};
+
+type PendingBranchFiles = {
+  logo: File | null;
+  event: File[];
+  gallery: File[];
+  ecole: File[];
+};
+
+const emptyBranchImages = (): BranchImages => ({
+  logo: "",
+  event: [],
+  gallery: [],
+  ecole: [],
+});
+
+const emptyPendingFiles = (): PendingBranchFiles => ({
+  logo: null,
+  event: [],
+  gallery: [],
+  ecole: [],
+});
 
 const BranchMapPicker = dynamic(() => import("./branch-map-picker"), {
   ssr: false,
@@ -66,7 +94,11 @@ export function CreateBranchForm({
 }: CreateBranchFormProps) {
   const router = useRouter();
   const [showMapDialog, setShowMapDialog] = useState(false);
-  const [showMap, setShowMap] = useState(false);
+  const [savedImages, setSavedImages] = useState<BranchImages>(
+    defaultValues?.image ?? emptyBranchImages(),
+  );
+  const [pendingFiles, setPendingFiles] =
+    useState<PendingBranchFiles>(emptyPendingFiles);
   const form = useForm<CreateBranchFormValues>({
     resolver: zodResolver(createBranchFormSchema),
     defaultValues: {
@@ -141,58 +173,46 @@ export function CreateBranchForm({
     );
   }
 
+  async function buildFinalImages(): Promise<BranchImages> {
+    let logo = savedImages.logo;
+
+    if (pendingFiles.logo) {
+      const uploadedLogo = await uploadFile(pendingFiles.logo);
+      if (!uploadedLogo.ok) {
+        throw new Error(uploadedLogo.message);
+      }
+      logo = uploadedLogo.fileName;
+    }
+
+    const [event, gallery, ecole] = await Promise.all([
+      uploadFiles(pendingFiles.event).then(
+        (names) => [...savedImages.event, ...names],
+      ),
+      uploadFiles(pendingFiles.gallery).then(
+        (names) => [...savedImages.gallery, ...names],
+      ),
+      uploadFiles(pendingFiles.ecole).then(
+        (names) => [...savedImages.ecole, ...names],
+      ),
+    ]);
+
+    return { logo, event, gallery, ecole };
+  }
+
   async function onSubmit(values: CreateBranchFormValues) {
     form.clearErrors("root");
 
     try {
-      const formData = new FormData();
-
-      formData.append("name", values.name ?? "");
-      formData.append("code", values.code ?? "");
-      formData.append("adresse", values.adresse ?? "");
-      formData.append("ville", values.ville ?? "");
-      formData.append("pays", values.pays ?? "");
-      formData.append("idnat", values.idnat ?? "");
-      formData.append("tel", values.tel ?? "");
-      formData.append("latitude", String(values.latitude ?? ""));
-      formData.append("longitude", String(values.longitude ?? ""));
-      formData.append("attendanceRadius", String(values.attendanceRadius ?? ""));
-      formData.append("typebranch", values.typebranch ?? "SECONDAIRE");
-      formData.append("image", JSON.stringify(values.image ?? {
-        logo: "",
-        event: [],
-        gallery: [],
-        ecole: [],
-      }));
-
-      const logoFile = document.querySelector<HTMLInputElement>(
-        'input[name="logoFile"]',
-      )?.files?.[0];
-      const eventFiles = document.querySelector<HTMLInputElement>(
-        'input[name="eventFiles"]',
-      )?.files;
-      const galleryFiles = document.querySelector<HTMLInputElement>(
-        'input[name="galleryFiles"]',
-      )?.files;
-      const ecoleFiles = document.querySelector<HTMLInputElement>(
-        'input[name="ecoleFiles"]',
-      )?.files;
-
-      if (logoFile) formData.append("logoFile", logoFile);
-      Array.from(eventFiles ?? []).forEach((file) =>
-        formData.append("eventFiles", file),
-      );
-      Array.from(galleryFiles ?? []).forEach((file) =>
-        formData.append("galleryFiles", file),
-      );
-      Array.from(ecoleFiles ?? []).forEach((file) =>
-        formData.append("ecoleFiles", file),
-      );
+      const image = await buildFinalImages();
+      const payload: CreateBranchFormValues = {
+        ...values,
+        image,
+      };
 
       const result =
         mode === "update" && branchId
-          ? await updateBranchAction(branchId, formData)
-          : await createBranchAction(organizationId, formData);
+          ? await updateBranchAction(branchId, payload)
+          : await createBranchAction(organizationId, payload);
 
       if (result.error) {
         form.setError("root", {
@@ -230,21 +250,11 @@ export function CreateBranchForm({
   const latitude = form.watch("latitude");
   const longitude = form.watch("longitude");
 
-  const images = form.watch("image") ?? {
-    logo: "",
-    event: [],
-    gallery: [],
-    ecole: [],
-  };
-
   function setLogo(files: FileList | null) {
     const file = files?.[0];
     if (!file) return;
 
-    form.setValue("image.logo", file.name, {
-      shouldValidate: true,
-      shouldDirty: true,
-    });
+    setPendingFiles((current) => ({ ...current, logo: file }));
   }
 
   function addImages(
@@ -253,33 +263,36 @@ export function CreateBranchForm({
   ) {
     if (!files?.length) return;
 
-    const names = Array.from(files).map((file) => file.name);
-    const current = form.getValues(`image.${type}`) ?? [];
-
-    form.setValue(`image.${type}`, [...current, ...names], {
-      shouldValidate: true,
-      shouldDirty: true,
-    });
+    const nextFiles = Array.from(files);
+    setPendingFiles((current) => ({
+      ...current,
+      [type]: [...current[type], ...nextFiles],
+    }));
   }
 
-  function removeImage(type: "event" | "gallery" | "ecole", index: number) {
-    const current = form.getValues(`image.${type}`) ?? [];
+  function removePendingImage(
+    type: "event" | "gallery" | "ecole",
+    index: number,
+  ) {
+    setPendingFiles((current) => ({
+      ...current,
+      [type]: current[type].filter((_, i) => i !== index),
+    }));
+  }
 
-    form.setValue(
-      `image.${type}`,
-      current.filter((_, i) => i !== index),
-      {
-        shouldValidate: true,
-        shouldDirty: true,
-      },
-    );
+  function removeSavedImage(
+    type: "event" | "gallery" | "ecole",
+    index: number,
+  ) {
+    setSavedImages((current) => ({
+      ...current,
+      [type]: current[type].filter((_, i) => i !== index),
+    }));
   }
 
   function removeLogo() {
-    form.setValue("image.logo", "", {
-      shouldValidate: true,
-      shouldDirty: true,
-    });
+    setPendingFiles((current) => ({ ...current, logo: null }));
+    setSavedImages((current) => ({ ...current, logo: "" }));
   }
   return (
     <>
@@ -674,11 +687,11 @@ export function CreateBranchForm({
                     </div>
 
                     <div className="mt-5 grid gap-3">
-                      {images.logo && (
+                      {(savedImages.logo || pendingFiles.logo) && (
                         <div className="flex items-center justify-between rounded-2xl bg-slate-50 p-3 text-sm">
                           <span className="truncate">
                             <strong>Logo : </strong>
-                            {images.logo}
+                            {pendingFiles.logo?.name ?? savedImages.logo}
                           </span>
 
                           <Button
@@ -693,9 +706,9 @@ export function CreateBranchForm({
                         </div>
                       )}
 
-                      {images.event.map((fileName, index) => (
+                      {savedImages.event.map((fileName, index) => (
                         <div
-                          key={`event-${fileName}-${index}`}
+                          key={`saved-event-${fileName}-${index}`}
                           className="flex items-center justify-between rounded-2xl bg-slate-50 p-3 text-sm"
                         >
                           <span className="truncate">
@@ -708,16 +721,38 @@ export function CreateBranchForm({
                             variant="destructive"
                             size="sm"
                             className="rounded-full"
-                            onClick={() => removeImage("event", index)}
+                            onClick={() => removeSavedImage("event", index)}
                           >
                             Retirer
                           </Button>
                         </div>
                       ))}
 
-                      {images.gallery.map((fileName, index) => (
+                      {pendingFiles.event.map((file, index) => (
                         <div
-                          key={`gallery-${fileName}-${index}`}
+                          key={`pending-event-${file.name}-${index}`}
+                          className="flex items-center justify-between rounded-2xl bg-slate-50 p-3 text-sm"
+                        >
+                          <span className="truncate">
+                            <strong>Événement (nouveau) : </strong>
+                            {file.name}
+                          </span>
+
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="sm"
+                            className="rounded-full"
+                            onClick={() => removePendingImage("event", index)}
+                          >
+                            Retirer
+                          </Button>
+                        </div>
+                      ))}
+
+                      {savedImages.gallery.map((fileName, index) => (
+                        <div
+                          key={`saved-gallery-${fileName}-${index}`}
                           className="flex items-center justify-between rounded-2xl bg-slate-50 p-3 text-sm"
                         >
                           <span className="truncate">
@@ -730,15 +765,38 @@ export function CreateBranchForm({
                             variant="destructive"
                             size="sm"
                             className="rounded-full"
-                            onClick={() => removeImage("gallery", index)}
+                            onClick={() => removeSavedImage("gallery", index)}
                           >
                             Retirer
                           </Button>
                         </div>
                       ))}
-                      {images.ecole.map((fileName, index) => (
+
+                      {pendingFiles.gallery.map((file, index) => (
                         <div
-                          key={`ecole-${fileName}-${index}`}
+                          key={`pending-gallery-${file.name}-${index}`}
+                          className="flex items-center justify-between rounded-2xl bg-slate-50 p-3 text-sm"
+                        >
+                          <span className="truncate">
+                            <strong>Galerie (nouveau) : </strong>
+                            {file.name}
+                          </span>
+
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="sm"
+                            className="rounded-full"
+                            onClick={() => removePendingImage("gallery", index)}
+                          >
+                            Retirer
+                          </Button>
+                        </div>
+                      ))}
+
+                      {savedImages.ecole.map((fileName, index) => (
+                        <div
+                          key={`saved-ecole-${fileName}-${index}`}
                           className="flex items-center justify-between rounded-2xl bg-slate-50 p-3 text-sm"
                         >
                           <span className="truncate">
@@ -751,7 +809,29 @@ export function CreateBranchForm({
                             variant="destructive"
                             size="sm"
                             className="rounded-full"
-                            onClick={() => removeImage("ecole", index)}
+                            onClick={() => removeSavedImage("ecole", index)}
+                          >
+                            Retirer
+                          </Button>
+                        </div>
+                      ))}
+
+                      {pendingFiles.ecole.map((file, index) => (
+                        <div
+                          key={`pending-ecole-${file.name}-${index}`}
+                          className="flex items-center justify-between rounded-2xl bg-slate-50 p-3 text-sm"
+                        >
+                          <span className="truncate">
+                            <strong>École (nouveau) : </strong>
+                            {file.name}
+                          </span>
+
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="sm"
+                            className="rounded-full"
+                            onClick={() => removePendingImage("ecole", index)}
                           >
                             Retirer
                           </Button>
@@ -767,7 +847,7 @@ export function CreateBranchForm({
                     >
                       {isSubmitting
                         ? mode === "update"
-                          ? "Modification en cours..."
+                          ? "Envoi en cours..."
                           : "Création en cours..."
                         : mode === "update"
                           ? "Modifier l’établissement"

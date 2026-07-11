@@ -6,6 +6,7 @@ import { action } from "@/lib/zsa";
 import { ICreneau, creneauSchema } from "@/src/interfaces/creneau";
 import { z } from "zod";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
+import { buildIsArchivedUpdate } from "@/lib/archive";
 
 function revalidateCreneauPages(organizationId: string, branchId: string) {
   revalidatePath(`/admin/organizations/${organizationId}/branches/${branchId}/creneau`);
@@ -112,34 +113,30 @@ export const updateCreneauAction = action
     return updatedCreneau;
   });
 
-// ACTION POUR SUPPRIMER UNE CRENEAU EXISTANTE
-export const deleteCreneauAction = action
+// ACTION POUR ARCHIVER UN CRENEAU
+export const archiveCreneauAction = action
   .input(creneauSchema)
   .handler(async ({ input }) => {
-    const { branchId, organizationId } = await requireBranchContext();
+    const { branchId, organizationId, userId } = await requireBranchContext();
     const { id, nameCreneau } = input;
 
-    // VÉRIFIE SILE CRENEAU EXISTE
-    const existCreneau = await prisma.creneau.findMany({
-      where: {
-        id,
-        branchId,
-        nameCreneau: nameCreneau,
-      },
+    const existCreneau = await prisma.creneau.findFirst({
+      where: { id, branchId, nameCreneau },
     });
-    if (existCreneau.length === 0) {
+    if (!existCreneau) {
       throw new Error("le creneau n'existe pas");
     }
 
-    // SUPPRIMELE CRENEAU
-    const deletedCreneau = await prisma.creneau.delete({
-      where: {
-        id: id,
-      },
+    const archivedCreneau = await prisma.creneau.update({
+      where: { id },
+      data: buildIsArchivedUpdate(userId),
     });
     revalidateCreneauPages(organizationId, branchId);
-    return deletedCreneau;
+    return archivedCreneau;
   });
+
+/** @deprecated Utiliser archiveCreneauAction */
+export const deleteCreneauAction = archiveCreneauAction;
 
 // ACTION POUR RÉCUPÉRER LES CRENEAUX PAR CLASSE
 export const getCreneauByClasseAction = action
@@ -189,13 +186,23 @@ export const getCreneauByClasseAction = action
   });
 
 // ACTION POUR RECUPERER LE CRENEAU PAR CLASSE
-export const getCreneauxAction = action.handler(
-  async (): Promise<ICreneau[]> => {
+export const getCreneauxAction = action
+  .input(
+    z
+      .object({
+        includeArchived: z.boolean().optional(),
+      })
+      .optional(),
+  )
+  .handler(async ({ input }): Promise<ICreneau[]> => {
     try {
       const { branchId } = await requireBranchContext();
-      // RÉCUPÈRE TOUTES LES CRENEAUS AVEC LEURS SECTIONS ET CLASSES ASSOCIÉES
+      const includeArchived = input?.includeArchived ?? false;
       const creneaux = await prisma.creneau.findMany({
-        where: { branchId },
+        where: {
+          branchId,
+          ...(includeArchived ? {} : { isArchived: false }),
+        },
         include: {
           classe: {
             where: { branchId },
@@ -237,5 +244,4 @@ export const getCreneauxAction = action.handler(
     } catch (error: any) {
       throw new Error(error.message);
     }
-  },
-);
+  });

@@ -26,8 +26,8 @@ export const CurrentYear: React.FC<ISchoolYear> = ({
   const handleSwitchChange = async (newChecked: boolean) => {
     const confirmed = window.confirm(
       newChecked
-        ? `Definir ${nameYear} comme annee scolaire courante ? Les modules metier utiliseront cette annee par defaut.`
-        : `Retirer ${nameYear} comme annee scolaire courante ?`,
+        ? `Definir ${nameYear} comme annee scolaire courante ?\n\nLes inscriptions, frais, enseignements, horaires et notes utiliseront cette annee par defaut. L'annee courante actuelle sera desactivee.`
+        : `Retirer ${nameYear} comme annee scolaire courante ?\n\nAucune annee ne sera marquee comme courante tant qu'une autre n'est pas selectionnee.`,
     );
 
     if (!confirmed) {
@@ -51,7 +51,6 @@ export const CurrentYear: React.FC<ISchoolYear> = ({
       }
 
       refresh();
-      window.dispatchEvent(new Event("school-year-refresh"));
       toast.success("Annee courante mise a jour");
     } catch (error: any) {
       console.error("Erreur lors de la mise a jour de l'annee :", error);

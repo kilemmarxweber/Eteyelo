@@ -8,18 +8,20 @@ import { ICours } from "@/src/interfaces/Cours";
 import { getCoursAction } from "../cours.action";
 import { DataTableToolbar } from "./data-table-toolbar";
 import { IconAlertCircle, IconBook } from "@tabler/icons-react";
+import { useRefresh } from "@/src/hooks/RefreshContext";
 
-const CoursList = () => {
+const CoursList = ({ refreshKey = 0 }: { refreshKey?: number }) => {
   const [cours, setCours] = useState<ICours[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { refreshKey: contextRefreshKey } = useRefresh();
 
   useEffect(() => {
     const fetchCours = async () => {
       try {
         setLoading(true);
         setError(null);
-        const [rawCours, err] = await getCoursAction();
+        const [rawCours, err] = await getCoursAction({ includeInactive: true });
         if (err) {
           throw new Error(err.message || "Erreur lors du chargement des cours");
         }
@@ -33,7 +35,7 @@ const CoursList = () => {
     };
 
     fetchCours();
-  }, []);
+  }, [refreshKey, contextRefreshKey]);
 
   if (loading) {
     return (

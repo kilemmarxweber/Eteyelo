@@ -204,6 +204,7 @@ export async function getHomeData() {
     }),
     prisma.calendarEvent.findMany({
       where: {
+        isArchived: false,
         branch: {
           isActive: true,
         },

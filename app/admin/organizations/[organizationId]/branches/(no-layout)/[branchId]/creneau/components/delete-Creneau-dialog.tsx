@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { IconReload, IconTrash } from "@tabler/icons-react";
+import { IconArchive, IconReload } from "@tabler/icons-react";
 import { type Row } from "@tanstack/react-table";
 import { toast } from "sonner";
 
@@ -17,7 +17,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { ICreneau } from "@/src/interfaces/creneau";
-import { deleteCreneauAction } from "../creneau.action";
+import { archiveCreneauAction } from "../creneau.action";
 import { useRefresh } from "@/src/hooks/RefreshContext";
 
 interface DeleteCreneausDialogProps
@@ -33,46 +33,55 @@ export function DeleteCreneausDialog({
   Creneaus,
   ...props
 }: DeleteCreneausDialogProps) {
-  const [isDeletePending, startDeleteTransition] = React.useTransition();
+  const [isArchivePending, startArchiveTransition] = React.useTransition();
 
   const { refresh } = useRefresh();
-  const handleDelete = async () => {
-    startDeleteTransition(async () => {
+  const handleArchive = () => {
+    startArchiveTransition(async () => {
+      let hasError = false;
       for (const creneau of Creneaus) {
-        try {
-          await deleteCreneauAction(creneau);
-        } catch (err) {
-          toast.error(
-            `erreur lors de la suppression de la vacation ${creneau.id}: ${err}`
-          );
+        const [, err] = await archiveCreneauAction(creneau);
+        if (err) {
+          toast.error(err.message ?? "Erreur lors de l'archivage");
+          hasError = true;
         }
       }
-
-      onSuccess?.();
-      setTimeout(() => {
-        console.log("Component refreshed");
+      if (!hasError) {
+        toast.success(
+          Creneaus.length === 1
+            ? "Vacation archivée"
+            : "Vacations archivées",
+        );
         refresh();
-      }, 1000);
+        onSuccess?.();
+        props.onOpenChange?.(false);
+      }
     });
   };
+
+  const count = Creneaus.length;
 
   return (
     <Dialog {...props}>
       {showTrigger ? (
         <DialogTrigger asChild>
           <Button variant="outline" size="sm">
-            <IconTrash className="mr-2 size-4" aria-hidden="true" />
-            Suppresion ({Creneaus.length})
+            <IconArchive className="mr-2 size-4" aria-hidden="true" />
+            Archiver ({count})
           </Button>
         </DialogTrigger>
       ) : null}
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Êtes-vous absolument sûr?</DialogTitle>
+          <DialogTitle>
+            {count === 1
+              ? "Archiver la vacation ?"
+              : `Archiver ${count} vacations ?`}
+          </DialogTitle>
           <DialogDescription>
-            Cette action ne peut pas être annulée.Cela supprimera en permanence
-            votre <span className="font-medium">{Creneaus.length}</span>
-            {Creneaus.length === 1 ? " vacation" : " vacations"} from our servers.
+            {count === 1
+              ? "La vacation sera masquée des listes actives mais l'historique sera conservé."
+              : "Ces vacations seront masquées des listes actives mais l'historique sera conservé."}
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="gap-2 sm:space-x-0">
@@ -80,23 +89,18 @@ export function DeleteCreneausDialog({
             <Button variant="outline">Annuler</Button>
           </DialogClose>
           <Button
-            aria-label="Delete selected rows"
-            variant="destructive"
-            onClick={() => {
-              props.onOpenChange?.(false);
-              toast.success("Creneaus deleted");
-              onSuccess?.();
-              handleDelete();
-            }}
-            disabled={isDeletePending}
+            aria-label="Archiver la sélection"
+            variant="outline"
+            onClick={handleArchive}
+            disabled={isArchivePending}
           >
-            {isDeletePending && (
+            {isArchivePending && (
               <IconReload
                 className="mr-2 size-4 animate-spin"
                 aria-hidden="true"
               />
             )}
-            Supprimer
+            Archiver
           </Button>
         </DialogFooter>
       </DialogContent>

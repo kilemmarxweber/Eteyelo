@@ -207,7 +207,7 @@ export const columns: ColumnDef<IParent>[] = [
 
               <DropdownMenuSeparator />
               <DropdownMenuItem onSelect={() => setShowDeleteTaskDialog(true)}>
-                Delete
+                Archiver
                 <DropdownMenuShortcut>⌘⌫</DropdownMenuShortcut>
               </DropdownMenuItem>
             </DropdownMenuContent>

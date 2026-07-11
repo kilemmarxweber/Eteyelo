@@ -1,6 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { revalidatePath } from "next/cache";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
 import { action } from "@/lib/zsa";
 import { coursOptionPonderationSchema } from "./schema";
@@ -23,6 +24,15 @@ async function requireCoursAndOptionInBranch(params: {
 
   if (!cours) throw new Error("Cours introuvable dans cette branche");
   if (!option) throw new Error("Option introuvable dans cette branche");
+}
+
+function revalidateCoursPonderationOptionPages(
+  organizationId: string,
+  branchId: string,
+) {
+  revalidatePath(
+    `/admin/organizations/${organizationId}/branches/${branchId}/coursPonderationOption`,
+  );
 }
 
 export const getCoursPonderationOptionPageDataAction = action.handler(
@@ -58,7 +68,7 @@ export const getCoursPonderationOptionPageDataAction = action.handler(
 export const createCoursOptionPonderationAction = action
   .input(coursOptionPonderationSchema)
   .handler(async ({ input }) => {
-    const { branchId } = await requireBranchContext();
+    const { branchId, organizationId } = await requireBranchContext();
     await requireCoursAndOptionInBranch({
       branchId,
       coursId: input.coursId,
@@ -80,7 +90,7 @@ export const createCoursOptionPonderationAction = action
       throw new Error("Cette ponderation existe deja pour ce cours et cette option");
     }
 
-    return prisma.coursOptionPonderation.create({
+    const ponderation = await prisma.coursOptionPonderation.create({
       data: {
         branchId,
         coursId: input.coursId,
@@ -88,12 +98,14 @@ export const createCoursOptionPonderationAction = action
         ponderation: input.ponderation,
       },
     });
+    revalidateCoursPonderationOptionPages(organizationId, branchId);
+    return ponderation;
   });
 
 export const updateCoursOptionPonderationAction = action
   .input(coursOptionPonderationSchema)
   .handler(async ({ input }) => {
-    const { branchId } = await requireBranchContext();
+    const { branchId, organizationId } = await requireBranchContext();
     await requireCoursAndOptionInBranch({
       branchId,
       coursId: input.coursId,
@@ -118,9 +130,11 @@ export const updateCoursOptionPonderationAction = action
       throw new Error("Ponderation introuvable dans cette branche");
     }
 
-    return prisma.coursOptionPonderation.update({
+    const ponderation = await prisma.coursOptionPonderation.update({
       where: { id: input.id },
       data: { ponderation: input.ponderation },
     });
+    revalidateCoursPonderationOptionPages(organizationId, branchId);
+    return ponderation;
   });
 

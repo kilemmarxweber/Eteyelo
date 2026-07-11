@@ -1,6 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { revalidatePath } from "next/cache";
 import { action } from "@/lib/zsa";
 import {
   classEnrollmentSchema,
@@ -9,10 +10,16 @@ import {
 import z from "zod";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
 
+function revalidateClassEnrollmentPages(organizationId: string, branchId: string) {
+  revalidatePath(
+    `/admin/organizations/${organizationId}/branches/${branchId}/classEnrollment`,
+  );
+}
+
 export const createClassEnrollmentAction = action
   .input(classEnrollmentSchema)
   .handler(async ({ input }) => {
-    const { branchId } = await requireBranchContext();
+    const { branchId, organizationId } = await requireBranchContext();
     const { schoolYearId, classeId, studentId } = input;
     const [schoolYear, classe, student] = await Promise.all([
       prisma.schoolYear.findFirst({ where: { id: schoolYearId, branchId } }),
@@ -40,19 +47,15 @@ export const createClassEnrollmentAction = action
         statusEnrollment: true,
       },
     });
-    if (ClassEnrollment) {
-      return {
-        success: true,
-        message: "Enrollment success",
-      };
-    }
+    revalidateClassEnrollmentPages(organizationId, branchId);
+    return ClassEnrollment;
   });
 
-//delete ClassEnrollment
-export const deleteClassEnrollAction = action
+//archive ClassEnrollment
+export const archiveClassEnrollAction = action
   .input(classEnrollmentSchema)
   .handler(async ({ input }) => {
-    const { branchId } = await requireBranchContext();
+    const { branchId, organizationId } = await requireBranchContext();
     const { id } = input;
     const existing = await prisma.classEnrollment.findFirst({
       where: { id, branchId },
@@ -60,13 +63,16 @@ export const deleteClassEnrollAction = action
     });
     if (!existing) throw new Error("Inscription introuvable dans cette branche");
 
-    const deleteClassEnroll = await prisma.classEnrollment.delete({
-      where: {
-        id,
-      },
+    const archivedEnrollment = await prisma.classEnrollment.update({
+      where: { id },
+      data: { statusEnrollment: false },
     });
-    return deleteClassEnroll;
+    revalidateClassEnrollmentPages(organizationId, branchId);
+    return archivedEnrollment;
   });
+
+/** @deprecated Utiliser archiveClassEnrollAction */
+export const deleteClassEnrollAction = archiveClassEnrollAction;
 
 export const getClassEnrollmentByClassAction = action
   .input(
@@ -231,7 +237,7 @@ export const getClassEnrolements = action.handler(
 export const updateClassEnrollmentAction = action
   .input(classEnrollmentSchema)
   .handler(async ({ input }) => {
-    const { branchId } = await requireBranchContext();
+    const { branchId, organizationId } = await requireBranchContext();
     const { statusEnrollment, id } = input;
     const existing = await prisma.classEnrollment.findFirst({
       where: { id, branchId },
@@ -247,12 +253,14 @@ export const updateClassEnrollmentAction = action
         statusEnrollment,
       },
     });
+    revalidateClassEnrollmentPages(organizationId, branchId);
+    return updateClassEnrollment;
   });
 
 export const statusClassEnrollAction = action
   .input(classEnrollmentSchema)
   .handler(async ({ input }) => {
-    const { branchId } = await requireBranchContext();
+    const { branchId, organizationId } = await requireBranchContext();
     const { statusEnrollment, id } = input;
     const existing = await prisma.classEnrollment.findFirst({
       where: { id, branchId },
@@ -268,4 +276,6 @@ export const statusClassEnrollAction = action
         statusEnrollment,
       },
     });
+    revalidateClassEnrollmentPages(organizationId, branchId);
+    return updateStatusClassEnroll;
   });

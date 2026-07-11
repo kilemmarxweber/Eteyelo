@@ -5,7 +5,7 @@ import { ResponsiveDataTable } from "@/components/ui/responsive-data-table";
 import { SearchAndFilter } from "@/components/ui/search-and-filter";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { Button } from "@/components/ui/button";
-import { Edit, Trash2, MoreHorizontal } from "lucide-react";
+import { Edit, Archive, MoreHorizontal } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,7 +24,7 @@ const OptionsTable: React.FC<OptionsTableProps> = ({ refreshKey }) => {
   const [options, setOptions] = useState<IOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<string>("active");
 
   const [showUpdateDialog, setShowUpdateDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -146,10 +146,9 @@ const OptionsTable: React.FC<OptionsTableProps> = ({ refreshKey }) => {
             <DropdownMenuSeparator />
             <DropdownMenuItem
               onClick={() => handleDelete(option)}
-              className="text-destructive"
             >
-              <Trash2 className="mr-2 h-4 w-4" />
-              Supprimer
+              <Archive className="mr-2 h-4 w-4" />
+              Archiver
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -188,10 +187,10 @@ const OptionsTable: React.FC<OptionsTableProps> = ({ refreshKey }) => {
         variant: "outline" as const,
       },
       {
-        label: "Supprimer",
-        icon: Trash2,
+        label: "Archiver",
+        icon: Archive,
         onClick: () => handleDelete(option),
-        variant: "destructive" as const,
+        variant: "outline" as const,
       },
     ],
   };

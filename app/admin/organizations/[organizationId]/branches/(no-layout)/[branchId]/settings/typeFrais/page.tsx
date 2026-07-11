@@ -76,7 +76,7 @@ export default function TypeFraisSettingsPage() {
                 Creez une categorie de frais pour cette branche.
               </DialogDescription>
             </DialogHeader>
-            <TypeFraisUpForm mode="create" onTypeFraisCreated={handleSaved} />
+            <TypeFraisUpForm mode="create" onCreated={handleSaved} />
           </DialogContent>
         </Dialog>
       </div>
@@ -152,7 +152,7 @@ export default function TypeFraisSettingsPage() {
                 description: editing.description ?? "",
                 statusType: editing.statusType,
               }}
-              onTypeFraisCreated={handleSaved}
+              onUpdated={handleSaved}
             />
           ) : null}
         </DialogContent>

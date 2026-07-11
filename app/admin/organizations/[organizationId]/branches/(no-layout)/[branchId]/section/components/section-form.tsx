@@ -20,7 +20,6 @@ import { createSectionAction, updateSectionAction } from "../section.action";
 import { sectionSchema } from "@/src/interfaces/Section";
 
 interface SectionUpFormProps extends HTMLAttributes<HTMLDivElement> {
-  onSectionAction?: () => void;
   onSuccess?: () => void;
   onCreated?: () => void;
   onUpdated?: () => void;
@@ -30,7 +29,6 @@ interface SectionUpFormProps extends HTMLAttributes<HTMLDivElement> {
 
 export function SectionUpForm({
   className,
-  onSectionAction,
   onSuccess,
   onCreated,
   onUpdated,
@@ -80,7 +78,6 @@ export function SectionUpForm({
         onUpdated?.();
       }
       onSuccess?.();
-      onSectionAction?.();
     } catch (error: any) {
       setErrorMessage(error.message ?? "");
       toast.error(

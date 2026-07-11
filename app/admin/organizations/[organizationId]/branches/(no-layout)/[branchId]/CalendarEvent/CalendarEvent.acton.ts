@@ -5,6 +5,8 @@ import { action } from "@/lib/zsa";
 import { ICalendarEvent } from "@/src/interfaces/CalendarEvent";
 import { Recurrence } from "@/prisma/generated/prisma/client";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
+import { buildIsArchivedUpdate } from "@/lib/archive";
+import { requireCurrentSchoolYear } from "@/lib/school-year";
 
 async function assertCalendarEventRelationsInBranch(
   input: {
@@ -79,20 +81,7 @@ export const createCalendarEvent = action
   .handler(async ({ input }) => {
     try {
       const { branchId, userId } = await requireBranchContext();
-      // 1. school year courant
-      const currentSchoolYear = await prisma.schoolYear.findFirst({
-        where: {
-          branchId,
-          isCurrentYear: true,
-        },
-      });
-
-      if (!currentSchoolYear) {
-        return {
-          success: false,
-          message: "Aucune année scolaire active trouvée",
-        };
-      }
+      const currentSchoolYear = await requireCurrentSchoolYear(branchId);
 
       // 2. création event
       await assertCalendarEventRelationsInBranch(input, branchId);
@@ -128,6 +117,7 @@ export const getCalendarEvents = action.handler(
     const Events = await prisma.calendarEvent.findMany({
       where: {
         branchId,
+        isArchived: false,
       },
       include: {
         eventType: true,
@@ -221,20 +211,24 @@ export const updateCalendarEvent = action
     return updatedEvent;
   });
 
-// Action pour supprimer un événement
-export const deleteCalendarEvent = action
+// Action pour archiver un événement
+export const archiveCalendarEvent = action
   .input(calendarEventSchema)
   .handler(async ({ input }) => {
-    const { branchId } = await requireBranchContext();
+    const { branchId, userId } = await requireBranchContext();
     const event = await prisma.calendarEvent.findFirst({
       where: { id: input.id, branchId },
       select: { id: true },
     });
     if (!event) throw new Error("Evenement introuvable dans cette branche");
 
-    const deletedEvent = await prisma.calendarEvent.delete({
+    const archivedEvent = await prisma.calendarEvent.update({
       where: { id: input.id },
+      data: buildIsArchivedUpdate(userId),
     });
 
-    return deletedEvent;
+    return archivedEvent;
   });
+
+/** @deprecated Utiliser archiveCalendarEvent */
+export const deleteCalendarEvent = archiveCalendarEvent;

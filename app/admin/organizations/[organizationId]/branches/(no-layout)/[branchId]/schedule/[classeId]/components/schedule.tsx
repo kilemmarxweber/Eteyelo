@@ -22,7 +22,7 @@ import {
 import { Trash2 } from "lucide-react";
 import {
   createScheduleAction,
-  deleteScheduleAction,
+  archiveScheduleAction,
   getScheduleCoursByClasseAction,
   getScheduleCreneauByClasseAction,
   getSchedulesByClasseAction,
@@ -269,7 +269,7 @@ export default function Schedule({
     }
 
     try {
-      const [, err] = await deleteScheduleAction({ id });
+      const [, err] = await archiveScheduleAction({ id });
       if (err) throw err;
 
       setHoraires(horaires.filter((horaire) => horaire.id !== id));
@@ -420,7 +420,7 @@ export default function Schedule({
                                   onClick={() => supprimerHoraire(horaire.id)}
                                 >
                                   <Trash2 className="h-4 w-4" />
-                                  <span className="sr-only">Supprimer</span>
+                                  <span className="sr-only">Masquer</span>
                                 </Button>
                               )}
                             </div>

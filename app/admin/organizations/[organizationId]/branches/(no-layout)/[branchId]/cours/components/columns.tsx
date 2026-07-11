@@ -118,7 +118,7 @@ export const columns: ColumnDef<ICours>[] = [
                 <DropdownMenuItem
                   onSelect={() => setShowDeleteTaskDialog(true)}
                 >
-                  Delete
+                  Désactiver
                   <DropdownMenuShortcut>⌘⌫</DropdownMenuShortcut>
                 </DropdownMenuItem>
               )}

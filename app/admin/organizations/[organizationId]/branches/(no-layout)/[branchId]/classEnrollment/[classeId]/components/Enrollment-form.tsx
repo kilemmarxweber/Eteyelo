@@ -42,7 +42,6 @@ import { getSchoolYearsAction } from "../../../schoolYear/schoolYear.action";
 import { useSession } from "@/lib/auth-client";
 
 interface EnrollmentUpFormProps extends HTMLAttributes<HTMLDivElement> {
-  onEnrollmentAction?: () => void;
   onSuccess?: () => void;
   onCreated?: () => void;
   onUpdated?: () => void;
@@ -53,7 +52,6 @@ interface EnrollmentUpFormProps extends HTMLAttributes<HTMLDivElement> {
 
 export function EnrollmentUpForm({
   className,
-  onEnrollmentAction,
   onSuccess,
   onCreated,
   onUpdated,
@@ -156,7 +154,6 @@ export function EnrollmentUpForm({
         onUpdated?.();
       }
       onSuccess?.();
-      onEnrollmentAction?.();
     } catch (error: any) {
       console.log(error);
       setErrorMessage(error.message ?? "");

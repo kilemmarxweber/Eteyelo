@@ -12,7 +12,6 @@ import {
 import { FraisUpForm } from "./frais-form"; // Importez votre formulaire d'éditionimport { IFrais } from"@/src/interfaces/Student";
 import { IFrais } from "@/src/interfaces/Frais";
 import { useRefresh } from "@/src/hooks/RefreshContext";
-import { useRouter } from "next/navigation";
 
 interface UpdateFraisDialogProps extends React.ComponentPropsWithoutRef<
   typeof Dialog
@@ -29,11 +28,13 @@ export function UpdateFraisDialog({
   ...props
 }: UpdateFraisDialogProps) {
   const { refresh } = useRefresh();
-  const router = useRouter();
+
   const handleUpdate = () => {
     refresh();
-    router.refresh();
     props.onOpenChange?.(false);
+  };
+
+  const handleSuccess = () => {
     onSuccess?.();
   };
 
@@ -56,7 +57,8 @@ export function UpdateFraisDialog({
             statusFrais: frais.statusFrais,
             classeId: frais.classeId || "",
           }} // Pass the frais data for editing
-          onFraisCreated={handleUpdate}
+          onUpdated={handleUpdate}
+          onSuccess={handleSuccess}
         />
       </DialogContent>
     </Dialog>

@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { IconReload, IconTrash } from "@tabler/icons-react";
+import { IconArchive, IconReload } from "@tabler/icons-react";
 import { type Row } from "@tanstack/react-table";
 import { toast } from "sonner";
 
@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/dialog";
 import { ITeaching } from "@/src/interfaces/Teaching";
 import { useRefresh } from "@/src/hooks/RefreshContext";
-import { deleteTeachingAction } from "../../teaching.action";
+import { archiveTeachingAction } from "../../teaching.action";
 
 interface DeleteTeachingsDialogProps extends React.ComponentPropsWithoutRef<
   typeof Dialog
@@ -34,73 +34,80 @@ export function DeleteTeachingsDialog({
   teaches,
   ...props
 }: DeleteTeachingsDialogProps) {
-  const [isDeletePending, startDeleteTransition] = React.useTransition();
+  const [isArchivePending, startArchiveTransition] = React.useTransition();
 
   const { refresh } = useRefresh();
-  const handleDelete = async () => {
-    startDeleteTransition(async () => {
+  const handleArchive = () => {
+    startArchiveTransition(async () => {
+      let hasError = false;
       for (const teache of teaches) {
-        try {
-          // await deleteTeachingAction({
-          //   id: teache.id,
-          //   schoolYearId: teache.schoolYearId ?? "",
-          //   classeId: teache.classeId ?? "",
-          //   coursId: teache.coursId ?? ""
-          // })
-        } catch (err) {
-          toast.error(`Failed to delete teache ${teache.id}: ${err}`);
+        const [, err] = await archiveTeachingAction({
+          id: teache.id,
+          teacherId: teache.teacherId ?? "",
+          schoolYearId: teache.schoolYearId ?? "",
+          classeId: teache.classeId ?? "",
+          coursId: teache.coursId ?? "",
+        });
+        if (err) {
+          toast.error(err.message ?? "Erreur lors de la désactivation");
+          hasError = true;
         }
       }
-
-      onSuccess?.();
-      setTimeout(() => {
-        console.log("Component refreshed");
+      if (!hasError) {
+        toast.success(
+          teaches.length === 1
+            ? "Affectation désactivée"
+            : "Affectations désactivées",
+        );
         refresh();
-      }, 1000);
+        onSuccess?.();
+        props.onOpenChange?.(false);
+      }
     });
   };
+
+  const count = teaches.length;
 
   return (
     <Dialog {...props}>
       {showTrigger ? (
         <DialogTrigger asChild>
           <Button variant="outline" size="sm">
-            <IconTrash className="mr-2 size-4" aria-hidden="true" />
-            Delete ({teaches.length})
+            <IconArchive className="mr-2 size-4" aria-hidden="true" />
+            Désactiver ({count})
           </Button>
         </DialogTrigger>
       ) : null}
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Êtes-vous absolument sûr?</DialogTitle>
+          <DialogTitle>
+            {count === 1
+              ? "Désactiver l'affectation ?"
+              : `Désactiver ${count} affectations ?`}
+          </DialogTitle>
           <DialogDescription>
-            Cette action ne peut pas être annulée.Cela supprimera en permanence
-            votre <span className="font-medium">{teaches.length}</span>
-            {teaches.length === 1 ? " user" : " teaches"} from our servers.
+            {count === 1
+              ? "L'affectation sera désactivée et masquée des listes actives mais l'historique sera conservé."
+              : "Ces affectations seront désactivées et masquées des listes actives mais l'historique sera conservé."}
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="gap-2 sm:space-x-0">
           <DialogClose asChild>
-            <Button variant="outline">Cancel</Button>
+            <Button variant="outline">Annuler</Button>
           </DialogClose>
           <Button
-            aria-label="Delete selected rows"
-            variant="destructive"
-            onClick={() => {
-              props.onOpenChange?.(false);
-              toast.success("Teachings deleted");
-              onSuccess?.();
-              handleDelete();
-            }}
-            disabled={isDeletePending}
+            aria-label="Désactiver la sélection"
+            variant="outline"
+            onClick={handleArchive}
+            disabled={isArchivePending}
           >
-            {isDeletePending && (
+            {isArchivePending && (
               <IconReload
                 className="mr-2 size-4 animate-spin"
                 aria-hidden="true"
               />
             )}
-            Delete
+            Désactiver
           </Button>
         </DialogFooter>
       </DialogContent>

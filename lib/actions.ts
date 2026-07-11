@@ -16,6 +16,7 @@ import { FicheTypes } from "./types";
 import { auth } from "@/lib/auth";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
 import { canManageOrganization } from "@/lib/auth/session-roles";
+import { getSchoolYear as getCurrentSchoolYear } from "@/lib/school-year";
 
 export async function logout() {
   await auth.api.signOut({
@@ -44,10 +45,7 @@ export async function authenticate(_prevState: any, formData: FormData) {
   return null;
 }
 export async function getSchoolYear() {
-  const { branchId } = await requireBranchContext();
-  return await prisma.schoolYear.findFirst({
-    where: { isCurrentYear: true, branchId },
-  });
+  return getCurrentSchoolYear();
 }
 
 type CurrentState = { success: boolean; error: boolean };
@@ -75,40 +73,68 @@ export async function saveImage(base64: string): Promise<string> {
   }
 }
 
-export async function deleteTeacher(
+export async function archiveTeacher(
   currentState: CurrentState,
   formData: FormData,
 ): Promise<CurrentState> {
   try {
     const teacherId = formData.get("id") as string;
-
-    await prisma.teacher.delete({
+    const teacher = await prisma.teacher.findUnique({
       where: { id: teacherId },
+      include: {
+        branchMember: { include: { member: { include: { user: true } } } },
+      },
     });
+    if (!teacher) return { success: false, error: true };
+
+    const userId = teacher.branchMember?.member?.user?.id;
+    if (userId) {
+      await prisma.user.update({
+        where: { id: userId },
+        data: { statusUser: false },
+      });
+    }
 
     return { success: true, error: false };
   } catch (error) {
-    console.error("Delete teacher error:", error);
+    console.error("Archive teacher error:", error);
     return { success: false, error: true };
   }
 }
 
-export async function deleteStudent(
+/** @deprecated Utiliser archiveTeacher */
+export async function deleteTeacher(
+  currentState: CurrentState,
+  formData: FormData,
+): Promise<CurrentState> {
+  return archiveTeacher(currentState, formData);
+}
+
+export async function archiveStudent(
   currentState: CurrentState,
   formData: FormData,
 ): Promise<CurrentState> {
   try {
     const studentId = formData.get("id") as string;
 
-    await prisma.student.delete({
+    await prisma.student.update({
       where: { id: studentId },
+      data: { statusStudent: false },
     });
 
     return { success: true, error: false };
   } catch (error) {
-    console.error("Delete student error:", error);
+    console.error("Archive student error:", error);
     return { success: false, error: true };
   }
+}
+
+/** @deprecated Utiliser archiveStudent */
+export async function deleteStudent(
+  currentState: CurrentState,
+  formData: FormData,
+): Promise<CurrentState> {
+  return archiveStudent(currentState, formData);
 }
 
 type AffectationInput = {

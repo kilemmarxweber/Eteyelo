@@ -1,5 +1,7 @@
 "use server";
 import { prisma } from "@/lib/prisma";
+import { revalidatePath } from "next/cache";
+import { requireBranchContext } from "@/lib/auth/require-branch-context";
 import { action } from "@/lib/zsa";
 import { Prisma } from "@/prisma/generated/prisma/client";
 import { ITeaching, teachingSchema } from "@/src/interfaces/Teaching";
@@ -27,6 +29,39 @@ const teachingInclude = {
 type TeachingWithRelations = Prisma.TeachingGetPayload<{
   include: typeof teachingInclude;
 }>;
+
+function revalidateTeachingPages(organizationId: string, branchId: string) {
+  revalidatePath(`/admin/organizations/${organizationId}/branches/${branchId}/teaching`);
+}
+
+async function requireClasseInBranch(classeId: string, branchId: string) {
+  const classe = await prisma.classe.findFirst({
+    where: { id: classeId, branchId },
+    select: { id: true },
+  });
+
+  if (!classe) {
+    throw new Error("Classe introuvable dans cette branche");
+  }
+
+  return classe;
+}
+
+async function requireTeachingInBranch(id: string, branchId: string) {
+  const teaching = await prisma.teaching.findFirst({
+    where: {
+      id,
+      classe: { branchId },
+    },
+    select: { id: true },
+  });
+
+  if (!teaching) {
+    throw new Error("Enseignement introuvable dans cette branche");
+  }
+
+  return teaching;
+}
 
 function mapTeaching(teaching: TeachingWithRelations): ITeaching {
   const branchMember = teaching.teacher?.branchMember;
@@ -77,7 +112,10 @@ function mapTeaching(teaching: TeachingWithRelations): ITeaching {
 export const createTeachingAction = action
   .input(teachingSchema)
   .handler(async ({ input }) => {
+    const { branchId, organizationId } = await requireBranchContext();
     const { teacherId, classeId, coursId, schoolYearId, titulaire } = input;
+
+    await requireClasseInBranch(classeId, branchId);
 
     try {
       const teaching = await prisma.teaching.create({
@@ -87,9 +125,11 @@ export const createTeachingAction = action
           coursId,
           schoolYearId,
           titulaire,
+          branchId,
         },
       });
 
+      revalidateTeachingPages(organizationId, branchId);
       return teaching;
     } catch (error: any) {
       if (error.code === "P2002") {
@@ -102,23 +142,39 @@ export const createTeachingAction = action
     }
   });
 
-//delete Teaching
-export const deleteTeachingAction = action
+//delete Teaching -> archive
+export const archiveTeachingAction = action
   .input(teachingSchema)
   .handler(async ({ input }) => {
+    const { branchId, organizationId } = await requireBranchContext();
     const { id } = input;
-    const deleteTeaching = await prisma.teaching.delete({
-      where: {
-        id,
-      },
+
+    if (!id) throw new Error("ID requis");
+
+    await requireTeachingInBranch(id, branchId);
+
+    const archivedTeaching = await prisma.teaching.update({
+      where: { id },
+      data: { statusTeaching: false },
     });
-    return deleteTeaching;
+    revalidateTeachingPages(organizationId, branchId);
+    return archivedTeaching;
   });
+
+/** @deprecated Utiliser archiveTeachingAction */
+export const deleteTeachingAction = archiveTeachingAction;
 
 export const updateTeachingAction = action
   .input(teachingSchema)
   .handler(async ({ input }) => {
+    const { branchId, organizationId } = await requireBranchContext();
     const { id, teacherId, classeId, coursId, schoolYearId, titulaire } = input;
+
+    if (!id) throw new Error("ID requis");
+
+    await requireTeachingInBranch(id, branchId);
+    await requireClasseInBranch(classeId, branchId);
+
     const teaching = await prisma.teaching.update({
       data: {
         teacherId,
@@ -126,12 +182,14 @@ export const updateTeachingAction = action
         coursId,
         schoolYearId,
         titulaire,
+        branchId,
       },
       where: {
         id,
       },
     });
 
+    revalidateTeachingPages(organizationId, branchId);
     return teaching;
   });
 

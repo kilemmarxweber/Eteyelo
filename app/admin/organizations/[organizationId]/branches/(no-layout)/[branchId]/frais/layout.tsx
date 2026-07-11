@@ -18,8 +18,8 @@ import { Button } from "@/components/ui/button";
 import { getClassesByIdAction } from "../classe/classe.action";
 import { useEffect, useState } from "react";
 import { IClasse } from "@/src/interfaces/Classe";
-import { RefreshProvider, useRefresh } from "@/src/hooks/RefreshContext";
-import { redirect, useParams, useRouter } from "next/navigation";
+import { useRefresh } from "@/src/hooks/RefreshContext";
+import { redirect, useParams } from "next/navigation";
 import { useSession } from "@/lib/auth-client";
 import {
   canAccessTeachingArea,
@@ -32,11 +32,7 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <RefreshProvider>
-      <FraisLayoutContent>{children}</FraisLayoutContent>
-    </RefreshProvider>
-  );
+  return <FraisLayoutContent>{children}</FraisLayoutContent>;
 }
 
 function FraisLayoutContent({
@@ -45,11 +41,9 @@ function FraisLayoutContent({
   children: React.ReactNode;
 }) {
   const { refresh } = useRefresh();
-  const router = useRouter();
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const handleFraisAction = () => {
     refresh();
-    router.refresh();
     setAddDialogOpen(false);
   };
   const { data: session, isPending } = useSession();
@@ -129,7 +123,7 @@ function FraisLayoutContent({
                       </DialogHeader>
                       <FraisUpForm
                         mode="create"
-                        onFraisCreated={handleFraisAction}
+                        onCreated={handleFraisAction}
                         classeId={classeId}
                       />
                     </DialogContent>

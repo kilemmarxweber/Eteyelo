@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { action } from "@/lib/zsa";
 import { IOption, optionSchema } from "@/src/interfaces/Option";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
+import { assertSecondaryBranchFeatures } from "@/lib/class-structure";
 import { z } from "zod";
 import {
   ensureUniqueIdentifier,
@@ -22,7 +23,8 @@ function revalidateOptionPages(organizationId: string, branchId: string) {
 export const createOptionAction = action
   .input(optionSchema)
   .handler(async ({ input }) => {
-    const { branchId, organizationId } = await requireBranchContext();
+    const { branchId, organizationId, typebranch } = await requireBranchContext();
+    assertSecondaryBranchFeatures(typebranch);
     const { nameOption, sectionId } = input;
     const codeOption = await ensureUniqueIdentifier({
       base: generateCode(nameOption, "OPT", 16),
@@ -90,7 +92,8 @@ export const createOptionAction = action
 export const updateOptionAction = action
   .input(optionSchema)
   .handler(async ({ input }) => {
-    const { branchId, organizationId } = await requireBranchContext();
+    const { branchId, organizationId, typebranch } = await requireBranchContext();
+    assertSecondaryBranchFeatures(typebranch);
     const { id, nameOption, sectionId, statusOption } = input;
 
     if (!id) throw new Error("ID requis");
@@ -141,8 +144,8 @@ export const updateOptionAction = action
     return updatedOption;
   });
 
-/* ================= DELETE OPTION ================= */
-export const deleteOptionAction = action
+/* ================= ARCHIVE OPTION ================= */
+export const archiveOptionAction = action
   .input(optionSchema)
   .handler(async ({ input }) => {
     const { branchId, organizationId } = await requireBranchContext();
@@ -158,12 +161,16 @@ export const deleteOptionAction = action
       throw new Error("Option introuvable");
     }
 
-    const deletedOption = await prisma.option.delete({
+    const archivedOption = await prisma.option.update({
       where: { id },
+      data: { statusOption: false },
     });
     revalidateOptionPages(organizationId, branchId);
-    return deletedOption;
+    return archivedOption;
   });
+
+/** @deprecated Utiliser archiveOptionAction */
+export const deleteOptionAction = archiveOptionAction;
 
 /* ================= GET OPTIONS ================= */
 export const getOptionsAction = action.handler(async (): Promise<IOption[]> => {
@@ -284,7 +291,7 @@ export const upsertOptionPonderationAction = action
     }),
   )
   .handler(async ({ input }) => {
-    const { branchId } = await requireBranchContext();
+    const { branchId, organizationId } = await requireBranchContext();
 
     const [option, cours] = await Promise.all([
       prisma.option.findFirst({
@@ -300,7 +307,7 @@ export const upsertOptionPonderationAction = action
     if (!option) throw new Error("Option introuvable dans cette branche");
     if (!cours) throw new Error("Cours introuvable dans cette branche");
 
-    return prisma.coursOptionPonderation.upsert({
+    const ponderation = await prisma.coursOptionPonderation.upsert({
       where: {
         branchId_coursId_optionId: {
           branchId,
@@ -318,4 +325,6 @@ export const upsertOptionPonderationAction = action
         ponderation: input.ponderation,
       },
     });
+    revalidateOptionPages(organizationId, branchId);
+    return ponderation;
   });

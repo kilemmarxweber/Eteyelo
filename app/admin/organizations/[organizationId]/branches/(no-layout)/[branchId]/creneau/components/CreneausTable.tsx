@@ -4,7 +4,7 @@ import { getCreneauxAction } from "../creneau.action";
 import { ResponsiveDataTable } from "@/components/ui/responsive-data-table";
 import { SearchAndFilter } from "@/components/ui/search-and-filter";
 import { Button } from "@/components/ui/button";
-import { Edit, Trash2, MoreHorizontal, Clock } from "lucide-react";
+import { Edit, Archive, MoreHorizontal, Clock } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { DeleteCreneausDialog } from "./delete-Creneau-dialog";
 import { UpdateCreneauDialog } from "./edit-Creneau-dialog";
+import { matchesIsArchivedFilter, type ActiveArchiveFilter } from "@/lib/archive";
 
 interface CreneausTableProps {
   refreshKey?: string;
@@ -23,6 +24,7 @@ const CreneausTable: React.FC<CreneausTableProps> = ({ refreshKey }) => {
   const [creneaux, setCreneaus] = useState<ICreneau[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState<ActiveArchiveFilter>("active");
 
   const [showUpdateDialog, setShowUpdateDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -33,7 +35,7 @@ const CreneausTable: React.FC<CreneausTableProps> = ({ refreshKey }) => {
     const fetchCreneaus = async () => {
       try {
         setLoading(true);
-        const [rawCreneaus, err] = await getCreneauxAction();
+        const [rawCreneaus, err] = await getCreneauxAction({ includeArchived: true });
         if (err) {
           throw new Error("Failed to fetch creneaux");
         }
@@ -55,7 +57,12 @@ const CreneausTable: React.FC<CreneausTableProps> = ({ refreshKey }) => {
       creneau.startTime.toLowerCase().includes(searchTerm.toLowerCase()) ||
       creneau.endTime.toLowerCase().includes(searchTerm.toLowerCase());
 
-    return matchesSearch;
+    const matchesArchive = matchesIsArchivedFilter(
+      creneau.isArchived,
+      statusFilter,
+    );
+
+    return matchesSearch && matchesArchive;
   });
 
   const handleEdit = (creneau: ICreneau) => {
@@ -159,10 +166,9 @@ const CreneausTable: React.FC<CreneausTableProps> = ({ refreshKey }) => {
             <DropdownMenuSeparator />
             <DropdownMenuItem
               onClick={() => handleDelete(creneau)}
-              className="text-destructive"
             >
-              <Trash2 className="mr-2 h-4 w-4" />
-              Supprimer
+              <Archive className="mr-2 h-4 w-4" />
+              Archiver
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -197,13 +203,19 @@ const CreneausTable: React.FC<CreneausTableProps> = ({ refreshKey }) => {
         variant: "outline" as const,
       },
       {
-        label: "Supprimer",
-        icon: Trash2,
+        label: "Archiver",
+        icon: Archive,
         onClick: () => handleDelete(creneau),
-        variant: "destructive" as const,
+        variant: "outline" as const,
       },
     ],
   };
+
+  const filterOptions = [
+    { value: "active", label: "Actifs uniquement" },
+    { value: "archived", label: "Archivés uniquement" },
+    { value: "all", label: "Tous" },
+  ];
 
   return (
     <div className="space-y-4">
@@ -211,6 +223,11 @@ const CreneausTable: React.FC<CreneausTableProps> = ({ refreshKey }) => {
         <SearchAndFilter
           searchTerm={searchTerm}
           onSearchChange={setSearchTerm}
+          filterValue={statusFilter}
+          onFilterChange={(value) =>
+            setStatusFilter(value as ActiveArchiveFilter)
+          }
+          filterOptions={filterOptions}
           searchPlaceholder="Rechercher une vacation..."
         />
       </div>

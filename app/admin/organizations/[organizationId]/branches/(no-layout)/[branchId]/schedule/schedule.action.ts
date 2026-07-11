@@ -12,6 +12,7 @@ import { ICours } from "@/src/interfaces/Cours";
 import { ICreneau } from "@/src/interfaces/creneau";
 import { IClasse } from "@/src/interfaces/Classe";
 import { z } from "zod";
+import { buildIsArchivedUpdate } from "@/lib/archive";
 
 type ScheduleContext = {
   branchId: string;
@@ -303,6 +304,7 @@ export const getSchedulesByClasseAction = action
 
     const schedules = await prisma.schedule.findMany({
       where: {
+        isArchived: false,
         teaching: scopedTeachingWhere(ctx, { classeId }),
       },
       include: {
@@ -343,6 +345,7 @@ export const getSchedulesByTeacherAction = action
     const ctx = await getScheduleContext();
     const schedules = await prisma.schedule.findMany({
       where: {
+        isArchived: false,
         teaching: scopedTeachingWhere(ctx, { teacherId: input.teacherId }),
       },
       include: {
@@ -401,8 +404,8 @@ export const getSchedulesByTeacherAction = action
     });
   });
 
-// DELETE SCHEDULE
-export const deleteScheduleAction = action
+// ARCHIVE SCHEDULE
+export const archiveScheduleAction = action
   .input(
     z.object({
       id: z.string(),
@@ -424,14 +427,16 @@ export const deleteScheduleAction = action
       throw new Error("Horaire introuvable dans cette branche");
     }
 
-    const deletedSchedule = await prisma.schedule.delete({
-      where: {
-        id: input.id,
-      },
+    const archivedSchedule = await prisma.schedule.update({
+      where: { id: input.id },
+      data: buildIsArchivedUpdate(ctx.userId),
     });
     revalidateSchedulePages(ctx);
-    return deletedSchedule;
+    return archivedSchedule;
   });
+
+/** @deprecated Utiliser archiveScheduleAction */
+export const deleteScheduleAction = archiveScheduleAction;
 
 export const getScheduleCoursByClasseAction = action
   .input(

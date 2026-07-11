@@ -34,7 +34,6 @@ import { parentSchema } from "@/src/interfaces/Parent";
 import generateUsername from "@/src/hooks/generateUsername";
 
 interface ParentUpFormProps extends HTMLAttributes<HTMLDivElement> {
-  onParentCreated?: () => void;
   onSuccess?: () => void;
   onCreated?: () => void;
   onUpdated?: () => void;
@@ -44,7 +43,6 @@ interface ParentUpFormProps extends HTMLAttributes<HTMLDivElement> {
 
 export function ParentUpForm({
   className,
-  onParentCreated,
   onSuccess,
   onCreated,
   onUpdated,
@@ -133,7 +131,6 @@ export function ParentUpForm({
           },
         });
         onCreated?.();
-        onParentCreated?.();
       } else {
         const [, err] = await updateParentAction({
           ...data,

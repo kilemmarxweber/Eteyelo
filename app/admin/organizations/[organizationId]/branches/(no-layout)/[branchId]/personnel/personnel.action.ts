@@ -159,18 +159,43 @@ export const createPersonnelAction = action
     }
   });
 
-//deletePersonal
-export const deletePersonalAction = action
+//archivePersonal
+export const archivePersonalAction = action
   .input(z.object({ ids: z.array(z.string()) }))
   .handler(async ({ input }) => {
-    await prisma.personnel.deleteMany({
+    const { branchId, organizationId } = await getCurrentBranch();
+
+    const personnels = await prisma.personnel.findMany({
       where: {
         id: { in: input.ids },
+        branchMember: { branchId },
+      },
+      include: {
+        branchMember: {
+          include: {
+            member: {
+              include: { user: true },
+            },
+          },
+        },
       },
     });
 
+    for (const personnel of personnels) {
+      const userId = personnel.branchMember?.member?.user?.id;
+      if (userId) {
+        await prisma.user.update({
+          where: { id: userId },
+          data: { statusUser: false },
+        });
+      }
+    }
+
     return true;
   });
+
+/** @deprecated Utiliser archivePersonalAction */
+export const deletePersonalAction = archivePersonalAction;
 
 export const updatePersonnelFullAction = action
   .input(

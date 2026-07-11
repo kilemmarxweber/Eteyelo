@@ -12,6 +12,7 @@ import { useEffect, useState } from "react";
 import { ISchoolYear } from "@/src/interfaces/SchoolYear";
 import { getSchoolYearsAction } from "../../../schoolYear/schoolYear.action";
 import { useSession } from "@/lib/auth-client";
+import { getCurrentSchoolYearName } from "@/lib/school-year-utils";
 
 interface DataTableToolbarProps<TData> {
   table: Table<TData>;
@@ -35,6 +36,11 @@ export function DataTableToolbar<TData>({
           throw new Error("Failed to fetch schoolYears");
         }
         setSchoolYears(rawSchoolYears);
+        const currentYearName = getCurrentSchoolYearName(rawSchoolYears);
+        const nameYearColumn = table.getColumn("nameYear");
+        if (currentYearName && nameYearColumn && !nameYearColumn.getFilterValue()) {
+          nameYearColumn.setFilterValue(currentYearName);
+        }
         setLoading(false);
       } catch (error) {
         setLoading(false);
@@ -42,7 +48,7 @@ export function DataTableToolbar<TData>({
     };
 
     fetchSchoolYears();
-  }, [branchId]);
+  }, [branchId, table]);
 
   // Fonction de transformation
 

@@ -16,16 +16,16 @@ import { getOptionsAction } from "../../option/option.action";
 
 interface DataTableToolbarProps<TData> {
   table: Table<TData>;
+  showOptionFilter?: boolean;
 }
 
 export function DataTableToolbar<TData>({
   table,
+  showOptionFilter = true,
 }: DataTableToolbarProps<TData>) {
   const isFiltered = table.getState().columnFilters.length > 0;
   const [options, setOptions] = useState<IOption[]>([]);
   const [creneaux, setCreneaux] = useState<ICreneau[]>([]);
-
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchOptions = async () => {
@@ -35,26 +35,26 @@ export function DataTableToolbar<TData>({
           throw new Error("Failed to fetch options");
         }
         setOptions(rawOptions);
-        setLoading(false);
       } catch (error) {
-        setLoading(false);
+        console.error(error);
       }
     };
     const fetchCreneaux = async () => {
       try {
-        const [rawCreneaux, err] = await getCreneauxAction();
+        const [rawCreneaux, err] = await getCreneauxAction({});
         if (err) {
           throw err.message;
         }
         setCreneaux(rawCreneaux);
-        setLoading(false);
       } catch (error) {
-        setLoading(false);
+        console.error(error);
       }
     };
     fetchCreneaux();
-    fetchOptions();
-  }, []);
+    if (showOptionFilter) {
+      fetchOptions();
+    }
+  }, [showOptionFilter]);
 
   return (
     <div className="flex items-center justify-between">
@@ -69,7 +69,7 @@ export function DataTableToolbar<TData>({
           }
           className="h-8 w-[150px] lg:w-[250px]"
         />
-        {table.getColumn("nameOption") && (
+        {showOptionFilter && table.getColumn("nameOption") && (
           <DataTableFacetedFilter
             column={table.getColumn("nameOption")}
             title="Option"

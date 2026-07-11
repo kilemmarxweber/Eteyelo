@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { ClasseUpForm } from "./classe-form";
 import { IClasse } from "@/src/interfaces/Classe";
+import { useRefresh } from "@/src/hooks/RefreshContext";
 
 interface UpdateClasseDialogProps extends React.ComponentPropsWithoutRef<
   typeof Dialog
@@ -26,7 +27,14 @@ export function UpdateClasseDialog({
   classe,
   ...props
 }: UpdateClasseDialogProps) {
+  const { refresh } = useRefresh();
+
   const handleUpdate = () => {
+    refresh();
+    props.onOpenChange?.(false);
+  };
+
+  const handleSuccess = () => {
     onSuccess?.();
   };
 
@@ -44,12 +52,15 @@ export function UpdateClasseDialog({
           mode="update"
           initialData={{
             id: classe.id,
-            codeClasse: classe.codeClasse,
             nameClasse: classe.nameClasse,
+            level: classe.level ?? undefined,
+            parallel: classe.parallel ?? undefined,
+            capacity: classe.capacity ?? undefined,
             optionId: classe.optionId,
             creneauId: classe.creneauId,
           }}
           onUpdated={handleUpdate}
+          onSuccess={handleSuccess}
         />
       </DialogContent>
     </Dialog>

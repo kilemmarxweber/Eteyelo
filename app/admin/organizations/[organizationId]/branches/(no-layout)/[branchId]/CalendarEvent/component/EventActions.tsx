@@ -30,7 +30,7 @@ export function EventActions({ id }: { id: string }) {
           Modifier
         </DropdownMenuItem>
 
-        <DropdownMenuItem className="text-red-500">Supprimer</DropdownMenuItem>
+        <DropdownMenuItem className="text-red-500">Archiver</DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );

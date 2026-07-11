@@ -30,6 +30,9 @@ export type SchoolYearMinAggregateOutputType = {
   startYear: Date | null
   endYear: Date | null
   isCurrentYear: boolean | null
+  isArchived: boolean | null
+  archivedAt: Date | null
+  archivedById: string | null
   createdAt: Date | null
   updatedAt: Date | null
   branchId: string | null
@@ -41,6 +44,9 @@ export type SchoolYearMaxAggregateOutputType = {
   startYear: Date | null
   endYear: Date | null
   isCurrentYear: boolean | null
+  isArchived: boolean | null
+  archivedAt: Date | null
+  archivedById: string | null
   createdAt: Date | null
   updatedAt: Date | null
   branchId: string | null
@@ -52,6 +58,9 @@ export type SchoolYearCountAggregateOutputType = {
   startYear: number
   endYear: number
   isCurrentYear: number
+  isArchived: number
+  archivedAt: number
+  archivedById: number
   createdAt: number
   updatedAt: number
   branchId: number
@@ -65,6 +74,9 @@ export type SchoolYearMinAggregateInputType = {
   startYear?: true
   endYear?: true
   isCurrentYear?: true
+  isArchived?: true
+  archivedAt?: true
+  archivedById?: true
   createdAt?: true
   updatedAt?: true
   branchId?: true
@@ -76,6 +88,9 @@ export type SchoolYearMaxAggregateInputType = {
   startYear?: true
   endYear?: true
   isCurrentYear?: true
+  isArchived?: true
+  archivedAt?: true
+  archivedById?: true
   createdAt?: true
   updatedAt?: true
   branchId?: true
@@ -87,6 +102,9 @@ export type SchoolYearCountAggregateInputType = {
   startYear?: true
   endYear?: true
   isCurrentYear?: true
+  isArchived?: true
+  archivedAt?: true
+  archivedById?: true
   createdAt?: true
   updatedAt?: true
   branchId?: true
@@ -171,6 +189,9 @@ export type SchoolYearGroupByOutputType = {
   startYear: Date
   endYear: Date
   isCurrentYear: boolean
+  isArchived: boolean
+  archivedAt: Date | null
+  archivedById: string | null
   createdAt: Date
   updatedAt: Date
   branchId: string
@@ -203,6 +224,9 @@ export type SchoolYearWhereInput = {
   startYear?: Prisma.DateTimeFilter<"SchoolYear"> | Date | string
   endYear?: Prisma.DateTimeFilter<"SchoolYear"> | Date | string
   isCurrentYear?: Prisma.BoolFilter<"SchoolYear"> | boolean
+  isArchived?: Prisma.BoolFilter<"SchoolYear"> | boolean
+  archivedAt?: Prisma.DateTimeNullableFilter<"SchoolYear"> | Date | string | null
+  archivedById?: Prisma.StringNullableFilter<"SchoolYear"> | string | null
   createdAt?: Prisma.DateTimeFilter<"SchoolYear"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"SchoolYear"> | Date | string
   branchId?: Prisma.StringFilter<"SchoolYear"> | string
@@ -223,6 +247,9 @@ export type SchoolYearOrderByWithRelationInput = {
   startYear?: Prisma.SortOrder
   endYear?: Prisma.SortOrder
   isCurrentYear?: Prisma.SortOrder
+  isArchived?: Prisma.SortOrder
+  archivedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  archivedById?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   branchId?: Prisma.SortOrder
@@ -248,6 +275,9 @@ export type SchoolYearWhereUniqueInput = Prisma.AtLeast<{
   startYear?: Prisma.DateTimeFilter<"SchoolYear"> | Date | string
   endYear?: Prisma.DateTimeFilter<"SchoolYear"> | Date | string
   isCurrentYear?: Prisma.BoolFilter<"SchoolYear"> | boolean
+  isArchived?: Prisma.BoolFilter<"SchoolYear"> | boolean
+  archivedAt?: Prisma.DateTimeNullableFilter<"SchoolYear"> | Date | string | null
+  archivedById?: Prisma.StringNullableFilter<"SchoolYear"> | string | null
   createdAt?: Prisma.DateTimeFilter<"SchoolYear"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"SchoolYear"> | Date | string
   branchId?: Prisma.StringFilter<"SchoolYear"> | string
@@ -268,6 +298,9 @@ export type SchoolYearOrderByWithAggregationInput = {
   startYear?: Prisma.SortOrder
   endYear?: Prisma.SortOrder
   isCurrentYear?: Prisma.SortOrder
+  isArchived?: Prisma.SortOrder
+  archivedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  archivedById?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   branchId?: Prisma.SortOrder
@@ -285,6 +318,9 @@ export type SchoolYearScalarWhereWithAggregatesInput = {
   startYear?: Prisma.DateTimeWithAggregatesFilter<"SchoolYear"> | Date | string
   endYear?: Prisma.DateTimeWithAggregatesFilter<"SchoolYear"> | Date | string
   isCurrentYear?: Prisma.BoolWithAggregatesFilter<"SchoolYear"> | boolean
+  isArchived?: Prisma.BoolWithAggregatesFilter<"SchoolYear"> | boolean
+  archivedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"SchoolYear"> | Date | string | null
+  archivedById?: Prisma.StringNullableWithAggregatesFilter<"SchoolYear"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"SchoolYear"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"SchoolYear"> | Date | string
   branchId?: Prisma.StringWithAggregatesFilter<"SchoolYear"> | string
@@ -296,6 +332,9 @@ export type SchoolYearCreateInput = {
   startYear: Date | string
   endYear: Date | string
   isCurrentYear?: boolean
+  isArchived?: boolean
+  archivedAt?: Date | string | null
+  archivedById?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   classEnrollment?: Prisma.ClassEnrollmentCreateNestedManyWithoutSchoolYearInput
@@ -315,6 +354,9 @@ export type SchoolYearUncheckedCreateInput = {
   startYear: Date | string
   endYear: Date | string
   isCurrentYear?: boolean
+  isArchived?: boolean
+  archivedAt?: Date | string | null
+  archivedById?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   branchId: string
@@ -334,6 +376,9 @@ export type SchoolYearUpdateInput = {
   startYear?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endYear?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isCurrentYear?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   classEnrollment?: Prisma.ClassEnrollmentUpdateManyWithoutSchoolYearNestedInput
@@ -353,6 +398,9 @@ export type SchoolYearUncheckedUpdateInput = {
   startYear?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endYear?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isCurrentYear?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -372,6 +420,9 @@ export type SchoolYearCreateManyInput = {
   startYear: Date | string
   endYear: Date | string
   isCurrentYear?: boolean
+  isArchived?: boolean
+  archivedAt?: Date | string | null
+  archivedById?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   branchId: string
@@ -383,6 +434,9 @@ export type SchoolYearUpdateManyMutationInput = {
   startYear?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endYear?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isCurrentYear?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -393,6 +447,9 @@ export type SchoolYearUncheckedUpdateManyInput = {
   startYear?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endYear?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isCurrentYear?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -425,6 +482,9 @@ export type SchoolYearCountOrderByAggregateInput = {
   startYear?: Prisma.SortOrder
   endYear?: Prisma.SortOrder
   isCurrentYear?: Prisma.SortOrder
+  isArchived?: Prisma.SortOrder
+  archivedAt?: Prisma.SortOrder
+  archivedById?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   branchId?: Prisma.SortOrder
@@ -436,6 +496,9 @@ export type SchoolYearMaxOrderByAggregateInput = {
   startYear?: Prisma.SortOrder
   endYear?: Prisma.SortOrder
   isCurrentYear?: Prisma.SortOrder
+  isArchived?: Prisma.SortOrder
+  archivedAt?: Prisma.SortOrder
+  archivedById?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   branchId?: Prisma.SortOrder
@@ -447,6 +510,9 @@ export type SchoolYearMinOrderByAggregateInput = {
   startYear?: Prisma.SortOrder
   endYear?: Prisma.SortOrder
   isCurrentYear?: Prisma.SortOrder
+  isArchived?: Prisma.SortOrder
+  archivedAt?: Prisma.SortOrder
+  archivedById?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   branchId?: Prisma.SortOrder
@@ -630,6 +696,9 @@ export type SchoolYearCreateWithoutAttendanceSessionInput = {
   startYear: Date | string
   endYear: Date | string
   isCurrentYear?: boolean
+  isArchived?: boolean
+  archivedAt?: Date | string | null
+  archivedById?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   classEnrollment?: Prisma.ClassEnrollmentCreateNestedManyWithoutSchoolYearInput
@@ -648,6 +717,9 @@ export type SchoolYearUncheckedCreateWithoutAttendanceSessionInput = {
   startYear: Date | string
   endYear: Date | string
   isCurrentYear?: boolean
+  isArchived?: boolean
+  archivedAt?: Date | string | null
+  archivedById?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   branchId: string
@@ -682,6 +754,9 @@ export type SchoolYearUpdateWithoutAttendanceSessionInput = {
   startYear?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endYear?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isCurrentYear?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   classEnrollment?: Prisma.ClassEnrollmentUpdateManyWithoutSchoolYearNestedInput
@@ -700,6 +775,9 @@ export type SchoolYearUncheckedUpdateWithoutAttendanceSessionInput = {
   startYear?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endYear?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isCurrentYear?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -718,6 +796,9 @@ export type SchoolYearCreateWithoutParentFeedbackInput = {
   startYear: Date | string
   endYear: Date | string
   isCurrentYear?: boolean
+  isArchived?: boolean
+  archivedAt?: Date | string | null
+  archivedById?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   classEnrollment?: Prisma.ClassEnrollmentCreateNestedManyWithoutSchoolYearInput
@@ -736,6 +817,9 @@ export type SchoolYearUncheckedCreateWithoutParentFeedbackInput = {
   startYear: Date | string
   endYear: Date | string
   isCurrentYear?: boolean
+  isArchived?: boolean
+  archivedAt?: Date | string | null
+  archivedById?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   branchId: string
@@ -770,6 +854,9 @@ export type SchoolYearUpdateWithoutParentFeedbackInput = {
   startYear?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endYear?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isCurrentYear?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   classEnrollment?: Prisma.ClassEnrollmentUpdateManyWithoutSchoolYearNestedInput
@@ -788,6 +875,9 @@ export type SchoolYearUncheckedUpdateWithoutParentFeedbackInput = {
   startYear?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endYear?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isCurrentYear?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -806,6 +896,9 @@ export type SchoolYearCreateWithoutGradesInput = {
   startYear: Date | string
   endYear: Date | string
   isCurrentYear?: boolean
+  isArchived?: boolean
+  archivedAt?: Date | string | null
+  archivedById?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   classEnrollment?: Prisma.ClassEnrollmentCreateNestedManyWithoutSchoolYearInput
@@ -824,6 +917,9 @@ export type SchoolYearUncheckedCreateWithoutGradesInput = {
   startYear: Date | string
   endYear: Date | string
   isCurrentYear?: boolean
+  isArchived?: boolean
+  archivedAt?: Date | string | null
+  archivedById?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   branchId: string
@@ -858,6 +954,9 @@ export type SchoolYearUpdateWithoutGradesInput = {
   startYear?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endYear?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isCurrentYear?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   classEnrollment?: Prisma.ClassEnrollmentUpdateManyWithoutSchoolYearNestedInput
@@ -876,6 +975,9 @@ export type SchoolYearUncheckedUpdateWithoutGradesInput = {
   startYear?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endYear?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isCurrentYear?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -894,6 +996,9 @@ export type SchoolYearCreateWithoutFraisInput = {
   startYear: Date | string
   endYear: Date | string
   isCurrentYear?: boolean
+  isArchived?: boolean
+  archivedAt?: Date | string | null
+  archivedById?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   classEnrollment?: Prisma.ClassEnrollmentCreateNestedManyWithoutSchoolYearInput
@@ -912,6 +1017,9 @@ export type SchoolYearUncheckedCreateWithoutFraisInput = {
   startYear: Date | string
   endYear: Date | string
   isCurrentYear?: boolean
+  isArchived?: boolean
+  archivedAt?: Date | string | null
+  archivedById?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   branchId: string
@@ -946,6 +1054,9 @@ export type SchoolYearUpdateWithoutFraisInput = {
   startYear?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endYear?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isCurrentYear?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   classEnrollment?: Prisma.ClassEnrollmentUpdateManyWithoutSchoolYearNestedInput
@@ -964,6 +1075,9 @@ export type SchoolYearUncheckedUpdateWithoutFraisInput = {
   startYear?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endYear?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isCurrentYear?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -982,6 +1096,9 @@ export type SchoolYearCreateWithoutClassEnrollmentInput = {
   startYear: Date | string
   endYear: Date | string
   isCurrentYear?: boolean
+  isArchived?: boolean
+  archivedAt?: Date | string | null
+  archivedById?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   teaching?: Prisma.TeachingCreateNestedManyWithoutSchoolYearInput
@@ -1000,6 +1117,9 @@ export type SchoolYearUncheckedCreateWithoutClassEnrollmentInput = {
   startYear: Date | string
   endYear: Date | string
   isCurrentYear?: boolean
+  isArchived?: boolean
+  archivedAt?: Date | string | null
+  archivedById?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   branchId: string
@@ -1034,6 +1154,9 @@ export type SchoolYearUpdateWithoutClassEnrollmentInput = {
   startYear?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endYear?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isCurrentYear?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   teaching?: Prisma.TeachingUpdateManyWithoutSchoolYearNestedInput
@@ -1052,6 +1175,9 @@ export type SchoolYearUncheckedUpdateWithoutClassEnrollmentInput = {
   startYear?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endYear?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isCurrentYear?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1070,6 +1196,9 @@ export type SchoolYearCreateWithoutTeachingInput = {
   startYear: Date | string
   endYear: Date | string
   isCurrentYear?: boolean
+  isArchived?: boolean
+  archivedAt?: Date | string | null
+  archivedById?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   classEnrollment?: Prisma.ClassEnrollmentCreateNestedManyWithoutSchoolYearInput
@@ -1088,6 +1217,9 @@ export type SchoolYearUncheckedCreateWithoutTeachingInput = {
   startYear: Date | string
   endYear: Date | string
   isCurrentYear?: boolean
+  isArchived?: boolean
+  archivedAt?: Date | string | null
+  archivedById?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   branchId: string
@@ -1122,6 +1254,9 @@ export type SchoolYearUpdateWithoutTeachingInput = {
   startYear?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endYear?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isCurrentYear?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   classEnrollment?: Prisma.ClassEnrollmentUpdateManyWithoutSchoolYearNestedInput
@@ -1140,6 +1275,9 @@ export type SchoolYearUncheckedUpdateWithoutTeachingInput = {
   startYear?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endYear?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isCurrentYear?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1158,6 +1296,9 @@ export type SchoolYearCreateWithoutCalendarEventInput = {
   startYear: Date | string
   endYear: Date | string
   isCurrentYear?: boolean
+  isArchived?: boolean
+  archivedAt?: Date | string | null
+  archivedById?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   classEnrollment?: Prisma.ClassEnrollmentCreateNestedManyWithoutSchoolYearInput
@@ -1176,6 +1317,9 @@ export type SchoolYearUncheckedCreateWithoutCalendarEventInput = {
   startYear: Date | string
   endYear: Date | string
   isCurrentYear?: boolean
+  isArchived?: boolean
+  archivedAt?: Date | string | null
+  archivedById?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   branchId: string
@@ -1210,6 +1354,9 @@ export type SchoolYearUpdateWithoutCalendarEventInput = {
   startYear?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endYear?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isCurrentYear?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   classEnrollment?: Prisma.ClassEnrollmentUpdateManyWithoutSchoolYearNestedInput
@@ -1228,6 +1375,9 @@ export type SchoolYearUncheckedUpdateWithoutCalendarEventInput = {
   startYear?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endYear?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isCurrentYear?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1246,6 +1396,9 @@ export type SchoolYearCreateWithoutInvoicesInput = {
   startYear: Date | string
   endYear: Date | string
   isCurrentYear?: boolean
+  isArchived?: boolean
+  archivedAt?: Date | string | null
+  archivedById?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   classEnrollment?: Prisma.ClassEnrollmentCreateNestedManyWithoutSchoolYearInput
@@ -1264,6 +1417,9 @@ export type SchoolYearUncheckedCreateWithoutInvoicesInput = {
   startYear: Date | string
   endYear: Date | string
   isCurrentYear?: boolean
+  isArchived?: boolean
+  archivedAt?: Date | string | null
+  archivedById?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   branchId: string
@@ -1298,6 +1454,9 @@ export type SchoolYearUpdateWithoutInvoicesInput = {
   startYear?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endYear?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isCurrentYear?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   classEnrollment?: Prisma.ClassEnrollmentUpdateManyWithoutSchoolYearNestedInput
@@ -1316,6 +1475,9 @@ export type SchoolYearUncheckedUpdateWithoutInvoicesInput = {
   startYear?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endYear?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isCurrentYear?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1334,6 +1496,9 @@ export type SchoolYearCreateWithoutBranchInput = {
   startYear: Date | string
   endYear: Date | string
   isCurrentYear?: boolean
+  isArchived?: boolean
+  archivedAt?: Date | string | null
+  archivedById?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   classEnrollment?: Prisma.ClassEnrollmentCreateNestedManyWithoutSchoolYearInput
@@ -1352,6 +1517,9 @@ export type SchoolYearUncheckedCreateWithoutBranchInput = {
   startYear: Date | string
   endYear: Date | string
   isCurrentYear?: boolean
+  isArchived?: boolean
+  archivedAt?: Date | string | null
+  archivedById?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   classEnrollment?: Prisma.ClassEnrollmentUncheckedCreateNestedManyWithoutSchoolYearInput
@@ -1399,6 +1567,9 @@ export type SchoolYearScalarWhereInput = {
   startYear?: Prisma.DateTimeFilter<"SchoolYear"> | Date | string
   endYear?: Prisma.DateTimeFilter<"SchoolYear"> | Date | string
   isCurrentYear?: Prisma.BoolFilter<"SchoolYear"> | boolean
+  isArchived?: Prisma.BoolFilter<"SchoolYear"> | boolean
+  archivedAt?: Prisma.DateTimeNullableFilter<"SchoolYear"> | Date | string | null
+  archivedById?: Prisma.StringNullableFilter<"SchoolYear"> | string | null
   createdAt?: Prisma.DateTimeFilter<"SchoolYear"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"SchoolYear"> | Date | string
   branchId?: Prisma.StringFilter<"SchoolYear"> | string
@@ -1410,6 +1581,9 @@ export type SchoolYearCreateManyBranchInput = {
   startYear: Date | string
   endYear: Date | string
   isCurrentYear?: boolean
+  isArchived?: boolean
+  archivedAt?: Date | string | null
+  archivedById?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -1420,6 +1594,9 @@ export type SchoolYearUpdateWithoutBranchInput = {
   startYear?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endYear?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isCurrentYear?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   classEnrollment?: Prisma.ClassEnrollmentUpdateManyWithoutSchoolYearNestedInput
@@ -1438,6 +1615,9 @@ export type SchoolYearUncheckedUpdateWithoutBranchInput = {
   startYear?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endYear?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isCurrentYear?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   classEnrollment?: Prisma.ClassEnrollmentUncheckedUpdateManyWithoutSchoolYearNestedInput
@@ -1456,6 +1636,9 @@ export type SchoolYearUncheckedUpdateManyWithoutBranchInput = {
   startYear?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endYear?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isCurrentYear?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1560,6 +1743,9 @@ export type SchoolYearSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   startYear?: boolean
   endYear?: boolean
   isCurrentYear?: boolean
+  isArchived?: boolean
+  archivedAt?: boolean
+  archivedById?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   branchId?: boolean
@@ -1581,6 +1767,9 @@ export type SchoolYearSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ex
   startYear?: boolean
   endYear?: boolean
   isCurrentYear?: boolean
+  isArchived?: boolean
+  archivedAt?: boolean
+  archivedById?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   branchId?: boolean
@@ -1593,6 +1782,9 @@ export type SchoolYearSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ex
   startYear?: boolean
   endYear?: boolean
   isCurrentYear?: boolean
+  isArchived?: boolean
+  archivedAt?: boolean
+  archivedById?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   branchId?: boolean
@@ -1605,12 +1797,15 @@ export type SchoolYearSelectScalar = {
   startYear?: boolean
   endYear?: boolean
   isCurrentYear?: boolean
+  isArchived?: boolean
+  archivedAt?: boolean
+  archivedById?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   branchId?: boolean
 }
 
-export type SchoolYearOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "nameYear" | "startYear" | "endYear" | "isCurrentYear" | "createdAt" | "updatedAt" | "branchId", ExtArgs["result"]["schoolYear"]>
+export type SchoolYearOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "nameYear" | "startYear" | "endYear" | "isCurrentYear" | "isArchived" | "archivedAt" | "archivedById" | "createdAt" | "updatedAt" | "branchId", ExtArgs["result"]["schoolYear"]>
 export type SchoolYearInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   classEnrollment?: boolean | Prisma.SchoolYear$classEnrollmentArgs<ExtArgs>
   teaching?: boolean | Prisma.SchoolYear$teachingArgs<ExtArgs>
@@ -1649,6 +1844,9 @@ export type $SchoolYearPayload<ExtArgs extends runtime.Types.Extensions.Internal
     startYear: Date
     endYear: Date
     isCurrentYear: boolean
+    isArchived: boolean
+    archivedAt: Date | null
+    archivedById: string | null
     createdAt: Date
     updatedAt: Date
     branchId: string
@@ -2089,6 +2287,9 @@ export interface SchoolYearFieldRefs {
   readonly startYear: Prisma.FieldRef<"SchoolYear", 'DateTime'>
   readonly endYear: Prisma.FieldRef<"SchoolYear", 'DateTime'>
   readonly isCurrentYear: Prisma.FieldRef<"SchoolYear", 'Boolean'>
+  readonly isArchived: Prisma.FieldRef<"SchoolYear", 'Boolean'>
+  readonly archivedAt: Prisma.FieldRef<"SchoolYear", 'DateTime'>
+  readonly archivedById: Prisma.FieldRef<"SchoolYear", 'String'>
   readonly createdAt: Prisma.FieldRef<"SchoolYear", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"SchoolYear", 'DateTime'>
   readonly branchId: Prisma.FieldRef<"SchoolYear", 'String'>

@@ -233,16 +233,19 @@ const MontantInput = forwardRef<HTMLInputElement, MontantInputProps>(
 );
 
 interface FraisUpFormProps extends HTMLAttributes<HTMLDivElement> {
-  onFraisCreated?: () => void;
+  onSuccess?: () => void;
+  onCreated?: () => void;
+  onUpdated?: () => void;
   initialData?: z.infer<typeof fraisSchema>;
-  onFraisUpdate?: () => void;
   classeId?: string;
   mode: "create" | "update";
 }
 
 export function FraisUpForm({
   className,
-  onFraisCreated,
+  onSuccess,
+  onCreated,
+  onUpdated,
   initialData,
   classeId,
   mode,
@@ -321,6 +324,7 @@ export function FraisUpForm({
           echeance: undefined,
           priority: undefined,
         });
+        onCreated?.();
       } else {
         const [frais, err] = await updateFraisAction({
           ...data,
@@ -329,8 +333,9 @@ export function FraisUpForm({
           throw new Error(err.message);
         }
         toast.success("Frais mis à jour avec succès");
+        onUpdated?.();
       }
-      onFraisCreated && onFraisCreated();
+      onSuccess?.();
     } catch (error) {
       console.error("Erreur:", error);
       setErrorMessage(

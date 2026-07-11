@@ -44,7 +44,6 @@ import { getCoursAction } from "../../../cours/cours.action";
 import { useSession } from "@/lib/auth-client";
 
 interface EnrollmentUpFormProps extends HTMLAttributes<HTMLDivElement> {
-  onEnrollmentAction?: () => void;
   onSuccess?: () => void;
   onCreated?: () => void;
   onUpdated?: () => void;
@@ -55,7 +54,6 @@ interface EnrollmentUpFormProps extends HTMLAttributes<HTMLDivElement> {
 
 export function EnrollmentUpForm({
   className,
-  onEnrollmentAction,
   onSuccess,
   onCreated,
   onUpdated,
@@ -104,7 +102,7 @@ export function EnrollmentUpForm({
     };
     fecthSchoolYears();
     const fecthCours = async () => {
-      const [rawCours, err] = await getCoursAction();
+      const [rawCours, err] = await getCoursAction({});
       if (err) {
         throw err.message;
       }
@@ -155,7 +153,6 @@ export function EnrollmentUpForm({
         onUpdated?.();
       }
       onSuccess?.();
-      onEnrollmentAction?.();
     } catch (error: any) {
       console.log(error);
       setErrorMessage(error.message ?? "");

@@ -6,6 +6,7 @@ import { action } from "@/lib/zsa";
 import { ISection, sectionSchema } from "@/src/interfaces/Section";
 import { Prisma } from "@/prisma/generated/prisma/client";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
+import { assertSecondaryBranchFeatures } from "@/lib/class-structure";
 import {
   ensureUniqueIdentifier,
   generateCode,
@@ -19,7 +20,8 @@ export const createSectionAction = action
   .input(sectionSchema)
   .handler(async ({ input }) => {
     try {
-      const { branchId, organizationId } = await requireBranchContext();
+      const { branchId, organizationId, typebranch } = await requireBranchContext();
+      assertSecondaryBranchFeatures(typebranch);
       const { nameSection } = input;
       const codeSection = await ensureUniqueIdentifier({
         base: generateCode(nameSection, "SEC", 16),
@@ -62,11 +64,11 @@ export const createSectionAction = action
     }
   });
 
-//deleteSection
-export const deleteSectionAction = action
+//archiveSection
+export const archiveSectionAction = action
   .input(sectionSchema)
   .handler(async ({ input }) => {
-    const { branchId, organizationId } = await requireBranchContext();
+    const { branchId, organizationId, userId } = await requireBranchContext();
     const { id } = input;
     const section = await prisma.section.findFirst({
       where: { id, branchId },
@@ -74,19 +76,22 @@ export const deleteSectionAction = action
     });
     if (!section) throw new Error("Section introuvable dans cette branche");
 
-    const deleteSection = await prisma.section.delete({
-      where: {
-        id,
-      },
+    const archivedSection = await prisma.section.update({
+      where: { id },
+      data: { statusSection: false },
     });
     revalidateSectionPages(organizationId, branchId);
-    return deleteSection;
+    return archivedSection;
   });
+
+/** @deprecated Utiliser archiveSectionAction */
+export const deleteSectionAction = archiveSectionAction;
 
 export const updateSectionAction = action
   .input(sectionSchema)
   .handler(async ({ input }) => {
-    const { branchId, organizationId } = await requireBranchContext();
+    const { branchId, organizationId, typebranch } = await requireBranchContext();
+    assertSecondaryBranchFeatures(typebranch);
     const { nameSection, id } = input;
     const existSection = await prisma.section.findFirst({
       where: { id, branchId },

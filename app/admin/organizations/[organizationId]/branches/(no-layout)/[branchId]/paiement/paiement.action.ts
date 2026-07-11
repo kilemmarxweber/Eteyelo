@@ -1,5 +1,6 @@
 "use server";
 import { prisma } from "@/lib/prisma";
+import { revalidatePath } from "next/cache";
 import { action } from "@/lib/zsa";
 import z from "zod";
 import { paiementSchema, StatusPaiement } from "@/src/interfaces/Paiement";
@@ -19,6 +20,10 @@ const linkedUserInclude = {
 
 function getLinkedUser(record: any) {
   return record?.branchMember?.member?.user ?? null;
+}
+
+function revalidatePaiementPages(organizationId: string, branchId: string) {
+  revalidatePath(`/admin/organizations/${organizationId}/branches/${branchId}/paiement`);
 }
 
 type ReceiptPayload = {
@@ -119,9 +124,9 @@ export const createPaiementAction = action
       throw new Error("❌ Montant invalide");
     }
 
-    const { branchId } = await requireBranchContext();
+    const { branchId, organizationId } = await requireBranchContext();
 
-    return prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx) => {
       /* ======================================================
          REFERENCE WITH RETRY (Handle Race Condition)
          Use random component to break collisions from simultaneous requests
@@ -557,6 +562,11 @@ export const createPaiementAction = action
         receipt,
       };
     });
+
+    if (result.success) {
+      revalidatePaiementPages(organizationId, branchId);
+    }
+    return result;
   });
 
 const getDayRange = (date?: Date) => {
@@ -593,9 +603,9 @@ export const createCashierExpenseAction = action
   )
   .handler(async ({ input }) => {
     const { amount, description, category } = input;
-    const { branchId } = await requireBranchContext();
+    const { branchId, organizationId } = await requireBranchContext();
 
-    return prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx) => {
       const reference = await buildReference(tx, "EXP", branchId);
 
       await tx.transaction.create({
@@ -626,6 +636,9 @@ export const createCashierExpenseAction = action
         },
       };
     });
+
+    revalidatePaiementPages(organizationId, branchId);
+    return result;
   });
 
 export const getCashierReportAction = action
@@ -788,7 +801,7 @@ export const statusPaiementAction = action
     }),
   )
   .handler(async ({ input }) => {
-    const { branchId } = await requireBranchContext();
+    const { branchId, organizationId } = await requireBranchContext();
     const existing = await prisma.familyPayment.findFirst({
       where: { id: input.id, branchId },
       select: { id: true },
@@ -796,10 +809,12 @@ export const statusPaiementAction = action
 
     if (!existing) throw new Error("Paiement non trouvÃ©");
 
-    return prisma.familyPayment.update({
+    const updated = await prisma.familyPayment.update({
       where: { id: input.id },
       data: { status: input.statusPaiement },
     });
+    revalidatePaiementPages(organizationId, branchId);
+    return updated;
   });
 
 /* ======================================================
@@ -812,7 +827,7 @@ export const updatePaiementAction = action
     }),
   )
   .handler(async ({ input }) => {
-    const { branchId } = await requireBranchContext();
+    const { branchId, organizationId } = await requireBranchContext();
     const { id, amount, modePaiement, status } = input;
 
     const existing = await prisma.familyPayment.findFirst({
@@ -840,6 +855,7 @@ export const updatePaiementAction = action
       },
     });
 
+    revalidatePaiementPages(organizationId, branchId);
     return {
       ...updated,
       amount: Number(updated.amount),
@@ -852,7 +868,7 @@ export const updatePaiementAction = action
 export const deletePaiementAction = action
   .input(z.object({ id: z.string() }))
   .handler(async ({ input }) => {
-    const { branchId } = await requireBranchContext();
+    const { branchId, organizationId } = await requireBranchContext();
     const existing = await prisma.familyPayment.findFirst({
       where: { id: input.id, branchId },
       select: { id: true },
@@ -860,10 +876,12 @@ export const deletePaiementAction = action
 
     if (!existing) throw new Error("Paiement non trouvÃ©");
 
-    return prisma.familyPayment.update({
+    const cancelled = await prisma.familyPayment.update({
       where: { id: input.id },
       data: { status: StatusPaiement.ANNULE },
     });
+    revalidatePaiementPages(organizationId, branchId);
+    return cancelled;
   });
 
 /* ======================================================
