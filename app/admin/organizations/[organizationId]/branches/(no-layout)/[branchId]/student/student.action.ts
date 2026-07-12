@@ -132,7 +132,7 @@ export const createStudentAction = action
     }
 
     const parentId = input.parentId;
-    const { category, orgRole, email, telephone, ...data } = input;
+    const { category, orgRole, email, telephone, placeOfBirth, ...data } = input;
     if (!parentId) {
       return {
         ok: false,
@@ -195,6 +195,7 @@ export const createStudentAction = action
           branchMemberId: branchMember.id,
           parentId,
           category: parseCategory(category),
+          placeOfBirth: placeOfBirth || null,
         },
       });
 
@@ -307,6 +308,15 @@ export const getStudentsAction = action.handler(
             },
           },
         },
+        classEnrollment: {
+          where: {
+            branchId,
+            statusEnrollment: true,
+            schoolYear: { isCurrentYear: true },
+          },
+          take: 1,
+          include: { classe: true },
+        },
       },
     });
 
@@ -314,6 +324,7 @@ export const getStudentsAction = action.handler(
       const user = student.branchMember?.member?.user;
 
       const parentUser = student.parent.branchMember?.member.user;
+      const currentEnrollment = student.classEnrollment[0];
 
       return {
         id: student.id,
@@ -331,6 +342,9 @@ export const getStudentsAction = action.handler(
         statusUser: user?.statusUser || true,
         address: user?.address || "",
         category: student.category || "NORMAL",
+        placeOfBirth: student.placeOfBirth,
+        classCode: currentEnrollment?.classe?.codeClasse ?? null,
+        className: currentEnrollment?.classe?.nameClasse ?? null,
         memberId: student.branchMember?.memberId ?? "",
         userId: student.branchMember?.member?.user?.id ?? "",
         parent: student.parent
@@ -379,7 +393,7 @@ export const updateStudentAction = action
         };
       }
 
-      const { category, parentId, studentId, ...rest } = input;
+      const { category, parentId, studentId, placeOfBirth, ...rest } = input;
 
       if (!studentId) throw new Error("ID manquant");
 
@@ -440,6 +454,7 @@ export const updateStudentAction = action
         where: { id: student.id },
         data: {
           category: parseCategory(category),
+          placeOfBirth: placeOfBirth || null,
 
           // gestion propre du parent
           parent: parentId ? { connect: { id: parentId } } : undefined,

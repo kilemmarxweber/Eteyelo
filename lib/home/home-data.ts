@@ -132,7 +132,31 @@ export const fallbackEvents: HomeEvent[] = [
       "https://images.unsplash.com/photo-1509062522246-3755977927d7?q=80&w=1200&auto=format&fit=crop",
   },
 ];
+const DEFAULT_SCHOOL_IMAGE =
+  "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?q=80&w=1200&auto=format&fit=crop";
 
+const DEFAULT_EVENT_IMAGE =
+  "https://images.unsplash.com/photo-1523580846011-d3a5bc25702b?q=80&w=1200&auto=format&fit=crop";
+
+const DEFAULT_PROFILE_IMAGE =
+  "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=300&auto=format&fit=crop";
+
+function normalizeImageList(
+  images: Array<string | null | undefined>,
+): string[] {
+  return images
+    .filter((image): image is string => {
+      return typeof image === "string" && image.trim().length > 0;
+    })
+    .map((image) => normalizeImageSrc(image));
+}
+
+function firstImage(
+  images: string[],
+  fallback: string = DEFAULT_SCHOOL_IMAGE,
+): string {
+  return images.find(Boolean) ?? fallback;
+}
 export const fallbackPartners: HomePartner[] = [
   {
     name: "CS La Fortune",
@@ -155,13 +179,13 @@ export const fallbackPartners: HomePartner[] = [
 ];
 
 export const galleryImages = [
-  "/uploads/galery-1.jpeg",
-  "/uploads/galery-2.jpeg",
-  "/uploads/galery-3.jpeg",
-  "/uploads/galery-4.jpeg",
-  "/uploads/galery-5.jpeg",
-  "/uploads/galery-6.jpeg",
-];
+  "galery-1.jpeg",
+  "galery-2.jpeg",
+  "galery-3.jpeg",
+  "galery-4.jpeg",
+  "galery-5.jpeg",
+  "galery-6.jpeg",
+].map((image) => normalizeImageSrc(image));
 
 const fallbackNewSchools: NewSchool[] = [
   {
@@ -313,42 +337,60 @@ export async function getHomeData(): Promise<HomeData> {
       }),
     ]);
 
-    const dynamicSchools: HomeSchool[] = branches
-      .slice(0, 6)
-      .map((branch, index) => {
-        const studentsCount = branch.branchemembers.reduce(
-          (total, member) => total + member._count.student,
-          0,
-        );
-        const city = branch.ville || branch.pays || "RDC";
-        const images = getBranchImage(branch.image);
-        const fallback = fallbackSchools[index % fallbackSchools.length];
+    const dynamicSchools: HomeSchool[] = branches.slice(0, 6).map((branch) => {
+      const studentsCount = branch.branchemembers.reduce(
+        (total, member) => total + member._count.student,
+        0,
+      );
 
-        return {
-          id: branch.id,
-          name: branch.name,
-          city,
-          students: studentsCount,
-          heroLabel: "Ecole partenaire verifiee",
-          heroTitle: `${branch.name} accueille ${
-            studentsCount || "plusieurs"
-          } eleves a ${city}`,
-          logo: images.logo ?? "",
-          ecole: images.ecole.length > 0 ? images.ecole : fallback.ecole,
-          event: images.event.length > 0 ? images.event : fallback.event,
-          gallery:
-            images.gallery.length > 0 ? images.gallery : fallback.gallery,
-        };
-      });
+      const city = branch.ville || branch.pays || "RDC";
+      const images = getBranchImage(branch.image);
 
-    const dynamicEvents: HomeEvent[] = calendarEvents.map((event, index) => ({
-      title: event.title || "Evenement scolaire",
-      school: event.branch.name,
-      date: formatShortDate(event.dateStart),
-      image: event.image
-        ? normalizeImageSrc(event.image)
-        : fallbackEvents[index % fallbackEvents.length].image,
-    }));
+      const logo = images.logo
+        ? normalizeImageSrc(images.logo)
+        : DEFAULT_SCHOOL_IMAGE;
+
+      const schoolImages = normalizeImageList(images.ecole);
+      const eventImages = normalizeImageList(images.event);
+      const galleryImages = normalizeImageList(images.gallery);
+
+      return {
+        id: branch.id,
+        name: branch.name,
+        city,
+        students: studentsCount,
+        heroLabel: "École partenaire vérifiée",
+        heroTitle: `${branch.name} accueille ${
+          studentsCount > 0 ? studentsCount : "plusieurs"
+        } élèves à ${city}`,
+        logo,
+        ecole:
+          schoolImages.length > 0
+            ? schoolImages
+            : [firstImage(eventImages, logo)],
+        event:
+          eventImages.length > 0
+            ? eventImages
+            : [firstImage(schoolImages, logo)],
+        gallery:
+          galleryImages.length > 0
+            ? galleryImages
+            : [...schoolImages, ...eventImages].filter(Boolean),
+      };
+    });
+
+    const dynamicEvents: HomeEvent[] = calendarEvents.map((event, index) => {
+      const fallbackEvent = fallbackEvents[index % fallbackEvents.length];
+
+      return {
+        title: event.title || "Événement scolaire",
+        school: event.branch.name,
+        date: formatShortDate(event.dateStart),
+        image: event.image
+          ? normalizeImageSrc(event.image)
+          : fallbackEvent?.image || DEFAULT_EVENT_IMAGE,
+      };
+    });
 
     const dynamicNewSchools: NewSchool[] = branches
       .slice(0, 4)
@@ -365,7 +407,7 @@ export async function getHomeData(): Promise<HomeData> {
       city: partnaire.ville || undefined,
       logo: partnaire.logo ? normalizeImageSrc(partnaire.logo) : "",
       image: partnaire.image ? normalizeImageSrc(partnaire.image) : "",
-      website: partnaire.website ?? "",
+      website: partnaire.website?.trim() ?? "",
     }));
 
     const groupedResults = new Map<string, ResultSlide>();
@@ -386,9 +428,11 @@ export async function getHomeData(): Promise<HomeData> {
       ) {
         current.students.push({
           studentid: user.id,
-          name: studentName || "Eleve",
+          name: studentName || "Élève",
           percent: `${Math.round(grade.score)}%`,
-          image: normalizeImageSrc(user.image),
+          image: user.image
+            ? normalizeImageSrc(user.image)
+            : DEFAULT_PROFILE_IMAGE,
         });
       }
 
@@ -420,7 +464,10 @@ export async function getHomeData(): Promise<HomeData> {
       },
     };
   } catch (error) {
-    console.error("Impossible de recuperer les donnees de la page d'accueil", error);
+    console.error(
+      "Impossible de recuperer les donnees de la page d'accueil",
+      error,
+    );
     return getFallbackHomeData();
   }
 }

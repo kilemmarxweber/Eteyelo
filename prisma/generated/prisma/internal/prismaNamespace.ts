@@ -4459,6 +4459,7 @@ export const StudentScalarFieldEnum = {
   statusStudent: 'statusStudent',
   observation: 'observation',
   provenanceEcole: 'provenanceEcole',
+  placeOfBirth: 'placeOfBirth',
   suppositionClasseName: 'suppositionClasseName',
   suppositionSection: 'suppositionSection',
   suppositionOption: 'suppositionOption',

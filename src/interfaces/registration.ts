@@ -28,6 +28,7 @@ export const registrationSchema = z
         category: z.enum(["NORMAL", "ORPHAN", "VIP", "SPONSORED", "GROUPE"]).default("NORMAL"),
         observation: z.string().trim().optional(),
         provenanceEcole: z.string().trim().optional(),
+        placeOfBirth: z.string().trim().optional(),
       })
       .optional(),
     parentMode: z.enum(["existing", "new"]),

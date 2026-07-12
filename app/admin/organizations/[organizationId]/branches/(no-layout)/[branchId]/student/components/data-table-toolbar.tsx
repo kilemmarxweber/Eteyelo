@@ -4,6 +4,7 @@ import { Cross2Icon } from "@radix-ui/react-icons";
 import { Table } from "@tanstack/react-table";
 import {
   IconFilter,
+  IconFileTypePdf,
   IconKey,
   IconSearch,
   IconUpload,
@@ -13,6 +14,8 @@ import { Button } from "@/components/custom/button";
 import { DataTableFacetedFilter } from "@/components/data-table-faceted-filter";
 import { DataTableViewOptions } from "@/components/data-table-view-options";
 import { Input } from "@/components/ui/input";
+import type { IStudent } from "@/src/interfaces/Student";
+import { exportStudentsReportPdf } from "./export-students-pdf";
 
 interface DataTableToolbarProps<TData> {
   table: Table<TData>;
@@ -35,6 +38,35 @@ export function DataTableToolbar<TData>({
   canManageStudents = true,
 }: DataTableToolbarProps<TData>) {
   const isFiltered = table.getState().columnFilters.length > 0;
+  const classOptions = Array.from(
+    new Map(
+      table.getPreFilteredRowModel().rows
+        .map((row) => {
+          const original = row.original as {
+            classCode?: string | null;
+            className?: string | null;
+          };
+          return original.classCode
+            ? [
+                original.classCode,
+                {
+                  value: original.classCode,
+                  label: original.className
+                    ? `${original.classCode} — ${original.className}`
+                    : original.classCode,
+                },
+              ] as const
+            : null;
+        })
+        .filter((item): item is readonly [string, { value: string; label: string }] => Boolean(item)),
+    ).values(),
+  ).sort((left, right) => left.label.localeCompare(right.label, "fr"));
+  const exportFilteredPdf = () => {
+    const filteredStudents = table
+      .getFilteredRowModel()
+      .rows.map((row) => row.original as IStudent);
+    exportStudentsReportPdf(filteredStudents);
+  };
 
   return (
     <div className="flex flex-col gap-3 border-b border-blue-100 bg-white p-4 lg:flex-row lg:items-center lg:justify-between">
@@ -52,6 +84,16 @@ export function DataTableToolbar<TData>({
       </div>
 
       <div className="flex flex-wrap items-center justify-end gap-2">
+        {table.getColumn("classCode") && classOptions.length ? (
+          <DataTableFacetedFilter
+            column={table.getColumn("classCode")}
+            title="Classe"
+            options={classOptions}
+            value="all"
+            onValueChange={() => undefined}
+          />
+        ) : null}
+
         {table.getColumn("sexe") ? (
           <DataTableFacetedFilter
             column={table.getColumn("sexe")}
@@ -70,6 +112,15 @@ export function DataTableToolbar<TData>({
 
         <Button variant="outline" leftSection={<IconFilter size={16} />}>
           Filtres
+        </Button>
+
+        <Button
+          variant="outline"
+          leftSection={<IconFileTypePdf size={16} />}
+          onClick={exportFilteredPdf}
+          disabled={!table.getFilteredRowModel().rows.length}
+        >
+          Rapport PDF
         </Button>
 
         {isFiltered ? (

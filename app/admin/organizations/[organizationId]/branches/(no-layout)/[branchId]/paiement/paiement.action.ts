@@ -5,6 +5,8 @@ import { action } from "@/lib/zsa";
 import z from "zod";
 import { paiementSchema, StatusPaiement } from "@/src/interfaces/Paiement";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
+import { randomUUID } from "node:crypto";
+import { Prisma } from "@/prisma/generated/prisma/client";
 
 const linkedUserInclude = {
   branchMember: {
@@ -27,7 +29,17 @@ function revalidatePaiementPages(organizationId: string, branchId: string) {
 }
 
 function buildFamilyPaymentRef(baseRef: string, lineIndex: number) {
-  return `${baseRef}-${String(lineIndex + 1).padStart(2, "0")}`;
+  return `${baseRef}-${String(lineIndex + 1).padStart(2, "0")}-${randomUUID().slice(0, 8).toUpperCase()}`;
+}
+
+function buildUniqueReference(prefix: string) {
+  const now = new Date();
+  const date = [
+    now.getFullYear().toString().slice(-2),
+    String(now.getMonth() + 1).padStart(2, "0"),
+    String(now.getDate()).padStart(2, "0"),
+  ].join("");
+  return `${prefix}-${date}-${randomUUID().slice(0, 12).toUpperCase()}`;
 }
 
 type ReceiptPayload = {
@@ -127,61 +139,15 @@ export const createPaiementAction = action
     }
 
     const { branchId, organizationId } = await requireBranchContext();
+    const uniqueClassEnrollIds = Array.from(new Set(classEnrollIds));
+    const uniqueFraisIds = Array.from(new Set(fraisIds));
 
     const result = await prisma.$transaction(async (tx) => {
-      /* ======================================================
-         REFERENCE WITH RETRY (Handle Race Condition)
-         Use random component to break collisions from simultaneous requests
-      ====================================================== */
-      let transaction: any = null;
-      let reference: string = "";
-      let lastError: Error | null = null;
-
-      for (let retryCount = 0; retryCount < 10; retryCount++) {
-        try {
-          const now = new Date();
-          const year = now.getFullYear().toString().slice(-2);
-          const day = now.getDate().toString().padStart(2, "0");
-
-          const startDay = new Date(now);
-          startDay.setHours(0, 0, 0, 0);
-
-          const countToday = await tx.transaction.count({
-            where: { branchId, createdAt: { gte: startDay } },
-          });
-
-          // Add random component (00-99) to break race condition collisions
-          const randomPart = Math.floor(Math.random() * 100)
-            .toString()
-            .padStart(2, "0");
-          const sequencePart = String(countToday + 1 + retryCount).padStart(
-            3,
-            "0",
-          );
-          reference = `TRNS-${year}-${day}-${sequencePart}-${randomPart}`;
-
-          transaction = await tx.transaction.create({
-            data: { reference, branchId },
-          });
-          break; // Success, exit retry loop
-        } catch (error: any) {
-          lastError = error;
-          // Check if it's a unique constraint error on reference field
-          if (
-            error.code === "P2002" &&
-            error.meta?.target?.includes("reference")
-          ) {
-            // Race condition: retry with incremented suffix + new random
-            if (retryCount < 9) continue;
-          }
-          // For other errors or max retries exceeded, throw
-          throw error;
-        }
-      }
-
-      if (!transaction) {
-        throw lastError || new Error("❌ Impossible de créer la transaction");
-      }
+      /* Référence UUID : sûre entre requêtes concurrentes et données historiques. */
+      const reference = buildUniqueReference("TRNS");
+      const transaction = await tx.transaction.create({
+        data: { reference, branchId },
+      });
 
       /* ======================================================
          PARENT + DISCOUNT RULE
@@ -202,7 +168,7 @@ export const createPaiementAction = action
 
       if (!parent) throw new Error("Parent introuvable");
 
-      const studentCount = classEnrollIds.length;
+      const studentCount = uniqueClassEnrollIds.length;
 
       const hasOrphan = parent.students.some(
         (s: any) => s.category === "ORPHAN",
@@ -237,8 +203,8 @@ export const createPaiementAction = action
          BALANCES
       ====================================================== */
       const { items: balances } = await getFraisWithBalance(
-        classEnrollIds,
-        fraisIds,
+        uniqueClassEnrollIds,
+        uniqueFraisIds,
         parentId,
       );
 
@@ -426,7 +392,7 @@ export const createPaiementAction = action
       ====================================================== */
       let batch = null;
 
-      if (classEnrollIds.length > 1) {
+      if (uniqueClassEnrollIds.length > 1) {
         batch = await tx.paymentBatch.create({
           data: {
             parentId,
@@ -565,6 +531,16 @@ export const createPaiementAction = action
         wasCapped,
         receipt,
       };
+    }).catch((error: unknown) => {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === "P2002"
+      ) {
+        throw new Error(
+          "Une référence de paiement existe déjà. Aucun montant n'a été enregistré ; veuillez réessayer.",
+        );
+      }
+      throw error;
     });
 
     if (result.success) {
@@ -583,20 +559,6 @@ const getDayRange = (date?: Date) => {
   return { start, end };
 };
 
-const buildReference = async (tx: any, prefix: string, branchId: string) => {
-  const now = new Date();
-  const year = now.getFullYear().toString().slice(-2);
-  const day = now.getDate().toString().padStart(2, "0");
-  const startDay = new Date(now);
-  startDay.setHours(0, 0, 0, 0);
-
-  const countToday = await tx.transaction.count({
-    where: { branchId, createdAt: { gte: startDay } },
-  });
-
-  return `${prefix}-${year}-${day}-${String(countToday + 1).padStart(3, "0")}`;
-};
-
 export const createCashierExpenseAction = action
   .input(
     z.object({
@@ -610,7 +572,7 @@ export const createCashierExpenseAction = action
     const { branchId, organizationId } = await requireBranchContext();
 
     const result = await prisma.$transaction(async (tx) => {
-      const reference = await buildReference(tx, "EXP", branchId);
+      const reference = buildUniqueReference("EXP");
 
       await tx.transaction.create({
         data: { reference, branchId },

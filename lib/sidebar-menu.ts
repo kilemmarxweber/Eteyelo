@@ -113,7 +113,7 @@ const staticSidebarMenu: StaticMenuItem[] = [
         roles: COURSE_ROLES,
       },
       {
-        title: "Ponderations options",
+        title: "Ponderations",
         href: "/admin/coursPonderationOption",
         icon: "options",
         roles: COURSE_ROLES,
@@ -309,9 +309,7 @@ export function buildStaticSideLinks(
   const resolvedTypebranch = typebranch ?? session?.branch?.typebranch;
 
   return staticSidebarMenu
-    .map((item) =>
-      mapMenuItem(item, roles, branchBasePath, resolvedTypebranch),
-    )
+    .map((item) => mapMenuItem(item, roles, branchBasePath, resolvedTypebranch))
     .filter(Boolean) as SideLink[];
 }
 

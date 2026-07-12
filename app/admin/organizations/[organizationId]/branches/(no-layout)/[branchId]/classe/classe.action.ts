@@ -14,8 +14,10 @@ import { requireBranchContext } from "@/lib/auth/require-branch-context";
 import {
   buildClassCode,
   buildClassName,
+  isPrimaryBranch,
   validateClassInput,
 } from "@/lib/class-structure";
+import { ensurePrimaryAcademicStructure } from "@/lib/primary-academic-structure";
 import {
   ensureUniqueIdentifier,
   generateClassCode,
@@ -35,11 +37,12 @@ async function resolveClassIdentity(params: {
   branchId: string;
   isLegacy?: boolean;
 }) {
+  const primary = isPrimaryBranch(params.typebranch);
   const validated = validateClassInput({
     typebranch: params.typebranch,
     level: params.level,
     parallel: params.parallel,
-    optionId: params.optionId,
+    optionId: primary ? undefined : params.optionId,
     nameClasse: params.nameClasse,
     isLegacy: params.isLegacy,
   });
@@ -54,12 +57,14 @@ async function resolveClassIdentity(params: {
     };
   }
 
-  const option = validated.optionId
-    ? await prisma.option.findFirst({
-        where: { id: validated.optionId, branchId: params.branchId },
-        select: { id: true, nameOption: true },
-      })
-    : null;
+  const option = primary
+    ? (await ensurePrimaryAcademicStructure(prisma, params.branchId)).option
+    : validated.optionId
+      ? await prisma.option.findFirst({
+          where: { id: validated.optionId, branchId: params.branchId },
+          select: { id: true, nameOption: true },
+        })
+      : null;
 
   if (validated.optionId && !option) {
     throw new Error("Option introuvable dans cette branche");

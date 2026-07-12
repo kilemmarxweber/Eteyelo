@@ -12,13 +12,15 @@ export const PRIMARY_CLASS_LEVELS = [
   "6e",
 ] as const;
 
-export const SECONDARY_CLASS_LEVELS_WITHOUT_OPTION = ["7e", "8e"] as const;
+export const SECONDARY_CLASS_LEVELS_WITHOUT_OPTION = [] as const;
 
 export const SECONDARY_CLASS_LEVELS_WITH_OPTION = [
   "1er",
   "2e",
   "3e",
   "4e",
+  "5e",
+  "6e",
 ] as const;
 
 export const SECONDARY_CLASS_LEVELS = [
@@ -158,7 +160,7 @@ export function validateClassInput(params: {
     ) &&
     params.optionId
   ) {
-    throw new Error("Les niveaux 7e et 8e ne peuvent pas avoir d'option");
+    throw new Error("Ce niveau secondaire ne peut pas avoir d'option");
   }
 
   const parallel = normalizeParallel(params.parallel);

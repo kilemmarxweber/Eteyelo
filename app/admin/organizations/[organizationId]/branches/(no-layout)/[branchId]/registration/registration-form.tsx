@@ -51,6 +51,7 @@ type StudentForm = Person & {
   category: "NORMAL" | "ORPHAN" | "VIP" | "SPONSORED" | "GROUPE";
   provenanceEcole: string;
   observation: string;
+  placeOfBirth: string;
 };
 type ParentForm = Person & { discountPercentage: number };
 
@@ -65,7 +66,7 @@ const emptyPerson: Person = {
   address: "",
   dateOfBirth: "",
 };
-const emptyStudent: StudentForm = { ...emptyPerson, category: "NORMAL", provenanceEcole: "", observation: "" };
+const emptyStudent: StudentForm = { ...emptyPerson, category: "NORMAL", provenanceEcole: "", observation: "", placeOfBirth: "" };
 const emptyParent: ParentForm = { ...emptyPerson, discountPercentage: 0 };
 const steps = [
   { label: "Élève", icon: IconUser },
@@ -89,7 +90,7 @@ function previewParentUsername(prenom: string, name: string) {
 const emptyCreneau = (): CreneauFormValues => ({ ...defaultCreneauValues });
 
 function requiresOptionForLevel(typebranch: string | undefined, level: string, allowsOption: boolean) {
-  return allowsOption && typebranch === "SECONDAIRE" && ["1er", "2e", "3e", "4e"].includes(level);
+  return allowsOption && typebranch === "SECONDAIRE" && ["1er", "2e", "3e", "4e", "5e", "6e"].includes(level);
 }
 
 function isStudentStepReady(
@@ -122,23 +123,6 @@ function isParentStepReady(
   );
 }
 
-function isClassStepReady(
-  schoolYearId: string,
-  level: string,
-  optionId: string,
-  options: {
-    allowsOption?: boolean;
-    typebranch?: string;
-  },
-  predictedClass: { id: string } | null,
-) {
-  if (!schoolYearId || !level || !predictedClass) return false;
-  if (requiresOptionForLevel(options.typebranch, level, Boolean(options.allowsOption)) && !optionId) {
-    return false;
-  }
-  return true;
-}
-
 const historyLabels = {
   new: "Nouvel élève",
   passed: "Réussi — niveau supérieur",
@@ -165,7 +149,6 @@ function previewStudentCode(branchName: string, studentName: string, sequence: n
 export function RegistrationForm() {
   const router = useRouter();
   const [step, setStep] = useState(0);
-  const [autoAdvanceEnabled, setAutoAdvanceEnabled] = useState(true);
   const [loading, setLoading] = useState(false);
   const [loadingOptions, setLoadingOptions] = useState(true);
   const [options, setOptions] = useState<any>({ schoolYears: [], classes: [], options: [], levels: [], creneaux: [] });
@@ -271,7 +254,6 @@ export function RegistrationForm() {
 
   function resetForm() {
     setStep(0);
-    setAutoAdvanceEnabled(true);
     setStudentMode("new");
     setStudentId("");
     setStudent(emptyStudent);
@@ -289,39 +271,6 @@ export function RegistrationForm() {
     setClassCapacity("30");
     setCreneauForm(emptyCreneau());
   }
-
-  useEffect(() => {
-    if (!autoAdvanceEnabled || loading || step >= 3) return;
-    if (step === 0 && isStudentStepReady(studentMode, studentId, student)) {
-      setStep(1);
-      return;
-    }
-    if (step === 1 && isParentStepReady(parentMode, parentId, parent)) {
-      setStep(2);
-      return;
-    }
-    if (
-      step === 2 &&
-      isClassStepReady(schoolYearId, level, optionId, options, predictedClass)
-    ) {
-      setStep(3);
-    }
-  }, [
-    autoAdvanceEnabled,
-    loading,
-    step,
-    studentMode,
-    studentId,
-    student,
-    parentMode,
-    parentId,
-    parent,
-    schoolYearId,
-    level,
-    optionId,
-    options,
-    predictedClass,
-  ]);
 
   async function searchStudents() {
     const [data, error] = await findStudentHistoryAction({ query: studentQuery });
@@ -368,12 +317,16 @@ export function RegistrationForm() {
       if (selectedClasses.length === 0) return toast.error("Aucune classe n'est configurée pour ce niveau. Créez la première parallèle.");
       if (allClassesFull) return toast.error("Toutes les parallèles sont pleines. Créez la prochaine parallèle avant de continuer.");
     }
-    setAutoAdvanceEnabled(true);
     setStep((current) => current + 1);
   }
   function goPrevious() {
-    setAutoAdvanceEnabled(false);
     setStep((current) => Math.max(0, current - 1));
+  }
+  function advanceAfterLastOptional(expectedStep: number, ready: boolean) {
+    if (!ready || loading || step !== expectedStep) return;
+    window.setTimeout(() => {
+      setStep((current) => (current === expectedStep ? current + 1 : current));
+    }, 0);
   }
   async function submit() {
     setLoading(true);
@@ -508,7 +461,7 @@ export function RegistrationForm() {
         <Field label="Nom *"><Input value={value.name} onChange={(event) => updatePerson(value, setter, "name", event.target.value)} /></Field>
         <Field label="Postnom *"><Input value={value.postnom} onChange={(event) => updatePerson(value, setter, "postnom", event.target.value)} /></Field>
         <Field label="Prénom *"><Input value={value.prenom} onChange={(event) => updatePerson(value, setter, "prenom", event.target.value)} /></Field>
-        <Field label="Date de naissance *"><Input type="date" value={value.dateOfBirth} onChange={(event) => updatePerson(value, setter, "dateOfBirth", event.target.value)} /></Field>
+        <Field label={studentFields ? "Date de naissance *" : "Date de naissance (facultatif)"}><Input type="date" value={value.dateOfBirth} onChange={(event) => updatePerson(value, setter, "dateOfBirth", event.target.value)} /></Field>
         <Field label="Sexe *"><Select value={value.sexe} onValueChange={(next) => updatePerson(value, setter, "sexe", next)}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="masculin">Masculin</SelectItem><SelectItem value="feminin">Féminin</SelectItem></SelectContent></Select></Field>
         {studentFields ? (
           <Field label="Email élève (automatique)">
@@ -522,8 +475,8 @@ export function RegistrationForm() {
         )}
         <Field label="Adresse complète *" className="xl:col-span-1"><Input value={value.address} onChange={(event) => updatePerson(value, setter, "address", event.target.value)} /></Field>
       </div>
-      {studentFields && <><Separator /><div className="grid gap-5 md:grid-cols-2"><Field label="Catégorie"><Select value={(value as StudentForm).category} onValueChange={(next) => updatePerson(value, setter, "category", next)}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{["NORMAL", "ORPHAN", "VIP", "SPONSORED", "GROUPE"].map((item) => <SelectItem key={item} value={item}>{item}</SelectItem>)}</SelectContent></Select></Field><Field label="École de provenance (facultatif)"><Input value={(value as StudentForm).provenanceEcole} onChange={(event) => updatePerson(value, setter, "provenanceEcole", event.target.value)} /></Field><Field label="Observation (facultatif)" className="md:col-span-2"><Textarea value={(value as StudentForm).observation} onChange={(event) => updatePerson(value, setter, "observation", event.target.value)} rows={4} /></Field></div></>}
-      {!studentFields && <><Separator /><Field label="Remise familiale en % (facultatif)"><Input className="max-w-xs" type="number" min={0} max={100} value={(value as ParentForm).discountPercentage} onChange={(event) => updatePerson(value, setter, "discountPercentage", Number(event.target.value))} /></Field></>}
+      {studentFields && <><Separator /><div className="grid gap-5 md:grid-cols-2"><Field label="Catégorie"><Select value={(value as StudentForm).category} onValueChange={(next) => updatePerson(value, setter, "category", next)}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{["NORMAL", "ORPHAN", "VIP", "SPONSORED", "GROUPE"].map((item) => <SelectItem key={item} value={item}>{item}</SelectItem>)}</SelectContent></Select></Field><Field label="Lieu de naissance (facultatif)"><Input value={(value as StudentForm).placeOfBirth} onChange={(event) => updatePerson(value, setter, "placeOfBirth", event.target.value)} /></Field><Field label="École de provenance (facultatif)"><Input value={(value as StudentForm).provenanceEcole} onChange={(event) => updatePerson(value, setter, "provenanceEcole", event.target.value)} /></Field><Field label="Observation (facultatif)" className="md:col-span-2"><Textarea value={(value as StudentForm).observation} onChange={(event) => updatePerson(value, setter, "observation", event.target.value)} onBlur={() => advanceAfterLastOptional(0, isStudentStepReady(studentMode, studentId, student))} rows={4} /></Field></div></>}
+      {!studentFields && <><Separator /><Field label="Remise familiale en % (facultatif)"><Input className="max-w-xs" type="number" min={0} max={100} value={(value as ParentForm).discountPercentage} onChange={(event) => updatePerson(value, setter, "discountPercentage", Number(event.target.value))} onBlur={() => advanceAfterLastOptional(1, isParentStepReady(parentMode, parentId, parent))} /></Field></>}
     </div>;
   }
 
@@ -544,7 +497,7 @@ export function RegistrationForm() {
               <p className="text-muted-foreground">Chargement des classes…</p>
             ) : (
               <>
-                <div className={`grid gap-5 ${options.allowsOption ? "lg:grid-cols-3" : "lg:grid-cols-2"}`}>
+                <div className={`grid gap-5 ${options.allowsOption ? "lg:grid-cols-3" : "lg:grid-cols-4"}`}>
                   <Field label="Année scolaire *">
                     <Select value={schoolYearId} onValueChange={setSchoolYearId}>
                       <SelectTrigger><SelectValue placeholder="Choisir l'année" /></SelectTrigger>
@@ -567,7 +520,7 @@ export function RegistrationForm() {
                       </SelectContent>
                     </Select>
                   </Field>
-                  {options.allowsOption && (
+                  {options.allowsOption ? (
                     <Field label="Option">
                       <Select value={optionId || "none"} onValueChange={(value) => setOptionId(value === "none" ? "" : value)}>
                         <SelectTrigger><SelectValue placeholder="Aucune option" /></SelectTrigger>
@@ -579,12 +532,21 @@ export function RegistrationForm() {
                         </SelectContent>
                       </Select>
                     </Field>
+                  ) : (
+                    <>
+                      <Field label="Section">
+                        <Input disabled className="bg-muted text-foreground opacity-100" value={options.primaryStructure?.section?.nameSection ?? "Primaire"} />
+                      </Field>
+                      <Field label="Option de pondération">
+                        <Input disabled className="bg-muted text-foreground opacity-100" value={options.primaryStructure?.option?.nameOption ?? "Primaire"} />
+                      </Field>
+                    </>
                   )}
                 </div>
                 <Alert>
                   <IconSchool className="h-4 w-4" />
                   <AlertTitle>Affectation automatique</AlertTitle>
-                  <AlertDescription>Le système affectera l'élève à la première parallèle disponible (A, puis B, puis C…).</AlertDescription>
+                  <AlertDescription>La première classe est créée sans lettre. Lorsqu'elle est pleine, elle devient A et la nouvelle classe devient B, puis C, etc.</AlertDescription>
                 </Alert>
                 <div>
                   <div className="mb-3 flex items-center justify-between">
@@ -598,8 +560,8 @@ export function RegistrationForm() {
                   ) : selectedClasses.length === 0 ? (
                     renderClassCreationPanel(
                       "Aucune classe configurée pour ce niveau",
-                      "Créez la première parallèle avec une vacation obligatoire.",
-                      "Créer la première parallèle",
+                      "Créez d'abord une classe simple avec une vacation obligatoire.",
+                      "Créer la classe",
                     )
                   ) : (
                     <>

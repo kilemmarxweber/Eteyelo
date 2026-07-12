@@ -1,5 +1,13 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  async rewrites() {
+    return [
+      {
+        source: "/uploads/:fileName",
+        destination: "/api/uploads/:fileName",
+      },
+    ];
+  },
   images: {
     remotePatterns: [
       {
@@ -23,4 +31,3 @@ export default nextConfig;
       ];
     },
   }; */
-  

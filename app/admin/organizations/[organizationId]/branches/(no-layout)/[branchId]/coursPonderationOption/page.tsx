@@ -38,6 +38,7 @@ export default function CoursPonderationOptionPage() {
   const [ponderations, setPonderations] = useState<PonderationItem[]>([]);
   const [selectedOptionId, setSelectedOptionId] = useState("");
   const [isPending, startTransition] = useTransition();
+  const [isPrimary, setIsPrimary] = useState(false);
 
   useEffect(() => {
     startTransition(async () => {
@@ -51,7 +52,12 @@ export default function CoursPonderationOptionPage() {
       setOptions(data.options);
       setCours(data.cours);
       setPonderations(data.ponderations);
-      setSelectedOptionId((current) => current || data.options[0]?.id || "");
+      setIsPrimary(data.isPrimary);
+      setSelectedOptionId(
+        data.isPrimary
+          ? data.primaryOptionId ?? ""
+          : data.options[0]?.id ?? "",
+      );
     });
   }, []);
 
@@ -123,7 +129,7 @@ export default function CoursPonderationOptionPage() {
               value={selectedOptionId}
               onChange={(event) => setSelectedOptionId(event.target.value)}
               className="h-10 rounded-md border border-input bg-background px-3 text-sm"
-              disabled={isPending}
+              disabled={isPending || isPrimary}
             >
               {options.map((option) => (
                 <option key={option.id} value={option.id}>

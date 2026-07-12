@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
 import { action } from "@/lib/zsa";
 import { coursOptionPonderationSchema } from "./schema";
+import { ensurePrimaryAcademicStructure } from "@/lib/primary-academic-structure";
 
 async function requireCoursAndOptionInBranch(params: {
   branchId: string;
@@ -37,7 +38,11 @@ function revalidateCoursPonderationOptionPages(
 
 export const getCoursPonderationOptionPageDataAction = action.handler(
   async () => {
-    const { branchId } = await requireBranchContext();
+    const { branchId, typebranch } = await requireBranchContext();
+    const primaryStructure =
+      typebranch === "PRIMAIRE"
+        ? await ensurePrimaryAcademicStructure(prisma, branchId)
+        : null;
 
     const [options, cours, ponderations] = await Promise.all([
       prisma.option.findMany({
@@ -61,7 +66,13 @@ export const getCoursPonderationOptionPageDataAction = action.handler(
       }),
     ]);
 
-    return { options, cours, ponderations };
+    return {
+      options,
+      cours,
+      ponderations,
+      isPrimary: typebranch === "PRIMAIRE",
+      primaryOptionId: primaryStructure?.option.id ?? null,
+    };
   },
 );
 

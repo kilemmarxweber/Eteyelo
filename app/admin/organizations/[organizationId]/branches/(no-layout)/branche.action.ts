@@ -12,6 +12,8 @@ import {
   ensureUniqueIdentifier,
   generateCode,
 } from "@/lib/generated-identifiers";
+import { ensurePrimaryAcademicStructure } from "@/lib/primary-academic-structure";
+import { ensureDefaultCreneaux } from "@/lib/default-creneaux";
 
 export async function getBranchNameAction(branchId: string) {
   if (!branchId) return null;
@@ -109,6 +111,11 @@ export async function createBranchAction(
         isCurrentYear: true,
       },
     });
+
+    if (parsed.data.typebranch === "PRIMAIRE") {
+      await ensurePrimaryAcademicStructure(tx, createdBranch.id);
+    }
+    await ensureDefaultCreneaux(tx, createdBranch.id);
 
     return createdBranch;
   });
@@ -282,6 +289,9 @@ export async function updateBranchAction(
     branchId,
     typebranch: branch.typebranch,
   });
+  if (branch.typebranch === "PRIMAIRE") {
+    await ensurePrimaryAcademicStructure(prisma, branchId);
+  }
 
   revalidatePath(
     `/admin/organizations/${existingBranch.organizationId}/branches`,

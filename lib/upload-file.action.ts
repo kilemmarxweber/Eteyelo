@@ -3,7 +3,10 @@
 import type { UploadResponse } from "./upload-file";
 import { saveUploadedFile } from "./upload-file.server";
 
-/** @deprecated Préférer l'upload client via `/api/upload`. */
+/**
+ * @deprecated
+ * Préférer uploadFile() qui utilise `/api/upload`.
+ */
 export async function uploadFileAction(
   formData: FormData,
 ): Promise<UploadResponse> {
@@ -17,24 +20,22 @@ export async function uploadFileAction(
       };
     }
 
-    const saved = await saveUploadedFile(file);
-
-    if (!saved) {
-      return {
-        ok: false,
-        message: "Erreur lors de l'upload du fichier.",
-      };
-    }
+    const savedFile = await saveUploadedFile(file);
 
     return {
       ok: true,
-      fileName: saved.fileName,
-      url: saved.url,
+      fileName: savedFile.fileName,
+      url: savedFile.url,
     };
-  } catch {
+  } catch (error) {
+    console.error("UPLOAD_ACTION_ERROR:", error);
+
     return {
       ok: false,
-      message: "Erreur lors de l'upload du fichier.",
+      message:
+        error instanceof Error
+          ? error.message
+          : "Erreur lors de l'upload du fichier.",
     };
   }
 }

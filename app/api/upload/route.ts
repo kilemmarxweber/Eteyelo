@@ -1,70 +1,54 @@
+import { UploadResponse } from "@/lib/upload-file";
+import { saveUploadedFile } from "@/lib/upload-file.server";
 import { NextResponse } from "next/server";
-import { headers } from "next/headers";
-import { auth } from "@/lib/auth";
-import {
-  ALLOWED_IMAGE_TYPES,
-  MAX_UPLOAD_BYTES,
-  saveUploadedFile,
-} from "@/lib/upload-file.server";
 
-export async function POST(request: Request) {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
+export const runtime = "nodejs";
 
-  if (!session?.session?.id) {
-    return NextResponse.json(
-      { ok: false, message: "Non autorisé." },
-      { status: 401 },
-    );
-  }
-
-  const formData = await request.formData();
-  const file = formData.get("file");
-
-  if (!(file instanceof File)) {
-    return NextResponse.json(
-      { ok: false, message: "Aucun fichier reçu." },
-      { status: 400 },
-    );
-  }
-
-  if (file.size > MAX_UPLOAD_BYTES) {
-    return NextResponse.json(
-      {
-        ok: false,
-        message: `Fichier trop volumineux (max ${Math.round(MAX_UPLOAD_BYTES / (1024 * 1024))} Mo).`,
-      },
-      { status: 413 },
-    );
-  }
-
-  if (!ALLOWED_IMAGE_TYPES.has(file.type)) {
-    return NextResponse.json(
-      { ok: false, message: "Type de fichier non autorisé." },
-      { status: 400 },
-    );
-  }
-
+export async function POST(
+  request: Request,
+): Promise<NextResponse<UploadResponse>> {
   try {
-    const saved = await saveUploadedFile(file);
+    const formData = await request.formData();
+    const file = formData.get("file");
 
-    if (!saved) {
+    if (!(file instanceof File)) {
       return NextResponse.json(
-        { ok: false, message: "Erreur lors de l'upload du fichier." },
-        { status: 500 },
+        {
+          ok: false,
+          message: "Aucun fichier reçu.",
+        },
+        {
+          status: 400,
+        },
       );
     }
 
-    return NextResponse.json({
-      ok: true,
-      fileName: saved.fileName,
-      url: saved.url,
-    });
-  } catch {
+    const savedFile = await saveUploadedFile(file);
+
     return NextResponse.json(
-      { ok: false, message: "Erreur lors de l'upload du fichier." },
-      { status: 500 },
+      {
+        ok: true,
+        fileName: savedFile.fileName,
+        url: savedFile.url,
+      },
+      {
+        status: 201,
+      },
+    );
+  } catch (error) {
+    console.error("UPLOAD_API_ERROR:", error);
+
+    return NextResponse.json(
+      {
+        ok: false,
+        message:
+          error instanceof Error
+            ? error.message
+            : "Erreur lors de l'upload du fichier.",
+      },
+      {
+        status: 500,
+      },
     );
   }
 }

@@ -97,6 +97,7 @@ export function StudentUpForm({
       postnom: initialData?.postnom ?? "",
       sexe: initialData?.sexe ? (sexeToUi[initialData.sexe] ?? "") : "",
       dateOfBirth: initialData?.dateOfBirth ?? new Date(),
+      placeOfBirth: initialData?.placeOfBirth ?? "",
       parentId: initialData?.parentId ?? "",
       address: initialData?.address ?? "",
       category: initialData?.category ?? StudentCategory.NORMAL,
@@ -152,6 +153,7 @@ export function StudentUpForm({
           postnom: "",
           sexe: "",
           dateOfBirth: new Date(),
+          placeOfBirth: "",
           parentId: "",
           address: "",
           category: StudentCategory.NORMAL,
@@ -263,6 +265,19 @@ export function StudentUpForm({
                       </SelectItem>
                     </SelectContent>
                   </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="placeOfBirth"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Lieu de naissance (facultatif)</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Ville ou territoire" {...field} />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}

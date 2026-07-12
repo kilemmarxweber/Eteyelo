@@ -29,7 +29,6 @@ import { HomeFooter } from "@/components/home-footer";
 import { HomeNavbar } from "@/components/home-navbar";
 import { galleryImages, getHomeData } from "@/lib/home/home-data";
 
-//export const revalidate = 300;
 export const dynamic = "force-dynamic";
 const socialLinks = [
   { icon: Facebook, label: "Facebook", className: "bg-blue-600" },
@@ -69,14 +68,30 @@ export default async function HomePage() {
   const { schools, events, partners, newSchools, resultSlides, stats } =
     await getHomeData();
 
-  const schoolImageSlides = schools.filter((school) => school.ecole.length > 0);
+  const defaultSchoolImage =
+    "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?q=80&w=1200&auto=format&fit=crop";
 
-  const galleryFromBranches = schools.flatMap((school) => school.gallery);
+  const schoolImageSlides = schools
+    .map((school) => ({
+      ...school,
+      slideImage:
+        school.ecole.find(Boolean) ||
+        school.event.find(Boolean) ||
+        school.logo ||
+        defaultSchoolImage,
+    }))
+    .filter((school) => Boolean(school.slideImage));
+
+  const galleryFromBranches = schools.flatMap((school) =>
+    school.gallery.filter(Boolean),
+  );
 
   const galleryToShow = Array.from(
     new Set([...galleryFromBranches, ...galleryImages]),
-  ).filter(Boolean);
-
+  ).filter(
+    (image): image is string =>
+      typeof image === "string" && image.trim().length > 0,
+  );
   return (
     <main className="min-h-screen bg-slate-50 text-slate-900">
       {/* TOP BAR */}
@@ -264,16 +279,16 @@ export default async function HomePage() {
           <div className="mx-auto w-full rounded-[1.5rem] bg-white/15 p-2 shadow-2xl backdrop-blur sm:w-[36rem] sm:rounded-[2rem] sm:p-3 lg:w-full">
             <div className="relative min-h-[300px] overflow-hidden rounded-[1.25rem] bg-blue-950 sm:min-h-[400px] sm:rounded-[1.5rem] lg:min-h-[460px]">
               {schoolImageSlides.map((school, index) => {
-                const image = school.ecole[0];
-
-                if (!image) return null;
+                const image = school.slideImage;
 
                 return (
                   <div
-                    key={school.name}
+                    key={`${school.id}-hero-${index}`}
                     className="absolute inset-0 opacity-0 motion-reduce:animate-none"
                     style={{
-                      animation: `hero-school-slide ${schoolImageSlides.length * 5}s infinite`,
+                      animation: `hero-school-slide ${
+                        Math.max(schoolImageSlides.length, 1) * 5
+                      }s infinite`,
                       animationDelay: `${index * 5}s`,
                       opacity: index === 0 ? 1 : 0,
                     }}
@@ -281,7 +296,7 @@ export default async function HomePage() {
                     <div
                       className="absolute inset-0 bg-cover bg-center"
                       style={{
-                        backgroundImage: `url('${image}')`,
+                        backgroundImage: `url("${image}")`,
                       }}
                     />
 
@@ -290,6 +305,7 @@ export default async function HomePage() {
                         <p className="text-sm font-bold text-blue-600">
                           {school.heroLabel}
                         </p>
+
                         <h3 className="mt-1 text-lg font-black sm:text-xl">
                           {school.heroTitle}
                         </h3>
@@ -445,40 +461,50 @@ export default async function HomePage() {
 
           {/* BLOC IMAGE DROITE schoolEvents */}
           <div className="relative h-[500px] self-start overflow-hidden rounded-3xl shadow-2xl shadow-blue-950/15">
-            {schools.map((school, index) => (
-              <div
-                key={`${school.name}-event-slider`}
-                className="absolute inset-0 opacity-0 motion-reduce:animate-none"
-                style={{
-                  animation: `hero-school-slide ${schools.length * 60}s infinite`,
-                  animationDelay: `${index * 60}s`,
-                  opacity: index === 0 ? 1 : 0,
-                }}
-              >
+            {schools.map((school, index) => {
+              const sliderImage =
+                school.event.find(Boolean) ||
+                school.ecole.find(Boolean) ||
+                school.logo ||
+                defaultSchoolImage;
+
+              return (
                 <div
-                  className="absolute inset-0 bg-cover bg-center"
+                  key={`${school.id}-event-slider`}
+                  className="absolute inset-0 opacity-0 motion-reduce:animate-none"
                   style={{
-                    backgroundImage: `url('${school.event[0]}')`,
+                    animation: `hero-school-slide ${
+                      Math.max(schools.length, 1) * 60
+                    }s infinite`,
+                    animationDelay: `${index * 60}s`,
+                    opacity: index === 0 ? 1 : 0,
                   }}
-                />
+                >
+                  <div
+                    className="absolute inset-0 bg-cover bg-center"
+                    style={{
+                      backgroundImage: `url("${sliderImage}")`,
+                    }}
+                  />
 
-                <div className="relative z-10 flex h-full items-end bg-gradient-to-t from-blue-950 via-blue-950/70 to-blue-950/10 p-8">
-                  <div>
-                    <Badge className="mb-4 bg-white/20 text-white backdrop-blur">
-                      {school.city}
-                    </Badge>
+                  <div className="relative z-10 flex h-full items-end bg-gradient-to-t from-blue-950 via-blue-950/70 to-blue-950/10 p-8">
+                    <div>
+                      <Badge className="mb-4 bg-white/20 text-white backdrop-blur">
+                        {school.city}
+                      </Badge>
 
-                    <h3 className="text-3xl font-black leading-tight text-white">
-                      {school.name}
-                    </h3>
+                      <h3 className="text-3xl font-black leading-tight text-white">
+                        {school.name}
+                      </h3>
 
-                    <p className="mt-4 text-sm leading-6 text-blue-100">
-                      {school.heroTitle}
-                    </p>
+                      <p className="mt-4 text-sm leading-6 text-blue-100">
+                        {school.heroTitle}
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>
@@ -583,34 +609,38 @@ export default async function HomePage() {
             </div>
             {/* Evenement events*/}
             <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              {events.slice(0, 3).map((event) => (
-                <article
-                  key={event.title}
-                  className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-blue-100"
-                >
-                  <div
-                    className="h-32 bg-cover bg-center"
-                    style={{
-                      backgroundImage: `url('${event.image}')`,
-                    }}
-                  />
+              {events.slice(0, 3).map((event, index) => {
+                const eventImage = event.image?.trim() || defaultSchoolImage;
 
-                  <div className="p-4">
-                    <Badge className="bg-blue-100 text-blue-700">
-                      <CalendarDays className="mr-1 h-3 w-3" />
-                      {event.date}
-                    </Badge>
+                return (
+                  <article
+                    key={`${event.title}-${event.school}-${index}`}
+                    className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-blue-100"
+                  >
+                    <div
+                      className="h-32 bg-slate-100 bg-cover bg-center"
+                      style={{
+                        backgroundImage: `url("${eventImage}")`,
+                      }}
+                    />
 
-                    <h3 className="mt-3 line-clamp-2 text-sm font-black text-blue-950">
-                      {event.title}
-                    </h3>
+                    <div className="p-4">
+                      <Badge className="bg-blue-100 text-blue-700">
+                        <CalendarDays className="mr-1 h-3 w-3" />
+                        {event.date}
+                      </Badge>
 
-                    <p className="mt-1 text-xs text-slate-500">
-                      {event.school}
-                    </p>
-                  </div>
-                </article>
-              ))}
+                      <h3 className="mt-3 line-clamp-2 text-sm font-black text-blue-950">
+                        {event.title}
+                      </h3>
+
+                      <p className="mt-1 text-xs text-slate-500">
+                        {event.school}
+                      </p>
+                    </div>
+                  </article>
+                );
+              })}
             </div>
           </div>
 

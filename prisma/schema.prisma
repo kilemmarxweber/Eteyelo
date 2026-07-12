@@ -68,6 +68,7 @@ model Student {
   statusStudent     Boolean?             @default(false)
   observation      String?
   provenanceEcole String?
+  placeOfBirth String?
   suppositionClasseName String?
   suppositionSection String?
   suppositionOption String?

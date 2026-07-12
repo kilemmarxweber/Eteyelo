@@ -167,8 +167,19 @@ export function ClasseUpForm({
 
   const classLevels = getClassLevelsForBranch(branchType);
   const showOptionField =
-    allowsOptionForBranch(branchType) &&
-    (isLegacyUpdate || requiresOptionForClass(branchType, watchedLevel ?? ""));
+    branchType === "PRIMAIRE" ||
+    (allowsOptionForBranch(branchType) &&
+      (isLegacyUpdate || requiresOptionForClass(branchType, watchedLevel ?? "")));
+
+  useEffect(() => {
+    if (branchType !== "PRIMAIRE") return;
+    const primaryOption = options.find(
+      (option) => option.nameOption.toUpperCase() === "PRIMAIRE",
+    );
+    if (primaryOption && form.getValues("optionId") !== primaryOption.id) {
+      form.setValue("optionId", primaryOption.id);
+    }
+  }, [branchType, form, options]);
 
   const previewName = useMemo(() => {
     if (isLegacyUpdate) return null;
@@ -360,6 +371,7 @@ export function ClasseUpForm({
                       <PopoverTrigger asChild>
                         <button
                           type="button"
+                          disabled={branchType === "PRIMAIRE"}
                           role="combobox"
                           className={cn(
                             buttonVariants({ variant: "outline" }),
@@ -370,7 +382,9 @@ export function ClasseUpForm({
                           {field.value
                             ? options.find((option) => option.id === field.value)
                                 ?.nameOption
-                            : "Selectionner une option"}
+                            : branchType === "PRIMAIRE"
+                              ? "PRIMAIRE"
+                              : "Selectionner une option"}
                           <IconSelector className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                         </button>
                       </PopoverTrigger>

@@ -19,6 +19,9 @@ export interface IStudent extends Omit<
   IUser,
   "password" | "memberId" | "userId" | "role"
 > {
+  placeOfBirth?: string | null;
+  classCode?: string | null;
+  className?: string | null;
   paiement?: IPaiement[];
   parent?: IParent;
   category: StudentCategoryType;
@@ -54,6 +57,7 @@ export const studentSchema = z.object({
   email: z.string(),
   memberId: z.string().optional(), // 👈 ajouté
   parentId: z.string(),
+  placeOfBirth: z.string().trim().optional(),
   category: StudentCategoryEnum,
   studentId: z.string().optional(), // Ajout du champ parentId optionnel
 });

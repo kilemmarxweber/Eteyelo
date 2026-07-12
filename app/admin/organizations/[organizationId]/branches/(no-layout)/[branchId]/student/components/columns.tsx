@@ -40,6 +40,19 @@ function getStudentImage(student: IStudent): string | undefined {
   return `/uploads/${image}`;
 }
 
+function calculateAge(dateOfBirth: Date | string | null | undefined) {
+  if (!dateOfBirth) return null;
+  const birth = new Date(dateOfBirth);
+  if (Number.isNaN(birth.getTime())) return null;
+  const today = new Date();
+  let age = today.getFullYear() - birth.getFullYear();
+  const birthdayNotReached =
+    today.getMonth() < birth.getMonth() ||
+    (today.getMonth() === birth.getMonth() && today.getDate() < birth.getDate());
+  if (birthdayNotReached) age -= 1;
+  return age >= 0 ? age : null;
+}
+
 export const createStudentColumns = (
   onRefresh?: () => void,
   canManageStudents = true,
@@ -162,35 +175,35 @@ export const createStudentColumns = (
         : "N/A",
   },
   {
-    accessorKey: "parentNom",
+    accessorKey: "classCode",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Nom du parent" />
-    ),
-    cell: ({ row }) => row.original.parent?.nom ?? "N/A",
-  },
-  {
-    accessorKey: "telephone",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Téléphone" />
+      <DataTableColumnHeader column={column} title="Code classe" />
     ),
     cell: ({ row }) => (
-      <Link
-        className="font-medium text-blue-700 underline-offset-4 hover:underline"
-        href={`tel:${row.original.parent?.telephone ?? ""}`}
-      >
-        {row.original.parent?.telephone ?? "N/A"}
-      </Link>
+      <span className="font-medium text-blue-700">
+        {row.original.classCode || "Non inscrit"}
+      </span>
     ),
+    filterFn: (row, id, value) =>
+      Array.isArray(value) ? value.includes(row.getValue(id)) : true,
   },
   {
-    accessorKey: "createdAt",
-    cell: (row) =>
-      row.getValue()
-        ? new Date(row.getValue() as string).toLocaleDateString()
-        : "N/A",
+    id: "age",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Créé le" />
+      <DataTableColumnHeader column={column} title="Âge" />
     ),
+    accessorFn: (student) => calculateAge(student.dateOfBirth),
+    cell: ({ row }) => {
+      const age = calculateAge(row.original.dateOfBirth);
+      return age === null ? "N/A" : `${age} an${age > 1 ? "s" : ""}`;
+    },
+  },
+  {
+    accessorKey: "placeOfBirth",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Lieu de naissance" />
+    ),
+    cell: ({ row }) => row.original.placeOfBirth || "N/A",
   },
   {
     id: "actions",

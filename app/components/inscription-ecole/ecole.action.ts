@@ -8,6 +8,8 @@ import {
   type ManagedBranchType,
 } from "@/lib/academic-structure";
 import { ensureUniqueIdentifier, generateCode } from "@/lib/generated-identifiers";
+import { ensurePrimaryAcademicStructure } from "@/lib/primary-academic-structure";
+import { ensureDefaultCreneaux } from "@/lib/default-creneaux";
 
 type CreateBranchInput = {
   name: string;
@@ -69,6 +71,11 @@ export async function createBranch(data: CreateBranchInput) {
     },
     select: { id: true },
   });
+
+  if (data.typebranch === "PRIMAIRE") {
+    await ensurePrimaryAcademicStructure(prisma, branch.id);
+  }
+  await ensureDefaultCreneaux(prisma, branch.id);
 
   await ensureAcademicPeriodsForBranch({
     branchId: branch.id,

@@ -15,6 +15,7 @@ import { ensureUniqueIdentifier, generateSlug } from "@/lib/generated-identifier
 import { registrationSchema } from "@/src/interfaces/registration";
 import { creneauSchema } from "@/src/interfaces/creneau";
 import { createOrganizationMemberAction } from "../../../../members/actions";
+import { ensurePrimaryAcademicStructure } from "@/lib/primary-academic-structure";
 
 async function requireRegistrationContext() {
   const context = await requireBranchContext();
@@ -105,6 +106,10 @@ export const findParentForRegistrationAction = action
 
 export const getRegistrationOptionsAction = action.handler(async () => {
   const { branchId, typebranch } = await requireRegistrationContext();
+  const primaryStructure =
+    typebranch === "PRIMAIRE"
+      ? await ensurePrimaryAcademicStructure(prisma, branchId)
+      : null;
   const [schoolYears, classes, options, branch, annualCounts, creneaux] = await Promise.all([
     prisma.schoolYear.findMany({
       where: { branchId, isArchived: false },
@@ -159,6 +164,7 @@ export const getRegistrationOptionsAction = action.handler(async () => {
     levels: [...getClassLevelsForBranch(typebranch)],
     typebranch,
     allowsOption: allowsOptionForBranch(typebranch),
+    primaryStructure,
     branchName: branch.name,
     annualStudentCounts: Object.fromEntries(
       annualCounts.map((item) => [item.schoolYearId, item._count.studentId]),
@@ -225,12 +231,15 @@ export const createNextParallelForRegistrationAction = action
       level: input.level,
       optionId: input.optionId || undefined,
     });
-    const option = validated.optionId
-      ? await prisma.option.findFirst({
-          where: { id: validated.optionId, branchId, statusOption: true },
-          select: { id: true, nameOption: true },
-        })
-      : null;
+    const option =
+      typebranch === "PRIMAIRE"
+        ? (await ensurePrimaryAcademicStructure(prisma, branchId)).option
+        : validated.optionId
+          ? await prisma.option.findFirst({
+              where: { id: validated.optionId, branchId, statusOption: true },
+              select: { id: true, nameOption: true },
+            })
+          : null;
     if (validated.optionId && !option)
       throw new Error("Option introuvable dans cette branche.");
 
@@ -244,9 +253,10 @@ export const createNextParallelForRegistrationAction = action
       where: {
         branchId,
         OR: [{ statusClasse: true }, { statusClasse: null }],
-        capacity: { gt: 0 },
       },
       select: {
+        id: true,
+        codeClasse: true,
         parallel: true,
         capacity: true,
         level: true,
@@ -269,23 +279,37 @@ export const createNextParallelForRegistrationAction = action
       }),
     );
 
-    let parallel = "A";
+    let parallel: string | undefined;
     let capacity = input.capacity ?? 30;
+    let simpleClassToPromote: (typeof existing)[number] | undefined;
 
     if (existing.length === 0) {
-      parallel = "A";
+      parallel = undefined;
     } else if (
-      !existing.every(
-        (classe) => classe.classEnrollment.length >= (classe.capacity ?? 0),
+      existing.some(
+        (classe) =>
+          !classe.capacity ||
+          classe.classEnrollment.length < classe.capacity,
       )
     ) {
       throw new Error(
         "Une parallèle dispose encore de places disponibles. L'affectation utilisera la première classe libre.",
       );
     } else {
+      const simpleClasses = existing.filter((classe) => !classe.parallel);
       const used = new Set(
         existing.map((classe) => classe.parallel?.toUpperCase()).filter(Boolean),
       );
+      if (simpleClasses.length > 1) {
+        throw new Error("Plusieurs classes simples existent pour ce niveau. Corrigez leur configuration avant de continuer.");
+      }
+      if (simpleClasses.length === 1) {
+        if (used.size > 0) {
+          throw new Error("Une classe simple et des parallèles coexistent déjà pour ce niveau. Corrigez leur configuration avant de continuer.");
+        }
+        simpleClassToPromote = simpleClasses[0];
+        used.add("A");
+      }
       let index = 0;
       parallel = "A";
       while (used.has(parallel)) {
@@ -320,19 +344,59 @@ export const createNextParallelForRegistrationAction = action
           }),
         ),
     });
-    const classe = await prisma.classe.create({
-      data: {
-        branchId,
-        level: validated.level,
-        parallel,
-        optionId: option?.id ?? null,
-        capacity,
-        nameClasse,
-        codeClasse,
-        statusClasse: true,
-        creneauId: input.creneauId,
-      },
-      select: { id: true, nameClasse: true, capacity: true, parallel: true },
+    const classe = await prisma.$transaction(async (tx) => {
+      if (simpleClassToPromote) {
+        const promotedName = buildClassName({
+          typebranch,
+          level: validated.level!,
+          parallel: "A",
+          optionName: option?.nameOption,
+        });
+        const promotedCodeBase = buildClassCode({
+          typebranch,
+          level: validated.level!,
+          parallel: "A",
+          optionName: option?.nameOption,
+        });
+        const promotedCode = await ensureUniqueIdentifier({
+          base: promotedCodeBase,
+          separator: "",
+          exists: async (value) =>
+            Boolean(
+              await tx.classe.findFirst({
+                where: {
+                  branchId,
+                  codeClasse: value,
+                  id: { not: simpleClassToPromote!.id },
+                },
+                select: { id: true },
+              }),
+            ),
+        });
+        await tx.classe.update({
+          where: { id: simpleClassToPromote.id },
+          data: {
+            parallel: "A",
+            nameClasse: promotedName,
+            codeClasse: promotedCode,
+          },
+        });
+      }
+
+      return tx.classe.create({
+        data: {
+          branchId,
+          level: validated.level,
+          parallel: parallel ?? null,
+          optionId: option?.id ?? null,
+          capacity,
+          nameClasse,
+          codeClasse,
+          statusClasse: true,
+          creneauId: input.creneauId,
+        },
+        select: { id: true, nameClasse: true, capacity: true, parallel: true },
+      });
     });
     const base = `/admin/organizations/${organizationId}/branches/${branchId}`;
     revalidatePath(`${base}/registration`);
@@ -395,12 +459,15 @@ export const createRegistrationFlowAction = action
     if (requiresOptionForClass(typebranch, input.level) && !input.optionId)
       throw new Error("Une option est requise pour ce niveau.");
 
-    const selectedOption = input.optionId
-      ? await prisma.option.findFirst({
+    const selectedOption =
+      typebranch === "PRIMAIRE"
+        ? (await ensurePrimaryAcademicStructure(prisma, branchId)).option
+        : input.optionId
+          ? await prisma.option.findFirst({
           where: { id: input.optionId, branchId, statusOption: true },
-          select: { nameOption: true },
-        })
-      : null;
+          select: { id: true, nameOption: true },
+            })
+          : null;
 
     const createdUserIds: string[] = [];
     try {
@@ -490,6 +557,7 @@ export const createRegistrationFlowAction = action
               statusStudent: true,
               observation: input.student.observation || null,
               provenanceEcole: input.student.provenanceEcole || null,
+              placeOfBirth: input.student.placeOfBirth || null,
               suppositionClasseName: input.level,
               suppositionOption: input.optionId || null,
             },
@@ -517,7 +585,7 @@ export const createRegistrationFlowAction = action
           branchId,
           schoolYearId: input.schoolYearId,
           level: input.level,
-          optionId: input.optionId || null,
+          optionId: selectedOption?.id ?? null,
           typebranch,
           optionName: selectedOption?.nameOption ?? null,
         });
