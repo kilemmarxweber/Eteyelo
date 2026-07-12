@@ -11,7 +11,8 @@ function ageFromBirthDate(value: Date | string | null | undefined) {
   if (
     today.getMonth() < birth.getMonth() ||
     (today.getMonth() === birth.getMonth() && today.getDate() < birth.getDate())
-  ) age -= 1;
+  )
+    age -= 1;
   return age >= 0 ? String(age) : "-";
 }
 
@@ -31,7 +32,18 @@ export function buildStudentsReportPdf(students: IStudent[]) {
 
   autoTable(doc, {
     startY: 30,
-    head: [["#", "Matricule", "Nom complet", "Sexe", "Age", "Lieu de naissance", "Code classe", "Classe"]],
+    head: [
+      [
+        "#",
+        "Matricule",
+        "Nom complet",
+        "Sexe",
+        "Age",
+        "Lieu de naissance",
+        "Code classe",
+        "Classe",
+      ],
+    ],
     body: students.map((student, index) => [
       index + 1,
       student.username || "-",
@@ -43,7 +55,12 @@ export function buildStudentsReportPdf(students: IStudent[]) {
       student.className || "Non inscrit",
     ]),
     theme: "grid",
-    styles: { font: "helvetica", fontSize: 8, cellPadding: 2.2, overflow: "linebreak" },
+    styles: {
+      font: "helvetica",
+      fontSize: 8,
+      cellPadding: 2.2,
+      overflow: "linebreak",
+    },
     headStyles: { fillColor: [30, 64, 175], textColor: 255, fontStyle: "bold" },
     alternateRowStyles: { fillColor: [239, 246, 255] },
     columnStyles: {

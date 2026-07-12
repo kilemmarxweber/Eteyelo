@@ -112,19 +112,19 @@ export default function Students() {
     {
       label: "Actifs",
       value: stats.actifs,
-      description: "étudiants",
+      description: "élèves",
       icon: IconUserCheck,
     },
     {
       label: "Inactifs",
       value: stats.inactifs,
-      description: "étudiants",
+      description: "élèves",
       icon: IconUserOff,
     },
     {
-      label: "Nouveaux ce trimestre",
+      label: "Nouvels élèves",
       value: stats.nouveauxTrimestre,
-      description: "étudiants",
+      description: "élèves",
       icon: IconUserPlus,
     },
   ];
@@ -186,7 +186,7 @@ export default function Students() {
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-sm font-semibold text-blue-950/70">
-                  Ratio genre
+                  Sexe | genre
                 </p>
                 <h3 className="mt-3 text-3xl font-black text-blue-950">
                   {stats.masculin}M / {stats.feminin}F
