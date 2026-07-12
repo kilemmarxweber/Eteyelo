@@ -611,20 +611,41 @@ export const getCashierReportAction = action
   .input(
     z.object({
       startDate: z.coerce.date().optional(),
+      endDate: z.coerce.date().optional(),
+      modePaiement: z.string().optional(),
+      fraisId: z.string().optional(),
+      classeId: z.string().optional(),
     }),
   )
   .handler(async ({ input }) => {
     const { branchId } = await requireBranchContext();
-    const { start, end } = getDayRange(input.startDate);
+    
+    const start = input.startDate ? new Date(input.startDate) : new Date();
+    start.setHours(0, 0, 0, 0);
+
+    const end = input.endDate ? new Date(input.endDate) : new Date(start);
+    if (!input.endDate) {
+      end.setDate(start.getDate() + 1);
+    } else {
+      end.setHours(23, 59, 59, 999);
+    }
+
+    const paymentWhere: any = {
+      branchId,
+      createdAt: { gte: start, lte: end },
+      status: StatusPaiement.VALIDE,
+    };
+
+    if (input.modePaiement) paymentWhere.method = input.modePaiement;
+    if (input.fraisId) paymentWhere.fraisId = input.fraisId;
+    if (input.classeId) paymentWhere.classEnrollment = { classeId: input.classeId };
 
     const payments = await prisma.familyPayment.findMany({
-      where: {
-        branchId,
-        createdAt: { gte: start, lt: end },
-        status: StatusPaiement.VALIDE,
-      },
+      where: paymentWhere,
       include: {
-        frais: true,
+        frais: {
+          include: { classe: true, typeFrais: true },
+        },
         classEnrollment: {
           include: {
             student: {
@@ -643,10 +664,14 @@ export const getCashierReportAction = action
       orderBy: { createdAt: "desc" },
     });
 
-    const expenses = await prisma.cashierExpense.findMany({
-      where: { branchId, createdAt: { gte: start, lt: end } },
-      orderBy: { createdAt: "desc" },
-    });
+    const skipExpenses = Boolean(input.classeId || input.fraisId || input.modePaiement);
+    
+    const expenses = skipExpenses 
+      ? [] 
+      : await prisma.cashierExpense.findMany({
+          where: { branchId, createdAt: { gte: start, lte: end } },
+          orderBy: { createdAt: "desc" },
+        });
 
     const incomeTotal = payments.reduce(
       (sum: number, item) => sum + Number(item.amount),
@@ -659,12 +684,14 @@ export const getCashierReportAction = action
 
     return {
       date: start.toISOString(),
+      endDate: end.toISOString(),
       incomeTotal,
       outflowTotal,
       balance: incomeTotal - outflowTotal,
       payments: payments.map((payment) => ({
         id: payment.id,
         amount: Number(payment.amount),
+        method: payment.method,
         transactionRef: payment.transactionRef,
         notes: payment.notes,
         createdAt: payment.createdAt.toISOString(),
@@ -692,6 +719,30 @@ export const getCashierReportAction = action
       })),
     };
   });
+
+export const getCashierReportContextAction = action.handler(async () => {
+  const { branchId, organizationId } = await requireBranchContext();
+
+  const org = await prisma.organization.findUnique({
+    where: { id: organizationId },
+    select: { name: true, logo: true },
+  });
+
+  const branch = await prisma.branch.findUnique({
+    where: { id: branchId },
+    select: { name: true },
+  });
+
+  if (!org || !branch) {
+    throw new Error("Contexte introuvable.");
+  }
+
+  return {
+    branchName: branch.name,
+    organizationName: org.name,
+    logoUrl: org.logo ?? "",
+  };
+});
 
 /* ======================================================
    GET ALL PAYMENTS

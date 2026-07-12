@@ -6,6 +6,7 @@ import { LayoutHeader } from "@/components/custom/layout";
 import { ThemeToggle } from "@/src/theme/ThemeToggle";
 import { UserNav } from "@/components/user-nav";
 import { Search } from "@/components/search";
+import { NotificationBell } from "@/components/notification-bell";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 import Spinner from "./spinner";
@@ -51,6 +52,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             <div className="ml-auto flex items-center space-x-4">
               <Search />
               <ThemeToggle />
+              <NotificationBell />
               <UserNav />
             </div>
           </LayoutHeader>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import {
   IconArrowLeft,
@@ -42,6 +42,7 @@ import {
   findParentForRegistrationAction,
   findStudentHistoryAction,
   getRegistrationOptionsAction,
+  getRegistrationRequestForPrefillAction,
   suggestNextClassAction,
 } from "./registration.action";
 import { generateSlug } from "@/lib/generated-identifiers";
@@ -180,6 +181,10 @@ function previewStudentCode(
 
 export function RegistrationForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const requestedRequestId = searchParams.get("requestId") ?? "";
+  const [requestId, setRequestId] = useState("");
+  const [requestReference, setRequestReference] = useState("");
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const [loadingOptions, setLoadingOptions] = useState(true);
@@ -216,6 +221,29 @@ export function RegistrationForm() {
   useEffect(() => {
     void loadRegistrationOptions(true);
   }, []);
+
+  useEffect(() => {
+    if (!requestedRequestId) return;
+    void (async () => {
+      const [request, error] = await getRegistrationRequestForPrefillAction({ requestId: requestedRequestId });
+      if (error || !request) return toast.error(error?.message ?? "Impossible de charger la demande.");
+      const guardian = request.guardians.find((item) => item.isPrimary) ?? request.guardians[0];
+      setRequestId(request.id);
+      setRequestReference(request.reference);
+      setStudentMode("new");
+      setStudent({ ...emptyStudent, ...request.student, dateOfBirth: request.student.dateOfBirth.slice(0, 10), email: request.student.email ?? "", telephone: request.student.telephone ?? "+243", provenanceEcole: request.student.provenanceEcole ?? "" });
+      if (guardian) {
+        setParentMode("new");
+        setParent({ ...emptyParent, name: guardian.name, postnom: guardian.postnom, prenom: guardian.prenom, sexe: guardian.sexe, telephone: guardian.telephone, email: guardian.email ?? "", address: guardian.address });
+      }
+      setLevel(request.requestedLevel);
+      setOptionId(request.optionId);
+      if (request.schoolYearId) setSchoolYearId(request.schoolYearId);
+      setStep(0);
+      toast.success(`Demande ${request.reference} pre-remplie.`);
+      if (request.guardians.length > 1) toast.info("Le second responsable reste conserve dans la demande pour verification.");
+    })();
+  }, [requestedRequestId]);
 
   async function loadRegistrationOptions(setDefaultYear = false) {
     const [data, error] = await getRegistrationOptionsAction();
@@ -333,6 +361,8 @@ export function RegistrationForm() {
     setCreneauId("");
     setClassCapacity("30");
     setCreneauForm(emptyCreneau());
+    setRequestId("");
+    setRequestReference("");
   }
 
   async function searchStudents() {
@@ -438,6 +468,7 @@ export function RegistrationForm() {
   async function submit() {
     setLoading(true);
     const [result, error] = await createRegistrationFlowAction({
+      requestId: requestId || undefined,
       schoolYearId,
       level,
       optionId: options.allowsOption ? optionId || undefined : undefined,
@@ -470,6 +501,7 @@ export function RegistrationForm() {
     if (error) return toast.error(error.message);
     toast.success(`Inscription confirmée dans ${result.classeName}`);
     router.refresh();
+    if (requestId) router.replace(window.location.pathname);
     resetForm();
     void loadRegistrationOptions(true);
   }
@@ -886,6 +918,15 @@ export function RegistrationForm() {
 
   return (
     <div className="grid min-h-[calc(100vh-12rem)] gap-6 xl:grid-cols-[280px_minmax(0,1fr)]">
+      {requestReference ? (
+        <Alert className="xl:col-span-2">
+          <IconCheck className="h-4 w-4" />
+          <AlertTitle>Demande confirmee : {requestReference}</AlertTitle>
+          <AlertDescription>
+            Verifiez et completez les donnees avant l'inscription definitive.
+          </AlertDescription>
+        </Alert>
+      ) : null}
       <Card className="h-fit xl:sticky xl:top-4">
         <CardHeader>
           <CardTitle>Progression</CardTitle>

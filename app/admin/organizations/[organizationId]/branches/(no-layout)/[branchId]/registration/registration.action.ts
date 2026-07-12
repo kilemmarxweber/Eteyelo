@@ -50,6 +50,84 @@ function buildStudentCode(branchName: string, studentName: string, sequence: num
 
 const STUDENT_EMAIL_DOMAIN = "klambocore.com";
 
+const requestStudentSchema = z.object({
+  name: z.string(), postnom: z.string(), prenom: z.string(), sexe: z.enum(["masculin", "feminin"]),
+  dateOfBirth: z.string(), placeOfBirth: z.string(), address: z.string(), email: z.string().optional(), telephone: z.string().optional(), provenanceEcole: z.string().optional(),
+});
+const requestGuardianSchema = z.object({
+  name: z.string(), postnom: z.string(), prenom: z.string(), relationship: z.string(), sexe: z.enum(["masculin", "feminin"]), telephone: z.string(), email: z.string().optional(), address: z.string(), isPrimary: z.boolean(),
+});
+type RegistrationRequestRow = {
+  id: string; reference: string; status: string; studentData: Prisma.JsonValue;
+  guardiansData: Prisma.JsonValue; requestedLevel: string | null; requestedOption: string | null;
+  photoUrl: string | null; schoolYearId: string | null; createdAt: Date;
+};
+
+export const getPendingRegistrationRequestsAction = action.handler(async () => {
+  const { branchId, organizationId } = await requireRegistrationContext();
+  return prisma.$queryRaw<RegistrationRequestRow[]>(Prisma.sql`
+    SELECT "id", "reference", "status"::text, "studentData", "guardiansData",
+      "requestedLevel", "requestedOption", "photoUrl", "schoolYearId", "createdAt"
+    FROM "RegistrationRequest"
+    WHERE "branchId" = ${branchId} AND "organizationId" = ${organizationId}
+      AND "status" IN ('PENDING'::"RegistrationRequestStatus", 'CONFIRMED'::"RegistrationRequestStatus")
+    ORDER BY "createdAt" DESC LIMIT 50
+  `);
+});
+
+export const confirmRegistrationRequestAction = action
+  .input(z.object({ requestId: z.string().min(1) }))
+  .handler(async ({ input }) => {
+    const { branchId, organizationId, userId } = await requireRegistrationContext();
+    const updated = await prisma.$executeRaw(Prisma.sql`
+      UPDATE "RegistrationRequest" SET "status" = 'CONFIRMED'::"RegistrationRequestStatus",
+        "confirmedAt" = NOW(), "confirmedById" = ${userId}, "updatedAt" = NOW()
+      WHERE "id" = ${input.requestId} AND "branchId" = ${branchId}
+        AND "organizationId" = ${organizationId} AND "status" = 'PENDING'::"RegistrationRequestStatus"
+    `);
+    if (updated !== 1) {
+      const existing = await prisma.$queryRaw<Array<{ id: string }>>(Prisma.sql`
+        SELECT "id" FROM "RegistrationRequest" WHERE "id" = ${input.requestId}
+          AND "branchId" = ${branchId} AND "organizationId" = ${organizationId}
+          AND "status" = 'CONFIRMED'::"RegistrationRequestStatus" LIMIT 1
+      `);
+      if (!existing[0]) throw new Error("Cette demande n'est plus disponible.");
+    }
+    return { requestId: input.requestId };
+  });
+
+export const getRegistrationRequestForPrefillAction = action
+  .input(z.object({ requestId: z.string().min(1) }))
+  .handler(async ({ input }) => {
+    const { branchId, organizationId } = await requireRegistrationContext();
+    const [request] = await prisma.$queryRaw<RegistrationRequestRow[]>(Prisma.sql`
+      SELECT "id", "reference", "status"::text, "studentData", "guardiansData",
+        "requestedLevel", "requestedOption", "photoUrl", "schoolYearId", "createdAt"
+      FROM "RegistrationRequest" WHERE "id" = ${input.requestId} AND "branchId" = ${branchId}
+        AND "organizationId" = ${organizationId} AND "status" = 'CONFIRMED'::"RegistrationRequestStatus" LIMIT 1
+    `);
+    if (!request) throw new Error("Demande confirmee introuvable.");
+    const student = requestStudentSchema.parse(request.studentData);
+    const guardians = z.array(requestGuardianSchema).parse(request.guardiansData);
+    const option = request.requestedOption
+      ? await prisma.option.findFirst({
+          where: { branchId, nameOption: { equals: request.requestedOption, mode: "insensitive" }, statusOption: true },
+          select: { id: true },
+        })
+      : null;
+    return {
+      id: request.id,
+      reference: request.reference,
+      student,
+      guardians,
+      requestedLevel: request.requestedLevel ?? "",
+      requestedOption: request.requestedOption ?? "",
+      optionId: option?.id ?? "",
+      photoUrl: request.photoUrl ?? "",
+      schoolYearId: request.schoolYearId ?? "",
+    };
+  });
+
 async function buildStudentEmail(name: string, prenom: string) {
   const localBase = generateSlug(`${prenom}.${name}`, "eleve");
   const localPart = await ensureUniqueIdentifier({
@@ -455,7 +533,15 @@ export const suggestNextClassAction = action
 export const createRegistrationFlowAction = action
   .input(registrationSchema)
   .handler(async ({ input }) => {
-    const { branchId, organizationId, typebranch } = await requireRegistrationContext();
+    const { branchId, organizationId, typebranch, userId } = await requireRegistrationContext();
+    const request = input.requestId
+      ? (await prisma.$queryRaw<Array<{ id: string; photoUrl: string | null }>>(Prisma.sql`
+          SELECT "id", "photoUrl" FROM "RegistrationRequest" WHERE "id" = ${input.requestId}
+            AND "branchId" = ${branchId} AND "organizationId" = ${organizationId}
+            AND "status" = 'CONFIRMED'::"RegistrationRequestStatus" LIMIT 1
+        `))[0] ?? null
+      : null;
+    if (input.requestId && !request) throw new Error("Cette demande a deja ete traitee ou n'est plus disponible.");
     if (requiresOptionForClass(typebranch, input.level) && !input.optionId)
       throw new Error("Une option est requise pour ce niveau.");
 
@@ -547,7 +633,7 @@ export const createRegistrationFlowAction = action
             tx.classEnrollment.count({ where: { branchId, schoolYearId: input.schoolYearId } }),
           ]);
           studentCode = buildStudentCode(branch.name, input.student.name, annualEnrollmentCount + 1);
-          await tx.user.update({ where: { id: newStudentUserId }, data: { username: studentCode } });
+          await tx.user.update({ where: { id: newStudentUserId }, data: { username: studentCode, image: request?.photoUrl || undefined } });
           const branchMember = await tx.branchMember.create({ data: { branchId, memberId: newStudentMemberId, role: "STUDENT" } });
           const student = await tx.student.create({
             data: {
@@ -591,6 +677,14 @@ export const createRegistrationFlowAction = action
         });
         if (!classe) throw new Error(`Aucune classe disponible pour le niveau ${input.level}. Créez la prochaine parallèle.`);
         const enrollment = await tx.classEnrollment.create({ data: { branchId, schoolYearId: input.schoolYearId, studentId, classeId: classe.id, statusEnrollment: true } });
+        if (request) {
+          const marked = await tx.$executeRaw(Prisma.sql`
+            UPDATE "RegistrationRequest" SET "status" = 'REGISTERED'::"RegistrationRequestStatus",
+              "studentId" = ${studentId}, "registeredAt" = NOW(), "registeredById" = ${userId}, "updatedAt" = NOW()
+            WHERE "id" = ${request.id} AND "status" = 'CONFIRMED'::"RegistrationRequestStatus"
+          `);
+          if (marked !== 1) throw new Error("Cette demande vient deja d'etre inscrite.");
+        }
         return { enrollmentId: enrollment.id, studentId, parentId, classeId: classe.id, classeName: classe.nameClasse, studentCode, studentEmail: generatedStudentEmail };
       }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
 

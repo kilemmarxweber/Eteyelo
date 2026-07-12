@@ -46,7 +46,7 @@ export function UserNav() {
           <DropdownMenuLabel className="">
             <div className="flex flex-col space-y-1">
               <p className="text-sm text-primary">
-                {`${prenom} ${nom}`.toUpperCase()}
+                {`${nom}`.toUpperCase()}
               </p>
               <p className="leading-none text-muted-foreground capitalize">
                 {roleLabel}

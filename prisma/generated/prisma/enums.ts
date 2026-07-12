@@ -126,6 +126,18 @@ export const StudentCategory = {
 export type StudentCategory = (typeof StudentCategory)[keyof typeof StudentCategory]
 
 
+export const RegistrationRequestStatus = {
+  PENDING: 'PENDING',
+  CONFIRMED: 'CONFIRMED',
+  REJECTED: 'REJECTED',
+  CANCELLED: 'CANCELLED',
+  REGISTERED: 'REGISTERED',
+  ARCHIVED: 'ARCHIVED'
+} as const
+
+export type RegistrationRequestStatus = (typeof RegistrationRequestStatus)[keyof typeof RegistrationRequestStatus]
+
+
 export const BranchRole = {
   DIRECTOR: 'DIRECTOR',
   CAISSIER: 'CAISSIER',

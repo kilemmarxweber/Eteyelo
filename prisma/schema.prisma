@@ -1081,12 +1081,52 @@ model Branch {
   paymentEvent PaymentEvent[]
   partnaires Partnaire[]
   organizationSupportBranchScopes OrganizationSupportBranchScope[]
+  registrationRequests RegistrationRequest[]
 
   @@index([organizationId])
   @@index([organizationId, isActive])
   @@index([organizationId, typebranch])
   @@index([code])
   @@unique([organizationId, code])
+}
+
+model RegistrationRequest {
+  id                 String                    @id @default(cuid())
+  reference          String                    @unique
+  branchId           String
+  organizationId     String
+  schoolYearId       String?
+  status             RegistrationRequestStatus @default(PENDING)
+  studentData        Json
+  guardiansData      Json
+  requestedLevel     String?
+  requestedSection   String?
+  requestedOption    String?
+  photoUrl           String?
+  consentAccepted    Boolean                   @default(false)
+  confirmedById      String?
+  confirmedAt        DateTime?
+  registeredById     String?
+  registeredAt       DateTime?
+  studentId          String?
+  rejectedReason     String?
+  createdAt          DateTime                  @default(now())
+  updatedAt          DateTime                  @updatedAt
+  branch             Branch                    @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  @@index([branchId, status, createdAt])
+  @@index([organizationId, branchId])
+  @@index([schoolYearId])
+  @@index([studentId])
+}
+
+enum RegistrationRequestStatus {
+  PENDING
+  CONFIRMED
+  REJECTED
+  CANCELLED
+  REGISTERED
+  ARCHIVED
 }
 
 model Partnaire {

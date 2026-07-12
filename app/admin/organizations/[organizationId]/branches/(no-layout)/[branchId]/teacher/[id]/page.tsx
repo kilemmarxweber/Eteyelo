@@ -11,7 +11,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { Badge } from "@/components/ui/badge";
 import { IconUser } from "@tabler/icons-react";
 
-import { CalendarDays, GraduationCap, Mail, Phone } from "lucide-react";
+import { CalendarDays, Mail, Phone } from "lucide-react";
 
 import { normalizeImageSrc } from "@/lib/utils";
 import TeacherScheduleTable, {

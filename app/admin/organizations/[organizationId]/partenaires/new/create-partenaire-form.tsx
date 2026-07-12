@@ -1,12 +1,14 @@
 "use client";
 
-import { useTransition } from "react";
+import { useRef, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   Building2,
+  FileText,
   Globe,
   ImageIcon,
+  Loader2,
   Mail,
   Phone,
   UserRound,
@@ -14,6 +16,27 @@ import {
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
+
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 
 import { createPartenaireSchema, type CreatePartenaireInput } from "../schema";
 import { createPartenaireAction } from "../actions";
@@ -31,6 +54,10 @@ type Props = {
 export function CreatePartenaireForm({ organizationId, branches }: Props) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
+
+  const imageInputRef = useRef<HTMLInputElement>(null);
+  const logoInputRef = useRef<HTMLInputElement>(null);
+  const documentInputRef = useRef<HTMLInputElement>(null);
 
   const form = useForm<CreatePartenaireInput>({
     resolver: zodResolver(createPartenaireSchema),
@@ -64,24 +91,36 @@ export function CreatePartenaireForm({ organizationId, branches }: Props) {
       const formData = new FormData();
 
       Object.entries(values).forEach(([key, value]) => {
+        if (typeof value === "boolean") {
+          /*
+           * Ton action serveur vérifie actuellement :
+           * formData.get("isActive") === "on"
+           */
+          if (value) {
+            formData.append(key, "on");
+          }
+
+          return;
+        }
+
         formData.append(key, String(value ?? ""));
       });
 
-      const imageFile = document.querySelector<HTMLInputElement>(
-        'input[name="imageFile"]',
-      )?.files?.[0];
+      const imageFile = imageInputRef.current?.files?.[0];
+      const logoFile = logoInputRef.current?.files?.[0];
+      const documentFile = documentInputRef.current?.files?.[0];
 
-      const logoFile = document.querySelector<HTMLInputElement>(
-        'input[name="logoFile"]',
-      )?.files?.[0];
+      if (imageFile) {
+        formData.append("imageFile", imageFile);
+      }
 
-      const documentFile = document.querySelector<HTMLInputElement>(
-        'input[name="documentFile"]',
-      )?.files?.[0];
+      if (logoFile) {
+        formData.append("logoFile", logoFile);
+      }
 
-      if (imageFile) formData.append("imageFile", imageFile);
-      if (logoFile) formData.append("logoFile", logoFile);
-      if (documentFile) formData.append("documentFile", documentFile);
+      if (documentFile) {
+        formData.append("documentFile", documentFile);
+      }
 
       const res = await createPartenaireAction(formData);
 
@@ -91,8 +130,8 @@ export function CreatePartenaireForm({ organizationId, branches }: Props) {
       }
 
       toast.success("Partenaire créé avec succès.");
-      router.push(`/admin/organizations/${organizationId}/partenaires`);
-      router.refresh();
+
+      router.replace(`/admin/organizations/${organizationId}/partenaires`);
     });
   }
 
@@ -101,7 +140,15 @@ export function CreatePartenaireForm({ organizationId, branches }: Props) {
     files: FileList | null,
   ) {
     const file = files?.[0];
-    if (!file) return;
+
+    if (!file) {
+      form.setValue(field, "", {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
+
+      return;
+    }
 
     form.setValue(field, file.name, {
       shouldDirty: true,
@@ -110,274 +157,549 @@ export function CreatePartenaireForm({ organizationId, branches }: Props) {
   }
 
   return (
-    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
-      <div className="grid gap-4 md:grid-cols-2">
-        <label className="space-y-2 text-sm font-medium">
-          Nom du partenaire
-          <div className="flex items-center gap-2 rounded-2xl border bg-white px-3">
-            <Building2 className="size-4 text-muted-foreground" />
-            <input
-              {...form.register("name")}
-              disabled={pending}
-              placeholder="Ex. UNICEF, Fondation..."
-              className="h-12 w-full bg-transparent text-sm outline-none"
-            />
-          </div>
-          <FormError message={form.formState.errors.name?.message} />
-        </label>
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <div className="grid gap-5 md:grid-cols-2">
+          <FormField
+            control={form.control}
+            name="name"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Nom du partenaire</FormLabel>
 
-        <label className="space-y-2 text-sm font-medium">
-          Téléphone
-          <div className="flex items-center gap-2 rounded-2xl border bg-white px-3">
-            <Phone className="size-4 text-muted-foreground" />
-            <input
-              {...form.register("tel")}
-              disabled={pending}
-              placeholder="+243..."
-              className="h-12 w-full bg-transparent text-sm outline-none"
-            />
-          </div>
-          <FormError message={form.formState.errors.tel?.message} />
-        </label>
+                <div className="relative">
+                  <Building2 className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
 
-        <label className="space-y-2 text-sm font-medium">
-          Type
-          <input
-            {...form.register("type")}
-            disabled={pending}
-            placeholder="École partenaire, ONG, entreprise..."
-            className="h-12 w-full rounded-2xl border bg-white px-4 text-sm outline-none"
+                  <FormControl>
+                    <Input
+                      {...field}
+                      disabled={pending}
+                      placeholder="Ex. UNICEF, Fondation..."
+                      className="h-12 rounded-2xl pl-10"
+                    />
+                  </FormControl>
+                </div>
+
+                <FormMessage />
+              </FormItem>
+            )}
           />
-        </label>
 
-        <label className="space-y-2 text-sm font-medium">
-          Secteur
-          <input
-            {...form.register("secteur")}
-            disabled={pending}
-            placeholder="Éducation, santé, technologie..."
-            className="h-12 w-full rounded-2xl border bg-white px-4 text-sm outline-none"
+          <FormField
+            control={form.control}
+            name="tel"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Téléphone</FormLabel>
+
+                <div className="relative">
+                  <Phone className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+
+                  <FormControl>
+                    <Input
+                      {...field}
+                      disabled={pending}
+                      placeholder="+243..."
+                      maxLength={15}
+                      className="h-12 rounded-2xl pl-10"
+                    />
+                  </FormControl>
+                </div>
+
+                <FormMessage />
+              </FormItem>
+            )}
           />
-        </label>
 
-        <label className="space-y-2 text-sm font-medium">
-          Email
-          <div className="flex items-center gap-2 rounded-2xl border bg-white px-3">
-            <Mail className="size-4 text-muted-foreground" />
-            <input
-              {...form.register("email")}
-              disabled={pending}
-              type="email"
-              placeholder="contact@example.com"
-              className="h-12 w-full bg-transparent text-sm outline-none"
-            />
-          </div>
-          <FormError message={form.formState.errors.email?.message} />
-        </label>
+          <FormField
+            control={form.control}
+            name="type"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Type</FormLabel>
 
-        <label className="space-y-2 text-sm font-medium">
-          Site web
-          <div className="flex items-center gap-2 rounded-2xl border bg-white px-3">
-            <Globe className="size-4 text-muted-foreground" />
-            <input
-              {...form.register("website")}
-              disabled={pending}
-              placeholder="https://..."
-              className="h-12 w-full bg-transparent text-sm outline-none"
-            />
-          </div>
-        </label>
+                <FormControl>
+                  <Input
+                    {...field}
+                    disabled={pending}
+                    placeholder="École partenaire, ONG, entreprise..."
+                    className="h-12 rounded-2xl"
+                  />
+                </FormControl>
 
-        <label className="space-y-2 text-sm font-medium">
-          Image principale
-          <div className="flex items-center gap-2 rounded-2xl border bg-white px-3">
-            <ImageIcon className="size-4 text-muted-foreground" />
-            <input
-              name="imageFile"
-              type="file"
-              disabled={pending}
-              accept="image/png,image/jpeg,image/jpg,image/webp"
-              onChange={(e) => setFileName("image", e.target.files)}
-              className="h-12 w-full bg-transparent text-sm outline-none file:mr-3 file:rounded-full file:border-0 file:bg-blue-50 file:px-3 file:py-1.5 file:text-blue-950"
-            />
-          </div>
-          <input type="hidden" {...form.register("image")} />
-          <FormError message={form.formState.errors.image?.message} />
-        </label>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <label className="space-y-2 text-sm font-medium">
-          Logo
-          <div className="flex items-center gap-2 rounded-2xl border bg-white px-3">
-            <ImageIcon className="size-4 text-muted-foreground" />
-            <input
-              name="logoFile"
-              type="file"
-              disabled={pending}
-              accept="image/png,image/jpeg,image/jpg,image/webp"
-              onChange={(e) => setFileName("logo", e.target.files)}
-              className="h-12 w-full bg-transparent text-sm outline-none file:mr-3 file:rounded-full file:border-0 file:bg-blue-50 file:px-3 file:py-1.5 file:text-blue-950"
-            />
-          </div>
-          <input type="hidden" {...form.register("logo")} />
-        </label>
+          <FormField
+            control={form.control}
+            name="secteur"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Secteur</FormLabel>
 
-        <label className="space-y-2 text-sm font-medium">
-          Branche liée
-          <select
-            {...form.register("branchId")}
-            disabled={pending}
-            className="h-12 w-full rounded-2xl border bg-white px-4 text-sm outline-none"
+                <FormControl>
+                  <Input
+                    {...field}
+                    disabled={pending}
+                    placeholder="Éducation, santé, technologie..."
+                    className="h-12 rounded-2xl"
+                  />
+                </FormControl>
+
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="email"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Email</FormLabel>
+
+                <div className="relative">
+                  <Mail className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+
+                  <FormControl>
+                    <Input
+                      {...field}
+                      type="email"
+                      disabled={pending}
+                      placeholder="contact@example.com"
+                      className="h-12 rounded-2xl pl-10"
+                    />
+                  </FormControl>
+                </div>
+
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="website"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Site web</FormLabel>
+
+                <div className="relative">
+                  <Globe className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+
+                  <FormControl>
+                    <Input
+                      {...field}
+                      disabled={pending}
+                      placeholder="https://..."
+                      className="h-12 rounded-2xl pl-10"
+                    />
+                  </FormControl>
+                </div>
+
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="image"
+            render={() => (
+              <FormItem>
+                <FormLabel>Image principale</FormLabel>
+
+                <div className="relative">
+                  <ImageIcon className="pointer-events-none absolute left-3 top-1/2 z-10 size-4 -translate-y-1/2 text-muted-foreground" />
+
+                  <FormControl>
+                    <Input
+                      ref={imageInputRef}
+                      name="imageFile"
+                      type="file"
+                      disabled={pending}
+                      accept="image/png,image/jpeg,image/jpg,image/webp"
+                      onChange={(event) =>
+                        setFileName("image", event.target.files)
+                      }
+                      className="h-12 cursor-pointer rounded-2xl pl-10 file:mr-3 file:rounded-full file:border-0 file:bg-blue-50 file:px-3 file:py-1.5 file:text-blue-950"
+                    />
+                  </FormControl>
+                </div>
+
+                <FormDescription>
+                  Formats acceptés : PNG, JPG, JPEG et WebP.
+                </FormDescription>
+
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="logo"
+            render={() => (
+              <FormItem>
+                <FormLabel>Logo</FormLabel>
+
+                <div className="relative">
+                  <ImageIcon className="pointer-events-none absolute left-3 top-1/2 z-10 size-4 -translate-y-1/2 text-muted-foreground" />
+
+                  <FormControl>
+                    <Input
+                      ref={logoInputRef}
+                      name="logoFile"
+                      type="file"
+                      disabled={pending}
+                      accept="image/png,image/jpeg,image/jpg,image/webp"
+                      onChange={(event) =>
+                        setFileName("logo", event.target.files)
+                      }
+                      className="h-12 cursor-pointer rounded-2xl pl-10 file:mr-3 file:rounded-full file:border-0 file:bg-blue-50 file:px-3 file:py-1.5 file:text-blue-950"
+                    />
+                  </FormControl>
+                </div>
+
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="branchId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Branche liée</FormLabel>
+
+                <Select
+                  disabled={pending}
+                  value={field.value || "none"}
+                  onValueChange={(value) => {
+                    field.onChange(value === "none" ? "" : value);
+                  }}
+                >
+                  <FormControl>
+                    <SelectTrigger className="h-12 rounded-2xl">
+                      <SelectValue placeholder="Choisir une branche" />
+                    </SelectTrigger>
+                  </FormControl>
+
+                  <SelectContent>
+                    <SelectItem value="none">
+                      Aucune branche spécifique
+                    </SelectItem>
+
+                    {branches.map((branch) => (
+                      <SelectItem key={branch.id} value={branch.id}>
+                        {branch.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="ville"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Ville</FormLabel>
+
+                <FormControl>
+                  <Input
+                    {...field}
+                    disabled={pending}
+                    placeholder="Kinshasa"
+                    className="h-12 rounded-2xl"
+                  />
+                </FormControl>
+
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="pays"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Pays</FormLabel>
+
+                <FormControl>
+                  <Input
+                    {...field}
+                    disabled={pending}
+                    placeholder="RDC"
+                    className="h-12 rounded-2xl"
+                  />
+                </FormControl>
+
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="contactName"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Personne de contact</FormLabel>
+
+                <div className="relative">
+                  <UserRound className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+
+                  <FormControl>
+                    <Input
+                      {...field}
+                      disabled={pending}
+                      placeholder="Nom du contact"
+                      className="h-12 rounded-2xl pl-10"
+                    />
+                  </FormControl>
+                </div>
+
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="contactRole"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Fonction du contact</FormLabel>
+
+                <FormControl>
+                  <Input
+                    {...field}
+                    disabled={pending}
+                    placeholder="Directeur, responsable..."
+                    className="h-12 rounded-2xl"
+                  />
+                </FormControl>
+
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="adresse"
+            render={({ field }) => (
+              <FormItem className="md:col-span-2">
+                <FormLabel>Adresse</FormLabel>
+
+                <FormControl>
+                  <Input
+                    {...field}
+                    disabled={pending}
+                    placeholder="Adresse complète"
+                    className="h-12 rounded-2xl"
+                  />
+                </FormControl>
+
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="contractRef"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Référence du contrat</FormLabel>
+
+                <FormControl>
+                  <Input
+                    {...field}
+                    disabled={pending}
+                    placeholder="REF-2026..."
+                    className="h-12 rounded-2xl"
+                  />
+                </FormControl>
+
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="documentUrl"
+            render={() => (
+              <FormItem>
+                <FormLabel>Document</FormLabel>
+
+                <div className="relative">
+                  <FileText className="pointer-events-none absolute left-3 top-1/2 z-10 size-4 -translate-y-1/2 text-muted-foreground" />
+
+                  <FormControl>
+                    <Input
+                      ref={documentInputRef}
+                      name="documentFile"
+                      type="file"
+                      disabled={pending}
+                      onChange={(event) =>
+                        setFileName("documentUrl", event.target.files)
+                      }
+                      className="h-12 cursor-pointer rounded-2xl pl-10 file:mr-3 file:rounded-full file:border-0 file:bg-blue-50 file:px-3 file:py-1.5 file:text-blue-950"
+                    />
+                  </FormControl>
+                </div>
+
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        <FormField
+          control={form.control}
+          name="description"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Description</FormLabel>
+
+              <FormControl>
+                <Textarea
+                  {...field}
+                  disabled={pending}
+                  rows={4}
+                  placeholder="Décrivez le partenariat..."
+                  className="resize-none rounded-2xl"
+                />
+              </FormControl>
+
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="notes"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Notes internes</FormLabel>
+
+              <FormControl>
+                <Textarea
+                  {...field}
+                  disabled={pending}
+                  rows={3}
+                  placeholder="Notes visibles uniquement dans l’administration..."
+                  className="resize-none rounded-2xl"
+                />
+              </FormControl>
+
+              <FormDescription>
+                Ces notes ne seront pas affichées sur la page publique.
+              </FormDescription>
+
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <FormField
+            control={form.control}
+            name="isActive"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-center justify-between rounded-2xl border bg-white p-4">
+                <div className="space-y-1">
+                  <FormLabel className="cursor-pointer">
+                    Partenaire actif
+                  </FormLabel>
+
+                  <FormDescription>
+                    Autoriser son affichage sur le site public.
+                  </FormDescription>
+                </div>
+
+                <FormControl>
+                  <Checkbox
+                    checked={field.value}
+                    disabled={pending}
+                    onCheckedChange={(checked) =>
+                      field.onChange(checked === true)
+                    }
+                  />
+                </FormControl>
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="isFeatured"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-center justify-between rounded-2xl border bg-white p-4">
+                <div className="space-y-1">
+                  <FormLabel className="cursor-pointer">
+                    Mettre en avant
+                  </FormLabel>
+
+                  <FormDescription>
+                    Afficher ce partenaire en priorité.
+                  </FormDescription>
+                </div>
+
+                <FormControl>
+                  <Checkbox
+                    checked={field.value}
+                    disabled={pending}
+                    onCheckedChange={(checked) =>
+                      field.onChange(checked === true)
+                    }
+                  />
+                </FormControl>
+              </FormItem>
+            )}
+          />
+        </div>
+
+        <div className="flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:justify-end">
+          <Button
+            type="button"
+            variant="outline"
+            className="h-11 w-full rounded-full px-5 sm:w-auto"
+            asChild
           >
-            <option value="">Aucune branche spécifique</option>
-            {branches.map((branch) => (
-              <option key={branch.id} value={branch.id}>
-                {branch.name}
-              </option>
-            ))}
-          </select>
-        </label>
+            <Link href={`/admin/organizations/${organizationId}/partenaires`}>
+              Annuler
+            </Link>
+          </Button>
 
-        <label className="space-y-2 text-sm font-medium">
-          Ville
-          <input
-            {...form.register("ville")}
+          <Button
+            type="submit"
             disabled={pending}
-            placeholder="Kinshasa"
-            className="h-12 w-full rounded-2xl border bg-white px-4 text-sm outline-none"
-          />
-        </label>
-
-        <label className="space-y-2 text-sm font-medium">
-          Pays
-          <input
-            {...form.register("pays")}
-            disabled={pending}
-            placeholder="RDC"
-            className="h-12 w-full rounded-2xl border bg-white px-4 text-sm outline-none"
-          />
-        </label>
-
-        <label className="space-y-2 text-sm font-medium">
-          Personne contact
-          <div className="flex items-center gap-2 rounded-2xl border bg-white px-3">
-            <UserRound className="size-4 text-muted-foreground" />
-            <input
-              {...form.register("contactName")}
-              disabled={pending}
-              placeholder="Nom du contact"
-              className="h-12 w-full bg-transparent text-sm outline-none"
-            />
-          </div>
-        </label>
-
-        <label className="space-y-2 text-sm font-medium">
-          Fonction du contact
-          <input
-            {...form.register("contactRole")}
-            disabled={pending}
-            placeholder="Directeur, responsable..."
-            className="h-12 w-full rounded-2xl border bg-white px-4 text-sm outline-none"
-          />
-        </label>
-
-        <label className="space-y-2 text-sm font-medium md:col-span-2">
-          Adresse
-          <input
-            {...form.register("adresse")}
-            disabled={pending}
-            placeholder="Adresse complète"
-            className="h-12 w-full rounded-2xl border bg-white px-4 text-sm outline-none"
-          />
-        </label>
-
-        <label className="space-y-2 text-sm font-medium">
-          Référence contrat
-          <input
-            {...form.register("contractRef")}
-            disabled={pending}
-            placeholder="REF-2026..."
-            className="h-12 w-full rounded-2xl border bg-white px-4 text-sm outline-none"
-          />
-        </label>
-
-        <label className="space-y-2 text-sm font-medium">
-          Document
-          <input
-            name="documentFile"
-            type="file"
-            disabled={pending}
-            onChange={(e) => setFileName("documentUrl", e.target.files)}
-            className="h-12 w-full rounded-2xl border bg-white px-4 py-2 text-sm outline-none"
-          />
-          <input type="hidden" {...form.register("documentUrl")} />
-        </label>
-      </div>
-
-      <label className="block space-y-2 text-sm font-medium">
-        Description
-        <textarea
-          {...form.register("description")}
-          disabled={pending}
-          rows={4}
-          placeholder="Décrivez le partenariat..."
-          className="w-full resize-none rounded-2xl border bg-white px-4 py-3 text-sm outline-none"
-        />
-      </label>
-
-      <label className="block space-y-2 text-sm font-medium">
-        Notes internes
-        <textarea
-          {...form.register("notes")}
-          disabled={pending}
-          rows={3}
-          placeholder="Notes visibles uniquement dans l’administration..."
-          className="w-full resize-none rounded-2xl border bg-white px-4 py-3 text-sm outline-none"
-        />
-      </label>
-
-      <div className="grid gap-3 sm:grid-cols-2">
-        <label className="flex items-center justify-between rounded-2xl border bg-white px-4 py-3 text-sm font-medium">
-          Partenaire actif
-          <input
-            type="checkbox"
-            {...form.register("isActive")}
-            disabled={pending}
-            className="size-4"
-          />
-        </label>
-
-        <label className="flex items-center justify-between rounded-2xl border bg-white px-4 py-3 text-sm font-medium">
-          Mettre en avant
-          <input
-            type="checkbox"
-            {...form.register("isFeatured")}
-            disabled={pending}
-            className="size-4"
-          />
-        </label>
-      </div>
-
-      <div className="flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:justify-end">
-        <Link
-          href={`/admin/organizations/${organizationId}/partenaires`}
-          className="inline-flex h-11 w-full items-center justify-center rounded-full border bg-white px-5 text-sm font-semibold transition hover:bg-slate-50 sm:w-auto"
-        >
-          Annuler
-        </Link>
-
-        <button
-          type="submit"
-          disabled={pending}
-          className="inline-flex h-11 w-full items-center justify-center rounded-full bg-blue-950 px-5 text-sm font-semibold text-white shadow-lg shadow-blue-950/20 transition hover:bg-blue-950/90 disabled:cursor-not-allowed disabled:opacity-70 sm:w-auto"
-        >
-          {pending ? "Création..." : "Créer le partenaire"}
-        </button>
-      </div>
-    </form>
+            className="h-11 w-full rounded-full bg-blue-950 px-5 text-white shadow-lg shadow-blue-950/20 hover:bg-blue-950/90 sm:w-auto"
+          >
+            {pending ? (
+              <>
+                <Loader2 className="mr-2 size-4 animate-spin" />
+                Création...
+              </>
+            ) : (
+              "Créer le partenaire"
+            )}
+          </Button>
+        </div>
+      </form>
+    </Form>
   );
-}
-
-function FormError({ message }: { message?: string }) {
-  if (!message) return null;
-  return <p className="text-xs text-red-600">{message}</p>;
 }

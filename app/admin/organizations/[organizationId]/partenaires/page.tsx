@@ -9,7 +9,6 @@ import {
   Search,
 } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { prisma } from "@/lib/prisma";
 import { normalizeImageSrc } from "@/lib/utils";
@@ -89,18 +88,13 @@ export default async function OrganizationPartenairesPage({
             </p>
           </div>
 
-          <Button
-            variant="secondary"
-            className="h-11 rounded-full bg-white text-blue-950 hover:bg-blue-50"
-            asChild
+          <Link
+            href={`/admin/organizations/${organizationId}/partenaires/new`}
+            className="inline-flex h-11 items-center justify-center rounded-full bg-white px-4 text-sm font-medium text-blue-950 transition hover:bg-blue-50"
           >
-            <Link
-              href={`/admin/organizations/${organizationId}/partenaires/new`}
-            >
-              <Plus className="mr-2 size-4" />
-              Ajouter un partenaire
-            </Link>
-          </Button>
+            <Plus className="mr-2 size-4" />
+            Ajouter un partenaire
+          </Link>
         </div>
       </section>
 
@@ -223,12 +217,13 @@ export default async function OrganizationPartenairesPage({
         </section>
       )}
 
-      <Button variant="ghost" asChild className="w-fit rounded-full">
-        <Link href={`/admin/organizations/${organizationId}`}>
-          <ArrowLeft className="mr-2 size-4" />
-          Retour organisation
-        </Link>
-      </Button>
+      <Link
+        href={`/admin/organizations/${organizationId}`}
+        className="inline-flex h-10 w-fit items-center justify-center rounded-full px-4 text-sm font-medium transition hover:bg-accent hover:text-accent-foreground"
+      >
+        <ArrowLeft className="mr-2 size-4" />
+        Retour organisation
+      </Link>
     </div>
   );
 }

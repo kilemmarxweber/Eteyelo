@@ -248,6 +248,11 @@ export type Invitation = Prisma.InvitationModel
  */
 export type Branch = Prisma.BranchModel
 /**
+ * Model RegistrationRequest
+ * 
+ */
+export type RegistrationRequest = Prisma.RegistrationRequestModel
+/**
  * Model Partnaire
  * 
  */

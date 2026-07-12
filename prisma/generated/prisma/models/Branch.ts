@@ -353,6 +353,7 @@ export type BranchWhereInput = {
   paymentEvent?: Prisma.PaymentEventListRelationFilter
   partnaires?: Prisma.PartnaireListRelationFilter
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeListRelationFilter
+  registrationRequests?: Prisma.RegistrationRequestListRelationFilter
 }
 
 export type BranchOrderByWithRelationInput = {
@@ -410,6 +411,7 @@ export type BranchOrderByWithRelationInput = {
   paymentEvent?: Prisma.PaymentEventOrderByRelationAggregateInput
   partnaires?: Prisma.PartnaireOrderByRelationAggregateInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeOrderByRelationAggregateInput
+  registrationRequests?: Prisma.RegistrationRequestOrderByRelationAggregateInput
 }
 
 export type BranchWhereUniqueInput = Prisma.AtLeast<{
@@ -471,6 +473,7 @@ export type BranchWhereUniqueInput = Prisma.AtLeast<{
   paymentEvent?: Prisma.PaymentEventListRelationFilter
   partnaires?: Prisma.PartnaireListRelationFilter
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeListRelationFilter
+  registrationRequests?: Prisma.RegistrationRequestListRelationFilter
 }, "id" | "organizationId_code">
 
 export type BranchOrderByWithAggregationInput = {
@@ -575,6 +578,7 @@ export type BranchCreateInput = {
   paymentEvent?: Prisma.PaymentEventCreateNestedManyWithoutBranchInput
   partnaires?: Prisma.PartnaireCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeCreateNestedManyWithoutBranchInput
+  registrationRequests?: Prisma.RegistrationRequestCreateNestedManyWithoutBranchInput
 }
 
 export type BranchUncheckedCreateInput = {
@@ -631,6 +635,7 @@ export type BranchUncheckedCreateInput = {
   paymentEvent?: Prisma.PaymentEventUncheckedCreateNestedManyWithoutBranchInput
   partnaires?: Prisma.PartnaireUncheckedCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedCreateNestedManyWithoutBranchInput
+  registrationRequests?: Prisma.RegistrationRequestUncheckedCreateNestedManyWithoutBranchInput
 }
 
 export type BranchUpdateInput = {
@@ -687,6 +692,7 @@ export type BranchUpdateInput = {
   paymentEvent?: Prisma.PaymentEventUpdateManyWithoutBranchNestedInput
   partnaires?: Prisma.PartnaireUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUpdateManyWithoutBranchNestedInput
+  registrationRequests?: Prisma.RegistrationRequestUpdateManyWithoutBranchNestedInput
 }
 
 export type BranchUncheckedUpdateInput = {
@@ -743,6 +749,7 @@ export type BranchUncheckedUpdateInput = {
   paymentEvent?: Prisma.PaymentEventUncheckedUpdateManyWithoutBranchNestedInput
   partnaires?: Prisma.PartnaireUncheckedUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedUpdateManyWithoutBranchNestedInput
+  registrationRequests?: Prisma.RegistrationRequestUncheckedUpdateManyWithoutBranchNestedInput
 }
 
 export type BranchCreateManyInput = {
@@ -1397,6 +1404,20 @@ export type EnumTypeBracheFieldUpdateOperationsInput = {
   set?: $Enums.TypeBrache
 }
 
+export type BranchCreateNestedOneWithoutRegistrationRequestsInput = {
+  create?: Prisma.XOR<Prisma.BranchCreateWithoutRegistrationRequestsInput, Prisma.BranchUncheckedCreateWithoutRegistrationRequestsInput>
+  connectOrCreate?: Prisma.BranchCreateOrConnectWithoutRegistrationRequestsInput
+  connect?: Prisma.BranchWhereUniqueInput
+}
+
+export type BranchUpdateOneRequiredWithoutRegistrationRequestsNestedInput = {
+  create?: Prisma.XOR<Prisma.BranchCreateWithoutRegistrationRequestsInput, Prisma.BranchUncheckedCreateWithoutRegistrationRequestsInput>
+  connectOrCreate?: Prisma.BranchCreateOrConnectWithoutRegistrationRequestsInput
+  upsert?: Prisma.BranchUpsertWithoutRegistrationRequestsInput
+  connect?: Prisma.BranchWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.BranchUpdateToOneWithWhereWithoutRegistrationRequestsInput, Prisma.BranchUpdateWithoutRegistrationRequestsInput>, Prisma.BranchUncheckedUpdateWithoutRegistrationRequestsInput>
+}
+
 export type BranchCreateNestedOneWithoutPartnairesInput = {
   create?: Prisma.XOR<Prisma.BranchCreateWithoutPartnairesInput, Prisma.BranchUncheckedCreateWithoutPartnairesInput>
   connectOrCreate?: Prisma.BranchCreateOrConnectWithoutPartnairesInput
@@ -1510,6 +1531,7 @@ export type BranchCreateWithoutAttendanceSessionsInput = {
   paymentEvent?: Prisma.PaymentEventCreateNestedManyWithoutBranchInput
   partnaires?: Prisma.PartnaireCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeCreateNestedManyWithoutBranchInput
+  registrationRequests?: Prisma.RegistrationRequestCreateNestedManyWithoutBranchInput
 }
 
 export type BranchUncheckedCreateWithoutAttendanceSessionsInput = {
@@ -1565,6 +1587,7 @@ export type BranchUncheckedCreateWithoutAttendanceSessionsInput = {
   paymentEvent?: Prisma.PaymentEventUncheckedCreateNestedManyWithoutBranchInput
   partnaires?: Prisma.PartnaireUncheckedCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedCreateNestedManyWithoutBranchInput
+  registrationRequests?: Prisma.RegistrationRequestUncheckedCreateNestedManyWithoutBranchInput
 }
 
 export type BranchCreateOrConnectWithoutAttendanceSessionsInput = {
@@ -1636,6 +1659,7 @@ export type BranchUpdateWithoutAttendanceSessionsInput = {
   paymentEvent?: Prisma.PaymentEventUpdateManyWithoutBranchNestedInput
   partnaires?: Prisma.PartnaireUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUpdateManyWithoutBranchNestedInput
+  registrationRequests?: Prisma.RegistrationRequestUpdateManyWithoutBranchNestedInput
 }
 
 export type BranchUncheckedUpdateWithoutAttendanceSessionsInput = {
@@ -1691,6 +1715,7 @@ export type BranchUncheckedUpdateWithoutAttendanceSessionsInput = {
   paymentEvent?: Prisma.PaymentEventUncheckedUpdateManyWithoutBranchNestedInput
   partnaires?: Prisma.PartnaireUncheckedUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedUpdateManyWithoutBranchNestedInput
+  registrationRequests?: Prisma.RegistrationRequestUncheckedUpdateManyWithoutBranchNestedInput
 }
 
 export type BranchCreateWithoutStudentAttendanceInput = {
@@ -1746,6 +1771,7 @@ export type BranchCreateWithoutStudentAttendanceInput = {
   paymentEvent?: Prisma.PaymentEventCreateNestedManyWithoutBranchInput
   partnaires?: Prisma.PartnaireCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeCreateNestedManyWithoutBranchInput
+  registrationRequests?: Prisma.RegistrationRequestCreateNestedManyWithoutBranchInput
 }
 
 export type BranchUncheckedCreateWithoutStudentAttendanceInput = {
@@ -1801,6 +1827,7 @@ export type BranchUncheckedCreateWithoutStudentAttendanceInput = {
   paymentEvent?: Prisma.PaymentEventUncheckedCreateNestedManyWithoutBranchInput
   partnaires?: Prisma.PartnaireUncheckedCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedCreateNestedManyWithoutBranchInput
+  registrationRequests?: Prisma.RegistrationRequestUncheckedCreateNestedManyWithoutBranchInput
 }
 
 export type BranchCreateOrConnectWithoutStudentAttendanceInput = {
@@ -1872,6 +1899,7 @@ export type BranchUpdateWithoutStudentAttendanceInput = {
   paymentEvent?: Prisma.PaymentEventUpdateManyWithoutBranchNestedInput
   partnaires?: Prisma.PartnaireUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUpdateManyWithoutBranchNestedInput
+  registrationRequests?: Prisma.RegistrationRequestUpdateManyWithoutBranchNestedInput
 }
 
 export type BranchUncheckedUpdateWithoutStudentAttendanceInput = {
@@ -1927,6 +1955,7 @@ export type BranchUncheckedUpdateWithoutStudentAttendanceInput = {
   paymentEvent?: Prisma.PaymentEventUncheckedUpdateManyWithoutBranchNestedInput
   partnaires?: Prisma.PartnaireUncheckedUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedUpdateManyWithoutBranchNestedInput
+  registrationRequests?: Prisma.RegistrationRequestUncheckedUpdateManyWithoutBranchNestedInput
 }
 
 export type BranchCreateWithoutTeacherAttendanceInput = {
@@ -1982,6 +2011,7 @@ export type BranchCreateWithoutTeacherAttendanceInput = {
   paymentEvent?: Prisma.PaymentEventCreateNestedManyWithoutBranchInput
   partnaires?: Prisma.PartnaireCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeCreateNestedManyWithoutBranchInput
+  registrationRequests?: Prisma.RegistrationRequestCreateNestedManyWithoutBranchInput
 }
 
 export type BranchUncheckedCreateWithoutTeacherAttendanceInput = {
@@ -2037,6 +2067,7 @@ export type BranchUncheckedCreateWithoutTeacherAttendanceInput = {
   paymentEvent?: Prisma.PaymentEventUncheckedCreateNestedManyWithoutBranchInput
   partnaires?: Prisma.PartnaireUncheckedCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedCreateNestedManyWithoutBranchInput
+  registrationRequests?: Prisma.RegistrationRequestUncheckedCreateNestedManyWithoutBranchInput
 }
 
 export type BranchCreateOrConnectWithoutTeacherAttendanceInput = {
@@ -2108,6 +2139,7 @@ export type BranchUpdateWithoutTeacherAttendanceInput = {
   paymentEvent?: Prisma.PaymentEventUpdateManyWithoutBranchNestedInput
   partnaires?: Prisma.PartnaireUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUpdateManyWithoutBranchNestedInput
+  registrationRequests?: Prisma.RegistrationRequestUpdateManyWithoutBranchNestedInput
 }
 
 export type BranchUncheckedUpdateWithoutTeacherAttendanceInput = {
@@ -2163,6 +2195,7 @@ export type BranchUncheckedUpdateWithoutTeacherAttendanceInput = {
   paymentEvent?: Prisma.PaymentEventUncheckedUpdateManyWithoutBranchNestedInput
   partnaires?: Prisma.PartnaireUncheckedUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedUpdateManyWithoutBranchNestedInput
+  registrationRequests?: Prisma.RegistrationRequestUncheckedUpdateManyWithoutBranchNestedInput
 }
 
 export type BranchCreateWithoutPersonnelAttendanceInput = {
@@ -2218,6 +2251,7 @@ export type BranchCreateWithoutPersonnelAttendanceInput = {
   paymentEvent?: Prisma.PaymentEventCreateNestedManyWithoutBranchInput
   partnaires?: Prisma.PartnaireCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeCreateNestedManyWithoutBranchInput
+  registrationRequests?: Prisma.RegistrationRequestCreateNestedManyWithoutBranchInput
 }
 
 export type BranchUncheckedCreateWithoutPersonnelAttendanceInput = {
@@ -2273,6 +2307,7 @@ export type BranchUncheckedCreateWithoutPersonnelAttendanceInput = {
   paymentEvent?: Prisma.PaymentEventUncheckedCreateNestedManyWithoutBranchInput
   partnaires?: Prisma.PartnaireUncheckedCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedCreateNestedManyWithoutBranchInput
+  registrationRequests?: Prisma.RegistrationRequestUncheckedCreateNestedManyWithoutBranchInput
 }
 
 export type BranchCreateOrConnectWithoutPersonnelAttendanceInput = {
@@ -2344,6 +2379,7 @@ export type BranchUpdateWithoutPersonnelAttendanceInput = {
   paymentEvent?: Prisma.PaymentEventUpdateManyWithoutBranchNestedInput
   partnaires?: Prisma.PartnaireUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUpdateManyWithoutBranchNestedInput
+  registrationRequests?: Prisma.RegistrationRequestUpdateManyWithoutBranchNestedInput
 }
 
 export type BranchUncheckedUpdateWithoutPersonnelAttendanceInput = {
@@ -2399,6 +2435,7 @@ export type BranchUncheckedUpdateWithoutPersonnelAttendanceInput = {
   paymentEvent?: Prisma.PaymentEventUncheckedUpdateManyWithoutBranchNestedInput
   partnaires?: Prisma.PartnaireUncheckedUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedUpdateManyWithoutBranchNestedInput
+  registrationRequests?: Prisma.RegistrationRequestUncheckedUpdateManyWithoutBranchNestedInput
 }
 
 export type BranchCreateWithoutParentFeedbackInput = {
@@ -2454,6 +2491,7 @@ export type BranchCreateWithoutParentFeedbackInput = {
   paymentEvent?: Prisma.PaymentEventCreateNestedManyWithoutBranchInput
   partnaires?: Prisma.PartnaireCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeCreateNestedManyWithoutBranchInput
+  registrationRequests?: Prisma.RegistrationRequestCreateNestedManyWithoutBranchInput
 }
 
 export type BranchUncheckedCreateWithoutParentFeedbackInput = {
@@ -2509,6 +2547,7 @@ export type BranchUncheckedCreateWithoutParentFeedbackInput = {
   paymentEvent?: Prisma.PaymentEventUncheckedCreateNestedManyWithoutBranchInput
   partnaires?: Prisma.PartnaireUncheckedCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedCreateNestedManyWithoutBranchInput
+  registrationRequests?: Prisma.RegistrationRequestUncheckedCreateNestedManyWithoutBranchInput
 }
 
 export type BranchCreateOrConnectWithoutParentFeedbackInput = {
@@ -2580,6 +2619,7 @@ export type BranchUpdateWithoutParentFeedbackInput = {
   paymentEvent?: Prisma.PaymentEventUpdateManyWithoutBranchNestedInput
   partnaires?: Prisma.PartnaireUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUpdateManyWithoutBranchNestedInput
+  registrationRequests?: Prisma.RegistrationRequestUpdateManyWithoutBranchNestedInput
 }
 
 export type BranchUncheckedUpdateWithoutParentFeedbackInput = {
@@ -2635,6 +2675,7 @@ export type BranchUncheckedUpdateWithoutParentFeedbackInput = {
   paymentEvent?: Prisma.PaymentEventUncheckedUpdateManyWithoutBranchNestedInput
   partnaires?: Prisma.PartnaireUncheckedUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedUpdateManyWithoutBranchNestedInput
+  registrationRequests?: Prisma.RegistrationRequestUncheckedUpdateManyWithoutBranchNestedInput
 }
 
 export type BranchCreateWithoutStudentGradeInput = {
@@ -2690,6 +2731,7 @@ export type BranchCreateWithoutStudentGradeInput = {
   paymentEvent?: Prisma.PaymentEventCreateNestedManyWithoutBranchInput
   partnaires?: Prisma.PartnaireCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeCreateNestedManyWithoutBranchInput
+  registrationRequests?: Prisma.RegistrationRequestCreateNestedManyWithoutBranchInput
 }
 
 export type BranchUncheckedCreateWithoutStudentGradeInput = {
@@ -2745,6 +2787,7 @@ export type BranchUncheckedCreateWithoutStudentGradeInput = {
   paymentEvent?: Prisma.PaymentEventUncheckedCreateNestedManyWithoutBranchInput
   partnaires?: Prisma.PartnaireUncheckedCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedCreateNestedManyWithoutBranchInput
+  registrationRequests?: Prisma.RegistrationRequestUncheckedCreateNestedManyWithoutBranchInput
 }
 
 export type BranchCreateOrConnectWithoutStudentGradeInput = {
@@ -2816,6 +2859,7 @@ export type BranchUpdateWithoutStudentGradeInput = {
   paymentEvent?: Prisma.PaymentEventUpdateManyWithoutBranchNestedInput
   partnaires?: Prisma.PartnaireUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUpdateManyWithoutBranchNestedInput
+  registrationRequests?: Prisma.RegistrationRequestUpdateManyWithoutBranchNestedInput
 }
 
 export type BranchUncheckedUpdateWithoutStudentGradeInput = {
@@ -2871,6 +2915,7 @@ export type BranchUncheckedUpdateWithoutStudentGradeInput = {
   paymentEvent?: Prisma.PaymentEventUncheckedUpdateManyWithoutBranchNestedInput
   partnaires?: Prisma.PartnaireUncheckedUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedUpdateManyWithoutBranchNestedInput
+  registrationRequests?: Prisma.RegistrationRequestUncheckedUpdateManyWithoutBranchNestedInput
 }
 
 export type BranchCreateWithoutFraisInput = {
@@ -2926,6 +2971,7 @@ export type BranchCreateWithoutFraisInput = {
   paymentEvent?: Prisma.PaymentEventCreateNestedManyWithoutBranchInput
   partnaires?: Prisma.PartnaireCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeCreateNestedManyWithoutBranchInput
+  registrationRequests?: Prisma.RegistrationRequestCreateNestedManyWithoutBranchInput
 }
 
 export type BranchUncheckedCreateWithoutFraisInput = {
@@ -2981,6 +3027,7 @@ export type BranchUncheckedCreateWithoutFraisInput = {
   paymentEvent?: Prisma.PaymentEventUncheckedCreateNestedManyWithoutBranchInput
   partnaires?: Prisma.PartnaireUncheckedCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedCreateNestedManyWithoutBranchInput
+  registrationRequests?: Prisma.RegistrationRequestUncheckedCreateNestedManyWithoutBranchInput
 }
 
 export type BranchCreateOrConnectWithoutFraisInput = {
@@ -3052,6 +3099,7 @@ export type BranchUpdateWithoutFraisInput = {
   paymentEvent?: Prisma.PaymentEventUpdateManyWithoutBranchNestedInput
   partnaires?: Prisma.PartnaireUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUpdateManyWithoutBranchNestedInput
+  registrationRequests?: Prisma.RegistrationRequestUpdateManyWithoutBranchNestedInput
 }
 
 export type BranchUncheckedUpdateWithoutFraisInput = {
@@ -3107,6 +3155,7 @@ export type BranchUncheckedUpdateWithoutFraisInput = {
   paymentEvent?: Prisma.PaymentEventUncheckedUpdateManyWithoutBranchNestedInput
   partnaires?: Prisma.PartnaireUncheckedUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedUpdateManyWithoutBranchNestedInput
+  registrationRequests?: Prisma.RegistrationRequestUncheckedUpdateManyWithoutBranchNestedInput
 }
 
 export type BranchCreateWithoutTypeFraisInput = {
@@ -3162,6 +3211,7 @@ export type BranchCreateWithoutTypeFraisInput = {
   paymentEvent?: Prisma.PaymentEventCreateNestedManyWithoutBranchInput
   partnaires?: Prisma.PartnaireCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeCreateNestedManyWithoutBranchInput
+  registrationRequests?: Prisma.RegistrationRequestCreateNestedManyWithoutBranchInput
 }
 
 export type BranchUncheckedCreateWithoutTypeFraisInput = {
@@ -3217,6 +3267,7 @@ export type BranchUncheckedCreateWithoutTypeFraisInput = {
   paymentEvent?: Prisma.PaymentEventUncheckedCreateNestedManyWithoutBranchInput
   partnaires?: Prisma.PartnaireUncheckedCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedCreateNestedManyWithoutBranchInput
+  registrationRequests?: Prisma.RegistrationRequestUncheckedCreateNestedManyWithoutBranchInput
 }
 
 export type BranchCreateOrConnectWithoutTypeFraisInput = {
@@ -3288,6 +3339,7 @@ export type BranchUpdateWithoutTypeFraisInput = {
   paymentEvent?: Prisma.PaymentEventUpdateManyWithoutBranchNestedInput
   partnaires?: Prisma.PartnaireUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUpdateManyWithoutBranchNestedInput
+  registrationRequests?: Prisma.RegistrationRequestUpdateManyWithoutBranchNestedInput
 }
 
 export type BranchUncheckedUpdateWithoutTypeFraisInput = {
@@ -3343,6 +3395,7 @@ export type BranchUncheckedUpdateWithoutTypeFraisInput = {
   paymentEvent?: Prisma.PaymentEventUncheckedUpdateManyWithoutBranchNestedInput
   partnaires?: Prisma.PartnaireUncheckedUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedUpdateManyWithoutBranchNestedInput
+  registrationRequests?: Prisma.RegistrationRequestUncheckedUpdateManyWithoutBranchNestedInput
 }
 
 export type BranchCreateWithoutClassesInput = {
@@ -3398,6 +3451,7 @@ export type BranchCreateWithoutClassesInput = {
   paymentEvent?: Prisma.PaymentEventCreateNestedManyWithoutBranchInput
   partnaires?: Prisma.PartnaireCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeCreateNestedManyWithoutBranchInput
+  registrationRequests?: Prisma.RegistrationRequestCreateNestedManyWithoutBranchInput
 }
 
 export type BranchUncheckedCreateWithoutClassesInput = {
@@ -3453,6 +3507,7 @@ export type BranchUncheckedCreateWithoutClassesInput = {
   paymentEvent?: Prisma.PaymentEventUncheckedCreateNestedManyWithoutBranchInput
   partnaires?: Prisma.PartnaireUncheckedCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedCreateNestedManyWithoutBranchInput
+  registrationRequests?: Prisma.RegistrationRequestUncheckedCreateNestedManyWithoutBranchInput
 }
 
 export type BranchCreateOrConnectWithoutClassesInput = {
@@ -3524,6 +3579,7 @@ export type BranchUpdateWithoutClassesInput = {
   paymentEvent?: Prisma.PaymentEventUpdateManyWithoutBranchNestedInput
   partnaires?: Prisma.PartnaireUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUpdateManyWithoutBranchNestedInput
+  registrationRequests?: Prisma.RegistrationRequestUpdateManyWithoutBranchNestedInput
 }
 
 export type BranchUncheckedUpdateWithoutClassesInput = {
@@ -3579,6 +3635,7 @@ export type BranchUncheckedUpdateWithoutClassesInput = {
   paymentEvent?: Prisma.PaymentEventUncheckedUpdateManyWithoutBranchNestedInput
   partnaires?: Prisma.PartnaireUncheckedUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedUpdateManyWithoutBranchNestedInput
+  registrationRequests?: Prisma.RegistrationRequestUncheckedUpdateManyWithoutBranchNestedInput
 }
 
 export type BranchCreateWithoutCreneauInput = {
@@ -3634,6 +3691,7 @@ export type BranchCreateWithoutCreneauInput = {
   paymentEvent?: Prisma.PaymentEventCreateNestedManyWithoutBranchInput
   partnaires?: Prisma.PartnaireCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeCreateNestedManyWithoutBranchInput
+  registrationRequests?: Prisma.RegistrationRequestCreateNestedManyWithoutBranchInput
 }
 
 export type BranchUncheckedCreateWithoutCreneauInput = {
@@ -3689,6 +3747,7 @@ export type BranchUncheckedCreateWithoutCreneauInput = {
   paymentEvent?: Prisma.PaymentEventUncheckedCreateNestedManyWithoutBranchInput
   partnaires?: Prisma.PartnaireUncheckedCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedCreateNestedManyWithoutBranchInput
+  registrationRequests?: Prisma.RegistrationRequestUncheckedCreateNestedManyWithoutBranchInput
 }
 
 export type BranchCreateOrConnectWithoutCreneauInput = {
@@ -3760,6 +3819,7 @@ export type BranchUpdateWithoutCreneauInput = {
   paymentEvent?: Prisma.PaymentEventUpdateManyWithoutBranchNestedInput
   partnaires?: Prisma.PartnaireUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUpdateManyWithoutBranchNestedInput
+  registrationRequests?: Prisma.RegistrationRequestUpdateManyWithoutBranchNestedInput
 }
 
 export type BranchUncheckedUpdateWithoutCreneauInput = {
@@ -3815,6 +3875,7 @@ export type BranchUncheckedUpdateWithoutCreneauInput = {
   paymentEvent?: Prisma.PaymentEventUncheckedUpdateManyWithoutBranchNestedInput
   partnaires?: Prisma.PartnaireUncheckedUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedUpdateManyWithoutBranchNestedInput
+  registrationRequests?: Prisma.RegistrationRequestUncheckedUpdateManyWithoutBranchNestedInput
 }
 
 export type BranchCreateWithoutOptionInput = {
@@ -3870,6 +3931,7 @@ export type BranchCreateWithoutOptionInput = {
   paymentEvent?: Prisma.PaymentEventCreateNestedManyWithoutBranchInput
   partnaires?: Prisma.PartnaireCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeCreateNestedManyWithoutBranchInput
+  registrationRequests?: Prisma.RegistrationRequestCreateNestedManyWithoutBranchInput
 }
 
 export type BranchUncheckedCreateWithoutOptionInput = {
@@ -3925,6 +3987,7 @@ export type BranchUncheckedCreateWithoutOptionInput = {
   paymentEvent?: Prisma.PaymentEventUncheckedCreateNestedManyWithoutBranchInput
   partnaires?: Prisma.PartnaireUncheckedCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedCreateNestedManyWithoutBranchInput
+  registrationRequests?: Prisma.RegistrationRequestUncheckedCreateNestedManyWithoutBranchInput
 }
 
 export type BranchCreateOrConnectWithoutOptionInput = {
@@ -3996,6 +4059,7 @@ export type BranchUpdateWithoutOptionInput = {
   paymentEvent?: Prisma.PaymentEventUpdateManyWithoutBranchNestedInput
   partnaires?: Prisma.PartnaireUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUpdateManyWithoutBranchNestedInput
+  registrationRequests?: Prisma.RegistrationRequestUpdateManyWithoutBranchNestedInput
 }
 
 export type BranchUncheckedUpdateWithoutOptionInput = {
@@ -4051,6 +4115,7 @@ export type BranchUncheckedUpdateWithoutOptionInput = {
   paymentEvent?: Prisma.PaymentEventUncheckedUpdateManyWithoutBranchNestedInput
   partnaires?: Prisma.PartnaireUncheckedUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedUpdateManyWithoutBranchNestedInput
+  registrationRequests?: Prisma.RegistrationRequestUncheckedUpdateManyWithoutBranchNestedInput
 }
 
 export type BranchCreateWithoutSectionInput = {
@@ -4106,6 +4171,7 @@ export type BranchCreateWithoutSectionInput = {
   paymentEvent?: Prisma.PaymentEventCreateNestedManyWithoutBranchInput
   partnaires?: Prisma.PartnaireCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeCreateNestedManyWithoutBranchInput
+  registrationRequests?: Prisma.RegistrationRequestCreateNestedManyWithoutBranchInput
 }
 
 export type BranchUncheckedCreateWithoutSectionInput = {
@@ -4161,6 +4227,7 @@ export type BranchUncheckedCreateWithoutSectionInput = {
   paymentEvent?: Prisma.PaymentEventUncheckedCreateNestedManyWithoutBranchInput
   partnaires?: Prisma.PartnaireUncheckedCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedCreateNestedManyWithoutBranchInput
+  registrationRequests?: Prisma.RegistrationRequestUncheckedCreateNestedManyWithoutBranchInput
 }
 
 export type BranchCreateOrConnectWithoutSectionInput = {
@@ -4232,6 +4299,7 @@ export type BranchUpdateWithoutSectionInput = {
   paymentEvent?: Prisma.PaymentEventUpdateManyWithoutBranchNestedInput
   partnaires?: Prisma.PartnaireUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUpdateManyWithoutBranchNestedInput
+  registrationRequests?: Prisma.RegistrationRequestUpdateManyWithoutBranchNestedInput
 }
 
 export type BranchUncheckedUpdateWithoutSectionInput = {
@@ -4287,6 +4355,7 @@ export type BranchUncheckedUpdateWithoutSectionInput = {
   paymentEvent?: Prisma.PaymentEventUncheckedUpdateManyWithoutBranchNestedInput
   partnaires?: Prisma.PartnaireUncheckedUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedUpdateManyWithoutBranchNestedInput
+  registrationRequests?: Prisma.RegistrationRequestUncheckedUpdateManyWithoutBranchNestedInput
 }
 
 export type BranchCreateWithoutSchoolYearInput = {
@@ -4342,6 +4411,7 @@ export type BranchCreateWithoutSchoolYearInput = {
   paymentEvent?: Prisma.PaymentEventCreateNestedManyWithoutBranchInput
   partnaires?: Prisma.PartnaireCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeCreateNestedManyWithoutBranchInput
+  registrationRequests?: Prisma.RegistrationRequestCreateNestedManyWithoutBranchInput
 }
 
 export type BranchUncheckedCreateWithoutSchoolYearInput = {
@@ -4397,6 +4467,7 @@ export type BranchUncheckedCreateWithoutSchoolYearInput = {
   paymentEvent?: Prisma.PaymentEventUncheckedCreateNestedManyWithoutBranchInput
   partnaires?: Prisma.PartnaireUncheckedCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedCreateNestedManyWithoutBranchInput
+  registrationRequests?: Prisma.RegistrationRequestUncheckedCreateNestedManyWithoutBranchInput
 }
 
 export type BranchCreateOrConnectWithoutSchoolYearInput = {
@@ -4468,6 +4539,7 @@ export type BranchUpdateWithoutSchoolYearInput = {
   paymentEvent?: Prisma.PaymentEventUpdateManyWithoutBranchNestedInput
   partnaires?: Prisma.PartnaireUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUpdateManyWithoutBranchNestedInput
+  registrationRequests?: Prisma.RegistrationRequestUpdateManyWithoutBranchNestedInput
 }
 
 export type BranchUncheckedUpdateWithoutSchoolYearInput = {
@@ -4523,6 +4595,7 @@ export type BranchUncheckedUpdateWithoutSchoolYearInput = {
   paymentEvent?: Prisma.PaymentEventUncheckedUpdateManyWithoutBranchNestedInput
   partnaires?: Prisma.PartnaireUncheckedUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedUpdateManyWithoutBranchNestedInput
+  registrationRequests?: Prisma.RegistrationRequestUncheckedUpdateManyWithoutBranchNestedInput
 }
 
 export type BranchCreateWithoutClassEnrollmentInput = {
@@ -4578,6 +4651,7 @@ export type BranchCreateWithoutClassEnrollmentInput = {
   paymentEvent?: Prisma.PaymentEventCreateNestedManyWithoutBranchInput
   partnaires?: Prisma.PartnaireCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeCreateNestedManyWithoutBranchInput
+  registrationRequests?: Prisma.RegistrationRequestCreateNestedManyWithoutBranchInput
 }
 
 export type BranchUncheckedCreateWithoutClassEnrollmentInput = {
@@ -4633,6 +4707,7 @@ export type BranchUncheckedCreateWithoutClassEnrollmentInput = {
   paymentEvent?: Prisma.PaymentEventUncheckedCreateNestedManyWithoutBranchInput
   partnaires?: Prisma.PartnaireUncheckedCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedCreateNestedManyWithoutBranchInput
+  registrationRequests?: Prisma.RegistrationRequestUncheckedCreateNestedManyWithoutBranchInput
 }
 
 export type BranchCreateOrConnectWithoutClassEnrollmentInput = {
@@ -4704,6 +4779,7 @@ export type BranchUpdateWithoutClassEnrollmentInput = {
   paymentEvent?: Prisma.PaymentEventUpdateManyWithoutBranchNestedInput
   partnaires?: Prisma.PartnaireUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUpdateManyWithoutBranchNestedInput
+  registrationRequests?: Prisma.RegistrationRequestUpdateManyWithoutBranchNestedInput
 }
 
 export type BranchUncheckedUpdateWithoutClassEnrollmentInput = {
@@ -4759,6 +4835,7 @@ export type BranchUncheckedUpdateWithoutClassEnrollmentInput = {
   paymentEvent?: Prisma.PaymentEventUncheckedUpdateManyWithoutBranchNestedInput
   partnaires?: Prisma.PartnaireUncheckedUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedUpdateManyWithoutBranchNestedInput
+  registrationRequests?: Prisma.RegistrationRequestUncheckedUpdateManyWithoutBranchNestedInput
 }
 
 export type BranchCreateWithoutTeachingInput = {
@@ -4814,6 +4891,7 @@ export type BranchCreateWithoutTeachingInput = {
   paymentEvent?: Prisma.PaymentEventCreateNestedManyWithoutBranchInput
   partnaires?: Prisma.PartnaireCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeCreateNestedManyWithoutBranchInput
+  registrationRequests?: Prisma.RegistrationRequestCreateNestedManyWithoutBranchInput
 }
 
 export type BranchUncheckedCreateWithoutTeachingInput = {
@@ -4869,6 +4947,7 @@ export type BranchUncheckedCreateWithoutTeachingInput = {
   paymentEvent?: Prisma.PaymentEventUncheckedCreateNestedManyWithoutBranchInput
   partnaires?: Prisma.PartnaireUncheckedCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedCreateNestedManyWithoutBranchInput
+  registrationRequests?: Prisma.RegistrationRequestUncheckedCreateNestedManyWithoutBranchInput
 }
 
 export type BranchCreateOrConnectWithoutTeachingInput = {
@@ -4940,6 +5019,7 @@ export type BranchUpdateWithoutTeachingInput = {
   paymentEvent?: Prisma.PaymentEventUpdateManyWithoutBranchNestedInput
   partnaires?: Prisma.PartnaireUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUpdateManyWithoutBranchNestedInput
+  registrationRequests?: Prisma.RegistrationRequestUpdateManyWithoutBranchNestedInput
 }
 
 export type BranchUncheckedUpdateWithoutTeachingInput = {
@@ -4995,6 +5075,7 @@ export type BranchUncheckedUpdateWithoutTeachingInput = {
   paymentEvent?: Prisma.PaymentEventUncheckedUpdateManyWithoutBranchNestedInput
   partnaires?: Prisma.PartnaireUncheckedUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedUpdateManyWithoutBranchNestedInput
+  registrationRequests?: Prisma.RegistrationRequestUncheckedUpdateManyWithoutBranchNestedInput
 }
 
 export type BranchCreateWithoutCoursInput = {
@@ -5050,6 +5131,7 @@ export type BranchCreateWithoutCoursInput = {
   paymentEvent?: Prisma.PaymentEventCreateNestedManyWithoutBranchInput
   partnaires?: Prisma.PartnaireCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeCreateNestedManyWithoutBranchInput
+  registrationRequests?: Prisma.RegistrationRequestCreateNestedManyWithoutBranchInput
 }
 
 export type BranchUncheckedCreateWithoutCoursInput = {
@@ -5105,6 +5187,7 @@ export type BranchUncheckedCreateWithoutCoursInput = {
   paymentEvent?: Prisma.PaymentEventUncheckedCreateNestedManyWithoutBranchInput
   partnaires?: Prisma.PartnaireUncheckedCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedCreateNestedManyWithoutBranchInput
+  registrationRequests?: Prisma.RegistrationRequestUncheckedCreateNestedManyWithoutBranchInput
 }
 
 export type BranchCreateOrConnectWithoutCoursInput = {
@@ -5176,6 +5259,7 @@ export type BranchUpdateWithoutCoursInput = {
   paymentEvent?: Prisma.PaymentEventUpdateManyWithoutBranchNestedInput
   partnaires?: Prisma.PartnaireUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUpdateManyWithoutBranchNestedInput
+  registrationRequests?: Prisma.RegistrationRequestUpdateManyWithoutBranchNestedInput
 }
 
 export type BranchUncheckedUpdateWithoutCoursInput = {
@@ -5231,6 +5315,7 @@ export type BranchUncheckedUpdateWithoutCoursInput = {
   paymentEvent?: Prisma.PaymentEventUncheckedUpdateManyWithoutBranchNestedInput
   partnaires?: Prisma.PartnaireUncheckedUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedUpdateManyWithoutBranchNestedInput
+  registrationRequests?: Prisma.RegistrationRequestUncheckedUpdateManyWithoutBranchNestedInput
 }
 
 export type BranchCreateWithoutCoursPonderationsInput = {
@@ -5286,6 +5371,7 @@ export type BranchCreateWithoutCoursPonderationsInput = {
   paymentEvent?: Prisma.PaymentEventCreateNestedManyWithoutBranchInput
   partnaires?: Prisma.PartnaireCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeCreateNestedManyWithoutBranchInput
+  registrationRequests?: Prisma.RegistrationRequestCreateNestedManyWithoutBranchInput
 }
 
 export type BranchUncheckedCreateWithoutCoursPonderationsInput = {
@@ -5341,6 +5427,7 @@ export type BranchUncheckedCreateWithoutCoursPonderationsInput = {
   paymentEvent?: Prisma.PaymentEventUncheckedCreateNestedManyWithoutBranchInput
   partnaires?: Prisma.PartnaireUncheckedCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedCreateNestedManyWithoutBranchInput
+  registrationRequests?: Prisma.RegistrationRequestUncheckedCreateNestedManyWithoutBranchInput
 }
 
 export type BranchCreateOrConnectWithoutCoursPonderationsInput = {
@@ -5412,6 +5499,7 @@ export type BranchUpdateWithoutCoursPonderationsInput = {
   paymentEvent?: Prisma.PaymentEventUpdateManyWithoutBranchNestedInput
   partnaires?: Prisma.PartnaireUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUpdateManyWithoutBranchNestedInput
+  registrationRequests?: Prisma.RegistrationRequestUpdateManyWithoutBranchNestedInput
 }
 
 export type BranchUncheckedUpdateWithoutCoursPonderationsInput = {
@@ -5467,6 +5555,7 @@ export type BranchUncheckedUpdateWithoutCoursPonderationsInput = {
   paymentEvent?: Prisma.PaymentEventUncheckedUpdateManyWithoutBranchNestedInput
   partnaires?: Prisma.PartnaireUncheckedUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedUpdateManyWithoutBranchNestedInput
+  registrationRequests?: Prisma.RegistrationRequestUncheckedUpdateManyWithoutBranchNestedInput
 }
 
 export type BranchCreateWithoutCalendarEventInput = {
@@ -5522,6 +5611,7 @@ export type BranchCreateWithoutCalendarEventInput = {
   paymentEvent?: Prisma.PaymentEventCreateNestedManyWithoutBranchInput
   partnaires?: Prisma.PartnaireCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeCreateNestedManyWithoutBranchInput
+  registrationRequests?: Prisma.RegistrationRequestCreateNestedManyWithoutBranchInput
 }
 
 export type BranchUncheckedCreateWithoutCalendarEventInput = {
@@ -5577,6 +5667,7 @@ export type BranchUncheckedCreateWithoutCalendarEventInput = {
   paymentEvent?: Prisma.PaymentEventUncheckedCreateNestedManyWithoutBranchInput
   partnaires?: Prisma.PartnaireUncheckedCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedCreateNestedManyWithoutBranchInput
+  registrationRequests?: Prisma.RegistrationRequestUncheckedCreateNestedManyWithoutBranchInput
 }
 
 export type BranchCreateOrConnectWithoutCalendarEventInput = {
@@ -5648,6 +5739,7 @@ export type BranchUpdateWithoutCalendarEventInput = {
   paymentEvent?: Prisma.PaymentEventUpdateManyWithoutBranchNestedInput
   partnaires?: Prisma.PartnaireUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUpdateManyWithoutBranchNestedInput
+  registrationRequests?: Prisma.RegistrationRequestUpdateManyWithoutBranchNestedInput
 }
 
 export type BranchUncheckedUpdateWithoutCalendarEventInput = {
@@ -5703,6 +5795,7 @@ export type BranchUncheckedUpdateWithoutCalendarEventInput = {
   paymentEvent?: Prisma.PaymentEventUncheckedUpdateManyWithoutBranchNestedInput
   partnaires?: Prisma.PartnaireUncheckedUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedUpdateManyWithoutBranchNestedInput
+  registrationRequests?: Prisma.RegistrationRequestUncheckedUpdateManyWithoutBranchNestedInput
 }
 
 export type BranchCreateWithoutEventTypeInput = {
@@ -5758,6 +5851,7 @@ export type BranchCreateWithoutEventTypeInput = {
   paymentEvent?: Prisma.PaymentEventCreateNestedManyWithoutBranchInput
   partnaires?: Prisma.PartnaireCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeCreateNestedManyWithoutBranchInput
+  registrationRequests?: Prisma.RegistrationRequestCreateNestedManyWithoutBranchInput
 }
 
 export type BranchUncheckedCreateWithoutEventTypeInput = {
@@ -5813,6 +5907,7 @@ export type BranchUncheckedCreateWithoutEventTypeInput = {
   paymentEvent?: Prisma.PaymentEventUncheckedCreateNestedManyWithoutBranchInput
   partnaires?: Prisma.PartnaireUncheckedCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedCreateNestedManyWithoutBranchInput
+  registrationRequests?: Prisma.RegistrationRequestUncheckedCreateNestedManyWithoutBranchInput
 }
 
 export type BranchCreateOrConnectWithoutEventTypeInput = {
@@ -5884,6 +5979,7 @@ export type BranchUpdateWithoutEventTypeInput = {
   paymentEvent?: Prisma.PaymentEventUpdateManyWithoutBranchNestedInput
   partnaires?: Prisma.PartnaireUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUpdateManyWithoutBranchNestedInput
+  registrationRequests?: Prisma.RegistrationRequestUpdateManyWithoutBranchNestedInput
 }
 
 export type BranchUncheckedUpdateWithoutEventTypeInput = {
@@ -5939,6 +6035,7 @@ export type BranchUncheckedUpdateWithoutEventTypeInput = {
   paymentEvent?: Prisma.PaymentEventUncheckedUpdateManyWithoutBranchNestedInput
   partnaires?: Prisma.PartnaireUncheckedUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedUpdateManyWithoutBranchNestedInput
+  registrationRequests?: Prisma.RegistrationRequestUncheckedUpdateManyWithoutBranchNestedInput
 }
 
 export type BranchCreateWithoutSemesterInput = {
@@ -5994,6 +6091,7 @@ export type BranchCreateWithoutSemesterInput = {
   paymentEvent?: Prisma.PaymentEventCreateNestedManyWithoutBranchInput
   partnaires?: Prisma.PartnaireCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeCreateNestedManyWithoutBranchInput
+  registrationRequests?: Prisma.RegistrationRequestCreateNestedManyWithoutBranchInput
 }
 
 export type BranchUncheckedCreateWithoutSemesterInput = {
@@ -6049,6 +6147,7 @@ export type BranchUncheckedCreateWithoutSemesterInput = {
   paymentEvent?: Prisma.PaymentEventUncheckedCreateNestedManyWithoutBranchInput
   partnaires?: Prisma.PartnaireUncheckedCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedCreateNestedManyWithoutBranchInput
+  registrationRequests?: Prisma.RegistrationRequestUncheckedCreateNestedManyWithoutBranchInput
 }
 
 export type BranchCreateOrConnectWithoutSemesterInput = {
@@ -6120,6 +6219,7 @@ export type BranchUpdateWithoutSemesterInput = {
   paymentEvent?: Prisma.PaymentEventUpdateManyWithoutBranchNestedInput
   partnaires?: Prisma.PartnaireUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUpdateManyWithoutBranchNestedInput
+  registrationRequests?: Prisma.RegistrationRequestUpdateManyWithoutBranchNestedInput
 }
 
 export type BranchUncheckedUpdateWithoutSemesterInput = {
@@ -6175,6 +6275,7 @@ export type BranchUncheckedUpdateWithoutSemesterInput = {
   paymentEvent?: Prisma.PaymentEventUncheckedUpdateManyWithoutBranchNestedInput
   partnaires?: Prisma.PartnaireUncheckedUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedUpdateManyWithoutBranchNestedInput
+  registrationRequests?: Prisma.RegistrationRequestUncheckedUpdateManyWithoutBranchNestedInput
 }
 
 export type BranchCreateWithoutPeriodInput = {
@@ -6230,6 +6331,7 @@ export type BranchCreateWithoutPeriodInput = {
   paymentEvent?: Prisma.PaymentEventCreateNestedManyWithoutBranchInput
   partnaires?: Prisma.PartnaireCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeCreateNestedManyWithoutBranchInput
+  registrationRequests?: Prisma.RegistrationRequestCreateNestedManyWithoutBranchInput
 }
 
 export type BranchUncheckedCreateWithoutPeriodInput = {
@@ -6285,6 +6387,7 @@ export type BranchUncheckedCreateWithoutPeriodInput = {
   paymentEvent?: Prisma.PaymentEventUncheckedCreateNestedManyWithoutBranchInput
   partnaires?: Prisma.PartnaireUncheckedCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedCreateNestedManyWithoutBranchInput
+  registrationRequests?: Prisma.RegistrationRequestUncheckedCreateNestedManyWithoutBranchInput
 }
 
 export type BranchCreateOrConnectWithoutPeriodInput = {
@@ -6356,6 +6459,7 @@ export type BranchUpdateWithoutPeriodInput = {
   paymentEvent?: Prisma.PaymentEventUpdateManyWithoutBranchNestedInput
   partnaires?: Prisma.PartnaireUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUpdateManyWithoutBranchNestedInput
+  registrationRequests?: Prisma.RegistrationRequestUpdateManyWithoutBranchNestedInput
 }
 
 export type BranchUncheckedUpdateWithoutPeriodInput = {
@@ -6411,6 +6515,7 @@ export type BranchUncheckedUpdateWithoutPeriodInput = {
   paymentEvent?: Prisma.PaymentEventUncheckedUpdateManyWithoutBranchNestedInput
   partnaires?: Prisma.PartnaireUncheckedUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedUpdateManyWithoutBranchNestedInput
+  registrationRequests?: Prisma.RegistrationRequestUncheckedUpdateManyWithoutBranchNestedInput
 }
 
 export type BranchCreateWithoutPeriodResultLockInput = {
@@ -6466,6 +6571,7 @@ export type BranchCreateWithoutPeriodResultLockInput = {
   paymentEvent?: Prisma.PaymentEventCreateNestedManyWithoutBranchInput
   partnaires?: Prisma.PartnaireCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeCreateNestedManyWithoutBranchInput
+  registrationRequests?: Prisma.RegistrationRequestCreateNestedManyWithoutBranchInput
 }
 
 export type BranchUncheckedCreateWithoutPeriodResultLockInput = {
@@ -6521,6 +6627,7 @@ export type BranchUncheckedCreateWithoutPeriodResultLockInput = {
   paymentEvent?: Prisma.PaymentEventUncheckedCreateNestedManyWithoutBranchInput
   partnaires?: Prisma.PartnaireUncheckedCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedCreateNestedManyWithoutBranchInput
+  registrationRequests?: Prisma.RegistrationRequestUncheckedCreateNestedManyWithoutBranchInput
 }
 
 export type BranchCreateOrConnectWithoutPeriodResultLockInput = {
@@ -6592,6 +6699,7 @@ export type BranchUpdateWithoutPeriodResultLockInput = {
   paymentEvent?: Prisma.PaymentEventUpdateManyWithoutBranchNestedInput
   partnaires?: Prisma.PartnaireUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUpdateManyWithoutBranchNestedInput
+  registrationRequests?: Prisma.RegistrationRequestUpdateManyWithoutBranchNestedInput
 }
 
 export type BranchUncheckedUpdateWithoutPeriodResultLockInput = {
@@ -6647,6 +6755,7 @@ export type BranchUncheckedUpdateWithoutPeriodResultLockInput = {
   paymentEvent?: Prisma.PaymentEventUncheckedUpdateManyWithoutBranchNestedInput
   partnaires?: Prisma.PartnaireUncheckedUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedUpdateManyWithoutBranchNestedInput
+  registrationRequests?: Prisma.RegistrationRequestUncheckedUpdateManyWithoutBranchNestedInput
 }
 
 export type BranchCreateWithoutFicheInput = {
@@ -6702,6 +6811,7 @@ export type BranchCreateWithoutFicheInput = {
   paymentEvent?: Prisma.PaymentEventCreateNestedManyWithoutBranchInput
   partnaires?: Prisma.PartnaireCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeCreateNestedManyWithoutBranchInput
+  registrationRequests?: Prisma.RegistrationRequestCreateNestedManyWithoutBranchInput
 }
 
 export type BranchUncheckedCreateWithoutFicheInput = {
@@ -6757,6 +6867,7 @@ export type BranchUncheckedCreateWithoutFicheInput = {
   paymentEvent?: Prisma.PaymentEventUncheckedCreateNestedManyWithoutBranchInput
   partnaires?: Prisma.PartnaireUncheckedCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedCreateNestedManyWithoutBranchInput
+  registrationRequests?: Prisma.RegistrationRequestUncheckedCreateNestedManyWithoutBranchInput
 }
 
 export type BranchCreateOrConnectWithoutFicheInput = {
@@ -6828,6 +6939,7 @@ export type BranchUpdateWithoutFicheInput = {
   paymentEvent?: Prisma.PaymentEventUpdateManyWithoutBranchNestedInput
   partnaires?: Prisma.PartnaireUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUpdateManyWithoutBranchNestedInput
+  registrationRequests?: Prisma.RegistrationRequestUpdateManyWithoutBranchNestedInput
 }
 
 export type BranchUncheckedUpdateWithoutFicheInput = {
@@ -6883,6 +6995,7 @@ export type BranchUncheckedUpdateWithoutFicheInput = {
   paymentEvent?: Prisma.PaymentEventUncheckedUpdateManyWithoutBranchNestedInput
   partnaires?: Prisma.PartnaireUncheckedUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedUpdateManyWithoutBranchNestedInput
+  registrationRequests?: Prisma.RegistrationRequestUncheckedUpdateManyWithoutBranchNestedInput
 }
 
 export type BranchCreateWithoutInvoiceInput = {
@@ -6938,6 +7051,7 @@ export type BranchCreateWithoutInvoiceInput = {
   paymentEvent?: Prisma.PaymentEventCreateNestedManyWithoutBranchInput
   partnaires?: Prisma.PartnaireCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeCreateNestedManyWithoutBranchInput
+  registrationRequests?: Prisma.RegistrationRequestCreateNestedManyWithoutBranchInput
 }
 
 export type BranchUncheckedCreateWithoutInvoiceInput = {
@@ -6993,6 +7107,7 @@ export type BranchUncheckedCreateWithoutInvoiceInput = {
   paymentEvent?: Prisma.PaymentEventUncheckedCreateNestedManyWithoutBranchInput
   partnaires?: Prisma.PartnaireUncheckedCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedCreateNestedManyWithoutBranchInput
+  registrationRequests?: Prisma.RegistrationRequestUncheckedCreateNestedManyWithoutBranchInput
 }
 
 export type BranchCreateOrConnectWithoutInvoiceInput = {
@@ -7064,6 +7179,7 @@ export type BranchUpdateWithoutInvoiceInput = {
   paymentEvent?: Prisma.PaymentEventUpdateManyWithoutBranchNestedInput
   partnaires?: Prisma.PartnaireUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUpdateManyWithoutBranchNestedInput
+  registrationRequests?: Prisma.RegistrationRequestUpdateManyWithoutBranchNestedInput
 }
 
 export type BranchUncheckedUpdateWithoutInvoiceInput = {
@@ -7119,6 +7235,7 @@ export type BranchUncheckedUpdateWithoutInvoiceInput = {
   paymentEvent?: Prisma.PaymentEventUncheckedUpdateManyWithoutBranchNestedInput
   partnaires?: Prisma.PartnaireUncheckedUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedUpdateManyWithoutBranchNestedInput
+  registrationRequests?: Prisma.RegistrationRequestUncheckedUpdateManyWithoutBranchNestedInput
 }
 
 export type BranchCreateWithoutPaymentBatchInput = {
@@ -7174,6 +7291,7 @@ export type BranchCreateWithoutPaymentBatchInput = {
   paymentEvent?: Prisma.PaymentEventCreateNestedManyWithoutBranchInput
   partnaires?: Prisma.PartnaireCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeCreateNestedManyWithoutBranchInput
+  registrationRequests?: Prisma.RegistrationRequestCreateNestedManyWithoutBranchInput
 }
 
 export type BranchUncheckedCreateWithoutPaymentBatchInput = {
@@ -7229,6 +7347,7 @@ export type BranchUncheckedCreateWithoutPaymentBatchInput = {
   paymentEvent?: Prisma.PaymentEventUncheckedCreateNestedManyWithoutBranchInput
   partnaires?: Prisma.PartnaireUncheckedCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedCreateNestedManyWithoutBranchInput
+  registrationRequests?: Prisma.RegistrationRequestUncheckedCreateNestedManyWithoutBranchInput
 }
 
 export type BranchCreateOrConnectWithoutPaymentBatchInput = {
@@ -7300,6 +7419,7 @@ export type BranchUpdateWithoutPaymentBatchInput = {
   paymentEvent?: Prisma.PaymentEventUpdateManyWithoutBranchNestedInput
   partnaires?: Prisma.PartnaireUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUpdateManyWithoutBranchNestedInput
+  registrationRequests?: Prisma.RegistrationRequestUpdateManyWithoutBranchNestedInput
 }
 
 export type BranchUncheckedUpdateWithoutPaymentBatchInput = {
@@ -7355,6 +7475,7 @@ export type BranchUncheckedUpdateWithoutPaymentBatchInput = {
   paymentEvent?: Prisma.PaymentEventUncheckedUpdateManyWithoutBranchNestedInput
   partnaires?: Prisma.PartnaireUncheckedUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedUpdateManyWithoutBranchNestedInput
+  registrationRequests?: Prisma.RegistrationRequestUncheckedUpdateManyWithoutBranchNestedInput
 }
 
 export type BranchCreateWithoutFamilyPaymentInput = {
@@ -7410,6 +7531,7 @@ export type BranchCreateWithoutFamilyPaymentInput = {
   paymentEvent?: Prisma.PaymentEventCreateNestedManyWithoutBranchInput
   partnaires?: Prisma.PartnaireCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeCreateNestedManyWithoutBranchInput
+  registrationRequests?: Prisma.RegistrationRequestCreateNestedManyWithoutBranchInput
 }
 
 export type BranchUncheckedCreateWithoutFamilyPaymentInput = {
@@ -7465,6 +7587,7 @@ export type BranchUncheckedCreateWithoutFamilyPaymentInput = {
   paymentEvent?: Prisma.PaymentEventUncheckedCreateNestedManyWithoutBranchInput
   partnaires?: Prisma.PartnaireUncheckedCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedCreateNestedManyWithoutBranchInput
+  registrationRequests?: Prisma.RegistrationRequestUncheckedCreateNestedManyWithoutBranchInput
 }
 
 export type BranchCreateOrConnectWithoutFamilyPaymentInput = {
@@ -7536,6 +7659,7 @@ export type BranchUpdateWithoutFamilyPaymentInput = {
   paymentEvent?: Prisma.PaymentEventUpdateManyWithoutBranchNestedInput
   partnaires?: Prisma.PartnaireUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUpdateManyWithoutBranchNestedInput
+  registrationRequests?: Prisma.RegistrationRequestUpdateManyWithoutBranchNestedInput
 }
 
 export type BranchUncheckedUpdateWithoutFamilyPaymentInput = {
@@ -7591,6 +7715,7 @@ export type BranchUncheckedUpdateWithoutFamilyPaymentInput = {
   paymentEvent?: Prisma.PaymentEventUncheckedUpdateManyWithoutBranchNestedInput
   partnaires?: Prisma.PartnaireUncheckedUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedUpdateManyWithoutBranchNestedInput
+  registrationRequests?: Prisma.RegistrationRequestUncheckedUpdateManyWithoutBranchNestedInput
 }
 
 export type BranchCreateWithoutCashierExpenseInput = {
@@ -7646,6 +7771,7 @@ export type BranchCreateWithoutCashierExpenseInput = {
   paymentEvent?: Prisma.PaymentEventCreateNestedManyWithoutBranchInput
   partnaires?: Prisma.PartnaireCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeCreateNestedManyWithoutBranchInput
+  registrationRequests?: Prisma.RegistrationRequestCreateNestedManyWithoutBranchInput
 }
 
 export type BranchUncheckedCreateWithoutCashierExpenseInput = {
@@ -7701,6 +7827,7 @@ export type BranchUncheckedCreateWithoutCashierExpenseInput = {
   paymentEvent?: Prisma.PaymentEventUncheckedCreateNestedManyWithoutBranchInput
   partnaires?: Prisma.PartnaireUncheckedCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedCreateNestedManyWithoutBranchInput
+  registrationRequests?: Prisma.RegistrationRequestUncheckedCreateNestedManyWithoutBranchInput
 }
 
 export type BranchCreateOrConnectWithoutCashierExpenseInput = {
@@ -7772,6 +7899,7 @@ export type BranchUpdateWithoutCashierExpenseInput = {
   paymentEvent?: Prisma.PaymentEventUpdateManyWithoutBranchNestedInput
   partnaires?: Prisma.PartnaireUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUpdateManyWithoutBranchNestedInput
+  registrationRequests?: Prisma.RegistrationRequestUpdateManyWithoutBranchNestedInput
 }
 
 export type BranchUncheckedUpdateWithoutCashierExpenseInput = {
@@ -7827,6 +7955,7 @@ export type BranchUncheckedUpdateWithoutCashierExpenseInput = {
   paymentEvent?: Prisma.PaymentEventUncheckedUpdateManyWithoutBranchNestedInput
   partnaires?: Prisma.PartnaireUncheckedUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedUpdateManyWithoutBranchNestedInput
+  registrationRequests?: Prisma.RegistrationRequestUncheckedUpdateManyWithoutBranchNestedInput
 }
 
 export type BranchCreateWithoutPaymentAllocationInput = {
@@ -7882,6 +8011,7 @@ export type BranchCreateWithoutPaymentAllocationInput = {
   paymentEvent?: Prisma.PaymentEventCreateNestedManyWithoutBranchInput
   partnaires?: Prisma.PartnaireCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeCreateNestedManyWithoutBranchInput
+  registrationRequests?: Prisma.RegistrationRequestCreateNestedManyWithoutBranchInput
 }
 
 export type BranchUncheckedCreateWithoutPaymentAllocationInput = {
@@ -7937,6 +8067,7 @@ export type BranchUncheckedCreateWithoutPaymentAllocationInput = {
   paymentEvent?: Prisma.PaymentEventUncheckedCreateNestedManyWithoutBranchInput
   partnaires?: Prisma.PartnaireUncheckedCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedCreateNestedManyWithoutBranchInput
+  registrationRequests?: Prisma.RegistrationRequestUncheckedCreateNestedManyWithoutBranchInput
 }
 
 export type BranchCreateOrConnectWithoutPaymentAllocationInput = {
@@ -8008,6 +8139,7 @@ export type BranchUpdateWithoutPaymentAllocationInput = {
   paymentEvent?: Prisma.PaymentEventUpdateManyWithoutBranchNestedInput
   partnaires?: Prisma.PartnaireUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUpdateManyWithoutBranchNestedInput
+  registrationRequests?: Prisma.RegistrationRequestUpdateManyWithoutBranchNestedInput
 }
 
 export type BranchUncheckedUpdateWithoutPaymentAllocationInput = {
@@ -8063,6 +8195,7 @@ export type BranchUncheckedUpdateWithoutPaymentAllocationInput = {
   paymentEvent?: Prisma.PaymentEventUncheckedUpdateManyWithoutBranchNestedInput
   partnaires?: Prisma.PartnaireUncheckedUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedUpdateManyWithoutBranchNestedInput
+  registrationRequests?: Prisma.RegistrationRequestUncheckedUpdateManyWithoutBranchNestedInput
 }
 
 export type BranchCreateWithoutMobileMoneyTransactionInput = {
@@ -8118,6 +8251,7 @@ export type BranchCreateWithoutMobileMoneyTransactionInput = {
   paymentEvent?: Prisma.PaymentEventCreateNestedManyWithoutBranchInput
   partnaires?: Prisma.PartnaireCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeCreateNestedManyWithoutBranchInput
+  registrationRequests?: Prisma.RegistrationRequestCreateNestedManyWithoutBranchInput
 }
 
 export type BranchUncheckedCreateWithoutMobileMoneyTransactionInput = {
@@ -8173,6 +8307,7 @@ export type BranchUncheckedCreateWithoutMobileMoneyTransactionInput = {
   paymentEvent?: Prisma.PaymentEventUncheckedCreateNestedManyWithoutBranchInput
   partnaires?: Prisma.PartnaireUncheckedCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedCreateNestedManyWithoutBranchInput
+  registrationRequests?: Prisma.RegistrationRequestUncheckedCreateNestedManyWithoutBranchInput
 }
 
 export type BranchCreateOrConnectWithoutMobileMoneyTransactionInput = {
@@ -8244,6 +8379,7 @@ export type BranchUpdateWithoutMobileMoneyTransactionInput = {
   paymentEvent?: Prisma.PaymentEventUpdateManyWithoutBranchNestedInput
   partnaires?: Prisma.PartnaireUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUpdateManyWithoutBranchNestedInput
+  registrationRequests?: Prisma.RegistrationRequestUpdateManyWithoutBranchNestedInput
 }
 
 export type BranchUncheckedUpdateWithoutMobileMoneyTransactionInput = {
@@ -8299,6 +8435,7 @@ export type BranchUncheckedUpdateWithoutMobileMoneyTransactionInput = {
   paymentEvent?: Prisma.PaymentEventUncheckedUpdateManyWithoutBranchNestedInput
   partnaires?: Prisma.PartnaireUncheckedUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedUpdateManyWithoutBranchNestedInput
+  registrationRequests?: Prisma.RegistrationRequestUncheckedUpdateManyWithoutBranchNestedInput
 }
 
 export type BranchCreateWithoutPaymentEventInput = {
@@ -8354,6 +8491,7 @@ export type BranchCreateWithoutPaymentEventInput = {
   discountRule?: Prisma.DiscountRuleCreateNestedManyWithoutBranchInput
   partnaires?: Prisma.PartnaireCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeCreateNestedManyWithoutBranchInput
+  registrationRequests?: Prisma.RegistrationRequestCreateNestedManyWithoutBranchInput
 }
 
 export type BranchUncheckedCreateWithoutPaymentEventInput = {
@@ -8409,6 +8547,7 @@ export type BranchUncheckedCreateWithoutPaymentEventInput = {
   discountRule?: Prisma.DiscountRuleUncheckedCreateNestedManyWithoutBranchInput
   partnaires?: Prisma.PartnaireUncheckedCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedCreateNestedManyWithoutBranchInput
+  registrationRequests?: Prisma.RegistrationRequestUncheckedCreateNestedManyWithoutBranchInput
 }
 
 export type BranchCreateOrConnectWithoutPaymentEventInput = {
@@ -8480,6 +8619,7 @@ export type BranchUpdateWithoutPaymentEventInput = {
   discountRule?: Prisma.DiscountRuleUpdateManyWithoutBranchNestedInput
   partnaires?: Prisma.PartnaireUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUpdateManyWithoutBranchNestedInput
+  registrationRequests?: Prisma.RegistrationRequestUpdateManyWithoutBranchNestedInput
 }
 
 export type BranchUncheckedUpdateWithoutPaymentEventInput = {
@@ -8535,6 +8675,7 @@ export type BranchUncheckedUpdateWithoutPaymentEventInput = {
   discountRule?: Prisma.DiscountRuleUncheckedUpdateManyWithoutBranchNestedInput
   partnaires?: Prisma.PartnaireUncheckedUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedUpdateManyWithoutBranchNestedInput
+  registrationRequests?: Prisma.RegistrationRequestUncheckedUpdateManyWithoutBranchNestedInput
 }
 
 export type BranchCreateWithoutDiscountRuleInput = {
@@ -8590,6 +8731,7 @@ export type BranchCreateWithoutDiscountRuleInput = {
   paymentEvent?: Prisma.PaymentEventCreateNestedManyWithoutBranchInput
   partnaires?: Prisma.PartnaireCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeCreateNestedManyWithoutBranchInput
+  registrationRequests?: Prisma.RegistrationRequestCreateNestedManyWithoutBranchInput
 }
 
 export type BranchUncheckedCreateWithoutDiscountRuleInput = {
@@ -8645,6 +8787,7 @@ export type BranchUncheckedCreateWithoutDiscountRuleInput = {
   paymentEvent?: Prisma.PaymentEventUncheckedCreateNestedManyWithoutBranchInput
   partnaires?: Prisma.PartnaireUncheckedCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedCreateNestedManyWithoutBranchInput
+  registrationRequests?: Prisma.RegistrationRequestUncheckedCreateNestedManyWithoutBranchInput
 }
 
 export type BranchCreateOrConnectWithoutDiscountRuleInput = {
@@ -8716,6 +8859,7 @@ export type BranchUpdateWithoutDiscountRuleInput = {
   paymentEvent?: Prisma.PaymentEventUpdateManyWithoutBranchNestedInput
   partnaires?: Prisma.PartnaireUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUpdateManyWithoutBranchNestedInput
+  registrationRequests?: Prisma.RegistrationRequestUpdateManyWithoutBranchNestedInput
 }
 
 export type BranchUncheckedUpdateWithoutDiscountRuleInput = {
@@ -8771,6 +8915,7 @@ export type BranchUncheckedUpdateWithoutDiscountRuleInput = {
   paymentEvent?: Prisma.PaymentEventUncheckedUpdateManyWithoutBranchNestedInput
   partnaires?: Prisma.PartnaireUncheckedUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedUpdateManyWithoutBranchNestedInput
+  registrationRequests?: Prisma.RegistrationRequestUncheckedUpdateManyWithoutBranchNestedInput
 }
 
 export type BranchCreateWithoutTransactionInput = {
@@ -8826,6 +8971,7 @@ export type BranchCreateWithoutTransactionInput = {
   paymentEvent?: Prisma.PaymentEventCreateNestedManyWithoutBranchInput
   partnaires?: Prisma.PartnaireCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeCreateNestedManyWithoutBranchInput
+  registrationRequests?: Prisma.RegistrationRequestCreateNestedManyWithoutBranchInput
 }
 
 export type BranchUncheckedCreateWithoutTransactionInput = {
@@ -8881,6 +9027,7 @@ export type BranchUncheckedCreateWithoutTransactionInput = {
   paymentEvent?: Prisma.PaymentEventUncheckedCreateNestedManyWithoutBranchInput
   partnaires?: Prisma.PartnaireUncheckedCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedCreateNestedManyWithoutBranchInput
+  registrationRequests?: Prisma.RegistrationRequestUncheckedCreateNestedManyWithoutBranchInput
 }
 
 export type BranchCreateOrConnectWithoutTransactionInput = {
@@ -8952,6 +9099,7 @@ export type BranchUpdateWithoutTransactionInput = {
   paymentEvent?: Prisma.PaymentEventUpdateManyWithoutBranchNestedInput
   partnaires?: Prisma.PartnaireUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUpdateManyWithoutBranchNestedInput
+  registrationRequests?: Prisma.RegistrationRequestUpdateManyWithoutBranchNestedInput
 }
 
 export type BranchUncheckedUpdateWithoutTransactionInput = {
@@ -9007,6 +9155,7 @@ export type BranchUncheckedUpdateWithoutTransactionInput = {
   paymentEvent?: Prisma.PaymentEventUncheckedUpdateManyWithoutBranchNestedInput
   partnaires?: Prisma.PartnaireUncheckedUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedUpdateManyWithoutBranchNestedInput
+  registrationRequests?: Prisma.RegistrationRequestUncheckedUpdateManyWithoutBranchNestedInput
 }
 
 export type BranchCreateWithoutOrganizationInput = {
@@ -9062,6 +9211,7 @@ export type BranchCreateWithoutOrganizationInput = {
   paymentEvent?: Prisma.PaymentEventCreateNestedManyWithoutBranchInput
   partnaires?: Prisma.PartnaireCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeCreateNestedManyWithoutBranchInput
+  registrationRequests?: Prisma.RegistrationRequestCreateNestedManyWithoutBranchInput
 }
 
 export type BranchUncheckedCreateWithoutOrganizationInput = {
@@ -9117,6 +9267,7 @@ export type BranchUncheckedCreateWithoutOrganizationInput = {
   paymentEvent?: Prisma.PaymentEventUncheckedCreateNestedManyWithoutBranchInput
   partnaires?: Prisma.PartnaireUncheckedCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedCreateNestedManyWithoutBranchInput
+  registrationRequests?: Prisma.RegistrationRequestUncheckedCreateNestedManyWithoutBranchInput
 }
 
 export type BranchCreateOrConnectWithoutOrganizationInput = {
@@ -9166,6 +9317,246 @@ export type BranchScalarWhereInput = {
   isActive?: Prisma.BoolFilter<"Branch"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Branch"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Branch"> | Date | string
+}
+
+export type BranchCreateWithoutRegistrationRequestsInput = {
+  id?: string
+  name: string
+  code?: string | null
+  image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  adresse?: string | null
+  ville?: string | null
+  pays?: string | null
+  idnat?: string | null
+  tel?: string | null
+  latitude: number
+  longitude: number
+  attendanceRadius?: number
+  typebranch: $Enums.TypeBrache
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  organization: Prisma.OrganizationCreateNestedOneWithoutBranchesInput
+  studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
+  branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
+  classes?: Prisma.ClasseCreateNestedManyWithoutBranchInput
+  paymentBatch?: Prisma.PaymentBatchCreateNestedManyWithoutBranchInput
+  familyPayment?: Prisma.FamilyPaymentCreateNestedManyWithoutBranchInput
+  fiche?: Prisma.ficheCreateNestedManyWithoutBranchInput
+  eventType?: Prisma.EventTypeCreateNestedManyWithoutBranchInput
+  period?: Prisma.periodCreateNestedManyWithoutBranchInput
+  cours?: Prisma.CoursCreateNestedManyWithoutBranchInput
+  schoolYear?: Prisma.SchoolYearCreateNestedManyWithoutBranchInput
+  typeFrais?: Prisma.TypeFraisCreateNestedManyWithoutBranchInput
+  option?: Prisma.OptionCreateNestedManyWithoutBranchInput
+  coursPonderations?: Prisma.CoursOptionPonderationCreateNestedManyWithoutBranchInput
+  classEnrollment?: Prisma.ClassEnrollmentCreateNestedManyWithoutBranchInput
+  section?: Prisma.SectionCreateNestedManyWithoutBranchInput
+  semester?: Prisma.semesterCreateNestedManyWithoutBranchInput
+  frais?: Prisma.FraisCreateNestedManyWithoutBranchInput
+  calendarEvent?: Prisma.CalendarEventCreateNestedManyWithoutBranchInput
+  periodResultLock?: Prisma.PeriodResultLockCreateNestedManyWithoutBranchInput
+  cashierExpense?: Prisma.CashierExpenseCreateNestedManyWithoutBranchInput
+  invoice?: Prisma.InvoiceCreateNestedManyWithoutBranchInput
+  creneau?: Prisma.CreneauCreateNestedManyWithoutBranchInput
+  paymentAllocation?: Prisma.PaymentAllocationCreateNestedManyWithoutBranchInput
+  teaching?: Prisma.TeachingCreateNestedManyWithoutBranchInput
+  mobileMoneyTransaction?: Prisma.MobileMoneyTransactionCreateNestedManyWithoutBranchInput
+  branchInvitation?: Prisma.BranchInvitationCreateNestedManyWithoutBranchInput
+  attendanceSessions?: Prisma.AttendanceSessionCreateNestedManyWithoutBranchInput
+  teacherAttendance?: Prisma.TeacherAttendanceCreateNestedManyWithoutBranchInput
+  personnelAttendance?: Prisma.PersonnelAttendanceCreateNestedManyWithoutBranchInput
+  studentGrade?: Prisma.StudentGradeCreateNestedManyWithoutBranchInput
+  parentFeedback?: Prisma.ParentFeedbackCreateNestedManyWithoutBranchInput
+  transaction?: Prisma.TransactionCreateNestedManyWithoutBranchInput
+  discountRule?: Prisma.DiscountRuleCreateNestedManyWithoutBranchInput
+  paymentEvent?: Prisma.PaymentEventCreateNestedManyWithoutBranchInput
+  partnaires?: Prisma.PartnaireCreateNestedManyWithoutBranchInput
+  organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeCreateNestedManyWithoutBranchInput
+}
+
+export type BranchUncheckedCreateWithoutRegistrationRequestsInput = {
+  id?: string
+  name: string
+  code?: string | null
+  image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  adresse?: string | null
+  ville?: string | null
+  pays?: string | null
+  idnat?: string | null
+  tel?: string | null
+  latitude: number
+  longitude: number
+  attendanceRadius?: number
+  organizationId: string
+  typebranch: $Enums.TypeBrache
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
+  branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
+  classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
+  paymentBatch?: Prisma.PaymentBatchUncheckedCreateNestedManyWithoutBranchInput
+  familyPayment?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutBranchInput
+  fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutBranchInput
+  eventType?: Prisma.EventTypeUncheckedCreateNestedManyWithoutBranchInput
+  period?: Prisma.periodUncheckedCreateNestedManyWithoutBranchInput
+  cours?: Prisma.CoursUncheckedCreateNestedManyWithoutBranchInput
+  schoolYear?: Prisma.SchoolYearUncheckedCreateNestedManyWithoutBranchInput
+  typeFrais?: Prisma.TypeFraisUncheckedCreateNestedManyWithoutBranchInput
+  option?: Prisma.OptionUncheckedCreateNestedManyWithoutBranchInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedCreateNestedManyWithoutBranchInput
+  classEnrollment?: Prisma.ClassEnrollmentUncheckedCreateNestedManyWithoutBranchInput
+  section?: Prisma.SectionUncheckedCreateNestedManyWithoutBranchInput
+  semester?: Prisma.semesterUncheckedCreateNestedManyWithoutBranchInput
+  frais?: Prisma.FraisUncheckedCreateNestedManyWithoutBranchInput
+  calendarEvent?: Prisma.CalendarEventUncheckedCreateNestedManyWithoutBranchInput
+  periodResultLock?: Prisma.PeriodResultLockUncheckedCreateNestedManyWithoutBranchInput
+  cashierExpense?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutBranchInput
+  invoice?: Prisma.InvoiceUncheckedCreateNestedManyWithoutBranchInput
+  creneau?: Prisma.CreneauUncheckedCreateNestedManyWithoutBranchInput
+  paymentAllocation?: Prisma.PaymentAllocationUncheckedCreateNestedManyWithoutBranchInput
+  teaching?: Prisma.TeachingUncheckedCreateNestedManyWithoutBranchInput
+  mobileMoneyTransaction?: Prisma.MobileMoneyTransactionUncheckedCreateNestedManyWithoutBranchInput
+  branchInvitation?: Prisma.BranchInvitationUncheckedCreateNestedManyWithoutBranchInput
+  attendanceSessions?: Prisma.AttendanceSessionUncheckedCreateNestedManyWithoutBranchInput
+  teacherAttendance?: Prisma.TeacherAttendanceUncheckedCreateNestedManyWithoutBranchInput
+  personnelAttendance?: Prisma.PersonnelAttendanceUncheckedCreateNestedManyWithoutBranchInput
+  studentGrade?: Prisma.StudentGradeUncheckedCreateNestedManyWithoutBranchInput
+  parentFeedback?: Prisma.ParentFeedbackUncheckedCreateNestedManyWithoutBranchInput
+  transaction?: Prisma.TransactionUncheckedCreateNestedManyWithoutBranchInput
+  discountRule?: Prisma.DiscountRuleUncheckedCreateNestedManyWithoutBranchInput
+  paymentEvent?: Prisma.PaymentEventUncheckedCreateNestedManyWithoutBranchInput
+  partnaires?: Prisma.PartnaireUncheckedCreateNestedManyWithoutBranchInput
+  organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedCreateNestedManyWithoutBranchInput
+}
+
+export type BranchCreateOrConnectWithoutRegistrationRequestsInput = {
+  where: Prisma.BranchWhereUniqueInput
+  create: Prisma.XOR<Prisma.BranchCreateWithoutRegistrationRequestsInput, Prisma.BranchUncheckedCreateWithoutRegistrationRequestsInput>
+}
+
+export type BranchUpsertWithoutRegistrationRequestsInput = {
+  update: Prisma.XOR<Prisma.BranchUpdateWithoutRegistrationRequestsInput, Prisma.BranchUncheckedUpdateWithoutRegistrationRequestsInput>
+  create: Prisma.XOR<Prisma.BranchCreateWithoutRegistrationRequestsInput, Prisma.BranchUncheckedCreateWithoutRegistrationRequestsInput>
+  where?: Prisma.BranchWhereInput
+}
+
+export type BranchUpdateToOneWithWhereWithoutRegistrationRequestsInput = {
+  where?: Prisma.BranchWhereInput
+  data: Prisma.XOR<Prisma.BranchUpdateWithoutRegistrationRequestsInput, Prisma.BranchUncheckedUpdateWithoutRegistrationRequestsInput>
+}
+
+export type BranchUpdateWithoutRegistrationRequestsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pays?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  idnat?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  latitude?: Prisma.FloatFieldUpdateOperationsInput | number
+  longitude?: Prisma.FloatFieldUpdateOperationsInput | number
+  attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  organization?: Prisma.OrganizationUpdateOneRequiredWithoutBranchesNestedInput
+  studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
+  branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
+  classes?: Prisma.ClasseUpdateManyWithoutBranchNestedInput
+  paymentBatch?: Prisma.PaymentBatchUpdateManyWithoutBranchNestedInput
+  familyPayment?: Prisma.FamilyPaymentUpdateManyWithoutBranchNestedInput
+  fiche?: Prisma.ficheUpdateManyWithoutBranchNestedInput
+  eventType?: Prisma.EventTypeUpdateManyWithoutBranchNestedInput
+  period?: Prisma.periodUpdateManyWithoutBranchNestedInput
+  cours?: Prisma.CoursUpdateManyWithoutBranchNestedInput
+  schoolYear?: Prisma.SchoolYearUpdateManyWithoutBranchNestedInput
+  typeFrais?: Prisma.TypeFraisUpdateManyWithoutBranchNestedInput
+  option?: Prisma.OptionUpdateManyWithoutBranchNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUpdateManyWithoutBranchNestedInput
+  classEnrollment?: Prisma.ClassEnrollmentUpdateManyWithoutBranchNestedInput
+  section?: Prisma.SectionUpdateManyWithoutBranchNestedInput
+  semester?: Prisma.semesterUpdateManyWithoutBranchNestedInput
+  frais?: Prisma.FraisUpdateManyWithoutBranchNestedInput
+  calendarEvent?: Prisma.CalendarEventUpdateManyWithoutBranchNestedInput
+  periodResultLock?: Prisma.PeriodResultLockUpdateManyWithoutBranchNestedInput
+  cashierExpense?: Prisma.CashierExpenseUpdateManyWithoutBranchNestedInput
+  invoice?: Prisma.InvoiceUpdateManyWithoutBranchNestedInput
+  creneau?: Prisma.CreneauUpdateManyWithoutBranchNestedInput
+  paymentAllocation?: Prisma.PaymentAllocationUpdateManyWithoutBranchNestedInput
+  teaching?: Prisma.TeachingUpdateManyWithoutBranchNestedInput
+  mobileMoneyTransaction?: Prisma.MobileMoneyTransactionUpdateManyWithoutBranchNestedInput
+  branchInvitation?: Prisma.BranchInvitationUpdateManyWithoutBranchNestedInput
+  attendanceSessions?: Prisma.AttendanceSessionUpdateManyWithoutBranchNestedInput
+  teacherAttendance?: Prisma.TeacherAttendanceUpdateManyWithoutBranchNestedInput
+  personnelAttendance?: Prisma.PersonnelAttendanceUpdateManyWithoutBranchNestedInput
+  studentGrade?: Prisma.StudentGradeUpdateManyWithoutBranchNestedInput
+  parentFeedback?: Prisma.ParentFeedbackUpdateManyWithoutBranchNestedInput
+  transaction?: Prisma.TransactionUpdateManyWithoutBranchNestedInput
+  discountRule?: Prisma.DiscountRuleUpdateManyWithoutBranchNestedInput
+  paymentEvent?: Prisma.PaymentEventUpdateManyWithoutBranchNestedInput
+  partnaires?: Prisma.PartnaireUpdateManyWithoutBranchNestedInput
+  organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUpdateManyWithoutBranchNestedInput
+}
+
+export type BranchUncheckedUpdateWithoutRegistrationRequestsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pays?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  idnat?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  latitude?: Prisma.FloatFieldUpdateOperationsInput | number
+  longitude?: Prisma.FloatFieldUpdateOperationsInput | number
+  attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  organizationId?: Prisma.StringFieldUpdateOperationsInput | string
+  typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
+  branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
+  classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
+  paymentBatch?: Prisma.PaymentBatchUncheckedUpdateManyWithoutBranchNestedInput
+  familyPayment?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutBranchNestedInput
+  fiche?: Prisma.ficheUncheckedUpdateManyWithoutBranchNestedInput
+  eventType?: Prisma.EventTypeUncheckedUpdateManyWithoutBranchNestedInput
+  period?: Prisma.periodUncheckedUpdateManyWithoutBranchNestedInput
+  cours?: Prisma.CoursUncheckedUpdateManyWithoutBranchNestedInput
+  schoolYear?: Prisma.SchoolYearUncheckedUpdateManyWithoutBranchNestedInput
+  typeFrais?: Prisma.TypeFraisUncheckedUpdateManyWithoutBranchNestedInput
+  option?: Prisma.OptionUncheckedUpdateManyWithoutBranchNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedUpdateManyWithoutBranchNestedInput
+  classEnrollment?: Prisma.ClassEnrollmentUncheckedUpdateManyWithoutBranchNestedInput
+  section?: Prisma.SectionUncheckedUpdateManyWithoutBranchNestedInput
+  semester?: Prisma.semesterUncheckedUpdateManyWithoutBranchNestedInput
+  frais?: Prisma.FraisUncheckedUpdateManyWithoutBranchNestedInput
+  calendarEvent?: Prisma.CalendarEventUncheckedUpdateManyWithoutBranchNestedInput
+  periodResultLock?: Prisma.PeriodResultLockUncheckedUpdateManyWithoutBranchNestedInput
+  cashierExpense?: Prisma.CashierExpenseUncheckedUpdateManyWithoutBranchNestedInput
+  invoice?: Prisma.InvoiceUncheckedUpdateManyWithoutBranchNestedInput
+  creneau?: Prisma.CreneauUncheckedUpdateManyWithoutBranchNestedInput
+  paymentAllocation?: Prisma.PaymentAllocationUncheckedUpdateManyWithoutBranchNestedInput
+  teaching?: Prisma.TeachingUncheckedUpdateManyWithoutBranchNestedInput
+  mobileMoneyTransaction?: Prisma.MobileMoneyTransactionUncheckedUpdateManyWithoutBranchNestedInput
+  branchInvitation?: Prisma.BranchInvitationUncheckedUpdateManyWithoutBranchNestedInput
+  attendanceSessions?: Prisma.AttendanceSessionUncheckedUpdateManyWithoutBranchNestedInput
+  teacherAttendance?: Prisma.TeacherAttendanceUncheckedUpdateManyWithoutBranchNestedInput
+  personnelAttendance?: Prisma.PersonnelAttendanceUncheckedUpdateManyWithoutBranchNestedInput
+  studentGrade?: Prisma.StudentGradeUncheckedUpdateManyWithoutBranchNestedInput
+  parentFeedback?: Prisma.ParentFeedbackUncheckedUpdateManyWithoutBranchNestedInput
+  transaction?: Prisma.TransactionUncheckedUpdateManyWithoutBranchNestedInput
+  discountRule?: Prisma.DiscountRuleUncheckedUpdateManyWithoutBranchNestedInput
+  paymentEvent?: Prisma.PaymentEventUncheckedUpdateManyWithoutBranchNestedInput
+  partnaires?: Prisma.PartnaireUncheckedUpdateManyWithoutBranchNestedInput
+  organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedUpdateManyWithoutBranchNestedInput
 }
 
 export type BranchCreateWithoutPartnairesInput = {
@@ -9221,6 +9612,7 @@ export type BranchCreateWithoutPartnairesInput = {
   discountRule?: Prisma.DiscountRuleCreateNestedManyWithoutBranchInput
   paymentEvent?: Prisma.PaymentEventCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeCreateNestedManyWithoutBranchInput
+  registrationRequests?: Prisma.RegistrationRequestCreateNestedManyWithoutBranchInput
 }
 
 export type BranchUncheckedCreateWithoutPartnairesInput = {
@@ -9276,6 +9668,7 @@ export type BranchUncheckedCreateWithoutPartnairesInput = {
   discountRule?: Prisma.DiscountRuleUncheckedCreateNestedManyWithoutBranchInput
   paymentEvent?: Prisma.PaymentEventUncheckedCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedCreateNestedManyWithoutBranchInput
+  registrationRequests?: Prisma.RegistrationRequestUncheckedCreateNestedManyWithoutBranchInput
 }
 
 export type BranchCreateOrConnectWithoutPartnairesInput = {
@@ -9347,6 +9740,7 @@ export type BranchUpdateWithoutPartnairesInput = {
   discountRule?: Prisma.DiscountRuleUpdateManyWithoutBranchNestedInput
   paymentEvent?: Prisma.PaymentEventUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUpdateManyWithoutBranchNestedInput
+  registrationRequests?: Prisma.RegistrationRequestUpdateManyWithoutBranchNestedInput
 }
 
 export type BranchUncheckedUpdateWithoutPartnairesInput = {
@@ -9402,6 +9796,7 @@ export type BranchUncheckedUpdateWithoutPartnairesInput = {
   discountRule?: Prisma.DiscountRuleUncheckedUpdateManyWithoutBranchNestedInput
   paymentEvent?: Prisma.PaymentEventUncheckedUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedUpdateManyWithoutBranchNestedInput
+  registrationRequests?: Prisma.RegistrationRequestUncheckedUpdateManyWithoutBranchNestedInput
 }
 
 export type BranchCreateWithoutBranchemembersInput = {
@@ -9457,6 +9852,7 @@ export type BranchCreateWithoutBranchemembersInput = {
   paymentEvent?: Prisma.PaymentEventCreateNestedManyWithoutBranchInput
   partnaires?: Prisma.PartnaireCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeCreateNestedManyWithoutBranchInput
+  registrationRequests?: Prisma.RegistrationRequestCreateNestedManyWithoutBranchInput
 }
 
 export type BranchUncheckedCreateWithoutBranchemembersInput = {
@@ -9512,6 +9908,7 @@ export type BranchUncheckedCreateWithoutBranchemembersInput = {
   paymentEvent?: Prisma.PaymentEventUncheckedCreateNestedManyWithoutBranchInput
   partnaires?: Prisma.PartnaireUncheckedCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedCreateNestedManyWithoutBranchInput
+  registrationRequests?: Prisma.RegistrationRequestUncheckedCreateNestedManyWithoutBranchInput
 }
 
 export type BranchCreateOrConnectWithoutBranchemembersInput = {
@@ -9583,6 +9980,7 @@ export type BranchUpdateWithoutBranchemembersInput = {
   paymentEvent?: Prisma.PaymentEventUpdateManyWithoutBranchNestedInput
   partnaires?: Prisma.PartnaireUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUpdateManyWithoutBranchNestedInput
+  registrationRequests?: Prisma.RegistrationRequestUpdateManyWithoutBranchNestedInput
 }
 
 export type BranchUncheckedUpdateWithoutBranchemembersInput = {
@@ -9638,6 +10036,7 @@ export type BranchUncheckedUpdateWithoutBranchemembersInput = {
   paymentEvent?: Prisma.PaymentEventUncheckedUpdateManyWithoutBranchNestedInput
   partnaires?: Prisma.PartnaireUncheckedUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedUpdateManyWithoutBranchNestedInput
+  registrationRequests?: Prisma.RegistrationRequestUncheckedUpdateManyWithoutBranchNestedInput
 }
 
 export type BranchCreateWithoutBranchInvitationInput = {
@@ -9693,6 +10092,7 @@ export type BranchCreateWithoutBranchInvitationInput = {
   paymentEvent?: Prisma.PaymentEventCreateNestedManyWithoutBranchInput
   partnaires?: Prisma.PartnaireCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeCreateNestedManyWithoutBranchInput
+  registrationRequests?: Prisma.RegistrationRequestCreateNestedManyWithoutBranchInput
 }
 
 export type BranchUncheckedCreateWithoutBranchInvitationInput = {
@@ -9748,6 +10148,7 @@ export type BranchUncheckedCreateWithoutBranchInvitationInput = {
   paymentEvent?: Prisma.PaymentEventUncheckedCreateNestedManyWithoutBranchInput
   partnaires?: Prisma.PartnaireUncheckedCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedCreateNestedManyWithoutBranchInput
+  registrationRequests?: Prisma.RegistrationRequestUncheckedCreateNestedManyWithoutBranchInput
 }
 
 export type BranchCreateOrConnectWithoutBranchInvitationInput = {
@@ -9819,6 +10220,7 @@ export type BranchUpdateWithoutBranchInvitationInput = {
   paymentEvent?: Prisma.PaymentEventUpdateManyWithoutBranchNestedInput
   partnaires?: Prisma.PartnaireUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUpdateManyWithoutBranchNestedInput
+  registrationRequests?: Prisma.RegistrationRequestUpdateManyWithoutBranchNestedInput
 }
 
 export type BranchUncheckedUpdateWithoutBranchInvitationInput = {
@@ -9874,6 +10276,7 @@ export type BranchUncheckedUpdateWithoutBranchInvitationInput = {
   paymentEvent?: Prisma.PaymentEventUncheckedUpdateManyWithoutBranchNestedInput
   partnaires?: Prisma.PartnaireUncheckedUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedUpdateManyWithoutBranchNestedInput
+  registrationRequests?: Prisma.RegistrationRequestUncheckedUpdateManyWithoutBranchNestedInput
 }
 
 export type BranchCreateWithoutOrganizationSupportBranchScopesInput = {
@@ -9929,6 +10332,7 @@ export type BranchCreateWithoutOrganizationSupportBranchScopesInput = {
   discountRule?: Prisma.DiscountRuleCreateNestedManyWithoutBranchInput
   paymentEvent?: Prisma.PaymentEventCreateNestedManyWithoutBranchInput
   partnaires?: Prisma.PartnaireCreateNestedManyWithoutBranchInput
+  registrationRequests?: Prisma.RegistrationRequestCreateNestedManyWithoutBranchInput
 }
 
 export type BranchUncheckedCreateWithoutOrganizationSupportBranchScopesInput = {
@@ -9984,6 +10388,7 @@ export type BranchUncheckedCreateWithoutOrganizationSupportBranchScopesInput = {
   discountRule?: Prisma.DiscountRuleUncheckedCreateNestedManyWithoutBranchInput
   paymentEvent?: Prisma.PaymentEventUncheckedCreateNestedManyWithoutBranchInput
   partnaires?: Prisma.PartnaireUncheckedCreateNestedManyWithoutBranchInput
+  registrationRequests?: Prisma.RegistrationRequestUncheckedCreateNestedManyWithoutBranchInput
 }
 
 export type BranchCreateOrConnectWithoutOrganizationSupportBranchScopesInput = {
@@ -10055,6 +10460,7 @@ export type BranchUpdateWithoutOrganizationSupportBranchScopesInput = {
   discountRule?: Prisma.DiscountRuleUpdateManyWithoutBranchNestedInput
   paymentEvent?: Prisma.PaymentEventUpdateManyWithoutBranchNestedInput
   partnaires?: Prisma.PartnaireUpdateManyWithoutBranchNestedInput
+  registrationRequests?: Prisma.RegistrationRequestUpdateManyWithoutBranchNestedInput
 }
 
 export type BranchUncheckedUpdateWithoutOrganizationSupportBranchScopesInput = {
@@ -10110,6 +10516,7 @@ export type BranchUncheckedUpdateWithoutOrganizationSupportBranchScopesInput = {
   discountRule?: Prisma.DiscountRuleUncheckedUpdateManyWithoutBranchNestedInput
   paymentEvent?: Prisma.PaymentEventUncheckedUpdateManyWithoutBranchNestedInput
   partnaires?: Prisma.PartnaireUncheckedUpdateManyWithoutBranchNestedInput
+  registrationRequests?: Prisma.RegistrationRequestUncheckedUpdateManyWithoutBranchNestedInput
 }
 
 export type BranchCreateManyOrganizationInput = {
@@ -10184,6 +10591,7 @@ export type BranchUpdateWithoutOrganizationInput = {
   paymentEvent?: Prisma.PaymentEventUpdateManyWithoutBranchNestedInput
   partnaires?: Prisma.PartnaireUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUpdateManyWithoutBranchNestedInput
+  registrationRequests?: Prisma.RegistrationRequestUpdateManyWithoutBranchNestedInput
 }
 
 export type BranchUncheckedUpdateWithoutOrganizationInput = {
@@ -10239,6 +10647,7 @@ export type BranchUncheckedUpdateWithoutOrganizationInput = {
   paymentEvent?: Prisma.PaymentEventUncheckedUpdateManyWithoutBranchNestedInput
   partnaires?: Prisma.PartnaireUncheckedUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedUpdateManyWithoutBranchNestedInput
+  registrationRequests?: Prisma.RegistrationRequestUncheckedUpdateManyWithoutBranchNestedInput
 }
 
 export type BranchUncheckedUpdateManyWithoutOrganizationInput = {
@@ -10302,6 +10711,7 @@ export type BranchCountOutputType = {
   paymentEvent: number
   partnaires: number
   organizationSupportBranchScopes: number
+  registrationRequests: number
 }
 
 export type BranchCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -10341,6 +10751,7 @@ export type BranchCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions
   paymentEvent?: boolean | BranchCountOutputTypeCountPaymentEventArgs
   partnaires?: boolean | BranchCountOutputTypeCountPartnairesArgs
   organizationSupportBranchScopes?: boolean | BranchCountOutputTypeCountOrganizationSupportBranchScopesArgs
+  registrationRequests?: boolean | BranchCountOutputTypeCountRegistrationRequestsArgs
 }
 
 /**
@@ -10605,6 +11016,13 @@ export type BranchCountOutputTypeCountOrganizationSupportBranchScopesArgs<ExtArg
   where?: Prisma.OrganizationSupportBranchScopeWhereInput
 }
 
+/**
+ * BranchCountOutputType without action
+ */
+export type BranchCountOutputTypeCountRegistrationRequestsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.RegistrationRequestWhereInput
+}
+
 
 export type BranchSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -10661,6 +11079,7 @@ export type BranchSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   paymentEvent?: boolean | Prisma.Branch$paymentEventArgs<ExtArgs>
   partnaires?: boolean | Prisma.Branch$partnairesArgs<ExtArgs>
   organizationSupportBranchScopes?: boolean | Prisma.Branch$organizationSupportBranchScopesArgs<ExtArgs>
+  registrationRequests?: boolean | Prisma.Branch$registrationRequestsArgs<ExtArgs>
   _count?: boolean | Prisma.BranchCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["branch"]>
 
@@ -10765,6 +11184,7 @@ export type BranchInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   paymentEvent?: boolean | Prisma.Branch$paymentEventArgs<ExtArgs>
   partnaires?: boolean | Prisma.Branch$partnairesArgs<ExtArgs>
   organizationSupportBranchScopes?: boolean | Prisma.Branch$organizationSupportBranchScopesArgs<ExtArgs>
+  registrationRequests?: boolean | Prisma.Branch$registrationRequestsArgs<ExtArgs>
   _count?: boolean | Prisma.BranchCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type BranchIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -10814,6 +11234,7 @@ export type $BranchPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     paymentEvent: Prisma.$PaymentEventPayload<ExtArgs>[]
     partnaires: Prisma.$PartnairePayload<ExtArgs>[]
     organizationSupportBranchScopes: Prisma.$OrganizationSupportBranchScopePayload<ExtArgs>[]
+    registrationRequests: Prisma.$RegistrationRequestPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -11264,6 +11685,7 @@ export interface Prisma__BranchClient<T, Null = never, ExtArgs extends runtime.T
   paymentEvent<T extends Prisma.Branch$paymentEventArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Branch$paymentEventArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PaymentEventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   partnaires<T extends Prisma.Branch$partnairesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Branch$partnairesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PartnairePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   organizationSupportBranchScopes<T extends Prisma.Branch$organizationSupportBranchScopesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Branch$organizationSupportBranchScopesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OrganizationSupportBranchScopePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  registrationRequests<T extends Prisma.Branch$registrationRequestsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Branch$registrationRequestsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RegistrationRequestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -12572,6 +12994,30 @@ export type Branch$organizationSupportBranchScopesArgs<ExtArgs extends runtime.T
   take?: number
   skip?: number
   distinct?: Prisma.OrganizationSupportBranchScopeScalarFieldEnum | Prisma.OrganizationSupportBranchScopeScalarFieldEnum[]
+}
+
+/**
+ * Branch.registrationRequests
+ */
+export type Branch$registrationRequestsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the RegistrationRequest
+   */
+  select?: Prisma.RegistrationRequestSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the RegistrationRequest
+   */
+  omit?: Prisma.RegistrationRequestOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.RegistrationRequestInclude<ExtArgs> | null
+  where?: Prisma.RegistrationRequestWhereInput
+  orderBy?: Prisma.RegistrationRequestOrderByWithRelationInput | Prisma.RegistrationRequestOrderByWithRelationInput[]
+  cursor?: Prisma.RegistrationRequestWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.RegistrationRequestScalarFieldEnum | Prisma.RegistrationRequestScalarFieldEnum[]
 }
 
 /**

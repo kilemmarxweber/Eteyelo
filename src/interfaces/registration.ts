@@ -14,6 +14,7 @@ const personSchema = z.object({
 
 export const registrationSchema = z
   .object({
+    requestId: z.string().optional(),
     schoolYearId: z.string().min(1, "Année scolaire requise"),
     level: z.string().min(1, "Niveau requis"),
     optionId: z.string().optional(),

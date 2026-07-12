@@ -74,6 +74,22 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     ref,
   ) => {
     const Comp = asChild ? Slot : "button";
+
+    // Quand asChild=true, Radix Slot ne tolère qu'un seul enfant React.
+    // leftSection/rightSection/loading n'ont pas de sens sur un élément externe
+    // (ex: <Link>), donc on transmet uniquement children au Slot.
+    if (asChild) {
+      return (
+        <Comp
+          className={cn(buttonVariants({ variant, size, className }))}
+          ref={ref}
+          {...props}
+        >
+          {children}
+        </Comp>
+      );
+    }
+
     return (
       <Comp
         className={cn(buttonVariants({ variant, size, className }))}

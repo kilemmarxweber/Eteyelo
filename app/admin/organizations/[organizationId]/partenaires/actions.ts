@@ -62,8 +62,8 @@ export async function createPartenaireAction(formData: FormData) {
     contractRef: formData.get("contractRef") || "",
     notes: formData.get("notes") || "",
     branchId: formData.get("branchId") || "",
-    isActive: formData.get("isActive") === "on",
-    isFeatured: formData.get("isFeatured") === "on",
+    isActive: formData.get("isActive") === "true",
+    isFeatured: formData.get("isFeatured") === "true",
   });
 
   if (!parsed.success) {

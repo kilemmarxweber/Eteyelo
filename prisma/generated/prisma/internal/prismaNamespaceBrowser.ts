@@ -97,6 +97,7 @@ export const ModelName = {
   Member: 'Member',
   Invitation: 'Invitation',
   Branch: 'Branch',
+  RegistrationRequest: 'RegistrationRequest',
   Partnaire: 'Partnaire',
   BranchMember: 'BranchMember',
   BranchInvitation: 'BranchInvitation',
@@ -812,6 +813,33 @@ export const BranchScalarFieldEnum = {
 export type BranchScalarFieldEnum = (typeof BranchScalarFieldEnum)[keyof typeof BranchScalarFieldEnum]
 
 
+export const RegistrationRequestScalarFieldEnum = {
+  id: 'id',
+  reference: 'reference',
+  branchId: 'branchId',
+  organizationId: 'organizationId',
+  schoolYearId: 'schoolYearId',
+  status: 'status',
+  studentData: 'studentData',
+  guardiansData: 'guardiansData',
+  requestedLevel: 'requestedLevel',
+  requestedSection: 'requestedSection',
+  requestedOption: 'requestedOption',
+  photoUrl: 'photoUrl',
+  consentAccepted: 'consentAccepted',
+  confirmedById: 'confirmedById',
+  confirmedAt: 'confirmedAt',
+  registeredById: 'registeredById',
+  registeredAt: 'registeredAt',
+  studentId: 'studentId',
+  rejectedReason: 'rejectedReason',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type RegistrationRequestScalarFieldEnum = (typeof RegistrationRequestScalarFieldEnum)[keyof typeof RegistrationRequestScalarFieldEnum]
+
+
 export const PartnaireScalarFieldEnum = {
   id: 'id',
   name: 'name',
@@ -943,6 +971,13 @@ export const NullableJsonNullValueInput = {
 } as const
 
 export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
+
+
+export const JsonNullValueInput = {
+  JsonNull: JsonNull
+} as const
+
+export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
 
 
 export const QueryMode = {

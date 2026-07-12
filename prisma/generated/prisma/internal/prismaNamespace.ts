@@ -430,6 +430,7 @@ export const ModelName = {
   Member: 'Member',
   Invitation: 'Invitation',
   Branch: 'Branch',
+  RegistrationRequest: 'RegistrationRequest',
   Partnaire: 'Partnaire',
   BranchMember: 'BranchMember',
   BranchInvitation: 'BranchInvitation',
@@ -452,7 +453,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "parent" | "student" | "attendanceSession" | "studentAttendance" | "teacherAttendance" | "personnelAttendance" | "parentFeedback" | "studentGrade" | "personnel" | "frais" | "typeFrais" | "classe" | "creneau" | "option" | "section" | "schoolYear" | "classEnrollment" | "teacher" | "teaching" | "cours" | "coursOptionPonderation" | "schedule" | "calendarEvent" | "eventType" | "semester" | "period" | "periodResultLock" | "fiche" | "invoice" | "paymentBatch" | "familyPayment" | "cashierExpense" | "paymentAllocation" | "mobileMoneyTransaction" | "paymentEvent" | "discountRule" | "transaction" | "session" | "account" | "verification" | "organization" | "organizationRole" | "member" | "invitation" | "branch" | "partnaire" | "branchMember" | "branchInvitation" | "platformSupportAgent" | "organizationSupportAgent" | "organizationSupportBranchScope" | "platformSupportEscalation"
+    modelProps: "user" | "parent" | "student" | "attendanceSession" | "studentAttendance" | "teacherAttendance" | "personnelAttendance" | "parentFeedback" | "studentGrade" | "personnel" | "frais" | "typeFrais" | "classe" | "creneau" | "option" | "section" | "schoolYear" | "classEnrollment" | "teacher" | "teaching" | "cours" | "coursOptionPonderation" | "schedule" | "calendarEvent" | "eventType" | "semester" | "period" | "periodResultLock" | "fiche" | "invoice" | "paymentBatch" | "familyPayment" | "cashierExpense" | "paymentAllocation" | "mobileMoneyTransaction" | "paymentEvent" | "discountRule" | "transaction" | "session" | "account" | "verification" | "organization" | "organizationRole" | "member" | "invitation" | "branch" | "registrationRequest" | "partnaire" | "branchMember" | "branchInvitation" | "platformSupportAgent" | "organizationSupportAgent" | "organizationSupportBranchScope" | "platformSupportEscalation"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -3860,6 +3861,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    RegistrationRequest: {
+      payload: Prisma.$RegistrationRequestPayload<ExtArgs>
+      fields: Prisma.RegistrationRequestFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.RegistrationRequestFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RegistrationRequestPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.RegistrationRequestFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RegistrationRequestPayload>
+        }
+        findFirst: {
+          args: Prisma.RegistrationRequestFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RegistrationRequestPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.RegistrationRequestFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RegistrationRequestPayload>
+        }
+        findMany: {
+          args: Prisma.RegistrationRequestFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RegistrationRequestPayload>[]
+        }
+        create: {
+          args: Prisma.RegistrationRequestCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RegistrationRequestPayload>
+        }
+        createMany: {
+          args: Prisma.RegistrationRequestCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.RegistrationRequestCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RegistrationRequestPayload>[]
+        }
+        delete: {
+          args: Prisma.RegistrationRequestDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RegistrationRequestPayload>
+        }
+        update: {
+          args: Prisma.RegistrationRequestUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RegistrationRequestPayload>
+        }
+        deleteMany: {
+          args: Prisma.RegistrationRequestDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.RegistrationRequestUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.RegistrationRequestUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RegistrationRequestPayload>[]
+        }
+        upsert: {
+          args: Prisma.RegistrationRequestUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RegistrationRequestPayload>
+        }
+        aggregate: {
+          args: Prisma.RegistrationRequestAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateRegistrationRequest>
+        }
+        groupBy: {
+          args: Prisma.RegistrationRequestGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.RegistrationRequestGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.RegistrationRequestCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.RegistrationRequestCountAggregateOutputType> | number
+        }
+      }
+    }
     Partnaire: {
       payload: Prisma.$PartnairePayload<ExtArgs>
       fields: Prisma.PartnaireFieldRefs
@@ -5107,6 +5182,33 @@ export const BranchScalarFieldEnum = {
 export type BranchScalarFieldEnum = (typeof BranchScalarFieldEnum)[keyof typeof BranchScalarFieldEnum]
 
 
+export const RegistrationRequestScalarFieldEnum = {
+  id: 'id',
+  reference: 'reference',
+  branchId: 'branchId',
+  organizationId: 'organizationId',
+  schoolYearId: 'schoolYearId',
+  status: 'status',
+  studentData: 'studentData',
+  guardiansData: 'guardiansData',
+  requestedLevel: 'requestedLevel',
+  requestedSection: 'requestedSection',
+  requestedOption: 'requestedOption',
+  photoUrl: 'photoUrl',
+  consentAccepted: 'consentAccepted',
+  confirmedById: 'confirmedById',
+  confirmedAt: 'confirmedAt',
+  registeredById: 'registeredById',
+  registeredAt: 'registeredAt',
+  studentId: 'studentId',
+  rejectedReason: 'rejectedReason',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type RegistrationRequestScalarFieldEnum = (typeof RegistrationRequestScalarFieldEnum)[keyof typeof RegistrationRequestScalarFieldEnum]
+
+
 export const PartnaireScalarFieldEnum = {
   id: 'id',
   name: 'name',
@@ -5238,6 +5340,13 @@ export const NullableJsonNullValueInput = {
 } as const
 
 export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
+
+
+export const JsonNullValueInput = {
+  JsonNull: JsonNull
+} as const
+
+export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
 
 
 export const QueryMode = {
@@ -5489,6 +5598,20 @@ export type ListEnumTypeBracheFieldRefInput<$PrismaModel> = FieldRefInputType<$P
 
 
 /**
+ * Reference to a field of type 'RegistrationRequestStatus'
+ */
+export type EnumRegistrationRequestStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'RegistrationRequestStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'RegistrationRequestStatus[]'
+ */
+export type ListEnumRegistrationRequestStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'RegistrationRequestStatus[]'>
+    
+
+
+/**
  * Reference to a field of type 'BranchRole'
  */
 export type EnumBranchRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BranchRole'>
@@ -5671,6 +5794,7 @@ export type GlobalOmitConfig = {
   member?: Prisma.MemberOmit
   invitation?: Prisma.InvitationOmit
   branch?: Prisma.BranchOmit
+  registrationRequest?: Prisma.RegistrationRequestOmit
   partnaire?: Prisma.PartnaireOmit
   branchMember?: Prisma.BranchMemberOmit
   branchInvitation?: Prisma.BranchInvitationOmit
