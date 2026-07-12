@@ -40,7 +40,7 @@ export function UpdateClasseDialog({
 
   return (
     <Dialog {...props}>
-      <DialogContent>
+      <DialogContent size="lg">
         <DialogHeader>
           <DialogTitle>Éditer la classe</DialogTitle>
           <DialogDescription>

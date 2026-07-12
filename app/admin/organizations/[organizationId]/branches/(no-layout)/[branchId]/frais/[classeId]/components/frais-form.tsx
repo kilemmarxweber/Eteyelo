@@ -591,7 +591,7 @@ export function FraisUpForm({
               )}
             />
 
-            <Button className="mt-4" loading={isLoading}>
+            <Button type="submit" className="mt-4" loading={isLoading}>
               {mode === "create"
                 ? "Enregistrer le frais"
                 : "Mettre à jour le frais"}

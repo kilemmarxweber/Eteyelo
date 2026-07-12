@@ -245,8 +245,13 @@ export const deleteTeacherAction = archiveTeacherAction;
 
 export const getTeachersAction = action.handler(
   async (): Promise<ITeacher[]> => {
-    const { branchId, userId: sessionUserId, canManageTeachers, isTeacher } =
-      await getCurrentBranch();
+    const {
+      branchId,
+      organizationId,
+      userId: sessionUserId,
+      canManageTeachers,
+      isTeacher,
+    } = await getCurrentBranch();
 
     if (!canManageTeachers && !isTeacher) {
       return [];
@@ -256,13 +261,10 @@ export const getTeachersAction = action.handler(
       where: {
         branchMember: {
           branchId,
-          ...(canManageTeachers
-            ? {}
-            : {
-                member: {
-                  userId: sessionUserId,
-                },
-              }),
+          member: {
+            organizationId,
+            ...(canManageTeachers ? {} : { userId: sessionUserId }),
+          },
         },
       },
       include: {
@@ -275,11 +277,43 @@ export const getTeachersAction = action.handler(
             },
           },
         },
+        teaching: {
+          where: {
+            OR: [{ statusTeaching: true }, { statusTeaching: null }],
+            schoolYear: {
+              branchId,
+              isCurrentYear: true,
+              isArchived: false,
+              branch: { organizationId },
+            },
+            classe: { branchId, branch: { organizationId } },
+            cours: { branchId, branch: { organizationId } },
+          },
+          select: {
+            id: true,
+            classe: { select: { id: true, nameClasse: true } },
+            cours: { select: { id: true, nameCours: true } },
+          },
+        },
       },
     });
 
     return teachers.map((teacher) => {
       const user = teacher.branchMember?.member?.user;
+      const classNames = Array.from(
+        new Set(
+          teacher.teaching
+            .map((item) => item.classe?.nameClasse)
+            .filter((name): name is string => Boolean(name)),
+        ),
+      );
+      const courseNames = Array.from(
+        new Set(
+          teacher.teaching
+            .map((item) => item.cours?.nameCours)
+            .filter((name): name is string => Boolean(name)),
+        ),
+      );
 
       return {
         id: teacher.id,
@@ -298,10 +332,107 @@ export const getTeachersAction = action.handler(
         createdAt: teacher.createdAt,
         updatedAt: teacher.updatedAt,
         address: user?.address || "",
+        assignmentStatus:
+          teacher.teaching.length > 0
+            ? ("assigned" as const)
+            : ("unassigned" as const),
+        assignmentCount: teacher.teaching.length,
+        classCount: classNames.length,
+        courseCount: courseNames.length,
+        classNames,
+        courseNames,
       };
     });
   },
 );
+
+export const getTeacherDashboardStatsAction = action.handler(async () => {
+  const {
+    branchId,
+    organizationId,
+    userId,
+    canManageTeachers,
+    isTeacher,
+  } =
+    await getCurrentBranch();
+
+  if (!canManageTeachers && !isTeacher) {
+    throw new Error("Action non autorisee");
+  }
+
+  const activeTeachingWhere = {
+    OR: [{ statusTeaching: true }, { statusTeaching: null }],
+    schoolYear: {
+      branchId,
+      isCurrentYear: true,
+      isArchived: false,
+      branch: { organizationId },
+    },
+    classe: { branchId, branch: { organizationId } },
+    cours: { branchId, branch: { organizationId } },
+  };
+  const teacherScope = {
+    branchMember: {
+      branchId,
+      member: {
+        organizationId,
+        ...(canManageTeachers ? {} : { userId }),
+        user: {
+          OR: [{ statusUser: true }, { statusUser: null }],
+        },
+      },
+    },
+  };
+
+  const [
+    totalActive,
+    assigned,
+    totalAssignments,
+    coveredClassRows,
+    coveredCourseRows,
+  ] =
+    await Promise.all([
+      prisma.teacher.count({ where: teacherScope }),
+      prisma.teacher.count({
+        where: {
+          ...teacherScope,
+          teaching: { some: activeTeachingWhere },
+        },
+      }),
+      prisma.teaching.count({
+        where: {
+          ...activeTeachingWhere,
+          teacher: teacherScope,
+        },
+      }),
+      prisma.teaching.groupBy({
+        by: ["classeId"],
+        where: {
+          ...activeTeachingWhere,
+          teacher: teacherScope,
+        },
+      }),
+      prisma.teaching.groupBy({
+        by: ["coursId"],
+        where: {
+          ...activeTeachingWhere,
+          teacher: teacherScope,
+        },
+      }),
+    ]);
+
+  return {
+    totalActive,
+    assigned,
+    unassigned: Math.max(0, totalActive - assigned),
+    totalAssignments,
+    coveredClasses: coveredClassRows.length,
+    coveredCourses: coveredCourseRows.length,
+    averageAssignments: assigned
+      ? Number((totalAssignments / assigned).toFixed(1))
+      : 0,
+  };
+});
 
 export const updateTeacherAction = action
   .input(teacherSchema)

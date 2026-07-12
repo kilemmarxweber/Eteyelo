@@ -40,7 +40,7 @@ export function UpdateStudentDialog({
 
   return (
     <Dialog {...props}>
-      <DialogContent>
+      <DialogContent size="lg">
         <DialogHeader>
           <DialogTitle>Éditer l'élève</DialogTitle>
           <DialogDescription>

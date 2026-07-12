@@ -303,7 +303,7 @@ export function EnrollmentUpForm({
                 </FormItem>
               )}
             />
-            <Button className="mt-2" loading={isLoading}>
+            <Button type="submit" className="mt-2" loading={isLoading}>
               {mode === "create"
                 ? "Enregistrer la classEnrollment"
                 : "Mettre à jour de la classEnrollment"}

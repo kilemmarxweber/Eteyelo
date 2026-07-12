@@ -32,7 +32,7 @@ export function UpdateParentDialog({
 
   return (
     <Dialog {...props}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto">
+      <DialogContent size="lg">
         <DialogHeader>
           <DialogTitle>Éditer l'parent</DialogTitle>
           <DialogDescription>

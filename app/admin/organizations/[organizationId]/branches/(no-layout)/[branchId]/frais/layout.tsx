@@ -113,7 +113,7 @@ function FraisLayoutContent({
                     <DialogTrigger asChild>
                       <Button variant="default">Ajouter un frais</Button>
                     </DialogTrigger>
-                    <DialogContent>
+                    <DialogContent size="lg">
                       <DialogHeader>
                         <DialogTitle>Ajouter un frais</DialogTitle>
                         <DialogDescription>

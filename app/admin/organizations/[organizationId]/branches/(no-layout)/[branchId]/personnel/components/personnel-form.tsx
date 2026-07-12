@@ -17,7 +17,6 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/custom/button";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import { DialogClose } from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
@@ -59,7 +58,6 @@ export function PersonnelUpForm({
 }: PersonnelUpFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const [userCreated, setUserCreated] = useState(false);
   const [pending, startTransition] = useTransition();
 
   const sexeToUi: Record<string, "masculin" | "feminin"> = {
@@ -134,8 +132,11 @@ export function PersonnelUpForm({
         }
         toast.success("Personnel mis à jour avec succès");
       }
-      setUserCreated(true);
-      onPersonnelCreated && onPersonnelCreated();
+      if (mode === "create") {
+        onPersonnelCreated?.();
+      } else {
+        onPersonnelUpdate?.();
+      }
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Une erreur est survenue";
@@ -394,12 +395,11 @@ export function PersonnelUpForm({
                 )}
               />
             </div>
-            <Button className="mt-2" loading={isLoading}>
+            <Button type="submit" className="mt-2" loading={isLoading}>
               {mode === "create"
                 ? "Enregistrer l'utilisateur"
                 : "Mettre à jour l'utilisateur"}
             </Button>
-            {userCreated && <DialogClose />}
             {errorMessage && (
               <p className="mt-2 text-center text-red-500">{errorMessage}</p>
             )}

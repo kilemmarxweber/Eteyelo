@@ -56,7 +56,7 @@ export const studentSchema = z.object({
     .optional(),
   email: z.string(),
   memberId: z.string().optional(), // 👈 ajouté
-  parentId: z.string(),
+  parentId: z.string().min(1, { message: "Veuillez selectionner un parent" }),
   placeOfBirth: z.string().trim().optional(),
   category: StudentCategoryEnum,
   studentId: z.string().optional(), // Ajout du champ parentId optionnel

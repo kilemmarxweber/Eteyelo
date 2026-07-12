@@ -1,99 +1,112 @@
 "use client";
 
 import { Table } from "@tanstack/react-table";
+import { IconSearch, IconX } from "@tabler/icons-react";
 
-import { IconX } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DataTableViewOptions } from "@/components/data-table-view-options";
-
 import { DataTableFacetedFilter } from "@/components/data-table-faceted-filter";
-import { useEffect, useState } from "react";
-import { ISchoolYear } from "@/src/interfaces/SchoolYear";
-import { getSchoolYearsAction } from "../../schoolYear/schoolYear.action";
-import { useSession } from "@/lib/auth-client";
+import type { ITeacher } from "@/src/interfaces/Teacher";
 
 interface DataTableToolbarProps<TData> {
   table: Table<TData>;
 }
 
-const sexe = [
-  {
-    value: "masculin",
-    label: "masculin",
-  },
-  {
-    value: "feminin",
-    label: "Feminin",
-  },
+const sexes = [
+  { value: "M", label: "Masculin" },
+  { value: "F", label: "Feminin" },
 ];
+
+const assignmentStatuses = [
+  { value: "assigned", label: "Affectes" },
+  { value: "unassigned", label: "Non affectes" },
+];
+
+function uniqueOptions(values: string[]) {
+  return Array.from(new Set(values))
+    .filter(Boolean)
+    .sort((left, right) => left.localeCompare(right, "fr"))
+    .map((value) => ({ value, label: value }));
+}
+
 export function DataTableToolbar<TData>({
   table,
 }: DataTableToolbarProps<TData>) {
   const isFiltered = table.getState().columnFilters.length > 0;
-  const [schoolYears, setSchoolYears] = useState<ISchoolYear[]>([]);
-  const [loading, setLoading] = useState(true);
-  const { data: session } = useSession();
-  const branchId = session?.branch?.id ?? session?.session?.activeBranchId;
-  useEffect(() => {
-    const fetchSchoolYears = async () => {
-      try {
-        if (!branchId) return;
-        const [rawSchoolYears, err] = await getSchoolYearsAction({ branchId });
-        if (err) {
-          throw new Error("Failed to fetch schoolYears");
-        }
-        setSchoolYears(rawSchoolYears);
-        setLoading(false);
-      } catch (error) {
-        setLoading(false);
-      }
-    };
-
-    fetchSchoolYears();
-  }, [branchId]);
-
-  // Fonction de transformation
+  const teachers = table
+    .getPreFilteredRowModel()
+    .rows.map((row) => row.original as ITeacher);
+  const classOptions = uniqueOptions(
+    teachers.flatMap((teacher) => teacher.classNames ?? []),
+  );
+  const courseOptions = uniqueOptions(
+    teachers.flatMap((teacher) => teacher.courseNames ?? []),
+  );
 
   return (
-    <div className="flex items-center justify-between">
-      <div className="flex flex-1 items-center space-x-2">
+    <div className="flex flex-col gap-3 border-b pb-4 xl:flex-row xl:items-center xl:justify-between">
+      <div className="relative max-w-3xl">
+        <IconSearch className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
         <Input
-          placeholder="Chercher par nom, prénom ou postnom..."
+          placeholder="Rechercher un enseignant..."
           value={(table.getColumn("nom")?.getFilterValue() as string) ?? ""}
           onChange={(event) =>
             table.getColumn("nom")?.setFilterValue(event.target.value)
           }
-          className="h-8 w-[150px] lg:w-[350px]"
+          className="h-10 pl-9"
         />
-        {table.getColumn("sexe") && (
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2">
+        {table.getColumn("assignmentStatus") ? (
+          <DataTableFacetedFilter
+            column={table.getColumn("assignmentStatus")}
+            title="Affectation"
+            options={assignmentStatuses}
+            value="all"
+            onValueChange={() => undefined}
+          />
+        ) : null}
+        {classOptions.length > 0 && table.getColumn("classNames") ? (
+          <DataTableFacetedFilter
+            column={table.getColumn("classNames")}
+            title="Classe"
+            options={classOptions}
+            value="all"
+            onValueChange={() => undefined}
+          />
+        ) : null}
+        {courseOptions.length > 0 && table.getColumn("courseNames") ? (
+          <DataTableFacetedFilter
+            column={table.getColumn("courseNames")}
+            title="Cours"
+            options={courseOptions}
+            value="all"
+            onValueChange={() => undefined}
+          />
+        ) : null}
+        {table.getColumn("sexe") ? (
           <DataTableFacetedFilter
             column={table.getColumn("sexe")}
             title="Sexe"
-            options={sexe}
-            value={
-              (table.getColumn("sexe")?.getFilterValue() as string) ?? "all"
-            }
-            onValueChange={(value) =>
-              table
-                .getColumn("sexe")
-                ?.setFilterValue(value === "all" ? "" : value)
-            }
+            options={sexes}
+            value="all"
+            onValueChange={() => undefined}
           />
-        )}
-
-        {isFiltered && (
+        ) : null}
+        {isFiltered ? (
           <Button
             variant="ghost"
+            size="sm"
             onClick={() => table.resetColumnFilters()}
-            className="h-8 px-2 lg:px-3"
           >
-            Reset
-            <IconX className="ml-2 h-4 w-4" />
+            Reinitialiser
+            <IconX className="ml-2 size-4" />
           </Button>
-        )}
+        ) : null}
+        <DataTableViewOptions table={table} />
       </div>
-      <DataTableViewOptions table={table} />
     </div>
   );
 }

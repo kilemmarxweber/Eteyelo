@@ -101,7 +101,7 @@ export default function RootLayout({
                 <DialogTrigger asChild>
                   <Button variant="default">S'inscrire</Button>
                 </DialogTrigger>
-                <DialogContent>
+                <DialogContent size="lg">
                   <DialogHeader>
                     <DialogTitle>S'inscrire à une classe</DialogTitle>
                     <DialogDescription>

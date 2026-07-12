@@ -19,12 +19,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Trash2 } from "lucide-react";
+import { AlertTriangle, Download, Printer, Trash2 } from "lucide-react";
 import {
   createScheduleAction,
   archiveScheduleAction,
   getScheduleCoursByClasseAction,
   getScheduleCreneauByClasseAction,
+  getScheduleReportContextAction,
   getSchedulesByClasseAction,
 } from "../../schedule.action";
 import { ICours } from "@/src/interfaces/Cours";
@@ -49,11 +50,18 @@ import { genererCreneaux } from "@/src/hooks/getCourseHours";
 import { toast } from "sonner";
 import { useSession } from "@/lib/auth-client";
 import { canManageOrganization } from "@/lib/auth/session-roles";
+import {
+  exportSchedulePdf,
+  findScheduleConflicts,
+  type ScheduleReportContext,
+} from "./export-schedule-pdf";
 
 type Horaire = {
   id: string;
   jour: string;
   cours: ICours;
+  teacherLastName: string;
+  teacherName: string;
   heureDebut: string;
   heureFin: string;
 };
@@ -102,6 +110,9 @@ export default function Schedule({
   const [jour, setJour] = useState<"" | DayType>("");
   const [recreationHour, setRecreationHour] = useState<string>("");
   const [endTime, setEndTime] = useState<string>("");
+  const [reportContext, setReportContext] =
+    useState<ScheduleReportContext | null>(null);
+  const [exporting, setExporting] = useState(false);
   const DAY_VALUES = Object.values(Day) as DayType[];
   const { data: session } = useSession();
   const canManageSchedules = canManageOrganization(session);
@@ -177,6 +188,14 @@ export default function Schedule({
           id: schedule.id,
           jour: schedule.day,
           cours: schedule.cours as ICours,
+          teacherLastName: schedule.teacher?.nom ?? "",
+          teacherName: [
+            schedule.teacher?.nom,
+            schedule.teacher?.postnom,
+            schedule.teacher?.prenom,
+          ]
+            .filter(Boolean)
+            .join(" "),
           heureDebut: schedule.hour,
           heureFin: "", // Vous pouvez calculer l'heure de fin si nécessaire
         }));
@@ -186,9 +205,19 @@ export default function Schedule({
       }
     };
 
+    const fetchReportContext = async () => {
+      const [context, err] = await getScheduleReportContextAction({ classeId });
+      if (err || !context) {
+        toast.error("Impossible de charger les informations du rapport.");
+        return;
+      }
+      setReportContext(context);
+    };
+
     fetchCours();
     fetchCreneaux();
     fetchHoraires();
+    fetchReportContext();
   }, [classeId]);
 
   useEffect(() => {
@@ -244,6 +273,8 @@ export default function Schedule({
             id: createdSchedule.id,
             jour,
             cours: coursChoisi,
+            teacherLastName: "",
+            teacherName: "",
             heureDebut,
             heureFin,
           },
@@ -304,15 +335,140 @@ export default function Schedule({
   const filteredHeuresDebut = displayHeuresDebut.filter(
     (h) => h !== recreationHour,
   );
+  const reportEntries = useMemo(
+    () =>
+      horaires.map((horaire) => ({
+        id: horaire.id,
+        day: horaire.jour,
+        startTime: horaire.heureDebut,
+        courseName: horaire.cours.nameCours,
+        teacherName: horaire.teacherName,
+      })),
+    [horaires],
+  );
+  const conflicts = useMemo(
+    () => findScheduleConflicts(reportEntries),
+    [reportEntries],
+  );
+
+  async function handleExportPdf() {
+    if (!reportContext || !horaires.length) return;
+    setExporting(true);
+    try {
+      await exportSchedulePdf({
+        context: reportContext,
+        days: Object.values(JOURS),
+        timeSlots: displayHeuresDebut,
+        recreationHour,
+        endTime,
+        entries: reportEntries,
+      });
+      toast.success("Le rapport PDF a ete genere.");
+    } catch (error) {
+      console.error(error);
+      toast.error("Impossible de generer le rapport PDF.");
+    } finally {
+      setExporting(false);
+    }
+  }
 
   return (
-    <Card className="w-full max-w-6xl mx-auto">
-      <CardHeader>
-        <CardTitle>Horaires de Cours Hebdomadaires</CardTitle>
-      </CardHeader>
-      <CardContent>
+    <>
+      <style jsx global>{`
+        @media print {
+          @page {
+            size: A4 landscape;
+            margin: 10mm;
+          }
+          body * {
+            visibility: hidden !important;
+          }
+          .schedule-print-area,
+          .schedule-print-area * {
+            visibility: visible !important;
+          }
+          .schedule-print-area {
+            position: absolute !important;
+            inset: 0 auto auto 0 !important;
+            width: 100% !important;
+          }
+        }
+      `}</style>
+      <Card
+        className="schedule-print-area mx-auto w-full max-w-6xl print:max-w-none print:border-0 print:shadow-none"
+      >
+        <CardHeader className="gap-4 print:px-0 print:pb-3">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <CardTitle>Horaires de cours hebdomadaires</CardTitle>
+            {reportContext && (
+              <p className="mt-1 text-sm text-muted-foreground">
+                {reportContext.classeName}
+                {reportContext.schoolYearName
+                  ? ` · ${reportContext.schoolYearName}`
+                  : ""}
+              </p>
+            )}
+          </div>
+          <div className="flex flex-wrap gap-2 print:hidden">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => window.print()}
+              disabled={loading || horaires.length === 0}
+            >
+              <Printer className="mr-2 size-4" />
+              Imprimer
+            </Button>
+            <Button
+              type="button"
+              onClick={handleExportPdf}
+              disabled={loading || exporting || horaires.length === 0 || !reportContext}
+            >
+              <Download className="mr-2 size-4" />
+              {exporting ? "Generation..." : "Telecharger le PDF"}
+            </Button>
+          </div>
+        </div>
+        {reportContext && (
+          <div className="hidden border-b pb-3 text-center print:block">
+            {reportContext.logoUrl && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={reportContext.logoUrl}
+                alt="Logo de la branche"
+                className="mx-auto mb-1 h-12 w-12 object-contain"
+              />
+            )}
+            <p className="text-sm font-semibold">{reportContext.organizationName}</p>
+            <p className="text-base font-bold">{reportContext.branchName}</p>
+            <p className="mt-1 text-lg font-bold">
+              Horaire de la classe {reportContext.classeName}
+            </p>
+            <p className="text-xs">
+              {[reportContext.schoolYearName, reportContext.creneauName]
+                .filter(Boolean)
+                .join(" · ")}
+            </p>
+          </div>
+        )}
+        </CardHeader>
+        <CardContent className="print:px-0">
+        {conflicts.length > 0 && (
+          <div className="mb-4 flex gap-3 rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive print:border-red-500 print:bg-red-50 print:text-red-800">
+            <AlertTriangle className="mt-0.5 size-4 shrink-0" />
+            <div>
+              <p className="font-semibold">
+                {conflicts.length} conflit(s) detecte(s) dans l'horaire
+              </p>
+              <p>
+                Les cours concernes sont affiches ensemble et seront signales dans le PDF.
+              </p>
+            </div>
+          </div>
+        )}
         {canCreateSchedule && (
-          <form onSubmit={ajouterHoraire} className="space-y-4 mb-6">
+          <form onSubmit={ajouterHoraire} className="mb-6 space-y-4 print:hidden">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="jour">Jour</Label>
@@ -383,7 +539,7 @@ export default function Schedule({
           </form>
         )}
 
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto print:overflow-visible">
           <Table>
             <TableHeader>
               <TableRow className="w-[100px]">
@@ -413,18 +569,39 @@ export default function Schedule({
                       {`${heure} - ${displayHeuresDebut[index + 1] || endTime}`}
                     </TableCell>
                     {Object.values(JOURS).map((jour) => {
-                      const horaire = horaires.find(
+                      const cellSchedules = horaires.filter(
                         (h) => h.jour === jour && h.heureDebut === heure,
                       );
                       return (
-                        <TableCell key={`${jour}-${heure}`}>
-                          {horaire && (
-                            <div className="flex items-center ">
-                              <span>{horaire.cours.nameCours}</span>
+                        <TableCell
+                          key={`${jour}-${heure}`}
+                          className={
+                            cellSchedules.length > 1
+                              ? "bg-destructive/10 text-destructive print:bg-red-50 print:text-red-800"
+                              : undefined
+                          }
+                        >
+                          {cellSchedules.map((horaire) => (
+                            <div
+                              key={horaire.id}
+                              className="flex items-start justify-start gap-1 border-b py-1 last:border-b-0"
+                            >
+                              <span>
+                                <span className="font-medium">
+                                  {horaire.cours.nameCours}
+                                </span>
+                                {horaire.teacherLastName && (
+                                  <span className="block text-xs text-muted-foreground print:text-slate-600">
+                                    {horaire.teacherLastName}
+                                  </span>
+                                )}
+                              </span>
                               {canDeleteSchedule && (
                                 <Button
+                                  type="button"
                                   variant="ghost"
                                   size="icon"
+                                  className="size-7 shrink-0 print:hidden"
                                   onClick={() => desactiverHoraire(horaire.id)}
                                 >
                                   <Trash2 className="h-4 w-4" />
@@ -432,7 +609,7 @@ export default function Schedule({
                                 </Button>
                               )}
                             </div>
-                          )}
+                          ))}
                         </TableCell>
                       );
                     })}
@@ -442,7 +619,17 @@ export default function Schedule({
             </TableBody>
           </Table>
         </div>
-      </CardContent>
-    </Card>
+        {horaires.length === 0 && !loading && (
+          <p className="py-8 text-center text-sm text-muted-foreground print:hidden">
+            Aucun horaire disponible pour cette classe.
+          </p>
+        )}
+        <div className="mt-4 hidden justify-between border-t pt-2 text-[10px] text-slate-500 print:flex">
+          <span>Imprime le {new Date().toLocaleString("fr-FR")}</span>
+          <span>{reportContext?.branchName}</span>
+        </div>
+        </CardContent>
+      </Card>
+    </>
   );
 }

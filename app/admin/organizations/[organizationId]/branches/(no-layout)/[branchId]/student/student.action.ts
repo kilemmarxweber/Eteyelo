@@ -378,6 +378,45 @@ export const getStudentsAction = action.handler(
   },
 );
 
+function extractStudentReportLogo(image: unknown): string {
+  if (!image || typeof image !== "object" || Array.isArray(image)) return "";
+  const logo = (image as Record<string, unknown>).logo;
+  if (typeof logo !== "string" || !logo.trim()) return "";
+
+  return logo.startsWith("http") ||
+    logo.startsWith("data:") ||
+    logo.startsWith("/")
+    ? logo
+    : `/uploads/${logo}`;
+}
+
+export const getStudentReportContextAction = action.handler(async () => {
+  const { branchId, organizationId } = await getCurrentBranch();
+  const branch = await prisma.branch.findFirst({
+    where: { id: branchId, organizationId },
+    select: {
+      name: true,
+      image: true,
+      organization: { select: { name: true, logo: true } },
+      schoolYear: {
+        where: { isCurrentYear: true, isArchived: false },
+        select: { nameYear: true },
+        take: 1,
+      },
+    },
+  });
+
+  if (!branch) throw new Error("Branche active introuvable");
+
+  return {
+    branchName: branch.name,
+    organizationName: branch.organization.name,
+    schoolYearName: branch.schoolYear[0]?.nameYear ?? "",
+    logoUrl:
+      extractStudentReportLogo(branch.image) || branch.organization.logo || "",
+  };
+});
+
 /* ======================================================
    UPDATE
 ====================================================== */

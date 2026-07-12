@@ -23,9 +23,16 @@ export function UpdateTeacherDialog({
   showTrigger = true,
   onSuccess,
   teacher,
-  ...props
+  open: controlledOpen,
+  onOpenChange,
+  ...dialogProps
 }: UpdateTeacherDialogProps) {
-  const [open, setOpen] = React.useState(false);
+  const [internalOpen, setInternalOpen] = React.useState(false);
+  const open = controlledOpen ?? internalOpen;
+  const setOpen = (nextOpen: boolean) => {
+    setInternalOpen(nextOpen);
+    onOpenChange?.(nextOpen);
+  };
 
   const handleUpdate = () => {
     onSuccess?.();
@@ -33,8 +40,8 @@ export function UpdateTeacherDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen} {...props}>
-      <DialogContent>
+    <Dialog open={open} onOpenChange={setOpen} {...dialogProps}>
+      <DialogContent size="lg">
         <DialogHeader>
           <DialogTitle>Editer l'enseignant</DialogTitle>
           <DialogDescription>

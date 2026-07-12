@@ -9,7 +9,6 @@ import { z } from "zod";
 
 import { Button } from "@/components/custom/button";
 import { Calendar } from "@/components/ui/calendar";
-import { DialogClose } from "@/components/ui/dialog";
 import {
   Form,
   FormControl,
@@ -55,7 +54,6 @@ export function TeacherUpForm({
 }: TeacherUpFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const [userCreated, setUserCreated] = useState(false);
   const sexeToUi: Record<string, "masculin" | "feminin"> = {
     M: "masculin",
     F: "feminin",
@@ -115,7 +113,6 @@ export function TeacherUpForm({
         toast.success("Enseignant mis a jour avec succes");
       }
 
-      setUserCreated(true);
       if (mode === "create") {
         onTeacherCreated?.();
       } else {
@@ -257,7 +254,7 @@ export function TeacherUpForm({
                     <FormLabel>Sexe</FormLabel>
                     <Select
                       onValueChange={field.onChange}
-                      defaultValue={field.value}
+                      value={field.value}
                     >
                       <FormControl>
                         <SelectTrigger>
@@ -323,13 +320,12 @@ export function TeacherUpForm({
               />
             </div>
 
-            <Button className="mt-2" loading={isLoading}>
+            <Button type="submit" className="mt-2" loading={isLoading}>
               {mode === "create"
                 ? "Enregistrer l'utilisateur"
                 : "Mettre a jour l'utilisateur"}
             </Button>
 
-            {userCreated && <DialogClose />}
             {errorMessage && (
               <p className="mt-2 text-center text-red-500">{errorMessage}</p>
             )}

@@ -9,14 +9,22 @@ import { getTeachersAction } from "../teacher.action";
 import { DataTableToolbar } from "./data-table-toolbar";
 import { IconAlertCircle, IconUsers } from "@tabler/icons-react";
 
+type TeacherAssignmentFilter =
+  | "all"
+  | "active"
+  | "assigned"
+  | "unassigned";
+
 const TeachersList = ({
   refreshKey,
   onRefresh,
   canManageTeachers,
+  assignmentFilter,
 }: {
   refreshKey: number;
   onRefresh: () => void;
   canManageTeachers: boolean;
+  assignmentFilter: TeacherAssignmentFilter;
 }) => {
   const [teachers, setTeachers] = useState<ITeacher[]>([]);
   const [loading, setLoading] = useState(true);
@@ -24,6 +32,26 @@ const TeachersList = ({
   const columns = useMemo(
     () => createTeacherColumns(onRefresh, canManageTeachers),
     [canManageTeachers, onRefresh],
+  );
+  const displayedTeachers = useMemo(
+    () =>
+      teachers.filter((teacher) => {
+        if (assignmentFilter === "active") return teacher.statusUser !== false;
+        if (assignmentFilter === "assigned") {
+          return (
+            teacher.statusUser !== false &&
+            teacher.assignmentStatus === "assigned"
+          );
+        }
+        if (assignmentFilter === "unassigned") {
+          return (
+            teacher.statusUser !== false &&
+            teacher.assignmentStatus === "unassigned"
+          );
+        }
+        return true;
+      }),
+    [assignmentFilter, teachers],
   );
 
   useEffect(() => {
@@ -88,7 +116,7 @@ const TeachersList = ({
       <ResponsiveDataTable
         columns={columns}
         ToolbarComponent={DataTableToolbar}
-        data={teachers}
+        data={displayedTeachers}
         emptyText="Aucun enseignant Ajouté"
         mobileCardTitle={(row) => `${row.nom} ${row.postnom} ${row.prenom}`}
         mobileCardSubtitle={(row) => row.username ?? ""}
@@ -101,6 +129,16 @@ const TeachersList = ({
             {
               label: row.telephone || "Téléphone non défini",
               variant: "outline" as const,
+            },
+            {
+              label:
+                row.assignmentStatus === "assigned"
+                  ? `${row.assignmentCount ?? 0} affectation(s)`
+                  : "Non affecte",
+              variant:
+                row.assignmentStatus === "assigned"
+                  ? ("default" as const)
+                  : ("destructive" as const),
             },
           ].filter((b) => b.label)
         }

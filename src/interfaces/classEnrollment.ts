@@ -13,9 +13,9 @@ export interface IclassEnrollment
 }
 
 export const classEnrollmentSchema = z.object({
-  id: z.string({ message: "veuillez selectionner le " }).optional(),
-  schoolYearId: z.string({ message: "veuillez selectionner l'année scolaire" }),
-  classeId: z.string({ message: "veuillez selectionner la classe" }),
-  studentId: z.string({ message: "veuillez selectionner l'élève" }),
+  id: z.string().optional(),
+  schoolYearId: z.string().min(1, "Veuillez selectionner l'annee scolaire"),
+  classeId: z.string().min(1, "Veuillez selectionner la classe"),
+  studentId: z.string().min(1, "Veuillez selectionner l'eleve"),
   statusEnrollment: z.boolean().optional(),
 });

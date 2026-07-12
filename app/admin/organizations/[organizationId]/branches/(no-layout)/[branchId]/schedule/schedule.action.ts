@@ -313,6 +313,17 @@ export const getSchedulesByClasseAction = action
             classe: true,
             cours: true,
             schoolYear: true,
+            teacher: {
+              include: {
+                branchMember: {
+                  include: {
+                    member: {
+                      include: { user: true },
+                    },
+                  },
+                },
+              },
+            },
           },
         },
       },
@@ -330,13 +341,85 @@ export const getSchedulesByClasseAction = action
         codeClasse: schedule.teaching?.classe?.codeClasse || "",
         nameClasse: schedule.teaching?.classe?.nameClasse || "",
       },
-      teacher: undefined,
+      teacher: {
+        id: schedule.teaching?.teacher?.id || "",
+        nom:
+          schedule.teaching?.teacher?.branchMember?.member?.user?.name || "",
+        postnom:
+          schedule.teaching?.teacher?.branchMember?.member?.user?.postnom || "",
+        prenom:
+          schedule.teaching?.teacher?.branchMember?.member?.user?.prenom || "",
+        telephone:
+          schedule.teaching?.teacher?.branchMember?.member?.user?.telephone ||
+          "",
+        email:
+          schedule.teaching?.teacher?.branchMember?.member?.user?.email || "",
+      },
       cours: {
         id: schedule.teaching?.cours?.id || "",
         codeCours: schedule.teaching?.cours?.codeCours || "",
         nameCours: schedule.teaching?.cours?.nameCours || "",
       },
     }));
+  });
+
+function extractBranchLogo(image: unknown): string {
+  if (!image || typeof image !== "object" || Array.isArray(image)) return "";
+  const logo = (image as Record<string, unknown>).logo;
+  if (typeof logo !== "string" || !logo.trim()) return "";
+  return logo.startsWith("http") ||
+    logo.startsWith("data:") ||
+    logo.startsWith("/")
+    ? logo
+    : `/uploads/${logo}`;
+}
+
+export const getScheduleReportContextAction = action
+  .input(z.object({ classeId: z.string() }))
+  .handler(async ({ input }) => {
+    const ctx = await getScheduleContext();
+    await assertClasseInBranch(ctx, input.classeId);
+
+    const classe = await prisma.classe.findFirst({
+      where: {
+        id: input.classeId,
+        branchId: ctx.branchId,
+        branch: { organizationId: ctx.organizationId },
+      },
+      select: {
+        id: true,
+        nameClasse: true,
+        codeClasse: true,
+        creneau: { select: { nameCreneau: true } },
+        branch: {
+          select: {
+            name: true,
+            image: true,
+            organization: { select: { name: true, logo: true } },
+            schoolYear: {
+              where: { isCurrentYear: true, isArchived: false },
+              select: { nameYear: true },
+              take: 1,
+            },
+          },
+        },
+      },
+    });
+
+    if (!classe) throw new Error("Classe introuvable dans cette branche");
+
+    return {
+      classeName: classe.nameClasse,
+      classeCode: classe.codeClasse,
+      creneauName: classe.creneau?.nameCreneau ?? "",
+      branchName: classe.branch.name,
+      organizationName: classe.branch.organization.name,
+      schoolYearName: classe.branch.schoolYear[0]?.nameYear ?? "",
+      logoUrl:
+        extractBranchLogo(classe.branch.image) ||
+        classe.branch.organization.logo ||
+        "",
+    };
   });
 
 export const getSchedulesByTeacherAction = action

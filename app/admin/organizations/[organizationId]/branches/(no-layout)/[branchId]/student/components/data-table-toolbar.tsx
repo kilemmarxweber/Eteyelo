@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { Cross2Icon } from "@radix-ui/react-icons";
 import { Table } from "@tanstack/react-table";
 import {
@@ -16,6 +17,8 @@ import { DataTableViewOptions } from "@/components/data-table-view-options";
 import { Input } from "@/components/ui/input";
 import type { IStudent } from "@/src/interfaces/Student";
 import { exportStudentsReportPdf } from "./export-students-pdf";
+import { getStudentReportContextAction } from "../student.action";
+import { toast } from "sonner";
 
 interface DataTableToolbarProps<TData> {
   table: Table<TData>;
@@ -37,6 +40,7 @@ export function DataTableToolbar<TData>({
   table,
   canManageStudents = true,
 }: DataTableToolbarProps<TData>) {
+  const [exportingPdf, setExportingPdf] = useState(false);
   const isFiltered = table.getState().columnFilters.length > 0;
   const classOptions = Array.from(
     new Map(
@@ -61,11 +65,53 @@ export function DataTableToolbar<TData>({
         .filter((item): item is readonly [string, { value: string; label: string }] => Boolean(item)),
     ).values(),
   ).sort((left, right) => left.label.localeCompare(right.label, "fr"));
-  const exportFilteredPdf = () => {
+  const exportFilteredPdf = async () => {
     const filteredStudents = table
       .getFilteredRowModel()
       .rows.map((row) => row.original as IStudent);
-    exportStudentsReportPdf(filteredStudents);
+    const classFilterValue = table
+      .getColumn("classCode")
+      ?.getFilterValue();
+    const selectedClassCodes = Array.isArray(classFilterValue)
+      ? classFilterValue.map(String)
+      : [];
+    const selectedClassCode =
+      selectedClassCodes.length === 1 ? selectedClassCodes[0] : null;
+    const selectedClassStudent = selectedClassCode
+      ? table
+          .getPreFilteredRowModel()
+          .rows.map((row) => row.original as IStudent)
+          .find((student) => student.classCode === selectedClassCode)
+      : null;
+
+    setExportingPdf(true);
+    try {
+      const [context, error] = await getStudentReportContextAction();
+      if (error || !context) {
+        throw new Error(
+          error?.message || "Impossible de charger les informations du rapport.",
+        );
+      }
+
+      await exportStudentsReportPdf(filteredStudents, context, {
+        selectedClass: selectedClassCode
+          ? {
+              code: selectedClassCode,
+              name: selectedClassStudent?.className || selectedClassCode,
+            }
+          : null,
+      });
+      toast.success("Le rapport PDF des eleves a ete genere.");
+    } catch (error) {
+      console.error(error);
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Impossible de generer le rapport PDF.",
+      );
+    } finally {
+      setExportingPdf(false);
+    }
   };
 
   return (
@@ -118,9 +164,10 @@ export function DataTableToolbar<TData>({
           variant="outline"
           leftSection={<IconFileTypePdf size={16} />}
           onClick={exportFilteredPdf}
-          disabled={!table.getFilteredRowModel().rows.length}
+          loading={exportingPdf}
+          disabled={!table.getFilteredRowModel().rows.length || exportingPdf}
         >
-          Rapport PDF
+          {exportingPdf ? "Generation..." : "Rapport PDF"}
         </Button>
 
         {isFiltered ? (

@@ -40,7 +40,7 @@ export function UpdateFraisDialog({
 
   return (
     <Dialog {...props}>
-      <DialogContent>
+      <DialogContent size="lg">
         <DialogHeader>
           <DialogTitle>Éditer l'élève</DialogTitle>
           <DialogDescription>
@@ -56,6 +56,7 @@ export function UpdateFraisDialog({
             nameFrais: frais.nameFrais,
             statusFrais: frais.statusFrais,
             classeId: frais.classeId || "",
+            typeFraisId: frais.typeFraisId || "",
           }} // Pass the frais data for editing
           onUpdated={handleUpdate}
           onSuccess={handleSuccess}

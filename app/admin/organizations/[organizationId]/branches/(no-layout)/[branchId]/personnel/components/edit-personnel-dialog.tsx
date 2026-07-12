@@ -26,19 +26,26 @@ export function UpdatePersonnelDialog({
   showTrigger = true,
   onSuccess,
   personnel,
-  ...props
+  open: controlledOpen,
+  onOpenChange,
+  ...dialogProps
 }: UpdatePersonnelDialogProps) {
-  const [open, setOpen] = React.useState(false);
+  const [internalOpen, setInternalOpen] = React.useState(false);
+  const open = controlledOpen ?? internalOpen;
+  const setOpen = (nextOpen: boolean) => {
+    setInternalOpen(nextOpen);
+    onOpenChange?.(nextOpen);
+  };
   const { refresh } = useRefresh();
   const handleUpdate = () => {
-    setTimeout(() => {
-      refresh();
-    }, 1000);
+    refresh();
+    onSuccess?.();
+    setOpen(false);
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen} {...props}>
-      <DialogContent>
+    <Dialog open={open} onOpenChange={setOpen} {...dialogProps}>
+      <DialogContent size="lg">
         <DialogHeader>
           <DialogTitle>Éditer le personnel</DialogTitle>
           <DialogDescription>
@@ -61,7 +68,7 @@ export function UpdatePersonnelDialog({
             address: personnel.address,
             orgRole: personnel.role ?? ALL_ORG_ROLE_SLUGS[2],
           }} // Pass the personnel data for editing
-          onPersonnelCreated={handleUpdate}
+          onPersonnelUpdate={handleUpdate}
         />
       </DialogContent>
     </Dialog>

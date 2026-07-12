@@ -47,7 +47,7 @@ export const fraisSchema = z.object({
     .min(0.01, { message: "Le montant doit etre superieur a 0" }),
   statusFrais: z.boolean().optional(),
   classeId: z.string().min(1, { message: "Classe requise" }),
-  typeFraisId: z.string().optional(),
+  typeFraisId: z.string().min(1, { message: "Type de frais requis" }),
   echeance: z.date().optional(),
   priority: z.number().optional(),
   schoolYearId: z.string().optional(),

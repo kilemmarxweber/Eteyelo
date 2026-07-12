@@ -30,7 +30,7 @@ export function DetailsParentDialog({
 
   return (
     <Dialog open={open} onOpenChange={setOpen} {...props}>
-      <DialogContent className="py-6 max-h-[90vh] overflow-y-auto">
+      <DialogContent size="lg" className="py-6">
         {/* ✅ REQUIRED by Radix */}
         <DialogHeader>
           <DialogTitle>Détails du parent</DialogTitle>

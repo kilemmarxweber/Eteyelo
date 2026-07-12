@@ -88,7 +88,7 @@ export function UpdateStudentDialog({
 
   return (
     <Dialog onOpenChange={onOpenChange} {...props}>
-      <DialogContent>
+      <DialogContent size="xl">
         <DialogHeader>
           <DialogTitle>Editer l'eleve</DialogTitle>
           <DialogDescription>

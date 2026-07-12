@@ -101,7 +101,7 @@ export default function RootLayout({
                 <DialogTrigger asChild>
                   <Button variant="default">Assigner un cours</Button>
                 </DialogTrigger>
-                <DialogContent>
+                <DialogContent size="lg">
                   <DialogHeader>
                     <DialogTitle>Assigner un cours à un enseignant</DialogTitle>
                     <DialogDescription>

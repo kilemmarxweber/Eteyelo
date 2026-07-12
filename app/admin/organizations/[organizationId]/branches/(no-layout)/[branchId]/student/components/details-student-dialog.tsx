@@ -42,7 +42,7 @@ export function DetailsStudentDialog({
 
   return (
     <Dialog {...props}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto">
+      <DialogContent size="xl">
         <DialogHeader>
           <DialogTitle>Details de l'eleve</DialogTitle>
         </DialogHeader>

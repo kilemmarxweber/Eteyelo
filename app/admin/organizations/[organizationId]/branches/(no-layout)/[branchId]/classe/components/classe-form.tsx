@@ -514,7 +514,7 @@ export function ClasseUpForm({
               )}
             />
 
-            <Button className="mt-2" loading={isLoading}>
+            <Button type="submit" className="mt-2" loading={isLoading}>
               {mode === "create"
                 ? "Enregistrer la classe"
                 : "Mettre a jour la classe"}

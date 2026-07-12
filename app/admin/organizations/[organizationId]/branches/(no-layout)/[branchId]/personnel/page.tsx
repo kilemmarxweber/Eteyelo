@@ -49,7 +49,7 @@ export default function Personnels() {
                 </Button>
               </DialogTrigger>
 
-              <DialogContent>
+              <DialogContent size="lg">
                 <DialogHeader>
                   <DialogTitle>Créer un personnel administratif</DialogTitle>
                   <DialogDescription>

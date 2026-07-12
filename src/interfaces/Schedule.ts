@@ -34,8 +34,8 @@ export interface ISchedule {
 }
 export const scheduleSchema = z.object({
   id: z.string().optional(),
-  coursId: z.string().optional(),
-  classeId: z.string(),
+  coursId: z.string().min(1, "Veuillez selectionner un cours"),
+  classeId: z.string().min(1, "Veuillez selectionner une classe"),
   teachingId: z.string().optional(),
   hour: z.string().regex(timeRegex, "Format d'heure invalide (HH:MM)"),
   day: z.enum(["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"]),

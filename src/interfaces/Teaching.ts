@@ -22,9 +22,9 @@ export interface ITeaching
 }
 export const teachingSchema = z.object({
   id: z.string().optional(),
-  teacherId: z.string(),
-  classeId: z.string(),
-  coursId: z.string(),
-  schoolYearId: z.string(),
+  teacherId: z.string().min(1, "Veuillez selectionner un enseignant"),
+  classeId: z.string().min(1, "Veuillez selectionner une classe"),
+  coursId: z.string().min(1, "Veuillez selectionner un cours"),
+  schoolYearId: z.string().min(1, "Veuillez selectionner l'annee scolaire"),
   titulaire: z.boolean().optional(),
 });

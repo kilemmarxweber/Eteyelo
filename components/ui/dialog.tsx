@@ -31,15 +31,28 @@ const DialogContent = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content> & {
     title?: string;
     hideTitle?: boolean;
+    size?: "sm" | "md" | "lg" | "xl" | "full";
   }
->(({ className, children, title, hideTitle = false, ...props }, ref) => (
+>(
+  (
+    { className, children, title, hideTitle = false, size = "md", ...props },
+    ref,
+  ) => (
   <DialogPortal>
     <DialogOverlay />
 
     <DialogPrimitive.Content
       ref={ref}
       className={cn(
-        "fixed left-1/2 top-1/2 z-50 grid w-[min(calc(100vw-2rem),32rem)] max-h-[calc(100vh-2rem)] -translate-x-1/2 -translate-y-1/2 gap-4 overflow-y-auto border bg-background p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 sm:rounded-lg sm:w-[min(calc(100vw-2rem),42rem)]",
+        "fixed left-1/2 top-1/2 z-50 grid max-h-[calc(100dvh-2rem)] -translate-x-1/2 -translate-y-1/2 gap-4 overflow-y-auto overscroll-contain border bg-background p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 sm:rounded-lg",
+        {
+          "w-[min(calc(100vw-2rem),28rem)]": size === "sm",
+          "w-[min(calc(100vw-2rem),42rem)]": size === "md",
+          "w-[min(calc(100vw-2rem),56rem)]": size === "lg",
+          "w-[min(calc(100vw-2rem),72rem)]": size === "xl",
+          "h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] max-h-none sm:h-[calc(100dvh-2rem)] sm:w-[calc(100vw-2rem)]":
+            size === "full",
+        },
         className,
       )}
       {...props}
@@ -57,13 +70,17 @@ const DialogContent = React.forwardRef<
       ) : null}
       {children}
 
-      <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring">
+      <DialogClose
+        type="button"
+        className="absolute right-4 top-4 rounded-sm opacity-70 transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring"
+      >
         <X className="h-4 w-4" />
         <span className="sr-only">Close</span>
       </DialogClose>
     </DialogPrimitive.Content>
   </DialogPortal>
-));
+  )
+);
 
 DialogContent.displayName = DialogPrimitive.Content.displayName;
 

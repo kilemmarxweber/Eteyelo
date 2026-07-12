@@ -378,7 +378,7 @@ export function ParentUpForm({
               />
             </div>
             {/* Submit */}
-            <Button className="mt-2" loading={isLoading}>
+            <Button type="submit" className="mt-2" loading={isLoading}>
               {mode === "create" ? "Enregistrer" : "Mettre à jour"}
             </Button>
           </div>

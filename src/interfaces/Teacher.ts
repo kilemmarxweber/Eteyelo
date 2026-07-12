@@ -9,6 +9,12 @@ export interface ITeacher
   teacherId: string;
   memberId: string;
   userId: string;
+  assignmentStatus?: "assigned" | "unassigned";
+  assignmentCount?: number;
+  classCount?: number;
+  courseCount?: number;
+  classNames?: string[];
+  courseNames?: string[];
 }
 
 export const teacherSchema = z.object({
@@ -19,7 +25,9 @@ export const teacherSchema = z.object({
   postnom: z.string(),
   prenom: z.string(),
   dateOfBirth: z.date().optional(),
-  sexe: z.string(),
+  sexe: z
+    .string()
+    .min(1, { message: "Veuillez selectionner le sexe" }),
   telephone: z.string(),
   email: z.string().optional(),
   address: z.string().min(10, { message: "Veuillez saisir l'adresse" }),

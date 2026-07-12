@@ -301,7 +301,7 @@ export function CreneauUpForm({
             </div>
           </div>
 
-          <Button className="w-full" loading={isLoading}>
+          <Button type="submit" className="w-full" loading={isLoading}>
             {mode === "create"
               ? "Enregistrer la vacation"
               : "Mettre à jour la vacation"}

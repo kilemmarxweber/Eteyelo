@@ -9,6 +9,7 @@ import { IconDots } from "@tabler/icons-react";
 import { Button } from "@/components/custom/button";
 import { DataTableColumnHeader } from "@/components/data-table-column-header";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -90,6 +91,91 @@ export const createTeacherColumns = (
     ),
     cell: ({ row }) => row.original.sexe ?? "N/A",
     filterFn: (row, id, value) => value.includes(row.getValue(id)),
+  },
+  {
+    accessorKey: "assignmentStatus",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Affectation" />
+    ),
+    cell: ({ row }) => {
+      const assigned = row.original.assignmentStatus === "assigned";
+      return assigned ? (
+        <Badge variant="success">
+          Affecte · {row.original.assignmentCount ?? 0}
+        </Badge>
+      ) : (
+        <div className="flex items-center gap-2">
+          <Badge variant="warning">Non affecte</Badge>
+          {canManageTeachers ? (
+            <Button variant="outline" size="xs" asChild>
+              <Link href="../teaching">Affecter</Link>
+            </Button>
+          ) : null}
+        </div>
+      );
+    },
+    filterFn: (row, id, value) =>
+      Array.isArray(value) ? value.includes(row.getValue(id)) : true,
+  },
+  {
+    id: "classNames",
+    accessorFn: (teacher) => teacher.classNames ?? [],
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Classes" />
+    ),
+    cell: ({ row }) => {
+      const names = row.original.classNames ?? [];
+      return names.length ? (
+        <div className="flex max-w-56 flex-wrap gap-1">
+          {names.slice(0, 2).map((name) => (
+            <Badge key={name} variant="outline">
+              {name}
+            </Badge>
+          ))}
+          {names.length > 2 ? (
+            <Badge variant="secondary">+{names.length - 2}</Badge>
+          ) : null}
+        </div>
+      ) : (
+        <span className="text-muted-foreground">—</span>
+      );
+    },
+    filterFn: (row, id, value) => {
+      const names = row.getValue(id) as string[];
+      return Array.isArray(value)
+        ? value.some((selected) => names.includes(selected))
+        : true;
+    },
+  },
+  {
+    id: "courseNames",
+    accessorFn: (teacher) => teacher.courseNames ?? [],
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Cours" />
+    ),
+    cell: ({ row }) => {
+      const names = row.original.courseNames ?? [];
+      return names.length ? (
+        <div className="flex max-w-56 flex-wrap gap-1">
+          {names.slice(0, 2).map((name) => (
+            <Badge key={name} variant="secondary">
+              {name}
+            </Badge>
+          ))}
+          {names.length > 2 ? (
+            <Badge variant="outline">+{names.length - 2}</Badge>
+          ) : null}
+        </div>
+      ) : (
+        <span className="text-muted-foreground">—</span>
+      );
+    },
+    filterFn: (row, id, value) => {
+      const names = row.getValue(id) as string[];
+      return Array.isArray(value)
+        ? value.some((selected) => names.includes(selected))
+        : true;
+    },
   },
   {
     accessorKey: "dateOfBirth",

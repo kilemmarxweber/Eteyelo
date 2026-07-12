@@ -98,24 +98,34 @@ export function ResponsiveDialogTrigger({
 interface ResponsiveDialogContentProps {
   children: React.ReactNode;
   className?: string;
+  size?: "sm" | "md" | "lg" | "xl" | "full";
 }
 
 export function ResponsiveDialogContent({
   children,
   className,
+  size = "md",
 }: ResponsiveDialogContentProps) {
   const { isMobile } = React.useContext(ResponsiveDialogContext);
 
   if (isMobile) {
     return (
-      <DrawerContent className={cn("max-h-[90vh]", className)}>
-        <div className="overflow-y-auto">{children}</div>
+      <DrawerContent
+        className={cn(
+          "max-h-[94dvh]",
+          size === "full" && "h-[96dvh] max-h-[96dvh]",
+          className,
+        )}
+      >
+        <div className="min-h-0 overflow-y-auto overscroll-contain">
+          {children}
+        </div>
       </DrawerContent>
     );
   }
 
   return (
-    <DialogContent className={cn("max-h-[90vh] overflow-y-auto", className)}>
+    <DialogContent size={size} className={className}>
       {children}
     </DialogContent>
   );
