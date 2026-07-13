@@ -9,6 +9,14 @@ import {
   ClassEnrollment,
 } from "@/prisma/generated/prisma/client";
 import jsPDF from "jspdf";
+import {
+  getAcademicGroupByOrder,
+  getAcademicGroupByPeriodKey,
+  getAcademicStructure,
+  getGroupPeriodOrder,
+  getStorageGroupKey,
+  type StorageGroupKey,
+} from "@/lib/academic-structure";
 export type Privilege = "view" | "add" | "update" | "delete";
 
 export type RoutePrivilegeMap = {
@@ -154,7 +162,7 @@ export type Subject = {
   baseMaxScore: number;
   maxima?: Record<string, number>;
 };
-export type TotalKey = "tt1" | "tt2" | "tg";
+export type TotalKey = "tt1" | "tt2" | "tt3" | "tg";
 export type SemKey = PeriodKey | TotalKey;
 
 export type PeriodLabel =
@@ -180,9 +188,12 @@ export type PeriodLabel =
   | "Exam 2e trimestre"
   | "Exam 3e trimestre";
 
+export type GroupRecords = Partial<Record<SemKey, string>>;
+
 export type ApplicationType = {
-  sem1: Record<SemKey, string>;
-  sem2: Record<SemKey, string>;
+  sem1: GroupRecords;
+  sem2: GroupRecords;
+  sem3?: GroupRecords;
 };
 
 export type TypeFiche = {
@@ -218,13 +229,30 @@ export const periodKeyMap: Record<PeriodLabel, PeriodKey> = {
   "Exam 3e trimestre": "exam3",
 };
 
+export function buildSemOrder(
+  typebranch?: unknown,
+): Record<StorageGroupKey, readonly (PeriodKey | TotalKey)[]> {
+  const structure = getAcademicStructure(typebranch);
+  const order = {} as Record<StorageGroupKey, readonly (PeriodKey | TotalKey)[]>;
+
+  for (const group of structure.groups) {
+    order[getStorageGroupKey(group)] = getGroupPeriodOrder(
+      typebranch,
+      group.order,
+    ) as readonly (PeriodKey | TotalKey)[];
+  }
+
+  return order;
+}
+
+/** Ordre secondaire conservé pour compatibilité descendante. */
 export const SEM_ORDER: Record<
   "sem1" | "sem2",
   readonly (PeriodKey | TotalKey)[]
-> = {
-  sem1: ["p1", "p2", "exam1", "tt1"],
-  sem2: ["p3", "p4", "exam2", "tt2"],
-};
+> = buildSemOrder("SECONDAIRE") as Record<
+  "sem1" | "sem2",
+  readonly (PeriodKey | TotalKey)[]
+>;
 
 export function getLastValue(
   semObj: Partial<Record<PeriodKey, string>>,
@@ -245,47 +273,43 @@ export function getLastValue(
 export function getPlaceValue(
   student: RecapRow,
   selectedPeriod: PeriodLabel,
+  typebranch?: unknown,
 ): string {
-  // 1️⃣ Déterminer la clé de la période sélectionnée
   const selectedKey = periodKeyMap[selectedPeriod as PeriodLabel];
   if (!selectedKey) return "-";
 
-  // 2️⃣ Déterminer le semestre
-  const semester: "sem1" | "sem2" =
-    selectedKey === "p1" || selectedKey === "p2" ? "sem1" : "sem2";
+  const group = getAcademicGroupByPeriodKey(selectedKey, typebranch);
+  if (!group) return "-";
 
-  // 3️⃣ Filtrer toutes les périodes jusqu'à la sélection
-  const activePeriods = student.periods.filter((p) => {
-    const pKey = periodKeyMap[p.periodName as PeriodLabel];
-    if (!pKey) return false;
+  const storageKey = getStorageGroupKey(group);
+  const order = getGroupPeriodOrder(typebranch, group.order).filter(
+    (key): key is PeriodKey => !key.startsWith("tt") && key !== "tg",
+  );
 
-    // ne garder que les périodes dans le même semestre et avant ou égales à la sélection
-    const order = SEM_ORDER[semester].filter(
-      (k): k is PeriodKey => k !== "tt1" && k !== "tt2",
-    );
-    return order.indexOf(pKey) <= order.indexOf(selectedKey);
+  const activePeriods = student.periods.filter((period) => {
+    const periodKey = periodKeyMap[period.periodName as PeriodLabel];
+    if (!periodKey) return false;
+
+    const periodGroup = getAcademicGroupByPeriodKey(periodKey, typebranch);
+    if (!periodGroup || periodGroup.key !== group.key) return false;
+
+    return order.indexOf(periodKey) <= order.indexOf(selectedKey);
   });
 
-  // 4️⃣ Parcourir toutes ces périodes pour récupérer la dernière valeur non vide
   let placeValue = "-";
 
-  for (const p of activePeriods) {
-    const autresData = p.autres as TypeFiche;
-    const pKey = periodKeyMap[p.periodName as PeriodLabel];
-    if (!pKey) continue;
+  for (const period of activePeriods) {
+    const autresData = period.autres as TypeFiche;
+    const periodKey = periodKeyMap[period.periodName as PeriodLabel];
+    if (!periodKey) continue;
 
-    const semObj = autresData["POURCENTAGES"][semester] as Record<
+    const semObj = autresData.POURCENTAGES[storageKey] as Record<
       PeriodKey,
       string
     >;
+    const last = getLastValue(semObj, order, periodKey);
 
-    // getLastValue parcourt l'ordre sem1 ou sem2 pour trouver la dernière valeur non vide jusqu'à pKey
-    const order = SEM_ORDER[semester].filter(
-      (k): k is PeriodKey => k !== "tt1" && k !== "tt2",
-    );
-    const last = getLastValue(semObj, order, pKey);
-
-    if (last && last !== "-") placeValue = last; // garder la dernière valeur non vide
+    if (last && last !== "-") placeValue = last;
   }
 
   return placeValue;
@@ -353,14 +377,25 @@ export type RecapRow = {
 // Map period indices to semester and periodKey
 export type SemesterKey = "sem1" | "sem2" | "sem3";
 
-// Define period keys and semester mapping
+export function buildPeriodKeyDefinitions(
+  typebranch?: unknown,
+): Record<PeriodKey, StorageGroupKey> {
+  const structure = getAcademicStructure(typebranch);
+  const definitions = {} as Record<PeriodKey, StorageGroupKey>;
+
+  for (const group of structure.groups) {
+    const storageKey = getStorageGroupKey(group);
+    for (const period of group.periods) {
+      definitions[period.key as PeriodKey] = storageKey;
+    }
+  }
+
+  return definitions;
+}
+
+/** Mapping secondaire conservé pour compatibilité descendante. */
 export const periodKeyDefinitions: Record<PeriodKey, SemesterKey> = {
-  p1: "sem1",
-  p2: "sem1",
-  exam1: "sem1", // exam 1er semestre
-  p3: "sem2",
-  p4: "sem2",
-  exam2: "sem2", // exam 1er semestre
+  ...buildPeriodKeyDefinitions("SECONDAIRE"),
   p5: "sem3",
   p6: "sem3",
   exam3: "sem3",
@@ -412,113 +447,147 @@ export type Fiche = {
 export type ApplicationTypes = {
   sem1: { p1: string; p2: string; exam1: string; tt1: string };
   sem2: { p3: string; p4: string; exam2: string; tt2: string };
+  sem3?: { p5: string; p6: string; exam3: string; tt3: string; tg?: string };
 };
 
 export type ClassStats = { studentsCount: number; fichesCount: number };
 
-export function canShowPeriod(
-  sem: "sem1" | "sem2",
-  key: "p1" | "p2" | "p3" | "p4" | "exam1" | "exam2",
+export function canShowPeriodInGroup(
+  groupOrder: number,
+  key: PeriodKey,
   active: string[],
+  typebranch?: unknown,
 ): boolean {
-  // --- SEMESTRE 1 ---
-  if (sem === "sem1") {
-    // Dès qu'on est en semestre 2 → tout sem1 visible
-    if (active.some((k) => ["p3", "p4"].includes(k))) return true;
+  const group = getAcademicGroupByOrder(typebranch, groupOrder);
+  if (!group) return false;
 
-    // Exam 1er semestre → tout sem1 visible
-    if (active.includes("exam1")) return true;
+  const periodKeys = group.periods.map((period) => period.key);
+  const examKey = group.periods.find((period) => period.kind === "EXAM")?.key;
 
-    // Sinon cumul progressif
-    if (key === "p1") return active.includes("p1");
-    if (key === "p2") return active.includes("p2");
-    if (key === "exam1") return false;
-
-    return false;
+  const laterGroups = getAcademicStructure(typebranch).groups.filter(
+    (item) => item.order > groupOrder,
+  );
+  if (
+    laterGroups.some((laterGroup) =>
+      laterGroup.periods.some((period) => active.includes(period.key)),
+    )
+  ) {
+    return true;
   }
 
-  // --- SEMESTRE 2 ---
-  if (sem === "sem2") {
-    if (key === "p3") return active.includes("p3");
-    if (key === "p4") return active.includes("p4");
-    if (key === "exam2") return active.includes("exam2");
+  if (examKey && active.includes(examKey)) return true;
+
+  if (key === examKey) return false;
+
+  return active.includes(key);
+}
+
+export function canShowGroupTotal(
+  groupOrder: number,
+  active: string[],
+  typebranch?: unknown,
+): boolean {
+  const group = getAcademicGroupByOrder(typebranch, groupOrder);
+  if (!group) return false;
+
+  const examKey = group.periods.find((period) => period.kind === "EXAM")?.key;
+  if (!examKey) return false;
+
+  if (active.includes(examKey)) return true;
+
+  return getAcademicStructure(typebranch)
+    .groups.filter((item) => item.order > groupOrder)
+    .some((laterGroup) =>
+      laterGroup.periods.some((period) => active.includes(period.key)),
+    );
+}
+
+export function canShowPeriod(
+  sem: StorageGroupKey,
+  key: PeriodKey,
+  active: string[],
+  typebranch: unknown = "SECONDAIRE",
+): boolean {
+  const groupOrder = Number.parseInt(sem.replace("sem", ""), 10);
+  return canShowPeriodInGroup(groupOrder, key, active, typebranch);
+}
+
+export function canShowTot1(active: string[], typebranch?: unknown) {
+  return canShowGroupTotal(1, active, typebranch);
+}
+
+export function canShowTot2(active: string[], typebranch?: unknown) {
+  return canShowGroupTotal(2, active, typebranch);
+}
+
+export function canShowTot3(active: string[], typebranch?: unknown) {
+  return canShowGroupTotal(3, active, typebranch);
+}
+
+export function computeGroupTotal(
+  subject: Subject,
+  groupOrder: number,
+  active: string[],
+  typebranch?: unknown,
+): number {
+  const group = getAcademicGroupByOrder(typebranch, groupOrder);
+  if (!group) return 0;
+
+  const storageKey = getStorageGroupKey(group);
+  const semData = subject[storageKey] ?? {};
+  let total = 0;
+
+  for (const period of group.periods) {
+    const periodKey = period.key as PeriodKey;
+    if (canShowPeriodInGroup(groupOrder, periodKey, active, typebranch)) {
+      total += semData[periodKey] || 0;
+    }
   }
 
-  return false;
+  return total;
 }
 
-export function canShowTot1(active: string[]) {
-  // tant qu'on est uniquement en p1 ou p2 → pas visible
-  return active.some((k) => ["exam1", "p3", "p4"].includes(k));
-}
-export function canShowTot2(active: string[]) {
-  return active.some((k) => ["exam2"].includes(k));
-}
 export function computeTotSem1(subject: Subject, active: string[]): number {
-  let total = 0;
-
-  if (canShowPeriod("sem1", "p1", active)) {
-    total += subject.sem1.p1 || 0;
-  }
-
-  if (canShowPeriod("sem1", "p2", active)) {
-    total += subject.sem1.p2 || 0;
-  }
-
-  if (canShowPeriod("sem1", "exam1", active)) {
-    total += subject.sem1.exam1 || 0;
-  }
-
-  return total;
+  return computeGroupTotal(subject, 1, active, "SECONDAIRE");
 }
+
 export function computeTotSem2(subject: Subject, active: string[]): number {
-  let total = 0;
-
-  if (canShowPeriod("sem2", "p3", active)) {
-    total += subject.sem2.p3 || 0;
-  }
-
-  if (canShowPeriod("sem2", "p4", active)) {
-    total += subject.sem2.p4 || 0;
-  }
-
-  if (canShowPeriod("sem2", "exam2", active)) {
-    total += subject.sem2.exam2 || 0;
-  }
-
-  return total;
+  return computeGroupTotal(subject, 2, active, "SECONDAIRE");
 }
-export type BlocValue = {
-  sem1: Record<string, string>;
-  sem2: Record<string, string>;
-};
 
-export type AutresFiche = {
-  TOTAUX: {
-    sem1: Record<string, string>;
-    sem2: Record<string, string>;
+export function computeTotSem3(subject: Subject, active: string[]): number {
+  return computeGroupTotal(subject, 3, active, "PRIMAIRE");
+}
+export type BlocValue = ApplicationType;
+
+export type AutresFiche = TypeFiche;
+
+function blocValueToNumericRecord(
+  record?: GroupRecords,
+): Record<string, number> {
+  return Object.fromEntries(
+    Object.entries(record ?? {}).map(([key, value]) => [
+      key,
+      Number(value) || 0,
+    ]),
+  );
+}
+
+/** Convertit une section TypeFiche en structure Subject pour le moteur PDF. */
+export function mapTypeFicheSectionToSubject(
+  section: BlocValue,
+  name: string,
+): Subject {
+  return {
+    name,
+    sem1: blocValueToNumericRecord(section.sem1),
+    sem2: blocValueToNumericRecord(section.sem2),
+    ...(section.sem3
+      ? { sem3: blocValueToNumericRecord(section.sem3) }
+      : {}),
+    baseMaxScore: 0,
   };
-  POURCENTAGES: {
-    sem1: Record<string, string>;
-    sem2: Record<string, string>;
-  };
-  "PLACE/NOMBRE D'ELEVES": {
-    sem1: Record<string, string>;
-    sem2: Record<string, string>;
-  };
-  APPLICATIONS: {
-    sem1: Record<string, string>;
-    sem2: Record<string, string>;
-  };
-  CONDUITE: {
-    sem1: Record<string, string>;
-    sem2: Record<string, string>;
-  };
-  "SIGNATURE PARENTS": {
-    sem1: Record<string, string>;
-    sem2: Record<string, string>;
-  };
-};
+}
 export function drawCell1(
   doc: jsPDF,
   x: number,

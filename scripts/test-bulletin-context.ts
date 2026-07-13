@@ -1,6 +1,9 @@
 import assert from "node:assert/strict";
 
-import { buildBulletinBranchContext } from "../lib/bulletin-context";
+import {
+  buildBulletinBranchContext,
+  resolveBulletinLayoutKind,
+} from "../lib/bulletin-context";
 
 function test(name: string, assertion: () => void) {
   assertion();
@@ -14,6 +17,7 @@ test("deux branches de la même organisation gardent leurs propres données", ()
     adresse: "Avenue A, 10",
     ville: "Kinshasa",
     pays: "RDC",
+    typebranch: "SECONDAIRE",
     organization: { name: "Écoles Exemple" },
   });
   const branchB = buildBulletinBranchContext({
@@ -22,6 +26,7 @@ test("deux branches de la même organisation gardent leurs propres données", ()
     adresse: "Boulevard B, 20",
     ville: "Kinshasa",
     pays: "RDC",
+    typebranch: "PRIMAIRE",
     organization: { name: "Écoles Exemple" },
   });
 
@@ -29,6 +34,8 @@ test("deux branches de la même organisation gardent leurs propres données", ()
   assert.notEqual(branchA.branchName, branchB.branchName);
   assert.notEqual(branchA.branchCode, branchB.branchCode);
   assert.notEqual(branchA.address, branchB.address);
+  assert.equal(branchA.branchType, "SECONDAIRE");
+  assert.equal(branchB.branchType, "PRIMAIRE");
 });
 
 test("nom, code et adresse correspondent à la branche sélectionnée", () => {
@@ -38,6 +45,7 @@ test("nom, code et adresse correspondent à la branche sélectionnée", () => {
     adresse: "  15, Avenue Centrale  ",
     ville: "  Matadi  ",
     pays: "  RDC  ",
+    typebranch: "SECONDAIRE",
     organization: { name: "  Groupe Scolaire  " },
   });
 
@@ -49,7 +57,56 @@ test("nom, code et adresse correspondent à la branche sélectionnée", () => {
     city: "Matadi",
     country: "RDC",
     logoUrl: "",
+    branchType: "SECONDAIRE",
   });
+});
+
+test("branche PRIMAIRE : branchType normalisé", () => {
+  const context = buildBulletinBranchContext({
+    name: "École Primaire",
+    typebranch: "PRIMAIRE",
+    organization: { name: "Organisation" },
+  });
+
+  assert.equal(context.branchType, "PRIMAIRE");
+});
+
+test("branche SECONDAIRE : branchType normalisé", () => {
+  const context = buildBulletinBranchContext({
+    name: "Lycée Secondaire",
+    typebranch: "SECONDAIRE",
+    organization: { name: "Organisation" },
+  });
+
+  assert.equal(context.branchType, "SECONDAIRE");
+});
+
+test("typebranch invalide ou absent : repli sur SECONDAIRE", () => {
+  const withoutType = buildBulletinBranchContext({
+    name: "École",
+    organization: { name: "Organisation" },
+  });
+  const invalidType = buildBulletinBranchContext({
+    name: "École",
+    typebranch: "INVALIDE",
+    organization: { name: "Organisation" },
+  });
+
+  assert.equal(withoutType.branchType, "SECONDAIRE");
+  assert.equal(invalidType.branchType, "SECONDAIRE");
+});
+
+test("resolveBulletinLayoutKind : PRIMAIRE → primary", () => {
+  assert.equal(resolveBulletinLayoutKind("PRIMAIRE"), "primary");
+});
+
+test("resolveBulletinLayoutKind : SECONDAIRE → secondary", () => {
+  assert.equal(resolveBulletinLayoutKind("SECONDAIRE"), "secondary");
+});
+
+test("resolveBulletinLayoutKind : valeur inconnue → secondary (repli)", () => {
+  assert.equal(resolveBulletinLayoutKind(undefined), "secondary");
+  assert.equal(resolveBulletinLayoutKind("LYCEE"), "secondary");
 });
 
 test("branche sans code : valeur vide et aucun libellé erroné", () => {
@@ -95,4 +152,4 @@ test("absence de logo dynamique n’empêche pas la création du contexte", () =
   assert.equal(context.branchName, "École");
 });
 
-console.log("\n6 tests du contexte et de l’en-tête du bulletin réussis.");
+console.log("\n12 tests du contexte et de l’en-tête du bulletin réussis.");

@@ -26,15 +26,37 @@ import {
   drawSubjectRow,
   drawMatiere,
   generauxConfig,
+  mapTypeFicheSectionToSubject,
 } from "@/lib/types";
-import { getAcademicPeriodOrder } from "@/lib/academic-structure";
+import {
+  buildEmptySubjectGroupScores,
+  getAcademicPeriodOrder,
+  getActivePeriodKeys,
+} from "@/lib/academic-structure";
 import type { BulletinBranchContext } from "@/lib/bulletin-context";
+import { resolveBulletinLayoutKind } from "@/lib/bulletin-context";
 import {
   aggregateBulletinPeriodMaxima,
   calculateBulletinYearMaxima,
+  getBulletinGroupMaxima,
   isValidBulletinMaxScore,
   type BulletinPeriodMaxima,
 } from "@/lib/bulletin-maxima";
+import {
+  buildSecondaryBulletinLayout,
+  drawSecondaryTableHeader,
+  getSecondarySemesterDrawConfig,
+} from "./bulletin-secondary-layout";
+import {
+  buildPrimaryBulletinLayout,
+  drawPrimaryTableHeader,
+  drawPrimaryTrimesterMaximaRow,
+  type PrimaryBulletinLayout,
+} from "./bulletin-primary-layout";
+import {
+  drawPrimaryMatiere,
+  drawPrimarySubjectRow,
+} from "./bulletin-primary-render";
 
 // Convertit un fichier en base64
 const getImageBase64 = (file: File) =>
@@ -98,21 +120,54 @@ export default function BulletinPDF({
     const hMid = 7;
     const hBottom = 7;
 
-    const colRatios = [0.2, 0.22, 0.22, 0.07, 0.09, 0.02, 0.08];
-    const colWidths = colRatios.map((r) => r * frameWidth);
-    const colPos = [tableX];
-    colWidths.reduce((acc, w) => {
-      colPos.push(acc + w);
-      return acc + w;
-    }, tableX);
+    const layoutKind = resolveBulletinLayoutKind(branchContext.branchType);
+    const isPrimaryLayout = layoutKind === "primary";
 
-    const semSubRatios = [0.5, 0.25, 0.25]; // TR | TOT | EXAM
-    const semPeriodRatios = [0.5, 0.5];
+    const secondaryLayout = isPrimaryLayout
+      ? null
+      : buildSecondaryBulletinLayout({
+          pageWidth,
+          margin,
+          tableX,
+          tableY,
+          shiftX,
+          shiftY,
+          rowHeightTotal,
+          hTop,
+          hMid,
+          hBottom,
+        });
 
-    const sem1SubWidths = semSubRatios.map((r) => r * colWidths[1]);
-    const sem2SubWidths = semSubRatios.map((r) => r * colWidths[2]);
-    const sem1PeriodWidths = semPeriodRatios.map((r) => r * sem1SubWidths[0]);
-    const sem2PeriodWidths = semPeriodRatios.map((r) => r * sem2SubWidths[0]);
+    const primaryLayout: PrimaryBulletinLayout | null = isPrimaryLayout
+      ? buildPrimaryBulletinLayout({
+          pageWidth,
+          margin,
+          tableX,
+          tableY,
+          shiftX,
+          shiftY,
+          rowHeightTotal,
+          hTop,
+          hMid,
+          hBottom,
+        })
+      : null;
+
+    const layout = isPrimaryLayout ? primaryLayout! : secondaryLayout!;
+    const {
+      colWidths,
+      colPos,
+    } = layout;
+    const repechageWidth = secondaryLayout?.repechageWidth ?? 0;
+    const secondarySpacerWidth = secondaryLayout?.spacerWidth ?? 0;
+    const sem1SubWidths = isPrimaryLayout ? [] : secondaryLayout!.sem1SubWidths;
+    const sem2SubWidths = isPrimaryLayout ? [] : secondaryLayout!.sem2SubWidths;
+    const sem1PeriodWidths = isPrimaryLayout ? [] : secondaryLayout!.sem1PeriodWidths;
+    const sem2PeriodWidths = isPrimaryLayout ? [] : secondaryLayout!.sem2PeriodWidths;
+    const totX1 = isPrimaryLayout ? 0 : secondaryLayout!.totX1;
+    const examX1 = isPrimaryLayout ? 0 : secondaryLayout!.examX1;
+    const totX2 = isPrimaryLayout ? 0 : secondaryLayout!.totX2;
+    const examX2 = isPrimaryLayout ? 0 : secondaryLayout!.examX2;
 
     doc.setDrawColor(0);
     doc.setLineWidth(0.5);
@@ -269,7 +324,7 @@ export default function BulletinPDF({
 
       const startX = margin;
       const startY = 41;
-      const width = 190;
+      const width = layout.frameWidth;
       const height = 25;
       const rowH = 7;
       drawTwoColumnBox(startX, 32, width, 9, rowH, false); // Numero ID cadre sans ligne centrale
@@ -461,199 +516,11 @@ export default function BulletinPDF({
         doc.restoreGraphicsState();
       }
       generateFooterBlock(244, 330);
-      // Cadre global du tableau
-      doc.rect(tableX + shiftX, tableY + shiftY, frameWidth, rowHeightTotal);
-
-      // BRANCHES
-      doc.rect(
-        colPos[0] + shiftX,
-        tableY + shiftY,
-        colWidths[0],
-        rowHeightTotal,
-      );
-      doc.setFontSize(8);
-      doc.text(
-        "BRANCHES",
-        colPos[0] + shiftX + colWidths[0] / 2,
-        tableY + shiftY + rowHeightTotal / 2,
-        { align: "center", baseline: "middle" },
-      );
-
-      // PREMIER SEMESTRE
-      const xPS = colPos[1];
-      doc.rect(xPS + shiftX, tableY + shiftY, colWidths[1], hTop);
-      doc.text(
-        "PREMIER SEMESTRE",
-        xPS + shiftX + colWidths[1] / 2,
-        tableY + shiftY + hTop / 2,
-        { align: "center", baseline: "middle" },
-      );
-
-      let subX = xPS + shiftX;
-      doc.rect(subX, tableY + hTop + shiftY, sem1SubWidths[0], hMid + hBottom);
-      doc.text(
-        "TR JOURN",
-        subX + sem1SubWidths[0] / 2,
-        tableY + hTop + shiftY + hMid / 2,
-        { align: "center", baseline: "middle" },
-      );
-      doc.rect(
-        subX + sem1SubWidths[0],
-        tableY + hTop + shiftY,
-        sem1SubWidths[1],
-        hMid + hBottom,
-      );
-      doc.text(
-        "EXAM",
-        subX + sem1SubWidths[0] + sem1SubWidths[1] / 2,
-        tableY + hTop + shiftY + (hMid + hBottom) / 2,
-        { align: "center", baseline: "middle" },
-      );
-      doc.rect(
-        subX + sem1SubWidths[0] + sem1SubWidths[1],
-        tableY + hTop + shiftY,
-        sem1SubWidths[2],
-        hMid + hBottom,
-      );
-      doc.text(
-        "TOT",
-        subX + sem1SubWidths[0] + sem1SubWidths[1] + sem1SubWidths[2] / 2,
-        tableY + hTop + shiftY + (hMid + hBottom) / 2,
-        { align: "center", baseline: "middle" },
-      );
-      doc.rect(
-        subX,
-        tableY + hTop + hMid + shiftY,
-        sem1PeriodWidths[0],
-        hBottom,
-      );
-      doc.text(
-        "1eP",
-        subX + sem1PeriodWidths[0] / 2,
-        tableY + hTop + hMid + shiftY + hBottom / 2,
-        { align: "center", baseline: "middle" },
-      );
-      doc.rect(
-        subX + sem1PeriodWidths[0],
-        tableY + hTop + hMid + shiftY,
-        sem1PeriodWidths[1],
-        hBottom,
-      );
-      doc.text(
-        "2eP",
-        subX + sem1PeriodWidths[0] + sem1PeriodWidths[1] / 2,
-        tableY + hTop + hMid + shiftY + hBottom / 2,
-        { align: "center", baseline: "middle" },
-      );
-
-      // DEUXIEME SEMESTRE
-      const xSS = colPos[2];
-      doc.rect(xSS + shiftX, tableY + shiftY, colWidths[2], hTop);
-      doc.text(
-        "DEUXIEME SEMESTRE",
-        xSS + shiftX + colWidths[2] / 2,
-        tableY + shiftY + hTop / 2,
-        { align: "center", baseline: "middle" },
-      );
-
-      subX = xSS + shiftX;
-      doc.rect(subX, tableY + hTop + shiftY, sem2SubWidths[0], hMid + hBottom);
-      doc.text(
-        "TR JOURN",
-        subX + sem2SubWidths[0] / 2,
-        tableY + hTop + shiftY + hMid / 2,
-        { align: "center", baseline: "middle" },
-      );
-      doc.rect(
-        subX + sem2SubWidths[0],
-        tableY + hTop + shiftY,
-        sem2SubWidths[1],
-        hMid + hBottom,
-      );
-      doc.text(
-        "EXAM",
-        subX + sem2SubWidths[0] + sem2SubWidths[1] / 2,
-        tableY + hTop + shiftY + (hMid + hBottom) / 2,
-        { align: "center", baseline: "middle" },
-      );
-      doc.rect(
-        subX + sem2SubWidths[0] + sem2SubWidths[1],
-        tableY + hTop + shiftY,
-        sem2SubWidths[2],
-        hMid + hBottom,
-      );
-      doc.text(
-        "TOT",
-        subX + sem2SubWidths[0] + sem2SubWidths[1] + sem2SubWidths[2] / 2,
-        tableY + hTop + shiftY + (hMid + hBottom) / 2,
-        { align: "center", baseline: "middle" },
-      );
-      doc.rect(
-        subX,
-        tableY + hTop + hMid + shiftY,
-        sem2PeriodWidths[0],
-        hBottom,
-      );
-      doc.text(
-        "3eP",
-        subX + sem2PeriodWidths[0] / 2,
-        tableY + hTop + hMid + shiftY + hBottom / 2,
-        { align: "center", baseline: "middle" },
-      );
-      doc.rect(
-        subX + sem2PeriodWidths[0],
-        tableY + hTop + hMid + shiftY,
-        sem2PeriodWidths[1],
-        hBottom,
-      );
-      doc.text(
-        "4eP",
-        subX + sem2PeriodWidths[0] + sem2PeriodWidths[1] / 2,
-        tableY + hTop + hMid + shiftY + hBottom / 2,
-        { align: "center", baseline: "middle" },
-      );
-
-      // Colonnes finales
-      doc.rect(
-        colPos[3] + shiftX,
-        tableY + shiftY,
-        colWidths[3],
-        rowHeightTotal,
-      );
-      doc.text(
-        "TG",
-        colPos[3] + shiftX + colWidths[3] / 2,
-        tableY + shiftY + rowHeightTotal / 2,
-        { align: "center", baseline: "middle" },
-      );
-      doc.rect(
-        colPos[4] + shiftX,
-        tableY + shiftY,
-        colWidths[4],
-        rowHeightTotal,
-      );
-      doc.text(
-        "SIGN PROF",
-        colPos[4] + shiftX + colWidths[4] / 2,
-        tableY + shiftY + rowHeightTotal / 2,
-        { align: "center", baseline: "middle" },
-      );
-      doc.setDrawColor(0, 0, 0);
-      doc.rect(colPos[5] + shiftX, tableY + shiftY, 4, rowHeightTotal, "F");
-      doc.text(
-        "",
-        colPos[5] + shiftX + colWidths[4] / 2,
-        tableY + shiftY + rowHeightTotal / 2,
-        { align: "center", baseline: "middle" },
-      );
-      doc.rect(colPos[6] + shiftX, tableY + shiftY, 34.1, rowHeightTotal);
-      doc.setFontSize(8);
-      doc.text(
-        ["EXAMEN DE", "REPECHAGE"],
-        colPos[6] + shiftX + colWidths[0] / 2,
-        tableY + shiftY + rowHeightTotal / 2 - 5,
-        { align: "center", baseline: "middle" },
-      );
+      if (isPrimaryLayout) {
+        drawPrimaryTableHeader(doc, primaryLayout!);
+      } else {
+        drawSecondaryTableHeader(doc, secondaryLayout!);
+      }
       function generateDecisionBlock(x: number, y: number) {
         // Sauvegarde de l'état avant modifications
         doc.saveGraphicsState();
@@ -706,38 +573,6 @@ export default function BulletinPDF({
       }
       generateDecisionBlock(169, 210);
 
-      // Taille des petits cadres en bas
-      const frameHeight = 6;
-      const totalWidth = 34.1;
-      const leftWidth = 13;
-      const rightWidth = totalWidth - leftWidth;
-
-      // Position Y = en bas du grand cadre
-      const bottomY = tableY + shiftY + rowHeightTotal - frameHeight;
-
-      // Cadre de gauche (%)
-      doc.rect(colPos[6] + shiftX, bottomY, leftWidth, frameHeight);
-      doc.text(
-        "%",
-        colPos[6] + shiftX + leftWidth / 2,
-        bottomY + frameHeight / 2,
-        { align: "center", baseline: "middle" },
-      );
-
-      // Cadre de droite (Signature)
-      doc.rect(
-        colPos[6] + shiftX + leftWidth,
-        bottomY,
-        rightWidth,
-        frameHeight,
-      );
-      doc.text(
-        "Signature",
-        colPos[6] + shiftX + leftWidth + rightWidth / 2,
-        bottomY + frameHeight / 2,
-        { align: "center", baseline: "middle" },
-      );
-
       // -------------------- BLOCS & MAXIMA --------------------
 
       const validPeriods = student.periods.filter(
@@ -754,37 +589,12 @@ export default function BulletinPDF({
       if (!selectedPeriod) {
         throw new Error("Période invalide ou inconnue");
       }
-      const semesterPeriods: Partial<Record<PeriodLabel, string[]>> = {
-        "1ere Periode": ["p1"],
-        "2e Periode": ["p1", "p2"],
-        "Examen 1er semestre": ["p1", "p2", "exam1"],
-        "3e Periode": ["p1", "p2", "exam1", "p3"],
-        "4e Periode": ["p1", "p2", "exam1", "p3", "p4"],
-        "Examen 2e semestre": ["p1", "p2", "exam1", "p3", "p4", "exam2"],
-        "Examen 1er trimestre": ["p1", "p2", "exam1"],
-        "Examen 2e trimestre": ["p1", "p2", "exam1", "p3", "p4", "exam2"],
-        "Examen 3e trimestre": [
-          "p1",
-          "p2",
-          "exam1",
-          "p3",
-          "p4",
-          "exam2",
-          "p5",
-          "p6",
-          "exam3",
-        ],
-        "1st Period": ["p1"],
-        "2nd Period": ["p1", "p2"],
-        "Exam 1st semester": ["p1", "p2", "exam1"],
-        "3tr Period": ["p1", "p2", "exam1", "p3"],
-        "4th Period": ["p1", "p2", "exam1", "p3", "p4"],
-        "Exam 2nd semester": ["p1", "p2", "exam1", "p3", "p4", "exam2"],
-      };
+      const activePeriodKeys = getActivePeriodKeys(
+        selectedPeriod,
+        branchContext.branchType,
+      );
 
-      const activePeriodKeys = semesterPeriods[selectedPeriod];
-
-      if (!activePeriodKeys) {
+      if (activePeriodKeys.length === 0) {
         throw new Error(`Période inconnue: ${selectedPeriod}`);
       }
       // --- Generate the subject map ---
@@ -810,12 +620,16 @@ export default function BulletinPDF({
         ),
       );
 
+      const emptyGroupScores = buildEmptySubjectGroupScores(
+        branchContext.branchType,
+      );
+
       for (const subjectName of allSubjects) {
         subjectMap[subjectName] = {
           name: subjectName,
-          sem1: { p1: 0, p2: 0, exam1: 0 },
-          sem2: { p3: 0, p4: 0, exam2: 0 },
-          sem3: { p5: 0, p6: 0, exam3: 0 },
+          sem1: emptyGroupScores.sem1 ?? {},
+          sem2: emptyGroupScores.sem2 ?? {},
+          ...(emptyGroupScores.sem3 ? { sem3: emptyGroupScores.sem3 } : {}),
           baseMaxScore: 0,
           maxima: {},
         };
@@ -886,27 +700,10 @@ export default function BulletinPDF({
       const typeDSubjects: Subject[] =
         flattenedAutres.length > 0
           ? flattenedAutres
-              .slice(0, 6) // ✅ limite à 4 itérations
-              .map(([key, value]) => {
-                const typedValue = value as BlocValue;
-
-                return {
-                  name: key,
-                  sem1: Object.fromEntries(
-                    Object.entries(typedValue.sem1).map(([k, v]) => [
-                      k,
-                      Number(v) || 0,
-                    ]),
-                  ),
-                  sem2: Object.fromEntries(
-                    Object.entries(typedValue.sem2).map(([k, v]) => [
-                      k,
-                      Number(v) || 0,
-                    ]),
-                  ),
-                  baseMaxScore: 0,
-                };
-              })
+              .slice(0, 6)
+              .map(([key, value]) =>
+                mapTypeFicheSectionToSubject(value as BlocValue, key),
+              )
           : [createEmptySubject()];
 
       const periodSignatureKeys = [
@@ -1061,10 +858,17 @@ export default function BulletinPDF({
       const generalYearMaxima = calculateBulletinYearMaxima(generalMaxima);
       const generalesMaximaSem1P1 = generalMaxima.p1 ?? 0;
       const generalesMaximaSem1P2 = generalMaxima.p2 ?? 0;
-      const generalesMaximaTot1 = generalYearMaxima.semester1.total;
+      const generalesMaximaTot1 =
+        getBulletinGroupMaxima(generalYearMaxima, 1)?.total ?? 0;
       const generalesMaximaSem2P3 = generalMaxima.p3 ?? 0;
       const generalesMaximaSem2P4 = generalMaxima.p4 ?? 0;
-      const generalesMaximaTot2 = generalYearMaxima.semester2.total;
+      const generalesMaximaTot2 =
+        getBulletinGroupMaxima(generalYearMaxima, 2)?.total ?? 0;
+      const generalesMaximaSem3P5 = generalMaxima.p5 ?? 0;
+      const generalesMaximaSem3P6 = generalMaxima.p6 ?? 0;
+      const generalesMaximaTot3 =
+        getBulletinGroupMaxima(generalYearMaxima, 3)?.total ?? 0;
+      const generalesMaximaTG = generalYearMaxima.annualTotal;
 
       blocs.forEach((bloc) => {
         if (bloc.subjects.length === 0) return;
@@ -1075,17 +879,16 @@ export default function BulletinPDF({
         const maximaSem1P1 = bloc.maxima.p1 ?? 0;
         const maximaSem1P2 = bloc.maxima.p2 ?? 0;
         const maximaExam1 = bloc.maxima.exam1 ?? 0;
-        const maximaTot1 = yearMaxima.semester1.total;
+        const maximaTot1 = getBulletinGroupMaxima(yearMaxima, 1)?.total ?? 0;
         const maximaSem2P3 = bloc.maxima.p3 ?? 0;
         const maximaSem2P4 = bloc.maxima.p4 ?? 0;
         const maximaExam2 = bloc.maxima.exam2 ?? 0;
-        const maximaTot2 = yearMaxima.semester2.total;
+        const maximaTot2 = getBulletinGroupMaxima(yearMaxima, 2)?.total ?? 0;
+        const maximaSem3P5 = bloc.maxima.p5 ?? 0;
+        const maximaSem3P6 = bloc.maxima.p6 ?? 0;
+        const maximaExam3 = bloc.maxima.exam3 ?? 0;
+        const maximaTot3 = getBulletinGroupMaxima(yearMaxima, 3)?.total ?? 0;
         const maximaTG = yearMaxima.annualTotal;
-        // **Définition des positions X pour les colonnes**
-        const totX1 = colPos[1] + shiftX + sem1SubWidths[0]; // colonne EXAM sem1
-        const examX1 = totX1 + sem1SubWidths[1]; // colonne TOT sem1
-        const totX2 = colPos[2] + shiftX + sem2SubWidths[0]; // colonne EXAM sem2
-        const examX2 = totX2 + sem2SubWidths[1]; // colonne TOT sem2
 
         // --- DESSIN DES MAXIMA ---
         drawCell1(
@@ -1098,71 +901,174 @@ export default function BulletinPDF({
           { isMaxima: true, align: "left" },
         );
 
-        // Dessiner les semestres
-        drawSemesterRow1(
-          doc,
-          yPosBlocs,
-          {
-            p1: maximaSem1P1,
-            p2: maximaSem1P2,
-            exam1: maximaExam1,
-            tt1: maximaTot1,
-          },
-          {
-            p3: maximaSem2P3,
-            p4: maximaSem2P4,
-            exam2: maximaExam2,
-            tt2: maximaTot2,
-          },
-          {
-            colPos,
-            shiftX,
-            sem1PeriodWidths,
-            sem2PeriodWidths,
-            sem1SubWidths,
-            sem2SubWidths,
-            totX1,
-            totX2,
-            examX1,
-            examX2,
+        if (isPrimaryLayout) {
+          drawPrimaryTrimesterMaximaRow(
+            doc,
+            yPosBlocs,
+            {
+              p1: maximaSem1P1,
+              p2: maximaSem1P2,
+              exam1: maximaExam1,
+              tt1: maximaTot1,
+              p3: maximaSem2P3,
+              p4: maximaSem2P4,
+              exam2: maximaExam2,
+              tt2: maximaTot2,
+              p5: maximaSem3P5,
+              p6: maximaSem3P6,
+              exam3: maximaExam3,
+              tt3: maximaTot3,
+            },
+            primaryLayout!,
             maximaHeight,
-          },
-        );
+          );
 
-        // --- TG et colonnes vides ---
-        const tgX = colPos[3] + shiftX;
-        drawCell1(
-          doc,
-          tgX,
-          yPosBlocs,
-          colWidths[3],
-          maximaHeight,
-          maximaTG.toString(),
-          { isMaxima: true },
-        );
-
-        // Colonnes vides
-        for (let i = 4; i <= 6; i++) {
-          const width = i === 6 ? 34.1 : colWidths[i]; // dernier = largeur fixe
           drawCell1(
             doc,
-            colPos[i] + shiftX,
+            colPos[4] + shiftX,
             yPosBlocs,
-            width,
+            colWidths[4],
             maximaHeight,
-            "",
-            {
-              isMaxima: true,
-            },
+            maximaTG.toString(),
+            { isMaxima: true },
           );
+        } else {
+          drawSemesterRow1(
+            doc,
+            yPosBlocs,
+            {
+              p1: maximaSem1P1,
+              p2: maximaSem1P2,
+              exam1: maximaExam1,
+              tt1: maximaTot1,
+            },
+            {
+              p3: maximaSem2P3,
+              p4: maximaSem2P4,
+              exam2: maximaExam2,
+              tt2: maximaTot2,
+            },
+            getSecondarySemesterDrawConfig(secondaryLayout!, maximaHeight),
+          );
+
+          const tgX = colPos[3] + shiftX;
+          drawCell1(
+            doc,
+            tgX,
+            yPosBlocs,
+            colWidths[3],
+            maximaHeight,
+            maximaTG.toString(),
+            { isMaxima: true },
+          );
+
+          for (let i = 4; i <= 6; i++) {
+            const width =
+              i === 6
+                ? repechageWidth
+                : i === 5 && secondarySpacerWidth > 0
+                  ? secondarySpacerWidth
+                  : colWidths[i];
+            drawCell1(
+              doc,
+              colPos[i] + shiftX,
+              yPosBlocs,
+              width,
+              maximaHeight,
+              "",
+              { isMaxima: true },
+            );
+          }
         }
         yPosBlocs += maximaHeight;
 
         bloc.subjects.forEach((subject) => {
-          // === CAS SPÉCIAL : BLOC GENERAUX & MATIÈRE "TOTAUX" ===
+          const getColorText = (
+            value: number,
+            type: string,
+            max: number,
+          ): string => {
+            if (!max || max === 0) return "black";
+            return value < max / 2 ? "red" : "black";
+          };
+
           if (isGeneraux && generauxConfig[subject.name]) {
             const config = generauxConfig[subject.name];
-            drawSubjectRow(
+
+            if (isPrimaryLayout) {
+              drawPrimarySubjectRow(
+                drawCell,
+                yPosBlocs,
+                primaryLayout!,
+                maximaHeight,
+                { name: subject.name },
+                autresByPeriod,
+                {
+                  p1: generalesMaximaSem1P1,
+                  p2: generalesMaximaSem1P2,
+                  tt1: generalesMaximaTot1,
+                  p3: generalesMaximaSem2P3,
+                  p4: generalesMaximaSem2P4,
+                  tt2: generalesMaximaTot2,
+                  p5: generalesMaximaSem3P5,
+                  p6: generalesMaximaSem3P6,
+                  tt3: generalesMaximaTot3,
+                  tg: generalesMaximaTG,
+                },
+                config.getColor,
+                safeStr,
+                config.isGeneraux,
+              );
+            } else {
+              drawSubjectRow(
+                drawCell,
+                yPosBlocs,
+                shiftX,
+                colPos,
+                colWidths,
+                sem1PeriodWidths,
+                sem2PeriodWidths,
+                sem1SubWidths,
+                sem2SubWidths,
+                totX1,
+                examX1,
+                totX2,
+                examX2,
+                maximaHeight,
+                { name: subject.name },
+                autresByPeriod,
+                generalesMaximaSem1P1,
+                generalesMaximaSem1P2,
+                generalesMaximaTot1,
+                generalesMaximaSem2P3,
+                generalesMaximaSem2P4,
+                generalesMaximaTot2,
+                config.getColor,
+                safeStr,
+                config.isGeneraux,
+              );
+            }
+
+            return (yPosBlocs += maximaHeight);
+          }
+
+          if (!isPrimaryLayout) {
+            const sem1Keys = ["p1", "p2", "exam1"];
+            if (selectedPeriod === "3tr Period" || selectedPeriod === "3e Periode") {
+              filteredPeriodKeys = [...sem1Keys, "p3"];
+            } else if (selectedPeriod === "4th Period" || selectedPeriod === "4e Periode") {
+              filteredPeriodKeys = [...sem1Keys, "p3", "p4"];
+            } else if (
+              selectedPeriod === "Exam 2nd semester" ||
+              selectedPeriod === "Examen 2e semestre" ||
+              selectedPeriod === "Examen 2e trimestre"
+            ) {
+              filteredPeriodKeys = [...sem1Keys, "p3", "p4", "exam2"];
+            } else {
+              filteredPeriodKeys = activePeriodKeys;
+            }
+
+            drawMatiere(
               drawCell,
               yPosBlocs,
               shiftX,
@@ -1177,74 +1083,34 @@ export default function BulletinPDF({
               totX2,
               examX2,
               maximaHeight,
-              { name: subject.name },
-              autresByPeriod,
-              generalesMaximaSem1P1,
-              generalesMaximaSem1P2,
-              generalesMaximaTot1,
-              generalesMaximaSem2P3,
-              generalesMaximaSem2P4,
-              generalesMaximaTot2,
-              config.getColor,
-              safeStr,
-              config.isGeneraux,
+              subject,
+              activePeriodKeys,
+              getColorText,
+              computeTotSem1,
+              computeTotSem2,
+              canShowTot1,
+              canShowTot2,
+              maximaTot1,
+              maximaTot2,
+              maximaTG,
             );
-
-            return (yPosBlocs += maximaHeight);
-          }
-          // Toujours inclure sem1
-          const sem1Keys = ["p1", "p2", "exam1"];
-          // Ajouter sem2 selon la période
-          if (selectedPeriod === "3tr Period" || selectedPeriod === "3e Periode") {
-            filteredPeriodKeys = [...sem1Keys, "p3"]; // sem1 + p3 seulement
-          } else if (selectedPeriod === "4th Period" || selectedPeriod === "4e Periode") {
-            filteredPeriodKeys = [...sem1Keys, "p3", "p4"];
-          } else if (
-            selectedPeriod === "Exam 2nd semester" ||
-            selectedPeriod === "Examen 2e semestre" ||
-            selectedPeriod === "Examen 2e trimestre"
-          ) {
-            filteredPeriodKeys = [...sem1Keys, "p3", "p4", "exam2"]; // sem1 + sem2 complet
           } else {
-            // pour les autres périodes, on garde ce qui est dans activePeriodKeys
-            filteredPeriodKeys = activePeriodKeys;
+            drawPrimaryMatiere(
+              drawCell,
+              yPosBlocs,
+              primaryLayout!,
+              maximaHeight,
+              subject,
+              activePeriodKeys,
+              getColorText,
+              branchContext.branchType,
+              maximaTot1,
+              maximaTot2,
+              maximaTot3,
+              maximaTG,
+            );
           }
-          const getColorText = (
-            value: number,
-            type: string,
-            max: number,
-          ): string => {
-            if (!max || max === 0) return "black"; // éviter division par 0
-            return value < max / 2 ? "red" : "black";
-          };
-
-          drawMatiere(
-            drawCell,
-            yPosBlocs,
-            shiftX,
-            colPos,
-            colWidths,
-            sem1PeriodWidths,
-            sem2PeriodWidths,
-            sem1SubWidths,
-            sem2SubWidths,
-            totX1,
-            examX1,
-            totX2,
-            examX2,
-            maximaHeight,
-            subject, // matière
-            activePeriodKeys,
-            getColorText,
-            computeTotSem1,
-            computeTotSem2,
-            canShowTot1,
-            canShowTot2,
-            maximaTot1,
-            maximaTot2,
-            maximaTG,
-          );
-          yPosBlocs += maximaHeight; // incrémente même si score = 0
+          yPosBlocs += maximaHeight;
         });
       });
     });

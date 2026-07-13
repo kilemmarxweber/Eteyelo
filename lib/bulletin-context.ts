@@ -1,3 +1,17 @@
+import {
+  type ManagedBranchType,
+  normalizeBranchType,
+} from "@/lib/academic-structure";
+
+export type BulletinLayoutKind = "primary" | "secondary";
+
+/** Sélectionne le moteur de dessin selon le type de branche (repli SECONDAIRE si inconnu). */
+export function resolveBulletinLayoutKind(
+  branchType: ManagedBranchType | unknown,
+): BulletinLayoutKind {
+  return normalizeBranchType(branchType) === "PRIMAIRE" ? "primary" : "secondary";
+}
+
 export type BulletinBranchContext = {
   organizationName: string;
   branchName: string;
@@ -6,6 +20,7 @@ export type BulletinBranchContext = {
   city: string;
   country: string;
   logoUrl: string;
+  branchType: ManagedBranchType;
 };
 
 export type BulletinBranchRecord = {
@@ -15,6 +30,7 @@ export type BulletinBranchRecord = {
   ville?: string | null;
   pays?: string | null;
   image?: unknown;
+  typebranch?: unknown;
   organization: {
     name: string;
     logo?: string | null;
@@ -81,5 +97,6 @@ export function buildBulletinBranchContext(
     city: branch.ville?.trim() ?? "",
     country: branch.pays?.trim() ?? "",
     logoUrl: resolveBulletinLogoUrl(branch.image, branch.organization.logo),
+    branchType: normalizeBranchType(branch.typebranch),
   };
 }

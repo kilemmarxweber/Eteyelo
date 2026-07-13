@@ -16,7 +16,15 @@
     "seed:demo": "tsx prisma/seeds/quickDemo.ts",
     "worker": "tsx src/workers/grade.worker.ts",
     "test:bulletin-maxima": "tsx scripts/test-bulletin-maxima.ts",
-    "test:bulletin-context": "tsx scripts/test-bulletin-context.ts"
+    "test:bulletin-context": "tsx scripts/test-bulletin-context.ts",
+    "test:bulletin-academic-groups": "tsx scripts/test-bulletin-academic-groups.ts",
+    "test:bulletin-extended-data": "tsx scripts/test-bulletin-extended-data.ts",
+    "test:bulletin-layouts": "tsx scripts/test-bulletin-layouts.ts",
+    "test:bulletin-calculations": "tsx scripts/test-bulletin-calculations.ts",
+    "test:bulletin-isolation": "tsx scripts/test-bulletin-isolation.ts",
+    "test:bulletin-visual-secondary": "tsx scripts/test-bulletin-visual-secondary.ts",
+    "test:bulletin-visual-primary": "tsx scripts/test-bulletin-visual-primary.ts",
+    "test:bulletin": "pnpm test:bulletin-maxima && pnpm test:bulletin-context && pnpm test:bulletin-academic-groups && pnpm test:bulletin-extended-data && pnpm test:bulletin-layouts && pnpm test:bulletin-calculations && pnpm test:bulletin-isolation && pnpm test:bulletin-visual-secondary && pnpm test:bulletin-visual-primary"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.10.0",

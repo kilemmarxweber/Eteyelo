@@ -100,6 +100,7 @@ export default async function ClassFichePage() {
         ville: true,
         pays: true,
         image: true,
+        typebranch: true,
         organization: {
           select: {
             name: true,

@@ -4,6 +4,7 @@ import {
   aggregateBulletinPeriodMaxima,
   calculateBulletinPercentage,
   calculateBulletinYearMaxima,
+  getBulletinGroupMaxima,
   resolveBulletinMaxScore,
   sumBulletinMaxima,
 } from "../lib/bulletin-maxima";
@@ -120,38 +121,71 @@ test("configuration absente : fallback compatible égal à 10", () => {
 });
 
 test("total du premier semestre", () => {
-  const result = calculateBulletinYearMaxima({
-    p1: 60,
-    p2: 60,
-    exam1: 120,
-  });
+  const result = calculateBulletinYearMaxima(
+    {
+      p1: 60,
+      p2: 60,
+      exam1: 120,
+    },
+    "SECONDAIRE",
+  );
 
-  assert.equal(result.semester1.total, 240);
+  assert.equal(getBulletinGroupMaxima(result, 1)?.total, 240);
 });
 
 test("total du deuxième semestre", () => {
-  const result = calculateBulletinYearMaxima({
-    p3: 40,
-    p4: 40,
-    exam2: 80,
-  });
+  const result = calculateBulletinYearMaxima(
+    {
+      p3: 40,
+      p4: 40,
+      exam2: 80,
+    },
+    "SECONDAIRE",
+  );
 
-  assert.equal(result.semester2.total, 160);
+  assert.equal(getBulletinGroupMaxima(result, 2)?.total, 160);
 });
 
 test("total annuel égal à la somme des deux semestres", () => {
-  const result = calculateBulletinYearMaxima({
-    p1: 60,
-    p2: 60,
-    exam1: 120,
-    p3: 40,
-    p4: 40,
-    exam2: 80,
-  });
+  const result = calculateBulletinYearMaxima(
+    {
+      p1: 60,
+      p2: 60,
+      exam1: 120,
+      p3: 40,
+      p4: 40,
+      exam2: 80,
+    },
+    "SECONDAIRE",
+  );
 
-  assert.equal(result.semester1.total, 240);
-  assert.equal(result.semester2.total, 160);
+  assert.equal(getBulletinGroupMaxima(result, 1)?.total, 240);
+  assert.equal(getBulletinGroupMaxima(result, 2)?.total, 160);
   assert.equal(result.annualTotal, 400);
+  assert.equal(result.groups.length, 2);
+});
+
+test("total annuel primaire égal à la somme des trois trimestres", () => {
+  const result = calculateBulletinYearMaxima(
+    {
+      p1: 10,
+      p2: 10,
+      exam1: 20,
+      p3: 10,
+      p4: 10,
+      exam2: 20,
+      p5: 10,
+      p6: 10,
+      exam3: 20,
+    },
+    "PRIMAIRE",
+  );
+
+  assert.equal(result.groups.length, 3);
+  assert.equal(getBulletinGroupMaxima(result, 1)?.total, 40);
+  assert.equal(getBulletinGroupMaxima(result, 2)?.total, 40);
+  assert.equal(getBulletinGroupMaxima(result, 3)?.total, 40);
+  assert.equal(result.annualTotal, 120);
 });
 
 test("pourcentage calculé depuis le maximum réel", () => {
@@ -170,4 +204,4 @@ test("les maxima invalides ne faussent pas une somme", () => {
   );
 });
 
-console.log("\n18 tests fonctionnels et historiques du bulletin réussis.");
+console.log("\n19 tests fonctionnels et historiques du bulletin réussis.");

@@ -189,3 +189,190 @@ export function getAcademicGroupLabels(label: string, typebranch?: unknown): str
 
   return [label];
 }
+
+/** Clés de stockage dans TypeFiche (sem1, sem2, sem3). */
+export type StorageGroupKey = "sem1" | "sem2" | "sem3";
+
+export type AcademicGroupTotalKey = "tt1" | "tt2" | "tt3";
+
+export type AcademicPeriodField =
+  | "p1"
+  | "p2"
+  | "p3"
+  | "p4"
+  | "p5"
+  | "p6"
+  | "exam1"
+  | "exam2"
+  | "exam3"
+  | AcademicGroupTotalKey
+  | "tg";
+
+export type PeriodFieldMapEntry = {
+  storageKey: StorageGroupKey;
+  field: AcademicPeriodField;
+};
+
+export function getStorageGroupKey(group: AcademicGroupConfig): StorageGroupKey {
+  return `sem${group.order}` as StorageGroupKey;
+}
+
+export function getAcademicGroupTotalKey(groupOrder: number): AcademicGroupTotalKey {
+  return `tt${groupOrder}` as AcademicGroupTotalKey;
+}
+
+export function getAcademicGroupPeriodKeys(group: AcademicGroupConfig): string[] {
+  return group.periods.map((period) => period.key);
+}
+
+export function getAcademicGroupByOrder(
+  typebranch: unknown,
+  groupOrder: number,
+): AcademicGroupConfig | undefined {
+  return getAcademicStructure(typebranch).groups.find(
+    (group) => group.order === groupOrder,
+  );
+}
+
+export function getAcademicGroupByPeriodKey(
+  periodKey: string,
+  typebranch?: unknown,
+): AcademicGroupConfig | undefined {
+  const structures = typebranch
+    ? [getAcademicStructure(typebranch)]
+    : Object.values(ACADEMIC_STRUCTURES);
+
+  for (const structure of structures) {
+    const group = structure.groups.find((item) =>
+      item.periods.some((period) => period.key === periodKey),
+    );
+    if (group) return group;
+  }
+
+  return undefined;
+}
+
+export function getPeriodStorageGroupKey(
+  periodKey: string,
+  typebranch?: unknown,
+): StorageGroupKey | undefined {
+  const group = getAcademicGroupByPeriodKey(periodKey, typebranch);
+  return group ? getStorageGroupKey(group) : undefined;
+}
+
+export function getGroupPeriodOrder(
+  typebranch: unknown,
+  groupOrder: number,
+): readonly AcademicPeriodField[] {
+  const group = getAcademicGroupByOrder(typebranch, groupOrder);
+  if (!group) return [];
+
+  return [
+    ...group.periods.map((period) => period.key as AcademicPeriodField),
+    getAcademicGroupTotalKey(group.order),
+  ];
+}
+
+export function getGroupPeriodLabels(group: AcademicGroupConfig): string[] {
+  return group.periods.map((period) => period.label);
+}
+
+export function getGroupPeriodLabelAliases(label: string): string[] {
+  const normalized = normalizeAcademicPeriodLabel(label);
+  const aliases = getAcademicPeriodAliases(normalized);
+  return [normalized, ...aliases];
+}
+
+export function buildPeriodFieldMap(
+  typebranch: unknown,
+): Record<string, PeriodFieldMapEntry> {
+  const structure = getAcademicStructure(typebranch);
+  const map: Record<string, PeriodFieldMapEntry> = {};
+
+  for (const group of structure.groups) {
+    const storageKey = getStorageGroupKey(group);
+
+    for (const period of group.periods) {
+      const entry: PeriodFieldMapEntry = {
+        storageKey,
+        field: period.key as AcademicPeriodField,
+      };
+
+      map[period.label] = entry;
+      for (const alias of getAcademicPeriodAliases(period.label)) {
+        map[alias] = entry;
+      }
+    }
+  }
+
+  return map;
+}
+
+export function isAcademicGroupComplete(
+  periods: Array<{ periodName: string }>,
+  group: AcademicGroupConfig,
+): boolean {
+  const periodNames = new Set(periods.map((period) => period.periodName));
+
+  return getGroupPeriodLabels(group).every((label) =>
+    getGroupPeriodLabelAliases(label).some((alias) => periodNames.has(alias)),
+  );
+}
+
+export function areAllAcademicGroupsComplete(
+  periods: Array<{ periodName: string }>,
+  typebranch: unknown,
+): boolean {
+  return getAcademicStructure(typebranch).groups.every((group) =>
+    isAcademicGroupComplete(periods, group),
+  );
+}
+
+export function filterPeriodsForGroup<T extends { periodName: string }>(
+  periods: readonly T[],
+  group: AcademicGroupConfig,
+): T[] {
+  const aliases = new Set(
+    getGroupPeriodLabels(group).flatMap((label) =>
+      getGroupPeriodLabelAliases(label),
+    ),
+  );
+
+  return periods.filter((period) => aliases.has(period.periodName));
+}
+
+export function getAcademicGroupExamLabel(group: AcademicGroupConfig): string {
+  return group.periods.find((period) => period.kind === "EXAM")?.label ?? "";
+}
+
+export function isAcademicExamPeriodName(
+  periodName: string,
+  typebranch?: unknown,
+): boolean {
+  const periodKey = getAcademicPeriodKey(periodName, typebranch);
+  if (!periodKey) return false;
+
+  const group = getAcademicGroupByPeriodKey(periodKey, typebranch);
+  if (!group) return false;
+
+  return group.periods.some(
+    (period) => period.key === periodKey && period.kind === "EXAM",
+  );
+}
+
+/** Scores vides par groupe (sem1/sem2/sem3) selon le type de branche. */
+export function buildEmptySubjectGroupScores(
+  typebranch?: unknown,
+): Partial<Record<StorageGroupKey, Record<string, number>>> {
+  const structure = getAcademicStructure(typebranch);
+  const groups: Partial<Record<StorageGroupKey, Record<string, number>>> = {};
+
+  for (const group of structure.groups) {
+    const storageKey = getStorageGroupKey(group);
+    groups[storageKey] = Object.fromEntries(
+      group.periods.map((period) => [period.key, 0]),
+    );
+  }
+
+  return groups;
+}

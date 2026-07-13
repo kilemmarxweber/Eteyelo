@@ -6,6 +6,12 @@
  * already created bulletin.
  */
 
+import {
+  getAcademicGroupPeriodKeys,
+  getAcademicStructure,
+  type ManagedBranchType,
+} from "@/lib/academic-structure";
+
 export const BULLETIN_PONDERATION_FACTOR = 10;
 export const BULLETIN_EXAM_FACTOR = 2;
 export const DEFAULT_COURSE_PONDERATION = 1;
@@ -39,20 +45,24 @@ export type ResolveBulletinMaxScoreParams = {
   fallbackPonderation?: number;
 };
 
-export type BulletinSemesterMaxima = {
+export type BulletinGroupMaxima = {
+  key: string;
+  label: string;
+  order: number;
   periods: BulletinPeriodMaxima;
   total: number;
 };
 
+/** @deprecated Use BulletinGroupMaxima */
+export type BulletinSemesterMaxima = Pick<
+  BulletinGroupMaxima,
+  "periods" | "total"
+>;
+
 export type BulletinYearMaxima = {
-  semester1: BulletinSemesterMaxima;
-  semester2: BulletinSemesterMaxima;
+  groups: BulletinGroupMaxima[];
   annualTotal: number;
 };
-
-const SEMESTER_1_KEYS = ["p1", "p2", "exam1"] as const;
-const SEMESTER_2_KEYS = ["p3", "p4", "exam2"] as const;
-
 export function isValidBulletinMaxScore(value: unknown): value is number {
   return (
     typeof value === "number" &&
@@ -121,7 +131,7 @@ export function sumBulletinPeriodMaxima(
   return sumBulletinMaxima(periodKeys.map((key) => maxima[key]));
 }
 
-export function calculateBulletinSemesterMaxima(
+export function calculateBulletinGroupMaxima(
   maxima: BulletinPeriodMaxima,
   periodKeys: readonly BulletinPeriodKey[],
 ): BulletinSemesterMaxima {
@@ -142,23 +152,42 @@ export function calculateBulletinSemesterMaxima(
   };
 }
 
+/** @deprecated Use calculateBulletinGroupMaxima */
+export function calculateBulletinSemesterMaxima(
+  maxima: BulletinPeriodMaxima,
+  periodKeys: readonly BulletinPeriodKey[],
+): BulletinSemesterMaxima {
+  return calculateBulletinGroupMaxima(maxima, periodKeys);
+}
+
 export function calculateBulletinYearMaxima(
   maxima: BulletinPeriodMaxima,
+  typebranch?: ManagedBranchType | unknown,
 ): BulletinYearMaxima {
-  const semester1 = calculateBulletinSemesterMaxima(
-    maxima,
-    SEMESTER_1_KEYS,
-  );
-  const semester2 = calculateBulletinSemesterMaxima(
-    maxima,
-    SEMESTER_2_KEYS,
-  );
+  const groups = getAcademicStructure(typebranch).groups.map((group) => {
+    const periodKeys = getAcademicGroupPeriodKeys(group) as BulletinPeriodKey[];
+    const groupMaxima = calculateBulletinGroupMaxima(maxima, periodKeys);
+
+    return {
+      key: group.key,
+      label: group.label,
+      order: group.order,
+      periods: groupMaxima.periods,
+      total: groupMaxima.total,
+    };
+  });
 
   return {
-    semester1,
-    semester2,
-    annualTotal: semester1.total + semester2.total,
+    groups,
+    annualTotal: sumBulletinMaxima(groups.map((group) => group.total)),
   };
+}
+
+export function getBulletinGroupMaxima(
+  yearMaxima: BulletinYearMaxima,
+  groupOrder: number,
+): BulletinGroupMaxima | undefined {
+  return yearMaxima.groups.find((group) => group.order === groupOrder);
 }
 
 /**

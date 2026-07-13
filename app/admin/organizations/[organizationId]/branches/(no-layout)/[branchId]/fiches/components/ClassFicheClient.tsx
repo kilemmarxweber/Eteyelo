@@ -23,6 +23,7 @@ import {
   ClassType,
   Fiche,
   formatOrdinalFR,
+  ApplicationType,
   RecapPeriod,
   RecapRow,
   TypeFiche,
@@ -30,8 +31,16 @@ import {
 import { PageHeader } from "@/components/ui/page-header";
 import { IconClipboardText } from "@tabler/icons-react";
 import {
+  buildPeriodFieldMap,
+  filterPeriodsForGroup,
+  getAcademicGroupTotalKey,
   getAcademicPeriodKey,
   getAcademicPeriodOrder,
+  getAcademicStructure,
+  getStorageGroupKey,
+  isAcademicExamPeriodName,
+  isAcademicGroupComplete,
+  type AcademicGroupConfig,
 } from "@/lib/academic-structure";
 import type { BulletinBranchContext } from "@/lib/bulletin-context";
 import {
@@ -403,14 +412,6 @@ export default function ClassFicheClient({
     );
   }, [availableSubjects, subjects]); // ✅ ajouter subjects
   // -------------------- Tri décroissant par total périodes agrégées --------------------
-  function computePeriodMax(
-    period: RecapPeriod,
-    _semesterPeriods: RecapPeriod[],
-  ) {
-    return sumBulletinMaxima(
-      Object.values(period.notes).map((note) => note.maxScore),
-    );
-  }
   function computeRank(
     studentId: string,
     allEntries: { studentId: string; pct: number; name: string }[],
@@ -461,53 +462,118 @@ export default function ClassFicheClient({
   }, [ficheRecap, selectedPeriod, getNotesForPeriods]);
 
   const bulletinDataForPDF: RecapRow[] = useMemo(() => {
-    function isSemesterComplete(
-      periods: RecapPeriod[],
-      semester: 1 | 2,
-    ): boolean {
-      const required =
-        semester === 1
-          ? ["1ere Periode", "2e Periode", "Examen 1er semestre"]
-          : ["3e Periode", "4e Periode", "Examen 2e semestre"];
+    const branchType = branchContext.branchType;
+    const academicStructure = getAcademicStructure(branchType);
+    const periodMap = buildPeriodFieldMap(branchType);
 
-      const aliases: Record<string, string[]> = {
-        "1ere Periode": ["1st Period", "1er Periode"],
-        "Examen 1er semestre": [
-          "Exam 1st semester",
-          "Examen 1er trimestre",
-          "Exam 1er trimestre",
-        ],
-        "Examen 2e semestre": [
-          "Exam 2nd semester",
-          "Examen 2e trimestre",
-          "Exam 2e trimestre",
-        ],
-        "3e Periode": ["3tr Period"],
-        "4e Periode": ["4th Period"],
+    function createEmptyAutres(existing?: TypeFiche): TypeFiche {
+      const createGroupRecords = (
+        section: keyof TypeFiche,
+        defaultValue: string,
+        includeTotal = true,
+      ): ApplicationType => {
+        const records: Record<string, Record<string, string>> = {};
+
+        for (const group of academicStructure.groups) {
+          const storageKey = getStorageGroupKey(group);
+          records[storageKey] = {
+            ...((existing?.[section] as Record<string, Record<string, string>>)?.[
+              storageKey
+            ] ?? {}),
+          };
+
+          for (const period of group.periods) {
+            records[storageKey][period.key] = defaultValue;
+          }
+
+          if (includeTotal) {
+            records[storageKey][getAcademicGroupTotalKey(group.order)] =
+              defaultValue;
+          }
+
+          if (group.order === academicStructure.groups.length) {
+            records[storageKey].tg = defaultValue;
+          }
+        }
+
+        return records as ApplicationType;
       };
 
-      return required.every((name) =>
-        periods.some(
-          (p) =>
-            p.periodName === name || (aliases[name] ?? []).includes(p.periodName),
+      return {
+        ...structuredClone(existing ?? {}),
+        POURCENTAGES: createGroupRecords("POURCENTAGES", "0"),
+        TOTAUX: createGroupRecords("TOTAUX", "0"),
+        "PLACE/NOMBRE D'ELEVES": createGroupRecords(
+          "PLACE/NOMBRE D'ELEVES",
+          "",
+          false,
         ),
-      );
+        APPLICATIONS: createGroupRecords("APPLICATIONS", "", false),
+        CONDUITE: createGroupRecords("CONDUITE", "", false),
+        "SIGNATURE PARENTS": createGroupRecords("SIGNATURE PARENTS", "", false),
+      };
     }
 
-    function computeSemesterTotals(periods: RecapPeriod[]): {
+    function computeGroupTotals(periods: RecapPeriod[]): {
       score: number;
       max: number;
     } {
       return periods.reduce(
-        (acc, p) => {
-          acc.score += Object.values(p.notes).reduce((s, n) => s + n.score, 0);
+        (acc, period) => {
+          acc.score += Object.values(period.notes).reduce(
+            (sum, note) => sum + note.score,
+            0,
+          );
           acc.max += sumBulletinMaxima(
-            Object.values(p.notes).map((note) => note.maxScore),
+            Object.values(period.notes).map((note) => note.maxScore),
           );
           return acc;
         },
         { score: 0, max: 0 },
       );
+    }
+
+    function computeGroupRankings(group: AcademicGroupConfig) {
+      return ficheRecappdf.map((student) => {
+        const groupPeriods = filterPeriodsForGroup(student.periods, group);
+        const totals = computeGroupTotals(groupPeriods);
+        const pct = calculateBulletinPercentage(totals.score, totals.max);
+
+        return {
+          studentId: student.studentId,
+          score: totals.score,
+          pct,
+        };
+      });
+    }
+
+    function computeAnnualRankings() {
+      return ficheRecappdf.map((student) => {
+        const allGroupsComplete = academicStructure.groups.every((group) =>
+          isAcademicGroupComplete(student.periods, group),
+        );
+
+        if (!allGroupsComplete) {
+          return { studentId: student.studentId, tg: 0, pct: 0 };
+        }
+
+        const annualTotals = academicStructure.groups.reduce(
+          (acc, group) => {
+            const groupPeriods = filterPeriodsForGroup(student.periods, group);
+            const totals = computeGroupTotals(groupPeriods);
+            acc.score += totals.score;
+            acc.max += totals.max;
+            return acc;
+          },
+          { score: 0, max: 0 },
+        );
+
+        return {
+          studentId: student.studentId,
+          tg: annualTotals.score,
+          pct: calculateBulletinPercentage(annualTotals.score, annualTotals.max),
+        };
+      });
     }
 
     function computeTotals(
@@ -542,34 +608,14 @@ export default function ClassFicheClient({
       return { totalScore, totalMax, pctEntry, place };
     }
 
-    const periodMap: Record<
-      string,
-      {
-        sem: "sem1" | "sem2";
-        field: "p1" | "p2" | "p3" | "p4" | "exam1" | "exam2" | "tt1" | "tt2";
-      }
-    > = {
-      "1st Period": { sem: "sem1", field: "p1" },
-      "2nd Period": { sem: "sem1", field: "p2" },
-      "Exam 1st semester": { sem: "sem1", field: "exam1" },
-      "3tr Period": { sem: "sem2", field: "p3" },
-      "4th Period": { sem: "sem2", field: "p4" },
-      "Exam 2nd semester": { sem: "sem2", field: "exam2" },
-      "Examen 1er semestre": { sem: "sem1", field: "exam1" },
-      "Examen 2e semestre": { sem: "sem2", field: "exam2" },
-      "1ere Periode": { sem: "sem1", field: "p1" },
-      "1er Periode": { sem: "sem1", field: "p1" },
-      "2e Periode": { sem: "sem1", field: "p2" },
-      "Exam 1er trimestre": { sem: "sem1", field: "exam1" },
-      "Examen 1er trimestre": { sem: "sem1", field: "exam1" },
-      "3e Periode": { sem: "sem2", field: "p3" },
-      "4e Periode": { sem: "sem2", field: "p4" },
-      "Exam 2e trimestre": { sem: "sem2", field: "exam2" },
-      "Examen 2e trimestre": { sem: "sem2", field: "exam2" },
-    };
+    const lastGroup =
+      academicStructure.groups[academicStructure.groups.length - 1];
+    const lastStorageKey = lastGroup
+      ? getStorageGroupKey(lastGroup)
+      : "sem2";
 
     return ficheRecappdf.map((student) => {
-      const periodsWithTotals = student.periods.map((p, _, arr) => {
+      const periodsWithTotals = student.periods.map((p) => {
         // 1️⃣ Calculer pctEntry pour tous les élèves pour cette période
         const allTotalsForPeriod = ficheRecappdf.map((s) => {
           const period = s.periods.find((pr) => pr.periodName === p.periodName);
@@ -593,114 +639,17 @@ export default function ClassFicheClient({
           student.studentId,
         );
 
-        const autres: TypeFiche = {
-          ...structuredClone(p.autres ?? {}), // garde tout ce qui existe déjà
-          POURCENTAGES: {
-            sem1: {
-              ...(p.autres?.POURCENTAGES?.sem1 ?? {}), // garde les champs existants
-              p1: "0",
-              p2: "0",
-              exam1: "0",
-              tt1: "0", // pour classement TT1
-            },
-            sem2: {
-              ...(p.autres?.POURCENTAGES?.sem2 ?? {}), // idem
-              p3: "0",
-              p4: "0",
-              exam2: "0",
-              tt2: "0",
-            },
-          },
-          TOTAUX: {
-            sem1: {
-              ...(p.autres?.TOTAUX?.sem1 ?? {}),
-              p1: "0",
-              p2: "0",
-              exam1: "0",
-              tt1: "0",
-            },
-            sem2: {
-              ...(p.autres?.TOTAUX?.sem2 ?? {}),
-              p3: "0",
-              p4: "0",
-              exam2: "0",
-              tt2: "0",
-            },
-          },
-          "PLACE/NOMBRE D'ELEVES": {
-            sem1: {
-              ...(p.autres?.["PLACE/NOMBRE D'ELEVES"]?.sem1 ?? {}),
-              p1: "",
-              p2: "",
-              exam1: "",
-              tt1: "", // pour classement TT1
-            },
-            sem2: {
-              ...(p.autres?.["PLACE/NOMBRE D'ELEVES"]?.sem2 ?? {}),
-              p3: "",
-              p4: "",
-              exam2: "",
-              tt2: "", // pour classement TT2
-            },
-          },
-          APPLICATIONS: {
-            sem1: {
-              ...(p.autres?.APPLICATIONS?.sem1 ?? {}),
-              p1: "",
-              p2: "",
-              exam1: "",
-              tt1: "",
-            },
-            sem2: {
-              ...(p.autres?.APPLICATIONS?.sem2 ?? {}),
-              p3: "",
-              p4: "",
-              exam2: "",
-              tt2: "",
-            },
-          },
-          CONDUITE: {
-            sem1: {
-              ...(p.autres?.CONDUITE?.sem1 ?? {}),
-              p1: "",
-              p2: "",
-              exam1: "",
-              tt1: "",
-            },
-            sem2: {
-              ...(p.autres?.CONDUITE?.sem2 ?? {}),
-              p3: "",
-              p4: "",
-              exam2: "",
-              tt2: "",
-            },
-          },
-          "SIGNATURE PARENTS": {
-            sem1: {
-              ...(p.autres?.["SIGNATURE PARENTS"]?.sem1 ?? {}),
-              p1: "",
-              p2: "",
-              exam1: "",
-              tt1: "",
-            },
-            sem2: {
-              ...(p.autres?.["SIGNATURE PARENTS"]?.sem2 ?? {}),
-              p3: "",
-              p4: "",
-              exam2: "",
-              tt2: "",
-            },
-          },
-        };
+        const autres = createEmptyAutres(p.autres);
         const mapEntry = periodMap[p.periodName];
 
         if (mapEntry) {
-          const { sem, field } = mapEntry;
-          const semObj = autres.POURCENTAGES[sem];
-          const totObj = autres.TOTAUX[sem];
-          const semCToApObj = autres.APPLICATIONS[sem];
-          const semCondObj = autres.CONDUITE[sem]; // ✅ nouvelle variable pour conduite
-          const placeObj = autres["PLACE/NOMBRE D'ELEVES"][sem] as Record<
+          const { storageKey: sem, field } = mapEntry;
+          const semKey = sem as keyof ApplicationType;
+          const semObj = autres.POURCENTAGES[semKey]!;
+          const totObj = autres.TOTAUX[semKey]!;
+          const semCToApObj = autres.APPLICATIONS[semKey]!;
+          const semCondObj = autres.CONDUITE[semKey]!;
+          const placeObj = autres["PLACE/NOMBRE D'ELEVES"][semKey] as Record<
             string,
             string
           >;
@@ -724,206 +673,69 @@ export default function ClassFicheClient({
           totObj[field] = `${totalScore}`;
           placeObj[field] = placeStr;
           semCondObj[field] = conduiteValue;
-          // -------------------- Calcul TT --------------------
-          if (
-            p.periodName === "Exam 1st semester" ||
-            p.periodName === "Examen 1er semestre" ||
-            p.periodName === "Examen 1er trimestre" ||
-            p.periodName === "Exam 1er trimestre"
-          ) {
-            // 🏆 1. Calcul global TT1 pour tous les élèves
-            const allTT1 = ficheRecappdf.map((s) => {
-              const sem1Periods = s.periods.filter((pr) =>
-                [
-                  "1st Period",
-                  "1er Periode",
-                  "1ere Periode",
-                  "2nd Period",
-                  "2e Periode",
-                  "Exam 1st semester",
-                  "Examen 1er semestre",
-                  "Exam 1er trimestre",
-                  "Examen 1er trimestre",
-                ].includes(pr.periodName),
-              );
 
-              const scoreTT1 = sem1Periods.reduce(
-                (sum, pr) =>
-                  sum +
-                  Object.values(pr.notes).reduce((s, n) => s + n.score, 0),
-                0,
-              );
-
-              const maxTT1 = sem1Periods.reduce(
-                (sum, pr) => sum + computePeriodMax(pr, sem1Periods),
-                0,
-              );
-              const pct = calculateBulletinPercentage(scoreTT1, maxTT1);
-              return {
-                studentId: s.studentId,
-                scoreTT1,
-                pct,
-              };
-            });
-
-            // 🧠 2. récupérer les valeurs de l'élève courant
-            const current = allTT1.find(
-              (x) => x.studentId === student.studentId,
+          if (isAcademicExamPeriodName(p.periodName, branchType)) {
+            const currentGroup = academicStructure.groups.find(
+              (group) => getStorageGroupKey(group) === sem,
             );
 
-            if (current) {
-              // ✅ appliquer uniquement au bon élève
-              semObj.tt1 = `${current.pct.toFixed(1)}%`;
-              totObj.tt1 = `${current.scoreTT1}`;
-            }
-
-            // 🏅 3. classement
-            const tt1Place = computeRank(
-              student.studentId,
-              allTT1.map((x) => ({
-                studentId: x.studentId,
-                pct: x.pct,
-                name: student.nom, //+ " " + student.studentSurname,
-              })),
-            );
-
-            (autres["PLACE/NOMBRE D'ELEVES"].sem1 as any).tt1 = tt1Place;
-          }
-
-          if (
-            p.periodName === "Exam 2nd semester" ||
-            p.periodName === "Examen 2e semestre" ||
-            p.periodName === "Examen 2e trimestre" ||
-            p.periodName === "Exam 2e trimestre"
-          ) {
-            // 🏆 1. Calcul global TT2
-            const allTT2 = ficheRecappdf.map((s) => {
-              const sem2Periods = s.periods.filter((pr) =>
-                [
-                  "3tr Period",
-                  "3e Periode",
-                  "4th Period",
-                  "4e Periode",
-                  "Exam 2nd semester",
-                  "Examen 2e semestre",
-                  "Exam 2e trimestre",
-                  "Examen 2e trimestre",
-                ].includes(pr.periodName),
+            if (currentGroup) {
+              const totalKey = getAcademicGroupTotalKey(currentGroup.order);
+              const allGroupTotals = computeGroupRankings(currentGroup);
+              const currentGroupTotal = allGroupTotals.find(
+                (entry) => entry.studentId === student.studentId,
               );
 
-              const scoreTT2 = sem2Periods.reduce(
-                (sum, pr) =>
-                  sum +
-                  Object.values(pr.notes).reduce((s, n) => s + n.score, 0),
-                0,
+              if (currentGroupTotal) {
+                semObj[totalKey] = `${currentGroupTotal.pct.toFixed(1)}%`;
+                totObj[totalKey] = `${currentGroupTotal.score}`;
+              }
+
+              const groupPlace = computeRank(
+                student.studentId,
+                allGroupTotals.map((entry) => ({
+                  studentId: entry.studentId,
+                  pct: entry.pct,
+                  name: student.nom,
+                })),
               );
 
-              const maxTT2 = sem2Periods.reduce(
-                (sum, pr) => sum + computePeriodMax(pr, sem2Periods),
-                0,
+              (autres["PLACE/NOMBRE D'ELEVES"][semKey] as Record<string, string>)[
+                totalKey
+              ] = groupPlace;
+
+              const allGroupsComplete = academicStructure.groups.every(
+                (group) => isAcademicGroupComplete(student.periods, group),
               );
+              const isLastGroupExam =
+                currentGroup.order === academicStructure.groups.length;
 
-              const pct = calculateBulletinPercentage(scoreTT2, maxTT2);
-
-              return {
-                studentId: s.studentId,
-                scoreTT2,
-                pct,
-              };
-            });
-
-            // 🎯 2. élève courant
-            const currentTT2 = allTT2.find(
-              (x) => x.studentId === student.studentId,
-            );
-
-            if (currentTT2) {
-              semObj.tt2 = `${currentTT2.pct.toFixed(1)}%`;
-              totObj.tt2 = `${currentTT2.scoreTT2}`;
-            }
-
-            // 🏅 3. classement TT2
-            const tt2Place = computeRank(
-              student.studentId,
-              allTT2.map((x) => ({
-                studentId: x.studentId,
-                pct: x.pct,
-                name: student.nom, //+ " " + student.studentSurname,
-              })),
-            );
-
-            (autres["PLACE/NOMBRE D'ELEVES"].sem2 as any).tt2 = tt2Place;
-
-            // ================= TG =================
-
-            const sem1Complete = isSemesterComplete(student.periods, 1);
-            const sem2Complete = isSemesterComplete(student.periods, 2);
-
-            if (sem1Complete && sem2Complete) {
-              // 🔢 calcul global TG
-              const allTG = ficheRecappdf.map((s) => {
-                const sem1 = s.periods.filter((p) =>
-                  [
-                    "1st Period",
-                    "1er Periode",
-                    "1ere Periode",
-                    "2nd Period",
-                    "2e Periode",
-                    "Exam 1st semester",
-                    "Examen 1er semestre",
-                    "Exam 1er trimestre",
-                    "Examen 1er trimestre",
-                  ].includes(p.periodName),
-                );
-                const sem2 = s.periods.filter((p) =>
-                  [
-                    "3tr Period",
-                    "3e Periode",
-                    "4th Period",
-                    "4e Periode",
-                    "Exam 2nd semester",
-                    "Examen 2e semestre",
-                    "Exam 2e trimestre",
-                    "Examen 2e trimestre",
-                  ].includes(p.periodName),
+              if (allGroupsComplete && isLastGroupExam) {
+                const allAnnualTotals = computeAnnualRankings();
+                const currentAnnualTotal = allAnnualTotals.find(
+                  (entry) => entry.studentId === student.studentId,
                 );
 
-                if (
-                  !isSemesterComplete(s.periods, 1) ||
-                  !isSemesterComplete(s.periods, 2)
-                ) {
-                  return { studentId: s.studentId, tg: 0, pct: 0 };
+                if (currentAnnualTotal && currentAnnualTotal.tg !== 0) {
+                  const lastSemKey = lastStorageKey as keyof ApplicationType;
+                  autres.TOTAUX[lastSemKey]!.tg = `${currentAnnualTotal.tg}`;
+                  autres.POURCENTAGES[lastSemKey]!.tg =
+                    `${currentAnnualTotal.pct.toFixed(1)}%`;
+
+                  const placeTG = computeRank(
+                    student.studentId,
+                    allAnnualTotals.map((entry) => ({
+                      studentId: entry.studentId,
+                      pct: entry.pct,
+                      name: student.nom,
+                    })),
+                  );
+
+                  (autres["PLACE/NOMBRE D'ELEVES"][lastSemKey] as Record<
+                    string,
+                    string
+                  >).tg = placeTG;
                 }
-
-                const t1 = computeSemesterTotals(sem1);
-                const t2 = computeSemesterTotals(sem2);
-
-                const tgScore = t1.score + t2.score;
-                const tgMax = t1.max + t2.max;
-                const pct = calculateBulletinPercentage(tgScore, tgMax);
-
-                return { studentId: s.studentId, tg: tgScore, pct };
-              });
-
-              // 🎯 élève courant
-              const currentTG = allTG.find(
-                (x) => x.studentId === student.studentId,
-              );
-
-              if (currentTG && currentTG.tg !== 0) {
-                autres.TOTAUX.sem2.tg = `${currentTG.tg}`;
-                autres.POURCENTAGES.sem2.tg = `${currentTG.pct.toFixed(1)}%`;
-
-                const placeTG = computeRank(
-                  student.studentId,
-                  allTG.map((x) => ({
-                    studentId: x.studentId,
-                    pct: x.pct,
-                    name: student.nom, //+ " " + student.studentSurname,
-                  })),
-                );
-
-                (autres["PLACE/NOMBRE D'ELEVES"].sem2 as any).tg = placeTG;
               }
             }
           }
@@ -934,7 +746,7 @@ export default function ClassFicheClient({
 
       return { ...student, periods: periodsWithTotals };
     });
-  }, [ficheRecappdf]);
+  }, [ficheRecappdf, branchContext.branchType]);
 
   const rankingData = useMemo(() => {
     return ficheRecap
