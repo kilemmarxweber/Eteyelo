@@ -18,7 +18,7 @@ import { IconNotes } from "@tabler/icons-react";
 import { PageHeader } from "@/components/ui/page-header";
 import { toast } from "sonner";
 import { StudentRow } from "./components/types";
-import { CircleFadingArrowUpIcon } from "lucide-react";
+import { BookOpen, CalendarDays, CircleFadingArrowUpIcon, ClipboardCheck, Users } from "lucide-react";
 import { ResponsiveDataTable } from "@/components/custom";
 import { notesColumns } from "./components/notes.columns";
 import { NotesToolbar } from "./components/notes.toolbar";
@@ -248,6 +248,7 @@ export default function FicheSaisieClient({
     if (missingFields.length > 0) {
       toast.error(`Veuillez remplir : ${missingFields.join(", ")}`);
       setIsSubmitting(false);
+      setIsLoading(false);
       return;
     }
 
@@ -469,23 +470,29 @@ export default function FicheSaisieClient({
       <LayoutBody className="space-y-6">
         {/* ===== HEADER ===== */}
         <PageHeader
-          title="Gestion des notes"
-          description="Gérer les notes des élèves"
+          title="Saisie des notes"
+          description="Sélectionnez le contexte pédagogique, puis saisissez ou importez les notes des élèves."
           badge={
             <Badge variant="outline-primary" icon={<IconNotes size={14} />}>
               Notes
             </Badge>
           }
         />
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <ContextCard icon={<Users className="size-5" />} label="Enseignant" value={selectedTeacher?.name ?? "Non sélectionné"} active={Boolean(selectedTeacherId)} />
+          <ContextCard icon={<BookOpen className="size-5" />} label="Cours et classe" value={selectedTeacher?.lessons.find(item => item.id === selectedLessonId) ? `${selectedTeacher.lessons.find(item => item.id === selectedLessonId)?.subjectName} · ${selectedTeacher.lessons.find(item => item.id === selectedLessonId)?.codeclasse}` : "Non sélectionné"} active={Boolean(selectedLessonId)} />
+          <ContextCard icon={<CalendarDays className="size-5" />} label="Période" value={period?.label ?? "Non sélectionnée"} active={Boolean(selectedPeriodId)} />
+          <ContextCard icon={<ClipboardCheck className="size-5" />} label="Progression" value={`${filled}/${students.length} notes saisies`} active={students.length > 0 && filled === students.length} />
+        </div>
         <Card
           variant="elevated"
           padding="none"
-          className="animate-fade-in p-6 space-y-6"
+          className="animate-fade-in overflow-hidden rounded-2xl border shadow-sm"
         >
           {/* ===== FILTRES + ACTIONS ===== */}
-          <div className="p-4 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex flex-col gap-4 border-b bg-muted/20 p-4 lg:p-5 xl:flex-row xl:items-end xl:justify-between">
             {/* LEFT */}
-            <div className="flex flex-col sm:flex-row flex-wrap gap-3">
+            <div className="flex flex-1 flex-col flex-wrap gap-3 sm:flex-row">
               {isAdmin && (
                 <TeacherCombobox
                   teachers={filteredTeachers}
@@ -568,12 +575,12 @@ export default function FicheSaisieClient({
             </div>
 
             {/* RIGHT ACTIONS */}
-            <div className="flex flex-col sm:flex-row gap-2">
+            <div className="flex flex-col gap-2 sm:flex-row">
               <Button
                 onClick={handleSubmit}
                 disabled={!students.length}
                 /* className="w-full sm:w-auto" */
-                className="w-full"
+                className="w-full sm:w-auto"
                 loading={isLoading}
                 size="sm"
               >
@@ -603,15 +610,15 @@ export default function FicheSaisieClient({
           </div>
 
           {/* ===== CONTENU ===== */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-6">
+          <div className="grid grid-cols-1 gap-4 p-4 lg:grid-cols-12 lg:p-5">
             {/* ===== MATIÈRES ===== */}
-            <Card className="col-span-1 md:col-span-2 lg:col-span-3">
-              <CardHeader>
-                <CardTitle>Matières</CardTitle>
+            <Card className="col-span-1 overflow-hidden lg:col-span-4 xl:col-span-3">
+              <CardHeader className="border-b bg-muted/20 py-4">
+                <CardTitle className="text-base">Cours et classes</CardTitle>
               </CardHeader>
 
-              <CardContent className="overflow-x-auto">
-                <div className="min-w-fit">
+              <CardContent className="max-h-[520px] overflow-auto p-2">
+                <div className="min-w-[300px]">
                   <DataTable
                     className="min-w-fit"
                     columns={lessonColumns(
@@ -642,12 +649,12 @@ export default function FicheSaisieClient({
             </Card>
 
             {/* ===== TABLE ÉLÈVES ===== */}
-            <Card className="col-span-1 md:col-span-2 lg:col-span-9">
-              <CardHeader className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
-                <CardTitle>Élèves</CardTitle>
+            <Card className="col-span-1 min-w-0 overflow-hidden lg:col-span-8 xl:col-span-9">
+              <CardHeader className="flex flex-col gap-3 border-b bg-muted/20 py-4 sm:flex-row sm:items-center sm:justify-between">
+                <div><CardTitle className="text-base">Élèves</CardTitle><p className="mt-1 text-xs text-muted-foreground">{students.length ? `${filled} note(s) sur ${students.length}` : "Sélectionnez un cours pour charger les élèves"}</p></div>
 
                 {/* Progress bar */}
-                <div className="w-full sm:w-40 h-3 bg-gray-200 rounded-full overflow-hidden">
+                <div className="h-2.5 w-full overflow-hidden rounded-full bg-muted sm:w-44">
                   <div
                     className={`h-full ${
                       percentage === 100 ? "bg-green-500" : "bg-blue-500"
@@ -657,8 +664,8 @@ export default function FicheSaisieClient({
                 </div>
               </CardHeader>
 
-              <CardContent className="overflow-x-auto">
-                <div className="min-w-fit">
+              <CardContent className="max-h-[620px] overflow-auto p-2 sm:p-4">
+                <div className="min-w-[680px]">
                   <ResponsiveDataTable<StudentRow, unknown>
                     data={students}
                     columns={columns}
@@ -681,5 +688,14 @@ export default function FicheSaisieClient({
         </Card>
       </LayoutBody>
     </Layout>
+  );
+}
+
+function ContextCard({ icon, label, value, active }: { icon: React.ReactNode; label: string; value: string; active: boolean }) {
+  return (
+    <Card className={`flex items-center gap-3 p-4 transition ${active ? "border-primary/30 bg-primary/5" : "bg-muted/10"}`}>
+      <div className={`rounded-xl p-2.5 ${active ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>{icon}</div>
+      <div className="min-w-0"><p className="text-xs font-medium text-muted-foreground">{label}</p><p className="mt-1 truncate text-sm font-semibold" title={value}>{value}</p></div>
+    </Card>
   );
 }

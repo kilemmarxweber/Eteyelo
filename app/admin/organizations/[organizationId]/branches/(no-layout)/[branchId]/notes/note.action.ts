@@ -29,6 +29,71 @@ export async function getStudentsByClass(
 ) {
   return getStudentsByClassFromLib(classId, schoolYearId);
 }
+
+async function syncClassStudentsAcrossFiches({
+  branchId,
+  classId,
+  schoolYearId,
+  currentStudents,
+}: {
+  branchId: string;
+  classId: string;
+  schoolYearId: string;
+  currentStudents: CreateFicheParams["notes"];
+}) {
+  const studentsById = new Map(
+    currentStudents
+      .filter((student) => Boolean(student.studentId))
+      .map((student) => [student.studentId, student]),
+  );
+
+  if (!studentsById.size) return;
+
+  const fiches = await prisma.fiche.findMany({
+    where: {
+      branchId,
+      classSectionId: classId,
+      anneeId: schoolYearId,
+    },
+    select: { id: true, notes: true },
+  });
+
+  const updates = fiches.flatMap((fiche) => {
+    let existingNotes: Array<Record<string, unknown>> = [];
+    try {
+      const parsed = fiche.notes ? JSON.parse(fiche.notes) : [];
+      existingNotes = Array.isArray(parsed) ? parsed : [];
+    } catch {
+      existingNotes = [];
+    }
+
+    const existingStudentIds = new Set(
+      existingNotes.map((note) => String(note.studentId ?? "")).filter(Boolean),
+    );
+    const ficheMaxScore = Number(existingNotes[0]?.maxScore ?? 0);
+    const missingStudents = Array.from(studentsById.values())
+      .filter((student) => !existingStudentIds.has(student.studentId))
+      .map((student) => ({
+        ...student,
+        score: 0,
+        maxScore: ficheMaxScore || student.maxScore,
+      }));
+
+    if (!missingStudents.length) return [];
+
+    return [
+      prisma.fiche.update({
+        where: { id: fiche.id },
+        data: {
+          notes: JSON.stringify([...existingNotes, ...missingStudents]),
+          dateUpdated: new Date(),
+        },
+      }),
+    ];
+  });
+
+  if (updates.length) await prisma.$transaction(updates);
+}
 // récupère toutes les périodes
 export async function getPeriods() {
   const { branchId } = await requireBranchContext();
@@ -242,6 +307,13 @@ export async function createFiche(
         },
       });
 
+      await syncClassStudentsAcrossFiches({
+        branchId,
+        classId: data.classId,
+        schoolYearId: annees.id,
+        currentStudents: data.notes,
+      });
+
       return { success: true };
     }
 
@@ -358,6 +430,13 @@ export async function createFiche(
         }),
       });
     }
+
+    await syncClassStudentsAcrossFiches({
+      branchId,
+      classId: data.classId,
+      schoolYearId: annees.id,
+      currentStudents: data.notes,
+    });
 
     return { success: true };
   } catch (err) {

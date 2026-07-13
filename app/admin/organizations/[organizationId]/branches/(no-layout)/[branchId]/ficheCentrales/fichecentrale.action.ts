@@ -4,6 +4,43 @@ import { prisma } from "@/lib/prisma";
 
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
 import { revalidatePath } from "next/cache";
+import { canManageOrganization } from "@/lib/auth/session-roles";
+
+export async function deleteFicheCentrale(params: {
+  lessonId: string;
+  classId: string;
+  periodId: number;
+  anneeId: string;
+}) {
+  const { organizationId, branchId, session } = await requireBranchContext();
+  if (!canManageOrganization(session)) {
+    return { success: false, message: "Action non autorisée." };
+  }
+
+  const where = {
+    branchId,
+    lessonId: params.lessonId,
+    classSectionId: params.classId,
+    periodId: params.periodId,
+    anneeId: params.anneeId,
+  };
+  const existing = await prisma.fiche.count({ where });
+  if (!existing) {
+    return { success: false, message: "Cette fiche centrale n'existe plus." };
+  }
+
+  await prisma.fiche.deleteMany({ where });
+
+  const baseHref = `/admin/organizations/${organizationId}/branches/${branchId}`;
+  revalidatePath(`${baseHref}/ficheCentrales`);
+  revalidatePath(`${baseHref}/ficheCentrales/${params.lessonId}`);
+  revalidatePath(`${baseHref}/results`);
+
+  return {
+    success: true,
+    message: `Fiche centrale supprimée (${existing} fiche${existing > 1 ? "s" : ""}).`,
+  };
+}
 
 type FicheCentraleStudentAverage = {
   studentId: string;
