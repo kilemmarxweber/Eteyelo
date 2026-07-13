@@ -5,7 +5,9 @@ export interface ICours {
   codeCours: string;
   nameCours: string;
   description: string;
+  statusCours?: boolean | null;
   createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export const coursSchema = z.object({

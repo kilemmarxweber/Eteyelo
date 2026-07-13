@@ -35,11 +35,7 @@ export default function RootLayout({
   return <FraisLayoutContent>{children}</FraisLayoutContent>;
 }
 
-function FraisLayoutContent({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+function FraisLayoutContent({ children }: { children: React.ReactNode }) {
   const { refresh } = useRefresh();
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const handleFraisAction = () => {
@@ -134,23 +130,23 @@ function FraisLayoutContent({
           }
         />
 
-        <div className="flex flex-1 flex-col gap-6 lg:flex-row lg:gap-8">
-          <aside className="lg:w-70 lg:flex-shrink-0">
+        <div className="grid min-h-0 flex-1 gap-4 lg:grid-cols-[300px_minmax(0,1fr)]">
+          <aside className="min-h-0">
             <Card
               variant="outline"
               padding="sm"
-              className="sticky top-4 overflow-hidden rounded-md border"
+              className="flex h-full min-h-0 flex-col overflow-hidden rounded-md border"
             >
               <div className="flex items-center gap-2 mb-4 pb-3 border-b border-border/50">
                 <IconSchool size={18} className="text-primary" />
-                <h3 className="font-semibold text-foreground">
-                  Options - Classes
-                </h3>
+                <h3 className="font-semibold text-foreground">Classes</h3>
               </div>
-              <OptionSidebar />
+              <div className="min-h-0 flex-1">
+                <OptionSidebar />
+              </div>
             </Card>
           </aside>
-          <main className="flex-1 min-w-0">
+          <main className="min-h-0 min-w-0 overflow-auto">
             <div className="animate-fade-in">{children}</div>
           </main>
         </div>

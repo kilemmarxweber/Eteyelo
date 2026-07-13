@@ -11,6 +11,11 @@ import { DataTableColumnHeader } from "@/components/data-table-column-header";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -56,12 +61,23 @@ export const createTeacherColumns = (
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Nom" />
     ),
-    cell: ({ row }) => row.original.nom ?? "N/A",
+    cell: ({ row }) => (
+      <div className="min-w-44">
+        <p className="font-medium">
+          {[row.original.nom, row.original.postnom, row.original.prenom]
+            .filter(Boolean)
+            .join(" ") || "N/A"}
+        </p>
+        <p className="text-xs text-muted-foreground">
+          {row.original.username || row.original.email || "Enseignant"}
+        </p>
+      </div>
+    ),
     filterFn: (row, id, value) => {
       const search = String(value).toLowerCase().trim();
       const nom = String(row.getValue(id) ?? "").toLowerCase();
-      const postnom = String(row.getValue("postnom") ?? "").toLowerCase();
-      const prenom = String(row.getValue("prenom") ?? "").toLowerCase();
+      const postnom = String(row.original.postnom ?? "").toLowerCase();
+      const prenom = String(row.original.prenom ?? "").toLowerCase();
 
       return (
         nom.includes(search) ||
@@ -69,28 +85,6 @@ export const createTeacherColumns = (
         prenom.includes(search)
       );
     },
-  },
-  {
-    accessorKey: "postnom",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Postnom" />
-    ),
-    cell: ({ row }) => row.original.postnom ?? "N/A",
-  },
-  {
-    accessorKey: "prenom",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Prenom" />
-    ),
-    cell: ({ row }) => row.original.prenom ?? "N/A",
-  },
-  {
-    accessorKey: "sexe",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Sexe" />
-    ),
-    cell: ({ row }) => row.original.sexe ?? "N/A",
-    filterFn: (row, id, value) => value.includes(row.getValue(id)),
   },
   {
     accessorKey: "assignmentStatus",
@@ -126,16 +120,11 @@ export const createTeacherColumns = (
     cell: ({ row }) => {
       const names = row.original.classNames ?? [];
       return names.length ? (
-        <div className="flex max-w-56 flex-wrap gap-1">
-          {names.slice(0, 2).map((name) => (
-            <Badge key={name} variant="outline">
-              {name}
-            </Badge>
-          ))}
-          {names.length > 2 ? (
-            <Badge variant="secondary">+{names.length - 2}</Badge>
-          ) : null}
-        </div>
+        <AssignmentListPopover
+          label={`${names.length} classe${names.length > 1 ? "s" : ""}`}
+          title="Classes assignées"
+          names={names}
+        />
       ) : (
         <span className="text-muted-foreground">—</span>
       );
@@ -156,16 +145,11 @@ export const createTeacherColumns = (
     cell: ({ row }) => {
       const names = row.original.courseNames ?? [];
       return names.length ? (
-        <div className="flex max-w-56 flex-wrap gap-1">
-          {names.slice(0, 2).map((name) => (
-            <Badge key={name} variant="secondary">
-              {name}
-            </Badge>
-          ))}
-          {names.length > 2 ? (
-            <Badge variant="outline">+{names.length - 2}</Badge>
-          ) : null}
-        </div>
+        <AssignmentListPopover
+          label={`${names.length} cours`}
+          title="Cours assignés"
+          names={names}
+        />
       ) : (
         <span className="text-muted-foreground">—</span>
       );
@@ -176,16 +160,6 @@ export const createTeacherColumns = (
         ? value.some((selected) => names.includes(selected))
         : true;
     },
-  },
-  {
-    accessorKey: "dateOfBirth",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Date creation" />
-    ),
-    cell: (row) =>
-      row.getValue()
-        ? new Date(row.getValue() as string).toLocaleDateString()
-        : "N/A",
   },
   {
     accessorKey: "telephone",
@@ -323,5 +297,46 @@ export const createTeacherColumns = (
     },
   },
 ];
+
+function AssignmentListPopover({
+  label,
+  title,
+  names,
+}: {
+  label: string;
+  title: string;
+  names: string[];
+}) {
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button
+          type="button"
+          variant="outline"
+          size="xs"
+          className="h-7 min-w-24 justify-center rounded-full"
+        >
+          {label}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent align="start" className="w-64 p-0">
+        <div className="border-b px-3 py-2">
+          <p className="text-sm font-semibold">{title}</p>
+          <p className="text-xs text-muted-foreground">{names.length} élément(s)</p>
+        </div>
+        <div className="max-h-56 overflow-y-auto p-2">
+          {names.map((name, index) => (
+            <div
+              key={`${name}-${index}`}
+              className="mb-1 rounded-md bg-muted/50 px-3 py-2 text-sm last:mb-0"
+            >
+              {name}
+            </div>
+          ))}
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
 
 export const columns = createTeacherColumns();

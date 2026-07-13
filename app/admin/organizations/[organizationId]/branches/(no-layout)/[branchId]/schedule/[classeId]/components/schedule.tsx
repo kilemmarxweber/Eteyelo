@@ -21,6 +21,14 @@ import {
 } from "@/components/ui/table";
 import { AlertTriangle, Download, Printer, Trash2 } from "lucide-react";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
   createScheduleAction,
   archiveScheduleAction,
   getScheduleCoursByClasseAction,
@@ -105,6 +113,8 @@ export default function Schedule({
   const [heureDebut, setHeureDebut] = useState("");
   const [heureFin, setHeureFin] = useState("");
   const [alertMessage, setAlertMessage] = useState("");
+  const [missingEndTimeDialogOpen, setMissingEndTimeDialogOpen] =
+    useState(false);
   const [selectedCours, setSelectedCours] = useState<string>("");
   const [heuresDebut, setHeuresDebut] = useState<string[]>([]);
   const [jour, setJour] = useState<"" | DayType>("");
@@ -223,13 +233,14 @@ export default function Schedule({
   useEffect(() => {
     if (heureDebut) {
       const index = displayHeuresDebut.indexOf(heureDebut);
-      if (index !== -1 && index + 1 < displayHeuresDebut.length) {
-        setHeureFin(displayHeuresDebut[index + 1]);
+      if (index !== -1) {
+        setHeureFin(displayHeuresDebut[index + 1] || endTime);
+        setAlertMessage("");
       } else {
         setHeureFin("");
       }
     }
-  }, [displayHeuresDebut, heureDebut]);
+  }, [displayHeuresDebut, endTime, heureDebut]);
 
   const ajouterHoraire = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -238,7 +249,15 @@ export default function Schedule({
       return;
     }
 
-    if (!jour || !selectedCours || !heureDebut || !heureFin || !classeId)
+    if (!heureFin) {
+      const message =
+        "L'heure de fin est introuvable. Vérifiez l'heure de fin de la vacation et la durée du cours dans les créneaux de cette classe.";
+      setAlertMessage(message);
+      setMissingEndTimeDialogOpen(true);
+      return;
+    }
+
+    if (!jour || !selectedCours || !heureDebut || !classeId)
       return;
 
     const coursChoisi = Cours.find((c) => c.id === selectedCours);
@@ -395,7 +414,7 @@ export default function Schedule({
         }
       `}</style>
       <Card
-        className="schedule-print-area mx-auto w-full max-w-6xl print:max-w-none print:border-0 print:shadow-none"
+        className="schedule-print-area mx-auto flex max-h-[calc(100vh-2rem)] w-full max-w-6xl flex-col overflow-hidden print:block print:max-h-none print:max-w-none print:overflow-visible print:border-0 print:shadow-none"
       >
         <CardHeader className="gap-4 print:px-0 print:pb-3">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -453,7 +472,7 @@ export default function Schedule({
           </div>
         )}
         </CardHeader>
-        <CardContent className="print:px-0">
+        <CardContent className="min-h-0 flex-1 overflow-y-auto print:overflow-visible print:px-0">
         {conflicts.length > 0 && (
           <div className="mb-4 flex gap-3 rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive print:border-red-500 print:bg-red-50 print:text-red-800">
             <AlertTriangle className="mt-0.5 size-4 shrink-0" />
@@ -590,9 +609,9 @@ export default function Schedule({
                                 <span className="font-medium">
                                   {horaire.cours.nameCours}
                                 </span>
-                                {horaire.teacherLastName && (
+                                {horaire.teacherName && (
                                   <span className="block text-xs text-muted-foreground print:text-slate-600">
-                                    {horaire.teacherLastName}
+                                    {horaire.teacherName}
                                   </span>
                                 )}
                               </span>
@@ -616,6 +635,16 @@ export default function Schedule({
                   </TableRow>
                 ),
               )}
+              {endTime && (
+                <TableRow className="bg-muted/40 print:bg-slate-100">
+                  <TableCell
+                    colSpan={Object.values(JOURS).length + 1}
+                    className="py-3 text-center font-semibold"
+                  >
+                    FIN DES COURS · {endTime}
+                  </TableCell>
+                </TableRow>
+              )}
             </TableBody>
           </Table>
         </div>
@@ -630,6 +659,28 @@ export default function Schedule({
         </div>
         </CardContent>
       </Card>
+      <Dialog
+        open={missingEndTimeDialogOpen}
+        onOpenChange={setMissingEndTimeDialogOpen}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Heure de fin manquante</DialogTitle>
+            <DialogDescription>
+              {alertMessage ||
+                "Impossible d'ajouter ce cours sans une heure de fin valide."}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              type="button"
+              onClick={() => setMissingEndTimeDialogOpen(false)}
+            >
+              Compris
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

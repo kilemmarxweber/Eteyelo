@@ -2,10 +2,8 @@ import Link from "next/link";
 import {
   ArrowLeft,
   ArrowRight,
-  Pencil,
   Plus,
   School,
-  Trash2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { prisma } from "@/lib/prisma";
@@ -23,6 +21,7 @@ async function getOrganizationBranches(organizationId: string) {
       id: true,
       name: true,
       typebranch: true,
+      isActive: true,
       branchemembers: {
         select: {
           _count: {
@@ -37,6 +36,7 @@ async function getOrganizationBranches(organizationId: string) {
     id: branch.id,
     name: branch.name,
     typebranch: branch.typebranch,
+    isActive: branch.isActive,
     studentsCount: branch.branchemembers.reduce(
       (total, member) => total + member._count.student,
       0,
@@ -91,6 +91,7 @@ export default async function BranchesPage({ params }: BranchesPageProps) {
               branchId={branch.id}
               href={`${base}/${branch.id}`}
               editHref={`${base}/edit?branchId=${branch.id}`}
+              isActive={branch.isActive}
             >
               <div className="group flex min-h-44 flex-col justify-between rounded-3xl border bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-blue-950/25 hover:shadow-xl hover:shadow-blue-950/10">
                 <span className="flex items-start justify-between gap-4">
@@ -117,6 +118,9 @@ export default async function BranchesPage({ params }: BranchesPageProps) {
                     {branch.studentsCount} élève
                     {branch.studentsCount > 1 ? "s" : ""} inscrit
                     {branch.studentsCount > 1 ? "s" : ""}
+                  </span>
+                  <span className={`mt-2 inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${branch.isActive ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-600"}`}>
+                    {branch.isActive ? "Actif" : "Archive"}
                   </span>
                 </span>
               </div>

@@ -1,5 +1,5 @@
 "use client";
-import { HTMLAttributes, useState, useEffect } from "react";
+import { HTMLAttributes, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -15,7 +15,6 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/custom/button";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import { useTheme } from "next-themes";
 import { createCoursAction, updateCoursAction } from "../cours.action";
 import { coursSchema } from "@/src/interfaces/Cours";
 import { Textarea } from "@/components/ui/textarea";
@@ -92,16 +91,11 @@ export function CoursUpForm({
     }
   }
 
-  const { theme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => setMounted(true), []);
-
   return (
     <div className={cn("grid gap-6", className)} {...props}>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
-          <div className="grid gap-2">
+          <div className="grid gap-5">
             <FormField
               control={form.control}
               name="nameCours"
@@ -109,7 +103,7 @@ export function CoursUpForm({
                 <FormItem className="space-y-1">
                   <FormLabel>Nom du cours</FormLabel>
                   <FormControl>
-                    <Input placeholder="Le nom de la cours" {...field} />
+                    <Input placeholder="Ex. Mathématiques" autoFocus {...field} disabled={isLoading} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -123,19 +117,25 @@ export function CoursUpForm({
                   <FormLabel>Description</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="Donnez une brève description du cours"
-                      className="resize-none"
+                      placeholder="Décrivez brièvement le contenu ou l'objectif du cours"
+                      className="min-h-28 resize-none"
                       {...field}
+                      disabled={isLoading}
                     />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            <Button className="mt-2" loading={isLoading}>
+            {mode === "create" && (
+              <p className="rounded-md border bg-muted/30 p-3 text-xs text-muted-foreground">
+                Le code sera généré automatiquement et restera unique dans cette branche.
+              </p>
+            )}
+            <Button type="submit" className="mt-2" loading={isLoading}>
               {mode === "create"
-                ? "Enregistrer la cours"
-                : "Mettre à jour de la cours"}
+                ? "Créer le cours"
+                : "Enregistrer les modifications"}
             </Button>
             {errorMessage && (
               <p className="mt-2 text-center text-red-500">{errorMessage}</p>

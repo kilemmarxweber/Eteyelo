@@ -15,6 +15,7 @@ import {
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 import { getPrimaryRoleLabel } from "@/lib/sidebar-menu";
+import { LogOut, Settings, UserRound } from "lucide-react";
 
 export function UserNav() {
   const router = useRouter();
@@ -60,8 +61,9 @@ export function UserNav() {
         )}
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuItem>
-            Profile
+          <DropdownMenuItem onClick={() => router.push("/admin/settings")}>
+            <UserRound className="mr-2 size-4" />
+            Profil
             <DropdownMenuShortcut>⇧⌘P</DropdownMenuShortcut>
           </DropdownMenuItem>
 
@@ -70,7 +72,8 @@ export function UserNav() {
               router.push("/admin/settings");
             }}
           >
-            Settings
+            <Settings className="mr-2 size-4" />
+            Paramètres
             <DropdownMenuShortcut>⌘S</DropdownMenuShortcut>
           </DropdownMenuItem>
         </DropdownMenuGroup>
@@ -81,6 +84,7 @@ export function UserNav() {
             router.push("/auth/sign-in");
           }}
         >
+          <LogOut className="mr-2 size-4" />
           Se déconnecter
           <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>
         </DropdownMenuItem>

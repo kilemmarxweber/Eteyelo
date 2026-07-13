@@ -305,3 +305,35 @@ export async function updateBranchAction(
     error: null,
   };
 }
+
+export async function setBranchActiveAction(
+  branchId: string,
+  isActive: boolean,
+) {
+  const session = await auth.api.getSession({ headers: await headers() });
+
+  if (!session?.user?.id || !canManageOrganization(session)) {
+    return { data: null, error: "Action non autorisee." };
+  }
+
+  const organizationId =
+    session.organization?.id ?? session.session?.activeOrganizationId;
+  const branch = await prisma.branch.findFirst({
+    where: { id: branchId, ...(organizationId ? { organizationId } : {}) },
+    select: { id: true, organizationId: true },
+  });
+
+  if (!branch) {
+    return { data: null, error: "Etablissement introuvable." };
+  }
+
+  await prisma.branch.update({
+    where: { id: branchId },
+    data: { isActive },
+  });
+
+  revalidatePath(`/admin/organizations/${branch.organizationId}/branches`);
+  revalidatePath("/");
+
+  return { data: { id: branchId, isActive }, error: null };
+}

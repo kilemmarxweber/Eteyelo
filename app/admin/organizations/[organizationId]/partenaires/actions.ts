@@ -62,8 +62,8 @@ export async function createPartenaireAction(formData: FormData) {
     contractRef: formData.get("contractRef") || "",
     notes: formData.get("notes") || "",
     branchId: formData.get("branchId") || "",
-    isActive: formData.get("isActive") === "true",
-    isFeatured: formData.get("isFeatured") === "true",
+    isActive: ["true", "on"].includes(String(formData.get("isActive"))),
+    isFeatured: ["true", "on"].includes(String(formData.get("isFeatured"))),
   });
 
   if (!parsed.success) {
@@ -248,7 +248,10 @@ export async function updatePartenaireAction(
     };
   }
 }
-export async function deletePartenaireAction(partenaireId: string) {
+export async function setPartenaireActiveAction(
+  partenaireId: string,
+  isActive: boolean,
+) {
   const { organizationId } = await requireBranchContext();
 
   try {
@@ -264,8 +267,9 @@ export async function deletePartenaireAction(partenaireId: string) {
       };
     }
 
-    await prisma.partnaire.delete({
+    await prisma.partnaire.update({
       where: { id: partenaireId },
+      data: { isActive },
     });
 
     revalidatePath(`/admin/organizations/${organizationId}/partenaires`);
@@ -280,7 +284,12 @@ export async function deletePartenaireAction(partenaireId: string) {
       message:
         error instanceof Error
           ? error.message
-          : "Impossible de supprimer le partenaire.",
+          : "Impossible de modifier le statut du partenaire.",
     };
   }
+}
+
+/** @deprecated Utiliser setPartenaireActiveAction pour conserver les donnees. */
+export async function deletePartenaireAction(partenaireId: string) {
+  return setPartenaireActiveAction(partenaireId, false);
 }

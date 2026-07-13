@@ -5,28 +5,73 @@ export function genererCreneaux(
   recreationStart: Date,
   recreationDuration: number // Durée de la récréation en minutes
 ) {
-  const creneaux = [];
+  const creneaux: string[] = [];
   let currentDate = new Date(startDate);
 
   // Calculer l'heure de fin de la récréation
   const recreationEnd = new Date(recreationStart);
   recreationEnd.setMinutes(recreationEnd.getMinutes() + recreationDuration);
 
-  // Boucle tant que l'heure actuelle est avant l'heure de fin
-  while (currentDate <= endDate) {
-    // Si on atteint l'heure de début de la récréation
-    if (currentDate >= recreationStart && currentDate < recreationEnd) {
-      // Ajouter l'heure de début et de fin de la récréation
-      creneaux.push(`${recreationStart.toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit' })}`);
-      // Avancer l'heure actuelle à la fin de la récréation
-      currentDate = new Date(recreationEnd);
-    } else {
-      // Ajouter le créneau actuel
-      creneaux.push(new Date(currentDate).toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit' })); // Note : stocker une copie
-      // Avancer l'heure actuelle de l'intervalle spécifié (en minutes)
-      currentDate.setMinutes(currentDate.getMinutes() + interval);
+  const formatTime = (date: Date) =>
+    `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
+  const hasRecreation =
+    recreationDuration > 0 &&
+    recreationStart > startDate &&
+    recreationStart < endDate;
+
+  // Génère chaque début de cours. La récréation est toujours insérée,
+  // même lorsqu'un intervalle de cours aurait normalement dépassé son début.
+  while (currentDate < endDate) {
+    if (hasRecreation && currentDate < recreationStart) {
+      creneaux.push(formatTime(currentDate));
+      const nextCourse = new Date(currentDate);
+      nextCourse.setMinutes(nextCourse.getMinutes() + interval);
+      currentDate = nextCourse > recreationStart
+        ? new Date(recreationStart)
+        : nextCourse;
+      continue;
     }
+
+    if (
+      hasRecreation &&
+      currentDate >= recreationStart &&
+      currentDate < recreationEnd
+    ) {
+      creneaux.push(formatTime(recreationStart));
+      currentDate = new Date(recreationEnd);
+      continue;
+    }
+
+    creneaux.push(formatTime(currentDate));
+    currentDate.setMinutes(currentDate.getMinutes() + interval);
   }
 
-  return creneaux; // Retourne un tableau des créneaux et des périodes de récréation
+  // Garantit une dernière période complète se terminant exactement à la fin
+  // de la vacation (ex. 11:30 - 12:15 pour un cours de 45 minutes).
+  const lastCourseStart = new Date(endDate);
+  lastCourseStart.setMinutes(lastCourseStart.getMinutes() - interval);
+  if (
+    lastCourseStart >= startDate &&
+    (!hasRecreation ||
+      lastCourseStart < recreationStart ||
+      lastCourseStart >= recreationEnd)
+  ) {
+    creneaux.push(formatTime(lastCourseStart));
+  }
+
+  const lastCourseStartMinutes =
+    lastCourseStart.getHours() * 60 + lastCourseStart.getMinutes();
+
+  return Array.from(new Set(creneaux)).filter((value) => {
+    const [hours, minutes] = value.split(":").map(Number);
+    const valueMinutes = hours * 60 + minutes;
+
+    // La récréation reste une ligne spéciale, mais aucune heure de début
+    // située après le dernier cours complet ne doit être proposée.
+    return value === formatTime(recreationStart) || valueMinutes <= lastCourseStartMinutes;
+  }).sort((a, b) => {
+    const [aHour, aMinute] = a.split(":").map(Number);
+    const [bHour, bMinute] = b.split(":").map(Number);
+    return aHour * 60 + aMinute - (bHour * 60 + bMinute);
+  });
 }

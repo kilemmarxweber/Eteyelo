@@ -14,14 +14,16 @@ export default function Teaching({
   const { refreshKey, refresh } = useRefresh(); // État pour gérer le rafraîchissement
 
   return (
-    <div className="space-y-6">
+    <div className="flex h-full min-h-0 flex-col space-y-4">
       <div className="flex items-center gap-2 text-muted-foreground">
         <IconCalendarTime size={18} />
         <span className="text-sm">
           Composez, consultez et imprimez l'horaire hebdomadaire de la classe
         </span>
       </div>
-      <Schedule classeId={classeId} mode="create" key={refreshKey} />
+      <div className="min-h-0 flex-1">
+        <Schedule classeId={classeId} mode="create" key={refreshKey} />
+      </div>
     </div>
   );
 }

@@ -12,6 +12,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { prisma } from "@/lib/prisma";
 import { normalizeImageSrc } from "@/lib/utils";
+import { PartenaireActions } from "./partenaire-actions";
 
 type PageProps = {
   params: Promise<{ organizationId: string }>;
@@ -211,6 +212,7 @@ export default async function OrganizationPartenairesPage({
                     <ExternalLink className="ml-2 size-4" />
                   </a>
                 ) : null}
+                <PartenaireActions id={partenaire.id} organizationId={organizationId} isActive={partenaire.isActive} />
               </article>
             );
           })}

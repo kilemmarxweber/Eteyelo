@@ -13,11 +13,6 @@ interface DataTableToolbarProps<TData> {
   table: Table<TData>;
 }
 
-const sexes = [
-  { value: "M", label: "Masculin" },
-  { value: "F", label: "Feminin" },
-];
-
 const assignmentStatuses = [
   { value: "assigned", label: "Affectes" },
   { value: "unassigned", label: "Non affectes" },
@@ -82,15 +77,6 @@ export function DataTableToolbar<TData>({
             column={table.getColumn("courseNames")}
             title="Cours"
             options={courseOptions}
-            value="all"
-            onValueChange={() => undefined}
-          />
-        ) : null}
-        {table.getColumn("sexe") ? (
-          <DataTableFacetedFilter
-            column={table.getColumn("sexe")}
-            title="Sexe"
-            options={sexes}
             value="all"
             onValueChange={() => undefined}
           />

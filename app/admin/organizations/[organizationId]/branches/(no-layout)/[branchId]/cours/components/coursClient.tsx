@@ -1,86 +1,48 @@
 "use client";
-import { useState } from "react";
-import { Button } from "@/components/custom/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { CoursUpForm } from "./cours-form"; // Import du formulaire
+
+import { useEffect, useState } from "react";
+import { IconBook, IconBookOff, IconBooks, IconPlus } from "@tabler/icons-react";
 import { Layout, LayoutBody } from "@/components/custom/layout";
-import CoursList from "./coursTable";
-import { useRefresh } from "@/src/hooks/RefreshContext";
+import { Button } from "@/components/custom/button";
 import { Badge } from "@/components/ui/badge";
-import { PageHeader } from "@/components/ui/page-header";
-import { IconUsers } from "@tabler/icons-react";
 import { Card } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { PageHeader } from "@/components/ui/page-header";
 import { useSession } from "@/lib/auth-client";
 import { canManageOrganization } from "@/lib/auth/session-roles";
+import { useRefresh } from "@/src/hooks/RefreshContext";
+import { getCoursAction } from "../cours.action";
+import { CoursUpForm } from "./cours-form";
+import CoursList from "./coursTable";
 
 export default function Cours() {
   const [open, setOpen] = useState(false);
-  const { refreshKey, refresh } = useRefresh(); // État pour gérer le rafraîchissement
+  const [stats, setStats] = useState({ total: 0, active: 0, inactive: 0 });
+  const { refreshKey, refresh } = useRefresh();
   const { data: session } = useSession();
   const canCreate = canManageOrganization(session);
-  // Fonction de rappel pour rafraîchir la liste
-  const handleCoursAction = () => {
+
+  useEffect(() => {
+    void (async () => {
+      const [items] = await getCoursAction({ includeInactive: true });
+      if (!items) return;
+      const active = items.filter(item => item.statusCours !== false).length;
+      setStats({ total: items.length, active, inactive: items.length - active });
+    })();
+  }, [refreshKey]);
+
+  function handleSaved() {
     refresh();
     setOpen(false);
-  };
+  }
 
-  return (
-    <Layout>
-      <LayoutBody className="space-y-4">
-        <PageHeader
-          title="Gestion des Cours"
-          description="Gérer les informations des Cours et leurs contrats dans l'établissement"
-          badge={
-            <Badge variant="outline-primary" icon={<IconUsers size={14} />}>
-              Cours
-            </Badge>
-          }
-          actions={
-            <Dialog open={open} onOpenChange={setOpen}>
-              {/* Bouton pour ouvrir le formulaire */}
-              {canCreate && (
-                <DialogTrigger asChild>
-                  <Button variant="default">Ajouter un cours</Button>
-                </DialogTrigger>
-              )}
-              <DialogContent /* className="sm:max-w-[725px]" */>
-                <DialogHeader>
-                  <DialogTitle>Creer un cours</DialogTitle>
-                  <DialogDescription>
-                    Apporter des modifications au cours ici. Cliquez sur
-                    Enregistrer lorsque vous êtes fait.
-                  </DialogDescription>
-                </DialogHeader>
+  return <Layout><LayoutBody className="space-y-5">
+    <PageHeader title="Gestion des cours" description="Créez et organisez les matières enseignées dans cet établissement." badge={<Badge variant="outline-primary" icon={<IconBooks size={14} />}>Cours</Badge>} actions={canCreate ? <Dialog open={open} onOpenChange={setOpen}><DialogTrigger asChild><Button leftSection={<IconPlus size={16} />}>Ajouter un cours</Button></DialogTrigger><DialogContent size="lg"><DialogHeader><DialogTitle>Créer un cours</DialogTitle><DialogDescription>Renseignez le nom et la description. Le code unique sera généré automatiquement.</DialogDescription></DialogHeader><CoursUpForm mode="create" onCreated={handleSaved} /></DialogContent></Dialog> : null} />
+    <div className="grid gap-3 sm:grid-cols-3"><StatCard label="Total des cours" value={stats.total} icon={<IconBooks className="size-5" />} /><StatCard label="Cours actifs" value={stats.active} icon={<IconBook className="size-5 text-emerald-600" />} /><StatCard label="Cours inactifs" value={stats.inactive} icon={<IconBookOff className="size-5 text-slate-500" />} /></div>
+    <Card variant="elevated" className="overflow-hidden rounded-md border p-1 shadow-sm md:p-3"><CoursList refreshKey={refreshKey} /></Card>
+  </LayoutBody></Layout>;
+}
 
-                <div>
-                  {/* Formulaire de création de cours */}
-                  <CoursUpForm
-                    mode="create"
-                    onCreated={handleCoursAction}
-                  />
-                </div>
-                <div className="grid gap-4 py-4">
-                  {/* Formulaire de création d'cours */}
-                </div>
-              </DialogContent>
-            </Dialog>
-          }
-        />
-        {/* Liste des cours */}
-        <Card
-          variant="elevated"
-          className="mt-8 border rounded-md shadow-sm p-1 md:p-6"
-        >
-          <CoursList refreshKey={refreshKey} />
-        </Card>
-      </LayoutBody>
-    </Layout>
-  );
+function StatCard({ label, value, icon }: { label: string; value: number; icon: React.ReactNode }) {
+  return <Card className="flex items-center justify-between p-4"><div><p className="text-sm text-muted-foreground">{label}</p><p className="mt-1 text-2xl font-bold">{value}</p></div><div className="rounded-lg bg-muted p-2">{icon}</div></Card>;
 }

@@ -8,10 +8,6 @@ import { Input } from "@/components/ui/input";
 import { DataTableViewOptions } from "@/components/data-table-view-options"
 
 import { DataTableFacetedFilter } from "@/components/data-table-faceted-filter";
-import { useEffect, useState } from "react";
-import { ISchoolYear } from "@/src/interfaces/SchoolYear";
-import { getSchoolYearsAction } from "../../schoolYear/schoolYear.action";
-import { useSession } from "@/lib/auth-client";
 
 interface DataTableToolbarProps<TData> {
   table: Table<TData>;
@@ -31,28 +27,6 @@ export function DataTableToolbar<TData>({
   table,
 }: DataTableToolbarProps<TData>) {
   const isFiltered = table.getState().columnFilters.length > 0;
-  const [schoolYears, setSchoolYears] = useState<ISchoolYear[]>([]);
-  const [loading, setLoading] = useState(true);
-  const { data: session } = useSession();
-  const branchId = session?.branch?.id ?? session?.session?.activeBranchId;
-
-  useEffect(() => {
-    const fetchSchoolYears = async () => {
-      try {
-        if (!branchId) return;
-        const [rawSchoolYears, err] = await getSchoolYearsAction({ branchId });
-        if (err) {
-          throw new Error("Failed to fetch schoolYears");
-        }
-        setSchoolYears(rawSchoolYears);
-        setLoading(false);
-      } catch (error) {
-        setLoading(false);
-      }
-    };
-
-    fetchSchoolYears();
-  }, [branchId]);
 
   // Fonction de transformation
 
@@ -69,6 +43,25 @@ export function DataTableToolbar<TData>({
           }
           className="h-8 w-[150px] lg:w-[250px]"
         />
+        {table.getColumn("statusCours") && (
+          <DataTableFacetedFilter
+            column={table.getColumn("statusCours")}
+            title="Statut"
+            options={[
+              { label: "Actif", value: "active" },
+              { label: "Inactif", value: "inactive" },
+            ]}
+            value={
+              (table.getColumn("statusCours")?.getFilterValue() as string) ??
+              "all"
+            }
+            onValueChange={(value) =>
+              table
+                .getColumn("statusCours")
+                ?.setFilterValue(value === "all" ? "" : value)
+            }
+          />
+        )}
         {/* {table.getColumn("nameYear") && (
           <DataTableFacetedFilter
             column={table.getColumn("nameYear")}

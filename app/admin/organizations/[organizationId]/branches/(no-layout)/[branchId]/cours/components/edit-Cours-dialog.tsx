@@ -34,10 +34,9 @@ export function UpdateCoursDialog({
     <Dialog {...props}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Éditer l'élève</DialogTitle>
+          <DialogTitle>Modifier le cours</DialogTitle>
           <DialogDescription>
-            Modifiez les détails de l'élève ici. Cliquez sur Enregistrer lorsque
-            vous êtes fait.
+            Modifiez le nom ou la description du cours. Le dialogue restera ouvert en cas d'erreur.
           </DialogDescription>
         </DialogHeader>
         <CoursUpForm

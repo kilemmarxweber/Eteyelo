@@ -39,7 +39,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 
 import { createPartenaireSchema, type CreatePartenaireInput } from "../schema";
-import { createPartenaireAction } from "../actions";
+import { createPartenaireAction, updatePartenaireAction } from "../actions";
 
 type BranchOption = {
   id: string;
@@ -49,9 +49,11 @@ type BranchOption = {
 type Props = {
   organizationId: string;
   branches: BranchOption[];
+  partenaireId?: string;
+  initialValues?: Partial<CreatePartenaireInput>;
 };
 
-export function CreatePartenaireForm({ organizationId, branches }: Props) {
+export function CreatePartenaireForm({ organizationId, branches, partenaireId, initialValues }: Props) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
 
@@ -83,6 +85,7 @@ export function CreatePartenaireForm({ organizationId, branches }: Props) {
       branchId: "",
       isActive: true,
       isFeatured: false,
+      ...initialValues,
     },
   });
 
@@ -122,14 +125,14 @@ export function CreatePartenaireForm({ organizationId, branches }: Props) {
         formData.append("documentFile", documentFile);
       }
 
-      const res = await createPartenaireAction(formData);
+      const res = partenaireId ? await updatePartenaireAction(partenaireId, formData) : await createPartenaireAction(formData);
 
       if (!res.ok) {
         toast.error(res.message);
         return;
       }
 
-      toast.success("Partenaire créé avec succès.");
+      toast.success(partenaireId ? "Partenaire modifié avec succès." : "Partenaire créé avec succès.");
 
       router.replace(`/admin/organizations/${organizationId}/partenaires`);
     });

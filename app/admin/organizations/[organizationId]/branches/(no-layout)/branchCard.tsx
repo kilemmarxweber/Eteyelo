@@ -1,17 +1,29 @@
 "use client";
 
 import Link from "next/link";
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Pencil, Trash2 } from "lucide-react";
+import { Archive, Loader2, Pencil, RotateCcw } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { switchBranchAction } from "./branche.action";
+import { setBranchActiveAction, switchBranchAction } from "./branche.action";
+import { toast } from "sonner";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 interface BranchCardProps {
   branchId: string;
   href: string;
   editHref: string;
+  isActive: boolean;
   children: React.ReactNode;
 }
 
@@ -19,10 +31,12 @@ export function BranchCard({
   branchId,
   href,
   editHref,
+  isActive,
   children,
 }: BranchCardProps) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   const handleClick = () => {
     startTransition(async () => {
@@ -32,9 +46,17 @@ export function BranchCard({
     });
   };
 
-  const handleDelete = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const handleArchive = () => {
+    startTransition(async () => {
+      const result = await setBranchActiveAction(branchId, !isActive);
+      if (result.error) {
+        toast.error(result.error);
+        return;
+      }
+      toast.success(isActive ? "Etablissement archive." : "Etablissement reactive.");
+      setDialogOpen(false);
+      router.refresh();
+    });
   };
 
   return (
@@ -65,14 +87,25 @@ export function BranchCard({
             </Link>
           </Button>
 
-          <Button
-            size="icon"
-            variant="destructive"
-            className="rounded-full"
-            onClick={handleDelete}
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
+          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+            <DialogTrigger asChild>
+              <Button size="icon" variant={isActive ? "destructive" : "outline"} className="rounded-full" title={isActive ? "Archiver" : "Reactiver"}>
+                {isActive ? <Archive className="h-4 w-4" /> : <RotateCcw className="h-4 w-4" />}
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>{isActive ? "Archiver l'établissement ?" : "Réactiver l'établissement ?"}</DialogTitle>
+                <DialogDescription>{isActive ? "L'établissement sera masqué des listes actives, mais toutes ses données et son historique seront conservés." : "L'établissement redeviendra accessible dans les listes actives."}</DialogDescription>
+              </DialogHeader>
+              <DialogFooter className="gap-2 sm:space-x-0">
+                <DialogClose asChild><Button variant="outline">Annuler</Button></DialogClose>
+                <Button variant="outline" onClick={handleArchive} disabled={pending}>
+                  {pending && <Loader2 className="mr-2 size-4 animate-spin" />}{isActive ? "Archiver" : "Réactiver"}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
     </div>

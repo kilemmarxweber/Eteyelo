@@ -6,6 +6,13 @@ import { requireBranchContext } from "@/lib/auth/require-branch-context";
 import { action } from "@/lib/zsa";
 import { coursOptionPonderationSchema } from "./schema";
 import { ensurePrimaryAcademicStructure } from "@/lib/primary-academic-structure";
+import { canManageOrganization } from "@/lib/auth/session-roles";
+
+function requireManagePermission(session: unknown) {
+  if (!canManageOrganization(session as Parameters<typeof canManageOrganization>[0])) {
+    throw new Error("Action non autorisée");
+  }
+}
 
 async function requireCoursAndOptionInBranch(params: {
   branchId: string;
@@ -44,16 +51,23 @@ export const getCoursPonderationOptionPageDataAction = action.handler(
         ? await ensurePrimaryAcademicStructure(prisma, branchId)
         : null;
 
-    const [options, cours, ponderations] = await Promise.all([
+    const [options, cours, ponderations, schoolYear] = await Promise.all([
       prisma.option.findMany({
         where: { branchId },
         orderBy: { nameOption: "asc" },
-        select: { id: true, nameOption: true, codeOption: true },
+        select: {
+          id: true,
+          nameOption: true,
+          codeOption: true,
+          statusOption: true,
+          section: { select: { id: true, nameSection: true } },
+          classe: { where: { statusClasse: true }, select: { id: true, nameClasse: true } },
+        },
       }),
       prisma.cours.findMany({
         where: { branchId },
         orderBy: { nameCours: "asc" },
-        select: { id: true, nameCours: true, codeCours: true },
+        select: { id: true, nameCours: true, codeCours: true, statusCours: true },
       }),
       prisma.coursOptionPonderation.findMany({
         where: { branchId },
@@ -62,7 +76,12 @@ export const getCoursPonderationOptionPageDataAction = action.handler(
           coursId: true,
           optionId: true,
           ponderation: true,
+          updatedAt: true,
         },
+      }),
+      prisma.schoolYear.findFirst({
+        where: { branchId, isCurrentYear: true, isArchived: false },
+        select: { id: true, nameYear: true },
       }),
     ]);
 
@@ -72,6 +91,7 @@ export const getCoursPonderationOptionPageDataAction = action.handler(
       ponderations,
       isPrimary: typebranch === "PRIMAIRE",
       primaryOptionId: primaryStructure?.option.id ?? null,
+      schoolYear,
     };
   },
 );
@@ -79,7 +99,8 @@ export const getCoursPonderationOptionPageDataAction = action.handler(
 export const createCoursOptionPonderationAction = action
   .input(coursOptionPonderationSchema)
   .handler(async ({ input }) => {
-    const { branchId, organizationId } = await requireBranchContext();
+    const { branchId, organizationId, session } = await requireBranchContext();
+    requireManagePermission(session);
     await requireCoursAndOptionInBranch({
       branchId,
       coursId: input.coursId,
@@ -116,7 +137,8 @@ export const createCoursOptionPonderationAction = action
 export const updateCoursOptionPonderationAction = action
   .input(coursOptionPonderationSchema)
   .handler(async ({ input }) => {
-    const { branchId, organizationId } = await requireBranchContext();
+    const { branchId, organizationId, session } = await requireBranchContext();
+    requireManagePermission(session);
     await requireCoursAndOptionInBranch({
       branchId,
       coursId: input.coursId,

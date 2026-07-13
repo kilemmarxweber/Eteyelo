@@ -87,7 +87,7 @@ export default function Sections() {
         />
 
         <Dialog open={open} onOpenChange={setOpen}>
-          <DialogContent>
+          <DialogContent size="lg">
             <DialogHeader>
               <DialogTitle>Creer une section</DialogTitle>
               <DialogDescription>

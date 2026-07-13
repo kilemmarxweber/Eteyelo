@@ -87,7 +87,7 @@ export default function Options() {
         />
 
         <Dialog open={open} onOpenChange={setOpen}>
-          <DialogContent>
+          <DialogContent size="lg">
             <DialogHeader>
               <DialogTitle>Creer une option</DialogTitle>
               <DialogDescription>

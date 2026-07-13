@@ -267,7 +267,7 @@ export function NotificationBell() {
     if (!params.branchId) return;
     const interval = setInterval(() => {
       if (!open) void loadRequests();
-    }, 60_000);
+    }, 15_000);
     return () => clearInterval(interval);
   }, [open, params.branchId, loadRequests]);
 
@@ -312,6 +312,21 @@ export function NotificationBell() {
   if (!params.branchId) return null;
 
   return (
+    <>
+      <style jsx global>{`
+        @keyframes eteyelo-bell-ring {
+          0%, 45%, 100% { transform: rotate(0deg); }
+          5%, 15%, 25%, 35% { transform: rotate(13deg); }
+          10%, 20%, 30%, 40% { transform: rotate(-13deg); }
+        }
+        .eteyelo-bell-active {
+          animation: eteyelo-bell-ring 2.4s ease-in-out infinite;
+          transform-origin: 50% 15%;
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .eteyelo-bell-active { animation: none; }
+        }
+      `}</style>
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
@@ -325,7 +340,12 @@ export function NotificationBell() {
               : "Notifications"
           }
         >
-          <Bell className="size-4" />
+          <Bell
+            className={cn(
+              "size-4",
+              pendingCount > 0 && "eteyelo-bell-active text-red-500",
+            )}
+          />
           <CountBadge count={pendingCount} />
         </Button>
       </PopoverTrigger>
@@ -428,5 +448,6 @@ export function NotificationBell() {
         )}
       </PopoverContent>
     </Popover>
+    </>
   );
 }

@@ -227,7 +227,7 @@ export function TeacherUpForm({
               )}
             />
 
-            <div className="flex gap-2">
+            <div className="grid gap-4 sm:grid-cols-2">
               <FormField
                 control={form.control}
                 name="telephone"
@@ -238,6 +238,7 @@ export function TeacherUpForm({
                       <PhoneInput
                         defaultCountry="CD"
                         placeholder="Telephone"
+                        maxLength={14}
                         {...field}
                       />
                     </FormControl>
@@ -250,7 +251,7 @@ export function TeacherUpForm({
                 control={form.control}
                 name="sexe"
                 render={({ field }) => (
-                  <FormItem className="space-y-1 w-1/2">
+                  <FormItem className="space-y-1">
                     <FormLabel>Sexe</FormLabel>
                     <Select
                       onValueChange={field.onChange}

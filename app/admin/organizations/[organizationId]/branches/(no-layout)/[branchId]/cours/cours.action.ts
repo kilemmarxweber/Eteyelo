@@ -11,6 +11,13 @@ import {
   ensureUniqueIdentifier,
   generateCourseCode,
 } from "@/lib/generated-identifiers";
+import { canManageOrganization } from "@/lib/auth/session-roles";
+
+function requireCoursManagement(session: unknown) {
+  if (!canManageOrganization(session as Parameters<typeof canManageOrganization>[0])) {
+    throw new Error("Action non autorisée");
+  }
+}
 
 function revalidateCoursPages(organizationId: string, branchId: string) {
   revalidatePath(`/admin/organizations/${organizationId}/branches/${branchId}/cours`);
@@ -21,14 +28,16 @@ export const createCoursAction = action
   .input(coursSchema)
   .handler(async ({ input }) => {
     try {
-      const { branchId, organizationId } = await requireBranchContext();
-      const existCours = await prisma.cours.findMany({
+      const { branchId, organizationId, session } = await requireBranchContext();
+      requireCoursManagement(session);
+      const existCours = await prisma.cours.findFirst({
         where: {
-          nameCours: input.nameCours,
+          nameCours: { equals: input.nameCours.trim(), mode: "insensitive" },
           branchId,
         },
+        select: { id: true },
       });
-      if (existCours.length > 0) {
+      if (existCours) {
         throw new Error("Le cours existe déjà");
       }
 
@@ -47,8 +56,11 @@ export const createCoursAction = action
       const cours = await prisma.cours.create({
         data: {
           ...input,
+          nameCours: input.nameCours.trim(),
+          description: input.description?.trim() || null,
           codeCours,
           branchId,
+          statusCours: true,
         },
       });
       revalidateCoursPages(organizationId, branchId);
@@ -70,7 +82,8 @@ export const createCoursAction = action
 export const updateCoursAction = action
   .input(coursSchema)
   .handler(async ({ input }) => {
-    const { branchId, organizationId } = await requireBranchContext();
+    const { branchId, organizationId, session } = await requireBranchContext();
+    requireCoursManagement(session);
     const { id } = input;
     const existing = await prisma.cours.findFirst({
       where: { id, branchId },
@@ -92,6 +105,8 @@ export const updateCoursAction = action
     const cours = await prisma.cours.update({
       data: {
         ...input,
+        nameCours: input.nameCours.trim(),
+        description: input.description?.trim() || null,
         codeCours,
         branchId,
       },
@@ -107,7 +122,8 @@ export const updateCoursAction = action
 export const archiveCoursAction = action
   .input(coursSchema)
   .handler(async ({ input }) => {
-    const { branchId, organizationId } = await requireBranchContext();
+    const { branchId, organizationId, session } = await requireBranchContext();
+    requireCoursManagement(session);
     const { id } = input;
     const existing = await prisma.cours.findFirst({
       where: { id, branchId },
@@ -125,6 +141,18 @@ export const archiveCoursAction = action
 
 /** @deprecated Utiliser archiveCoursAction */
 export const deleteCoursAction = archiveCoursAction;
+
+export const setCoursStatusAction = action
+  .input(z.object({ id: z.string().min(1), active: z.boolean() }))
+  .handler(async ({ input }) => {
+    const { branchId, organizationId, session } = await requireBranchContext();
+    requireCoursManagement(session);
+    const existing = await prisma.cours.findFirst({ where: { id: input.id, branchId }, select: { id: true } });
+    if (!existing) throw new Error("Cours introuvable dans cette branche");
+    const cours = await prisma.cours.update({ where: { id: input.id }, data: { statusCours: input.active } });
+    revalidateCoursPages(organizationId, branchId);
+    return cours;
+  });
 
 // GET ALL COURS
 export const getCoursAction = action

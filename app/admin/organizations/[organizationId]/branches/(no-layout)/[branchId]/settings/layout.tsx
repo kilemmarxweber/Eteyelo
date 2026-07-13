@@ -6,6 +6,8 @@ import {
   IconPalette,
   IconReportMoney,
   IconSettings,
+  IconCalendarCog,
+  IconUserCheck,
 } from "@tabler/icons-react";
 
 import { Layout, LayoutBody } from "@/components/custom/layout";
@@ -35,6 +37,18 @@ export default function Settings({ children }: { children: React.ReactNode }) {
       title: "Types de frais",
       icon: <IconReportMoney size={18} />,
       href: `${settingsBasePath}/typeFrais`,
+      permission: null,
+    },
+    {
+      title: "Calendrier scolaire",
+      icon: <IconCalendarCog size={18} />,
+      href: `${settingsBasePath}/calendar`,
+      permission: null,
+    },
+    {
+      title: "Présences",
+      icon: <IconUserCheck size={18} />,
+      href: `${settingsBasePath}/attendance`,
       permission: null,
     },
     {

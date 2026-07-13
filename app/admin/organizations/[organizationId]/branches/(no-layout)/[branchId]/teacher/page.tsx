@@ -3,9 +3,7 @@
 import { useEffect, useState } from "react";
 import { redirect } from "next/navigation";
 import {
-  IconBook2,
   IconChalkboardTeacher,
-  IconSchool,
   IconUserCheck,
   IconUserPlus,
   IconUserQuestion,
@@ -119,7 +117,7 @@ export default function Teachers() {
             ) : null
           }
         />
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-7">
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
           {[
             {
               label: "Enseignants actifs",
@@ -148,20 +146,6 @@ export default function Teachers() {
               icon: IconChalkboardTeacher,
               filter: "assigned" as const,
               description: "Cours-classe actifs",
-            },
-            {
-              label: "Classes couvertes",
-              value: stats?.coveredClasses,
-              icon: IconSchool,
-              filter: "assigned" as const,
-              description: "Annee courante",
-            },
-            {
-              label: "Cours couverts",
-              value: stats?.coveredCourses,
-              icon: IconBook2,
-              filter: "assigned" as const,
-              description: "Cours distincts",
             },
             {
               label: "Charge moyenne",

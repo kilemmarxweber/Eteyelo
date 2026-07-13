@@ -95,7 +95,7 @@ export default function SchoolYearsClient({ branchId }: Props) {
         />
 
         <Dialog open={open} onOpenChange={setOpen}>
-          <DialogContent>
+          <DialogContent size="lg">
             <DialogHeader>
               <DialogTitle>Ajouter une annee scolaire</DialogTitle>
               <DialogDescription>

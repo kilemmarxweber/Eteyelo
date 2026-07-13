@@ -43,7 +43,7 @@ export function DeleteCoursDialog({
         const [, err] = await archiveCoursAction({
           id: cours.id,
           codeCours: cours.codeCours,
-          nameCours: cours.codeCours,
+          nameCours: cours.nameCours,
         });
         if (err) {
           toast.error(err.message ?? "Erreur lors de la désactivation");
