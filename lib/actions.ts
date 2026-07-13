@@ -17,6 +17,10 @@ import { auth } from "@/lib/auth";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
 import { canManageOrganization } from "@/lib/auth/session-roles";
 import { getSchoolYear as getCurrentSchoolYear } from "@/lib/school-year";
+import {
+  getCoursePonderationMap,
+  resolveCoursePonderation,
+} from "@/lib/course-ponderation";
 
 export async function logout() {
   await auth.api.signOut({
@@ -552,6 +556,7 @@ type FicheResult = {
   typeFiche: string | null; // ✅ clé
   notes: any[];
   autres: any;
+  coursePonderation: number;
 };
 
 export async function getLessonsWithFichesByClass(
@@ -589,6 +594,14 @@ export async function getLessonsWithFichesByClass(
     },
   });
 
+  const ponderationMap = await getCoursePonderationMap({
+    branchId,
+    pairs: lessons.map((lesson) => ({
+      coursId: lesson.coursId,
+      optionId: lesson.classe?.optionId,
+    })),
+  });
+
   return lessons.flatMap((lesson) =>
     (lesson.fiche ?? [])
       .map((f) => ({
@@ -602,6 +615,10 @@ export async function getLessonsWithFichesByClass(
         typeFiche: f.typeFiche ?? null,
         notes: f.notes ? JSON.parse(f.notes) : [],
         autres: f.autres ? JSON.parse(f.autres) : typeFichesDefault,
+        coursePonderation: resolveCoursePonderation(ponderationMap, {
+          coursId: lesson.coursId,
+          optionId: lesson.classe?.optionId,
+        }),
       })),
   );
 }

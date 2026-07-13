@@ -29,7 +29,16 @@ import {
 } from "@/lib/types";
 import { PageHeader } from "@/components/ui/page-header";
 import { IconClipboardText } from "@tabler/icons-react";
-import { getAcademicPeriodOrder } from "@/lib/academic-structure";
+import {
+  getAcademicPeriodKey,
+  getAcademicPeriodOrder,
+} from "@/lib/academic-structure";
+import type { BulletinBranchContext } from "@/lib/bulletin-context";
+import {
+  calculateBulletinPercentage,
+  resolveBulletinMaxScore,
+  sumBulletinMaxima,
+} from "@/lib/bulletin-maxima";
 type StudentNote = {
   studentId: string;
   nom: string;
@@ -39,15 +48,32 @@ type StudentNote = {
   studentclasse: string;
   studentSexe: string;
   score: number;
-  maxScore: number;
+  maxScore?: number | null;
 };
+
+function isExamPeriodName(periodName: string): boolean {
+  return getAcademicPeriodKey(periodName)?.startsWith("exam") ?? false;
+}
+
+function getPreparedMaxScore(
+  studentNote: StudentNote,
+  fiche: Pick<Fiche, "periodName" | "coursePonderation">,
+): number {
+  return resolveBulletinMaxScore({
+    recordedMaxScore: studentNote.maxScore,
+    ponderation: fiche.coursePonderation,
+    isExam: isExamPeriodName(fiche.periodName),
+  }).value;
+}
 
 export default function ClassFicheClient({
   classes,
   isAdmin,
+  branchContext,
 }: {
   classes: ClassType[];
   isAdmin: boolean;
+  branchContext: BulletinBranchContext;
 }) {
   const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
   const [fiches, setFiches] = useState<Fiche[]>([]);
@@ -231,7 +257,7 @@ export default function ClassFicheClient({
 
         period.notes[fiche.subjectName] = {
           score: studentNote.score,
-          maxScore: studentNote.maxScore,
+          maxScore: getPreparedMaxScore(studentNote, fiche),
           periodName: fiche.periodName,
           anneeName: fiche.anneeName,
           application: fiche.application,
@@ -306,7 +332,7 @@ export default function ClassFicheClient({
         }
         period.notes[fiche.subjectName] = {
           score: studentNote.score,
-          maxScore: studentNote.maxScore,
+          maxScore: getPreparedMaxScore(studentNote, fiche),
           periodName: fiche.periodName,
           anneeName: fiche.anneeName,
           application: fiche.application,
@@ -379,37 +405,10 @@ export default function ClassFicheClient({
   // -------------------- Tri décroissant par total périodes agrégées --------------------
   function computePeriodMax(
     period: RecapPeriod,
-    semesterPeriods: RecapPeriod[],
+    _semesterPeriods: RecapPeriod[],
   ) {
-    // Cas normal
-    if (
-      period.periodName !== "Exam 1st semester" &&
-      period.periodName !== "Exam 2nd semester" &&
-      period.periodName !== "Examen 1er semestre" &&
-      period.periodName !== "Examen 2e semestre" &&
-      period.periodName !== "Examen 1er trimestre" &&
-      period.periodName !== "Examen 2e trimestre" &&
-      period.periodName !== "Examen 3e trimestre"
-    ) {
-      return Object.values(period.notes).reduce((s, n) => s + n.maxScore, 0);
-    }
-
-    // 🔥 Cas EXAM → max = somme des max des périodes normales du semestre
-    const basePeriods = semesterPeriods.filter(
-      (p) =>
-        p.periodName !== "Exam 1st semester" &&
-        p.periodName !== "Exam 2nd semester" &&
-        p.periodName !== "Examen 1er semestre" &&
-        p.periodName !== "Examen 2e semestre" &&
-        p.periodName !== "Examen 1er trimestre" &&
-        p.periodName !== "Examen 2e trimestre" &&
-        p.periodName !== "Examen 3e trimestre",
-    );
-
-    return basePeriods.reduce(
-      (sum, p) =>
-        sum + Object.values(p.notes).reduce((s, n) => s + n.maxScore, 0),
-      0,
+    return sumBulletinMaxima(
+      Object.values(period.notes).map((note) => note.maxScore),
     );
   }
   function computeRank(
@@ -443,11 +442,10 @@ export default function ClassFicheClient({
           (sum, n) => sum + n.score,
           0,
         );
-        const totalMax = Object.values(notes).reduce(
-          (sum, n) => sum + n.maxScore,
-          0,
+        const totalMax = sumBulletinMaxima(
+          Object.values(notes).map((note) => note.maxScore),
         );
-        const pct = totalMax ? (totalScore / totalMax) * 100 : 0;
+        const pct = calculateBulletinPercentage(totalScore, totalMax);
 
         return {
           ...student,
@@ -503,7 +501,9 @@ export default function ClassFicheClient({
       return periods.reduce(
         (acc, p) => {
           acc.score += Object.values(p.notes).reduce((s, n) => s + n.score, 0);
-          acc.max += Object.values(p.notes).reduce((s, n) => s + n.maxScore, 0);
+          acc.max += sumBulletinMaxima(
+            Object.values(p.notes).map((note) => note.maxScore),
+          );
           return acc;
         },
         { score: 0, max: 0 },
@@ -522,11 +522,10 @@ export default function ClassFicheClient({
         (sum, n) => sum + n.score,
         0,
       );
-      const totalMax = Object.values(notes).reduce(
-        (sum, n) => sum + n.maxScore,
-        0,
+      const totalMax = sumBulletinMaxima(
+        Object.values(notes).map((note) => note.maxScore),
       );
-      const pctEntry = totalMax ? (totalScore / totalMax) * 100 : 0;
+      const pctEntry = calculateBulletinPercentage(totalScore, totalMax);
 
       // Calcul de la place uniquement si allTotals et studentId sont fournis
       let place: string | undefined;
@@ -579,11 +578,10 @@ export default function ClassFicheClient({
             (sum, n) => sum + n.score,
             0,
           );
-          const totalMax = Object.values(period.notes).reduce(
-            (sum, n) => sum + n.maxScore,
-            0,
+          const totalMax = sumBulletinMaxima(
+            Object.values(period.notes).map((note) => note.maxScore),
           );
-          const pctEntry = totalMax ? (totalScore / totalMax) * 100 : 0;
+          const pctEntry = calculateBulletinPercentage(totalScore, totalMax);
 
           return { studentId: s.studentId, pctEntry };
         });
@@ -760,7 +758,7 @@ export default function ClassFicheClient({
                 (sum, pr) => sum + computePeriodMax(pr, sem1Periods),
                 0,
               );
-              const pct = maxTT1 ? (scoreTT1 * 100) / maxTT1 : 0;
+              const pct = calculateBulletinPercentage(scoreTT1, maxTT1);
               return {
                 studentId: s.studentId,
                 scoreTT1,
@@ -825,7 +823,7 @@ export default function ClassFicheClient({
                 0,
               );
 
-              const pct = maxTT2 ? (scoreTT2 * 100) / maxTT2 : 0;
+              const pct = calculateBulletinPercentage(scoreTT2, maxTT2);
 
               return {
                 studentId: s.studentId,
@@ -902,7 +900,7 @@ export default function ClassFicheClient({
 
                 const tgScore = t1.score + t2.score;
                 const tgMax = t1.max + t2.max;
-                const pct = tgMax ? (tgScore * 100) / tgMax : 0;
+                const pct = calculateBulletinPercentage(tgScore, tgMax);
 
                 return { studentId: s.studentId, tg: tgScore, pct };
               });
@@ -945,9 +943,11 @@ export default function ClassFicheClient({
         const values = Object.values(notes);
 
         const totalScore = values.reduce((s, n) => s + n.score, 0);
-        const totalMax = values.reduce((s, n) => s + n.maxScore, 0);
+        const totalMax = sumBulletinMaxima(
+          values.map((note) => note.maxScore),
+        );
 
-        const pct = totalMax ? (totalScore / totalMax) * 100 : 0;
+        const pct = calculateBulletinPercentage(totalScore, totalMax);
 
         return {
           studentId: r.studentId,
@@ -988,8 +988,10 @@ export default function ClassFicheClient({
         const notes = getNotesForPeriods(row.periods, selectedPeriod);
         const values = Object.values(notes);
         const totalScore = values.reduce((s, n) => s + n.score, 0);
-        const totalMax = values.reduce((s, n) => s + n.maxScore, 0);
-        return totalMax ? (totalScore / totalMax) * 100 : 0;
+        const totalMax = sumBulletinMaxima(
+          values.map((note) => note.maxScore),
+        );
+        return calculateBulletinPercentage(totalScore, totalMax);
       },
       id: "pct",
       header: () => rotatedHeader("Pourcentage"),
@@ -1005,10 +1007,12 @@ export default function ClassFicheClient({
             const notes = getNotesForPeriods(r.periods, selectedPeriod);
             const values = Object.values(notes);
             const totalScore = values.reduce((s, n) => s + n.score, 0);
-            const totalMax = values.reduce((s, n) => s + n.maxScore, 0);
+            const totalMax = sumBulletinMaxima(
+              values.map((note) => note.maxScore),
+            );
             return {
               studentId: r.studentId,
-              pct: totalMax ? (totalScore / totalMax) * 100 : 0,
+              pct: calculateBulletinPercentage(totalScore, totalMax),
             };
           })
           .sort((a, b) => b.pct - a.pct);
@@ -1034,6 +1038,7 @@ export default function ClassFicheClient({
               s.studentId === row.original.studentId &&
               s.studentclasse === row.original.studentclasse,
           )}
+          branchContext={branchContext}
         />
       ),
     };
@@ -1050,6 +1055,7 @@ export default function ClassFicheClient({
     selectedPeriod,
     ficheRecap,
     bulletinDataForPDF,
+    branchContext,
     getNotesForPeriods,
   ]);
 
@@ -1164,6 +1170,7 @@ export default function ClassFicheClient({
                       </Button>
                       <BulletinPDF
                         data={bulletinDataForPDF}
+                        branchContext={branchContext}
                         label={`Exporter ${selectedAnnee ? `(${selectedAnnee})` : ""}`}
                         variant="default"
                         size="sm"

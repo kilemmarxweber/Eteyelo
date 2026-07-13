@@ -5,6 +5,10 @@ import ClassFicheClient from "./components/ClassFicheClient";
 import type { Prisma } from "@/prisma/generated/prisma/client";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
 import { canManageOrganization } from "@/lib/auth/session-roles";
+import {
+  buildBulletinBranchContext,
+  type BulletinBranchContext,
+} from "@/lib/bulletin-context";
 
 // 🔹 Typage Prisma
 type ClassEnrollmentWithRelations = Prisma.ClassEnrollmentGetPayload<{
@@ -38,12 +42,12 @@ type ClassEnrollmentWithRelations = Prisma.ClassEnrollmentGetPayload<{
 }>;
 
 export default async function ClassFichePage() {
-  const { session, branchId } = await requireBranchContext();
+  const { session, branchId, organizationId } = await requireBranchContext();
   const canManage = canManageOrganization(session);
 
   // 🔹 Fetch data
-  const classesFromDB: ClassEnrollmentWithRelations[] =
-    await prisma.classEnrollment.findMany({
+  const [classesFromDB, branch] = await Promise.all([
+    prisma.classEnrollment.findMany({
       where: {
         branchId,
       },
@@ -83,7 +87,35 @@ export default async function ClassFichePage() {
           },
         },
       },
-    });
+    }),
+    prisma.branch.findFirst({
+      where: {
+        id: branchId,
+        organizationId,
+      },
+      select: {
+        name: true,
+        code: true,
+        adresse: true,
+        ville: true,
+        pays: true,
+        image: true,
+        organization: {
+          select: {
+            name: true,
+            logo: true,
+          },
+        },
+      },
+    }),
+  ]);
+
+  if (!branch) {
+    throw new Error("Branche introuvable dans cette organisation");
+  }
+
+  const branchContext: BulletinBranchContext =
+    buildBulletinBranchContext(branch);
 
   // 🔹 Group by class ID
   const groupedMap = new Map<string, ClassEnrollmentWithRelations["classe"]>();
@@ -119,5 +151,11 @@ export default async function ClassFichePage() {
       })),
     };
   });
-  return <ClassFicheClient isAdmin={canManage} classes={classes} />;
+  return (
+    <ClassFicheClient
+      isAdmin={canManage}
+      classes={classes}
+      branchContext={branchContext}
+    />
+  );
 }

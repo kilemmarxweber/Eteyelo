@@ -10,12 +10,7 @@ import {
 } from "@/components/ui/popover";
 import { FaEye, FaTimes } from "react-icons/fa";
 import {
-  Bloc,
-  getMaximaType,
   jsPDFWithPlugin,
-  maximaProfiles,
-  MaximaType,
-  MaxScore,
   periodKeyDefinitions,
   periodKeyMap,
   PeriodLabel,
@@ -33,6 +28,13 @@ import {
   generauxConfig,
 } from "@/lib/types";
 import { getAcademicPeriodOrder } from "@/lib/academic-structure";
+import type { BulletinBranchContext } from "@/lib/bulletin-context";
+import {
+  aggregateBulletinPeriodMaxima,
+  calculateBulletinYearMaxima,
+  isValidBulletinMaxScore,
+  type BulletinPeriodMaxima,
+} from "@/lib/bulletin-maxima";
 
 // Convertit un fichier en base64
 const getImageBase64 = (file: File) =>
@@ -45,11 +47,13 @@ const getImageBase64 = (file: File) =>
 
 export default function BulletinPDF({
   data,
+  branchContext,
   label,
   variant = "outline",
   size = "default",
 }: {
   data: any[];
+  branchContext: BulletinBranchContext;
   label?: string;
   variant?: any;
   size?: any;
@@ -206,6 +210,7 @@ export default function BulletinPDF({
           bold?: boolean;
           italic?: boolean;
           underline?: boolean;
+          maxWidth?: number;
         },
       ) {
         const palette: Record<string, [number, number, number]> = {
@@ -224,6 +229,7 @@ export default function BulletinPDF({
           bold = false,
           italic = false,
           underline = false,
+          maxWidth,
         } = options || {};
 
         // 🎨 FONT STYLE
@@ -236,12 +242,23 @@ export default function BulletinPDF({
 
         if (palette[color]) doc.setTextColor(...palette[color]);
 
+        let renderedText = text;
+        if (maxWidth && doc.getTextWidth(renderedText) > maxWidth) {
+          while (
+            renderedText.length > 1 &&
+            doc.getTextWidth(`${renderedText}…`) > maxWidth
+          ) {
+            renderedText = renderedText.slice(0, -1);
+          }
+          renderedText = `${renderedText.trimEnd()}…`;
+        }
+
         // ✏️ Dessin du texte
-        doc.text(text, x, y, { align });
+        doc.text(renderedText, x, y, { align });
 
         // Soulignement si demandé
         if (underline) {
-          const textWidth = doc.getTextWidth(text);
+          const textWidth = doc.getTextWidth(renderedText);
           let underlineX = x;
           if (align === "center") underlineX = x - textWidth / 2;
           if (align === "right") underlineX = x - textWidth;
@@ -267,28 +284,37 @@ export default function BulletinPDF({
       //cadre de infos Ecole et student
       drawTwoColumnBox(startX, startY, width, height, rowH); // 🔥 désactivation de la ligne centrale pour cette boîte spécifique
       //Information Ecole
-      drawLabel("VILLE             :    KINSHASA", 12, 48, {
+      const branchLocation = [branchContext.city, branchContext.country]
+        .filter(Boolean)
+        .join(" / ");
+      const schoolName = branchContext.organizationName
+        ? `${branchContext.branchName} — ${branchContext.organizationName}`
+        : branchContext.branchName;
+
+      drawLabel(`VILLE / PAYS : ${branchLocation || "-"}`, 12, 48, {
         size: 8,
         bold: true,
         align: "left",
+        maxWidth: 91,
       });
-      drawLabel("COMMUNE :    SELEMBAO", 12, 52, {
-        size: 9,
+      drawLabel(`ADRESSE : ${branchContext.address || "-"}`, 12, 52, {
+        size: 8,
         bold: true,
         align: "left",
+        maxWidth: 91,
       });
-      drawLabel("ECOLE        :    COLLEGE LA FRATERNITE", 12, 57, {
-        size: 9,
+      drawLabel(`ECOLE : ${schoolName || "-"}`, 12, 57, {
+        size: 8,
         bold: true,
         align: "left",
+        maxWidth: 91,
       });
-      drawLabel("CODE          :", 12, 62, {
-        size: 9,
+      drawLabel(`CODE : ${branchContext.branchCode || "-"}`, 12, 62, {
+        size: 8,
         bold: true,
         align: "left",
+        maxWidth: 91,
       });
-      //les petits cadre de code Ecole
-      drawHorizontalSquares(35, 59, 4, 8, 1);
       //Information Students
       drawLabel(
         `Eleve        :        ${student.nom?.toUpperCase() ?? ""} ${
@@ -762,7 +788,15 @@ export default function BulletinPDF({
         throw new Error(`Période inconnue: ${selectedPeriod}`);
       }
       // --- Generate the subject map ---
-      const subjectMap: Record<string, Subject> = {};
+      type SubjectWithMaxima = Subject & { maxima: BulletinPeriodMaxima };
+      type DynamicBloc = {
+        blocName: string;
+        subjects: Subject[];
+        maxima: BulletinPeriodMaxima;
+        isGeneraux?: boolean;
+      };
+
+      const subjectMap: Record<string, SubjectWithMaxima> = {};
 
       function safeStr(value: unknown): string {
         if (value === null || value === undefined) return "";
@@ -778,12 +812,13 @@ export default function BulletinPDF({
 
       for (const subjectName of allSubjects) {
         subjectMap[subjectName] = {
-        name: subjectName,
-        sem1: { p1: 0, p2: 0, exam1: 0 },
-        sem2: { p3: 0, p4: 0, exam2: 0 },
-        sem3: { p5: 0, p6: 0, exam3: 0 },
-        baseMaxScore: 0,
-      };
+          name: subjectName,
+          sem1: { p1: 0, p2: 0, exam1: 0 },
+          sem2: { p3: 0, p4: 0, exam2: 0 },
+          sem3: { p5: 0, p6: 0, exam3: 0 },
+          baseMaxScore: 0,
+          maxima: {},
+        };
       }
       student.periods.forEach((period: StudentPeriod) => {
         const periodKey = periodKeyMap[period.periodName as PeriodLabel];
@@ -799,14 +834,32 @@ export default function BulletinPDF({
           subject[semester] = subject[semester] ?? {};
           subject[semester][periodKey] = Number(note.score) || 0;
 
+          if (isValidBulletinMaxScore(note.maxScore)) {
+            subject.maxima[periodKey] = note.maxScore;
+          }
+
           if (
             !subject.baseMaxScore &&
             periodKey !== "exam1" &&
-            periodKey !== "exam2"
+            periodKey !== "exam2" &&
+            periodKey !== "exam3" &&
+            isValidBulletinMaxScore(note.maxScore)
           ) {
-            subject.baseMaxScore = note.maxScore as MaxScore;
+            subject.baseMaxScore = note.maxScore;
           }
         });
+      });
+
+      Object.values(subjectMap).forEach((subject) => {
+        if (subject.baseMaxScore) return;
+
+        const examMaximum =
+          subject.maxima.exam1 ??
+          subject.maxima.exam2 ??
+          subject.maxima.exam3;
+        if (isValidBulletinMaxScore(examMaximum)) {
+          subject.baseMaxScore = examMaximum / 2;
+        }
       });
 
       const autresByPeriod: Record<string, any> = {};
@@ -827,7 +880,7 @@ export default function BulletinPDF({
         name: "",
         sem1: {},
         sem2: {},
-        baseMaxScore: 0 as MaxScore,
+        baseMaxScore: 0,
       });
 
       const typeDSubjects: Subject[] =
@@ -851,32 +904,40 @@ export default function BulletinPDF({
                       Number(v) || 0,
                     ]),
                   ),
-                  baseMaxScore: 0 as MaxScore,
+                  baseMaxScore: 0,
                 };
               })
           : [createEmptySubject()];
 
-      const blocsMap: Record<MaximaType, Bloc> = {
-        typeA: { blocName: "", maximaType: "typeA", subjects: [] },
-        typeB: { blocName: "", maximaType: "typeB", subjects: [] },
-        typeC: { blocName: "", maximaType: "typeC", subjects: [] },
-        typeE: { blocName: "", maximaType: "typeE", subjects: [] },
+      const periodSignatureKeys = [
+        "p1",
+        "p2",
+        "exam1",
+        "p3",
+        "p4",
+        "exam2",
+        "p5",
+        "p6",
+        "exam3",
+      ] as const;
+      const courseBlocsMap = new Map<string, DynamicBloc>();
 
-        typeD: {
-          blocName: "GENERAUX",
-          maximaType: "typeD",
-          subjects: [...typeDSubjects],
-        },
-      };
-
-      // remplir les blocs
       Object.values(subjectMap).forEach((subject) => {
-        const type = getMaximaType(subject.baseMaxScore);
-        const bloc = blocsMap[type];
+        const signature = periodSignatureKeys
+          .map((key) => subject.maxima[key] ?? 0)
+          .join(":");
+        const existingBloc = courseBlocsMap.get(signature);
 
-        if (!bloc) return;
+        if (existingBloc) {
+          existingBloc.subjects.push(subject);
+          return;
+        }
 
-        bloc.subjects.push(subject);
+        courseBlocsMap.set(signature, {
+          blocName: "",
+          subjects: [subject],
+          maxima: subject.maxima,
+        });
       });
 
       // tri des généraux une seule fois
@@ -889,16 +950,23 @@ export default function BulletinPDF({
         "SIGNATURE PARENTS",
       ];
 
-      const generalBloc = blocsMap["typeD"];
+      typeDSubjects.sort(
+        (a, b) => order.indexOf(a.name) - order.indexOf(b.name),
+      );
 
-      if (generalBloc) {
-        generalBloc.subjects.sort(
-          (a, b) => order.indexOf(a.name) - order.indexOf(b.name),
-        );
-      }
-
-      // blocs finaux — on garde tous les blocs, même vides
-      const blocs: Bloc[] = Object.values(blocsMap);
+      const subjectMaxima = Object.values(subjectMap).map(
+        (subject) => subject.maxima,
+      );
+      const generalMaxima = aggregateBulletinPeriodMaxima(subjectMaxima);
+      const blocs: DynamicBloc[] = [
+        ...courseBlocsMap.values(),
+        {
+          blocName: "GENERAUX",
+          subjects: typeDSubjects,
+          maxima: generalMaxima,
+          isGeneraux: true,
+        },
+      ];
       // Hauteur des lignes
       const maximaHeight = 5;
       let yPosBlocs = tableY + shiftY + rowHeightTotal;
@@ -990,123 +1058,29 @@ export default function BulletinPDF({
         doc.text(safeText, textX, y + h / 2, { align, baseline: "middle" });
       }
 
-      // Avant la boucle blocs.forEach
-      let generalesMaximaSem1P1 = 0;
-      let generalesMaximaSem1P2 = 0;
-      let generalesMaximaExam1 = 0;
-      let generalesMaximaTot1 = 0;
+      const generalYearMaxima = calculateBulletinYearMaxima(generalMaxima);
+      const generalesMaximaSem1P1 = generalMaxima.p1 ?? 0;
+      const generalesMaximaSem1P2 = generalMaxima.p2 ?? 0;
+      const generalesMaximaTot1 = generalYearMaxima.semester1.total;
+      const generalesMaximaSem2P3 = generalMaxima.p3 ?? 0;
+      const generalesMaximaSem2P4 = generalMaxima.p4 ?? 0;
+      const generalesMaximaTot2 = generalYearMaxima.semester2.total;
 
-      let generalesMaximaSem2P3 = 0;
-      let generalesMaximaSem2P4 = 0;
-      let generalesMaximaExam2 = 0;
-      let generalesMaximaTot2 = 0;
-      function computeMaxima(subjectCount: number, maxima: any) {
-        const p1 = subjectCount * maxima[0].p1;
-        const p2 = subjectCount * maxima[0].p2;
-        const exam1 = subjectCount * maxima[0].exam1;
-        const tot1 = p1 + p2 + exam1;
-
-        const p3 = subjectCount * maxima[1].p3;
-        const p4 = subjectCount * maxima[1].p4;
-        const exam2 = subjectCount * maxima[1].exam2;
-        const tot2 = p3 + p4 + exam2;
-
-        return { p1, p2, exam1, tot1, p3, p4, exam2, tot2 };
-      }
-      let maximaSem1P1: number,
-        maximaSem1P2: number,
-        maximaExam1: number,
-        maximaTot1: number,
-        maximaSem2P3: number,
-        maximaSem2P4: number,
-        maximaExam2: number,
-        maximaTot2: number;
-      // ===== PREMIÈRE PASS : CALCULER LES ACCUMULATIONS =====
       blocs.forEach((bloc) => {
-        // 🔥 EXCLURE GENERAUX
-        if (bloc.blocName === "GENERAUX") return;
-        const maxima =
-          maximaProfiles[bloc.maximaType as keyof typeof maximaProfiles];
-
-        if (!maxima || !maxima[0] || !maxima[1]) return;
-        const subjectCount = bloc.subjects.length;
-
-        if (subjectCount === 0) return;
-
-        const m = computeMaxima(subjectCount, maxima);
-
-        // 🔥 UTILISER m directement (PAS variables temporaires)
-        generalesMaximaSem1P1 += m.p1;
-        generalesMaximaSem1P2 += m.p2;
-        generalesMaximaExam1 += m.exam1;
-        generalesMaximaTot1 += m.tot1;
-
-        generalesMaximaSem2P3 += m.p3;
-        generalesMaximaSem2P4 += m.p4;
-        generalesMaximaExam2 += m.exam2;
-        generalesMaximaTot2 += m.tot2;
-      });
-
-      // ===== DEUXIÈME PASS : AFFICHER TOUS LES BLOCS =====
-      blocs.forEach((bloc) => {
-        const maxima =
-          maximaProfiles[bloc.maximaType as keyof typeof maximaProfiles];
-        if (!maxima) return;
-        const hasSubjects = bloc.subjects.length > 0;
-        const isTypeDWithSubjects = bloc.maximaType === "typeD" && hasSubjects;
-        const subjectCount = bloc.subjects.length;
-
-        // IMPORTANT : identifier le bloc GENERAUX
-        const isGeneraux = bloc.blocName === "GENERAUX";
+        if (bloc.subjects.length === 0) return;
+        const isGeneraux = bloc.isGeneraux === true;
         // Récupérer les colonnes actives pour la période
         let filteredPeriodKeys = [...activePeriodKeys];
-
-        if (isGeneraux) {
-          // Pour le bloc GENERAUX, utiliser les valeurs accumulées
-          maximaSem1P1 = generalesMaximaSem1P1;
-          maximaSem1P2 = generalesMaximaSem1P2;
-          maximaExam1 = generalesMaximaExam1;
-          maximaTot1 = generalesMaximaTot1; // ✅ FIX
-
-          maximaSem2P3 = generalesMaximaSem2P3;
-          maximaSem2P4 = generalesMaximaSem2P4;
-          maximaExam2 = generalesMaximaExam2;
-          maximaTot2 = generalesMaximaTot2; // ✅ FIX
-        } else {
-          // Pour les autres blocs, calculer normalement
-          const sem1Base = maxima[0];
-          maximaSem1P1 = sem1Base.p1;
-          maximaSem1P2 = sem1Base.p2;
-          maximaExam1 = sem1Base.exam1;
-          maximaTot1 = sem1Base.tot1;
-
-          // Si bloc est typeD et qu’il y a plusieurs matières, on peut cumuler
-          if (isTypeDWithSubjects) {
-            maximaSem1P1 = sem1Base.p1;
-            maximaSem1P2 = sem1Base.p2;
-            maximaExam1 = sem1Base.exam1;
-            maximaTot1 = maximaSem1P1 + maximaSem1P2 + maximaExam1;
-          }
-          // SEMESTRE 2 (toujours montrer les maxima de base)
-          const sem2Base = maxima[1];
-          maximaSem2P3 = sem2Base.p3;
-          maximaSem2P4 = sem2Base.p4;
-          maximaExam2 = sem2Base.exam2;
-          maximaTot2 = sem2Base.tot2;
-
-          // Si bloc est typeD et qu’il y a plusieurs matières, on peut cumuler
-          if (isTypeDWithSubjects) {
-            maximaSem2P3 *= subjectCount;
-            maximaSem2P4 *= subjectCount;
-            maximaExam2 *= subjectCount;
-            maximaTot2 = maximaSem2P3 + maximaSem2P4 + maximaExam2;
-          }
-        }
-
-        // TG pour ce bloc
-        const maximaTG = isGeneraux
-          ? generalesMaximaTot1 + generalesMaximaTot2
-          : maximaTot1 + maximaTot2;
+        const yearMaxima = calculateBulletinYearMaxima(bloc.maxima);
+        const maximaSem1P1 = bloc.maxima.p1 ?? 0;
+        const maximaSem1P2 = bloc.maxima.p2 ?? 0;
+        const maximaExam1 = bloc.maxima.exam1 ?? 0;
+        const maximaTot1 = yearMaxima.semester1.total;
+        const maximaSem2P3 = bloc.maxima.p3 ?? 0;
+        const maximaSem2P4 = bloc.maxima.p4 ?? 0;
+        const maximaExam2 = bloc.maxima.exam2 ?? 0;
+        const maximaTot2 = yearMaxima.semester2.total;
+        const maximaTG = yearMaxima.annualTotal;
         // **Définition des positions X pour les colonnes**
         const totX1 = colPos[1] + shiftX + sem1SubWidths[0]; // colonne EXAM sem1
         const examX1 = totX1 + sem1SubWidths[1]; // colonne TOT sem1
@@ -1279,7 +1253,7 @@ export default function BulletinPDF({
     const url = URL.createObjectURL(pdfBlob);
     setPdfUrl(url);
     return url;
-  }, [imageData1, imageData2, data]);
+  }, [imageData1, imageData2, data, branchContext]);
   return (
     <div className="flex flex-col gap-4">
       {imageData1 && (

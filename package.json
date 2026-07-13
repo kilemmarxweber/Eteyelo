@@ -14,7 +14,9 @@
     "seed:help": "tsx prisma/seeds/seedData.ts --help",
     "seed:list": "tsx prisma/seeds/seedData.ts --list",
     "seed:demo": "tsx prisma/seeds/quickDemo.ts",
-    "worker": "tsx src/workers/grade.worker.ts"
+    "worker": "tsx src/workers/grade.worker.ts",
+    "test:bulletin-maxima": "tsx scripts/test-bulletin-maxima.ts",
+    "test:bulletin-context": "tsx scripts/test-bulletin-context.ts"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.10.0",

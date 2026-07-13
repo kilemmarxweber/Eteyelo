@@ -1,6 +1,7 @@
 // components/pdf/header.ts
 
 import jsPDF from "jspdf";
+import type { BulletinBranchContext } from "@/lib/bulletin-context";
 
 interface HeaderProps {
   doc: jsPDF;
@@ -8,6 +9,7 @@ interface HeaderProps {
   imageData2: string;
   margin: number;
   frameWidth: number;
+  branchContext: BulletinBranchContext;
 }
 
 export function drawHeader({
@@ -16,6 +18,7 @@ export function drawHeader({
   imageData2,
   margin,
   frameWidth,
+  branchContext,
 }: HeaderProps) {
   const headerY = margin;
 
@@ -43,7 +46,7 @@ export function drawHeader({
   doc.setFontSize(13);
 
   doc.text(
-    "SPRING OF LIFE INTERNATIONAL CHRISTIAN SCHOOL",
+    branchContext.branchName || branchContext.organizationName || "-",
     margin + frameWidth / 2,
     headerY + 8,
     { align: "center" },
@@ -53,7 +56,7 @@ export function drawHeader({
   doc.setTextColor(255, 0, 0);
 
   doc.text(
-    "67, Avenue Nguma BINZA - MACAMPAGNE",
+    branchContext.address || "-",
     margin + frameWidth / 2,
     headerY + 14,
     { align: "center" },
@@ -62,7 +65,9 @@ export function drawHeader({
   doc.setFontSize(9);
   doc.setTextColor(0, 0, 0);
 
-  const text = "Kinshasa/Ngaliema";
+  const text = [branchContext.city, branchContext.country]
+    .filter(Boolean)
+    .join(" / ") || "-";
   const x = margin + frameWidth / 2;
   const y = headerY + 18;
 
@@ -76,8 +81,10 @@ export function drawHeader({
   const baseY = headerY + 22;
   const centerX = margin + frameWidth / 2;
 
-  const part1 = "www.ecsv24.org";
-  const part2 = " / FB : Ecoles Chrétiennes La Source de Vie";
+  const part1 = branchContext.organizationName || branchContext.branchName;
+  const part2 = branchContext.branchCode
+    ? ` / Code : ${branchContext.branchCode}`
+    : "";
 
   doc.setFontSize(10);
 

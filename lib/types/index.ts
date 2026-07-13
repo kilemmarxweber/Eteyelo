@@ -122,26 +122,9 @@ export interface jsPDFWithPlugin extends jsPDF {
     finalY: number;
   };
 }
-export interface Semestre1 {
-  p1: any;
-  p2: any;
-  exam1: any;
-  tot1: any;
-}
-
-export interface Semestre2 {
-  p3: any;
-  p4: any;
-  exam2: any;
-  tot2: any;
-}
-
-export type MaxScore = 0 | 10 | 20 | 40 | 50;
-export type MaximaType = "typeA" | "typeB" | "typeC" | "typeD" | "typeE";
-
 export interface NoteData {
   score: number;
-  maxScore: MaxScore;
+  maxScore: number;
 }
 
 export interface StudentPeriod {
@@ -168,14 +151,9 @@ export type Subject = {
   sem1: Record<string, number>;
   sem2: Record<string, number>;
   sem3?: Record<string, number>;
-  baseMaxScore: MaxScore; // ✅ BARÈME MATIÈRE (FIXE)
+  baseMaxScore: number;
+  maxima?: Record<string, number>;
 };
-
-export interface Bloc {
-  blocName: string;
-  maximaType: MaximaType;
-  subjects: Subject[];
-}
 export type TotalKey = "tt1" | "tt2" | "tg";
 export type SemKey = PeriodKey | TotalKey;
 
@@ -372,39 +350,6 @@ export type RecapRow = {
   periods: RecapPeriod[];
   classId?: string;
 };
-export const maximaProfiles: Record<string, [Semestre1, Semestre2]> = {
-  typeA: [
-    { p1: 10, p2: 10, exam1: 20, tot1: 40 },
-    { p3: 10, p4: 10, exam2: 20, tot2: 40 },
-  ],
-  typeB: [
-    { p1: 20, p2: 20, exam1: 40, tot1: 80 },
-    { p3: 20, p4: 20, exam2: 40, tot2: 80 },
-  ],
-  typeC: [
-    { p1: 40, p2: 40, exam1: 80, tot1: 160 },
-    { p3: 40, p4: 40, exam2: 80, tot2: 160 },
-  ],
-  typeD: [
-    { p1: 0, p2: 0, exam1: 0, tot1: 0 },
-    { p3: 0, p4: 0, exam2: 0, tot2: 0 },
-  ],
-  typeE: [
-    { p1: 50, p2: 50, exam1: 100, tot1: 200 },
-    { p3: 50, p4: 50, exam2: 100, tot2: 200 },
-  ],
-};
-export function getMaximaType(maxScore: MaxScore): MaximaType {
-  const map: Record<MaxScore, MaximaType> = {
-    50: "typeE",
-    40: "typeC",
-    20: "typeB",
-    10: "typeA",
-    0: "typeD",
-  };
-  return map[maxScore];
-}
-
 // Map period indices to semester and periodKey
 export type SemesterKey = "sem1" | "sem2" | "sem3";
 
@@ -458,6 +403,7 @@ export type Fiche = {
   typeFiche: string | null;
   notes: any[];
   autres: any;
+  coursePonderation: number;
   application?: string;
   conduite?: string;
   comment?: string;
@@ -1449,7 +1395,11 @@ export function drawMatiere(
     false,
     "center",
     {
-      text: getColor(subject.sem1.p1, "score", subject.baseMaxScore),
+      text: getColor(
+        subject.sem1.p1,
+        "score",
+        subject.maxima?.p1 ?? subject.baseMaxScore,
+      ),
       fill: "white",
     },
   );
@@ -1463,7 +1413,11 @@ export function drawMatiere(
     false,
     "center",
     {
-      text: getColor(subject.sem1.p2, "score", subject.baseMaxScore),
+      text: getColor(
+        subject.sem1.p2,
+        "score",
+        subject.maxima?.p2 ?? subject.baseMaxScore,
+      ),
       fill: "white",
     },
   );
@@ -1477,7 +1431,11 @@ export function drawMatiere(
     false,
     "center",
     {
-      text: getColor(subject.sem1.exam1, "score", subject.baseMaxScore * 2),
+      text: getColor(
+        subject.sem1.exam1,
+        "score",
+        subject.maxima?.exam1 ?? subject.baseMaxScore * 2,
+      ),
       fill: "white",
     },
   );
@@ -1511,7 +1469,11 @@ export function drawMatiere(
     false,
     "center",
     {
-      text: getColor(subject.sem2.p3, "score", subject.baseMaxScore),
+      text: getColor(
+        subject.sem2.p3,
+        "score",
+        subject.maxima?.p3 ?? subject.baseMaxScore,
+      ),
       fill: "white",
     },
   );
@@ -1525,7 +1487,11 @@ export function drawMatiere(
     false,
     "center",
     {
-      text: getColor(subject.sem2.p4, "score", subject.baseMaxScore),
+      text: getColor(
+        subject.sem2.p4,
+        "score",
+        subject.maxima?.p4 ?? subject.baseMaxScore,
+      ),
       fill: "white",
     },
   );
@@ -1539,7 +1505,11 @@ export function drawMatiere(
     false,
     "center",
     {
-      text: getColor(subject.sem2.exam2, "score", subject.baseMaxScore * 2),
+      text: getColor(
+        subject.sem2.exam2,
+        "score",
+        subject.maxima?.exam2 ?? subject.baseMaxScore * 2,
+      ),
       fill: "white",
     },
   );
