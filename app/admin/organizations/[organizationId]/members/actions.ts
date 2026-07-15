@@ -311,10 +311,10 @@ export async function resetUserPasswordAction(input: { email: string }) {
       data: { password: hashedPassword },
     });
 
-    // 🔒 Optionnel : révoque toutes les sessions pour forcer reconnexion
-    // await prisma.session.deleteMany({
-    //   where: { userId: user.id },
-    // });
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { mustChangePassword: true },
+    });
 
     await sendResetPasswordEmail({
       to: email,

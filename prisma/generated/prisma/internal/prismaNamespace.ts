@@ -4580,6 +4580,7 @@ export const UserScalarFieldEnum = {
   image: 'image',
   address: 'address',
   statusUser: 'statusUser',
+  mustChangePassword: 'mustChangePassword',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   name: 'name',

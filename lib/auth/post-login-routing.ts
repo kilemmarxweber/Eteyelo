@@ -39,7 +39,7 @@ export function resolveAppAdminPostLoginPath(
   organizationId: string | null | undefined,
 ): string {
   if (!organizationId) {
-    return "/admin";
+    return "/admin/no-organization";
   }
 
   return `/admin/organizations/${organizationId}`;

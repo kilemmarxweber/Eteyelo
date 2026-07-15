@@ -4,17 +4,20 @@ import { getUserOrganizationMembership } from "@/lib/auth/org-membership";
 import { resolveUserOrganizationFallbackPath } from "@/lib/auth/resolve-user-organization-path";
 import { getOrganizationAuthContext } from "@/lib/auth/require-organization-permission";
 import {
-  APP_ROLE,
   ORG_ROLE,
   isAppAdminRole,
   isPlatformOwnerRole,
   isPlatformSupportAppRole,
 } from "@/lib/permissions";
+import { prisma } from "@/lib/prisma";
+
+const CHANGE_PASSWORD_PATH = "/admin/account/change-password";
 
 const UNIVERSAL_ADMIN_PREFIXES = [
   "/admin/account",
   "/admin/settings",
   "/admin/help",
+  "/admin/no-organization",
 ] as const;
 
 const USER_ORG_PREFIXES = ["/ecodim", "/support", "/branch-picker"] as const;
@@ -50,17 +53,37 @@ function isUserAllowedOrgSubpath(pathname: string, organizationId: string) {
   );
 }
 
+function isChangePasswordPath(pathname: string) {
+  return (
+    pathname === CHANGE_PASSWORD_PATH ||
+    pathname.startsWith(`${CHANGE_PASSWORD_PATH}/`)
+  );
+}
+
 export async function enforceAdminRouteAccess(pathname: string) {
   const context = await getOrganizationAuthContext();
   if (!context) {
     redirect("/auth/sign-in");
   }
 
+  const { appRole, userId } = context;
+
+  const passwordState = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { mustChangePassword: true },
+  });
+
+  if (passwordState?.mustChangePassword) {
+    if (!isChangePasswordPath(pathname)) {
+      redirect(CHANGE_PASSWORD_PATH);
+    }
+    return context;
+  }
+
   if (isBranchScopedPath(pathname) || isUniversalAdminPath(pathname)) {
     return context;
   }
 
-  const { appRole, userId } = context;
 
   if (isPlatformOwnerRole(appRole)) {
     return context;
@@ -75,6 +98,13 @@ export async function enforceAdminRouteAccess(pathname: string) {
 
   const membership = await getUserOrganizationMembership(userId);
   const fallback = await resolveUserOrganizationFallbackPath(userId, appRole);
+
+  if (!membership) {
+    if (pathname === "/admin/no-organization") {
+      return context;
+    }
+    redirect("/admin/no-organization");
+  }
 
   if (isAppAdminRole(appRole)) {
     if (pathname === "/admin") {

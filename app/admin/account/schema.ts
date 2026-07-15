@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { MAX_PASSWORD_LENGTH, MIN_PASSWORD_LENGTH } from "@/app/auth/schema";
+import { strongPasswordSchema } from "@/app/auth/schema";
 
 export const updateProfileSchema = z.object({
   name: z
@@ -26,18 +26,16 @@ export const changeEmailSchema = z.object({
 export const changePasswordSchema = z
   .object({
     currentPassword: z.string().min(1, "Le mot de passe actuel est requis."),
-    newPassword: z
-      .string()
-      .min(
-        MIN_PASSWORD_LENGTH,
-        `Le nouveau mot de passe doit contenir au moins ${MIN_PASSWORD_LENGTH} caractères.`,
-      )
-      .max(MAX_PASSWORD_LENGTH, "Le mot de passe est trop long."),
+    newPassword: strongPasswordSchema,
     confirmPassword: z.string().min(1, "Confirmez le mot de passe."),
   })
   .refine((data) => data.newPassword === data.confirmPassword, {
     message: "Les mots de passe ne correspondent pas.",
     path: ["confirmPassword"],
+  })
+  .refine((data) => data.newPassword !== data.currentPassword, {
+    message: "Le nouveau mot de passe doit être différent de l’actuel.",
+    path: ["newPassword"],
   });
 
 export type UpdateProfileValues = z.infer<typeof updateProfileSchema>;

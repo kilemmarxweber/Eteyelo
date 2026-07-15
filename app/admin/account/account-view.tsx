@@ -42,6 +42,7 @@ import {
   ResponsiveDialogHeader,
   ResponsiveDialogTitle,
 } from "@/components/ui/responsive-dialog";
+import { clearMustChangePasswordAction } from "@/app/admin/account/change-password/actions";
 import {
   changeEmailSchema,
   changePasswordSchema,
@@ -198,6 +199,7 @@ export function AccountView({
       toast.error(error.message ?? "Mot de passe non modifié.");
       return;
     }
+    await clearMustChangePasswordAction();
     toast.success("Mot de passe modifié.");
     passwordForm.reset();
     setPasswordOpen(false);

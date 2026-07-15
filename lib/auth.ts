@@ -55,6 +55,12 @@ const authOptions = {
         type: "string",
         required: false,
       },
+      mustChangePassword: {
+        type: "boolean",
+        required: false,
+        defaultValue: false,
+        input: false,
+      },
     },
     // Configuration changeEmail
     changeEmail: {
@@ -100,6 +106,10 @@ const authOptions = {
           const plain = consumeAdminCreatedUserPlainPassword(user.email);
           if (!plain) return;
           try {
+            await prisma.user.update({
+              where: { id: user.id },
+              data: { mustChangePassword: true },
+            });
             await sendNewUserCredentialsEmail({
               to: user.email,
               name: user.name,
@@ -190,7 +200,7 @@ export const auth = betterAuth({
           address: true,
           dateOfBirth: true,
           statusUser: true,
-          // ... autres champs
+          mustChangePassword: true,
         },
       });
       let branch = null;

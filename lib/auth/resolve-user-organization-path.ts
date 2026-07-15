@@ -48,7 +48,7 @@ export async function resolveUserOrganizationFallbackPath(
 
   const membership = await getUserOrganizationMembership(userId);
   if (!membership) {
-    return "/admin";
+    return "/admin/no-organization";
   }
 
   const base = `/admin/organizations/${membership.organizationId}`;

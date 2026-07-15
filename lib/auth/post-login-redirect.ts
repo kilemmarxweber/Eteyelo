@@ -44,6 +44,14 @@ export async function resolvePostLoginPath(requestHeaders: Headers): Promise<str
     return "/auth/sign-in";
   }
 
+  const passwordState = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { mustChangePassword: true },
+  });
+  if (passwordState?.mustChangePassword) {
+    return "/admin/account/change-password";
+  }
+
   const appRole = normalizeRole(session.user.role);
   const staticPath = resolveStaticAppRolePostLoginPath(appRole);
   if (staticPath) {
@@ -68,7 +76,7 @@ export async function resolvePostLoginPath(requestHeaders: Headers): Promise<str
   }
 
   if (!membership) {
-    return "/admin";
+    return "/admin/no-organization";
   }
 
   const branchMemberships = await getUserBranchMemberships(
