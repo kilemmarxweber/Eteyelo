@@ -1,6 +1,7 @@
 import "server-only";
 
 import { prisma } from "@/lib/prisma";
+import { getHomeResultSlides } from "@/lib/public-results";
 import { getBranchImage, normalizeImageSrc } from "@/lib/utils";
 
 export type HomeSchool = {
@@ -138,9 +139,6 @@ const DEFAULT_SCHOOL_IMAGE =
 const DEFAULT_EVENT_IMAGE =
   "https://images.unsplash.com/photo-1523580846011-d3a5bc25702b?q=80&w=1200&auto=format&fit=crop";
 
-const DEFAULT_PROFILE_IMAGE =
-  "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=300&auto=format&fit=crop";
-
 function normalizeImageList(
   images: Array<string | null | undefined>,
 ): string[] {
@@ -240,102 +238,66 @@ function getFallbackHomeData(): HomeData {
 
 export async function getHomeData(): Promise<HomeData> {
   try {
-    const [branches, partnaires, calendarEvents, grades] = await Promise.all([
-      prisma.branch.findMany({
-        where: { isActive: true },
-        orderBy: { createdAt: "desc" },
-        take: 12,
-        select: {
-          id: true,
-          name: true,
-          image: true,
-          ville: true,
-          pays: true,
-          createdAt: true,
-          branchemembers: {
-            select: {
-              _count: {
-                select: {
-                  student: true,
-                },
-              },
-            },
-          },
-        },
-      }),
-      prisma.partnaire.findMany({
-        where: { isActive: true },
-        orderBy: [{ isFeatured: "desc" }, { createdAt: "desc" }],
-        take: 10,
-        select: {
-          name: true,
-          type: true,
-          image: true,
-          logo: true,
-          website: true,
-          ville: true,
-          secteur: true,
-        },
-      }),
-      prisma.calendarEvent.findMany({
-        where: {
-          isArchived: false,
-          branch: {
-            isActive: true,
-          },
-        },
-        orderBy: { dateStart: "desc" },
-        take: 6,
-        select: {
-          title: true,
-          image: true,
-          dateStart: true,
-          branch: {
-            select: {
-              name: true,
-            },
-          },
-        },
-      }),
-      prisma.studentGrade.findMany({
-        where: {
-          branch: {
-            isActive: true,
-          },
-        },
-        orderBy: { score: "desc" },
-        take: 30,
-        select: {
-          score: true,
-          branch: {
-            select: {
-              name: true,
-              ville: true,
-            },
-          },
-          student: {
-            select: {
-              branchMember: {
-                select: {
-                  member: {
-                    select: {
-                      user: {
-                        select: {
-                          id: true,
-                          name: true,
-                          prenom: true,
-                          image: true,
-                        },
-                      },
-                    },
+    const [branches, partnaires, calendarEvents, resultSlides] =
+      await Promise.all([
+        prisma.branch.findMany({
+          where: { isActive: true },
+          orderBy: { createdAt: "desc" },
+          take: 12,
+          select: {
+            id: true,
+            name: true,
+            image: true,
+            ville: true,
+            pays: true,
+            createdAt: true,
+            branchemembers: {
+              select: {
+                _count: {
+                  select: {
+                    student: true,
                   },
                 },
               },
             },
           },
-        },
-      }),
-    ]);
+        }),
+        prisma.partnaire.findMany({
+          where: { isActive: true },
+          orderBy: [{ isFeatured: "desc" }, { createdAt: "desc" }],
+          take: 10,
+          select: {
+            name: true,
+            type: true,
+            image: true,
+            logo: true,
+            website: true,
+            ville: true,
+            secteur: true,
+          },
+        }),
+        prisma.calendarEvent.findMany({
+          where: {
+            isArchived: false,
+            branch: {
+              isActive: true,
+            },
+          },
+          orderBy: { dateStart: "desc" },
+          take: 6,
+          select: {
+            title: true,
+            image: true,
+            dateStart: true,
+            branch: {
+              select: {
+                name: true,
+              },
+            },
+          },
+        }),
+        getHomeResultSlides(3),
+      ]);
 
     const dynamicSchools: HomeSchool[] = branches.slice(0, 6).map((branch) => {
       const studentsCount = branch.branchemembers.reduce(
@@ -410,35 +372,6 @@ export async function getHomeData(): Promise<HomeData> {
       website: partnaire.website?.trim() ?? "",
     }));
 
-    const groupedResults = new Map<string, ResultSlide>();
-
-    for (const grade of grades) {
-      const user = grade.student.branchMember.member.user;
-      const studentName = [user.prenom, user.name].filter(Boolean).join(" ");
-      const schoolName = grade.branch.name;
-      const current = groupedResults.get(schoolName) || {
-        school: schoolName,
-        city: grade.branch.ville || "RDC",
-        students: [],
-      };
-
-      if (
-        current.students.length < 3 &&
-        !current.students.some((student) => student.studentid === user.id)
-      ) {
-        current.students.push({
-          studentid: user.id,
-          name: studentName || "Élève",
-          percent: `${Math.round(grade.score)}%`,
-          image: user.image
-            ? normalizeImageSrc(user.image)
-            : DEFAULT_PROFILE_IMAGE,
-        });
-      }
-
-      groupedResults.set(schoolName, current);
-    }
-
     const studentTotal = branches.reduce(
       (total, branch) =>
         total +
@@ -456,7 +389,7 @@ export async function getHomeData(): Promise<HomeData> {
       newSchools: dynamicNewSchools.length
         ? dynamicNewSchools
         : fallbackNewSchools,
-      resultSlides: Array.from(groupedResults.values()).slice(0, 3),
+      resultSlides,
       stats: {
         schools: branches.length || fallbackStats.schools,
         students: studentTotal || fallbackStats.students,

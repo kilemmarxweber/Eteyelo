@@ -1,8 +1,8 @@
 "use client";
 
-import { useTransition } from "react";
+import { useAppTransition as useTransition } from "@/hooks/use-app-transition";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useAppRouter as useRouter } from "@/hooks/use-app-router";
 import { Mail, Shield, UserRound } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";

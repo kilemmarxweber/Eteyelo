@@ -1,17 +1,19 @@
 "use client";
 
-import { useParams, usePathname, useRouter } from "next/navigation";
+import { useParams, usePathname } from "next/navigation";
 import { Bell, LogOut } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { authClient } from "@/lib/auth-client";
+import { useAppLoading } from "@/hooks/use-app-loading";
+import { useOrganizationsAccess } from "@/lib/hooks/use-organizations-access";
 import { cn } from "@/lib/utils";
 
 function useAdminTitle(): string {
   const pathname = usePathname();
   const params = useParams();
-  const { data: orgs } = authClient.useListOrganizations();
+  const { organizations: orgs } = useOrganizationsAccess();
 
   if (pathname === "/admin") return "Accueil";
 
@@ -27,7 +29,7 @@ function useAdminTitle(): string {
     if (pathname.includes(`/${orgId}/roles`)) return "Roles & permissions";
     if (pathname.includes(`/${orgId}/support`)) return "Support etablissement";
 
-    const list = Array.isArray(orgs) ? orgs : [];
+    const list = orgs;
     const org = list.find((o) => o.id === orgId);
     return org?.name ?? "Organisation";
   }
@@ -43,15 +45,16 @@ function useAdminTitle(): string {
 
 export function AdminTopBar() {
   const title = useAdminTitle();
-  const router = useRouter();
+  const { resetLoading } = useAppLoading();
 
   async function handleSignOut() {
     try {
       await authClient.signOut();
-      router.push("/auth/sign-in");
-      router.refresh();
+      window.location.assign("/auth/sign-in");
     } catch {
       toast.error("Deconnexion impossible.");
+    } finally {
+      resetLoading();
     }
   }
 

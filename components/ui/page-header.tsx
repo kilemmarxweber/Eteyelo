@@ -3,12 +3,12 @@ import { cva, type VariantProps } from "class-variance-authority";
 
 import { cn } from "@/lib/utils";
 
-const pageHeaderVariants = cva("flex flex-col space-y-4 pb-6", {
+const pageHeaderVariants = cva("flex flex-col space-y-2 pb-3", {
   variants: {
     variant: {
       default: "",
       centered: "text-center items-center",
-      compact: "space-y-2 pb-4",
+      compact: "space-y-1.5 pb-2",
     },
   },
   defaultVariants: {
@@ -56,13 +56,13 @@ const PageHeader = React.forwardRef<HTMLDivElement, PageHeaderProps>(
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex-1 space-y-1">
             <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-bold tracking-tight text-foreground md:text-3xl lg:text-4xl">
+              <h1 className="text-xl font-bold tracking-tight text-foreground md:text-2xl lg:text-3xl">
                 {title}
               </h1>
               {badge && badge}
             </div>
             {description && (
-              <p className="text-base text-muted-foreground leading-relaxed ">
+              <p className="text-sm text-muted-foreground leading-relaxed md:text-base">
                 {description}
               </p>
             )}

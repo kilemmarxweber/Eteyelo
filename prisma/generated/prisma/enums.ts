@@ -138,6 +138,26 @@ export const RegistrationRequestStatus = {
 export type RegistrationRequestStatus = (typeof RegistrationRequestStatus)[keyof typeof RegistrationRequestStatus]
 
 
+export const JobApplicationType = {
+  TEACHER: 'TEACHER',
+  PERSONNEL: 'PERSONNEL'
+} as const
+
+export type JobApplicationType = (typeof JobApplicationType)[keyof typeof JobApplicationType]
+
+
+export const JobApplicationStatus = {
+  PENDING: 'PENDING',
+  REVIEWED: 'REVIEWED',
+  ACCEPTED: 'ACCEPTED',
+  REJECTED: 'REJECTED',
+  HIRED: 'HIRED',
+  CANCELLED: 'CANCELLED'
+} as const
+
+export type JobApplicationStatus = (typeof JobApplicationStatus)[keyof typeof JobApplicationStatus]
+
+
 export const BranchRole = {
   DIRECTOR: 'DIRECTOR',
   CAISSIER: 'CAISSIER',
@@ -156,6 +176,17 @@ export const TypeBrache = {
 } as const
 
 export type TypeBrache = (typeof TypeBrache)[keyof typeof TypeBrache]
+
+
+export const PrimaryDomain = {
+  LANGUES: 'LANGUES',
+  MATH_SCIENCES_TECH: 'MATH_SCIENCES_TECH',
+  UNIVERS_SOCIAUX: 'UNIVERS_SOCIAUX',
+  ARTS: 'ARTS',
+  DEVELOPPEMENT: 'DEVELOPPEMENT'
+} as const
+
+export type PrimaryDomain = (typeof PrimaryDomain)[keyof typeof PrimaryDomain]
 
 
 export const PlatformSupportEscalationStatus = {

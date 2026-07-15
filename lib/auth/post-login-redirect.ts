@@ -1,81 +1,41 @@
 import { auth } from "@/lib/auth";
 import { getUserOrganizationMembership } from "@/lib/auth/org-membership";
-import { APP_ROLE, ORG_ROLE } from "@/lib/permissions";
+import {
+  getUserBranchMemberships,
+  resolveActiveBranchId,
+} from "@/lib/auth/user-branch-access";
+import {
+  resolveAppAdminPostLoginPath,
+  resolveMembershipPostLoginPath,
+  resolveStaticAppRolePostLoginPath,
+} from "@/lib/auth/post-login-routing";
+import { APP_ROLE } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
-import { BranchRole } from "@/prisma/generated/prisma/enums";
-
-const ECODIM_ORG_ROLES = new Set<string>([
-  ORG_ROLE.RESPONSABLE,
-  ORG_ROLE.MONITEUR,
-  ORG_ROLE.SURVEILLANT,
-]);
-
-const ORG_HOME_ROLES = new Set<string>([
-  ORG_ROLE.OWNER,
-  ORG_ROLE.GESTIONNAIRE,
-]);
-const TEACHER_BRANCH_ROLES = [BranchRole.TEACHER];
 
 function normalizeRole(value: string | null | undefined) {
   return (value ?? "").trim().toLowerCase();
 }
 
-function splitRoles(value: string | null | undefined) {
-  return (value ?? "")
-    .split(",")
-    .map((role) => normalizeRole(role))
-    .filter(Boolean);
-}
-
-function hasRole(value: string | null | undefined, role: string) {
-  return splitRoles(value).includes(normalizeRole(role));
-}
-
-async function getUserBranchId(userId: string, organizationId: string) {
-  const activeBranchMember = await prisma.branchMember.findFirst({
-    where: {
-      role: { in: TEACHER_BRANCH_ROLES },
-      member: {
-        userId,
-        organizationId,
-      },
-      branch: {
-        organizationId,
-        isActive: true,
-      },
-    },
-    select: {
-      branchId: true,
-    },
-    orderBy: {
-      createdAt: "asc",
-    },
+async function setActiveOrganizationContext(
+  requestHeaders: Headers,
+  organizationId: string,
+  branchId?: string | null,
+  sessionId?: string | null,
+) {
+  await auth.api.setActiveOrganization({
+    body: { organizationId },
+    headers: requestHeaders,
   });
 
-  if (activeBranchMember?.branchId) {
-    return activeBranchMember.branchId;
+  if (sessionId) {
+    await prisma.session.update({
+      where: { id: sessionId },
+      data: {
+        activeOrganizationId: organizationId,
+        activeBranchId: branchId ?? null,
+      },
+    });
   }
-
-  const branchMember = await prisma.branchMember.findFirst({
-    where: {
-      role: { in: TEACHER_BRANCH_ROLES },
-      member: {
-        userId,
-        organizationId,
-      },
-      branch: {
-        organizationId,
-      },
-    },
-    select: {
-      branchId: true,
-    },
-    orderBy: {
-      createdAt: "asc",
-    },
-  });
-
-  return branchMember?.branchId ?? null;
 }
 
 export async function resolvePostLoginPath(requestHeaders: Headers): Promise<string> {
@@ -84,52 +44,70 @@ export async function resolvePostLoginPath(requestHeaders: Headers): Promise<str
     return "/auth/sign-in";
   }
 
+  const appRole = normalizeRole(session.user.role);
+  const staticPath = resolveStaticAppRolePostLoginPath(appRole);
+  if (staticPath) {
+    return staticPath;
+  }
+
   const membership = await getUserOrganizationMembership(session.user.id);
-  if (!membership && normalizeRole(session.user.role) === APP_ROLE.ADMIN) {
-    return "/admin";
+
+  if (appRole === APP_ROLE.ADMIN) {
+    if (!membership) {
+      return resolveAppAdminPostLoginPath(null);
+    }
+
+    await setActiveOrganizationContext(
+      requestHeaders,
+      membership.organizationId,
+      null,
+      session.session.id,
+    );
+
+    return resolveAppAdminPostLoginPath(membership.organizationId);
   }
 
   if (!membership) {
     return "/admin";
   }
 
-  await auth.api.setActiveOrganization({
-    body: { organizationId: membership.organizationId },
-    headers: requestHeaders,
-  });
-
-  const base = `/admin/organizations/${membership.organizationId}`;
-  const roles = splitRoles(membership.role);
-  const isOrgHomeRole = roles.some((role) => ORG_HOME_ROLES.has(role));
-  const isEcodimRole = roles.some((role) => ECODIM_ORG_ROLES.has(role));
-  const isTeacherRole = hasRole(membership.role, ORG_ROLE.TEACHER);
-  const teacherBranchId = await getUserBranchId(
+  const branchMemberships = await getUserBranchMemberships(
     session.user.id,
     membership.organizationId,
   );
+  const branchId = await resolveActiveBranchId(
+    session.user.id,
+    membership.organizationId,
+    session.session.activeBranchId,
+  );
 
-  if (teacherBranchId && (isTeacherRole || (!isOrgHomeRole && !isEcodimRole))) {
-    if (session.session.id) {
-      await prisma.session.update({
-        where: {
-          id: session.session.id,
-        },
-        data: {
-          activeOrganizationId: membership.organizationId,
-          activeBranchId: teacherBranchId,
-        },
-      });
-    }
-
-    return `${base}/branches/${teacherBranchId}`;
+  if (branchId) {
+    await setActiveOrganizationContext(
+      requestHeaders,
+      membership.organizationId,
+      branchId,
+      session.session.id,
+    );
+  } else if (branchMemberships.length > 1) {
+    await setActiveOrganizationContext(
+      requestHeaders,
+      membership.organizationId,
+      null,
+      session.session.id,
+    );
+  } else {
+    await setActiveOrganizationContext(
+      requestHeaders,
+      membership.organizationId,
+      null,
+      session.session.id,
+    );
   }
 
-  if (isEcodimRole) {
-    return `${base}/ecodim`;
-  }
-  if (isOrgHomeRole) {
-    return base;
-  }
-
-  return base;
+  return resolveMembershipPostLoginPath({
+    organizationId: membership.organizationId,
+    membershipRole: membership.role,
+    branchId,
+    branchCount: branchMemberships.length,
+  });
 }

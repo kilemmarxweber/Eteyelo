@@ -15,7 +15,10 @@ prisma/seeds/
 ├── initClasses.ts             # Classes
 ├── initCours.ts               # Cours/matières
 ├── initUsers.ts               # Utilisateurs de base
-├── initAdmin.ts               # Administrateur
+├── initPlatformOwner.ts       # Proprietaire plateforme (sans membership)
+├── initAdmin.ts               # Gestionnaire organisation
+├── initPlatformSupport.ts     # Support plateforme Klambocore
+├── demoAccounts.ts            # Reference des comptes de demonstration
 ├── initTeachers.ts            # Enseignants
 ├── initParents.ts             # Parents
 ├── initStudents.ts            # Étudiants
@@ -95,16 +98,18 @@ pnpm run seed:help
 4. **creneaux** - Créneaux horaires (matin, après-midi, journée complète, samedi)
 5. **classes** - Classes liées aux options et créneaux
 6. **cours** - Cours/matières (Français, Math, Sciences, etc.)
-7. **users** - Utilisateurs de base (enseignants, parents, étudiants, admin)
-8. **admin** - Administrateur système
-9. **teachers** - Enseignants liés aux utilisateurs
-10. **parents** - Parents liés aux utilisateurs
-11. **students** - Étudiants liés aux utilisateurs et parents
-12. **classEnrollments** - Inscriptions d'étudiants dans les classes
-13. **teaching** - Enseignements (enseignant + cours + classe + année)
-14. **schedules** - Horaires de cours
-15. **typeFrais** - Types de frais (scolarité, inscription, examen, etc.)
-16. **frais** - Frais scolaires liés aux classes
+7. **users** - Utilisateurs de base (enseignants, parents, eleves, owner, admin)
+8. **platformOwner** - Proprietaire plateforme sans membership org
+9. **admin** - Gestionnaire organisation (`gestionnaire`)
+10. **platformSupport** - Agents support plateforme Klambocore
+11. **teachers** - Enseignants lies aux utilisateurs
+12. **parents** - Parents lies aux utilisateurs
+13. **students** - Etudiants lies aux utilisateurs et parents
+14. **classEnrollments** - Inscriptions d'etudiants dans les classes
+15. **teaching** - Enseignements (enseignant + cours + classe + annee)
+16. **schedules** - Horaires de cours
+17. **typeFrais** - Types de frais (scolarite, inscription, examen, etc.)
+18. **frais** - Frais scolaires lies aux classes
 
 ## 🔗 Ordre de Dépendances
 
@@ -138,11 +143,35 @@ L'ordre d'exécution est important à cause des relations entre les entités :
 
 ## 📊 Données Générées
 
-### Utilisateurs et Rôles
-- **1 Administrateur** : `admin` / `Admin123!`
-- **6 Enseignants** : `prof.*` / `Password123!`
-- **5 Parents** : `parent.*` / `Password123!`
-- **10 Étudiants** : `eleve.*` / `Student123!`
+### Comptes de demonstration par role
+
+Organisation seed : `org_eteyelo_demo` (slug `eteyelo-demo`)
+
+| Email | Mot de passe | `User.role` | `Member.role` | Destination post-login |
+|-------|--------------|-------------|---------------|------------------------|
+| `owner@eteyelo.cd` | `Owner123!` | `owner` | (aucun) | `/admin` |
+| `admin@eteyelo.cd` | `Admin123!` | `admin` | `gestionnaire` | `/admin/organizations/org_eteyelo_demo` |
+| `support@klambocore.cd` | `Support123!` | `platform_support` | (aucun) | `/admin/platform-support` |
+| `prof.*@eteyelo.cd` | `Password123!` | `user` | `teacher` | branche seed |
+| `*@parent.cd` | `Password123!` | `user` | `parent` | branche seed |
+| `*@eleve.cd` | `Student123!` | `user` | `student` | branche seed |
+
+Exemples concrets :
+
+| Role | Email | Username |
+|------|-------|----------|
+| Enseignant | `prof.mukendi@eteyelo.cd` | `prof.mukendi` |
+| Parent | `kasongo@parent.cd` | `parent.kasongo` |
+| Eleve | `kasongo.junior@eleve.cd` | `eleve.kasongo.junior` |
+
+### Utilisateurs et roles (volume)
+
+- **1 Proprietaire plateforme** : `owner@eteyelo.cd` / `Owner123!`
+- **1 Gestionnaire organisation** : `admin@eteyelo.cd` / `Admin123!`
+- **1 Support plateforme demo** : `support@klambocore.cd` / `Support123!`
+- **6 Enseignants** : `prof.*@eteyelo.cd` / `Password123!`
+- **5 Parents** : `*@parent.cd` / `Password123!`
+- **10 Etudiants** : `*@eleve.cd` / `Student123!`
 
 ### Structure Académique
 - **3 Années scolaires** : 2023-2024, 2024-2025 (courante), 2025-2026
@@ -199,13 +228,29 @@ pnpm run seed --clear-specific teaching,schedules
 pnpm run seed --init teaching,schedules
 ```
 
-### Problèmes de mot de passe
+### Problemes de mot de passe
 
-Les mots de passe sont hashés avec bcrypt. Pour les tests :
+Les mots de passe sont hashes via Better Auth (`hashPassword`). Comptes de test :
 
-- Admin : `Admin123!`
+- Proprietaire plateforme : `Owner123!`
+- Gestionnaire org : `Admin123!`
+- Support plateforme : `Support123!`
 - Enseignants : `Password123!`
-- Étudiants : `Student123!`
+- Parents : `Password123!`
+- Eleves : `Student123!`
+
+### Commande Prisma seed
+
+```bash
+npx prisma db seed
+# equivalent a: tsx prisma/seeds/seedData.ts --all
+```
+
+Demonstration rapide (comptes par role uniquement) :
+
+```bash
+pnpm run seed:demo
+```
 
 ## 📞 Support
 

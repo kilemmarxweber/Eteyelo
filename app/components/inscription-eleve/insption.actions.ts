@@ -3,6 +3,9 @@
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@/prisma/generated/prisma/client";
+import { isPrimaryBranch } from "@/lib/class-structure";
+
+const PRIMARY_MIN_AGE = 5;
 
 const guardianSchema = z.object({
   name: z.string().trim().min(2, "Nom du responsable requis"),
@@ -27,7 +30,6 @@ const onlineRegistrationSchema = z.object({
     placeOfBirth: z.string().trim().min(2, "Lieu de naissance requis"),
     address: z.string().trim().min(5, "Adresse de l'eleve requise"),
     email: z.string().trim().email().optional().or(z.literal("")),
-    telephone: z.string().trim().optional(),
     provenanceEcole: z.string().trim().optional(),
   }),
   guardians: z.array(guardianSchema).min(1).max(2),
@@ -42,11 +44,30 @@ const onlineRegistrationSchema = z.object({
 
 export type OnlineRegistrationInput = z.infer<typeof onlineRegistrationSchema>;
 
+function ageFromDate(dateStr: string) {
+  const birth = new Date(dateStr);
+  if (Number.isNaN(birth.getTime())) return null;
+  const today = new Date();
+  let age = today.getFullYear() - birth.getFullYear();
+  const monthDiff = today.getMonth() - birth.getMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+    age -= 1;
+  }
+  return age;
+}
+
 export async function getActiveBranches() {
   return prisma.branch.findMany({
     where: { isActive: true },
     orderBy: { name: "asc" },
-    select: { id: true, name: true, ville: true, pays: true, image: true },
+    select: {
+      id: true,
+      name: true,
+      ville: true,
+      pays: true,
+      image: true,
+      typebranch: true,
+    },
   });
 }
 
@@ -71,6 +92,7 @@ export async function registerStudentOnline(raw: OnlineRegistrationInput) {
     select: {
       id: true,
       organizationId: true,
+      typebranch: true,
       schoolYear: {
         where: { isCurrentYear: true, isArchived: false },
         select: { id: true },
@@ -80,6 +102,16 @@ export async function registerStudentOnline(raw: OnlineRegistrationInput) {
   });
   if (!branch) {
     return { success: false as const, message: "Ecole introuvable." };
+  }
+
+  if (isPrimaryBranch(branch.typebranch)) {
+    const age = ageFromDate(data.student.dateOfBirth);
+    if (age === null || age < PRIMARY_MIN_AGE) {
+      return {
+        success: false as const,
+        message: `Pour le primaire, l'enfant doit avoir au moins ${PRIMARY_MIN_AGE} ans.`,
+      };
+    }
   }
 
   const reference = createReference();

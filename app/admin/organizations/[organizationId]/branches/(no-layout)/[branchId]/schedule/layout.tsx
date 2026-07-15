@@ -4,7 +4,8 @@ import { OptionSidebar } from "./components/CourseSidebar";
 import { Layout, LayoutBody } from "@/components/custom/layout";
 import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/components/ui/page-header";
-import { redirect, useParams } from "next/navigation";
+import { useParams } from "next/navigation";
+import { NotFoundView } from "@/components/not-found-view";
 import { useEffect, useState } from "react";
 import { IClasse } from "@/src/interfaces/Classe";
 import { useSession } from "@/lib/auth-client";
@@ -60,7 +61,7 @@ export default function RootLayout({
   const hasClasse = !!classeId;
   if (isPending) return null;
   if (!canReadScheduleArea(session)) {
-    redirect("/not-authorized");
+    return <NotFoundView />;
   }
   return (
     <Layout fadedBelow fixedHeight>

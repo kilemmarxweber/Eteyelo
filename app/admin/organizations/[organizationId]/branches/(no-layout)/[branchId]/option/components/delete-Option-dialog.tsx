@@ -1,5 +1,7 @@
 "use client";
 
+import { useAppTransition as useTransition } from "@/hooks/use-app-transition";
+
 import * as React from "react";
 import { IconArchive, IconReload } from "@tabler/icons-react";
 import { type Row } from "@tanstack/react-table";
@@ -33,7 +35,7 @@ export function DeleteOptionsDialog({
   Options,
   ...props
 }: DeleteOptionsDialogProps) {
-  const [isArchivePending, startArchiveTransition] = React.useTransition();
+  const [isArchivePending, startArchiveTransition] = useTransition();
 
   const { refresh } = useRefresh();
   const handleArchive = () => {

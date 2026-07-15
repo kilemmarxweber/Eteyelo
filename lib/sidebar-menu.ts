@@ -2,6 +2,8 @@ import { APP_ROLE, ORG_ROLE } from "@/lib/permissions";
 import { isPrimaryBranch } from "@/lib/class-structure";
 import type { SideLink } from "@/src/data/sidelinks";
 
+export type NavigationContext = "platform" | "organization" | "branch";
+
 type StaticMenuItem = {
   title: string;
   href: string;
@@ -10,7 +12,9 @@ type StaticMenuItem = {
   sub?: StaticMenuItem[];
 };
 
-const ADMIN_ROLES = [
+const PLATFORM_MENU_ROLES = [APP_ROLE.OWNER, APP_ROLE.PLATFORM_SUPPORT];
+
+const ORG_MANAGER_MENU_ROLES = [
   APP_ROLE.ADMIN,
   ORG_ROLE.OWNER,
   ORG_ROLE.GESTIONNAIRE,
@@ -19,6 +23,8 @@ const ADMIN_ROLES = [
   "admin",
   "director",
 ];
+
+const ADMIN_ROLES = [...PLATFORM_MENU_ROLES, ...ORG_MANAGER_MENU_ROLES];
 
 const TEACHER_ROLES = [ORG_ROLE.TEACHER, "TEACHER", "teacher"];
 const TEACHER_TITULAIRE_ROLE = "TEACHER_TITULAIRE";
@@ -66,6 +72,12 @@ const staticSidebarMenu: StaticMenuItem[] = [
     title: "Inscription",
     href: "/admin/registration",
     icon: "inscriptions",
+    roles: ADMIN_ROLES,
+  },
+  {
+    title: "Candidatures",
+    href: "/admin/candidatures",
+    icon: "candidatures",
     roles: ADMIN_ROLES,
   },
   {
@@ -212,7 +224,8 @@ const staticSidebarMenu: StaticMenuItem[] = [
         title: "Fiche Centrale",
         href: "/admin/ficheCentrales",
         icon: "fiches",
-        roles: TITULAIRE_TEACHER_ROLES,
+        // Managers (owner/admin/gestionnaire) + enseignants titulaires
+        roles: [...ADMIN_ROLES, TEACHER_TITULAIRE_ROLE],
       },
       {
         title: "Fiches",
@@ -243,12 +256,29 @@ function unique(values: Array<string | null | undefined>) {
 
 function canSeeMenu(menu: StaticMenuItem, roles: string[]) {
   if (menu.roles.includes("*")) return true;
-  if (roles.some((role) => ADMIN_ROLES.includes(role))) return true;
   return menu.roles.some((role) => roles.includes(role));
 }
 
 function resolveBranchBasePath(pathname: string) {
   return pathname.match(/^\/admin\/organizations\/[^/]+\/branches\/[^/]+/)?.[0];
+}
+
+export function resolveNavigationContext(pathname: string): NavigationContext {
+  if (resolveBranchBasePath(pathname)) return "branch";
+  if (pathname.match(/^\/admin\/organizations\/[^/]+/)) return "organization";
+  return "platform";
+}
+
+function filterRolesForContext(roles: string[], context: NavigationContext) {
+  if (context !== "branch") return roles;
+
+  const isBranchUser =
+    roles.includes(APP_ROLE.USER) &&
+    !roles.some((role) => ORG_MANAGER_MENU_ROLES.includes(role));
+
+  if (!isBranchUser) return roles;
+
+  return roles.filter((role) => !(PLATFORM_MENU_ROLES as readonly string[]).includes(role));
 }
 
 function resolveHref(href: string, branchBasePath?: string) {
@@ -304,7 +334,11 @@ export function buildStaticSideLinks(
   pathname: string,
   typebranch?: unknown,
 ): SideLink[] {
-  const roles = getBetterAuthMenuRoles(session);
+  const context = resolveNavigationContext(pathname);
+  const roles = filterRolesForContext(
+    getBetterAuthMenuRoles(session),
+    context,
+  );
   const branchBasePath = resolveBranchBasePath(pathname);
   const resolvedTypebranch = typebranch ?? session?.branch?.typebranch;
 
@@ -319,11 +353,11 @@ export function getPrimaryRoleLabel(session: any) {
   const legacyRole = session?.user?.roles?.[0]?.nameRole;
 
   const labels: Record<string, string> = {
-    [APP_ROLE.ADMIN]: "Administrateur",
+    [APP_ROLE.OWNER]: "Proprietaire plateforme",
+    [APP_ROLE.ADMIN]: "Gestionnaire",
     [APP_ROLE.PLATFORM_SUPPORT]: "Support plateforme",
     [APP_ROLE.USER]: "Utilisateur",
-    [ORG_ROLE.OWNER]: "Propriétaire",
-    [ORG_ROLE.GESTIONNAIRE]: "Gestionnaire",
+    [ORG_ROLE.GESTIONNAIRE]: "Gestionnaire org",
     [ORG_ROLE.PARENT]: "Parent",
     [ORG_ROLE.STUDENT]: "Eleve",
     [ORG_ROLE.TEACHER]: "Enseignant",
@@ -338,7 +372,9 @@ export function getPrimaryRoleLabel(session: any) {
     PARENT: "Parent",
   };
 
+  if (appRole === APP_ROLE.OWNER) return labels[APP_ROLE.OWNER];
   if (appRole === APP_ROLE.ADMIN) return labels[APP_ROLE.ADMIN];
+  if (orgRole === ORG_ROLE.OWNER) return "Proprietaire organisation";
 
   return labels[orgRole] ?? labels[appRole] ?? legacyRole ?? "Aucun rôle";
 }

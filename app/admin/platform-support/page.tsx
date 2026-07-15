@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { ArrowLeft, LifeBuoy, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,7 +14,7 @@ import { PlatformEscalationsClient } from "./platform-escalations-client";
 
 export default async function PlatformSupportAdminPage() {
   if (!(await canAccessPlatformSupportArea())) {
-    redirect("/admin");
+    notFound();
   }
 
   const [canManageAgents, canManageEscalations] = await Promise.all([

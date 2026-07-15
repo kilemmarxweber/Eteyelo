@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useRouter } from "next/navigation";
+import { useAppRouter as useRouter } from "@/hooks/use-app-router";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -111,7 +111,9 @@ export function CreateBranchForm({
         ecole: [],
       },
       adresse: defaultValues?.adresse ?? "",
+      province: defaultValues?.province ?? "",
       ville: defaultValues?.ville ?? "",
+      commune: defaultValues?.commune ?? "",
       pays: defaultValues?.pays ?? "RDC",
       idnat: defaultValues?.idnat ?? "",
       tel: defaultValues?.tel ?? "",
@@ -143,6 +145,22 @@ export function CreateBranchForm({
           address.municipality ||
           address.county ||
           "",
+        { shouldValidate: true },
+      );
+
+      form.setValue(
+        "commune",
+        address.suburb ||
+          address.municipality ||
+          address.city_district ||
+          address.county ||
+          "",
+        { shouldValidate: true },
+      );
+
+      form.setValue(
+        "province",
+        address.state || address.region || address.province || "",
         { shouldValidate: true },
       );
 
@@ -380,6 +398,26 @@ export function CreateBranchForm({
                   <div className="grid gap-4 sm:grid-cols-2">
                     <FormField
                       control={form.control}
+                      name="code"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Code école (bulletin)</FormLabel>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              placeholder="Ex. 123456789012"
+                              maxLength={32}
+                              className="h-12 rounded-2xl font-mono uppercase"
+                              disabled={isSubmitting}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
                       name="idnat"
                       render={({ field }) => (
                         <FormItem>
@@ -478,6 +516,46 @@ export function CreateBranchForm({
                       </FormItem>
                     )}
                   />
+
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <FormField
+                      control={form.control}
+                      name="province"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Province éducationnelle</FormLabel>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              placeholder="Ex. Kinshasa / Lukunga"
+                              className="h-12 rounded-2xl"
+                              disabled={isSubmitting}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="commune"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Commune / Ter. (1)</FormLabel>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              placeholder="Commune ou territoire"
+                              className="h-12 rounded-2xl"
+                              disabled={isSubmitting}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
 
                   <div className="grid gap-4 sm:grid-cols-2">
                     <FormField

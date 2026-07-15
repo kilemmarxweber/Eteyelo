@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useAppRouter as useRouter } from "@/hooks/use-app-router";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { authClient } from "@/lib/auth-client";
+import { useAppLoading } from "@/hooks/use-app-loading";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -20,6 +21,7 @@ import { signInSchema, type SignInValues } from "@/app/auth/schema";
 
 export function SignInForm() {
   const router = useRouter();
+  const { withLoading } = useAppLoading();
 
   const form = useForm<SignInValues>({
     resolver: zodResolver(signInSchema),
@@ -52,14 +54,16 @@ export function SignInForm() {
 
       toast.success("Bienvenue !");
 
-      const redirectRes = await fetch("/api/auth/post-login-redirect", {
-        credentials: "include",
+      const destination = await withLoading(async () => {
+        const redirectRes = await fetch("/api/auth/post-login-redirect", {
+          credentials: "include",
+        });
+        const redirectBody = (await redirectRes.json()) as { path?: string };
+        return redirectRes.ok && redirectBody.path
+          ? redirectBody.path
+          : "/admin/";
       });
-      const redirectBody = (await redirectRes.json()) as { path?: string };
-      const destination =
-        redirectRes.ok && redirectBody.path ? redirectBody.path : "/admin/";
 
-      router.refresh();
       router.push(destination);
     } catch (cause) {
       const message = cause instanceof Error ? cause.message : "Erreur réseau.";

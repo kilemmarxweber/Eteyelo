@@ -549,6 +549,10 @@ type FicheResult = {
   id: string;
   teacherName: string;
   subjectName: string;
+  coursId?: string;
+  primaryDomain?: string | null;
+  primarySection?: string | null;
+  domainOrder?: number | null;
   periodName: string;
   className: string;
   dateCreated: string;
@@ -577,13 +581,18 @@ export async function getLessonsWithFichesByClass(
   const lessons = await prisma.teaching.findMany({
     ...teachingWithFicheArgs(branchId, currentYear.id),
     where: {
-      OR: [
-        { branchId },
+      OR: [{ statusTeaching: true }, { statusTeaching: null }],
+      AND: [
         {
-          branchId: null,
-          classe: {
-            branchId,
-          },
+          OR: [
+            { branchId },
+            {
+              branchId: null,
+              classe: {
+                branchId,
+              },
+            },
+          ],
         },
       ],
       classeId: classId,
@@ -608,6 +617,10 @@ export async function getLessonsWithFichesByClass(
         id: f.id,
         teacherName: getFicheTeacherUser(f.teacher)?.name ?? "-",
         subjectName: lesson.cours?.nameCours ?? f.coursName ?? "-",
+        coursId: lesson.coursId ?? undefined,
+        primaryDomain: lesson.cours?.primaryDomain ?? null,
+        primarySection: lesson.cours?.primarySection ?? null,
+        domainOrder: lesson.cours?.domainOrder ?? null,
         periodName: f.period?.label ?? f.periodeName ?? "-",
         className: lesson.classe?.nameClasse ?? f.classeName ?? "",
         dateCreated: f.dateCreated ? new Date(f.dateCreated).toISOString() : "",

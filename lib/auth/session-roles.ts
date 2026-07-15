@@ -70,9 +70,27 @@ export function canManageOrganization(
 ): boolean {
   return hasSessionRole(
     session,
-    [APP_ROLE.ADMIN, ORG_ROLE.OWNER, ORG_ROLE.GESTIONNAIRE],
+    [APP_ROLE.OWNER, APP_ROLE.ADMIN, ORG_ROLE.OWNER, ORG_ROLE.GESTIONNAIRE],
     ...extraRoles,
   );
+}
+
+export function canDeleteOrganizationResource(
+  session: any,
+  ...extraRoles: unknown[]
+): boolean {
+  return hasSessionRole(
+    session,
+    [APP_ROLE.OWNER, ORG_ROLE.OWNER],
+    ...extraRoles,
+  );
+}
+
+export function isPlatformOwnerSession(
+  session: any,
+  ...extraRoles: unknown[]
+): boolean {
+  return hasSessionRole(session, [APP_ROLE.OWNER], ...extraRoles);
 }
 
 export function isOrganizationSupportRole(

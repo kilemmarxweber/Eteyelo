@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { DataTableColumnHeader } from "@/components/data-table-column-header";
 import React from "react";
-import { useRouter } from "next/navigation";
+import { useAppRouter as useRouter } from "@/hooks/use-app-router";
 import { EventActions } from "./EventActions";
 
 export const columns: ColumnDef<ICalendarEvent>[] = [

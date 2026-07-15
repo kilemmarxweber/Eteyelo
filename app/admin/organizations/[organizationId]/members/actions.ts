@@ -21,6 +21,11 @@ import {
   type UpdateOrgMemberInput,
 } from "./schema";
 import { sendResetPasswordEmail } from "@/lib/email/send-reset-password-email";
+import { guardOrganizationMemberPermission } from "@/lib/auth/has-organization-permission";
+import {
+  removeOrganizationMember,
+  updateOrganizationMemberRole,
+} from "@/lib/auth/organization-member-operations";
 
 function errMessage(err: unknown): string {
   if (
@@ -57,7 +62,14 @@ export async function createOrganizationMemberAction(
   if (!parsed.success) {
     return { ok: false, message: zodFirstMessage(parsed.error) };
   }
-  console.log(input);
+
+  const guard = await guardOrganizationMemberPermission(
+    parsed.data.organizationId,
+    { member: ["create"] },
+  );
+  if (!guard.ok) {
+    return { ok: false, message: guard.message };
+  }
 
   const {
     organizationId,
@@ -155,16 +167,24 @@ export async function updateOrganizationMemberAction(
     return { ok: false, message: zodFirstMessage(parsed.error) };
   }
   const { organizationId, memberId, orgRole } = parsed.data;
+  const guard = await guardOrganizationMemberPermission(organizationId, {
+    member: ["update"],
+  });
+  if (!guard.ok) {
+    return { ok: false, message: guard.message };
+  }
+
   const h = await headers();
   try {
-    await auth.api.updateMemberRole({
-      body: {
-        memberId,
+    await updateOrganizationMemberRole(
+      {
         organizationId,
-        role: orgRole as "owner",
+        memberId,
+        role: orgRole,
+        bypassBetterAuthMembership: guard.bypassed,
       },
-      headers: h,
-    });
+      h,
+    );
     revalidatePath(`/admin/organizations/${organizationId}/members`, "page");
     revalidatePath(
       `/admin/organizations/${organizationId}/members/${memberId}/edit`,
@@ -238,15 +258,23 @@ export async function removeOrganizationMemberAction(
     return { ok: false, message: zodFirstMessage(parsed.error) };
   }
   const { organizationId, memberId } = parsed.data;
+  const guard = await guardOrganizationMemberPermission(organizationId, {
+    member: ["delete"],
+  });
+  if (!guard.ok) {
+    return { ok: false, message: guard.message };
+  }
+
   const h = await headers();
   try {
-    await auth.api.removeMember({
-      body: {
-        memberIdOrEmail: memberId,
+    await removeOrganizationMember(
+      {
         organizationId,
+        memberIdOrEmail: memberId,
+        bypassBetterAuthMembership: guard.bypassed,
       },
-      headers: h,
-    });
+      h,
+    );
     revalidatePath(`/admin/organizations/${organizationId}/members`, "page");
     return { ok: true };
   } catch (e) {

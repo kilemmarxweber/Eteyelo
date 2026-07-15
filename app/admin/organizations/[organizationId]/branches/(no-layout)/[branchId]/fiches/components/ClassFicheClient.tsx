@@ -1,21 +1,19 @@
 "use client";
 
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback, type ReactNode } from "react";
 import {
   ColumnDef,
   useReactTable,
   getCoreRowModel,
   getPaginationRowModel,
 } from "@tanstack/react-table";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "react-toastify";
 import { getLessonsWithFichesByClass, getPeriods } from "@/lib/actions";
 import { Badge } from "@/components/ui/badge";
 import { Layout, LayoutBody } from "@/components/custom/layout";
 import { DataTable } from "@/components/ui/data-table";
 import { Button } from "@/components/ui/button";
-import { Eye } from "lucide-react";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Combobox } from "@/components/ui/combox";
 import BulletinPDF from "./useBulletinPDF";
 import { SubjectMultiSelect } from "./SubjectMultiSelect";
@@ -30,6 +28,14 @@ import {
 } from "@/lib/types";
 import { PageHeader } from "@/components/ui/page-header";
 import { IconClipboardText } from "@tabler/icons-react";
+import {
+  CalendarDays,
+  Eye,
+  GraduationCap,
+  School,
+  Users,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
 import {
   buildPeriodFieldMap,
   filterPeriodsForGroup,
@@ -48,6 +54,10 @@ import {
   resolveBulletinMaxScore,
   sumBulletinMaxima,
 } from "@/lib/bulletin-maxima";
+import {
+  getBulletinNoteSubjectKey,
+  normalizeBulletinSubjectKey,
+} from "@/lib/bulletin-subjects";
 type StudentNote = {
   studentId: string;
   nom: string;
@@ -75,6 +85,63 @@ function getPreparedMaxScore(
   }).value;
 }
 
+/** Une seule cote par cours/période : fusionne par coursId ou nom normalisé. */
+function upsertPeriodSubjectNote(
+  period: RecapPeriod,
+  fiche: Pick<
+    Fiche,
+    | "subjectName"
+    | "coursId"
+    | "periodName"
+    | "anneeName"
+    | "application"
+    | "conduite"
+    | "comment"
+    | "coursePonderation"
+    | "primaryDomain"
+    | "primarySection"
+    | "domainOrder"
+  >,
+  studentNote: StudentNote,
+) {
+  const mergeKey = getBulletinNoteSubjectKey({
+    coursId: fiche.coursId,
+    subjectName: fiche.subjectName,
+  });
+
+  const existingEntry = Object.entries(period.notes).find(([name, note]) => {
+    if (fiche.coursId && note.coursId && note.coursId === fiche.coursId) {
+      return true;
+    }
+    return (
+      getBulletinNoteSubjectKey({
+        coursId: note.coursId,
+        subjectName: name,
+      }) === mergeKey ||
+      normalizeBulletinSubjectKey(name) ===
+        normalizeBulletinSubjectKey(fiche.subjectName)
+    );
+  });
+
+  const noteKey = existingEntry?.[0] ?? fiche.subjectName.trim();
+  const previous = existingEntry?.[1];
+  const nextScore = Number(studentNote.score) || 0;
+
+  period.notes[noteKey] = {
+    score: nextScore !== 0 ? nextScore : (previous?.score ?? 0),
+    maxScore: getPreparedMaxScore(studentNote, fiche) || previous?.maxScore || 0,
+    periodName: fiche.periodName,
+    anneeName: fiche.anneeName,
+    coursId: fiche.coursId ?? previous?.coursId,
+    primaryDomain: fiche.primaryDomain ?? previous?.primaryDomain ?? null,
+    primarySection: fiche.primarySection ?? previous?.primarySection ?? null,
+    domainOrder: fiche.domainOrder ?? previous?.domainOrder ?? null,
+    application: fiche.application,
+    connduite: fiche.conduite,
+    comment: fiche.comment,
+  };
+}
+
 export default function ClassFicheClient({
   classes,
   isAdmin,
@@ -87,7 +154,6 @@ export default function ClassFicheClient({
   const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
   const [fiches, setFiches] = useState<Fiche[]>([]);
   const [mounted, setMounted] = useState(false);
-  const [tabValue, setTabValue] = useState("fiches");
   const [selectedPeriod, setSelectedPeriod] = useState("");
   const [selectedAnnee, setSelectedAnnee] = useState("");
   const [selectedSubjects, setSelectedSubjects] = useState<string[]>([]);
@@ -157,6 +223,27 @@ export default function ClassFicheClient({
     [getAggregatedPeriods], // ✅ important dependency
   );
 
+  /**
+   * % = points obtenus / somme des maxima de période de TOUS les cours en fiche
+   * (indépendant du filtre d'affichage des colonnes matières).
+   */
+  const computePeriodPercentage = useCallback(
+    (studentPeriods: RecapPeriod[], periodName: string) => {
+      const notes = getNotesForPeriods(studentPeriods, periodName);
+      const subjectNotes = Object.values(notes);
+      const totalScore = subjectNotes.reduce((sum, n) => sum + n.score, 0);
+      const totalMax = sumBulletinMaxima(
+        subjectNotes.map((note) => note.maxScore),
+      );
+      return {
+        totalScore,
+        totalMax,
+        pct: calculateBulletinPercentage(totalScore, totalMax),
+      };
+    },
+    [getNotesForPeriods],
+  );
+
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -207,28 +294,40 @@ export default function ClassFicheClient({
   }, [fiches]);
 
   // -------------------- Filtrage Fiches --------------------
-  const getFilteredFiches = (fiches: any[]) => {
-    const allowedPeriods = selectedPeriod
-      ? getAggregatedPeriods(selectedPeriod)
-      : [];
+  /** Fiches de cotation de base (pas évaluations / devoirs intermédiaires). */
+  const isBaseCotationFiche = useCallback(
+    (f: Pick<Fiche, "typeFiche">) => f.typeFiche === "ficheCote",
+    [],
+  );
 
-    return fiches.filter((f) => {
-      const matchPeriod = selectedPeriod
-        ? allowedPeriods.includes(f.periodName)
-        : true;
+  const getFilteredFiches = useCallback(
+    (source: Fiche[]) => {
+      const allowedPeriods = selectedPeriod
+        ? getAggregatedPeriods(selectedPeriod)
+        : [];
 
-      const matchAnnee = selectedAnnee ? f.anneeName === selectedAnnee : true;
+      return source.filter((f) => {
+        if (!isBaseCotationFiche(f)) return false;
 
-      return matchPeriod && matchAnnee;
-    });
-  };
+        const matchPeriod = selectedPeriod
+          ? allowedPeriods.includes(f.periodName)
+          : true;
+
+        const matchAnnee = selectedAnnee ? f.anneeName === selectedAnnee : true;
+
+        return matchPeriod && matchAnnee;
+      });
+    },
+    [selectedPeriod, selectedAnnee, getAggregatedPeriods, isBaseCotationFiche],
+  );
+
   const filteredFiches = useMemo(() => {
     return getFilteredFiches(fiches);
-  }, [fiches, selectedPeriod, selectedAnnee]);
+  }, [fiches, getFilteredFiches]);
 
   const filteredFichespdf = useMemo(() => {
     return getFilteredFiches(fiches);
-  }, [fiches, selectedPeriod, selectedAnnee]);
+  }, [fiches, getFilteredFiches]);
   // -------------------- Construction Fiche Recap --------------------
   // ------------------ FICHE RECAP ------------------
   const ficheRecapBase = useMemo(() => {
@@ -264,15 +363,7 @@ export default function ClassFicheClient({
           recap[studentNote.studentId].periods.push(period);
         }
 
-        period.notes[fiche.subjectName] = {
-          score: studentNote.score,
-          maxScore: getPreparedMaxScore(studentNote, fiche),
-          periodName: fiche.periodName,
-          anneeName: fiche.anneeName,
-          application: fiche.application,
-          connduite: fiche.conduite,
-          comment: fiche.comment,
-        };
+        upsertPeriodSubjectNote(period, fiche, studentNote);
       });
     });
     return Object.values(recap);
@@ -301,10 +392,34 @@ export default function ClassFicheClient({
     });
   }, [ficheRecapBase, selectedPeriod, selectedAnnee, getAggregatedPeriods]);
   // ------------------ AVAILABLE SUBJECTS ------------------
-
+  /**
+   * Uniquement les cours ayant une fiche de cotation pour la période + année
+   * sélectionnées (pas tous les cours de la branche / périodes précédentes).
+   */
   const availableSubjects = useMemo(() => {
-    return Array.from(new Set(filteredFiches.map((f) => f.subjectName))).sort();
-  }, [filteredFiches]);
+    if (!selectedPeriod || !selectedAnnee) return [];
+
+    return Array.from(
+      new Set(
+        fiches
+          .filter(
+            (f) =>
+              f.typeFiche === "ficheCote" &&
+              f.periodName === selectedPeriod &&
+              f.anneeName === selectedAnnee &&
+              Boolean(f.subjectName?.trim()) &&
+              f.subjectName.trim() !== "-",
+          )
+          .map((f) => f.subjectName.trim()),
+      ),
+    ).sort((a, b) => a.localeCompare(b, "fr"));
+  }, [fiches, selectedPeriod, selectedAnnee]);
+
+  /** Matières réellement affichées : intersection sélection ∩ fiches de la période. */
+  const visibleSubjects = useMemo(
+    () => selectedSubjects.filter((s) => availableSubjects.includes(s)),
+    [selectedSubjects, availableSubjects],
+  );
 
   const ficheRecappdf = useMemo<RecapRow[]>(() => {
     const recap: Record<string, RecapRow> = {};
@@ -339,15 +454,7 @@ export default function ClassFicheClient({
           };
           recap[studentNote.studentId].periods.push(period);
         }
-        period.notes[fiche.subjectName] = {
-          score: studentNote.score,
-          maxScore: getPreparedMaxScore(studentNote, fiche),
-          periodName: fiche.periodName,
-          anneeName: fiche.anneeName,
-          application: fiche.application,
-          connduite: fiche.conduite,
-          comment: fiche.comment,
-        };
+        upsertPeriodSubjectNote(period, fiche, studentNote);
       });
     });
 
@@ -396,21 +503,20 @@ export default function ClassFicheClient({
     [],
   );
 
-  const DEFAULT_SUBJECT_LIMIT = 7;
+  const DEFAULT_SUBJECT_LIMIT = 15;
 
   useEffect(() => {
-    if (selectedSubjects.length > 0) return;
+    if (availableSubjects.length === 0) {
+      setSelectedSubjects([]);
+      return;
+    }
 
-    const source = availableSubjects.length > 0 ? availableSubjects : subjects;
-
-    if (source.length === 0) return;
-
-    setSelectedSubjects(
-      source.length <= DEFAULT_SUBJECT_LIMIT
-        ? source
-        : source.slice(0, DEFAULT_SUBJECT_LIMIT),
-    );
-  }, [availableSubjects, subjects]); // ✅ ajouter subjects
+    setSelectedSubjects((prev) => {
+      const stillValid = prev.filter((s) => availableSubjects.includes(s));
+      if (stillValid.length > 0) return stillValid;
+      return availableSubjects.slice(0, DEFAULT_SUBJECT_LIMIT);
+    });
+  }, [availableSubjects]);
   // -------------------- Tri décroissant par total périodes agrégées --------------------
   function computeRank(
     studentId: string,
@@ -438,20 +544,15 @@ export default function ClassFicheClient({
     return ficheRecap
       .map((student) => {
         const notes = getNotesForPeriods(student.periods, selectedPeriod);
-
-        const totalScore = Object.values(notes).reduce(
-          (sum, n) => sum + n.score,
-          0,
+        const { totalScore, totalMax, pct } = computePeriodPercentage(
+          student.periods,
+          selectedPeriod,
         );
-        const totalMax = sumBulletinMaxima(
-          Object.values(notes).map((note) => note.maxScore),
-        );
-        const pct = calculateBulletinPercentage(totalScore, totalMax);
 
         return {
           ...student,
-          periods: student.periods, // garde toutes les périodes si besoin pour PDF
-          notes, // notes fusionnées par matière
+          periods: student.periods,
+          notes,
           totalScore,
           totalMax,
           pct,
@@ -459,7 +560,7 @@ export default function ClassFicheClient({
       })
       .sort((a, b) => b.pct - a.pct)
       .map((student, index) => ({ ...student, rank: index + 1 }));
-  }, [ficheRecap, selectedPeriod, getNotesForPeriods]);
+  }, [ficheRecap, selectedPeriod, getNotesForPeriods, computePeriodPercentage]);
 
   const bulletinDataForPDF: RecapRow[] = useMemo(() => {
     const branchType = branchContext.branchType;
@@ -751,38 +852,39 @@ export default function ClassFicheClient({
   const rankingData = useMemo(() => {
     return ficheRecap
       .map((r) => {
-        const notes = getNotesForPeriods(r.periods, selectedPeriod);
-        const values = Object.values(notes);
-
-        const totalScore = values.reduce((s, n) => s + n.score, 0);
-        const totalMax = sumBulletinMaxima(
-          values.map((note) => note.maxScore),
-        );
-
-        const pct = calculateBulletinPercentage(totalScore, totalMax);
-
+        const { pct } = computePeriodPercentage(r.periods, selectedPeriod);
         return {
           studentId: r.studentId,
           pct,
         };
       })
       .sort((a, b) => b.pct - a.pct);
-  }, [ficheRecap, selectedPeriod]);
+  }, [ficheRecap, selectedPeriod, computePeriodPercentage]);
 
   // Exemple : récupérer tous les élèves de la classe 1 pour l'année 2026
   const ficheRecapColumns: ColumnDef<RecapRow>[] = useMemo(() => {
+    const scoreColMeta = {
+      headerClassName:
+        "overflow-hidden px-1.5 pb-1 pt-2 text-center align-bottom",
+      cellClassName: "px-1.5 text-center align-middle",
+    } as const;
+
+    /** En-tête vertical centré, contenu dans la zone titre (pas de débordement bas) */
     const rotatedHeader = (label: string) => (
-      <div className="flex flex-col items-center justify-end min-w-[60px] h-[90px]">
-        <div className="rotate-[-85deg] origin-bottom-left whitespace-nowrap font-semibold">
+      <div className="relative mx-auto h-[92px] w-full min-w-[2.5rem]">
+        <span
+          className="absolute bottom-3 left-1/2 origin-bottom -translate-x-1/2 -rotate-90 whitespace-nowrap text-[11px] font-semibold leading-none text-foreground"
+          title={label}
+        >
           {label}
-        </div>
+        </span>
       </div>
     );
 
-    // ✅ S'assurer que map retourne ColumnDef
-    const subjectColumns: ColumnDef<RecapRow>[] = selectedSubjects.map(
+    const subjectColumns: ColumnDef<RecapRow>[] = visibleSubjects.map(
       (sub) => ({
         id: sub,
+        meta: scoreColMeta,
         header: () => rotatedHeader(sub),
         cell: ({ row }) => {
           const notes = getNotesForPeriods(
@@ -790,85 +892,115 @@ export default function ClassFicheClient({
             selectedPeriod,
           );
           const score = notes[sub]?.score;
-          return score !== undefined ? score : "-";
+          return (
+            <span className="inline-block min-w-[1.5rem] text-center font-medium tabular-nums">
+              {score !== undefined && score !== null ? score : "—"}
+            </span>
+          );
         },
       }),
     );
 
     const pctColumn: ColumnDef<RecapRow> = {
-      accessorFn: (row) => {
-        const notes = getNotesForPeriods(row.periods, selectedPeriod);
-        const values = Object.values(notes);
-        const totalScore = values.reduce((s, n) => s + n.score, 0);
-        const totalMax = sumBulletinMaxima(
-          values.map((note) => note.maxScore),
-        );
-        return calculateBulletinPercentage(totalScore, totalMax);
-      },
+      accessorFn: (row) =>
+        computePeriodPercentage(row.periods, selectedPeriod).pct,
       id: "pct",
+      meta: {
+        headerClassName:
+          "min-w-[4.5rem] overflow-hidden px-1.5 pb-1 pt-2 text-center align-bottom",
+        cellClassName: "min-w-[4.5rem] px-1.5 text-center align-middle",
+      },
       header: () => rotatedHeader("Pourcentage"),
-      cell: (info) => `${(info.getValue() as number).toFixed(1)} %`,
+      cell: (info) => (
+        <span className="inline-block text-center tabular-nums text-muted-foreground">
+          {(info.getValue() as number).toFixed(1)}%
+        </span>
+      ),
     };
 
     const placeColumn: ColumnDef<RecapRow> = {
       id: "place",
+      meta: scoreColMeta,
       header: () => rotatedHeader("Place"),
       cell: ({ row }) => {
-        const allPercentages = ficheRecap
-          .map((r) => {
-            const notes = getNotesForPeriods(r.periods, selectedPeriod);
-            const values = Object.values(notes);
-            const totalScore = values.reduce((s, n) => s + n.score, 0);
-            const totalMax = sumBulletinMaxima(
-              values.map((note) => note.maxScore),
-            );
-            return {
-              studentId: r.studentId,
-              pct: calculateBulletinPercentage(totalScore, totalMax),
-            };
-          })
-          .sort((a, b) => b.pct - a.pct);
-
-        const studentPct = allPercentages.find(
+        const studentPct = rankingData.find(
           (p) => p.studentId === row.original.studentId,
         );
-        if (!studentPct) return "-";
+        if (!studentPct) return "—";
 
         const rank =
           rankingData.filter((p) => p.pct > studentPct.pct).length + 1;
-        return rank;
+        return (
+          <span className="inline-block text-center font-medium tabular-nums">
+            {rank}
+          </span>
+        );
       },
     };
 
     const actionColumn: ColumnDef<RecapRow> = {
       id: "action",
+      meta: {
+        headerClassName:
+          "w-14 min-w-14 overflow-hidden px-1.5 pb-1 pt-2 text-center align-bottom",
+        cellClassName: "w-14 min-w-14 px-1.5 text-center align-middle",
+      },
       header: () => rotatedHeader("Action"),
       cell: ({ row }) => (
-        <BulletinPDF
-          data={bulletinDataForPDF.filter(
-            (s) =>
-              s.studentId === row.original.studentId &&
-              s.studentclasse === row.original.studentclasse,
-          )}
-          branchContext={branchContext}
-        />
+        <div className="flex items-center justify-center">
+          <BulletinPDF
+            data={bulletinDataForPDF.filter(
+              (s) =>
+                s.studentId === row.original.studentId &&
+                s.studentclasse === row.original.studentclasse,
+            )}
+            branchContext={branchContext}
+            classCode={selectedClass?.codename}
+            classLevel={selectedClass?.level}
+            schoolYear={
+              selectedAnnee ||
+              bulletinDataForPDF[0]?.periods?.[0]?.anneeName ||
+              ""
+            }
+          />
+        </div>
       ),
     };
 
     return [
-      { accessorKey: "nom", header: "Nom" }, // Nom colonne
+      {
+        accessorKey: "nom",
+        meta: {
+          headerClassName:
+            "min-w-[9rem] overflow-hidden px-3 pb-1 pt-2 text-left align-bottom",
+          cellClassName: "min-w-[9rem] px-3 text-left align-middle",
+        },
+        header: () => (
+          <span className="pb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            Nom
+          </span>
+        ),
+        cell: ({ row }) => (
+          <span className="block truncate font-medium" title={row.original.nom}>
+            {row.original.nom}
+          </span>
+        ),
+      },
       ...subjectColumns,
       pctColumn,
       placeColumn,
       actionColumn,
     ];
   }, [
-    selectedSubjects,
+    visibleSubjects,
     selectedPeriod,
-    ficheRecap,
+    selectedAnnee,
+    selectedClass,
     bulletinDataForPDF,
     branchContext,
     getNotesForPeriods,
+    computePeriodPercentage,
+    rankingData,
   ]);
 
   // const ficheTableall = useReactTable({
@@ -888,17 +1020,18 @@ export default function ClassFicheClient({
   // const start = Math.max(0, currentPage - Math.floor(maxVisible / 2));
 
   const hasClasse = !!selectedClass?.name;
+  const hasFilters = Boolean(selectedClassId && selectedPeriod && selectedAnnee);
+  const studentCount = ficheRecapSorted.length;
 
   return (
     <Layout>
-      <LayoutBody className="space-y-4">
-        {/* ===== HEADER ===== */}
+      <LayoutBody className="space-y-6">
         <PageHeader
-          title="Gestion des fiches | Bulletins"
+          title="Fiches & bulletins"
           description={
             hasClasse
-              ? `Gérer les fiches des notes des élèves de : ${selectedClass?.name || ""}`
-              : "Gérer les fiches des notes des élèves"
+              ? `Notes et export des bulletins — ${selectedClass?.name ?? ""}`
+              : "Sélectionnez une classe, une année et une période pour générer les bulletins"
           }
           badge={
             <Badge
@@ -909,97 +1042,196 @@ export default function ClassFicheClient({
             </Badge>
           }
         />
+
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <ContextCard
+            icon={<School className="size-5" />}
+            label="Classe"
+            value={selectedClass?.codename ?? "Non sélectionnée"}
+            active={Boolean(selectedClassId)}
+          />
+          <ContextCard
+            icon={<CalendarDays className="size-5" />}
+            label="Période"
+            value={selectedPeriod || "Non sélectionnée"}
+            active={Boolean(selectedPeriod)}
+          />
+          <ContextCard
+            icon={<GraduationCap className="size-5" />}
+            label="Année scolaire"
+            value={selectedAnnee || "Non sélectionnée"}
+            active={Boolean(selectedAnnee)}
+          />
+          <ContextCard
+            icon={<Users className="size-5" />}
+            label="Élèves"
+            value={
+              hasFilters
+                ? `${studentCount} élève${studentCount > 1 ? "s" : ""}`
+                : "—"
+            }
+            active={hasFilters && studentCount > 0}
+          />
+        </div>
+
         <Card
           variant="elevated"
           padding="none"
-          className="animate-fade-in rounded-lg border"
+          className="animate-fade-in overflow-hidden rounded-lg border"
         >
-          <div className="p-6 space-y-6">
-            {/* ================= TABS ================= */}
-            <Tabs value={tabValue} onValueChange={setTabValue}>
-              <TabsList>
-                <TabsTrigger value="fiches">Fiches | Bulletins</TabsTrigger>
-              </TabsList>
-              {/* ================= FICHES RESULT ================= */}
-              <TabsContent value="fiches">
-                <div className="flex mb-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4">
-                  <Combobox
-                    label="Classe"
-                    items={classes.map((c) => ({
-                      value: c.id.toString(),
-                      label: c.codename,
+          <div className="flex flex-col gap-4 border-b bg-muted/20 p-4 lg:flex-row lg:items-end lg:justify-between lg:p-5">
+            <div className="grid flex-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              <Combobox
+                label="Classe"
+                items={classes.map((c) => ({
+                  value: c.id.toString(),
+                  label: c.codename,
+                }))}
+                value={selectedClassId?.toString() || ""}
+                onChange={(val) => setSelectedClassId(val)}
+                placeholder="Sélectionnez une classe"
+              />
+              <Combobox
+                label="Année"
+                items={availableAnnees.map((a) => ({
+                  value: a.value,
+                  label: a.label,
+                }))}
+                value={selectedAnnee}
+                onChange={(val) => setSelectedAnnee(val)}
+                placeholder="Sélectionnez une année"
+              />
+              <Combobox
+                label="Période"
+                items={availablePeriodsOrdered.map((p) => ({
+                  value: p.value,
+                  label: p.label,
+                }))}
+                value={selectedPeriod}
+                onChange={(val) => setSelectedPeriod(val)}
+                placeholder="Sélectionnez une période"
+              />
+            </div>
+
+            <div className="flex shrink-0 flex-wrap items-center gap-2">
+              <BulletinPDF
+                data={bulletinDataForPDF}
+                branchContext={branchContext}
+                classCode={selectedClass?.codename}
+                classLevel={selectedClass?.level}
+                schoolYear={
+                  selectedAnnee ||
+                  bulletinDataForPDF[0]?.periods?.[0]?.anneeName ||
+                  ""
+                }
+                label={
+                  selectedAnnee
+                    ? `Exporter les bulletins (${selectedAnnee})`
+                    : "Exporter les bulletins"
+                }
+                variant="default"
+                size="sm"
+              />
+            </div>
+          </div>
+
+          <CardHeader className="space-y-0 border-b bg-muted/10 px-4 py-3 lg:px-5">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+              <div className="min-w-0">
+                <CardTitle className="text-base">Résultats de cotation</CardTitle>
+                <p className="mt-0.5 text-sm text-muted-foreground">
+                  {hasFilters
+                    ? `${studentCount} élève${studentCount > 1 ? "s" : ""} · ${visibleSubjects.length} matière${visibleSubjects.length > 1 ? "s" : ""} affichée${visibleSubjects.length > 1 ? "s" : ""}`
+                    : "Complétez les filtres pour afficher le tableau"}
+                </p>
+              </div>
+              {hasFilters && availableSubjects.length > 0 && (
+                <div className="flex shrink-0 flex-wrap items-center gap-2">
+                  <SubjectMultiSelect
+                    options={availableSubjects.map((sub) => ({
+                      value: sub,
+                      label: sub,
                     }))}
-                    value={selectedClassId?.toString() || ""}
-                    onChange={(val) => setSelectedClassId(val)}
-                    placeholder="Sélectionnez une classe"
-                  />
-                  <Combobox
-                    label="Période"
-                    items={availablePeriodsOrdered.map((p) => ({
-                      value: p.value,
-                      label: p.label,
-                    }))}
-                    value={selectedPeriod}
-                    onChange={(val) => setSelectedPeriod(val)}
-                    placeholder="Sélectionnez une période"
-                  />
-                  <Combobox
-                    label="Année"
-                    items={availableAnnees.map((a) => ({
-                      value: a.value,
-                      label: a.label,
-                    }))}
-                    value={selectedAnnee}
-                    onChange={(val) => setSelectedAnnee(val)}
-                    placeholder="Sélectionnez une année"
+                    value={selectedSubjects}
+                    onChange={setSelectedSubjects}
+                    onSelectAll={() => setSelectedSubjects(availableSubjects)}
+                    onReset={() => setSelectedSubjects([])}
                   />
                 </div>
-                <Card>
-                  <CardContent>
-                    {/* Bloc multi-select + boutons à droite */}
-                    <div className="flex items-center gap-4 ml-auto p-4">
-                      <SubjectMultiSelect
-                        options={availableSubjects.map((sub) => ({
-                          value: sub,
-                          label: sub,
-                        }))}
-                        value={selectedSubjects}
-                        onChange={setSelectedSubjects}
-                      />
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => setSelectedSubjects(availableSubjects)}
-                      >
-                        Tout sélectionner
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => setSelectedSubjects([])}
-                      >
-                        Réinitialiser
-                      </Button>
-                      <BulletinPDF
-                        data={bulletinDataForPDF}
-                        branchContext={branchContext}
-                        label={`Exporter ${selectedAnnee ? `(${selectedAnnee})` : ""}`}
-                        variant="default"
-                        size="sm"
-                      />
-                    </div>
-                    <DataTable
-                      columns={ficheRecapColumns}
-                      data={ficheRecapSorted}
-                    />
-                  </CardContent>
-                </Card>
-                <p className="text-gray-500"></p>
-              </TabsContent>
-            </Tabs>
-          </div>
+              )}
+            </div>
+          </CardHeader>
+
+          <CardContent className="px-4 py-3 lg:px-5 lg:py-4">
+            {!selectedClassId ? (
+              <EmptyState message="Choisissez une classe pour charger les fiches." />
+            ) : !selectedAnnee || !selectedPeriod ? (
+              <EmptyState message="Sélectionnez l’année scolaire et la période pour afficher les résultats." />
+            ) : studentCount === 0 ? (
+              <EmptyState message="Aucune fiche trouvée pour cette combinaison classe / année / période." />
+            ) : visibleSubjects.length === 0 ? (
+              <EmptyState message="Aucune matière de cotation à afficher pour ces filtres." />
+            ) : (
+              <div className="overflow-x-auto rounded-md border">
+                <DataTable
+                  columns={ficheRecapColumns}
+                  data={ficheRecapSorted}
+                  className="w-full"
+                />
+              </div>
+            )}
+          </CardContent>
         </Card>
       </LayoutBody>
     </Layout>
+  );
+}
+
+function ContextCard({
+  icon,
+  label,
+  value,
+  active,
+}: {
+  icon: ReactNode;
+  label: string;
+  value: string;
+  active: boolean;
+}) {
+  return (
+    <Card
+      className={cn(
+        "flex items-center gap-3 p-4 transition",
+        active ? "border-primary/30 bg-primary/5" : "bg-muted/10",
+      )}
+    >
+      <div
+        className={cn(
+          "rounded-xl p-2.5",
+          active
+            ? "bg-primary text-primary-foreground"
+            : "bg-muted text-muted-foreground",
+        )}
+      >
+        {icon}
+      </div>
+      <div className="min-w-0">
+        <p className="text-xs font-medium text-muted-foreground">{label}</p>
+        <p className="mt-1 truncate text-sm font-semibold" title={value}>
+          {value}
+        </p>
+      </div>
+    </Card>
+  );
+}
+
+function EmptyState({ message }: { message: string }) {
+  return (
+    <div className="flex w-full min-h-[220px] flex-col items-center justify-center gap-3 rounded-lg border border-dashed bg-muted/10 px-6 py-12">
+      <IconClipboardText className="size-8 shrink-0 text-muted-foreground/50" />
+      <p className="max-w-7xl text-center text-sm leading-relaxed text-muted-foreground text-balance">
+        {message}
+      </p>
+    </div>
   );
 }

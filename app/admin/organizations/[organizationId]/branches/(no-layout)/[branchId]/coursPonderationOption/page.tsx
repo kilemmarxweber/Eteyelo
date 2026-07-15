@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useAppTransition as useTransition } from "@/hooks/use-app-transition";
 import { IconAdjustments, IconCheck, IconSearch, IconSettings, IconAlertTriangle } from "@tabler/icons-react";
 import { toast } from "sonner";
 import { Layout, LayoutBody } from "@/components/custom/layout";

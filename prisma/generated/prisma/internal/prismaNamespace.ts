@@ -431,6 +431,7 @@ export const ModelName = {
   Invitation: 'Invitation',
   Branch: 'Branch',
   RegistrationRequest: 'RegistrationRequest',
+  JobApplication: 'JobApplication',
   Partnaire: 'Partnaire',
   BranchMember: 'BranchMember',
   BranchInvitation: 'BranchInvitation',
@@ -453,7 +454,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "parent" | "student" | "attendanceSession" | "studentAttendance" | "teacherAttendance" | "personnelAttendance" | "parentFeedback" | "studentGrade" | "personnel" | "frais" | "typeFrais" | "classe" | "creneau" | "option" | "section" | "schoolYear" | "classEnrollment" | "teacher" | "teaching" | "cours" | "coursOptionPonderation" | "schedule" | "calendarEvent" | "eventType" | "semester" | "period" | "periodResultLock" | "fiche" | "invoice" | "paymentBatch" | "familyPayment" | "cashierExpense" | "paymentAllocation" | "mobileMoneyTransaction" | "paymentEvent" | "discountRule" | "transaction" | "session" | "account" | "verification" | "organization" | "organizationRole" | "member" | "invitation" | "branch" | "registrationRequest" | "partnaire" | "branchMember" | "branchInvitation" | "platformSupportAgent" | "organizationSupportAgent" | "organizationSupportBranchScope" | "platformSupportEscalation"
+    modelProps: "user" | "parent" | "student" | "attendanceSession" | "studentAttendance" | "teacherAttendance" | "personnelAttendance" | "parentFeedback" | "studentGrade" | "personnel" | "frais" | "typeFrais" | "classe" | "creneau" | "option" | "section" | "schoolYear" | "classEnrollment" | "teacher" | "teaching" | "cours" | "coursOptionPonderation" | "schedule" | "calendarEvent" | "eventType" | "semester" | "period" | "periodResultLock" | "fiche" | "invoice" | "paymentBatch" | "familyPayment" | "cashierExpense" | "paymentAllocation" | "mobileMoneyTransaction" | "paymentEvent" | "discountRule" | "transaction" | "session" | "account" | "verification" | "organization" | "organizationRole" | "member" | "invitation" | "branch" | "registrationRequest" | "jobApplication" | "partnaire" | "branchMember" | "branchInvitation" | "platformSupportAgent" | "organizationSupportAgent" | "organizationSupportBranchScope" | "platformSupportEscalation"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -3935,6 +3936,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    JobApplication: {
+      payload: Prisma.$JobApplicationPayload<ExtArgs>
+      fields: Prisma.JobApplicationFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.JobApplicationFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$JobApplicationPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.JobApplicationFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$JobApplicationPayload>
+        }
+        findFirst: {
+          args: Prisma.JobApplicationFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$JobApplicationPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.JobApplicationFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$JobApplicationPayload>
+        }
+        findMany: {
+          args: Prisma.JobApplicationFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$JobApplicationPayload>[]
+        }
+        create: {
+          args: Prisma.JobApplicationCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$JobApplicationPayload>
+        }
+        createMany: {
+          args: Prisma.JobApplicationCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.JobApplicationCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$JobApplicationPayload>[]
+        }
+        delete: {
+          args: Prisma.JobApplicationDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$JobApplicationPayload>
+        }
+        update: {
+          args: Prisma.JobApplicationUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$JobApplicationPayload>
+        }
+        deleteMany: {
+          args: Prisma.JobApplicationDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.JobApplicationUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.JobApplicationUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$JobApplicationPayload>[]
+        }
+        upsert: {
+          args: Prisma.JobApplicationUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$JobApplicationPayload>
+        }
+        aggregate: {
+          args: Prisma.JobApplicationAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateJobApplication>
+        }
+        groupBy: {
+          args: Prisma.JobApplicationGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.JobApplicationGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.JobApplicationCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.JobApplicationCountAggregateOutputType> | number
+        }
+      }
+    }
     Partnaire: {
       payload: Prisma.$PartnairePayload<ExtArgs>
       fields: Prisma.PartnaireFieldRefs
@@ -4804,6 +4879,9 @@ export const CoursScalarFieldEnum = {
   nameCours: 'nameCours',
   description: 'description',
   statusCours: 'statusCours',
+  primaryDomain: 'primaryDomain',
+  primarySection: 'primarySection',
+  domainOrder: 'domainOrder',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   branchId: 'branchId'
@@ -5165,7 +5243,9 @@ export const BranchScalarFieldEnum = {
   code: 'code',
   image: 'image',
   adresse: 'adresse',
+  province: 'province',
   ville: 'ville',
+  commune: 'commune',
   pays: 'pays',
   idnat: 'idnat',
   tel: 'tel',
@@ -5207,6 +5287,50 @@ export const RegistrationRequestScalarFieldEnum = {
 } as const
 
 export type RegistrationRequestScalarFieldEnum = (typeof RegistrationRequestScalarFieldEnum)[keyof typeof RegistrationRequestScalarFieldEnum]
+
+
+export const JobApplicationScalarFieldEnum = {
+  id: 'id',
+  reference: 'reference',
+  branchId: 'branchId',
+  organizationId: 'organizationId',
+  applicationType: 'applicationType',
+  status: 'status',
+  nom: 'nom',
+  postnom: 'postnom',
+  prenom: 'prenom',
+  sexe: 'sexe',
+  dateOfBirth: 'dateOfBirth',
+  telephone: 'telephone',
+  email: 'email',
+  address: 'address',
+  photoUrl: 'photoUrl',
+  desiredSubjects: 'desiredSubjects',
+  desiredLevels: 'desiredLevels',
+  yearsOfExperience: 'yearsOfExperience',
+  desiredOrgRole: 'desiredOrgRole',
+  experienceSummary: 'experienceSummary',
+  educationSummary: 'educationSummary',
+  skills: 'skills',
+  availability: 'availability',
+  motivation: 'motivation',
+  cvUrl: 'cvUrl',
+  coverLetterUrl: 'coverLetterUrl',
+  consentAccepted: 'consentAccepted',
+  reviewedById: 'reviewedById',
+  reviewedAt: 'reviewedAt',
+  acceptedById: 'acceptedById',
+  acceptedAt: 'acceptedAt',
+  rejectedReason: 'rejectedReason',
+  hiredById: 'hiredById',
+  hiredAt: 'hiredAt',
+  teacherId: 'teacherId',
+  personnelId: 'personnelId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type JobApplicationScalarFieldEnum = (typeof JobApplicationScalarFieldEnum)[keyof typeof JobApplicationScalarFieldEnum]
 
 
 export const PartnaireScalarFieldEnum = {
@@ -5486,6 +5610,20 @@ export type ListDecimalFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaMo
 
 
 /**
+ * Reference to a field of type 'PrimaryDomain'
+ */
+export type EnumPrimaryDomainFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PrimaryDomain'>
+    
+
+
+/**
+ * Reference to a field of type 'PrimaryDomain[]'
+ */
+export type ListEnumPrimaryDomainFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PrimaryDomain[]'>
+    
+
+
+/**
  * Reference to a field of type 'Day'
  */
 export type EnumDayFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Day'>
@@ -5608,6 +5746,34 @@ export type EnumRegistrationRequestStatusFieldRefInput<$PrismaModel> = FieldRefI
  * Reference to a field of type 'RegistrationRequestStatus[]'
  */
 export type ListEnumRegistrationRequestStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'RegistrationRequestStatus[]'>
+    
+
+
+/**
+ * Reference to a field of type 'JobApplicationType'
+ */
+export type EnumJobApplicationTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'JobApplicationType'>
+    
+
+
+/**
+ * Reference to a field of type 'JobApplicationType[]'
+ */
+export type ListEnumJobApplicationTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'JobApplicationType[]'>
+    
+
+
+/**
+ * Reference to a field of type 'JobApplicationStatus'
+ */
+export type EnumJobApplicationStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'JobApplicationStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'JobApplicationStatus[]'
+ */
+export type ListEnumJobApplicationStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'JobApplicationStatus[]'>
     
 
 
@@ -5795,6 +5961,7 @@ export type GlobalOmitConfig = {
   invitation?: Prisma.InvitationOmit
   branch?: Prisma.BranchOmit
   registrationRequest?: Prisma.RegistrationRequestOmit
+  jobApplication?: Prisma.JobApplicationOmit
   partnaire?: Prisma.PartnaireOmit
   branchMember?: Prisma.BranchMemberOmit
   branchInvitation?: Prisma.BranchInvitationOmit

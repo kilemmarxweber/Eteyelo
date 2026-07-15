@@ -46,8 +46,15 @@ export default function AdminDashboard() {
   // Fonction pour récupérer les statistiques
   const [metrics, setMetrics] = useState({
     attendance: 0,
+    attendanceCount: 0,
     successRate: 0,
+    averageScore: 0,
+    studentsCount: 0,
+    passedCount: 0,
     satisfaction: 0,
+    feedbackCount: 0,
+    parentsCount: 0,
+    responseRate: 0,
   });
   useEffect(() => {
     const fetchStats = async () => {
@@ -84,16 +91,23 @@ export default function AdminDashboard() {
   useEffect(() => {
     const loadMetrics = async () => {
       try {
-        const [data, err] = await getDashboardMetrics();
+        const result = await getDashboardMetrics();
+        const data = Array.isArray(result) ? result[0] : result;
+        const err = Array.isArray(result) ? result[1] : null;
 
         if (err) {
-          console.error(err);
+          console.error("getDashboardMetrics:", err);
           return;
         }
 
-        setMetrics(data);
+        if (data && typeof data === "object") {
+          setMetrics((prev) => ({
+            ...prev,
+            ...data,
+          }));
+        }
       } catch (error) {
-        console.error(error);
+        console.error("getDashboardMetrics:", error);
       } finally {
         setLoading(false);
       }
@@ -421,52 +435,81 @@ export default function AdminDashboard() {
               <CardContent>
                 <div className="space-y-4">
                   <div>
-                    <div className="flex items-center justify-between mb-2">
+                    <div className="mb-2 flex items-center justify-between">
                       <span className="text-sm font-medium">
                         Taux de présence
                       </span>
                       <span className="text-sm text-muted-foreground">
-                        {metrics.attendance}%
+                        {metrics.attendanceCount > 0
+                          ? `${metrics.attendance}%`
+                          : "—"}
                       </span>
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div className="h-2 w-full rounded-full bg-gray-200">
                       <div
-                        className="bg-green-600 h-2 rounded-full"
-                        style={{ width: `${metrics.attendance}%` }}
-                      ></div>
+                        className="h-2 rounded-full bg-green-600"
+                        style={{
+                          width: `${Math.min(100, Math.max(0, metrics.attendance))}%`,
+                        }}
+                      />
                     </div>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {metrics.attendanceCount > 0
+                        ? `${metrics.attendanceCount} pointages (présent + retard)`
+                        : "Aucune présence enregistrée pour le moment"}
+                    </p>
                   </div>
+
                   <div>
-                    <div className="flex items-center justify-between mb-2">
+                    <div className="mb-2 flex items-center justify-between">
                       <span className="text-sm font-medium">
-                        Taux de réussite
+                        Moyenne générale
                       </span>
                       <span className="text-sm text-muted-foreground">
-                        {metrics.successRate}%
+                        {metrics.studentsCount > 0
+                          ? `${metrics.averageScore}%`
+                          : "—"}
                       </span>
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div className="h-2 w-full rounded-full bg-gray-200">
                       <div
-                        className="bg-blue-600 h-2 rounded-full"
-                        style={{ width: `${metrics.successRate}%` }}
-                      ></div>
+                        className="h-2 rounded-full bg-blue-600"
+                        style={{
+                          width: `${Math.min(100, Math.max(0, metrics.averageScore))}%`,
+                        }}
+                      />
                     </div>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {metrics.studentsCount > 0
+                        ? `Réussite ${metrics.successRate}% · ${metrics.passedCount}/${metrics.studentsCount} élèves ≥ 50%`
+                        : "Aucune cote enregistrée pour le moment"}
+                    </p>
                   </div>
+
                   <div>
-                    <div className="flex items-center justify-between mb-2">
+                    <div className="mb-2 flex items-center justify-between">
                       <span className="text-sm font-medium">
                         Satisfaction parents
                       </span>
                       <span className="text-sm text-muted-foreground">
-                        {metrics.satisfaction}%
+                        {metrics.feedbackCount > 0
+                          ? `${metrics.satisfaction}%`
+                          : "—"}
                       </span>
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div className="h-2 w-full rounded-full bg-gray-200">
                       <div
-                        className="bg-purple-600 h-2 rounded-full"
-                        style={{ width: `${metrics.satisfaction}%` }}
-                      ></div>
+                        className="h-2 rounded-full bg-purple-600"
+                        style={{
+                          width: `${Math.min(100, Math.max(0, metrics.satisfaction))}%`,
+                        }}
+                      />
                     </div>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {metrics.feedbackCount > 0
+                        ? `${metrics.feedbackCount} avis · réponse du mois ${metrics.responseRate}% (${metrics.parentsCount} parents)`
+                        : "Aucun avis parent ce mois — popup à la 1ʳᵉ connexion"}
+                    </p>
                   </div>
                 </div>
               </CardContent>

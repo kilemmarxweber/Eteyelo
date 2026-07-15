@@ -63,6 +63,19 @@ export type BulletinYearMaxima = {
   groups: BulletinGroupMaxima[];
   annualTotal: number;
 };
+
+export function computeTrimesterMaxima(
+  maxima: BulletinPeriodMaxima,
+  trimesterIndex: 1 | 2 | 3,
+): number {
+  const year = calculateBulletinYearMaxima(maxima, "PRIMAIRE");
+  return getBulletinGroupMaxima(year, trimesterIndex)?.total ?? 0;
+}
+
+export function computeYearMaxima(maxima: BulletinPeriodMaxima): number {
+  return calculateBulletinYearMaxima(maxima, "PRIMAIRE").annualTotal;
+}
+
 export function isValidBulletinMaxScore(value: unknown): value is number {
   return (
     typeof value === "number" &&

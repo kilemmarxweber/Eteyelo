@@ -30,6 +30,7 @@ import {
   IconPencilCheck,
   IconFileStack,
   IconBuildingCommunity,
+  IconBriefcase,
 } from "@tabler/icons-react";
 
 import { SideLink } from "@/src/data/sidelinks";
@@ -60,6 +61,7 @@ export const iconMap: Record<string, any> = {
   options: IconSettings,
   classe: IconSchool,
   inscriptions: IconUserCheck,
+  candidatures: IconBriefcase,
 
   /* ===== FINANCE ===== */
   finance: IconReportMoney,

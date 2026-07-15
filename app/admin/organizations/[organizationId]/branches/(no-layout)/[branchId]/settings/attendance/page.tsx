@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useState } from "react";
+import { useAppTransition as useTransition } from "@/hooks/use-app-transition";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { IconExternalLink, IconMapPin, IconUserCheck } from "@tabler/icons-react";

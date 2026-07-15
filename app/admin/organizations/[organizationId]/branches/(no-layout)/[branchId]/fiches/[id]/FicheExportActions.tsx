@@ -4,9 +4,7 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
 import { Button } from "@/components/ui/button";
-import { FaFilePdf, FaFileExcel } from "react-icons/fa";
-
-/* ================= TYPES ================= */
+import { FaFileExcel, FaFilePdf } from "react-icons/fa";
 
 type Note = {
   studentId: string;
@@ -30,35 +28,27 @@ type Props = {
   notes: Note[];
 };
 
-/* ================= COMPONENT ================= */
-
 export default function FicheExportActions({ ficheInfo, notes }: Props) {
-  /* ================= EXPORT PDF ================= */
   const exportPDF = () => {
     const doc = new jsPDF();
 
-    /* ===== TITRE ===== */
     doc.setFontSize(14);
     doc.text("Détails de la fiche", 14, 15);
-
     doc.setFontSize(10);
 
-    /* ===== COLONNE GAUCHE ===== */
     doc.text(`Matière : ${ficheInfo.coursName}`, 14, 30);
-    doc.text(`Teacher : ${ficheInfo.teacher}`, 14, 38);
+    doc.text(`Enseignant : ${ficheInfo.teacher}`, 14, 38);
     doc.text(`Année : ${ficheInfo.anneeName}`, 14, 46);
 
-    /* ===== COLONNE DROITE ===== */
     doc.text(`Type : ${ficheInfo.typeFiche}`, 110, 30);
     doc.text(`Période : ${ficheInfo.periodeName}`, 110, 38);
     doc.text(`Date : ${ficheInfo.dateCreated}`, 110, 46);
 
-    /* ===== TABLE NOTES ===== */
     autoTable(doc, {
       startY: 60,
       head: [["#", "Nom", "Prénom", "Username", "Sexe", "Score", "Max"]],
       body: notes.map((n, index) => [
-        index + 1, // ✅ NUMÉROTATION
+        index + 1,
         n.nom,
         n.studentSurname,
         n.studentusername,
@@ -82,11 +72,10 @@ export default function FicheExportActions({ ficheInfo, notes }: Props) {
     doc.save("fiche-notes.pdf");
   };
 
-  /* ================= EXPORT EXCEL ================= */
   const exportExcel = () => {
     const worksheet = XLSX.utils.json_to_sheet(
       notes.map((n, index) => ({
-        "#": index + 1, // ✅ NUMÉROTATION
+        "#": index + 1,
         Nom: n.nom,
         Prénom: n.studentSurname,
         Username: n.studentusername,
@@ -98,30 +87,27 @@ export default function FicheExportActions({ ficheInfo, notes }: Props) {
 
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Notes");
-
     XLSX.writeFile(workbook, "fiche-notes.xlsx");
   };
 
-  /* ================= UI ================= */
   return (
-    <div className="flex items-center gap-2">
-      {/* PDF */}
+    <div className="flex flex-wrap items-center gap-2">
       <Button
         variant="outline"
-        className="flex items-center gap-2 border-red-500 text-red-600 hover:bg-red-50 hover:text-red-700"
+        size="sm"
+        className="gap-2"
         onClick={exportPDF}
       >
-        <FaFilePdf className="h-4 w-4" />
+        <FaFilePdf className="size-3.5 text-red-600" />
         PDF
       </Button>
-
-      {/* EXCEL */}
       <Button
         variant="outline"
-        className="flex items-center gap-2 border-green-500 text-green-600 hover:bg-green-50 hover:text-green-700"
+        size="sm"
+        className="gap-2"
         onClick={exportExcel}
       >
-        <FaFileExcel className="h-4 w-4" />
+        <FaFileExcel className="size-3.5 text-emerald-600" />
         Excel
       </Button>
     </div>

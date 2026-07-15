@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useAppRouter as useRouter } from "@/hooks/use-app-router";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -73,12 +73,8 @@ export function CreateOrganizationForm() {
         }
       }
 
-      toast.success("Organisation créée.");
-      if (orgId) {
-        router.push(`/admin/organizations/${orgId}`);
-      } else {
-        router.push("/admin/organizations");
-      }
+      toast.success("Organisation creee.");
+      router.push("/admin/organizations");
       router.refresh();
     } catch (cause) {
       const message = cause instanceof Error ? cause.message : "Impossible de joindre le serveur.";

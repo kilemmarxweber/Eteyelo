@@ -6,6 +6,7 @@ import {
   School,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { enforceOrganizationManagerPage } from "@/lib/auth/require-organization-permission";
 import { prisma } from "@/lib/prisma";
 import { BranchCard } from "./branchCard";
 
@@ -46,6 +47,7 @@ async function getOrganizationBranches(organizationId: string) {
 
 export default async function BranchesPage({ params }: BranchesPageProps) {
   const { organizationId } = await params;
+  await enforceOrganizationManagerPage(organizationId);
   const branches = await getOrganizationBranches(organizationId);
 
   const base = `/admin/organizations/${organizationId}/branches`;
@@ -89,7 +91,7 @@ export default async function BranchesPage({ params }: BranchesPageProps) {
             <BranchCard
               key={branch.id}
               branchId={branch.id}
-              href={`${base}/${branch.id}`}
+              enterHref={`${base}/enter/${branch.id}`}
               editHref={`${base}/edit?branchId=${branch.id}`}
               isActive={branch.isActive}
             >

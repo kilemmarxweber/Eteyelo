@@ -6,7 +6,7 @@ import { HomeFooter } from "@/components/home-footer";
 import { HomeNavbar } from "@/components/home-navbar";
 import { prisma } from "@/lib/prisma";
 import { getBranchImage } from "@/lib/utils";
-
+export const dynamic = "force-dynamic";
 export default async function EtablissementsPage() {
   const branches = await prisma.branch.findMany({
     where: {

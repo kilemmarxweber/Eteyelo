@@ -3,12 +3,19 @@ import fs from "fs/promises";
 import path from "path";
 
 export const MAX_UPLOAD_BYTES = 5 * 1024 * 1024;
+export const MAX_DOCUMENT_UPLOAD_BYTES = 10 * 1024 * 1024;
 
 export const ALLOWED_IMAGE_TYPES = new Set([
   "image/png",
   "image/jpeg",
   "image/jpg",
   "image/webp",
+]);
+
+export const ALLOWED_DOCUMENT_TYPES = new Set([
+  "application/pdf",
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
 ]);
 
 export type SavedUpload = {
@@ -21,6 +28,10 @@ const EXTENSION_BY_MIME_TYPE: Record<string, string> = {
   "image/jpeg": ".jpg",
   "image/jpg": ".jpg",
   "image/webp": ".webp",
+  "application/pdf": ".pdf",
+  "application/msword": ".doc",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
+    ".docx",
 };
 
 /**
@@ -64,13 +75,16 @@ function sanitizeFileName(fileName: string): string {
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
 
-  return safeName || "image";
+  return safeName || "file";
 }
 
 /**
  * Détermine l'extension finale à partir du type MIME.
  */
-function getFileExtension(file: File): string {
+function getFileExtension(
+  file: File,
+  kind: "image" | "document" = "image",
+): string {
   const extensionFromMimeType = EXTENSION_BY_MIME_TYPE[file.type];
 
   if (extensionFromMimeType) {
@@ -79,24 +93,45 @@ function getFileExtension(file: File): string {
 
   const originalExtension = path.extname(file.name).toLowerCase();
 
+  if (kind === "document") {
+    return originalExtension || ".pdf";
+  }
+
   return originalExtension || ".jpg";
 }
 
 /**
  * Valide le fichier avant son enregistrement.
  */
-function validateUploadedFile(file: File): void {
+function validateUploadedFile(
+  file: File,
+  options: { kind: "image" | "document" },
+): void {
   if (file.size === 0) {
     throw new Error("Le fichier est vide.");
   }
 
-  if (file.size > MAX_UPLOAD_BYTES) {
-    throw new Error("Le fichier dépasse la taille maximale autorisée de 5 Mo.");
+  const maxBytes =
+    options.kind === "document"
+      ? MAX_DOCUMENT_UPLOAD_BYTES
+      : MAX_UPLOAD_BYTES;
+
+  if (file.size > maxBytes) {
+    throw new Error(
+      options.kind === "document"
+        ? "Le fichier dépasse la taille maximale autorisée de 10 Mo."
+        : "Le fichier dépasse la taille maximale autorisée de 5 Mo.",
+    );
   }
 
-  if (!ALLOWED_IMAGE_TYPES.has(file.type)) {
+  const allowedTypes =
+    options.kind === "document" ? ALLOWED_DOCUMENT_TYPES : ALLOWED_IMAGE_TYPES;
+
+  if (!allowedTypes.has(file.type)) {
     throw new Error(
-      "Format d'image non autorisé. Utilisez PNG, JPG, JPEG ou WEBP.",
+      options.kind === "document"
+        ? "Format non autorisé. Utilisez PDF, DOC ou DOCX."
+        : "Format d'image non autorisé. Utilisez PNG, JPG, JPEG ou WEBP.",
     );
   }
 }
@@ -105,7 +140,18 @@ function validateUploadedFile(file: File): void {
  * Enregistre physiquement un fichier.
  */
 export async function saveUploadedFile(file: File): Promise<SavedUpload> {
-  validateUploadedFile(file);
+  return saveUploadedFileByKind(file, "image");
+}
+
+export async function saveUploadedDocument(file: File): Promise<SavedUpload> {
+  return saveUploadedFileByKind(file, "document");
+}
+
+async function saveUploadedFileByKind(
+  file: File,
+  kind: "image" | "document",
+): Promise<SavedUpload> {
+  validateUploadedFile(file, { kind });
 
   const uploadDirectory = getUploadDirectory();
 
@@ -114,7 +160,7 @@ export async function saveUploadedFile(file: File): Promise<SavedUpload> {
   });
 
   const safeName = sanitizeFileName(file.name);
-  const extension = getFileExtension(file);
+  const extension = getFileExtension(file, kind);
 
   const uniquePart = crypto.randomUUID();
 

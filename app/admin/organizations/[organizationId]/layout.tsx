@@ -1,21 +1,19 @@
-"use client";
+import { OrganizationSectionClient } from "./organization-section-client";
+import { enforceOrganizationSectionAccess } from "@/lib/auth/require-organization-permission";
 
-import { useEffect, type ReactNode } from "react";
-import { useParams } from "next/navigation";
-import { authClient } from "@/lib/auth-client";
-import { IdleLogout } from "@/lib/idle-logout";
-
-export default function OrganizationSectionLayout({
+export default async function OrganizationSectionLayout({
   children,
+  params,
 }: {
-  children: ReactNode;
+  children: React.ReactNode;
+  params: Promise<{ organizationId: string }>;
 }) {
-  const params = useParams();
-  const organizationId = params.organizationId as string;
+  const { organizationId } = await params;
+  await enforceOrganizationSectionAccess(organizationId);
 
-  useEffect(() => {
-    void authClient.organization.setActive({ organizationId });
-  }, [organizationId]);
-
-  return <div className="flex flex-col">{children}</div>;
+  return (
+    <OrganizationSectionClient organizationId={organizationId}>
+      {children}
+    </OrganizationSectionClient>
+  );
 }

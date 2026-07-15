@@ -1,6 +1,7 @@
 import type { jsPDF } from "jspdf";
 
 import {
+  BULLETIN_INNER_LINE_WIDTH_MM,
   BULLETIN_PAGE_MARGIN_MM,
   MIN_EVAL_CELL_WIDTH_MM,
   computeColumnPositions,
@@ -196,6 +197,10 @@ export function drawSecondaryTableHeader(
     repechageSignatureWidth,
     spacerWidth,
   } = layout;
+
+  doc.saveGraphicsState();
+  doc.setDrawColor(0, 0, 0);
+  doc.setLineWidth(BULLETIN_INNER_LINE_WIDTH_MM);
 
   doc.rect(tableX + shiftX, tableY + shiftY, layout.frameWidth, rowHeightTotal);
 
@@ -403,6 +408,8 @@ export function drawSecondaryTableHeader(
     bottomY + frameHeight / 2,
     { align: "center", baseline: "middle" },
   );
+
+  doc.restoreGraphicsState();
 }
 
 export { MIN_EVAL_CELL_WIDTH_MM };

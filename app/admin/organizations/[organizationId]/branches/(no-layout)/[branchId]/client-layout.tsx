@@ -7,15 +7,16 @@ import { ThemeToggle } from "@/src/theme/ThemeToggle";
 import { UserNav } from "@/components/user-nav";
 import { Search } from "@/components/search";
 import { NotificationBell } from "@/components/notification-bell";
-import { useRouter } from "next/navigation";
+import { MobileNav } from "@/components/layout/mobile-nav";
 import { authClient } from "@/lib/auth-client";
+import { useAppLoading } from "@/hooks/use-app-loading";
 import Spinner from "./spinner";
 import { RefreshProvider } from "@/src/hooks/RefreshContext";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const { data: session, isPending } = authClient.useSession();
 
-  const router = useRouter();
+  const { resetLoading } = useAppLoading();
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   useEffect(() => {
@@ -23,11 +24,12 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     if (session) return;
 
     const timeout = window.setTimeout(() => {
-      router.replace("/auth/sign-in");
+      resetLoading();
+      window.location.assign("/auth/sign-in");
     }, 1200);
 
     return () => window.clearTimeout(timeout);
-  }, [session, isPending, router]);
+  }, [session, isPending, resetLoading]);
 
   if (isPending || !session) {
     return (
@@ -44,7 +46,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
 
         <main
-          className={`h-full overflow-x-hidden pt-16 transition-[margin] md:pt-0 ${
+          className={`h-full overflow-x-hidden pt-14 pb-[76px] transition-[margin] md:pb-0 md:pt-0 ${
             isCollapsed ? "md:ml-14" : "md:ml-44"
           }`}
         >
@@ -59,6 +61,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
           {children}
         </main>
+        <MobileNav />
       </div>
     </RefreshProvider>
   );

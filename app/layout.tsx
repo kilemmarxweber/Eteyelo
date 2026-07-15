@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
-import type { ReactNode } from "react";
+import { Suspense, type ReactNode } from "react";
 import "./globals.css";
+import { AppLoadingProvider } from "@/components/app-loading-provider";
 import { Toaster } from "@/components/ui/sonner";
 
 export const metadata: Metadata = {
@@ -20,7 +21,9 @@ export default async function RootLayout({
       suppressHydrationWarning
     >
       <body className="min-h-svh font-sans antialiased">
-        {children}
+        <Suspense fallback={null}>
+          <AppLoadingProvider>{children}</AppLoadingProvider>
+        </Suspense>
         <Toaster richColors closeButton />
       </body>
     </html>

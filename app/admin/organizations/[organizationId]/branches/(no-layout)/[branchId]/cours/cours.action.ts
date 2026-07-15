@@ -11,6 +11,7 @@ import {
   ensureUniqueIdentifier,
   generateCourseCode,
 } from "@/lib/generated-identifiers";
+import { getCatalogPrimaryPlacement, type PrimaryDomainCode } from "@/lib/primary-domains";
 import { canManageOrganization } from "@/lib/auth/session-roles";
 
 function requireCoursManagement(session: unknown) {
@@ -21,6 +22,46 @@ function requireCoursManagement(session: unknown) {
 
 function revalidateCoursPages(organizationId: string, branchId: string) {
   revalidatePath(`/admin/organizations/${organizationId}/branches/${branchId}/cours`);
+  revalidatePath(
+    `/admin/organizations/${organizationId}/branches/${branchId}/settings/primary-domains`,
+  );
+}
+
+function resolvePrimaryDomainFields(
+  courseName: string,
+  selectedDomain: PrimaryDomainCode | null | undefined,
+  options?: { fallbackToCatalog?: boolean },
+) {
+  const fallbackToCatalog = options?.fallbackToCatalog ?? false;
+  if (selectedDomain) {
+    const catalog = getCatalogPrimaryPlacement(courseName);
+    const useCatalog = catalog.domain === selectedDomain;
+    return {
+      primaryDomain: selectedDomain,
+      primarySection: useCatalog
+        ? catalog.section === "AUTRES" || catalog.section === "AUTRES COURS"
+          ? null
+          : catalog.section
+        : null,
+      domainOrder: useCatalog ? catalog.sortOrder : null,
+    };
+  }
+  if (!fallbackToCatalog) {
+    return {
+      primaryDomain: null,
+      primarySection: null,
+      domainOrder: null,
+    };
+  }
+  const catalog = getCatalogPrimaryPlacement(courseName);
+  return {
+    primaryDomain: catalog.domain,
+    primarySection:
+      catalog.section === "AUTRES" || catalog.section === "AUTRES COURS"
+        ? null
+        : catalog.section,
+    domainOrder: catalog.sortOrder,
+  };
 }
 
 // CREATE COURS
@@ -28,7 +69,8 @@ export const createCoursAction = action
   .input(coursSchema)
   .handler(async ({ input }) => {
     try {
-      const { branchId, organizationId, session } = await requireBranchContext();
+      const { branchId, organizationId, session, typebranch } =
+        await requireBranchContext();
       requireCoursManagement(session);
       const existCours = await prisma.cours.findFirst({
         where: {
@@ -53,14 +95,23 @@ export const createCoursAction = action
           ),
       });
 
+      const selectedDomain = (input.primaryDomain ?? null) as PrimaryDomainCode | null;
+      const primaryFields =
+        typebranch === "PRIMAIRE"
+          ? resolvePrimaryDomainFields(input.nameCours.trim(), selectedDomain, {
+              // Si aucun domaine choisi : suggestion catalogue (modifiable ensuite)
+              fallbackToCatalog: !selectedDomain,
+            })
+          : null;
+
       const cours = await prisma.cours.create({
         data: {
-          ...input,
           nameCours: input.nameCours.trim(),
           description: input.description?.trim() || null,
           codeCours,
           branchId,
           statusCours: true,
+          ...(primaryFields ?? {}),
         },
       });
       revalidateCoursPages(organizationId, branchId);
@@ -82,12 +133,14 @@ export const createCoursAction = action
 export const updateCoursAction = action
   .input(coursSchema)
   .handler(async ({ input }) => {
-    const { branchId, organizationId, session } = await requireBranchContext();
+    const { branchId, organizationId, session, typebranch } =
+      await requireBranchContext();
     requireCoursManagement(session);
     const { id } = input;
+    if (!id) throw new Error("Identifiant du cours manquant");
     const existing = await prisma.cours.findFirst({
       where: { id, branchId },
-      select: { id: true },
+      select: { id: true, primaryDomain: true, primarySection: true, domainOrder: true },
     });
     if (!existing) throw new Error("Cours introuvable dans cette branche");
     const codeCours = await ensureUniqueIdentifier({
@@ -102,13 +155,35 @@ export const updateCoursAction = action
         ),
     });
 
+    const selectedDomain =
+      input.primaryDomain === undefined
+        ? (existing.primaryDomain as PrimaryDomainCode | null)
+        : (input.primaryDomain as PrimaryDomainCode | null);
+
+    const primaryFields =
+      typebranch === "PRIMAIRE"
+        ? resolvePrimaryDomainFields(input.nameCours.trim(), selectedDomain, {
+            fallbackToCatalog: false,
+          })
+        : {};
+
+    // Si le domaine n'a pas changé, conserver section / ordre existants
+    const domainUnchanged =
+      typebranch === "PRIMAIRE" &&
+      selectedDomain === existing.primaryDomain &&
+      selectedDomain != null;
+
     const cours = await prisma.cours.update({
       data: {
-        ...input,
         nameCours: input.nameCours.trim(),
         description: input.description?.trim() || null,
         codeCours,
         branchId,
+        ...(typebranch === "PRIMAIRE"
+          ? domainUnchanged
+            ? { primaryDomain: selectedDomain }
+            : primaryFields
+          : {}),
       },
       where: {
         id,

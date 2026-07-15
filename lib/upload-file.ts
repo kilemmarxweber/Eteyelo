@@ -96,3 +96,64 @@ export async function uploadFiles(files: File[]): Promise<string[]> {
 
   return uploadedFileNames;
 }
+
+/**
+ * Envoie un document (PDF, DOC, DOCX) vers `/api/upload/document`.
+ */
+export async function uploadDocument(
+  file: File | null | undefined,
+): Promise<UploadResponse> {
+  if (!file) {
+    return {
+      ok: false,
+      message: "Aucun fichier sélectionné.",
+    };
+  }
+
+  const formData = new FormData();
+  formData.append("file", file);
+
+  try {
+    const response = await fetch("/api/upload/document", {
+      method: "POST",
+      body: formData,
+    });
+
+    const contentType = response.headers.get("content-type");
+
+    if (!contentType?.includes("application/json")) {
+      const responseText = await response.text();
+
+      console.error("UPLOAD_DOCUMENT_INVALID_RESPONSE:", {
+        status: response.status,
+        body: responseText,
+      });
+
+      return {
+        ok: false,
+        message: `Le serveur d'upload a retourné une réponse invalide (${response.status}).`,
+      };
+    }
+
+    const result = (await response.json()) as UploadResponse;
+
+    if (!response.ok) {
+      return {
+        ok: false,
+        message:
+          result.ok === false
+            ? result.message
+            : "Erreur lors de l'upload du document.",
+      };
+    }
+
+    return result;
+  } catch (error) {
+    console.error("UPLOAD_DOCUMENT_CLIENT_ERROR:", error);
+
+    return {
+      ok: false,
+      message: "Impossible de joindre le serveur d'upload.",
+    };
+  }
+}

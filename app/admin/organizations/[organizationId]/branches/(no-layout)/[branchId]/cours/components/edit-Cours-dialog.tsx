@@ -9,7 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { CoursUpForm } from "./cours-form"; // Importez votre formulaire d'éditionimport { ICours } from"@/src/interfaces/Cours";
+import { CoursUpForm } from "./cours-form";
 import { ICours } from "@/src/interfaces/Cours";
 
 interface UpdateCoursDialogProps extends React.ComponentPropsWithoutRef<
@@ -17,13 +17,15 @@ interface UpdateCoursDialogProps extends React.ComponentPropsWithoutRef<
 > {
   showTrigger?: boolean;
   onSuccess?: () => void;
-  cours: ICours; // Détails de l'élève à éditer
+  cours: ICours;
+  isPrimary?: boolean;
 }
 
 export function UpdateCoursDialog({
   showTrigger = true,
   onSuccess,
   cours,
+  isPrimary = false,
   ...props
 }: UpdateCoursDialogProps) {
   const handleUpdate = () => {
@@ -36,17 +38,21 @@ export function UpdateCoursDialog({
         <DialogHeader>
           <DialogTitle>Modifier le cours</DialogTitle>
           <DialogDescription>
-            Modifiez le nom ou la description du cours. Le dialogue restera ouvert en cas d'erreur.
+            {isPrimary
+              ? "Modifiez le nom, la description ou le domaine du bulletin."
+              : "Modifiez le nom ou la description du cours. Le dialogue restera ouvert en cas d'erreur."}
           </DialogDescription>
         </DialogHeader>
         <CoursUpForm
           mode="update"
+          isPrimary={isPrimary}
           initialData={{
             id: cours.id,
             codeCours: cours.codeCours,
             nameCours: cours.nameCours,
             description: cours.description,
-          }} // Pass the cours data for editing
+            primaryDomain: cours.primaryDomain ?? null,
+          }}
           onUpdated={handleUpdate}
         />
       </DialogContent>

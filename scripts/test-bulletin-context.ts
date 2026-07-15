@@ -54,7 +54,9 @@ test("nom, code et adresse correspondent à la branche sélectionnée", () => {
     branchName: "Institut Central",
     branchCode: "IC-2026",
     address: "15, Avenue Centrale",
+    province: "",
     city: "Matadi",
+    commune: "",
     country: "RDC",
     logoUrl: "",
     branchType: "SECONDAIRE",
@@ -139,6 +141,23 @@ test("branche sans ville ni pays : valeurs vides", () => {
 
   assert.equal(context.city, "");
   assert.equal(context.country, "");
+  assert.equal(context.province, "");
+  assert.equal(context.commune, "");
+});
+
+test("province et commune sont exposées dans le contexte bulletin", () => {
+  const context = buildBulletinBranchContext({
+    name: "École Primaire",
+    province: "  Kinshasa / Lukunga  ",
+    ville: "Kinshasa",
+    commune: "  Selembao  ",
+    typebranch: "PRIMAIRE",
+    organization: { name: "Organisation" },
+  });
+
+  assert.equal(context.province, "Kinshasa / Lukunga");
+  assert.equal(context.commune, "Selembao");
+  assert.equal(context.city, "Kinshasa");
 });
 
 test("absence de logo dynamique n’empêche pas la création du contexte", () => {
@@ -152,4 +171,4 @@ test("absence de logo dynamique n’empêche pas la création du contexte", () =
   assert.equal(context.branchName, "École");
 });
 
-console.log("\n12 tests du contexte et de l’en-tête du bulletin réussis.");
+console.log("\n13 tests du contexte et de l’en-tête du bulletin réussis.");

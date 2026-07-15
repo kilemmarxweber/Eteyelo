@@ -24,6 +24,16 @@ Regle de travail :
 9. [Phase 08 - Inscription unifiee](./phase-08-inscription-unifiee.md)
 10. [Phase 09 - Sidebar, menus et UX](./phase-09-sidebar-menus-ux.md)
 11. [Phase 10 - Stabilisation finale](./phase-10-stabilisation-finale.md)
+12. [Plan organisations et permissions](./plan-gestion-organisations-permissions.md)
+13. [Phase 01 - Organisations et permissions (resultat)](./phase-01-organisations-permissions.md)
+14. [Phase 02 - Garde-fous serveur organisations (resultat)](./phase-02-organisations-garde-fous.md)
+15. [Phase 03 - UI organisations CRUD (resultat)](./phase-03-organisations-crud-ui.md)
+16. [Phase 04 - Permissions membres Better Auth (resultat)](./phase-04-organisations-permissions-membres.md)
+17. [Phase 05 - Navigation coherente par role (resultat)](./phase-05-organisations-navigation.md)
+18. [Phase 06 - Seeds et comptes demo (resultat)](./phase-06-organisations-seeds.md)
+19. [Phase 07 - Migration donnees existantes (resultat)](./phase-07-organisations-migration-donnees.md)
+20. [Phase 08 - Tests et documentation roles (resultat)](./phase-08-organisations-tests.md)
+21. [Flux des roles organisations](./organisations-roles-flow.md)
 
 ## Validation minimale a chaque phase
 

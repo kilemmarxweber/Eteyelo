@@ -4,7 +4,10 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { createBranchFormSchema, type CreateBranchFormValues } from "./schema";
 import { auth } from "@/lib/auth";
-import { canManageOrganization } from "@/lib/auth/session-roles";
+import {
+  guardOrganizationBranchAccess,
+  guardOrganizationManager,
+} from "@/lib/auth/require-organization-permission";
 import { headers } from "next/headers";
 import { ensureAcademicPeriodsForBranch } from "@/lib/academic-periods";
 import { getAcademicYearForDate } from "@/lib/academic-year";
@@ -30,16 +33,9 @@ export async function createBranchAction(
   organizationId: string,
   values: CreateBranchFormValues,
 ) {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
-
-  if (!session?.user?.id) {
-    return { data: null, error: "Session introuvable." };
-  }
-
-  if (!canManageOrganization(session)) {
-    return { data: null, error: "Action non autorisee." };
+  const guard = await guardOrganizationManager(organizationId);
+  if (!guard.ok) {
+    return { data: null, error: guard.message };
   }
 
   const parsed = createBranchFormSchema.safeParse(values);
@@ -63,8 +59,9 @@ export async function createBranchAction(
     };
   }
 
+  const requestedCode = parsed.data.code?.trim().toUpperCase() || "";
   const code = await ensureUniqueIdentifier({
-    base: generateCode(parsed.data.name, "BR", 16),
+    base: requestedCode || generateCode(parsed.data.name, "BR", 16),
     separator: "",
     exists: async (value) =>
       Boolean(
@@ -85,7 +82,9 @@ export async function createBranchAction(
         code,
         adresse: parsed.data.adresse?.trim() || null,
         tel: parsed.data.tel?.trim() || null,
+        province: parsed.data.province?.trim() || null,
         ville: parsed.data.ville?.trim() || null,
+        commune: parsed.data.commune?.trim() || null,
         pays: parsed.data.pays?.trim() || null,
         idnat: parsed.data.idnat?.trim() || null,
         image: parsed.data.image ?? {
@@ -133,20 +132,22 @@ export async function createBranchAction(
   };
 }
 
-export async function switchBranchAction(branchId: string) {
+export async function switchBranchAction(
+  organizationId: string,
+  branchId: string,
+) {
+  const guard = await guardOrganizationBranchAccess(organizationId, branchId);
+  if (!guard.ok) {
+    throw new Error(guard.message);
+  }
+
+  const requestHeaders = await headers();
   const session = await auth.api.getSession({
-    headers: await headers(),
+    headers: requestHeaders,
   });
 
   if (!session?.session?.id) {
     throw new Error("Session introuvable");
-  }
-
-  const organizationId =
-    session?.organization?.id ?? session?.session?.activeOrganizationId;
-
-  if (!organizationId) {
-    throw new Error("Organisation active introuvable");
   }
 
   const branch = await prisma.branch.findFirst({
@@ -154,17 +155,24 @@ export async function switchBranchAction(branchId: string) {
       id: branchId,
       organizationId,
     },
+    select: { id: true },
   });
 
   if (!branch) {
     throw new Error("Branche introuvable dans cette organisation");
   }
 
+  await auth.api.setActiveOrganization({
+    body: { organizationId },
+    headers: requestHeaders,
+  });
+
   await prisma.session.update({
     where: {
       id: session.session.id,
     },
     data: {
+      activeOrganizationId: organizationId,
       activeBranchId: branchId,
     },
   });
@@ -185,7 +193,9 @@ export async function getBranchByIdAction(branchId: string) {
       code: true,
       adresse: true,
       tel: true,
+      province: true,
       ville: true,
+      commune: true,
       pays: true,
       idnat: true,
       image: true,
@@ -202,16 +212,21 @@ export async function updateBranchAction(
   branchId: string,
   values: CreateBranchFormValues,
 ) {
-  const session = await auth.api.getSession({
-    headers: await headers(),
+  const existingBranch = await prisma.branch.findUnique({
+    where: { id: branchId },
+    select: { id: true, organizationId: true, code: true },
   });
 
-  if (!session?.user?.id) {
-    return { data: null, error: "Session introuvable." };
+  if (!existingBranch) {
+    return {
+      data: null,
+      error: "Établissement introuvable.",
+    };
   }
 
-  if (!canManageOrganization(session)) {
-    return { data: null, error: "Action non autorisee." };
+  const guard = await guardOrganizationManager(existingBranch.organizationId);
+  if (!guard.ok) {
+    return { data: null, error: guard.message };
   }
 
   const parsed = createBranchFormSchema.safeParse(values);
@@ -223,30 +238,11 @@ export async function updateBranchAction(
     };
   }
 
-  const existingBranch = await prisma.branch.findUnique({
-    where: { id: branchId },
-    select: { id: true, organizationId: true },
-  });
-
-  if (!existingBranch) {
-    return {
-      data: null,
-      error: "Établissement introuvable.",
-    };
-  }
-
-  const activeOrganizationId =
-    session?.organization?.id ?? session?.session?.activeOrganizationId;
-
-  if (
-    activeOrganizationId &&
-    existingBranch.organizationId !== activeOrganizationId
-  ) {
-    return { data: null, error: "Action non autorisee." };
-  }
-
+  const requestedCode = parsed.data.code?.trim().toUpperCase() || "";
+  const codeBase =
+    requestedCode || existingBranch.code || generateCode(parsed.data.name, "BR", 16);
   const code = await ensureUniqueIdentifier({
-    base: generateCode(parsed.data.name, "BR", 16),
+    base: codeBase,
     separator: "",
     exists: async (value) =>
       Boolean(
@@ -268,7 +264,9 @@ export async function updateBranchAction(
       code,
       adresse: parsed.data.adresse?.trim() || null,
       tel: parsed.data.tel?.trim() || null,
+      province: parsed.data.province?.trim() || null,
       ville: parsed.data.ville?.trim() || null,
+      commune: parsed.data.commune?.trim() || null,
       pays: parsed.data.pays?.trim() || null,
       idnat: parsed.data.idnat?.trim() || null,
       image: parsed.data.image ?? {
@@ -310,21 +308,18 @@ export async function setBranchActiveAction(
   branchId: string,
   isActive: boolean,
 ) {
-  const session = await auth.api.getSession({ headers: await headers() });
-
-  if (!session?.user?.id || !canManageOrganization(session)) {
-    return { data: null, error: "Action non autorisee." };
-  }
-
-  const organizationId =
-    session.organization?.id ?? session.session?.activeOrganizationId;
   const branch = await prisma.branch.findFirst({
-    where: { id: branchId, ...(organizationId ? { organizationId } : {}) },
+    where: { id: branchId },
     select: { id: true, organizationId: true },
   });
 
   if (!branch) {
     return { data: null, error: "Etablissement introuvable." };
+  }
+
+  const guard = await guardOrganizationManager(branch.organizationId);
+  if (!guard.ok) {
+    return { data: null, error: guard.message };
   }
 
   await prisma.branch.update({

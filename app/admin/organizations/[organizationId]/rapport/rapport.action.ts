@@ -1,6 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { guardOrganizationAccess } from "@/lib/auth/require-organization-permission";
 
 type ReportParams = {
   organizationId: string;
@@ -17,6 +18,11 @@ export async function getOrganizationReportData({
   organizationId,
   branchId,
 }: ReportParams) {
+  const guard = await guardOrganizationAccess(organizationId);
+  if (!guard.ok) {
+    throw new Error(guard.message);
+  }
+
   const branchWhere = branchId
     ? { id: branchId, organizationId }
     : { organizationId };

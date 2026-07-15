@@ -38,6 +38,7 @@ export const registrationSchema = z
       discountPercentage: z.number().min(0).max(100).default(0),
     }).optional(),
     historyOutcome: z.enum(["new", "passed", "failed", "returning"]),
+    photoUrl: z.string().trim().min(1).optional().or(z.literal("")),
   })
   .superRefine((value, ctx) => {
     if (value.studentMode === "existing" && !value.studentId)

@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
+import { useAppTransition as useTransition } from "@/hooks/use-app-transition";
 import { toast } from "sonner";
 import { IconCalendarEvent, IconPlus } from "@tabler/icons-react";
 

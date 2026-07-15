@@ -7,7 +7,7 @@ import {
   countUserOrganizations,
   getSessionOrganizationContext,
 } from "@/lib/auth/org-membership";
-import { isAppAdminRole, hasPlatformSupportPrivileges } from "@/lib/permissions";
+import { isAppAdminRole, hasPlatformSupportPrivileges, isPlatformOwnerRole } from "@/lib/permissions";
 import { sendNewUserCredentialsEmail } from "@/lib/email/send-new-user-credentials";
 import { sendVerificationEmail } from "@/lib/email/send-verification-email";
 import { admin, customSession, organization } from "better-auth/plugins";
@@ -120,16 +120,18 @@ const authOptions = {
     admin({
       ac: authAccessControl,
       defaultRole: APP_ROLE.USER,
-      adminRoles: [APP_ROLE.ADMIN, APP_ROLE.PLATFORM_SUPPORT],
+      adminRoles: [APP_ROLE.OWNER, APP_ROLE.PLATFORM_SUPPORT],
       roles: applicationRoles,
     }),
     organization({
       ac: authAccessControl,
       creatorRole: ORG_ROLE.OWNER,
-      allowUserToCreateOrganization: async (user) => isAppAdminRole(user.role),
+      allowUserToCreateOrganization: async (user) =>
+        isPlatformOwnerRole(user.role),
       organizationLimit: async (user) => {
-        if (isAppAdminRole(user.role)) return false;
-        if (hasPlatformSupportPrivileges(user.role)) return false;
+        if (isPlatformOwnerRole(user.role)) return false;
+        if (isAppAdminRole(user.role)) return true;
+        if (hasPlatformSupportPrivileges(user.role)) return true;
         const count = await countUserOrganizations(user.id);
         return count >= 1;
       },

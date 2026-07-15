@@ -22,12 +22,25 @@ function classMatchesOption(
   optionId: string | null,
   optionName?: string | null,
 ) {
-  if (classe.optionId) return classe.optionId === optionId;
+  if (optionId) {
+    if (classe.optionId) return classe.optionId === optionId;
+    if (classe.option?.id) return classe.option.id === optionId;
+  }
 
   const resolvedOptionName = optionName ?? classe.option?.nameOption;
   if (!resolvedOptionName) return false;
 
-  return classe.nameClasse.toLowerCase().includes(resolvedOptionName.toLowerCase());
+  if (classe.option?.nameOption) {
+    return (
+      classe.option.nameOption.toLowerCase() ===
+        resolvedOptionName.toLowerCase() ||
+      classe.nameClasse.toLowerCase().includes(resolvedOptionName.toLowerCase())
+    );
+  }
+
+  return classe.nameClasse
+    .toLowerCase()
+    .includes(resolvedOptionName.toLowerCase());
 }
 
 export function matchesClassForLevel(
@@ -45,12 +58,14 @@ export function matchesClassForLevel(
 
   const optionRequired = requiresOptionForClass(params.typebranch, level);
   const optionId = params.optionId?.trim() || null;
+  const optionName = params.optionName?.trim() || null;
 
   if (!optionRequired) {
-    if (!optionId) return true;
-    return !classe.optionId || classe.optionId === optionId;
+    if (!optionId && !optionName) return true;
+    if (optionId) return !classe.optionId || classe.optionId === optionId;
+    return classMatchesOption(classe, null, optionName);
   }
 
-  if (!optionId) return false;
-  return classMatchesOption(classe, optionId, params.optionName);
+  if (!optionId && !optionName) return false;
+  return classMatchesOption(classe, optionId, optionName);
 }

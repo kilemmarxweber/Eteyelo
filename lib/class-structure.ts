@@ -3,39 +3,71 @@ import {
   normalizeBranchType,
 } from "@/lib/academic-structure";
 
+/** Primaire : levels internes 1è–6è (name/code = 1è-PR …). */
 export const PRIMARY_CLASS_LEVELS = [
-  "1er",
-  "2e",
-  "3e",
-  "4e",
-  "5e",
-  "6e",
+  "1è",
+  "2è",
+  "3è",
+  "4è",
+  "5è",
+  "6è",
 ] as const;
 
+/** Éducation de Base (CTEB) — option Tronc commun obligatoire. */
+export const SECONDARY_CTEB_LEVELS = ["7è", "8è"] as const;
+
+/** Humanités (anc. 3ᵉ–6ᵉ secondaire) — section filière + option obligatoires. */
+export const SECONDARY_HUMANITES_LEVELS = ["1è", "2è", "3è", "4è"] as const;
+
+/** @deprecated empty — CTEB uses option Tronc commun, not "without option". */
 export const SECONDARY_CLASS_LEVELS_WITHOUT_OPTION = [] as const;
 
 export const SECONDARY_CLASS_LEVELS_WITH_OPTION = [
-  "1er",
-  "2e",
-  "3e",
-  "4e",
-  "5e",
-  "6e",
+  ...SECONDARY_CTEB_LEVELS,
+  ...SECONDARY_HUMANITES_LEVELS,
 ] as const;
 
 export const SECONDARY_CLASS_LEVELS = [
-  ...SECONDARY_CLASS_LEVELS_WITHOUT_OPTION,
-  ...SECONDARY_CLASS_LEVELS_WITH_OPTION,
+  ...SECONDARY_CTEB_LEVELS,
+  ...SECONDARY_HUMANITES_LEVELS,
 ] as const;
 
 export type PrimaryClassLevel = (typeof PRIMARY_CLASS_LEVELS)[number];
 export type SecondaryClassLevel = (typeof SECONDARY_CLASS_LEVELS)[number];
 export type ClassLevel = PrimaryClassLevel | SecondaryClassLevel;
 
+export function isCtebLevel(level: string): boolean {
+  return (SECONDARY_CTEB_LEVELS as readonly string[]).includes(level);
+}
+
+export function isHumanitesLevel(level: string): boolean {
+  return (SECONDARY_HUMANITES_LEVELS as readonly string[]).includes(level);
+}
+
 export function getClassLevelsForBranch(typebranch: unknown): readonly string[] {
   return normalizeBranchType(typebranch) === "PRIMAIRE"
     ? PRIMARY_CLASS_LEVELS
     : SECONDARY_CLASS_LEVELS;
+}
+
+/** Libellés UI (niveau + aide historique). */
+export function getClassLevelLabel(
+  typebranch: unknown,
+  level: string,
+): string {
+  if (normalizeBranchType(typebranch) === "PRIMAIRE") {
+    return `${level}-PR`;
+  }
+  if (isCtebLevel(level)) {
+    return `${level} année (Éducation de Base)`;
+  }
+  const legacy: Record<string, string> = {
+    "1è": "3ᵉ secondaire",
+    "2è": "4ᵉ secondaire",
+    "3è": "5ᵉ secondaire",
+    "4è": "6ᵉ secondaire",
+  };
+  return `${level} Humanités (anc. ${legacy[level] ?? "—"})`;
 }
 
 export function requiresOptionForClass(
@@ -69,40 +101,49 @@ export type BuildClassIdentityInput = {
   level: string;
   parallel?: string | null;
   optionName?: string | null;
+  /** Abréviation catalogue (BIO, MAT, TC…) — prioritaire pour le code. */
+  optionAbbrev?: string | null;
 };
 
 export function buildClassName(input: BuildClassIdentityInput): string {
-  const parts: string[] = [input.level.trim()];
-
+  const branchType = normalizeBranchType(input.typebranch);
   const parallel = normalizeParallel(input.parallel);
-  if (parallel) {
-    parts.push(parallel);
+  const level = input.level.trim();
+
+  if (branchType === "PRIMAIRE") {
+    const base = `${level}-PR`;
+    return parallel ? `${base} ${parallel}` : base;
   }
 
-  if (
-    requiresOptionForClass(input.typebranch, input.level) &&
-    input.optionName?.trim()
-  ) {
+  const parts: string[] = [level];
+  if (parallel) parts.push(parallel);
+  if (requiresOptionForClass(branchType, level) && input.optionName?.trim()) {
     parts.push(input.optionName.trim());
   }
-
   return parts.join(" ");
 }
 
 export function buildClassCode(input: BuildClassIdentityInput): string {
-  const levelCode = input.level
-    .replace(/[^a-zA-Z0-9]/g, "")
-    .toUpperCase()
-    .slice(0, 3);
-  const parallelCode = normalizeParallel(input.parallel) ?? "";
-  const optionCode = input.optionName
-    ? input.optionName
-        .replace(/[^a-zA-Z0-9]/g, "")
-        .toUpperCase()
-        .slice(0, 3)
-    : "";
+  const branchType = normalizeBranchType(input.typebranch);
+  const parallel = normalizeParallel(input.parallel);
+  const level = input.level.trim();
 
-  const parts = [levelCode, parallelCode, optionCode].filter(Boolean);
+  if (branchType === "PRIMAIRE") {
+    const parts = [`${level}-PR`];
+    if (parallel) parts.push(parallel);
+    return parts.join("-");
+  }
+
+  const abbrev =
+    input.optionAbbrev?.trim().toUpperCase() ||
+    (input.optionName
+      ? input.optionName
+          .replace(/[^a-zA-Z0-9]/g, "")
+          .toUpperCase()
+          .slice(0, 3)
+      : "");
+
+  const parts = [level, parallel, abbrev].filter(Boolean);
   return parts.join("-") || "CLS";
 }
 
@@ -113,7 +154,12 @@ export function validateClassInput(params: {
   optionId?: string | null;
   nameClasse?: string | null;
   isLegacy?: boolean;
-}): { level?: string; parallel?: string; optionId?: string; nameClasse?: string } {
+}): {
+  level?: string;
+  parallel?: string;
+  optionId?: string;
+  nameClasse?: string;
+} {
   const branchType = normalizeBranchType(params.typebranch);
 
   if (params.isLegacy) {
@@ -132,7 +178,8 @@ export function validateClassInput(params: {
 
     return {
       nameClasse,
-      optionId: branchType === "PRIMAIRE" ? undefined : params.optionId ?? undefined,
+      optionId:
+        branchType === "PRIMAIRE" ? undefined : params.optionId ?? undefined,
     };
   }
 
@@ -153,19 +200,11 @@ export function validateClassInput(params: {
     throw new Error("Une option est requise pour ce niveau");
   }
 
-  if (
-    branchType === "SECONDAIRE" &&
-    (SECONDARY_CLASS_LEVELS_WITHOUT_OPTION as readonly string[]).includes(
-      level,
-    ) &&
-    params.optionId
-  ) {
-    throw new Error("Ce niveau secondaire ne peut pas avoir d'option");
-  }
-
   const parallel = normalizeParallel(params.parallel);
   if (parallel && !/^[A-Z0-9]{1,3}$/.test(parallel)) {
-    throw new Error("Le parallele doit contenir 1 a 3 caracteres alphanumeriques");
+    throw new Error(
+      "Le parallele doit contenir 1 a 3 caracteres alphanumeriques",
+    );
   }
 
   return {

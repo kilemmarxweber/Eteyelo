@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useSession } from "@/lib/auth-client";
-import { redirect } from "next/navigation";
+import { NotFoundView } from "@/components/not-found-view";
 
 import { Layout, LayoutBody } from "@/components/custom/layout";
 import { Card } from "@/components/ui/card";
@@ -39,7 +39,7 @@ export default function EventsPage() {
 
   // ✅ auth
   if (!session) {
-    redirect("/not-authorized");
+    return <NotFoundView />;
   }
 
   const handleSuccess = () => {

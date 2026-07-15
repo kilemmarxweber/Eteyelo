@@ -120,6 +120,7 @@ export async function generateStudentGradesForPeriod(
   branchId: string,
 ) {
   try {
+    // Tous les cours de la période (maxima de période dans chaque fiche).
     const fiches = await prisma.fiche.findMany({
       where: {
         branchId,
@@ -130,116 +131,122 @@ export async function generateStudentGradesForPeriod(
         id: true,
         notes: true,
         anneeId: true,
-        status: true,
         classSectionId: true,
         branchId: true,
       },
     });
 
     if (!fiches.length) {
-      console.log(`⚠️ No validated fiches for period ${periodId}`);
+      console.log(`⚠️ No fiches for period ${periodId}`);
       return false;
     }
-    const expectedCount = await prisma.teaching.count({
-      where: {
-        branchId,
-        schoolYearId: fiches[0].anneeId,
-        classeId: fiches[0].classSectionId,
-      },
-    });
-    // 🔥 CHECK D'INTÉGRITÉ ICI (IMPORTANT)
-    const valid = fiches.filter((f) => f.status === true);
 
-    if (valid.length !== expectedCount) {
-      console.log(
-        `⛔ Period ${periodId} incomplete: ${valid.length}/${expectedCount}`,
-      );
-      return false; // STOP ICI
+    const byClass = new Map<string, typeof fiches>();
+    for (const fiche of fiches) {
+      const list = byClass.get(fiche.classSectionId) ?? [];
+      list.push(fiche);
+      byClass.set(fiche.classSectionId, list);
     }
 
-    const schoolYearId = fiches[0].anneeId;
+    let upserted = 0;
 
-    const studentMap = new Map<
-      string,
-      {
-        totalScore: number;
-        totalMax: number;
-      }
-    >();
+    for (const [, classFiches] of byClass.entries()) {
+      const schoolYearId = classFiches[0]?.anneeId;
+      if (!schoolYearId) continue;
 
-    for (const fiche of valid) {
-      let notesParsed: any[] = [];
+      const studentMap = new Map<
+        string,
+        {
+          totalScore: number;
+          totalMax: number;
+        }
+      >();
 
-      try {
-        notesParsed =
-          typeof fiche.notes === "string"
-            ? JSON.parse(fiche.notes)
-            : Array.isArray(fiche.notes)
-              ? fiche.notes
-              : [];
-      } catch (error) {
-        continue;
-      }
+      for (const fiche of classFiches) {
+        let notesParsed: any[] = [];
 
-      for (const note of notesParsed) {
-        if (!note?.studentId) {
-          console.log("NO STUDENT ID");
+        try {
+          notesParsed =
+            typeof fiche.notes === "string"
+              ? JSON.parse(fiche.notes)
+              : Array.isArray(fiche.notes)
+                ? fiche.notes
+                : [];
+        } catch {
           continue;
         }
 
-        const score = Number(note.score ?? 0);
-        const maxScore = Number(note.maxScore ?? 0);
+        if (!notesParsed.length) continue;
 
-        const current = studentMap.get(note.studentId) || {
-          totalScore: 0,
-          totalMax: 0,
-        };
+        const coursePeriodMax = Math.max(
+          0,
+          ...notesParsed.map((note: any) => {
+            const max = Number(note?.maxScore ?? 0);
+            return Number.isFinite(max) && max > 0 ? max : 0;
+          }),
+        );
 
-        current.totalScore += score;
-        current.totalMax += maxScore;
+        if (!(coursePeriodMax > 0)) continue;
 
-        studentMap.set(note.studentId, current);
+        for (const note of notesParsed) {
+          if (!note?.studentId) continue;
+
+          const score = Number(note.score ?? 0);
+          const noteMax = Number(note.maxScore ?? 0);
+          const maxScore =
+            Number.isFinite(noteMax) && noteMax > 0
+              ? noteMax
+              : coursePeriodMax;
+
+          const current = studentMap.get(note.studentId) || {
+            totalScore: 0,
+            totalMax: 0,
+          };
+
+          current.totalScore += Number.isFinite(score) ? score : 0;
+          current.totalMax += maxScore;
+
+          studentMap.set(note.studentId, current);
+        }
+      }
+
+      for (const [studentId, result] of studentMap.entries()) {
+        const raw =
+          result.totalMax > 0
+            ? (result.totalScore / result.totalMax) * 100
+            : 0;
+        const percentageInt = Number.isFinite(raw) ? Math.round(raw) : 0;
+
+        await prisma.studentGrade.upsert({
+          where: {
+            studentId_periodId_branchId: {
+              studentId,
+              periodId,
+              branchId,
+            },
+          },
+          update: {
+            score: percentageInt,
+            schoolYearId,
+          },
+          create: {
+            studentId,
+            branchId,
+            schoolYearId,
+            periodId,
+            score: percentageInt,
+          },
+        });
+        upserted += 1;
       }
     }
 
-    if (studentMap.size === 0) {
+    if (upserted === 0) {
       console.log("⚠️ studentMap empty");
       return false;
     }
-    for (const [studentId, data] of studentMap.entries()) {
-      console.log("🧑 STUDENT:", studentId);
-      console.log("TOTAL SCORE:", data.totalScore);
-      console.log("TOTAL MAX:", data.totalMax);
-    }
-    for (const [studentId, result] of studentMap.entries()) {
-      // const percentage =
-      //   result.totalMax > 0
-      //     ? Math.round((result.totalScore / result.totalMax) * 100)
-      //     : 0;
-      const raw = (result.totalScore / result.totalMax) * 100;
 
-      const percentageInt = Number.isFinite(raw) ? Math.round(raw) : 0;
-      await prisma.studentGrade.upsert({
-        where: {
-          studentId_periodId_branchId: {
-            studentId,
-            periodId,
-            branchId,
-          },
-        },
-        update: {
-          score: percentageInt,
-        },
-        create: {
-          studentId,
-          branchId,
-          schoolYearId,
-          periodId,
-          score: percentageInt,
-        },
-      });
-    }
-    return true; // 👈 succès réel
+    return true;
   } catch (error) {
     console.error("❌ GENERATE ERROR", error);
     return false;

@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { columns } from "./columns";
+import React, { useEffect, useMemo, useState } from "react";
+import { getCoursColumns } from "./columns";
 import { ResponsiveDataTable } from "@/components/custom";
 import { TableSkeleton } from "@/components/custom";
 import { EmptyTableState } from "@/components/custom";
@@ -10,11 +10,18 @@ import { DataTableToolbar } from "./data-table-toolbar";
 import { IconAlertCircle, IconBook } from "@tabler/icons-react";
 import { useRefresh } from "@/src/hooks/RefreshContext";
 
-const CoursList = ({ refreshKey = 0 }: { refreshKey?: number }) => {
+const CoursList = ({
+  refreshKey = 0,
+  isPrimary = false,
+}: {
+  refreshKey?: number;
+  isPrimary?: boolean;
+}) => {
   const [cours, setCours] = useState<ICours[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { refreshKey: contextRefreshKey } = useRefresh();
+  const columns = useMemo(() => getCoursColumns(isPrimary), [isPrimary]);
 
   useEffect(() => {
     const fetchCours = async () => {
@@ -40,7 +47,7 @@ const CoursList = ({ refreshKey = 0 }: { refreshKey?: number }) => {
   if (loading) {
     return (
       <div className="p-6">
-        <TableSkeleton rows={5} columns={5} />
+        <TableSkeleton rows={5} columns={isPrimary ? 6 : 5} />
       </div>
     );
   }
@@ -78,10 +85,6 @@ const CoursList = ({ refreshKey = 0 }: { refreshKey?: number }) => {
         data={cours}
         emptyText="Aucun cours enregistré"
         mobileCardTitle={(row) => row.nameCours}
-        mobileCardSubtitle={(row) => `Code: ${row.codeCours}`}
-        mobileCardBadges={(row) => [
-          { label: row.description || "Sans description", variant: "secondary" },
-        ]}
       />
     </div>
   );

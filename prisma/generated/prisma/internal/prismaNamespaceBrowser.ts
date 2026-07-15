@@ -98,6 +98,7 @@ export const ModelName = {
   Invitation: 'Invitation',
   Branch: 'Branch',
   RegistrationRequest: 'RegistrationRequest',
+  JobApplication: 'JobApplication',
   Partnaire: 'Partnaire',
   BranchMember: 'BranchMember',
   BranchInvitation: 'BranchInvitation',
@@ -435,6 +436,9 @@ export const CoursScalarFieldEnum = {
   nameCours: 'nameCours',
   description: 'description',
   statusCours: 'statusCours',
+  primaryDomain: 'primaryDomain',
+  primarySection: 'primarySection',
+  domainOrder: 'domainOrder',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   branchId: 'branchId'
@@ -796,7 +800,9 @@ export const BranchScalarFieldEnum = {
   code: 'code',
   image: 'image',
   adresse: 'adresse',
+  province: 'province',
   ville: 'ville',
+  commune: 'commune',
   pays: 'pays',
   idnat: 'idnat',
   tel: 'tel',
@@ -838,6 +844,50 @@ export const RegistrationRequestScalarFieldEnum = {
 } as const
 
 export type RegistrationRequestScalarFieldEnum = (typeof RegistrationRequestScalarFieldEnum)[keyof typeof RegistrationRequestScalarFieldEnum]
+
+
+export const JobApplicationScalarFieldEnum = {
+  id: 'id',
+  reference: 'reference',
+  branchId: 'branchId',
+  organizationId: 'organizationId',
+  applicationType: 'applicationType',
+  status: 'status',
+  nom: 'nom',
+  postnom: 'postnom',
+  prenom: 'prenom',
+  sexe: 'sexe',
+  dateOfBirth: 'dateOfBirth',
+  telephone: 'telephone',
+  email: 'email',
+  address: 'address',
+  photoUrl: 'photoUrl',
+  desiredSubjects: 'desiredSubjects',
+  desiredLevels: 'desiredLevels',
+  yearsOfExperience: 'yearsOfExperience',
+  desiredOrgRole: 'desiredOrgRole',
+  experienceSummary: 'experienceSummary',
+  educationSummary: 'educationSummary',
+  skills: 'skills',
+  availability: 'availability',
+  motivation: 'motivation',
+  cvUrl: 'cvUrl',
+  coverLetterUrl: 'coverLetterUrl',
+  consentAccepted: 'consentAccepted',
+  reviewedById: 'reviewedById',
+  reviewedAt: 'reviewedAt',
+  acceptedById: 'acceptedById',
+  acceptedAt: 'acceptedAt',
+  rejectedReason: 'rejectedReason',
+  hiredById: 'hiredById',
+  hiredAt: 'hiredAt',
+  teacherId: 'teacherId',
+  personnelId: 'personnelId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type JobApplicationScalarFieldEnum = (typeof JobApplicationScalarFieldEnum)[keyof typeof JobApplicationScalarFieldEnum]
 
 
 export const PartnaireScalarFieldEnum = {

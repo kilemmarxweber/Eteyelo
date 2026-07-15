@@ -327,6 +327,10 @@ export type RecapPeriod = {
       maxScore: number;
       periodName: string;
       anneeName: string;
+      coursId?: string;
+      primaryDomain?: string | null;
+      primarySection?: string | null;
+      domainOrder?: number | null;
       application?: string;
       connduite?: string;
       comment?: string;
@@ -405,6 +409,7 @@ export type ClassType = {
   id: string;
   name: string;
   codename: string;
+  level?: string | null;
   capacity: number;
   supervisor: string;
   lessons: Lesson[] | undefined;
@@ -431,6 +436,10 @@ export type Fiche = {
   studentId?: string;
   teacherName: string;
   subjectName: string;
+  coursId?: string;
+  primaryDomain?: string | null;
+  primarySection?: string | null;
+  domainOrder?: number | null;
   periodName: string;
   className: string;
   dateCreated: string;
@@ -637,19 +646,33 @@ export function drawCell1(
 
   const borders = options?.borders ?? {};
 
+  doc.saveGraphicsState();
+  doc.setDrawColor(0, 0, 0);
+  doc.setLineWidth(0.1);
+
   if (borders.top ?? true) doc.line(x, y, x + w, y);
   if (borders.bottom ?? true) doc.line(x, y + h, x + w, y + h);
   if (borders.left ?? true) doc.line(x, y, x, y + h);
   if (borders.right ?? true) doc.line(x + w, y, x + w, y + h);
 
+  doc.restoreGraphicsState();
+
   let textX = x + w / 2;
   if (align === "left") textX = x + 2;
   if (align === "right") textX = x + w - 2;
+
+  if (isMaxima) {
+    doc.setFont("helvetica", "bold");
+  }
 
   doc.text(text, textX, y + h / 2, {
     align,
     baseline: "middle",
   });
+
+  if (isMaxima) {
+    doc.setFont("helvetica", "normal");
+  }
 }
 export function drawSemesterRow1(
   doc: jsPDF,
@@ -704,7 +727,7 @@ type DrawCellFn = (
     | "red"
     | "blue"
     | "green"
-    | { text?: string; fill?: string },
+    | { text?: string; fill?: string; hatch?: "dashed"; bold?: boolean; fontSize?: number },
   borders?: {
     top?: boolean;
     bottom?: boolean;
@@ -748,6 +771,10 @@ export function drawSubjectRow(
 
   if (isGeneraux && specialRows.includes(subject.name)) {
     const key = subject.name;
+    const blockedFill =
+      key === "CONDUITE"
+        ? ({ text: "black", fill: "white", hatch: "dashed" } as const)
+        : ({ text: "black", fill: "black" } as const);
 
     drawCell(
       colPos[0] + shiftX,
@@ -785,7 +812,7 @@ export function drawSubjectRow(
       "",
       false,
       "center",
-      { text: "black", fill: "black" },
+      blockedFill,
     );
 
     /* Semestre 1 total */
@@ -798,7 +825,7 @@ export function drawSubjectRow(
       autresByPeriod["exam1"]?.[key]?.sem1?.tt1 ?? "",
       false,
       "center",
-      { text: "black", fill: "black" },
+      blockedFill,
     );
 
     /* Semestre 2 périodes */
@@ -827,7 +854,7 @@ export function drawSubjectRow(
       "",
       false,
       "center",
-      { text: "black", fill: "black" },
+      blockedFill,
     );
 
     /* Semestre 2 total */
@@ -840,7 +867,7 @@ export function drawSubjectRow(
       autresByPeriod["exam2"]?.[key]?.sem2?.tt2 ?? "",
       false,
       "center",
-      { text: "black", fill: "black" },
+      blockedFill,
     );
 
     /* Total général */
@@ -853,7 +880,7 @@ export function drawSubjectRow(
       autresByPeriod["exam2"]?.[key]?.sem2?.tg ?? "",
       false,
       "center",
-      { text: "black", fill: "black" },
+      blockedFill,
     );
 
     drawCell(
@@ -864,7 +891,7 @@ export function drawSubjectRow(
       "",
       false,
       "center",
-      { text: "black", fill: "black" },
+      blockedFill,
     );
 
     drawCell(

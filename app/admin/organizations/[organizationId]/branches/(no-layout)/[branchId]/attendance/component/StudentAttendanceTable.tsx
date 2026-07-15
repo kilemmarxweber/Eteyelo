@@ -1,8 +1,9 @@
 "use client";
 
-import { useTransition, useState } from "react";
+import { useState } from "react";
+import { useAppTransition as useTransition } from "@/hooks/use-app-transition";
 import { markStudentAttendance } from "../attendance.action";
-import { useRouter } from "next/navigation";
+import { useAppRouter as useRouter } from "@/hooks/use-app-router";
 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";

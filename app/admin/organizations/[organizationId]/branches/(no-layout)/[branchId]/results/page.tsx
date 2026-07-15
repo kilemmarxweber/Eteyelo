@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { RecapRow, TypeFiche } from "@/lib/types";
 import SidebarWithFilters from "./SidebarTotal";
-import { redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { Layout, LayoutBody } from "@/components/custom/layout";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -19,7 +19,7 @@ const ResultListPage = async () => {
   const { session, userId: currentUserId, branchId } =
     await requireBranchContext();
   if (!canAccessResultsArea(session)) {
-    redirect("/not-authorized");
+    notFound();
   }
 
   const canManage = canManageOrganization(session);

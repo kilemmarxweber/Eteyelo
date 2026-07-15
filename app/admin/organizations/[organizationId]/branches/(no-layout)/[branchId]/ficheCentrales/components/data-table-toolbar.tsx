@@ -45,10 +45,10 @@ export function DataTableToolbar<TData>({
   };
 
   return (
-    <div className="flex items-center justify-between gap-2">
+    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <div className="flex flex-1 flex-wrap items-center gap-2">
         <Input
-          placeholder="Rechercher par classe, période, cours, année..."
+          placeholder="Rechercher par classe, période, cours, année…"
           value={searchValue}
           onChange={(event) => handleSearch(event.target.value)}
           className="h-8 w-full sm:w-[220px] lg:w-[320px]"
@@ -110,7 +110,7 @@ export function DataTableToolbar<TData>({
             onClick={resetFilters}
             className="h-8 px-2 lg:px-3"
           >
-            Reset
+            Réinitialiser
             <IconX className="ml-2 h-4 w-4" />
           </Button>
         )}

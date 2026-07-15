@@ -1,7 +1,8 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useState, useTransition } from "react";
+import { useState } from "react";
+import { useAppTransition as useTransition } from "@/hooks/use-app-transition";
 import { toast } from "sonner";
 import {
   BadgeCheck,

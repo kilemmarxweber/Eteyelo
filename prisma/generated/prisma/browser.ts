@@ -253,6 +253,11 @@ export type Branch = Prisma.BranchModel
  */
 export type RegistrationRequest = Prisma.RegistrationRequestModel
 /**
+ * Model JobApplication
+ * 
+ */
+export type JobApplication = Prisma.JobApplicationModel
+/**
  * Model Partnaire
  * 
  */

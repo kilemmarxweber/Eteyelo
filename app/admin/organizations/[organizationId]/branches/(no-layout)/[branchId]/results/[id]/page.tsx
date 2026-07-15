@@ -1,8 +1,9 @@
 import { prisma } from "@/lib/prisma";
-import { redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import ResultTable from "./ResultTable";
 import { Layout, LayoutBody } from "@/components/custom/layout";
 import { Badge } from "@/components/ui/badge";
+import { BackLink } from "@/components/ui/back-link";
 import { Card } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
 import { IconChartBar } from "@tabler/icons-react";
@@ -17,16 +18,21 @@ const StudentResultPage = async ({
   params,
   searchParams,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{
+    organizationId: string;
+    branchId: string;
+    id: string;
+  }>;
   searchParams: Promise<{ studentId: string; period: string }>;
 }) => {
-  const { id } = await params;
+  const { organizationId, branchId: branchIdParam, id } = await params;
 
   const sp = await searchParams;
   const { studentId, period } = sp;
 
   const subjectName = decodeURIComponent(id);
   const { session, userId, branchId } = await requireBranchContext();
+  const listHref = `/admin/organizations/${organizationId}/branches/${branchIdParam}/results`;
   const canManage = canManageOrganization(session);
   const role = canManage
     ? "admin"
@@ -38,7 +44,7 @@ const StudentResultPage = async ({
   const currentUserId = userId;
 
   if (role === "guest") {
-    redirect("/not-authorized");
+    notFound();
   }
 
   // ✅ déterminer les studentIds selon rôle
@@ -122,6 +128,7 @@ const StudentResultPage = async ({
 
       return {
         id: `${fiche.id}-${note.studentId}`,
+        ficheId: fiche.id,
         name: `${fiche.typeFiche}-${index} ${
           fiche.lesson.cours?.nameCours ?? fiche.coursName ?? "N/A"
         }`,
@@ -152,12 +159,16 @@ const StudentResultPage = async ({
     <Layout>
       <LayoutBody className="space-y-4">
         <PageHeader
-          title="Gestion des Resultats"
-          description="Gérer les informations des Resultats des élèves"
+          variant="compact"
+          title="Détail des interventions"
+          description={`Évaluations · ${subjectName}${period ? ` · ${period}` : ""}`}
           badge={
             <Badge variant="outline-primary" icon={<IconChartBar size={14} />}>
               Resultats
             </Badge>
+          }
+          breadcrumbs={
+            <BackLink href={listHref} label="Gestion des résultats" />
           }
         />
         <Card

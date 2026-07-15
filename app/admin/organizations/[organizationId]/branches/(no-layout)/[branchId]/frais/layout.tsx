@@ -19,7 +19,8 @@ import { getClassesByIdAction } from "../classe/classe.action";
 import { useEffect, useState } from "react";
 import { IClasse } from "@/src/interfaces/Classe";
 import { useRefresh } from "@/src/hooks/RefreshContext";
-import { redirect, useParams } from "next/navigation";
+import { useParams } from "next/navigation";
+import { NotFoundView } from "@/components/not-found-view";
 import { useSession } from "@/lib/auth-client";
 import {
   canAccessTeachingArea,
@@ -76,7 +77,7 @@ function FraisLayoutContent({ children }: { children: React.ReactNode }) {
   }
 
   if (!canAccessTeachingArea(session)) {
-    redirect("/not-authorized");
+    return <NotFoundView />;
   }
   const canCreateFrais = canManageOrganization(session);
   return (

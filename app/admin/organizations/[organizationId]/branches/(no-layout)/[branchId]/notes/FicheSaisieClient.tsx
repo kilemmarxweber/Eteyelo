@@ -1,12 +1,9 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { DataTable } from "@/components/ui/data-table";
 import { Badge } from "@/components/ui/badge";
-
-import { lessonColumns } from "./components/columns";
 import * as XLSX from "xlsx";
 import { FaFileExcel } from "react-icons/fa";
 import { Input } from "@/components/ui/input";
@@ -14,7 +11,7 @@ import { Combobox } from "@/components/ui/combox";
 import { ExcelRow, FicheTypes, Period, Teacher } from "./components/types";
 import { Layout, LayoutBody } from "@/components/custom/layout";
 import { Button } from "@/components/custom/button";
-import { IconNotes } from "@tabler/icons-react";
+import { IconNotes, IconSearch } from "@tabler/icons-react";
 import { PageHeader } from "@/components/ui/page-header";
 import { toast } from "sonner";
 import { StudentRow } from "./components/types";
@@ -22,7 +19,8 @@ import { BookOpen, CalendarDays, CircleFadingArrowUpIcon, ClipboardCheck, Users 
 import { ResponsiveDataTable } from "@/components/custom";
 import { notesColumns } from "./components/notes.columns";
 import { NotesToolbar } from "./components/notes.toolbar";
-import { useRouter } from "next/navigation";
+import { useAppRouter as useRouter } from "@/hooks/use-app-router";
+import { cn } from "@/lib/utils";
 import {
   checkExistingFiche,
   createFiche,
@@ -63,6 +61,7 @@ export default function FicheSaisieClient({
   );
   const [isLoading, setIsLoading] = useState(false);
   const [typeFiche, setTypeFiche] = useState<FicheTypes | null>(null);
+  const [lessonSearch, setLessonSearch] = useState("");
 
   const selectedTeacher = teachers.find((t) => t.id === selectedTeacherId);
   const filled = students.filter((s) => s.score !== null).length;
@@ -419,6 +418,7 @@ export default function FicheSaisieClient({
     };
     reader.readAsBinaryString(file);
   };
+  // Uniquement les enseignants qui ont encore des cours affectés
   const filteredTeachers: Teacher[] = teachers.filter(
     (t) => t.lessons && t.lessons.length > 0,
   );
@@ -438,6 +438,27 @@ export default function FicheSaisieClient({
         (f.typeFiche === "ficheCote" || f.typeFiche === typeFiche)
       );
     });
+
+  const visibleLessons = useMemo(() => {
+    if (!selectedTeacher) return [];
+    const q = lessonSearch.trim().toLowerCase();
+    return selectedTeacher.lessons
+      .filter((l) => !isLocked(l))
+      .filter((l) => {
+        if (!q) return true;
+        return `${l.subjectName} ${l.codeclasse} ${l.className}`
+          .toLowerCase()
+          .includes(q);
+      });
+  }, [
+    selectedTeacher,
+    lessonSearch,
+    selectedPeriodId,
+    selectedYearId,
+    typeFiche,
+    canFilter,
+  ]);
+
   const columns = React.useMemo(
     () =>
       notesColumns(
@@ -490,22 +511,34 @@ export default function FicheSaisieClient({
           className="animate-fade-in overflow-hidden rounded-2xl border shadow-sm"
         >
           {/* ===== FILTRES + ACTIONS ===== */}
-          <div className="flex flex-col gap-4 border-b bg-muted/20 p-4 lg:p-5 xl:flex-row xl:items-end xl:justify-between">
-            {/* LEFT */}
-            <div className="flex flex-1 flex-col flex-wrap gap-3 sm:flex-row">
+          <div className="flex flex-col gap-4 border-b bg-muted/20 p-4 lg:flex-row lg:items-end lg:justify-between lg:p-5">
+            <div
+              className={cn(
+                "grid w-full min-w-0 flex-1 gap-3",
+                isAdmin
+                  ? "sm:grid-cols-2 xl:grid-cols-[minmax(0,1.55fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)]"
+                  : "sm:grid-cols-2 xl:grid-cols-3",
+              )}
+            >
               {isAdmin && (
-                <TeacherCombobox
-                  teachers={filteredTeachers}
-                  value={selectedTeacherId}
-                  onChange={(id) => {
-                    setSelectedTeacherId(id);
-                    setSelectedLessonId(null);
-                    setStudents([]);
-                  }}
-                />
+                <div className="flex min-w-0 flex-col gap-1.5 sm:col-span-2 xl:col-span-1">
+                  <span className="text-xs font-medium text-muted-foreground">
+                    Enseignant
+                  </span>
+                  <TeacherCombobox
+                    teachers={filteredTeachers}
+                    value={selectedTeacherId}
+                    onChange={(id) => {
+                      setSelectedTeacherId(id);
+                      setSelectedLessonId(null);
+                      setStudents([]);
+                    }}
+                  />
+                </div>
               )}
               <Combobox
-                placeholder="Année scolaire"
+                label="Année scolaire"
+                placeholder="Sélectionner une année"
                 items={schoolYears.map((y) => ({
                   value: y.id,
                   label: y.nameYear,
@@ -513,7 +546,6 @@ export default function FicheSaisieClient({
                 }))}
                 value={selectedYearId ?? ""}
                 onChange={(value) => setSelectedYearId(value || null)}
-                width={240}
               />
               {(() => {
                 const orderedPeriods = [...periods]
@@ -529,7 +561,8 @@ export default function FicheSaisieClient({
                   });
                 return (
                   <Combobox
-                    placeholder="Choisir une période"
+                    label="Période"
+                    placeholder="Sélectionner une période"
                     items={orderedPeriods.map((p) => ({
                       value: String(p.id),
                       label: p.label,
@@ -539,13 +572,13 @@ export default function FicheSaisieClient({
                     onChange={(value) =>
                       setSelectedPeriodId(value ? Number(value) : null)
                     }
-                    width={240}
                   />
                 );
               })()}
 
               <Combobox
-                placeholder="Choisir une fiche"
+                label="Type de fiche"
+                placeholder="Sélectionner une fiche"
                 items={
                   isAdmin
                     ? isExam
@@ -575,29 +608,28 @@ export default function FicheSaisieClient({
             </div>
 
             {/* RIGHT ACTIONS */}
-            <div className="flex flex-col gap-2 sm:flex-row">
+            <div className="flex shrink-0 flex-wrap items-center gap-1.5">
               <Button
                 onClick={handleSubmit}
                 disabled={!students.length}
-                /* className="w-full sm:w-auto" */
-                className="w-full sm:w-auto"
+                className="h-8 px-2.5 text-xs"
                 loading={isLoading}
                 size="sm"
               >
-                {isSubmitting ? "Enregistrement..." : "Enregistrer"}
+                {isSubmitting ? "…" : "Enregistrer"}
               </Button>
 
               <Button
                 variant="outline"
                 onClick={handleExport}
                 size="sm"
-                className="border-sky-600 text-sky-600! hover:bg-sky-600/10 focus-visible:border-sky-600 focus-visible:ring-sky-600/20 dark:border-sky-400 dark:text-sky-400! dark:hover:bg-sky-400/10 dark:focus-visible:border-sky-400 dark:focus-visible:ring-sky-400/40"
+                className="h-8 gap-1 border-sky-600 px-2 text-xs text-sky-600! hover:bg-sky-600/10 focus-visible:border-sky-600 focus-visible:ring-sky-600/20 dark:border-sky-400 dark:text-sky-400! dark:hover:bg-sky-400/10 dark:focus-visible:border-sky-400 dark:focus-visible:ring-sky-400/40"
               >
-                <FaFileExcel />
+                <FaFileExcel className="size-3.5" />
                 Export
               </Button>
-              <label className="inline-flex h-8 cursor-pointer items-center justify-center gap-2 rounded-md border border-sky-600 bg-background px-3 text-sm font-medium text-sky-600 shadow-xs transition-colors hover:bg-sky-600/10 sm:w-auto dark:border-sky-400 dark:text-sky-400 dark:hover:bg-sky-400/10">
-                <CircleFadingArrowUpIcon size={40} />
+              <label className="inline-flex h-8 cursor-pointer items-center justify-center gap-1 rounded-md border border-sky-600 bg-background px-2 text-xs font-medium text-sky-600 shadow-xs transition-colors hover:bg-sky-600/10 dark:border-sky-400 dark:text-sky-400 dark:hover:bg-sky-400/10">
+                <CircleFadingArrowUpIcon className="size-3.5" />
                 Import
                 <Input
                   type="file"
@@ -611,40 +643,75 @@ export default function FicheSaisieClient({
 
           {/* ===== CONTENU ===== */}
           <div className="grid grid-cols-1 gap-4 p-4 lg:grid-cols-12 lg:p-5">
-            {/* ===== MATIÈRES ===== */}
+            {/* ===== MATIÈRES (liste responsive type Settings domaines) ===== */}
             <Card className="col-span-1 overflow-hidden lg:col-span-4 xl:col-span-3">
-              <CardHeader className="border-b bg-muted/20 py-4">
-                <CardTitle className="text-base">Cours et classes</CardTitle>
+              <CardHeader className="space-y-3 border-b bg-muted/20 py-4">
+                <div>
+                  <CardTitle className="text-base">Cours et classes</CardTitle>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {selectedTeacher
+                      ? `${visibleLessons.length} cours affecté(s)`
+                      : "Choisissez un enseignant avec des cours affectés"}
+                  </p>
+                </div>
+                <div className="relative">
+                  <IconSearch className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    value={lessonSearch}
+                    onChange={(e) => setLessonSearch(e.target.value)}
+                    placeholder="Rechercher un cours…"
+                    className="pl-8"
+                    disabled={!selectedTeacher}
+                  />
+                </div>
               </CardHeader>
 
               <CardContent className="max-h-[520px] overflow-auto p-2">
-                <div className="min-w-[300px]">
-                  <DataTable
-                    className="min-w-fit"
-                    columns={lessonColumns(
-                      setSelectedLessonId,
-                      selectedLessonId,
-                    )}
-                    data={
-                      selectedTeacher
-                        ? selectedTeacher.lessons
-                            .filter((l) => !isLocked(l)) // cache les locked
-                            .map((l) => ({
-                              id: l.id,
-                              className: l.codeclasse,
-                              subjectName: l.subjectName,
-                              disabled: isLocked(l), // garde cohérence UI
-                            }))
-                        : []
-                    }
-                    onRowClick={(row) => {
-                      if (row.disabled) return;
-                      setSelectedLessonId(row.id);
-                    }}
-                    selectedRowId={selectedLessonId ?? undefined}
-                    getRowId={(row) => row.id}
-                  />
-                </div>
+                {!selectedTeacher ? (
+                  <p className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
+                    Sélectionnez un enseignant pour afficher ses cours affectés.
+                  </p>
+                ) : visibleLessons.length === 0 ? (
+                  <p className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
+                    Aucun cours affecté disponible pour cet enseignant.
+                  </p>
+                ) : (
+                  <ul className="divide-y rounded-xl border bg-background">
+                    {visibleLessons.map((lesson) => {
+                      const selected = selectedLessonId === lesson.id;
+                      return (
+                        <li key={lesson.id}>
+                          <button
+                            type="button"
+                            onClick={() => setSelectedLessonId(lesson.id)}
+                            className={cn(
+                              "flex w-full flex-col gap-1 px-3 py-3 text-left transition-colors hover:bg-muted/50 sm:flex-row sm:items-center sm:justify-between",
+                              selected && "bg-primary/5 ring-1 ring-inset ring-primary/30",
+                            )}
+                          >
+                            <div className="min-w-0">
+                              <p className="truncate text-sm font-medium">
+                                {lesson.subjectName}
+                              </p>
+                              <p className="truncate text-xs text-muted-foreground">
+                                {lesson.codeclasse}
+                                {lesson.className
+                                  ? ` · ${lesson.className}`
+                                  : ""}
+                              </p>
+                            </div>
+                            <Badge
+                              variant={selected ? "default" : "secondary"}
+                              className="w-fit shrink-0"
+                            >
+                              {selected ? "Sélectionné" : "Choisir"}
+                            </Badge>
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
               </CardContent>
             </Card>
 

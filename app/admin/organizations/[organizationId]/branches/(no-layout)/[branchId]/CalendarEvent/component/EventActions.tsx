@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useAppRouter as useRouter } from "@/hooks/use-app-router";
 import { Button } from "@/components/custom/button";
 import { IconDots } from "@tabler/icons-react";
 import {

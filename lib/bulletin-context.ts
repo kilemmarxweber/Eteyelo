@@ -17,7 +17,9 @@ export type BulletinBranchContext = {
   branchName: string;
   branchCode: string;
   address: string;
+  province: string;
   city: string;
+  commune: string;
   country: string;
   logoUrl: string;
   branchType: ManagedBranchType;
@@ -27,7 +29,9 @@ export type BulletinBranchRecord = {
   name: string;
   code?: string | null;
   adresse?: string | null;
+  province?: string | null;
   ville?: string | null;
+  commune?: string | null;
   pays?: string | null;
   image?: unknown;
   typebranch?: unknown;
@@ -94,7 +98,9 @@ export function buildBulletinBranchContext(
     branchName: branch.name.trim(),
     branchCode: branch.code?.trim() ?? "",
     address: branch.adresse?.trim() ?? "",
+    province: branch.province?.trim() ?? "",
     city: branch.ville?.trim() ?? "",
+    commune: branch.commune?.trim() ?? "",
     country: branch.pays?.trim() ?? "",
     logoUrl: resolveBulletinLogoUrl(branch.image, branch.organization.logo),
     branchType: normalizeBranchType(branch.typebranch),

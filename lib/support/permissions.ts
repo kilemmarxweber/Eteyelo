@@ -5,6 +5,7 @@ import {
   ORG_ROLE,
   hasPlatformSupportPrivileges,
   isAppAdminRole,
+  isPlatformOwnerRole,
 } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 import { getOrganizationSupportAgentForUser } from "@/lib/support/organization-support";
@@ -27,7 +28,7 @@ export async function isActivePlatformSupportAgentUser(
 export async function canManagePlatformSupport(): Promise<boolean> {
   const session = await getAuthSession();
   if (!session?.user?.id) return false;
-  if (isAppAdminRole(session.user.role)) return true;
+  if (isPlatformOwnerRole(session.user.role)) return true;
   return false;
 }
 
@@ -44,6 +45,7 @@ export async function canManagePlatformEscalations(): Promise<boolean> {
   const session = await getAuthSession();
   if (!session?.user?.id) return false;
   if (hasPlatformSupportPrivileges(session.user.role)) {
+    if (isPlatformOwnerRole(session.user.role)) return true;
     if (isAppAdminRole(session.user.role)) return true;
     return isActivePlatformSupportAgentUser(session.user.id);
   }
@@ -56,7 +58,19 @@ export async function canManageOrganizationSupport(
 ): Promise<boolean> {
   const session = await getAuthSession();
   if (!session?.user?.id) return false;
-  if (isAppAdminRole(session.user.role)) return true;
+  if (isPlatformOwnerRole(session.user.role)) return true;
+  if (isAppAdminRole(session.user.role)) {
+    const membership = await prisma.member.findUnique({
+      where: {
+        organizationId_userId: {
+          organizationId,
+          userId: session.user.id,
+        },
+      },
+      select: { id: true },
+    });
+    return membership != null;
+  }
 
   const member = await prisma.member.findUnique({
     where: {

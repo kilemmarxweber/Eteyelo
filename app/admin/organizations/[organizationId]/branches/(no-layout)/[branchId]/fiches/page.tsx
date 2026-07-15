@@ -97,7 +97,9 @@ export default async function ClassFichePage() {
         name: true,
         code: true,
         adresse: true,
+        province: true,
         ville: true,
+        commune: true,
         pays: true,
         image: true,
         typebranch: true,
@@ -142,6 +144,7 @@ export default async function ClassFichePage() {
       id: c?.id || "N/A",
       name: c?.nameClasse || "N/A",
       codename: c?.codeClasse || "N/A",
+      level: c?.level ?? null,
       capacity: 25,
       supervisor:
         teaching[0]?.teacher?.branchMember?.member?.user?.name ?? "N/A",

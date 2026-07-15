@@ -204,13 +204,18 @@ export async function createFiche(
           id: data.lessonId,
           teacherId: data.teacherId,
           classeId: data.classId,
-          OR: [
-            { branchId },
+          OR: [{ statusTeaching: true }, { statusTeaching: null }],
+          AND: [
             {
-              branchId: null,
-              classe: {
-                branchId,
-              },
+              OR: [
+                { branchId },
+                {
+                  branchId: null,
+                  classe: {
+                    branchId,
+                  },
+                },
+              ],
             },
           ],
         },
@@ -248,13 +253,18 @@ export async function createFiche(
           id: data.lessonId,
           teacherId: data.teacherId,
           classeId: data.classId,
-          OR: [
-            { branchId },
+          OR: [{ statusTeaching: true }, { statusTeaching: null }],
+          AND: [
             {
-              branchId: null,
-              classe: {
-                branchId,
-              },
+              OR: [
+                { branchId },
+                {
+                  branchId: null,
+                  classe: {
+                    branchId,
+                  },
+                },
+              ],
             },
           ],
         },
@@ -365,18 +375,32 @@ export async function createFiche(
         const lessons = await prisma.teaching.findMany({
           where: {
             classeId: data.classId,
-            OR: [
-              { branchId },
+            schoolYearId: annees.id,
+            OR: [{ statusTeaching: true }, { statusTeaching: null }],
+            AND: [
               {
-                branchId: null,
-                classe: {
-                  branchId,
-                },
+                OR: [
+                  { branchId },
+                  {
+                    branchId: null,
+                    classe: {
+                      branchId,
+                    },
+                  },
+                ],
               },
             ],
           },
           include: { cours: true, classe: true },
         });
+        if (lessons.length === 0) {
+          return {
+            success: false,
+            error: true,
+            message:
+              "Aucun cours affecté à un enseignant pour cette classe. Affectez d'abord les cours.",
+          };
+        }
         const ponderationMap = await getCoursePonderationMap({
           branchId,
           pairs: lessons.map((lesson) => ({

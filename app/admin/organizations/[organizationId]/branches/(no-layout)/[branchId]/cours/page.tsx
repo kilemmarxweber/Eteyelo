@@ -1,4 +1,4 @@
-import { redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
 import { canAccessTeachingArea } from "@/lib/auth/session-roles";
@@ -6,11 +6,11 @@ import { canAccessTeachingArea } from "@/lib/auth/session-roles";
 import Cours from "./components/coursClient";
 
 export default async function Page() {
-  const { session } = await requireBranchContext();
+  const { session, typebranch } = await requireBranchContext();
 
   if (!canAccessTeachingArea(session)) {
-    redirect("/not-authorized");
+    notFound();
   }
 
-  return <Cours />;
+  return <Cours isPrimary={typebranch === "PRIMAIRE"} />;
 }

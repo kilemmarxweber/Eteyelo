@@ -7,47 +7,56 @@ import {
   getCoreRowModel,
   flexRender,
 } from "@tanstack/react-table";
-import { Eye } from "lucide-react";
-import { FileText } from "lucide-react";
+import { Eye, FileText, MessageSquare } from "lucide-react";
 import Link from "next/link";
-import { MessageSquare } from "lucide-react";
+import { useParams } from "next/navigation";
+
+type InterventionResult = Result & {
+  ficheId?: string;
+};
 
 export default function ResultTable({
   data,
   totalPercentage,
 }: {
-  data: Result[];
+  data: InterventionResult[];
   totalPercentage: string;
 }) {
-  // 🔹 Regrouper les données par subject
+  const params = useParams<{ organizationId: string; branchId: string }>();
+  const organizationId = params.organizationId;
+  const branchId = params.branchId;
+  const fichesBaseHref =
+    organizationId && branchId
+      ? `/admin/organizations/${organizationId}/branches/${branchId}/fiches`
+      : null;
+
   const subjectsData = data;
 
   const columns = [
     {
       accessorKey: "name",
       header: "Nom",
-      cell: ({ row }) => (
-        <span>
-          {row.original.TypeFiche ? (
-            // 👉 Si typeFiche existe → texte simple
-            <span className="text-blue-500 flex items-center gap-1">
-              {row.original.name}{" "}
-              <FileText size={16} className="text-red-500" />
-            </span>
-          ) : (
-            // 👉 Sinon → lien
+      cell: ({ row }) => {
+        const ficheHref =
+          fichesBaseHref && row.original.ficheId
+            ? `${fichesBaseHref}/${row.original.ficheId}`
+            : null;
 
-            <Link
-              href={`/admin/results/${encodeURIComponent(
-                row.original.name,
-              )}?studentId=${row.original.id}&period=${row.original.periodName}`}
-              className="text-blue-600 hover:underline font-medium"
-            >
-              {row.original.name}
-            </Link>
-          )}
-        </span>
-      ),
+        return ficheHref ? (
+          <Link
+            href={ficheHref}
+            className="inline-flex items-center gap-1 font-medium text-blue-600 hover:underline"
+          >
+            {row.original.name}
+            <FileText size={16} className="text-red-500" />
+          </Link>
+        ) : (
+          <span className="flex items-center gap-1 text-blue-500">
+            {row.original.name}
+            <FileText size={16} className="text-red-500" />
+          </span>
+        );
+      },
     },
     { accessorKey: "date", header: "Échéance" },
     {
@@ -55,7 +64,7 @@ export default function ResultTable({
       header: "Statut",
       cell: ({ row }) =>
         row.original.status ? (
-          <span className="px-2 py-1 text-xs bg-blue-100 rounded-full">
+          <span className="rounded-full bg-blue-100 px-2 py-1 text-xs">
             {row.original.status}
           </span>
         ) : null,
@@ -69,8 +78,8 @@ export default function ResultTable({
           <span
             className={
               note >= row.original.total / 2
-                ? "text-green-600 font-medium"
-                : "text-red-500 font-medium"
+                ? "font-medium text-green-600"
+                : "font-medium text-red-500"
             }
           >
             {note}
@@ -82,32 +91,38 @@ export default function ResultTable({
     {
       accessorKey: "action",
       header: "",
-      cell: ({ row }) => (
-        <span>
-          {row.original.TypeFiche ? (
-            // 👉 Si typeFiche existe → texte simple
-            <span className="text-blue-500 flex items-center gap-1">
+      cell: ({ row }) => {
+        const ficheHref =
+          fichesBaseHref && row.original.ficheId
+            ? `${fichesBaseHref}/${row.original.ficheId}`
+            : null;
+
+        if (row.original.Comment) {
+          return (
+            <span className="flex items-center gap-1 text-blue-500">
               {row.original.Comment}
             </span>
-          ) : (
-            <div className="flex items-center gap-3 justify-end">
-              {/* Submit */}
-              <Eye
-                size={16}
-                className="text-blue-500 hover:text-blue-500 cursor-pointer"
-              />
+          );
+        }
 
-              {/* Feedback */}
-              <MessageSquare
-                size={16}
-                className="text-green-500 hover:text-green-500 cursor-pointer"
-              />
-            </div>
-          )}
-        </span>
-      ),
+        if (!ficheHref) return null;
+
+        return (
+          <div className="flex items-center justify-end gap-3">
+            <Link
+              href={ficheHref}
+              title="Voir le détail de l'intervention"
+              className="text-blue-500 hover:text-blue-600"
+            >
+              <Eye size={16} />
+            </Link>
+            <MessageSquare size={16} className="cursor-pointer text-green-500" />
+          </div>
+        );
+      },
     },
   ] as ColumnDef<(typeof subjectsData)[0]>[];
+
   const table = useReactTable({
     data: subjectsData,
     columns,
@@ -120,12 +135,13 @@ export default function ResultTable({
   totalPercentage =
     totalMax > 0
       ? data[0]?.TypeFiche
-        ? ((((totalScore / totalMax) * maxscore) / maxscore) * 100).toFixed(1) // sur 50
-        : ((totalScore / totalMax) * 100).toFixed(1) // %
+        ? ((((totalScore / totalMax) * maxscore) / maxscore) * 100).toFixed(1)
+        : ((totalScore / totalMax) * 100).toFixed(1)
       : "0.0";
+
   const groupedByType = data.reduce(
     (acc, item) => {
-      const key = `${item.TypeFiche}`; // status = periodeName
+      const key = `${item.TypeFiche}`;
       if (!acc[key]) {
         acc[key] = {
           totalNote: 0,
@@ -140,117 +156,114 @@ export default function ResultTable({
     },
     {} as Record<string, { totalNote: number; totalMax: number }>,
   );
+
   return (
-    <>
-      {/* TABLE */}
-      <table className="w-full text-sm text-left mb-4">
-        <thead>
-          {table.getHeaderGroups().map((headerGroup) => (
-            <tr key={headerGroup.id} className="border-b">
-              {headerGroup.headers.map((header) => (
-                <th key={header.id} className="py-2">
-                  {flexRender(
-                    header.column.columnDef.header,
-                    header.getContext(),
-                  )}
-                </th>
-              ))}
-            </tr>
-          ))}
-        </thead>
-
-        <tbody>
-          {table.getRowModel().rows.map((row) => (
-            <tr key={row.id} className="border-b">
-              {row.getVisibleCells().map((cell) => (
-                <td key={cell.id} className="py-2">
-                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                </td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-        <tfoot className="text-sm">
-          {[
-            "TP",
-            "Projets",
-            "Tests Standardisés",
-            "Assignments",
-            "Devoir",
-            "Veilles",
-            "Evaluation",
-            "Discipline",
-            "Rétrospectives",
-          ].map((label, i) => {
-            const group = groupedByType[label];
-
-            const totalNote = group?.totalNote ?? 0;
-            const totalMax = group?.totalMax ?? 0;
-
-            const percentage =
-              totalMax > 0 ? ((totalNote / totalMax) * 100).toFixed(2) : "0.00";
-
-            return (
-              <tr key={i} className="border-b last:border-none">
-                <td className="py-2 font-medium text-gray-700">{label}</td>
-                <td />
-                <td />
-                <td className="text-right font-medium text-gray-800">
-                  {totalMax > 0 ? `${percentage}%` : "NA"}
-                </td>
-                <td className="text-right text-gray-500">
-                  {totalMax > 0
-                    ? `${totalNote.toFixed(2)} / ${totalMax.toFixed(2)}`
-                    : "0,00 / 0,00"}
-                </td>
-              </tr>
-            );
-          })}
-
-          {/* TOTAL */}
-          <tr className="border-t-2 font-semibold text-base">
-            <td className="py-3">Total</td>
-            <td />
-            <td />
-            <td
-              className={`text-right ${
-                Number(totalPercentage) < 50 ? "text-red-500" : "text-gray-800"
-              }`}
-            >
-              {totalPercentage}%
-            </td>
-            <td className="text-right">
-              {data[0]?.TypeFiche ? (
-                <>
-                  <span
-                    className={
-                      (totalScore / totalMax) * maxscore < maxscore / 2
-                        ? "text-red-500 font-semibold"
-                        : "text-green-600 font-semibold"
-                    }
-                  >
-                    {((totalScore / totalMax) * maxscore).toFixed(2)}
-                  </span>{" "}
-                  / {maxscore}
-                </>
-              ) : (
-                <>
-                  <span
-                    className={
-                      totalScore < totalMax / 2
-                        ? "text-red-500 font-semibold"
-                        : "text-green-600 font-semibold"
-                    }
-                  >
-                    {totalScore.toFixed(1)}
-                  </span>{" "}
-                  / {totalMax.toFixed(0)}
-                </>
-              )}
-            </td>
+    <table className="mb-4 w-full text-left text-sm">
+      <thead>
+        {table.getHeaderGroups().map((headerGroup) => (
+          <tr key={headerGroup.id} className="border-b">
+            {headerGroup.headers.map((header) => (
+              <th key={header.id} className="py-2">
+                {flexRender(
+                  header.column.columnDef.header,
+                  header.getContext(),
+                )}
+              </th>
+            ))}
           </tr>
-        </tfoot>
-      </table>
-    </>
+        ))}
+      </thead>
+
+      <tbody>
+        {table.getRowModel().rows.map((row) => (
+          <tr key={row.id} className="border-b">
+            {row.getVisibleCells().map((cell) => (
+              <td key={cell.id} className="py-2">
+                {flexRender(cell.column.columnDef.cell, cell.getContext())}
+              </td>
+            ))}
+          </tr>
+        ))}
+      </tbody>
+      <tfoot className="text-sm">
+        {[
+          "TP",
+          "Projets",
+          "Tests Standardisés",
+          "Assignments",
+          "Devoir",
+          "Veilles",
+          "Evaluation",
+          "Discipline",
+          "Rétrospectives",
+        ].map((label, i) => {
+          const group = groupedByType[label];
+
+          const totalNote = group?.totalNote ?? 0;
+          const groupMax = group?.totalMax ?? 0;
+
+          const percentage =
+            groupMax > 0 ? ((totalNote / groupMax) * 100).toFixed(2) : "0.00";
+
+          return (
+            <tr key={i} className="border-b last:border-none">
+              <td className="py-2 font-medium text-gray-700">{label}</td>
+              <td />
+              <td />
+              <td className="text-right font-medium text-gray-800">
+                {groupMax > 0 ? `${percentage}%` : "NA"}
+              </td>
+              <td className="text-right text-gray-500">
+                {groupMax > 0
+                  ? `${totalNote.toFixed(2)} / ${groupMax.toFixed(2)}`
+                  : "0,00 / 0,00"}
+              </td>
+            </tr>
+          );
+        })}
+
+        <tr className="border-t-2 text-base font-semibold">
+          <td className="py-3">Total</td>
+          <td />
+          <td />
+          <td
+            className={`text-right ${
+              Number(totalPercentage) < 50 ? "text-red-500" : "text-gray-800"
+            }`}
+          >
+            {totalPercentage}%
+          </td>
+          <td className="text-right">
+            {data[0]?.TypeFiche ? (
+              <>
+                <span
+                  className={
+                    (totalScore / totalMax) * maxscore < maxscore / 2
+                      ? "font-semibold text-red-500"
+                      : "font-semibold text-green-600"
+                  }
+                >
+                  {((totalScore / totalMax) * maxscore).toFixed(2)}
+                </span>{" "}
+                / {maxscore}
+              </>
+            ) : (
+              <>
+                <span
+                  className={
+                    totalScore < totalMax / 2
+                      ? "font-semibold text-red-500"
+                      : "font-semibold text-green-600"
+                  }
+                >
+                  {totalScore.toFixed(1)}
+                </span>{" "}
+                / {totalMax.toFixed(0)}
+              </>
+            )}
+          </td>
+        </tr>
+      </tfoot>
+    </table>
   );
 }

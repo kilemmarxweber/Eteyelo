@@ -1,8 +1,9 @@
 "use client";
 import Link from "next/link";
 import { Archive, Loader2, Pencil, RotateCcw } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useAppRouter as useRouter } from "@/hooks/use-app-router";
+import { useState } from "react";
+import { useAppTransition as useTransition } from "@/hooks/use-app-transition";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { setPartenaireActiveAction } from "./actions";

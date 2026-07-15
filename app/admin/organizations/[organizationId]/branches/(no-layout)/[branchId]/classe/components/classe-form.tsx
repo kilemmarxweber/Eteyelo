@@ -45,10 +45,14 @@ import {
 import {
   buildClassName,
   getClassLevelsForBranch,
+  getClassLevelLabel,
   getBranchTypeLabel,
   requiresOptionForClass,
   allowsOptionForBranch,
+  isCtebLevel,
+  isHumanitesLevel,
 } from "@/lib/class-structure";
+import { CTEB_SECTION_CODE } from "@/lib/class-catalog";
 import { ManagedBranchType } from "@/lib/academic-structure";
 import { IOption } from "@/src/interfaces/Option";
 import { ICreneau } from "@/src/interfaces/creneau";
@@ -92,9 +96,12 @@ export function ClasseUpForm({
   const [errorMessage, setErrorMessage] = useState("");
   const [options, setOptions] = useState<IOption[]>([]);
   const [optionSearch, setOptionSearch] = useState("");
+  const [selectedSectionId, setSelectedSectionId] = useState("");
   const [creneauSearch, setCreneauSearch] = useState("");
   const [creneaux, setCreneaux] = useState<ICreneau[]>([]);
   const [branchType, setBranchType] = useState<ManagedBranchType>("SECONDAIRE");
+  const [optionOpen, setOptionOpen] = useState(false);
+  const [creneauOpen, setCreneauOpen] = useState(false);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -171,6 +178,40 @@ export function ClasseUpForm({
     (allowsOptionForBranch(branchType) &&
       (isLegacyUpdate || requiresOptionForClass(branchType, watchedLevel ?? "")));
 
+  const sections = useMemo(() => {
+    const map = new Map<string, { id: string; name: string; code: string }>();
+    for (const option of options) {
+      if (!option.sectionId) continue;
+      if (!map.has(option.sectionId)) {
+        map.set(option.sectionId, {
+          id: option.sectionId,
+          name: option.nameSection || option.sectionId,
+          code: option.codeSection || "",
+        });
+      }
+    }
+    return Array.from(map.values()).sort((a, b) =>
+      a.name.localeCompare(b.name, "fr"),
+    );
+  }, [options]);
+
+  const sectionsForLevel = useMemo(() => {
+    if (!watchedLevel || branchType !== "SECONDAIRE") return sections;
+    if (isCtebLevel(watchedLevel)) {
+      return sections.filter((s) => s.code === CTEB_SECTION_CODE);
+    }
+    if (isHumanitesLevel(watchedLevel)) {
+      return sections.filter((s) => s.code !== CTEB_SECTION_CODE);
+    }
+    return sections;
+  }, [branchType, sections, watchedLevel]);
+
+  const optionsForSection = useMemo(() => {
+    if (branchType === "PRIMAIRE") return options;
+    if (!selectedSectionId) return [];
+    return options.filter((o) => o.sectionId === selectedSectionId);
+  }, [branchType, options, selectedSectionId]);
+
   useEffect(() => {
     if (branchType !== "PRIMAIRE") return;
     const primaryOption = options.find(
@@ -180,6 +221,44 @@ export function ClasseUpForm({
       form.setValue("optionId", primaryOption.id);
     }
   }, [branchType, form, options]);
+
+  useEffect(() => {
+    if (branchType !== "SECONDAIRE" || !watchedLevel) return;
+
+    if (isCtebLevel(watchedLevel)) {
+      const cteb = sections.find((s) => s.code === CTEB_SECTION_CODE);
+      if (cteb) setSelectedSectionId(cteb.id);
+      const tronc = options.find(
+        (o) =>
+          o.codeSection === CTEB_SECTION_CODE &&
+          o.nameOption.toLowerCase().includes("tronc"),
+      );
+      if (tronc) form.setValue("optionId", tronc.id);
+      return;
+    }
+
+    if (
+      selectedSectionId &&
+      !sectionsForLevel.some((s) => s.id === selectedSectionId)
+    ) {
+      setSelectedSectionId("");
+      form.setValue("optionId", "");
+    }
+  }, [
+    branchType,
+    watchedLevel,
+    sections,
+    sectionsForLevel,
+    selectedSectionId,
+    options,
+    form,
+  ]);
+
+  useEffect(() => {
+    if (!watchedOptionId || selectedSectionId) return;
+    const opt = options.find((o) => o.id === watchedOptionId);
+    if (opt?.sectionId) setSelectedSectionId(opt.sectionId);
+  }, [watchedOptionId, options, selectedSectionId]);
 
   const previewName = useMemo(() => {
     if (isLegacyUpdate) return null;
@@ -205,7 +284,7 @@ export function ClasseUpForm({
     watchedParallel,
   ]);
 
-  const filteredOptions = options.filter((option) =>
+  const filteredOptions = optionsForSection.filter((option) =>
     option.nameOption.toLowerCase().includes(optionSearch.toLowerCase()),
   );
 
@@ -307,7 +386,11 @@ export function ClasseUpForm({
                     <FormItem>
                       <FormLabel>Niveau</FormLabel>
                       <Select
-                        onValueChange={field.onChange}
+                        onValueChange={(value) => {
+                          field.onChange(value);
+                          form.setValue("optionId", "");
+                          if (!isCtebLevel(value)) setSelectedSectionId("");
+                        }}
                         value={field.value || undefined}
                       >
                         <SelectTrigger>
@@ -316,7 +399,7 @@ export function ClasseUpForm({
                         <SelectContent>
                           {classLevels.map((level) => (
                             <SelectItem key={level} value={level}>
-                              {level}
+                              {getClassLevelLabel(branchType, level)}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -344,7 +427,7 @@ export function ClasseUpForm({
                         />
                       </FormControl>
                       <FormDescription>
-                        Permet de distinguer 1er A, 1er B, etc.
+                        Distingue les classes du meme niveau (ex. 1è-PR A, 1è Biologie-Chimie B).
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -360,6 +443,31 @@ export function ClasseUpForm({
               </>
             )}
 
+            {showOptionField && branchType === "SECONDAIRE" && (
+              <FormItem>
+                <FormLabel>Section (filière)</FormLabel>
+                <Select
+                  value={selectedSectionId || undefined}
+                  onValueChange={(value) => {
+                    setSelectedSectionId(value);
+                    form.setValue("optionId", "");
+                  }}
+                  disabled={isCtebLevel(watchedLevel ?? "")}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selectionner une section" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {sectionsForLevel.map((section) => (
+                      <SelectItem key={section.id} value={section.id}>
+                        {section.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </FormItem>
+            )}
+
             {showOptionField && (
               <FormField
                 control={form.control}
@@ -367,12 +475,18 @@ export function ClasseUpForm({
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
                     <FormLabel>Option</FormLabel>
-                    <Popover>
+                    <Popover open={optionOpen} onOpenChange={setOptionOpen}>
                       <PopoverTrigger asChild>
                         <button
                           type="button"
-                          disabled={branchType === "PRIMAIRE"}
+                          disabled={
+                            branchType === "PRIMAIRE" ||
+                            isCtebLevel(watchedLevel ?? "") ||
+                            !selectedSectionId
+                          }
                           role="combobox"
+                          aria-expanded={optionOpen}
+                          aria-controls="classe-option-listbox"
                           className={cn(
                             buttonVariants({ variant: "outline" }),
                             "h-10 w-full justify-between font-normal",
@@ -384,12 +498,14 @@ export function ClasseUpForm({
                                 ?.nameOption
                             : branchType === "PRIMAIRE"
                               ? "PRIMAIRE"
-                              : "Selectionner une option"}
+                              : !selectedSectionId
+                                ? "Choisir d'abord une section"
+                                : "Selectionner une option"}
                           <IconSelector className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                         </button>
                       </PopoverTrigger>
                       <PopoverContent className="p-0">
-                        <Command>
+                        <Command id="classe-option-listbox">
                           <CommandInput
                             placeholder="Rechercher une option..."
                             value={optionSearch}
@@ -457,11 +573,13 @@ export function ClasseUpForm({
               render={({ field }) => (
                 <FormItem className="flex flex-col">
                   <FormLabel>Vacation</FormLabel>
-                  <Popover>
+                  <Popover open={creneauOpen} onOpenChange={setCreneauOpen}>
                     <PopoverTrigger asChild>
                       <button
                         type="button"
                         role="combobox"
+                        aria-expanded={creneauOpen}
+                        aria-controls="classe-creneau-listbox"
                         className={cn(
                           buttonVariants({ variant: "outline" }),
                           "h-10 w-full justify-between font-normal",
@@ -476,7 +594,7 @@ export function ClasseUpForm({
                       </button>
                     </PopoverTrigger>
                     <PopoverContent className="p-0">
-                      <Command>
+                      <Command id="classe-creneau-listbox">
                         <CommandInput
                           placeholder="Rechercher une vacation..."
                           value={creneauSearch}

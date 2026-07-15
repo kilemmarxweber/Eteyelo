@@ -1,5 +1,6 @@
 "use client";
 
+import { useAppTransition as useTransition } from "@/hooks/use-app-transition";
 import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { ColumnDef } from "@tanstack/react-table";
@@ -10,11 +11,20 @@ import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { getFichesGroupedByCoursAnnee } from "@/lib/actions";
 import { DataTableToolbar } from "./data-table-toolbar";
-import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { deleteFicheCentrale } from "../fichecentrale.action";
+import { IconClipboardList } from "@tabler/icons-react";
 
 interface FichecentralTableProps {
-  refreshKey?: string;
   organizationId: string;
   branchId: string;
 }
@@ -62,12 +72,18 @@ const getColumns = (
   {
     accessorKey: "id",
     header: "N° Fiche",
-    cell: ({ row }) =>
-      row.original.id ? `${row.original.id.slice(0, 8)}...` : "N/A",
+    cell: ({ row }) => (
+      <span className="font-mono text-xs text-muted-foreground">
+        {row.original.id ? `${row.original.id.slice(0, 8)}…` : "N/A"}
+      </span>
+    ),
   },
   {
     accessorKey: "teacherName",
-    header: "Teacher",
+    header: "Enseignant",
+    cell: ({ row }) => (
+      <span className="font-medium">{row.original.teacherName}</span>
+    ),
   },
   {
     accessorKey: "className",
@@ -81,7 +97,7 @@ const getColumns = (
     accessorKey: "subjectName",
     header: "Cours",
     cell: ({ row }) => (
-      <span className="text-green-600">{row.original.subjectName}</span>
+      <span className="font-medium">{row.original.subjectName}</span>
     ),
     filterFn: (row, id, value) => {
       if (Array.isArray(value)) return includesArrayValue(row.getValue(id), value);
@@ -107,6 +123,9 @@ const getColumns = (
   {
     accessorKey: "nombreIntervention",
     header: "Interventions",
+    cell: ({ row }) => (
+      <span className="tabular-nums">{row.original.nombreIntervention}</span>
+    ),
   },
   {
     accessorKey: "uiStatus",
@@ -122,21 +141,34 @@ const getColumns = (
   {
     id: "actions",
     header: "Actions",
-    cell: ({ row }) => <div className="flex items-center gap-2">
-      <Button asChild variant="outline" size="sm"><Link href={getFicheHref(row.original, organizationId, branchId)}><Eye className="h-4 w-4" />Voir / Valider</Link></Button>
-      <DeleteCentralFicheButton fiche={row.original} onDeleted={() => onDeleted(row.original.id)} />
-    </div>,
+    cell: ({ row }) => (
+      <div className="flex items-center gap-2">
+        <Button asChild variant="outline" size="sm" className="gap-1.5">
+          <Link href={getFicheHref(row.original, organizationId, branchId)}>
+            <Eye className="size-3.5" />
+            Voir
+          </Link>
+        </Button>
+        <DeleteCentralFicheButton
+          fiche={row.original}
+          onDeleted={() => onDeleted(row.original.id)}
+        />
+      </div>
+    ),
   },
 ];
 
-const FichecentralTable: React.FC<FichecentralTableProps> = ({
+export default function FichecentralTable({
   organizationId,
   branchId,
-}) => {
+}: FichecentralTableProps) {
   const [fiches, setFiches] = useState<FicheTableRow[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const columns = useMemo(
-    () => getColumns(organizationId, branchId, id => setFiches(current => current.filter(item => item.id !== id))),
+    () =>
+      getColumns(organizationId, branchId, (id) =>
+        setFiches((current) => current.filter((item) => item.id !== id)),
+      ),
     [organizationId, branchId],
   );
 
@@ -168,6 +200,7 @@ const FichecentralTable: React.FC<FichecentralTableProps> = ({
         );
       } catch (error) {
         console.error("Erreur chargement fiches:", error);
+        toast.error("Impossible de charger les fiches centrales.");
       } finally {
         setLoading(false);
       }
@@ -176,45 +209,117 @@ const FichecentralTable: React.FC<FichecentralTableProps> = ({
     fetchFiches();
   }, []);
 
-  const tableData = useMemo(() => fiches, [fiches]);
-
   if (loading) {
-    return <div className="p-2 text-sm text-muted-foreground">Chargement...</div>;
+    return (
+      <div className="flex w-full min-h-[220px] flex-col items-center justify-center gap-3 rounded-lg border border-dashed bg-muted/10 px-6 py-12">
+        <Loader2 className="size-6 shrink-0 animate-spin text-muted-foreground" />
+        <p className="max-w-7xl text-center text-sm leading-relaxed text-muted-foreground text-balance">
+          Chargement des fiches…
+        </p>
+      </div>
+    );
+  }
+
+  if (fiches.length === 0) {
+    return (
+      <div className="flex w-full min-h-[220px] flex-col items-center justify-center gap-3 rounded-lg border border-dashed bg-muted/10 px-6 py-12">
+        <IconClipboardList className="size-8 shrink-0 text-muted-foreground/50" />
+        <p className="max-w-7xl text-center text-sm leading-relaxed text-muted-foreground text-balance">
+          Aucune fiche centrale en attente pour l&apos;année en cours.
+        </p>
+      </div>
+    );
   }
 
   return (
     <ResponsiveDataTable
       ToolbarComponent={DataTableToolbar}
       columns={columns}
-      data={tableData}
+      data={fiches}
       emptyText="Aucune fiche enregistrée"
       mobileCardTitle={(row) => row.subjectName}
-      mobileCardSubtitle={(row) => `${row.className} - ${row.periodName}`}
+      mobileCardSubtitle={(row) => `${row.className} · ${row.periodName}`}
       mobileCardBadges={(row) => [
         { label: row.anneeName || "Aucune année", variant: "secondary" },
-        { label: row.uiStatus, variant: row.uiStatus === "Validée" ? "outline" : "secondary" },
+        {
+          label: row.uiStatus,
+          variant: row.uiStatus === "Validée" ? "outline" : "secondary",
+        },
       ]}
       mobileCardActions={(row) => (
-        <div className="flex flex-1 gap-2"><Button asChild variant="outline" size="sm" className="flex-1">
-          <Link href={getFicheHref(row, organizationId, branchId)}>
-            <Eye className="h-4 w-4" />
-            Voir / Valider
-          </Link>
-        </Button><DeleteCentralFicheButton fiche={row} onDeleted={() => setFiches(current => current.filter(item => item.id !== row.id))} /></div>
+        <div className="flex flex-1 gap-2">
+          <Button asChild variant="outline" size="sm" className="flex-1 gap-1.5">
+            <Link href={getFicheHref(row, organizationId, branchId)}>
+              <Eye className="size-3.5" />
+              Voir
+            </Link>
+          </Button>
+          <DeleteCentralFicheButton
+            fiche={row}
+            onDeleted={() =>
+              setFiches((current) => current.filter((item) => item.id !== row.id))
+            }
+          />
+        </div>
       )}
     />
   );
-};
-
-function DeleteCentralFicheButton({ fiche, onDeleted }: { fiche: FicheTableRow; onDeleted: () => void }) {
-  const [open, setOpen] = useState(false);
-  const [pending, startTransition] = React.useTransition();
-  const remove = () => startTransition(async () => {
-    const result = await deleteFicheCentrale({ lessonId: fiche.lessonId, classId: fiche.classId, periodId: fiche.periodId, anneeId: fiche.anneeId });
-    if (!result.success) { toast.error(result.message); return; }
-    toast.success(result.message); setOpen(false); onDeleted();
-  });
-  return <Dialog open={open} onOpenChange={setOpen}><DialogTrigger asChild><Button type="button" variant="destructive" size="sm"><Trash2 className="size-4" /><span className="sr-only">Supprimer</span></Button></DialogTrigger><DialogContent><DialogHeader><DialogTitle>Supprimer cette fiche centrale ?</DialogTitle><DialogDescription>La fiche {fiche.uiStatus === "Validée" ? "validée" : "non validée"}, sa fiche globale et ses {fiche.nombreIntervention} intervention(s) seront définitivement supprimées. Cette action est irréversible.</DialogDescription></DialogHeader><DialogFooter className="gap-2"><DialogClose asChild><Button variant="outline">Annuler</Button></DialogClose><Button variant="destructive" disabled={pending} onClick={remove}>{pending && <Loader2 className="mr-2 size-4 animate-spin" />}Supprimer</Button></DialogFooter></DialogContent></Dialog>;
 }
 
-export default FichecentralTable;
+function DeleteCentralFicheButton({
+  fiche,
+  onDeleted,
+}: {
+  fiche: FicheTableRow;
+  onDeleted: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [pending, startTransition] = useTransition();
+
+  const remove = () =>
+    startTransition(async () => {
+      const result = await deleteFicheCentrale({
+        lessonId: fiche.lessonId,
+        classId: fiche.classId,
+        periodId: fiche.periodId,
+        anneeId: fiche.anneeId,
+      });
+      if (!result.success) {
+        toast.error(result.message);
+        return;
+      }
+      toast.success(result.message);
+      setOpen(false);
+      onDeleted();
+    });
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button type="button" variant="outline" size="sm" className="gap-1.5 text-destructive hover:bg-destructive/10 hover:text-destructive">
+          <Trash2 className="size-3.5" />
+          <span className="sr-only">Supprimer</span>
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Supprimer cette fiche centrale ?</DialogTitle>
+          <DialogDescription>
+            La fiche {fiche.uiStatus === "Validée" ? "validée" : "non validée"},
+            sa fiche globale et ses {fiche.nombreIntervention} intervention(s)
+            seront définitivement supprimées. Cette action est irréversible.
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter className="gap-2">
+          <DialogClose asChild>
+            <Button variant="outline">Annuler</Button>
+          </DialogClose>
+          <Button variant="destructive" disabled={pending} onClick={remove}>
+            {pending && <Loader2 className="mr-2 size-4 animate-spin" />}
+            Supprimer
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}

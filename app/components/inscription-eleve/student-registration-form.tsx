@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useState } from "react";
+import Image from "next/image";
+import { useAppTransition as useTransition } from "@/hooks/use-app-transition";
 import {
   Camera,
   Check,
@@ -12,6 +14,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
+import { CameraCaptureDialog } from "@/components/camera-capture-dialog";
 import { HomeNavbar } from "@/components/home-navbar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -27,7 +30,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { uploadFile } from "@/lib/upload-file";
+import { generateSlug } from "@/lib/generated-identifiers";
 import { registerStudentOnline } from "./insption.actions";
+import { LevelSectionOptionFields } from "@/components/level-section-option-fields";
+import type { ManagedBranchType } from "@/lib/academic-structure";
+import { isPrimaryBranch } from "@/lib/class-structure";
 
 type Branch = {
   id: string;
@@ -35,6 +42,7 @@ type Branch = {
   ville: string | null;
   pays: string | null;
   image: unknown;
+  typebranch: ManagedBranchType;
 };
 type Guardian = {
   name: string;
@@ -48,6 +56,9 @@ type Guardian = {
   isPrimary: boolean;
 };
 
+const STUDENT_EMAIL_DOMAIN = "klambocore.com";
+const PRIMARY_MIN_AGE = 5;
+
 const emptyGuardian = (isPrimary: boolean): Guardian => ({
   name: "",
   postnom: "",
@@ -60,12 +71,35 @@ const emptyGuardian = (isPrimary: boolean): Guardian => ({
   isPrimary,
 });
 
+function previewStudentEmail(prenom: string, name: string) {
+  return `${generateSlug(`${prenom}.${name}`, "eleve")}@${STUDENT_EMAIL_DOMAIN}`;
+}
+
+function ageFromDate(dateStr: string) {
+  const birth = new Date(dateStr);
+  if (Number.isNaN(birth.getTime())) return null;
+  const today = new Date();
+  let age = today.getFullYear() - birth.getFullYear();
+  const monthDiff = today.getMonth() - birth.getMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+    age -= 1;
+  }
+  return age;
+}
+
+function maxBirthDateForMinAge(minAge: number) {
+  const date = new Date();
+  date.setFullYear(date.getFullYear() - minAge);
+  return date.toISOString().slice(0, 10);
+}
+
 export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
   const [step, setStep] = useState(0);
   const [isPending, startTransition] = useTransition();
   const [reference, setReference] = useState("");
   const [photo, setPhoto] = useState<File | null>(null);
   const [secondGuardian, setSecondGuardian] = useState(false);
+  const [cameraOpen, setCameraOpen] = useState(false);
   const [form, setForm] = useState({
     branchId: "",
     name: "",
@@ -75,8 +109,6 @@ export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
     dateOfBirth: "",
     placeOfBirth: "",
     address: "",
-    email: "",
-    telephone: "",
     provenanceEcole: "",
     requestedLevel: "",
     requestedSection: "",
@@ -98,14 +130,41 @@ export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
     [preview],
   );
 
+  const selectedBranch = branches.find((b) => b.id === form.branchId);
+  const branchType = (selectedBranch?.typebranch ??
+    "SECONDAIRE") as ManagedBranchType;
+  const isPrimary = isPrimaryBranch(branchType);
+  const generatedStudentEmail = useMemo(
+    () => previewStudentEmail(form.prenom, form.name),
+    [form.prenom, form.name],
+  );
+  const primaryMaxBirthDate = maxBirthDateForMinAge(PRIMARY_MIN_AGE);
+
   const update = (key: keyof typeof form, value: string | boolean) =>
     setForm((current) => ({ ...current, [key]: value }));
+
   const updateGuardian = (index: number, key: keyof Guardian, value: string) =>
     setGuardians((current) =>
       current.map((item, itemIndex) =>
         itemIndex === index ? { ...item, [key]: value } : item,
       ),
     );
+
+  function prefillPrimaryGuardianFromStudent() {
+    setGuardians((current) => {
+      const primary = current[0];
+      return [
+        {
+          ...primary,
+          name: primary.name || form.name,
+          postnom: primary.postnom || form.postnom,
+          prenom: primary.prenom || form.prenom,
+          address: primary.address || form.address,
+        },
+        current[1],
+      ];
+    });
+  }
 
   function validateStep() {
     if (
@@ -121,6 +180,15 @@ export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
     ) {
       toast.error("Completez les informations obligatoires de l'eleve.");
       return false;
+    }
+    if (step === 0 && isPrimary) {
+      const age = ageFromDate(form.dateOfBirth);
+      if (age === null || age < PRIMARY_MIN_AGE) {
+        toast.error(
+          `Pour le primaire, l'enfant doit avoir au moins ${PRIMARY_MIN_AGE} ans.`,
+        );
+        return false;
+      }
     }
     const primary = guardians[0];
     if (
@@ -153,6 +221,14 @@ export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
       toast.error("Indiquez la classe ou le niveau souhaite.");
       return false;
     }
+    if (
+      step === 2 &&
+      !isPrimaryBranch(branchType) &&
+      (!form.requestedSection || !form.requestedOption)
+    ) {
+      toast.error("Choisissez la section et l'option.");
+      return false;
+    }
     return true;
   }
 
@@ -179,8 +255,7 @@ export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
           dateOfBirth: form.dateOfBirth,
           placeOfBirth: form.placeOfBirth,
           address: form.address,
-          email: form.email,
-          telephone: form.telephone,
+          email: generatedStudentEmail,
           provenanceEcole: form.provenanceEcole,
         },
         guardians: secondGuardian ? guardians : [guardians[0]],
@@ -286,12 +361,22 @@ export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
                     </SelectContent>
                   </Select>
                 </Field>
-                <Text
-                  label="Date de naissance *"
-                  type="date"
-                  value={form.dateOfBirth}
-                  onChange={(v) => update("dateOfBirth", v)}
-                />
+                <Field label="Date de naissance *">
+                  <Input
+                    type="date"
+                    value={form.dateOfBirth}
+                    max={isPrimary ? primaryMaxBirthDate : undefined}
+                    onChange={(event) =>
+                      update("dateOfBirth", event.target.value)
+                    }
+                  />
+                  {isPrimary ? (
+                    <p className="text-xs text-muted-foreground">
+                      Primaire : l&apos;enfant doit avoir au moins{" "}
+                      {PRIMARY_MIN_AGE} ans.
+                    </p>
+                  ) : null}
+                </Field>
                 <Text
                   label="Lieu de naissance *"
                   value={form.placeOfBirth}
@@ -302,17 +387,13 @@ export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
                   value={form.address}
                   onChange={(v) => update("address", v)}
                 />
-                <Text
-                  label="Email"
-                  type="email"
-                  value={form.email}
-                  onChange={(v) => update("email", v)}
-                />
-                <Text
-                  label="Telephone"
-                  value={form.telephone}
-                  onChange={(v) => update("telephone", v)}
-                />
+                <Field label="Email eleve (automatique)">
+                  <Input
+                    disabled
+                    className="bg-muted font-mono text-foreground opacity-100"
+                    value={generatedStudentEmail}
+                  />
+                </Field>
               </div>
             )}
             {step === 1 && (
@@ -387,22 +468,29 @@ export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
               </div>
             )}
             {step === 2 && (
-              <div className="grid gap-4 md:grid-cols-2">
-                <Text
-                  label="Classe ou niveau souhaite *"
-                  value={form.requestedLevel}
-                  onChange={(v) => update("requestedLevel", v)}
-                />
-                <Text
-                  label="Section souhaitee"
-                  value={form.requestedSection}
-                  onChange={(v) => update("requestedSection", v)}
-                />
-                <Text
-                  label="Option souhaitee"
-                  value={form.requestedOption}
-                  onChange={(v) => update("requestedOption", v)}
-                />
+              <div className="grid gap-4">
+                {!form.branchId ? (
+                  <p className="text-sm text-muted-foreground">
+                    Sélectionnez d&apos;abord un établissement à l&apos;étape 1.
+                  </p>
+                ) : (
+                  <LevelSectionOptionFields
+                    typebranch={branchType}
+                    value={{
+                      level: form.requestedLevel,
+                      sectionName: form.requestedSection,
+                      optionName: form.requestedOption,
+                    }}
+                    onChange={(next) =>
+                      setForm((current) => ({
+                        ...current,
+                        requestedLevel: next.level,
+                        requestedSection: next.sectionName,
+                        requestedOption: next.optionName,
+                      }))
+                    }
+                  />
+                )}
                 <Text
                   label="Ecole de provenance"
                   value={form.provenanceEcole}
@@ -411,9 +499,12 @@ export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
                 <Field label="Photo facultative" wide>
                   <div className="flex flex-wrap items-center gap-3">
                     {preview ? (
-                      <img
+                      <Image
                         src={preview}
                         alt="Apercu"
+                        width={80}
+                        height={80}
+                        unoptimized
                         className="size-20 rounded-xl object-cover"
                       />
                     ) : (
@@ -433,19 +524,15 @@ export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
                         }
                       />
                     </Label>
-                    <Label className="cursor-pointer rounded-md border px-3 py-2 text-sm">
-                      <Camera className="mr-2 inline size-4" />
-                      Camera
-                      <Input
-                        className="hidden"
-                        type="file"
-                        accept="image/*"
-                        capture="user"
-                        onChange={(event) =>
-                          setPhoto(event.target.files?.[0] ?? null)
-                        }
-                      />
-                    </Label>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCameraOpen(true)}
+                    >
+                      <Camera className="mr-2 size-4" />
+                      Caméra
+                    </Button>
                   </div>
                 </Field>
               </div>
@@ -457,7 +544,16 @@ export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
                     <b>Eleve :</b> {form.name} {form.postnom} {form.prenom}
                   </p>
                   <p>
+                    <b>Email :</b> {generatedStudentEmail}
+                  </p>
+                  <p>
                     <b>Niveau :</b> {form.requestedLevel}
+                    {form.requestedSection
+                      ? ` · ${form.requestedSection}`
+                      : ""}
+                    {form.requestedOption
+                      ? ` · ${form.requestedOption}`
+                      : ""}
                   </p>
                   <p>
                     <b>Responsable :</b> {guardians[0].name}{" "}
@@ -495,7 +591,9 @@ export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
                 <Button
                   type="button"
                   onClick={() => {
-                    if (validateStep()) setStep((value) => value + 1);
+                    if (!validateStep()) return;
+                    if (step === 0) prefillPrimaryGuardianFromStudent();
+                    setStep((value) => value + 1);
                   }}
                 >
                   Continuer
@@ -511,6 +609,14 @@ export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
           </CardContent>
         </Card>
       </main>
+      <CameraCaptureDialog
+        open={cameraOpen}
+        onOpenChange={setCameraOpen}
+        title="Capture photo"
+        onCapture={(file) => {
+          setPhoto(file);
+        }}
+      />
     </div>
   );
 }

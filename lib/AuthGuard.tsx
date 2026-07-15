@@ -2,8 +2,10 @@
 
 import { useSession } from "@/lib/auth-client";
 import { hasSessionRole } from "@/lib/auth/session-roles";
-import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { useAppLoading } from "@/hooks/use-app-loading";
+
+import { NotFoundView } from "@/components/not-found-view";
 
 function AuthGuard({
   children,
@@ -13,7 +15,7 @@ function AuthGuard({
   allowedRoles: string[];
 }) {
   const { data: session, isPending } = useSession();
-  const router = useRouter();
+  const { resetLoading } = useAppLoading();
   const canAccess =
     !!session &&
     (allowedRoles.length === 0 || hasSessionRole(session, allowedRoles));
@@ -24,14 +26,17 @@ function AuthGuard({
     }
 
     if (!session) {
-      router.push("/auth/sign-in");
-    } else if (!canAccess) {
-      router.push("/not-authorized");
+      resetLoading();
+      window.location.assign("/auth/sign-in");
     }
-  }, [session, isPending, canAccess, router]);
+  }, [session, isPending, resetLoading]);
 
-  if (isPending || !session || !canAccess) {
+  if (isPending || !session) {
     return <div>Loading...</div>;
+  }
+
+  if (!canAccess) {
+    return <NotFoundView />;
   }
 
   return <>{children}</>;

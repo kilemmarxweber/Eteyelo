@@ -8,6 +8,7 @@ import {
   IconSettings,
   IconCalendarCog,
   IconUserCheck,
+  IconBooks,
 } from "@tabler/icons-react";
 
 import { Layout, LayoutBody } from "@/components/custom/layout";
@@ -49,6 +50,12 @@ export default function Settings({ children }: { children: React.ReactNode }) {
       title: "Présences",
       icon: <IconUserCheck size={18} />,
       href: `${settingsBasePath}/attendance`,
+      permission: null,
+    },
+    {
+      title: "Domaines primaire",
+      icon: <IconBooks size={18} />,
+      href: `${settingsBasePath}/primary-domains`,
       permission: null,
     },
     {

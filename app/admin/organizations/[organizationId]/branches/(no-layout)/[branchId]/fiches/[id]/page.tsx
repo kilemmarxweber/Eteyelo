@@ -1,9 +1,13 @@
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { BackLink } from "@/components/ui/back-link";
+import { Layout, LayoutBody } from "@/components/custom/layout";
+import { PageHeader } from "@/components/ui/page-header";
+import { IconClipboardText } from "@tabler/icons-react";
 import FicheExportActions from "./FicheExportActions";
-
-/* ================= TYPES ================= */
+import CancelInterventionButton from "./CancelInterventionButton";
 
 type Note = {
   studentId: string;
@@ -15,16 +19,17 @@ type Note = {
   maxScore: number;
 };
 
-/* ================= PAGE ================= */
-
 export default async function FichePage({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{
+    organizationId: string;
+    branchId: string;
+    id: string;
+  }>;
 }) {
-  const { id } = await params;
+  const { organizationId, branchId, id } = await params;
 
-  /* ================= FETCH FICHE ================= */
   const fiche = await prisma.fiche.findUnique({
     where: { id },
     include: {
@@ -47,7 +52,8 @@ export default async function FichePage({
   if (!fiche) return notFound();
   const teacherUser = fiche.teacher?.branchMember?.member?.user;
 
-  /* ================= PARSE NOTES JSON ================= */
+  const validationHref = `/admin/organizations/${organizationId}/branches/${branchId}/ficheCentrales/${fiche.lessonId}?classId=${fiche.classSectionId}&periodId=${fiche.periodId}&anneeId=${fiche.anneeId}`;
+
   let notes: Note[] = [];
 
   try {
@@ -57,99 +63,150 @@ export default async function FichePage({
     console.error("Erreur parsing notes JSON", error);
   }
 
+  const meta = [
+    { label: "Matière", value: fiche.coursName },
+    { label: "Enseignant", value: teacherUser?.name || "N/A" },
+    { label: "Année", value: fiche.anneeName },
+    { label: "Type", value: fiche.typeFiche },
+    {
+      label: "Date",
+      value: new Date(fiche.dateCreated).toLocaleDateString("fr-FR"),
+    },
+    { label: "Période", value: fiche.periodeName },
+  ];
+
   return (
-    <div className="p-6 space-y-6">
-      {/* ================= HEADER ================= */}
-      <Card>
-        <CardHeader>
-          <div className="flex w-full items-center justify-between">
-            {/* LEFT */}
-            <CardTitle className="text-left">Fiche de cotation</CardTitle>
+    <Layout>
+      <LayoutBody className="space-y-4">
+        <PageHeader
+          variant="compact"
+          title="Fiche de cotation"
+          description={`${fiche.coursName} · ${fiche.periodeName}`}
+          badge={
+            <Badge
+              variant="outline-primary"
+              icon={<IconClipboardText size={14} />}
+            >
+              Fiche
+            </Badge>
+          }
+          breadcrumbs={
+            <BackLink href={validationHref} label="Validation de fiche" />
+          }
+          actions={
+            <div className="flex flex-wrap items-center gap-2">
+              <FicheExportActions
+                ficheInfo={{
+                  coursName: fiche.coursName,
+                  teacher: teacherUser?.name || "N/A",
+                  anneeName: fiche.anneeName,
+                  typeFiche: fiche.typeFiche,
+                  periodeName: fiche.periodeName,
+                  dateCreated: new Date(fiche.dateCreated).toLocaleDateString(
+                    "fr-FR",
+                  ),
+                }}
+                notes={notes}
+              />
+              <CancelInterventionButton
+                ficheId={fiche.id}
+                typeFiche={fiche.typeFiche}
+                coursName={fiche.coursName}
+              />
+            </div>
+          }
+        />
 
-            {/* RIGHT */}
-            <FicheExportActions
-              ficheInfo={{
-                coursName: fiche.coursName,
-                teacher: teacherUser?.name || "N/A",
-                anneeName: fiche.anneeName,
-                typeFiche: fiche.typeFiche,
-                periodeName: fiche.periodeName,
-                dateCreated: new Date(fiche.dateCreated).toLocaleDateString(
-                  "fr-FR",
-                ),
-              }}
-              notes={notes}
-            />
+        <Card
+          variant="elevated"
+          padding="none"
+          className="animate-fade-in overflow-hidden rounded-lg border"
+        >
+          <div className="grid gap-x-6 gap-y-3 border-b bg-muted/20 px-4 py-3 sm:grid-cols-2 lg:grid-cols-3 lg:px-5">
+            {meta.map((item) => (
+              <div key={item.label} className="min-w-0">
+                <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                  {item.label}
+                </p>
+                <p
+                  className="mt-0.5 truncate text-sm font-semibold"
+                  title={item.value}
+                >
+                  {item.value}
+                </p>
+              </div>
+            ))}
           </div>
-        </CardHeader>
-        <CardContent className="grid grid-cols-2 gap-4 text-sm">
-          <div>
-            <span className="font-medium">Matière :</span> {fiche.coursName}
-          </div>
-          <div>
-            <span className="font-medium">Teacher :</span>{" "}
-            {teacherUser?.name || "N/A"}
-          </div>
-          <div>
-            <span className="font-medium">Année :</span> {fiche.anneeName}
-          </div>
-          <div>
-            <span className="font-medium">Type :</span> {fiche.typeFiche}
-          </div>
-          <div>
-            <span className="font-medium">Date :</span>{" "}
-            {new Date(fiche.dateCreated).toLocaleDateString("fr-FR")}
-          </div>
-          <div>
-            <span className="font-medium">Periode :</span> {fiche.periodeName}
-          </div>
-        </CardContent>
-      </Card>
 
-      {/* ================= NOTES TABLE ================= */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Notes des étudiants</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {notes.length === 0 ? (
-            <p className="text-muted-foreground">
-              Aucune note disponible pour cette fiche.
-            </p>
-          ) : (
-            <table className="w-full border-collapse">
-              <thead>
-                <tr className="bg-muted text-left">
-                  <th className="border p-2 text-center w-12">#</th>
-                  <th className="border p-2">Nom</th>
-                  <th className="border p-2">Prénom</th>
-                  <th className="border p-2">Username</th>
-                  <th className="border p-2">Sexe</th>
-                  <th className="border p-2 text-center">Score</th>
-                  <th className="border p-2 text-center">Max</th>
-                </tr>
-              </thead>
-              <tbody>
-                {notes.map((n, index) => (
-                  <tr key={n.studentId} className="hover:bg-muted/50">
-                    <td className="border p-2 text-center font-medium">
-                      {index + 1}
-                    </td>
-                    <td className="border p-2">{n.nom}</td>
-                    <td className="border p-2">{n.studentSurname}</td>
-                    <td className="border p-2">{n.studentusername}</td>
-                    <td className="border p-2">{n.studentSexe}</td>
-                    <td className="border p-2 text-center font-medium">
-                      {n.score}
-                    </td>
-                    <td className="border p-2 text-center">{n.maxScore}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </CardContent>
-      </Card>
-    </div>
+          <CardHeader className="space-y-0 border-b bg-muted/10 px-4 py-3 lg:px-5">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+              <div className="min-w-0">
+                <CardTitle className="text-base">Notes des élèves</CardTitle>
+                <p className="mt-0.5 text-sm text-muted-foreground">
+                  Cotation pour {fiche.coursName}
+                </p>
+              </div>
+              <Badge variant="outline" className="w-fit shrink-0">
+                {`${notes.length} note${notes.length > 1 ? "s" : ""}`}
+              </Badge>
+            </div>
+          </CardHeader>
+
+          <CardContent className="p-0">
+            {notes.length === 0 ? (
+              <div className="flex w-full min-h-[180px] flex-col items-center justify-center gap-2 border-t border-dashed px-6 py-10">
+                <p className="max-w-7xl text-center text-sm leading-relaxed text-muted-foreground text-balance">
+                  Aucune note disponible pour cette fiche.
+                </p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse text-sm">
+                  <thead>
+                    <tr className="border-b bg-muted/30 text-left">
+                      <th className="w-12 px-3 py-2 text-center font-medium">
+                        #
+                      </th>
+                      <th className="px-3 py-2 font-medium">Nom</th>
+                      <th className="px-3 py-2 font-medium">Prénom</th>
+                      <th className="px-3 py-2 font-medium">Username</th>
+                      <th className="px-3 py-2 font-medium">Sexe</th>
+                      <th className="px-3 py-2 text-center font-medium">
+                        Score
+                      </th>
+                      <th className="px-3 py-2 text-center font-medium">Max</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {notes.map((n, index) => (
+                      <tr
+                        key={n.studentId}
+                        className="border-b last:border-0 hover:bg-muted/40"
+                      >
+                        <td className="px-3 py-1.5 text-center text-muted-foreground">
+                          {index + 1}
+                        </td>
+                        <td className="px-3 py-1.5 font-medium">{n.nom}</td>
+                        <td className="px-3 py-1.5">{n.studentSurname}</td>
+                        <td className="px-3 py-1.5 text-muted-foreground">
+                          {n.studentusername}
+                        </td>
+                        <td className="px-3 py-1.5">{n.studentSexe}</td>
+                        <td className="px-3 py-1.5 text-center font-semibold tabular-nums">
+                          {n.score}
+                        </td>
+                        <td className="px-3 py-1.5 text-center tabular-nums text-muted-foreground">
+                          {n.maxScore}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </LayoutBody>
+    </Layout>
   );
 }

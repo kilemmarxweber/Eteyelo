@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { redirect } from "next/navigation";
+import { NotFoundView } from "@/components/not-found-view";
 import {
   IconGenderBigender,
   IconUserCheck,
@@ -99,7 +99,7 @@ export default function Students() {
   if (isPending) return <Loading />;
 
   if (!session) {
-    redirect("/not-authorized");
+    return <NotFoundView />;
   }
 
   const statCards = [

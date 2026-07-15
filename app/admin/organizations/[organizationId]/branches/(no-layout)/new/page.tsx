@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 
 import { CreateBranchForm } from "./components/create-branch-form";
+import { enforceOrganizationManagerPage } from "@/lib/auth/require-organization-permission";
 
 type NewBranchPageProps = {
   params: Promise<{ organizationId: string }>;
@@ -9,6 +10,7 @@ type NewBranchPageProps = {
 
 export default async function NewBranchPage({ params }: NewBranchPageProps) {
   const { organizationId } = await params;
+  await enforceOrganizationManagerPage(organizationId);
   const branchesHref = `/admin/organizations/${organizationId}/branches`;
 
   return (

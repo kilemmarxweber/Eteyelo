@@ -5,6 +5,9 @@ import {
   buildPrimaryBulletinLayout,
   getPrimaryEvaluationCellWidths,
   PRIMARY_MAIN_COL_RATIOS,
+  PRIMARY_MIN_EVAL_CELL_WIDTH_MM,
+  PRIMARY_MIN_MAX_CELL_WIDTH_MM,
+  PRIMARY_MIN_PERIOD_CELL_WIDTH_MM,
 } from "../app/admin/organizations/[organizationId]/branches/(no-layout)/[branchId]/fiches/components/bulletin-primary-layout";
 import {
   buildSecondaryBulletinLayout,
@@ -20,6 +23,12 @@ function test(name: string, assertion: () => void) {
 }
 
 const A4_WIDTH_MM = 210;
+
+function minWidthForPrimaryCell(kind: string): number {
+  if (kind === "period-score") return PRIMARY_MIN_PERIOD_CELL_WIDTH_MM;
+  if (kind.startsWith("max-")) return PRIMARY_MIN_MAX_CELL_WIDTH_MM;
+  return PRIMARY_MIN_EVAL_CELL_WIDTH_MM;
+}
 
 test("frameWidth calculé depuis la largeur A4", () => {
   assert.equal(getBulletinFrameWidth(A4_WIDTH_MM), 190);
@@ -54,8 +63,8 @@ test("six cases d'évaluation présentes et rééquilibrées", () => {
   assert.equal(evalWidths.length, 6);
   for (const width of evalWidths) {
     assert.ok(
-      width >= MIN_EVAL_CELL_WIDTH_MM,
-      `Case trop étroite : ${width}mm < ${MIN_EVAL_CELL_WIDTH_MM}mm`,
+      width >= PRIMARY_MIN_EVAL_CELL_WIDTH_MM,
+      `Case trop étroite : ${width}mm < ${PRIMARY_MIN_EVAL_CELL_WIDTH_MM}mm`,
     );
   }
 });
@@ -101,67 +110,61 @@ test("primaire : colonnes principales couvrent toute la largeur utile", () => {
   assert.ok(Math.abs(total - layout.frameWidth) < 0.01);
 });
 
-test("primaire : positions X dérivées des largeurs", () => {
+test("primaire : positions X dérivées des largeurs (21 cellules)", () => {
   const layout = buildPrimaryBulletinLayout({ pageWidth: A4_WIDTH_MM });
-  for (const trim of [layout.trim1, layout.trim2, layout.trim3]) {
-    assert.equal(trim.examX, trim.totX + trim.subWidths[1]);
+  assert.equal(layout.evalCells.length, 21);
+  for (let i = 1; i < layout.evalCells.length; i++) {
+    const prev = layout.evalCells[i - 1];
+    const current = layout.evalCells[i];
+    assert.ok(Math.abs(prev.x + prev.width - current.x) < 0.02 || prev.x >= current.x);
   }
-  assert.equal(
-    layout.trim1.totX,
-    layout.colPos[1] + layout.shiftX + layout.trim1.subWidths[0],
-  );
-  assert.equal(
-    layout.trim2.totX,
-    layout.colPos[2] + layout.shiftX + layout.trim2.subWidths[0],
-  );
-  assert.equal(
-    layout.trim3.totX,
-    layout.colPos[3] + layout.shiftX + layout.trim3.subWidths[0],
-  );
 });
 
-test("primaire : neuf cases d'évaluation (6 périodes + 3 examens)", () => {
+test("primaire : 21 cases d'évaluation", () => {
   const layout = buildPrimaryBulletinLayout({ pageWidth: A4_WIDTH_MM });
   const evalWidths = getPrimaryEvaluationCellWidths(layout);
-  assert.equal(evalWidths.length, 9);
-  for (const width of evalWidths) {
+  assert.equal(evalWidths.length, 21);
+  for (const cell of layout.evalCells) {
+    const minWidth = minWidthForPrimaryCell(cell.kind);
     assert.ok(
-      width >= MIN_EVAL_CELL_WIDTH_MM,
-      `Case trop étroite : ${width}mm < ${MIN_EVAL_CELL_WIDTH_MM}mm`,
+      cell.width >= minWidth,
+      `${cell.key} trop étroite : ${cell.width}mm < ${minWidth}mm`,
     );
   }
 });
 
-test("primaire : trois totaux trimestriels présents", () => {
+test("primaire : colonne finale MAX | PTS OBT", () => {
   const layout = buildPrimaryBulletinLayout({ pageWidth: A4_WIDTH_MM });
-  for (const trim of [layout.trim1, layout.trim2, layout.trim3]) {
-    assert.ok(trim.subWidths[2] > 0, "Largeur TOTAL trimestre manquante");
-  }
-});
-
-test("primaire : colonne TG distincte", () => {
-  const layout = buildPrimaryBulletinLayout({ pageWidth: A4_WIDTH_MM });
+  const finalCells = layout.evalCells.filter((cell) => cell.trimesterIndex === 0);
+  assert.equal(finalCells.length, 2);
+  assert.equal(finalCells[0].label, "MAX");
+  assert.equal(finalCells[1].label, "PTS OBT");
   assert.ok(layout.colWidths[4] > 0);
-  assert.equal(layout.colPos[4], layout.colPos[3] + layout.colWidths[3]);
 });
 
 test("primaire : maxima à 1, 2 et 3 chiffres — largeur suffisante", () => {
   const layout = buildPrimaryBulletinLayout({ pageWidth: A4_WIDTH_MM });
-  const evalWidths = getPrimaryEvaluationCellWidths(layout);
   const sampleMaxima = [9, 99, 999];
   for (const max of sampleMaxima) {
     const digits = String(max).length;
-    const minRequired = digits <= 1 ? 6 : digits === 2 ? 7.5 : MIN_EVAL_CELL_WIDTH_MM;
-    for (const width of evalWidths) {
+    for (const cell of layout.evalCells) {
+      if (cell.kind === "period-score") continue;
+      const minRequired = cell.kind.startsWith("max-")
+        ? PRIMARY_MIN_MAX_CELL_WIDTH_MM
+        : digits <= 1
+          ? 6
+          : digits === 2
+            ? 6.5
+            : PRIMARY_MIN_EVAL_CELL_WIDTH_MM;
       assert.ok(
-        width >= minRequired,
-        `Max ${max} (${digits} chiffres) : ${width}mm < ${minRequired}mm`,
+        cell.width >= minRequired,
+        `Max ${max} (${digits} chiffres) : ${cell.key} ${cell.width}mm < ${minRequired}mm`,
       );
     }
   }
 });
 
-test("primaire : ratios principaux — 5 colonnes (COURS + 3 trimestres + TG)", () => {
+test("primaire : ratios principaux — 5 colonnes (BRANCHES + 3 trimestres + TOTAL)", () => {
   assert.equal(PRIMARY_MAIN_COL_RATIOS.length, 5);
 });
 

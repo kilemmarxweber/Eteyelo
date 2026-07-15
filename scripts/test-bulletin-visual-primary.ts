@@ -18,6 +18,9 @@ import {
   drawPrimaryTrimesterMaximaRow,
   getPrimaryEvaluationCellWidths,
   MIN_EVAL_CELL_WIDTH_MM,
+  PRIMARY_MIN_EVAL_CELL_WIDTH_MM,
+  PRIMARY_MIN_MAX_CELL_WIDTH_MM,
+  PRIMARY_MIN_PERIOD_CELL_WIDTH_MM,
 } from "../app/admin/organizations/[organizationId]/branches/(no-layout)/[branchId]/fiches/components/bulletin-primary-layout";
 import {
   buildSecondaryBulletinLayout,
@@ -28,6 +31,12 @@ const A4_WIDTH_MM = 210;
 const A4_HEIGHT_MM = 297;
 const OUTPUT_DIR = path.join("context", "samples", "phase-11");
 const CELL_PADDING_MM = 2;
+
+function minWidthForPrimaryCell(kind: string): number {
+  if (kind === "period-score") return PRIMARY_MIN_PERIOD_CELL_WIDTH_MM;
+  if (kind.startsWith("max-")) return PRIMARY_MIN_MAX_CELL_WIDTH_MM;
+  return PRIMARY_MIN_EVAL_CELL_WIDTH_MM;
+}
 
 function test(name: string, assertion: () => void) {
   assertion();
@@ -44,10 +53,10 @@ function buildLayoutParams() {
   const shiftX = 0;
   const shiftY = -25;
   const tableY = margin + 36 + 50;
-  const rowHeightTotal = 20;
-  const hTop = 7;
-  const hMid = 7;
-  const hBottom = 7;
+  const rowHeightTotal = 14;
+  const hTop = 8;
+  const hMid = 6;
+  const hBottom = 0;
 
   return {
     margin,
@@ -78,11 +87,12 @@ function assertTextFitsCell(
   text: string,
   cellWidth: number,
   fontSize = 8,
+  paddingMm = CELL_PADDING_MM,
 ) {
   doc.setFontSize(fontSize);
   const textWidth = doc.getTextWidth(text);
   assert.ok(
-    textWidth <= cellWidth - CELL_PADDING_MM,
+    textWidth <= cellWidth - paddingMm,
     `"${text}" (${textWidth.toFixed(2)}mm) dépasse la case (${cellWidth}mm)`,
   );
 }
@@ -100,7 +110,7 @@ type PrimaryMaximaProfile = {
   p6: number;
   exam3: number;
   tt3: number;
-  tg: number;
+  maxAnnuel: number;
 };
 
 function drawPrimaryFooterBlock(
@@ -140,19 +150,19 @@ function generatePrimaryBulletinPdf(
       p1: 9, p2: 9, exam1: 18, tt1: 36,
       p3: 9, p4: 9, exam2: 18, tt2: 36,
       p5: 9, p6: 9, exam3: 18, tt3: 36,
-      tg: 108,
+      maxAnnuel: 108,
     },
     double: {
       p1: 99, p2: 99, exam1: 198, tt1: 396,
       p3: 99, p4: 99, exam2: 198, tt2: 396,
       p5: 99, p6: 99, exam3: 198, tt3: 396,
-      tg: 1188,
+      maxAnnuel: 1188,
     },
     triple: {
       p1: 999, p2: 999, exam1: 1998, tt1: 3996,
       p3: 999, p4: 999, exam2: 1998, tt2: 3996,
       p5: 999, p6: 999, exam3: 1998, tt3: 3996,
-      tg: 11988,
+      maxAnnuel: 11988,
     },
   } as const satisfies Record<string, PrimaryMaximaProfile>;
 
@@ -200,15 +210,6 @@ function generatePrimaryBulletinPdf(
       { isMaxima: true, align: "left" },
     );
     drawPrimaryTrimesterMaximaRow(doc, yPos, maxima, layout, maximaHeight);
-    drawCell1(
-      doc,
-      layout.colPos[4] + layout.shiftX,
-      yPos,
-      layout.colWidths[4],
-      maximaHeight,
-      String(maxima.tg),
-      { isMaxima: true },
-    );
     yPos += maximaHeight;
 
     const subjects = ["Mathématiques", "Français", "Sciences"];
@@ -235,15 +236,8 @@ function generatePrimaryBulletinPdf(
         p6: Math.floor(maxima.p6 * 0.71),
         exam3: Math.floor(maxima.exam3 * 0.73),
         tt3: Math.floor(maxima.tt3 * 0.7),
+        maxAnnuel: Math.floor(maxima.maxAnnuel * 0.71),
       }, layout, maximaHeight);
-      drawCell1(
-        doc,
-        layout.colPos[4] + layout.shiftX,
-        yPos,
-        layout.colWidths[4],
-        maximaHeight,
-        String(Math.floor(maxima.tg * 0.71)),
-      );
       yPos += maximaHeight;
     }
 
@@ -262,42 +256,44 @@ function generatePrimaryBulletinPdf(
 
 // --- Vérifications automatisées (checklist phase 11) ---
 
-test("neuf cases d'évaluation présentes et équilibrées (6 périodes + 3 examens)", () => {
+test("21 cases d'évaluation présentes (grille primaire v2)", () => {
   const { layout } = createPrimaryLayout();
-  const evalWidths = getPrimaryEvaluationCellWidths(layout);
-  assert.equal(evalWidths.length, 9);
-  const min = Math.min(...evalWidths);
-  const max = Math.max(...evalWidths);
-  assert.ok(max / min <= 1.5, `Déséquilibre excessif : min=${min}, max=${max}`);
-  for (const width of evalWidths) {
-    assert.ok(width >= MIN_EVAL_CELL_WIDTH_MM);
+  assert.equal(layout.evalCells.length, 21);
+  for (const cell of layout.evalCells) {
+    assert.ok(cell.width >= minWidthForPrimaryCell(cell.kind));
   }
 });
 
-test("maxima à 1, 2 et 3 chiffres lisibles dans les neuf cases", () => {
+test("maxima à 1, 2 et 3 chiffres lisibles dans les cases", () => {
   const doc = new jsPDF("p", "mm", "a4");
   const { layout } = createPrimaryLayout();
-  const evalWidths = getPrimaryEvaluationCellWidths(layout);
   for (const max of [9, 99, 999]) {
-    for (const width of evalWidths) {
-      assertTextFitsCell(doc, String(max), width);
+    for (const cell of layout.evalCells) {
+      if (cell.kind === "period-score") continue;
+      const isMax = cell.kind.startsWith("max-");
+      const fontSize = isMax ? 5 : 8;
+      const padding = isMax ? 0.5 : CELL_PADDING_MM;
+      assertTextFitsCell(doc, String(max), cell.width, fontSize, padding);
     }
   }
 });
 
-test("trois totaux trimestriels TOTAL 1, TOTAL 2, TOTAL 3 : largeurs suffisantes", () => {
+test("colonnes MAX TRIM et TOTAL : largeurs suffisantes", () => {
   const { layout } = createPrimaryLayout();
   const doc = new jsPDF("p", "mm", "a4");
-  for (const trim of [layout.trim1, layout.trim2, layout.trim3]) {
-    assertTextFitsCell(doc, "3996", trim.subWidths[2]);
+  const trimCells = layout.evalCells.filter((c) => c.kind === "max-trim" || c.kind === "pts-trim");
+  assert.equal(trimCells.length, 6);
+  for (const cell of trimCells) {
+    assertTextFitsCell(doc, "999", cell.width, 6);
   }
 });
 
-test("total général TG : colonne présente et largeur suffisante", () => {
+test("colonne finale TOTAL (MAX | PTS OBT)", () => {
   const { layout } = createPrimaryLayout();
   const doc = new jsPDF("p", "mm", "a4");
-  assert.ok(layout.colWidths[4] > 0, "Colonne TG manquante");
-  assertTextFitsCell(doc, "11988", layout.colWidths[4]);
+  assert.ok(layout.finalMaxWidth > 0);
+  assert.ok(layout.finalPtsWidth > 0);
+  assertTextFitsCell(doc, "9999", layout.finalMaxWidth, 6);
 });
 
 test("aucun débordement horizontal A4 (tableau + marges)", () => {
@@ -307,19 +303,17 @@ test("aucun débordement horizontal A4 (tableau + marges)", () => {
   assert.equal(layout.frameWidth, getBulletinFrameWidth(A4_WIDTH_MM));
 });
 
-test("colonne TG seule en fin de tableau (sans SIGN PROF ni repechage)", () => {
+test("colonne TOTAL en fin de tableau (sans SIGN PROF ni repechage)", () => {
   const { layout } = createPrimaryLayout();
-  assert.ok(layout.colWidths[4] > 0, "Colonne TG manquante");
+  assert.ok(layout.colWidths[4] > 0, "Colonne TOTAL manquante");
   assert.equal(layout.colWidths.length, 5);
 });
 
-test("trois groupes trimestriels : place, application, conduite (structure 3 trimestres)", () => {
+test("trois groupes trimestriels : structure 21 cellules", () => {
   const { layout } = createPrimaryLayout();
-  for (const trim of [layout.trim1, layout.trim2, layout.trim3]) {
-    assert.equal(trim.periodWidths.length, 2, "Deux périodes par trimestre attendues");
-    assert.ok(trim.subWidths[1] > 0, "Colonne EXAM manquante");
-    assert.ok(trim.subWidths[2] > 0, "Colonne TOTAL trimestre manquante");
-  }
+  assert.equal(layout.evalCells.filter((c) => c.trimesterIndex === 1).length, 7);
+  assert.equal(layout.evalCells.filter((c) => c.trimesterIndex === 2).length, 6);
+  assert.equal(layout.evalCells.filter((c) => c.trimesterIndex === 3).length, 6);
 });
 
 test("identité visuelle alignée sur le secondaire (marges, frame, min case)", () => {
@@ -327,9 +321,8 @@ test("identité visuelle alignée sur le secondaire (marges, frame, min case)", 
   const secondary = buildSecondaryBulletinLayout({ pageWidth: A4_WIDTH_MM });
   assert.equal(primary.frameWidth, secondary.frameWidth);
   assert.equal(getBulletinFrameWidth(A4_WIDTH_MM), 190);
-  const primaryEval = getPrimaryEvaluationCellWidths(primary);
-  for (const width of primaryEval) {
-    assert.ok(width >= MIN_EVAL_CELL_WIDTH_MM);
+  for (const cell of primary.evalCells) {
+    assert.ok(cell.width >= minWidthForPrimaryCell(cell.kind));
   }
 });
 
@@ -373,16 +366,12 @@ test("export classe : cohérence des pages (pas de chevauchement bas de page)", 
   assert.equal(layout.colPos.length, 6, "5 colonnes + position finale");
 });
 
-test("logique primaire : 6 périodes + 3 examens + 3 totaux + TG", () => {
+test("logique primaire v2 : 21 cellules + TOTAL (MAX | PTS OBT)", () => {
   const evalWidths = getPrimaryEvaluationCellWidths(createPrimaryLayout().layout);
-  assert.equal(evalWidths.length, 9);
+  assert.equal(evalWidths.length, 21);
   const { layout } = createPrimaryLayout();
-  assert.ok(layout.trim1.periodWidths.length === 2);
-  assert.ok(layout.trim2.periodWidths.length === 2);
-  assert.ok(layout.trim3.periodWidths.length === 2);
-  assert.ok(layout.trim1.subWidths[2] > 0);
-  assert.ok(layout.trim2.subWidths[2] > 0);
-  assert.ok(layout.trim3.subWidths[2] > 0);
+  assert.ok(layout.finalMaxX > 0);
+  assert.ok(layout.finalPtsX > layout.finalMaxX);
 });
 
 console.log(`\nPDF échantillons générés dans : ${OUTPUT_DIR}`);

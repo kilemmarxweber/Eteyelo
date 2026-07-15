@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
+import { useAppRouter as useRouter } from "@/hooks/use-app-router";
 import {
   Accordion,
   AccordionContent,

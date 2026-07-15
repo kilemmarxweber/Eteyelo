@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useState, useTransition } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { useAppTransition as useTransition } from "@/hooks/use-app-transition";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { IconCalendarCog, IconExternalLink, IconPencil, IconPlus } from "@tabler/icons-react";

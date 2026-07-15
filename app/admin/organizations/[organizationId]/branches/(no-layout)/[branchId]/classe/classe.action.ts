@@ -17,11 +17,14 @@ import {
   isPrimaryBranch,
   validateClassInput,
 } from "@/lib/class-structure";
+import { getCatalogAbbrevForOptionName } from "@/lib/class-catalog";
 import { ensurePrimaryAcademicStructure } from "@/lib/primary-academic-structure";
 import {
   ensureUniqueIdentifier,
   generateClassCode,
 } from "@/lib/generated-identifiers";
+import { upsertClassCatalogForBranch } from "@/lib/class-catalog-sync";
+import { normalizeBranchType } from "@/lib/academic-structure";
 
 function revalidateClassePages(organizationId: string, branchId: string) {
   revalidatePath(`/admin/organizations/${organizationId}/branches/${branchId}/classe`);
@@ -82,6 +85,7 @@ async function resolveClassIdentity(params: {
     level: validated.level!,
     parallel: validated.parallel,
     optionName: option?.nameOption,
+    optionAbbrev: getCatalogAbbrevForOptionName(option?.nameOption),
   });
 
   return {
@@ -400,3 +404,36 @@ export const statusClasseAction = action
     revalidateClassePages(organizationId, branchId);
     return updateStatusClasse;
   });
+
+/**
+ * Importe le catalogue RDC des classes pour la branche courante.
+ * - PRIMAIRE : 1è-PR … 6è-PR
+ * - SECONDAIRE : 7è/8è CTEB Tronc commun + 1è–4è Humanités pour options actives
+ * @param importSectionsAndOptions D3=A si true (upsert sections/options catalogue)
+ */
+export async function importClassCatalogAction(params?: {
+  importSectionsAndOptions?: boolean;
+}) {
+  const { branchId, organizationId, typebranch } =
+    await requireBranchContext();
+
+  const result = await upsertClassCatalogForBranch(branchId, {
+    importSectionsAndOptions:
+      params?.importSectionsAndOptions ??
+      normalizeBranchType(typebranch) === "SECONDAIRE",
+  });
+
+  revalidateClassePages(organizationId, branchId);
+  revalidatePath(
+    `/admin/organizations/${organizationId}/branches/${branchId}/section`,
+  );
+  revalidatePath(
+    `/admin/organizations/${organizationId}/branches/${branchId}/option`,
+  );
+
+  return {
+    success: true as const,
+    ...result,
+    typebranch: normalizeBranchType(typebranch),
+  };
+}

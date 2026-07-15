@@ -18,7 +18,6 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 
-// 🔥 support search optionnel
 interface ComboboxProps<
   T extends { value: string; label?: string; search?: string },
 > {
@@ -27,7 +26,9 @@ interface ComboboxProps<
   value: string;
   onChange: (val: string) => void;
   placeholder?: string;
+  /** Fixed width in px. Omit to fill the parent (`w-full`). */
   width?: number;
+  className?: string;
 }
 
 export function Combobox<
@@ -38,13 +39,25 @@ export function Combobox<
   value,
   onChange,
   placeholder = "Select...",
-  width = 200,
+  width,
+  className,
 }: ComboboxProps<T>) {
   const [open, setOpen] = React.useState(false);
+  const sizeStyle =
+    typeof width === "number" ? ({ width: `${width}px` } as const) : undefined;
 
   return (
-    <div className="flex flex-col">
-      {label ? <span className="text-sm font-medium">{label}</span> : null}
+    <div
+      className={cn(
+        "flex min-w-0 flex-col gap-1.5",
+        width == null ? "w-full" : "w-auto",
+        className,
+      )}
+      style={sizeStyle}
+    >
+      {label ? (
+        <span className="text-xs font-medium text-muted-foreground">{label}</span>
+      ) : null}
 
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
@@ -52,32 +65,36 @@ export function Combobox<
             variant="outline"
             role="combobox"
             aria-expanded={open}
-            className={`w-[${width}px] justify-between`}
+            className="h-9 w-full justify-between font-normal"
           >
-            {value
-              ? items.find((item) => item.value === value)?.label
-              : placeholder}
-            <ChevronsUpDown className="opacity-50" />
+            <span className="truncate">
+              {value
+                ? items.find((item) => item.value === value)?.label
+                : placeholder}
+            </span>
+            <ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
 
-        <PopoverContent className={`w-[${width}px] p-0`}>
+        <PopoverContent
+          align="start"
+          className="w-[var(--radix-popover-trigger-width)] p-0"
+        >
           <Command>
             <CommandInput
-              placeholder={label ? `Search ${label}...` : placeholder}
+              placeholder={label ? `Rechercher ${label}…` : placeholder}
               className="h-9"
             />
 
             <CommandList>
               <CommandEmpty>
                 {label
-                  ? `No ${label.toLowerCase()} found.`
-                  : "No options found."}
+                  ? `Aucun résultat pour ${label.toLowerCase()}.`
+                  : "Aucun résultat."}
               </CommandEmpty>
 
               <CommandGroup>
                 {items.map((item) => {
-                  // 🔥 texte utilisé pour la recherche
                   const searchValue = (
                     item.search ||
                     item.label ||
@@ -87,7 +104,7 @@ export function Combobox<
                   return (
                     <CommandItem
                       key={item.value}
-                      value={searchValue} // 🔥 recherche ici
+                      value={searchValue}
                       onSelect={() => {
                         onChange(item.value === value ? "" : item.value);
                         setOpen(false);

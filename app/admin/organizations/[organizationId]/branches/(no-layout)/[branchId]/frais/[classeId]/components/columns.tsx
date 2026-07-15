@@ -1,5 +1,7 @@
 "use client";
 
+import { useAppTransition as useTransition } from "@/hooks/use-app-transition";
+
 import { ColumnDef } from "@tanstack/react-table";
 import { IconArrowUp, IconDots } from "@tabler/icons-react";
 import { Button } from "@/components/custom/button";
@@ -72,7 +74,7 @@ export const columns: ColumnDef<IFrais>[] = [
   {
     id: "actions",
     cell: function Cell({ row }) {
-      const [isUpdatePending, startUpdateTransition] = React.useTransition();
+      const [isUpdatePending, startUpdateTransition] = useTransition();
       const [showUpdateTaskSheet, setShowUpdateTaskSheet] =
         React.useState(false);
       const [showDeleteTaskDialog, setShowDeleteTaskDialog] =

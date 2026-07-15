@@ -17,6 +17,9 @@ import {
 } from "better-auth/plugins/organization/access";
 
 export const APP_ROLE = {
+  /** Propriétaire plateforme (root) : voit et gère toutes les organisations. */
+  OWNER: "owner",
+  /** Gestionnaire d'organisation (compte applicatif) : CRU sur son organisation. */
   ADMIN: "admin",
   USER: "user",
   PLATFORM_SUPPORT: "platform_support",
@@ -27,6 +30,10 @@ export const BRANCH_ROLE = {
   MONITEUR: "moniteur",
   ACCUEIL: "accueil",
 } as const;
+export function isPlatformOwnerRole(role: string | null | undefined): boolean {
+  return role === APP_ROLE.OWNER;
+}
+
 export function isAppAdminRole(role: string | null | undefined): boolean {
   return role === APP_ROLE.ADMIN;
 }
@@ -37,11 +44,22 @@ export function isPlatformSupportAppRole(
   return role === APP_ROLE.PLATFORM_SUPPORT;
 }
 
+/** Propriétaire plateforme ou gestionnaire d'organisation (compte applicatif). */
+export function isOrganizationManagerAppRole(
+  role: string | null | undefined,
+): boolean {
+  return isPlatformOwnerRole(role) || isAppAdminRole(role);
+}
+
 /** Admin plateforme ou agent support Klambocore (permissions élevées). */
 export function hasPlatformSupportPrivileges(
   role: string | null | undefined,
 ): boolean {
-  return isAppAdminRole(role) || isPlatformSupportAppRole(role);
+  return (
+    isPlatformOwnerRole(role) ||
+    isAppAdminRole(role) ||
+    isPlatformSupportAppRole(role)
+  );
 }
 
 export const ORG_ROLE = {
@@ -89,15 +107,44 @@ type StatementShape = {
   >;
 };
 
+const orgAdminWithoutDelete: StatementShape = {
+  ...organizationPluginAdminAc.statements,
+  organization: ["update"],
+  member: ["create", "read", "update"],
+  invitation: ["create", "cancel"],
+  team: ["create", "update"],
+  ac: ["create", "read", "update"],
+};
+
+/** Gestionnaire org : CRU organisation + CRUD membres (pas de suppression d'organisation). */
+const orgGestionnairePermissions: StatementShape = {
+  ...organizationPluginAdminAc.statements,
+  organization: ["update"],
+  member: ["create", "read", "update", "delete"],
+  invitation: ["create", "cancel"],
+  team: ["create", "update"],
+  ac: ["create", "read", "update"],
+  schedule: ["create", "read", "update", "delete"],
+  organizationSupport: ["create", "read", "update", "delete"],
+  platformEscalation: ["read"],
+};
+
 /** Preset plugin Admin (`adminAc`) + même niveau organisation que `organization.adminAc`, plus domaine. */
 export const applicationRoleStatements: Record<string, StatementShape> = {
-  [APP_ROLE.ADMIN]: {
+  [APP_ROLE.OWNER]: {
     ...adminPluginAdminAc.statements,
     ...organizationPluginAdminAc.statements,
+    organization: ["update", "delete"],
     schedule: ["create", "read", "update", "delete"],
     platformSupport: ["create", "read", "update", "delete"],
     organizationSupport: ["create", "read", "update", "delete"],
     platformEscalation: ["create", "read", "update", "assign", "close"],
+  },
+  [APP_ROLE.ADMIN]: {
+    ...orgAdminWithoutDelete,
+    schedule: ["create", "read", "update"],
+    organizationSupport: ["create", "read", "update"],
+    platformEscalation: ["read"],
   },
   [APP_ROLE.PLATFORM_SUPPORT]: {
     ...organizationPluginAdminAc.statements,
@@ -121,28 +168,34 @@ export const organizationRoleStatements: Record<string, StatementShape> = {
     organizationSupport: ["create", "read", "update", "delete"],
     platformEscalation: ["read"],
   },
-  [ORG_ROLE.GESTIONNAIRE]: {
+  [ORG_ROLE.GESTIONNAIRE]: orgGestionnairePermissions,
+  [ORG_ROLE.PARENT]: {
     ...organizationPluginMemberAc.statements,
-    ...organizationPluginAdminAc.statements,
-    schedule: ["create", "read", "update", "delete"],
-    organizationSupport: ["create", "read", "update", "delete"],
-    platformEscalation: ["read"],
+    member: ["read"],
   },
-  [ORG_ROLE.PARENT]: { ...organizationPluginMemberAc.statements },
-  [ORG_ROLE.STUDENT]: { ...organizationPluginMemberAc.statements },
+  [ORG_ROLE.STUDENT]: {
+    ...organizationPluginMemberAc.statements,
+    member: ["read"],
+  },
   [ORG_ROLE.TEACHER]: {
     ...organizationPluginMemberAc.statements,
+    member: ["read"],
     schedule: ["read"],
   },
   [ORG_ROLE.MONITEUR]: {
     ...organizationPluginMemberAc.statements,
+    member: ["read"],
     schedule: ["read"],
   },
   [ORG_ROLE.RESPONSABLE]: {
     ...organizationPluginMemberAc.statements,
+    member: ["read"],
     schedule: ["read"],
   },
-  [ORG_ROLE.SURVEILLANT]: { ...organizationPluginMemberAc.statements },
+  [ORG_ROLE.SURVEILLANT]: {
+    ...organizationPluginMemberAc.statements,
+    member: ["read"],
+  },
   [ORG_ROLE.SUPPORT]: {
     ...organizationPluginMemberAc.statements,
     member: ["read"],
@@ -190,4 +243,35 @@ export const ALL_PERMISSIONS = PERMISSION_GROUPS.flatMap(
 export const ORGANIZATION_ROLE_SLUGS = Object.keys(organizationRoles) as Array<
   keyof typeof organizationRoles
 >;
+
+export const ORGANIZATION_ROLE_GROUPS = [
+  {
+    id: "management",
+    label: "Gestion de l'organisation",
+    description:
+      "Gestion complete de l'organisation. Le gestionnaire peut tout faire sauf supprimer l'organisation.",
+    slugs: [ORG_ROLE.OWNER, ORG_ROLE.GESTIONNAIRE],
+  },
+  {
+    id: "branch",
+    label: "Acces branche",
+    description:
+      "Acces limite a la branche assignee. Lecture seule sur les membres et l'organisation.",
+    slugs: [
+      ORG_ROLE.TEACHER,
+      ORG_ROLE.PARENT,
+      ORG_ROLE.STUDENT,
+      ORG_ROLE.MONITEUR,
+      ORG_ROLE.RESPONSABLE,
+      ORG_ROLE.SURVEILLANT,
+    ],
+  },
+  {
+    id: "support",
+    label: "Support etablissement",
+    description: "Lecture des membres et branches, gestion des tickets support.",
+    slugs: [ORG_ROLE.SUPPORT],
+  },
+] as const;
+
 export { authAccessControl };

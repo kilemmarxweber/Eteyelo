@@ -1,6 +1,6 @@
 "use client";
 
-import { useTransition } from "react";
+import { useAppTransition as useTransition } from "@/hooks/use-app-transition";
 import { Mail, Phone, Send, UserRound } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";

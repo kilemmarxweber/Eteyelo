@@ -357,19 +357,40 @@ export const createNextParallelForRegistrationAction = action
       }),
     );
 
+    const capacity = input.capacity ?? 30;
+    const hasFreeSeats = (classe: (typeof existing)[number]) =>
+      classe.capacity != null &&
+      classe.capacity > 0 &&
+      classe.classEnrollment.length < classe.capacity;
+    const needsCapacity = (classe: (typeof existing)[number]) =>
+      classe.capacity == null || classe.capacity <= 0;
+
+    // Classes catalogue sans capacité : définir la capacité avant d'ouvrir une parallèle.
+    if (existing.length > 0 && existing.some(needsCapacity)) {
+      if (existing.some(hasFreeSeats)) {
+        throw new Error(
+          "Une parallèle dispose encore de places disponibles. L'affectation utilisera la première classe libre.",
+        );
+      }
+      const target = existing.find(needsCapacity)!;
+      const updated = await prisma.classe.update({
+        where: { id: target.id },
+        data: { capacity, creneauId: input.creneauId },
+        select: { id: true, nameClasse: true, capacity: true, parallel: true },
+      });
+      const base = `/admin/organizations/${organizationId}/branches/${branchId}`;
+      revalidatePath(`${base}/registration`);
+      revalidatePath(`${base}/classe`);
+      return updated;
+    }
+
     let parallel: string | undefined;
-    let capacity = input.capacity ?? 30;
     let simpleClassToPromote: (typeof existing)[number] | undefined;
+    let nextCapacity = capacity;
 
     if (existing.length === 0) {
       parallel = undefined;
-    } else if (
-      existing.some(
-        (classe) =>
-          !classe.capacity ||
-          classe.classEnrollment.length < classe.capacity,
-      )
-    ) {
+    } else if (existing.some(hasFreeSeats)) {
       throw new Error(
         "Une parallèle dispose encore de places disponibles. L'affectation utilisera la première classe libre.",
       );
@@ -396,7 +417,7 @@ export const createNextParallelForRegistrationAction = action
           throw new Error("Toutes les parallèles de A à Z existent déjà.");
         parallel = String.fromCharCode(65 + index);
       }
-      capacity = existing[0]?.capacity ?? capacity;
+      nextCapacity = existing.find((c) => c.capacity && c.capacity > 0)?.capacity ?? capacity;
     }
 
     const nameClasse = buildClassName({
@@ -467,7 +488,7 @@ export const createNextParallelForRegistrationAction = action
           level: validated.level,
           parallel: parallel ?? null,
           optionId: option?.id ?? null,
-          capacity,
+          capacity: nextCapacity,
           nameClasse,
           codeClasse,
           statusClasse: true,
@@ -633,7 +654,11 @@ export const createRegistrationFlowAction = action
             tx.classEnrollment.count({ where: { branchId, schoolYearId: input.schoolYearId } }),
           ]);
           studentCode = buildStudentCode(branch.name, input.student.name, annualEnrollmentCount + 1);
-          await tx.user.update({ where: { id: newStudentUserId }, data: { username: studentCode, image: request?.photoUrl || undefined } });
+          const photoUrl = input.photoUrl || request?.photoUrl || undefined;
+          await tx.user.update({
+            where: { id: newStudentUserId },
+            data: { username: studentCode, image: photoUrl },
+          });
           const branchMember = await tx.branchMember.create({ data: { branchId, memberId: newStudentMemberId, role: "STUDENT" } });
           const student = await tx.student.create({
             data: {

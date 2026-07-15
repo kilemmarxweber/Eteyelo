@@ -1,5 +1,7 @@
 "use client";
 
+import { useAppTransition as useTransition } from "@/hooks/use-app-transition";
+
 import * as React from "react";
 import { IconReload } from "@tabler/icons-react";
 import { type Row } from "@tanstack/react-table";
@@ -33,7 +35,7 @@ export function ResetUsersDialog({
   email,
   ...props
 }: ResetUsersDialogProps) {
-  const [isResetPending, startResetTransition] = React.useTransition();
+  const [isResetPending, startResetTransition] = useTransition();
 
   return (
     <Dialog {...props}>

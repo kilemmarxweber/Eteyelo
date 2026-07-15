@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
-import { redirect, notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { headers } from "next/headers";
 import Image from "next/image";
 import Link from "next/link";
@@ -28,7 +28,7 @@ const SingleTeacherPage = async ({
 }) => {
   /* ================= AUTH ================= */
   const session = await auth.api.getSession({ headers: await headers() });
-  if (!session) redirect("/not-authorized");
+  if (!session) notFound();
 
   const { id } = await params;
 

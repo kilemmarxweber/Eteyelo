@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { HomeFooter } from "@/components/home-footer";
 import { HomeNavbar } from "@/components/home-navbar";
 import { prisma } from "@/lib/prisma";
+import { getPublicStudentResults } from "@/lib/public-results";
 
 type PageProps = {
   searchParams: Promise<{
@@ -41,6 +42,7 @@ export default async function ResultatsPage({ searchParams }: PageProps) {
       name: true,
       ville: true,
       pays: true,
+      typebranch: true,
     },
   });
 
@@ -97,181 +99,15 @@ export default async function ResultatsPage({ searchParams }: PageProps) {
     ? Number(params.periodId)
     : undefined;
 
-  const grades = selectedBranchId
-    ? await prisma.studentGrade.findMany({
-        where: {
-          branchId: selectedBranchId,
-
-          ...(selectedYearId
-            ? {
-                schoolYearId: selectedYearId,
-              }
-            : {}),
-
-          ...(selectedPeriodId
-            ? {
-                periodId: selectedPeriodId,
-              }
-            : {}),
-
-          student: {
-            ...(params.classeId
-              ? {
-                  classEnrollment: {
-                    some: {
-                      classeId: params.classeId,
-                      branchId: selectedBranchId,
-                      ...(selectedYearId
-                        ? {
-                            schoolYearId: selectedYearId,
-                          }
-                        : {}),
-                    },
-                  },
-                }
-              : {}),
-
-            branchMember: {
-              member: {
-                user: params.q
-                  ? {
-                      OR: [
-                        {
-                          name: {
-                            contains: params.q,
-                            mode: "insensitive",
-                          },
-                        },
-                        {
-                          prenom: {
-                            contains: params.q,
-                            mode: "insensitive",
-                          },
-                        },
-                        {
-                          postnom: {
-                            contains: params.q,
-                            mode: "insensitive",
-                          },
-                        },
-                      ],
-                    }
-                  : undefined,
-              },
-            },
-          },
-        },
-
-        include: {
-          period: {
-            select: {
-              id: true,
-              label: true,
-            },
-          },
-
-          schoolYear: {
-            select: {
-              id: true,
-              nameYear: true,
-            },
-          },
-
-          student: {
-            include: {
-              branchMember: {
-                include: {
-                  member: {
-                    include: {
-                      user: {
-                        select: {
-                          id: true,
-                          name: true,
-                          prenom: true,
-                          postnom: true,
-                          sexe: true,
-                          image: true,
-                        },
-                      },
-                    },
-                  },
-                },
-              },
-
-              classEnrollment: {
-                where: {
-                  branchId: selectedBranchId,
-                  ...(selectedYearId
-                    ? {
-                        schoolYearId: selectedYearId,
-                      }
-                    : {}),
-                },
-                include: {
-                  classe: {
-                    select: {
-                      id: true,
-                      nameClasse: true,
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-
-        orderBy: {
-          score: "desc",
-        },
+  const results = selectedBranchId
+    ? await getPublicStudentResults({
+        branchId: selectedBranchId,
+        classeId: params.classeId || undefined,
+        yearId: selectedYearId || undefined,
+        periodId: selectedPeriodId,
+        q: params.q || undefined,
       })
     : [];
-
-  const grouped = new Map<
-    string,
-    {
-      studentId: string;
-      name: string;
-      sexe: string;
-      classe: string;
-      year: string;
-      scores: number[];
-      periods: string[];
-      average: number;
-    }
-  >();
-
-  for (const grade of grades) {
-    const user = grade.student.branchMember.member.user;
-
-    const fullName = [user.prenom, user.name, user.postnom]
-      .filter(Boolean)
-      .join(" ");
-
-    const current = grouped.get(grade.studentId) ?? {
-      studentId: grade.studentId,
-      name: fullName || "Élève",
-      sexe: user.sexe || "N/A",
-      classe:
-        grade.student.classEnrollment[0]?.classe?.nameClasse ||
-        "Classe non renseignée",
-      year: grade.schoolYear.nameYear,
-      scores: [],
-      periods: [],
-      average: 0,
-    };
-
-    current.scores.push(Number(grade.score));
-    current.periods.push(grade.period.label);
-    current.average =
-      current.scores.reduce((total, score) => total + score, 0) /
-      current.scores.length;
-
-    grouped.set(grade.studentId, current);
-  }
-
-  const results = Array.from(grouped.values()).sort(
-    (a, b) => b.average - a.average,
-  );
 
   return (
     <main className="min-h-screen bg-slate-50 text-slate-900">
@@ -308,6 +144,9 @@ export default async function ResultatsPage({ searchParams }: PageProps) {
                 {branches.map((branch) => (
                   <option key={branch.id} value={branch.id}>
                     {branch.name}
+                    {branch.typebranch === "PRIMAIRE"
+                      ? " (Primaire)"
+                      : " (Secondaire)"}
                   </option>
                 ))}
               </select>

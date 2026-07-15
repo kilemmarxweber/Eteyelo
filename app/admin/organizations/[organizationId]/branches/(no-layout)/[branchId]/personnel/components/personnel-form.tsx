@@ -1,5 +1,6 @@
 "use client";
-import { HTMLAttributes, useState, useEffect, useTransition } from "react";
+import { HTMLAttributes, useState, useEffect } from "react";
+import { useAppTransition as useTransition } from "@/hooks/use-app-transition";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";

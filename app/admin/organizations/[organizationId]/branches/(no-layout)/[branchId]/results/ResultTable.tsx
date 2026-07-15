@@ -9,6 +9,7 @@ import {
 } from "@tanstack/react-table";
 import { Eye, FileText, MessageSquare } from "lucide-react";
 import Link from "next/link";
+import { useParams } from "next/navigation";
 import { Fragment } from "react";
 
 export default function ResultTable({
@@ -16,7 +17,7 @@ export default function ResultTable({
   totalPercentage,
   rank,
   totalStudent,
-  sexeStats, // ✅ AJOUT
+  sexeStats,
 }: {
   data: Result[];
   totalPercentage: string;
@@ -24,10 +25,16 @@ export default function ResultTable({
   totalStudent: number | null;
   sexeStats: any;
 }) {
-  const subjectsData = data;
-  console.log(data);
+  const params = useParams<{ organizationId: string; branchId: string }>();
+  const organizationId = params.organizationId;
+  const branchId = params.branchId;
+  const resultsBaseHref =
+    organizationId && branchId
+      ? `/admin/organizations/${organizationId}/branches/${branchId}/results`
+      : null;
 
-  // ================= TABLE =================
+  const subjectsData = data;
+
   const columns: ColumnDef<Result>[] = [
     {
       accessorKey: "name",
@@ -39,15 +46,19 @@ export default function ResultTable({
               {row.original.name}
               <FileText size={16} className="text-red-500" />
             </span>
-          ) : (
+          ) : resultsBaseHref ? (
             <Link
-              href={`/admin/results/${encodeURIComponent(
+              href={`${resultsBaseHref}/${encodeURIComponent(
                 row.original.name,
-              )}?studentId=${row.original.studentId}&period=${row.original.periodName}`}
-              className="text-blue-600 hover:underline font-medium"
+              )}?studentId=${encodeURIComponent(
+                row.original.studentId ?? row.original.id,
+              )}&period=${encodeURIComponent(row.original.periodName)}`}
+              className="font-medium text-blue-600 hover:underline"
             >
               {row.original.name}
             </Link>
+          ) : (
+            <span className="font-medium">{row.original.name}</span>
           )}
         </span>
       ),
@@ -58,7 +69,7 @@ export default function ResultTable({
       header: "Statut",
       cell: ({ row }) =>
         row.original.status ? (
-          <span className="px-2 py-1 text-xs bg-blue-100 rounded-full">
+          <span className="rounded-full bg-blue-100 px-2 py-1 text-xs">
             {row.original.status}
           </span>
         ) : null,
@@ -72,8 +83,8 @@ export default function ResultTable({
           <span
             className={
               note >= row.original.total / 2
-                ? "text-green-600 font-medium"
-                : "text-red-500 font-medium"
+                ? "font-medium text-green-600"
+                : "font-medium text-red-500"
             }
           >
             {note}
@@ -87,18 +98,25 @@ export default function ResultTable({
       header: "",
       cell: ({ row }) =>
         row.original.TypeFiche ? (
-          <span className="text-blue-500 flex items-center gap-1">
+          <span className="flex items-center gap-1 text-blue-500">
             {row.original.Comment}
           </span>
-        ) : (
-          <div className="flex items-center gap-3 justify-end">
-            <Eye size={16} className="text-blue-500 cursor-pointer" />
-            <MessageSquare
-              size={16}
-              className="text-green-500 cursor-pointer"
-            />
+        ) : resultsBaseHref ? (
+          <div className="flex items-center justify-end gap-3">
+            <Link
+              href={`${resultsBaseHref}/${encodeURIComponent(
+                row.original.name,
+              )}?studentId=${encodeURIComponent(
+                row.original.studentId ?? row.original.id,
+              )}&period=${encodeURIComponent(row.original.periodName)}`}
+              title="Voir les interventions"
+              className="text-blue-500 hover:text-blue-600"
+            >
+              <Eye size={16} />
+            </Link>
+            <MessageSquare size={16} className="cursor-pointer text-green-500" />
           </div>
-        ),
+        ) : null,
     },
   ];
 
@@ -108,14 +126,12 @@ export default function ResultTable({
     getCoreRowModel: getCoreRowModel(),
   });
 
-  // ================= TOTAL =================
   const totalScore = data.reduce((a, b) => a + b.note, 0);
   const totalMax = data.reduce((a, b) => a + b.total, 0);
 
   const finalPercentage =
     totalMax > 0 ? ((totalScore / totalMax) * 100).toFixed(1) : "0.0";
 
-  // ================= GROUP BY TYPE =================
   const groupedByType = data.reduce(
     (acc, item) => {
       const key = `${item.TypeFiche}`;
@@ -136,8 +152,7 @@ export default function ResultTable({
   );
 
   return (
-    <table className="w-full text-sm text-left mb-4">
-      {/* ================= HEADER ================= */}
+    <table className="mb-4 w-full text-left text-sm">
       <thead>
         {table.getHeaderGroups().map((headerGroup) => (
           <tr key={headerGroup.id} className="border-b">
@@ -153,7 +168,6 @@ export default function ResultTable({
         ))}
       </thead>
 
-      {/* ================= BODY ================= */}
       <tbody>
         {table.getRowModel().rows.map((row) => (
           <tr key={row.id} className="border-b">
@@ -166,7 +180,6 @@ export default function ResultTable({
         ))}
       </tbody>
 
-      {/* ================= FOOTER ================= */}
       <tfoot className="text-sm">
         {[
           "Place d'élève",
@@ -182,7 +195,7 @@ export default function ResultTable({
           const group = groupedByType[label];
 
           const totalNote = group?.totalNote ?? 0;
-          const totalMax = group?.totalMax ?? 0;
+          const groupMax = group?.totalMax ?? 0;
 
           let displayValue: string = "NA";
 
@@ -198,7 +211,6 @@ export default function ResultTable({
             }
           }
 
-          // ================= AJOUT SEXE =================
           if (label === "Sexe") {
             return (
               <Fragment key="sex-block">
@@ -244,16 +256,15 @@ export default function ResultTable({
                 {displayValue}
               </td>
               <td className="text-right text-gray-500">
-                {totalMax > 0
-                  ? `${totalNote.toFixed(2)} / ${totalMax.toFixed(2)}`
+                {groupMax > 0
+                  ? `${totalNote.toFixed(2)} / ${groupMax.toFixed(2)}`
                   : "0,00 / 0,00"}
               </td>
             </tr>
           );
         })}
 
-        {/* ================= TOTAL ================= */}
-        <tr className="border-t-2 font-semibold text-base">
+        <tr className="border-t-2 text-base font-semibold">
           <td className="py-3">Total</td>
           <td />
           <td />
@@ -262,8 +273,8 @@ export default function ResultTable({
             <span
               className={
                 totalScore < totalMax / 2
-                  ? "text-red-500 font-semibold"
-                  : "text-green-600 font-semibold"
+                  ? "font-semibold text-red-500"
+                  : "font-semibold text-green-600"
               }
             >
               {totalScore.toFixed(1)}

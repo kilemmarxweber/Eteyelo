@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import jsPDF from "jspdf";
+import jsPDF, { GState } from "jspdf";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
@@ -43,18 +43,37 @@ import {
   type BulletinPeriodMaxima,
 } from "@/lib/bulletin-maxima";
 import {
+  BULLETIN_INNER_LINE_WIDTH_MM,
+  BULLETIN_OUTER_LINE_WIDTH_MM,
+} from "@/lib/bulletin-layout";
+import {
   buildSecondaryBulletinLayout,
   drawSecondaryTableHeader,
   getSecondarySemesterDrawConfig,
 } from "./bulletin-secondary-layout";
 import {
+  buildPrimaryBulletinRows,
+  getPrimarySubjectCanonicalKey,
+  getPrimarySubjectDisplayName,
+  type PrimaryDomainCode,
+} from "@/lib/primary-domains";
+import {
+  dedupeBulletinSubjectsByName,
+  normalizeBulletinSubjectKey,
+} from "@/lib/bulletin-subjects";
+import {
   buildPrimaryBulletinLayout,
   drawPrimaryTableHeader,
-  drawPrimaryTrimesterMaximaRow,
   type PrimaryBulletinLayout,
 } from "./bulletin-primary-layout";
 import {
+  buildGenerauxCellValues,
+  buildPrimaryMaximaValues,
+  drawPrimaryDomainHeader,
+  drawPrimaryGeneralMaximaRow,
   drawPrimaryMatiere,
+  drawPrimarySectionHeader,
+  drawPrimarySousTotalRow,
   drawPrimarySubjectRow,
 } from "./bulletin-primary-render";
 
@@ -73,15 +92,25 @@ export default function BulletinPDF({
   label,
   variant = "outline",
   size = "default",
+  classCode,
+  classLevel,
+  schoolYear,
 }: {
   data: any[];
   branchContext: BulletinBranchContext;
   label?: string;
   variant?: any;
   size?: any;
+  /** Code classe (ex. codeClasse) */
+  classCode?: string;
+  /** Niveau / degré (ex. Degré moyen) */
+  classLevel?: string | null;
+  /** Libellé année scolaire en cours */
+  schoolYear?: string;
 }) {
   const [imageData1, setImageData1] = useState<string | null>(null);
   const [imageData2, setImageData2] = useState<string | null>(null);
+  const [watermarkData, setWatermarkData] = useState<string | null>(null);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
@@ -99,6 +128,16 @@ export default function BulletinPDF({
       .then((base64) => setImageData2(base64))
       .catch(console.error);
   }, []);
+  useEffect(() => {
+    fetch("/uploads/Armoiri_de_la_RDC.png")
+      .then((res) => {
+        if (!res.ok) throw new Error(`Armoirie watermark HTTP ${res.status}`);
+        return res.blob();
+      })
+      .then((blob) => getImageBase64(new File([blob], "Armoiri_de_la_RDC.png")))
+      .then((base64) => setWatermarkData(base64))
+      .catch(console.error);
+  }, []);
 
   const generatePDF = useCallback(() => {
     if (!imageData1 || !imageData2) {
@@ -111,17 +150,19 @@ export default function BulletinPDF({
     const margin = 10;
     const frameWidth = pageWidth - 2 * margin;
 
-    const shiftX = 0;
-    const shiftY = -25;
-    const tableX = margin;
-    const tableY = margin + 36 + 50;
-    const rowHeightTotal = 20;
-    const hTop = 7;
-    const hMid = 7;
-    const hBottom = 7;
-
     const layoutKind = resolveBulletinLayoutKind(branchContext.branchType);
     const isPrimaryLayout = layoutKind === "primary";
+
+    const shiftX = 0;
+    const shiftY = isPrimaryLayout ? -25 : -25;
+    const tableX = margin;
+    // Primaire : titre + BRANCHES un peu plus bas (compromis place / aération)
+    const tableY = isPrimaryLayout ? margin + 85 : margin + 36 + 50;
+
+    const rowHeightTotal = isPrimaryLayout ? 10 : 20;
+    const hTop = isPrimaryLayout ? 5 : 7;
+    const hMid = isPrimaryLayout ? 5 : 7;
+    const hBottom = isPrimaryLayout ? 0 : 7;
 
     const secondaryLayout = isPrimaryLayout
       ? null
@@ -170,7 +211,7 @@ export default function BulletinPDF({
     const examX2 = isPrimaryLayout ? 0 : secondaryLayout!.examX2;
 
     doc.setDrawColor(0);
-    doc.setLineWidth(0.5);
+    doc.setLineWidth(BULLETIN_OUTER_LINE_WIDTH_MM);
 
     data.forEach((student, studentIndex) => {
       if (studentIndex > 0) doc.addPage();
@@ -197,12 +238,21 @@ export default function BulletinPDF({
 
       const headerHeight = 275;
       doc.rect(margin, margin, frameWidth, headerHeight);
-      doc.addImage(imageData1, "PNG", margin + 3, margin + 3, 28, 17);
+      // Primaire : ne pas remonter le bloc ministère (sinon collé au N° ID)
+      const headerContentLift = 0;
+      doc.addImage(
+        imageData1,
+        "PNG",
+        margin + 3,
+        margin + 3 - headerContentLift,
+        28,
+        17,
+      );
       doc.addImage(
         imageData2,
         "PNG",
         margin + frameWidth - 21,
-        margin + 3,
+        margin + 3 - headerContentLift,
         17,
         17,
       );
@@ -216,7 +266,7 @@ export default function BulletinPDF({
         drawTextAligned(
           line,
           margin + frameWidth / 2,
-          margin + 8 + i * 6,
+          margin + 8 - headerContentLift + i * 6,
           "center",
           2,
         );
@@ -243,16 +293,48 @@ export default function BulletinPDF({
       function drawHorizontalSquares(
         x: number,
         y: number,
-        size: number = 5, // taille du carré (largeur = hauteur)
-        count: number = 8, // nombre de petits carrés
-        spacing: number = 1, // espace entre chaque carré
+        size: number = 5,
+        count: number = 8,
+        spacing: number = 0, // 0 = grille continue (pas de double trait entre cases)
+        value: string = "",
       ) {
-        doc.setDrawColor(0, 0, 0); // bord noir
+        const chars = String(value ?? "")
+          .toUpperCase()
+          .replace(/\s+/g, "")
+          .split("");
 
-        for (let i = 0; i < count; i++) {
-          const squareX = x + i * (size + spacing);
-          doc.rect(squareX, y, size, size); // carré vide
+        const step = size + spacing;
+        const totalW = count * size + Math.max(0, count - 1) * spacing;
+
+        doc.saveGraphicsState();
+        doc.setDrawColor(0, 0, 0);
+        doc.setLineWidth(BULLETIN_INNER_LINE_WIDTH_MM);
+
+        if (spacing <= 0) {
+          // Une seule bande : contour + séparateurs verticaux (trait fin, sans double contour)
+          doc.rect(x, y, totalW, size);
+          for (let i = 1; i < count; i++) {
+            const lx = x + i * size;
+            doc.line(lx, y, lx, y + size);
+          }
+        } else {
+          for (let i = 0; i < count; i++) {
+            doc.rect(x + i * step, y, size, size);
+          }
         }
+
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(Math.max(5.5, size * 1.35));
+        doc.setTextColor(0, 0, 0);
+        for (let i = 0; i < count; i++) {
+          const char = chars[i];
+          if (!char) continue;
+          const squareX = x + i * step;
+          doc.text(char, squareX + size / 2, y + size * 0.72, {
+            align: "center",
+          });
+        }
+        doc.restoreGraphicsState();
       }
       function drawLabel(
         text: string,
@@ -323,62 +405,119 @@ export default function BulletinPDF({
       }
 
       const startX = margin;
-      const startY = 41;
+      // Primaire: N° ID et bloc info descendus pour dégager le texte Ministère
+      const idBoxY = isPrimaryLayout ? 33 : 32;
+      const idBoxH = isPrimaryLayout ? 7.5 : 9;
+      const infoStartY = isPrimaryLayout ? 40.5 : 41;
+      const infoRowH = isPrimaryLayout ? 4.8 : 7;
+      const infoHeight = isPrimaryLayout ? infoRowH * 5 : 25;
+      const schoolLabelYs = isPrimaryLayout
+        ? [44.2, 49, 53.8, 58.6, 63.4]
+        : [48, 52, 57, 62];
+      const studentLabelYs = isPrimaryLayout
+        ? [44.2, 49, 53.8, 58.6, 63.4]
+        : [48, 52, 57, 62];
       const width = layout.frameWidth;
-      const height = 25;
-      const rowH = 7;
-      drawTwoColumnBox(startX, 32, width, 9, rowH, false); // Numero ID cadre sans ligne centrale
-      // Texte N° ID.
-      drawLabel("N° ID.", 22, 38, {
-        size: 11,
+      const leftColMaxWidth = width / 2 - 6;
+
+      drawTwoColumnBox(startX, idBoxY, width, idBoxH, infoRowH, false);
+      drawLabel("N° ID.", 22, isPrimaryLayout ? 38.5 : 38, {
+        size: isPrimaryLayout ? 9 : 11,
         bold: true,
         align: "right",
       });
-      //cadre global  N ID
-      drawHorizontalSquares(25, 34, 5, 27, 1);
-      //cadre de infos Ecole et student
-      drawTwoColumnBox(startX, startY, width, height, rowH); // 🔥 désactivation de la ligne centrale pour cette boîte spécifique
-      //Information Ecole
+      drawHorizontalSquares(
+        25,
+        isPrimaryLayout ? 35 : 34,
+        isPrimaryLayout ? 4 : 5,
+        27,
+        isPrimaryLayout ? 0 : 1,
+      );
+      drawTwoColumnBox(startX, infoStartY, width, infoHeight, infoRowH);
+
+      const schoolName = branchContext.branchName || branchContext.organizationName;
       const branchLocation = [branchContext.city, branchContext.country]
         .filter(Boolean)
         .join(" / ");
-      const schoolName = branchContext.organizationName
+      const schoolNameSecondary = branchContext.organizationName
         ? `${branchContext.branchName} — ${branchContext.organizationName}`
         : branchContext.branchName;
 
-      drawLabel(`VILLE / PAYS : ${branchLocation || "-"}`, 12, 48, {
-        size: 8,
-        bold: true,
-        align: "left",
-        maxWidth: 91,
-      });
-      drawLabel(`ADRESSE : ${branchContext.address || "-"}`, 12, 52, {
-        size: 8,
-        bold: true,
-        align: "left",
-        maxWidth: 91,
-      });
-      drawLabel(`ECOLE : ${schoolName || "-"}`, 12, 57, {
-        size: 8,
-        bold: true,
-        align: "left",
-        maxWidth: 91,
-      });
-      drawLabel(`CODE : ${branchContext.branchCode || "-"}`, 12, 62, {
-        size: 8,
-        bold: true,
-        align: "left",
-        maxWidth: 91,
-      });
+      if (isPrimaryLayout) {
+        drawLabel(
+          `PROVINCE EDUCATIONNELLE : ${branchContext.province || "………………"}`,
+          12,
+          schoolLabelYs[0],
+          { size: 7.5, bold: true, align: "left", maxWidth: leftColMaxWidth },
+        );
+        drawLabel(
+          `VILLE : ${branchContext.city || "………………"}`,
+          12,
+          schoolLabelYs[1],
+          { size: 7.5, bold: true, align: "left", maxWidth: leftColMaxWidth },
+        );
+        drawLabel(
+          `COMMUNE / TER. (1) : ${branchContext.commune || "………………"}`,
+          12,
+          schoolLabelYs[2],
+          { size: 7.5, bold: true, align: "left", maxWidth: leftColMaxWidth },
+        );
+        drawLabel(
+          `ECOLE : ${schoolName || "………………"}`,
+          12,
+          schoolLabelYs[3],
+          { size: 7.5, bold: true, align: "left", maxWidth: leftColMaxWidth },
+        );
+        drawLabel("CODE :", 12, schoolLabelYs[4], {
+          size: 7.5,
+          bold: true,
+          align: "left",
+        });
+        const schoolCode = branchContext.branchCode.replace(/\s+/g, "");
+        const codeBoxCount = Math.min(16, Math.max(12, schoolCode.length || 12));
+        drawHorizontalSquares(
+          28,
+          infoStartY + infoRowH * 4 + 0.55,
+          3.6,
+          codeBoxCount,
+          0,
+          schoolCode,
+        );
+      } else {
+        drawLabel(`VILLE / PAYS : ${branchLocation || "-"}`, 12, schoolLabelYs[0], {
+          size: 8,
+          bold: true,
+          align: "left",
+          maxWidth: 91,
+        });
+        drawLabel(`ADRESSE : ${branchContext.address || "-"}`, 12, schoolLabelYs[1], {
+          size: 8,
+          bold: true,
+          align: "left",
+          maxWidth: 91,
+        });
+        drawLabel(`ECOLE : ${schoolNameSecondary || "-"}`, 12, schoolLabelYs[2], {
+          size: 8,
+          bold: true,
+          align: "left",
+          maxWidth: 91,
+        });
+        drawLabel(`CODE : ${branchContext.branchCode || "-"}`, 12, schoolLabelYs[3], {
+          size: 8,
+          bold: true,
+          align: "left",
+          maxWidth: 91,
+        });
+      }
       //Information Students
       drawLabel(
         `Eleve        :        ${student.nom?.toUpperCase() ?? ""} ${
           student.studentSurname?.toUpperCase() ?? ""
         }       SEXE : ${student.studentSexe?.toUpperCase() ?? ""}`,
         110,
-        48,
+        studentLabelYs[0],
         {
-          size: 8,
+          size: isPrimaryLayout ? 7.5 : 8,
           bold: true,
           align: "left",
         },
@@ -393,11 +532,13 @@ export default function BulletinPDF({
           ).padStart(2, "0")}-${studentDate.getFullYear()}`
         : "";
       drawLabel(
-        `Né à        :       MONT-NGAFULA             ${formattedDate ?? ""} `,
+        isPrimaryLayout
+          ? `Né à        :                         ${formattedDate}`
+          : `Né à        :       MONT-NGAFULA             ${formattedDate} `,
         110,
-        52,
+        studentLabelYs[1],
         {
-          size: 9,
+          size: isPrimaryLayout ? 7.5 : 9,
           bold: true,
           align: "left",
         },
@@ -405,173 +546,134 @@ export default function BulletinPDF({
       drawLabel(
         `CLASSE :       ${student.studentclasse ?? "Non spécifiée"} `,
         110,
-        57,
+        studentLabelYs[2],
         {
-          size: 9,
+          size: isPrimaryLayout ? 7.5 : 9,
           bold: true,
           align: "left",
         },
       );
-      drawLabel("N° PERM:  ", 110, 62, {
-        size: 9,
+      drawLabel("N° PERM:  ", 110, studentLabelYs[3], {
+        size: isPrimaryLayout ? 7.5 : 9,
         bold: true,
         align: "left",
       });
-      //les petits cadre de code N perm
-      drawHorizontalSquares(132, 59, 4, 13, 1);
+      drawHorizontalSquares(
+        132,
+        isPrimaryLayout ? infoStartY + infoRowH * 3 + 0.55 : 59,
+        isPrimaryLayout ? 3.6 : 4,
+        13,
+        isPrimaryLayout ? 0 : 1,
+        student.studentusername ?? "",
+      );
       function generateFooterBlock(
-        pageWidth: number,
-        pageHeight: number,
-        margin: number = 20,
+        frameX: number,
+        frameY: number,
+        frameW: number,
+        frameH: number,
       ): void {
         doc.saveGraphicsState();
 
-        // Largeur totale
-        const blockWidth = 220;
+        const padX = 6;
+        const padBottom = 3;
+        const startX = frameX + padX;
+        const contentW = frameW - padX * 2;
+        const frameBottom = frameY + frameH;
+        const lineHeight = 5.5;
 
-        // Position X (centré horizontalement)
-        const startX = (pageWidth - blockWidth) / 2;
+        const notesY2 = frameBottom - padBottom;
+        const notesY1 = notesY2 - lineHeight;
 
-        // Position Y en bas avec marge
-        const startY = pageHeight - margin - 70; // ajuste 70 selon la hauteur du bloc
+        doc.setFont("Times", "Bold");
+        doc.setFontSize(8);
+        doc.text("(1) Biffer la mention inutile", startX, notesY1);
+        doc.text(
+          "Note importante : le bulletin est sans valeur s’il est raturé ou surchargé.",
+          startX,
+          notesY2,
+        );
 
-        const lineHeight = 6;
+        const sigY = notesY1 - lineHeight * 1.4;
+        doc.setFont("Times", "Bold");
+        doc.setFontSize(8);
+        doc.text("Sceau de l’Ecole", startX + contentW / 2, sigY, {
+          align: "center",
+        });
+        doc.text("Le Chef d’Etablissement", startX + contentW, sigY, {
+          align: "right",
+        });
+        doc.setFont("Times", "Normal");
+        doc.setFontSize(7);
+        doc.text("Nom et signature", startX + contentW, sigY + 4, {
+          align: "right",
+        });
+
+        const point2Y = sigY - lineHeight * 0.75;
+        const point1Y = point2Y - lineHeight * 0.85;
 
         doc.setFont("Times", "Normal");
         doc.setFontSize(9);
+        doc.text("2. L’élève double sa classe (1)", startX, point2Y);
 
-        // 1ère phrase avec ligne de pointillés (ici underscore _ pour simulation)
-        const ligne1 =
-          "1. L’élève pourra passer dans la classe supérieure s’il n’a subi avec succès un Examen de repéchage en ";
-        const ligne1Fin =
-          "......................................................................";
-
-        doc.text(ligne1 + ligne1Fin, startX, startY);
-
-        // 2ème phrase + ligne de points + (1) aligné à droite
-        const ligne2 = "2. L’élève passe dans la classe supérieure (1)";
-        const ligne2Fin =
-          "...........................................................................................(1)";
-
-        doc.text(ligne2 + ligne2Fin, startX, startY + lineHeight);
-
-        // Lignes 3 & 4 avec signatures et alignements particuliers
-
+        const city = branchContext.city?.trim() || "Kinshasa";
         doc.text(
-          "3. L’élève double sa classe (1)",
+          "1. L’élève passe dans la classe supérieure (1)",
           startX,
-          startY + lineHeight * 2,
-        );
-
-        // Ligne 4 texte gauche
-        doc.text(
-          "4. L’élève a échoué et est orienté (1)",
-          startX,
-          startY + lineHeight * 3,
-        );
-
-        // Signature de l'élève (gauche bas)
-        doc.text(
-          "Signature de l’élève",
-          startX + 5,
-          startY + lineHeight * 4 + 4,
-        );
-
-        // Sceau de l'école (centré bas)
-        doc.text(
-          "Sceau de l’école",
-          startX + blockWidth / 3,
-          startY + lineHeight * 4 + 4,
-          { align: "center" },
-        );
-
-        // LE CHEF D’ETABLISSEMENT et date (droite bas)
-        const rightBlockX = startX + blockWidth - 8;
-        doc.text(
-          "Fait à ......................................... le ...../...../20.....",
-          rightBlockX - 95,
-          startY + lineHeight * 3,
+          point1Y,
         );
         doc.text(
-          "LE CHEF D’ETABLISSEMENT",
-          rightBlockX - 80,
-          startY + lineHeight * 4 + 4,
+          `Fait à ${city} le ...../...../20.....`,
+          startX + contentW,
+          point1Y,
+          { align: "right" },
         );
-
-        // Nom et signature (droite bas, sous chef d'établissement)
-        doc.text(
-          "Nom et signature",
-          rightBlockX - 70,
-          startY + lineHeight * 5 + 4,
-        );
-
-        // Note importante en gras, tout en bas
-        doc.setFont("Times", "Bold");
-        const note = "(1) Biffer la mention inutile";
-        const note2 =
-          "Note importante : le bulletin est sans valeur s’il est raturé ou surchargé.";
-        doc.text(note, startX, startY + lineHeight * 6 + 1);
-        doc.text(note2, startX, startY + lineHeight * 7 + 1);
 
         doc.restoreGraphicsState();
       }
-      generateFooterBlock(244, 330);
+      generateFooterBlock(margin, margin, frameWidth, headerHeight);
+
+      const resolvedClassCode =
+        classCode?.trim() ||
+        student.studentclasse?.trim() ||
+        "—";
+      const resolvedYear =
+        schoolYear?.trim() ||
+        student.periods.find((p: { anneeName?: string }) => p.anneeName)?.anneeName ||
+        "—";
+      const degreeLabel =
+        classLevel?.trim() ||
+        (isPrimaryLayout ? "Degre moyen" : student.studentclasse?.trim() || "—");
+
+      const tableTopY = tableY + shiftY;
+      const bulletinTitleY = tableTopY - 0.5;
+      const toBulletinUpper = (value: string) =>
+        value
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .toUpperCase();
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(8);
+      doc.setTextColor(0, 0, 0);
+      doc.text(
+        toBulletinUpper(
+          `Bulletin de l'élève ${degreeLabel} (${resolvedClassCode})`,
+        ),
+        margin + 1,
+        bulletinTitleY,
+        { align: "left", baseline: "bottom" },
+      );
+      doc.text(
+        toBulletinUpper(`ANNEE SCOLAIRE ${resolvedYear}`),
+        margin + frameWidth - 1,
+        bulletinTitleY,
+        { align: "right", baseline: "bottom" },
+      );
+
       if (isPrimaryLayout) {
         drawPrimaryTableHeader(doc, primaryLayout!);
       } else {
         drawSecondaryTableHeader(doc, secondaryLayout!);
       }
-      function generateDecisionBlock(x: number, y: number) {
-        // Sauvegarde de l'état avant modifications
-        doc.saveGraphicsState();
-
-        // Font par défaut pour ce bloc uniquement
-        doc.setFont("Consolas", "bold");
-        doc.setFontSize(7);
-
-        // --- TEXTES DE DÉCISION ---
-        const lines = ["- PASSE (1)", "- DOUBLE (1)", "- A ECHOUÉ (1)"];
-
-        lines.forEach((text, i) => {
-          doc.text(text, x, y + i * 5);
-        });
-
-        // --- DATE AUTOMATIQUE ---
-        const today = new Date();
-        const day = String(today.getDate()).padStart(2, "0");
-        const moisNoms = [
-          "janvier",
-          "février",
-          "mars",
-          "avril",
-          "mai",
-          "juin",
-          "juillet",
-          "août",
-          "septembre",
-          "octobre",
-          "novembre",
-          "décembre",
-        ];
-        const month = moisNoms[today.getMonth()];
-        const year = today.getFullYear();
-        const formattedDate = `${day} ${month} ${year}`;
-        doc.setFont("Times", "Bold");
-        doc.text(`Le ${formattedDate}`, 169, 196 + 3 * 6 + 10);
-        doc.setFont("Times", "Bold");
-        doc.text("Le Chef d’Etablissement", 182, 185 + 3 * 6 + 25, {
-          align: "center",
-        });
-
-        doc.setFont("Times", "Bold");
-        doc.text("Sceau de l’Ecole", 182, 181 + 3 * 6 + 32, {
-          align: "center",
-        });
-
-        // 🔥 Restaure l’état graphique avant les changements
-        doc.restoreGraphicsState();
-      }
-      generateDecisionBlock(169, 210);
 
       // -------------------- BLOCS & MAXIMA --------------------
 
@@ -598,7 +700,12 @@ export default function BulletinPDF({
         throw new Error(`Période inconnue: ${selectedPeriod}`);
       }
       // --- Generate the subject map ---
-      type SubjectWithMaxima = Subject & { maxima: BulletinPeriodMaxima };
+      type SubjectWithMaxima = Subject & {
+        maxima: BulletinPeriodMaxima;
+        primaryDomain?: PrimaryDomainCode | null;
+        primarySection?: string | null;
+        domainOrder?: number | null;
+      };
       type DynamicBloc = {
         blocName: string;
         subjects: Subject[];
@@ -614,26 +721,58 @@ export default function BulletinPDF({
         if (typeof value === "string") return value.trim();
         return "";
       }
-      const allSubjects = new Set<string>(
-        student.periods.flatMap((p: StudentPeriod) =>
-          Object.keys(p.notes || {}),
-        ),
-      );
-
       const emptyGroupScores = buildEmptySubjectGroupScores(
         branchContext.branchType,
       );
 
-      for (const subjectName of allSubjects) {
-        subjectMap[subjectName] = {
-          name: subjectName,
-          sem1: emptyGroupScores.sem1 ?? {},
-          sem2: emptyGroupScores.sem2 ?? {},
-          ...(emptyGroupScores.sem3 ? { sem3: emptyGroupScores.sem3 } : {}),
-          baseMaxScore: 0,
-          maxima: {},
-        };
-      }
+      const ensureSubject = (
+        rawName: string,
+        meta?: {
+          primaryDomain?: string | null;
+          primarySection?: string | null;
+          domainOrder?: number | null;
+        },
+      ): SubjectWithMaxima => {
+        const key = isPrimaryLayout
+          ? getPrimarySubjectCanonicalKey(rawName)
+          : normalizeBulletinSubjectKey(rawName);
+        const displayName = isPrimaryLayout
+          ? getPrimarySubjectDisplayName(rawName)
+          : rawName.trim();
+        if (!subjectMap[key]) {
+          // Cloner les scores vides : sinon toutes les matières partagent
+          // les mêmes objets sem1/sem2/sem3 et s'écrasent mutuellement.
+          subjectMap[key] = {
+            name: displayName,
+            sem1: { ...(emptyGroupScores.sem1 ?? {}) },
+            sem2: { ...(emptyGroupScores.sem2 ?? {}) },
+            ...(emptyGroupScores.sem3
+              ? { sem3: { ...emptyGroupScores.sem3 } }
+              : {}),
+            baseMaxScore: 0,
+            maxima: {},
+            primaryDomain: (meta?.primaryDomain as PrimaryDomainCode | null) ?? null,
+            primarySection: meta?.primarySection ?? null,
+            domainOrder: meta?.domainOrder ?? null,
+          };
+        } else if (meta?.primaryDomain && !subjectMap[key].primaryDomain) {
+          subjectMap[key].primaryDomain = meta.primaryDomain as PrimaryDomainCode;
+          subjectMap[key].primarySection = meta.primarySection ?? null;
+          subjectMap[key].domainOrder = meta.domainOrder ?? null;
+        }
+        return subjectMap[key];
+      };
+
+      student.periods.forEach((period: StudentPeriod) => {
+        Object.entries(period.notes || {}).forEach(([rawName, note]) => {
+          ensureSubject(rawName, {
+            primaryDomain: (note as { primaryDomain?: string | null }).primaryDomain,
+            primarySection: (note as { primarySection?: string | null }).primarySection,
+            domainOrder: (note as { domainOrder?: number | null }).domainOrder,
+          });
+        });
+      });
+
       student.periods.forEach((period: StudentPeriod) => {
         const periodKey = periodKeyMap[period.periodName as PeriodLabel];
         if (!periodKey) return;
@@ -642,8 +781,11 @@ export default function BulletinPDF({
         if (!semester) return;
 
         Object.entries(period.notes || {}).forEach(([subjectName, note]) => {
-          const subject = subjectMap[subjectName];
-          if (!subject) return;
+          const subject = ensureSubject(subjectName, {
+            primaryDomain: (note as { primaryDomain?: string | null }).primaryDomain,
+            primarySection: (note as { primarySection?: string | null }).primarySection,
+            domainOrder: (note as { domainOrder?: number | null }).domainOrder,
+          });
 
           subject[semester] = subject[semester] ?? {};
           subject[semester][periodKey] = Number(note.score) || 0;
@@ -719,14 +861,25 @@ export default function BulletinPDF({
       ] as const;
       const courseBlocsMap = new Map<string, DynamicBloc>();
 
-      Object.values(subjectMap).forEach((subject) => {
+      const uniqueSubjects = isPrimaryLayout
+        ? Object.values(subjectMap)
+        : dedupeBulletinSubjectsByName(Object.values(subjectMap));
+
+      uniqueSubjects.forEach((subject) => {
         const signature = periodSignatureKeys
           .map((key) => subject.maxima[key] ?? 0)
           .join(":");
         const existingBloc = courseBlocsMap.get(signature);
 
         if (existingBloc) {
-          existingBloc.subjects.push(subject);
+          const alreadyPresent = existingBloc.subjects.some(
+            (s) =>
+              normalizeBulletinSubjectKey(s.name) ===
+              normalizeBulletinSubjectKey(subject.name),
+          );
+          if (!alreadyPresent) {
+            existingBloc.subjects.push(subject);
+          }
           return;
         }
 
@@ -751,21 +904,32 @@ export default function BulletinPDF({
         (a, b) => order.indexOf(a.name) - order.indexOf(b.name),
       );
 
-      const subjectMaxima = Object.values(subjectMap).map(
-        (subject) => subject.maxima,
-      );
+      const subjectMaxima = uniqueSubjects.map((subject) => subject.maxima);
       const generalMaxima = aggregateBulletinPeriodMaxima(subjectMaxima);
-      const blocs: DynamicBloc[] = [
-        ...courseBlocsMap.values(),
-        {
-          blocName: "GENERAUX",
-          subjects: typeDSubjects,
-          maxima: generalMaxima,
-          isGeneraux: true,
-        },
-      ];
+      const primaryRows = isPrimaryLayout
+        ? buildPrimaryBulletinRows(uniqueSubjects)
+        : [];
+      const blocs: DynamicBloc[] = isPrimaryLayout
+        ? [
+            {
+              blocName: "GENERAUX",
+              // Primaire : pas de ligne TOTAUX — les totaux vont sur MAXIMA GÉNÉRAL (colonnes PTS OBT).
+              subjects: typeDSubjects.filter((s) => s.name !== "TOTAUX"),
+              maxima: generalMaxima,
+              isGeneraux: true,
+            },
+          ]
+        : [
+            ...courseBlocsMap.values(),
+            {
+              blocName: "GENERAUX",
+              subjects: typeDSubjects,
+              maxima: generalMaxima,
+              isGeneraux: true,
+            },
+          ];
       // Hauteur des lignes
-      const maximaHeight = 5;
+      const maximaHeight = isPrimaryLayout ? 4.5 : 5;
       let yPosBlocs = tableY + shiftY + rowHeightTotal;
 
       // Fonction utilitaire pour dessiner une cellule
@@ -783,7 +947,13 @@ export default function BulletinPDF({
           | "red"
           | "blue"
           | "green"
-          | { text?: string; fill?: string } = "black",
+          | {
+              text?: string;
+              fill?: string;
+              bold?: boolean;
+              fontSize?: number;
+              hatch?: "dashed";
+            } = "black",
 
         // ⭐ GESTION 4 BORDURES
         borders?: {
@@ -807,6 +977,9 @@ export default function BulletinPDF({
         // Valeurs par défaut
         let textColor: [number, number, number] = palette.black;
         let fillColor: [number, number, number] = palette.white;
+        let useBold = false;
+        let fontSize = isPrimaryLayout ? 6.5 : 8;
+        let hatchDashed = false;
 
         if (typeof color === "string") {
           if (palette[color]) textColor = palette[color];
@@ -815,12 +988,16 @@ export default function BulletinPDF({
             textColor = palette[color.text];
           if (color.fill && palette[color.fill])
             fillColor = palette[color.fill];
+          if (color.bold) useBold = true;
+          if (typeof color.fontSize === "number") fontSize = color.fontSize;
+          if (color.hatch === "dashed") hatchDashed = true;
         }
 
         // Maxima = noir/blanc
         if (isMaxima) {
           doc.setFillColor(0, 0, 0);
           doc.setTextColor(255, 255, 255);
+          useBold = true;
         } else {
           doc.setFillColor(...fillColor);
           doc.setTextColor(...textColor);
@@ -828,6 +1005,20 @@ export default function BulletinPDF({
 
         // 🧱 Dessiner le fond
         doc.rect(x, y, w, h, "F");
+
+        // Motif tirets diagonaux (CONDUITE) — densifiés pour un rendu « qui colle »
+        if (hatchDashed && !isMaxima) {
+          doc.saveGraphicsState();
+          doc.setDrawColor(40, 40, 40);
+          doc.setLineWidth(0.18);
+          doc.setLineDashPattern([1.05, 0.28], 0);
+          const step = 1.05;
+          for (let offset = -h; offset <= w + h; offset += step) {
+            doc.line(x + offset, y, x + offset + h, y + h);
+          }
+          doc.setLineDashPattern([], 0);
+          doc.restoreGraphicsState();
+        }
 
         // ---------------------------------
         // ⭐ Gestion des 4 bordures
@@ -838,12 +1029,16 @@ export default function BulletinPDF({
         const drawLeft = borders?.left ?? true;
         const drawRight = borders?.right ?? true;
 
+        doc.saveGraphicsState();
         doc.setDrawColor(0, 0, 0);
+        doc.setLineWidth(BULLETIN_INNER_LINE_WIDTH_MM);
 
         if (drawTop) doc.line(x, y, x + w, y);
         if (drawBottom) doc.line(x, y + h, x + w, y + h);
         if (drawLeft) doc.line(x, y, x, y + h);
         if (drawRight) doc.line(x + w, y, x + w, y + h);
+
+        doc.restoreGraphicsState();
 
         // ---------------------------
 
@@ -852,6 +1047,8 @@ export default function BulletinPDF({
         if (align === "left") textX = x + 2;
         if (align === "right") textX = x + w - 2;
         const safeText = text == null ? "" : String(text);
+        doc.setFont("helvetica", useBold ? "bold" : "normal");
+        doc.setFontSize(fontSize);
         doc.text(safeText, textX, y + h / 2, { align, baseline: "middle" });
       }
 
@@ -870,9 +1067,122 @@ export default function BulletinPDF({
         getBulletinGroupMaxima(generalYearMaxima, 3)?.total ?? 0;
       const generalesMaximaTG = generalYearMaxima.annualTotal;
 
+      if (isPrimaryLayout) {
+        const getColorText = (
+          value: number,
+          type: string,
+          max: number,
+        ): string => {
+          if (!max || max === 0) return "black";
+          return value < max / 2 ? "red" : "black";
+        };
+
+        for (const row of primaryRows) {
+          if (row.type === "domain-header") {
+            drawPrimaryDomainHeader(doc, primaryLayout!, yPosBlocs, maximaHeight, row.label);
+            yPosBlocs += maximaHeight;
+            continue;
+          }
+
+          if (row.type === "section-header") {
+            drawPrimarySectionHeader(drawCell, primaryLayout!, yPosBlocs, maximaHeight, row.label);
+            yPosBlocs += maximaHeight;
+            continue;
+          }
+
+          if (row.type === "sous-total") {
+            drawPrimarySousTotalRow(
+              drawCell,
+              doc,
+              primaryLayout!,
+              yPosBlocs,
+              maximaHeight,
+              "Sous-total",
+              buildPrimaryMaximaValues(row.maxima),
+            );
+            yPosBlocs += maximaHeight;
+            continue;
+          }
+
+          if (row.type === "maxima-general") {
+            const generalesMaximaForTotaux = {
+              p1: generalesMaximaSem1P1,
+              p2: generalesMaximaSem1P2,
+              exam1: generalMaxima.exam1 ?? 0,
+              tt1: generalesMaximaTot1,
+              p3: generalesMaximaSem2P3,
+              p4: generalesMaximaSem2P4,
+              exam2: generalMaxima.exam2 ?? 0,
+              tt2: generalesMaximaTot2,
+              p5: generalesMaximaSem3P5,
+              p6: generalesMaximaSem3P6,
+              exam3: generalMaxima.exam3 ?? 0,
+              tt3: generalesMaximaTot3,
+              tg: generalesMaximaTG,
+            };
+            const totauxCells = buildGenerauxCellValues(
+              primaryLayout!,
+              autresByPeriod,
+              "TOTAUX",
+              generalesMaximaForTotaux,
+              false,
+            );
+            const totauxPtsByCell: Partial<Record<string, string>> = {};
+            for (const cell of primaryLayout!.evalCells) {
+              if (
+                cell.kind === "period-score" ||
+                cell.kind === "pts-exam" ||
+                cell.kind === "pts-trim" ||
+                cell.kind === "pts-total"
+              ) {
+                const val = totauxCells[cell.key];
+                if (val) totauxPtsByCell[cell.key] = val;
+              }
+            }
+
+            drawPrimaryGeneralMaximaRow(
+              drawCell,
+              doc,
+              primaryLayout!,
+              yPosBlocs,
+              maximaHeight,
+              buildPrimaryMaximaValues(row.maxima),
+              totauxPtsByCell,
+              getColorText,
+            );
+            yPosBlocs += maximaHeight;
+            continue;
+          }
+
+          const subject = row.subject;
+          const yearMaxima = calculateBulletinYearMaxima(subject.maxima, "PRIMAIRE");
+          const maximaTot1 = getBulletinGroupMaxima(yearMaxima, 1)?.total ?? 0;
+          const maximaTot2 = getBulletinGroupMaxima(yearMaxima, 2)?.total ?? 0;
+          const maximaTot3 = getBulletinGroupMaxima(yearMaxima, 3)?.total ?? 0;
+          const maximaAnnuel = yearMaxima.annualTotal;
+
+          drawPrimaryMatiere(
+            drawCell,
+            yPosBlocs,
+            primaryLayout!,
+            maximaHeight,
+            subject,
+            activePeriodKeys,
+            getColorText,
+            branchContext.branchType,
+            maximaTot1,
+            maximaTot2,
+            maximaTot3,
+            maximaAnnuel,
+          );
+          yPosBlocs += maximaHeight;
+        }
+      }
+
       blocs.forEach((bloc) => {
         if (bloc.subjects.length === 0) return;
         const isGeneraux = bloc.isGeneraux === true;
+        if (isPrimaryLayout && !isGeneraux) return;
         // Récupérer les colonnes actives pour la période
         let filteredPeriodKeys = [...activePeriodKeys];
         const yearMaxima = calculateBulletinYearMaxima(bloc.maxima);
@@ -890,49 +1200,17 @@ export default function BulletinPDF({
         const maximaTot3 = getBulletinGroupMaxima(yearMaxima, 3)?.total ?? 0;
         const maximaTG = yearMaxima.annualTotal;
 
-        // --- DESSIN DES MAXIMA ---
-        drawCell1(
-          doc,
-          colPos[0] + shiftX,
-          yPosBlocs,
-          colWidths[0],
-          maximaHeight,
-          `MAXIMA ${bloc.blocName.toUpperCase()}`,
-          { isMaxima: true, align: "left" },
-        );
-
-        if (isPrimaryLayout) {
-          drawPrimaryTrimesterMaximaRow(
-            doc,
-            yPosBlocs,
-            {
-              p1: maximaSem1P1,
-              p2: maximaSem1P2,
-              exam1: maximaExam1,
-              tt1: maximaTot1,
-              p3: maximaSem2P3,
-              p4: maximaSem2P4,
-              exam2: maximaExam2,
-              tt2: maximaTot2,
-              p5: maximaSem3P5,
-              p6: maximaSem3P6,
-              exam3: maximaExam3,
-              tt3: maximaTot3,
-            },
-            primaryLayout!,
-            maximaHeight,
-          );
-
+        if (!isPrimaryLayout) {
           drawCell1(
             doc,
-            colPos[4] + shiftX,
+            colPos[0] + shiftX,
             yPosBlocs,
-            colWidths[4],
+            colWidths[0],
             maximaHeight,
-            maximaTG.toString(),
-            { isMaxima: true },
+            `MAXIMA ${bloc.blocName.toUpperCase()}`,
+            { isMaxima: true, align: "left" },
           );
-        } else {
+
           drawSemesterRow1(
             doc,
             yPosBlocs,
@@ -979,8 +1257,9 @@ export default function BulletinPDF({
               { isMaxima: true },
             );
           }
+
+          yPosBlocs += maximaHeight;
         }
-        yPosBlocs += maximaHeight;
 
         bloc.subjects.forEach((subject) => {
           const getColorText = (
@@ -996,7 +1275,7 @@ export default function BulletinPDF({
             const config = generauxConfig[subject.name];
 
             if (isPrimaryLayout) {
-              drawPrimarySubjectRow(
+              yPosBlocs = drawPrimarySubjectRow(
                 drawCell,
                 yPosBlocs,
                 primaryLayout!,
@@ -1006,19 +1285,23 @@ export default function BulletinPDF({
                 {
                   p1: generalesMaximaSem1P1,
                   p2: generalesMaximaSem1P2,
+                  exam1: generalMaxima.exam1 ?? 0,
                   tt1: generalesMaximaTot1,
                   p3: generalesMaximaSem2P3,
                   p4: generalesMaximaSem2P4,
+                  exam2: generalMaxima.exam2 ?? 0,
                   tt2: generalesMaximaTot2,
                   p5: generalesMaximaSem3P5,
                   p6: generalesMaximaSem3P6,
+                  exam3: generalMaxima.exam3 ?? 0,
                   tt3: generalesMaximaTot3,
                   tg: generalesMaximaTG,
                 },
                 config.getColor,
                 safeStr,
-                config.isGeneraux,
+                true,
               );
+              return;
             } else {
               drawSubjectRow(
                 drawCell,
@@ -1110,16 +1393,29 @@ export default function BulletinPDF({
               maximaTG,
             );
           }
-          yPosBlocs += maximaHeight;
+          if (!isGeneraux || !isPrimaryLayout) {
+            yPosBlocs += maximaHeight;
+          }
         });
       });
+
+      // Filigrane armoirie RDC (primaire) — centré, léger, par-dessus le contenu
+      if (isPrimaryLayout && watermarkData) {
+        const pageHeight = doc.internal.pageSize.getHeight();
+        const wmSize = 130;
+        const wmX = (pageWidth - wmSize) / 2;
+        const wmY = (pageHeight - wmSize) / 2 - 5;
+        doc.setGState(new GState({ opacity: 0.1 }));
+        doc.addImage(watermarkData, "PNG", wmX, wmY, wmSize, wmSize);
+        doc.setGState(new GState({ opacity: 1 }));
+      }
     });
 
     const pdfBlob = doc.output("blob");
     const url = URL.createObjectURL(pdfBlob);
     setPdfUrl(url);
     return url;
-  }, [imageData1, imageData2, data, branchContext]);
+  }, [imageData1, imageData2, watermarkData, data, branchContext, classCode, classLevel, schoolYear]);
   return (
     <div className="flex flex-col gap-4">
       {imageData1 && (
@@ -1139,24 +1435,24 @@ export default function BulletinPDF({
                   variant="ghost"
                   size="sm"
                   onClick={() => setOpen(false)}
-                  className="absolute top-2 right-2 text-gray-600 hover:text-gray-900"
+                  className="absolute top-2 right-2 text-muted-foreground hover:text-foreground"
                 >
                   <FaTimes />
                 </Button>
 
                 {loading ? (
-                  <p className="text-gray-500 text-center mt-20">
-                    Génération du PDF...
+                  <p className="mt-20 text-center text-sm text-muted-foreground">
+                    Génération du PDF…
                   </p>
                 ) : pdfUrl ? (
                   <iframe
                     src={pdfUrl}
-                    className="w-full h-full border"
-                    title="Preview PDF"
+                    className="h-full w-full rounded-md border"
+                    title="Aperçu du bulletin PDF"
                   />
                 ) : (
-                  <p className="text-gray-500 text-center mt-20">
-                    Cliquez sur View pour générer le PDF.
+                  <p className="mt-20 text-center text-sm text-muted-foreground">
+                    Cliquez sur le bouton pour générer le PDF.
                   </p>
                 )}
               </PopoverContent>

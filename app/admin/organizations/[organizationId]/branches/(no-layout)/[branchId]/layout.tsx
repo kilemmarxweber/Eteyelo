@@ -1,26 +1,21 @@
-import { auth } from "@/lib/auth";
-
 import { redirect } from "next/navigation";
 import ClientLayout from "./client-layout";
-// import { startGradeCron } from "@/src/server/cron/gradeCron";
 import AttendanceGuard from "./attendance/component/AttendanceGuard ";
-import { headers } from "next/headers";
 import { IdleLogout } from "@/lib/idle-logout";
+import { enforceOrganizationBranchPage } from "@/lib/auth/require-organization-permission";
+
 export default async function Layout({
   children,
+  params,
 }: {
   children: React.ReactNode;
+  params: Promise<{ organizationId: string; branchId: string }>;
 }) {
-  const requestHeaders = await headers();
-  const session = await auth.api.getSession({ headers: requestHeaders });
+  const { organizationId, branchId } = await params;
+  await enforceOrganizationBranchPage(organizationId, branchId);
 
-  // startGradeCron();
-  if (!session) {
-    redirect("../auth/sign-in");
-  }
   return (
     <ClientLayout>
-      {" "}
       <IdleLogout />
       <AttendanceGuard />
       {children}

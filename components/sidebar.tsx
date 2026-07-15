@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import { IconChevronsLeft, IconMenu2, IconX } from "@tabler/icons-react";
 import Image from "next/image";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
+import { useAppRouter as useRouter } from "@/hooks/use-app-router";
 
 import { Layout, LayoutHeader } from "./custom/layout";
 import { Button } from "./custom/button";

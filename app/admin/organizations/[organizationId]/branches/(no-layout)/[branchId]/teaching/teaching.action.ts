@@ -142,6 +142,55 @@ export const saveQuickAssignmentsAction = action.input(quickAssignmentSchema).ha
   return saved;
 });
 
+const removeAssignmentSchema = z.object({
+  classeId: z.string().min(1),
+  coursIds: z.array(z.string().min(1)).min(1).max(50),
+});
+
+/** Retire l'enseignant des cours sélectionnés (désactive l'affectation pour l'année en cours). */
+export const removeQuickAssignmentsAction = action
+  .input(removeAssignmentSchema)
+  .handler(async ({ input }) => {
+    const { branchId, organizationId, session } = await requireBranchContext();
+    requireManageTeaching(session);
+
+    const schoolYear = await prisma.schoolYear.findFirst({
+      where: {
+        branchId,
+        branch: { organizationId },
+        isCurrentYear: true,
+        isArchived: false,
+      },
+      select: { id: true },
+    });
+    if (!schoolYear) throw new Error("Aucune année scolaire en cours");
+
+    await requireClasseInBranch(input.classeId, branchId);
+
+    const teachings = await prisma.teaching.findMany({
+      where: {
+        branchId,
+        classeId: input.classeId,
+        schoolYearId: schoolYear.id,
+        coursId: { in: input.coursIds },
+        statusTeaching: { not: false },
+      },
+      select: { id: true },
+    });
+
+    if (teachings.length === 0) {
+      return { removed: 0, ids: [] as string[] };
+    }
+
+    await prisma.teaching.updateMany({
+      where: { id: { in: teachings.map((t) => t.id) } },
+      data: { statusTeaching: false },
+    });
+
+    revalidateTeachingPages(organizationId, branchId);
+    return { removed: teachings.length, ids: teachings.map((t) => t.id) };
+  });
+
 async function requireClasseInBranch(classeId: string, branchId: string) {
   const classe = await prisma.classe.findFirst({
     where: { id: classeId, branchId },

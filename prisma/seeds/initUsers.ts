@@ -6,7 +6,7 @@ export const usersData = [
   // Enseignants
   {
     username: "prof.mukendi",
-    email: "mukendi@eteyelo.cd",
+    email: "prof.mukendi@eteyelo.cd",
     telephone: "+243812345601",
     nom: "Mukendi",
     postnom: "Kabongo",
@@ -19,7 +19,7 @@ export const usersData = [
   },
   {
     username: "prof.mbuyi",
-    email: "mbuyi@eteyelo.cd",
+    email: "prof.mbuyi@eteyelo.cd",
     telephone: "+243812345602",
     nom: "Mbuyi",
     postnom: "Kalala",
@@ -32,7 +32,7 @@ export const usersData = [
   },
   {
     username: "prof.tshimanga",
-    email: "tshimanga@eteyelo.cd",
+    email: "prof.tshimanga@eteyelo.cd",
     telephone: "+243812345603",
     nom: "Tshimanga",
     postnom: "Mutombo",
@@ -45,7 +45,7 @@ export const usersData = [
   },
   {
     username: "prof.ndaya",
-    email: "ndaya@eteyelo.cd",
+    email: "prof.ndaya@eteyelo.cd",
     telephone: "+243812345604",
     nom: "Ndaya",
     postnom: "Kilolo",
@@ -58,7 +58,7 @@ export const usersData = [
   },
   {
     username: "prof.kabila",
-    email: "kabila@eteyelo.cd",
+    email: "prof.kabila@eteyelo.cd",
     telephone: "+243812345605",
     nom: "Kabila",
     postnom: "Mwamba",
@@ -71,7 +71,7 @@ export const usersData = [
   },
   {
     username: "prof.mpiana",
-    email: "mpiana@eteyelo.cd",
+    email: "prof.mpiana@eteyelo.cd",
     telephone: "+243812345606",
     nom: "Mpiana",
     postnom: "Tshisekedi",
@@ -282,7 +282,22 @@ export const usersData = [
     userType: "student" as const,
   },
 
-  // Administrateur
+  // Proprietaire plateforme (root)
+  {
+    username: "owner",
+    email: "owner@eteyelo.cd",
+    telephone: "+243812345899",
+    nom: "Proprietaire",
+    postnom: "Plateforme",
+    prenom: "Root",
+    dateOfBirth: new Date("1975-01-01"),
+    sexe: "M",
+    password: "Owner123!",
+    statusUser: true,
+    userType: "owner" as const,
+  },
+
+  // Gestionnaire d'organisation
   {
     username: "admin",
     email: "admin@eteyelo.cd",
@@ -304,7 +319,12 @@ export async function initUsers() {
   for (const userData of usersData) {
     const hashedPassword = await hashPassword(userData.password);
     const name = `${userData.prenom} ${userData.postnom} ${userData.nom}`;
-    const role = userData.userType === "admin" ? "admin" : "user";
+    const role =
+      userData.userType === "owner"
+        ? "owner"
+        : userData.userType === "admin"
+          ? "admin"
+          : "user";
 
     const user = await Prisma.user.upsert({
       where: { username: userData.username },

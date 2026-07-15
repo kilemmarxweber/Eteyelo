@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
+import { useAppTransition as useTransition } from "@/hooks/use-app-transition";
+import { useAppRouter as useRouter } from "@/hooks/use-app-router";
 import { toast } from "sonner";
 import { Pencil, UserPlus } from "lucide-react";
 import { AutoComplete, type Option } from "@/components/autocomplete";

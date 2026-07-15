@@ -12,13 +12,15 @@ import {
   DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useRouter } from "next/navigation";
+import { useAppRouter as useRouter } from "@/hooks/use-app-router";
 import { authClient } from "@/lib/auth-client";
+import { useAppLoading } from "@/hooks/use-app-loading";
 import { getPrimaryRoleLabel } from "@/lib/sidebar-menu";
 import { LogOut, Settings, UserRound } from "lucide-react";
 
 export function UserNav() {
   const router = useRouter();
+  const { resetLoading } = useAppLoading();
   const { data: session } = authClient.useSession();
   const user = session?.user as any;
   const prenom =
@@ -80,8 +82,14 @@ export function UserNav() {
         <DropdownMenuSeparator />
         <DropdownMenuItem
           onClick={() => {
-            void authClient.signOut();
-            router.push("/auth/sign-in");
+            void (async () => {
+              try {
+                await authClient.signOut();
+                window.location.assign("/auth/sign-in");
+              } finally {
+                resetLoading();
+              }
+            })();
           }}
         >
           <LogOut className="mr-2 size-4" />

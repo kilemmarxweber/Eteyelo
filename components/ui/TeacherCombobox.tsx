@@ -40,14 +40,19 @@ export function TeacherCombobox({ teachers, value, onChange }: Props) {
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="w-full md:w-80 justify-between"
+          className="h-9 w-full justify-between font-normal"
         >
-          {selectedTeacher ? selectedTeacher.name : "Choisir un enseignant"}
-          <ChevronsUpDown className="ml-2 h-4 w-4 opacity-50" />
+          <span className="truncate">
+            {selectedTeacher ? selectedTeacher.name : "Choisir un enseignant"}
+          </span>
+          <ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
 
-      <PopoverContent className="w-full md:w-80 p-0">
+      <PopoverContent
+        align="start"
+        className="w-[var(--radix-popover-trigger-width)] p-0"
+      >
         <Command>
           <CommandInput placeholder="Rechercher un enseignant..." />
           <CommandEmpty>Aucun enseignant trouvé.</CommandEmpty>
@@ -63,7 +68,7 @@ export function TeacherCombobox({ teachers, value, onChange }: Props) {
               >
                 <Check
                   className={cn(
-                    "mr-2 h-4 w-1",
+                    "mr-2 h-4 w-4",
                     value === teacher.id ? "opacity-100" : "opacity-0",
                   )}
                 />

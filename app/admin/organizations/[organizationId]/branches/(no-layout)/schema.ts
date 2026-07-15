@@ -24,7 +24,9 @@ export const createBranchFormSchema = z.object({
     .optional()
     .or(z.literal("")),
   adresse: z.string().optional(),
+  province: z.string().optional(),
   ville: z.string().optional(),
+  commune: z.string().optional(),
   pays: z.string().optional(),
   idnat: z.string().optional(),
   tel: z

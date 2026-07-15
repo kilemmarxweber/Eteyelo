@@ -1,16 +1,21 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import Image from "next/image";
+import { useSearchParams } from "next/navigation";
+import { useAppRouter as useRouter } from "@/hooks/use-app-router";
 import { toast } from "sonner";
 import {
   IconArrowLeft,
   IconArrowRight,
+  IconCamera,
   IconCheck,
+  IconPhotoPlus,
   IconSchool,
   IconSearch,
   IconUser,
   IconUsers,
+  IconX,
 } from "@tabler/icons-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -22,6 +27,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { CameraCaptureDialog } from "@/components/camera-capture-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
@@ -47,6 +53,15 @@ import {
 } from "./registration.action";
 import { generateSlug } from "@/lib/generated-identifiers";
 import { matchesClassForLevel } from "@/lib/class-enrollment/match-class-for-level";
+import {
+  getClassLevelLabel,
+  requiresOptionForClass,
+} from "@/lib/class-structure";
+import {
+  REGISTRATION_PREFILL_EVENT,
+  type PrefillEventDetail,
+} from "@/lib/prefill-events";
+import { uploadFile } from "@/lib/upload-file";
 import {
   defaultCreneauValues,
   type CreneauFormValues,
@@ -114,13 +129,8 @@ const emptyCreneau = (): CreneauFormValues => ({ ...defaultCreneauValues });
 function requiresOptionForLevel(
   typebranch: string | undefined,
   level: string,
-  allowsOption: boolean,
 ) {
-  return (
-    allowsOption &&
-    typebranch === "SECONDAIRE" &&
-    ["1er", "2e", "3e", "4e", "5e", "6e"].includes(level)
-  );
+  return requiresOptionForClass(typebranch, level);
 }
 
 function isStudentStepReady(
@@ -217,33 +227,90 @@ export function RegistrationForm() {
     useState<CreneauFormValues>(emptyCreneau());
   const [creatingClass, setCreatingClass] = useState(false);
   const [creatingCreneau, setCreatingCreneau] = useState(false);
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoUrl, setPhotoUrl] = useState("");
+  const [cameraOpen, setCameraOpen] = useState(false);
+  const photoPreview = useMemo(
+    () => (photoFile ? URL.createObjectURL(photoFile) : photoUrl),
+    [photoFile, photoUrl],
+  );
+  useEffect(
+    () => () => {
+      if (photoFile && photoPreview.startsWith("blob:")) {
+        URL.revokeObjectURL(photoPreview);
+      }
+    },
+    [photoFile, photoPreview],
+  );
 
   useEffect(() => {
     void loadRegistrationOptions(true);
   }, []);
 
+  async function applyPrefillFromRequest(requestId: string) {
+    const [request, error] = await getRegistrationRequestForPrefillAction({
+      requestId,
+    });
+    if (error || !request) {
+      toast.error(error?.message ?? "Impossible de charger la demande.");
+      return;
+    }
+    const guardian =
+      request.guardians.find((item) => item.isPrimary) ?? request.guardians[0];
+    setRequestId(request.id);
+    setRequestReference(request.reference);
+    setStudentMode("new");
+    setStudent({
+      ...emptyStudent,
+      ...request.student,
+      dateOfBirth: request.student.dateOfBirth.slice(0, 10),
+      email: request.student.email ?? "",
+      telephone: request.student.telephone ?? "+243",
+      provenanceEcole: request.student.provenanceEcole ?? "",
+    });
+    if (guardian) {
+      setParentMode("new");
+      setParent({
+        ...emptyParent,
+        name: guardian.name,
+        postnom: guardian.postnom,
+        prenom: guardian.prenom,
+        sexe: guardian.sexe,
+        telephone: guardian.telephone,
+        email: guardian.email ?? "",
+        address: guardian.address,
+      });
+    }
+    setLevel(request.requestedLevel);
+    setOptionId(request.optionId);
+    if (request.schoolYearId) setSchoolYearId(request.schoolYearId);
+    setPhotoFile(null);
+    setPhotoUrl(request.photoUrl ?? "");
+    setStep(0);
+    toast.success(`Demande ${request.reference} chargée pour examen.`);
+    if (request.guardians.length > 1) {
+      toast.info(
+        "Le second responsable reste conserve dans la demande pour verification.",
+      );
+    }
+  }
+
   useEffect(() => {
     if (!requestedRequestId) return;
-    void (async () => {
-      const [request, error] = await getRegistrationRequestForPrefillAction({ requestId: requestedRequestId });
-      if (error || !request) return toast.error(error?.message ?? "Impossible de charger la demande.");
-      const guardian = request.guardians.find((item) => item.isPrimary) ?? request.guardians[0];
-      setRequestId(request.id);
-      setRequestReference(request.reference);
-      setStudentMode("new");
-      setStudent({ ...emptyStudent, ...request.student, dateOfBirth: request.student.dateOfBirth.slice(0, 10), email: request.student.email ?? "", telephone: request.student.telephone ?? "+243", provenanceEcole: request.student.provenanceEcole ?? "" });
-      if (guardian) {
-        setParentMode("new");
-        setParent({ ...emptyParent, name: guardian.name, postnom: guardian.postnom, prenom: guardian.prenom, sexe: guardian.sexe, telephone: guardian.telephone, email: guardian.email ?? "", address: guardian.address });
-      }
-      setLevel(request.requestedLevel);
-      setOptionId(request.optionId);
-      if (request.schoolYearId) setSchoolYearId(request.schoolYearId);
-      setStep(0);
-      toast.success(`Demande ${request.reference} pre-remplie.`);
-      if (request.guardians.length > 1) toast.info("Le second responsable reste conserve dans la demande pour verification.");
-    })();
+    void applyPrefillFromRequest(requestedRequestId);
   }, [requestedRequestId]);
+
+  useEffect(() => {
+    function onPrefillEvent(event: Event) {
+      const detail = (event as CustomEvent<PrefillEventDetail>).detail;
+      if (!detail?.id) return;
+      void applyPrefillFromRequest(detail.id);
+    }
+    window.addEventListener(REGISTRATION_PREFILL_EVENT, onPrefillEvent);
+    return () => {
+      window.removeEventListener(REGISTRATION_PREFILL_EVENT, onPrefillEvent);
+    };
+  }, []);
 
   async function loadRegistrationOptions(setDefaultYear = false) {
     const [data, error] = await getRegistrationOptionsAction();
@@ -307,11 +374,13 @@ export function RegistrationForm() {
         const occupied = classe.classEnrollment.filter(
           (item: any) => item.schoolYearId === schoolYearId,
         ).length;
-        const full =
+        const hasCapacity =
           classe.capacity !== null &&
-          classe.capacity > 0 &&
-          occupied >= classe.capacity;
-        return { ...classe, occupied, full };
+          classe.capacity !== undefined &&
+          classe.capacity > 0;
+        const full = hasCapacity && occupied >= classe.capacity;
+        const available = hasCapacity && !full;
+        return { ...classe, occupied, hasCapacity, full, available };
       }),
     [selectedClasses, schoolYearId],
   );
@@ -324,15 +393,23 @@ export function RegistrationForm() {
             sensitivity: "base",
           }),
         )
-        .find((classe) => classe.capacity > 0 && !classe.full) ?? null,
+        .find((classe) => classe.available) ?? null,
+    [classStats],
+  );
+  const classesNeedingCapacity = useMemo(
+    () => classStats.some((classe: { hasCapacity: boolean }) => !classe.hasCapacity),
     [classStats],
   );
   const allClassesFull = useMemo(
     () =>
       classStats.length > 0 &&
-      classStats.every((classe: { full: boolean }) => classe.full),
+      classStats.every(
+        (classe: { full: boolean; hasCapacity: boolean }) =>
+          classe.hasCapacity && classe.full,
+      ),
     [classStats],
   );
+  const needsClassAction = Boolean(level) && !predictedClass;
   const selectedStudent = useMemo(
     () => studentResults.find((item) => item.id === studentId),
     [studentResults, studentId],
@@ -343,6 +420,15 @@ export function RegistrationForm() {
   );
   const hasCreneaux = (options.creneaux?.length ?? 0) > 0;
 
+  useEffect(() => {
+    if (!needsClassAction) return;
+    const fromExisting = classStats.find(
+      (classe: { capacity: number | null }) =>
+        classe.capacity != null && classe.capacity > 0,
+    )?.capacity;
+    if (fromExisting) setClassCapacity(String(fromExisting));
+  }, [needsClassAction, classStats]);
+
   function resetForm() {
     setStep(0);
     setStudentMode("new");
@@ -351,6 +437,9 @@ export function RegistrationForm() {
     setParentMode("new");
     setParentId("");
     setParent(emptyParent);
+    setPhotoFile(null);
+    setPhotoUrl("");
+    setCameraOpen(false);
     setStudentQuery("");
     setParentQuery("");
     setStudentResults([]);
@@ -435,21 +524,18 @@ export function RegistrationForm() {
         return toast.error(
           "Choisissez l'année scolaire et la classe demandée.",
         );
-      if (
-        requiresOptionForLevel(
-          options.typebranch,
-          level,
-          Boolean(options.allowsOption),
-        ) &&
-        !optionId
-      ) {
+      if (requiresOptionForLevel(options.typebranch, level) && !optionId) {
         return toast.error("Choisissez une option pour ce niveau.");
       }
       if (selectedClasses.length === 0)
         return toast.error(
-          "Aucune classe n'est configurée pour ce niveau. Créez la première parallèle.",
+          "Aucune classe n'est configurée pour ce niveau. Créez la première classe.",
         );
-      if (allClassesFull)
+      if (classesNeedingCapacity)
+        return toast.error(
+          "Définissez la capacité de la classe avant de continuer.",
+        );
+      if (allClassesFull || !predictedClass)
         return toast.error(
           "Toutes les parallèles sont pleines. Créez la prochaine parallèle avant de continuer.",
         );
@@ -467,6 +553,17 @@ export function RegistrationForm() {
   }
   async function submit() {
     setLoading(true);
+    let resolvedPhotoUrl = photoUrl;
+    if (studentMode === "new" && photoFile) {
+      const uploaded = await uploadFile(photoFile);
+      if (!uploaded.ok) {
+        setLoading(false);
+        return toast.error(uploaded.message);
+      }
+      resolvedPhotoUrl = uploaded.url;
+      setPhotoUrl(uploaded.url);
+      setPhotoFile(null);
+    }
     const [result, error] = await createRegistrationFlowAction({
       requestId: requestId || undefined,
       schoolYearId,
@@ -496,6 +593,7 @@ export function RegistrationForm() {
             }
           : undefined,
       historyOutcome,
+      photoUrl: studentMode === "new" ? resolvedPhotoUrl || undefined : undefined,
     });
     setLoading(false);
     if (error) return toast.error(error.message);
@@ -504,6 +602,20 @@ export function RegistrationForm() {
     if (requestId) router.replace(window.location.pathname);
     resetForm();
     void loadRegistrationOptions(true);
+  }
+
+  function clearStudentPhoto() {
+    setPhotoFile(null);
+    setPhotoUrl("");
+  }
+
+  function applyStudentPhoto(file: File | null) {
+    if (!file) {
+      clearStudentPhoto();
+      return;
+    }
+    setPhotoFile(file);
+    setPhotoUrl("");
   }
 
   async function createCreneau() {
@@ -531,6 +643,9 @@ export function RegistrationForm() {
       return toast.error(
         "Choisissez d'abord l'année scolaire et la classe demandée.",
       );
+    if (requiresOptionForLevel(options.typebranch, level) && !optionId) {
+      return toast.error("Choisissez une option pour ce niveau.");
+    }
     if (!creneauId)
       return toast.error("Sélectionnez une vacation pour créer la classe.");
     const capacity = Number(classCapacity);
@@ -547,8 +662,11 @@ export function RegistrationForm() {
     });
     setCreatingClass(false);
     if (error) return toast.error(error.message);
+    const parallelLabel = classe.parallel
+      ? ` (parallèle ${classe.parallel})`
+      : "";
     toast.success(
-      `${classe.nameClasse} créée avec une capacité de ${classe.capacity} élèves.`,
+      `${classe.nameClasse}${parallelLabel} — capacité ${classe.capacity} élèves.`,
     );
     await loadRegistrationOptions();
   }
@@ -745,39 +863,53 @@ export function RegistrationForm() {
               }
             />
           </Field>
-          <Field
-            label={
-              studentFields
-                ? "Date de naissance *"
-                : "Date de création (facultatif)"
-            }
-          >
-            <Input
-              type="date"
-              value={value.dateOfBirth}
-              onChange={(event) =>
-                updatePerson(value, setter, "dateOfBirth", event.target.value)
-              }
-            />
-          </Field>
-          <Field label="Lieu de naissance (facultatif)">
-            <Input
-              value={(value as StudentForm).placeOfBirth}
-              onChange={(event) =>
-                updatePerson(value, setter, "placeOfBirth", event.target.value)
-              }
-            />
-          </Field>
           {studentFields ? (
-            <Field label="Email élève (automatique)">
-              <Input
-                disabled
-                className="bg-muted font-mono text-foreground opacity-100"
-                value={generatedStudentEmail}
-              />
-            </Field>
+            <>
+              <Field label="Date de naissance *">
+                <Input
+                  type="date"
+                  value={value.dateOfBirth}
+                  onChange={(event) =>
+                    updatePerson(
+                      value,
+                      setter,
+                      "dateOfBirth",
+                      event.target.value,
+                    )
+                  }
+                />
+              </Field>
+              <Field label="Lieu de naissance (facultatif)">
+                <Input
+                  value={(value as StudentForm).placeOfBirth}
+                  onChange={(event) =>
+                    updatePerson(
+                      value,
+                      setter,
+                      "placeOfBirth",
+                      event.target.value,
+                    )
+                  }
+                />
+              </Field>
+              <Field label="Email élève (automatique)">
+                <Input
+                  disabled
+                  className="bg-muted font-mono text-foreground opacity-100"
+                  value={generatedStudentEmail}
+                />
+              </Field>
+            </>
           ) : (
             <>
+              <Field label="Adresse *">
+                <Input
+                  value={value.address}
+                  onChange={(event) =>
+                    updatePerson(value, setter, "address", event.target.value)
+                  }
+                />
+              </Field>
               <Field label="Téléphone *">
                 <Input
                   value={value.telephone}
@@ -813,14 +945,16 @@ export function RegistrationForm() {
               </SelectContent>
             </Select>
           </Field>
-          <Field label="Adresse complète *" className="xl:col-span-1">
-            <Input
-              value={value.address}
-              onChange={(event) =>
-                updatePerson(value, setter, "address", event.target.value)
-              }
-            />
-          </Field>
+          {studentFields ? (
+            <Field label="Adresse complète *" className="xl:col-span-1">
+              <Input
+                value={value.address}
+                onChange={(event) =>
+                  updatePerson(value, setter, "address", event.target.value)
+                }
+              />
+            </Field>
+          ) : null}
         </div>
         {studentFields && (
           <>
@@ -880,6 +1014,60 @@ export function RegistrationForm() {
                   }
                   rows={4}
                 />
+              </Field>
+              <Field label="Photo élève (facultatif)" className="md:col-span-2">
+                <div className="flex flex-wrap items-center gap-3">
+                  {photoPreview ? (
+                    <Image
+                      src={photoPreview}
+                      alt="Aperçu photo élève"
+                      width={80}
+                      height={80}
+                      unoptimized
+                      className="size-20 rounded-lg border object-cover"
+                    />
+                  ) : (
+                    <div className="flex size-20 items-center justify-center rounded-lg border border-dashed bg-muted/40 text-muted-foreground">
+                      <IconPhotoPlus className="h-6 w-6" />
+                    </div>
+                  )}
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Label className="inline-flex h-9 cursor-pointer items-center rounded-md border bg-background px-3 text-sm font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground">
+                      <IconPhotoPlus className="mr-2 h-4 w-4" />
+                      Parcourir
+                      <Input
+                        className="hidden"
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        onChange={(event) =>
+                          applyStudentPhoto(event.target.files?.[0] ?? null)
+                        }
+                      />
+                    </Label>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCameraOpen(true)}
+                    >
+                      <IconCamera className="mr-2 h-4 w-4" />
+                      Caméra
+                    </Button>
+                    {photoPreview ? (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        onClick={clearStudentPhoto}
+                      >
+                        <IconX className="mr-2 h-4 w-4" />
+                        Retirer
+                      </Button>
+                    ) : null}
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Parcourir un fichier ou capturer directement avec la caméra.
+                </p>
               </Field>
             </div>
           </>
@@ -1148,25 +1336,41 @@ export function RegistrationForm() {
                         <SelectContent>
                           {options.levels.map((item: string) => (
                             <SelectItem key={item} value={item}>
-                              {item}
+                              {getClassLevelLabel(options.typebranch, item)}
                             </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
                     </Field>
                     {options.allowsOption ? (
-                      <Field label="Option">
+                      <Field
+                        label={
+                          requiresOptionForLevel(options.typebranch, level)
+                            ? "Option *"
+                            : "Option"
+                        }
+                      >
                         <Select
-                          value={optionId || "none"}
+                          value={
+                            optionId ||
+                            (requiresOptionForLevel(options.typebranch, level)
+                              ? undefined
+                              : "none")
+                          }
                           onValueChange={(value) =>
                             setOptionId(value === "none" ? "" : value)
                           }
                         >
                           <SelectTrigger>
-                            <SelectValue placeholder="Aucune option" />
+                            <SelectValue placeholder="Choisir l'option" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="none">Aucune option</SelectItem>
+                            {!requiresOptionForLevel(
+                              options.typebranch,
+                              level,
+                            ) ? (
+                              <SelectItem value="none">Aucune option</SelectItem>
+                            ) : null}
                             {options.options.map((item: any) => (
                               <SelectItem key={item.id} value={item.id}>
                                 {item.nameOption}
@@ -1220,53 +1424,86 @@ export function RegistrationForm() {
                       <p className="rounded-lg border border-dashed p-8 text-center text-muted-foreground">
                         Sélectionnez une classe pour voir les parallèles.
                       </p>
-                    ) : selectedClasses.length === 0 ? (
-                      renderClassCreationPanel(
-                        "Aucune classe configurée pour ce niveau",
-                        "Créez d'abord une classe simple avec une vacation obligatoire.",
-                        "Créer la classe",
-                      )
+                    ) : requiresOptionForLevel(options.typebranch, level) &&
+                      !optionId ? (
+                      <p className="rounded-lg border border-dashed p-8 text-center text-muted-foreground">
+                        Choisissez une option pour afficher les classes et leur
+                        capacité.
+                      </p>
                     ) : (
                       <>
-                        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-                          {classStats.map((classe: any) => (
-                            <div
-                              key={classe.id}
-                              className="rounded-lg border p-4"
-                            >
-                              <div className="flex items-center justify-between">
-                                <b>{classe.nameClasse}</b>
-                                <Badge
-                                  variant={
-                                    classe.full ? "destructive" : "secondary"
-                                  }
-                                >
-                                  {classe.full ? "Pleine" : "Disponible"}
-                                </Badge>
+                        {classStats.length > 0 ? (
+                          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                            {classStats.map((classe: any) => (
+                              <div
+                                key={classe.id}
+                                className="rounded-lg border p-4"
+                              >
+                                <div className="flex items-center justify-between gap-2">
+                                  <div>
+                                    <b>{classe.nameClasse}</b>
+                                    {classe.parallel ? (
+                                      <p className="text-xs text-muted-foreground">
+                                        Parallèle {classe.parallel}
+                                      </p>
+                                    ) : null}
+                                  </div>
+                                  <Badge
+                                    variant={
+                                      classe.available
+                                        ? "secondary"
+                                        : classe.hasCapacity
+                                          ? "destructive"
+                                          : "outline"
+                                    }
+                                  >
+                                    {classe.available
+                                      ? "Disponible"
+                                      : classe.hasCapacity
+                                        ? "Pleine"
+                                        : "Capacité manquante"}
+                                  </Badge>
+                                </div>
+                                <p className="mt-2 text-sm text-muted-foreground">
+                                  {classe.hasCapacity
+                                    ? `${classe.occupied} / ${classe.capacity} places`
+                                    : `${classe.occupied} inscription(s) — capacité non définie`}
+                                </p>
+                                {classe.hasCapacity ? (
+                                  <Progress
+                                    className="mt-3"
+                                    value={Math.min(
+                                      100,
+                                      (classe.occupied / classe.capacity) * 100,
+                                    )}
+                                  />
+                                ) : null}
                               </div>
-                              <p className="mt-2 text-sm text-muted-foreground">
-                                {classe.occupied} inscription(s) /{" "}
-                                {classe.capacity ?? "capacité non définie"}
-                              </p>
-                              {classe.capacity ? (
-                                <Progress
-                                  className="mt-3"
-                                  value={Math.min(
-                                    100,
-                                    (classe.occupied / classe.capacity) * 100,
-                                  )}
-                                />
-                              ) : null}
-                            </div>
-                          ))}
-                        </div>
-                        {allClassesFull &&
-                          renderClassCreationPanel(
-                            "Toutes les parallèles sont pleines",
-                            "Une nouvelle parallèle sera créée avec la même capacité que les classes existantes.",
-                            "Créer la prochaine parallèle",
-                          )}
-                        {predictedClass && (
+                            ))}
+                          </div>
+                        ) : null}
+
+                        {needsClassAction
+                          ? renderClassCreationPanel(
+                              selectedClasses.length === 0
+                                ? "Aucune classe configurée pour ce niveau"
+                                : classesNeedingCapacity
+                                  ? "Capacité à définir"
+                                  : "Toutes les parallèles sont pleines",
+                              selectedClasses.length === 0
+                                ? "Créez la première classe avec une vacation et une capacité."
+                                : classesNeedingCapacity
+                                  ? "Les classes catalogue n'ont pas encore de capacité. Définissez-la pour pouvoir inscrire."
+                                  : "Créez la prochaine parallèle (A → B → C…). La classe simple pleine devient A.",
+                              selectedClasses.length === 0
+                                ? "Créer la classe"
+                                : classesNeedingCapacity
+                                  ? "Définir la capacité"
+                                  : "Créer la prochaine parallèle",
+                            )
+                          : null}
+
+                        {predictedClass ? (
                           <Alert className="mt-4">
                             <IconCheck className="h-4 w-4" />
                             <AlertTitle>Affectation prévue</AlertTitle>
@@ -1277,7 +1514,7 @@ export function RegistrationForm() {
                               {predictedClass.capacity} places).
                             </AlertDescription>
                           </Alert>
-                        )}
+                        ) : null}
                       </>
                     )}
                   </div>
@@ -1308,6 +1545,7 @@ export function RegistrationForm() {
                           student.provenanceEcole
                             ? `Provenance : ${student.provenanceEcole}`
                             : "Sans école de provenance",
+                          photoPreview ? "Photo : ajoutée" : "Photo : non ajoutée",
                         ]
                       : [
                           `${userOf(selectedStudent)?.name ?? ""} ${userOf(selectedStudent)?.postnom ?? ""} ${userOf(selectedStudent)?.prenom ?? ""}`.trim() ||
@@ -1371,7 +1609,9 @@ export function RegistrationForm() {
                       : "Aucune place disponible",
                     predictedClass
                       ? `Places : ${predictedClass.occupied + 1} / ${predictedClass.capacity}`
-                      : "Créez une parallèle avant de confirmer",
+                      : classesNeedingCapacity
+                        ? "Définissez d'abord la capacité de la classe"
+                        : "Créez une parallèle avant de confirmer",
                     "Inscription protégée contre les doublons",
                   ]}
                 />
@@ -1400,6 +1640,14 @@ export function RegistrationForm() {
           )}
         </div>
       </Card>
+      <CameraCaptureDialog
+        open={cameraOpen}
+        onOpenChange={setCameraOpen}
+        title="Capture photo"
+        onCapture={(file) => {
+          applyStudentPhoto(file);
+        }}
+      />
     </div>
   );
 }

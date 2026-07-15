@@ -1,11 +1,95 @@
 "use server";
 
 import { auth } from "@/lib/auth";
+import {
+  calculateBulletinPercentage,
+  sumBulletinMaxima,
+} from "@/lib/bulletin-maxima";
 import { prisma } from "@/lib/prisma";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
 import { action } from "@/lib/zsa";
 import { headers } from "next/headers";
 import { z } from "zod";
+
+const SUCCESS_THRESHOLD_PERCENT = 50;
+
+type FicheNoteRow = {
+  studentId?: string;
+  score?: number | null;
+  maxScore?: number | null;
+};
+
+function parseFicheNotes(raw: unknown): FicheNoteRow[] {
+  try {
+    const notes =
+      typeof raw === "string"
+        ? JSON.parse(raw)
+        : Array.isArray(raw)
+          ? raw
+          : [];
+    return Array.isArray(notes) ? notes : [];
+  } catch {
+    return [];
+  }
+}
+
+/** Moyennes élèves = points / somme des maxima de période de tous les cours. */
+async function getBranchStudentAverages(params: {
+  branchId: string;
+  yearId?: string;
+}): Promise<number[]> {
+  const fiches = await prisma.fiche.findMany({
+    where: {
+      branchId: params.branchId,
+      typeFiche: "ficheCote",
+      ...(params.yearId ? { anneeId: params.yearId } : {}),
+    },
+    select: {
+      notes: true,
+      periodeName: true,
+    },
+  });
+
+  const byStudent = new Map<string, { score: number; maxScores: number[] }>();
+
+  for (const fiche of fiches) {
+    const notes = parseFicheNotes(fiche.notes);
+    if (notes.length === 0) continue;
+
+    const coursePeriodMax = Math.max(
+      0,
+      ...notes.map((note) => {
+        const max = Number(note.maxScore ?? 0);
+        return Number.isFinite(max) && max > 0 ? max : 0;
+      }),
+    );
+    if (!(coursePeriodMax > 0)) continue;
+
+    for (const note of notes) {
+      if (!note?.studentId) continue;
+      const score = Number(note.score ?? 0);
+      const noteMax = Number(note.maxScore ?? 0);
+      const maxForStudent =
+        Number.isFinite(noteMax) && noteMax > 0 ? noteMax : coursePeriodMax;
+
+      const current = byStudent.get(note.studentId) ?? {
+        score: 0,
+        maxScores: [],
+      };
+      current.score += Number.isFinite(score) ? score : 0;
+      current.maxScores.push(maxForStudent);
+      byStudent.set(note.studentId, current);
+    }
+  }
+
+  const averages: number[] = [];
+  for (const totals of byStudent.values()) {
+    const totalMax = sumBulletinMaxima(totals.maxScores);
+    if (!(totalMax > 0)) continue;
+    averages.push(calculateBulletinPercentage(totals.score, totalMax));
+  }
+  return averages;
+}
 // 📅 Helpers
 function getMonthRange(date: Date) {
   const start = new Date(Date.UTC(date.getFullYear(), date.getMonth(), 1));
@@ -366,79 +450,121 @@ export async function getAdminStats({
 
 export const getDashboardMetrics = action.handler(async () => {
   const { branchId } = await requireBranchContext();
-  const totalAttendance = await prisma.studentAttendance.count();
-
-  const presents = await prisma.studentAttendance.count({
-    where: {
-      status: "PRESENT",
-    },
-  });
-
-  const attendance =
-    totalAttendance > 0 ? Math.round((presents / totalAttendance) * 100) : 0;
 
   const currentYear = await prisma.schoolYear.findFirst({
     where: { isCurrentYear: true, branchId },
   });
 
-  const totalGrades = await prisma.studentGrade.count({
-    where: {
+  const currentMonth = new Date().getMonth() + 1;
+
+  let attendance = 0;
+  let attendanceCount = 0;
+  let successRate = 0;
+  let averageScore = 0;
+  let studentsCount = 0;
+  let passedCount = 0;
+  let satisfaction = 0;
+  let feedbackCount = 0;
+  let parentsCount = 0;
+  let responseRate = 0;
+
+  try {
+    // Présents + retards comptent comme présence effective.
+    const [totalAttendance, presentOrLate] = await Promise.all([
+      prisma.studentAttendance.count({ where: { branchId } }),
+      prisma.studentAttendance.count({
+        where: {
+          branchId,
+          status: { in: ["PRESENT", "LATE"] },
+        },
+      }),
+    ]);
+    attendanceCount = totalAttendance;
+    attendance =
+      totalAttendance > 0
+        ? Math.round((presentOrLate / totalAttendance) * 100)
+        : 0;
+  } catch (error) {
+    console.error("getDashboardMetrics attendance:", error);
+  }
+
+  try {
+    let averages = await getBranchStudentAverages({
       branchId,
-      schoolYearId: currentYear?.id,
-    },
-  });
+      yearId: currentYear?.id,
+    });
+    if (averages.length === 0) {
+      averages = await getBranchStudentAverages({ branchId });
+    }
 
-  const passed = await prisma.studentGrade.count({
-    where: {
-      branchId,
-      schoolYearId: currentYear?.id,
-      score: {
-        gte: 50,
-      },
-    },
-  });
+    studentsCount = averages.length;
+    passedCount = averages.filter(
+      (avg) => avg >= SUCCESS_THRESHOLD_PERCENT,
+    ).length;
+    // Barre principale = moyenne générale (tous cours / maxima période).
+    averageScore =
+      studentsCount > 0
+        ? Math.round(
+            (averages.reduce((sum, avg) => sum + avg, 0) / studentsCount) * 10,
+          ) / 10
+        : 0;
+    successRate =
+      studentsCount > 0 ? Math.round((passedCount / studentsCount) * 100) : 0;
+  } catch (error) {
+    console.error("getDashboardMetrics successRate:", error);
+  }
 
-  const successRate =
-    totalGrades > 0 ? Math.round((passed / totalGrades) * 100) : 0;
+  try {
+    // Avis mensuels : satisfaction = % d'avis positifs (≥4) parmi les avis reçus.
+    // Taux de réponse = parents ayant donné leur avis ce mois / total parents.
+    const [totalParents, yearFeedbacks, monthFeedbacks] = await Promise.all([
+      prisma.parent.count({
+        where: { branchMember: { branchId } },
+      }),
+      prisma.parentFeedback.findMany({
+        where: {
+          branchId,
+          ...(currentYear?.id ? { schoolYearId: currentYear.id } : {}),
+        },
+        select: { rating: true, month: true },
+      }),
+      prisma.parentFeedback.count({
+        where: {
+          branchId,
+          month: currentMonth,
+          ...(currentYear?.id ? { schoolYearId: currentYear.id } : {}),
+        },
+      }),
+    ]);
 
-  const totalParents = await prisma.parent.count();
+    parentsCount = totalParents;
+    feedbackCount = yearFeedbacks.length;
+    const satisfiedCount = yearFeedbacks.filter((f) => f.rating >= 4).length;
 
-  const feedbacks = await prisma.parentFeedback.findMany({
-    where: {
-      schoolYearId: currentYear?.id,
-    },
-    select: {
-      rating: true,
-    },
-  });
+    satisfaction =
+      feedbackCount > 0
+        ? Math.round((satisfiedCount / feedbackCount) * 100)
+        : 0;
 
-  const satisfiedCount = feedbacks.filter((f) => f.rating >= 4).length;
-
-  // nombre de mois déjà écoulés dans l'année scolaire
-  const now = new Date();
-
-  const startDate = new Date(currentYear?.startYear || 0);
-
-  let elapsedMonths =
-    (now.getFullYear() - startDate.getFullYear()) * 12 +
-    (now.getMonth() - startDate.getMonth()) +
-    1;
-
-  // sécurité
-  elapsedMonths = Math.max(1, elapsedMonths);
-  elapsedMonths = Math.min(elapsedMonths, 9);
-
-  const possibleFeedbacks = totalParents * elapsedMonths;
-
-  const satisfaction =
-    possibleFeedbacks > 0
-      ? Math.round((satisfiedCount / possibleFeedbacks) * 100)
-      : 0;
+    responseRate =
+      totalParents > 0
+        ? Math.round((monthFeedbacks / totalParents) * 100)
+        : 0;
+  } catch (error) {
+    console.error("getDashboardMetrics satisfaction:", error);
+  }
 
   return {
     attendance,
+    attendanceCount,
     successRate,
+    averageScore,
+    studentsCount,
+    passedCount,
     satisfaction,
+    feedbackCount,
+    parentsCount,
+    responseRate,
   };
 });
 
@@ -485,12 +611,11 @@ export async function getParentFeedbackStatus({
       return [null, "SCHOOL_YEAR_NOT_FOUND"] as const;
     }
 
-    // =========================
-    // GET PARENT VIA BRANCH MEMBER (IMPORTANT FIX)
-    // =========================
+    // Parent de cette branche (avis à la 1ʳᵉ connexion du mois).
     const parent = await prisma.parent.findFirst({
       where: {
         branchMember: {
+          branchId: branch.id,
           member: {
             userId: user.id,
           },
@@ -502,12 +627,16 @@ export async function getParentFeedbackStatus({
     });
 
     if (!parent) {
-      return [null, "PARENT_NOT_FOUND"] as const;
+      // Pas un parent de cette branche → pas de popup.
+      return [
+        {
+          showFeedbackPopup: false,
+          alreadySubmitted: false,
+        },
+        null,
+      ] as const;
     }
 
-    // =========================
-    // CHECK EXISTING FEEDBACK
-    // =========================
     const existing = await prisma.parentFeedback.findFirst({
       where: {
         parentId: parent.id,
@@ -545,33 +674,19 @@ export async function createParentFeedback(
       return { error: "UNAUTHORIZED" };
     }
 
-    if (user?.role !== "parent") {
-      return { error: "FORBIDDEN" };
+    if (
+      typeof rating !== "number" ||
+      !Number.isFinite(rating) ||
+      rating < 1 ||
+      rating > 5
+    ) {
+      return { error: "INVALID_RATING" };
     }
 
     const now = new Date();
     const month = now.getMonth() + 1;
 
-    // =========================
-    // GET CURRENT SCHOOL YEAR (SAFE)
-    // =========================
-    const currentYear = await prisma.schoolYear.findFirst({
-      where: {
-        isCurrentYear: true,
-      },
-      select: {
-        id: true,
-        branchId: true,
-      },
-    });
-
-    if (!currentYear) {
-      return { error: "NO_ACTIVE_SCHOOL_YEAR" };
-    }
-
-    // =========================
-    // GET PARENT VIA BRANCH CHAIN (FIX IMPORTANT)
-    // =========================
+    // Parent lié à l'utilisateur (rôle plateforme peut être "user").
     const parent = await prisma.parent.findFirst({
       where: {
         branchMember: {
@@ -582,22 +697,40 @@ export async function createParentFeedback(
       },
       select: {
         id: true,
+        branchMember: {
+          select: {
+            branchId: true,
+          },
+        },
       },
     });
 
-    if (!parent) {
+    if (!parent?.branchMember?.branchId) {
       return { error: "PARENT_NOT_FOUND" };
     }
 
-    // =========================
-    // CHECK DUPLICATE FEEDBACK (SCOPED)
-    // =========================
+    const branchId = parent.branchMember.branchId;
+
+    const currentYear = await prisma.schoolYear.findFirst({
+      where: {
+        isCurrentYear: true,
+        branchId,
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (!currentYear) {
+      return { error: "NO_ACTIVE_SCHOOL_YEAR" };
+    }
+
     const existing = await prisma.parentFeedback.findFirst({
       where: {
         parentId: parent.id,
         month,
         schoolYearId: currentYear.id,
-        branchId: currentYear.branchId,
+        branchId,
       },
       select: { id: true },
     });
@@ -606,9 +739,6 @@ export async function createParentFeedback(
       return { error: "ALREADY_SUBMITTED" };
     }
 
-    // =========================
-    // CREATE FEEDBACK
-    // =========================
     const feedback = await prisma.parentFeedback.create({
       data: {
         parentId: parent.id,
@@ -616,7 +746,7 @@ export async function createParentFeedback(
         comment: comment ?? null,
         month,
         schoolYearId: currentYear.id,
-        branchId: currentYear.branchId,
+        branchId,
       },
     });
 
@@ -629,81 +759,14 @@ export async function createParentFeedback(
 
 export async function createStudentGrades(periodId: number) {
   try {
-    const currentYear = await prisma.schoolYear.findFirst({
-      where: {
-        isCurrentYear: true,
-      },
-      select: { id: true },
-    });
+    const { branchId } = await requireBranchContext();
+    const { generateStudentGradesForPeriod } = await import(
+      "@/src/server/cron/gradeCron"
+    );
 
-    if (!currentYear) {
-      return { error: "NO_CURRENT_YEAR" };
-    }
-
-    const enrollments = await prisma.classEnrollment.findMany({
-      where: {
-        schoolYearId: currentYear.id,
-        statusEnrollment: true,
-      },
-      select: {
-        studentId: true,
-        branchId: true,
-      },
-    });
-
-    const fiches = await prisma.fiche.findMany({
-      where: {
-        periodId,
-        anneeId: currentYear.id,
-      },
-    });
-
-    for (const enrollment of enrollments) {
-      let total = 0;
-      let count = 0;
-
-      for (const fiche of fiches) {
-        try {
-          if (!fiche.notes) continue;
-
-          const notes = JSON.parse(fiche.notes);
-
-          const note = notes.find(
-            (n: any) => n.studentId === enrollment.studentId,
-          );
-
-          if (note) {
-            total += Number(note.note);
-            count++;
-          }
-        } catch {
-          continue;
-        }
-      }
-
-      if (count === 0) continue;
-
-      const moyenne = Number((total / count).toFixed(2));
-
-      await prisma.studentGrade.upsert({
-        where: {
-          studentId_periodId_branchId: {
-            studentId: enrollment.studentId,
-            periodId,
-            branchId: enrollment.branchId,
-          },
-        },
-        update: {
-          score: moyenne,
-        },
-        create: {
-          studentId: enrollment.studentId,
-          periodId,
-          schoolYearId: currentYear.id,
-          score: moyenne,
-          branchId: enrollment.branchId,
-        },
-      });
+    const success = await generateStudentGradesForPeriod(periodId, branchId);
+    if (!success) {
+      return { error: "NO_GRADES_GENERATED" };
     }
 
     return { success: true };

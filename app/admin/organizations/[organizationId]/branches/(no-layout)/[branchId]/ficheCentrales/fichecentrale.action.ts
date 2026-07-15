@@ -42,6 +42,74 @@ export async function deleteFicheCentrale(params: {
   };
 }
 
+export async function deleteFicheIntervention(params: { ficheId: string }) {
+  const { organizationId, branchId, session } = await requireBranchContext();
+  const isTitulaire = Boolean(session?.teacherContext?.isTitulaire);
+  if (!canManageOrganization(session) && !isTitulaire) {
+    return { success: false as const, message: "Action non autorisée." };
+  }
+
+  const fiche = await prisma.fiche.findFirst({
+    where: {
+      id: params.ficheId,
+      branchId,
+    },
+    select: {
+      id: true,
+      typeFiche: true,
+      lessonId: true,
+      classSectionId: true,
+      periodId: true,
+      anneeId: true,
+      coursName: true,
+    },
+  });
+
+  if (!fiche) {
+    return {
+      success: false as const,
+      message: "Cette intervention n'existe plus.",
+    };
+  }
+
+  if (fiche.typeFiche === "ficheCote") {
+    return {
+      success: false as const,
+      message: "La fiche globale ne peut pas être annulée ici.",
+    };
+  }
+
+  await prisma.fiche.delete({
+    where: { id: fiche.id },
+  });
+
+  const remaining = await prisma.fiche.count({
+    where: {
+      branchId,
+      lessonId: fiche.lessonId,
+      classSectionId: fiche.classSectionId,
+      periodId: fiche.periodId,
+      anneeId: fiche.anneeId,
+      NOT: { typeFiche: "ficheCote" },
+    },
+  });
+
+  const baseHref = `/admin/organizations/${organizationId}/branches/${branchId}`;
+  const validationHref = `${baseHref}/ficheCentrales/${fiche.lessonId}?classId=${fiche.classSectionId}&periodId=${fiche.periodId}&anneeId=${fiche.anneeId}`;
+  const listHref = `${baseHref}/ficheCentrales`;
+
+  revalidatePath(listHref);
+  revalidatePath(`${baseHref}/ficheCentrales/${fiche.lessonId}`);
+  revalidatePath(`${baseHref}/fiches/${fiche.id}`);
+  revalidatePath(`${baseHref}/results`);
+
+  return {
+    success: true as const,
+    message: `Intervention « ${fiche.coursName} » annulée.`,
+    redirectTo: remaining > 0 ? validationHref : listHref,
+  };
+}
+
 type FicheCentraleStudentAverage = {
   studentId: string;
   nom: string;
@@ -53,6 +121,17 @@ type FicheCentraleStudentAverage = {
   pourcentage: number;
   interventions: number;
 };
+
+export type FicheCentraleIntervention = {
+  id: string;
+  typeFiche: string;
+  dateCreated: string;
+  teacherName: string;
+  status: boolean;
+  notesCount: number;
+  averageScore: number | null;
+};
+
 type FicheCentraleSummary = {
   ficheCoteId: string | null;
   ficheCoteValidated: boolean;
@@ -62,6 +141,7 @@ type FicheCentraleSummary = {
   periodName: string;
   anneeName: string;
   nombreIntervention: number;
+  interventions: FicheCentraleIntervention[];
   students: FicheCentraleStudentAverage[];
 };
 
@@ -203,6 +283,19 @@ export async function getFicheCentraleSummary(params: {
         },
       },
       period: true,
+      teacher: {
+        include: {
+          branchMember: {
+            include: {
+              member: {
+                include: {
+                  user: true,
+                },
+              },
+            },
+          },
+        },
+      },
     },
     orderBy: {
       dateCreated: "asc",
@@ -321,6 +414,34 @@ export async function getFicheCentraleSummary(params: {
     (note) => Number(note.score ?? 0) > 0,
   );
 
+  const interventions: FicheCentraleIntervention[] = fiches.map((fiche) => {
+    let notes: { score?: number | null }[] = [];
+    try {
+      notes = fiche.notes ? JSON.parse(fiche.notes) : [];
+    } catch {
+      notes = [];
+    }
+
+    const scored = notes.filter((note) => note.score != null);
+    const averageScore =
+      scored.length > 0
+        ? scored.reduce((sum, note) => sum + Number(note.score ?? 0), 0) /
+          scored.length
+        : null;
+
+    return {
+      id: fiche.id,
+      typeFiche: fiche.typeFiche,
+      dateCreated: fiche.dateCreated.toISOString(),
+      teacherName:
+        fiche.teacher?.branchMember?.member?.user?.name ?? "N/A",
+      status: fiche.status,
+      notesCount: notes.length,
+      averageScore:
+        averageScore == null ? null : Number(averageScore.toFixed(2)),
+    };
+  });
+
   return {
     ficheCoteId: ficheCote?.id ?? null,
     ficheCoteValidated,
@@ -332,6 +453,7 @@ export async function getFicheCentraleSummary(params: {
     periodName: fiches[0]?.period?.label ?? fiches[0]?.periodeName ?? "",
     anneeName: fiches[0]?.anneeName ?? "",
     nombreIntervention: fiches.length,
+    interventions,
     students,
   };
 }

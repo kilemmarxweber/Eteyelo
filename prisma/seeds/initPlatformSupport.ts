@@ -7,17 +7,29 @@ const DEFAULT_PASSWORD = "Support123!";
 
 const PLATFORM_SUPPORT_SEED = [
   {
+    username: "support.klambocore",
+    email: "support@klambocore.cd",
+    name: "Support Klambocore",
+    prenom: "Support",
+    postnom: "Klambocore",
+    displayTitle: "Agent support plateforme",
+    specialties: ["Incidents", "Escalades", "Configuration"],
+    image: null as string | null,
+    isLead: true,
+    sortOrder: 0,
+  },
+  {
     username: "kilem.maxweber",
     email: "kilemmarxweber@gmail.com",
     name: "Kilem Maxweber",
     prenom: "Kilem",
     postnom: "Maxweber",
     displayTitle: "Responsable support technique",
-    specialties: ["Comptes et accès", "Incidents techniques", "Configuration"],
+    specialties: ["Comptes et acces", "Incidents techniques", "Configuration"],
     image:
       "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&h=400&q=80",
-    isLead: true,
-    sortOrder: 0,
+    isLead: false,
+    sortOrder: 1,
   },
   {
     username: "chris.agasa",
@@ -25,20 +37,22 @@ const PLATFORM_SUPPORT_SEED = [
     name: "Chris AGASA",
     prenom: "Chris",
     postnom: "AGASA",
-    displayTitle: "Ingénieur support & développement",
+    displayTitle: "Ingenieur support & developpement",
     specialties: [
-      "Établissements",
+      "Etablissements",
       "Paiements & bulletins",
-      "Intégrations",
+      "Integrations",
     ],
     image:
       "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=400&h=400&q=80",
     isLead: false,
-    sortOrder: 1,
+    sortOrder: 2,
   },
 ] as const;
 
-async function ensurePlatformSupportUser(entry: (typeof PLATFORM_SUPPORT_SEED)[number]) {
+async function ensurePlatformSupportUser(
+  entry: (typeof PLATFORM_SUPPORT_SEED)[number],
+) {
   const hashedPassword = await hashPassword(DEFAULT_PASSWORD);
 
   const user = await prisma.user.upsert({
@@ -90,6 +104,12 @@ async function ensurePlatformSupportUser(entry: (typeof PLATFORM_SUPPORT_SEED)[n
     });
   }
 
+  if (entry.email === "support@klambocore.cd") {
+    await prisma.member.deleteMany({
+      where: { userId: user.id },
+    });
+  }
+
   return user;
 }
 
@@ -117,7 +137,7 @@ export async function initPlatformSupport() {
           isActive: true,
         },
       });
-      console.log(`  ↻ ${entry.name} mis à jour`);
+      console.log(`  ↻ ${entry.name} mis a jour`);
       continue;
     }
 
@@ -133,15 +153,15 @@ export async function initPlatformSupport() {
     });
 
     created += 1;
-    console.log(`  ✓ ${entry.name} créé`);
+    console.log(`  ✓ ${entry.name} cree`);
   }
 
-  console.log(`OK ${created} agent(s) support plateforme créé(s)`);
+  console.log(`OK ${created} agent(s) support plateforme cree(s)`);
 }
 
 export async function clearPlatformSupport() {
   console.log("Suppression des agents support plateforme...");
   await prisma.platformSupportEscalation.deleteMany();
   await prisma.platformSupportAgent.deleteMany();
-  console.log("OK support plateforme supprimé");
+  console.log("OK support plateforme supprime");
 }

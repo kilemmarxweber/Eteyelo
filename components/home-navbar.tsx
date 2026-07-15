@@ -14,7 +14,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { SubmitHandler } from "react-hook-form";
 import { useForm } from "react-hook-form";
-import { useRouter } from "next/navigation";
+import { useAppRouter as useRouter } from "@/hooks/use-app-router";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -29,6 +29,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { authClient } from "@/lib/auth-client";
+import { useAppLoading } from "@/hooks/use-app-loading";
 
 export const authSchema = z.discriminatedUnion("mode", [
   z.object({
@@ -82,6 +83,7 @@ export function HomeNavbar() {
   const { data: session } = authClient.useSession();
   const [isSigningOut, setIsSigningOut] = useState(false);
   const router = useRouter();
+  const { resetLoading, withLoading } = useAppLoading();
   const handleSignOut = async () => {
     setIsSigningOut(true);
 
@@ -92,12 +94,11 @@ export function HomeNavbar() {
       setAuthOpen(false);
 
       toast.success("Déconnecté.");
-
-      router.push("/");
-      router.refresh();
+      window.location.assign("/");
     } catch {
       toast.error("Déconnexion impossible.");
     } finally {
+      resetLoading();
       setIsSigningOut(false);
     }
   };
@@ -124,19 +125,21 @@ export function HomeNavbar() {
   };
 
   const resolveDashboardPath = async () => {
-    try {
-      const redirectRes = await fetch("/api/auth/post-login-redirect", {
-        credentials: "include",
-      });
+    return withLoading(async () => {
+      try {
+        const redirectRes = await fetch("/api/auth/post-login-redirect", {
+          credentials: "include",
+        });
 
-      const redirectBody = (await redirectRes.json()) as { path?: string };
+        const redirectBody = (await redirectRes.json()) as { path?: string };
 
-      return redirectRes.ok && redirectBody.path
-        ? redirectBody.path
-        : "/admin/";
-    } catch {
-      return "/admin/";
-    }
+        return redirectRes.ok && redirectBody.path
+          ? redirectBody.path
+          : "/admin/";
+      } catch {
+        return "/admin/";
+      }
+    });
   };
 
   const goToDashboard = async () => {
@@ -146,7 +149,6 @@ export function HomeNavbar() {
 
     setAuthOpen(false);
     closeMobileMenu();
-    router.refresh();
     router.push(destination);
     setIsRedirecting(false);
   };

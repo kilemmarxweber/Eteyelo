@@ -3,6 +3,7 @@ import { ArrowLeft } from "lucide-react";
 
 import { CreateBranchForm } from "../new/components/create-branch-form";
 import { getBranchByIdAction } from "../branche.action";
+import { enforceOrganizationManagerPage } from "@/lib/auth/require-organization-permission";
 
 type EditBranchPageProps = {
   params: Promise<{ organizationId: string }>;
@@ -41,6 +42,7 @@ export default async function EditBranchPage({
   searchParams,
 }: EditBranchPageProps) {
   const { organizationId } = await params;
+  await enforceOrganizationManagerPage(organizationId);
   const { branchId } = await searchParams;
 
   if (!branchId) {
@@ -73,7 +75,9 @@ export default async function EditBranchPage({
             code: branch.code ?? "",
             image: normalizeBranchImages(branch.image),
             adresse: branch.adresse ?? "",
+            province: branch.province ?? "",
             ville: branch.ville ?? "",
+            commune: branch.commune ?? "",
             pays: branch.pays ?? "RDC",
             idnat: branch.idnat ?? "",
             tel: branch.tel ?? "",

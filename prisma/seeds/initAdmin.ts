@@ -16,7 +16,7 @@ export async function initAdmin() {
 
   const { branchMember } = await ensureSeedMember(
     adminUser.id,
-    "owner",
+    "gestionnaire",
     BranchRole.ADMIN,
   );
 

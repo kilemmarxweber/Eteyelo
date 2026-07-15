@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useState, useTransition } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { useAppTransition as useTransition } from "@/hooks/use-app-transition";
 import { toast } from "sonner";
 import { IconPlus, IconReportMoney } from "@tabler/icons-react";
 

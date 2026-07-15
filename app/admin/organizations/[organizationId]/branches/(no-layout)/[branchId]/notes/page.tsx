@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import FicheSaisieClient from "./FicheSaisieClient";
-import { redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { ORG_ROLE } from "@/lib/permissions";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
 import {
@@ -42,7 +42,7 @@ export default async function NotesPage() {
   const isTeacher = hasSessionRole(session, [ORG_ROLE.TEACHER, "TEACHER"]);
 
   if (!canManage && !isTeacher) {
-    redirect("/not-authorized");
+    notFound();
   }
 
   const teacherWhere = canManage
@@ -60,6 +60,15 @@ export default async function NotesPage() {
         },
       };
 
+  const currentSchoolYear = await prisma.schoolYear.findFirst({
+    where: {
+      branchId,
+      isCurrentYear: true,
+      isArchived: false,
+    },
+    select: { id: true },
+  });
+
   const teachersFromDB = await prisma.teacher.findMany({
     where: teacherWhere,
     include: {
@@ -75,13 +84,22 @@ export default async function NotesPage() {
 
       teaching: {
         where: {
-          OR: [
-            { branchId },
+          // Uniquement les cours encore affectés à l'enseignant
+          OR: [{ statusTeaching: true }, { statusTeaching: null }],
+          ...(currentSchoolYear
+            ? { schoolYearId: currentSchoolYear.id }
+            : {}),
+          AND: [
             {
-              branchId: null,
-              classe: {
-                branchId,
-              },
+              OR: [
+                { branchId },
+                {
+                  branchId: null,
+                  classe: {
+                    branchId,
+                  },
+                },
+              ],
             },
           ],
         },
@@ -246,34 +264,38 @@ export default async function NotesPage() {
     }
   }
 
-  const teachers: TeacherType[] = teachersFromDB.map((t) => ({
-    id: t.id,
-    name: t.branchMember?.member?.user?.name || "N/A",
-    lessons: t.teaching.map((teaching) => {
-      const cours = coursMap.get(teaching.coursId);
-      const classe = classeMap.get(teaching.classeId);
+  const teachers: TeacherType[] = teachersFromDB
+    .map((t) => ({
+      id: t.id,
+      name: t.branchMember?.member?.user?.name || "N/A",
+      lessons: t.teaching.map((teaching) => {
+        const cours = coursMap.get(teaching.coursId);
+        const classe = classeMap.get(teaching.classeId);
 
-      return {
-        id: teaching.id,
-        classId: teaching.classeId || "N/A",
-        className: classe?.nameClasse || "Classe non définie",
-        codeclasse: classe?.codeClasse || "N/A",
-        subjectId: teaching.coursId || "N/A",
-        subjectName: cours?.nameCours || "Cours non défini",
-        maxScore:
-          resolveCoursePonderation(ponderationMap, {
-            coursId: teaching.coursId,
-            optionId: classe?.optionId,
-          }) * 10,
-        fiches: teaching.fiche.map((f) => ({
-          id: f.id,
-          status: f.status,
-          periodId: f.periodId,
-          typeFiche: f.typeFiche,
-          anneeId: f.anneeId,
-        })),
-      };
-    }),
-  }));
+        return {
+          id: teaching.id,
+          classId: teaching.classeId || "N/A",
+          className: classe?.nameClasse || "Classe non définie",
+          codeclasse: classe?.codeClasse || "N/A",
+          subjectId: teaching.coursId || "N/A",
+          subjectName: cours?.nameCours || "Cours non défini",
+          maxScore:
+            resolveCoursePonderation(ponderationMap, {
+              coursId: teaching.coursId,
+              optionId: classe?.optionId,
+            }) * 10,
+          fiches: teaching.fiche.map((f) => ({
+            id: f.id,
+            status: f.status,
+            periodId: f.periodId,
+            typeFiche: f.typeFiche,
+            anneeId: f.anneeId,
+          })),
+        };
+      }),
+    }))
+    // Fiche : uniquement les enseignants ayant au moins un cours affecté
+    .filter((t) => t.lessons.length > 0);
+
   return <FicheSaisieClient isAdmin={canManage} teachers={teachers} />;
 }

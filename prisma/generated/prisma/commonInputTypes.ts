@@ -303,6 +303,23 @@ export type IntNullableWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedIntNullableFilter<$PrismaModel>
 }
 
+export type EnumPrimaryDomainNullableFilter<$PrismaModel = never> = {
+  equals?: $Enums.PrimaryDomain | Prisma.EnumPrimaryDomainFieldRefInput<$PrismaModel> | null
+  in?: $Enums.PrimaryDomain[] | Prisma.ListEnumPrimaryDomainFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.PrimaryDomain[] | Prisma.ListEnumPrimaryDomainFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumPrimaryDomainNullableFilter<$PrismaModel> | $Enums.PrimaryDomain | null
+}
+
+export type EnumPrimaryDomainNullableWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.PrimaryDomain | Prisma.EnumPrimaryDomainFieldRefInput<$PrismaModel> | null
+  in?: $Enums.PrimaryDomain[] | Prisma.ListEnumPrimaryDomainFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.PrimaryDomain[] | Prisma.ListEnumPrimaryDomainFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumPrimaryDomainNullableWithAggregatesFilter<$PrismaModel> | $Enums.PrimaryDomain | null
+  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumPrimaryDomainNullableFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumPrimaryDomainNullableFilter<$PrismaModel>
+}
+
 export type EnumDayFilter<$PrismaModel = never> = {
   equals?: $Enums.Day | Prisma.EnumDayFieldRefInput<$PrismaModel>
   in?: $Enums.Day[] | Prisma.ListEnumDayFieldRefInput<$PrismaModel>
@@ -556,6 +573,40 @@ export type JsonWithAggregatesFilterBase<$PrismaModel = never> = {
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedJsonFilter<$PrismaModel>
   _max?: Prisma.NestedJsonFilter<$PrismaModel>
+}
+
+export type EnumJobApplicationTypeFilter<$PrismaModel = never> = {
+  equals?: $Enums.JobApplicationType | Prisma.EnumJobApplicationTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.JobApplicationType[] | Prisma.ListEnumJobApplicationTypeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.JobApplicationType[] | Prisma.ListEnumJobApplicationTypeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumJobApplicationTypeFilter<$PrismaModel> | $Enums.JobApplicationType
+}
+
+export type EnumJobApplicationStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.JobApplicationStatus | Prisma.EnumJobApplicationStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.JobApplicationStatus[] | Prisma.ListEnumJobApplicationStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.JobApplicationStatus[] | Prisma.ListEnumJobApplicationStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumJobApplicationStatusFilter<$PrismaModel> | $Enums.JobApplicationStatus
+}
+
+export type EnumJobApplicationTypeWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.JobApplicationType | Prisma.EnumJobApplicationTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.JobApplicationType[] | Prisma.ListEnumJobApplicationTypeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.JobApplicationType[] | Prisma.ListEnumJobApplicationTypeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumJobApplicationTypeWithAggregatesFilter<$PrismaModel> | $Enums.JobApplicationType
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumJobApplicationTypeFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumJobApplicationTypeFilter<$PrismaModel>
+}
+
+export type EnumJobApplicationStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.JobApplicationStatus | Prisma.EnumJobApplicationStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.JobApplicationStatus[] | Prisma.ListEnumJobApplicationStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.JobApplicationStatus[] | Prisma.ListEnumJobApplicationStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumJobApplicationStatusWithAggregatesFilter<$PrismaModel> | $Enums.JobApplicationStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumJobApplicationStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumJobApplicationStatusFilter<$PrismaModel>
 }
 
 export type EnumBranchRoleFilter<$PrismaModel = never> = {
@@ -883,6 +934,23 @@ export type NestedFloatNullableFilter<$PrismaModel = never> = {
   not?: Prisma.NestedFloatNullableFilter<$PrismaModel> | number | null
 }
 
+export type NestedEnumPrimaryDomainNullableFilter<$PrismaModel = never> = {
+  equals?: $Enums.PrimaryDomain | Prisma.EnumPrimaryDomainFieldRefInput<$PrismaModel> | null
+  in?: $Enums.PrimaryDomain[] | Prisma.ListEnumPrimaryDomainFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.PrimaryDomain[] | Prisma.ListEnumPrimaryDomainFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumPrimaryDomainNullableFilter<$PrismaModel> | $Enums.PrimaryDomain | null
+}
+
+export type NestedEnumPrimaryDomainNullableWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.PrimaryDomain | Prisma.EnumPrimaryDomainFieldRefInput<$PrismaModel> | null
+  in?: $Enums.PrimaryDomain[] | Prisma.ListEnumPrimaryDomainFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.PrimaryDomain[] | Prisma.ListEnumPrimaryDomainFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumPrimaryDomainNullableWithAggregatesFilter<$PrismaModel> | $Enums.PrimaryDomain | null
+  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumPrimaryDomainNullableFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumPrimaryDomainNullableFilter<$PrismaModel>
+}
+
 export type NestedEnumDayFilter<$PrismaModel = never> = {
   equals?: $Enums.Day | Prisma.EnumDayFieldRefInput<$PrismaModel>
   in?: $Enums.Day[] | Prisma.ListEnumDayFieldRefInput<$PrismaModel>
@@ -1082,6 +1150,40 @@ export type NestedJsonFilterBase<$PrismaModel = never> = {
   gt?: runtime.InputJsonValue | Prisma.JsonFieldRefInput<$PrismaModel>
   gte?: runtime.InputJsonValue | Prisma.JsonFieldRefInput<$PrismaModel>
   not?: runtime.InputJsonValue | Prisma.JsonFieldRefInput<$PrismaModel> | Prisma.JsonNullValueFilter
+}
+
+export type NestedEnumJobApplicationTypeFilter<$PrismaModel = never> = {
+  equals?: $Enums.JobApplicationType | Prisma.EnumJobApplicationTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.JobApplicationType[] | Prisma.ListEnumJobApplicationTypeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.JobApplicationType[] | Prisma.ListEnumJobApplicationTypeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumJobApplicationTypeFilter<$PrismaModel> | $Enums.JobApplicationType
+}
+
+export type NestedEnumJobApplicationStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.JobApplicationStatus | Prisma.EnumJobApplicationStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.JobApplicationStatus[] | Prisma.ListEnumJobApplicationStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.JobApplicationStatus[] | Prisma.ListEnumJobApplicationStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumJobApplicationStatusFilter<$PrismaModel> | $Enums.JobApplicationStatus
+}
+
+export type NestedEnumJobApplicationTypeWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.JobApplicationType | Prisma.EnumJobApplicationTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.JobApplicationType[] | Prisma.ListEnumJobApplicationTypeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.JobApplicationType[] | Prisma.ListEnumJobApplicationTypeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumJobApplicationTypeWithAggregatesFilter<$PrismaModel> | $Enums.JobApplicationType
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumJobApplicationTypeFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumJobApplicationTypeFilter<$PrismaModel>
+}
+
+export type NestedEnumJobApplicationStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.JobApplicationStatus | Prisma.EnumJobApplicationStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.JobApplicationStatus[] | Prisma.ListEnumJobApplicationStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.JobApplicationStatus[] | Prisma.ListEnumJobApplicationStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumJobApplicationStatusWithAggregatesFilter<$PrismaModel> | $Enums.JobApplicationStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumJobApplicationStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumJobApplicationStatusFilter<$PrismaModel>
 }
 
 export type NestedEnumBranchRoleFilter<$PrismaModel = never> = {

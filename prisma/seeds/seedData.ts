@@ -8,12 +8,21 @@ import { initOptions, clearOptions } from "./initOptions";
 import { initCreneaux, clearCreneaux } from "./initCreneaux";
 import { initClasses, clearClasses } from "./initClasses";
 import { initCours, clearCours } from "./initCours";
+import {
+  initPrimaryCours,
+  clearPrimaryCatalogCours,
+} from "./initPrimaryCours";
 import { initUsers, clearUsers } from "./initUsers";
 import { initAdmin, clearAdmin } from "./initAdmin";
+import {
+  initPlatformOwner,
+  clearPlatformOwner,
+} from "./initPlatformOwner";
 import {
   initPlatformSupport,
   clearPlatformSupport,
 } from "./initPlatformSupport";
+import { printDemoAccounts } from "./demoAccounts";
 import { initTeachers, clearTeachers } from "./initTeachers";
 import { initParents, clearParents } from "./initParents";
 import { initStudents, clearStudents } from "./initStudents";
@@ -42,7 +51,9 @@ const INIT_ORDER = [
   { name: "creneaux", init: initCreneaux, clear: clearCreneaux },
   { name: "classes", init: initClasses, clear: clearClasses },
   { name: "cours", init: initCours, clear: clearCours },
+  { name: "primaryCours", init: initPrimaryCours, clear: clearPrimaryCatalogCours },
   { name: "users", init: initUsers, clear: clearUsers },
+  { name: "platformOwner", init: initPlatformOwner, clear: clearPlatformOwner },
   { name: "admin", init: initAdmin, clear: clearAdmin },
   {
     name: "platformSupport",
@@ -91,6 +102,8 @@ async function seedAll() {
     console.log("   - Classes: 10");
     console.log("   - Cours: 32");
     console.log("   - Utilisateurs: 22");
+    console.log("   - Support plateforme: 3");
+    printDemoAccounts();
     console.log("   - Enseignants: 6");
     console.log("   - Parents: 5");
     console.log("   - Étudiants: 10");

@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AdminShell } from "@/components/layout/admin-shell";
 import { auth } from "@/lib/auth";
+import { enforceAdminRouteAccess } from "@/lib/auth/enforce-admin-route-access";
 
 export default async function AdminLayout({
   children,
@@ -19,6 +20,9 @@ export default async function AdminLayout({
   if (!session?.user) {
     redirect("/auth/sign-in");
   }
+
+  const pathname = requestHeaders.get("x-pathname") ?? "/admin";
+  await enforceAdminRouteAccess(pathname);
 
   return (
     <ThemeProvider

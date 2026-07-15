@@ -35,7 +35,7 @@ const SingleStudentPage = async ({
   });
 
   if (!session?.user?.id) {
-    redirect("/not-authorized");
+    notFound();
   }
 
   const { organizationId, branchId, id } = await params;
@@ -213,7 +213,7 @@ const SingleStudentPage = async ({
   }
 
   if (!canReadStudent) {
-    redirect("/not-authorized");
+    notFound();
   }
 
   const studentName =

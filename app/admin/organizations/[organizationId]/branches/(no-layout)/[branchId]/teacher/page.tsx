@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { redirect } from "next/navigation";
+import { NotFoundView } from "@/components/not-found-view";
 import {
   IconChalkboardTeacher,
   IconUserCheck,
@@ -73,7 +73,7 @@ export default function Teachers() {
   }
 
   if (!session) {
-    redirect("/not-authorized");
+    return <NotFoundView />;
   }
 
   return (

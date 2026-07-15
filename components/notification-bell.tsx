@@ -1,15 +1,18 @@
 "use client";
 
-import { useEffect, useState, useCallback, useTransition } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useEffect, useState, useCallback } from "react";
+import { useAppTransition as useTransition } from "@/hooks/use-app-transition";
+import { useParams, usePathname, useSearchParams } from "next/navigation";
+import { useAppRouter as useRouter } from "@/hooks/use-app-router";
 import {
   Bell,
   UserPlus,
-  ChevronRight,
+  Briefcase,
   RefreshCw,
   CheckCircle,
   Clock,
   AlertCircle,
+  FileInput,
 } from "lucide-react";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
@@ -25,12 +28,19 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import {
+  dispatchCandidaturePrefill,
+  dispatchRegistrationPrefill,
+} from "@/lib/prefill-events";
+import {
   getPendingRegistrationRequestsAction,
   confirmRegistrationRequestAction,
 } from "@/app/admin/organizations/[organizationId]/branches/(no-layout)/[branchId]/registration/registration.action";
+import {
+  acceptJobApplicationAction,
+  getJobApplicationsAction,
+} from "@/app/components/depot-candidature/job-application.actions";
 
-// ─── types ──────────────────────────────────────────────────────────────────
-type RequestRow = {
+type RegistrationRow = {
   id: string;
   reference: string;
   status: string;
@@ -43,16 +53,33 @@ type RequestRow = {
   requestedOption: string | null;
   photoUrl: string | null;
   createdAt: Date | string;
+  kind: "registration";
 };
 
-// ─── badge count ─────────────────────────────────────────────────────────────
+type JobRow = {
+  id: string;
+  reference: string;
+  status: string;
+  applicationType: string;
+  nom: string;
+  postnom: string;
+  prenom: string;
+  photoUrl: string | null;
+  desiredOrgRole: string | null;
+  desiredSubjects: string | null;
+  createdAt: Date | string;
+  kind: "job";
+};
+
+type NotificationItem = RegistrationRow | JobRow;
+
 function CountBadge({ count }: { count: number }) {
   if (count === 0) return null;
   return (
     <span className="absolute -right-1 -top-1 flex h-4 min-w-4">
-      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500 opacity-75"></span>
+      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500 opacity-75" />
       <span
-        aria-label={`${count} demande${count > 1 ? "s" : ""} en attente`}
+        aria-label={`${count} notification${count > 1 ? "s" : ""}`}
         className={cn(
           "relative inline-flex h-4 min-w-4 items-center justify-center",
           "rounded-full bg-red-500 px-1 text-[10px] font-bold leading-none text-white",
@@ -65,7 +92,6 @@ function CountBadge({ count }: { count: number }) {
   );
 }
 
-// ─── skeleton row ─────────────────────────────────────────────────────────────
 function SkeletonRow() {
   return (
     <div className="flex items-start gap-3 px-4 py-3">
@@ -79,13 +105,14 @@ function SkeletonRow() {
   );
 }
 
-// ─── avatar initiales ─────────────────────────────────────────────────────────
-function StudentAvatar({
+function PersonAvatar({
   photoUrl,
   name,
+  fallback,
 }: {
   photoUrl: string | null;
   name: string;
+  fallback: React.ReactNode;
 }) {
   const initials = name
     .split(" ")
@@ -106,43 +133,48 @@ function StudentAvatar({
   }
   return (
     <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
-      {initials || <UserPlus className="size-4" />}
+      {initials || fallback}
     </div>
   );
 }
 
-// ─── row ─────────────────────────────────────────────────────────────────────
-function RequestRow({
-  request,
+function NotificationRow({
+  item,
   onConfirm,
-  onExamine,
+  onPrefill,
   confirming,
 }: {
-  request: RequestRow;
-  onConfirm: (id: string) => void;
-  onExamine: (id: string) => void;
+  item: NotificationItem;
+  onConfirm: (item: NotificationItem) => void;
+  onPrefill: (item: NotificationItem) => void;
   confirming: string | null;
 }) {
-  const student = request.studentData as {
-    name?: string;
-    postnom?: string;
-    prenom?: string;
-  } | null;
-  const fullName = [student?.name, student?.postnom, student?.prenom]
-    .filter(Boolean)
-    .join(" ") || "Élève inconnu";
+  const fullName =
+    item.kind === "registration"
+      ? [item.studentData?.name, item.studentData?.postnom, item.studentData?.prenom]
+          .filter(Boolean)
+          .join(" ") || "Élève inconnu"
+      : [item.nom, item.postnom, item.prenom].filter(Boolean).join(" ") ||
+        "Candidat inconnu";
 
-  const level = [request.requestedLevel, request.requestedOption]
-    .filter(Boolean)
-    .join(" · ");
+  const subtitle =
+    item.kind === "registration"
+      ? [item.requestedLevel, item.requestedOption].filter(Boolean).join(" · ")
+      : item.applicationType === "TEACHER"
+        ? `Enseignant · ${item.desiredSubjects || "—"}`
+        : `Personnel · ${item.desiredOrgRole || "—"}`;
 
   const createdAt =
-    request.createdAt instanceof Date
-      ? request.createdAt
-      : new Date(request.createdAt);
+    item.createdAt instanceof Date ? item.createdAt : new Date(item.createdAt);
 
-  const isPending = request.status === "PENDING";
-  const isConfirmed = request.status === "CONFIRMED";
+  const isPending =
+    item.kind === "registration"
+      ? item.status === "PENDING"
+      : item.status === "PENDING" || item.status === "REVIEWED";
+  const isReady =
+    item.kind === "registration"
+      ? item.status === "CONFIRMED"
+      : item.status === "ACCEPTED";
 
   return (
     <div
@@ -151,17 +183,31 @@ function RequestRow({
         "transition-colors hover:bg-accent/50",
       )}
     >
-      <StudentAvatar photoUrl={request.photoUrl} name={fullName} />
+      <PersonAvatar
+        photoUrl={item.photoUrl}
+        name={fullName}
+        fallback={
+          item.kind === "registration" ? (
+            <UserPlus className="size-4" />
+          ) : (
+            <Briefcase className="size-4" />
+          )
+        }
+      />
 
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-semibold leading-tight text-foreground">
           {fullName}
         </p>
-        {level && (
+        <p className="mt-0.5 truncate text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+          {item.kind === "registration" ? "Inscription" : "Candidature"} ·{" "}
+          {item.reference}
+        </p>
+        {subtitle ? (
           <p className="mt-0.5 truncate text-xs text-muted-foreground">
-            {level}
+            {subtitle}
           </p>
-        )}
+        ) : null}
         <p className="mt-0.5 flex items-center gap-1 text-[10px] text-muted-foreground/70">
           <Clock className="size-3" />
           {formatDistanceToNow(createdAt, { addSuffix: true, locale: fr })}
@@ -169,80 +215,115 @@ function RequestRow({
       </div>
 
       <div className="flex shrink-0 flex-col items-end gap-1.5">
-        {isPending && (
+        {isPending ? (
           <Badge
             variant="outline"
             className="h-5 border-amber-400/60 bg-amber-50 px-1.5 text-[10px] font-semibold text-amber-700 dark:bg-amber-950/30 dark:text-amber-400"
           >
             En attente
           </Badge>
-        )}
-        {isConfirmed && (
+        ) : null}
+        {isReady ? (
           <Badge
             variant="outline"
             className="h-5 border-blue-400/60 bg-blue-50 px-1.5 text-[10px] font-semibold text-blue-700 dark:bg-blue-950/30 dark:text-blue-400"
           >
             Confirmé
           </Badge>
-        )}
+        ) : null}
 
-        <div className="flex gap-1">
-          {isPending && (
-            <Button
-              size="sm"
-              variant="ghost"
-              className="h-6 px-2 text-[10px] text-primary hover:bg-primary/10 hover:text-primary"
-              onClick={() => onConfirm(request.id)}
-              disabled={confirming === request.id}
-              title="Confirmer la demande"
-            >
-              {confirming === request.id ? (
-                <RefreshCw className="size-3 animate-spin" />
-              ) : (
-                <CheckCircle className="size-3" />
-              )}
-            </Button>
-          )}
+        {isPending ? (
           <Button
             size="sm"
             variant="ghost"
-            className="h-6 px-2 text-[10px] text-muted-foreground hover:text-foreground"
-            onClick={() => onExamine(request.id)}
-            title="Examiner la demande"
+            className="h-7 gap-1 px-2 text-[10px] text-primary hover:bg-primary/10 hover:text-primary"
+            onClick={() => onConfirm(item)}
+            disabled={confirming === item.id}
+            title={
+              item.kind === "registration"
+                ? "Examiner la demande"
+                : "Voir la demande"
+            }
           >
-            <ChevronRight className="size-3" />
+            {confirming === item.id ? (
+              <RefreshCw className="size-3 animate-spin" />
+            ) : (
+              <CheckCircle className="size-3" />
+            )}
+            {item.kind === "registration"
+              ? "Examiner la demande"
+              : "Voir la demande"}
           </Button>
-        </div>
+        ) : null}
+
+        {isReady ? (
+          <Button
+            size="sm"
+            variant="ghost"
+            className="h-7 gap-1 px-2 text-[10px] text-primary hover:bg-primary/10 hover:text-primary"
+            onClick={() => onPrefill(item)}
+            title="Pré-remplir"
+          >
+            <FileInput className="size-3" />
+            Pré-remplir
+          </Button>
+        ) : null}
       </div>
     </div>
   );
 }
 
-// ─── composant principal ──────────────────────────────────────────────────────
 export function NotificationBell() {
   const params = useParams<{ organizationId: string; branchId: string }>();
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
 
   const [open, setOpen] = useState(false);
-  const [requests, setRequests] = useState<RequestRow[]>([]);
+  const [items, setItems] = useState<NotificationItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [confirming, setConfirming] = useState<string | null>(null);
   const [, startTransition] = useTransition();
 
-  // Count des PENDING uniquement pour le badge
-  const pendingCount = requests.filter((r) => r.status === "PENDING").length;
+  const pendingCount = items.filter((item) =>
+    item.kind === "registration"
+      ? item.status === "PENDING"
+      : item.status === "PENDING" || item.status === "REVIEWED",
+  ).length;
+
+  const branchBase = params.organizationId && params.branchId
+    ? `/admin/organizations/${params.organizationId}/branches/${params.branchId}`
+    : "";
 
   const loadRequests = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const [data, err] = await getPendingRegistrationRequestsAction();
-      if (err) {
+      const [registrations, regErr] = await getPendingRegistrationRequestsAction();
+      const [jobs, jobErr] = await getJobApplicationsAction();
+      if (regErr && jobErr) {
         setError("Impossible de charger les notifications.");
-      } else {
-        setRequests((data as RequestRow[]) ?? []);
+        return;
       }
+      const registrationItems: RegistrationRow[] = (
+        (registrations as Omit<RegistrationRow, "kind">[] | null) ?? []
+      )
+        .filter((row) => row.status === "PENDING" || row.status === "CONFIRMED")
+        .map((row) => ({ ...row, kind: "registration" as const }));
+
+      const jobItems: JobRow[] = ((jobs as Omit<JobRow, "kind">[] | null) ?? [])
+        .filter((row) =>
+          ["PENDING", "REVIEWED", "ACCEPTED"].includes(row.status),
+        )
+        .map((row) => ({ ...row, kind: "job" as const }));
+
+      const merged = [...registrationItems, ...jobItems].sort((a, b) => {
+        const left = new Date(a.createdAt).getTime();
+        const right = new Date(b.createdAt).getTime();
+        return right - left;
+      });
+      setItems(merged.slice(0, 30));
     } catch {
       setError("Erreur inattendue.");
     } finally {
@@ -250,19 +331,14 @@ export function NotificationBell() {
     }
   }, []);
 
-  // Charge au montage initial et quand on ouvre le popover
   useEffect(() => {
-    if (open) {
-      void loadRequests();
-    }
+    if (open) void loadRequests();
   }, [open, loadRequests]);
 
-  // Chargement initial pour avoir le badge à jour
   useEffect(() => {
     void loadRequests();
   }, [loadRequests]);
 
-  // Polling léger : rafraîchit le count toutes les 60s même si le popover est fermé
   useEffect(() => {
     if (!params.branchId) return;
     const interval = setInterval(() => {
@@ -272,18 +348,30 @@ export function NotificationBell() {
   }, [open, params.branchId, loadRequests]);
 
   const handleConfirm = useCallback(
-    (id: string) => {
-      setConfirming(id);
+    (item: NotificationItem) => {
+      setConfirming(item.id);
       startTransition(async () => {
         try {
-          const [, err] = await confirmRegistrationRequestAction({ requestId: id });
-          if (err) {
-            toast.error(err.message ?? "Erreur lors de la confirmation.");
+          if (item.kind === "registration") {
+            const [, err] = await confirmRegistrationRequestAction({
+              requestId: item.id,
+            });
+            if (err) {
+              toast.error(err.message ?? "Erreur lors de la confirmation.");
+              return;
+            }
+            toast.success("Demande d'inscription examinée.");
           } else {
-            toast.success("Demande confirmée avec succès.");
-            // Rafraîchir la liste
-            void loadRequests();
+            const [, err] = await acceptJobApplicationAction({
+              applicationId: item.id,
+            });
+            if (err) {
+              toast.error(err.message ?? "Erreur lors de la confirmation.");
+              return;
+            }
+            toast.success("Candidature ouverte — vous pouvez la pré-remplir.");
           }
+          void loadRequests();
         } catch {
           toast.error("Erreur inattendue.");
         } finally {
@@ -294,20 +382,46 @@ export function NotificationBell() {
     [loadRequests],
   );
 
-  const handleExamine = useCallback(
-    (requestId: string) => {
+  const handlePrefill = useCallback(
+    (item: NotificationItem) => {
       setOpen(false);
-      const base = `/admin/organizations/${params.organizationId}/branches/${params.branchId}`;
-      router.push(`${base}/registration?requestId=${requestId}`);
-    },
-    [params, router],
-  );
+      if (!branchBase) return;
 
-  const handleViewAll = () => {
-    setOpen(false);
-    const base = `/admin/organizations/${params.organizationId}/branches/${params.branchId}`;
-    router.push(`${base}/registration`);
-  };
+      if (item.kind === "registration") {
+        const targetPath = `${branchBase}/registration`;
+        const url = `${targetPath}?requestId=${item.id}`;
+        const onPage = pathname.includes("/registration");
+        const currentId = searchParams.get("requestId");
+
+        if (onPage) {
+          if (currentId === item.id) {
+            dispatchRegistrationPrefill(item.id);
+          } else {
+            router.replace(url);
+          }
+          return;
+        }
+        router.push(url);
+        return;
+      }
+
+      const targetPath = `${branchBase}/candidatures`;
+      const url = `${targetPath}?applicationId=${item.id}`;
+      const onPage = pathname.includes("/candidatures");
+      const currentId = searchParams.get("applicationId");
+
+      if (onPage) {
+        if (currentId === item.id) {
+          dispatchCandidaturePrefill(item.id);
+        } else {
+          router.replace(url);
+        }
+        return;
+      }
+      router.push(url);
+    },
+    [branchBase, pathname, router, searchParams],
+  );
 
   if (!params.branchId) return null;
 
@@ -315,139 +429,137 @@ export function NotificationBell() {
     <>
       <style jsx global>{`
         @keyframes eteyelo-bell-ring {
-          0%, 45%, 100% { transform: rotate(0deg); }
-          5%, 15%, 25%, 35% { transform: rotate(13deg); }
-          10%, 20%, 30%, 40% { transform: rotate(-13deg); }
+          0%,
+          45%,
+          100% {
+            transform: rotate(0deg);
+          }
+          5%,
+          15%,
+          25%,
+          35% {
+            transform: rotate(13deg);
+          }
+          10%,
+          20%,
+          30%,
+          40% {
+            transform: rotate(-13deg);
+          }
         }
         .eteyelo-bell-active {
           animation: eteyelo-bell-ring 2.4s ease-in-out infinite;
           transform-origin: 50% 15%;
         }
         @media (prefers-reduced-motion: reduce) {
-          .eteyelo-bell-active { animation: none; }
+          .eteyelo-bell-active {
+            animation: none;
+          }
         }
       `}</style>
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          className="relative size-9 rounded-full text-muted-foreground hover:bg-accent hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
-          aria-label={
-            pendingCount > 0
-              ? `${pendingCount} demande${pendingCount > 1 ? "s" : ""} d'inscription en attente`
-              : "Notifications"
-          }
-        >
-          <Bell
-            className={cn(
-              "size-4",
-              pendingCount > 0 && "eteyelo-bell-active text-red-500",
-            )}
-          />
-          <CountBadge count={pendingCount} />
-        </Button>
-      </PopoverTrigger>
-
-      <PopoverContent
-        align="end"
-        sideOffset={8}
-        className="w-[360px] max-w-[calc(100vw-1rem)] p-0 shadow-xl"
-      >
-        {/* Header */}
-        <div className="flex items-center justify-between border-b bg-card px-4 py-3">
-          <div className="flex items-center gap-2">
-            <Bell className="size-4 text-primary" />
-            <span className="text-sm font-bold text-foreground">
-              Demandes d&apos;inscription
-            </span>
-            {pendingCount > 0 && (
-              <Badge className="h-5 px-1.5 text-[10px] font-bold">
-                {pendingCount}
-              </Badge>
-            )}
-          </div>
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
           <Button
             type="button"
             variant="ghost"
-            size="sm"
-            className="h-7 w-7 rounded-full p-0 text-muted-foreground hover:text-foreground"
-            onClick={() => void loadRequests()}
-            disabled={loading}
-            title="Actualiser"
+            size="icon"
+            className="relative size-9 rounded-full text-muted-foreground hover:bg-accent hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
+            aria-label={
+              pendingCount > 0
+                ? `${pendingCount} notification${pendingCount > 1 ? "s" : ""} en attente`
+                : "Notifications"
+            }
           >
-            <RefreshCw className={cn("size-3.5", loading && "animate-spin")} />
+            <Bell
+              className={cn(
+                "size-4",
+                pendingCount > 0 && "eteyelo-bell-active text-red-500",
+              )}
+            />
+            <CountBadge count={pendingCount} />
           </Button>
-        </div>
+        </PopoverTrigger>
 
-        {/* Corps */}
-        <div className="max-h-[400px] overflow-y-auto">
-          {loading ? (
-            <div className="divide-y divide-border/50">
-              <SkeletonRow />
-              <SkeletonRow />
-              <SkeletonRow />
+        <PopoverContent
+          align="end"
+          sideOffset={8}
+          className="w-[380px] max-w-[calc(100vw-1rem)] p-0 shadow-xl"
+        >
+          <div className="flex items-center justify-between border-b bg-card px-4 py-3">
+            <div className="flex items-center gap-2">
+              <Bell className="size-4 text-primary" />
+              <span className="text-sm font-bold text-foreground">
+                Notifications
+              </span>
+              {pendingCount > 0 ? (
+                <Badge className="h-5 px-1.5 text-[10px] font-bold">
+                  {pendingCount}
+                </Badge>
+              ) : null}
             </div>
-          ) : error ? (
-            <div className="flex flex-col items-center gap-3 px-4 py-8 text-center">
-              <AlertCircle className="size-8 text-destructive/60" />
-              <p className="text-sm text-muted-foreground">{error}</p>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => void loadRequests()}
-              >
-                <RefreshCw className="mr-1.5 size-3.5" />
-                Réessayer
-              </Button>
-            </div>
-          ) : requests.length === 0 ? (
-            <div className="flex flex-col items-center gap-3 px-4 py-10 text-center">
-              <div className="flex size-12 items-center justify-center rounded-full bg-muted">
-                <Bell className="size-5 text-muted-foreground" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-foreground">
-                  Tout est à jour
-                </p>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  Aucune demande d&apos;inscription en attente.
-                </p>
-              </div>
-            </div>
-          ) : (
-            <div className="divide-y divide-border/50">
-              {requests.map((request) => (
-                <RequestRow
-                  key={request.id}
-                  request={request}
-                  onConfirm={handleConfirm}
-                  onExamine={handleExamine}
-                  confirming={confirming}
-                />
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Footer */}
-        {!loading && !error && requests.length > 0 && (
-          <div className="border-t bg-card px-4 py-2.5">
             <Button
               type="button"
               variant="ghost"
               size="sm"
-              className="h-8 w-full justify-center text-xs text-primary hover:bg-primary/10 hover:text-primary"
-              onClick={handleViewAll}
+              className="h-7 w-7 rounded-full p-0 text-muted-foreground hover:text-foreground"
+              onClick={() => void loadRequests()}
+              disabled={loading}
+              title="Actualiser"
             >
-              Voir toutes les demandes
-              <ChevronRight className="ml-1 size-3.5" />
+              <RefreshCw className={cn("size-3.5", loading && "animate-spin")} />
             </Button>
           </div>
-        )}
-      </PopoverContent>
-    </Popover>
+
+          <div className="max-h-[400px] overflow-y-auto">
+            {loading ? (
+              <div className="divide-y divide-border/50">
+                <SkeletonRow />
+                <SkeletonRow />
+                <SkeletonRow />
+              </div>
+            ) : error ? (
+              <div className="flex flex-col items-center gap-3 px-4 py-8 text-center">
+                <AlertCircle className="size-8 text-destructive/60" />
+                <p className="text-sm text-muted-foreground">{error}</p>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => void loadRequests()}
+                >
+                  <RefreshCw className="mr-1.5 size-3.5" />
+                  Réessayer
+                </Button>
+              </div>
+            ) : items.length === 0 ? (
+              <div className="flex flex-col items-center gap-3 px-4 py-10 text-center">
+                <div className="flex size-12 items-center justify-center rounded-full bg-muted">
+                  <Bell className="size-5 text-muted-foreground" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-foreground">
+                    Tout est à jour
+                  </p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Aucune demande en attente.
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="divide-y divide-border/50">
+                {items.map((item) => (
+                  <NotificationRow
+                    key={`${item.kind}-${item.id}`}
+                    item={item}
+                    onConfirm={handleConfirm}
+                    onPrefill={handlePrefill}
+                    confirming={confirming}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        </PopoverContent>
+      </Popover>
     </>
   );
 }

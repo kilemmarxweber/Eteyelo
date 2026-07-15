@@ -84,7 +84,7 @@ export function AccountView({
   organizationRole,
   userCreatedAt,
 }: AccountViewProps) {
-  const { data: session, refetch } = authClient.useSession();
+  const { data: session, refetch, isPending } = authClient.useSession();
   const user = session?.user;
   const fileInputRef = useRef<HTMLInputElement>(null);
 

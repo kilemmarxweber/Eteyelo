@@ -1,5 +1,43 @@
 @import "tailwindcss";
 @import "leaflet/dist/leaflet.css";
+
+@keyframes global-top-loader-slide {
+  0% {
+    transform: translateX(-120%);
+  }
+  100% {
+    transform: translateX(420%);
+  }
+}
+
+.global-top-loader-bar {
+  position: relative;
+  height: 3px;
+  overflow: hidden;
+  background: linear-gradient(
+    90deg,
+    rgba(37, 99, 235, 0.12),
+    rgba(34, 211, 238, 0.18),
+    rgba(37, 99, 235, 0.12)
+  );
+}
+
+.global-top-loader-bar::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  width: 35%;
+  background: linear-gradient(90deg, #2563eb, #22d3ee, #2563eb);
+  animation: global-top-loader-slide 1.15s ease-in-out infinite;
+}
+
+.global-top-loader-bar.is-paused::after {
+  animation-play-state: paused;
+}
+
+.animation-paused {
+  animation-play-state: paused;
+}
 /* =========================
    REACT CALENDAR (THEME AWARE)
 ========================= */

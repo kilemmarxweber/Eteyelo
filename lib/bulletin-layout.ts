@@ -1,6 +1,12 @@
 /** Marge horizontale standard des bulletins A4 (mm). */
 export const BULLETIN_PAGE_MARGIN_MM = 10;
 
+/** Trait du cadre extérieur du bulletin (mm). */
+export const BULLETIN_OUTER_LINE_WIDTH_MM = 0.4;
+
+/** Traits fins des colonnes et cellules internes (mm). */
+export const BULLETIN_INNER_LINE_WIDTH_MM = 0.1;
+
 /** Largeur minimale (mm) pour afficher un maximum à 3 chiffres en police 8. */
 export const MIN_EVAL_CELL_WIDTH_MM = 8.5;
 
