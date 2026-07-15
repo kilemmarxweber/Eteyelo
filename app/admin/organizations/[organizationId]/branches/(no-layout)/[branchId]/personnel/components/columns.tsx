@@ -1,8 +1,13 @@
 "use client";
 
+import React from "react";
+import Link from "next/link";
 import { ColumnDef } from "@tanstack/react-table";
 import { IconDots } from "@tabler/icons-react";
+
 import { Button } from "@/components/custom/button";
+import { DataTableColumnHeader } from "@/components/data-table-column-header";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,19 +16,19 @@ import {
   DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { UpdatePersonnelDialog } from "./edit-personnel-dialog";
-import { DetailsPersonnelDialog } from "./details-personnel-dialog";
-import React from "react";
-import { Checkbox } from "@/components/ui/checkbox";
-import Link from "next/link";
+import { orgRoleLabel } from "@/lib/org-role-labels";
 import { IPersonnel } from "@/src/interfaces/Personnel";
-import { DataTableColumnHeader } from "@/components/data-table-column-header";
-import { ResetUsersDialog } from "../../student/components/reset-users-dialog";
-import { DeletePersonalDialog } from "./delete-personal-dialog";
-import { AddPersonnelRole } from "./add-personnelrole-dialog";
-import { data } from "autoprefixer";
 
-export const columns: ColumnDef<IPersonnel>[] = [
+import { ResetUsersDialog } from "../../student/components/reset-users-dialog";
+import { AddPersonnelRole } from "./add-personnelrole-dialog";
+import { DeletePersonalDialog } from "./delete-personal-dialog";
+import { DetailsPersonnelDialog } from "./details-personnel-dialog";
+import { UpdatePersonnelDialog } from "./edit-personnel-dialog";
+
+export const createPersonnelColumns = (
+  onRefresh?: () => void,
+  canManagePersonnel = true,
+): ColumnDef<IPersonnel>[] => [
   {
     id: "select",
     header: ({ table }) => (
@@ -47,16 +52,38 @@ export const columns: ColumnDef<IPersonnel>[] = [
     enableHiding: false,
   },
   {
+    id: "photo",
+    header: "PHOTO",
+    cell: ({ row }) => {
+      const personnel = row.original;
+      const initials =
+        `${personnel.nom?.[0] ?? ""}${personnel.prenom?.[0] ?? ""}`.toUpperCase() ||
+        "PE";
+
+      return (
+        <div className="flex items-center justify-center">
+          <div className="flex size-11 items-center justify-center overflow-hidden rounded-full border border-blue-100 bg-blue-50 ring-2 ring-white">
+            <span className="text-sm font-black text-blue-700">{initials}</span>
+          </div>
+        </div>
+      );
+    },
+    enableSorting: false,
+    enableHiding: false,
+  },
+  {
     accessorKey: "nom",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Nom" />
     ),
-    cell: ({ row }) => {
-      return row.original.nom ?? "N/A";
-    },
+    cell: ({ row }) => (
+      <span className="font-semibold text-blue-950">
+        {row.original.nom ?? "N/A"}
+      </span>
+    ),
     filterFn: (row, id, value) => {
       const search = String(value).toLowerCase().trim();
-      const nom = String(row.getValue("nom") ?? "").toLowerCase();
+      const nom = String(row.getValue(id) ?? "").toLowerCase();
       const postnom = String(row.getValue("postnom") ?? "").toLowerCase();
       const prenom = String(row.getValue("prenom") ?? "").toLowerCase();
 
@@ -72,18 +99,18 @@ export const columns: ColumnDef<IPersonnel>[] = [
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Postnom" />
     ),
-    cell: ({ row }) => {
-      return row.original.postnom ?? "N/A";
-    },
+    cell: ({ row }) => (
+      <span className="text-blue-950/80">{row.original.postnom ?? "N/A"}</span>
+    ),
   },
   {
     accessorKey: "prenom",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Prenom" />
+      <DataTableColumnHeader column={column} title="Prénom" />
     ),
-    cell: ({ row }) => {
-      return row.original.prenom ?? "N/A";
-    },
+    cell: ({ row }) => (
+      <span className="text-blue-950/80">{row.original.prenom ?? "N/A"}</span>
+    ),
   },
   {
     accessorKey: "sexe",
@@ -91,57 +118,58 @@ export const columns: ColumnDef<IPersonnel>[] = [
       <DataTableColumnHeader column={column} title="Sexe" />
     ),
     cell: ({ row }) => {
-      return row.original.sexe ?? "N/A";
+      const sexe = row.original.sexe;
+      if (sexe === "M") return "Masculin";
+      if (sexe === "F") return "Féminin";
+      return sexe ?? "N/A";
     },
-    filterFn: (row, id, value) => {
-      return value.includes(row.getValue(id));
-    },
+    filterFn: (row, id, value) => value.includes(row.getValue(id)),
   },
   {
-    accessorKey: "dateOfBirth",
+    id: "role",
+    accessorFn: (row) => row.role ?? "",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Dateofbirth" />
+      <DataTableColumnHeader column={column} title="Rôle" />
     ),
-    cell: (row) => new Date(row.getValue() as string).toLocaleDateString(),
+    cell: ({ row }) => (
+      <span className="font-medium text-blue-700">
+        {row.original.role ? orgRoleLabel(row.original.role) : "Non défini"}
+      </span>
+    ),
   },
   {
     accessorKey: "telephone",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Telephone" />
+      <DataTableColumnHeader column={column} title="Téléphone" />
     ),
-    cell: ({ row }) => {
-      return (
+    cell: ({ row }) =>
+      row.original.telephone ? (
         <Link
-          className="text-primary underline-offset-4 hover:underline"
+          className="text-blue-700 underline-offset-4 hover:underline"
           href={`tel:${row.original.telephone}`}
         >
-          {row.original.telephone ?? "N/A"}
+          {row.original.telephone}
         </Link>
-      );
-    },
+      ) : (
+        "N/A"
+      ),
   },
   {
-    accessorKey: "Email",
+    accessorKey: "email",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="E-mail" />
     ),
-    cell: ({ row }) => {
-      return (
+    cell: ({ row }) =>
+      row.original.email ? (
         <Link
-          className="text-primary underline-offset-4 hover:underline"
-          href={`tel:${row.original.email}`}
+          className="text-blue-700 underline-offset-4 hover:underline"
+          href={`mailto:${row.original.email}`}
         >
-          {row.original.email ?? "N/A"}
+          {row.original.email}
         </Link>
-      );
-    },
-  },
-  {
-    accessorKey: "createdAt",
-    cell: (row) => new Date(row.getValue() as string).toLocaleDateString(),
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Createdat" />
-    ),
+      ) : (
+        "N/A"
+      ),
   },
   {
     id: "actions",
@@ -158,18 +186,44 @@ export const columns: ColumnDef<IPersonnel>[] = [
         React.useState(false);
 
       const personnel = row.original;
+
+      const handleSuccess = () => {
+        row.toggleSelected(false);
+        onRefresh?.();
+      };
+
       return (
         <>
-          <UpdatePersonnelDialog
-            open={showUpdateTaskSheet}
-            onOpenChange={setShowUpdateTaskSheet}
-            personnel={personnel}
-          />
-          <AddPersonnelRole
-            open={showPersonnalRoleSheet}
-            onOpenChange={setShowPersonnalRoleSheet}
-            personnel={personnel}
-          />
+          {canManagePersonnel ? (
+            <>
+              <UpdatePersonnelDialog
+                open={showUpdateTaskSheet}
+                onOpenChange={setShowUpdateTaskSheet}
+                personnel={personnel}
+                onSuccess={handleSuccess}
+              />
+              <AddPersonnelRole
+                open={showPersonnalRoleSheet}
+                onOpenChange={setShowPersonnalRoleSheet}
+                personnel={personnel}
+                onSuccess={handleSuccess}
+              />
+              <DeletePersonalDialog
+                open={showDeleteTaskDialog}
+                onOpenChange={setShowDeleteTaskDialog}
+                personals={[personnel]}
+                showTrigger={false}
+                onSuccess={handleSuccess}
+              />
+              <ResetUsersDialog
+                open={showResetTaskDialog}
+                onOpenChange={setShowResetTaskDialog}
+                email={personnel.email || ""}
+                showTrigger={false}
+                onSuccess={handleSuccess}
+              />
+            </>
+          ) : null}
 
           <DetailsPersonnelDialog
             open={showDetailsTaskDialog}
@@ -177,56 +231,53 @@ export const columns: ColumnDef<IPersonnel>[] = [
             personnel={personnel}
           />
 
-          <DeletePersonalDialog
-            open={showDeleteTaskDialog}
-            onOpenChange={setShowDeleteTaskDialog}
-            personals={[personnel]}
-            showTrigger={false}
-            onSuccess={() => row.toggleSelected(false)}
-          />
-
-          <ResetUsersDialog
-            open={showResetTaskDialog}
-            onOpenChange={setShowResetTaskDialog}
-            email={personnel.email || ""}
-            showTrigger={false}
-            onSuccess={() => row.toggleSelected(false)}
-          />
-
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="flex size-8 p-0">
-                <IconDots className="size-4" />
+              <Button
+                aria-label="Open menu"
+                variant="ghost"
+                className="flex size-8 p-0 text-blue-950 hover:bg-blue-50 data-[state=open]:bg-blue-50"
+              >
+                <IconDots className="size-4" aria-hidden="true" />
               </Button>
             </DropdownMenuTrigger>
 
-            <DropdownMenuContent align="end" className="w-40">
+            <DropdownMenuContent align="end" className="w-44">
               <DropdownMenuItem onSelect={() => setShowDetailsTaskDialog(true)}>
-                Details
+                Détails
               </DropdownMenuItem>
 
-              <DropdownMenuItem onSelect={() => setShowUpdateTaskSheet(true)}>
-                Edit
-              </DropdownMenuItem>
+              {canManagePersonnel ? (
+                <>
+                  <DropdownMenuItem
+                    onSelect={() => setShowUpdateTaskSheet(true)}
+                  >
+                    Modifier
+                  </DropdownMenuItem>
 
-              <DropdownMenuItem
-                onSelect={() => {
-                  setShowPersonnalRoleSheet(true);
-                }}
-              >
-                Affecter un rôle
-              </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onSelect={() => setShowPersonnalRoleSheet(true)}
+                  >
+                    Affecter un rôle
+                  </DropdownMenuItem>
 
-              <DropdownMenuItem onSelect={() => setShowResetTaskDialog(true)}>
-                Réinitialiser
-              </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onSelect={() => setShowResetTaskDialog(true)}
+                  >
+                    Réinitialiser
+                  </DropdownMenuItem>
 
-              <DropdownMenuSeparator />
+                  <DropdownMenuSeparator />
 
-              <DropdownMenuItem onSelect={() => setShowDeleteTaskDialog(true)}>
-                Archiver
-                <DropdownMenuShortcut>⌘⌫</DropdownMenuShortcut>
-              </DropdownMenuItem>
+                  <DropdownMenuItem
+                    className="text-red-600 focus:text-red-600"
+                    onSelect={() => setShowDeleteTaskDialog(true)}
+                  >
+                    Archiver
+                    <DropdownMenuShortcut>Del</DropdownMenuShortcut>
+                  </DropdownMenuItem>
+                </>
+              ) : null}
             </DropdownMenuContent>
           </DropdownMenu>
         </>

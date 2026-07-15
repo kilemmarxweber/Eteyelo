@@ -322,33 +322,32 @@ export function CreateBranchForm({
             void form.handleSubmit(onSubmit)(e);
           }}
         >
-          <div className="grid gap-8 lg:grid-cols-[0.9fr_1.1fr]">
-            <section className="flex flex-col rounded-3xl bg-blue-950 p-7 text-white shadow-2xl shadow-blue-950/10 md:p-9">
-              <div className="mb-5 inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1.5 text-xs font-semibold">
-                <School className="size-4" />
+          <div className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
+            <section className="flex flex-col rounded-2xl bg-blue-950 p-5 text-white shadow-lg shadow-blue-950/10 sm:p-6">
+              <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold">
+                <School className="size-3.5" />
                 Inscription école
               </div>
 
-              <h1 className="text-4xl font-black tracking-tight md:text-5xl">
+              <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
                 Ajoutez votre établissement
               </h1>
 
-              <p className="mt-4 max-w-[430px] text-sm leading-7 text-blue-50 md:text-base">
+              <p className="mt-2 max-w-[430px] text-sm leading-6 text-blue-50">
                 Créez la fiche de votre école, indiquez ses coordonnées et
                 positionnez-la sur la carte pour faciliter la recherche locale.
               </p>
 
-              {/* Les cartes sont maintenant juste sous le texte */}
-              <div className="mt-6 grid gap-3 text-sm">
-                <div className="flex items-start gap-3 rounded-2xl bg-white/10 p-4">
-                  <BadgeCheck className="mt-0.5 size-5 shrink-0" />
+              <div className="mt-4 grid gap-2 text-sm">
+                <div className="flex items-start gap-2.5 rounded-xl bg-white/10 p-3">
+                  <BadgeCheck className="mt-0.5 size-4 shrink-0" />
                   <span>
                     Une fiche claire pour présenter votre établissement.
                   </span>
                 </div>
 
-                <div className="flex items-start gap-3 rounded-2xl bg-white/10 p-4">
-                  <MapPin className="mt-0.5 size-5 shrink-0" />
+                <div className="flex items-start gap-2.5 rounded-xl bg-white/10 p-3">
+                  <MapPin className="mt-0.5 size-4 shrink-0" />
                   <span>
                     Une localisation précise pour les élèves et les parents.
                   </span>
@@ -356,15 +355,15 @@ export function CreateBranchForm({
               </div>
             </section>
 
-            <section className="grid gap-5">
-              <div className="rounded-3xl border bg-white p-6 shadow-sm md:p-7">
+            <section className="grid gap-4">
+              <div className="rounded-2xl border bg-white p-4 shadow-sm sm:p-5">
                 <div className="flex items-center gap-3">
-                  <span className="flex size-11 items-center justify-center rounded-2xl bg-blue-950 text-white">
-                    <Building2 className="size-5" />
+                  <span className="flex size-9 items-center justify-center rounded-xl bg-blue-950 text-white">
+                    <Building2 className="size-4" />
                   </span>
 
                   <div>
-                    <h2 className="text-2xl font-bold text-slate-950">
+                    <h2 className="text-base font-semibold text-slate-950">
                       Informations de l’école
                     </h2>
                     <p className="text-sm text-slate-500">
@@ -374,7 +373,7 @@ export function CreateBranchForm({
                   </div>
                 </div>
 
-                <div className="mt-7 grid gap-4">
+                <div className="mt-5 grid gap-3">
                   <FormField
                     control={form.control}
                     name="name"
@@ -386,7 +385,7 @@ export function CreateBranchForm({
                             {...field}
                             placeholder="Nom de l’école *"
                             autoComplete="organization"
-                            className="h-12 rounded-2xl"
+                            className="h-9 rounded-xl"
                             disabled={isSubmitting}
                           />
                         </FormControl>
@@ -407,7 +406,7 @@ export function CreateBranchForm({
                               {...field}
                               placeholder="Ex. 123456789012"
                               maxLength={32}
-                              className="h-12 rounded-2xl font-mono uppercase"
+                              className="h-9 rounded-xl font-mono uppercase"
                               disabled={isSubmitting}
                             />
                           </FormControl>
@@ -426,7 +425,7 @@ export function CreateBranchForm({
                             <Input
                               {...field}
                               placeholder="ID NAT"
-                              className="h-12 rounded-2xl"
+                              className="h-9 rounded-xl"
                               disabled={isSubmitting}
                             />
                           </FormControl>
@@ -449,7 +448,7 @@ export function CreateBranchForm({
                             disabled={isSubmitting}
                           >
                             <FormControl>
-                              <SelectTrigger className="h-12 rounded-2xl">
+                              <SelectTrigger className="h-9 rounded-xl">
                                 <SelectValue placeholder="Selectionner le type" />
                               </SelectTrigger>
                             </FormControl>
@@ -480,7 +479,7 @@ export function CreateBranchForm({
                                 inputMode="tel"
                                 maxLength={15}
                                 placeholder="+243xxxxxxxxx"
-                                className="h-12 rounded-2xl pl-10"
+                                className="h-9 rounded-xl pl-10"
                                 disabled={isSubmitting}
                                 onChange={(e) => {
                                   const value = e.target.value
@@ -508,7 +507,7 @@ export function CreateBranchForm({
                           <Input
                             {...field}
                             placeholder="Adresse"
-                            className="h-12 rounded-2xl"
+                            className="h-9 rounded-xl"
                             disabled={isSubmitting}
                           />
                         </FormControl>
@@ -528,7 +527,7 @@ export function CreateBranchForm({
                             <Input
                               {...field}
                               placeholder="Ex. Kinshasa / Lukunga"
-                              className="h-12 rounded-2xl"
+                              className="h-9 rounded-xl"
                               disabled={isSubmitting}
                             />
                           </FormControl>
@@ -547,7 +546,7 @@ export function CreateBranchForm({
                             <Input
                               {...field}
                               placeholder="Commune ou territoire"
-                              className="h-12 rounded-2xl"
+                              className="h-9 rounded-xl"
                               disabled={isSubmitting}
                             />
                           </FormControl>
@@ -568,7 +567,7 @@ export function CreateBranchForm({
                             <Input
                               {...field}
                               placeholder="Ville"
-                              className="h-12 rounded-2xl"
+                              className="h-9 rounded-xl"
                               disabled={isSubmitting}
                             />
                           </FormControl>
@@ -587,7 +586,7 @@ export function CreateBranchForm({
                             <Input
                               {...field}
                               placeholder="Pays"
-                              className="h-12 rounded-2xl"
+                              className="h-9 rounded-xl"
                               disabled={isSubmitting}
                             />
                           </FormControl>
@@ -610,7 +609,7 @@ export function CreateBranchForm({
                               type="number"
                               step="any"
                               placeholder="-4.4419"
-                              className="h-12 rounded-2xl"
+                              className="h-9 rounded-xl"
                               disabled={isSubmitting}
                               onChange={(e) =>
                                 field.onChange(Number(e.target.value))
@@ -634,7 +633,7 @@ export function CreateBranchForm({
                               type="number"
                               step="any"
                               placeholder="15.2663"
-                              className="h-12 rounded-2xl"
+                              className="h-9 rounded-xl"
                               disabled={isSubmitting}
                               onChange={(e) =>
                                 field.onChange(Number(e.target.value))
@@ -659,7 +658,7 @@ export function CreateBranchForm({
                               min={10}
                               step={1}
                               placeholder="100"
-                              className="h-12 rounded-2xl"
+                              className="h-9 rounded-xl"
                               disabled={isSubmitting}
                               onChange={(e) =>
                                 field.onChange(Number(e.target.value))
@@ -676,19 +675,20 @@ export function CreateBranchForm({
                     Le rayon est exprimé en mètres pour valider une présence.
                   </FormDescription>
 
-                  <div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-center">
+                  <div className="grid gap-2 sm:grid-cols-[1fr_auto] sm:items-center">
                     <Button
+                      size="sm"
                       type="button"
                       onClick={useCurrentLocation}
                       variant="outline"
                       disabled={isSubmitting}
-                      className="h-12 rounded-full border-blue-950/20 text-blue-950 hover:bg-blue-50"
+                      className="rounded-full border-blue-950/20 text-blue-950 hover:bg-blue-50"
                     >
-                      <Navigation className="mr-2 h-4 w-4" />
+                      <Navigation className="mr-1.5 size-3.5" />
                       Utiliser ma position actuelle
                     </Button>
 
-                    <div className="flex h-12 items-center justify-between gap-3 rounded-full border border-blue-950/10 bg-blue-50/60 px-4">
+                    <div className="flex h-8 items-center justify-between gap-3 rounded-full border border-blue-950/10 bg-blue-50/60 px-3">
                       <span className="text-sm font-medium text-blue-950">
                         Utiliser la carte
                       </span>
@@ -707,8 +707,8 @@ export function CreateBranchForm({
                       {form.formState.errors.root.message}
                     </p>
                   )}
-                  <div className="rounded-3xl border bg-white p-5">
-                    <h3 className="text-lg font-bold text-slate-950">
+                  <div className="rounded-2xl border bg-white p-4">
+                    <h3 className="text-base font-semibold text-slate-950">
                       Images de l’établissement
                     </h3>
 
@@ -719,7 +719,7 @@ export function CreateBranchForm({
                           name="logoFile"
                           type="file"
                           accept="image/png,image/jpeg,image/jpg,image/webp"
-                          className="mt-2 h-12 rounded-2xl"
+                          className="mt-2 h-9 rounded-xl"
                           disabled={isSubmitting}
                           onChange={(e) => setLogo(e.target.files)}
                         />
@@ -732,7 +732,7 @@ export function CreateBranchForm({
                           type="file"
                           multiple
                           accept="image/png,image/jpeg,image/jpg,image/webp"
-                          className="mt-2 h-12 rounded-2xl"
+                          className="mt-2 h-9 rounded-xl"
                           disabled={isSubmitting}
                           onChange={(e) => addImages("event", e.target.files)}
                         />
@@ -745,7 +745,7 @@ export function CreateBranchForm({
                           type="file"
                           multiple
                           accept="image/png,image/jpeg,image/jpg,image/webp"
-                          className="mt-2 h-12 rounded-2xl"
+                          className="mt-2 h-9 rounded-xl"
                           disabled={isSubmitting}
                           onChange={(e) => addImages("gallery", e.target.files)}
                         />
@@ -757,7 +757,7 @@ export function CreateBranchForm({
                           type="file"
                           multiple
                           accept="image/png,image/jpeg,image/jpg,image/webp"
-                          className="mt-2 h-12 rounded-2xl"
+                          className="mt-2 h-9 rounded-xl"
                           disabled={isSubmitting}
                           onChange={(e) => addImages("ecole", e.target.files)}
                         />
@@ -917,11 +917,12 @@ export function CreateBranchForm({
                       ))}
                     </div>
                   </div>
-                  <div className="sticky bottom-4 z-20 mt-5 rounded-3xl border bg-white/90 p-3 shadow-xl backdrop-blur">
+                  <div className="sticky bottom-4 z-20 mt-4 rounded-2xl border bg-white/90 p-2.5 shadow-md backdrop-blur">
                     <Button
+                      size="sm"
                       type="submit"
                       disabled={isSubmitting}
-                      className="h-14 w-full rounded-full bg-blue-950 text-base font-semibold text-white hover:bg-blue-900"
+                      className="w-full rounded-full bg-blue-950 text-white hover:bg-blue-900"
                     >
                       {isSubmitting
                         ? mode === "update"
@@ -939,9 +940,9 @@ export function CreateBranchForm({
         </form>
       </Form>
       <Dialog open={showMapDialog} onOpenChange={setShowMapDialog}>
-        <DialogContent className="max-w-5xl rounded-3xl p-0">
-          <DialogHeader className="px-6 pt-6">
-            <DialogTitle className="text-2xl font-bold text-slate-950">
+        <DialogContent className="max-w-5xl rounded-2xl p-0">
+          <DialogHeader className="px-5 pt-5">
+            <DialogTitle className="text-lg font-semibold text-slate-950">
               Emplacement de l’école
             </DialogTitle>
             <DialogDescription>

@@ -17,7 +17,10 @@ import {
   ensureUniqueIdentifier,
   generateCode,
 } from "@/lib/generated-identifiers";
-import { requireCurrentSchoolYear } from "@/lib/school-year";
+import {
+  getSchoolYearForBranch,
+  requireCurrentSchoolYear,
+} from "@/lib/school-year";
 
 type FraisWithRelations = Prisma.FraisGetPayload<{
   include: {
@@ -588,3 +591,50 @@ export const calculateFraisBalanceAction = action
       estSolde: solde <= 0,
     };
   });
+
+export const getFraisClassSidebarAction = action.handler(async () => {
+  const { branchId, organizationId } = await requireBranchContext();
+  const currentYear = await getSchoolYearForBranch(branchId);
+
+  const [classes, counts] = await Promise.all([
+    prisma.classe.findMany({
+      where: {
+        branchId,
+        branch: { organizationId },
+      },
+      include: {
+        option: {
+          include: {
+            section: true,
+          },
+        },
+      },
+      orderBy: { nameClasse: "asc" },
+    }),
+    prisma.frais.groupBy({
+      by: ["classeId"],
+      where: {
+        branchId,
+        statusFrais: true,
+        ...(currentYear ? { schoolYearId: currentYear.id } : {}),
+      },
+      _count: { _all: true },
+    }),
+  ]);
+
+  const countMap = new Map(
+    counts.map((item) => [item.classeId, item._count._all]),
+  );
+
+  return {
+    schoolYearName: currentYear?.nameYear ?? null,
+    classes: classes.map((classe) => ({
+      id: classe.id,
+      nameClasse: classe.nameClasse,
+      codeClasse: classe.codeClasse,
+      optionName: classe.option?.nameOption ?? "",
+      sectionName: classe.option?.section?.nameSection ?? "",
+      activeFraisCount: countMap.get(classe.id) ?? 0,
+    })),
+  };
+});

@@ -1,80 +1,102 @@
-import React, { useEffect, useState } from "react";
-import { columns } from "./columns";
-import { ResponsiveDataTable } from "@/components/custom";
-import { TableSkeleton } from "@/components/custom";
-import { EmptyTableState } from "@/components/custom";
+"use client";
+
+import React, { useEffect, useMemo, useState } from "react";
+import { IconAlertCircle, IconUsers } from "@tabler/icons-react";
+import type { Table } from "@tanstack/react-table";
+
+import {
+  EmptyTableState,
+  ResponsiveDataTable,
+  TableSkeleton,
+} from "@/components/custom";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { IPersonnel } from "@/src/interfaces/Personnel";
-import { getPersonnelsAction } from "../personnel.action";
-import { DataTableToolbar } from "./data-table-toolbar";
-import { IconAlertCircle, IconUsers } from "@tabler/icons-react";
+import { useRefresh } from "@/src/hooks/RefreshContext";
 
-const PersonnelsList = ({ refreshKey }: { refreshKey: number }) => {
+import { createPersonnelColumns } from "./columns";
+import { DataTableToolbar } from "./data-table-toolbar";
+import { getPersonnelsAction } from "../personnel.action";
+
+const PersonnelsList = ({
+  refreshKey,
+  onRefresh,
+  canManagePersonnel,
+}: {
+  refreshKey: number;
+  onRefresh: () => void;
+  canManagePersonnel: boolean;
+}) => {
   const [personnels, setPersonnels] = useState<IPersonnel[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { refreshKey: contextRefreshKey } = useRefresh();
 
-  const fetchPersonnels = async () => {
-    try {
-      setLoading(true);
-      setError(null);
+  const columns = useMemo(
+    () => createPersonnelColumns(onRefresh, canManagePersonnel),
+    [canManagePersonnel, onRefresh],
+  );
 
-      const [rawPersonnels, err] = await getPersonnelsAction();
-
-      if (err) throw new Error(err.message);
-
-      setPersonnels(rawPersonnels);
-    } catch (error: any) {
-      setError(error.message || "Une erreur est survenue");
-    } finally {
-      setLoading(false);
-    }
-  };
+  const Toolbar = useMemo(
+    () =>
+      function PersonnelToolbar({ table }: { table: Table<IPersonnel> }) {
+        return (
+          <DataTableToolbar
+            table={table}
+            canManagePersonnel={canManagePersonnel}
+          />
+        );
+      },
+    [canManagePersonnel],
+  );
 
   useEffect(() => {
-    fetchPersonnels();
-  }, [refreshKey]);
+    const fetchPersonnels = async () => {
+      try {
+        setLoading(true);
+        setError(null);
 
-  if (loading) {
-    return (
-      <div className="p-6">
-        <TableSkeleton rows={5} columns={9} />
-      </div>
-    );
-  }
+        const [rawPersonnels, err] = await getPersonnelsAction();
+        if (err) throw new Error(err.message);
+
+        setPersonnels(rawPersonnels || []);
+      } catch (e: unknown) {
+        setError(e instanceof Error ? e.message : "Erreur serveur");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    void fetchPersonnels();
+  }, [refreshKey, contextRefreshKey]);
+
+  if (loading) return <TableSkeleton rows={5} columns={8} />;
 
   if (error) {
     return (
-      <div className="p-6">
-        <Alert variant="destructive">
-          <IconAlertCircle className="h-4 w-4" />
-          <AlertDescription>
-            {error}. Veuillez réessayer plus tard.
-          </AlertDescription>
-        </Alert>
-      </div>
+      <Alert variant="destructive">
+        <IconAlertCircle />
+        <AlertDescription>{error}</AlertDescription>
+      </Alert>
     );
   }
 
   if (!personnels.length) {
     return (
-      <div className="p-6">
-        <EmptyTableState
-          title="Aucun personnel enregistré"
-          description="Ajoutez votre premier membre du personnel pour commencer."
-          icon={<IconUsers className="h-10 w-10 text-muted-foreground" />}
-        />
-      </div>
+      <EmptyTableState
+        title="Aucun personnel enregistré"
+        description="Ajoutez votre premier membre du personnel pour commencer."
+        icon={<IconUsers />}
+      />
     );
   }
 
   return (
-    <div className="p-6">
+    <div className="p-4">
       <ResponsiveDataTable
         columns={columns}
-        ToolbarComponent={DataTableToolbar}
+        ToolbarComponent={Toolbar}
         data={personnels}
-        emptyText="Aucun personnel Ajouté"
+        emptyText="Aucun personnel"
         mobileCardTitle={(row) =>
           [row.nom, row.postnom, row.prenom].filter(Boolean).join(" ")
         }
@@ -89,7 +111,7 @@ const PersonnelsList = ({ refreshKey }: { refreshKey: number }) => {
               label: row.telephone || "Téléphone non défini",
               variant: "outline" as const,
             },
-          ].filter((b) => b.label)
+          ].filter((badge) => badge.label)
         }
       />
     </div>

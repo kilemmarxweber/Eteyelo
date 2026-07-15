@@ -21,6 +21,32 @@ import {
 } from "@/app/admin/organizations/schema";
 import { generateSlug } from "@/lib/generated-identifiers";
 
+function mapCreateOrganizationError(message?: string | null): string {
+  const normalized = (message ?? "").toLowerCase();
+  if (
+    normalized.includes("nom existe déjà") ||
+    (normalized.includes("name") && normalized.includes("unique"))
+  ) {
+    return "Une organisation avec ce nom existe déjà. Choisissez un autre nom.";
+  }
+  if (
+    normalized.includes("already exists") ||
+    normalized.includes("slug already taken")
+  ) {
+    return "Ce nom d’organisation est déjà utilisé (identifiant technique). Choisissez un autre nom.";
+  }
+  if (normalized.includes("maximum number of organizations")) {
+    return "Vous avez atteint le nombre maximum d’organisations.";
+  }
+  if (normalized.includes("not allowed to create")) {
+    return "Vous n’êtes pas autorisé à créer une organisation.";
+  }
+  if (normalized.includes("une seule organisation")) {
+    return message!;
+  }
+  return message?.trim() || "Création impossible. Réessayez plus tard.";
+}
+
 export function CreateOrganizationForm() {
   const router = useRouter();
   const form = useForm<CreateOrganizationFormValues>({
@@ -35,28 +61,19 @@ export function CreateOrganizationForm() {
   async function onSubmit(values: CreateOrganizationFormValues) {
     form.clearErrors("root");
     try {
-      const baseSlug = generateSlug(values.slug || values.name, "organisation").slice(0, 64);
-      let data: any = null;
-      let error: any = null;
+      const name = values.name.trim();
+      const slug = generateSlug(values.slug || name, "organisation").slice(0, 64);
 
-      for (let index = 1; index <= 5; index += 1) {
-        const suffix = index === 1 ? "" : `-${index}`;
-        const slug = `${baseSlug.slice(0, 64 - suffix.length)}${suffix}`;
-        const result = await authClient.organization.create({
-          name: values.name.trim(),
-          slug,
-        });
-        data = result.data;
-        error = result.error;
-        if (!error) break;
-      }
+      const { data, error } = await authClient.organization.create({
+        name,
+        slug,
+      });
 
       if (error) {
-        form.setError("root", {
-          type: "server",
-          message: error.message ?? "Création impossible. Réessayez plus tard.",
-        });
-        toast.error(error.message ?? "Création impossible. Réessayez plus tard.");
+        const message = mapCreateOrganizationError(error.message);
+        form.setError("root", { type: "server", message });
+        form.setError("name", { type: "server", message });
+        toast.error(message);
         return;
       }
 
@@ -68,16 +85,17 @@ export function CreateOrganizationForm() {
         if (activeError) {
           toast.message(
             "Organisation créée, mais l’activation par défaut a échoué. Choisissez-la dans les paramètres.",
-            { description: activeError.message }
+            { description: activeError.message },
           );
         }
       }
 
-      toast.success("Organisation creee.");
+      toast.success("Organisation créée.");
       router.push("/admin/organizations");
       router.refresh();
     } catch (cause) {
-      const message = cause instanceof Error ? cause.message : "Impossible de joindre le serveur.";
+      const message =
+        cause instanceof Error ? cause.message : "Impossible de joindre le serveur.";
       form.setError("root", {
         type: "server",
         message:

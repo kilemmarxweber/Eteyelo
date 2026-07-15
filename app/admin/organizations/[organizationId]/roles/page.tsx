@@ -1,14 +1,13 @@
 "use client";
 
-import Link from "next/link";
 import { useParams } from "next/navigation";
 import {
   ORGANIZATION_ROLE_GROUPS,
   organizationRoleStatements,
 } from "@/lib/permissions";
 import { orgRoleLabel } from "@/lib/org-role-labels";
+import { BackLink } from "@/components/ui/back-link";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 
 function RolePermissions({ slug }: { slug: string }) {
   const statements = organizationRoleStatements[slug];
@@ -47,7 +46,12 @@ export default function OrganizationRolesPage() {
   const organizationId = params.organizationId as string;
 
   return (
-    <div className="mx-auto flex w-full min-w-0 max-w-2xl flex-col gap-6 px-[max(1rem,env(safe-area-inset-left))] py-5 pr-[max(1rem,env(safe-area-inset-right))] pb-8 md:max-w-4xl md:px-6">
+    <div className="mx-auto flex w-full min-w-0 max-w-2xl flex-col gap-5 px-[max(1rem,env(safe-area-inset-left))] py-5 pr-[max(1rem,env(safe-area-inset-right))] pb-8 md:max-w-4xl md:px-6">
+      <BackLink
+        href={`/admin/organizations/${organizationId}`}
+        label="Retour organisation"
+      />
+
       <p className="text-pretty text-sm leading-relaxed text-muted-foreground">
         Grille des roles definis dans l&apos;application (Better Auth · controle
         d&apos;acces). Les presets statiques sont configures dans{" "}
@@ -103,15 +107,6 @@ export default function OrganizationRolesPage() {
         ))}
       </div>
 
-      <Button
-        asChild
-        variant="ghost"
-        className="h-11 min-h-[44px] w-full touch-manipulation sm:w-fit sm:px-3"
-      >
-        <Link href={`/admin/organizations/${organizationId}`}>
-          ← Accueil organisation
-        </Link>
-      </Button>
     </div>
   );
 }

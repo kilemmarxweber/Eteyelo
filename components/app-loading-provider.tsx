@@ -95,6 +95,17 @@ function isInternalNavigationLink(anchor: HTMLAnchorElement, pathname: string) {
   }
 }
 
+/** Routes qui ont déjà leur propre loading.tsx / fallback établissement. */
+function hasDedicatedBranchLoader(pathname: string) {
+  if (pathname.includes("/branches/enter/")) return true;
+
+  const match = pathname.match(/\/branches\/([^/]+)(?:\/|$)/);
+  if (!match) return false;
+
+  const segment = match[1];
+  return segment !== "new" && segment !== "edit" && segment !== "enter";
+}
+
 export function AppLoadingProvider({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -214,9 +225,17 @@ export function AppLoadingProvider({ children }: { children: ReactNode }) {
         return;
       }
 
-      if (isInternalNavigationLink(anchor, pathname)) {
-        startNavigationLoading();
+      if (!isInternalNavigationLink(anchor, pathname)) return;
+
+      try {
+        const nextPath = new URL(anchor.href).pathname;
+        // Le layout [branchId] / enter gère déjà son loader dédié.
+        if (hasDedicatedBranchLoader(nextPath)) return;
+      } catch {
+        // ignore invalid href
       }
+
+      startNavigationLoading();
     };
 
     document.addEventListener("click", onClick, true);

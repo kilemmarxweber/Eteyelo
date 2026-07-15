@@ -287,6 +287,35 @@ export const updatePersonnelFullAction = action
     return result;
   });
 
+export const getPersonnelPresenceStatsAction = action.handler(async () => {
+  const { branchId, organizationId } = await getCurrentBranch();
+
+  const start = new Date();
+  start.setHours(0, 0, 0, 0);
+  const end = new Date();
+  end.setHours(23, 59, 59, 999);
+
+  const [totalExpected, present] = await Promise.all([
+    prisma.personnel.count({
+      where: {
+        branchMember: {
+          branchId,
+          branch: { organizationId },
+        },
+      },
+    }),
+    prisma.personnelAttendance.count({
+      where: {
+        branchId,
+        date: { gte: start, lte: end },
+        status: { in: ["PRESENT", "LATE"] },
+      },
+    }),
+  ]);
+
+  return { present, totalExpected };
+});
+
 export const getPersonnelsAction = action.handler(
   async (): Promise<IPersonnel[]> => {
     const { branchId, organizationId } = await getCurrentBranch();

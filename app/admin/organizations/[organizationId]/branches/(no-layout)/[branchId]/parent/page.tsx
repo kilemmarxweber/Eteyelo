@@ -1,29 +1,216 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import {
+  IconCalendarStats,
+  IconSchool,
+  IconUsers,
+  IconUsersGroup,
+} from "@tabler/icons-react";
+
 import { Layout, LayoutBody } from "@/components/custom/layout";
-import UserList from "./components/ParentsTable";
+import { NotFoundView } from "@/components/not-found-view";
 import { Badge } from "@/components/ui/badge";
-import { IconUsers } from "@tabler/icons-react";
-import { PageHeader } from "@/components/ui/page-header";
 import { Card } from "@/components/ui/card";
+import { PageHeader } from "@/components/ui/page-header";
+import { useSession } from "@/lib/auth-client";
+
+import Loading from "../loading";
+import UserList from "./components/ParentsTable";
+import { getParentEnrollmentStatsAction } from "./parent.action";
+
+type ParentStats = {
+  totalParents: number;
+  currentYearName: string | null;
+  parentsCurrentYear: number;
+  enrollmentsCurrentYear: number;
+  byYear: Array<{
+    yearId: string;
+    nameYear: string;
+    isCurrentYear: boolean;
+    parentsCount: number;
+    enrollmentsCount: number;
+  }>;
+};
+
+const emptyStats: ParentStats = {
+  totalParents: 0,
+  currentYearName: null,
+  parentsCurrentYear: 0,
+  enrollmentsCurrentYear: 0,
+  byYear: [],
+};
 
 export default function Parents() {
+  const [stats, setStats] = useState<ParentStats>(emptyStats);
+  const { data: session, isPending } = useSession();
+
+  useEffect(() => {
+    async function loadStats() {
+      const [data, error] = await getParentEnrollmentStatsAction();
+
+      if (error || !data) {
+        setStats(emptyStats);
+        return;
+      }
+
+      setStats(data);
+    }
+
+    void loadStats();
+  }, []);
+
+  if (isPending) return <Loading />;
+  if (!session) return <NotFoundView />;
+
+  const yearRatio = stats.totalParents
+    ? Math.round((stats.parentsCurrentYear / stats.totalParents) * 100)
+    : 0;
+
+  const yearLabel = stats.currentYearName ?? "Année en cours";
+
+  const statCards = [
+    {
+      label: "Total général",
+      value: stats.totalParents,
+      description: "tuteurs",
+      icon: IconUsersGroup,
+    },
+    {
+      label: `Tuteurs ${yearLabel}`,
+      value: stats.parentsCurrentYear,
+      description: "avec élève inscrit",
+      icon: IconUsers,
+    },
+    {
+      label: `Inscriptions ${yearLabel}`,
+      value: stats.enrollmentsCurrentYear,
+      description: "élèves inscrits",
+      icon: IconSchool,
+    },
+  ];
+
   return (
     <Layout>
-      <LayoutBody className="space-y-4">
+      <LayoutBody className="space-y-6">
         <PageHeader
           title="Gestion des Tuteurs"
-          description="Gérer les informations des Tuteurs et leurs contrats dans l'établissement"
+          description="Gérer les informations des tuteurs et le suivi des inscriptions de leurs enfants."
           badge={
             <Badge variant="outline-primary" icon={<IconUsers size={14} />}>
               Tuteurs
             </Badge>
           }
         />
-        {/* Liste des parents */}
+
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          {statCards.map((item) => {
+            const Icon = item.icon;
+
+            return (
+              <Card
+                key={item.label}
+                variant="elevated"
+                className="rounded-2xl border border-blue-100 bg-white p-6 shadow-sm"
+              >
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="text-sm font-semibold text-blue-950/70">
+                      {item.label}
+                    </p>
+                    <h3 className="mt-3 text-3xl font-black text-blue-950">
+                      {item.value}
+                    </h3>
+                    <p className="mt-1 text-xs text-blue-950/50">
+                      {item.description}
+                    </p>
+                  </div>
+
+                  <div className="rounded-full bg-blue-50 p-2 text-blue-700">
+                    <Icon size={20} />
+                  </div>
+                </div>
+              </Card>
+            );
+          })}
+
+          <Card
+            variant="elevated"
+            className="rounded-2xl border border-blue-100 bg-white p-6 shadow-sm"
+          >
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-sm font-semibold text-blue-950/70">
+                  Couverture {yearLabel}
+                </p>
+                <h3 className="mt-3 text-3xl font-black text-blue-950">
+                  {stats.parentsCurrentYear} / {stats.totalParents}
+                </h3>
+                <p className="mt-1 text-xs text-blue-950/50">
+                  tuteurs avec inscription / total général
+                </p>
+
+                <div className="mt-4 h-2 overflow-hidden rounded-full bg-blue-100">
+                  <div
+                    className="h-full bg-emerald-600 transition-all"
+                    style={{ width: `${yearRatio}%` }}
+                  />
+                </div>
+              </div>
+
+              <div className="rounded-full bg-blue-50 p-2 text-blue-700">
+                <IconCalendarStats size={20} />
+              </div>
+            </div>
+          </Card>
+        </div>
+
+        {stats.byYear.length > 0 ? (
+          <Card
+            variant="elevated"
+            className="rounded-2xl border border-blue-100 bg-white p-4 shadow-sm sm:p-5"
+          >
+            <div className="mb-3 flex items-center justify-between gap-2">
+              <h2 className="text-sm font-semibold text-blue-950">
+                Répartition par année scolaire
+              </h2>
+              <p className="text-xs text-blue-950/50">
+                Selon les inscriptions élèves
+              </p>
+            </div>
+
+            <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+              {stats.byYear.map((year) => (
+                <div
+                  key={year.yearId}
+                  className="flex items-center justify-between rounded-xl border border-blue-50 bg-slate-50/80 px-3 py-2.5"
+                >
+                  <div>
+                    <p className="text-sm font-medium text-blue-950">
+                      {year.nameYear}
+                      {year.isCurrentYear ? (
+                        <span className="ml-2 text-[10px] font-semibold uppercase text-emerald-700">
+                          Courante
+                        </span>
+                      ) : null}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {year.enrollmentsCount} inscription
+                      {year.enrollmentsCount > 1 ? "s" : ""}
+                    </p>
+                  </div>
+                  <p className="text-lg font-bold text-blue-950">
+                    {year.parentsCount}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </Card>
+        ) : null}
+
         <Card
           variant="elevated"
-          className="mt-0 border p-1 md:p-4 rounded-md shadow-sm"
+          className="overflow-hidden rounded-2xl border border-blue-100"
         >
           <UserList refreshKey={0} />
         </Card>

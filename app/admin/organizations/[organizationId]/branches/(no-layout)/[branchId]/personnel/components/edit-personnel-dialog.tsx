@@ -9,50 +9,43 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { PersonnelUpForm } from "./personnel-form"; // Importez votre formulaire d'éditionimport { IParent } from"@/src/interfaces/Parent";
+import { ALL_ORG_ROLE_SLUGS } from "@/lib/permissions";
 import { IPersonnel } from "@/src/interfaces/Personnel";
 import { useRefresh } from "@/src/hooks/RefreshContext";
-import { ALL_ORG_ROLE_SLUGS } from "@/lib/permissions";
 
-interface UpdatePersonnelDialogProps extends React.ComponentPropsWithoutRef<
-  typeof Dialog
-> {
-  showTrigger?: boolean;
+import { PersonnelUpForm } from "./personnel-form";
+
+interface UpdatePersonnelDialogProps
+  extends React.ComponentPropsWithoutRef<typeof Dialog> {
   onSuccess?: () => void;
   personnel: IPersonnel;
 }
 
 export function UpdatePersonnelDialog({
-  showTrigger = true,
   onSuccess,
   personnel,
-  open: controlledOpen,
+  open,
   onOpenChange,
   ...dialogProps
 }: UpdatePersonnelDialogProps) {
-  const [internalOpen, setInternalOpen] = React.useState(false);
-  const open = controlledOpen ?? internalOpen;
-  const setOpen = (nextOpen: boolean) => {
-    setInternalOpen(nextOpen);
-    onOpenChange?.(nextOpen);
-  };
   const { refresh } = useRefresh();
+
   const handleUpdate = () => {
     refresh();
     onSuccess?.();
-    setOpen(false);
+    onOpenChange?.(false);
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen} {...dialogProps}>
-      <DialogContent size="lg">
+    <Dialog open={open} onOpenChange={onOpenChange} {...dialogProps}>
+      <DialogContent size="xl">
         <DialogHeader>
-          <DialogTitle>Éditer le personnel</DialogTitle>
+          <DialogTitle>Modifier le personnel</DialogTitle>
           <DialogDescription>
-            Modifiez les détails du personnel ici. Cliquez sur mettre a jour
-            lorsque vous êtes prêt.
+            Modifiez les détails du personnel, puis enregistrez.
           </DialogDescription>
         </DialogHeader>
+
         <PersonnelUpForm
           mode="update"
           initialData={{
@@ -64,11 +57,15 @@ export function UpdatePersonnelDialog({
             sexe: personnel.sexe,
             telephone: personnel.telephone ?? "",
             email: personnel.email ?? "",
-            dateOfBirth: personnel.dateOfBirth,
+            dateOfBirth: personnel.dateOfBirth
+              ? new Date(personnel.dateOfBirth)
+              : new Date(),
             address: personnel.address,
-            orgRole: personnel.role ?? ALL_ORG_ROLE_SLUGS[2],
-          }} // Pass the personnel data for editing
+            orgRole: personnel.role ?? ALL_ORG_ROLE_SLUGS[0],
+          }}
+          onUpdated={handleUpdate}
           onPersonnelUpdate={handleUpdate}
+          onSuccess={handleUpdate}
         />
       </DialogContent>
     </Dialog>

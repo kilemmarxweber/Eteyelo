@@ -10,7 +10,7 @@ import { NotificationBell } from "@/components/notification-bell";
 import { MobileNav } from "@/components/layout/mobile-nav";
 import { authClient } from "@/lib/auth-client";
 import { useAppLoading } from "@/hooks/use-app-loading";
-import Spinner from "./spinner";
+import { BranchLoadingFallback } from "@/components/branch-loading-fallback";
 import { RefreshProvider } from "@/src/hooks/RefreshContext";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
@@ -31,11 +31,21 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     return () => window.clearTimeout(timeout);
   }, [session, isPending, resetLoading]);
 
-  if (isPending || !session) {
+  // Session déjà prête : un seul loader (loading.tsx), pas celui du layout.
+  if (isPending) {
     return (
-      <Spinner
-        show={true}
-        className="flex h-screen items-center justify-center"
+      <BranchLoadingFallback
+        label="Chargement de l'établissement..."
+        className="min-h-screen"
+      />
+    );
+  }
+
+  if (!session) {
+    return (
+      <BranchLoadingFallback
+        label="Redirection..."
+        className="min-h-screen"
       />
     );
   }

@@ -140,10 +140,28 @@ const authOptions = {
       },
       roles: organizationRoles,
       organizationHooks: {
+        beforeCreateOrganization: async ({ organization }) => {
+          const name = organization.name?.trim();
+          if (!name) {
+            throw new Error("Le nom de l’organisation est requis.");
+          }
+          const existing = await prisma.organization.findFirst({
+            where: { name: { equals: name, mode: "insensitive" } },
+            select: { id: true },
+          });
+          if (existing) {
+            throw new Error(
+              "Une organisation avec ce nom existe déjà. Choisissez un autre nom.",
+            );
+          }
+        },
         beforeAddMember: async ({ user, organization }) => {
+          // Les owners plateforme peuvent appartenir à plusieurs organisations.
+          if (isPlatformOwnerRole(user.role)) return;
           await assertUserCanJoinOrganization(user.id, organization.id);
         },
         beforeAcceptInvitation: async ({ user, organization }) => {
+          if (isPlatformOwnerRole(user.role)) return;
           await assertUserCanJoinOrganization(user.id, organization.id);
         },
       },

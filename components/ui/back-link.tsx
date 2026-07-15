@@ -13,7 +13,7 @@ export function BackLink({ href, label, className }: BackLinkProps) {
     <Link
       href={href}
       className={cn(
-        "group inline-flex items-center gap-2.5 rounded-xl border border-border/80 bg-background/80 px-2.5 py-1.5 text-sm font-medium text-muted-foreground shadow-sm backdrop-blur-sm",
+        "group inline-flex w-fit max-w-full items-center gap-2.5 self-start rounded-xl border border-border/80 bg-background/80 px-2.5 py-1.5 text-sm font-medium text-muted-foreground shadow-sm backdrop-blur-sm",
         "transition-all duration-300 ease-out",
         "hover:-translate-x-1 hover:border-primary/35 hover:bg-primary/5 hover:text-foreground hover:shadow-md",
         "active:scale-[0.97]",

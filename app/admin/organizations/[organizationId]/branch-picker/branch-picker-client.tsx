@@ -23,7 +23,7 @@ export function BranchPickerClient({
           key={branch.branchId}
           asChild
           variant="outline"
-          className="h-auto min-h-14 justify-between rounded-2xl px-4 py-4 text-left"
+          className="h-auto min-h-12 justify-between rounded-xl px-3.5 py-3 text-left"
         >
           <Link href={`${base}/enter/${branch.branchId}`}>
             <span>

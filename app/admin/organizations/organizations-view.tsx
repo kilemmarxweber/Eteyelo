@@ -32,13 +32,13 @@ export function OrganizationsView() {
     session?.user?.role === APP_ROLE.PLATFORM_SUPPORT;
 
   return (
-    <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
-      <section className="rounded-3xl bg-blue-950 p-6 text-white shadow-2xl shadow-blue-950/10 sm:p-8">
-        <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+    <div className="mx-auto flex w-full max-w-7xl flex-col gap-5 px-4 py-6 sm:px-6 lg:px-8">
+      <section className="rounded-2xl bg-blue-950 p-5 text-white shadow-lg shadow-blue-950/10 sm:p-6">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-7xl">
             <div className="flex flex-wrap items-center gap-2">
-              <div className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1.5 text-xs font-semibold">
-                <Building2 className="size-4" />
+              <div className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold">
+                <Building2 className="size-3.5" />
                 Organisations
               </div>
               <OrganizationRoleBadge
@@ -46,12 +46,12 @@ export function OrganizationsView() {
                 className="bg-white/15 text-white hover:bg-white/15"
               />
             </div>
-            <h2 className="mt-4 text-3xl font-black tracking-tight sm:text-4xl">
+            <h2 className="mt-3 text-2xl font-bold tracking-tight sm:text-3xl">
               {isPlatformOwner
                 ? "Toutes les organisations Klambocore"
                 : "Gere les espaces Klambocore"}
             </h2>
-            <p className="mt-3 text-sm leading-7 text-blue-50 sm:text-base">
+            <p className="mt-2 text-sm leading-6 text-blue-50">
               {isPlatformOwner
                 ? "Vue plateforme complete : creez, consultez et gerez toutes les organisations."
                 : "Retrouvez les organisations, leurs etablissements et les equipes associees depuis une interface claire."}
@@ -61,12 +61,13 @@ export function OrganizationsView() {
           <div className="flex flex-col gap-2 sm:flex-row lg:justify-end">
             {isPlatformOwner || isPlatformSupport ? (
               <Button
+                size="sm"
                 variant="secondary"
-                className="h-11 rounded-full bg-white text-blue-950 hover:bg-blue-50"
+                className="rounded-full bg-white text-blue-950 hover:bg-blue-50"
                 asChild
               >
                 <Link href="/admin/platform-support">
-                  <Headphones className="mr-2 size-4" />
+                  <Headphones className="mr-1.5 size-3.5" />
                   Support Klambocore
                 </Link>
               </Button>
@@ -74,11 +75,12 @@ export function OrganizationsView() {
 
             {canCreateOrganization ? (
               <Button
-                className="h-11 rounded-full bg-blue-600 text-white hover:bg-blue-700"
+                size="sm"
+                className="rounded-full bg-blue-600 text-white hover:bg-blue-700"
                 asChild
               >
                 <Link href="/admin/organizations/new">
-                  <Plus className="mr-2 size-4" />
+                  <Plus className="mr-1.5 size-3.5" />
                   Creer une organisation
                 </Link>
               </Button>
@@ -87,15 +89,15 @@ export function OrganizationsView() {
         </div>
       </section>
 
-      <section className="rounded-3xl border bg-white p-5 shadow-sm sm:p-6">
-        <div className="flex flex-col gap-1 border-b pb-5 sm:flex-row sm:items-center sm:justify-between">
+      <section className="rounded-2xl border bg-white p-4 shadow-sm sm:p-5">
+        <div className="flex flex-col gap-1 border-b pb-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h3 className="text-xl font-bold text-slate-950">
+            <h3 className="text-base font-semibold text-slate-950">
               {isPlatformOwner
                 ? "Toutes les organisations"
                 : "Mes organisations"}
             </h3>
-            <p className="mt-1 text-sm text-slate-500">
+            <p className="mt-0.5 text-sm text-slate-500">
               {isPending
                 ? "Chargement..."
                 : `${orgs.length} organisation${orgs.length > 1 ? "s" : ""}`}
@@ -104,7 +106,7 @@ export function OrganizationsView() {
         </div>
 
         {orgs.length === 0 && !isPending ? (
-          <div className="pt-6">
+          <div className="pt-5">
             <EmptyState
               title="Aucune organisation"
               description="Creez votre premier espace pour inviter des membres et centraliser la gestion."
@@ -118,25 +120,25 @@ export function OrganizationsView() {
             />
           </div>
         ) : (
-          <div className="grid gap-3 pt-5 md:grid-cols-2 xl:grid-cols-3">
+          <div className="grid gap-3 pt-4 md:grid-cols-2 xl:grid-cols-3">
             {orgs.map((org) => (
               <div
                 key={org.id}
-                className="group relative flex min-h-36 flex-col justify-between rounded-2xl border bg-slate-50 p-5 transition hover:-translate-y-0.5 hover:border-blue-950/25 hover:bg-white hover:shadow-lg hover:shadow-blue-950/10"
+                className="group relative flex flex-col justify-between rounded-xl border bg-slate-50 p-3.5 transition hover:-translate-y-0.5 hover:border-blue-950/25 hover:bg-white hover:shadow-md"
               >
-                <div className="flex items-start justify-between gap-4">
+                <div className="flex items-start justify-between gap-3">
                   <Link
                     href={`/admin/organizations/${org.id}`}
-                    className="flex min-w-0 flex-1 items-start gap-4"
+                    className="flex min-w-0 flex-1 items-start gap-3"
                   >
-                    <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-blue-950 text-white">
-                      <ShieldCheck className="size-5" />
+                    <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-blue-950 text-white">
+                      <ShieldCheck className="size-4" />
                     </span>
                     <span className="min-w-0 flex-1">
-                      <span className="block truncate text-lg font-bold text-slate-950">
+                      <span className="block truncate text-sm font-semibold text-slate-950">
                         {org.name}
                       </span>
-                      <span className="mt-1 block break-all text-sm text-slate-500">
+                      <span className="mt-0.5 block break-all text-xs text-slate-500">
                         {org.slug}
                       </span>
                     </span>
@@ -152,7 +154,7 @@ export function OrganizationsView() {
                     ) : null}
                     <Link
                       href={`/admin/organizations/${org.id}`}
-                      className="flex size-9 items-center justify-center rounded-full text-slate-400 transition hover:bg-slate-100 hover:text-blue-950"
+                      className="flex size-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-blue-950"
                     >
                       <ArrowRight className="size-4" />
                     </Link>

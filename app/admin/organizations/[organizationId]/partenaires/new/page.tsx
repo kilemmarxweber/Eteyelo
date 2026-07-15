@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { CreatePartenaireForm } from "./create-partenaire-form";
+import { BackLink } from "@/components/ui/back-link";
 import {
   Card,
   CardContent,
@@ -32,10 +32,12 @@ export default async function NewPartenairePage({ params }: PageProps) {
   const base = `/admin/organizations/${organizationId}/partenaires`;
 
   return (
-    <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-4 py-6">
+    <div className="mx-auto flex w-full max-w-5xl flex-col gap-5 px-4 py-6">
+      <BackLink href={base} label="Retour à la liste des partenaires" />
+
       <div>
         <h1 className="text-xl font-semibold">Ajouter un partenaire</h1>
-        <p className="text-sm text-muted-foreground">
+        <p className="mt-1 text-sm text-muted-foreground">
           Créez un partenaire officiel, associez-le à une école si nécessaire,
           ajoutez son logo, ses contacts et ses références.
         </p>
@@ -49,18 +51,11 @@ export default async function NewPartenairePage({ params }: PageProps) {
           </CardDescription>
         </CardHeader>
 
-        <CardContent className="space-y-6">
+        <CardContent>
           <CreatePartenaireForm
             organizationId={organizationId}
             branches={branches}
           />
-
-          <Link
-            href={base}
-            className="text-sm text-muted-foreground transition hover:text-foreground"
-          >
-            ← Retour à la liste des partenaires
-          </Link>
         </CardContent>
       </Card>
     </div>

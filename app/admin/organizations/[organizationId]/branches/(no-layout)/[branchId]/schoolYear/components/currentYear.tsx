@@ -3,6 +3,15 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
 import { ISchoolYear } from "@/src/interfaces/SchoolYear";
 import { useRefresh } from "@/src/hooks/RefreshContext";
@@ -17,25 +26,31 @@ export const CurrentYear: React.FC<ISchoolYear> = ({
   isCurrentYear,
 }) => {
   const [checked, setChecked] = useState(!!isCurrentYear);
+  const [pendingValue, setPendingValue] = useState<boolean | null>(null);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
   const { refresh } = useRefresh();
 
   useEffect(() => {
     setChecked(!!isCurrentYear);
   }, [isCurrentYear]);
 
-  const handleSwitchChange = async (newChecked: boolean) => {
-    const confirmed = window.confirm(
-      newChecked
-        ? `Definir ${nameYear} comme annee scolaire courante ?\n\nLes inscriptions, frais, enseignements, horaires et notes utiliseront cette annee par defaut. L'annee courante actuelle sera desactivee.`
-        : `Retirer ${nameYear} comme annee scolaire courante ?\n\nAucune annee ne sera marquee comme courante tant qu'une autre n'est pas selectionnee.`,
-    );
+  const handleSwitchChange = (newChecked: boolean) => {
+    setPendingValue(newChecked);
+    setConfirmOpen(true);
+  };
 
-    if (!confirmed) {
-      setChecked(!!isCurrentYear);
-      return;
-    }
+  const handleCancel = () => {
+    setConfirmOpen(false);
+    setPendingValue(null);
+    setChecked(!!isCurrentYear);
+  };
 
-    setChecked(newChecked);
+  const handleConfirm = async () => {
+    if (pendingValue === null) return;
+
+    setSaving(true);
+    setChecked(pendingValue);
 
     try {
       const [, err] = await updateSchoolYearAction({
@@ -43,7 +58,7 @@ export const CurrentYear: React.FC<ISchoolYear> = ({
         nameYear,
         startYear,
         endYear,
-        isCurrentYear: newChecked,
+        isCurrentYear: pendingValue,
       });
 
       if (err) {
@@ -51,13 +66,62 @@ export const CurrentYear: React.FC<ISchoolYear> = ({
       }
 
       refresh();
-      toast.success("Annee courante mise a jour");
-    } catch (error: any) {
-      console.error("Erreur lors de la mise a jour de l'annee :", error);
-      toast.error(error.message || "Erreur lors de la mise a jour de l'annee");
+      toast.success("Année courante mise à jour");
+      setConfirmOpen(false);
+      setPendingValue(null);
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Erreur lors de la mise à jour de l'année";
+      toast.error(message);
       setChecked(!!isCurrentYear);
+    } finally {
+      setSaving(false);
     }
   };
 
-  return <Switch checked={checked} onCheckedChange={handleSwitchChange} />;
+  const activating = pendingValue === true;
+
+  return (
+    <>
+      <Switch checked={checked} onCheckedChange={handleSwitchChange} />
+
+      <Dialog
+        open={confirmOpen}
+        onOpenChange={(open) => {
+          if (!open) handleCancel();
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {activating
+                ? "Définir l'année scolaire courante ?"
+                : "Retirer l'année scolaire courante ?"}
+            </DialogTitle>
+            <DialogDescription>
+              {activating
+                ? `Définir ${nameYear} comme année scolaire courante ? Les inscriptions, frais, enseignements, horaires et notes utiliseront cette année par défaut. L'année courante actuelle sera désactivée.`
+                : `Retirer ${nameYear} comme année scolaire courante ? Aucune année ne sera marquée comme courante tant qu'une autre n'est pas sélectionnée.`}
+            </DialogDescription>
+          </DialogHeader>
+
+          <DialogFooter className="gap-2 sm:space-x-0">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleCancel}
+              disabled={saving}
+            >
+              Annuler
+            </Button>
+            <Button type="button" onClick={handleConfirm} disabled={saving}>
+              {saving ? "Enregistrement..." : "Confirmer"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
 };

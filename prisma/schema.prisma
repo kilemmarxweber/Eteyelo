@@ -973,6 +973,7 @@ model Organization {
   organizationSupportAgents OrganizationSupportAgent[]
   platformSupportEscalations PlatformSupportEscalation[]
 
+  @@unique([name])
   @@unique([slug])
   @@map("organization")
 }

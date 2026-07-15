@@ -214,6 +214,83 @@ export const archiveParentAction = action
 /** @deprecated Utiliser archiveParentAction */
 export const deleteParentAction = archiveParentAction;
 
+export const getParentEnrollmentStatsAction = action.handler(async () => {
+  const { branchId, organizationId } = await getCurrentBranch();
+
+  const [totalParents, schoolYears, enrollments] = await Promise.all([
+    prisma.parent.count({
+      where: {
+        branchMember: {
+          branchId,
+          member: { organizationId },
+        },
+      },
+    }),
+    prisma.schoolYear.findMany({
+      where: { branchId, isArchived: false },
+      orderBy: { startYear: "desc" },
+      select: {
+        id: true,
+        nameYear: true,
+        isCurrentYear: true,
+      },
+    }),
+    prisma.classEnrollment.findMany({
+      where: {
+        branchId,
+        student: {
+          parent: {
+            branchMember: {
+              branchId,
+              member: { organizationId },
+            },
+          },
+        },
+      },
+      select: {
+        schoolYearId: true,
+        student: {
+          select: { parentId: true },
+        },
+      },
+    }),
+  ]);
+
+  const parentsByYear = new Map<string, Set<string>>();
+  const enrollmentsByYear = new Map<string, number>();
+
+  for (const enrollment of enrollments) {
+    const yearId = enrollment.schoolYearId;
+    const parentId = enrollment.student?.parentId;
+    if (!parentId) continue;
+
+    enrollmentsByYear.set(yearId, (enrollmentsByYear.get(yearId) ?? 0) + 1);
+
+    const set = parentsByYear.get(yearId) ?? new Set<string>();
+    set.add(parentId);
+    parentsByYear.set(yearId, set);
+  }
+
+  const byYear = schoolYears.map((year) => ({
+    yearId: year.id,
+    nameYear: year.nameYear,
+    isCurrentYear: year.isCurrentYear,
+    parentsCount: parentsByYear.get(year.id)?.size ?? 0,
+    enrollmentsCount: enrollmentsByYear.get(year.id) ?? 0,
+  }));
+
+  const current =
+    byYear.find((year) => year.isCurrentYear) ?? byYear[0] ?? null;
+
+  return {
+    totalParents,
+    currentYearName: current?.nameYear ?? null,
+    parentsCurrentYear: current?.parentsCount ?? 0,
+    enrollmentsCurrentYear: current?.enrollmentsCount ?? 0,
+    byYear,
+  };
+});
+
 export const getParentsAction = action.handler(async (): Promise<IParent[]> => {
   const { branchId, organizationId } = await getCurrentBranch();
   const parents = await prisma.parent.findMany({

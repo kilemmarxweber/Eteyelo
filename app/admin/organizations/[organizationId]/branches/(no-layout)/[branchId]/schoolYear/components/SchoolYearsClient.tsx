@@ -72,26 +72,38 @@ export default function SchoolYearsClient({ branchId }: Props) {
             </Badge>
           }
           actions={
-            <>
-              <Button
-                type="button"
-                variant="outline"
-                loading={isPreparing}
-                disabled={!canPrepareNextYear}
-                title={
-                  canPrepareNextYear
-                    ? undefined
-                    : "Disponible a partir du mois d'aout"
-                }
-                onClick={handlePrepareNextYear}
-              >
-                Preparer la prochaine annee
-              </Button>
-              <Button type="button" variant="default" onClick={() => setOpen(true)}>
-                <IconPlus size={16} className="mr-2" />
-                Ajouter une annee
-              </Button>
-            </>
+            <div className="flex flex-col items-stretch gap-1 sm:items-end">
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  loading={isPreparing}
+                  disabled={!canPrepareNextYear}
+                  title={
+                    canPrepareNextYear
+                      ? "Cree automatiquement la prochaine annee scolaire (ex. 2026-2027)"
+                      : "Disponible a partir du mois d'aout"
+                  }
+                  onClick={handlePrepareNextYear}
+                >
+                  Preparer la prochaine annee
+                </Button>
+                <Button
+                  type="button"
+                  variant="default"
+                  onClick={() => setOpen(true)}
+                >
+                  <IconPlus size={16} className="mr-2" />
+                  Ajouter une annee
+                </Button>
+              </div>
+              {!canPrepareNextYear ? (
+                <p className="text-xs text-muted-foreground">
+                  Disponible a partir d&apos;aout — cree la prochaine annee
+                  scolaire pour preparation.
+                </p>
+              ) : null}
+            </div>
           }
         />
 

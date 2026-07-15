@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { EditMemberForm } from "./edit-member-form";
+import { BackLink } from "@/components/ui/back-link";
 import {
   Card,
   CardContent,
@@ -16,10 +16,12 @@ export default async function EditOrganizationMemberPage({
   params,
 }: PageProps) {
   const { organizationId, memberId } = await params;
+  const base = `/admin/organizations/${organizationId}/members`;
 
   return (
-    <div className="mx-auto flex w-full max-w-4xl flex-col gap-6 px-4 py-6 sm:px-6">
-      {/* HEADER */}
+    <div className="mx-auto flex w-full max-w-4xl flex-col gap-5 px-4 py-6 sm:px-6">
+      <BackLink href={base} label="Retour à la liste des membres" />
+
       <div className="flex flex-col gap-1">
         <h1 className="text-xl font-semibold">Modifier un membre</h1>
         <p className="text-sm text-muted-foreground">
@@ -27,7 +29,6 @@ export default async function EditOrganizationMemberPage({
         </p>
       </div>
 
-      {/* CARD WRAPPER (CLEAN SHADCN STYLE) */}
       <Card className="w-full">
         <CardHeader>
           <CardTitle>Informations du membre</CardTitle>
@@ -36,15 +37,8 @@ export default async function EditOrganizationMemberPage({
           </CardDescription>
         </CardHeader>
 
-        <CardContent className="space-y-6">
+        <CardContent>
           <EditMemberForm organizationId={organizationId} memberId={memberId} />
-
-          <Link
-            href={`/admin/organizations/${organizationId}/members`}
-            className="text-sm text-muted-foreground hover:text-foreground transition"
-          >
-            ← Retour à la liste des membres
-          </Link>
         </CardContent>
       </Card>
     </div>

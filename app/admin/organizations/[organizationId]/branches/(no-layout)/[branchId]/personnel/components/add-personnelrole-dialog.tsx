@@ -9,57 +9,43 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { useRefresh } from "@/src/hooks/RefreshContext";
-import { PersonnelRoleUpForm } from "./personnelrole-form";
 import { IPersonnel } from "@/src/interfaces/Personnel";
-type PersonnelFullFormValues = {
-  personnelId: string;
-  memberId: string;
-  userId: string;
-  name: string;
-  postnom: string;
-  prenom: string;
-  email: string;
-  telephone: string;
-  address: string;
-  sexe: "masculin" | "feminin";
-  dateOfBirth?: Date;
-  orgRole: string;
-};
-interface AddPersonnelRoleProps extends React.ComponentPropsWithoutRef<
-  typeof Dialog
-> {
-  showTrigger?: boolean;
+import { useRefresh } from "@/src/hooks/RefreshContext";
+
+import { PersonnelRoleUpForm } from "./personnelrole-form";
+
+interface AddPersonnelRoleProps
+  extends React.ComponentPropsWithoutRef<typeof Dialog> {
   onSuccess?: () => void;
   personnel: IPersonnel;
 }
 
 export function AddPersonnelRole({
-  showTrigger = true,
   onSuccess,
   personnel,
+  open,
+  onOpenChange,
   ...props
 }: AddPersonnelRoleProps) {
-  const [open, setOpen] = React.useState(false);
   const { refresh } = useRefresh();
 
-  const handleUpdate = () => {
-    setTimeout(() => {
-      console.log("Delayed for 1 second.");
-      refresh();
-    }, 1000);
+  const handleSuccess = () => {
+    refresh();
+    onSuccess?.();
+    onOpenChange?.(false);
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen} {...props}>
-      <DialogContent>
+    <Dialog open={open} onOpenChange={onOpenChange} {...props}>
+      <DialogContent size="xl">
         <DialogHeader>
           <DialogTitle>Assigner un rôle</DialogTitle>
           <DialogDescription>
-            Modifiez les détails de permission ici. Cliquez sur mettre a jour
-            vous êtes prêt.
+            Choisissez un rôle pour ce personnel. Les permissions associées
+            s&apos;affichent automatiquement.
           </DialogDescription>
         </DialogHeader>
+
         <PersonnelRoleUpForm
           mode="update"
           initialData={{
@@ -74,7 +60,10 @@ export function AddPersonnelRole({
             telephone: personnel.telephone,
             address: personnel.address,
             sexe: personnel.sexe,
+            dateOfBirth: personnel.dateOfBirth,
           }}
+          onSuccess={handleSuccess}
+          onCancel={() => onOpenChange?.(false)}
         />
       </DialogContent>
     </Dialog>

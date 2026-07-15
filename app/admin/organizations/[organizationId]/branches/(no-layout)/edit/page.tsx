@@ -1,7 +1,5 @@
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
-
 import { CreateBranchForm } from "../new/components/create-branch-form";
+import { BackLink } from "@/components/ui/back-link";
 import { getBranchByIdAction } from "../branche.action";
 import { enforceOrganizationManagerPage } from "@/lib/auth/require-organization-permission";
 
@@ -56,38 +54,33 @@ export default async function EditBranchPage({
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <main className="mx-auto max-w-6xl px-4 py-10 md:px-6 lg:py-14">
-        <Link
-          href={`/admin/organizations/${organizationId}/branches`}
-          className="mb-6 inline-flex items-center gap-2 text-sm font-medium text-blue-950 underline-offset-4 hover:underline"
-        >
-          <ArrowLeft className="size-4" />
-          Retour à la liste
-        </Link>
+    <div className="mx-auto flex w-full max-w-7xl flex-col gap-5 px-4 py-6 sm:px-6 lg:px-8">
+      <BackLink
+        href={`/admin/organizations/${organizationId}/branches`}
+        label="Retour à la liste"
+      />
 
-        <CreateBranchForm
-          mode="update"
-          branchId={branchId}
-          organizationId={organizationId}
-          defaultValues={{
-            name: branch.name,
-            code: branch.code ?? "",
-            image: normalizeBranchImages(branch.image),
-            adresse: branch.adresse ?? "",
-            province: branch.province ?? "",
-            ville: branch.ville ?? "",
-            commune: branch.commune ?? "",
-            pays: branch.pays ?? "RDC",
-            idnat: branch.idnat ?? "",
-            tel: branch.tel ?? "",
-            latitude: branch.latitude,
-            longitude: branch.longitude,
-            attendanceRadius: branch.attendanceRadius,
-            typebranch: branch.typebranch,
-          }}
-        />
-      </main>
+      <CreateBranchForm
+        mode="update"
+        branchId={branchId}
+        organizationId={organizationId}
+        defaultValues={{
+          name: branch.name,
+          code: branch.code ?? "",
+          image: normalizeBranchImages(branch.image),
+          adresse: branch.adresse ?? "",
+          province: branch.province ?? "",
+          ville: branch.ville ?? "",
+          commune: branch.commune ?? "",
+          pays: branch.pays ?? "RDC",
+          idnat: branch.idnat ?? "",
+          tel: branch.tel ?? "",
+          latitude: branch.latitude,
+          longitude: branch.longitude,
+          attendanceRadius: branch.attendanceRadius,
+          typebranch: branch.typebranch,
+        }}
+      />
     </div>
   );
 }

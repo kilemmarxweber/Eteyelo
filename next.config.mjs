@@ -1,5 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Redis / BullMQ restent utilisés côté serveur, mais ne sont plus bundlés
+  // par Webpack (évite le warning "Critical dependency" de child-processor).
+  serverExternalPackages: ["bullmq", "ioredis"],
   async rewrites() {
     return [
       {

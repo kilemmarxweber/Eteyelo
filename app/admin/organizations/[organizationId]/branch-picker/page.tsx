@@ -1,7 +1,6 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ArrowRight, School } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { School } from "lucide-react";
+import { BackLink } from "@/components/ui/back-link";
 import { getUserOrganizationMembership } from "@/lib/auth/org-membership";
 import { getOrganizationAuthContext } from "@/lib/auth/require-organization-permission";
 import { getUserBranchMemberships } from "@/lib/auth/user-branch-access";
@@ -39,10 +38,17 @@ export default async function BranchPickerPage({ params }: BranchPickerPageProps
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 px-4 py-8 sm:px-6">
+    <div className="mx-auto flex w-full max-w-2xl flex-col gap-5 px-4 py-6 sm:px-6">
+      {context.appRole === APP_ROLE.OWNER || context.appRole === APP_ROLE.ADMIN ? (
+        <BackLink
+          href={`/admin/organizations/${organizationId}`}
+          label="Retour organisation"
+        />
+      ) : null}
+
       <div className="space-y-2">
         <div className="inline-flex items-center gap-2 rounded-full bg-blue-950/10 px-3 py-1 text-xs font-semibold text-blue-950">
-          <School className="size-4" />
+          <School className="size-3.5" />
           Choix de branche
         </div>
         <h1 className="text-2xl font-bold text-slate-950">
@@ -55,15 +61,6 @@ export default async function BranchPickerPage({ params }: BranchPickerPageProps
       </div>
 
       <BranchPickerClient organizationId={organizationId} branches={branches} />
-
-      {context.appRole === APP_ROLE.OWNER || context.appRole === APP_ROLE.ADMIN ? (
-        <Button asChild variant="ghost" className="w-fit">
-          <Link href={`/admin/organizations/${organizationId}`}>
-            Retour organisation
-            <ArrowRight className="ml-2 size-4" />
-          </Link>
-        </Button>
-      ) : null}
     </div>
   );
 }

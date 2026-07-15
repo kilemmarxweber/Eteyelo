@@ -1,9 +1,14 @@
 "use client";
-import { HTMLAttributes, useState, useEffect } from "react";
-import { useAppTransition as useTransition } from "@/hooks/use-app-transition";
-import { useForm } from "react-hook-form";
+
+import { HTMLAttributes, useEffect, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { IconCalendar } from "@tabler/icons-react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import { z } from "zod";
+
+import { Button } from "@/components/custom/button";
+import { Calendar } from "@/components/ui/calendar";
 import {
   Form,
   FormControl,
@@ -12,12 +17,13 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { ALL_ORG_ROLE_SLUGS } from "@/lib/permissions";
-import { orgRoleLabel } from "@/lib/org-role-labels";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/custom/button";
-import { cn } from "@/lib/utils";
-import { toast } from "sonner";
+import { PhoneInput } from "@/components/ui/phone-input";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -25,50 +31,66 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { orgRoleLabel } from "@/lib/org-role-labels";
+import { ALL_ORG_ROLE_SLUGS } from "@/lib/permissions";
+import { cn } from "@/lib/utils";
+import generateUsername from "@/src/hooks/generateUsername";
+import { updatePersonnelSchema, userSchema } from "@/src/interfaces/Personnel";
 
 import {
   createPersonnelAction,
   updatePersonnelAction,
 } from "../personnel.action";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { IconCalendar } from "@tabler/icons-react";
-import { Calendar } from "@/components/ui/calendar";
 
-import { PhoneInput } from "@/components/ui/phone-input";
-import generateUsername from "@/src/hooks/generateUsername";
-import { updatePersonnelSchema, userSchema } from "@/src/interfaces/Personnel";
+type PersonnelFormValues =
+  | z.infer<typeof userSchema>
+  | z.infer<typeof updatePersonnelSchema>;
 
 interface PersonnelUpFormProps extends HTMLAttributes<HTMLDivElement> {
   onPersonnelCreated?: () => void;
-  initialData?: z.infer<typeof userSchema>;
   onPersonnelUpdate?: () => void;
+  onSuccess?: () => void;
+  onCreated?: () => void;
+  onUpdated?: () => void;
+  initialData?: z.infer<typeof userSchema>;
   mode: "create" | "update";
 }
+
+const emptyValues: PersonnelFormValues = {
+  personnelId: "",
+  username: "",
+  name: "",
+  prenom: "",
+  postnom: "",
+  sexe: "",
+  telephone: "",
+  email: "",
+  address: "",
+  orgRole: "",
+  dateOfBirth: new Date(),
+};
 
 export function PersonnelUpForm({
   className,
   onPersonnelCreated,
   onPersonnelUpdate,
+  onSuccess,
+  onCreated,
+  onUpdated,
   initialData,
   mode,
   ...props
 }: PersonnelUpFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const [pending, startTransition] = useTransition();
+  const [mounted, setMounted] = useState(false);
 
   const sexeToUi: Record<string, "masculin" | "feminin"> = {
     M: "masculin",
     F: "feminin",
+    masculin: "masculin",
+    feminin: "feminin",
   };
-  //type PersonnelFormValues = z.infer<typeof userSchema>;
-  type PersonnelFormValues =
-    | z.infer<typeof userSchema>
-    | z.infer<typeof updatePersonnelSchema>;
 
   const schema = mode === "update" ? updatePersonnelSchema : userSchema;
 
@@ -77,21 +99,17 @@ export function PersonnelUpForm({
     defaultValues: initialData
       ? {
           ...initialData,
-          sexe: sexeToUi[initialData.sexe], // 👈 conversion DB → UI
+          sexe: initialData.sexe
+            ? (sexeToUi[initialData.sexe] ?? initialData.sexe)
+            : "",
+          dateOfBirth: initialData.dateOfBirth
+            ? new Date(initialData.dateOfBirth)
+            : new Date(),
         }
-      : {
-          personnelId: "",
-          username: "",
-          name: "",
-          prenom: "",
-          postnom: "",
-          sexe: "",
-          telephone: "",
-          email: "",
-          address: "",
-          orgRole: "",
-        },
+      : emptyValues,
   });
+
+  useEffect(() => setMounted(true), []);
 
   useEffect(() => {
     const nom = form.getValues("name");
@@ -105,9 +123,9 @@ export function PersonnelUpForm({
         form.setValue("username", username);
       }
     }
-  }, [form.watch("name"), form.watch("prenom"), mode]);
+  }, [form.watch("name"), form.watch("prenom"), mode, form]);
 
-  async function onSubmit(data: z.infer<typeof userSchema>) {
+  async function onSubmit(data: PersonnelFormValues) {
     setIsLoading(true);
     setErrorMessage("");
 
@@ -116,28 +134,28 @@ export function PersonnelUpForm({
         const [result, err] = await createPersonnelAction({
           ...data,
         });
-        if (err) {
-          throw new Error(err.message);
-        }
+        if (err) throw new Error(err.message);
         if (!result?.ok) {
-          throw new Error(result?.message || "CrÃ©ation impossible");
+          throw new Error(result?.message || "Création impossible");
         }
+
         toast.success("Personnel créé avec succès");
+        form.reset(emptyValues);
+        onCreated?.();
+        onPersonnelCreated?.();
       } else {
         const [, err] = await updatePersonnelAction({
           ...data,
           personnelId: data.personnelId,
         });
-        if (err) {
-          throw new Error(err.message);
-        }
+        if (err) throw new Error(err.message);
+
         toast.success("Personnel mis à jour avec succès");
-      }
-      if (mode === "create") {
-        onPersonnelCreated?.();
-      } else {
+        onUpdated?.();
         onPersonnelUpdate?.();
       }
+
+      onSuccess?.();
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Une erreur est survenue";
@@ -152,19 +170,28 @@ export function PersonnelUpForm({
     }
   }
 
+  const fieldClass = "space-y-0.5";
+  const labelClass = "text-xs font-medium text-muted-foreground";
+  const controlClass = "h-8 rounded-md px-3 text-sm font-normal";
+
   return (
-    <div className={cn("grid gap-6", className)} {...props}>
+    <div className={cn("grid gap-3", className)} {...props}>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
-          <div className="grid gap-2">
+          <div className="grid gap-2.5 sm:grid-cols-2">
             <FormField
               control={form.control}
               name="name"
               render={({ field }) => (
-                <FormItem className="space-y-1">
-                  <FormLabel>Nom</FormLabel>
+                <FormItem className={fieldClass}>
+                  <FormLabel className={labelClass}>Nom</FormLabel>
                   <FormControl>
-                    <Input placeholder="Le nom du Personnel" {...field} />
+                    <Input
+                      inputSize="sm"
+                      placeholder="Nom"
+                      className={controlClass}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -175,10 +202,15 @@ export function PersonnelUpForm({
               control={form.control}
               name="postnom"
               render={({ field }) => (
-                <FormItem className="space-y-1">
-                  <FormLabel>Postnom</FormLabel>
+                <FormItem className={fieldClass}>
+                  <FormLabel className={labelClass}>Postnom</FormLabel>
                   <FormControl>
-                    <Input placeholder="Le postnom du Personnel" {...field} />
+                    <Input
+                      inputSize="sm"
+                      placeholder="Postnom"
+                      className={controlClass}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -189,56 +221,78 @@ export function PersonnelUpForm({
               control={form.control}
               name="prenom"
               render={({ field }) => (
-                <FormItem className="space-y-1">
-                  <FormLabel>Prénom</FormLabel>
+                <FormItem className={fieldClass}>
+                  <FormLabel className={labelClass}>Prénom</FormLabel>
                   <FormControl>
-                    <Input placeholder="le prénom du Personnel" {...field} />
+                    <Input
+                      inputSize="sm"
+                      placeholder="Prénom"
+                      className={controlClass}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            <div className="flex gap-2">
-              <FormField
-                control={form.control}
-                name="dateOfBirth"
-                render={({ field }) => (
-                  <FormItem className="space-y-1  w-1/2">
-                    <FormLabel>Date d'affectation</FormLabel>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            className={cn(
-                              "w-full justify-between text-left font-normal",
-                              !field.value && "text-muted-foreground",
-                            )}
-                          >
-                            {field.value ? (
-                              new Date(field.value).toLocaleDateString(
-                                "fr-FR",
-                                {
-                                  year: "numeric",
-                                  month: "2-digit",
-                                  day: "2-digit",
-                                },
-                              )
-                            ) : (
-                              <span>Choisir une date</span>
-                            )}
 
-                            <IconCalendar className="ml-auto h-4 w-4 opacity-50" />
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
+            <FormField
+              control={form.control}
+              name="sexe"
+              render={({ field }) => (
+                <FormItem className={fieldClass}>
+                  <FormLabel className={labelClass}>Sexe</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger className={controlClass}>
+                        <SelectValue placeholder="Sexe" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="masculin">Masculin</SelectItem>
+                      <SelectItem value="feminin">Féminin</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-                      <PopoverContent
-                        className="w-auto p-0"
-                        align="start"
-                        side="bottom"
-                      >
+            <FormField
+              control={form.control}
+              name="dateOfBirth"
+              render={({ field }) => (
+                <FormItem className={fieldClass}>
+                  <FormLabel className={labelClass}>
+                    Date d&apos;affectation
+                  </FormLabel>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          className={cn(
+                            "h-8 w-full justify-between px-3 text-left text-sm font-normal",
+                            !field.value && "text-muted-foreground",
+                          )}
+                        >
+                          {field.value ? (
+                            new Date(field.value).toLocaleDateString("fr-FR", {
+                              year: "numeric",
+                              month: "2-digit",
+                              day: "2-digit",
+                            })
+                          ) : (
+                            <span>Choisir une date</span>
+                          )}
+                          <IconCalendar className="ml-auto size-3.5 opacity-50" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      {mounted ? (
                         <Calendar
                           mode="single"
                           captionLayout="dropdown"
@@ -247,134 +301,107 @@ export function PersonnelUpForm({
                           selected={
                             field.value ? new Date(field.value) : undefined
                           }
-                          onSelect={(date) => {
-                            field.onChange(date);
-                          }}
+                          onSelect={(date) => field.onChange(date)}
                         />
-                      </PopoverContent>
-                    </Popover>
+                      ) : null}
+                    </PopoverContent>
+                  </Popover>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="orgRole"
-                render={({ field }) => (
-                  <FormItem className="space-y-1  w-1/2">
-                    <FormLabel>Rôle</FormLabel>
-
-                    <Select
-                      value={field.value}
-                      onValueChange={field.onChange}
-                      disabled={pending}
-                    >
-                      <FormControl>
-                        <SelectTrigger className="h-11 sm:h-10">
-                          <SelectValue placeholder="Choisir un rôle" />
-                        </SelectTrigger>
-                      </FormControl>
-
-                      <SelectContent>
-                        {ALL_ORG_ROLE_SLUGS.map((slug) => (
-                          <SelectItem key={slug} value={slug}>
-                            {orgRoleLabel(slug)}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-            <div className="flex gap-2">
-              <FormField
-                control={form.control}
-                name="telephone"
-                render={({ field }) => (
-                  <FormItem className="space-y-1">
-                    <FormLabel>Téléphone </FormLabel>
+            <FormField
+              control={form.control}
+              name="orgRole"
+              render={({ field }) => (
+                <FormItem className={fieldClass}>
+                  <FormLabel className={labelClass}>Rôle</FormLabel>
+                  <Select value={field.value} onValueChange={field.onChange}>
                     <FormControl>
-                      <PhoneInput
-                        defaultCountry="CD"
-                        placeholder="Téléphone"
-                        {...field}
-                      />
+                      <SelectTrigger className={controlClass}>
+                        <SelectValue placeholder="Choisir un rôle" />
+                      </SelectTrigger>
                     </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="sexe"
-                render={({ field }) => (
-                  <FormItem className="space-y-1 w-1/2">
-                    <FormLabel>Sexe</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Sélectionnez le sexe" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem key={"masculin"} value={"masculin"}>
-                          Masculin
+                    <SelectContent>
+                      {ALL_ORG_ROLE_SLUGS.map((slug) => (
+                        <SelectItem key={slug} value={slug}>
+                          {orgRoleLabel(slug)}
                         </SelectItem>
-                        <SelectItem key={"feminin"} value={"feminin"}>
-                          Féminin
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="telephone"
+              render={({ field }) => (
+                <FormItem className={fieldClass}>
+                  <FormLabel className={labelClass}>Téléphone</FormLabel>
+                  <FormControl>
+                    <PhoneInput
+                      defaultCountry="CD"
+                      placeholder="Téléphone"
+                      className="h-8 [&_button]:h-8 [&_input]:h-8 [&_input]:text-sm"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             <FormField
               control={form.control}
               name="email"
               render={({ field }) => (
-                <FormItem className="space-y-1">
-                  <FormLabel>E-mail </FormLabel>
+                <FormItem className={fieldClass}>
+                  <FormLabel className={labelClass}>E-mail</FormLabel>
                   <FormControl>
-                    <Input placeholder="le Email du Personnel" {...field} />
+                    <Input
+                      inputSize="sm"
+                      placeholder="Email"
+                      className={controlClass}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
+
             <FormField
               control={form.control}
               name="address"
               render={({ field }) => (
-                <FormItem className="space-y-1">
-                  <FormLabel>Adresse</FormLabel>
+                <FormItem className={cn(fieldClass, "sm:col-span-2")}>
+                  <FormLabel className={labelClass}>Adresse</FormLabel>
                   <FormControl>
-                    <Input placeholder="l'adresse du Personnel" {...field} />
+                    <Input
+                      inputSize="sm"
+                      placeholder="Adresse"
+                      className={controlClass}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
+
             <div className="hidden">
               <FormField
                 control={form.control}
                 name="username"
                 render={({ field }) => (
-                  <FormItem className="space-y-1">
-                    <FormLabel>Code d'acces</FormLabel>
+                  <FormItem>
                     <FormControl>
-                      <Input
-                        placeholder="votre code sera generé automatiquement"
-                        {...field}
-                        disabled
-                      />
+                      <Input {...field} disabled />
                     </FormControl>
-                    <FormMessage />
                   </FormItem>
                 )}
               />
@@ -382,28 +409,33 @@ export function PersonnelUpForm({
                 control={form.control}
                 name="personnelId"
                 render={({ field }) => (
-                  <FormItem className="space-y-1">
-                    <FormLabel>Code d'acces</FormLabel>
+                  <FormItem>
                     <FormControl>
-                      <Input
-                        placeholder="votre code sera generé automatiquement"
-                        {...field}
-                        disabled
-                      />
+                      <Input {...field} disabled />
                     </FormControl>
-                    <FormMessage />
                   </FormItem>
                 )}
               />
             </div>
-            <Button type="submit" className="mt-2" loading={isLoading}>
-              {mode === "create"
-                ? "Enregistrer l'utilisateur"
-                : "Mettre à jour l'utilisateur"}
-            </Button>
-            {errorMessage && (
-              <p className="mt-2 text-center text-red-500">{errorMessage}</p>
-            )}
+
+            <div className="sm:col-span-2">
+              <Button
+                type="submit"
+                size="sm"
+                className="mt-1 w-full font-medium sm:w-auto"
+                loading={isLoading}
+              >
+                {mode === "create"
+                  ? "Enregistrer le personnel"
+                  : "Mettre à jour le personnel"}
+              </Button>
+            </div>
+
+            {errorMessage ? (
+              <p className="text-center text-xs text-red-500 sm:col-span-2">
+                {errorMessage}
+              </p>
+            ) : null}
           </div>
         </form>
       </Form>
