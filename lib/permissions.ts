@@ -240,9 +240,9 @@ const PERMISSION_GROUPS = Object.entries(
 export const ALL_PERMISSIONS = PERMISSION_GROUPS.flatMap(
   ([resource, actions]) => actions.map((action) => `${resource}:${action}`),
 );
-export const ORGANIZATION_ROLE_SLUGS = Object.keys(organizationRoles) as Array<
-  keyof typeof organizationRoles
->;
+export const ORGANIZATION_ROLE_SLUGS = Object.keys(
+  organizationRoles,
+) as string[];
 
 export const ORGANIZATION_ROLE_GROUPS = [
   {

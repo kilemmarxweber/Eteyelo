@@ -207,8 +207,8 @@ export function PersonnelRoleUpForm({
                   </FormControl>
                   <SelectContent>
                     {ORGANIZATION_ROLE_SLUGS.map((role) => (
-                      <SelectItem key={role} value={role}>
-                        {orgRoleLabel(role)}
+                      <SelectItem key={role} value={String(role)}>
+                        {orgRoleLabel(String(role))}
                       </SelectItem>
                     ))}
                   </SelectContent>
