@@ -22,6 +22,8 @@ import { HomeNavbar } from "@/components/home-navbar";
 import { prisma } from "@/lib/prisma";
 import { getBranchImage } from "@/lib/utils";
 
+export const dynamic = "force-dynamic";
+
 type PageProps = {
   params: Promise<{
     branchId: string;

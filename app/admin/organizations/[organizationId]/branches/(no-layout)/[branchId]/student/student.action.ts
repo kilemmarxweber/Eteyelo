@@ -158,6 +158,7 @@ export const createStudentAction = action
       const result = await createOrganizationMemberAction({
         ...data,
         organizationId,
+        branchId,
         orgRole: "student",
         email: emailLower,
         telephone: "+243000000000",

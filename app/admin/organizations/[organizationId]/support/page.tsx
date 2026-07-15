@@ -21,6 +21,8 @@ import {
   type EscalationStatus,
 } from "@/lib/support/constants";
 
+export const dynamic = "force-dynamic";
+
 type PageProps = {
   params: Promise<{ organizationId: string }>;
 };

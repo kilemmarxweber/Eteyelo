@@ -42,6 +42,7 @@ import {
   importPrimaryCatalogCoursesAction,
   savePrimaryCourseDomainAction,
 } from "../settings.action";
+import { RequireBranchOrgSettingsAccess } from "../components/require-branch-org-settings-access";
 
 type CourseRow = {
   id: string;
@@ -234,16 +235,19 @@ export default function PrimaryDomainsSettingsPage() {
 
   if (loaded && !isPrimary) {
     return (
+      <RequireBranchOrgSettingsAccess>
       <div className="space-y-2">
         <h2 className="text-xl font-semibold">Domaines primaire</h2>
         <p className="text-sm text-muted-foreground">
           Cette page est réservée aux branches de type primaire.
         </p>
       </div>
+      </RequireBranchOrgSettingsAccess>
     );
   }
 
   return (
+    <RequireBranchOrgSettingsAccess>
     <div className="space-y-6">
       <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
         <div className="space-y-1">
@@ -447,5 +451,6 @@ export default function PrimaryDomainsSettingsPage() {
         </CardContent>
       </Card>
     </div>
+    </RequireBranchOrgSettingsAccess>
   );
 }

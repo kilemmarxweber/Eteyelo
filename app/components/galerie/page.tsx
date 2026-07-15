@@ -6,6 +6,9 @@ import { HomeNavbar } from "@/components/home-navbar";
 import { HomeFooter } from "@/components/home-footer";
 import { prisma } from "@/lib/prisma";
 import { getBranchImage, normalizeImageSrc } from "@/lib/utils";
+
+export const dynamic = "force-dynamic";
+
 type Props = {};
 export default async function GalleryPage(props: Props) {
   const branches = await prisma.branch.findMany({

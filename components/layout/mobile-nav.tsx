@@ -37,9 +37,16 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { getPrimaryRoleLabel } from "@/lib/sidebar-menu";
+import {
+  getUserInitials,
+  resolveUserDisplayName,
+  type SessionUserDisplay,
+} from "@/lib/user-display";
 import { toast } from "sonner";
 
 interface NavItem {
@@ -56,9 +63,9 @@ const ecodimNavItems: NavItem[] = [
 ];
 
 const ECODIM_ORG_ROLES = new Set([
-  ORG_ROLE.RESPONSABLE,
-  ORG_ROLE.MONITEUR,
-  ORG_ROLE.SURVEILLANT,
+  ORG_ROLE.DIRECTEUR,
+  ORG_ROLE.PREFET,
+  ORG_ROLE.SUPERVISEUR,
 ]);
 
 function splitRoles(value: string | null | undefined) {
@@ -66,21 +73,6 @@ function splitRoles(value: string | null | undefined) {
     .split(",")
     .map((role) => role.trim().toLowerCase())
     .filter(Boolean);
-}
-
-function getUserDisplayName(name?: string | null, email?: string | null) {
-  if (name?.trim()) return name.trim();
-  if (email?.includes("@")) return email.split("@")[0];
-  return "Utilisateur";
-}
-
-function getUserInitials(name?: string | null, email?: string | null) {
-  const display = getUserDisplayName(name, email);
-  const parts = display.split(/\s+/).filter(Boolean);
-  if (parts.length >= 2) {
-    return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
-  }
-  return display.charAt(0).toUpperCase();
 }
 
 function resolveEcodimBasePath(
@@ -165,13 +157,14 @@ function MobileNavMoreMenu() {
   const router = useRouter();
   const { resetLoading } = useAppLoading();
   const { data: session } = authClient.useSession();
-  const user = session?.user;
+  const user = session?.user as (SessionUserDisplay & { image?: string | null }) | undefined;
+  const displayName = resolveUserDisplayName(user);
+  const roleLabel = getPrimaryRoleLabel(session);
+  const initials = getUserInitials(displayName);
 
   const moreActive =
     pathname.startsWith("/admin/account") ||
     pathname.startsWith("/admin/settings");
-
-  const initials = getUserInitials(user?.name, user?.email);
 
   async function handleSignOut() {
     try {
@@ -201,10 +194,7 @@ function MobileNavMoreMenu() {
           )}
         >
           {user?.image ? (
-            <AvatarImage
-              src={user.image}
-              alt={getUserDisplayName(user.name, user.email)}
-            />
+            <AvatarImage src={user.image} alt={displayName} />
           ) : null}
           <AvatarFallback className="bg-primary/10 text-xs font-semibold text-primary">
             {initials}
@@ -217,6 +207,19 @@ function MobileNavMoreMenu() {
         sideOffset={8}
         className="min-w-48"
       >
+        {session ? (
+          <>
+            <DropdownMenuLabel>
+              <div className="flex flex-col space-y-1">
+                <p className="text-sm font-medium text-primary">{displayName}</p>
+                <p className="text-xs font-normal leading-none text-muted-foreground capitalize">
+                  {roleLabel}
+                </p>
+              </div>
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+          </>
+        ) : null}
         <DropdownMenuItem
           className="min-h-10 cursor-pointer"
           onClick={() => router.push("/admin/account")}

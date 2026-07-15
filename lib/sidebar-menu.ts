@@ -1,3 +1,5 @@
+import { getOrganizationAccessRoleLabel } from "@/lib/auth/role-labels";
+import { orgRoleLabel } from "@/lib/org-role-labels";
 import { APP_ROLE, ORG_ROLE } from "@/lib/permissions";
 import { isPrimaryBranch } from "@/lib/class-structure";
 import type { SideLink } from "@/src/data/sidelinks";
@@ -14,14 +16,22 @@ type StaticMenuItem = {
 
 const PLATFORM_MENU_ROLES = [APP_ROLE.OWNER, APP_ROLE.PLATFORM_SUPPORT];
 
+/** Propriétaires uniquement (sections owner) — pas gestionnaire/caissier. */
+export const OWNER_ONLY_MENU_ROLES = [APP_ROLE.OWNER, ORG_ROLE.OWNER];
+
 const ORG_MANAGER_MENU_ROLES = [
   APP_ROLE.ADMIN,
   ORG_ROLE.OWNER,
   ORG_ROLE.GESTIONNAIRE,
+  ORG_ROLE.PREFET,
+  ORG_ROLE.DIRECTEUR,
+  ORG_ROLE.SUPERVISEUR,
+  ORG_ROLE.CAISSIER,
   "ADMIN",
   "DIRECTOR",
   "admin",
   "director",
+  "CAISSIER",
 ];
 
 const ADMIN_ROLES = [...PLATFORM_MENU_ROLES, ...ORG_MANAGER_MENU_ROLES];
@@ -31,19 +41,25 @@ const TEACHER_TITULAIRE_ROLE = "TEACHER_TITULAIRE";
 
 const TEACHING_ROLES = [
   ...ADMIN_ROLES,
-  ORG_ROLE.MONITEUR,
-  ORG_ROLE.RESPONSABLE,
+  ORG_ROLE.PREFET,
+  ORG_ROLE.DIRECTEUR,
+  ORG_ROLE.SUPERVISEUR,
   ...TEACHER_ROLES,
 ];
 
-const COURSE_ROLES = [...ADMIN_ROLES, ORG_ROLE.MONITEUR, ORG_ROLE.RESPONSABLE];
+const COURSE_ROLES = [
+  ...ADMIN_ROLES,
+  ORG_ROLE.PREFET,
+  ORG_ROLE.DIRECTEUR,
+  ORG_ROLE.SUPERVISEUR,
+];
 
 const FINANCE_ROLES = [
   ...ADMIN_ROLES,
   "ACCOUNTANT",
   "accountant",
+  ORG_ROLE.CAISSIER,
   "CAISSIER",
-  "caissier",
 ];
 
 const STUDENT_ROLES = [
@@ -352,18 +368,13 @@ export function getPrimaryRoleLabel(session: any) {
   const appRole = session?.user?.role;
   const legacyRole = session?.user?.roles?.[0]?.nameRole;
 
-  const labels: Record<string, string> = {
-    [APP_ROLE.OWNER]: "Proprietaire plateforme",
-    [APP_ROLE.ADMIN]: "Gestionnaire",
-    [APP_ROLE.PLATFORM_SUPPORT]: "Support plateforme",
-    [APP_ROLE.USER]: "Utilisateur",
-    [ORG_ROLE.GESTIONNAIRE]: "Gestionnaire org",
-    [ORG_ROLE.PARENT]: "Parent",
-    [ORG_ROLE.STUDENT]: "Eleve",
-    [ORG_ROLE.TEACHER]: "Enseignant",
-    [ORG_ROLE.MONITEUR]: "Moniteur",
-    [ORG_ROLE.RESPONSABLE]: "Responsable",
-    [ORG_ROLE.SURVEILLANT]: "Surveillant",
+  // APP_ROLE.OWNER et ORG_ROLE.OWNER partagent le slug "owner" :
+  // on délègue aux helpers plutôt qu'à un Record avec clés en double.
+  if (appRole || orgRole) {
+    return getOrganizationAccessRoleLabel(appRole, orgRole);
+  }
+
+  const legacyLabels: Record<string, string> = {
     ADMIN: "Administrateur",
     DIRECTOR: "Directeur",
     TEACHER: "Enseignant",
@@ -372,9 +383,13 @@ export function getPrimaryRoleLabel(session: any) {
     PARENT: "Parent",
   };
 
-  if (appRole === APP_ROLE.OWNER) return labels[APP_ROLE.OWNER];
-  if (appRole === APP_ROLE.ADMIN) return labels[APP_ROLE.ADMIN];
-  if (orgRole === ORG_ROLE.OWNER) return "Proprietaire organisation";
+  if (legacyRole && legacyLabels[legacyRole]) {
+    return legacyLabels[legacyRole];
+  }
 
-  return labels[orgRole] ?? labels[appRole] ?? legacyRole ?? "Aucun rôle";
+  if (typeof legacyRole === "string" && legacyRole.trim()) {
+    return orgRoleLabel(legacyRole.trim().toLowerCase());
+  }
+
+  return "Aucun rôle";
 }

@@ -7,6 +7,8 @@ import { HomeFooter } from "@/components/home-footer";
 import { prisma } from "@/lib/prisma";
 import { normalizeImageSrc } from "@/lib/utils";
 
+export const dynamic = "force-dynamic";
+
 function formatDate(date: Date) {
   return new Intl.DateTimeFormat("fr-FR", {
     day: "2-digit",

@@ -1,6 +1,6 @@
 /**
  * Slugs de rôles, presets Better Auth (`adminAc`, `ownerAc`, …),
- * premières grilles métier pour les rôles d’organisation, et AC partagée pour `betterAuth`.
+ * grilles métier pour les rôles d’organisation, et AC partagée pour `betterAuth`.
  */
 
 import { createAccessControl } from "better-auth/plugins/access";
@@ -65,24 +65,26 @@ export function hasPlatformSupportPrivileges(
 export const ORG_ROLE = {
   OWNER: "owner",
   GESTIONNAIRE: "gestionnaire",
-  PARENT: "parent",
-  STUDENT: "student",
+  PREFET: "prefet",
+  DIRECTEUR: "directeur",
   TEACHER: "teacher",
-  MONITEUR: "moniteur",
-  RESPONSABLE: "responsable",
-  SURVEILLANT: "surveillant",
+  SUPERVISEUR: "superviseur",
+  CAISSIER: "caissier",
+  STUDENT: "student",
+  PARENT: "parent",
   SUPPORT: "support",
 } as const;
 
 export const ALL_ORG_ROLE_SLUGS = [
   ORG_ROLE.OWNER,
   ORG_ROLE.GESTIONNAIRE,
-  ORG_ROLE.PARENT,
-  ORG_ROLE.STUDENT,
+  ORG_ROLE.PREFET,
+  ORG_ROLE.DIRECTEUR,
   ORG_ROLE.TEACHER,
-  ORG_ROLE.MONITEUR,
-  ORG_ROLE.RESPONSABLE,
-  ORG_ROLE.SURVEILLANT,
+  ORG_ROLE.SUPERVISEUR,
+  ORG_ROLE.CAISSIER,
+  ORG_ROLE.STUDENT,
+  ORG_ROLE.PARENT,
   ORG_ROLE.SUPPORT,
 ] as const;
 
@@ -107,6 +109,77 @@ type StatementShape = {
   >;
 };
 
+type CrudAction = "create" | "read" | "update" | "delete";
+
+const ORG_BUSINESS_RESOURCES = [
+  "member",
+  "branch",
+  "teacher",
+  "parent",
+  "personnel",
+  "schedule",
+] as const;
+
+/**
+ * Applique le même jeu d’actions CRUD sur les ressources métier org
+ * et, quand applicable, sur les ressources Better Auth.
+ */
+function withActions(actions: readonly CrudAction[]): StatementShape {
+  const actionSet = new Set(actions);
+  const shape: Record<string, readonly string[]> = {};
+
+  for (const resource of ORG_BUSINESS_RESOURCES) {
+    shape[resource] = actions;
+  }
+
+  const inscriptionActions: Array<"create" | "share" | "update" | "delete"> =
+    [];
+  if (actionSet.has("create")) inscriptionActions.push("create");
+  if (actionSet.has("read")) inscriptionActions.push("share");
+  if (actionSet.has("update")) inscriptionActions.push("update");
+  if (actionSet.has("delete")) inscriptionActions.push("delete");
+  if (inscriptionActions.length > 0) {
+    shape.inscription = inscriptionActions;
+  }
+
+  // Hard-delete d'organisation = APP_ROLE.OWNER uniquement (hors withActions).
+  // Les rôles org peuvent update (ex. archiver via l'app) mais jamais organization:delete.
+  const organizationActions: Array<"update"> = [];
+  if (actionSet.has("update")) organizationActions.push("update");
+  if (organizationActions.length > 0) {
+    shape.organization = organizationActions;
+  }
+
+  if (actionSet.has("create") || actionSet.has("delete")) {
+    const invitationActions: Array<"create" | "cancel"> = [];
+    if (actionSet.has("create")) invitationActions.push("create");
+    invitationActions.push("cancel");
+    shape.invitation = invitationActions;
+  }
+
+  const teamActions: Array<"create" | "update" | "delete"> = [];
+  if (actionSet.has("create")) teamActions.push("create");
+  if (actionSet.has("update")) teamActions.push("update");
+  if (actionSet.has("delete")) teamActions.push("delete");
+  if (teamActions.length > 0) {
+    shape.team = teamActions;
+  }
+
+  const acActions = actions.filter((action) =>
+    (["create", "read", "update", "delete"] as const).includes(action),
+  );
+  if (acActions.length > 0) {
+    shape.ac = acActions;
+  }
+
+  return shape as StatementShape;
+}
+
+const CRU_ACTIONS = ["create", "read", "update"] as const;
+const CRUD_ACTIONS = ["create", "read", "update", "delete"] as const;
+const CREATE_READ_ACTIONS = ["create", "read"] as const;
+const READ_ACTIONS = ["read"] as const;
+
 const orgAdminWithoutDelete: StatementShape = {
   ...organizationPluginAdminAc.statements,
   organization: ["update"],
@@ -114,19 +187,6 @@ const orgAdminWithoutDelete: StatementShape = {
   invitation: ["create", "cancel"],
   team: ["create", "update"],
   ac: ["create", "read", "update"],
-};
-
-/** Gestionnaire org : CRU organisation + CRUD membres (pas de suppression d'organisation). */
-const orgGestionnairePermissions: StatementShape = {
-  ...organizationPluginAdminAc.statements,
-  organization: ["update"],
-  member: ["create", "read", "update", "delete"],
-  invitation: ["create", "cancel"],
-  team: ["create", "update"],
-  ac: ["create", "read", "update"],
-  schedule: ["create", "read", "update", "delete"],
-  organizationSupport: ["create", "read", "update", "delete"],
-  platformEscalation: ["read"],
 };
 
 /** Preset plugin Admin (`adminAc`) + même niveau organisation que `organization.adminAc`, plus domaine. */
@@ -159,42 +219,45 @@ export const applicationRoleStatements: Record<string, StatementShape> = {
   },
 };
 
-/** Preset `ownerAc` pour le créateur ; autres rôles = grille métier initiale partagée. */
+/** Preset `ownerAc` pour le créateur ; autres rôles = grille métier 1A. */
 export const organizationRoleStatements: Record<string, StatementShape> = {
   [ORG_ROLE.OWNER]: {
     ...ownerAc.statements,
-    inscription: ["create", "share", "update", "delete"],
-    schedule: ["create", "read", "update", "delete"],
+    ...withActions(CRUD_ACTIONS),
+    // Propriétaire org : update/archive, pas de suppression physique (owner plateforme seul).
+    organization: ["update"],
     organizationSupport: ["create", "read", "update", "delete"],
     platformEscalation: ["read"],
   },
-  [ORG_ROLE.GESTIONNAIRE]: orgGestionnairePermissions,
-  [ORG_ROLE.PARENT]: {
-    ...organizationPluginMemberAc.statements,
-    member: ["read"],
+  [ORG_ROLE.GESTIONNAIRE]: {
+    ...withActions(CRU_ACTIONS),
+    organizationSupport: ["create", "read", "update"],
+    platformEscalation: ["read"],
   },
-  [ORG_ROLE.STUDENT]: {
-    ...organizationPluginMemberAc.statements,
-    member: ["read"],
+  [ORG_ROLE.PREFET]: {
+    ...withActions(CRU_ACTIONS),
+  },
+  [ORG_ROLE.DIRECTEUR]: {
+    ...withActions(CRU_ACTIONS),
   },
   [ORG_ROLE.TEACHER]: {
     ...organizationPluginMemberAc.statements,
-    member: ["read"],
-    schedule: ["read"],
+    ...withActions(CREATE_READ_ACTIONS),
   },
-  [ORG_ROLE.MONITEUR]: {
-    ...organizationPluginMemberAc.statements,
-    member: ["read"],
-    schedule: ["read"],
+  [ORG_ROLE.SUPERVISEUR]: {
+    ...withActions(CRUD_ACTIONS),
   },
-  [ORG_ROLE.RESPONSABLE]: {
+  [ORG_ROLE.CAISSIER]: {
     ...organizationPluginMemberAc.statements,
-    member: ["read"],
-    schedule: ["read"],
+    ...withActions(CRU_ACTIONS),
   },
-  [ORG_ROLE.SURVEILLANT]: {
+  [ORG_ROLE.STUDENT]: {
     ...organizationPluginMemberAc.statements,
-    member: ["read"],
+    ...withActions(READ_ACTIONS),
+  },
+  [ORG_ROLE.PARENT]: {
+    ...organizationPluginMemberAc.statements,
+    ...withActions(READ_ACTIONS),
   },
   [ORG_ROLE.SUPPORT]: {
     ...organizationPluginMemberAc.statements,
@@ -249,21 +312,25 @@ export const ORGANIZATION_ROLE_GROUPS = [
     id: "management",
     label: "Gestion de l'organisation",
     description:
-      "Gestion complete de l'organisation. Le gestionnaire peut tout faire sauf supprimer l'organisation.",
-    slugs: [ORG_ROLE.OWNER, ORG_ROLE.GESTIONNAIRE],
+      "Gestion complete de l'organisation. Seul le owner plateforme peut supprimer une organisation ; le proprietaire peut l'archiver.",
+    slugs: [
+      ORG_ROLE.OWNER,
+      ORG_ROLE.GESTIONNAIRE,
+      ORG_ROLE.PREFET,
+      ORG_ROLE.DIRECTEUR,
+      ORG_ROLE.SUPERVISEUR,
+    ],
   },
   {
     id: "branch",
     label: "Acces branche",
     description:
-      "Acces limite a la branche assignee. Lecture seule sur les membres et l'organisation.",
+      "Acces limite a la branche assignee. Lecture ou creation selon le role.",
     slugs: [
       ORG_ROLE.TEACHER,
+      ORG_ROLE.CAISSIER,
       ORG_ROLE.PARENT,
       ORG_ROLE.STUDENT,
-      ORG_ROLE.MONITEUR,
-      ORG_ROLE.RESPONSABLE,
-      ORG_ROLE.SURVEILLANT,
     ],
   },
   {

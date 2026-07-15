@@ -14,6 +14,9 @@ import {
   canManageOrganization,
   hasSessionRole,
 } from "@/lib/auth/session-roles";
+
+export const dynamic = "force-dynamic";
+
 const StudentResultPage = async ({
   params,
   searchParams,

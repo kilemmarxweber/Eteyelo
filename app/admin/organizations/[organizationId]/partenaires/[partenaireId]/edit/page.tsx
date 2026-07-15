@@ -10,6 +10,8 @@ import {
 } from "@/components/ui/card";
 import { CreatePartenaireForm } from "../../new/create-partenaire-form";
 
+export const dynamic = "force-dynamic";
+
 type PageProps = {
   params: Promise<{ organizationId: string; partenaireId: string }>;
 };

@@ -59,6 +59,7 @@ export async function createOrganizationSupportAgentAction(
   try {
     const memberResult = await createOrganizationMemberAction({
       organizationId,
+      branchId: branchIds[0],
       email: memberData.email,
       name: memberData.name,
       prenom: memberData.prenom,

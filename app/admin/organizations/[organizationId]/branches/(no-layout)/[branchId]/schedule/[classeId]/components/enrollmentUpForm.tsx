@@ -1,5 +1,6 @@
 "use client";
 import { HTMLAttributes, useState, useEffect } from "react";
+import { useParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -83,6 +84,9 @@ export function EnrollmentUpForm({
 }: TeacherUpFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const params = useParams();
+  const branchId =
+    typeof params?.branchId === "string" ? params.branchId : undefined;
 
   const form = useForm<z.infer<typeof enrollmentSchema>>({
     resolver: zodResolver(enrollmentSchema),
@@ -125,6 +129,8 @@ export function EnrollmentUpForm({
       if (mode === "create") {
         const res = await createOrganizationMemberAction({
           ...data,
+          organizationId,
+          branchId,
           name: `${data.nom} ${data.postnom} ${data.prenom}`,
           statusUser: "enseignant",
         });

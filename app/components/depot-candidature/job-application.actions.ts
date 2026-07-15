@@ -15,7 +15,6 @@ import {
 } from "@/lib/admin-created-user-password";
 import { generateSecurePassword } from "@/lib/generate-password";
 import { generateSlug } from "@/lib/generated-identifiers";
-import { sendNewUserCredentialsEmail } from "@/lib/email/send-new-user-credentials";
 import { matchesClassForLevel } from "@/lib/class-enrollment/match-class-for-level";
 
 function parseDesiredClassTarget(desiredLevels: string | null | undefined) {
@@ -560,6 +559,7 @@ export const hireJobApplicationAction = action
         address: application.address,
         dateOfBirth: application.dateOfBirth,
         organizationId,
+        branchId,
         orgRole,
       });
 
@@ -640,17 +640,9 @@ export const hireJobApplicationAction = action
         });
       }
 
-      try {
-        await sendNewUserCredentialsEmail({
-          to: emailLower,
-          name: `${application.prenom} ${application.nom}`,
-          temporaryPassword: password,
-        });
-      } catch (error) {
-        console.error("HIRE_CREDENTIALS_EMAIL_ERROR:", error);
-      } finally {
-        consumeAdminCreatedUserPlainPassword(emailLower);
-      }
+      // L’email d’identifiants (avec rôle) est envoyé par le hook Better Auth
+      // après createOrganizationMemberAction — pas de second envoi ici.
+      consumeAdminCreatedUserPlainPassword(emailLower);
 
       const base = `/admin/organizations/${organizationId}/branches/${branchId}`;
       revalidatePath(`${base}/candidatures`);

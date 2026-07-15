@@ -15,7 +15,7 @@ export function PartenaireActions({ id, organizationId, isActive }: { id: string
   const [dialogOpen, setDialogOpen] = useState(false);
   function toggleStatus() {
     startTransition(async () => {
-      const result = await setPartenaireActiveAction(id, !isActive);
+      const result = await setPartenaireActiveAction(id, !isActive, organizationId);
       if (!result.ok) {
         toast.error(result.message);
         return;

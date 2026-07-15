@@ -44,6 +44,14 @@ export type MigrateOrganizationRolesReport = {
   before: OrganizationRolesAudit;
   after: OrganizationRolesAudit;
   memberRoleConversions: MemberRoleConversion[];
+  legacySlugConversions: MemberRoleConversion[];
+  organizationRoleSlugRenames: Array<{
+    id: string;
+    organizationId: string;
+    fromRole: string;
+    toRole: string;
+  }>;
+  obsoleteOrganizationRolesRemoved: number;
   superAdminPromotions: SuperAdminPromotion[];
   duplicateMembershipsRemoved: DuplicateMembershipCleanup[];
   platformOwnerCreated: boolean;
@@ -78,6 +86,29 @@ function convertAdminMemberOwnerToGestionnaire(memberRole: string) {
       role === ORG_ROLE.OWNER ? ORG_ROLE.GESTIONNAIRE : role,
     ),
   );
+}
+
+/** Mapping 2A : anciens slugs org → nouveaux. */
+const LEGACY_ORG_ROLE_MAP: Record<string, string> = {
+  surveillant: ORG_ROLE.SUPERVISEUR,
+  responsable: ORG_ROLE.DIRECTEUR,
+  moniteur: ORG_ROLE.PREFET,
+};
+
+function convertLegacyOrganizationMemberRole(memberRole: string) {
+  const roles = splitRoles(memberRole);
+  let changed = false;
+  const nextRoles = roles.map((role) => {
+    const mapped = LEGACY_ORG_ROLE_MAP[role];
+    if (mapped && mapped !== role) {
+      changed = true;
+      return mapped;
+    }
+    return role;
+  });
+
+  if (!changed) return null;
+  return joinRoles(nextRoles);
 }
 
 async function auditOrganizationRoles(): Promise<OrganizationRolesAudit> {
@@ -220,6 +251,10 @@ export async function migrateOrganizationRoles(
   const before = await auditOrganizationRoles();
 
   const memberRoleConversions: MemberRoleConversion[] = [];
+  const legacySlugConversions: MemberRoleConversion[] = [];
+  const organizationRoleSlugRenames: MigrateOrganizationRolesReport["organizationRoleSlugRenames"] =
+    [];
+  let obsoleteOrganizationRolesRemoved = 0;
   const superAdminPromotions: SuperAdminPromotion[] = [];
   const duplicateMembershipsRemoved: DuplicateMembershipCleanup[] = [];
   let ownerMembershipsRemoved = 0;
@@ -265,6 +300,101 @@ export async function migrateOrganizationRoles(
       await prisma.member.update({
         where: { id: member.id },
         data: { role: nextRole },
+      });
+    }
+  }
+
+  const membersWithLegacySlugs = await prisma.member.findMany({
+    where: {
+      OR: [
+        { role: { contains: "surveillant" } },
+        { role: { contains: "responsable" } },
+        { role: { contains: "moniteur" } },
+      ],
+    },
+    select: {
+      id: true,
+      role: true,
+      organizationId: true,
+      userId: true,
+      user: {
+        select: {
+          email: true,
+        },
+      },
+    },
+  });
+
+  for (const member of membersWithLegacySlugs) {
+    const nextRole = convertLegacyOrganizationMemberRole(member.role);
+    if (!nextRole || nextRole === member.role) {
+      continue;
+    }
+
+    legacySlugConversions.push({
+      userId: member.userId,
+      email: member.user.email,
+      memberId: member.id,
+      organizationId: member.organizationId,
+      fromRole: member.role,
+      toRole: nextRole,
+    });
+
+    if (!dryRun) {
+      await prisma.member.update({
+        where: { id: member.id },
+        data: { role: nextRole },
+      });
+    }
+  }
+
+  const legacyOrganizationRoles = await prisma.organizationRole.findMany({
+    where: {
+      role: {
+        in: Object.keys(LEGACY_ORG_ROLE_MAP),
+      },
+    },
+    select: {
+      id: true,
+      organizationId: true,
+      role: true,
+      permission: true,
+    },
+  });
+
+  for (const orgRole of legacyOrganizationRoles) {
+    const nextSlug = LEGACY_ORG_ROLE_MAP[orgRole.role];
+    if (!nextSlug) continue;
+
+    const existingTarget = await prisma.organizationRole.findUnique({
+      where: {
+        organizationId_role: {
+          organizationId: orgRole.organizationId,
+          role: nextSlug,
+        },
+      },
+      select: { id: true },
+    });
+
+    if (existingTarget) {
+      obsoleteOrganizationRolesRemoved += 1;
+      if (!dryRun) {
+        await prisma.organizationRole.delete({ where: { id: orgRole.id } });
+      }
+      continue;
+    }
+
+    organizationRoleSlugRenames.push({
+      id: orgRole.id,
+      organizationId: orgRole.organizationId,
+      fromRole: orgRole.role,
+      toRole: nextSlug,
+    });
+
+    if (!dryRun) {
+      await prisma.organizationRole.update({
+        where: { id: orgRole.id },
+        data: { role: nextSlug },
       });
     }
   }
@@ -416,6 +546,9 @@ export async function migrateOrganizationRoles(
     before,
     after,
     memberRoleConversions,
+    legacySlugConversions,
+    organizationRoleSlugRenames,
+    obsoleteOrganizationRolesRemoved,
     superAdminPromotions,
     duplicateMembershipsRemoved,
     platformOwnerCreated,
@@ -445,6 +578,27 @@ export function formatMigrationReport(report: MigrateOrganizationRolesReport) {
       `  - ${item.email ?? item.userId} (${item.memberId}): ${item.fromRole} -> ${item.toRole}`,
     );
   }
+  lines.push("");
+  lines.push(
+    `Conversions slugs legacy (2A): ${report.legacySlugConversions.length}`,
+  );
+  for (const item of report.legacySlugConversions) {
+    lines.push(
+      `  - ${item.email ?? item.userId} (${item.memberId}): ${item.fromRole} -> ${item.toRole}`,
+    );
+  }
+  lines.push("");
+  lines.push(
+    `Renames OrganizationRole: ${report.organizationRoleSlugRenames.length}`,
+  );
+  for (const item of report.organizationRoleSlugRenames) {
+    lines.push(
+      `  - org ${item.organizationId}: ${item.fromRole} -> ${item.toRole}`,
+    );
+  }
+  lines.push(
+    `OrganizationRole obsolete supprimes: ${report.obsoleteOrganizationRolesRemoved}`,
+  );
   lines.push("");
   lines.push(
     `Promotions super admin -> owner: ${report.superAdminPromotions.length}`,

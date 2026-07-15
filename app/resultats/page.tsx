@@ -17,6 +17,8 @@ import { HomeNavbar } from "@/components/home-navbar";
 import { prisma } from "@/lib/prisma";
 import { getPublicStudentResults } from "@/lib/public-results";
 
+export const dynamic = "force-dynamic";
+
 type PageProps = {
   searchParams: Promise<{
     branchId?: string;

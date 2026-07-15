@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
-import { canManageOrganization } from "@/lib/auth/session-roles";
+import { canAccessBranchOrgSettings } from "@/lib/auth/session-roles";
 
 const eventTypeSchema = z.object({
   id: z.string().min(1).optional(),
@@ -12,7 +12,7 @@ const eventTypeSchema = z.object({
 });
 
 function assertCanManage(session: Awaited<ReturnType<typeof requireBranchContext>>["session"]) {
-  if (!canManageOrganization(session)) throw new Error("Action non autorisée.");
+  if (!canAccessBranchOrgSettings(session)) throw new Error("Action non autorisée.");
 }
 
 export async function getCalendarSettingsAction() {

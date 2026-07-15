@@ -15,6 +15,7 @@ export type OrganizationSummary = {
   name: string;
   slug: string;
   createdAt: Date;
+  isArchived: boolean;
 };
 
 /** Le propriétaire plateforme voit toutes les organisations. */
@@ -31,8 +32,21 @@ export function canCreateOrganization(
   return isPlatformOwnerRole(appRole);
 }
 
-/** Seul le propriétaire plateforme ou le propriétaire org peut supprimer. */
+/**
+ * Suppression physique : owner plateforme uniquement.
+ * Le propriétaire org (ORG_ROLE.OWNER) ne peut pas supprimer.
+ */
 export function canDeleteOrganization(
+  appRole: string | null | undefined,
+  _orgMemberRole?: string | null,
+): boolean {
+  return isPlatformOwnerRole(appRole);
+}
+
+/**
+ * Archivage : owner plateforme ou propriétaire de l'organisation.
+ */
+export function canArchiveOrganization(
   appRole: string | null | undefined,
   orgMemberRole?: string | null,
 ): boolean {
@@ -40,7 +54,59 @@ export function canDeleteOrganization(
   return isOrganizationOwnerMember(orgMemberRole);
 }
 
+/**
+ * Sections réservées aux propriétaires (ex. roles page legacy).
+ * Uniquement APP_ROLE.OWNER (plateforme) ou ORG_ROLE.OWNER (membre).
+ */
+export function canAccessOrganizationOwnerSections(
+  appRole: string | null | undefined,
+  orgMemberRole?: string | null,
+): boolean {
+  if (isPlatformOwnerRole(appRole)) return true;
+  return isOrganizationOwnerMember(orgMemberRole);
+}
+
+/** Variante scopée à une organisation (évite un rôle owner d'une autre org). */
+export function canAccessOrganizationOwnerSectionsForOrg(
+  appRole: string | null | undefined,
+  organizationId: string,
+  membership?: { organizationId: string; role: string } | null,
+): boolean {
+  if (isPlatformOwnerRole(appRole)) return true;
+  if (!membership || membership.organizationId !== organizationId) {
+    return false;
+  }
+  return isOrganizationOwnerMember(membership.role);
+}
+
+/**
+ * Partenaires : owner plateforme uniquement (creation / gestion).
+ */
+export function canAccessOrganizationPartenaires(
+  appRole: string | null | undefined,
+  _orgMemberRole?: string | null,
+): boolean {
+  return isPlatformOwnerRole(appRole);
+}
+
+/** Variante scopée — même règle : owner plateforme seul. */
+export function canAccessOrganizationPartenairesForOrg(
+  appRole: string | null | undefined,
+  _organizationId: string,
+  _membership?: { organizationId: string; role: string } | null,
+): boolean {
+  return isPlatformOwnerRole(appRole);
+}
+
 export function canDeleteSpecificOrganization(
+  appRole: string | null | undefined,
+  _organizationId: string,
+  _membership?: { organizationId: string; role: string } | null,
+): boolean {
+  return isPlatformOwnerRole(appRole);
+}
+
+export function canArchiveSpecificOrganization(
   appRole: string | null | undefined,
   organizationId: string,
   membership?: { organizationId: string; role: string } | null,
@@ -59,18 +125,21 @@ export function canManageOrganizationAsAppAdmin(
   return isAppAdminRole(appRole);
 }
 
+const organizationSelect = {
+  id: true,
+  name: true,
+  slug: true,
+  createdAt: true,
+  isArchived: true,
+} as const;
+
 export async function listOrganizationsForUser(
   userId: string,
   appRole: string | null | undefined,
 ): Promise<OrganizationSummary[]> {
   if (canListAllOrganizations(appRole)) {
     return prisma.organization.findMany({
-      select: {
-        id: true,
-        name: true,
-        slug: true,
-        createdAt: true,
-      },
+      select: organizationSelect,
       orderBy: { createdAt: "asc" },
     });
   }
@@ -79,12 +148,7 @@ export async function listOrganizationsForUser(
     where: { userId },
     select: {
       organization: {
-        select: {
-          id: true,
-          name: true,
-          slug: true,
-          createdAt: true,
-        },
+        select: organizationSelect,
       },
     },
     orderBy: { createdAt: "asc" },
@@ -123,12 +187,7 @@ export async function getOrganizationByIdForUser(
 
   return prisma.organization.findUnique({
     where: { id: organizationId },
-    select: {
-      id: true,
-      name: true,
-      slug: true,
-      createdAt: true,
-    },
+    select: organizationSelect,
   });
 }
 
@@ -155,10 +214,16 @@ export async function getOrganizationsAccessContext(requestHeaders: Headers) {
         organization.id,
         membership,
       ),
+      canArchive: canArchiveSpecificOrganization(
+        appRole,
+        organization.id,
+        membership,
+      ),
     })),
     membership,
     canCreate: canCreateOrganization(appRole),
     canDelete: canDeleteOrganization(appRole, membership?.role),
+    canArchive: canArchiveOrganization(appRole, membership?.role),
     canListAll: canListAllOrganizations(appRole),
     isPlatformOwner: isPlatformOwnerRole(appRole),
     isOrgManager: isAppAdminRole(appRole),

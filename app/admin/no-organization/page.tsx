@@ -20,6 +20,10 @@ import {
   isPlatformSupportAppRole,
 } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
+import { getPrimaryRoleLabel } from "@/lib/sidebar-menu";
+import { resolveUserDisplayName } from "@/lib/user-display";
+
+export const dynamic = "force-dynamic";
 
 async function getPlatformOwnerContact() {
   return prisma.user.findFirst({
@@ -55,6 +59,8 @@ export default async function NoOrganizationPage() {
   const owner = await getPlatformOwnerContact();
   const ownerEmail = owner?.email?.trim() || null;
   const ownerLabel = owner?.name?.trim() || "Super administrateur";
+  const displayName = resolveUserDisplayName(session.user);
+  const roleLabel = getPrimaryRoleLabel(session);
   const mailSubject = encodeURIComponent(
     "Demande d'accès à une organisation Eteyelo",
   );
@@ -97,7 +103,7 @@ export default async function NoOrganizationPage() {
             <p className="mt-4 max-w-7xl text-sm leading-7 text-blue-50 sm:text-base">
               Connecté en tant que{" "}
               <span className="font-semibold text-white">
-                {session.user.name || session.user.email}
+                {displayName} · {roleLabel}
               </span>
               . Votre compte n’est rattaché à aucune organisation pour le
               moment.

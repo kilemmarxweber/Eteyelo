@@ -70,12 +70,30 @@ export function canManageOrganization(
 ): boolean {
   return hasSessionRole(
     session,
-    [APP_ROLE.OWNER, APP_ROLE.ADMIN, ORG_ROLE.OWNER, ORG_ROLE.GESTIONNAIRE],
+    [
+      APP_ROLE.OWNER,
+      APP_ROLE.ADMIN,
+      ORG_ROLE.OWNER,
+      ORG_ROLE.GESTIONNAIRE,
+      ORG_ROLE.PREFET,
+      ORG_ROLE.DIRECTEUR,
+      ORG_ROLE.SUPERVISEUR,
+      ORG_ROLE.CAISSIER,
+    ],
     ...extraRoles,
   );
 }
 
+/** Suppression physique d'organisation : owner plateforme uniquement. */
 export function canDeleteOrganizationResource(
+  session: any,
+  ...extraRoles: unknown[]
+): boolean {
+  return hasSessionRole(session, [APP_ROLE.OWNER], ...extraRoles);
+}
+
+/** Propriétaire plateforme (`APP_ROLE.OWNER`) ou propriétaire d'organisation (`ORG_ROLE.OWNER`). */
+export function isOrganizationOwnerSession(
   session: any,
   ...extraRoles: unknown[]
 ): boolean {
@@ -83,6 +101,75 @@ export function canDeleteOrganizationResource(
     session,
     [APP_ROLE.OWNER, ORG_ROLE.OWNER],
     ...extraRoles,
+  );
+}
+
+/**
+ * Paramètres branche avancés (types de frais, calendrier, présences,
+ * domaines primaire, support) : owner plateforme, admin app,
+ * propriétaire org ou gestionnaire org.
+ */
+export function canAccessBranchOrgSettings(
+  session: any,
+  ...extraRoles: unknown[]
+): boolean {
+  return hasSessionRole(
+    session,
+    [
+      APP_ROLE.OWNER,
+      APP_ROLE.ADMIN,
+      ORG_ROLE.OWNER,
+      ORG_ROLE.GESTIONNAIRE,
+    ],
+    ...extraRoles,
+  );
+}
+
+/** Notifications dépôt-candidature : owner, propriétaire, gestionnaire, préfet, directeur. */
+export function canSeeCandidatureNotifications(
+  session: any,
+  ...extraRoles: unknown[]
+): boolean {
+  return hasSessionRole(
+    session,
+    [
+      APP_ROLE.OWNER,
+      APP_ROLE.ADMIN,
+      ORG_ROLE.OWNER,
+      ORG_ROLE.GESTIONNAIRE,
+      ORG_ROLE.PREFET,
+      ORG_ROLE.DIRECTEUR,
+    ],
+    ...extraRoles,
+  );
+}
+
+/** Notifications inscription-élève : owner, propriétaire, gestionnaire, caissier, directeur. */
+export function canSeeInscriptionNotifications(
+  session: any,
+  ...extraRoles: unknown[]
+): boolean {
+  return hasSessionRole(
+    session,
+    [
+      APP_ROLE.OWNER,
+      APP_ROLE.ADMIN,
+      ORG_ROLE.OWNER,
+      ORG_ROLE.GESTIONNAIRE,
+      ORG_ROLE.CAISSIER,
+      ORG_ROLE.DIRECTEUR,
+    ],
+    ...extraRoles,
+  );
+}
+
+export function canSeeBranchNotifications(
+  session: any,
+  ...extraRoles: unknown[]
+): boolean {
+  return (
+    canSeeCandidatureNotifications(session, ...extraRoles) ||
+    canSeeInscriptionNotifications(session, ...extraRoles)
   );
 }
 
@@ -120,11 +207,13 @@ export function canReadScheduleArea(
       session,
       [
         ORG_ROLE.TEACHER,
-        ORG_ROLE.MONITEUR,
-        ORG_ROLE.RESPONSABLE,
+        ORG_ROLE.PREFET,
+        ORG_ROLE.DIRECTEUR,
+        ORG_ROLE.SUPERVISEUR,
         "TEACHER",
-        "MONITEUR",
-        "RESPONSABLE",
+        "PREFET",
+        "DIRECTEUR",
+        "SUPERVISEUR",
       ],
       ...extraRoles,
     )

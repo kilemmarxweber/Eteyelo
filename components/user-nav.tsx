@@ -16,41 +16,50 @@ import { useAppRouter as useRouter } from "@/hooks/use-app-router";
 import { authClient } from "@/lib/auth-client";
 import { useAppLoading } from "@/hooks/use-app-loading";
 import { getPrimaryRoleLabel } from "@/lib/sidebar-menu";
+import {
+  getUserInitials,
+  resolveUserDisplayName,
+  type SessionUserDisplay,
+} from "@/lib/user-display";
 import { LogOut, Settings, UserRound } from "lucide-react";
 
 export function UserNav() {
   const router = useRouter();
   const { resetLoading } = useAppLoading();
   const { data: session } = authClient.useSession();
-  const user = session?.user as any;
-  const prenom =
-    user?.prenom || user?.postnom?.split(" ")?.[0] || "DefaultFirst";
-  const nom = user?.name?.split(" ")?.slice(1).join(" ") || "DefaultLast";
+  const user = session?.user as SessionUserDisplay | undefined;
+  const displayName = resolveUserDisplayName(user);
   const roleLabel = getPrimaryRoleLabel(session);
-
-  const getInitials = (prenom: string, nom: string) => {
-    return `${prenom[0]}${nom[0]}`.toUpperCase();
-  };
-
-  const initials = getInitials(prenom, nom);
+  const initials = getUserInitials(displayName);
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="relative h-8 w-8 rounded-full ">
+        <Button
+          variant="ghost"
+          className="relative flex h-auto items-center gap-2 rounded-full px-1.5 py-1"
+        >
           <Avatar className="h-8 w-8">
-            <AvatarImage src="/avatars/01.png" alt="@kalasa" />
+            <AvatarImage src="/avatars/01.png" alt={displayName} />
             <AvatarFallback>{initials}</AvatarFallback>
           </Avatar>
+          {session ? (
+            <span className="hidden min-w-0 flex-col items-start text-left sm:flex">
+              <span className="max-w-[10rem] truncate text-sm font-medium leading-tight text-primary">
+                {displayName}
+              </span>
+              <span className="max-w-[10rem] truncate text-xs leading-tight text-muted-foreground capitalize">
+                {roleLabel}
+              </span>
+            </span>
+          ) : null}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56" align="end" forceMount>
         {session ? (
           <DropdownMenuLabel className="">
             <div className="flex flex-col space-y-1">
-              <p className="text-sm text-primary">
-                {`${nom}`.toUpperCase()}
-              </p>
+              <p className="text-sm text-primary">{displayName}</p>
               <p className="leading-none text-muted-foreground capitalize">
                 {roleLabel}
               </p>

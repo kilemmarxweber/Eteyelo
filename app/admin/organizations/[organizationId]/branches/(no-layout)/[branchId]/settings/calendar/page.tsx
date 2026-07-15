@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { getCalendarSettingsAction, saveEventTypeAction } from "../settings.action";
+import { RequireBranchOrgSettingsAccess } from "../components/require-branch-org-settings-access";
 
 type EventTypeItem = Awaited<ReturnType<typeof getCalendarSettingsAction>>[number];
 
@@ -42,7 +43,7 @@ export default function CalendarSettingsPage() {
     });
   }
 
-  return <div className="space-y-6">
+  return <RequireBranchOrgSettingsAccess><div className="space-y-6">
     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <div><div className="flex items-center gap-2"><h2 className="text-xl font-semibold">Calendrier scolaire</h2><Badge variant="outline-primary" icon={<IconCalendarCog size={14} />}>Paramètres</Badge></div>
         <p className="text-sm text-muted-foreground">Configurez les catégories utilisées pour classer les événements.</p></div>
@@ -58,5 +59,5 @@ export default function CalendarSettingsPage() {
       <div className="space-y-2"><label htmlFor="event-type-name" className="text-sm font-medium">Nom</label><Input id="event-type-name" value={name} onChange={e => setName(e.target.value)} placeholder="Ex. Congé, réunion, examen" /></div>
       <DialogFooter><Button type="button" variant="outline" onClick={() => setOpen(false)}>Annuler</Button><Button type="button" disabled={pending || name.trim().length < 3} onClick={submit}>{pending ? "Enregistrement..." : "Enregistrer"}</Button></DialogFooter>
     </DialogContent></Dialog>
-  </div>;
+  </div></RequireBranchOrgSettingsAccess>;
 }

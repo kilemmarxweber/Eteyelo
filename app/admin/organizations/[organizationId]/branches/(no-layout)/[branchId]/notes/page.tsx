@@ -12,6 +12,8 @@ import {
   resolveCoursePonderation,
 } from "@/lib/course-ponderation";
 
+export const dynamic = "force-dynamic";
+
 type LessonType = {
   id: string;
   classId: string;

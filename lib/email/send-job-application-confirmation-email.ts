@@ -1,14 +1,12 @@
 import { sendMail, isSmtpConfigured } from "./mailer";
+import {
+  DEFAULT_APP_NAME,
+  emailInfoCard,
+  emailLayoutHtml,
+  escapeHtml,
+} from "./email-layout";
 
-const APP_NAME = process.env.APP_NAME ?? "Klambocore";
-
-function escapeHtml(value: string): string {
-  return value
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;");
-}
+const APP_NAME = DEFAULT_APP_NAME;
 
 export async function sendJobApplicationConfirmationEmail(input: {
   to: string;
@@ -20,6 +18,7 @@ export async function sendJobApplicationConfirmationEmail(input: {
   const roleLabel =
     input.applicationType === "TEACHER" ? "Enseignant" : "Personnel";
   const subject = `${APP_NAME} — Candidature reçue (${input.reference})`;
+  const introText = `Bonjour ${input.candidateName}, nous avons bien reçu votre candidature ${roleLabel.toLowerCase()} pour « ${input.branchName} ». Votre dossier est enregistré sous la référence ${input.reference} et sera examiné par l’établissement.`;
 
   const text = [
     `Bonjour ${input.candidateName},`,
@@ -35,19 +34,23 @@ export async function sendJobApplicationConfirmationEmail(input: {
     `— L'équipe ${APP_NAME}`,
   ].join("\n");
 
-  const html = `
-    <div style="font-family:Arial,sans-serif;line-height:1.6;color:#0f172a;max-width:560px">
-      <p>Bonjour <strong>${escapeHtml(input.candidateName)}</strong>,</p>
-      <p>Nous avons bien reçu votre candidature sur <strong>${escapeHtml(APP_NAME)}</strong>.</p>
-      <table style="width:100%;border-collapse:collapse;margin:16px 0">
-        <tr><td style="padding:8px 0;color:#64748b">Référence</td><td style="padding:8px 0"><strong>${escapeHtml(input.reference)}</strong></td></tr>
-        <tr><td style="padding:8px 0;color:#64748b">Type de poste</td><td style="padding:8px 0">${escapeHtml(roleLabel)}</td></tr>
-        <tr><td style="padding:8px 0;color:#64748b">Établissement</td><td style="padding:8px 0">${escapeHtml(input.branchName)}</td></tr>
-      </table>
-      <p>Votre dossier sera examiné par l'établissement. Vous serez contacté par email en cas de suite favorable.</p>
-      <p style="margin-top:24px;color:#64748b">— L'équipe ${escapeHtml(APP_NAME)}</p>
-    </div>
+  const bodyHtml = `
+    ${emailInfoCard([
+      { label: "Référence", valueHtml: escapeHtml(input.reference) },
+      { label: "Type de poste", valueHtml: escapeHtml(roleLabel) },
+      { label: "Établissement", valueHtml: escapeHtml(input.branchName) },
+    ])}
+    <p style="margin:0;font-size:14px;line-height:1.7;color:#64748b;">
+      Votre dossier sera examiné par l’établissement. Vous serez contacté par email en cas de suite favorable.
+    </p>
   `;
+
+  const html = emailLayoutHtml({
+    appName: APP_NAME,
+    title: "Candidature bien reçue",
+    intro: escapeHtml(introText),
+    bodyHtml,
+  });
 
   const from =
     process.env.EMAIL_FROM ??

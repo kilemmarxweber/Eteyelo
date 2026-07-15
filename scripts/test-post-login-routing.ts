@@ -38,8 +38,20 @@ test("admin avec org route vers la page organisation", () => {
   );
 });
 
-test("admin sans org retombe sur /admin", () => {
-  assert.equal(resolveAppAdminPostLoginPath(null), "/admin");
+test("admin sans org retombe sur /admin/no-organization", () => {
+  assert.equal(resolveAppAdminPostLoginPath(null), "/admin/no-organization");
+});
+
+test("caissier route vers sa branche", () => {
+  assert.equal(
+    resolveMembershipPostLoginPath({
+      organizationId: ORG_ID,
+      membershipRole: ORG_ROLE.CAISSIER,
+      branchId: BRANCH_ID,
+      branchCount: 1,
+    }),
+    `/admin/organizations/${ORG_ID}/branches/${BRANCH_ID}`,
+  );
 });
 
 test("enseignant route vers sa branche", () => {
@@ -89,15 +101,21 @@ test("multi-branches sans preference route vers branch-picker", () => {
   );
 });
 
-test("roles ecodim route vers /ecodim", () => {
-  assert.equal(
-    resolveMembershipPostLoginPath({
-      organizationId: ORG_ID,
-      membershipRole: ORG_ROLE.RESPONSABLE,
-      branchCount: 0,
-    }),
-    `/admin/organizations/${ORG_ID}/ecodim`,
-  );
+test("roles ecodim (directeur / prefet / superviseur) route vers /ecodim", () => {
+  for (const membershipRole of [
+    ORG_ROLE.DIRECTEUR,
+    ORG_ROLE.PREFET,
+    ORG_ROLE.SUPERVISEUR,
+  ]) {
+    assert.equal(
+      resolveMembershipPostLoginPath({
+        organizationId: ORG_ID,
+        membershipRole,
+        branchCount: 0,
+      }),
+      `/admin/organizations/${ORG_ID}/ecodim`,
+    );
+  }
 });
 
 test("gestionnaire org route vers accueil organisation", () => {

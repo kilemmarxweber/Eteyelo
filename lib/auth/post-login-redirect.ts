@@ -1,7 +1,7 @@
 import { auth } from "@/lib/auth";
 import { getUserOrganizationMembership } from "@/lib/auth/org-membership";
 import {
-  getUserBranchMemberships,
+  getUserBranchMembershipsForLogin,
   resolveActiveBranchId,
 } from "@/lib/auth/user-branch-access";
 import {
@@ -79,14 +79,16 @@ export async function resolvePostLoginPath(requestHeaders: Headers): Promise<str
     return "/admin/no-organization";
   }
 
-  const branchMemberships = await getUserBranchMemberships(
+  const branchMemberships = await getUserBranchMembershipsForLogin(
     session.user.id,
     membership.organizationId,
+    membership.role,
   );
   const branchId = await resolveActiveBranchId(
     session.user.id,
     membership.organizationId,
     session.session.activeBranchId,
+    membership.role,
   );
 
   if (branchId) {

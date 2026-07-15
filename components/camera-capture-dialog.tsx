@@ -6,13 +6,13 @@ import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  ResponsiveDialog,
+  ResponsiveDialogContent,
+  ResponsiveDialogDescription,
+  ResponsiveDialogFooter,
+  ResponsiveDialogHeader,
+  ResponsiveDialogTitle,
+} from "@/components/ui/responsive-dialog";
 
 type CameraCaptureDialogProps = {
   open: boolean;
@@ -153,47 +153,46 @@ export function CameraCaptureDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent
-        size="sm"
-        className="flex max-h-[min(88dvh,34rem)] flex-col gap-0 overflow-hidden p-0 sm:max-w-md"
+    <ResponsiveDialog open={open} onOpenChange={onOpenChange}>
+      <ResponsiveDialogContent
+        size="lg"
+        className="flex max-h-[min(92dvh,44rem)] flex-col gap-0 overflow-hidden p-0 sm:max-h-[min(88dvh,40rem)]"
       >
-        <DialogHeader className="shrink-0 space-y-1 border-b px-4 py-3 text-left">
-          <DialogTitle className="text-base">{title}</DialogTitle>
-          <DialogDescription className="text-xs sm:text-sm">
+        <ResponsiveDialogHeader className="shrink-0 border-b px-4 py-3 text-left sm:px-5">
+          <ResponsiveDialogTitle>{title}</ResponsiveDialogTitle>
+          <ResponsiveDialogDescription>
             Cadrez le visage puis appuyez sur Capturer.
-          </DialogDescription>
-        </DialogHeader>
+          </ResponsiveDialogDescription>
+        </ResponsiveDialogHeader>
 
-        <div className="min-h-0 flex-1 space-y-2 overflow-y-auto px-4 py-3">
+        <div className="min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain px-4 py-3 sm:px-5">
           {error ? (
-            <p className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
+            <p className="rounded-lg bg-destructive/10 p-4 text-sm text-destructive">
               {error}
             </p>
           ) : (
-            <div className="overflow-hidden rounded-lg border bg-black shadow-inner">
+            <div className="overflow-hidden rounded-xl border bg-black">
               <video
                 ref={videoRef}
                 autoPlay
                 playsInline
                 muted
-                className="aspect-[4/3] max-h-[min(42dvh,18rem)] w-full bg-black object-cover"
+                className="aspect-[4/3] max-h-[min(58dvh,28rem)] w-full object-cover sm:aspect-video"
               />
             </div>
           )}
 
           {!error && !ready ? (
-            <p className="text-center text-xs text-muted-foreground sm:text-sm">
+            <p className="text-center text-sm text-muted-foreground">
               Ouverture de la caméra…
             </p>
           ) : null}
         </div>
 
-        <DialogFooter className="shrink-0 gap-2 border-t px-4 py-3 sm:flex-row sm:justify-end sm:space-x-0">
+        <ResponsiveDialogFooter className="shrink-0 gap-2 border-t px-4 py-3 sm:flex-row sm:justify-end sm:px-5">
           <Button
             type="button"
             variant="outline"
-            size="sm"
             className="w-full sm:w-auto"
             onClick={() => onOpenChange(false)}
           >
@@ -201,16 +200,15 @@ export function CameraCaptureDialog({
           </Button>
           <Button
             type="button"
-            size="sm"
             className="w-full gap-1.5 sm:w-auto"
             disabled={!ready || Boolean(error)}
             onClick={capture}
           >
-            <Camera className="size-3.5" />
+            <Camera className="size-4" />
             Capturer
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </ResponsiveDialogFooter>
+      </ResponsiveDialogContent>
+    </ResponsiveDialog>
   );
 }

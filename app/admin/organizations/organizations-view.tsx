@@ -9,6 +9,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 
+import { ArchiveOrganizationButton } from "@/app/admin/organizations/components/archive-organization-dialog";
 import { DeleteOrganizationButton } from "@/app/admin/organizations/components/delete-organization-dialog";
 import { OrganizationRoleBadge } from "@/app/admin/organizations/components/organization-role-badge";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -141,10 +142,23 @@ export function OrganizationsView() {
                       <span className="mt-0.5 block break-all text-xs text-slate-500">
                         {org.slug}
                       </span>
+                      {org.isArchived ? (
+                        <span className="mt-1 inline-flex rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-800">
+                          Archivee
+                        </span>
+                      ) : null}
                     </span>
                   </Link>
 
                   <div className="flex items-center gap-1">
+                    {org.canArchive ? (
+                      <ArchiveOrganizationButton
+                        organizationId={org.id}
+                        organizationName={org.name}
+                        isArchived={Boolean(org.isArchived)}
+                        onDone={() => void reload()}
+                      />
+                    ) : null}
                     {org.canDelete ? (
                       <DeleteOrganizationButton
                         organizationId={org.id}

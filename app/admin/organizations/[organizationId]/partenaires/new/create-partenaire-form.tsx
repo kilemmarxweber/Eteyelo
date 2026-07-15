@@ -93,6 +93,7 @@ export function CreatePartenaireForm({ organizationId, branches, partenaireId, i
   function onSubmit(values: CreatePartenaireInput) {
     startTransition(async () => {
       const formData = new FormData();
+      formData.append("organizationId", organizationId);
 
       Object.entries(values).forEach(([key, value]) => {
         if (typeof value === "boolean") {

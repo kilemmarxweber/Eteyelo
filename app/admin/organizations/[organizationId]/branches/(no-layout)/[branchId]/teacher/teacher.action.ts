@@ -128,6 +128,7 @@ export const createTeacherAction = action
         address: input.address,
         dateOfBirth: input.dateOfBirth ?? new Date(),
         organizationId,
+        branchId,
         orgRole: "teacher",
       });
 

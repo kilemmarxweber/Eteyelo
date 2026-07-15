@@ -1,6 +1,13 @@
 import { sendMail, isSmtpConfigured } from "./mailer";
+import {
+  DEFAULT_APP_NAME,
+  emailInfoCard,
+  emailLayoutHtml,
+  escapeHtml,
+  getSignInUrl,
+} from "./email-layout";
 
-const APP_NAME = process.env.APP_NAME ?? "Kalasa";
+const APP_NAME = DEFAULT_APP_NAME;
 
 export async function sendResetPasswordEmail(input: {
   to: string;
@@ -9,16 +16,10 @@ export async function sendResetPasswordEmail(input: {
   loginUrl?: string;
 }): Promise<void> {
   const { to, name, temporaryPassword } = input;
-
-  const loginUrl =
-    input.loginUrl ??
-    `${
-      process.env.BETTER_AUTH_URL ??
-      process.env.NEXT_PUBLIC_BETTER_AUTH_URL ??
-      "http://localhost:3000"
-    }/auth/sign-in`;
+  const loginUrl = input.loginUrl ?? getSignInUrl();
 
   const subject = `${APP_NAME} — Réinitialisation de votre mot de passe`;
+  const introText = `Bonjour ${name}, votre mot de passe ${APP_NAME} a été réinitialisé par un administrateur. Utilisez le mot de passe temporaire ci-dessous pour vous reconnecter sur klambocore.com.`;
 
   const text = [
     `Bonjour ${name},`,
@@ -35,27 +36,30 @@ export async function sendResetPasswordEmail(input: {
     "— L’équipe " + APP_NAME,
   ].join("\n");
 
-  const html = `
-    <p>Bonjour ${escapeHtml(name)},</p>
-    <p>Votre mot de passe a été réinitialisé par un administrateur.</p>
-
-    <ul>
-      <li><strong>Email</strong> : ${escapeHtml(to)}</li>
-      <li><strong>Nouveau mot de passe</strong> : <code>${escapeHtml(
-        temporaryPassword,
-      )}</code></li>
-    </ul>
-
-    <p>
-      <a href="${escapeHtml(loginUrl)}">Se connecter</a>
-    </p>
-
-    <p>
+  const bodyHtml = `
+    ${emailInfoCard([
+      { label: "Email", valueHtml: escapeHtml(to) },
+      {
+        label: "Nouveau mot de passe",
+        valueHtml: `<code style="background:#e2e8f0;padding:2px 8px;border-radius:6px;font-size:13px;">${escapeHtml(temporaryPassword)}</code>`,
+      },
+      {
+        label: "Connexion",
+        valueHtml: `<a href="${escapeHtml(loginUrl)}" style="color:#1d4ed8;text-decoration:none;">klambocore.com</a>`,
+      },
+    ])}
+    <p style="margin:0;font-size:14px;line-height:1.7;color:#64748b;">
       Pour des raisons de sécurité, changez ce mot de passe après connexion.
     </p>
-
-    <p>— ${escapeHtml(APP_NAME)}</p>
   `;
+
+  const html = emailLayoutHtml({
+    appName: APP_NAME,
+    title: "Mot de passe réinitialisé",
+    intro: escapeHtml(introText),
+    bodyHtml,
+    cta: { href: loginUrl, label: "Se connecter sur Klambocore" },
+  });
 
   const from =
     process.env.EMAIL_FROM ??
@@ -69,17 +73,12 @@ export async function sendResetPasswordEmail(input: {
   }
 
   if (process.env.NODE_ENV === "development") {
+    // eslint-disable-next-line no-console
     console.info(`[RESET EMAIL] to=${to}`);
+    // eslint-disable-next-line no-console
     console.info(`[RESET PASSWORD] ${temporaryPassword}`);
   } else {
+    // eslint-disable-next-line no-console
     console.warn("[RESET EMAIL] SMTP non configuré");
   }
-}
-
-function escapeHtml(s: string): string {
-  return s
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;");
 }

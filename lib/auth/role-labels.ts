@@ -2,10 +2,10 @@ import { APP_ROLE, ORG_ROLE } from "@/lib/permissions";
 import { orgRoleLabel } from "@/lib/org-role-labels";
 
 const APP_ROLE_LABEL: Record<string, string> = {
-  [APP_ROLE.OWNER]: "Proprietaire plateforme",
+  [APP_ROLE.OWNER]: "Propriétaire",
   [APP_ROLE.ADMIN]: "Gestionnaire",
   [APP_ROLE.USER]: "Utilisateur",
-  [APP_ROLE.PLATFORM_SUPPORT]: "Support plateforme",
+  [APP_ROLE.PLATFORM_SUPPORT]: "Support",
 };
 
 export function getApplicationRoleLabel(

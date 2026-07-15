@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import { usePathname } from "next/navigation";
 import {
   IconHeadphones,
@@ -12,59 +13,70 @@ import {
 } from "@tabler/icons-react";
 
 import { Layout, LayoutBody } from "@/components/custom/layout";
+import { authClient } from "@/lib/auth-client";
+import { canAccessBranchOrgSettings } from "@/lib/auth/session-roles";
 import SidebarNav from "./components/sidebar-nav";
 
 export default function Settings({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const { data: session } = authClient.useSession();
+  const canSeeOrgSettings = canAccessBranchOrgSettings(session);
+
   const branchBasePath =
     pathname?.match(/^\/admin\/organizations\/[^/]+\/branches\/[^/]+/)?.[0] ??
     "/admin";
   const settingsBasePath = `${branchBasePath}/settings`;
 
-  const sidebarNavItems = [
-    {
-      title: "Compte",
-      icon: <IconSettings size={18} />,
-      href: `${settingsBasePath}/account`,
-      permission: null,
-    },
-    {
-      title: "Apparence",
-      icon: <IconPalette size={18} />,
-      href: `${settingsBasePath}/appearance`,
-      permission: null,
-    },
-    {
-      title: "Types de frais",
-      icon: <IconReportMoney size={18} />,
-      href: `${settingsBasePath}/typeFrais`,
-      permission: null,
-    },
-    {
-      title: "Calendrier scolaire",
-      icon: <IconCalendarCog size={18} />,
-      href: `${settingsBasePath}/calendar`,
-      permission: null,
-    },
-    {
-      title: "Présences",
-      icon: <IconUserCheck size={18} />,
-      href: `${settingsBasePath}/attendance`,
-      permission: null,
-    },
-    {
-      title: "Domaines primaire",
-      icon: <IconBooks size={18} />,
-      href: `${settingsBasePath}/primary-domains`,
-      permission: null,
-    },
-    {
-      title: "Support de l'établissement",
-      icon: <IconHeadphones size={18} />,
-      href: `${settingsBasePath}/support`,
-      permission: null,
-    },
-  ];
+  const sidebarNavItems = useMemo(() => {
+    const items = [
+      {
+        title: "Compte",
+        icon: <IconSettings size={18} />,
+        href: `${settingsBasePath}/account`,
+        orgSettingsOnly: false,
+      },
+      {
+        title: "Apparence",
+        icon: <IconPalette size={18} />,
+        href: `${settingsBasePath}/appearance`,
+        orgSettingsOnly: false,
+      },
+      {
+        title: "Types de frais",
+        icon: <IconReportMoney size={18} />,
+        href: `${settingsBasePath}/typeFrais`,
+        orgSettingsOnly: true,
+      },
+      {
+        title: "Calendrier scolaire",
+        icon: <IconCalendarCog size={18} />,
+        href: `${settingsBasePath}/calendar`,
+        orgSettingsOnly: true,
+      },
+      {
+        title: "Présences",
+        icon: <IconUserCheck size={18} />,
+        href: `${settingsBasePath}/attendance`,
+        orgSettingsOnly: true,
+      },
+      {
+        title: "Domaines primaire",
+        icon: <IconBooks size={18} />,
+        href: `${settingsBasePath}/primary-domains`,
+        orgSettingsOnly: true,
+      },
+      {
+        title: "Support de l'établissement",
+        icon: <IconHeadphones size={18} />,
+        href: `${settingsBasePath}/support`,
+        orgSettingsOnly: true,
+      },
+    ];
+
+    return items
+      .filter((item) => !item.orgSettingsOnly || canSeeOrgSettings)
+      .map(({ orgSettingsOnly: _, ...item }) => item);
+  }, [settingsBasePath, canSeeOrgSettings]);
 
   return (
     <Layout fadedBelow fixedHeight>

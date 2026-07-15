@@ -1,46 +1,60 @@
-"use client";
-
 import Link from "next/link";
+import { headers } from "next/headers";
 import {
   ArrowRight,
   Building2,
+  Handshake,
   LayoutDashboard,
-  ShieldCheck,
-  Users,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { useSession } from "@/lib/auth-client";
+import { auth } from "@/lib/auth";
+import { isPlatformOwnerRole } from "@/lib/permissions";
+import { prisma } from "@/lib/prisma";
+import { getPrimaryRoleLabel } from "@/lib/sidebar-menu";
+import { resolveUserDisplayName } from "@/lib/user-display";
 
-const adminCards = [
-  {
-    title: "Organisations",
-    text: "Accedez aux espaces, etablissements, membres et roles.",
-    href: "/admin/organizations",
-    icon: Building2,
-  },
-  {
-    title: "Membres",
-    text: "Invitez, organisez et controlez les acces de vos equipes.",
-    href: "/admin/organizations",
-    icon: Users,
-  },
-  {
-    title: "Permissions",
-    text: "Gardez une administration claire avec des droits bien separes.",
-    href: "/admin/organizations",
-    icon: ShieldCheck,
-  },
-];
+export const dynamic = "force-dynamic";
 
-export default function AdminPage() {
-  const { data: session, isPending } = useSession();
-  const name = session?.user?.name ?? "...";
+export default async function AdminPage() {
+  const session = await auth.api.getSession({ headers: await headers() });
+  const name = resolveUserDisplayName(session?.user);
+  const roleLabel = getPrimaryRoleLabel(session);
+  const isPlatformOwner = isPlatformOwnerRole(session?.user?.role);
+
+  let partenairesHref = "/admin/organizations";
+  if (isPlatformOwner) {
+    const firstOrg = await prisma.organization.findFirst({
+      orderBy: [{ isArchived: "asc" }, { createdAt: "asc" }],
+      select: { id: true },
+    });
+
+    if (firstOrg) {
+      partenairesHref = `/admin/organizations/${firstOrg.id}/partenaires`;
+    }
+  }
+
+  const adminCards = [
+    {
+      title: "Organisations",
+      text: "Accedez aux espaces, etablissements et equipes.",
+      href: "/admin/organizations",
+      icon: Building2,
+      show: true,
+    },
+    {
+      title: "Partenaires",
+      text: "Creer et gerer les partenaires officiels (owner uniquement).",
+      href: partenairesHref,
+      icon: Handshake,
+      show: isPlatformOwner,
+    },
+  ].filter((card) => card.show);
 
   return (
     <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
       <section className="overflow-hidden rounded-3xl border bg-white shadow-sm">
-        <div className="grid gap-0 lg:grid-cols-[0.9fr_1.1fr]">
+        <div className="grid gap-0 lg:grid-cols-[0.95fr_1.05fr]">
           <div className="bg-blue-950 p-6 text-white sm:p-8 lg:p-10">
             <div className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1.5 text-xs font-semibold">
               <LayoutDashboard className="size-4" />
@@ -52,22 +66,34 @@ export default function AdminPage() {
             </h2>
 
             <p className="mt-4 max-w-7xl text-sm leading-7 text-blue-50 sm:text-base">
-              {isPending
-                ? "Chargement de votre session..."
-                : `Connecte en tant que ${name}.`}{" "}
-              Retrouvez ici les organisations, leurs etablissements et les
-              parametres essentiels.
+              Connecte en tant que {name} · {roleLabel}. Retrouvez ici les
+              organisations
+              {isPlatformOwner ? " et les partenaires" : ""}.
             </p>
 
-            <Button
-              asChild
-              className="mt-8 h-11 rounded-full bg-white px-5 text-blue-950 hover:bg-blue-50"
-            >
-              <Link href="/admin/organizations">
-                Mes organisations
-                <ArrowRight className="ml-2 size-4" />
-              </Link>
-            </Button>
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+              <Button
+                asChild
+                className="h-11 rounded-full bg-white px-5 text-blue-950 hover:bg-blue-50"
+              >
+                <Link href="/admin/organizations">
+                  Mes organisations
+                  <ArrowRight className="ml-2 size-4" />
+                </Link>
+              </Button>
+              {isPlatformOwner ? (
+                <Button
+                  asChild
+                  variant="secondary"
+                  className="h-11 rounded-full border-0 bg-white/15 px-5 text-white hover:bg-white/25"
+                >
+                  <Link href={partenairesHref}>
+                    <Handshake className="mr-2 size-4" />
+                    Partenaires
+                  </Link>
+                </Button>
+              ) : null}
+            </div>
           </div>
 
           <div className="grid gap-4 p-5 sm:p-6 lg:p-8">

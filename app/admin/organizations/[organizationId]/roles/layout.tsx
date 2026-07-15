@@ -1,4 +1,4 @@
-import { enforceOrganizationManagerPage } from "@/lib/auth/require-organization-permission";
+import { enforceOrganizationOwnerPage } from "@/lib/auth/require-organization-permission";
 
 export default async function OrganizationRolesLayout({
   children,
@@ -8,6 +8,6 @@ export default async function OrganizationRolesLayout({
   params: Promise<{ organizationId: string }>;
 }) {
   const { organizationId } = await params;
-  await enforceOrganizationManagerPage(organizationId);
+  await enforceOrganizationOwnerPage(organizationId);
   return children;
 }

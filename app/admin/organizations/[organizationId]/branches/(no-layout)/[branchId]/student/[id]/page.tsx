@@ -20,6 +20,8 @@ import { ORG_ROLE } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 import { normalizeImageSrc } from "@/lib/utils";
 
+export const dynamic = "force-dynamic";
+
 function safeNumber(value: unknown) {
   const number = Number(value);
   return Number.isFinite(number) ? number : 0;

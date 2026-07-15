@@ -1,4 +1,4 @@
--- Migration donnees roles organisation (Phase 07)
+-- Migration donnees roles organisation (Phase 07 + refonte 2A)
 -- Preferer le script TypeScript idempotent:
 --   pnpm run migrate:org-roles:dry-run
 --   pnpm run migrate:org-roles
@@ -13,19 +13,58 @@ WHERE m.user_id = u.id
   AND u.role = 'admin'
   AND m.role = 'owner';
 
--- 2) Promouvoir les anciens super admins sans membership
+-- 2) Mapping 2A des slugs org (CSV-safe via REPLACE)
+UPDATE "member" SET role = REPLACE(role, 'surveillant', 'superviseur');
+UPDATE "member" SET role = REPLACE(role, 'responsable', 'directeur');
+UPDATE "member" SET role = REPLACE(role, 'moniteur', 'prefet');
+
+-- 3) Renommer les presets OrganizationRole dynamiques (si pas de collision)
+UPDATE "organizationRole"
+SET role = 'superviseur'
+WHERE role = 'surveillant'
+  AND NOT EXISTS (
+    SELECT 1
+    FROM "organizationRole" AS other
+    WHERE other."organizationId" = "organizationRole"."organizationId"
+      AND other.role = 'superviseur'
+  );
+
+UPDATE "organizationRole"
+SET role = 'directeur'
+WHERE role = 'responsable'
+  AND NOT EXISTS (
+    SELECT 1
+    FROM "organizationRole" AS other
+    WHERE other."organizationId" = "organizationRole"."organizationId"
+      AND other.role = 'directeur'
+  );
+
+UPDATE "organizationRole"
+SET role = 'prefet'
+WHERE role = 'moniteur'
+  AND NOT EXISTS (
+    SELECT 1
+    FROM "organizationRole" AS other
+    WHERE other."organizationId" = "organizationRole"."organizationId"
+      AND other.role = 'prefet'
+  );
+
+DELETE FROM "organizationRole"
+WHERE role IN ('surveillant', 'responsable', 'moniteur');
+
+-- 4) Promouvoir les anciens super admins sans membership
 UPDATE "user"
 SET role = 'owner'
 WHERE role = 'admin'
   AND id NOT IN (SELECT DISTINCT user_id FROM member);
 
--- 3) Retirer les memberships des proprietaires plateforme
+-- 5) Retirer les memberships des proprietaires plateforme
 DELETE FROM member AS m
 USING "user" AS u
 WHERE m.user_id = u.id
   AND u.role = 'owner';
 
--- 4) Audit memberships multiples (lecture seule)
+-- 6) Audit memberships multiples (lecture seule)
 SELECT user_id, COUNT(*) AS membership_count
 FROM member
 GROUP BY user_id

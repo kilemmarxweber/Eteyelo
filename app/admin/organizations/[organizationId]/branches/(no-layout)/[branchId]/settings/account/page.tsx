@@ -4,6 +4,8 @@ import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { AccountForm } from "./account-form";
 
+export const dynamic = "force-dynamic";
+
 export default async function SettingsAccount({
   params,
 }: {

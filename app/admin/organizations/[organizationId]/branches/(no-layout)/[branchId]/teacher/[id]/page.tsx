@@ -21,6 +21,9 @@ import { genererCreneaux } from "../components/type";
 import StudentAttendanceTable from "../../attendance/component/StudentAttendanceTable";
 import { getTeacherCurrentSessions } from "../../attendance/attendance.action";
 import { getAttendanceSessionById } from "../../attendance/attendance.action";
+
+export const dynamic = "force-dynamic";
+
 const SingleTeacherPage = async ({
   params,
 }: {

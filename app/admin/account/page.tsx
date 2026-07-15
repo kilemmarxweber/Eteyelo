@@ -4,6 +4,8 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { AccountView } from "./account-view";
 
+export const dynamic = "force-dynamic";
+
 export default async function AdminAccountPage() {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session?.user) {

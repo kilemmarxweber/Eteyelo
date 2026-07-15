@@ -82,6 +82,7 @@ export const createParentAction = action
       const result = await createOrganizationMemberAction({
         ...data,
         organizationId,
+        branchId,
         orgRole: "parent",
         email: emailLower,
         dateOfBirth: new Date(),

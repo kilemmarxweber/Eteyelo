@@ -14,6 +14,8 @@ import { prisma } from "@/lib/prisma";
 import { normalizeImageSrc } from "@/lib/utils";
 import { PartenaireActions } from "./partenaire-actions";
 
+export const dynamic = "force-dynamic";
+
 type PageProps = {
   params: Promise<{ organizationId: string }>;
   searchParams: Promise<{ q?: string }>;
@@ -26,6 +28,8 @@ export default async function OrganizationPartenairesPage({
   const { organizationId } = await params;
   const { q } = await searchParams;
 
+  const branchesHref = `/admin/organizations/${organizationId}/branches`;
+
   const partenaires = await prisma.partnaire.findMany({
     where: {
       OR: [
@@ -35,6 +39,7 @@ export default async function OrganizationPartenairesPage({
           },
         },
         {
+          // Partenaires org-level (sans branche) visibles pour le owner
           branchId: null,
         },
       ],
@@ -42,12 +47,13 @@ export default async function OrganizationPartenairesPage({
         ? {
             name: {
               contains: q,
-              mode: "insensitive",
+              mode: "insensitive" as const,
             },
           }
         : {}),
     },
     orderBy: [{ isFeatured: "desc" }, { createdAt: "desc" }],
+    take: 100,
     select: {
       id: true,
       name: true,
@@ -71,10 +77,7 @@ export default async function OrganizationPartenairesPage({
 
   return (
     <div className="mx-auto flex w-full max-w-7xl flex-col gap-5 px-4 py-6 sm:px-6 lg:px-8">
-      <BackLink
-        href={`/admin/organizations/${organizationId}`}
-        label="Retour organisation"
-      />
+      <BackLink href={branchesHref} label="Retour aux établissements" />
 
       <section className="rounded-2xl bg-blue-950 p-5 text-white shadow-lg shadow-blue-950/10 sm:p-6">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">

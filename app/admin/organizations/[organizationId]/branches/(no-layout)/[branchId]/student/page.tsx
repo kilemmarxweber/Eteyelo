@@ -74,13 +74,16 @@ export default function Students() {
 
       const { start, end } = getCurrentQuarterRange();
 
+      // Actif = inscrit à une classe de l'année en cours ; inactif = non inscrit
+      const isEnrolledCurrentYear = (student: (typeof students)[number]) =>
+        Boolean(student.classCode);
+
       setStats({
         total: students.length,
 
-        actifs: students.filter((student) => student.statusUser === true)
-          .length,
+        actifs: students.filter(isEnrolledCurrentYear).length,
 
-        inactifs: students.filter((student) => student.statusUser === false)
+        inactifs: students.filter((student) => !isEnrolledCurrentYear(student))
           .length,
 
         nouveauxTrimestre: students.filter((student) => {
@@ -112,13 +115,13 @@ export default function Students() {
     {
       label: "Actifs",
       value: stats.actifs,
-      description: "élèves",
+      description: "inscrits année en cours",
       icon: IconUserCheck,
     },
     {
       label: "Inactifs",
       value: stats.inactifs,
-      description: "élèves",
+      description: "non inscrits année en cours",
       icon: IconUserOff,
     },
     {

@@ -15,6 +15,8 @@ import {
   hasSessionRole,
 } from "@/lib/auth/session-roles";
 
+export const dynamic = "force-dynamic";
+
 const ResultListPage = async () => {
   const { session, userId: currentUserId, branchId } =
     await requireBranchContext();

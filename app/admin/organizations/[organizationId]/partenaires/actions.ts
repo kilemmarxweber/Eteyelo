@@ -5,12 +5,30 @@ import path from "path";
 import { revalidatePath } from "next/cache";
 
 import { prisma } from "@/lib/prisma";
-import { requireBranchContext } from "@/lib/auth/require-branch-context";
+import { guardOrganizationPartenaires } from "@/lib/auth/require-organization-permission";
 import { createPartenaireSchema } from "./schema";
 import {
   ensureUniqueIdentifier,
   generateSlug,
 } from "@/lib/generated-identifiers";
+
+async function requirePartenaireOwnerAccess(organizationId: string) {
+  const orgId = organizationId.trim();
+  if (!orgId) {
+    return { ok: false as const, message: "Organisation manquante." };
+  }
+
+  const guard = await guardOrganizationPartenaires(orgId);
+  if (!guard.ok) {
+    return { ok: false as const, message: guard.message };
+  }
+
+  return {
+    ok: true as const,
+    organizationId: orgId,
+    userId: guard.context.userId,
+  };
+}
 
 async function uploadFile(file: FormDataEntryValue | null) {
   if (!(file instanceof File) || file.size === 0) return "";
@@ -35,7 +53,13 @@ async function uploadFile(file: FormDataEntryValue | null) {
 }
 
 export async function createPartenaireAction(formData: FormData) {
-  const { organizationId } = await requireBranchContext();
+  const access = await requirePartenaireOwnerAccess(
+    String(formData.get("organizationId") ?? ""),
+  );
+  if (!access.ok) {
+    return { ok: false, message: access.message };
+  }
+  const { organizationId } = access;
 
   const image = await uploadFile(formData.get("imageFile"));
   const logo = await uploadFile(formData.get("logoFile"));
@@ -132,7 +156,13 @@ export async function updatePartenaireAction(
   partenaireId: string,
   formData: FormData,
 ) {
-  const { organizationId } = await requireBranchContext();
+  const access = await requirePartenaireOwnerAccess(
+    String(formData.get("organizationId") ?? ""),
+  );
+  if (!access.ok) {
+    return { ok: false, message: access.message };
+  }
+  const { organizationId } = access;
 
   const existing = await prisma.partnaire.findUnique({
     where: { id: partenaireId },
@@ -251,8 +281,13 @@ export async function updatePartenaireAction(
 export async function setPartenaireActiveAction(
   partenaireId: string,
   isActive: boolean,
+  organizationId: string,
 ) {
-  const { organizationId } = await requireBranchContext();
+  const access = await requirePartenaireOwnerAccess(organizationId);
+  if (!access.ok) {
+    return { ok: false, message: access.message };
+  }
+  const { organizationId: orgId } = access;
 
   try {
     const existing = await prisma.partnaire.findUnique({
@@ -272,7 +307,7 @@ export async function setPartenaireActiveAction(
       data: { isActive },
     });
 
-    revalidatePath(`/admin/organizations/${organizationId}/partenaires`);
+    revalidatePath(`/admin/organizations/${orgId}/partenaires`);
     revalidatePath("/");
 
     return {
@@ -290,6 +325,9 @@ export async function setPartenaireActiveAction(
 }
 
 /** @deprecated Utiliser setPartenaireActiveAction pour conserver les donnees. */
-export async function deletePartenaireAction(partenaireId: string) {
-  return setPartenaireActiveAction(partenaireId, false);
+export async function deletePartenaireAction(
+  partenaireId: string,
+  organizationId: string,
+) {
+  return setPartenaireActiveAction(partenaireId, false, organizationId);
 }

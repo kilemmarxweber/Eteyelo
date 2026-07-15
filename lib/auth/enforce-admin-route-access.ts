@@ -154,7 +154,11 @@ export async function enforceAdminRouteAccess(pathname: string) {
     const memberRoles = splitRoles(membership?.role);
     if (
       memberRoles.includes(ORG_ROLE.OWNER) ||
-      memberRoles.includes(ORG_ROLE.GESTIONNAIRE)
+      memberRoles.includes(ORG_ROLE.GESTIONNAIRE) ||
+      memberRoles.includes(ORG_ROLE.PREFET) ||
+      memberRoles.includes(ORG_ROLE.DIRECTEUR) ||
+      memberRoles.includes(ORG_ROLE.SUPERVISEUR) ||
+      memberRoles.includes(ORG_ROLE.CAISSIER)
     ) {
       return context;
     }

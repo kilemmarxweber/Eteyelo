@@ -31,14 +31,17 @@ import {
   dispatchCandidaturePrefill,
   dispatchRegistrationPrefill,
 } from "@/lib/prefill-events";
+import { authClient } from "@/lib/auth-client";
 import {
-  getPendingRegistrationRequestsAction,
-  confirmRegistrationRequestAction,
-} from "@/app/admin/organizations/[organizationId]/branches/(no-layout)/[branchId]/registration/registration.action";
+  canSeeBranchNotifications,
+  canSeeCandidatureNotifications,
+  canSeeInscriptionNotifications,
+} from "@/lib/auth/session-roles";
 import {
-  acceptJobApplicationAction,
-  getJobApplicationsAction,
-} from "@/app/components/depot-candidature/job-application.actions";
+  confirmNotificationRequestAction,
+  getNotificationRequestsAction,
+} from "@/lib/actions/notification.actions";
+import { acceptJobApplicationAction } from "@/app/components/depot-candidature/job-application.actions";
 
 type RegistrationRow = {
   id: string;
@@ -278,6 +281,7 @@ export function NotificationBell() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const { data: session } = authClient.useSession();
 
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState<NotificationItem[]>([]);
@@ -285,6 +289,10 @@ export function NotificationBell() {
   const [error, setError] = useState<string | null>(null);
   const [confirming, setConfirming] = useState<string | null>(null);
   const [, startTransition] = useTransition();
+
+  const canSeeInscriptions = canSeeInscriptionNotifications(session);
+  const canSeeCandidatures = canSeeCandidatureNotifications(session);
+  const canSeeNotifications = canSeeBranchNotifications(session);
 
   const pendingCount = items.filter((item) =>
     item.kind === "registration"
@@ -297,26 +305,40 @@ export function NotificationBell() {
     : "";
 
   const loadRequests = useCallback(async () => {
+    if (!canSeeNotifications) {
+      setItems([]);
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
-      const [registrations, regErr] = await getPendingRegistrationRequestsAction();
-      const [jobs, jobErr] = await getJobApplicationsAction();
-      if (regErr && jobErr) {
+      const [data, err] = await getNotificationRequestsAction();
+      if (err || !data) {
         setError("Impossible de charger les notifications.");
         return;
       }
-      const registrationItems: RegistrationRow[] = (
-        (registrations as Omit<RegistrationRow, "kind">[] | null) ?? []
-      )
-        .filter((row) => row.status === "PENDING" || row.status === "CONFIRMED")
-        .map((row) => ({ ...row, kind: "registration" as const }));
+      const registrationItems: RegistrationRow[] = canSeeInscriptions
+        ? (data.registrations ?? [])
+            .filter(
+              (row) => row.status === "PENDING" || row.status === "CONFIRMED",
+            )
+            .map((row) => ({
+              ...row,
+              studentData:
+                row.studentData && typeof row.studentData === "object"
+                  ? (row.studentData as RegistrationRow["studentData"])
+                  : null,
+              kind: "registration" as const,
+            }))
+        : [];
 
-      const jobItems: JobRow[] = ((jobs as Omit<JobRow, "kind">[] | null) ?? [])
-        .filter((row) =>
-          ["PENDING", "REVIEWED", "ACCEPTED"].includes(row.status),
-        )
-        .map((row) => ({ ...row, kind: "job" as const }));
+      const jobItems: JobRow[] = canSeeCandidatures
+        ? (data.jobApplications ?? [])
+            .filter((row) =>
+              ["PENDING", "REVIEWED", "ACCEPTED"].includes(row.status),
+            )
+            .map((row) => ({ ...row, kind: "job" as const }))
+        : [];
 
       const merged = [...registrationItems, ...jobItems].sort((a, b) => {
         const left = new Date(a.createdAt).getTime();
@@ -329,7 +351,7 @@ export function NotificationBell() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [canSeeCandidatures, canSeeInscriptions, canSeeNotifications]);
 
   useEffect(() => {
     if (open) void loadRequests();
@@ -340,12 +362,12 @@ export function NotificationBell() {
   }, [loadRequests]);
 
   useEffect(() => {
-    if (!params.branchId) return;
+    if (!params.branchId || !canSeeNotifications) return;
     const interval = setInterval(() => {
       if (!open) void loadRequests();
     }, 15_000);
     return () => clearInterval(interval);
-  }, [open, params.branchId, loadRequests]);
+  }, [open, params.branchId, loadRequests, canSeeNotifications]);
 
   const handleConfirm = useCallback(
     (item: NotificationItem) => {
@@ -353,7 +375,7 @@ export function NotificationBell() {
       startTransition(async () => {
         try {
           if (item.kind === "registration") {
-            const [, err] = await confirmRegistrationRequestAction({
+            const [, err] = await confirmNotificationRequestAction({
               requestId: item.id,
             });
             if (err) {
@@ -423,7 +445,7 @@ export function NotificationBell() {
     [branchBase, pathname, router, searchParams],
   );
 
-  if (!params.branchId) return null;
+  if (!params.branchId || !canSeeNotifications) return null;
 
   return (
     <>

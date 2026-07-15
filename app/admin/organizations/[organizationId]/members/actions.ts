@@ -21,11 +21,13 @@ import {
   type UpdateOrgMemberInput,
 } from "./schema";
 import { sendResetPasswordEmail } from "@/lib/email/send-reset-password-email";
+import { createUserForOrganizationMember } from "@/lib/auth/create-organization-user";
 import { guardOrganizationMemberPermission } from "@/lib/auth/has-organization-permission";
 import {
   removeOrganizationMember,
   updateOrganizationMemberRole,
 } from "@/lib/auth/organization-member-operations";
+import { orgRoleLabel } from "@/lib/org-role-labels";
 
 function errMessage(err: unknown): string {
   if (
@@ -73,6 +75,7 @@ export async function createOrganizationMemberAction(
 
   const {
     organizationId,
+    branchId,
     email,
     name,
     orgRole,
@@ -87,7 +90,41 @@ export async function createOrganizationMemberAction(
   const h = await headers();
   const emailLower = email.toLowerCase();
   const password = generateSecurePassword(16);
-  stashAdminCreatedUserPlainPassword(emailLower, password);
+
+  const [organization, branch] = await Promise.all([
+    prisma.organization.findUnique({
+      where: { id: organizationId },
+      select: { name: true },
+    }),
+    branchId
+      ? prisma.branch.findUnique({
+          where: { id: branchId },
+          select: {
+            name: true,
+            tel: true,
+            adresse: true,
+            ville: true,
+            commune: true,
+            province: true,
+          },
+        })
+      : Promise.resolve(null),
+  ]);
+
+  const branchAddress = branch
+    ? [branch.adresse, branch.commune, branch.ville, branch.province]
+        .map((part) => part?.trim())
+        .filter(Boolean)
+        .join(", ")
+    : undefined;
+
+  stashAdminCreatedUserPlainPassword(emailLower, password, {
+    role: orgRoleLabel(orgRole),
+    organizationName: organization?.name,
+    branchName: branch?.name,
+    branchPhone: branch?.tel?.trim() || undefined,
+    branchAddress: branchAddress || undefined,
+  });
 
   let userId: string | null = null;
   try {
@@ -95,24 +132,21 @@ export async function createOrganizationMemberAction(
       masculin: "M",
       feminin: "F",
     };
-    const created = await auth.api.createUser({
-      body: {
-        email: emailLower,
-        name,
-        password,
-        role: "user",
-        // Les champs personnalisés vont dans "data"
-        data: {
-          prenom,
-          postnom,
-          sexe: sexeMap[sexe as string],
-          telephone,
-          dateOfBirth,
-          address,
-          statusUser,
-        },
+    // createUser = plugin admin (user:create). Après garde org member:create,
+    // appel serveur sans headers — voir createUserForOrganizationMember.
+    const created = await createUserForOrganizationMember({
+      email: emailLower,
+      name,
+      password,
+      data: {
+        prenom,
+        postnom,
+        sexe: sexeMap[sexe as string],
+        telephone,
+        dateOfBirth,
+        address,
+        statusUser,
       },
-      headers: h,
     });
     const user = (created as { user?: { id: string } } | null)?.user;
     if (!user?.id) {
@@ -123,6 +157,8 @@ export async function createOrganizationMemberAction(
     }
     userId = user.id;
 
+    // addMember est server-only ; headers utiles pour le contexte org, pas pour
+    // autoriser la création de compte (déjà couverte par la garde + createUser).
     const member = await auth.api.addMember({
       body: {
         userId: user.id,

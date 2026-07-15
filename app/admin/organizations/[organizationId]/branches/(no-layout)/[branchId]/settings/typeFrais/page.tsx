@@ -18,6 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { getTypeFraisSettingsAction } from "../../frais/frais.action";
 import { TypeFraisUpForm } from "../../frais/components/type-frais-form";
 import type { ITypeFrais } from "@/src/interfaces/Frais";
+import { RequireBranchOrgSettingsAccess } from "../components/require-branch-org-settings-access";
 
 export default function TypeFraisSettingsPage() {
   const [items, setItems] = useState<ITypeFrais[]>([]);
@@ -49,6 +50,7 @@ export default function TypeFraisSettingsPage() {
   };
 
   return (
+    <RequireBranchOrgSettingsAccess>
     <div className="space-y-5">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
@@ -159,5 +161,6 @@ export default function TypeFraisSettingsPage() {
         </DialogContent>
       </Dialog>
     </div>
+    </RequireBranchOrgSettingsAccess>
   );
 }

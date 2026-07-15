@@ -7,13 +7,16 @@ export type OrganizationSummary = {
   id: string;
   name: string;
   slug: string;
+  isArchived?: boolean;
   canDelete?: boolean;
+  canArchive?: boolean;
 };
 
 export type OrganizationsAccess = {
   organizations: OrganizationSummary[];
   canCreate: boolean;
   canDelete: boolean;
+  canArchive: boolean;
   canListAll: boolean;
   isPlatformOwner: boolean;
   isOrgManager: boolean;
@@ -26,7 +29,11 @@ export type OrganizationsAccess = {
 export type OrganizationDetailAccess = {
   organization: OrganizationSummary;
   canDelete: boolean;
+  canArchive: boolean;
   canUpdate: boolean;
+  canAccessOwnerSections: boolean;
+  canAccessPartenaires: boolean;
+  canListAll: boolean;
   roleLabel: string;
   appRole: string;
   membershipRole: string | null;
@@ -36,6 +43,7 @@ const EMPTY_ACCESS: OrganizationsAccess = {
   organizations: [],
   canCreate: false,
   canDelete: false,
+  canArchive: false,
   canListAll: false,
   isPlatformOwner: false,
   isOrgManager: false,
@@ -109,6 +117,7 @@ export function useOrganizationsAccess() {
     organizations: access?.organizations ?? [],
     canCreate: access?.canCreate ?? false,
     canDelete: access?.canDelete ?? false,
+    canArchive: access?.canArchive ?? false,
     isPlatformOwner: access?.isPlatformOwner ?? false,
     isOrgManager: access?.isOrgManager ?? false,
     roleLabel: access?.roleLabel ?? "Utilisateur",
@@ -155,7 +164,11 @@ export function useOrganizationById(organizationId: string | undefined) {
   return {
     organization: access?.organization ?? null,
     canDelete: access?.canDelete ?? false,
+    canArchive: access?.canArchive ?? false,
     canUpdate: access?.canUpdate ?? false,
+    canAccessOwnerSections: access?.canAccessOwnerSections ?? false,
+    canAccessPartenaires: access?.canAccessPartenaires ?? false,
+    canListAll: access?.canListAll ?? false,
     roleLabel: access?.roleLabel ?? null,
     appRole: access?.appRole ?? null,
     membershipRole: access?.membershipRole ?? null,

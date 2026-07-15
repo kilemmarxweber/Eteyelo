@@ -1,10 +1,13 @@
 import { APP_ROLE, ORG_ROLE } from "@/lib/permissions";
-import { buildBranchPickerPath } from "@/lib/auth/user-branch-access";
+import {
+  BRANCH_LOGIN_ORG_ROLES,
+  buildBranchPickerPath,
+} from "@/lib/auth/user-branch-access";
 
 const ECODIM_ORG_ROLES = new Set<string>([
-  ORG_ROLE.RESPONSABLE,
-  ORG_ROLE.MONITEUR,
-  ORG_ROLE.SURVEILLANT,
+  ORG_ROLE.DIRECTEUR,
+  ORG_ROLE.PREFET,
+  ORG_ROLE.SUPERVISEUR,
 ]);
 
 const ORG_HOME_ROLES = new Set<string>([
@@ -53,6 +56,20 @@ export function resolveMembershipPostLoginPath(input: {
 }): string {
   const base = `/admin/organizations/${input.organizationId}`;
   const roles = splitRoles(input.membershipRole);
+  const isBranchLoginRole = roles.some((role) =>
+    BRANCH_LOGIN_ORG_ROLES.has(role),
+  );
+
+  // Caissier / enseignant / parent / élève → toujours leur branche (ou picker).
+  if (isBranchLoginRole) {
+    if (input.branchId) {
+      return `${base}/branches/${input.branchId}`;
+    }
+    if ((input.branchCount ?? 0) > 0) {
+      return buildBranchPickerPath(input.organizationId);
+    }
+    return base;
+  }
 
   if (input.branchId) {
     return `${base}/branches/${input.branchId}`;

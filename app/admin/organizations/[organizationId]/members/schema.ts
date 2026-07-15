@@ -6,6 +6,8 @@ const orgRoleRefine = (role: string) =>
 
 export const createOrgMemberSchema = z.object({
   organizationId: z.string().min(1),
+  /** Branche d’affectation — utilisée pour l’email de bienvenue. */
+  branchId: z.string().min(1).optional(),
   email: z
     .string()
     .trim()

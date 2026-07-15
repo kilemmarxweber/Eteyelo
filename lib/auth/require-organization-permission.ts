@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { canAccessOrganization } from "@/lib/auth/organization-access";
 import { getUserOrganizationMembership } from "@/lib/auth/org-membership";
+import { BRANCH_LOGIN_ORG_ROLES } from "@/lib/auth/user-branch-access";
 import {
   APP_ROLE,
   ORG_ROLE,
@@ -35,6 +36,9 @@ export type OrganizationGuardResult =
 const ORG_MANAGER_MEMBER_ROLES = new Set<string>([
   ORG_ROLE.OWNER,
   ORG_ROLE.GESTIONNAIRE,
+  ORG_ROLE.PREFET,
+  ORG_ROLE.DIRECTEUR,
+  ORG_ROLE.SUPERVISEUR,
 ]);
 
 function splitRoles(value: string | null | undefined) {
@@ -150,7 +154,7 @@ export async function guardOrganizationManager(
   };
 }
 
-export async function guardOrganizationDelete(
+export async function guardOrganizationOwner(
   organizationId: string,
 ): Promise<OrganizationGuardResult> {
   const access = await guardOrganizationAccess(organizationId);
@@ -173,7 +177,63 @@ export async function guardOrganizationDelete(
     return { ok: true, context };
   }
 
-  return { ok: false, message: "Suppression non autorisee." };
+  return {
+    ok: false,
+    message: "Action reservee au proprietaire de l'organisation.",
+  };
+}
+
+/**
+ * Partenaires : owner plateforme uniquement.
+ */
+export async function guardOrganizationPartenaires(
+  organizationId: string,
+): Promise<OrganizationGuardResult> {
+  const access = await guardOrganizationAccess(organizationId);
+  if (!access.ok) {
+    return access;
+  }
+
+  const { context } = access;
+
+  if (isPlatformOwnerRole(context.appRole)) {
+    return { ok: true, context };
+  }
+
+  return {
+    ok: false,
+    message: "Creation et gestion des partenaires reservees au owner plateforme.",
+  };
+}
+
+/**
+ * Suppression physique : owner plateforme uniquement.
+ * Le propriétaire org peut archiver via `guardOrganizationArchive`.
+ */
+export async function guardOrganizationDelete(
+  organizationId: string,
+): Promise<OrganizationGuardResult> {
+  const access = await guardOrganizationAccess(organizationId);
+  if (!access.ok) {
+    return access;
+  }
+
+  if (!isPlatformOwnerRole(access.context.appRole)) {
+    return {
+      ok: false,
+      message:
+        "Suppression reservee au owner plateforme. Le proprietaire peut archiver l'organisation.",
+    };
+  }
+
+  return { ok: true, context: access.context };
+}
+
+/** Archivage / reactivation : owner plateforme ou propriétaire org. */
+export async function guardOrganizationArchive(
+  organizationId: string,
+): Promise<OrganizationGuardResult> {
+  return guardOrganizationOwner(organizationId);
 }
 
 export async function guardOrganizationBranchAccess(
@@ -198,6 +258,20 @@ export async function guardOrganizationBranchAccess(
 
   if (membership && isOrganizationManagerMember(membership.role)) {
     return { ok: true, context };
+  }
+
+  // Caissier / enseignant / parent / élève : accès à la branche de leur org.
+  if (
+    membership &&
+    splitRoles(membership.role).some((role) => BRANCH_LOGIN_ORG_ROLES.has(role))
+  ) {
+    const branch = await prisma.branch.findFirst({
+      where: { id: branchId, organizationId, isActive: true },
+      select: { id: true },
+    });
+    if (branch) {
+      return { ok: true, context };
+    }
   }
 
   const branchMember = await prisma.branchMember.findFirst({
@@ -263,6 +337,36 @@ export async function enforceOrganizationManagerPage(organizationId: string) {
   notFound();
 }
 
+export async function enforceOrganizationOwnerPage(organizationId: string) {
+  const guard = await guardOrganizationOwner(organizationId);
+  if (guard.ok) {
+    return guard.context;
+  }
+
+  const context = await getOrganizationAuthContext();
+  if (!context) {
+    redirect("/auth/sign-in");
+  }
+
+  notFound();
+}
+
+export async function enforceOrganizationPartenairesPage(
+  organizationId: string,
+) {
+  const guard = await guardOrganizationPartenaires(organizationId);
+  if (guard.ok) {
+    return guard.context;
+  }
+
+  const context = await getOrganizationAuthContext();
+  if (!context) {
+    redirect("/auth/sign-in");
+  }
+
+  notFound();
+}
+
 export async function enforceOrganizationListPage() {
   const context = await getOrganizationAuthContext();
   if (!context) {
@@ -296,4 +400,6 @@ export async function enforceOrganizationBranchPage(
 export const requirePlatformOwner = guardPlatformOwner;
 export const requireOrganizationAccess = guardOrganizationAccess;
 export const requireOrganizationManager = guardOrganizationManager;
+export const requireOrganizationOwner = guardOrganizationOwner;
 export const requireOrganizationDelete = guardOrganizationDelete;
+export const requireOrganizationArchive = guardOrganizationArchive;

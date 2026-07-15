@@ -5,6 +5,8 @@ import { ChangePasswordForm } from "@/app/admin/account/change-password/change-p
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
+export const dynamic = "force-dynamic";
+
 export default async function ChangePasswordPage() {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session?.user?.id) {

@@ -13,6 +13,7 @@ export async function GET() {
     organizations: context.organizations,
     canCreate: context.canCreate,
     canDelete: context.canDelete,
+    canArchive: context.canArchive,
     canListAll: context.canListAll,
     isPlatformOwner: context.isPlatformOwner,
     isOrgManager: context.isOrgManager,

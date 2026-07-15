@@ -969,6 +969,9 @@ model Organization {
   logo              String?
   createdAt         DateTime
   metadata          String?
+  isArchived        Boolean            @default(false)
+  archivedAt        DateTime?
+  archivedById      String?
   organizationroles OrganizationRole[]
   members           Member[]
   branches          Branch[]
@@ -978,6 +981,7 @@ model Organization {
 
   @@unique([name])
   @@unique([slug])
+  @@index([isArchived])
   @@map("organization")
 }
 

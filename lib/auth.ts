@@ -92,6 +92,7 @@ const authOptions = {
       void sendVerificationEmail({
         to: user.email,
         url,
+        name: user.name,
       });
     },
   },
@@ -103,8 +104,8 @@ const authOptions = {
       create: {
         after: async (user) => {
           if (!user?.email) return;
-          const plain = consumeAdminCreatedUserPlainPassword(user.email);
-          if (!plain) return;
+          const pending = consumeAdminCreatedUserPlainPassword(user.email);
+          if (!pending?.password) return;
           try {
             await prisma.user.update({
               where: { id: user.id },
@@ -113,7 +114,12 @@ const authOptions = {
             await sendNewUserCredentialsEmail({
               to: user.email,
               name: user.name,
-              temporaryPassword: plain,
+              temporaryPassword: pending.password,
+              role: pending.role,
+              organizationName: pending.organizationName,
+              branchName: pending.branchName,
+              branchPhone: pending.branchPhone,
+              branchAddress: pending.branchAddress,
             });
           } catch (err) {
             // eslint-disable-next-line no-console
@@ -193,6 +199,7 @@ export const auth = betterAuth({
       const userWithFields = await prisma.user.findUnique({
         where: { id: user.id },
         select: {
+          username: true,
           prenom: true,
           postnom: true,
           sexe: true,

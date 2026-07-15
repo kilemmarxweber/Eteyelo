@@ -9,6 +9,8 @@ import { IconClipboardText } from "@tabler/icons-react";
 import FicheExportActions from "./FicheExportActions";
 import CancelInterventionButton from "./CancelInterventionButton";
 
+export const dynamic = "force-dynamic";
+
 type Note = {
   studentId: string;
   nom: string;

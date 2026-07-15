@@ -125,6 +125,7 @@ export const createPersonnelAction = action
       const result = await createOrganizationMemberAction({
         ...data,
         organizationId,
+        branchId,
         email: emailLower,
       });
       if (!result.ok) {

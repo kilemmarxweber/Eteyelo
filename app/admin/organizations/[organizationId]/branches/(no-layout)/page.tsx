@@ -10,6 +10,8 @@ import { enforceOrganizationManagerPage } from "@/lib/auth/require-organization-
 import { prisma } from "@/lib/prisma";
 import { BranchCard } from "./branchCard";
 
+export const dynamic = "force-dynamic";
+
 type BranchesPageProps = {
   params: Promise<{ organizationId: string }>;
 };

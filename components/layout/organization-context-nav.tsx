@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Shield, Users, type LucideIcon } from "lucide-react";
+import { Home, Users, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface OrgNavLink {
@@ -32,17 +32,14 @@ function buildLinks(organizationId: string): OrgNavLink[] {
       icon: Users,
       isActive: (p) => p.startsWith(`${base}/members`),
     },
-    {
-      href: `${base}/roles`,
-      label: "Rôles & permissions",
-      shortLabel: "Rôles",
-      icon: Shield,
-      isActive: (p) => p.startsWith(`${base}/roles`),
-    },
   ];
 }
 
-export function OrganizationContextNav({ organizationId }: { organizationId: string }) {
+export function OrganizationContextNav({
+  organizationId,
+}: {
+  organizationId: string;
+}) {
   const pathname = usePathname();
   const links = buildLinks(organizationId);
 

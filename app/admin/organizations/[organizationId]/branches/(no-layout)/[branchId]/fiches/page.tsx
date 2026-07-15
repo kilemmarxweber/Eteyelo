@@ -10,6 +10,8 @@ import {
   type BulletinBranchContext,
 } from "@/lib/bulletin-context";
 
+export const dynamic = "force-dynamic";
+
 // 🔹 Typage Prisma
 type ClassEnrollmentWithRelations = Prisma.ClassEnrollmentGetPayload<{
   include: {

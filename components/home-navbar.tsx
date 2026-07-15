@@ -28,6 +28,7 @@ import {
   FormItem,
   FormMessage,
 } from "@/components/ui/form";
+import { UserNav } from "@/components/user-nav";
 import { authClient } from "@/lib/auth-client";
 import { useAppLoading } from "@/hooks/use-app-loading";
 
@@ -81,27 +82,8 @@ export function HomeNavbar() {
   const [authMode, setAuthMode] = useState<"login" | "signup">("login");
   const [isRedirecting, setIsRedirecting] = useState(false);
   const { data: session } = authClient.useSession();
-  const [isSigningOut, setIsSigningOut] = useState(false);
   const router = useRouter();
-  const { resetLoading, withLoading } = useAppLoading();
-  const handleSignOut = async () => {
-    setIsSigningOut(true);
-
-    try {
-      await authClient.signOut();
-
-      closeMobileMenu();
-      setAuthOpen(false);
-
-      toast.success("Déconnecté.");
-      window.location.assign("/");
-    } catch {
-      toast.error("Déconnexion impossible.");
-    } finally {
-      resetLoading();
-      setIsSigningOut(false);
-    }
-  };
+  const { withLoading } = useAppLoading();
   const form = useForm<AuthValues>({
     resolver: zodResolver(authSchema),
     defaultValues: {
@@ -296,14 +278,7 @@ export function HomeNavbar() {
         </nav>
 
         {session?.user ? (
-          <Button
-            variant="outline"
-            onClick={handleSignOut}
-            disabled={isSigningOut}
-            className="rounded-full border-blue-950 text-blue-950 hover:bg-blue-950 hover:text-white"
-          >
-            {isSigningOut ? "Déconnexion..." : "Se déconnecter"}
-          </Button>
+          <UserNav />
         ) : (
           <Button
             variant="outline"
@@ -400,14 +375,9 @@ export function HomeNavbar() {
 
             <div className="grid gap-2 pt-2 sm:grid-cols-2">
               {session?.user ? (
-                <Button
-                  variant="outline"
-                  onClick={handleSignOut}
-                  disabled={isSigningOut}
-                  className="hidden rounded-full border-blue-950 text-blue-950 hover:bg-blue-950 hover:text-white lg:inline-flex"
-                >
-                  {isSigningOut ? "Déconnexion..." : "Se déconnecter"}
-                </Button>
+                <div className="hidden justify-center lg:flex">
+                  <UserNav />
+                </div>
               ) : (
                 <Button
                   variant="outline"

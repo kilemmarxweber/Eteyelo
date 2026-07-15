@@ -602,7 +602,12 @@ export const createRegistrationFlowAction = action
         });
         if (duplicate) throw new Error("Un compte parent existe déjà avec cet email ou téléphone. Recherchez-le avant de continuer.");
         const parentUsername = await buildParentUsername(input.parent.name, input.parent.prenom);
-        const created = await createOrganizationMemberAction({ ...input.parent, organizationId, orgRole: "parent" });
+        const created = await createOrganizationMemberAction({
+          ...input.parent,
+          organizationId,
+          branchId,
+          orgRole: "parent",
+        });
         if (!created.ok) throw new Error(created.message);
         createdUserIds.push(created.userId);
         newParentMemberId = created.memberId;
@@ -624,6 +629,7 @@ export const createRegistrationFlowAction = action
           email: generatedStudentEmail,
           telephone: undefined,
           organizationId,
+          branchId,
           orgRole: "student",
         });
         if (!created.ok) throw new Error(created.message);

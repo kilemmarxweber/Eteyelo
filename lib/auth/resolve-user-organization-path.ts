@@ -1,15 +1,15 @@
 import { getUserOrganizationMembership } from "@/lib/auth/org-membership";
 import {
   buildBranchPickerPath,
-  getUserBranchMemberships,
+  getUserBranchMembershipsForLogin,
   resolveActiveBranchId,
 } from "@/lib/auth/user-branch-access";
 import { APP_ROLE, ORG_ROLE } from "@/lib/permissions";
 
 const ECODIM_ORG_ROLES = new Set<string>([
-  ORG_ROLE.RESPONSABLE,
-  ORG_ROLE.MONITEUR,
-  ORG_ROLE.SURVEILLANT,
+  ORG_ROLE.DIRECTEUR,
+  ORG_ROLE.PREFET,
+  ORG_ROLE.SUPERVISEUR,
 ]);
 
 const ORG_HOME_ROLES = new Set<string>([
@@ -58,13 +58,16 @@ export async function resolveUserOrganizationFallbackPath(
   }
 
   const roles = splitRoles(membership.role);
-  const branchMemberships = await getUserBranchMemberships(
+  const branchMemberships = await getUserBranchMembershipsForLogin(
     userId,
     membership.organizationId,
+    membership.role,
   );
   const branchId = await resolveActiveBranchId(
     userId,
     membership.organizationId,
+    null,
+    membership.role,
   );
 
   if (branchId) {
