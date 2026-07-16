@@ -20,7 +20,7 @@ interface DetailsPersonnelDialogProps
 
 function Field({ label, value }: { label: string; value?: React.ReactNode }) {
   return (
-    <div className="rounded-md border border-blue-100 p-3">
+    <div className="rounded-md border border-border p-3">
       <p className="text-xs text-muted-foreground">{label}</p>
       <p className="mt-1 text-sm font-medium">{value || "N/A"}</p>
     </div>
@@ -49,10 +49,10 @@ export function DetailsPersonnelDialog({
           <DialogTitle>Détails du personnel</DialogTitle>
         </DialogHeader>
 
-        <Card className="space-y-4 border-blue-100 p-4">
+        <Card className="space-y-4 border-border p-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h2 className="text-lg font-semibold text-blue-950">
+              <h2 className="text-lg font-semibold text-foreground">
                 {fullName || "Personnel"}
               </h2>
               <p className="text-sm text-muted-foreground">

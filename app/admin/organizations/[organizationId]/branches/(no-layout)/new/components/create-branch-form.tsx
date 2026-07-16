@@ -324,7 +324,7 @@ export function CreateBranchForm({
         >
           <div className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
             <section className="flex flex-col rounded-2xl bg-blue-950 p-5 text-white shadow-lg shadow-blue-950/10 sm:p-6">
-              <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold">
+              <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-card/15 px-3 py-1 text-xs font-semibold">
                 <School className="size-3.5" />
                 Inscription école
               </div>
@@ -339,14 +339,14 @@ export function CreateBranchForm({
               </p>
 
               <div className="mt-4 grid gap-2 text-sm">
-                <div className="flex items-start gap-2.5 rounded-xl bg-white/10 p-3">
+                <div className="flex items-start gap-2.5 rounded-xl bg-card/10 p-3">
                   <BadgeCheck className="mt-0.5 size-4 shrink-0" />
                   <span>
                     Une fiche claire pour présenter votre établissement.
                   </span>
                 </div>
 
-                <div className="flex items-start gap-2.5 rounded-xl bg-white/10 p-3">
+                <div className="flex items-start gap-2.5 rounded-xl bg-card/10 p-3">
                   <MapPin className="mt-0.5 size-4 shrink-0" />
                   <span>
                     Une localisation précise pour les élèves et les parents.
@@ -356,14 +356,14 @@ export function CreateBranchForm({
             </section>
 
             <section className="grid gap-4">
-              <div className="rounded-2xl border bg-white p-4 shadow-sm sm:p-5">
+              <div className="rounded-2xl border bg-card p-4 shadow-sm sm:p-5">
                 <div className="flex items-center gap-3">
-                  <span className="flex size-9 items-center justify-center rounded-xl bg-blue-950 text-white">
+                  <span className="flex size-9 items-center justify-center rounded-xl bg-primary text-primary-foreground">
                     <Building2 className="size-4" />
                   </span>
 
                   <div>
-                    <h2 className="text-base font-semibold text-slate-950">
+                    <h2 className="text-base font-semibold text-foreground">
                       Informations de l’école
                     </h2>
                     <p className="text-sm text-slate-500">
@@ -472,7 +472,7 @@ export function CreateBranchForm({
                           <FormLabel>Téléphone</FormLabel>
                           <FormControl>
                             <div className="relative">
-                              <Phone className="absolute left-3 top-4 h-4 w-4 text-slate-400" />
+                              <Phone className="absolute left-3 top-4 h-4 w-4 text-muted-foreground" />
                               <Input
                                 {...field}
                                 type="tel"
@@ -682,14 +682,14 @@ export function CreateBranchForm({
                       onClick={useCurrentLocation}
                       variant="outline"
                       disabled={isSubmitting}
-                      className="rounded-full border-blue-950/20 text-blue-950 hover:bg-blue-50"
+                      className="rounded-full border-blue-950/20 text-foreground hover:bg-blue-50"
                     >
                       <Navigation className="mr-1.5 size-3.5" />
                       Utiliser ma position actuelle
                     </Button>
 
                     <div className="flex h-8 items-center justify-between gap-3 rounded-full border border-blue-950/10 bg-blue-50/60 px-3">
-                      <span className="text-sm font-medium text-blue-950">
+                      <span className="text-sm font-medium text-foreground">
                         Utiliser la carte
                       </span>
 
@@ -707,8 +707,8 @@ export function CreateBranchForm({
                       {form.formState.errors.root.message}
                     </p>
                   )}
-                  <div className="rounded-2xl border bg-white p-4">
-                    <h3 className="text-base font-semibold text-slate-950">
+                  <div className="rounded-2xl border bg-card p-4">
+                    <h3 className="text-base font-semibold text-foreground">
                       Images de l’établissement
                     </h3>
 
@@ -766,7 +766,7 @@ export function CreateBranchForm({
 
                     <div className="mt-5 grid gap-3">
                       {(savedImages.logo || pendingFiles.logo) && (
-                        <div className="flex items-center justify-between rounded-2xl bg-slate-50 p-3 text-sm">
+                        <div className="flex items-center justify-between rounded-2xl bg-muted p-3 text-sm">
                           <span className="truncate">
                             <strong>Logo : </strong>
                             {pendingFiles.logo?.name ?? savedImages.logo}
@@ -787,7 +787,7 @@ export function CreateBranchForm({
                       {savedImages.event.map((fileName, index) => (
                         <div
                           key={`saved-event-${fileName}-${index}`}
-                          className="flex items-center justify-between rounded-2xl bg-slate-50 p-3 text-sm"
+                          className="flex items-center justify-between rounded-2xl bg-muted p-3 text-sm"
                         >
                           <span className="truncate">
                             <strong>Événement : </strong>
@@ -809,7 +809,7 @@ export function CreateBranchForm({
                       {pendingFiles.event.map((file, index) => (
                         <div
                           key={`pending-event-${file.name}-${index}`}
-                          className="flex items-center justify-between rounded-2xl bg-slate-50 p-3 text-sm"
+                          className="flex items-center justify-between rounded-2xl bg-muted p-3 text-sm"
                         >
                           <span className="truncate">
                             <strong>Événement (nouveau) : </strong>
@@ -831,7 +831,7 @@ export function CreateBranchForm({
                       {savedImages.gallery.map((fileName, index) => (
                         <div
                           key={`saved-gallery-${fileName}-${index}`}
-                          className="flex items-center justify-between rounded-2xl bg-slate-50 p-3 text-sm"
+                          className="flex items-center justify-between rounded-2xl bg-muted p-3 text-sm"
                         >
                           <span className="truncate">
                             <strong>Galerie : </strong>
@@ -853,7 +853,7 @@ export function CreateBranchForm({
                       {pendingFiles.gallery.map((file, index) => (
                         <div
                           key={`pending-gallery-${file.name}-${index}`}
-                          className="flex items-center justify-between rounded-2xl bg-slate-50 p-3 text-sm"
+                          className="flex items-center justify-between rounded-2xl bg-muted p-3 text-sm"
                         >
                           <span className="truncate">
                             <strong>Galerie (nouveau) : </strong>
@@ -875,7 +875,7 @@ export function CreateBranchForm({
                       {savedImages.ecole.map((fileName, index) => (
                         <div
                           key={`saved-ecole-${fileName}-${index}`}
-                          className="flex items-center justify-between rounded-2xl bg-slate-50 p-3 text-sm"
+                          className="flex items-center justify-between rounded-2xl bg-muted p-3 text-sm"
                         >
                           <span className="truncate">
                             <strong>École : </strong>
@@ -897,7 +897,7 @@ export function CreateBranchForm({
                       {pendingFiles.ecole.map((file, index) => (
                         <div
                           key={`pending-ecole-${file.name}-${index}`}
-                          className="flex items-center justify-between rounded-2xl bg-slate-50 p-3 text-sm"
+                          className="flex items-center justify-between rounded-2xl bg-muted p-3 text-sm"
                         >
                           <span className="truncate">
                             <strong>École (nouveau) : </strong>
@@ -917,12 +917,12 @@ export function CreateBranchForm({
                       ))}
                     </div>
                   </div>
-                  <div className="sticky bottom-4 z-20 mt-4 rounded-2xl border bg-white/90 p-2.5 shadow-md backdrop-blur">
+                  <div className="sticky bottom-4 z-20 mt-4 rounded-2xl border bg-card/90 p-2.5 shadow-md backdrop-blur">
                     <Button
                       size="sm"
                       type="submit"
                       disabled={isSubmitting}
-                      className="w-full rounded-full bg-blue-950 text-white hover:bg-blue-900"
+                      className="w-full rounded-full bg-primary text-primary-foreground hover:bg-blue-900"
                     >
                       {isSubmitting
                         ? mode === "update"
@@ -942,7 +942,7 @@ export function CreateBranchForm({
       <Dialog open={showMapDialog} onOpenChange={setShowMapDialog}>
         <DialogContent className="max-w-5xl rounded-2xl p-0">
           <DialogHeader className="px-5 pt-5">
-            <DialogTitle className="text-lg font-semibold text-slate-950">
+            <DialogTitle className="text-lg font-semibold text-foreground">
               Emplacement de l’école
             </DialogTitle>
             <DialogDescription>
@@ -963,14 +963,14 @@ export function CreateBranchForm({
             />
 
             <div className="mt-4 grid gap-3 text-sm md:grid-cols-2">
-              <div className="flex items-start gap-3 rounded-2xl bg-blue-50 p-4 text-blue-950">
+              <div className="flex items-start gap-3 rounded-2xl bg-blue-50 p-4 text-foreground">
                 <BadgeCheck className="mt-0.5 size-5 shrink-0" />
                 <span>
                   Une fiche claire pour présenter votre établissement.
                 </span>
               </div>
 
-              <div className="flex items-start gap-3 rounded-2xl bg-blue-50 p-4 text-blue-950">
+              <div className="flex items-start gap-3 rounded-2xl bg-blue-50 p-4 text-foreground">
                 <MapPin className="mt-0.5 size-5 shrink-0" />
                 <span>
                   Une localisation précise pour les élèves et les parents.

@@ -1,5 +1,6 @@
 "use server";
 
+import { KLAMBOCORE_DEFAULT_IMAGE_PATH } from "@/lib/brand/klambocore-image";
 import { prisma } from "@/lib/prisma";
 import { normalizeImageSrc } from "@/lib/utils";
 
@@ -10,8 +11,7 @@ const fallbackSchools = [
     students: 1200,
     heroLabel: "Ecole partenaire verifiee",
     heroTitle: "CS La Fortune accompagne 1 200 eleves a Lubumbashi",
-    image:
-      "https://images.unsplash.com/photo-1580582932707-520aed937b7b?q=80&w=1200&auto=format&fit=crop",
+    image: KLAMBOCORE_DEFAULT_IMAGE_PATH,
   },
   {
     name: "Bakhita",
@@ -19,8 +19,7 @@ const fallbackSchools = [
     students: 850,
     heroLabel: "Institut actif a Cabinda",
     heroTitle: "Bakhita valorise ses filieres, evenements et resultats",
-    image:
-      "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?q=80&w=1200&auto=format&fit=crop",
+    image: KLAMBOCORE_DEFAULT_IMAGE_PATH,
   },
   {
     name: "Complexo Escolar Privado Padre Pitra",
@@ -28,8 +27,7 @@ const fallbackSchools = [
     students: 970,
     heroLabel: "Complexe scolaire partenaire",
     heroTitle: "Padre Pitra gagne en visibilite aupres des familles",
-    image:
-      "https://images.unsplash.com/photo-1509062522246-3755977927d7?q=80&w=1200&auto=format&fit=crop",
+    image: KLAMBOCORE_DEFAULT_IMAGE_PATH,
   },
 ];
 
@@ -38,22 +36,19 @@ const fallbackEvents = [
     title: "Journee portes ouvertes",
     school: "CS La Fortune",
     date: "12 Juin",
-    image:
-      "https://images.unsplash.com/photo-1523580846011-d3a5bc25702b?q=80&w=1200&auto=format&fit=crop",
+    image: KLAMBOCORE_DEFAULT_IMAGE_PATH,
   },
   {
     title: "Remise des diplomes",
     school: "Bakhita",
     date: "18 Juin",
-    image:
-      "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?q=80&w=1200&auto=format&fit=crop",
+    image: KLAMBOCORE_DEFAULT_IMAGE_PATH,
   },
   {
     title: "Concours scientifique",
     school: "Padre Pitra",
     date: "25 Juin",
-    image:
-      "https://images.unsplash.com/photo-1509062522246-3755977927d7?q=80&w=1200&auto=format&fit=crop",
+    image: KLAMBOCORE_DEFAULT_IMAGE_PATH,
   },
 ];
 

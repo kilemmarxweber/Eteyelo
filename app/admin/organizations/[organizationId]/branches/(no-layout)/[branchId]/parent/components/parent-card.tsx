@@ -1,3 +1,4 @@
+import { KLAMBOCORE_DEFAULT_IMAGE_PATH } from "@/lib/brand/klambocore-image";
 import * as React from "react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -39,7 +40,7 @@ export function UserCard({ parent, childs, payments }: UserCardProps) {
       <CardHeader className="bg-muted/50 p-6">
         <div className="flex items-center gap-4">
           <Avatar className="h-24 w-24">
-            <AvatarImage src="/placeholder-user.jpg" alt="User Avatar" />
+            <AvatarImage src={KLAMBOCORE_DEFAULT_IMAGE_PATH} alt="User Avatar" />
             <AvatarFallback>{parent.nom[0]}</AvatarFallback>
           </Avatar>
           <div className="grid gap-1">

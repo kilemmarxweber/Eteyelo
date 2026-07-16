@@ -35,7 +35,7 @@ export default async function PlatformSupportAdminPage() {
       <section className="rounded-3xl bg-blue-950 p-6 text-white shadow-2xl shadow-blue-950/10 sm:p-8">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-3xl">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1.5 text-xs font-semibold text-blue-50">
+            <div className="inline-flex items-center gap-2 rounded-full bg-card/15 px-3 py-1.5 text-xs font-semibold text-blue-50">
               <LifeBuoy className="size-4" />
               Support plateforme Klambocore
             </div>
@@ -51,9 +51,9 @@ export default async function PlatformSupportAdminPage() {
             </p>
           </div>
 
-          <div className="rounded-3xl bg-white/10 p-4 backdrop-blur">
+          <div className="rounded-3xl bg-card/10 p-4 backdrop-blur">
             <div className="flex items-center gap-3">
-              <span className="flex size-11 items-center justify-center rounded-2xl bg-white text-blue-950">
+              <span className="flex size-11 items-center justify-center rounded-2xl bg-card text-foreground">
                 <ShieldCheck className="size-5" />
               </span>
 
@@ -68,19 +68,19 @@ export default async function PlatformSupportAdminPage() {
 
       {canManageAgents && <PlatformSupportAdminClient initialAgents={agents} />}
 
-      <section className="rounded-3xl border bg-white p-5 shadow-sm sm:p-6">
+      <section className="rounded-3xl border bg-card p-5 shadow-sm sm:p-6">
         <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h2 className="text-lg font-bold text-slate-950">
+            <h2 className="text-lg font-bold text-foreground">
               Escalades reçues
             </h2>
-            <p className="text-sm text-slate-600">
+            <p className="text-sm text-muted-foreground">
               Suivez les demandes envoyées par les établissements et
               assignez-les aux agents actifs.
             </p>
           </div>
 
-          <span className="w-fit rounded-full bg-blue-950/10 px-3 py-1 text-xs font-semibold text-blue-950">
+          <span className="w-fit rounded-full bg-blue-950/10 px-3 py-1 text-xs font-semibold text-foreground">
             {escalations.length} demande(s)
           </span>
         </div>

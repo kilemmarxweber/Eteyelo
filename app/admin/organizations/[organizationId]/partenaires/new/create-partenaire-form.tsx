@@ -329,7 +329,7 @@ export function CreatePartenaireForm({ organizationId, branches, partenaireId, i
                       onChange={(event) =>
                         setFileName("image", event.target.files)
                       }
-                      className="h-12 cursor-pointer rounded-2xl pl-10 file:mr-3 file:rounded-full file:border-0 file:bg-blue-50 file:px-3 file:py-1.5 file:text-blue-950"
+                      className="h-12 cursor-pointer rounded-2xl pl-10 file:mr-3 file:rounded-full file:border-0 file:bg-blue-50 file:px-3 file:py-1.5 file:text-foreground"
                     />
                   </FormControl>
                 </div>
@@ -363,7 +363,7 @@ export function CreatePartenaireForm({ organizationId, branches, partenaireId, i
                       onChange={(event) =>
                         setFileName("logo", event.target.files)
                       }
-                      className="h-12 cursor-pointer rounded-2xl pl-10 file:mr-3 file:rounded-full file:border-0 file:bg-blue-50 file:px-3 file:py-1.5 file:text-blue-950"
+                      className="h-12 cursor-pointer rounded-2xl pl-10 file:mr-3 file:rounded-full file:border-0 file:bg-blue-50 file:px-3 file:py-1.5 file:text-foreground"
                     />
                   </FormControl>
                 </div>
@@ -560,7 +560,7 @@ export function CreatePartenaireForm({ organizationId, branches, partenaireId, i
                       onChange={(event) =>
                         setFileName("documentUrl", event.target.files)
                       }
-                      className="h-12 cursor-pointer rounded-2xl pl-10 file:mr-3 file:rounded-full file:border-0 file:bg-blue-50 file:px-3 file:py-1.5 file:text-blue-950"
+                      className="h-12 cursor-pointer rounded-2xl pl-10 file:mr-3 file:rounded-full file:border-0 file:bg-blue-50 file:px-3 file:py-1.5 file:text-foreground"
                     />
                   </FormControl>
                 </div>
@@ -624,7 +624,7 @@ export function CreatePartenaireForm({ organizationId, branches, partenaireId, i
             control={form.control}
             name="isActive"
             render={({ field }) => (
-              <FormItem className="flex flex-row items-center justify-between rounded-2xl border bg-white p-4">
+              <FormItem className="flex flex-row items-center justify-between rounded-2xl border bg-card p-4">
                 <div className="space-y-1">
                   <FormLabel className="cursor-pointer">
                     Partenaire actif
@@ -652,7 +652,7 @@ export function CreatePartenaireForm({ organizationId, branches, partenaireId, i
             control={form.control}
             name="isFeatured"
             render={({ field }) => (
-              <FormItem className="flex flex-row items-center justify-between rounded-2xl border bg-white p-4">
+              <FormItem className="flex flex-row items-center justify-between rounded-2xl border bg-card p-4">
                 <div className="space-y-1">
                   <FormLabel className="cursor-pointer">
                     Mettre en avant

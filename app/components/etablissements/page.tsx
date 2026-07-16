@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { HomeFooter } from "@/components/home-footer";
 import { HomeNavbar } from "@/components/home-navbar";
 import { prisma } from "@/lib/prisma";
+import { KLAMBOCORE_DEFAULT_IMAGE_PATH } from "@/lib/brand/klambocore-image";
 import { getBranchImage } from "@/lib/utils";
 export const dynamic = "force-dynamic";
 export default async function EtablissementsPage() {
@@ -61,7 +62,8 @@ export default async function EtablissementsPage() {
               images.ecole[0] ||
               images.event[0] ||
               images.gallery[0] ||
-              "/uploads/1752330108714.jpeg";
+              images.logo ||
+              KLAMBOCORE_DEFAULT_IMAGE_PATH;
 
             const studentsCount = branch.branchemembers.reduce(
               (total, member) => total + member._count.student,

@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/custom/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { cn } from "@/lib/utils";
+import { cn, normalizeImageSrc } from "@/lib/utils";
 import { EstablishmentSupportForm } from "./establishment-support-form";
 
 const TOPIC_ICONS = [HelpCircle, School, Wrench] as const;
@@ -129,7 +129,10 @@ export function EstablishmentSupportView({
                     )}
                   >
                     <Avatar className="size-14">
-                      <AvatarImage src={agent.image} alt={agent.name} />
+                      <AvatarImage
+                        src={normalizeImageSrc(agent.image)}
+                        alt={agent.name}
+                      />
                       <AvatarFallback className="text-sm font-medium">
                         {getInitials(agent.name)}
                       </AvatarFallback>

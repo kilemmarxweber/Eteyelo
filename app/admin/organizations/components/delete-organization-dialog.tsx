@@ -61,7 +61,7 @@ export function DeleteOrganizationDialog({
           <DialogTitle>Supprimer l&apos;organisation</DialogTitle>
           <DialogDescription>
             Cette action est irreversible. L&apos;organisation{" "}
-            <span className="font-semibold text-slate-950">
+            <span className="font-semibold text-foreground">
               {organizationName}
             </span>{" "}
             et toutes ses donnees associees seront supprimees.
@@ -127,7 +127,7 @@ export function DeleteOrganizationButton({
           type="button"
           variant="ghost"
           size="icon"
-          className="size-9 shrink-0 rounded-full text-slate-400 hover:bg-red-50 hover:text-red-600"
+          className="size-9 shrink-0 rounded-full text-muted-foreground hover:bg-red-50 hover:text-red-600"
           aria-label={`Supprimer ${organizationName}`}
           onClick={(event) => {
             event.preventDefault();

@@ -61,10 +61,10 @@ export default async function BranchesPage({ params }: BranchesPageProps) {
         label="Retour organisation"
       />
 
-      <section className="rounded-2xl bg-blue-950 p-5 text-white shadow-lg shadow-blue-950/10 sm:p-6">
+      <section className="rounded-2xl bg-primary p-5 text-primary-foreground shadow-lg shadow-primary/10 sm:p-6">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-3xl">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold text-blue-50">
+            <div className="inline-flex items-center gap-2 rounded-full bg-primary-foreground/15 px-3 py-1 text-xs font-semibold text-primary-foreground/90">
               <School className="size-3.5" />
               Établissements
             </div>
@@ -73,7 +73,7 @@ export default async function BranchesPage({ params }: BranchesPageProps) {
               Gérez les établissements
             </h1>
 
-            <p className="mt-2 text-sm leading-6 text-blue-50">
+            <p className="mt-2 text-sm leading-6 text-primary-foreground/90">
               Consultez, créez et administrez les établissements, campus ou
               antennes liés à cette organisation.
             </p>
@@ -82,7 +82,7 @@ export default async function BranchesPage({ params }: BranchesPageProps) {
           <Button
             size="sm"
             variant="secondary"
-            className="rounded-full bg-white text-blue-950 hover:bg-blue-50"
+            className="rounded-full bg-card text-foreground hover:bg-muted"
             asChild
           >
             <Link href={`${base}/new`}>
@@ -103,34 +103,34 @@ export default async function BranchesPage({ params }: BranchesPageProps) {
               editHref={`${base}/edit?branchId=${branch.id}`}
               isActive={branch.isActive}
             >
-              <div className="group flex flex-col gap-3 rounded-2xl border bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-blue-950/25 hover:shadow-md">
+              <div className="group flex flex-col gap-3 rounded-2xl border bg-card p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md">
                 <span className="flex items-start justify-between gap-3">
-                  <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-blue-950 text-white">
+                  <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground">
                     <School className="size-4" />
                   </span>
 
-                  <ArrowRight className="size-4 text-slate-400 transition group-hover:translate-x-1 group-hover:text-blue-950" />
+                  <ArrowRight className="size-4 text-muted-foreground transition group-hover:translate-x-1 group-hover:text-foreground" />
                 </span>
 
                 <span>
-                  <span className="block text-base font-semibold text-slate-950">
+                  <span className="block text-base font-semibold text-foreground">
                     {branch.name}
                   </span>
 
-                  <span className="mt-1 block text-sm leading-5 text-slate-600">
+                  <span className="mt-1 block text-sm leading-5 text-muted-foreground">
                     Type:{" "}
                     {branch.typebranch === "PRIMAIRE"
                       ? "Primaire"
                       : "Secondaire"}
                   </span>
 
-                  <span className="mt-0.5 block text-sm leading-5 text-slate-600">
+                  <span className="mt-0.5 block text-sm leading-5 text-muted-foreground">
                     {branch.studentsCount} élève
                     {branch.studentsCount > 1 ? "s" : ""} inscrit
                     {branch.studentsCount > 1 ? "s" : ""}
                   </span>
                   <span
-                    className={`mt-2 inline-flex rounded-full px-2 py-0.5 text-xs font-semibold ${branch.isActive ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-600"}`}
+                    className={`mt-2 inline-flex rounded-full px-2 py-0.5 text-xs font-semibold ${branch.isActive ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-muted-foreground"}`}
                   >
                     {branch.isActive ? "Actif" : "Archive"}
                   </span>
@@ -140,7 +140,7 @@ export default async function BranchesPage({ params }: BranchesPageProps) {
           ))}
         </section>
       ) : (
-        <section className="rounded-2xl border border-dashed bg-white p-5 text-sm text-slate-600 shadow-sm">
+        <section className="rounded-2xl border border-dashed bg-card p-5 text-sm text-muted-foreground shadow-sm">
           Aucun établissement trouvé pour cette organisation.
         </section>
       )}

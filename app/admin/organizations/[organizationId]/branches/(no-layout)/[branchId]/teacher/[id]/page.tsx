@@ -135,10 +135,7 @@ const SingleTeacherPage = async ({
               <Card className="bg-kalasa-sky py-6 px-4 flex gap-4 rounded-2xl lg:col-span-7">
                 <div className="w-1/3 flex justify-center">
                   <Image
-                    src={
-                      normalizeImageSrc(user?.image) ||
-                      "/uploads/1752330108714.jpg"
-                    }
+                    src={normalizeImageSrc(user?.image)}
                     alt="teacher"
                     width={144}
                     height={144}

@@ -11,16 +11,23 @@ import {
   DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { DeleteClassesDialog } from "./delete-Classe-dialog";
-import { UpdateClasseDialog } from "./edit-Classe-dialog";
 import React from "react";
 import { IClasse } from "@/src/interfaces/Classe";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DataTableColumnHeader } from "@/components/data-table-column-header";
 import { useSession } from "@/lib/auth-client";
 import { canManageOrganization } from "@/lib/auth/session-roles";
+import { openOverlayAfterMenuDismiss } from "@/lib/radix-portal-dismiss";
 
-export function getClasseColumns(showOption = true): ColumnDef<IClasse>[] {
+export type ClasseTableActions = {
+  onEdit: (classe: IClasse) => void;
+  onArchive: (classe: IClasse) => void;
+};
+
+export function getClasseColumns(
+  showOption = true,
+  actions?: ClasseTableActions,
+): ColumnDef<IClasse>[] {
   const columns: ColumnDef<IClasse>[] = [
     {
       id: "select",
@@ -113,57 +120,50 @@ export function getClasseColumns(showOption = true): ColumnDef<IClasse>[] {
       cell: function Cell({ row }) {
         const { data: session } = useSession();
         const canManageClasse = canManageOrganization(session);
-        const [showUpdateTaskSheet, setShowUpdateTaskSheet] =
-          React.useState(false);
-        const [showDeleteTaskDialog, setShowDeleteTaskDialog] =
-          React.useState(false);
 
         return (
-          <>
-            <UpdateClasseDialog
-              open={showUpdateTaskSheet}
-              onOpenChange={setShowUpdateTaskSheet}
-              classe={row.original}
-            />
-
-            <DeleteClassesDialog
-              open={showDeleteTaskDialog}
-              onOpenChange={setShowDeleteTaskDialog}
-              Classes={[row.original]}
-              showTrigger={false}
-              onSuccess={() => row.toggleSelected(false)}
-            />
-
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  type="button"
-                  aria-label="Open menu"
-                  variant="ghost"
-                  size="icon"
-                  className="size-8"
-                >
-                  <IconDots className="size-4" aria-hidden="true" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-40">
-                <DropdownMenuItem
-                  disabled={!canManageClasse}
-                  onSelect={() => setShowUpdateTaskSheet(true)}
-                >
-                  Edit
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  disabled={!canManageClasse}
-                  onSelect={() => setShowDeleteTaskDialog(true)}
-                >
-                  Archiver
-                  <DropdownMenuShortcut>⌘⌫</DropdownMenuShortcut>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </>
+          <DropdownMenu modal={false}>
+            <DropdownMenuTrigger asChild>
+              <Button
+                type="button"
+                aria-label="Open menu"
+                variant="ghost"
+                size="icon"
+                className="size-8"
+              >
+                <IconDots className="size-4" aria-hidden="true" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-40">
+              <DropdownMenuItem
+                disabled={!canManageClasse || !actions}
+                onSelect={(event) => {
+                  event.preventDefault();
+                  if (!actions) return;
+                  openOverlayAfterMenuDismiss(() => actions.onEdit(row.original));
+                }}
+              >
+                Modifier
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                disabled={!canManageClasse || !actions}
+                className="text-destructive focus:bg-destructive/10 focus:text-destructive"
+                onSelect={(event) => {
+                  event.preventDefault();
+                  if (!actions) return;
+                  openOverlayAfterMenuDismiss(() =>
+                    actions.onArchive(row.original),
+                  );
+                }}
+              >
+                Archiver
+                <DropdownMenuShortcut className="text-destructive">
+                  ⌘⌫
+                </DropdownMenuShortcut>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         );
       },
     },

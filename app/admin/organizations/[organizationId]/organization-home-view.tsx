@@ -79,7 +79,7 @@ export function OrganizationHomeView({
               {roleLabel ? (
                 <OrganizationRoleBadge
                   label={roleLabel}
-                  className="bg-white/15 text-white hover:bg-white/15"
+                  className="bg-card/15 text-white hover:bg-card/15"
                 />
               ) : null}
             </div>
@@ -109,20 +109,20 @@ export function OrganizationHomeView({
           <Link
             key={section.path}
             href={`${base}/${section.path}`}
-            className="group flex flex-col gap-3 rounded-2xl border bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-blue-950/25 hover:shadow-md"
+            className="group flex flex-col gap-3 rounded-2xl border bg-card p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md"
           >
             <span className="flex items-start justify-between gap-3">
-              <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-blue-950 text-white">
+              <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground">
                 <Icon className="size-4" />
               </span>
-              <ArrowRight className="size-4 text-slate-400 transition group-hover:translate-x-1 group-hover:text-blue-950" />
+              <ArrowRight className="size-4 text-muted-foreground transition group-hover:translate-x-1 group-hover:text-foreground" />
             </span>
 
             <span>
-              <span className="block text-base font-semibold text-slate-950">
+              <span className="block text-base font-semibold text-foreground">
                 {section.title}
               </span>
-              <span className="mt-1 block text-sm leading-5 text-slate-600">
+              <span className="mt-1 block text-sm leading-5 text-muted-foreground">
                 {section.description}
               </span>
             </span>

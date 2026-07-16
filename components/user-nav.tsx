@@ -14,8 +14,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAppRouter as useRouter } from "@/hooks/use-app-router";
 import { authClient } from "@/lib/auth-client";
+import { KLAMBOCORE_DEFAULT_IMAGE_PATH } from "@/lib/brand/klambocore-image";
 import { useAppLoading } from "@/hooks/use-app-loading";
 import { getPrimaryRoleLabel } from "@/lib/sidebar-menu";
+import { normalizeImageSrc } from "@/lib/utils";
 import {
   getUserInitials,
   resolveUserDisplayName,
@@ -40,7 +42,10 @@ export function UserNav() {
           className="relative flex h-auto items-center gap-2 rounded-full px-1.5 py-1"
         >
           <Avatar className="h-8 w-8">
-            <AvatarImage src="/avatars/01.png" alt={displayName} />
+            <AvatarImage
+              src={normalizeImageSrc(user?.image)}
+              alt={displayName}
+            />
             <AvatarFallback>{initials}</AvatarFallback>
           </Avatar>
           {session ? (

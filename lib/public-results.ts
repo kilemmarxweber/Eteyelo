@@ -2,6 +2,7 @@ import {
   calculateBulletinPercentage,
   sumBulletinMaxima,
 } from "@/lib/bulletin-maxima";
+import { KLAMBOCORE_DEFAULT_IMAGE_PATH } from "@/lib/brand/klambocore-image";
 import { prisma } from "@/lib/prisma";
 import { normalizeImageSrc } from "@/lib/utils";
 
@@ -253,8 +254,7 @@ export async function getHomeResultSlides(limitSchools = 3) {
     }
   >();
 
-  const defaultImage =
-    "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=300&auto=format&fit=crop";
+  const defaultImage = KLAMBOCORE_DEFAULT_IMAGE_PATH;
 
   for (const result of results) {
     const current = grouped.get(result.branchId) ?? {

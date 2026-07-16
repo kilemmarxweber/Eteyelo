@@ -165,25 +165,21 @@ export default function Personnels() {
             const Icon = item.icon;
 
             return (
-              <Card
-                key={item.label}
-                variant="elevated"
-                className="rounded-2xl border border-blue-100 bg-white p-6 shadow-sm"
-              >
+              <Card key={item.label} variant="stat">
                 <div className="flex items-start justify-between">
                   <div>
-                    <p className="text-sm font-semibold text-blue-950/70">
+                    <p className="text-sm font-semibold text-muted-foreground">
                       {item.label}
                     </p>
-                    <h3 className="mt-3 text-3xl font-black text-blue-950">
+                    <h3 className="mt-3 text-3xl font-black text-foreground">
                       {item.value}
                     </h3>
-                    <p className="mt-1 text-xs text-blue-950/50">
+                    <p className="mt-1 text-xs text-muted-foreground">
                       {item.description}
                     </p>
                   </div>
 
-                  <div className="rounded-full bg-blue-50 p-2 text-blue-700">
+                  <div className="rounded-full bg-muted p-2 text-primary">
                     <Icon size={20} />
                   </div>
                 </div>
@@ -191,23 +187,20 @@ export default function Personnels() {
             );
           })}
 
-          <Card
-            variant="elevated"
-            className="rounded-2xl border border-blue-100 bg-white p-6 shadow-sm"
-          >
+          <Card variant="stat">
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-sm font-semibold text-blue-950/70">
+                <p className="text-sm font-semibold text-muted-foreground">
                   Présents aujourd&apos;hui
                 </p>
-                <h3 className="mt-3 text-3xl font-black text-blue-950">
+                <h3 className="mt-3 text-3xl font-black text-foreground">
                   {stats.present} / {stats.totalExpected}
                 </h3>
-                <p className="mt-1 text-xs text-blue-950/50">
+                <p className="mt-1 text-xs text-muted-foreground">
                   présents / total prévu
                 </p>
 
-                <div className="mt-4 h-2 overflow-hidden rounded-full bg-blue-100">
+                <div className="mt-4 h-2 overflow-hidden rounded-full bg-muted">
                   <div
                     className="h-full bg-emerald-600 transition-all"
                     style={{ width: `${presencePercent}%` }}
@@ -215,7 +208,7 @@ export default function Personnels() {
                 </div>
               </div>
 
-              <div className="rounded-full bg-blue-50 p-2 text-blue-700">
+              <div className="rounded-full bg-muted p-2 text-primary">
                 <IconCalendarCheck size={20} />
               </div>
             </div>
@@ -224,7 +217,7 @@ export default function Personnels() {
 
         <Card
           variant="elevated"
-          className="overflow-hidden rounded-2xl border border-blue-100"
+          className="overflow-hidden rounded-2xl border border-border"
         >
           <UserList
             key={refreshKey}

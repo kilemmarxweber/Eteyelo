@@ -82,7 +82,7 @@ export default async function OrganizationPartenairesPage({
       <section className="rounded-2xl bg-blue-950 p-5 text-white shadow-lg shadow-blue-950/10 sm:p-6">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-3xl">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold text-blue-50">
+            <div className="inline-flex items-center gap-2 rounded-full bg-card/15 px-3 py-1 text-xs font-semibold text-blue-50">
               <Building2 className="size-3.5" />
               Partenaires
             </div>
@@ -99,7 +99,7 @@ export default async function OrganizationPartenairesPage({
 
           <Link
             href={`/admin/organizations/${organizationId}/partenaires/new`}
-            className="inline-flex h-8 items-center justify-center rounded-full bg-white px-3 text-sm font-medium text-blue-950 transition hover:bg-blue-50"
+            className="inline-flex h-8 items-center justify-center rounded-full bg-card px-3 text-sm font-medium text-foreground transition hover:bg-blue-50"
           >
             <Plus className="mr-1.5 size-3.5" />
             Ajouter un partenaire
@@ -107,13 +107,13 @@ export default async function OrganizationPartenairesPage({
         </div>
       </section>
 
-      <section className="rounded-2xl border bg-white p-4 shadow-sm">
+      <section className="rounded-2xl border bg-card p-4 shadow-sm">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h2 className="text-base font-semibold text-slate-950">
+            <h2 className="text-base font-semibold text-foreground">
               Liste des partenaires
             </h2>
-            <p className="text-sm text-slate-600">
+            <p className="text-sm text-muted-foreground">
               {partenaires.length} partenaire
               {partenaires.length > 1 ? "s" : ""} enregistré
               {partenaires.length > 1 ? "s" : ""}.
@@ -121,8 +121,8 @@ export default async function OrganizationPartenairesPage({
           </div>
 
           <form className="w-full sm:w-[300px]">
-            <div className="flex h-10 items-center rounded-xl border bg-white px-3 shadow-sm transition focus-within:border-blue-950 focus-within:ring-2 focus-within:ring-blue-950/10">
-              <Search className="mr-2 size-4 shrink-0 text-slate-400" />
+            <div className="flex h-10 items-center rounded-xl border bg-card px-3 shadow-sm transition focus-within:border-blue-950 focus-within:ring-2 focus-within:ring-blue-950/10">
+              <Search className="mr-2 size-4 shrink-0 text-muted-foreground" />
               <Input
                 name="q"
                 defaultValue={q || ""}
@@ -135,7 +135,7 @@ export default async function OrganizationPartenairesPage({
       </section>
 
       {partenaires.length === 0 ? (
-        <section className="rounded-2xl border border-dashed bg-white p-5 text-sm text-slate-600 shadow-sm">
+        <section className="rounded-2xl border border-dashed bg-card p-5 text-sm text-muted-foreground shadow-sm">
           Aucun partenaire trouvé.
         </section>
       ) : (
@@ -150,11 +150,11 @@ export default async function OrganizationPartenairesPage({
             return (
               <article
                 key={partenaire.id}
-                className="overflow-hidden rounded-2xl border bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+                className="overflow-hidden rounded-2xl border bg-card p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
               >
                 <div className="flex items-start gap-3">
                   <div
-                    className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-cover bg-center bg-blue-50 text-blue-950"
+                    className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-cover bg-center bg-blue-50 text-foreground"
                     style={{
                       backgroundImage: logo ? `url('${logo}')` : undefined,
                     }}
@@ -163,11 +163,11 @@ export default async function OrganizationPartenairesPage({
                   </div>
 
                   <div className="min-w-0 flex-1">
-                    <h3 className="truncate text-sm font-semibold text-slate-950">
+                    <h3 className="truncate text-sm font-semibold text-foreground">
                       {partenaire.name}
                     </h3>
 
-                    <p className="mt-0.5 text-sm text-slate-600">
+                    <p className="mt-0.5 text-sm text-muted-foreground">
                       {partenaire.type || "Partenaire"}
                     </p>
 
@@ -183,7 +183,7 @@ export default async function OrganizationPartenairesPage({
                       )}
 
                       {partenaire.isFeatured ? (
-                        <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-semibold text-blue-700">
+                        <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-semibold text-primary">
                           Mis en avant
                         </span>
                       ) : null}
@@ -191,7 +191,7 @@ export default async function OrganizationPartenairesPage({
                   </div>
                 </div>
 
-                <div className="mt-3 space-y-1.5 text-sm text-slate-600">
+                <div className="mt-3 space-y-1.5 text-sm text-muted-foreground">
                   <p className="flex items-center gap-2">
                     <MapPin className="size-3.5" />
                     {partenaire.ville ||
@@ -214,7 +214,7 @@ export default async function OrganizationPartenairesPage({
                     href={partenaire.website}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="mt-3 inline-flex items-center text-sm font-semibold text-blue-700 hover:underline"
+                    className="mt-3 inline-flex items-center text-sm font-semibold text-primary hover:underline"
                   >
                     Voir le site
                     <ExternalLink className="ml-1.5 size-3.5" />

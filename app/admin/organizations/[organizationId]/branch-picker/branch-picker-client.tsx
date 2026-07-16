@@ -27,14 +27,14 @@ export function BranchPickerClient({
         >
           <Link href={`${base}/enter/${branch.branchId}`}>
             <span>
-              <span className="block font-semibold text-slate-950">
+              <span className="block font-semibold text-foreground">
                 {branch.branchName}
               </span>
               <span className="mt-1 block text-xs text-muted-foreground">
                 Ouvrir cet établissement
               </span>
             </span>
-            <ArrowRight className="size-4 shrink-0 text-slate-400" />
+            <ArrowRight className="size-4 shrink-0 text-muted-foreground" />
           </Link>
         </Button>
       ))}

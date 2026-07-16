@@ -111,11 +111,18 @@ export default function Page() {
         />
 
         <Dialog open={open} onOpenChange={setOpen}>
-          <DialogContent className="w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogContent
+            size="lg"
+            className="max-h-[90vh]"
+            onOpenAutoFocus={(event) => event.preventDefault()}
+            onCloseAutoFocus={(event) => event.preventDefault()}
+          >
             <DialogHeader>
               <DialogTitle>Creer une classe</DialogTitle>
               <DialogDescription>
-                Remplir les informations de la classe
+                Remplir les informations de la classe. Les listes (niveau,
+                section, option, vacation) restent utilisables sans fermer ce
+                dialog.
               </DialogDescription>
             </DialogHeader>
 
@@ -168,12 +175,12 @@ function ClassStat({
   icon: React.ReactNode;
 }) {
   return (
-    <Card className="flex items-center justify-between p-4">
+    <Card variant="stat" padding="sm" className="flex items-center justify-between">
       <div>
         <p className="text-sm text-muted-foreground">{label}</p>
-        <p className="mt-1 text-2xl font-bold">{value}</p>
+        <p className="mt-1 text-2xl font-bold text-foreground">{value}</p>
       </div>
-      <div className="rounded-lg bg-muted p-2">{icon}</div>
+      <div className="rounded-lg bg-muted p-2 text-muted-foreground">{icon}</div>
     </Card>
   );
 }

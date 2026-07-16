@@ -1,8 +1,8 @@
 import { prisma } from "@/lib/prisma";
+import { KLAMBOCORE_DEFAULT_IMAGE_PATH } from "@/lib/brand/klambocore-image";
 import type { SupportAgentPublic } from "@/lib/support/types";
 
-const DEFAULT_IMAGE =
-  "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&h=400&q=80";
+const DEFAULT_IMAGE = KLAMBOCORE_DEFAULT_IMAGE_PATH;
 
 /** Agents support actifs d'une organisation (pour utilisateurs finaux). */
 export async function listActiveOrganizationSupportAgents(

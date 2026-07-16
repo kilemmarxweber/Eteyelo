@@ -88,10 +88,10 @@ export default async function NoOrganizationPage() {
 
   return (
     <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
-      <section className="overflow-hidden rounded-3xl border bg-white shadow-sm">
+      <section className="overflow-hidden rounded-3xl border bg-card shadow-sm">
         <div className="grid gap-0 lg:grid-cols-[0.95fr_1.05fr]">
           <div className="bg-blue-950 p-6 text-white sm:p-8 lg:p-10">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1.5 text-xs font-semibold">
+            <div className="inline-flex items-center gap-2 rounded-full bg-card/15 px-3 py-1.5 text-xs font-semibold">
               <Building2 className="size-4" />
               Accès organisation
             </div>
@@ -113,7 +113,7 @@ export default async function NoOrganizationPage() {
               {mailtoHref ? (
                 <Button
                   asChild
-                  className="h-11 rounded-full bg-white px-5 text-blue-950 hover:bg-blue-50"
+                  className="h-11 rounded-full bg-card px-5 text-foreground hover:bg-blue-50"
                 >
                   <a href={mailtoHref}>
                     <Mail className="mr-2 size-4" />
@@ -123,7 +123,7 @@ export default async function NoOrganizationPage() {
               ) : (
                 <Button
                   asChild
-                  className="h-11 rounded-full bg-white px-5 text-blue-950 hover:bg-blue-50"
+                  className="h-11 rounded-full bg-card px-5 text-foreground hover:bg-blue-50"
                 >
                   <Link href="/contact">
                     <LifeBuoy className="mr-2 size-4" />
@@ -131,7 +131,7 @@ export default async function NoOrganizationPage() {
                   </Link>
                 </Button>
               )}
-              <SignOutButton className="border-white/40 bg-transparent text-white hover:bg-white/10 hover:text-white" />
+              <SignOutButton className="border-white/40 bg-transparent text-white hover:bg-card/10 hover:text-white" />
             </div>
           </div>
 
@@ -139,14 +139,14 @@ export default async function NoOrganizationPage() {
             {infoCards.map(({ icon: Icon, title, text }) => (
               <div
                 key={title}
-                className="flex min-h-24 items-start gap-4 rounded-2xl border bg-slate-50 p-4 sm:p-5"
+                className="flex min-h-24 items-start gap-4 rounded-2xl border bg-muted p-4 sm:p-5"
               >
-                <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-blue-950 text-white">
+                <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-primary text-primary-foreground">
                   <Icon className="size-5" />
                 </span>
                 <div className="min-w-0 flex-1">
-                  <p className="font-bold text-slate-950">{title}</p>
-                  <p className="mt-1 text-sm leading-6 text-slate-600">{text}</p>
+                  <p className="font-bold text-foreground">{title}</p>
+                  <p className="mt-1 text-sm leading-6 text-muted-foreground">{text}</p>
                 </div>
               </div>
             ))}
@@ -155,47 +155,47 @@ export default async function NoOrganizationPage() {
       </section>
 
       <section className="grid gap-4 md:grid-cols-2">
-        <div className="rounded-2xl border bg-white p-5 shadow-sm sm:p-6">
+        <div className="rounded-2xl border bg-card p-5 shadow-sm sm:p-6">
           <div className="mb-3 flex items-center gap-2">
-            <span className="flex size-10 items-center justify-center rounded-xl bg-blue-950 text-white">
+            <span className="flex size-10 items-center justify-center rounded-xl bg-primary text-primary-foreground">
               <Shield className="size-5" />
             </span>
-            <h2 className="text-base font-bold text-slate-950 sm:text-lg">
+            <h2 className="text-base font-bold text-foreground sm:text-lg">
               Contacter le super admin
             </h2>
           </div>
 
           {ownerEmail ? (
-            <p className="text-sm leading-6 text-slate-600">
+            <p className="text-sm leading-6 text-muted-foreground">
               Demandez l’accès à{" "}
-              <span className="font-semibold text-slate-950">{ownerLabel}</span>
+              <span className="font-semibold text-foreground">{ownerLabel}</span>
               {" via "}
               <a
                 href={mailtoHref!}
-                className="break-all font-medium text-blue-950 underline-offset-4 hover:underline"
+                className="break-all font-medium text-foreground underline-offset-4 hover:underline"
               >
                 {ownerEmail}
               </a>
               .
             </p>
           ) : (
-            <p className="text-sm leading-6 text-slate-600">
+            <p className="text-sm leading-6 text-muted-foreground">
               Aucun super administrateur n’est encore configuré. Contactez le
               support pour activer la plateforme.
             </p>
           )}
         </div>
 
-        <div className="rounded-2xl border bg-white p-5 shadow-sm sm:p-6">
+        <div className="rounded-2xl border bg-card p-5 shadow-sm sm:p-6">
           <div className="mb-3 flex items-center gap-2">
-            <span className="flex size-10 items-center justify-center rounded-xl bg-blue-950 text-white">
+            <span className="flex size-10 items-center justify-center rounded-xl bg-primary text-primary-foreground">
               <LifeBuoy className="size-5" />
             </span>
-            <h2 className="text-base font-bold text-slate-950 sm:text-lg">
+            <h2 className="text-base font-bold text-foreground sm:text-lg">
               Vous êtes le super admin ?
             </h2>
           </div>
-          <p className="text-sm leading-6 text-slate-600">
+          <p className="text-sm leading-6 text-muted-foreground">
             Déconnectez-vous, puis connectez-vous avec le compte owner de la
             plateforme pour créer une organisation et inviter des membres.
           </p>

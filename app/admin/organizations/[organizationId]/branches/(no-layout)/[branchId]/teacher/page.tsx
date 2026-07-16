@@ -168,26 +168,27 @@ export default function Teachers() {
                 aria-pressed={isActive}
               >
                 <Card
-                  variant="elevated"
-                  className={`h-full rounded-2xl border p-4 transition hover:-translate-y-0.5 hover:shadow-md ${
+                  variant="stat"
+                  padding="sm"
+                  className={`h-full transition hover:-translate-y-0.5 hover:shadow-md ${
                     isActive
-                      ? "border-blue-500 bg-blue-50 ring-2 ring-blue-100"
-                      : "border-blue-100 bg-white"
+                      ? "border-primary bg-primary/10 ring-2 ring-primary/20"
+                      : ""
                   }`}
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <p className="truncate text-xs font-semibold text-blue-950/65">
+                      <p className="truncate text-xs font-semibold text-muted-foreground">
                         {item.label}
                       </p>
-                      <p className="mt-2 text-2xl font-black text-blue-950">
+                      <p className="mt-2 text-2xl font-black text-foreground">
                         {item.value ?? "—"}
                       </p>
-                      <p className="mt-1 text-[11px] text-blue-950/50">
+                      <p className="mt-1 text-[11px] text-muted-foreground">
                         {item.description}
                       </p>
                     </div>
-                    <div className="rounded-xl bg-blue-100 p-2 text-blue-700">
+                    <div className="rounded-xl bg-muted p-2 text-primary">
                       <Icon size={18} />
                     </div>
                   </div>

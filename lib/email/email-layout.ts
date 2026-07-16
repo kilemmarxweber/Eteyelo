@@ -1,3 +1,5 @@
+import { getKlambocoreEmailLogoUrl } from "@/lib/brand/klambocore-image";
+
 export function escapeHtml(value: string): string {
   return value
     .replaceAll("&", "&amp;")
@@ -45,11 +47,7 @@ export function getEmailContactInfo() {
     process.env.EMAIL_USER?.trim() ||
     "contact@klambocore.com";
   const phone = process.env.CONTACT_PHONE?.trim() || "+243844952966";
-  const logoPath =
-    process.env.APP_LOGO_URL?.trim() || "/klambocore-logo.png";
-  const logoUrl = logoPath.startsWith("http")
-    ? logoPath
-    : `${KLAMBOCORE_LOGIN_URL}${logoPath.startsWith("/") ? logoPath : `/${logoPath}`}`;
+  const logoUrl = getKlambocoreEmailLogoUrl();
 
   return { name, email, phone, logoUrl };
 }

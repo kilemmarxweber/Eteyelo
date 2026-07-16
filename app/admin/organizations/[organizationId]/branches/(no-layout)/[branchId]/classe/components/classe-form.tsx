@@ -1,8 +1,11 @@
 "use client";
+
 import { HTMLAttributes, useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
 import {
   Form,
   FormControl,
@@ -13,28 +16,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Button, buttonVariants } from "@/components/custom/button";
-import { cn } from "@/lib/utils";
-import { toast } from "sonner";
-import { IconSelector, IconCheck } from "@tabler/icons-react";
-import {
-  createClasseAction,
-  getBranchTypeAction,
-  updateClasseAction,
-} from "../classe.action";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -42,6 +24,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { cn } from "@/lib/utils";
+import {
+  createClasseAction,
+  getBranchTypeAction,
+  updateClasseAction,
+} from "../classe.action";
 import {
   buildClassName,
   getClassLevelsForBranch,
@@ -78,6 +66,8 @@ interface ClasseUpFormProps extends HTMLAttributes<HTMLDivElement> {
   onUpdated?: () => void;
   initialData?: Partial<FormValues>;
   mode: "create" | "update";
+  /** Layout large pour le panneau Sheet d’édition. */
+  layout?: "default" | "sheet";
 }
 
 export function ClasseUpForm({
@@ -87,21 +77,19 @@ export function ClasseUpForm({
   onUpdated,
   initialData,
   mode,
+  layout = "default",
   ...props
 }: ClasseUpFormProps) {
   const isLegacyUpdate =
     mode === "update" && !initialData?.level && Boolean(initialData?.nameClasse);
+  const isSheet = layout === "sheet";
 
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [options, setOptions] = useState<IOption[]>([]);
-  const [optionSearch, setOptionSearch] = useState("");
   const [selectedSectionId, setSelectedSectionId] = useState("");
-  const [creneauSearch, setCreneauSearch] = useState("");
   const [creneaux, setCreneaux] = useState<ICreneau[]>([]);
   const [branchType, setBranchType] = useState<ManagedBranchType>("SECONDAIRE");
-  const [optionOpen, setOptionOpen] = useState(false);
-  const [creneauOpen, setCreneauOpen] = useState(false);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -125,12 +113,15 @@ export function ClasseUpForm({
 
   useEffect(() => {
     const fetchData = async () => {
-      const [[branchResult, branchErr], [rawOptions, optionsErr], [rawCreneaux, creneauxErr]] =
-        await Promise.all([
-          getBranchTypeAction(),
-          getOptionsAction(),
-          getCreneauxAction({}),
-        ]);
+      const [
+        [branchResult, branchErr],
+        [rawOptions, optionsErr],
+        [rawCreneaux, creneauxErr],
+      ] = await Promise.all([
+        getBranchTypeAction(),
+        getOptionsAction(),
+        getCreneauxAction({}),
+      ]);
 
       if (branchErr) throw branchErr;
       if (optionsErr) throw optionsErr;
@@ -176,7 +167,8 @@ export function ClasseUpForm({
   const showOptionField =
     branchType === "PRIMAIRE" ||
     (allowsOptionForBranch(branchType) &&
-      (isLegacyUpdate || requiresOptionForClass(branchType, watchedLevel ?? "")));
+      (isLegacyUpdate ||
+        requiresOptionForClass(branchType, watchedLevel ?? "")));
 
   const sections = useMemo(() => {
     const map = new Map<string, { id: string; name: string; code: string }>();
@@ -284,10 +276,6 @@ export function ClasseUpForm({
     watchedParallel,
   ]);
 
-  const filteredOptions = optionsForSection.filter((option) =>
-    option.nameOption.toLowerCase().includes(optionSearch.toLowerCase()),
-  );
-
   async function onSubmit(data: FormValues) {
     setIsLoading(true);
     setErrorMessage("");
@@ -297,7 +285,7 @@ export function ClasseUpForm({
         if (!data.level?.trim()) {
           throw new Error("Veuillez selectionner un niveau");
         }
-        const [classe, err] = await createClasseAction({
+        const [, err] = await createClasseAction({
           level: data.level,
           parallel: data.parallel,
           capacity: data.capacity,
@@ -332,18 +320,20 @@ export function ClasseUpForm({
               optionId: data.optionId,
               creneauId: data.creneauId,
             };
-        const [classe, err] = await updateClasseAction(payload);
+        const [, err] = await updateClasseAction(payload);
         if (err) throw new Error(err.message);
         toast.success("Classe mise a jour avec succes");
         onUpdated?.();
       }
       onSuccess?.();
-    } catch (error: any) {
-      setErrorMessage(error.message ?? "");
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error ? error.message : "Une erreur est survenue";
+      setErrorMessage(message);
       toast.error(
         mode === "create"
-          ? error.message || "Echec de la creation de la classe"
-          : error.message || "Echec de la mise a jour de la classe",
+          ? message || "Echec de la creation de la classe"
+          : message || "Echec de la mise a jour de la classe",
       );
     } finally {
       setIsLoading(false);
@@ -353,18 +343,23 @@ export function ClasseUpForm({
   return (
     <div className={cn("grid gap-6", className)} {...props}>
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)}>
-          <div className="grid gap-2">
-            <p className="text-sm text-muted-foreground">
-              Branche {getBranchTypeLabel(branchType)}
-            </p>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+          <p className="text-sm text-muted-foreground">
+            Branche {getBranchTypeLabel(branchType)}
+          </p>
 
+          <div
+            className={cn(
+              "grid gap-4",
+              isSheet ? "sm:grid-cols-2" : "grid-cols-1",
+            )}
+          >
             {isLegacyUpdate ? (
               <FormField
                 control={form.control}
                 name="nameClasse"
                 render={({ field }) => (
-                  <FormItem className="space-y-1">
+                  <FormItem className={cn(isSheet && "sm:col-span-2")}>
                     <FormLabel>Nom de la classe</FormLabel>
                     <FormControl>
                       <Input placeholder="Le nom de la classe" {...field} />
@@ -393,10 +388,12 @@ export function ClasseUpForm({
                         }}
                         value={field.value || undefined}
                       >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selectionner un niveau" />
-                        </SelectTrigger>
-                        <SelectContent>
+                        <FormControl>
+                          <SelectTrigger className="h-10">
+                            <SelectValue placeholder="Selectionner un niveau" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent position="popper">
                           {classLevels.map((level) => (
                             <SelectItem key={level} value={level}>
                               {getClassLevelLabel(branchType, level)}
@@ -413,10 +410,11 @@ export function ClasseUpForm({
                   control={form.control}
                   name="parallel"
                   render={({ field }) => (
-                    <FormItem className="space-y-1">
+                    <FormItem>
                       <FormLabel>Parallele (optionnel)</FormLabel>
                       <FormControl>
                         <Input
+                          className="h-10"
                           placeholder="Ex: A, B, C"
                           maxLength={3}
                           {...field}
@@ -427,25 +425,30 @@ export function ClasseUpForm({
                         />
                       </FormControl>
                       <FormDescription>
-                        Distingue les classes du meme niveau (ex. 1è-PR A, 1è Biologie-Chimie B).
+                        Distingue les classes du meme niveau (ex. 1è-PR A).
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
 
-                {previewName && (
-                  <div className="rounded-md border bg-muted/40 px-3 py-2 text-sm">
+                {previewName ? (
+                  <div
+                    className={cn(
+                      "rounded-lg border bg-muted/40 px-3 py-2.5 text-sm",
+                      isSheet && "sm:col-span-2",
+                    )}
+                  >
                     <span className="text-muted-foreground">Nom genere : </span>
                     <span className="font-medium">{previewName}</span>
                   </div>
-                )}
+                ) : null}
               </>
             )}
 
-            {showOptionField && branchType === "SECONDAIRE" && (
+            {showOptionField && branchType === "SECONDAIRE" ? (
               <FormItem>
-                <FormLabel>Section (filière)</FormLabel>
+                <FormLabel>Section (filiere)</FormLabel>
                 <Select
                   value={selectedSectionId || undefined}
                   onValueChange={(value) => {
@@ -454,10 +457,10 @@ export function ClasseUpForm({
                   }}
                   disabled={isCtebLevel(watchedLevel ?? "")}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="h-10">
                     <SelectValue placeholder="Selectionner une section" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent position="popper">
                     {sectionsForLevel.map((section) => (
                       <SelectItem key={section.id} value={section.id}>
                         {section.name}
@@ -466,99 +469,70 @@ export function ClasseUpForm({
                   </SelectContent>
                 </Select>
               </FormItem>
-            )}
+            ) : null}
 
-            {showOptionField && (
+            {showOptionField ? (
               <FormField
                 control={form.control}
                 name="optionId"
                 render={({ field }) => (
-                  <FormItem className="flex flex-col">
+                  <FormItem>
                     <FormLabel>Option</FormLabel>
-                    <Popover open={optionOpen} onOpenChange={setOptionOpen}>
-                      <PopoverTrigger asChild>
-                        <button
-                          type="button"
-                          disabled={
-                            branchType === "PRIMAIRE" ||
-                            isCtebLevel(watchedLevel ?? "") ||
-                            !selectedSectionId
-                          }
-                          role="combobox"
-                          aria-expanded={optionOpen}
-                          aria-controls="classe-option-listbox"
-                          className={cn(
-                            buttonVariants({ variant: "outline" }),
-                            "h-10 w-full justify-between font-normal",
-                            !field.value && "text-muted-foreground",
-                          )}
-                        >
-                          {field.value
-                            ? options.find((option) => option.id === field.value)
-                                ?.nameOption
-                            : branchType === "PRIMAIRE"
-                              ? "PRIMAIRE"
-                              : !selectedSectionId
-                                ? "Choisir d'abord une section"
-                                : "Selectionner une option"}
-                          <IconSelector className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                        </button>
-                      </PopoverTrigger>
-                      <PopoverContent className="p-0">
-                        <Command id="classe-option-listbox">
-                          <CommandInput
-                            placeholder="Rechercher une option..."
-                            value={optionSearch}
-                            onValueChange={setOptionSearch}
+                    <Select
+                      value={field.value || undefined}
+                      onValueChange={field.onChange}
+                      disabled={
+                        branchType === "PRIMAIRE" ||
+                        isCtebLevel(watchedLevel ?? "") ||
+                        (branchType === "SECONDAIRE" && !selectedSectionId)
+                      }
+                    >
+                      <FormControl>
+                        <SelectTrigger className="h-10">
+                          <SelectValue
+                            placeholder={
+                              branchType === "PRIMAIRE"
+                                ? "PRIMAIRE"
+                                : !selectedSectionId &&
+                                    branchType === "SECONDAIRE"
+                                  ? "Choisir d'abord une section"
+                                  : "Selectionner une option"
+                            }
                           />
-                          <CommandList>
-                            <CommandEmpty>Aucune option trouvee.</CommandEmpty>
-                            <CommandGroup>
-                              {filteredOptions.map((option) => (
-                                <CommandItem
-                                  value={option.nameOption}
-                                  key={option.id}
-                                  onSelect={() => {
-                                    form.setValue("optionId", option.id || "");
-                                  }}
-                                >
-                                  <IconCheck
-                                    className={cn(
-                                      "mr-2 h-4 w-4",
-                                      option.id === field.value
-                                        ? "opacity-100"
-                                        : "opacity-0",
-                                    )}
-                                  />
-                                  {option.nameOption}
-                                </CommandItem>
-                              ))}
-                            </CommandGroup>
-                          </CommandList>
-                        </Command>
-                      </PopoverContent>
-                    </Popover>
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent position="popper">
+                        {optionsForSection.map((option) => (
+                          <SelectItem key={option.id} value={option.id}>
+                            {option.nameOption}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-            )}
+            ) : null}
 
             <FormField
               control={form.control}
               name="capacity"
               render={({ field }) => (
-                <FormItem className="space-y-1">
+                <FormItem>
                   <FormLabel>Capacite (optionnel)</FormLabel>
                   <FormControl>
                     <Input
+                      className="h-10"
                       type="number"
                       min={1}
                       placeholder="Nombre maximum d'eleves"
                       value={field.value ?? ""}
                       onChange={(event) => {
                         const value = event.target.value;
-                        field.onChange(value === "" ? undefined : Number(value));
+                        field.onChange(
+                          value === "" ? undefined : Number(value),
+                        );
                       }}
                     />
                   </FormControl>
@@ -571,75 +545,53 @@ export function ClasseUpForm({
               control={form.control}
               name="creneauId"
               render={({ field }) => (
-                <FormItem className="flex flex-col">
+                <FormItem className={cn(!showOptionField && isSheet && "sm:col-span-1")}>
                   <FormLabel>Vacation</FormLabel>
-                  <Popover open={creneauOpen} onOpenChange={setCreneauOpen}>
-                    <PopoverTrigger asChild>
-                      <button
-                        type="button"
-                        role="combobox"
-                        aria-expanded={creneauOpen}
-                        aria-controls="classe-creneau-listbox"
-                        className={cn(
-                          buttonVariants({ variant: "outline" }),
-                          "h-10 w-full justify-between font-normal",
-                          !field.value && "text-muted-foreground",
-                        )}
-                      >
-                        {field.value
-                          ? creneaux.find((creneau) => creneau.id === field.value)
-                              ?.nameCreneau
-                          : "Selectionner une vacation"}
-                        <IconSelector className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                      </button>
-                    </PopoverTrigger>
-                    <PopoverContent className="p-0">
-                      <Command id="classe-creneau-listbox">
-                        <CommandInput
-                          placeholder="Rechercher une vacation..."
-                          value={creneauSearch}
-                          onValueChange={setCreneauSearch}
-                        />
-                        <CommandList>
-                          <CommandEmpty>Aucune vacation trouvee.</CommandEmpty>
-                          <CommandGroup>
-                            {creneaux.map((creneau) => (
-                              <CommandItem
-                                value={creneau.nameCreneau}
-                                key={creneau.id}
-                                onSelect={() => {
-                                  form.setValue("creneauId", creneau.id || "");
-                                }}
-                              >
-                                <IconCheck
-                                  className={cn(
-                                    "mr-2 h-4 w-4",
-                                    creneau.id === field.value
-                                      ? "opacity-100"
-                                      : "opacity-0",
-                                  )}
-                                />
-                                {creneau.nameCreneau}
-                              </CommandItem>
-                            ))}
-                          </CommandGroup>
-                        </CommandList>
-                      </Command>
-                    </PopoverContent>
-                  </Popover>
+                  <Select
+                    value={field.value || undefined}
+                    onValueChange={field.onChange}
+                  >
+                    <FormControl>
+                      <SelectTrigger className="h-10">
+                        <SelectValue placeholder="Selectionner une vacation" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent position="popper">
+                      {creneaux.map((creneau) => (
+                        <SelectItem key={creneau.id} value={creneau.id}>
+                          {creneau.nameCreneau}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}
             />
+          </div>
 
-            <Button type="submit" className="mt-2" loading={isLoading}>
+          <div
+            className={cn(
+              "flex flex-col gap-3",
+              isSheet &&
+                "sticky bottom-0 -mx-6 border-t bg-background px-6 py-4 sm:flex-row sm:items-center sm:justify-end",
+            )}
+          >
+            <Button
+              type="submit"
+              className={cn(!isSheet && "w-full sm:w-auto")}
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <Loader2 className="mr-2 size-4 animate-spin" />
+              ) : null}
               {mode === "create"
                 ? "Enregistrer la classe"
                 : "Mettre a jour la classe"}
             </Button>
-            {errorMessage && (
-              <p className="mt-2 text-center text-red-500">{errorMessage}</p>
-            )}
+            {errorMessage ? (
+              <p className="text-sm text-destructive sm:mr-auto">{errorMessage}</p>
+            ) : null}
           </div>
         </form>
       </Form>

@@ -48,11 +48,11 @@ export default async function BranchPickerPage({ params }: BranchPickerPageProps
       ) : null}
 
       <div className="space-y-2">
-        <div className="inline-flex items-center gap-2 rounded-full bg-blue-950/10 px-3 py-1 text-xs font-semibold text-blue-950">
+        <div className="inline-flex items-center gap-2 rounded-full bg-blue-950/10 px-3 py-1 text-xs font-semibold text-foreground">
           <School className="size-3.5" />
           Choix de branche
         </div>
-        <h1 className="text-2xl font-bold text-slate-950">
+        <h1 className="text-2xl font-bold text-foreground">
           Selectionnez votre etablissement
         </h1>
         <p className="text-sm leading-relaxed text-muted-foreground">

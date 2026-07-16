@@ -28,6 +28,7 @@ import { AnimatedCounter } from "@/components/animated-counter";
 import { HomeFooter } from "@/components/home-footer";
 import { HomeNavbar } from "@/components/home-navbar";
 import { galleryImages, getHomeData } from "@/lib/home/home-data";
+import { KLAMBOCORE_DEFAULT_IMAGE_PATH } from "@/lib/brand/klambocore-image";
 
 export const dynamic = "force-dynamic";
 const socialLinks = [
@@ -68,8 +69,7 @@ export default async function HomePage() {
   const { schools, events, partners, newSchools, resultSlides, stats } =
     await getHomeData();
 
-  const defaultSchoolImage =
-    "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?q=80&w=1200&auto=format&fit=crop";
+  const defaultSchoolImage = KLAMBOCORE_DEFAULT_IMAGE_PATH;
 
   const schoolImageSlides = schools
     .map((school) => ({

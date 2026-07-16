@@ -11,6 +11,10 @@ export type UploadErrorResponse = {
 
 export type UploadResponse = UploadSuccessResponse | UploadErrorResponse;
 
+/** Limite images côté client (alignée sur le serveur). */
+export const MAX_IMAGE_UPLOAD_BYTES = 5 * 1024 * 1024;
+export const MAX_DOCUMENT_UPLOAD_BYTES = 10 * 1024 * 1024;
+
 /**
  * Envoie un fichier vers la route `/api/upload`.
  */
@@ -21,6 +25,13 @@ export async function uploadFile(
     return {
       ok: false,
       message: "Aucun fichier sélectionné.",
+    };
+  }
+
+  if (file.size > MAX_IMAGE_UPLOAD_BYTES) {
+    return {
+      ok: false,
+      message: "Le fichier dépasse la taille maximale autorisée de 5 Mo.",
     };
   }
 
@@ -107,6 +118,13 @@ export async function uploadDocument(
     return {
       ok: false,
       message: "Aucun fichier sélectionné.",
+    };
+  }
+
+  if (file.size > MAX_DOCUMENT_UPLOAD_BYTES) {
+    return {
+      ok: false,
+      message: "Le fichier dépasse la taille maximale autorisée de 10 Mo.",
     };
   }
 

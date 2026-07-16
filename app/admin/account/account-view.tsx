@@ -21,6 +21,8 @@ import {
   type LocalePreference,
 } from "@/lib/locale-preference";
 import { orgRoleLabel } from "@/lib/org-role-labels";
+import { normalizeImageSrc } from "@/lib/utils";
+import { MAX_IMAGE_UPLOAD_BYTES, uploadFile } from "@/lib/upload-file";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -143,17 +145,18 @@ export function AccountView({
       toast.error("Choisissez une image (JPEG, PNG, WebP…).");
       return;
     }
-    if (file.size > 512_000) {
-      toast.error("Image trop volumineuse (max. 512 Ko).");
+    if (file.size > MAX_IMAGE_UPLOAD_BYTES) {
+      toast.error("Image trop volumineuse (max. 5 Mo).");
       return;
     }
-    const dataUrl = await new Promise<string>((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(String(reader.result));
-      reader.onerror = () => reject(new Error("Lecture impossible."));
-      reader.readAsDataURL(file);
-    });
-    const { error } = await authClient.updateUser({ image: dataUrl });
+
+    const uploaded = await uploadFile(file);
+    if (!uploaded.ok) {
+      toast.error(uploaded.message);
+      return;
+    }
+
+    const { error } = await authClient.updateUser({ image: uploaded.url });
     if (error) {
       toast.error(error.message ?? "Impossible de mettre à jour la photo.");
       return;
@@ -222,9 +225,10 @@ export function AccountView({
           aria-label="Changer la photo de profil"
         >
           <Avatar className="size-20">
-            {user.image ? (
-              <AvatarImage src={user.image} alt={user.name ?? "Profil"} />
-            ) : null}
+            <AvatarImage
+              src={normalizeImageSrc(user.image)}
+              alt={user.name ?? "Profil"}
+            />
             <AvatarFallback className="text-lg font-semibold">
               {initials}
             </AvatarFallback>

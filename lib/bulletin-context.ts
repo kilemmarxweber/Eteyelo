@@ -2,6 +2,7 @@ import {
   type ManagedBranchType,
   normalizeBranchType,
 } from "@/lib/academic-structure";
+import { KLAMBOCORE_DEFAULT_IMAGE_PATH } from "@/lib/brand/klambocore-image";
 
 export type BulletinLayoutKind = "primary" | "secondary";
 
@@ -86,7 +87,8 @@ export function resolveBulletinLogoUrl(
 ): string {
   return (
     extractBulletinBranchLogo(branchImage) ||
-    normalizeOptionalImageUrl(organizationLogo)
+    normalizeOptionalImageUrl(organizationLogo) ||
+    KLAMBOCORE_DEFAULT_IMAGE_PATH
   );
 }
 

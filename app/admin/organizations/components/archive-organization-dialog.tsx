@@ -72,7 +72,7 @@ export function ArchiveOrganizationDialog({
             {isArchived ? (
               <>
                 L&apos;organisation{" "}
-                <span className="font-semibold text-slate-950">
+                <span className="font-semibold text-foreground">
                   {organizationName}
                 </span>{" "}
                 redeviendra accessible dans les listes actives.
@@ -80,7 +80,7 @@ export function ArchiveOrganizationDialog({
             ) : (
               <>
                 L&apos;organisation{" "}
-                <span className="font-semibold text-slate-950">
+                <span className="font-semibold text-foreground">
                   {organizationName}
                 </span>{" "}
                 sera masquee des listes actives. Les donnees et l&apos;historique
@@ -162,7 +162,7 @@ export function ArchiveOrganizationButton({
           type="button"
           variant="ghost"
           size="icon"
-          className="size-9 shrink-0 rounded-full text-slate-400 hover:bg-amber-50 hover:text-amber-700"
+          className="size-9 shrink-0 rounded-full text-muted-foreground hover:bg-amber-50 hover:text-amber-700"
           aria-label={
             isArchived
               ? `Reactiver ${organizationName}`

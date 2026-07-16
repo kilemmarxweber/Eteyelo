@@ -74,7 +74,10 @@ export function DeleteClassesDialog({
           </Button>
         </DialogTrigger>
       ) : null}
-      <DialogContent>
+      <DialogContent
+        onOpenAutoFocus={(event) => event.preventDefault()}
+        onCloseAutoFocus={(event) => event.preventDefault()}
+      >
         <DialogHeader>
           <DialogTitle>
             {count === 1
@@ -93,15 +96,17 @@ export function DeleteClassesDialog({
           </DialogClose>
           <Button
             aria-label="Archiver la sélection"
-            variant="outline"
+            variant="destructive"
             onClick={handleArchive}
             disabled={isArchivePending}
           >
-            {isArchivePending && (
+            {isArchivePending ? (
               <IconReload
                 className="mr-2 size-4 animate-spin"
                 aria-hidden="true"
               />
+            ) : (
+              <IconArchive className="mr-2 size-4" aria-hidden="true" />
             )}
             Archiver
           </Button>

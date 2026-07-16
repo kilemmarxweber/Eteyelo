@@ -1,6 +1,7 @@
 import { clsx, type ClassValue } from "clsx";
 import { FieldError } from "react-hook-form";
 import { twMerge } from "tailwind-merge";
+import { KLAMBOCORE_DEFAULT_IMAGE_PATH } from "@/lib/brand/klambocore-image";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -56,7 +57,7 @@ export const adjustScheduleToCurrentWeek = (
 //   return `/uploads/${src}`;
 // }
 export function normalizeImageSrc(src: unknown): string {
-  const fallback = "/uploads/1752330108714.jpeg";
+  const fallback = KLAMBOCORE_DEFAULT_IMAGE_PATH;
 
   if (!src) return fallback;
 

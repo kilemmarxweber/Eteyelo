@@ -25,9 +25,9 @@ export function DataTableToolbar<TData>({
   const isFiltered = table.getState().columnFilters.length > 0;
 
   return (
-    <div className="flex flex-col gap-3 border-b border-blue-100 bg-white p-4 lg:flex-row lg:items-center lg:justify-between">
+    <div className="flex flex-col gap-3 border-b border bg-card p-4 lg:flex-row lg:items-center lg:justify-between">
       <div className="relative w-full lg:max-w-[300px]">
-        <IconSearch className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-blue-950/40" />
+        <IconSearch className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-foreground/40" />
 
         <Input
           placeholder="Rechercher par nom, prénom ou postnom..."
@@ -35,7 +35,7 @@ export function DataTableToolbar<TData>({
           onChange={(event) =>
             table.getColumn("nom")?.setFilterValue(event.target.value)
           }
-          className="h-11 rounded-xl border-blue-100 bg-white pl-9 text-blue-950 placeholder:text-blue-950/40 focus-visible:ring-blue-200"
+          className="h-11 rounded-xl border bg-card pl-9 text-foreground placeholder:text-foreground/40 focus-visible:ring-blue-200"
         />
       </div>
 
@@ -64,7 +64,7 @@ export function DataTableToolbar<TData>({
           <Button
             variant="outline"
             onClick={() => table.resetColumnFilters()}
-            className="h-10 border-blue-100 text-blue-700 hover:bg-blue-50 hover:text-blue-800"
+            className="h-10 border-border text-primary hover:bg-blue-50 hover:text-blue-800"
           >
             Réinitialiser
             <Cross2Icon className="ml-2 size-4" />

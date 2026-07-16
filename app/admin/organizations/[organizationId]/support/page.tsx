@@ -68,7 +68,7 @@ export default async function OrganizationSupportPage({ params }: PageProps) {
       <section className="rounded-2xl bg-blue-950 p-5 text-white shadow-lg shadow-blue-950/10 sm:p-6">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-3xl">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold text-blue-50">
+            <div className="inline-flex items-center gap-2 rounded-full bg-card/15 px-3 py-1 text-xs font-semibold text-blue-50">
               <HeadphonesIcon className="size-3.5" />
               Support {organization.name}
             </div>
@@ -87,7 +87,7 @@ export default async function OrganizationSupportPage({ params }: PageProps) {
             <Button
               size="sm"
               variant="secondary"
-              className="rounded-full bg-white text-blue-950 hover:bg-blue-50"
+              className="rounded-full bg-card text-foreground hover:bg-blue-50"
               asChild
             >
               <Link
@@ -113,15 +113,15 @@ export default async function OrganizationSupportPage({ params }: PageProps) {
       {canEscalate && (
         <section className="rounded-2xl border border-blue-200 bg-blue-50/70 p-4 shadow-sm sm:p-5">
           <div className="flex items-center gap-3">
-            <span className="flex size-9 items-center justify-center rounded-xl bg-blue-950 text-white">
+            <span className="flex size-9 items-center justify-center rounded-xl bg-primary text-primary-foreground">
               <LifeBuoy className="size-4" />
             </span>
 
             <div>
-              <h2 className="text-base font-semibold text-blue-950">
+              <h2 className="text-base font-semibold text-foreground">
                 Contacter Klambocore
               </h2>
-              <p className="mt-0.5 text-sm leading-5 text-slate-600">
+              <p className="mt-0.5 text-sm leading-5 text-muted-foreground">
                 Utilisez ce canal pour les incidents nécessitant l’intervention
                 de l’équipe plateforme.
               </p>
@@ -140,12 +140,12 @@ export default async function OrganizationSupportPage({ params }: PageProps) {
       )}
 
       <section className="space-y-3">
-        <h2 className="text-base font-semibold text-slate-950">
+        <h2 className="text-base font-semibold text-foreground">
           Historique des escalades
         </h2>
 
         {escalations.length === 0 ? (
-          <div className="rounded-2xl border border-dashed bg-white p-5 text-sm text-slate-600 shadow-sm">
+          <div className="rounded-2xl border border-dashed bg-card p-5 text-sm text-muted-foreground shadow-sm">
             Aucune escalade.
           </div>
         ) : (
@@ -163,19 +163,19 @@ export default async function OrganizationSupportPage({ params }: PageProps) {
               return (
                 <article
                   key={item.id}
-                  className="rounded-2xl border bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-blue-950/25 hover:shadow-md"
+                  className="rounded-2xl border bg-card p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md"
                 >
                   <div className="flex items-start justify-between gap-3">
-                    <h3 className="text-sm font-semibold text-slate-950">
+                    <h3 className="text-sm font-semibold text-foreground">
                       {item.subject}
                     </h3>
 
-                    <span className="rounded-full bg-blue-950/10 px-2 py-0.5 text-xs font-semibold text-blue-950">
+                    <span className="rounded-full bg-blue-950/10 px-2 py-0.5 text-xs font-semibold text-foreground">
                       {statusLabel}
                     </span>
                   </div>
 
-                  <p className="mt-2 text-sm leading-5 text-slate-600">
+                  <p className="mt-2 text-sm leading-5 text-muted-foreground">
                     {item.requesterUser.name} · Priorité {priorityLabel}
                   </p>
 

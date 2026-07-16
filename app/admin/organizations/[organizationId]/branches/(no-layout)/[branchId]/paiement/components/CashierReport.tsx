@@ -165,16 +165,16 @@ export default function CashierReport({
           <div className="text-sm text-destructive py-4">{error}</div>
         ) : report ? (
           <div className="grid gap-4 md:grid-cols-4">
-            <div className="rounded-xl border p-4 bg-slate-50 dark:bg-slate-950">
+            <div className="rounded-xl border p-4 bg-muted dark:bg-slate-950">
               <div className="text-sm text-muted-foreground">Solde d'ouverture</div>
-              <div className="mt-2 text-xl font-semibold text-slate-400">
+              <div className="mt-2 text-xl font-semibold text-muted-foreground">
                 Non géré
               </div>
               <div className="text-xs text-secondary mt-1">
                 Phase 15
               </div>
             </div>
-            <div className="rounded-xl border p-4 bg-slate-50 dark:bg-slate-950">
+            <div className="rounded-xl border p-4 bg-muted dark:bg-slate-950">
               <div className="text-sm text-muted-foreground">Encaissements</div>
               <div className="mt-2 text-2xl font-semibold text-emerald-600">
                 {formatAmount(report.incomeTotal)}
@@ -183,7 +183,7 @@ export default function CashierReport({
                 {report.payments.length} entrée(s)
               </div>
             </div>
-            <div className="rounded-xl border p-4 bg-slate-50 dark:bg-slate-950">
+            <div className="rounded-xl border p-4 bg-muted dark:bg-slate-950">
               <div className="text-sm text-muted-foreground">Sorties</div>
               <div className="mt-2 text-2xl font-semibold text-rose-600">
                 {formatAmount(report.outflowTotal)}
@@ -192,9 +192,9 @@ export default function CashierReport({
                 {report.expenses.length} dépense(s)
               </div>
             </div>
-            <div className="rounded-xl border p-4 bg-slate-50 dark:bg-slate-950 shadow-sm border-blue-100 dark:border-blue-900">
-              <div className="text-sm font-medium text-blue-950 dark:text-blue-100">Solde Net</div>
-              <div className="mt-2 text-2xl font-black text-blue-700 dark:text-blue-400">
+            <div className="rounded-xl border p-4 bg-muted dark:bg-slate-950 shadow-sm border-border dark:border-blue-900">
+              <div className="text-sm font-medium text-foreground dark:text-blue-100">Solde Net</div>
+              <div className="mt-2 text-2xl font-black text-primary dark:text-blue-400">
                 {formatAmount(report.balance)}
               </div>
               <div className="text-sm text-secondary">

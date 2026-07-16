@@ -7,6 +7,7 @@ export type SessionUserDisplay = {
   username?: string | null;
   prenom?: string | null;
   postnom?: string | null;
+  image?: string | null;
 };
 
 function cleanPart(value?: string | null): string | null {

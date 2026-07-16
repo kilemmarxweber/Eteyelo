@@ -1,5 +1,6 @@
 "use server";
 
+import { KLAMBOCORE_DEFAULT_IMAGE_PATH } from "@/lib/brand/klambocore-image";
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { ensureAcademicPeriodsForBranch } from "@/lib/academic-periods";
@@ -57,7 +58,7 @@ export async function createBranch(data: CreateBranchInput) {
     data: {
       name: data.name,
       code,
-      image: data.image || "/uploads/1752330108714.jpeg",
+      image: data.image || KLAMBOCORE_DEFAULT_IMAGE_PATH,
       adresse: data.adresse || null,
       ville: data.ville || null,
       pays: data.pays || "RDC",

@@ -55,7 +55,7 @@ export function CreateMemberForm({ organizationId }: Props) {
 
       <label className="block space-y-2 text-sm font-medium">
         Nom complet
-        <div className="flex items-center gap-2 rounded-2xl border bg-white px-3">
+        <div className="flex items-center gap-2 rounded-2xl border bg-card px-3">
           <UserRound className="size-4 text-muted-foreground" />
           <input
             {...form.register("name")}
@@ -70,7 +70,7 @@ export function CreateMemberForm({ organizationId }: Props) {
 
       <label className="block space-y-2 text-sm font-medium">
         Email
-        <div className="flex items-center gap-2 rounded-2xl border bg-white px-3">
+        <div className="flex items-center gap-2 rounded-2xl border bg-card px-3">
           <Mail className="size-4 text-muted-foreground" />
           <input
             {...form.register("email")}
@@ -86,7 +86,7 @@ export function CreateMemberForm({ organizationId }: Props) {
 
       <label className="block space-y-2 text-sm font-medium">
         Rôle
-        <div className="flex items-center gap-2 rounded-2xl border bg-white px-3">
+        <div className="flex items-center gap-2 rounded-2xl border bg-card px-3">
           <Shield className="size-4 text-muted-foreground" />
           <select
             {...form.register("orgRole")}
@@ -106,7 +106,7 @@ export function CreateMemberForm({ organizationId }: Props) {
       <div className="flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:justify-end">
         <Link
           href={`/admin/organizations/${organizationId}/members`}
-          className="inline-flex h-11 w-full items-center justify-center rounded-full border bg-white px-5 text-sm font-semibold transition hover:bg-slate-50 sm:w-auto"
+          className="inline-flex h-11 w-full items-center justify-center rounded-full border bg-card px-5 text-sm font-semibold transition hover:bg-muted sm:w-auto"
         >
           Annuler
         </Link>

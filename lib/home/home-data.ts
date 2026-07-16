@@ -1,5 +1,6 @@
 import "server-only";
 
+import { KLAMBOCORE_DEFAULT_IMAGE_PATH } from "@/lib/brand/klambocore-image";
 import { prisma } from "@/lib/prisma";
 import { getHomeResultSlides } from "@/lib/public-results";
 import { getBranchImage, normalizeImageSrc } from "@/lib/utils";
@@ -133,11 +134,9 @@ export const fallbackEvents: HomeEvent[] = [
       "https://images.unsplash.com/photo-1509062522246-3755977927d7?q=80&w=1200&auto=format&fit=crop",
   },
 ];
-const DEFAULT_SCHOOL_IMAGE =
-  "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?q=80&w=1200&auto=format&fit=crop";
+const DEFAULT_SCHOOL_IMAGE = KLAMBOCORE_DEFAULT_IMAGE_PATH;
 
-const DEFAULT_EVENT_IMAGE =
-  "https://images.unsplash.com/photo-1523580846011-d3a5bc25702b?q=80&w=1200&auto=format&fit=crop";
+const DEFAULT_EVENT_IMAGE = KLAMBOCORE_DEFAULT_IMAGE_PATH;
 
 function normalizeImageList(
   images: Array<string | null | undefined>,

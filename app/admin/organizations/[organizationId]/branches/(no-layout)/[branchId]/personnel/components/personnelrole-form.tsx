@@ -181,9 +181,9 @@ export function PersonnelRoleUpForm({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <Card className="space-y-4 border-blue-100 p-4">
+        <Card className="space-y-4 border-border p-4">
           <div>
-            <p className="text-sm font-semibold text-blue-950">
+            <p className="text-sm font-semibold text-foreground">
               {[form.watch("name"), form.watch("postnom"), form.watch("prenom")]
                 .filter(Boolean)
                 .join(" ") || "Personnel"}
@@ -219,9 +219,9 @@ export function PersonnelRoleUpForm({
           />
         </Card>
 
-        <Card className="space-y-3 border-blue-100 p-4">
+        <Card className="space-y-3 border-border p-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <h3 className="text-sm font-semibold text-blue-950">
+            <h3 className="text-sm font-semibold text-foreground">
               Permissions du rôle
             </h3>
             <Badge variant="secondary">{permissions.length} permissions</Badge>
@@ -231,7 +231,7 @@ export function PersonnelRoleUpForm({
             value={permissionSearch}
             onChange={(e) => setPermissionSearch(e.target.value)}
             placeholder="Rechercher une permission..."
-            className="rounded-xl border-blue-100"
+            className="rounded-xl border-border"
           />
 
           <div className="max-h-[280px] space-y-2 overflow-auto pr-1">
@@ -246,7 +246,7 @@ export function PersonnelRoleUpForm({
                   className="flex items-center gap-2 rounded-lg border border-blue-50 px-3 py-2"
                 >
                   <Checkbox checked disabled />
-                  <span className="text-sm text-blue-950/80">{perm}</span>
+                  <span className="text-sm text-foreground/80">{perm}</span>
                 </div>
               ))
             )}

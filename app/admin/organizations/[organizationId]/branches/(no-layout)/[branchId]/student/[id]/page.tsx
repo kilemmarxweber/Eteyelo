@@ -302,10 +302,7 @@ const SingleStudentPage = async ({
               <Card className="bg-kalasa-sky py-6 px-4 flex-1 flex gap-4 p-8">
                 <div className="w-1/3">
                   <Image
-                    src={
-                      normalizeImageSrc(user.image) ||
-                      "/uploads/1752330108714.jpg"
-                    }
+                    src={normalizeImageSrc(user.image)}
                     alt={studentName}
                     width={144}
                     height={144}

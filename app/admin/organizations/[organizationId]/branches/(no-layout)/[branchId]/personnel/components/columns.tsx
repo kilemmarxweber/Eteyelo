@@ -62,8 +62,8 @@ export const createPersonnelColumns = (
 
       return (
         <div className="flex items-center justify-center">
-          <div className="flex size-11 items-center justify-center overflow-hidden rounded-full border border-blue-100 bg-blue-50 ring-2 ring-white">
-            <span className="text-sm font-black text-blue-700">{initials}</span>
+          <div className="flex size-11 items-center justify-center overflow-hidden rounded-full border border-border bg-blue-50 ring-2 ring-white">
+            <span className="text-sm font-black text-primary">{initials}</span>
           </div>
         </div>
       );
@@ -77,7 +77,7 @@ export const createPersonnelColumns = (
       <DataTableColumnHeader column={column} title="Nom" />
     ),
     cell: ({ row }) => (
-      <span className="font-semibold text-blue-950">
+      <span className="font-semibold text-foreground">
         {row.original.nom ?? "N/A"}
       </span>
     ),
@@ -100,7 +100,7 @@ export const createPersonnelColumns = (
       <DataTableColumnHeader column={column} title="Postnom" />
     ),
     cell: ({ row }) => (
-      <span className="text-blue-950/80">{row.original.postnom ?? "N/A"}</span>
+      <span className="text-foreground/80">{row.original.postnom ?? "N/A"}</span>
     ),
   },
   {
@@ -109,7 +109,7 @@ export const createPersonnelColumns = (
       <DataTableColumnHeader column={column} title="Prénom" />
     ),
     cell: ({ row }) => (
-      <span className="text-blue-950/80">{row.original.prenom ?? "N/A"}</span>
+      <span className="text-foreground/80">{row.original.prenom ?? "N/A"}</span>
     ),
   },
   {
@@ -132,7 +132,7 @@ export const createPersonnelColumns = (
       <DataTableColumnHeader column={column} title="Rôle" />
     ),
     cell: ({ row }) => (
-      <span className="font-medium text-blue-700">
+      <span className="font-medium text-primary">
         {row.original.role ? orgRoleLabel(row.original.role) : "Non défini"}
       </span>
     ),
@@ -145,7 +145,7 @@ export const createPersonnelColumns = (
     cell: ({ row }) =>
       row.original.telephone ? (
         <Link
-          className="text-blue-700 underline-offset-4 hover:underline"
+          className="text-primary underline-offset-4 hover:underline"
           href={`tel:${row.original.telephone}`}
         >
           {row.original.telephone}
@@ -162,7 +162,7 @@ export const createPersonnelColumns = (
     cell: ({ row }) =>
       row.original.email ? (
         <Link
-          className="text-blue-700 underline-offset-4 hover:underline"
+          className="text-primary underline-offset-4 hover:underline"
           href={`mailto:${row.original.email}`}
         >
           {row.original.email}
@@ -236,7 +236,7 @@ export const createPersonnelColumns = (
               <Button
                 aria-label="Open menu"
                 variant="ghost"
-                className="flex size-8 p-0 text-blue-950 hover:bg-blue-50 data-[state=open]:bg-blue-50"
+                className="flex size-8 p-0 text-foreground hover:bg-blue-50 data-[state=open]:bg-blue-50"
               >
                 <IconDots className="size-4" aria-hidden="true" />
               </Button>

@@ -6,6 +6,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { X } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import { shouldPreventDismissOutside } from "@/lib/radix-portal-dismiss";
 
 const Sheet = SheetPrimitive.Root;
 const SheetTrigger = SheetPrimitive.Trigger;
@@ -54,7 +55,19 @@ interface SheetContentProps
 const SheetContent = React.forwardRef<
   React.ElementRef<typeof SheetPrimitive.Content>,
   SheetContentProps
->(({ side = "right", className, children, ...props }, ref) => {
+>(
+  (
+    {
+      side = "right",
+      className,
+      children,
+      onPointerDownOutside,
+      onInteractOutside,
+      onFocusOutside,
+      ...props
+    },
+    ref,
+  ) => {
   // ✅ Detect if user already provided a SheetTitle
   const hasTitle = React.Children.toArray(children).some(
     (child: any) =>
@@ -67,6 +80,24 @@ const SheetContent = React.forwardRef<
       <SheetPrimitive.Content
         ref={ref}
         className={cn(sheetVariants({ side }), className)}
+        onPointerDownOutside={(event) => {
+          if (shouldPreventDismissOutside(event.target)) {
+            event.preventDefault();
+          }
+          onPointerDownOutside?.(event);
+        }}
+        onFocusOutside={(event) => {
+          if (shouldPreventDismissOutside(event.target)) {
+            event.preventDefault();
+          }
+          onFocusOutside?.(event);
+        }}
+        onInteractOutside={(event) => {
+          if (shouldPreventDismissOutside(event.target)) {
+            event.preventDefault();
+          }
+          onInteractOutside?.(event);
+        }}
         {...props}
       >
         {/* ✅ Inject hidden title only if missing */}
@@ -83,7 +114,8 @@ const SheetContent = React.forwardRef<
       </SheetPrimitive.Content>
     </SheetPortal>
   );
-});
+},
+);
 SheetContent.displayName = SheetPrimitive.Content.displayName;
 
 const SheetHeader = ({

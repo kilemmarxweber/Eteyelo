@@ -5,6 +5,7 @@ import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
+import { shouldPreventDismissOutside } from "@/lib/radix-portal-dismiss";
 
 const Dialog = DialogPrimitive.Root;
 const DialogTrigger = DialogPrimitive.Trigger;
@@ -18,7 +19,7 @@ const DialogOverlay = React.forwardRef<
   <DialogPrimitive.Overlay
     ref={ref}
     className={cn(
-      "fixed inset-0 z-50 bg-black/80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+      "fixed inset-0 z-50 bg-black/70 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=open]:duration-300 data-[state=closed]:duration-200",
       className,
     )}
     {...props}
@@ -35,51 +36,87 @@ const DialogContent = React.forwardRef<
   }
 >(
   (
-    { className, children, title, hideTitle = false, size = "md", ...props },
+    {
+      className,
+      children,
+      title,
+      hideTitle = false,
+      size = "md",
+      onPointerDownOutside,
+      onInteractOutside,
+      onFocusOutside,
+      onOpenAutoFocus,
+      onCloseAutoFocus,
+      ...props
+    },
     ref,
   ) => (
-  <DialogPortal>
-    <DialogOverlay />
+    <DialogPortal>
+      <DialogOverlay />
 
-    <DialogPrimitive.Content
-      ref={ref}
-      className={cn(
-        "fixed left-1/2 top-1/2 z-50 grid max-h-[calc(100dvh-2rem)] -translate-x-1/2 -translate-y-1/2 gap-4 overflow-y-auto overscroll-contain border bg-background p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 sm:rounded-lg",
-        {
-          "w-[min(calc(100vw-2rem),28rem)]": size === "sm",
-          "w-[min(calc(100vw-2rem),42rem)]": size === "md",
-          "w-[min(calc(100vw-2rem),56rem)]": size === "lg",
-          "w-[min(calc(100vw-2rem),72rem)]": size === "xl",
-          "h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] max-h-none sm:h-[calc(100dvh-2rem)] sm:w-[calc(100vw-2rem)]":
-            size === "full",
-        },
-        className,
-      )}
-      {...props}
-    >
-      {title ? (
-        hideTitle ? (
-          <VisuallyHidden>
-            <DialogPrimitive.Title>{title}</DialogPrimitive.Title>
-          </VisuallyHidden>
-        ) : (
-          <DialogPrimitive.Title className="text-lg font-semibold leading-none tracking-tight">
-            {title}
-          </DialogPrimitive.Title>
-        )
-      ) : null}
-      {children}
-
-      <DialogClose
-        type="button"
-        className="absolute right-4 top-4 rounded-sm opacity-70 transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring"
+      <DialogPrimitive.Content
+        ref={ref}
+        className={cn(
+          "fixed left-1/2 top-1/2 z-50 grid max-h-[calc(100dvh-2rem)] -translate-x-1/2 -translate-y-1/2 gap-4 overflow-y-auto overscroll-contain border bg-background p-6 shadow-lg outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-[0.98] data-[state=open]:zoom-in-[0.98] data-[state=closed]:slide-out-to-top-1 data-[state=open]:slide-in-from-top-1 data-[state=open]:duration-300 data-[state=closed]:duration-200 sm:rounded-lg",
+          {
+            "w-[min(calc(100vw-2rem),28rem)]": size === "sm",
+            "w-[min(calc(100vw-2rem),42rem)]": size === "md",
+            "w-[min(calc(100vw-2rem),56rem)]": size === "lg",
+            "w-[min(calc(100vw-2rem),72rem)]": size === "xl",
+            "h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] max-h-none sm:h-[calc(100dvh-2rem)] sm:w-[calc(100vw-2rem)]":
+              size === "full",
+          },
+          className,
+        )}
+        onOpenAutoFocus={(event) => {
+          onOpenAutoFocus?.(event);
+        }}
+        onCloseAutoFocus={(event) => {
+          onCloseAutoFocus?.(event);
+        }}
+        onPointerDownOutside={(event) => {
+          if (shouldPreventDismissOutside(event.target)) {
+            event.preventDefault();
+          }
+          onPointerDownOutside?.(event);
+        }}
+        onFocusOutside={(event) => {
+          if (shouldPreventDismissOutside(event.target)) {
+            event.preventDefault();
+          }
+          onFocusOutside?.(event);
+        }}
+        onInteractOutside={(event) => {
+          if (shouldPreventDismissOutside(event.target)) {
+            event.preventDefault();
+          }
+          onInteractOutside?.(event);
+        }}
+        {...props}
       >
-        <X className="h-4 w-4" />
-        <span className="sr-only">Close</span>
-      </DialogClose>
-    </DialogPrimitive.Content>
-  </DialogPortal>
-  )
+        {title ? (
+          hideTitle ? (
+            <VisuallyHidden>
+              <DialogPrimitive.Title>{title}</DialogPrimitive.Title>
+            </VisuallyHidden>
+          ) : (
+            <DialogPrimitive.Title className="text-lg font-semibold leading-none tracking-tight">
+              {title}
+            </DialogPrimitive.Title>
+          )
+        ) : null}
+        {children}
+
+        <DialogClose
+          type="button"
+          className="absolute right-4 top-4 rounded-sm opacity-70 transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring"
+        >
+          <X className="h-4 w-4" />
+          <span className="sr-only">Close</span>
+        </DialogClose>
+      </DialogPrimitive.Content>
+    </DialogPortal>
+  ),
 );
 
 DialogContent.displayName = DialogPrimitive.Content.displayName;

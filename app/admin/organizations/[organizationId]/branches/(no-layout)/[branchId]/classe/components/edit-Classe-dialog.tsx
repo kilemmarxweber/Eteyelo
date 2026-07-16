@@ -13,55 +13,53 @@ import { ClasseUpForm } from "./classe-form";
 import { IClasse } from "@/src/interfaces/Classe";
 import { useRefresh } from "@/src/hooks/RefreshContext";
 
-interface UpdateClasseDialogProps extends React.ComponentPropsWithoutRef<
-  typeof Dialog
-> {
-  showTrigger?: boolean;
+interface UpdateClasseDialogProps
+  extends React.ComponentPropsWithoutRef<typeof Dialog> {
   onSuccess?: () => void;
-  classe: IClasse; // Détails de l'élève à éditer
+  classe: IClasse;
 }
 
 export function UpdateClasseDialog({
-  showTrigger = true,
   onSuccess,
   classe,
+  open,
+  onOpenChange,
   ...props
 }: UpdateClasseDialogProps) {
   const { refresh } = useRefresh();
 
-  const handleUpdate = () => {
+  const handleUpdated = () => {
     refresh();
-    props.onOpenChange?.(false);
-  };
-
-  const handleSuccess = () => {
     onSuccess?.();
+    onOpenChange?.(false);
   };
 
   return (
-    <Dialog {...props}>
+    <Dialog open={open} onOpenChange={onOpenChange} {...props}>
       <DialogContent size="lg">
         <DialogHeader>
-          <DialogTitle>Éditer la classe</DialogTitle>
+          <DialogTitle>Modifier la classe</DialogTitle>
           <DialogDescription>
-            Modifiez les détails de la classe ici. Cliquez sur Enregistrer
-            lorsque vous êtes fait.
+            Ajustez le niveau, la filière, la vacation et la capacité.
           </DialogDescription>
         </DialogHeader>
-        <ClasseUpForm
-          mode="update"
-          initialData={{
-            id: classe.id,
-            nameClasse: classe.nameClasse,
-            level: classe.level ?? undefined,
-            parallel: classe.parallel ?? undefined,
-            capacity: classe.capacity ?? undefined,
-            optionId: classe.optionId,
-            creneauId: classe.creneauId,
-          }}
-          onUpdated={handleUpdate}
-          onSuccess={handleSuccess}
-        />
+
+        {open ? (
+          <ClasseUpForm
+            key={classe.id}
+            mode="update"
+            initialData={{
+              id: classe.id,
+              nameClasse: classe.nameClasse,
+              level: classe.level ?? undefined,
+              parallel: classe.parallel ?? undefined,
+              capacity: classe.capacity ?? undefined,
+              optionId: classe.optionId,
+              creneauId: classe.creneauId,
+            }}
+            onUpdated={handleUpdated}
+          />
+        ) : null}
       </DialogContent>
     </Dialog>
   );

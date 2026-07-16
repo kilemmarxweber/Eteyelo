@@ -18,7 +18,7 @@ import {
   Users,
   type LucideIcon,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, normalizeImageSrc } from "@/lib/utils";
 import { authClient } from "@/lib/auth-client";
 import { useAppLoading } from "@/hooks/use-app-loading";
 import {
@@ -193,9 +193,7 @@ function MobileNavMoreMenu() {
             moreActive && "ring-primary/40",
           )}
         >
-          {user?.image ? (
-            <AvatarImage src={user.image} alt={displayName} />
-          ) : null}
+          <AvatarImage src={normalizeImageSrc(user?.image)} alt={displayName} />
           <AvatarFallback className="bg-primary/10 text-xs font-semibold text-primary">
             {initials}
           </AvatarFallback>
