@@ -75,6 +75,7 @@ function SearchableCombobox({
   onBlur,
 }: SearchableSelectProps) {
   const [open, setOpen] = React.useState(false);
+  const listboxId = React.useId();
 
   const selected = options.find((option) => option.value === value);
 
@@ -86,8 +87,10 @@ function SearchableCombobox({
           id={id}
           name={name}
           disabled={disabled}
-          aria-expanded={open}
           role="combobox"
+          aria-haspopup="listbox"
+          aria-expanded={open}
+          aria-controls={listboxId}
           onBlur={onBlur}
           className={cn(
             "flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1",
@@ -104,6 +107,8 @@ function SearchableCombobox({
       </PopoverTrigger>
 
       <PopoverContent
+        id={listboxId}
+        role="listbox"
         align="start"
         className="w-[var(--radix-popover-trigger-width)] p-0"
       >
