@@ -101,6 +101,7 @@ export default function BulletinPDF({
   size = "default",
   classCode,
   classLevel,
+  classOptionName,
   schoolYear,
 }: {
   data: any[];
@@ -112,6 +113,8 @@ export default function BulletinPDF({
   classCode?: string;
   /** Niveau / degré (ex. Degré moyen) */
   classLevel?: string | null;
+  /** Option de la classe (ex. Biologie-Chimie) */
+  classOptionName?: string | null;
   /** Libellé année scolaire en cours */
   schoolYear?: string;
 }) {
@@ -632,6 +635,13 @@ export default function BulletinPDF({
         classCode?.trim() ||
         student.studentclasse?.trim() ||
         "—";
+      const resolvedOptionName = (classOptionName?.trim() || "")
+        .replace(/-/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+      const bulletinClassLabel = resolvedOptionName
+        ? `${resolvedClassCode}(${resolvedOptionName})`
+        : resolvedClassCode;
       const resolvedYear =
         schoolYear?.trim() ||
         student.periods.find((p: { anneeName?: string }) => p.anneeName)?.anneeName ||
@@ -654,7 +664,9 @@ export default function BulletinPDF({
       doc.setTextColor(0, 0, 0);
       doc.text(
         toBulletinUpper(
-          `Bulletin de l'élève ${degreeLabel} (${resolvedClassCode})`,
+          isPrimaryLayout
+            ? `Bulletin de l'élève ${degreeLabel} (${resolvedClassCode})`
+            : `Bulletin de l'élève ${bulletinClassLabel}`,
         ),
         margin + 1,
         bulletinTitleY,
@@ -1490,7 +1502,7 @@ export default function BulletinPDF({
     const url = URL.createObjectURL(pdfBlob);
     setPdfUrl(url);
     return url;
-  }, [imageData1, imageData2, watermarkData, data, branchContext, classCode, classLevel, schoolYear]);
+  }, [imageData1, imageData2, watermarkData, data, branchContext, classCode, classLevel, classOptionName, schoolYear]);
   return (
     <div className="flex flex-col gap-4">
       {imageData1 && (

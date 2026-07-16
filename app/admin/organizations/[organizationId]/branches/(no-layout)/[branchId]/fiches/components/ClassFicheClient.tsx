@@ -957,6 +957,7 @@ export default function ClassFicheClient({
             branchContext={branchContext}
             classCode={selectedClass?.codename}
             classLevel={selectedClass?.level}
+            classOptionName={selectedClass?.optionName}
             schoolYear={
               selectedAnnee ||
               bulletinDataForPDF[0]?.periods?.[0]?.anneeName ||
@@ -1119,6 +1120,7 @@ export default function ClassFicheClient({
                 branchContext={branchContext}
                 classCode={selectedClass?.codename}
                 classLevel={selectedClass?.level}
+                classOptionName={selectedClass?.optionName}
                 schoolYear={
                   selectedAnnee ||
                   bulletinDataForPDF[0]?.periods?.[0]?.anneeName ||

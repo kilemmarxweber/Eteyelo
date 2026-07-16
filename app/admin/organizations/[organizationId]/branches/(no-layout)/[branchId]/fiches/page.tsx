@@ -17,6 +17,7 @@ type ClassEnrollmentWithRelations = Prisma.ClassEnrollmentGetPayload<{
   include: {
     classe: {
       include: {
+        option: true;
         teaching: {
           where: {
             titulaire: true;
@@ -56,6 +57,7 @@ export default async function ClassFichePage() {
       include: {
         classe: {
           include: {
+            option: true,
             teaching: {
               where: {
                 titulaire: true,
@@ -147,6 +149,7 @@ export default async function ClassFichePage() {
       name: c?.nameClasse || "N/A",
       codename: c?.codeClasse || "N/A",
       level: c?.level ?? null,
+      optionName: c?.option?.nameOption ?? null,
       capacity: 25,
       supervisor:
         teaching[0]?.teacher?.branchMember?.member?.user?.name ?? "N/A",

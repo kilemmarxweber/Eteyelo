@@ -410,6 +410,7 @@ export type ClassType = {
   name: string;
   codename: string;
   level?: string | null;
+  optionName?: string | null;
   capacity: number;
   supervisor: string;
   lessons: Lesson[] | undefined;
