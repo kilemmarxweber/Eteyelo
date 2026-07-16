@@ -27,12 +27,14 @@ interface ResetUsersDialogProps extends React.ComponentPropsWithoutRef<
   showTrigger?: boolean;
   onSuccess?: () => void;
   email: string;
+  organizationId: string;
 }
 
 export function ResetUsersDialog({
   showTrigger = true,
   onSuccess,
   email,
+  organizationId,
   ...props
 }: ResetUsersDialogProps) {
   const [isResetPending, startResetTransition] = useTransition();
@@ -51,8 +53,10 @@ export function ResetUsersDialog({
         <DialogHeader>
           <DialogTitle>Êtes-vous absolument sûr?</DialogTitle>
           <DialogDescription>
-            Cette action ne peut pas être annulée.Cela reunitialisera le mot de
-            passe de l'utilisateur <span className="font-medium">{email}</span>
+            Cette action ne peut pas être annulée. Cela réinitialisera le mot de
+            passe de l&apos;utilisateur{" "}
+            <span className="font-medium">{email}</span> et enverra un email
+            avec le nouveau mot de passe temporaire.
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="gap-2 sm:space-x-0">
@@ -65,13 +69,14 @@ export function ResetUsersDialog({
             onClick={async () => {
               props.onOpenChange?.(false);
               const res = await resetUserPasswordAction({
-                email: email,
+                organizationId,
+                email,
               });
               if (!res.ok) {
                 toast.error(res.message);
                 return;
               }
-              toast.success("Mot de passe reunitialisé avec success");
+              toast.success("Mot de passe réinitialisé et email envoyé.");
               onSuccess?.();
             }}
             disabled={isResetPending}

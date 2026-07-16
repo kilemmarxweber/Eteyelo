@@ -11,7 +11,7 @@ const APP_NAME = DEFAULT_APP_NAME;
 
 /**
  * Envoie (ou journalise) les identifiants temporaires après création de compte par un admin.
- * Configurez `EMAIL_USER` et `EMAIL_PASS` pour l’envoi réel via SMTP.
+ * Configurez `SMTP_HOST`, `SMTP_USER` et `SMTP_PASS` pour l’envoi réel via SMTP.
  */
 export async function sendNewUserCredentialsEmail(input: {
   to: string;
@@ -113,20 +113,9 @@ export async function sendNewUserCredentialsEmail(input: {
     },
   });
 
-  const from =
-    process.env.MAIL_FROM ??
-    process.env.EMAIL_FROM ??
-    (process.env.SMTP_USER
-      ? `${APP_NAME} <${process.env.SMTP_USER}>`
-      : undefined);
-
-  if (!from) {
-    throw new Error("Aucun expéditeur configuré.");
-  }
-
   if (isSmtpConfigured()) {
     try {
-      await sendMail({ from, to, subject, text, html });
+      await sendMail({ to, subject, text, html });
       return;
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);

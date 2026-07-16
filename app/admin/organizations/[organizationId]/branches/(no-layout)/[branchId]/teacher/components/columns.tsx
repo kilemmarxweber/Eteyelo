@@ -241,6 +241,7 @@ export const createTeacherColumns = (
                 open={showResetTaskDialog}
                 onOpenChange={setShowResetTaskDialog}
                 email={row.original.email || ""}
+                organizationId={params.organizationId}
                 showTrigger={false}
                 onSuccess={() => row.toggleSelected(false)}
               />

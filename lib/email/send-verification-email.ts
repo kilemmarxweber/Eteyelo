@@ -42,15 +42,9 @@ export async function sendVerificationEmail(input: {
     cta: { href: input.url, label: "Confirmer mon adresse email" },
   });
 
-  const from =
-    process.env.EMAIL_FROM ??
-    (process.env.EMAIL_USER
-      ? `${APP_NAME} <${process.env.EMAIL_USER}>`
-      : `no-reply@example.com`);
-
   if (isSmtpConfigured()) {
     try {
-      await sendMail({ from, to: input.to, subject, text, html });
+      await sendMail({ to: input.to, subject, text, html });
       return;
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);

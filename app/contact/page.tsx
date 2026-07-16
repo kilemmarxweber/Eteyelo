@@ -8,7 +8,7 @@ type ContactPageProps = {
 
 export default async function ContactPage({ searchParams }: ContactPageProps) {
   const { user } = await searchParams;
-  const contactEmail = process.env.MAIL_FROM || process.env.SMTP_USER || "";
+  const contactEmail = process.env.SMTP_USER || "";
 
   return (
     <div className="min-h-screen bg-[#f8fafc]">

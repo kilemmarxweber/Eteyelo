@@ -24,8 +24,8 @@ export default async function NewOrganizationMemberPage({ params }: PageProps) {
         <p className="mt-1 text-sm text-muted-foreground">
           Création du compte (email + mot de passe généré côté serveur), ajout
           immédiat à l’organisation, et envoi d’un email de confirmation avec
-          le mot de passe temporaire (configurez `EMAIL_USER` et `EMAIL_PASS`
-          pour l’envoi réel via SMTP).
+          le mot de passe temporaire (configurez `SMTP_HOST`, `SMTP_USER` et
+          `SMTP_PASS` pour l’envoi réel via SMTP).
         </p>
       </div>
 

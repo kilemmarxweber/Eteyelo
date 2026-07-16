@@ -21,6 +21,7 @@ import {
   removeOrganizationMemberAction,
   updateOrganizationMemberAction,
 } from "../../actions";
+import { ResetUsersDialog } from "../../../branches/(no-layout)/[branchId]/student/components/reset-users-dialog";
 
 type MemberRow = {
   id: string;
@@ -37,6 +38,7 @@ export function EditMemberForm({ organizationId, memberId }: Props) {
   const [role, setRole] = useState<string>(ALL_ORG_ROLE_SLUGS[2]);
   const [pending, startTransition] = useTransition();
   const [pendingRemove, startRemove] = useTransition();
+  const [showResetDialog, setShowResetDialog] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -180,16 +182,36 @@ export function EditMemberForm({ organizationId, memberId }: Props) {
       </form>
 
       <div className="border-t border-border pt-4">
-        <Button
-          type="button"
-          variant="destructive"
-          className="h-12 min-h-[48px] w-full touch-manipulation sm:h-11 sm:min-h-0 sm:w-auto"
-          disabled={pending || pendingRemove}
-          onClick={onRemove}
-        >
-          {pendingRemove ? "…" : "Retirer de l’organisation"}
-        </Button>
+        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+          <Button
+            type="button"
+            variant="outline"
+            className="h-12 min-h-[48px] touch-manipulation sm:h-11 sm:min-h-0"
+            disabled={pending || pendingRemove}
+            onClick={() => setShowResetDialog(true)}
+          >
+            Réinitialiser le mot de passe
+          </Button>
+
+          <Button
+            type="button"
+            variant="destructive"
+            className="h-12 min-h-[48px] touch-manipulation sm:h-11 sm:min-h-0"
+            disabled={pending || pendingRemove}
+            onClick={onRemove}
+          >
+            {pendingRemove ? "…" : "Retirer de l’organisation"}
+          </Button>
+        </div>
       </div>
+
+      <ResetUsersDialog
+        open={showResetDialog}
+        onOpenChange={setShowResetDialog}
+        email={member.user.email}
+        organizationId={organizationId}
+        showTrigger={false}
+      />
     </div>
   );
 }

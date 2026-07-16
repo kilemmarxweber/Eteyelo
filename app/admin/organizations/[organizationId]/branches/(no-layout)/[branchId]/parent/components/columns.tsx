@@ -1,6 +1,7 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
+import { useParams } from "next/navigation";
 import { IconDots } from "@tabler/icons-react";
 import { Button } from "@/components/custom/button";
 import {
@@ -155,6 +156,7 @@ export const createParentColumns = (
         React.useState(false);
       const [showResetTaskDialog, setShowResetTaskDialog] =
         React.useState(false);
+      const params = useParams<{ organizationId: string; branchId: string }>();
 
       return (
         <>
@@ -176,6 +178,7 @@ export const createParentColumns = (
             open={showResetTaskDialog}
             onOpenChange={setShowResetTaskDialog}
             email={row.original.email || ""}
+            organizationId={params.organizationId}
             showTrigger={false}
             onSuccess={() => row.toggleSelected(false)}
           />

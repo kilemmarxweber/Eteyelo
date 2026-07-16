@@ -24,6 +24,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { ResetUsersDialog } from "../branches/(no-layout)/[branchId]/student/components/reset-users-dialog";
 
 type MemberRow = {
   id: string;
@@ -41,6 +42,7 @@ export default function OrganizationMembersPage() {
   const [members, setMembers] = useState<MemberRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [resetEmail, setResetEmail] = useState<string | null>(null);
 
   const loadMembers = useCallback(async () => {
     setLoading(true);
@@ -93,10 +95,10 @@ export default function OrganizationMembersPage() {
         label="Retour organisation"
       />
 
-      <section className="rounded-2xl bg-blue-950 p-5 text-white shadow-lg shadow-blue-950/10 sm:p-6">
+      <section className="rounded-2xl bg-primary p-5 text-primary-foreground shadow-lg shadow-primary/10 sm:p-6">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-3xl">
-            <div className="inline-flex items-center gap-2 rounded-full bg-card/15 px-3 py-1 text-xs font-semibold text-blue-50">
+            <div className="inline-flex items-center gap-2 rounded-full bg-primary-foreground/15 px-3 py-1 text-xs font-semibold text-primary-foreground/90">
               <Users className="size-3.5" />
               Membres
             </div>
@@ -105,7 +107,7 @@ export default function OrganizationMembersPage() {
               Gérez les membres
             </h1>
 
-            <p className="mt-2 text-sm leading-6 text-blue-50">
+            <p className="mt-2 text-sm leading-6 text-primary-foreground/90">
               Créez des comptes, attribuez des rôles et modifiez les accès des
               utilisateurs de cette organisation.
             </p>
@@ -115,7 +117,7 @@ export default function OrganizationMembersPage() {
             <Button
               size="sm"
               variant="secondary"
-              className="rounded-full bg-card text-foreground hover:bg-blue-50"
+              className="rounded-full bg-card text-foreground hover:bg-muted"
               asChild
             >
               <Link href={`/admin/organizations/${organizationId}/members/new`}>
@@ -130,7 +132,7 @@ export default function OrganizationMembersPage() {
               variant="outline"
               onClick={() => void loadMembers()}
               disabled={loading}
-              className="rounded-full border-white/30 bg-card/10 text-white hover:bg-card hover:text-foreground"
+              className="rounded-full border-primary-foreground/30 bg-primary-foreground/10 text-primary-foreground hover:bg-card hover:text-foreground"
             >
               <RefreshCcw className="mr-1.5 size-3.5" />
               Actualiser
@@ -152,7 +154,7 @@ export default function OrganizationMembersPage() {
           </div>
 
           <div className="w-full sm:w-[300px]">
-            <div className="flex h-10 items-center rounded-xl border bg-card px-3 shadow-sm transition focus-within:border-blue-950 focus-within:ring-2 focus-within:ring-blue-950/10">
+            <div className="flex h-10 items-center rounded-xl border bg-card px-3 shadow-sm transition focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/10">
               <Search className="mr-2 size-4 shrink-0 text-muted-foreground" />
 
               <Input
@@ -167,7 +169,7 @@ export default function OrganizationMembersPage() {
       </section>
 
       {loading ? (
-        <section className="rounded-2xl border bg-card p-4 text-sm text-slate-500 shadow-sm">
+        <section className="rounded-2xl border bg-card p-4 text-sm text-muted-foreground shadow-sm">
           Chargement…
         </section>
       ) : filteredMembers.length === 0 ? (
@@ -175,7 +177,18 @@ export default function OrganizationMembersPage() {
           Aucun membre trouvé.
         </section>
       ) : (
-        <section className="overflow-hidden rounded-2xl border bg-card shadow-sm">
+        <>
+          <ResetUsersDialog
+            open={resetEmail !== null}
+            onOpenChange={(open) => {
+              if (!open) setResetEmail(null);
+            }}
+            email={resetEmail ?? ""}
+            organizationId={organizationId}
+            showTrigger={false}
+          />
+
+          <section className="overflow-hidden rounded-2xl border bg-card shadow-sm">
           <ul className="divide-y">
             {filteredMembers.map((member) => {
               const role = member.role.split(",")[0]?.trim();
@@ -186,7 +199,7 @@ export default function OrganizationMembersPage() {
                   className="flex flex-col gap-3 p-3.5 transition hover:bg-muted sm:flex-row sm:items-center sm:justify-between"
                 >
                   <div className="flex min-w-0 items-center gap-3">
-                    <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-blue-950 text-sm font-bold text-white">
+                    <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary text-sm font-bold text-primary-foreground">
                       {member.user.name?.charAt(0).toUpperCase() || "?"}
                     </div>
 
@@ -203,12 +216,12 @@ export default function OrganizationMembersPage() {
                   </div>
 
                   <div className="flex items-center justify-between gap-3 sm:justify-end">
-                    <span className="inline-flex rounded-full bg-blue-950/10 px-2.5 py-0.5 text-xs font-semibold text-foreground">
+                    <span className="inline-flex rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-foreground">
                       {orgRoleLabel(role)}
                     </span>
 
                     <DropdownMenu>
-                      <DropdownMenuTrigger className="inline-flex size-8 items-center justify-center rounded-lg text-muted-foreground transition hover:bg-slate-100 hover:text-foreground">
+                      <DropdownMenuTrigger className="inline-flex size-8 items-center justify-center rounded-lg text-muted-foreground transition hover:bg-muted hover:text-foreground">
                         <MoreHorizontal className="size-4" />
                       </DropdownMenuTrigger>
 
@@ -222,6 +235,12 @@ export default function OrganizationMembersPage() {
                         >
                           Modifier
                         </DropdownMenuItem>
+
+                        <DropdownMenuItem
+                          onSelect={() => setResetEmail(member.user.email)}
+                        >
+                          Réinitialiser le mot de passe
+                        </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
@@ -230,6 +249,7 @@ export default function OrganizationMembersPage() {
             })}
           </ul>
         </section>
+        </>
       )}
     </div>
   );

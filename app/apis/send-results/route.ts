@@ -43,10 +43,12 @@ export async function POST(req: Request) {
     // 2. Transporter EMAIL
     // ===============================
     const transporter = nodemailer.createTransport({
-      service: "gmail",
+      host: process.env.SMTP_HOST,
+      port: Number(process.env.SMTP_PORT ?? 465),
+      secure: process.env.SMTP_SECURE === "true",
       auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS,
       },
     });
 
@@ -168,7 +170,7 @@ export async function POST(req: Request) {
       // ENVOI EMAIL
       // ===============================
       await transporter.sendMail({
-        from: process.env.EMAIL_USER,
+        from: process.env.SMTP_USER,
         to: email,
         subject: `Résultats de ${studentUser?.name ?? ""}`,
         html,

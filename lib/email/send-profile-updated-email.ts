@@ -41,14 +41,8 @@ export async function sendProfileUpdatedEmail(input: {
     cta: { href: loginUrl, label: "Voir mon profil" },
   });
 
-  const from =
-    process.env.EMAIL_FROM ??
-    (process.env.EMAIL_USER
-      ? `${APP_NAME} <${process.env.EMAIL_USER}>`
-      : "no-reply@example.com");
-
   if (isSmtpConfigured()) {
-    await sendMail({ from, to: input.to, subject, text, html });
+    await sendMail({ to: input.to, subject, text, html });
     return;
   }
 

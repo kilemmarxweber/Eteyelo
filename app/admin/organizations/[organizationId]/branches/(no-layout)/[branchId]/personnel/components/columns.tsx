@@ -2,6 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
+import { useParams } from "next/navigation";
 import { ColumnDef } from "@tanstack/react-table";
 import { IconDots } from "@tabler/icons-react";
 
@@ -188,6 +189,7 @@ export const createPersonnelColumns = (
       const [showResetTaskDialog, setShowResetTaskDialog] =
         React.useState(false);
 
+      const params = useParams<{ organizationId: string; branchId: string }>();
       const personnel = row.original;
 
       const handleSuccess = () => {
@@ -216,6 +218,7 @@ export const createPersonnelColumns = (
                 open={showResetTaskDialog}
                 onOpenChange={setShowResetTaskDialog}
                 email={personnel.email || ""}
+                organizationId={params.organizationId}
                 showTrigger={false}
                 onSuccess={handleSuccess}
               />

@@ -1,6 +1,6 @@
 import nodemailer from "nodemailer";
 import Mail from "nodemailer/lib/mailer";
-
+import { buildKlambocoreEmailLogoAttachment } from "./email-logo";
 let transporter: Mail | null = null;
 
 function createTransporter() {
@@ -30,15 +30,14 @@ function createTransporter() {
 }
 
 export function getDefaultMailFrom() {
-  const appName = process.env.APP_NAME ?? "Kalasa Edu";
+  const appName = process.env.APP_NAME ?? "Klambocore";
+  const smtpUser = process.env.SMTP_USER?.trim();
 
-  return (
-    process.env.MAIL_FROM ??
-    process.env.EMAIL_FROM ??
-    (process.env.EMAIL_USER
-      ? `${appName} <${process.env.EMAIL_USER}>`
-      : undefined)
-  );
+  if (!smtpUser) {
+    return undefined;
+  }
+
+  return `${appName} <${smtpUser}>`;
 }
 
 export async function sendMail({
@@ -60,15 +59,27 @@ export async function sendMail({
   }
   const mailFrom = from ?? getDefaultMailFrom();
   if (!mailFrom) {
-    throw new Error("Aucune adresse d'expéditeur configurée.");
+    throw new Error(
+      "Aucune adresse d'expéditeur configurée (SMTP_USER manquant).",
+    );
   }
 
-  return t.sendMail({ from: mailFrom, to, subject, text, html });
+  const logoAttachment = html ? buildKlambocoreEmailLogoAttachment() : null;
+
+  return t.sendMail({
+    from: mailFrom,
+    to,
+    subject,
+    text,
+    html,
+    attachments: logoAttachment ? [logoAttachment] : undefined,
+  });
 }
 
 export function isSmtpConfigured() {
   return !!(
-    (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) ||
-    (process.env.EMAIL_USER && process.env.EMAIL_PASS)
+    process.env.SMTP_HOST &&
+    process.env.SMTP_USER &&
+    process.env.SMTP_PASS
   );
 }

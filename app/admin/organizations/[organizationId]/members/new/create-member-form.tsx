@@ -114,7 +114,7 @@ export function CreateMemberForm({ organizationId }: Props) {
         <button
           type="submit"
           disabled={pending}
-          className="inline-flex h-11 w-full items-center justify-center rounded-full bg-blue-950 px-5 text-sm font-semibold text-white shadow-lg shadow-blue-950/20 transition hover:bg-blue-950/90 disabled:cursor-not-allowed disabled:opacity-70 sm:w-auto"
+          className="inline-flex h-11 w-full items-center justify-center rounded-full bg-primary px-5 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/20 transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-70 sm:w-auto"
         >
           {pending ? "Création..." : "Créer le membre"}
         </button>

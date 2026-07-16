@@ -1,4 +1,4 @@
-import { getKlambocoreEmailLogoUrl } from "@/lib/brand/klambocore-image";
+import { getKlambocoreEmailLogoSrc } from "./email-logo";
 
 export function escapeHtml(value: string): string {
   return value
@@ -44,10 +44,9 @@ export function getEmailContactInfo() {
   const email =
     process.env.CONTACT_EMAIL?.trim() ||
     process.env.SMTP_USER?.trim() ||
-    process.env.EMAIL_USER?.trim() ||
     "contact@klambocore.com";
   const phone = process.env.CONTACT_PHONE?.trim() || "+243844952966";
-  const logoUrl = getKlambocoreEmailLogoUrl();
+  const logoUrl = getKlambocoreEmailLogoSrc();
 
   return { name, email, phone, logoUrl };
 }
@@ -142,7 +141,7 @@ export function emailLayoutHtml(input: EmailLayoutInput): string {
                   <table width="100%" cellpadding="0" cellspacing="0">
                     <tr>
                       <td style="vertical-align:middle;">
-                        <img src="${escapeHtml(contact.logoUrl)}" alt="${escapeHtml(contact.name)}" width="48" height="48" style="display:block;border-radius:12px;background:#ffffff;object-fit:contain;" />
+                        <img src="${escapeHtml(contact.logoUrl)}" alt="${escapeHtml(contact.name)}" width="48" height="48" style="display:block;border:0;border-radius:12px;background:#ffffff;max-width:48px;height:auto;" />
                       </td>
                       <td style="vertical-align:middle;padding-left:14px;">
                         <div style="font-size:13px;letter-spacing:.08em;text-transform:uppercase;opacity:.85;">

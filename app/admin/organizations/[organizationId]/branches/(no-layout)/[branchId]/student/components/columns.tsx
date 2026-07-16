@@ -250,6 +250,7 @@ export const createStudentColumns = (
                 open={showResetTaskDialog}
                 onOpenChange={setShowResetTaskDialog}
                 email={row.original.email || ""}
+                organizationId={params.organizationId}
                 showTrigger={false}
                 onSuccess={handleSuccess}
               />

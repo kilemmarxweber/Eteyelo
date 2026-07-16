@@ -14,9 +14,11 @@ import { prisma } from "@/lib/prisma";
 import {
   createOrgMemberSchema,
   removeOrgMemberSchema,
+  resetOrgMemberPasswordSchema,
   updateOrgMemberSchema,
   type CreateOrgMemberInput,
   type RemoveOrgMemberInput,
+  type ResetOrgMemberPasswordInput,
   updateUserSchema,
   type UpdateOrgMemberInput,
 } from "./schema";
@@ -320,16 +322,46 @@ export async function removeOrganizationMemberAction(
 
 import { hashPassword } from "better-auth/crypto";
 
-export async function resetUserPasswordAction(input: { email: string }) {
-  const email = input.email.toLowerCase();
+export async function resetUserPasswordAction(
+  input: ResetOrgMemberPasswordInput,
+): Promise<{ ok: true } | { ok: false; message: string }> {
+  const parsed = resetOrgMemberPasswordSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false, message: zodFirstMessage(parsed.error) };
+  }
+
+  const { organizationId, email: rawEmail } = parsed.data;
+  const email = rawEmail.toLowerCase();
+
+  const guard = await guardOrganizationMemberPermission(organizationId, {
+    member: ["update"],
+  });
+  if (!guard.ok) {
+    return { ok: false, message: guard.message };
+  }
 
   try {
     const user = await prisma.user.findFirst({
       where: { email },
+      select: {
+        id: true,
+        name: true,
+        members: {
+          where: { organizationId },
+          select: { id: true },
+        },
+      },
     });
 
     if (!user) {
       return { ok: false, message: "Utilisateur introuvable" };
+    }
+
+    if (user.members.length === 0) {
+      return {
+        ok: false,
+        message: "Cet utilisateur n'est pas membre de cette organisation.",
+      };
     }
 
     const plainPassword = generateSecurePassword(16);
