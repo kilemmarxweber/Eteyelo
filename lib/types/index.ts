@@ -713,7 +713,7 @@ export function drawSemesterRow1(
     });
   });
 }
-type DrawCellFn = (
+export type DrawCellFn = (
   x: number,
   y: number,
   w: number,

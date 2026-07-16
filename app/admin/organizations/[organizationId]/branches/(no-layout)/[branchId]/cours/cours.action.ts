@@ -12,6 +12,8 @@ import {
   generateCourseCode,
 } from "@/lib/generated-identifiers";
 import { getCatalogPrimaryPlacement, type PrimaryDomainCode } from "@/lib/primary-domains";
+import { upsertSecondaryCatalogCoursesForBranch } from "@/lib/secondary-catalog-sync";
+import { normalizeBranchType } from "@/lib/academic-structure";
 import { canManageOrganization } from "@/lib/auth/session-roles";
 
 function requireCoursManagement(session: unknown) {
@@ -285,6 +287,43 @@ export const getCourseAction = action
       throw new Error(error.message);
     }
   });
+
+/**
+ * Importe le catalogue RDC des cours secondaire pour la branche courante.
+ * Crée les matières et leurs pondérations par option (sections/options doivent déjà exister).
+ */
+export async function importSecondaryCatalogCoursesAction() {
+  const { branchId, organizationId, session, typebranch } =
+    await requireBranchContext();
+  requireCoursManagement(session);
+
+  if (normalizeBranchType(typebranch) !== "SECONDAIRE") {
+    return {
+      success: false as const,
+      message: "Disponible uniquement pour une branche secondaire.",
+      coursesCreated: 0,
+      coursesUpdated: 0,
+      coursesSkipped: 0,
+      ponderationsCreated: 0,
+      ponderationsUpdated: 0,
+      ponderationsSkipped: 0,
+    };
+  }
+
+  const result = await upsertSecondaryCatalogCoursesForBranch(branchId);
+  revalidateCoursPages(organizationId, branchId);
+  revalidatePath(
+    `/admin/organizations/${organizationId}/branches/${branchId}/coursPonderationOption`,
+  );
+
+  return {
+    success: true as const,
+    message:
+      `${result.coursesCreated} cours créé(s), ${result.coursesUpdated} mis à jour` +
+      ` · ${result.ponderationsCreated} pondération(s) créée(s), ${result.ponderationsUpdated} mise(s) à jour`,
+    ...result,
+  };
+}
 
 // GET COURS BY CLASSE
 export const getCoursByClasseAction = action

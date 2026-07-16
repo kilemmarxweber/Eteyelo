@@ -75,3 +75,15 @@ export function genererCreneaux(
     return aHour * 60 + aMinute - (bHour * 60 + bMinute);
   });
 }
+
+/** Heure de fin d'un cours à partir du début, des créneaux affichés et de la fin de vacation. */
+export function resolveCourseEndTime(
+  startHour: string,
+  orderedSlots: string[],
+  vacationEnd: string,
+): string {
+  if (!startHour) return "";
+  const index = orderedSlots.indexOf(startHour);
+  if (index === -1) return "";
+  return orderedSlots[index + 1] ?? vacationEnd;
+}

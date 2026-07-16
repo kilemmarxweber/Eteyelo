@@ -3,6 +3,7 @@
 import { useState, useMemo, useEffect, HTMLAttributes } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -54,7 +55,7 @@ export const Day = {
 
 export type DayType = (typeof Day)[keyof typeof Day];
 
-import { genererCreneaux } from "@/src/hooks/getCourseHours";
+import { genererCreneaux, resolveCourseEndTime } from "@/src/hooks/getCourseHours";
 import { toast } from "sonner";
 import { useSession } from "@/lib/auth-client";
 import { canManageOrganization } from "@/lib/auth/session-roles";
@@ -232,9 +233,13 @@ export default function Schedule({
 
   useEffect(() => {
     if (heureDebut) {
-      const index = displayHeuresDebut.indexOf(heureDebut);
-      if (index !== -1) {
-        setHeureFin(displayHeuresDebut[index + 1] || endTime);
+      const nextEnd = resolveCourseEndTime(
+        heureDebut,
+        displayHeuresDebut,
+        endTime,
+      );
+      if (nextEnd) {
+        setHeureFin(nextEnd);
         setAlertMessage("");
       } else {
         setHeureFin("");
@@ -538,18 +543,13 @@ export default function Schedule({
               </div>
               <div className="space-y-2">
                 <Label htmlFor="heureFin">Heure de fin</Label>
-                <Select value={heureFin} disabled>
-                  <SelectTrigger id="heureFin">
-                    <SelectValue placeholder="Heure de fin" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {displayHeuresDebut.map((h) => (
-                      <SelectItem key={h} value={h}>
-                        {h}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Input
+                  id="heureFin"
+                  value={heureFin}
+                  readOnly
+                  disabled
+                  placeholder="Heure de fin"
+                />
               </div>
             </div>
             <Button type="submit" className="w-full">

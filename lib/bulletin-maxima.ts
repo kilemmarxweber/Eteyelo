@@ -254,3 +254,39 @@ export function isBulletinPeriodKey(value: string): value is BulletinPeriodKey {
     value === "exam3"
   );
 }
+
+const BULLETIN_REPRESENTATIVE_PERIOD_KEYS: readonly BulletinPeriodKey[] = [
+  "p1",
+  "p2",
+  "p3",
+  "p4",
+  "p5",
+  "p6",
+];
+
+/** Maxima de période utilisé pour trier les blocs (ex. 10, 50, 100). */
+export function getBulletinRepresentativePeriodMax(
+  maxima: BulletinPeriodMaxima,
+  baseMaxScore = 0,
+): number {
+  for (const key of BULLETIN_REPRESENTATIVE_PERIOD_KEYS) {
+    const value = maxima[key];
+    if (isValidBulletinMaxScore(value)) {
+      return value;
+    }
+  }
+
+  return isValidBulletinMaxScore(baseMaxScore) ? baseMaxScore : 0;
+}
+
+export function compareBulletinRepresentativePeriodMaxima(
+  left: BulletinPeriodMaxima,
+  right: BulletinPeriodMaxima,
+  leftBase = 0,
+  rightBase = 0,
+): number {
+  return (
+    getBulletinRepresentativePeriodMax(left, leftBase) -
+    getBulletinRepresentativePeriodMax(right, rightBase)
+  );
+}

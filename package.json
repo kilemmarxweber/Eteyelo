@@ -14,6 +14,7 @@
     "seed:help": "tsx prisma/seeds/seedData.ts --help",
     "seed:list": "tsx prisma/seeds/seedData.ts --list",
     "seed:primary-cours": "tsx prisma/seeds/initPrimaryCours.ts",
+    "seed:secondary-cours": "tsx prisma/seeds/initSecondaryCours.ts",
     "seed:demo": "tsx prisma/seeds/quickDemo.ts",
     "test:dialog-select": "tsx scripts/test-radix-portal-dismiss.ts && node scripts/test-dialog-select-e2e.mjs",
     "test:organizations-permissions": "tsx scripts/test-organizations-permissions.ts",

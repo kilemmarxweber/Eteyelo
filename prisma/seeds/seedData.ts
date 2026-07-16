@@ -12,6 +12,10 @@ import {
   initPrimaryCours,
   clearPrimaryCatalogCours,
 } from "./initPrimaryCours";
+import {
+  initSecondaryCours,
+  clearSecondaryCatalogCours,
+} from "./initSecondaryCours";
 import { initUsers, clearUsers } from "./initUsers";
 import { initAdmin, clearAdmin } from "./initAdmin";
 import {
@@ -52,6 +56,7 @@ const INIT_ORDER = [
   { name: "classes", init: initClasses, clear: clearClasses },
   { name: "cours", init: initCours, clear: clearCours },
   { name: "primaryCours", init: initPrimaryCours, clear: clearPrimaryCatalogCours },
+  { name: "secondaryCours", init: initSecondaryCours, clear: clearSecondaryCatalogCours },
   { name: "users", init: initUsers, clear: clearUsers },
   { name: "platformOwner", init: initPlatformOwner, clear: clearPlatformOwner },
   { name: "admin", init: initAdmin, clear: clearAdmin },

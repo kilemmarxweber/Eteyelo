@@ -23,7 +23,6 @@ import {
   BlocValue,
   drawSemesterRow1,
   drawCell1,
-  drawSubjectRow,
   drawMatiere,
   generauxConfig,
   mapTypeFicheSectionToSubject,
@@ -38,7 +37,9 @@ import { resolveBulletinLayoutKind } from "@/lib/bulletin-context";
 import {
   aggregateBulletinPeriodMaxima,
   calculateBulletinYearMaxima,
+  compareBulletinRepresentativePeriodMaxima,
   getBulletinGroupMaxima,
+  getBulletinRepresentativePeriodMax,
   isValidBulletinMaxScore,
   type BulletinPeriodMaxima,
 } from "@/lib/bulletin-maxima";
@@ -76,6 +77,12 @@ import {
   drawPrimarySousTotalRow,
   drawPrimarySubjectRow,
 } from "./bulletin-primary-render";
+import {
+  drawSecondaryDecisionSidebar,
+  drawSecondaryFooterBlock,
+  redrawSecondaryMainFrameBorder,
+} from "./bulletin-secondary-footer";
+import { drawSecondarySubjectRow } from "./bulletin-secondary-render";
 
 // Convertit un fichier en base64
 const getImageBase64 = (file: File) =>
@@ -157,7 +164,8 @@ export default function BulletinPDF({
     const shiftY = isPrimaryLayout ? -25 : -25;
     const tableX = margin;
     // Primaire : titre + BRANCHES un peu plus bas (compromis place / aération)
-    const tableY = isPrimaryLayout ? margin + 85 : margin + 36 + 50;
+    // Secondaire : tableau légèrement remonté (compromis titres / lignes de cours)
+    const tableY = isPrimaryLayout ? margin + 85 : margin + 84;
 
     const rowHeightTotal = isPrimaryLayout ? 10 : 20;
     const hTop = isPrimaryLayout ? 5 : 7;
@@ -405,34 +413,24 @@ export default function BulletinPDF({
       }
 
       const startX = margin;
-      // Primaire: N° ID et bloc info descendus pour dégager le texte Ministère
-      const idBoxY = isPrimaryLayout ? 33 : 32;
-      const idBoxH = isPrimaryLayout ? 7.5 : 9;
-      const infoStartY = isPrimaryLayout ? 40.5 : 41;
-      const infoRowH = isPrimaryLayout ? 4.8 : 7;
-      const infoHeight = isPrimaryLayout ? infoRowH * 5 : 25;
-      const schoolLabelYs = isPrimaryLayout
-        ? [44.2, 49, 53.8, 58.6, 63.4]
-        : [48, 52, 57, 62];
-      const studentLabelYs = isPrimaryLayout
-        ? [44.2, 49, 53.8, 58.6, 63.4]
-        : [48, 52, 57, 62];
+      // En-tête compact (primaire et secondaire) pour afficher province + CODE sur 5 lignes
+      const idBoxY = 33;
+      const idBoxH = 7.5;
+      const infoStartY = 40.5;
+      const infoRowH = 4.8;
+      const infoHeight = infoRowH * 5;
+      const schoolLabelYs = [44.2, 49, 53.8, 58.6, 63.4];
+      const studentLabelYs = [44.2, 49, 53.8, 58.6, 63.4];
       const width = layout.frameWidth;
       const leftColMaxWidth = width / 2 - 6;
 
       drawTwoColumnBox(startX, idBoxY, width, idBoxH, infoRowH, false);
-      drawLabel("N° ID.", 22, isPrimaryLayout ? 38.5 : 38, {
-        size: isPrimaryLayout ? 9 : 11,
+      drawLabel("N° ID.", 22, 38.5, {
+        size: 9,
         bold: true,
         align: "right",
       });
-      drawHorizontalSquares(
-        25,
-        isPrimaryLayout ? 35 : 34,
-        isPrimaryLayout ? 4 : 5,
-        27,
-        isPrimaryLayout ? 0 : 1,
-      );
+      drawHorizontalSquares(25, 35, 4, 27, 0);
       drawTwoColumnBox(startX, infoStartY, width, infoHeight, infoRowH);
 
       const schoolName = branchContext.branchName || branchContext.organizationName;
@@ -484,30 +482,45 @@ export default function BulletinPDF({
           schoolCode,
         );
       } else {
-        drawLabel(`VILLE / PAYS : ${branchLocation || "-"}`, 12, schoolLabelYs[0], {
-          size: 8,
+        drawLabel(
+          `PROVINCE EDUCATIONNELLE : ${branchContext.province || "………………"}`,
+          12,
+          schoolLabelYs[0],
+          { size: 7.5, bold: true, align: "left", maxWidth: leftColMaxWidth },
+        );
+        drawLabel(`VILLE / PAYS : ${branchLocation || "-"}`, 12, schoolLabelYs[1], {
+          size: 7.5,
           bold: true,
           align: "left",
-          maxWidth: 91,
+          maxWidth: leftColMaxWidth,
         });
-        drawLabel(`ADRESSE : ${branchContext.address || "-"}`, 12, schoolLabelYs[1], {
-          size: 8,
+        drawLabel(`ADRESSE : ${branchContext.address || "-"}`, 12, schoolLabelYs[2], {
+          size: 7.5,
           bold: true,
           align: "left",
-          maxWidth: 91,
+          maxWidth: leftColMaxWidth,
         });
-        drawLabel(`ECOLE : ${schoolNameSecondary || "-"}`, 12, schoolLabelYs[2], {
-          size: 8,
+        drawLabel(`ECOLE : ${schoolNameSecondary || "-"}`, 12, schoolLabelYs[3], {
+          size: 7.5,
           bold: true,
           align: "left",
-          maxWidth: 91,
+          maxWidth: leftColMaxWidth,
         });
-        drawLabel(`CODE : ${branchContext.branchCode || "-"}`, 12, schoolLabelYs[3], {
-          size: 8,
+        drawLabel("CODE :", 12, schoolLabelYs[4], {
+          size: 7.5,
           bold: true,
           align: "left",
-          maxWidth: 91,
         });
+        const schoolCode = (branchContext.branchCode || "").replace(/\s+/g, "");
+        const codeBoxCount = Math.min(16, Math.max(12, schoolCode.length || 12));
+        drawHorizontalSquares(
+          28,
+          infoStartY + infoRowH * 4 + 0.55,
+          3.6,
+          codeBoxCount,
+          0,
+          schoolCode,
+        );
       }
       //Information Students
       drawLabel(
@@ -517,7 +530,7 @@ export default function BulletinPDF({
         110,
         studentLabelYs[0],
         {
-          size: isPrimaryLayout ? 7.5 : 8,
+          size: 7.5,
           bold: true,
           align: "left",
         },
@@ -538,7 +551,7 @@ export default function BulletinPDF({
         110,
         studentLabelYs[1],
         {
-          size: isPrimaryLayout ? 7.5 : 9,
+          size: 7.5,
           bold: true,
           align: "left",
         },
@@ -548,25 +561,25 @@ export default function BulletinPDF({
         110,
         studentLabelYs[2],
         {
-          size: isPrimaryLayout ? 7.5 : 9,
+          size: 7.5,
           bold: true,
           align: "left",
         },
       );
       drawLabel("N° PERM:  ", 110, studentLabelYs[3], {
-        size: isPrimaryLayout ? 7.5 : 9,
+        size: 7.5,
         bold: true,
         align: "left",
       });
       drawHorizontalSquares(
         132,
-        isPrimaryLayout ? infoStartY + infoRowH * 3 + 0.55 : 59,
-        isPrimaryLayout ? 3.6 : 4,
+        infoStartY + infoRowH * 3 + 0.55,
+        3.6,
         13,
-        isPrimaryLayout ? 0 : 1,
+        0,
         student.studentusername ?? "",
       );
-      function generateFooterBlock(
+      function generatePrimaryFooterBlock(
         frameX: number,
         frameY: number,
         frameW: number,
@@ -608,29 +621,12 @@ export default function BulletinPDF({
           align: "right",
         });
 
-        const point2Y = sigY - lineHeight * 0.75;
-        const point1Y = point2Y - lineHeight * 0.85;
-
-        doc.setFont("Times", "Normal");
-        doc.setFontSize(9);
-        doc.text("2. L’élève double sa classe (1)", startX, point2Y);
-
-        const city = branchContext.city?.trim() || "Kinshasa";
-        doc.text(
-          "1. L’élève passe dans la classe supérieure (1)",
-          startX,
-          point1Y,
-        );
-        doc.text(
-          `Fait à ${city} le ...../...../20.....`,
-          startX + contentW,
-          point1Y,
-          { align: "right" },
-        );
-
         doc.restoreGraphicsState();
       }
-      generateFooterBlock(margin, margin, frameWidth, headerHeight);
+
+      if (isPrimaryLayout) {
+        generatePrimaryFooterBlock(margin, margin, frameWidth, headerHeight);
+      }
 
       const resolvedClassCode =
         classCode?.trim() ||
@@ -645,7 +641,9 @@ export default function BulletinPDF({
         (isPrimaryLayout ? "Degre moyen" : student.studentclasse?.trim() || "—");
 
       const tableTopY = tableY + shiftY;
-      const bulletinTitleY = tableTopY - 0.5;
+      const bulletinTitleY = isPrimaryLayout
+        ? tableTopY - 0.5
+        : tableTopY - 0.6;
       const toBulletinUpper = (value: string) =>
         value
           .normalize("NFD")
@@ -883,12 +881,41 @@ export default function BulletinPDF({
           return;
         }
 
+        const representativeMax = getBulletinRepresentativePeriodMax(
+          subject.maxima,
+          subject.baseMaxScore,
+        );
+
         courseBlocsMap.set(signature, {
-          blocName: "",
+          blocName:
+            representativeMax > 0 ? String(representativeMax) : "",
           subjects: [subject],
           maxima: subject.maxima,
         });
       });
+
+      const sortedCourseBlocs = [...courseBlocsMap.values()]
+        .map((bloc) => ({
+          ...bloc,
+          subjects: [...bloc.subjects].sort((a, b) => {
+            const maxDiff = compareBulletinRepresentativePeriodMaxima(
+              (a as SubjectWithMaxima).maxima,
+              (b as SubjectWithMaxima).maxima,
+              a.baseMaxScore,
+              b.baseMaxScore,
+            );
+            if (maxDiff !== 0) return maxDiff;
+            return a.name.localeCompare(b.name, "fr");
+          }),
+        }))
+        .sort((a, b) =>
+          compareBulletinRepresentativePeriodMaxima(
+            a.maxima,
+            b.maxima,
+            a.subjects[0]?.baseMaxScore ?? 0,
+            b.subjects[0]?.baseMaxScore ?? 0,
+          ),
+        );
 
       // tri des généraux une seule fois
       const order = [
@@ -920,7 +947,7 @@ export default function BulletinPDF({
             },
           ]
         : [
-            ...courseBlocsMap.values(),
+            ...sortedCourseBlocs,
             {
               blocName: "GENERAUX",
               subjects: typeDSubjects,
@@ -1179,6 +1206,14 @@ export default function BulletinPDF({
         }
       }
 
+      let secondaryDecisionSidebarDrawn = false;
+      let secondaryDecisionSidebarParams: {
+        x: number;
+        y: number;
+        width: number;
+      } | null = null;
+      let secondaryTableEndY = 0;
+
       blocs.forEach((bloc) => {
         if (bloc.subjects.length === 0) return;
         const isGeneraux = bloc.isGeneraux === true;
@@ -1303,7 +1338,19 @@ export default function BulletinPDF({
               );
               return;
             } else {
-              drawSubjectRow(
+              if (
+                subject.name === "POURCENTAGES" &&
+                !secondaryDecisionSidebarDrawn
+              ) {
+                secondaryDecisionSidebarParams = {
+                  x: colPos[6] + shiftX,
+                  y: yPosBlocs - 1,
+                  width: repechageWidth,
+                };
+                secondaryDecisionSidebarDrawn = true;
+              }
+
+              drawSecondarySubjectRow(
                 drawCell,
                 yPosBlocs,
                 shiftX,
@@ -1396,11 +1443,39 @@ export default function BulletinPDF({
           if (!isGeneraux || !isPrimaryLayout) {
             yPosBlocs += maximaHeight;
           }
+          if (!isPrimaryLayout) {
+            secondaryTableEndY = yPosBlocs;
+          }
         });
       });
 
-      // Filigrane armoirie RDC (primaire) — centré, léger, par-dessus le contenu
-      if (isPrimaryLayout && watermarkData) {
+      if (!isPrimaryLayout) {
+        drawSecondaryFooterBlock({
+          doc,
+          frameX: margin,
+          frameY: margin,
+          frameW: frameWidth,
+          frameH: headerHeight,
+          city: branchContext.city?.trim() || undefined,
+          tableEndY: secondaryTableEndY,
+        });
+        if (secondaryDecisionSidebarParams) {
+          drawSecondaryDecisionSidebar({
+            doc,
+            ...secondaryDecisionSidebarParams,
+          });
+        }
+        redrawSecondaryMainFrameBorder(
+          doc,
+          margin,
+          margin,
+          frameWidth,
+          headerHeight,
+        );
+      }
+
+      // Filigrane armoirie RDC — centré, léger, par-dessus le contenu
+      if (watermarkData) {
         const pageHeight = doc.internal.pageSize.getHeight();
         const wmSize = 130;
         const wmX = (pageWidth - wmSize) / 2;
