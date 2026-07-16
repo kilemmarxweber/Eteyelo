@@ -22,24 +22,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { IconSelector, IconCheck } from "@tabler/icons-react";
-
-import { createStudentAction, updateStudentAction } from "../student.action";
+import { SearchableSelect } from "@/components/ui/searchable-select";
+import { IconCalendar } from "@tabler/icons-react";
+import { Calendar } from "@/components/ui/calendar";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { IconCalendar } from "@tabler/icons-react";
-import { Calendar } from "@/components/ui/calendar";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
+import { createStudentAction, updateStudentAction } from "../student.action";
 import { getParentsAction } from "../../parent/parent.action";
 import { IParent } from "@/src/interfaces/Parent";
 import { studentSchema } from "@/src/interfaces/Student";
@@ -56,6 +47,7 @@ interface StudentUpFormProps extends HTMLAttributes<HTMLDivElement> {
   onCreated?: () => void;
   onUpdated?: () => void;
   mode: "create" | "update";
+  layout?: "default" | "dialog";
 }
 //export type StudentCategory = "NORMAL" | "ORPHAN" | "VIP";
 export const StudentCategory = {
@@ -77,8 +69,11 @@ export function StudentUpForm({
   onUpdated,
   initialData,
   mode,
+  layout = "default",
   ...props
 }: StudentUpFormProps) {
+  const isDialog = layout === "dialog";
+  const fieldClass = isDialog ? "space-y-0.5" : "space-y-1";
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [Parents, setParents] = useState<IParent[]>([]);
@@ -194,15 +189,20 @@ export function StudentUpForm({
   useEffect(() => setMounted(true), []);
 
   return (
-    <div className={cn("grid gap-6", className)} {...props}>
+    <div className={cn("grid gap-4", className)} {...props}>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
-          <div className="grid gap-2">
+          <div
+            className={cn(
+              "grid gap-2.5",
+              isDialog ? "sm:grid-cols-2" : "grid-cols-1",
+            )}
+          >
             <FormField
               control={form.control}
               name="name"
               render={({ field }) => (
-                <FormItem className="space-y-1">
+                <FormItem className={fieldClass}>
                   <FormLabel>Nom</FormLabel>
                   <FormControl>
                     <Input placeholder="Le nom de l'élève" {...field} />
@@ -212,12 +212,11 @@ export function StudentUpForm({
               )}
             />
 
-            {/* POSTNOM */}
             <FormField
               control={form.control}
               name="postnom"
               render={({ field }) => (
-                <FormItem className="space-y-1">
+                <FormItem className={fieldClass}>
                   <FormLabel>Postnom</FormLabel>
                   <FormControl>
                     <Input placeholder="Le postnom de l'élève" {...field} />
@@ -231,10 +230,10 @@ export function StudentUpForm({
               control={form.control}
               name="prenom"
               render={({ field }) => (
-                <FormItem className="space-y-1">
+                <FormItem className={fieldClass}>
                   <FormLabel>Prénom</FormLabel>
                   <FormControl>
-                    <Input placeholder="le prénom de l'élève" {...field} />
+                    <Input placeholder="Le prénom de l'élève" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -245,35 +244,29 @@ export function StudentUpForm({
               control={form.control}
               name="sexe"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className={fieldClass}>
                   <FormLabel>Sexe</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Sélectionnez le sexe" />
                       </SelectTrigger>
                     </FormControl>
-                    <SelectContent>
-                      <SelectItem key={"masculin"} value={"masculin"}>
-                        Masculin
-                      </SelectItem>
-                      <SelectItem key={"feminin"} value={"feminin"}>
-                        Féminin
-                      </SelectItem>
+                    <SelectContent position="popper">
+                      <SelectItem value="masculin">Masculin</SelectItem>
+                      <SelectItem value="feminin">Féminin</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
                 </FormItem>
               )}
             />
+
             <FormField
               control={form.control}
               name="placeOfBirth"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className={fieldClass}>
                   <FormLabel>Lieu de naissance (facultatif)</FormLabel>
                   <FormControl>
                     <Input placeholder="Ville ou territoire" {...field} />
@@ -282,11 +275,12 @@ export function StudentUpForm({
                 </FormItem>
               )}
             />
+
             <FormField
               control={form.control}
               name="dateOfBirth"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className={fieldClass}>
                   <FormLabel>Date de naissance</FormLabel>
                   <Popover>
                     <PopoverTrigger asChild>
@@ -308,41 +302,35 @@ export function StudentUpForm({
                           ) : (
                             <span>Choisir une date</span>
                           )}
-
                           <IconCalendar className="ml-auto h-4 w-4 opacity-50" />
                         </Button>
                       </FormControl>
                     </PopoverTrigger>
-
-                    <PopoverContent
-                      className="w-auto p-0"
-                      align="start"
-                      side="bottom"
-                    >
-                      <Calendar
-                        mode="single"
-                        captionLayout="dropdown"
-                        fromYear={1900}
-                        toYear={new Date().getFullYear()}
-                        selected={
-                          field.value ? new Date(field.value) : undefined
-                        }
-                        onSelect={(date) => {
-                          field.onChange(date);
-                        }}
-                      />
+                    <PopoverContent className="w-auto p-0" align="start">
+                      {mounted ? (
+                        <Calendar
+                          mode="single"
+                          captionLayout="dropdown"
+                          fromYear={1900}
+                          toYear={new Date().getFullYear()}
+                          selected={
+                            field.value ? new Date(field.value) : undefined
+                          }
+                          onSelect={(date) => field.onChange(date)}
+                        />
+                      ) : null}
                     </PopoverContent>
                   </Popover>
-
                   <FormMessage />
                 </FormItem>
               )}
             />
+
             <FormField
               control={form.control}
               name="address"
               render={({ field }) => (
-                <FormItem className="space-y-1">
+                <FormItem className={cn(fieldClass, isDialog && "sm:col-span-2")}>
                   <FormLabel>Adresse</FormLabel>
                   <FormControl>
                     <Input placeholder="Adresse de l'élève" {...field} />
@@ -453,76 +441,50 @@ export function StudentUpForm({
               control={form.control}
               name="parentId"
               render={({ field }) => (
-                <FormItem className="flex flex-col">
-                  <FormLabel>Le code du parent</FormLabel>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          variant="outline"
-                          role="combobox"
-                          className={cn(
-                            "justify-between",
-                            !field.value && "text-muted-foreground",
-                          )}
-                        >
-                          {field.value
-                            ? (() => {
-                                const parent = Parents.find(
-                                  (parent) => parent.id === field.value,
-                                );
-
-                                return parent
-                                  ? `${parent.nom} ${parent.postnom} ${parent.prenom}`
-                                  : "";
-                              })()
-                            : "Entrez le code du parent"}
-                          <IconSelector className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="p-0">
-                      <Command>
-                        <CommandInput placeholder="Search parent..." />
-                        <CommandList>
-                          <CommandEmpty>No parent found.</CommandEmpty>
-                          <CommandGroup>
-                            {Parents.map((parent) => (
-                              <CommandItem
-                                value={parent.nom}
-                                key={parent.id}
-                                onSelect={() => {
-                                  form.setValue("parentId", parent.id || "");
-                                }}
-                              >
-                                <IconCheck
-                                  className={cn(
-                                    "mr-2 h-4 w-4",
-                                    parent.id === field.value
-                                      ? "opacity-100"
-                                      : "opacity-0",
-                                  )}
-                                />
-                                {`${parent.nom} ${parent.postnom} ${parent.prenom}`}
-                              </CommandItem>
-                            ))}
-                          </CommandGroup>
-                        </CommandList>
-                      </Command>
-                    </PopoverContent>
-                  </Popover>
+                <FormItem className={cn(fieldClass, isDialog && "sm:col-span-2")}>
+                  <FormLabel>Parent</FormLabel>
+                  <FormControl>
+                    <SearchableSelect
+                      searchable
+                      options={Parents.map((parent) => ({
+                        value: parent.id ?? "",
+                        label: [parent.nom, parent.postnom, parent.prenom]
+                          .filter(Boolean)
+                          .join(" "),
+                        search: [
+                          parent.nom,
+                          parent.postnom,
+                          parent.prenom,
+                          parent.username,
+                          parent.telephone,
+                        ]
+                          .filter(Boolean)
+                          .join(" "),
+                      }))}
+                      value={field.value}
+                      onValueChange={field.onChange}
+                      placeholder="Sélectionner un parent"
+                      searchPlaceholder="Rechercher un parent…"
+                      emptyMessage="Aucun parent trouvé."
+                    />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            <Button type="submit" className="mt-2" loading={isLoading}>
-              {mode === "create"
-                ? "Enregistrer l'utilisateur"
-                : "Mettre à jour l'utilisateur"}
-            </Button>
-            {errorMessage && (
-              <p className="mt-2 text-center text-red-500">{errorMessage}</p>
-            )}
+
+            <div className={cn(isDialog && "sm:col-span-2")}>
+              <Button type="submit" className="mt-1 w-full sm:w-auto" loading={isLoading}>
+                {mode === "create"
+                  ? "Enregistrer l'élève"
+                  : "Mettre à jour l'élève"}
+              </Button>
+              {errorMessage ? (
+                <p className="mt-2 text-center text-sm text-red-500">
+                  {errorMessage}
+                </p>
+              ) : null}
+            </div>
           </div>
         </form>
       </Form>

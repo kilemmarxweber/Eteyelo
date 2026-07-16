@@ -31,6 +31,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import { orgRoleLabel } from "@/lib/org-role-labels";
 import { ALL_ORG_ROLE_SLUGS } from "@/lib/permissions";
 import { cn } from "@/lib/utils";
@@ -54,6 +55,7 @@ interface PersonnelUpFormProps extends HTMLAttributes<HTMLDivElement> {
   onUpdated?: () => void;
   initialData?: z.infer<typeof userSchema>;
   mode: "create" | "update";
+  layout?: "default" | "dialog";
 }
 
 const emptyValues: PersonnelFormValues = {
@@ -79,8 +81,10 @@ export function PersonnelUpForm({
   onUpdated,
   initialData,
   mode,
+  layout = "default",
   ...props
 }: PersonnelUpFormProps) {
+  const isDialog = layout === "dialog";
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [mounted, setMounted] = useState(false);
@@ -170,15 +174,22 @@ export function PersonnelUpForm({
     }
   }
 
-  const fieldClass = "space-y-0.5";
+  const fieldClass = isDialog ? "space-y-0.5" : "space-y-0.5";
   const labelClass = "text-xs font-medium text-muted-foreground";
-  const controlClass = "h-8 rounded-md px-3 text-sm font-normal";
+  const controlClass = isDialog
+    ? "h-9 rounded-md px-3 text-sm font-normal"
+    : "h-8 rounded-md px-3 text-sm font-normal";
 
   return (
     <div className={cn("grid gap-3", className)} {...props}>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
-          <div className="grid gap-2.5 sm:grid-cols-2">
+          <div
+            className={cn(
+              "grid gap-2.5",
+              isDialog ? "sm:grid-cols-2" : "sm:grid-cols-2",
+            )}
+          >
             <FormField
               control={form.control}
               name="name"
@@ -248,7 +259,7 @@ export function PersonnelUpForm({
                         <SelectValue placeholder="Sexe" />
                       </SelectTrigger>
                     </FormControl>
-                    <SelectContent>
+                    <SelectContent position="popper">
                       <SelectItem value="masculin">Masculin</SelectItem>
                       <SelectItem value="feminin">Féminin</SelectItem>
                     </SelectContent>
@@ -317,20 +328,21 @@ export function PersonnelUpForm({
               render={({ field }) => (
                 <FormItem className={fieldClass}>
                   <FormLabel className={labelClass}>Rôle</FormLabel>
-                  <Select value={field.value} onValueChange={field.onChange}>
-                    <FormControl>
-                      <SelectTrigger className={controlClass}>
-                        <SelectValue placeholder="Choisir un rôle" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {ALL_ORG_ROLE_SLUGS.map((slug) => (
-                        <SelectItem key={slug} value={slug}>
-                          {orgRoleLabel(slug)}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <FormControl>
+                    <SearchableSelect
+                      searchable="auto"
+                      options={ALL_ORG_ROLE_SLUGS.map((slug) => ({
+                        value: slug,
+                        label: orgRoleLabel(slug),
+                      }))}
+                      value={field.value}
+                      onValueChange={field.onChange}
+                      placeholder="Choisir un rôle"
+                      searchPlaceholder="Rechercher un rôle…"
+                      emptyMessage="Aucun rôle trouvé."
+                      triggerClassName={controlClass}
+                    />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}

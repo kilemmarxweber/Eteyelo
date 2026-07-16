@@ -12,7 +12,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { DeleteParentDialog } from "./delete-parent-dialog";
-import { UpdateParentDialog } from "./edit-parent-dialog";
 import { DetailsParentDialog } from "./details-parent-dialog";
 import React from "react";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -20,8 +19,15 @@ import Link from "next/link";
 import { IParent } from "@/src/interfaces/Parent";
 import { DataTableColumnHeader } from "@/components/data-table-column-header";
 import { ResetUsersDialog } from "../../student/components/reset-users-dialog";
+import { openOverlayAfterMenuDismiss } from "@/lib/radix-portal-dismiss";
 
-export const columns: ColumnDef<IParent>[] = [
+export type ParentTableActions = {
+  onEdit: (parent: IParent) => void;
+};
+
+export const createParentColumns = (
+  actions?: ParentTableActions,
+): ColumnDef<IParent>[] => [
   {
     id: "select",
     header: ({ table }) => (
@@ -143,8 +149,6 @@ export const columns: ColumnDef<IParent>[] = [
   {
     id: "actions",
     cell: function Cell({ row }) {
-      const [showUpdateTaskSheet, setShowUpdateTaskSheet] =
-        React.useState(false);
       const [showDeleteTaskDialog, setShowDeleteTaskDialog] =
         React.useState(false);
       const [showDetailsTaskDialog, setShowDetailsTaskDialog] =
@@ -154,16 +158,10 @@ export const columns: ColumnDef<IParent>[] = [
 
       return (
         <>
-          {/* Dialogue ou feuille pour l'édition */}
-          <UpdateParentDialog
-            open={showUpdateTaskSheet}
-            onOpenChange={setShowUpdateTaskSheet}
-            parent={row.original} // Passerlesdonnéesactuellesdel'parentonSuccess={() => row.toggleSelected(false)}
-          />
           <DetailsParentDialog
             open={showDetailsTaskDialog}
             onOpenChange={setShowDetailsTaskDialog}
-            parent={row.original} // Passerlesdonnéesactuellesdel'parentonSuccess={() => row.toggleSelected(false)}
+            parent={row.original}
           />
 
           <DeleteParentDialog
@@ -182,7 +180,7 @@ export const columns: ColumnDef<IParent>[] = [
             onSuccess={() => row.toggleSelected(false)}
           />
 
-          <DropdownMenu>
+          <DropdownMenu modal={false}>
             <DropdownMenuTrigger asChild>
               <Button
                 aria-label="Open menu"
@@ -195,10 +193,16 @@ export const columns: ColumnDef<IParent>[] = [
             <DropdownMenuContent align="end" className="w-40">
               {/* Ajout de l'option Edit */}
               <DropdownMenuItem onSelect={() => setShowDetailsTaskDialog(true)}>
-                Details
+                Détails
               </DropdownMenuItem>
-              <DropdownMenuItem onSelect={() => setShowUpdateTaskSheet(true)}>
-                Edit
+              <DropdownMenuItem
+                onSelect={(event) => {
+                  event.preventDefault();
+                  if (!actions) return;
+                  openOverlayAfterMenuDismiss(() => actions.onEdit(row.original));
+                }}
+              >
+                Modifier
               </DropdownMenuItem>
 
               <DropdownMenuItem onSelect={() => setShowResetTaskDialog(true)}>
@@ -217,3 +221,5 @@ export const columns: ColumnDef<IParent>[] = [
     },
   },
 ];
+
+export const columns = createParentColumns();

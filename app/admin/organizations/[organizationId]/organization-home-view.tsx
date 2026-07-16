@@ -69,17 +69,17 @@ export function OrganizationHomeView({
         <BackLink href="/admin/organizations" label="Toutes les organisations" />
       ) : null}
 
-      <section className="rounded-2xl bg-blue-950 p-5 text-white shadow-lg shadow-blue-950/10 sm:p-6">
+      <section className="rounded-2xl bg-primary p-5 text-primary-foreground shadow-lg shadow-primary/10 sm:p-6">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-3xl">
             <div className="flex flex-wrap items-center gap-2">
-              <p className="break-all text-xs font-semibold uppercase tracking-wide text-blue-100/70">
+              <p className="break-all text-xs font-semibold uppercase tracking-wide text-primary-foreground/70">
                 Slug - {org.slug}
               </p>
               {roleLabel ? (
                 <OrganizationRoleBadge
                   label={roleLabel}
-                  className="bg-card/15 text-white hover:bg-card/15"
+                  className="bg-primary-foreground/15 text-primary-foreground hover:bg-primary-foreground/15"
                 />
               ) : null}
             </div>
@@ -88,7 +88,7 @@ export function OrganizationHomeView({
               {org.name}
             </h2>
 
-            <p className="mt-2 text-sm leading-6 text-blue-50">
+            <p className="mt-2 text-sm leading-6 text-primary-foreground/90">
               Utilisez les sections ci-dessous pour administrer cette
               organisation, ses etablissements et ses membres.
             </p>

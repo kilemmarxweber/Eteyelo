@@ -17,13 +17,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import { cn } from "@/lib/utils";
 import {
   createClasseAction,
@@ -380,27 +374,24 @@ export function ClasseUpForm({
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Niveau</FormLabel>
-                      <Select
-                        onValueChange={(value) => {
-                          field.onChange(value);
-                          form.setValue("optionId", "");
-                          if (!isCtebLevel(value)) setSelectedSectionId("");
-                        }}
-                        value={field.value || undefined}
-                      >
-                        <FormControl>
-                          <SelectTrigger className="h-10">
-                            <SelectValue placeholder="Selectionner un niveau" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent position="popper">
-                          {classLevels.map((level) => (
-                            <SelectItem key={level} value={level}>
-                              {getClassLevelLabel(branchType, level)}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <FormControl>
+                        <SearchableSelect
+                          searchable="auto"
+                          options={classLevels.map((level) => ({
+                            value: level,
+                            label: getClassLevelLabel(branchType, level),
+                          }))}
+                          value={field.value ?? ""}
+                          onValueChange={(value) => {
+                            field.onChange(value);
+                            form.setValue("optionId", "");
+                            if (!isCtebLevel(value)) setSelectedSectionId("");
+                          }}
+                          placeholder="Selectionner un niveau"
+                          searchPlaceholder="Rechercher un niveau…"
+                          triggerClassName="h-10"
+                        />
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -449,25 +440,22 @@ export function ClasseUpForm({
             {showOptionField && branchType === "SECONDAIRE" ? (
               <FormItem>
                 <FormLabel>Section (filiere)</FormLabel>
-                <Select
-                  value={selectedSectionId || undefined}
+                <SearchableSelect
+                  searchable="auto"
+                  options={sectionsForLevel.map((section) => ({
+                    value: section.id,
+                    label: section.name,
+                  }))}
+                  value={selectedSectionId}
                   onValueChange={(value) => {
                     setSelectedSectionId(value);
                     form.setValue("optionId", "");
                   }}
                   disabled={isCtebLevel(watchedLevel ?? "")}
-                >
-                  <SelectTrigger className="h-10">
-                    <SelectValue placeholder="Selectionner une section" />
-                  </SelectTrigger>
-                  <SelectContent position="popper">
-                    {sectionsForLevel.map((section) => (
-                      <SelectItem key={section.id} value={section.id}>
-                        {section.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  placeholder="Selectionner une section"
+                  searchPlaceholder="Rechercher une section…"
+                  triggerClassName="h-10"
+                />
               </FormItem>
             ) : null}
 
@@ -478,37 +466,32 @@ export function ClasseUpForm({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Option</FormLabel>
-                    <Select
-                      value={field.value || undefined}
-                      onValueChange={field.onChange}
-                      disabled={
-                        branchType === "PRIMAIRE" ||
-                        isCtebLevel(watchedLevel ?? "") ||
-                        (branchType === "SECONDAIRE" && !selectedSectionId)
-                      }
-                    >
-                      <FormControl>
-                        <SelectTrigger className="h-10">
-                          <SelectValue
-                            placeholder={
-                              branchType === "PRIMAIRE"
-                                ? "PRIMAIRE"
-                                : !selectedSectionId &&
-                                    branchType === "SECONDAIRE"
-                                  ? "Choisir d'abord une section"
-                                  : "Selectionner une option"
-                            }
-                          />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent position="popper">
-                        {optionsForSection.map((option) => (
-                          <SelectItem key={option.id} value={option.id}>
-                            {option.nameOption}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <FormControl>
+                      <SearchableSelect
+                        searchable="auto"
+                        options={optionsForSection.map((option) => ({
+                          value: option.id,
+                          label: option.nameOption,
+                        }))}
+                        value={field.value ?? ""}
+                        onValueChange={field.onChange}
+                        disabled={
+                          branchType === "PRIMAIRE" ||
+                          isCtebLevel(watchedLevel ?? "") ||
+                          (branchType === "SECONDAIRE" && !selectedSectionId)
+                        }
+                        placeholder={
+                          branchType === "PRIMAIRE"
+                            ? "PRIMAIRE"
+                            : !selectedSectionId &&
+                                branchType === "SECONDAIRE"
+                              ? "Choisir d'abord une section"
+                              : "Selectionner une option"
+                        }
+                        searchPlaceholder="Rechercher une option…"
+                        triggerClassName="h-10"
+                      />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -547,23 +530,20 @@ export function ClasseUpForm({
               render={({ field }) => (
                 <FormItem className={cn(!showOptionField && isSheet && "sm:col-span-1")}>
                   <FormLabel>Vacation</FormLabel>
-                  <Select
-                    value={field.value || undefined}
-                    onValueChange={field.onChange}
-                  >
                     <FormControl>
-                      <SelectTrigger className="h-10">
-                        <SelectValue placeholder="Selectionner une vacation" />
-                      </SelectTrigger>
+                      <SearchableSelect
+                        searchable="auto"
+                        options={creneaux.map((creneau) => ({
+                          value: creneau.id,
+                          label: creneau.nameCreneau,
+                        }))}
+                        value={field.value ?? ""}
+                        onValueChange={field.onChange}
+                        placeholder="Selectionner une vacation"
+                        searchPlaceholder="Rechercher une vacation…"
+                        triggerClassName="h-10"
+                      />
                     </FormControl>
-                    <SelectContent position="popper">
-                      {creneaux.map((creneau) => (
-                        <SelectItem key={creneau.id} value={creneau.id}>
-                          {creneau.nameCreneau}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
                   <FormMessage />
                 </FormItem>
               )}

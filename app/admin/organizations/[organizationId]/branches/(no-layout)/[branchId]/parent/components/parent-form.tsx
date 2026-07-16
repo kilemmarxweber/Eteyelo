@@ -39,6 +39,7 @@ interface ParentUpFormProps extends HTMLAttributes<HTMLDivElement> {
   onUpdated?: () => void;
   initialData?: z.input<typeof parentSchema>;
   mode: "create" | "update";
+  layout?: "default" | "dialog";
 }
 
 export function ParentUpForm({
@@ -48,8 +49,11 @@ export function ParentUpForm({
   onUpdated,
   initialData,
   mode,
+  layout = "default",
   ...props
 }: ParentUpFormProps) {
+  const isDialog = layout === "dialog";
+  const fieldClass = isDialog ? "space-y-0.5" : undefined;
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const sexeToUi: Record<string, "masculin" | "feminin"> = {
@@ -154,16 +158,20 @@ export function ParentUpForm({
   }
 
   return (
-    <div className={cn("grid gap-6", className)} {...props}>
+    <div className={cn("grid gap-4", className)} {...props}>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
-          <div className="grid gap-3">
-            {/* Nom */}
+          <div
+            className={cn(
+              "grid gap-2.5",
+              isDialog ? "sm:grid-cols-2" : "grid-cols-1 gap-3",
+            )}
+          >
             <FormField
               control={form.control}
               name="name"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className={fieldClass}>
                   <FormLabel>Nom</FormLabel>
                   <FormControl>
                     <Input placeholder="Nom" {...field} />
@@ -173,12 +181,11 @@ export function ParentUpForm({
               )}
             />
 
-            {/* Postnom */}
             <FormField
               control={form.control}
               name="postnom"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className={fieldClass}>
                   <FormLabel>Postnom</FormLabel>
                   <FormControl>
                     <Input placeholder="Postnom" {...field} />
@@ -188,12 +195,11 @@ export function ParentUpForm({
               )}
             />
 
-            {/* Prenom */}
             <FormField
               control={form.control}
               name="prenom"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className={fieldClass}>
                   <FormLabel>Prénom</FormLabel>
                   <FormControl>
                     <Input placeholder="Prénom" {...field} />
@@ -203,76 +209,84 @@ export function ParentUpForm({
               )}
             />
 
-            {/* Telephone + Sexe */}
-            <div className="flex gap-2">
-              <FormField
-                control={form.control}
-                name="telephone"
-                render={({ field }) => (
-                  <FormItem className="w-1/2">
-                    <FormLabel>Téléphone</FormLabel>
-                    <FormControl>
-                      <PhoneInput defaultCountry="CD" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+            <FormField
+              control={form.control}
+              name="telephone"
+              render={({ field }) => (
+                <FormItem className={fieldClass}>
+                  <FormLabel>Téléphone</FormLabel>
+                  <FormControl>
+                    <PhoneInput defaultCountry="CD" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-              <FormField
-                control={form.control}
-                name="sexe"
-                render={({ field }) => (
-                  <FormItem className="w-1/2">
-                    <FormLabel>Sexe</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Sexe" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="masculin">Masculin</SelectItem>
-                        <SelectItem value="feminin">Féminin</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-            <div className="flex gap-2">
-              {/* Email */}
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem className="w-1/2">
-                    <FormLabel>Email</FormLabel>
+            <FormField
+              control={form.control}
+              name="sexe"
+              render={({ field }) => (
+                <FormItem className={fieldClass}>
+                  <FormLabel>Sexe</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
-                      <Input placeholder="Email" {...field} />
+                      <SelectTrigger>
+                        <SelectValue placeholder="Sexe" />
+                      </SelectTrigger>
                     </FormControl>
-                    <FormMessage />
-                  </FormItem>
+                    <SelectContent position="popper">
+                      <SelectItem value="masculin">Masculin</SelectItem>
+                      <SelectItem value="feminin">Féminin</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem className={fieldClass}>
+                  <FormLabel>Email</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Email" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="address"
+              render={({ field }) => (
+                <FormItem className={fieldClass}>
+                  <FormLabel>Adresse</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Adresse complète" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div
+              className={cn(
+                "grid gap-2.5 rounded-lg border p-3",
+                isDialog ? "sm:col-span-2 sm:grid-cols-2" : "mt-2",
+              )}
+            >
+              <p
+                className={cn(
+                  "text-sm font-medium",
+                  isDialog && "sm:col-span-2",
                 )}
-              />
-              <FormField
-                control={form.control}
-                name="address"
-                render={({ field }) => (
-                  <FormItem className="w-1/2">
-                    <FormLabel>Adresse</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Adresse complète" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-            {/* Username */}
-            <div className="grid gap-3 border rounded-lg p-3 mt-2">
-              <p className="text-sm font-medium">Réduction</p>
+              >
+                Réduction
+              </p>
 
               {/* Scope */}
               <FormField
@@ -287,11 +301,11 @@ export function ParentUpForm({
                           <SelectValue placeholder="Type de réduction" />
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent>
-                        <SelectItem value="PARENT">Parent</SelectItem>
-                        <SelectItem value="GROUP">Groupe</SelectItem>
-                        <SelectItem value="ORPHAN">Orphelin</SelectItem>
-                      </SelectContent>
+                    <SelectContent position="popper">
+                      <SelectItem value="PARENT">Parent</SelectItem>
+                      <SelectItem value="GROUP">Groupe</SelectItem>
+                      <SelectItem value="ORPHAN">Orphelin</SelectItem>
+                    </SelectContent>
                     </Select>
                   </FormItem>
                 )}
@@ -377,10 +391,16 @@ export function ParentUpForm({
                 )}
               />
             </div>
-            {/* Submit */}
-            <Button type="submit" className="mt-2" loading={isLoading}>
-              {mode === "create" ? "Enregistrer" : "Mettre à jour"}
-            </Button>
+            <div className={cn(isDialog && "sm:col-span-2")}>
+              <Button type="submit" className="mt-1 w-full sm:w-auto" loading={isLoading}>
+                {mode === "create" ? "Enregistrer" : "Mettre à jour"}
+              </Button>
+              {errorMessage ? (
+                <p className="mt-2 text-center text-sm text-red-500">
+                  {errorMessage}
+                </p>
+              ) : null}
+            </div>
           </div>
         </form>
       </Form>

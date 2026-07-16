@@ -52,7 +52,6 @@ function normalizeCategory(value: unknown): StudentFormData["category"] {
 
 interface UpdateStudentDialogProps
   extends React.ComponentPropsWithoutRef<typeof Dialog> {
-  showTrigger?: boolean;
   onSuccess?: () => void;
   student: IStudent;
 }
@@ -60,10 +59,12 @@ interface UpdateStudentDialogProps
 export function UpdateStudentDialog({
   onSuccess,
   student,
+  open,
   onOpenChange,
   ...props
 }: UpdateStudentDialogProps) {
   const { refresh } = useRefresh();
+
   const initialData: StudentFormData = {
     studentId: student.id,
     memberId: student.memberId,
@@ -80,27 +81,31 @@ export function UpdateStudentDialog({
     category: normalizeCategory(student.category),
   };
 
-  const handleUpdate = () => {
+  const handleUpdated = () => {
     refresh();
     onSuccess?.();
     onOpenChange?.(false);
   };
 
   return (
-    <Dialog onOpenChange={onOpenChange} {...props}>
-      <DialogContent size="xl">
+    <Dialog open={open} onOpenChange={onOpenChange} {...props}>
+      <DialogContent size="lg">
         <DialogHeader>
-          <DialogTitle>Editer l'eleve</DialogTitle>
+          <DialogTitle>Modifier l&apos;élève</DialogTitle>
           <DialogDescription>
-            Modifiez les details de l'eleve ici. Cliquez sur Enregistrer lorsque
-            vous avez termine.
+            Ajustez les informations de l&apos;élève, puis enregistrez.
           </DialogDescription>
         </DialogHeader>
-        <StudentUpForm
-          mode="update"
-          initialData={initialData}
-          onStudentUpdate={handleUpdate}
-        />
+
+        {open ? (
+          <StudentUpForm
+            key={student.id}
+            layout="dialog"
+            mode="update"
+            initialData={initialData}
+            onStudentUpdate={handleUpdated}
+          />
+        ) : null}
       </DialogContent>
     </Dialog>
   );

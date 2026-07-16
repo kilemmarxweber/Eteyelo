@@ -23,11 +23,16 @@ import { ResetUsersDialog } from "../../student/components/reset-users-dialog";
 import { AddPersonnelRole } from "./add-personnelrole-dialog";
 import { DeletePersonalDialog } from "./delete-personal-dialog";
 import { DetailsPersonnelDialog } from "./details-personnel-dialog";
-import { UpdatePersonnelDialog } from "./edit-personnel-dialog";
+import { openOverlayAfterMenuDismiss } from "@/lib/radix-portal-dismiss";
+
+export type PersonnelTableActions = {
+  onEdit: (personnel: IPersonnel) => void;
+};
 
 export const createPersonnelColumns = (
   onRefresh?: () => void,
   canManagePersonnel = true,
+  actions?: PersonnelTableActions,
 ): ColumnDef<IPersonnel>[] => [
   {
     id: "select",
@@ -174,8 +179,6 @@ export const createPersonnelColumns = (
   {
     id: "actions",
     cell: function Cell({ row }) {
-      const [showUpdateTaskSheet, setShowUpdateTaskSheet] =
-        React.useState(false);
       const [showPersonnalRoleSheet, setShowPersonnalRoleSheet] =
         React.useState(false);
       const [showDeleteTaskDialog, setShowDeleteTaskDialog] =
@@ -196,12 +199,6 @@ export const createPersonnelColumns = (
         <>
           {canManagePersonnel ? (
             <>
-              <UpdatePersonnelDialog
-                open={showUpdateTaskSheet}
-                onOpenChange={setShowUpdateTaskSheet}
-                personnel={personnel}
-                onSuccess={handleSuccess}
-              />
               <AddPersonnelRole
                 open={showPersonnalRoleSheet}
                 onOpenChange={setShowPersonnalRoleSheet}
@@ -231,7 +228,7 @@ export const createPersonnelColumns = (
             personnel={personnel}
           />
 
-          <DropdownMenu>
+          <DropdownMenu modal={false}>
             <DropdownMenuTrigger asChild>
               <Button
                 aria-label="Open menu"
@@ -250,7 +247,13 @@ export const createPersonnelColumns = (
               {canManagePersonnel ? (
                 <>
                   <DropdownMenuItem
-                    onSelect={() => setShowUpdateTaskSheet(true)}
+                    onSelect={(event) => {
+                      event.preventDefault();
+                      if (!actions) return;
+                      openOverlayAfterMenuDismiss(() =>
+                        actions.onEdit(personnel),
+                      );
+                    }}
                   >
                     Modifier
                   </DropdownMenuItem>

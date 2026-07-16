@@ -9,58 +9,66 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { ParentUpForm } from "./parent-form"; // Importez votre formulaire d'éditionimport { IParent } from"@/src/interfaces/Parent";
+import { useRefresh } from "@/src/hooks/RefreshContext";
 import { IParent } from "@/src/interfaces/Parent";
+import { ParentUpForm } from "./parent-form";
 
-interface UpdateParentDialogProps extends React.ComponentPropsWithoutRef<
-  typeof Dialog
-> {
-  showTrigger?: boolean;
+interface UpdateParentDialogProps
+  extends React.ComponentPropsWithoutRef<typeof Dialog> {
   onSuccess?: () => void;
-  parent: IParent; // Détails de l'parent à éditer
+  parent: IParent;
 }
 
 export function UpdateParentDialog({
-  showTrigger = true,
   onSuccess,
   parent,
+  open,
+  onOpenChange,
   ...props
 }: UpdateParentDialogProps) {
-  const handleUpdate = () => {
+  const { refresh } = useRefresh();
+
+  const handleUpdated = () => {
+    refresh();
     onSuccess?.();
+    onOpenChange?.(false);
   };
 
   return (
-    <Dialog {...props}>
+    <Dialog open={open} onOpenChange={onOpenChange} {...props}>
       <DialogContent size="lg">
         <DialogHeader>
-          <DialogTitle>Éditer l'parent</DialogTitle>
+          <DialogTitle>Modifier le parent</DialogTitle>
           <DialogDescription>
-            Modifiez les détails de l'parent ici. Cliquez sur Enregistrer
-            lorsque vous êtes fait.
+            Ajustez les informations du parent, puis enregistrez.
           </DialogDescription>
         </DialogHeader>
-        <ParentUpForm
-          mode="update"
-          initialData={{
-            parentId: parent.id,
-            username: parent.username ?? "",
-            name: parent.nom ?? "",
-            prenom: parent.prenom ?? "",
-            postnom: parent.postnom ?? "",
-            sexe: parent.sexe ?? "",
-            telephone: parent.telephone ?? "",
-            email: parent.email ?? "",
-            address: parent.address ?? "",
-            dateOfBirth: parent.dateOfBirth ?? "",
-            discount: {
-              scope: parent.discount?.scope ?? "PARENT",
-              percentage: parent.discount?.percentage ?? 0,
-              minChildren: parent.discount?.minChildren ?? 0,
-            },
-          }}
-          onUpdated={handleUpdate}
-        />
+
+        {open ? (
+          <ParentUpForm
+            key={parent.id}
+            layout="dialog"
+            mode="update"
+            initialData={{
+              parentId: parent.id,
+              username: parent.username ?? "",
+              name: parent.nom ?? "",
+              prenom: parent.prenom ?? "",
+              postnom: parent.postnom ?? "",
+              sexe: parent.sexe ?? "",
+              telephone: parent.telephone ?? "",
+              email: parent.email ?? "",
+              address: parent.address ?? "",
+              dateOfBirth: parent.dateOfBirth ?? "",
+              discount: {
+                scope: parent.discount?.scope ?? "PARENT",
+                percentage: parent.discount?.percentage ?? 0,
+                minChildren: parent.discount?.minChildren ?? 0,
+              },
+            }}
+            onUpdated={handleUpdated}
+          />
+        ) : null}
       </DialogContent>
     </Dialog>
   );

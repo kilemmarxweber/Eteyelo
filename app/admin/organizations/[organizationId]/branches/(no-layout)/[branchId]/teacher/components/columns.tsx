@@ -28,11 +28,16 @@ import { ITeacher } from "@/src/interfaces/Teacher";
 import { ResetUsersDialog } from "../../student/components/reset-users-dialog";
 import { DeleteTeacherDialog } from "./delete-teacher-dialog";
 import { DetailsTeacherDialog } from "./details-teacher-dialog";
-import { UpdateTeacherDialog } from "./edit-teacher-dialog";
+import { openOverlayAfterMenuDismiss } from "@/lib/radix-portal-dismiss";
+
+export type TeacherTableActions = {
+  onEdit: (teacher: ITeacher) => void;
+};
 
 export const createTeacherColumns = (
   onRefresh?: () => void,
   canManageTeachers = true,
+  actions?: TeacherTableActions,
 ): ColumnDef<ITeacher>[] => [
   {
     id: "select",
@@ -202,8 +207,6 @@ export const createTeacherColumns = (
   {
     id: "actions",
     cell: function Cell({ row }) {
-      const [showUpdateTaskSheet, setShowUpdateTaskSheet] =
-        React.useState(false);
       const [showDeleteTaskDialog, setShowDeleteTaskDialog] =
         React.useState(false);
       const [showDetailsTaskDialog, setShowDetailsTaskDialog] =
@@ -220,14 +223,6 @@ export const createTeacherColumns = (
 
       return (
         <>
-          {canManageTeachers ? (
-            <UpdateTeacherDialog
-              open={showUpdateTaskSheet}
-              onOpenChange={setShowUpdateTaskSheet}
-              teacher={row.original}
-              onSuccess={handleSuccess}
-            />
-          ) : null}
           <DetailsTeacherDialog
             open={showDetailsTaskDialog}
             onOpenChange={setShowDetailsTaskDialog}
@@ -252,7 +247,7 @@ export const createTeacherColumns = (
             </>
           ) : null}
 
-          <DropdownMenu>
+          <DropdownMenu modal={false}>
             <DropdownMenuTrigger asChild>
               <Button
                 aria-label="Open menu"
@@ -272,9 +267,15 @@ export const createTeacherColumns = (
               {canManageTeachers ? (
                 <>
                   <DropdownMenuItem
-                    onSelect={() => setShowUpdateTaskSheet(true)}
+                    onSelect={(event) => {
+                      event.preventDefault();
+                      if (!actions) return;
+                      openOverlayAfterMenuDismiss(() =>
+                        actions.onEdit(row.original),
+                      );
+                    }}
                   >
-                    Edit
+                    Modifier
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     onSelect={() => setShowResetTaskDialog(true)}

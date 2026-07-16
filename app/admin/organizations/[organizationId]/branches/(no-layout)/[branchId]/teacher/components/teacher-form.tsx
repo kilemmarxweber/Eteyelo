@@ -42,6 +42,7 @@ interface TeacherUpFormProps extends HTMLAttributes<HTMLDivElement> {
   initialData?: z.infer<typeof teacherSchema>;
   onTeacherUpdate?: () => void;
   mode: "create" | "update";
+  layout?: "default" | "dialog";
 }
 
 export function TeacherUpForm({
@@ -50,8 +51,11 @@ export function TeacherUpForm({
   onTeacherUpdate,
   initialData,
   mode,
+  layout = "default",
   ...props
 }: TeacherUpFormProps) {
+  const isDialog = layout === "dialog";
+  const fieldClass = isDialog ? "space-y-0.5" : "space-y-1";
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const sexeToUi: Record<string, "masculin" | "feminin"> = {
@@ -128,15 +132,20 @@ export function TeacherUpForm({
   }
 
   return (
-    <div className={cn("grid gap-6", className)} {...props}>
+    <div className={cn("grid gap-4", className)} {...props}>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
-          <div className="grid gap-2">
+          <div
+            className={cn(
+              "grid gap-2.5",
+              isDialog ? "sm:grid-cols-2" : "grid-cols-1 gap-2",
+            )}
+          >
             <FormField
               control={form.control}
               name="nom"
               render={({ field }) => (
-                <FormItem className="space-y-1">
+                <FormItem className={fieldClass}>
                   <FormLabel>Nom</FormLabel>
                   <FormControl>
                     <Input placeholder="Le nom de l'enseignant" {...field} />
@@ -150,7 +159,7 @@ export function TeacherUpForm({
               control={form.control}
               name="postnom"
               render={({ field }) => (
-                <FormItem className="space-y-1">
+                <FormItem className={fieldClass}>
                   <FormLabel>Postnom</FormLabel>
                   <FormControl>
                     <Input placeholder="Le postnom de l'enseignant" {...field} />
@@ -164,10 +173,10 @@ export function TeacherUpForm({
               control={form.control}
               name="prenom"
               render={({ field }) => (
-                <FormItem className="space-y-1">
-                  <FormLabel>Prenom</FormLabel>
+                <FormItem className={fieldClass}>
+                  <FormLabel>Prénom</FormLabel>
                   <FormControl>
-                    <Input placeholder="Le prenom de l'enseignant" {...field} />
+                    <Input placeholder="Le prénom de l'enseignant" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -178,8 +187,8 @@ export function TeacherUpForm({
               control={form.control}
               name="dateOfBirth"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Date d'affectation</FormLabel>
+                <FormItem className={fieldClass}>
+                  <FormLabel>Date d&apos;affectation</FormLabel>
                   <Popover>
                     <PopoverTrigger asChild>
                       <FormControl>
@@ -204,12 +213,7 @@ export function TeacherUpForm({
                         </Button>
                       </FormControl>
                     </PopoverTrigger>
-
-                    <PopoverContent
-                      className="w-auto p-0"
-                      align="start"
-                      side="bottom"
-                    >
+                    <PopoverContent className="w-auto p-0" align="start">
                       <Calendar
                         mode="single"
                         captionLayout="dropdown"
@@ -227,57 +231,52 @@ export function TeacherUpForm({
               )}
             />
 
-            <div className="grid gap-4 sm:grid-cols-2">
-              <FormField
-                control={form.control}
-                name="telephone"
-                render={({ field }) => (
-                  <FormItem className="space-y-1">
-                    <FormLabel>Telephone</FormLabel>
-                    <FormControl>
-                      <PhoneInput
-                        defaultCountry="CD"
-                        placeholder="Telephone"
-                        maxLength={14}
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+            <FormField
+              control={form.control}
+              name="telephone"
+              render={({ field }) => (
+                <FormItem className={fieldClass}>
+                  <FormLabel>Téléphone</FormLabel>
+                  <FormControl>
+                    <PhoneInput
+                      defaultCountry="CD"
+                      placeholder="Téléphone"
+                      maxLength={14}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-              <FormField
-                control={form.control}
-                name="sexe"
-                render={({ field }) => (
-                  <FormItem className="space-y-1">
-                    <FormLabel>Sexe</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      value={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selectionnez le sexe" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="masculin">Masculin</SelectItem>
-                        <SelectItem value="feminin">Feminin</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+            <FormField
+              control={form.control}
+              name="sexe"
+              render={({ field }) => (
+                <FormItem className={fieldClass}>
+                  <FormLabel>Sexe</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Sélectionnez le sexe" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent position="popper">
+                      <SelectItem value="masculin">Masculin</SelectItem>
+                      <SelectItem value="feminin">Féminin</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <FormField
               control={form.control}
               name="email"
               render={({ field }) => (
-                <FormItem className="space-y-1">
+                <FormItem className={fieldClass}>
                   <FormLabel>E-mail</FormLabel>
                   <FormControl>
                     <Input placeholder="Email de l'enseignant" {...field} />
@@ -291,8 +290,8 @@ export function TeacherUpForm({
               control={form.control}
               name="address"
               render={({ field }) => (
-                <FormItem className="space-y-1">
-                  <FormLabel>Adresse de l'enseignant</FormLabel>
+                <FormItem className={fieldClass}>
+                  <FormLabel>Adresse</FormLabel>
                   <FormControl>
                     <Input placeholder="Adresse de l'enseignant" {...field} />
                   </FormControl>
@@ -321,15 +320,18 @@ export function TeacherUpForm({
               />
             </div>
 
-            <Button type="submit" className="mt-2" loading={isLoading}>
-              {mode === "create"
-                ? "Enregistrer l'utilisateur"
-                : "Mettre a jour l'utilisateur"}
-            </Button>
-
-            {errorMessage && (
-              <p className="mt-2 text-center text-red-500">{errorMessage}</p>
-            )}
+            <div className={cn(isDialog && "sm:col-span-2")}>
+              <Button type="submit" className="mt-1 w-full sm:w-auto" loading={isLoading}>
+                {mode === "create"
+                  ? "Enregistrer l'enseignant"
+                  : "Mettre à jour l'enseignant"}
+              </Button>
+              {errorMessage ? (
+                <p className="mt-2 text-center text-sm text-red-500">
+                  {errorMessage}
+                </p>
+              ) : null}
+            </div>
           </div>
         </form>
       </Form>

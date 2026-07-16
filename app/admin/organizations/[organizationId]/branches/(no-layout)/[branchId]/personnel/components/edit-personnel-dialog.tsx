@@ -30,7 +30,7 @@ export function UpdatePersonnelDialog({
 }: UpdatePersonnelDialogProps) {
   const { refresh } = useRefresh();
 
-  const handleUpdate = () => {
+  const handleUpdated = () => {
     refresh();
     onSuccess?.();
     onOpenChange?.(false);
@@ -38,35 +38,39 @@ export function UpdatePersonnelDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange} {...dialogProps}>
-      <DialogContent size="xl">
+      <DialogContent size="lg">
         <DialogHeader>
           <DialogTitle>Modifier le personnel</DialogTitle>
           <DialogDescription>
-            Modifiez les détails du personnel, puis enregistrez.
+            Ajustez les informations du personnel, puis enregistrez.
           </DialogDescription>
         </DialogHeader>
 
-        <PersonnelUpForm
-          mode="update"
-          initialData={{
-            personnelId: personnel.personnelId ?? "",
-            username: personnel.username ?? "",
-            name: personnel.nom,
-            prenom: personnel.prenom ?? "",
-            postnom: personnel.postnom,
-            sexe: personnel.sexe,
-            telephone: personnel.telephone ?? "",
-            email: personnel.email ?? "",
-            dateOfBirth: personnel.dateOfBirth
-              ? new Date(personnel.dateOfBirth)
-              : new Date(),
-            address: personnel.address,
-            orgRole: personnel.role ?? ALL_ORG_ROLE_SLUGS[0],
-          }}
-          onUpdated={handleUpdate}
-          onPersonnelUpdate={handleUpdate}
-          onSuccess={handleUpdate}
-        />
+        {open ? (
+          <PersonnelUpForm
+            key={personnel.personnelId ?? personnel.id}
+            layout="dialog"
+            mode="update"
+            initialData={{
+              personnelId: personnel.personnelId ?? "",
+              username: personnel.username ?? "",
+              name: personnel.nom,
+              prenom: personnel.prenom ?? "",
+              postnom: personnel.postnom,
+              sexe: personnel.sexe,
+              telephone: personnel.telephone ?? "",
+              email: personnel.email ?? "",
+              dateOfBirth: personnel.dateOfBirth
+                ? new Date(personnel.dateOfBirth)
+                : new Date(),
+              address: personnel.address,
+              orgRole: personnel.role ?? ALL_ORG_ROLE_SLUGS[0],
+            }}
+            onUpdated={handleUpdated}
+            onPersonnelUpdate={handleUpdated}
+            onSuccess={handleUpdated}
+          />
+        ) : null}
       </DialogContent>
     </Dialog>
   );

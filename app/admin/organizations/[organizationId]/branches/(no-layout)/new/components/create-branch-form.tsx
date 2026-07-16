@@ -323,8 +323,8 @@ export function CreateBranchForm({
           }}
         >
           <div className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
-            <section className="flex flex-col rounded-2xl bg-blue-950 p-5 text-white shadow-lg shadow-blue-950/10 sm:p-6">
-              <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-card/15 px-3 py-1 text-xs font-semibold">
+            <section className="flex flex-col rounded-2xl bg-primary p-5 text-primary-foreground shadow-lg shadow-primary/10 sm:p-6">
+              <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-primary-foreground/15 px-3 py-1 text-xs font-semibold">
                 <School className="size-3.5" />
                 Inscription école
               </div>
@@ -333,20 +333,20 @@ export function CreateBranchForm({
                 Ajoutez votre établissement
               </h1>
 
-              <p className="mt-2 max-w-[430px] text-sm leading-6 text-blue-50">
+              <p className="mt-2 max-w-[430px] text-sm leading-6 text-primary-foreground/90">
                 Créez la fiche de votre école, indiquez ses coordonnées et
                 positionnez-la sur la carte pour faciliter la recherche locale.
               </p>
 
               <div className="mt-4 grid gap-2 text-sm">
-                <div className="flex items-start gap-2.5 rounded-xl bg-card/10 p-3">
+                <div className="flex items-start gap-2.5 rounded-xl bg-primary-foreground/10 p-3">
                   <BadgeCheck className="mt-0.5 size-4 shrink-0" />
                   <span>
                     Une fiche claire pour présenter votre établissement.
                   </span>
                 </div>
 
-                <div className="flex items-start gap-2.5 rounded-xl bg-card/10 p-3">
+                <div className="flex items-start gap-2.5 rounded-xl bg-primary-foreground/10 p-3">
                   <MapPin className="mt-0.5 size-4 shrink-0" />
                   <span>
                     Une localisation précise pour les élèves et les parents.
@@ -366,7 +366,7 @@ export function CreateBranchForm({
                     <h2 className="text-base font-semibold text-foreground">
                       Informations de l’école
                     </h2>
-                    <p className="text-sm text-slate-500">
+                    <p className="text-sm text-muted-foreground">
                       Les champs essentiels permettent de créer la fiche de
                       base.
                     </p>
@@ -682,13 +682,13 @@ export function CreateBranchForm({
                       onClick={useCurrentLocation}
                       variant="outline"
                       disabled={isSubmitting}
-                      className="rounded-full border-blue-950/20 text-foreground hover:bg-blue-50"
+                      className="rounded-full border-primary/20 text-foreground hover:bg-primary/5"
                     >
                       <Navigation className="mr-1.5 size-3.5" />
                       Utiliser ma position actuelle
                     </Button>
 
-                    <div className="flex h-8 items-center justify-between gap-3 rounded-full border border-blue-950/10 bg-blue-50/60 px-3">
+                    <div className="flex h-8 items-center justify-between gap-3 rounded-full border border-primary/10 bg-primary/5 px-3">
                       <span className="text-sm font-medium text-foreground">
                         Utiliser la carte
                       </span>
@@ -922,7 +922,7 @@ export function CreateBranchForm({
                       size="sm"
                       type="submit"
                       disabled={isSubmitting}
-                      className="w-full rounded-full bg-primary text-primary-foreground hover:bg-blue-900"
+                      className="w-full rounded-full bg-primary text-primary-foreground hover:bg-primary/90"
                     >
                       {isSubmitting
                         ? mode === "update"
@@ -963,14 +963,14 @@ export function CreateBranchForm({
             />
 
             <div className="mt-4 grid gap-3 text-sm md:grid-cols-2">
-              <div className="flex items-start gap-3 rounded-2xl bg-blue-50 p-4 text-foreground">
+              <div className="flex items-start gap-3 rounded-2xl bg-primary/5 p-4 text-foreground">
                 <BadgeCheck className="mt-0.5 size-5 shrink-0" />
                 <span>
                   Une fiche claire pour présenter votre établissement.
                 </span>
               </div>
 
-              <div className="flex items-start gap-3 rounded-2xl bg-blue-50 p-4 text-foreground">
+              <div className="flex items-start gap-3 rounded-2xl bg-primary/5 p-4 text-foreground">
                 <MapPin className="mt-0.5 size-5 shrink-0" />
                 <span>
                   Une localisation précise pour les élèves et les parents.

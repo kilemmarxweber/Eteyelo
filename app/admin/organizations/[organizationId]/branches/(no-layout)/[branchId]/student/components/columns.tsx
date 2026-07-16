@@ -21,8 +21,12 @@ import { IStudent } from "@/src/interfaces/Student";
 import { DeleteStudentsDialog } from "./delete-students-dialog";
 import { DetailsStudentDialog } from "./details-student-dialog";
 import { ResetUsersDialog } from "./reset-users-dialog";
-import { UpdateStudentDialog } from "./edit-student-dialog";
 import Image from "next/image";
+import { openOverlayAfterMenuDismiss } from "@/lib/radix-portal-dismiss";
+
+export type StudentTableActions = {
+  onEdit: (student: IStudent) => void;
+};
 
 function getStudentImage(student: IStudent): string | undefined {
   const image = student.image || undefined;
@@ -56,6 +60,7 @@ function calculateAge(dateOfBirth: Date | string | null | undefined) {
 export const createStudentColumns = (
   onRefresh?: () => void,
   canManageStudents = true,
+  actions?: StudentTableActions,
 ): ColumnDef<IStudent>[] => [
   {
     id: "select",
@@ -208,8 +213,6 @@ export const createStudentColumns = (
   {
     id: "actions",
     cell: function Cell({ row }) {
-      const [showUpdateTaskSheet, setShowUpdateTaskSheet] =
-        React.useState(false);
       const [showDeleteTaskDialog, setShowDeleteTaskDialog] =
         React.useState(false);
       const [showDetailsTaskDialog, setShowDetailsTaskDialog] =
@@ -227,15 +230,6 @@ export const createStudentColumns = (
 
       return (
         <>
-          {canManageStudents ? (
-            <UpdateStudentDialog
-              open={showUpdateTaskSheet}
-              onOpenChange={setShowUpdateTaskSheet}
-              student={row.original}
-              onSuccess={handleSuccess}
-            />
-          ) : null}
-
           <DetailsStudentDialog
             open={showDetailsTaskDialog}
             onOpenChange={setShowDetailsTaskDialog}
@@ -262,7 +256,7 @@ export const createStudentColumns = (
             </>
           ) : null}
 
-          <DropdownMenu>
+          <DropdownMenu modal={false}>
             <DropdownMenuTrigger asChild>
               <Button
                 aria-label="Open menu"
@@ -285,7 +279,13 @@ export const createStudentColumns = (
               {canManageStudents ? (
                 <>
                   <DropdownMenuItem
-                    onSelect={() => setShowUpdateTaskSheet(true)}
+                    onSelect={(event) => {
+                      event.preventDefault();
+                      if (!actions) return;
+                      openOverlayAfterMenuDismiss(() =>
+                        actions.onEdit(row.original),
+                      );
+                    }}
                   >
                     Modifier
                   </DropdownMenuItem>

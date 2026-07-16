@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createStudentColumns } from "./columns";
 import { ResponsiveDataTable } from "@/components/custom";
 import { TableSkeleton } from "@/components/custom";
@@ -11,6 +11,7 @@ import { getStudentsAction } from "../student.action";
 import { DataTableToolbar } from "./data-table-toolbar";
 import { IconAlertCircle, IconUsers } from "@tabler/icons-react";
 import { useRefresh } from "@/src/hooks/RefreshContext";
+import { UpdateStudentDialog } from "./edit-student-dialog";
 
 const StudentsList = ({
   refreshKey,
@@ -23,64 +24,128 @@ const StudentsList = ({
 }) => {
   const [students, setStudents] = useState<IStudent[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [editingStudent, setEditingStudent] = useState<IStudent | null>(null);
+  const hasLoadedOnce = useRef(false);
   const { refreshKey: contextRefreshKey } = useRefresh();
-  const columns = useMemo(
-    () => createStudentColumns(onRefresh, canManageStudents),
-    [canManageStudents, onRefresh],
+
+  const tableActions = useMemo(
+    () => ({
+      onEdit: (student: IStudent) => setEditingStudent(student),
+    }),
+    [],
   );
 
-  useEffect(() => {
-    const fetchStudents = async () => {
-      try {
+  const columns = useMemo(
+    () => createStudentColumns(onRefresh, canManageStudents, tableActions),
+    [canManageStudents, onRefresh, tableActions],
+  );
+
+  const fetchStudents = useCallback(async () => {
+    const isInitialLoad = !hasLoadedOnce.current;
+    try {
+      if (isInitialLoad) {
         setLoading(true);
-        setError(null);
-
-        const [rawStudents, err] = await getStudentsAction();
-
-        if (err) throw new Error(err.message);
-
-        setStudents(rawStudents || []);
-      } catch (e: any) {
-        setError(e.message || "Erreur serveur");
-      } finally {
-        setLoading(false);
+      } else {
+        setIsRefreshing(true);
       }
-    };
+      setError(null);
 
-    fetchStudents();
-  }, [refreshKey, contextRefreshKey]);
+      const [rawStudents, err] = await getStudentsAction();
+      if (err) throw new Error(err.message);
 
-  if (loading) return <TableSkeleton rows={5} columns={8} />;
+      setStudents(rawStudents || []);
+      hasLoadedOnce.current = true;
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "Erreur serveur");
+    } finally {
+      setLoading(false);
+      setIsRefreshing(false);
+    }
+  }, []);
 
-  if (error)
+  useEffect(() => {
+    void fetchStudents();
+  }, [fetchStudents, refreshKey, contextRefreshKey]);
+
+  const dialogs = (
+    <>
+      {editingStudent && canManageStudents ? (
+        <UpdateStudentDialog
+          open
+          onOpenChange={(open) => {
+            if (!open) setEditingStudent(null);
+          }}
+          student={editingStudent}
+          onSuccess={() => {
+            setEditingStudent(null);
+            onRefresh();
+          }}
+        />
+      ) : null}
+    </>
+  );
+
+  if (loading) {
     return (
-      <Alert variant="destructive">
-        <IconAlertCircle />
-        <AlertDescription>{error}</AlertDescription>
-      </Alert>
+      <>
+        {dialogs}
+        <div className="p-4">
+          <TableSkeleton rows={5} columns={8} />
+        </div>
+      </>
     );
+  }
 
-  if (!students.length)
+  if (error) {
     return (
-      <EmptyTableState
-        title="Aucun élève"
-        description="Ajoutez un élève pour commencer"
-        icon={<IconUsers />}
-      />
+      <>
+        {dialogs}
+        <div className="p-4">
+          <Alert variant="destructive">
+            <IconAlertCircle />
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        </div>
+      </>
     );
+  }
+
+  if (!students.length) {
+    return (
+      <>
+        {dialogs}
+        <div className="p-4">
+          <EmptyTableState
+            title="Aucun élève"
+            description="Ajoutez un élève pour commencer"
+            icon={<IconUsers />}
+          />
+        </div>
+      </>
+    );
+  }
 
   return (
-    <div className="p-4">
-      <ResponsiveDataTable
-        columns={columns}
-        ToolbarComponent={DataTableToolbar}
-        data={students}
-        emptyText="Aucun élève"
-        mobileCardTitle={(row) => `${row.nom} ${row.postnom} ${row.prenom}`}
-        mobileCardSubtitle={(row) => row.username ?? ""}
-      />
-    </div>
+    <>
+      {dialogs}
+      <div className="relative p-4">
+        {isRefreshing ? (
+          <div className="pointer-events-none absolute inset-x-4 top-0 z-10 h-0.5 overflow-hidden rounded-full bg-muted">
+            <div className="h-full w-1/3 animate-pulse bg-primary" />
+          </div>
+        ) : null}
+        <ResponsiveDataTable
+          columns={columns}
+          ToolbarComponent={DataTableToolbar}
+          data={students}
+          emptyText="Aucun élève"
+          mobileCardTitle={(row) => `${row.nom} ${row.postnom} ${row.prenom}`}
+          mobileCardSubtitle={(row) => row.username ?? ""}
+        />
+      </div>
+    </>
   );
 };
 
