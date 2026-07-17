@@ -81,6 +81,7 @@ import {
   drawSecondaryDecisionSidebar,
   drawSecondaryFooterBlock,
   redrawSecondaryMainFrameBorder,
+  type SecondaryDecisionSidebarParams,
 } from "./bulletin-secondary-footer";
 import { drawSecondarySubjectRow } from "./bulletin-secondary-render";
 
@@ -1219,11 +1220,10 @@ export default function BulletinPDF({
       }
 
       let secondaryDecisionSidebarDrawn = false;
-      let secondaryDecisionSidebarParams: {
-        x: number;
-        y: number;
-        width: number;
-      } | null = null;
+      let secondaryDecisionSidebarParams: Omit<
+        SecondaryDecisionSidebarParams,
+        "doc"
+      > | null = null;
       let secondaryTableEndY = 0;
 
       blocs.forEach((bloc) => {
@@ -1472,10 +1472,8 @@ export default function BulletinPDF({
           tableEndY: secondaryTableEndY,
         });
         if (secondaryDecisionSidebarParams) {
-          drawSecondaryDecisionSidebar({
-            doc,
-            ...secondaryDecisionSidebarParams,
-          });
+          const { x, y, width } = secondaryDecisionSidebarParams;
+          drawSecondaryDecisionSidebar({ doc, x, y, width });
         }
         redrawSecondaryMainFrameBorder(
           doc,

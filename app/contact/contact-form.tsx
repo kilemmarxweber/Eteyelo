@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 
+import { Button } from "@/components/ui/button";
 import { sendContactMessageAction } from "./actions";
 import { contactSchema, type ContactInput } from "./schema";
 
@@ -81,19 +82,19 @@ export default function ContactForm({
   return (
     <form
       onSubmit={form.handleSubmit(onSubmit)}
-      className="relative overflow-hidden rounded-3xl border bg-white/85 p-5 shadow-xl shadow-blue-950/5 backdrop-blur-xl md:p-7"
+      className="relative overflow-hidden rounded-3xl border border-border bg-card p-5 shadow-sm md:p-7"
     >
-      <div className="absolute -right-20 -top-20 h-52 w-52 rounded-full bg-blue-950/10 blur-3xl" />
+      <div className="pointer-events-none absolute -right-20 -top-20 h-52 w-52 rounded-full bg-primary/10 blur-3xl" />
 
       <input type="hidden" {...form.register("recipientId")} />
 
       {showSupportAgentPicker && supportAgents.length > 0 ? (
-        <label className="relative mb-4 block space-y-2 text-sm font-medium">
+        <label className="relative mb-4 block space-y-2 text-sm font-medium text-foreground">
           Destinataire
           <select
             {...form.register("recipientId")}
             disabled={pending}
-            className="h-12 w-full rounded-2xl border bg-white px-4 text-sm outline-none"
+            className="h-12 w-full rounded-2xl border border-border bg-background px-4 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             <option value="">Choisir un destinataire</option>
             {supportAgents.map((agent) => (
@@ -107,9 +108,9 @@ export default function ContactForm({
       ) : null}
 
       <div className="relative grid gap-4 md:grid-cols-2">
-        <label className="space-y-2 text-sm font-medium">
+        <label className="space-y-2 text-sm font-medium text-foreground">
           Nom complet
-          <div className="flex items-center gap-2 rounded-2xl border bg-white px-3">
+          <div className="flex items-center gap-2 rounded-2xl border border-border bg-background px-3 focus-within:ring-2 focus-within:ring-ring">
             <UserRound className="size-4 text-muted-foreground" />
             <input
               {...form.register("name")}
@@ -123,9 +124,9 @@ export default function ContactForm({
           <FormError message={form.formState.errors.name?.message} />
         </label>
 
-        <label className="space-y-2 text-sm font-medium">
+        <label className="space-y-2 text-sm font-medium text-foreground">
           Email
-          <div className="flex items-center gap-2 rounded-2xl border bg-white px-3">
+          <div className="flex items-center gap-2 rounded-2xl border border-border bg-background px-3 focus-within:ring-2 focus-within:ring-ring">
             <Mail className="size-4 text-muted-foreground" />
             <input
               {...form.register("email")}
@@ -138,9 +139,9 @@ export default function ContactForm({
           <FormError message={form.formState.errors.email?.message} />
         </label>
 
-        <label className="space-y-2 text-sm font-medium">
+        <label className="space-y-2 text-sm font-medium text-foreground">
           Téléphone
-          <div className="flex items-center gap-2 rounded-2xl border bg-white px-3">
+          <div className="flex items-center gap-2 rounded-2xl border border-border bg-background px-3 focus-within:ring-2 focus-within:ring-ring">
             <Phone className="size-4 text-muted-foreground" />
             <input
               {...form.register("phone")}
@@ -152,38 +153,38 @@ export default function ContactForm({
           <FormError message={form.formState.errors.phone?.message} />
         </label>
 
-        <label className="space-y-2 text-sm font-medium">
+        <label className="space-y-2 text-sm font-medium text-foreground">
           Sujet
           <input
             {...form.register("subject")}
             disabled={pending}
             placeholder="Objet du message"
-            className="h-12 w-full rounded-2xl border bg-white px-4 text-sm outline-none"
+            className="h-12 w-full rounded-2xl border border-border bg-background px-4 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
           />
           <FormError message={form.formState.errors.subject?.message} />
         </label>
       </div>
 
-      <label className="relative mt-4 block space-y-2 text-sm font-medium">
+      <label className="relative mt-4 block space-y-2 text-sm font-medium text-foreground">
         Message
         <textarea
           {...form.register("message")}
           disabled={pending}
           rows={6}
           placeholder="Expliquez-nous votre besoin..."
-          className="w-full resize-none rounded-2xl border bg-white px-4 py-3 text-sm outline-none"
+          className="w-full resize-none rounded-2xl border border-border bg-background px-4 py-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
         />
         <FormError message={form.formState.errors.message?.message} />
       </label>
 
-      <button
+      <Button
         type="submit"
         disabled={pending}
-        className="relative mt-5 inline-flex h-12 w-full items-center justify-center gap-2 rounded-2xl bg-blue-950 px-5 text-sm font-semibold text-white shadow-lg shadow-blue-950/20 transition hover:bg-blue-950/90 disabled:cursor-not-allowed disabled:opacity-70"
+        className="relative mt-5 h-12 w-full rounded-2xl text-sm font-semibold"
       >
         <Send className="size-4" />
         {pending ? "Envoi..." : "Envoyer le message"}
-      </button>
+      </Button>
     </form>
   );
 }
