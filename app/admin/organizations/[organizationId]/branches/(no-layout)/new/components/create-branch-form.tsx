@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import {
   BadgeCheck,
   Building2,
+  Mail,
   MapPin,
   Navigation,
   Phone,
@@ -43,7 +44,12 @@ import {
   createBranchFormSchema,
   type CreateBranchFormValues,
 } from "../../schema";
-import { createBranchAction, updateBranchAction } from "../../branche.action";
+import { schoolRegistrationRequestSchema } from "@/app/components/inscription-ecole/schema";
+import {
+  createBranchAction,
+  updateBranchAction,
+} from "../../branche.action";
+import type { BranchFormActionResult } from "@/app/components/inscription-ecole/ecole.action";
 import { uploadFile, uploadFiles } from "@/lib/upload-file";
 import { useState } from "react";
 
@@ -84,6 +90,13 @@ type CreateBranchFormProps = {
   mode?: "create" | "update";
   branchId?: string;
   defaultValues?: Partial<CreateBranchFormValues>;
+  submissionMode?: "create" | "request";
+  createAction?: (
+    organizationId: string,
+    values: CreateBranchFormValues,
+  ) => Promise<BranchFormActionResult>;
+  successRedirectPath?: string | false;
+  successMessage?: string;
 };
 
 export function CreateBranchForm({
@@ -91,7 +104,12 @@ export function CreateBranchForm({
   mode = "create",
   branchId,
   defaultValues,
+  submissionMode = "create",
+  createAction = createBranchAction,
+  successRedirectPath,
+  successMessage,
 }: CreateBranchFormProps) {
+  const isRequestMode = submissionMode === "request";
   const router = useRouter();
   const [showMapDialog, setShowMapDialog] = useState(false);
   const [savedImages, setSavedImages] = useState<BranchImages>(
@@ -99,11 +117,14 @@ export function CreateBranchForm({
   );
   const [pendingFiles, setPendingFiles] =
     useState<PendingBranchFiles>(emptyPendingFiles);
-  const form = useForm<CreateBranchFormValues>({
-    resolver: zodResolver(createBranchFormSchema),
+  const form = useForm<CreateBranchFormValues & { contactEmail?: string }>({
+    resolver: zodResolver(
+      isRequestMode ? schoolRegistrationRequestSchema : createBranchFormSchema,
+    ),
     defaultValues: {
       name: defaultValues?.name ?? "",
       code: defaultValues?.code ?? "",
+      contactEmail: "",
       image: defaultValues?.image ?? {
         logo: "",
         event: [],
@@ -221,7 +242,9 @@ export function CreateBranchForm({
     form.clearErrors("root");
 
     try {
-      const image = await buildFinalImages();
+      const image = isRequestMode
+        ? emptyBranchImages()
+        : await buildFinalImages();
       const payload: CreateBranchFormValues = {
         ...values,
         image,
@@ -230,7 +253,7 @@ export function CreateBranchForm({
       const result =
         mode === "update" && branchId
           ? await updateBranchAction(branchId, payload)
-          : await createBranchAction(organizationId, payload);
+          : await createAction(organizationId, payload);
 
       if (result.error) {
         form.setError("root", {
@@ -242,11 +265,28 @@ export function CreateBranchForm({
       }
 
       toast.success(
-        mode === "update" ? "Établissement modifié." : "Établissement créé.",
+        successMessage ??
+          (mode === "update"
+            ? "Établissement modifié."
+            : isRequestMode
+              ? "Demande envoyée."
+              : "Établissement créé."),
       );
 
-      router.push(`/admin/organizations/${organizationId}/branches`);
-      router.refresh();
+      const redirectPath =
+        successRedirectPath === false
+          ? null
+          : (successRedirectPath ??
+            `/admin/organizations/${organizationId}/branches`);
+
+      if (redirectPath) {
+        router.push(redirectPath);
+        router.refresh();
+      } else {
+        form.reset();
+        setSavedImages(emptyBranchImages());
+        setPendingFiles(emptyPendingFiles());
+      }
     } catch (cause) {
       const message =
         cause instanceof Error
@@ -258,7 +298,9 @@ export function CreateBranchForm({
         message:
           mode === "update"
             ? "Modification impossible. Réessayez plus tard."
-            : "Création impossible. Réessayez plus tard.",
+            : isRequestMode
+              ? "Envoi impossible. Réessayez plus tard."
+              : "Création impossible. Réessayez plus tard.",
       });
 
       toast.error(message);
@@ -330,26 +372,33 @@ export function CreateBranchForm({
               </div>
 
               <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
-                Ajoutez votre établissement
+                {isRequestMode
+                  ? "Demandez l'inscription de votre établissement"
+                  : "Ajoutez votre établissement"}
               </h1>
 
               <p className="mt-2 max-w-[430px] text-sm leading-6 text-primary-foreground/90">
-                Créez la fiche de votre école, indiquez ses coordonnées et
-                positionnez-la sur la carte pour faciliter la recherche locale.
+                {isRequestMode
+                  ? "Remplissez le formulaire avec les informations de votre école. Klambocore examinera votre demande avant publication sur la plateforme."
+                  : "Créez la fiche de votre école, indiquez ses coordonnées et positionnez-la sur la carte pour faciliter la recherche locale."}
               </p>
 
               <div className="mt-4 grid gap-2 text-sm">
                 <div className="flex items-start gap-2.5 rounded-xl bg-primary-foreground/10 p-3">
                   <BadgeCheck className="mt-0.5 size-4 shrink-0" />
                   <span>
-                    Une fiche claire pour présenter votre établissement.
+                    {isRequestMode
+                      ? "Votre demande sera transmise à Klambocore pour examen."
+                      : "Une fiche claire pour présenter votre établissement."}
                   </span>
                 </div>
 
                 <div className="flex items-start gap-2.5 rounded-xl bg-primary-foreground/10 p-3">
                   <MapPin className="mt-0.5 size-4 shrink-0" />
                   <span>
-                    Une localisation précise pour les élèves et les parents.
+                    {isRequestMode
+                      ? "Indiquez une localisation précise pour faciliter la validation."
+                      : "Une localisation précise pour les élèves et les parents."}
                   </span>
                 </div>
               </div>
@@ -496,6 +545,36 @@ export function CreateBranchForm({
                       )}
                     />
                   </div>
+
+                  {isRequestMode && (
+                    <FormField
+                      control={form.control}
+                      name="contactEmail"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Email de contact</FormLabel>
+                          <FormControl>
+                            <div className="relative">
+                              <Mail className="absolute left-3 top-4 h-4 w-4 text-muted-foreground" />
+                              <Input
+                                {...field}
+                                placeholder="contact@ecole.cd *"
+                                type="email"
+                                autoComplete="email"
+                                className="h-9 rounded-xl pl-10"
+                                disabled={isSubmitting}
+                              />
+                            </div>
+                          </FormControl>
+                          <FormDescription>
+                            Un email de confirmation vous sera envoyé à cette
+                            adresse.
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
 
                   <FormField
                     control={form.control}
@@ -707,6 +786,7 @@ export function CreateBranchForm({
                       {form.formState.errors.root.message}
                     </p>
                   )}
+                  {!isRequestMode && (
                   <div className="rounded-2xl border bg-card p-4">
                     <h3 className="text-base font-semibold text-foreground">
                       Images de l’établissement
@@ -917,6 +997,7 @@ export function CreateBranchForm({
                       ))}
                     </div>
                   </div>
+                  )}
                   <div className="sticky bottom-4 z-20 mt-4 rounded-2xl border bg-card/90 p-2.5 shadow-md backdrop-blur">
                     <Button
                       size="sm"
@@ -927,10 +1008,14 @@ export function CreateBranchForm({
                       {isSubmitting
                         ? mode === "update"
                           ? "Envoi en cours..."
-                          : "Création en cours..."
+                          : isRequestMode
+                            ? "Envoi en cours..."
+                            : "Création en cours..."
                         : mode === "update"
                           ? "Modifier l’établissement"
-                          : "Créer l’école"}
+                          : isRequestMode
+                            ? "Envoyer la demande"
+                            : "Créer l’école"}
                     </Button>
                   </div>
                 </div>

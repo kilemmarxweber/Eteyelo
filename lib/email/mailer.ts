@@ -43,12 +43,14 @@ export function getDefaultMailFrom() {
 export async function sendMail({
   from,
   to,
+  replyTo,
   subject,
   text,
   html,
 }: {
   from?: string;
   to: string;
+  replyTo?: string;
   subject: string;
   text: string;
   html?: string;
@@ -69,6 +71,7 @@ export async function sendMail({
   return t.sendMail({
     from: mailFrom,
     to,
+    replyTo,
     subject,
     text,
     html,
