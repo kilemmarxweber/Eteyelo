@@ -5,6 +5,7 @@ import {
   calculateBulletinPercentage,
   sumBulletinMaxima,
 } from "@/lib/bulletin-maxima";
+import { countBranchStudents } from "@/lib/branch-student-count";
 import { prisma } from "@/lib/prisma";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
 import { action } from "@/lib/zsa";
@@ -244,18 +245,14 @@ export async function getAdminStats({
       revenueCurrentAgg,
       revenuePrevAgg,
     ] = await Promise.all([
-      prisma.student.count({
-        where: {
-          branchMember: { branchId: branch.id },
-          createdAt: { lte: endCurrent },
-        },
+      countBranchStudents({
+        branchId: branch.id,
+        createdBefore: endCurrent,
       }),
 
-      prisma.student.count({
-        where: {
-          branchMember: { branchId: branch.id },
-          createdAt: { lte: endPrev },
-        },
+      countBranchStudents({
+        branchId: branch.id,
+        createdBefore: endPrev,
       }),
 
       prisma.classe.count({

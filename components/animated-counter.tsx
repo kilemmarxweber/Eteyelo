@@ -6,16 +6,23 @@ type AnimatedCounterProps = {
   end: number;
   suffix?: string;
   duration?: number;
+  animationKey?: string | number;
 };
 
 export function AnimatedCounter({
   end,
   suffix = "",
   duration = 1400,
+  animationKey = end,
 }: AnimatedCounterProps) {
   const [value, setValue] = useState(0);
   const [hasStarted, setHasStarted] = useState(false);
   const ref = useRef<HTMLSpanElement>(null);
+
+  useEffect(() => {
+    setValue(0);
+    setHasStarted(false);
+  }, [animationKey]);
 
   useEffect(() => {
     const node = ref.current;
@@ -84,7 +91,7 @@ export function AnimatedCounter({
     frameId = requestAnimationFrame(tick);
 
     return () => cancelAnimationFrame(frameId);
-  }, [duration, end, hasStarted]);
+  }, [animationKey, duration, end, hasStarted]);
 
   return (
     <span ref={ref}>

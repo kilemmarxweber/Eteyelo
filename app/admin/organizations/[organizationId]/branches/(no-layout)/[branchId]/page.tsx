@@ -30,6 +30,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { getCalendarEvents } from "./CalendarEvent/CalendarEvent.acton";
 import { useBranchPeopleLabels } from "@/hooks/use-branch-people-labels";
+import { pluralizeStudentLabel, pluralizeStudentLabelLower } from "@/lib/people-labels";
 
 export default function AdminDashboard() {
   const peopleLabels = useBranchPeopleLabels();
@@ -284,7 +285,10 @@ export default function AdminDashboard() {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
-                  {peopleLabels.studentPlural}
+                  {pluralizeStudentLabel(
+                    peopleLabels,
+                    stats?.students?.total ?? 0,
+                  )}
                 </CardTitle>
                 <IconUsers className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
@@ -488,7 +492,7 @@ export default function AdminDashboard() {
                     </div>
                     <p className="mt-1 text-xs text-muted-foreground">
                       {metrics.studentsCount > 0
-                        ? `Réussite ${metrics.successRate}% · ${metrics.passedCount}/${metrics.studentsCount} ${peopleLabels.studentPluralLower} ≥ 50%`
+                        ? `Réussite ${metrics.successRate}% · ${metrics.passedCount}/${metrics.studentsCount} ${pluralizeStudentLabelLower(peopleLabels, metrics.studentsCount)} ≥ 50%`
                         : "Aucune cote enregistrée pour le moment"}
                     </p>
                   </div>

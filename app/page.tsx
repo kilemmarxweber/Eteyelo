@@ -24,7 +24,7 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { AnimatedCounter } from "@/components/animated-counter";
+import { HeroRotatingContent } from "@/components/home/hero-rotating-content";
 import { HomeFooter } from "@/components/home-footer";
 import { HomeNavbar } from "@/components/home-navbar";
 import { galleryImages, getHomeData } from "@/lib/home/home-data";
@@ -202,82 +202,33 @@ export default async function HomePage() {
       <section className="relative overflow-hidden bg-gradient-to-br from-blue-700 via-blue-600 to-cyan-500 text-white">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.25),transparent_35%)]" />
 
-        <div className="relative mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 sm:py-20 lg:grid-cols-[minmax(0,1fr)_minmax(360px,520px)] lg:items-center lg:py-24">
+        <div className="relative mx-auto grid max-w-7xl gap-6 px-4 pt-4 pb-10 sm:px-6 sm:pt-5 sm:pb-12 lg:grid-cols-[minmax(0,1fr)_minmax(360px,520px)] lg:items-center lg:gap-8 lg:pt-6 lg:pb-14">
           <div className="mx-auto max-w-3xl text-center lg:mx-0 lg:text-left">
-            <Badge className="mb-5 rounded-full bg-white/20 text-white">
-              Plateforme SaaS de marketing scolaire
-            </Badge>
-            <h2 className="text-4xl font-black leading-tight sm:text-5xl md:text-6xl text-white">
-              Trouvez les meilleurs établissements en{" "}
-              <span className="text-yellow-300 text-xl sm:text-2xl md:text-3xl">
-                Afrique
-              </span>
-            </h2>
-            <p className="mx-auto mt-6 w-full text-base leading-7 text-blue-50 sm:w-[36rem] sm:text-lg lg:mx-0">
-              Découvrez les écoles partenaires, leurs filières, événements,
-              photos, résultats scolaires, inscriptions et résultats en ligne.
-            </p>
-            <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row sm:flex-wrap lg:justify-start">
-              <Button
-                asChild
-                className="rounded-full bg-blue-950 px-7 text-white hover:bg-blue-900"
-              >
-                <Link href="/inscription-eleve">Inscrire un élève</Link>
-              </Button>
+            <HeroRotatingContent
+              segments={stats.segments}
+              verified={stats.verified}
+            >
+              <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row sm:flex-wrap lg:justify-start">
+                <Button
+                  asChild
+                  className="rounded-full bg-blue-950 px-7 text-white hover:bg-blue-900"
+                >
+                  <Link href="/inscription-eleve">Inscrire un élève</Link>
+                </Button>
 
-              <Button
-                asChild
-                variant="outline"
-                className="rounded-full border-white bg-white text-slate-950 hover:bg-slate-100 hover:text-slate-950"
-              >
-                <Link href="/rejoindre-klambocore">Rejoindre Klambocore</Link>
-              </Button>
-            </div>
-            <div className="mx-auto mt-10 grid w-full gap-3 sm:w-[36rem] sm:grid-cols-3 lg:mx-0">
-              {[
-                ["Établissements", stats.schools, "+"],
-                ["Élèves inscrits", stats.students, "+"],
-                ["Vérifié", stats.verified, "%"],
-              ].map(([label, value, suffix], index) => {
-                const Icon = [School, Users, CheckCircle2][index];
-
-                const iconClassName = [
-                  "bg-blue-100 text-blue-700",
-                  "bg-cyan-100 text-cyan-700",
-                  "bg-emerald-100 text-emerald-600",
-                ][index];
-
-                return (
-                  <div
-                    key={label}
-                    className="flex min-h-20 items-center gap-3 rounded-2xl border border-white/15 bg-white/15 px-4 py-3 text-left backdrop-blur"
-                  >
-                    <div
-                      className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${iconClassName}`}
-                    >
-                      <Icon className="h-5 w-5" />
-                    </div>
-
-                    <div>
-                      <p className="text-2xl font-black leading-none sm:text-3xl">
-                        <AnimatedCounter
-                          end={Number(value)}
-                          suffix={String(suffix)}
-                        />
-                      </p>
-
-                      <p className="mt-1 whitespace-normal text-sm leading-tight text-blue-50">
-                        {label}
-                      </p>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+                <Button
+                  asChild
+                  variant="outline"
+                  className="rounded-full border-white bg-white text-slate-950 hover:bg-slate-100 hover:text-slate-950"
+                >
+                  <Link href="/rejoindre-klambocore">Rejoindre Klambocore</Link>
+                </Button>
+              </div>
+            </HeroRotatingContent>
           </div>
           {/* Ecole images schools*/}
           <div className="mx-auto w-full rounded-[1.5rem] bg-white/15 p-2 shadow-2xl backdrop-blur sm:w-[36rem] sm:rounded-[2rem] sm:p-3 lg:w-full">
-            <div className="relative min-h-[300px] overflow-hidden rounded-[1.25rem] bg-blue-950 sm:min-h-[400px] sm:rounded-[1.5rem] lg:min-h-[460px]">
+            <div className="relative min-h-[260px] overflow-hidden rounded-[1.25rem] bg-blue-950 sm:min-h-[340px] sm:rounded-[1.5rem] lg:min-h-[400px]">
               {schoolImageSlides.map((school, index) => {
                 const image = school.slideImage;
 
@@ -300,7 +251,7 @@ export default async function HomePage() {
                       }}
                     />
 
-                    <div className="relative z-10 flex min-h-[300px] items-end rounded-[1.25rem] bg-blue-950/45 p-4 sm:min-h-[400px] sm:rounded-[1.5rem] sm:p-6 lg:min-h-[460px]">
+                    <div className="relative z-10 flex min-h-[260px] items-end rounded-[1.25rem] bg-blue-950/45 p-4 sm:min-h-[340px] sm:rounded-[1.5rem] sm:p-5 lg:min-h-[400px]">
                       <div className="w-full rounded-2xl bg-white p-4 text-slate-900 shadow-xl sm:w-[26rem] sm:p-5">
                         <p className="text-sm font-bold text-blue-600">
                           {school.heroLabel}

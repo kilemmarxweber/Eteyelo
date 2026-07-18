@@ -69,3 +69,29 @@ export function getPeopleLabels(typebranch: unknown): PeopleLabels {
 export function getUniversityPeopleLabels(): PeopleLabels {
   return UNIVERSITY_LABELS;
 }
+
+export function pluralizeLabel(
+  singular: string,
+  plural: string,
+  count: number,
+): string {
+  return count === 1 ? singular : plural;
+}
+
+export function pluralizeStudentLabel(
+  labels: Pick<PeopleLabels, "student" | "studentPlural">,
+  count: number,
+): string {
+  return pluralizeLabel(labels.student, labels.studentPlural, count);
+}
+
+export function pluralizeStudentLabelLower(
+  labels: Pick<PeopleLabels, "studentLower" | "studentPluralLower">,
+  count: number,
+): string {
+  return pluralizeLabel(
+    labels.studentLower,
+    labels.studentPluralLower,
+    count,
+  );
+}

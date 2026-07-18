@@ -21,6 +21,7 @@ import { canManageOrganization } from "@/lib/auth/session-roles";
 import Loading from "../loading";
 import { getStudentsAction } from "./student.action";
 import { useBranchPeopleLabels } from "@/hooks/use-branch-people-labels";
+import { pluralizeStudentLabelLower } from "@/lib/people-labels";
 import UserList from "./components/StudentsTable";
 
 type StudentStats = {
@@ -80,22 +81,26 @@ export default function Students() {
       const isEnrolledCurrentYear = (student: (typeof students)[number]) =>
         Boolean(student.classCode);
 
-      setStats({
-        total: students.length,
+      const assignedStudents = students.filter(isEnrolledCurrentYear);
 
-        actifs: students.filter(isEnrolledCurrentYear).length,
+      setStats({
+        total: assignedStudents.length,
+
+        actifs: assignedStudents.length,
 
         inactifs: students.filter((student) => !isEnrolledCurrentYear(student))
           .length,
 
-        nouveauxTrimestre: students.filter((student) => {
+        nouveauxTrimestre: assignedStudents.filter((student) => {
           const createdAt = new Date(student.createdAt);
           return createdAt >= start && createdAt < end;
         }).length,
 
-        masculin: students.filter((student) => student.sexe === "M").length,
+        masculin: assignedStudents.filter((student) => student.sexe === "M")
+          .length,
 
-        feminin: students.filter((student) => student.sexe === "F").length,
+        feminin: assignedStudents.filter((student) => student.sexe === "F")
+          .length,
       });
     }
 
@@ -109,9 +114,9 @@ export default function Students() {
 
   const statCards = [
     {
-      label: `Total ${peopleLabels.studentPluralLower}`,
+      label: `Total ${pluralizeStudentLabelLower(peopleLabels, stats.total)}`,
       value: stats.total,
-      description: peopleLabels.studentPluralLower,
+      description: pluralizeStudentLabelLower(peopleLabels, stats.total),
       icon: IconUsersGroup,
     },
     {
@@ -127,9 +132,12 @@ export default function Students() {
       icon: IconUserOff,
     },
     {
-      label: `Nouveaux ${peopleLabels.studentPluralLower}`,
+      label: `Nouveaux ${pluralizeStudentLabelLower(peopleLabels, stats.nouveauxTrimestre)}`,
       value: stats.nouveauxTrimestre,
-      description: peopleLabels.studentPluralLower,
+      description: pluralizeStudentLabelLower(
+        peopleLabels,
+        stats.nouveauxTrimestre,
+      ),
       icon: IconUserPlus,
     },
   ];

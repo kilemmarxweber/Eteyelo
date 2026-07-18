@@ -1,6 +1,7 @@
 import "server-only";
 
 import { KLAMBOCORE_DEFAULT_IMAGE_PATH } from "@/lib/brand/klambocore-image";
+import { getStudentCountsByBranchId } from "@/lib/branch-student-count";
 import { prisma } from "@/lib/prisma";
 import { getHomeResultSlides } from "@/lib/public-results";
 import { getBranchImage, normalizeImageSrc } from "@/lib/utils";
@@ -59,6 +60,51 @@ export type BranchImages = {
   gallery: string[];
 };
 
+export type HomeStatsSegment = {
+  key: "schools" | "centres" | "universities";
+  title: string;
+  countLabel: string;
+  peopleLabelSingular: string;
+  peopleLabelPlural: string;
+  heroTitleBefore: string;
+  heroSubtitle: string;
+  count: number;
+  people: number;
+};
+
+const HOME_SEGMENT_META: Record<
+  HomeStatsSegment["key"],
+  Omit<HomeStatsSegment, "key" | "count" | "people">
+> = {
+  schools: {
+    title: "Écoles",
+    countLabel: "Écoles",
+    peopleLabelSingular: "Élève",
+    peopleLabelPlural: "Élèves",
+    heroTitleBefore: "L'excellence de l'enseignement scolaire en",
+    heroSubtitle:
+      "Consultez les écoles partenaires vérifiées, leurs filières, inscriptions et résultats scolaires, en toute transparence.",
+  },
+  centres: {
+    title: "Centres de formation",
+    countLabel: "Centres de form...",
+    peopleLabelSingular: "Apprenant",
+    peopleLabelPlural: "Apprenants",
+    heroTitleBefore: "La formation professionnelle certifiante en",
+    heroSubtitle:
+      "Explorez les centres de formation agréés, leurs programmes, sessions et parcours certifiants, accessibles en ligne.",
+  },
+  universities: {
+    title: "Universités",
+    countLabel: "Universités",
+    peopleLabelSingular: "Étudiant",
+    peopleLabelPlural: "Étudiants",
+    heroTitleBefore: "L'enseignement supérieur d'excellence en",
+    heroSubtitle:
+      "Découvrez les universités partenaires, leurs filières, auditoires, inscriptions et relevés de notes, centralisés sur une plateforme unique.",
+  },
+};
+
 export type HomeData = {
   schools: HomeSchool[];
   events: HomeEvent[];
@@ -66,9 +112,8 @@ export type HomeData = {
   newSchools: NewSchool[];
   resultSlides: ResultSlide[];
   stats: {
-    schools: number;
-    students: number;
     verified: number;
+    segments: HomeStatsSegment[];
   };
 };
 
@@ -207,10 +252,20 @@ const fallbackNewSchools: NewSchool[] = [
   },
 ];
 
+const fallbackStatsSegments: HomeStatsSegment[] = (
+  ["schools", "centres", "universities"] as const
+).map((key) => ({
+  key,
+  ...HOME_SEGMENT_META[key],
+  count:
+    key === "schools" ? 300 : key === "centres" ? 24 : 18,
+  people:
+    key === "schools" ? 50000 : key === "centres" ? 3200 : 8500,
+}));
+
 const fallbackStats = {
-  schools: 300,
-  students: 50000,
-  verified: 98,
+  verified: 100,
+  segments: fallbackStatsSegments,
 };
 
 function formatShortDate(date: Date) {
@@ -235,6 +290,76 @@ function getFallbackHomeData(): HomeData {
   };
 }
 
+function sumBranchPeople(
+  branches: Array<{ id: string }>,
+  studentCountsByBranchId: Map<string, number>,
+) {
+  return branches.reduce(
+    (total, branch) => total + (studentCountsByBranchId.get(branch.id) ?? 0),
+    0,
+  );
+}
+
+function buildStatsSegments(
+  branches: Array<{
+    id: string;
+    typebranch: string;
+  }>,
+  studentCountsByBranchId: Map<string, number>,
+): HomeStatsSegment[] {
+  const useFallback = branches.length === 0;
+  const schoolBranches = branches.filter(
+    (branch) =>
+      branch.typebranch === "PRIMAIRE" || branch.typebranch === "SECONDAIRE",
+  );
+  const centreBranches = branches.filter(
+    (branch) => branch.typebranch === "CENTRE_FORMATION",
+  );
+  const universityBranches = branches.filter(
+    (branch) => branch.typebranch === "UNIVERSITE",
+  );
+
+  const schoolPeople = sumBranchPeople(schoolBranches, studentCountsByBranchId);
+  const centrePeople = sumBranchPeople(centreBranches, studentCountsByBranchId);
+  const universityPeople = sumBranchPeople(
+    universityBranches,
+    studentCountsByBranchId,
+  );
+
+  const fallbackByKey = Object.fromEntries(
+    fallbackStatsSegments.map((segment) => [segment.key, segment]),
+  ) as Record<HomeStatsSegment["key"], HomeStatsSegment>;
+
+  return (
+    [
+      {
+        key: "schools" as const,
+        count: useFallback ? fallbackByKey.schools.count : schoolBranches.length,
+        people: useFallback ? fallbackByKey.schools.people : schoolPeople,
+      },
+      {
+        key: "centres" as const,
+        count: useFallback ? fallbackByKey.centres.count : centreBranches.length,
+        people: useFallback ? fallbackByKey.centres.people : centrePeople,
+      },
+      {
+        key: "universities" as const,
+        count: useFallback
+          ? fallbackByKey.universities.count
+          : universityBranches.length,
+        people: useFallback
+          ? fallbackByKey.universities.people
+          : universityPeople,
+      },
+    ] as const
+  ).map(({ key, count, people }) => ({
+    key,
+    ...HOME_SEGMENT_META[key],
+    count,
+    people,
+  }));
+}
+
 export async function getHomeData(): Promise<HomeData> {
   try {
     const [branches, partnaires, calendarEvents, resultSlides] =
@@ -249,16 +374,8 @@ export async function getHomeData(): Promise<HomeData> {
             image: true,
             ville: true,
             pays: true,
+            typebranch: true,
             createdAt: true,
-            branchemembers: {
-              select: {
-                _count: {
-                  select: {
-                    student: true,
-                  },
-                },
-              },
-            },
           },
         }),
         prisma.partnaire.findMany({
@@ -298,11 +415,19 @@ export async function getHomeData(): Promise<HomeData> {
         getHomeResultSlides(3),
       ]);
 
+    const allBranches = await prisma.branch.findMany({
+      where: { isActive: true },
+      select: {
+        id: true,
+        typebranch: true,
+      },
+    });
+
+    const studentCountsByBranchId =
+      await getStudentCountsByBranchId(allBranches);
+
     const dynamicSchools: HomeSchool[] = branches.slice(0, 6).map((branch) => {
-      const studentsCount = branch.branchemembers.reduce(
-        (total, member) => total + member._count.student,
-        0,
-      );
+      const studentsCount = studentCountsByBranchId.get(branch.id) ?? 0;
 
       const city = branch.ville || branch.pays || "RDC";
       const images = getBranchImage(branch.image);
@@ -371,16 +496,6 @@ export async function getHomeData(): Promise<HomeData> {
       website: partnaire.website?.trim() ?? "",
     }));
 
-    const studentTotal = branches.reduce(
-      (total, branch) =>
-        total +
-        branch.branchemembers.reduce(
-          (branchTotal, member) => branchTotal + member._count.student,
-          0,
-        ),
-      0,
-    );
-
     return {
       schools: dynamicSchools.length ? dynamicSchools : fallbackSchools,
       events: dynamicEvents.length ? dynamicEvents : fallbackEvents,
@@ -390,9 +505,8 @@ export async function getHomeData(): Promise<HomeData> {
         : fallbackNewSchools,
       resultSlides,
       stats: {
-        schools: branches.length || fallbackStats.schools,
-        students: studentTotal || fallbackStats.students,
-        verified: branches.length ? 100 : fallbackStats.verified,
+        verified: allBranches.length ? 100 : fallbackStats.verified,
+        segments: buildStatsSegments(allBranches, studentCountsByBranchId),
       },
     };
   } catch (error) {
