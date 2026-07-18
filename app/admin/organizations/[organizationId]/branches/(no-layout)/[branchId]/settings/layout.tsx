@@ -7,7 +7,6 @@ import {
   IconPalette,
   IconReportMoney,
   IconCalendarCog,
-  IconUserCheck,
   IconBooks,
   IconUser,
 } from "@tabler/icons-react";
@@ -53,12 +52,6 @@ export default function Settings({ children }: { children: React.ReactNode }) {
         title: "Calendrier scolaire",
         icon: <IconCalendarCog size={18} />,
         href: `${settingsBasePath}/calendar`,
-        orgSettingsOnly: true,
-      },
-      {
-        title: "Présences",
-        icon: <IconUserCheck size={18} />,
-        href: `${settingsBasePath}/attendance`,
         orgSettingsOnly: true,
       },
       {

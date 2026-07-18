@@ -96,6 +96,12 @@ const staticSidebarMenu: StaticMenuItem[] = [
     roles: ADMIN_ROLES,
   },
   {
+    title: "Presences",
+    href: "/admin/attendance",
+    icon: "attendance",
+    roles: ADMIN_ROLES,
+  },
+  {
     title: "Candidatures",
     href: "/admin/candidatures",
     icon: "candidatures",

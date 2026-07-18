@@ -61,6 +61,7 @@ export const iconMap: Record<string, any> = {
   options: IconSettings,
   classe: IconSchool,
   inscriptions: IconUserCheck,
+  attendance: IconClock,
   candidatures: IconBriefcase,
 
   /* ===== FINANCE ===== */
