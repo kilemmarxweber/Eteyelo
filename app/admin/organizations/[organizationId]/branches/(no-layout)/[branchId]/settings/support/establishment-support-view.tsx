@@ -58,13 +58,10 @@ export function EstablishmentSupportView({
   return (
     <div className="space-y-6 px-2 sm:px-4 md:px-6">
       <div className="space-y-2">
-        <h3 className="text-lg font-medium sm:text-xl">
-          Support de l&apos;établissement
-        </h3>
+        <h3 className="text-lg font-medium sm:text-xl">Support</h3>
         <p className="text-sm text-muted-foreground">
-          Contactez l&apos;équipe support de votre établissement pour toute
-          question liée à la gestion scolaire, aux comptes ou aux incidents du
-          quotidien.
+          Contactez l&apos;équipe support pour toute question liée à la gestion
+          scolaire, aux comptes ou aux incidents du quotidien.
         </p>
       </div>
 
@@ -228,9 +225,8 @@ export function EstablishmentSupportView({
             </div>
             <p className="mt-4 font-medium">Équipe support non configurée</p>
             <p className="mt-2 max-w-md text-sm text-muted-foreground">
-              L&apos;équipe support de votre établissement n&apos;est pas encore
-              disponible. Contactez votre administrateur pour obtenir de
-              l&apos;aide.
+              L&apos;équipe support n&apos;est pas encore disponible. Contactez
+              votre administrateur pour obtenir de l&apos;aide.
             </p>
           </CardContent>
         </Card>

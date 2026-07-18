@@ -19,10 +19,9 @@ export function RequireBranchOrgSettingsAccess({
 
   useEffect(() => {
     if (isPending || allowed) return;
-    const accountHref =
-      pathname?.replace(/\/settings\/.*$/, "/settings/account") ??
-      "/admin";
-    router.replace(accountHref);
+    const profileHref =
+      pathname?.replace(/\/settings(?:\/.*)?$/, "/settings") ?? "/admin";
+    router.replace(profileHref);
   }, [allowed, isPending, pathname, router]);
 
   if (isPending || !allowed) {

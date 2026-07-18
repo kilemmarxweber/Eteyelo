@@ -6,14 +6,15 @@ import {
   IconHeadphones,
   IconPalette,
   IconReportMoney,
-  IconSettings,
   IconCalendarCog,
   IconUserCheck,
   IconBooks,
+  IconUser,
 } from "@tabler/icons-react";
 
 import { Layout, LayoutBody } from "@/components/custom/layout";
 import { authClient } from "@/lib/auth-client";
+import { isPrimaryBranch } from "@/lib/branch-capabilities";
 import { canAccessBranchOrgSettings } from "@/lib/auth/session-roles";
 import SidebarNav from "./components/sidebar-nav";
 
@@ -21,6 +22,7 @@ export default function Settings({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { data: session } = authClient.useSession();
   const canSeeOrgSettings = canAccessBranchOrgSettings(session);
+  const showPrimaryDomains = isPrimaryBranch(session?.branch?.typebranch);
 
   const branchBasePath =
     pathname?.match(/^\/admin\/organizations\/[^/]+\/branches\/[^/]+/)?.[0] ??
@@ -30,9 +32,9 @@ export default function Settings({ children }: { children: React.ReactNode }) {
   const sidebarNavItems = useMemo(() => {
     const items = [
       {
-        title: "Compte",
-        icon: <IconSettings size={18} />,
-        href: `${settingsBasePath}/account`,
+        title: "Profil",
+        icon: <IconUser size={18} />,
+        href: settingsBasePath,
         orgSettingsOnly: false,
       },
       {
@@ -64,9 +66,10 @@ export default function Settings({ children }: { children: React.ReactNode }) {
         icon: <IconBooks size={18} />,
         href: `${settingsBasePath}/primary-domains`,
         orgSettingsOnly: true,
+        primaryOnly: true,
       },
       {
-        title: "Support de l'établissement",
+        title: "Support",
         icon: <IconHeadphones size={18} />,
         href: `${settingsBasePath}/support`,
         orgSettingsOnly: true,
@@ -74,9 +77,13 @@ export default function Settings({ children }: { children: React.ReactNode }) {
     ];
 
     return items
-      .filter((item) => !item.orgSettingsOnly || canSeeOrgSettings)
-      .map(({ orgSettingsOnly: _, ...item }) => item);
-  }, [settingsBasePath, canSeeOrgSettings]);
+      .filter(
+        (item) =>
+          (!item.orgSettingsOnly || canSeeOrgSettings) &&
+          (!("primaryOnly" in item && item.primaryOnly) || showPrimaryDomains),
+      )
+      .map(({ orgSettingsOnly: _, primaryOnly: __, ...item }) => item);
+  }, [settingsBasePath, canSeeOrgSettings, showPrimaryDomains]);
 
   return (
     <Layout fadedBelow fixedHeight>
