@@ -13,15 +13,33 @@ import {
   stashAdminCreatedUserPlainPassword,
 } from "@/lib/admin-created-user-password";
 import { generateSecurePassword } from "@/lib/generate-password";
+import { canManageOrganization } from "@/lib/auth/session-roles";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
+import {
+  buildSchoolReportContext,
+  schoolReportBranchSelect,
+} from "@/lib/reports/resolve-school-branding";
 
 export async function getCurrentBranch() {
-  const { branchId, organizationId, userId } = await requireBranchContext();
+  const { branchId, organizationId, userId, session } =
+    await requireBranchContext();
+
+  const branchMember = await prisma.branchMember.findFirst({
+    where: {
+      branchId,
+      member: {
+        userId,
+        organizationId,
+      },
+    },
+    select: { role: true },
+  });
 
   return {
     branchId,
     organizationId,
     userId,
+    canManageParents: canManageOrganization(session, branchMember?.role),
   };
 }
 
@@ -329,6 +347,15 @@ export const getParentsAction = action.handler(async (): Promise<IParent[]> => {
               },
             },
           },
+          classEnrollment: {
+            where: {
+              branchId,
+              statusEnrollment: true,
+              schoolYear: { isCurrentYear: true },
+            },
+            take: 1,
+            include: { classe: true },
+          },
         },
       },
       discountRules: {
@@ -373,6 +400,7 @@ export const getParentsAction = action.handler(async (): Promise<IParent[]> => {
 
       students: parent.students.map((student) => {
         const studentUser = student.branchMember?.member?.user;
+        const currentEnrollment = student.classEnrollment[0];
 
         return {
           id: student.id,
@@ -394,12 +422,32 @@ export const getParentsAction = action.handler(async (): Promise<IParent[]> => {
           statusUser: studentUser?.statusUser ?? true,
           category: student.category,
           address: studentUser?.address || "",
+          classCode: currentEnrollment?.classe?.codeClasse ?? null,
+          className: currentEnrollment?.classe?.nameClasse ?? null,
         };
       }),
     };
   });
 
   return transformedParents;
+});
+
+export const getParentReportContextAction = action.handler(async () => {
+  const { branchId, organizationId, canManageParents } =
+    await getCurrentBranch();
+
+  if (!canManageParents) {
+    throw new Error("Action non autorisee");
+  }
+
+  const branch = await prisma.branch.findFirst({
+    where: { id: branchId, organizationId },
+    select: schoolReportBranchSelect,
+  });
+
+  if (!branch) throw new Error("Branche active introuvable");
+
+  return buildSchoolReportContext(branch);
 });
 
 export const updateParentAction = action

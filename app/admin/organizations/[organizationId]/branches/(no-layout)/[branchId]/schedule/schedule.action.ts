@@ -13,6 +13,10 @@ import { ICreneau } from "@/src/interfaces/creneau";
 import { IClasse } from "@/src/interfaces/Classe";
 import { z } from "zod";
 import { buildIsArchivedUpdate } from "@/lib/archive";
+import {
+  buildSchoolReportContext,
+  schoolReportBranchSelect,
+} from "@/lib/reports/resolve-school-branding";
 
 type ScheduleContext = {
   branchId: string;
@@ -363,17 +367,6 @@ export const getSchedulesByClasseAction = action
     }));
   });
 
-function extractBranchLogo(image: unknown): string {
-  if (!image || typeof image !== "object" || Array.isArray(image)) return "";
-  const logo = (image as Record<string, unknown>).logo;
-  if (typeof logo !== "string" || !logo.trim()) return "";
-  return logo.startsWith("http") ||
-    logo.startsWith("data:") ||
-    logo.startsWith("/")
-    ? logo
-    : `/uploads/${logo}`;
-}
-
 export const getScheduleReportContextAction = action
   .input(z.object({ classeId: z.string() }))
   .handler(async ({ input }) => {
@@ -391,34 +384,17 @@ export const getScheduleReportContextAction = action
         nameClasse: true,
         codeClasse: true,
         creneau: { select: { nameCreneau: true } },
-        branch: {
-          select: {
-            name: true,
-            image: true,
-            organization: { select: { name: true, logo: true } },
-            schoolYear: {
-              where: { isCurrentYear: true, isArchived: false },
-              select: { nameYear: true },
-              take: 1,
-            },
-          },
-        },
+        branch: { select: schoolReportBranchSelect },
       },
     });
 
     if (!classe) throw new Error("Classe introuvable dans cette branche");
 
     return {
+      ...buildSchoolReportContext(classe.branch),
       classeName: classe.nameClasse,
       classeCode: classe.codeClasse,
       creneauName: classe.creneau?.nameCreneau ?? "",
-      branchName: classe.branch.name,
-      organizationName: classe.branch.organization.name,
-      schoolYearName: classe.branch.schoolYear[0]?.nameYear ?? "",
-      logoUrl:
-        extractBranchLogo(classe.branch.image) ||
-        classe.branch.organization.logo ||
-        "",
     };
   });
 

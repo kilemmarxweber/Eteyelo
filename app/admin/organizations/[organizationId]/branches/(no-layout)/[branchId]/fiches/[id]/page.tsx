@@ -6,6 +6,10 @@ import { BackLink } from "@/components/ui/back-link";
 import { Layout, LayoutBody } from "@/components/custom/layout";
 import { PageHeader } from "@/components/ui/page-header";
 import { IconClipboardText } from "@tabler/icons-react";
+import {
+  buildSchoolReportContext,
+  schoolReportBranchSelect,
+} from "@/lib/reports/resolve-school-branding";
 import FicheExportActions from "./FicheExportActions";
 import CancelInterventionButton from "./CancelInterventionButton";
 
@@ -32,27 +36,36 @@ export default async function FichePage({
 }) {
   const { organizationId, branchId, id } = await params;
 
-  const fiche = await prisma.fiche.findUnique({
-    where: { id },
-    include: {
-      teacher: {
-        include: {
-          branchMember: {
-            include: {
-              member: {
-                include: {
-                  user: true,
+  const [fiche, branch] = await Promise.all([
+    prisma.fiche.findFirst({
+      where: { id, branchId },
+      include: {
+        teacher: {
+          include: {
+            branchMember: {
+              include: {
+                member: {
+                  include: {
+                    user: true,
+                  },
                 },
               },
             },
           },
         },
       },
-    },
-  });
+    }),
+    prisma.branch.findFirst({
+      where: { id: branchId, organizationId },
+      select: schoolReportBranchSelect,
+    }),
+  ]);
 
-  if (!fiche) return notFound();
+  if (!fiche || !branch) return notFound();
   const teacherUser = fiche.teacher?.branchMember?.member?.user;
+  const reportContext = buildSchoolReportContext(branch, {
+    academicYearLabel: fiche.anneeName,
+  });
 
   const validationHref = `/admin/organizations/${organizationId}/branches/${branchId}/ficheCentrales/${fiche.lessonId}?classId=${fiche.classSectionId}&periodId=${fiche.periodId}&anneeId=${fiche.anneeId}`;
 
@@ -68,6 +81,7 @@ export default async function FichePage({
   const meta = [
     { label: "Matière", value: fiche.coursName },
     { label: "Enseignant", value: teacherUser?.name || "N/A" },
+    { label: "Classe", value: fiche.classeName },
     { label: "Année", value: fiche.anneeName },
     { label: "Type", value: fiche.typeFiche },
     {
@@ -104,11 +118,13 @@ export default async function FichePage({
                   anneeName: fiche.anneeName,
                   typeFiche: fiche.typeFiche,
                   periodeName: fiche.periodeName,
+                  classeName: fiche.classeName,
                   dateCreated: new Date(fiche.dateCreated).toLocaleDateString(
                     "fr-FR",
                   ),
                 }}
                 notes={notes}
+                reportContext={reportContext}
               />
               <CancelInterventionButton
                 ficheId={fiche.id}

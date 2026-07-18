@@ -1,10 +1,14 @@
 "use client";
 
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
+import { useState } from "react";
 import * as XLSX from "xlsx";
 import { Button } from "@/components/ui/button";
 import { FaFileExcel, FaFilePdf } from "react-icons/fa";
+import type { SchoolReportContext } from "@/lib/reports/types";
+import {
+  exportFicheNotesReportPdf,
+  type FicheNotesReportInfo,
+} from "./export-fiche-notes-pdf";
 
 type Note = {
   studentId: string;
@@ -17,59 +21,26 @@ type Note = {
 };
 
 type Props = {
-  ficheInfo: {
-    coursName: string;
-    teacher: string;
-    anneeName: string;
-    typeFiche: string;
-    periodeName: string;
-    dateCreated: string;
-  };
+  ficheInfo: FicheNotesReportInfo;
   notes: Note[];
+  reportContext: SchoolReportContext;
 };
 
-export default function FicheExportActions({ ficheInfo, notes }: Props) {
-  const exportPDF = () => {
-    const doc = new jsPDF();
+export default function FicheExportActions({
+  ficheInfo,
+  notes,
+  reportContext,
+}: Props) {
+  const [exportingPdf, setExportingPdf] = useState(false);
 
-    doc.setFontSize(14);
-    doc.text("Détails de la fiche", 14, 15);
-    doc.setFontSize(10);
-
-    doc.text(`Matière : ${ficheInfo.coursName}`, 14, 30);
-    doc.text(`Enseignant : ${ficheInfo.teacher}`, 14, 38);
-    doc.text(`Année : ${ficheInfo.anneeName}`, 14, 46);
-
-    doc.text(`Type : ${ficheInfo.typeFiche}`, 110, 30);
-    doc.text(`Période : ${ficheInfo.periodeName}`, 110, 38);
-    doc.text(`Date : ${ficheInfo.dateCreated}`, 110, 46);
-
-    autoTable(doc, {
-      startY: 60,
-      head: [["#", "Nom", "Prénom", "Username", "Sexe", "Score", "Max"]],
-      body: notes.map((n, index) => [
-        index + 1,
-        n.nom,
-        n.studentSurname,
-        n.studentusername,
-        n.studentSexe,
-        n.score,
-        n.maxScore,
-      ]),
-      styles: { fontSize: 9 },
-      headStyles: {
-        fillColor: [37, 99, 235],
-        textColor: 255,
-      },
-      alternateRowStyles: { fillColor: [245, 247, 250] },
-      columnStyles: {
-        0: { halign: "center", cellWidth: 10 },
-        5: { halign: "center" },
-        6: { halign: "center" },
-      },
-    });
-
-    doc.save("fiche-notes.pdf");
+  const exportPDF = async () => {
+    if (exportingPdf) return;
+    setExportingPdf(true);
+    try {
+      await exportFicheNotesReportPdf(notes, reportContext, ficheInfo);
+    } finally {
+      setExportingPdf(false);
+    }
   };
 
   const exportExcel = () => {
@@ -97,9 +68,10 @@ export default function FicheExportActions({ ficheInfo, notes }: Props) {
         size="sm"
         className="gap-2"
         onClick={exportPDF}
+        disabled={exportingPdf}
       >
         <FaFilePdf className="size-3.5 text-red-600" />
-        PDF
+        {exportingPdf ? "PDF…" : "PDF"}
       </Button>
       <Button
         variant="outline"

@@ -2,8 +2,13 @@
 
 import { useState, useMemo, useEffect } from "react";
 import dynamic from "next/dynamic";
-import { Result } from "@/lib/types";
+import { Result, StudentType } from "@/lib/types";
 import { getAcademicGroupLabels } from "@/lib/academic-structure";
+
+import {
+  buildClassementRows,
+  type ResultsClassementReportOptions,
+} from "./components/export-results-classement-pdf";
 
 const FiltersCombox = dynamic(() => import("./FiltersCombox"), {
   ssr: false,
@@ -312,6 +317,27 @@ export default function FiltersWrapper({
     onStatsUpdate?.({ sexeStats, globalStats });
   }, [sexeStats, globalStats, onStatsUpdate]);
 
+  const classementRows = useMemo(
+    () => buildClassementRows(studentsBase, students as StudentType[]),
+    [studentsBase, students],
+  );
+
+  const reportOptions = useMemo((): ResultsClassementReportOptions => {
+    const classLabels = selectedClassIds
+      .map(
+        (id) =>
+          classOptions.find((c: { id: string; name: string }) => c.id === id)
+            ?.name,
+      )
+      .filter((name: string | undefined): name is string => Boolean(name));
+
+    return {
+      classLabels,
+      periodLabel: selectedPeriod || undefined,
+      yearLabel: selectedYear || undefined,
+    };
+  }, [selectedClassIds, classOptions, selectedPeriod, selectedYear]);
+
   return (
     <>
       <FiltersCombox
@@ -328,6 +354,8 @@ export default function FiltersWrapper({
         periods={uniquePeriods}
         years={years}
         role={role}
+        classementRows={classementRows}
+        reportOptions={reportOptions}
       />
 
       <ResultTable

@@ -40,4 +40,5 @@ next-env.d.ts
 /src/generated/prisma
 
 /../../../../prisma/generated
-/context
+
+/.agents/

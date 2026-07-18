@@ -1,8 +1,10 @@
 import TeacherAttendanceForm from "../component/TeacherAttendanceForm";
+import TeacherAttendanceReport from "../component/TeacherAttendanceReport";
 
 export default function Page() {
   return (
-    <div className="p-6">
+    <div className="flex flex-col gap-6 p-6">
+      <TeacherAttendanceReport />
       <TeacherAttendanceForm
         onSuccess={() => {}}
         sessionData={{

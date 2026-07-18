@@ -5,6 +5,7 @@ import PaiementsTable from "./PaiementsTable";
 import PaymentsForm from "./PaymentsForm";
 import CashierExpenseForm from "./CashierExpenseForm";
 import CashierReport from "./CashierReport";
+import UnpaidReport from "./UnpaidReport";
 type Props = {
   fraisList: any[];
   classEnrollList: any[];
@@ -37,6 +38,7 @@ export default function PaymentClient({ fraisList, classEnrollList }: Props) {
           onToggleExpenseForm={() => setShowExpenseForm(!showExpenseForm)}
           showExpenseForm={showExpenseForm}
         />
+        <UnpaidReport />
       </div>
       <div className="mt-4 border rounded-xl p-1 md:p-6">
         <PaiementsTable key={refreshKey} />

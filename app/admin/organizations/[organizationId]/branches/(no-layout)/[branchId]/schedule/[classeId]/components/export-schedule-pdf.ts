@@ -1,14 +1,18 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
-export type ScheduleReportContext = {
+import { imageUrlToDataUrl } from "@/lib/reports/image-to-data-url";
+import {
+  drawReportFooterOnAllPages,
+  drawReportHeader,
+  REPORT_HEADER_CONTENT_TOP_MM,
+} from "@/lib/reports/pdf-header-footer";
+import type { SchoolReportContext } from "@/lib/reports/types";
+
+export type ScheduleReportContext = SchoolReportContext & {
   classeName: string;
   classeCode: string;
   creneauName: string;
-  branchName: string;
-  organizationName: string;
-  schoolYearName: string;
-  logoUrl: string;
 };
 
 export type ScheduleReportEntry = {
@@ -37,25 +41,6 @@ function safeFilePart(value: string) {
     .toLowerCase();
 }
 
-async function imageUrlToDataUrl(url: string): Promise<string | null> {
-  if (!url) return null;
-  if (url.startsWith("data:")) return url;
-
-  try {
-    const response = await fetch(url);
-    if (!response.ok) return null;
-    const blob = await response.blob();
-    return await new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(typeof reader.result === "string" ? reader.result : null);
-      reader.onerror = () => resolve(null);
-      reader.readAsDataURL(blob);
-    });
-  } catch {
-    return null;
-  }
-}
-
 function entriesForCell(entries: ScheduleReportEntry[], day: string, hour: string) {
   return entries.filter((entry) => entry.day === day && entry.startTime === hour);
 }
@@ -72,35 +57,12 @@ export function findScheduleConflicts(entries: ScheduleReportEntry[]) {
 export async function exportSchedulePdf(input: SchedulePdfInput) {
   const { context, days, timeSlots, recreationHour, endTime, entries } = input;
   const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
-  const pageWidth = doc.internal.pageSize.getWidth();
   const logo = await imageUrlToDataUrl(context.logoUrl);
-
-  if (logo) {
-    try {
-      doc.addImage(logo, 12, 8, 20, 20);
-    } catch {
-      // Le rapport reste utilisable si le format du logo n'est pas supporte.
-    }
-  }
-
-  doc.setTextColor(15, 23, 42);
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(15);
-  doc.text(context.organizationName || "Eteyelo", pageWidth / 2, 11, { align: "center" });
-  doc.setFontSize(12);
-  doc.text(context.branchName, pageWidth / 2, 17, { align: "center" });
-  doc.setTextColor(30, 64, 175);
-  doc.setFontSize(16);
-  doc.text(`Horaire de la classe ${context.classeName}`, pageWidth / 2, 26, { align: "center" });
-  doc.setTextColor(71, 85, 105);
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(8.5);
+  const title = `Horaire de la classe ${context.classeName}`;
   const details = [
-    context.schoolYearName ? `Annee scolaire : ${context.schoolYearName}` : "",
     context.creneauName ? `Vacation : ${context.creneauName}` : "",
     context.classeCode ? `Code : ${context.classeCode}` : "",
-  ].filter(Boolean).join("  |  ");
-  doc.text(details, pageWidth / 2, 31, { align: "center" });
+  ].filter(Boolean);
 
   const body = timeSlots.map((hour, index) => {
     const nextTime = timeSlots[index + 1] || endTime;
@@ -125,11 +87,16 @@ export async function exportSchedulePdf(input: SchedulePdfInput) {
   });
 
   autoTable(doc, {
-    startY: 36,
+    startY: REPORT_HEADER_CONTENT_TOP_MM,
     head: [["Heures", ...days]],
     body,
     theme: "grid",
-    margin: { left: 10, right: 10, bottom: 14 },
+    margin: {
+      top: REPORT_HEADER_CONTENT_TOP_MM,
+      left: 10,
+      right: 10,
+      bottom: 14,
+    },
     styles: { font: "helvetica", fontSize: 7.5, cellPadding: 2, halign: "center", valign: "middle" },
     headStyles: { fillColor: [30, 64, 175], textColor: 255, fontStyle: "bold" },
     columnStyles: { 0: { cellWidth: 27, fontStyle: "bold" } },
@@ -146,28 +113,19 @@ export async function exportSchedulePdf(input: SchedulePdfInput) {
         data.cell.styles.fontStyle = "bold";
       }
     },
-    didDrawPage: ({ pageNumber }) => {
-      const pageHeight = doc.internal.pageSize.getHeight();
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(7.5);
-      doc.setTextColor(100);
-      doc.text(
-        `Imprime le ${new Date().toLocaleString("fr-FR")} - Page ${pageNumber}`,
-        10,
-        pageHeight - 6,
-      );
-      doc.text(context.branchName, pageWidth - 10, pageHeight - 6, { align: "right" });
+    didDrawPage: () => {
+      drawReportHeader(doc, context, {
+        title,
+        subtitle: context.branchName,
+        details,
+        logoDataUrl: logo,
+      });
     },
   });
 
-  const totalPages = doc.getNumberOfPages();
-  for (let page = 1; page <= totalPages; page += 1) {
-    doc.setPage(page);
-    const pageHeight = doc.internal.pageSize.getHeight();
-    doc.setFontSize(7.5);
-    doc.setTextColor(100);
-    doc.text(`Page ${page} / ${totalPages}`, pageWidth / 2, pageHeight - 6, { align: "center" });
-  }
+  drawReportFooterOnAllPages(doc, context, {
+    leftText: context.branchName || context.schoolName,
+  });
 
   doc.save(`horaire-${safeFilePart(context.classeName || "classe")}.pdf`);
 }

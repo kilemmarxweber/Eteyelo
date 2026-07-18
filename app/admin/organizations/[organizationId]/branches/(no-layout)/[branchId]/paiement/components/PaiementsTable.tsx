@@ -1,12 +1,15 @@
 "use client";
 
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   IPaiement,
   ModePaiement,
   StatusPaiement,
 } from "@/src/interfaces/Paiement";
-import { getAllPaiementAction } from "../paiement.action";
+import {
+  getAllPaiementAction,
+  getPaymentReportContextAction,
+} from "../paiement.action";
 import { ResponsiveDataTable } from "@/components/ui/responsive-data-table";
 import { SearchAndFilter } from "@/components/ui/search-and-filter";
 import { StatusBadge } from "@/components/ui/status-badge";
@@ -18,30 +21,15 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { Invoice } from "../../frais/components/Invoice";
-import { generateInvoicePDF } from "./exportInvoice";
-import { PDFDownloadLink } from "@react-pdf/renderer";
-import { PaiementsPDF } from "./PaiementsPDF";
-/* ------------------ TYPES ------------------ */
-
-type Fee = {
-  feeId: string;
-  nameFrais: string;
-  className: string;
-  schoolYear: string;
-  amountPaid: string;
-};
-export type InvoiceProps = {
-  studentName: string;
-  schoolName: string;
-  schoolAddress: string;
-  schoolContact: string;
-  schoolEmail: string;
-  paymentDate: string;
-  financierName: string;
-  fees: Fee[];
-  invoiceNumber: string;
-};
+import type { FacturePaymentStudentData } from "@/components/FacturePaymentStudent";
+import { ReceiptPreviewDialog } from "@/components/reports/ReceiptPreviewDialog";
+import type { SchoolReportContext } from "@/lib/reports/types";
+import { DEFAULT_EXCHANGE_RATE_USD_CDF } from "@/lib/reports/types";
+import { toast } from "sonner";
+import {
+  exportPaiementsReportPdf,
+  type PaiementReportPeriod,
+} from "./export-paiements-pdf";
 
 type GroupedPaiement = {
   reference: string;
@@ -53,8 +41,6 @@ type GroupedPaiement = {
   date: Date;
   items: IPaiement[];
 };
-
-/* ------------------ MAPPER ------------------ */
 
 function mapPaiement(p: any): IPaiement {
   return {
@@ -81,6 +67,7 @@ function mapPaiement(p: any): IPaiement {
           id: p.classEnrollment.id,
           nom: p.classEnrollment.nom,
           prenom: p.classEnrollment.prenom,
+          sexe: p.classEnrollment.sexe,
           nameClasse: p.classEnrollment.nameClasse,
           nameYear: p.classEnrollment.nameYear,
           parentId: p.classEnrollment.parentId,
@@ -94,7 +81,48 @@ function mapPaiement(p: any): IPaiement {
   };
 }
 
-/* ------------------ COMPONENT ------------------ */
+function mapGroupedToReceipt(
+  g: GroupedPaiement,
+  branding: SchoolReportContext,
+): FacturePaymentStudentData {
+  const classNames = Array.from(
+    new Set(
+      g.items
+        .map((i) => i.classEnrollment?.nameClasse?.trim())
+        .filter((v): v is string => Boolean(v)),
+    ),
+  );
+  const sexes = Array.from(
+    new Set(
+      g.items
+        .map((i) => i.classEnrollment?.sexe?.trim())
+        .filter((v): v is string => Boolean(v)),
+    ),
+  );
+
+  return {
+    invoiceNumber: g.reference,
+    sender: {
+      name: branding.branchName || branding.schoolName || "Établissement",
+      address: branding.address ?? "",
+    },
+    recipient: {
+      name: g.students.join(", ") || "Élève",
+      class: classNames.join(", ") || "-",
+      sexe: sexes.join(", ") || "-",
+    },
+    items: g.items.map((i) => ({
+      description: i.frais?.nameFrais || "Frais scolaire",
+      price: Number(i.frais?.montantFrais ?? i.montantPaye),
+      statut: i.status,
+      montant: Number(i.montantPaye),
+    })),
+    logoUrl: branding.logoUrl,
+    exchangeRateUsdCdf:
+      branding.exchangeRateUsdCdf ?? DEFAULT_EXCHANGE_RATE_USD_CDF,
+    issuedPlace: branding.city,
+  };
+}
 
 const PaiementsTable = ({ refreshKey }: { refreshKey?: string }) => {
   const [paiements, setPaiements] = useState<IPaiement[]>([]);
@@ -105,13 +133,12 @@ const PaiementsTable = ({ refreshKey }: { refreshKey?: string }) => {
   const [modeFilter, setModeFilter] = useState("all");
   const [dateRangeFilter, setDateRangeFilter] = useState("today");
 
-  const [selectedInvoice, setSelectedInvoice] = useState<InvoiceProps | null>(
-    null,
-  );
-
-  const invoiceRef = useRef<HTMLDivElement>(null);
-
-  /* ------------------ FETCH ------------------ */
+  const [receiptData, setReceiptData] =
+    useState<FacturePaymentStudentData | null>(null);
+  const [receiptOpen, setReceiptOpen] = useState(false);
+  const [receiptIssuedAt, setReceiptIssuedAt] = useState<Date | undefined>();
+  const [branding, setBranding] = useState<SchoolReportContext | null>(null);
+  const [exportingPdf, setExportingPdf] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -131,7 +158,25 @@ const PaiementsTable = ({ refreshKey }: { refreshKey?: string }) => {
     fetchData();
   }, [refreshKey]);
 
-  /* ------------------ GROUPING ------------------ */
+  useEffect(() => {
+    const loadBranding = async () => {
+      const [context, err] = await getPaymentReportContextAction();
+      if (err || !context) return;
+      setBranding(context);
+    };
+    loadBranding();
+  }, []);
+
+  const openReceipt = (g: GroupedPaiement) => {
+    if (!branding) {
+      toast.error("Contexte établissement indisponible pour le reçu.");
+      return;
+    }
+    setReceiptData(mapGroupedToReceipt(g, branding));
+    setReceiptIssuedAt(g.date);
+    setReceiptOpen(true);
+  };
+
   const formatStudents = (students: string[]) => {
     if (!students || students.length === 0) return "Aucun élève";
 
@@ -139,7 +184,6 @@ const PaiementsTable = ({ refreshKey }: { refreshKey?: string }) => {
 
     return `${students.slice(0, 2).join(", ")} ...`;
   };
-  /* ------------------ GROUPING ------------------ */
 
   const grouped = useMemo<GroupedPaiement[]>(() => {
     const map = new Map<string, IPaiement[]>();
@@ -181,7 +225,6 @@ const PaiementsTable = ({ refreshKey }: { refreshKey?: string }) => {
       };
     });
   }, [paiements]);
-  /* ------------------ FILTER ------------------ */
 
   const getDateRange = (filter: string) => {
     const start = new Date();
@@ -191,7 +234,7 @@ const PaiementsTable = ({ refreshKey }: { refreshKey?: string }) => {
     switch (filter) {
       case "week": {
         const day = start.getDay();
-        const diff = (day + 6) % 7; // Monday as first day of week
+        const diff = (day + 6) % 7;
         start.setDate(start.getDate() - diff);
         end = new Date(start);
         end.setDate(start.getDate() + 7);
@@ -247,7 +290,39 @@ const PaiementsTable = ({ refreshKey }: { refreshKey?: string }) => {
     });
   }, [grouped, searchTerm, statusFilter, modeFilter, dateRangeFilter]);
 
-  /* ------------------ HELPERS ------------------ */
+  const exportFilteredPdf = async () => {
+    setExportingPdf(true);
+    try {
+      let context = branding;
+      if (!context) {
+        const [fresh, err] = await getPaymentReportContextAction();
+        if (err || !fresh) {
+          throw new Error(
+            err?.message ||
+              "Impossible de charger les informations du rapport.",
+          );
+        }
+        context = fresh;
+        setBranding(fresh);
+      }
+
+      await exportPaiementsReportPdf(filtered, context, {
+        period: dateRangeFilter as PaiementReportPeriod,
+        statusFilter,
+        modeFilter,
+      });
+      toast.success("Le rapport PDF des paiements a été généré.");
+    } catch (error) {
+      console.error(error);
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Impossible de générer le rapport PDF.",
+      );
+    } finally {
+      setExportingPdf(false);
+    }
+  };
 
   const getModeLabel = (m: ModePaiement) => {
     switch (m) {
@@ -283,8 +358,6 @@ const PaiementsTable = ({ refreshKey }: { refreshKey?: string }) => {
     }
   };
 
-  /* ------------------ FILTER OPTIONS ------------------ */
-
   const statusOptions = [
     { value: "all", label: "Tous" },
     { value: StatusPaiement.VALIDE, label: "Validé" },
@@ -308,7 +381,8 @@ const PaiementsTable = ({ refreshKey }: { refreshKey?: string }) => {
     key: `mode-${i}`,
   }));
 
-  /* ------------------ COLUMNS ------------------ */
+  const exchangeRate =
+    branding?.exchangeRateUsdCdf ?? DEFAULT_EXCHANGE_RATE_USD_CDF;
 
   const columns = [
     {
@@ -339,7 +413,7 @@ const PaiementsTable = ({ refreshKey }: { refreshKey?: string }) => {
       key: "total",
       header: "Total (CDF)",
       cell: (g: GroupedPaiement) =>
-        (g.total * 2300).toLocaleString("fr-FR", {
+        (g.total * exchangeRate).toLocaleString("fr-FR", {
           style: "currency",
           currency: "CDF",
         }),
@@ -366,27 +440,7 @@ const PaiementsTable = ({ refreshKey }: { refreshKey?: string }) => {
           </DropdownMenuTrigger>
 
           <DropdownMenuContent align="end">
-            <DropdownMenuItem
-              onClick={() =>
-                setSelectedInvoice({
-                  studentName: g.parentName,
-                  schoolName: "Mon École",
-                  schoolAddress: "Kinshasa",
-                  schoolContact: "+243",
-                  schoolEmail: "contact@ecole.com",
-                  paymentDate: g.date.toLocaleDateString(),
-                  financierName: "Caissier",
-                  invoiceNumber: g.reference,
-                  fees: g.items.map((i) => ({
-                    feeId: i.id,
-                    nameFrais: i.frais?.nameFrais || "",
-                    className: i.classEnrollment?.nameClasse || "",
-                    schoolYear: i.classEnrollment?.nameYear || "",
-                    amountPaid: String(i.montantPaye),
-                  })),
-                })
-              }
-            >
+            <DropdownMenuItem onClick={() => openReceipt(g)}>
               <Eye className="mr-2 h-4 w-4" />
               Voir reçu
             </DropdownMenuItem>
@@ -403,7 +457,7 @@ const PaiementsTable = ({ refreshKey }: { refreshKey?: string }) => {
       { label: "Élèves", value: g.students.join(", ") },
       {
         label: "Total",
-        value: (g.total * 2300).toLocaleString("fr-FR", {
+        value: (g.total * exchangeRate).toLocaleString("fr-FR", {
           style: "currency",
           currency: "CDF",
         }),
@@ -413,9 +467,8 @@ const PaiementsTable = ({ refreshKey }: { refreshKey?: string }) => {
   };
 
   return (
-    <div className="space-y-4">
-      {/* FILTERS RESTORED */}
-      <div className="flex flex-col md:flex-row gap-3">
+    <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-3 md:flex-row">
         <SearchAndFilter
           searchTerm={searchTerm}
           onSearchChange={setSearchTerm}
@@ -438,66 +491,26 @@ const PaiementsTable = ({ refreshKey }: { refreshKey?: string }) => {
           onFilterChange={setModeFilter}
           filterOptions={modeOptions}
         />
-        <PDFDownloadLink
-          document={<PaiementsPDF data={filtered} />}
-          fileName="rapport-paiements.pdf"
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={exportFilteredPdf}
+          disabled={exportingPdf || filtered.length === 0}
+          className="border-sky-600 text-sky-600! hover:bg-sky-600/10 focus-visible:border-sky-600 focus-visible:ring-sky-600/20 dark:border-sky-400 dark:text-sky-400! dark:hover:bg-sky-400/10 dark:focus-visible:border-sky-400 dark:focus-visible:ring-sky-400/40"
         >
-          {({ loading }) => (
-            <Button
-              variant="outline"
-              size="sm"
-              className="border-sky-600 text-sky-600! hover:bg-sky-600/10 focus-visible:border-sky-600 focus-visible:ring-sky-600/20 dark:border-sky-400 dark:text-sky-400! dark:hover:bg-sky-400/10 dark:focus-visible:border-sky-400 dark:focus-visible:ring-sky-400/40"
-            >
-              <FileSpreadsheet />
-              {loading ? "Génération..." : "Export PDF"}
-            </Button>
-          )}
-        </PDFDownloadLink>
+          <FileSpreadsheet data-icon="inline-start" />
+          {exportingPdf ? "Génération..." : "Export PDF"}
+        </Button>
       </div>
-      {selectedInvoice && (
-        <div className="fixed inset-0 z-[9999] bg-black/60 flex justify-center items-center p-3">
-          <div
-            className="
-        bg-white
-        w-full
-        max-w-3xl
-        rounded-xl
-        shadow-2xl
-        max-h-[90vh]
-        overflow-hidden
-        flex flex-col
-      "
-          >
-            {/* HEADER (réduit) */}
-            <div className="px-3 border-b text-xs font-medium flex items-center justify-between">
-              <span>Reçu de paiement</span>
-            </div>
 
-            {/* CONTENT (réduit padding aussi) */}
-            <div className="p-2 overflow-y-auto flex-1">
-              <div className="scale-[0.92] origin-top">
-                <Invoice {...selectedInvoice} />
-              </div>
-            </div>
+      <ReceiptPreviewDialog
+        open={receiptOpen}
+        onOpenChange={setReceiptOpen}
+        data={receiptData}
+        title="Reçu de paiement"
+        issuedAt={receiptIssuedAt}
+      />
 
-            {/* FOOTER (plus compact) */}
-            <div className="px-3 py-2 border-t flex gap-2 justify-end bg-white">
-              <Button onClick={() => generateInvoicePDF(selectedInvoice)}>
-                Télécharger PDF
-              </Button>
-
-              <Button
-                variant="secondary"
-                onClick={() => setSelectedInvoice(null)}
-              >
-                Fermer
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* TABLE */}
       <ResponsiveDataTable
         data={filtered}
         columns={columns}

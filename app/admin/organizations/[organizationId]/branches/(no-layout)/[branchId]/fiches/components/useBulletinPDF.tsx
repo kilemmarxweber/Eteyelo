@@ -94,6 +94,30 @@ const getImageBase64 = (file: File) =>
     reader.onerror = reject;
   });
 
+async function loadImageDataUrl(url: string): Promise<string | null> {
+  if (!url) return null;
+  if (url.startsWith("data:")) return url;
+
+  try {
+    const response = await fetch(url);
+    if (!response.ok) return null;
+    const blob = await response.blob();
+    return await getImageBase64(new File([blob], "logo"));
+  } catch {
+    return null;
+  }
+}
+
+function dataUrlImageFormat(dataUrl: string): "PNG" | "JPEG" | "WEBP" {
+  if (dataUrl.startsWith("data:image/jpeg") || dataUrl.startsWith("data:image/jpg")) {
+    return "JPEG";
+  }
+  if (dataUrl.startsWith("data:image/webp")) {
+    return "WEBP";
+  }
+  return "PNG";
+}
+
 export default function BulletinPDF({
   data,
   branchContext,
@@ -139,16 +163,27 @@ export default function BulletinPDF({
       .then((base64) => setImageData2(base64))
       .catch(console.error);
   }, []);
+  // Filigrane = logo branche/organisation (dynamique), repli armoirie RDC
   useEffect(() => {
-    fetch("/uploads/Armoiri_de_la_RDC.png")
-      .then((res) => {
-        if (!res.ok) throw new Error(`Armoirie watermark HTTP ${res.status}`);
-        return res.blob();
-      })
-      .then((blob) => getImageBase64(new File([blob], "Armoiri_de_la_RDC.png")))
-      .then((base64) => setWatermarkData(base64))
-      .catch(console.error);
-  }, []);
+    let cancelled = false;
+
+    const loadWatermark = async () => {
+      const schoolLogo = await loadImageDataUrl(branchContext.logoUrl);
+      if (!cancelled && schoolLogo) {
+        setWatermarkData(schoolLogo);
+        return;
+      }
+
+      const fallback = await loadImageDataUrl("/uploads/Armoiri_de_la_RDC.png");
+      if (!cancelled) setWatermarkData(fallback);
+    };
+
+    void loadWatermark();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [branchContext.logoUrl]);
 
   const generatePDF = useCallback(() => {
     if (!imageData1 || !imageData2) {
@@ -1484,14 +1519,25 @@ export default function BulletinPDF({
         );
       }
 
-      // Filigrane armoirie RDC — centré, léger, par-dessus le contenu
+      // Filigrane logo établissement — centré, léger, par-dessus le contenu
       if (watermarkData) {
         const pageHeight = doc.internal.pageSize.getHeight();
         const wmSize = 130;
         const wmX = (pageWidth - wmSize) / 2;
         const wmY = (pageHeight - wmSize) / 2 - 5;
         doc.setGState(new GState({ opacity: 0.1 }));
-        doc.addImage(watermarkData, "PNG", wmX, wmY, wmSize, wmSize);
+        try {
+          doc.addImage(
+            watermarkData,
+            dataUrlImageFormat(watermarkData),
+            wmX,
+            wmY,
+            wmSize,
+            wmSize,
+          );
+        } catch {
+          // Un logo invalide ne doit pas bloquer le bulletin.
+        }
         doc.setGState(new GState({ opacity: 1 }));
       }
     });

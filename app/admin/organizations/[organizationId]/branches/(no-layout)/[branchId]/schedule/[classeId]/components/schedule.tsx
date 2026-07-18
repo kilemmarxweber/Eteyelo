@@ -21,6 +21,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { AlertTriangle, Download, Printer, Trash2 } from "lucide-react";
+import { SchoolBrandHeader } from "@/components/reports/SchoolBrandHeader";
 import {
   Dialog,
   DialogContent,
@@ -428,8 +429,8 @@ export default function Schedule({
             {reportContext && (
               <p className="mt-1 text-sm text-muted-foreground">
                 {reportContext.classeName}
-                {reportContext.schoolYearName
-                  ? ` · ${reportContext.schoolYearName}`
+                {reportContext.academicYearLabel
+                  ? ` · ${reportContext.academicYearLabel}`
                   : ""}
               </p>
             )}
@@ -455,25 +456,27 @@ export default function Schedule({
           </div>
         </div>
         {reportContext && (
-          <div className="hidden border-b pb-3 text-center print:block">
-            {reportContext.logoUrl && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={reportContext.logoUrl}
-                alt="Logo de la branche"
-                className="mx-auto mb-1 h-12 w-12 object-contain"
-              />
+          <div className="hidden print:block">
+            <SchoolBrandHeader
+              context={reportContext}
+              title={`Horaire de la classe ${reportContext.classeName}`}
+              subtitle={reportContext.branchName}
+              className="border-b pb-3"
+            />
+            {(reportContext.creneauName || reportContext.classeCode) && (
+              <p className="mt-1 text-center text-xs text-muted-foreground">
+                {[
+                  reportContext.creneauName
+                    ? `Vacation : ${reportContext.creneauName}`
+                    : "",
+                  reportContext.classeCode
+                    ? `Code : ${reportContext.classeCode}`
+                    : "",
+                ]
+                  .filter(Boolean)
+                  .join(" · ")}
+              </p>
             )}
-            <p className="text-sm font-semibold">{reportContext.organizationName}</p>
-            <p className="text-base font-bold">{reportContext.branchName}</p>
-            <p className="mt-1 text-lg font-bold">
-              Horaire de la classe {reportContext.classeName}
-            </p>
-            <p className="text-xs">
-              {[reportContext.schoolYearName, reportContext.creneauName]
-                .filter(Boolean)
-                .join(" · ")}
-            </p>
           </div>
         )}
         </CardHeader>

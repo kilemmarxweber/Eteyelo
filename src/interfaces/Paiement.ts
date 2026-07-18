@@ -25,6 +25,7 @@ export interface IPaiement {
     id: string;
     nom: string;
     prenom: string;
+    sexe?: string;
     nameClasse: string;
     nameYear: string;
     parentId?: string; // 👈 AJOUT

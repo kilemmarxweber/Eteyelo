@@ -1,10 +1,21 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { IconFileTypePdf } from "@tabler/icons-react";
+import { toast } from "sonner";
+
+import { Button } from "@/components/custom/button";
 import { Combobox } from "@/components/ui/combox";
-import { MultiSelect } from "../paiement/components/MultiSelect";
-import { StudentType } from "@/lib/types";
-import { useEffect } from "react";
 import { getAcademicPeriodOrder } from "@/lib/academic-structure";
+import { StudentType } from "@/lib/types";
+
+import { MultiSelect } from "../paiement/components/MultiSelect";
+import {
+  exportResultsClassementReportPdf,
+  type ClassementRow,
+  type ResultsClassementReportOptions,
+} from "./components/export-results-classement-pdf";
+import { getResultsReportContextAction } from "./results.action";
 
 type ClassType = {
   id: string;
@@ -27,6 +38,8 @@ type FiltersComboxProps = {
   periods: string[];
   years: string[];
   role?: string;
+  classementRows: ClassementRow[];
+  reportOptions: ResultsClassementReportOptions;
 };
 
 export default function FiltersCombox({
@@ -43,11 +56,51 @@ export default function FiltersCombox({
   periods,
   years,
   role,
+  classementRows,
+  reportOptions,
 }: FiltersComboxProps) {
+  const [exportingPdf, setExportingPdf] = useState(false);
+  const hasClassement = classementRows.length > 0;
+
   // ✅ Classes uniques
   const uniqueClasses = Array.from(
     new Map(classOptions.map((c) => [c.id, c])).values(),
   );
+
+  const exportClassementPdf = async () => {
+    if (!hasClassement) {
+      toast.error(
+        "Aucun résultat à exporter pour cette sélection. Choisissez une classe avec des notes.",
+      );
+      return;
+    }
+
+    setExportingPdf(true);
+    try {
+      const [context, error] = await getResultsReportContextAction();
+      if (error || !context) {
+        throw new Error(
+          error?.message ||
+            "Impossible de charger les informations du rapport.",
+        );
+      }
+      await exportResultsClassementReportPdf(
+        classementRows,
+        context,
+        reportOptions,
+      );
+      toast.success("Le classement PDF a été généré.");
+    } catch (error) {
+      console.error(error);
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Impossible de générer le classement PDF.",
+      );
+    } finally {
+      setExportingPdf(false);
+    }
+  };
 
   // ✅ Students uniques (évite bug React key)
   const uniqueStudents = Array.from(
@@ -182,6 +235,28 @@ export default function FiltersCombox({
               onChange={setSelectedYear}
               placeholder="Année scolaire"
             />
+          </div>
+        )}
+
+        {selectedClassIds.length > 0 && (
+          <div className="flex flex-col gap-1 w-full sm:w-auto self-end">
+            <span className="text-xs font-medium text-transparent ml-1 select-none">
+              Export
+            </span>
+            <Button
+              variant="outline"
+              leftSection={<IconFileTypePdf size={16} />}
+              onClick={exportClassementPdf}
+              loading={exportingPdf}
+              disabled={!hasClassement || exportingPdf}
+              title={
+                hasClassement
+                  ? "Exporter le classement PDF"
+                  : "Aucun résultat pour cette sélection"
+              }
+            >
+              {exportingPdf ? "Génération..." : "Classement PDF"}
+            </Button>
           </div>
         )}
       </div>

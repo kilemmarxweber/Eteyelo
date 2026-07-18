@@ -134,20 +134,20 @@ export default function SidebarWithFilters({
           </p>
 
           {stats && (
-            <div className="mt-4 p-3 bg-gray-50 dark:bg-slate-900 rounded-lg border border-gray-100 dark:border-slate-800 space-y-3">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-gray-400">
+            <div className="mt-4 space-y-3 rounded-lg border border-border bg-muted p-3">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                 Rapport de sélection
               </h3>
 
               <div className="flex justify-between items-center">
-                <span className="text-gray-600 dark:text-gray-400">
+                <span className="text-muted-foreground">
                   Sexe (M)
                 </span>
                 <div className="text-right">
-                  <div className="font-semibold">
+                  <div className="font-semibold text-foreground">
                     {stats.sexeStats.M.count} élèves
                   </div>
-                  <div className="text-[10px] text-blue-500 font-medium">
+                  <div className="text-[10px] font-medium text-blue-500 dark:text-blue-400">
                     Part: {stats.sexeStats.M.percent}% | Réussite:{" "}
                     {stats.sexeStats.M.successRate}%
                   </div>
@@ -155,29 +155,29 @@ export default function SidebarWithFilters({
               </div>
 
               <div className="flex justify-between items-center">
-                <span className="text-gray-600 dark:text-gray-400">
+                <span className="text-muted-foreground">
                   Sexe (F)
                 </span>
                 <div className="text-right">
-                  <div className="font-semibold">
+                  <div className="font-semibold text-foreground">
                     {stats.sexeStats.F.count} élèves
                   </div>
-                  <div className="text-[10px] text-pink-500 font-medium">
+                  <div className="text-[10px] font-medium text-pink-500 dark:text-pink-400">
                     Part: {stats.sexeStats.F.percent}% | Réussite:{" "}
                     {stats.sexeStats.F.successRate}%
                   </div>
                 </div>
               </div>
 
-              <div className="border-t dark:border-slate-800 pt-2 flex justify-between items-center">
-                <span className="font-medium text-gray-700 dark:text-gray-300">
+              <div className="flex items-center justify-between border-t border-border pt-2">
+                <span className="font-medium text-foreground">
                   Pourcentage Global
                 </span>
                 <div className="text-right">
                   <div className="text-lg font-bold text-primary">
                     {stats.globalStats.avg}%
                   </div>
-                  <div className="text-[10px] text-gray-400">
+                  <div className="text-[10px] text-muted-foreground">
                     {stats.globalStats.count} élèves au total
                   </div>
                 </div>
@@ -190,7 +190,7 @@ export default function SidebarWithFilters({
             Calcul basé uniquement sur les tâches notées
           </label>
 
-          <p className="text-gray-500 text-sm">
+          <p className="text-sm text-muted-foreground">
             Vous pouvez simuler vos notes futures pour voir leur impact sur la
             moyenne.
           </p>
