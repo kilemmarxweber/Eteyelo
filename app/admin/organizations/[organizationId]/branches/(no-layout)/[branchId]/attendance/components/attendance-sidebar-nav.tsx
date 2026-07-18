@@ -6,6 +6,7 @@ import {
   IconChartBar,
   IconClock,
   IconListDetails,
+  IconScan,
   IconSettings,
   IconUserCheck,
 } from "@tabler/icons-react";
@@ -20,6 +21,11 @@ const NAV_ITEMS = [
     title: "Tableau de bord",
     segment: "",
     icon: IconChartBar,
+  },
+  {
+    title: "Pointage",
+    segment: "/pointage",
+    icon: IconScan,
   },
   {
     title: "Detail des presences",

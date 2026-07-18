@@ -1,9 +1,11 @@
 "use client";
 
-import { useParams } from "next/navigation";
-import { IconUserCheck } from "@tabler/icons-react";
+import Link from "next/link";
+import { useParams, usePathname } from "next/navigation";
+import { IconScan, IconUserCheck } from "@tabler/icons-react";
 import { Layout, LayoutBody } from "@/components/custom/layout";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
 import { NotFoundView } from "@/components/not-found-view";
@@ -19,7 +21,10 @@ export default function AttendanceLayout({
 }) {
   const { data: session, isPending } = useSession();
   const params = useParams<{ organizationId: string; branchId: string }>();
+  const pathname = usePathname();
   const basePath = `/admin/organizations/${params.organizationId}/branches/${params.branchId}/attendance`;
+  const pointagePath = `${basePath}/pointage`;
+  const onPointagePage = pathname.startsWith(pointagePath);
 
   if (isPending) return <Loading />;
   if (!canAccessTeachingArea(session)) return <NotFoundView />;
@@ -34,6 +39,16 @@ export default function AttendanceLayout({
             <Badge variant="outline-primary" icon={<IconUserCheck size={14} />}>
               Presences
             </Badge>
+          }
+          actions={
+            !onPointagePage ? (
+              <Button asChild>
+                <Link href={pointagePath}>
+                  <IconScan className="mr-2 size-4" />
+                  Pointer
+                </Link>
+              </Button>
+            ) : null
           }
         />
 

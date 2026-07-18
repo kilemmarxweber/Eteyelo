@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { orgRoleLabel } from "@/lib/org-role-labels";
 import { IPersonnel } from "@/src/interfaces/Personnel";
+import { PersonnelBadgePanel } from "./personnel-badge-panel";
 
 interface DetailsPersonnelDialogProps
   extends React.ComponentPropsWithoutRef<typeof Dialog> {
@@ -90,6 +91,11 @@ export function DetailsPersonnelDialog({
               }
             />
           </div>
+
+          <PersonnelBadgePanel
+            personnelId={personnel.personnelId}
+            open={Boolean(props.open)}
+          />
         </Card>
       </DialogContent>
     </Dialog>

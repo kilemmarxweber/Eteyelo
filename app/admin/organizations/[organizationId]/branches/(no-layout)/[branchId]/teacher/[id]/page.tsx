@@ -23,6 +23,8 @@ import { genererCreneaux } from "../components/type";
 import StudentAttendanceTable from "../../attendance/component/StudentAttendanceTable";
 import { getTeacherCurrentSessions } from "../../attendance/attendance.action";
 import { getAttendanceSessionById } from "../../attendance/attendance.action";
+import { StaffBadgeSection } from "../../components/staff-badge-section";
+import { getStaffBadgeAction } from "../../staff-badge.action";
 
 export const dynamic = "force-dynamic";
 
@@ -116,6 +118,7 @@ const SingleTeacherPage = async ({
   const classeIds = teacher.teaching.map((t) => t.classe?.id).filter(Boolean);
 
   const attendanceSession = await getTeacherCurrentSessions(teacher.id);
+  const teacherBadge = await getStaffBadgeAction("teacher", teacher.id);
 
   /* ================= UI ================= */
   return (
@@ -254,6 +257,8 @@ const SingleTeacherPage = async ({
 
           {/* ================= RIGHT ================= */}
           <div className="w-full xl:w-[320px] flex-shrink-0 flex flex-col gap-6">
+            {teacherBadge ? <StaffBadgeSection badge={teacherBadge} /> : null}
+
             {/* SHORTCUTS */}
             <Card className="p-5 rounded-2xl">
               <h2 className="font-semibold mb-4">Raccourcis</h2>
