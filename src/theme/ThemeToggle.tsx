@@ -9,7 +9,8 @@ export const ThemeToggle = () => {
   return (
     <Button
       variant="ghost"
-      size="sm"
+      size="icon"
+      className="size-9 shrink-0"
       onClick={() => {
         setTheme(theme === "light" ? "dark" : "light");
       }}

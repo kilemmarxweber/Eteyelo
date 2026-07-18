@@ -13,7 +13,9 @@ export function AdminShell({ children }: { children: ReactNode }) {
 
   if (isBranchRoute) {
     return (
-      <div className="h-screen bg-background text-foreground">{children}</div>
+      <div className="h-dvh overflow-hidden bg-background text-foreground">
+        {children}
+      </div>
     );
   }
 

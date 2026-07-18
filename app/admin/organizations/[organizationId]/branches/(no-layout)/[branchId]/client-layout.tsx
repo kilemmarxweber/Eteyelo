@@ -12,6 +12,7 @@ import { authClient } from "@/lib/auth-client";
 import { useAppLoading } from "@/hooks/use-app-loading";
 import { BranchLoadingFallback } from "@/components/branch-loading-fallback";
 import { RefreshProvider } from "@/src/hooks/RefreshContext";
+import { cn } from "@/lib/utils";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const { data: session, isPending } = authClient.useSession();
@@ -52,25 +53,35 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
   return (
     <RefreshProvider>
-      <div className="relative h-full overflow-hidden bg-background">
+      <div className="relative h-dvh overflow-hidden bg-background">
         <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
 
-        <main
-          className={`h-full overflow-x-hidden pt-14 pb-[76px] transition-[margin] md:pb-0 md:pt-0 ${
-            isCollapsed ? "md:ml-14" : "md:ml-44"
-          }`}
+        <LayoutHeader
+          className={cn(
+            "fixed top-0 right-0 z-30 hidden h-14 border-b bg-background md:flex md:px-8",
+            isCollapsed ? "left-14" : "left-44",
+          )}
         >
-          <LayoutHeader>
-            <div className="ml-auto flex items-center space-x-4">
-              <Search />
-              <ThemeToggle />
-              <NotificationBell />
-              <UserNav />
-            </div>
-          </LayoutHeader>
+          <div className="ml-auto flex w-auto min-w-0 items-center gap-4 px-4 py-2 md:px-0">
+            <Search className="md:flex-none" />
+            <ThemeToggle />
+            <NotificationBell />
+            <UserNav />
+          </div>
+        </LayoutHeader>
 
-          {children}
+        <main
+          className={cn(
+            "h-dvh overflow-y-auto overflow-x-hidden transition-[margin]",
+            "pt-16 pb-[76px] md:pt-14 md:pb-0",
+            isCollapsed ? "md:ml-14" : "md:ml-44",
+          )}
+        >
+          <div className="[&_.relative.flex.h-full.w-full.flex-col]:!h-auto [&_.relative.flex.h-full.w-full.flex-col>.flex-1.overflow-hidden]:!overflow-visible">
+            {children}
+          </div>
         </main>
+
         <MobileNav />
       </div>
     </RefreshProvider>

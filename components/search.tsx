@@ -1,13 +1,18 @@
-import { Input } from '@/components/ui/input'
+import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 
-export function Search() {
+type SearchProps = {
+  className?: string;
+};
+
+export function Search({ className }: SearchProps) {
   return (
-    <div>
+    <div className={cn("min-w-0", className)}>
       <Input
-        type='search'
-        placeholder='Search...'
-        className='md:w-[100px] lg:w-[300px]'
+        type="search"
+        placeholder="Rechercher..."
+        className="h-9 w-full min-w-0 text-sm md:w-[100px] md:text-base lg:w-[300px]"
       />
     </div>
-  )
+  );
 }
