@@ -18,6 +18,8 @@ import { useRefresh } from "@/src/hooks/RefreshContext";
 
 import { updateSchoolYearAction } from "../schoolYear.action";
 
+import { useSchoolYearLabels } from "@/hooks/use-school-year-labels";
+
 export const CurrentYear: React.FC<ISchoolYear> = ({
   id,
   nameYear,
@@ -25,6 +27,7 @@ export const CurrentYear: React.FC<ISchoolYear> = ({
   endYear,
   isCurrentYear,
 }) => {
+  const { labelLower } = useSchoolYearLabels();
   const [checked, setChecked] = useState(!!isCurrentYear);
   const [pendingValue, setPendingValue] = useState<boolean | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -97,13 +100,13 @@ export const CurrentYear: React.FC<ISchoolYear> = ({
           <DialogHeader>
             <DialogTitle>
               {activating
-                ? "Définir l'année scolaire courante ?"
-                : "Retirer l'année scolaire courante ?"}
+                ? `Définir l'${labelLower} courante ?`
+                : `Retirer l'${labelLower} courante ?`}
             </DialogTitle>
             <DialogDescription>
               {activating
-                ? `Définir ${nameYear} comme année scolaire courante ? Les inscriptions, frais, enseignements, horaires et notes utiliseront cette année par défaut. L'année courante actuelle sera désactivée.`
-                : `Retirer ${nameYear} comme année scolaire courante ? Aucune année ne sera marquée comme courante tant qu'une autre n'est pas sélectionnée.`}
+                ? `Définir ${nameYear} comme ${labelLower} courante ? Les inscriptions, frais, enseignements, horaires et notes utiliseront cette année par défaut. L'année courante actuelle sera désactivée.`
+                : `Retirer ${nameYear} comme ${labelLower} courante ? Aucune année ne sera marquée comme courante tant qu'une autre n'est pas sélectionnée.`}
             </DialogDescription>
           </DialogHeader>
 

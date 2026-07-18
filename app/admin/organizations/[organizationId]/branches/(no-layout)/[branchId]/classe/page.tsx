@@ -30,13 +30,30 @@ import Loading from "../loading";
 import Classes from "./components/ClassesClient";
 import { ClasseUpForm } from "./components/classe-form";
 import { getClassesAction, importClassCatalogAction } from "./classe.action";
+import { getStudentPageContextAction } from "../brevets/brevet.action";
+import { isUniversiteBranch } from "@/lib/branch-capabilities";
+import {
+  getClassDisplayLabel,
+  getClassDisplayLabelPlural,
+} from "@/lib/branch-capabilities";
 
 export default function Page() {
   const [open, setOpen] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
   const [stats, setStats] = useState({ total: 0, active: 0, inactive: 0 });
   const [importing, startImport] = useTransition();
+  const [classLabel, setClassLabel] = useState("Classe");
+  const [classLabelPlural, setClassLabelPlural] = useState("Classes");
   const { data: session, isPending } = useSession();
+
+  useEffect(() => {
+    void getStudentPageContextAction().then((context) => {
+      if (isUniversiteBranch(context.typebranch)) {
+        setClassLabel(getClassDisplayLabel(context.typebranch));
+        setClassLabelPlural(getClassDisplayLabelPlural(context.typebranch));
+      }
+    });
+  }, [refreshKey]);
 
   useEffect(() => {
     void (async () => {
@@ -80,11 +97,11 @@ export default function Page() {
     <Layout>
       <LayoutBody className="space-y-5">
         <PageHeader
-          title="Gestion des classes"
-          description="Créez les classes et organisez leur capacité, option et créneau."
+          title={`Gestion des ${classLabelPlural.toLowerCase()}`}
+          description={`Créez les ${classLabelPlural.toLowerCase()} et organisez leur capacité, option et créneau.`}
           badge={
             <Badge variant="outline-primary" icon={<IconUsers size={14} />}>
-              Classes
+              {classLabelPlural}
             </Badge>
           }
           actions={
@@ -104,7 +121,7 @@ export default function Page() {
                 onClick={() => setOpen(true)}
               >
                 <IconUserPlus size={16} className="mr-2" />
-                Créer une classe
+                {`Créer un ${classLabel.toLowerCase()}`}
               </Button>
             </div>
           }
@@ -118,11 +135,9 @@ export default function Page() {
             onCloseAutoFocus={(event) => event.preventDefault()}
           >
             <DialogHeader>
-              <DialogTitle>Creer une classe</DialogTitle>
+              <DialogTitle>{`Créer un ${classLabel.toLowerCase()}`}</DialogTitle>
               <DialogDescription>
-                Remplir les informations de la classe. Les listes (niveau,
-                section, option, vacation) restent utilisables sans fermer ce
-                dialog.
+                {`Remplir les informations de l'${classLabel.toLowerCase()}. Les listes (niveau, section, option, vacation) restent utilisables sans fermer ce dialog.`}
               </DialogDescription>
             </DialogHeader>
 
@@ -141,17 +156,17 @@ export default function Page() {
 
         <div className="grid gap-3 sm:grid-cols-3">
           <ClassStat
-            label="Total des classes"
+            label={`Total des ${classLabelPlural.toLowerCase()}`}
             value={stats.total}
             icon={<IconUsers className="size-5" />}
           />
           <ClassStat
-            label="Classes actives"
+            label={`${classLabelPlural} actifs`}
             value={stats.active}
             icon={<IconSchool className="size-5 text-emerald-600" />}
           />
           <ClassStat
-            label="Classes inactives"
+            label={`${classLabelPlural} inactifs`}
             value={stats.inactive}
             icon={<IconSchoolOff className="size-5 text-slate-500" />}
           />

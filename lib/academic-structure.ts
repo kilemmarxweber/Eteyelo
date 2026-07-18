@@ -1,4 +1,12 @@
-export const BRANCH_TYPES = ["PRIMAIRE", "SECONDAIRE"] as const;
+import { UNIVERSITY_LMD_LABELS } from "@/lib/university-lmd-labels";
+
+export const BRANCH_TYPES = [
+  "PRIMAIRE",
+  "SECONDAIRE",
+  "ATELIER",
+  "CENTRE_FORMATION",
+  "UNIVERSITE",
+] as const;
 
 export type ManagedBranchType = (typeof BRANCH_TYPES)[number];
 
@@ -81,6 +89,133 @@ const PRIMARY_GROUPS: AcademicGroupConfig[] = [
   },
 ];
 
+const WORKSHOP_GROUPS: AcademicGroupConfig[] = [
+  {
+    key: "session",
+    label: "Session",
+    order: 1,
+    periods: [
+      {
+        key: "p1",
+        label: "Session pratique",
+        groupLabel: "Session",
+        order: 1,
+        kind: "PERIOD",
+      },
+    ],
+  },
+];
+
+const TRAINING_GROUPS: AcademicGroupConfig[] = [
+  {
+    key: "mod1",
+    label: "Module 1",
+    order: 1,
+    periods: [
+      { key: "p1", label: "Periode 1", groupLabel: "Module 1", order: 1, kind: "PERIOD" },
+      { key: "p2", label: "Periode 2", groupLabel: "Module 1", order: 2, kind: "PERIOD" },
+      { key: "exam1", label: "Evaluation module 1", groupLabel: "Module 1", order: 3, kind: "EXAM" },
+    ],
+  },
+  {
+    key: "mod2",
+    label: "Module 2",
+    order: 2,
+    periods: [
+      { key: "p3", label: "Periode 3", groupLabel: "Module 2", order: 4, kind: "PERIOD" },
+      { key: "exam2", label: "Evaluation finale", groupLabel: "Module 2", order: 5, kind: "EXAM" },
+    ],
+  },
+];
+
+/** Calendrier ESU / LMD (RDC) : 2 semestres par année académique. */
+const UNIVERSITY_LMD_GROUPS: AcademicGroupConfig[] = [
+  {
+    key: "sem1",
+    label: UNIVERSITY_LMD_LABELS.firstSemester,
+    order: 1,
+    periods: [
+      {
+        key: "cours1",
+        label: UNIVERSITY_LMD_LABELS.courses,
+        groupLabel: UNIVERSITY_LMD_LABELS.firstSemester,
+        order: 1,
+        kind: "PERIOD",
+      },
+      {
+        key: "eval1",
+        label: UNIVERSITY_LMD_LABELS.evaluations,
+        groupLabel: UNIVERSITY_LMD_LABELS.firstSemester,
+        order: 2,
+        kind: "PERIOD",
+      },
+      {
+        key: "session1",
+        label: UNIVERSITY_LMD_LABELS.firstSession,
+        groupLabel: UNIVERSITY_LMD_LABELS.firstSemester,
+        order: 3,
+        kind: "EXAM",
+      },
+      {
+        key: "delib1",
+        label: UNIVERSITY_LMD_LABELS.deliberations,
+        groupLabel: UNIVERSITY_LMD_LABELS.firstSemester,
+        order: 4,
+        kind: "PERIOD",
+      },
+    ],
+  },
+  {
+    key: "sem2",
+    label: UNIVERSITY_LMD_LABELS.secondSemester,
+    order: 2,
+    periods: [
+      {
+        key: "cours2",
+        label: UNIVERSITY_LMD_LABELS.courses,
+        groupLabel: UNIVERSITY_LMD_LABELS.secondSemester,
+        order: 5,
+        kind: "PERIOD",
+      },
+      {
+        key: "eval2",
+        label: UNIVERSITY_LMD_LABELS.evaluations,
+        groupLabel: UNIVERSITY_LMD_LABELS.secondSemester,
+        order: 6,
+        kind: "PERIOD",
+      },
+      {
+        key: "session2",
+        label: UNIVERSITY_LMD_LABELS.firstSession,
+        groupLabel: UNIVERSITY_LMD_LABELS.secondSemester,
+        order: 7,
+        kind: "EXAM",
+      },
+      {
+        key: "rattrapage",
+        label: UNIVERSITY_LMD_LABELS.secondSession,
+        groupLabel: UNIVERSITY_LMD_LABELS.secondSemester,
+        order: 8,
+        kind: "EXAM",
+      },
+      {
+        key: "defense",
+        label: UNIVERSITY_LMD_LABELS.defense,
+        groupLabel: UNIVERSITY_LMD_LABELS.secondSemester,
+        order: 9,
+        kind: "EXAM",
+      },
+      {
+        key: "delib2",
+        label: UNIVERSITY_LMD_LABELS.deliberations,
+        groupLabel: UNIVERSITY_LMD_LABELS.secondSemester,
+        order: 10,
+        kind: "PERIOD",
+      },
+    ],
+  },
+];
+
 export const ACADEMIC_STRUCTURES: Record<ManagedBranchType, AcademicStructure> = {
   PRIMAIRE: {
     typebranch: "PRIMAIRE",
@@ -91,6 +226,21 @@ export const ACADEMIC_STRUCTURES: Record<ManagedBranchType, AcademicStructure> =
     typebranch: "SECONDAIRE",
     groups: SECONDARY_GROUPS,
     periods: SECONDARY_GROUPS.flatMap((group) => group.periods),
+  },
+  ATELIER: {
+    typebranch: "ATELIER",
+    groups: WORKSHOP_GROUPS,
+    periods: WORKSHOP_GROUPS.flatMap((group) => group.periods),
+  },
+  CENTRE_FORMATION: {
+    typebranch: "CENTRE_FORMATION",
+    groups: TRAINING_GROUPS,
+    periods: TRAINING_GROUPS.flatMap((group) => group.periods),
+  },
+  UNIVERSITE: {
+    typebranch: "UNIVERSITE",
+    groups: UNIVERSITY_LMD_GROUPS,
+    periods: UNIVERSITY_LMD_GROUPS.flatMap((group) => group.periods),
   },
 };
 
@@ -121,8 +271,18 @@ const ACADEMIC_PERIOD_ALIASES: Record<string, string> = {
   "Exam 1er trimestre": "Examen 1er trimestre",
   "Exam 2e trimestre": "Examen 2e trimestre",
   "Exam 3e trimestre": "Examen 3e trimestre",
+  // Anciens libelles universite LMD → appellations ESU actuelles
+  "Évaluations (1er semestre)": UNIVERSITY_LMD_LABELS.evaluations,
+  "Évaluations (2e semestre)": UNIVERSITY_LMD_LABELS.evaluations,
+  "Examen (1re session — 1er semestre)": UNIVERSITY_LMD_LABELS.firstSession,
+  "Examen (1re session — 2e semestre)": UNIVERSITY_LMD_LABELS.firstSession,
+  "Délibérations (1er semestre)": UNIVERSITY_LMD_LABELS.deliberations,
+  "Délibérations (2e semestre)": UNIVERSITY_LMD_LABELS.deliberations,
+  "2e session (Rattrapage)": UNIVERSITY_LMD_LABELS.secondSession,
+  "Défense TFC / Mémoire": UNIVERSITY_LMD_LABELS.defense,
+  "1re session (examens ordinaires)": UNIVERSITY_LMD_LABELS.firstSession,
+  "2e session (rattrapage)": UNIVERSITY_LMD_LABELS.secondSession,
 };
-
 export function normalizeAcademicPeriodLabel(label: string): string {
   return ACADEMIC_PERIOD_ALIASES[label] ?? label;
 }

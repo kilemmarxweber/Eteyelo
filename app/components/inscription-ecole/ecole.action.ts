@@ -11,6 +11,7 @@ import {
 import { ensureUniqueIdentifier, generateCode } from "@/lib/generated-identifiers";
 import { ensurePrimaryAcademicStructure } from "@/lib/primary-academic-structure";
 import { ensureDefaultCreneaux } from "@/lib/default-creneaux";
+import { ensureExtendedBranchStructure } from "@/lib/extended-branch-bootstrap";
 
 type CreateBranchInput = {
   name: string;
@@ -76,6 +77,8 @@ export async function createBranch(data: CreateBranchInput) {
   if (data.typebranch === "PRIMAIRE") {
     await ensurePrimaryAcademicStructure(prisma, branch.id);
   }
+
+  await ensureExtendedBranchStructure(prisma, branch.id, data.typebranch);
   await ensureDefaultCreneaux(prisma, branch.id);
 
   await ensureAcademicPeriodsForBranch({

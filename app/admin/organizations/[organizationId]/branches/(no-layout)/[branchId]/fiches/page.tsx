@@ -3,8 +3,10 @@
 import { prisma } from "@/lib/prisma";
 import ClassFicheClient from "./components/ClassFicheClient";
 import type { Prisma } from "@/prisma/generated/prisma/client";
+import { redirect } from "next/navigation";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
 import { canManageOrganization } from "@/lib/auth/session-roles";
+import { usesBulletinForBranch } from "@/lib/branch-capabilities";
 import {
   buildBulletinBranchContext,
   type BulletinBranchContext,
@@ -45,7 +47,15 @@ type ClassEnrollmentWithRelations = Prisma.ClassEnrollmentGetPayload<{
 }>;
 
 export default async function ClassFichePage() {
-  const { session, branchId, organizationId } = await requireBranchContext();
+  const { session, branchId, organizationId, typebranch } =
+    await requireBranchContext();
+
+  if (!usesBulletinForBranch(typebranch)) {
+    redirect(
+      `/admin/organizations/${organizationId}/branches/${branchId}/results`,
+    );
+  }
+
   const canManage = canManageOrganization(session);
 
   // 🔹 Fetch data

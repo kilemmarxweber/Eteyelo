@@ -238,6 +238,7 @@ export type SchoolYearWhereInput = {
   grades?: Prisma.StudentGradeListRelationFilter
   parentFeedback?: Prisma.ParentFeedbackListRelationFilter
   attendanceSession?: Prisma.AttendanceSessionListRelationFilter
+  issuedDocuments?: Prisma.IssuedDocumentListRelationFilter
   branch?: Prisma.XOR<Prisma.BranchScalarRelationFilter, Prisma.BranchWhereInput>
 }
 
@@ -261,6 +262,7 @@ export type SchoolYearOrderByWithRelationInput = {
   grades?: Prisma.StudentGradeOrderByRelationAggregateInput
   parentFeedback?: Prisma.ParentFeedbackOrderByRelationAggregateInput
   attendanceSession?: Prisma.AttendanceSessionOrderByRelationAggregateInput
+  issuedDocuments?: Prisma.IssuedDocumentOrderByRelationAggregateInput
   branch?: Prisma.BranchOrderByWithRelationInput
 }
 
@@ -289,6 +291,7 @@ export type SchoolYearWhereUniqueInput = Prisma.AtLeast<{
   grades?: Prisma.StudentGradeListRelationFilter
   parentFeedback?: Prisma.ParentFeedbackListRelationFilter
   attendanceSession?: Prisma.AttendanceSessionListRelationFilter
+  issuedDocuments?: Prisma.IssuedDocumentListRelationFilter
   branch?: Prisma.XOR<Prisma.BranchScalarRelationFilter, Prisma.BranchWhereInput>
 }, "id" | "branchId_startYear_endYear" | "branchId_nameYear">
 
@@ -345,6 +348,7 @@ export type SchoolYearCreateInput = {
   grades?: Prisma.StudentGradeCreateNestedManyWithoutSchoolYearInput
   parentFeedback?: Prisma.ParentFeedbackCreateNestedManyWithoutSchoolYearInput
   attendanceSession?: Prisma.AttendanceSessionCreateNestedManyWithoutSchoolYearInput
+  issuedDocuments?: Prisma.IssuedDocumentCreateNestedManyWithoutSchoolYearInput
   branch: Prisma.BranchCreateNestedOneWithoutSchoolYearInput
 }
 
@@ -368,6 +372,7 @@ export type SchoolYearUncheckedCreateInput = {
   grades?: Prisma.StudentGradeUncheckedCreateNestedManyWithoutSchoolYearInput
   parentFeedback?: Prisma.ParentFeedbackUncheckedCreateNestedManyWithoutSchoolYearInput
   attendanceSession?: Prisma.AttendanceSessionUncheckedCreateNestedManyWithoutSchoolYearInput
+  issuedDocuments?: Prisma.IssuedDocumentUncheckedCreateNestedManyWithoutSchoolYearInput
 }
 
 export type SchoolYearUpdateInput = {
@@ -389,6 +394,7 @@ export type SchoolYearUpdateInput = {
   grades?: Prisma.StudentGradeUpdateManyWithoutSchoolYearNestedInput
   parentFeedback?: Prisma.ParentFeedbackUpdateManyWithoutSchoolYearNestedInput
   attendanceSession?: Prisma.AttendanceSessionUpdateManyWithoutSchoolYearNestedInput
+  issuedDocuments?: Prisma.IssuedDocumentUpdateManyWithoutSchoolYearNestedInput
   branch?: Prisma.BranchUpdateOneRequiredWithoutSchoolYearNestedInput
 }
 
@@ -412,6 +418,7 @@ export type SchoolYearUncheckedUpdateInput = {
   grades?: Prisma.StudentGradeUncheckedUpdateManyWithoutSchoolYearNestedInput
   parentFeedback?: Prisma.ParentFeedbackUncheckedUpdateManyWithoutSchoolYearNestedInput
   attendanceSession?: Prisma.AttendanceSessionUncheckedUpdateManyWithoutSchoolYearNestedInput
+  issuedDocuments?: Prisma.IssuedDocumentUncheckedUpdateManyWithoutSchoolYearNestedInput
 }
 
 export type SchoolYearCreateManyInput = {
@@ -690,6 +697,22 @@ export type SchoolYearUncheckedUpdateManyWithoutBranchNestedInput = {
   deleteMany?: Prisma.SchoolYearScalarWhereInput | Prisma.SchoolYearScalarWhereInput[]
 }
 
+export type SchoolYearCreateNestedOneWithoutIssuedDocumentsInput = {
+  create?: Prisma.XOR<Prisma.SchoolYearCreateWithoutIssuedDocumentsInput, Prisma.SchoolYearUncheckedCreateWithoutIssuedDocumentsInput>
+  connectOrCreate?: Prisma.SchoolYearCreateOrConnectWithoutIssuedDocumentsInput
+  connect?: Prisma.SchoolYearWhereUniqueInput
+}
+
+export type SchoolYearUpdateOneWithoutIssuedDocumentsNestedInput = {
+  create?: Prisma.XOR<Prisma.SchoolYearCreateWithoutIssuedDocumentsInput, Prisma.SchoolYearUncheckedCreateWithoutIssuedDocumentsInput>
+  connectOrCreate?: Prisma.SchoolYearCreateOrConnectWithoutIssuedDocumentsInput
+  upsert?: Prisma.SchoolYearUpsertWithoutIssuedDocumentsInput
+  disconnect?: Prisma.SchoolYearWhereInput | boolean
+  delete?: Prisma.SchoolYearWhereInput | boolean
+  connect?: Prisma.SchoolYearWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.SchoolYearUpdateToOneWithWhereWithoutIssuedDocumentsInput, Prisma.SchoolYearUpdateWithoutIssuedDocumentsInput>, Prisma.SchoolYearUncheckedUpdateWithoutIssuedDocumentsInput>
+}
+
 export type SchoolYearCreateWithoutAttendanceSessionInput = {
   id?: string
   nameYear: string
@@ -708,6 +731,7 @@ export type SchoolYearCreateWithoutAttendanceSessionInput = {
   invoices?: Prisma.InvoiceCreateNestedManyWithoutSchoolYearInput
   grades?: Prisma.StudentGradeCreateNestedManyWithoutSchoolYearInput
   parentFeedback?: Prisma.ParentFeedbackCreateNestedManyWithoutSchoolYearInput
+  issuedDocuments?: Prisma.IssuedDocumentCreateNestedManyWithoutSchoolYearInput
   branch: Prisma.BranchCreateNestedOneWithoutSchoolYearInput
 }
 
@@ -730,6 +754,7 @@ export type SchoolYearUncheckedCreateWithoutAttendanceSessionInput = {
   invoices?: Prisma.InvoiceUncheckedCreateNestedManyWithoutSchoolYearInput
   grades?: Prisma.StudentGradeUncheckedCreateNestedManyWithoutSchoolYearInput
   parentFeedback?: Prisma.ParentFeedbackUncheckedCreateNestedManyWithoutSchoolYearInput
+  issuedDocuments?: Prisma.IssuedDocumentUncheckedCreateNestedManyWithoutSchoolYearInput
 }
 
 export type SchoolYearCreateOrConnectWithoutAttendanceSessionInput = {
@@ -766,6 +791,7 @@ export type SchoolYearUpdateWithoutAttendanceSessionInput = {
   invoices?: Prisma.InvoiceUpdateManyWithoutSchoolYearNestedInput
   grades?: Prisma.StudentGradeUpdateManyWithoutSchoolYearNestedInput
   parentFeedback?: Prisma.ParentFeedbackUpdateManyWithoutSchoolYearNestedInput
+  issuedDocuments?: Prisma.IssuedDocumentUpdateManyWithoutSchoolYearNestedInput
   branch?: Prisma.BranchUpdateOneRequiredWithoutSchoolYearNestedInput
 }
 
@@ -788,6 +814,7 @@ export type SchoolYearUncheckedUpdateWithoutAttendanceSessionInput = {
   invoices?: Prisma.InvoiceUncheckedUpdateManyWithoutSchoolYearNestedInput
   grades?: Prisma.StudentGradeUncheckedUpdateManyWithoutSchoolYearNestedInput
   parentFeedback?: Prisma.ParentFeedbackUncheckedUpdateManyWithoutSchoolYearNestedInput
+  issuedDocuments?: Prisma.IssuedDocumentUncheckedUpdateManyWithoutSchoolYearNestedInput
 }
 
 export type SchoolYearCreateWithoutParentFeedbackInput = {
@@ -808,6 +835,7 @@ export type SchoolYearCreateWithoutParentFeedbackInput = {
   invoices?: Prisma.InvoiceCreateNestedManyWithoutSchoolYearInput
   grades?: Prisma.StudentGradeCreateNestedManyWithoutSchoolYearInput
   attendanceSession?: Prisma.AttendanceSessionCreateNestedManyWithoutSchoolYearInput
+  issuedDocuments?: Prisma.IssuedDocumentCreateNestedManyWithoutSchoolYearInput
   branch: Prisma.BranchCreateNestedOneWithoutSchoolYearInput
 }
 
@@ -830,6 +858,7 @@ export type SchoolYearUncheckedCreateWithoutParentFeedbackInput = {
   invoices?: Prisma.InvoiceUncheckedCreateNestedManyWithoutSchoolYearInput
   grades?: Prisma.StudentGradeUncheckedCreateNestedManyWithoutSchoolYearInput
   attendanceSession?: Prisma.AttendanceSessionUncheckedCreateNestedManyWithoutSchoolYearInput
+  issuedDocuments?: Prisma.IssuedDocumentUncheckedCreateNestedManyWithoutSchoolYearInput
 }
 
 export type SchoolYearCreateOrConnectWithoutParentFeedbackInput = {
@@ -866,6 +895,7 @@ export type SchoolYearUpdateWithoutParentFeedbackInput = {
   invoices?: Prisma.InvoiceUpdateManyWithoutSchoolYearNestedInput
   grades?: Prisma.StudentGradeUpdateManyWithoutSchoolYearNestedInput
   attendanceSession?: Prisma.AttendanceSessionUpdateManyWithoutSchoolYearNestedInput
+  issuedDocuments?: Prisma.IssuedDocumentUpdateManyWithoutSchoolYearNestedInput
   branch?: Prisma.BranchUpdateOneRequiredWithoutSchoolYearNestedInput
 }
 
@@ -888,6 +918,7 @@ export type SchoolYearUncheckedUpdateWithoutParentFeedbackInput = {
   invoices?: Prisma.InvoiceUncheckedUpdateManyWithoutSchoolYearNestedInput
   grades?: Prisma.StudentGradeUncheckedUpdateManyWithoutSchoolYearNestedInput
   attendanceSession?: Prisma.AttendanceSessionUncheckedUpdateManyWithoutSchoolYearNestedInput
+  issuedDocuments?: Prisma.IssuedDocumentUncheckedUpdateManyWithoutSchoolYearNestedInput
 }
 
 export type SchoolYearCreateWithoutGradesInput = {
@@ -908,6 +939,7 @@ export type SchoolYearCreateWithoutGradesInput = {
   invoices?: Prisma.InvoiceCreateNestedManyWithoutSchoolYearInput
   parentFeedback?: Prisma.ParentFeedbackCreateNestedManyWithoutSchoolYearInput
   attendanceSession?: Prisma.AttendanceSessionCreateNestedManyWithoutSchoolYearInput
+  issuedDocuments?: Prisma.IssuedDocumentCreateNestedManyWithoutSchoolYearInput
   branch: Prisma.BranchCreateNestedOneWithoutSchoolYearInput
 }
 
@@ -930,6 +962,7 @@ export type SchoolYearUncheckedCreateWithoutGradesInput = {
   invoices?: Prisma.InvoiceUncheckedCreateNestedManyWithoutSchoolYearInput
   parentFeedback?: Prisma.ParentFeedbackUncheckedCreateNestedManyWithoutSchoolYearInput
   attendanceSession?: Prisma.AttendanceSessionUncheckedCreateNestedManyWithoutSchoolYearInput
+  issuedDocuments?: Prisma.IssuedDocumentUncheckedCreateNestedManyWithoutSchoolYearInput
 }
 
 export type SchoolYearCreateOrConnectWithoutGradesInput = {
@@ -966,6 +999,7 @@ export type SchoolYearUpdateWithoutGradesInput = {
   invoices?: Prisma.InvoiceUpdateManyWithoutSchoolYearNestedInput
   parentFeedback?: Prisma.ParentFeedbackUpdateManyWithoutSchoolYearNestedInput
   attendanceSession?: Prisma.AttendanceSessionUpdateManyWithoutSchoolYearNestedInput
+  issuedDocuments?: Prisma.IssuedDocumentUpdateManyWithoutSchoolYearNestedInput
   branch?: Prisma.BranchUpdateOneRequiredWithoutSchoolYearNestedInput
 }
 
@@ -988,6 +1022,7 @@ export type SchoolYearUncheckedUpdateWithoutGradesInput = {
   invoices?: Prisma.InvoiceUncheckedUpdateManyWithoutSchoolYearNestedInput
   parentFeedback?: Prisma.ParentFeedbackUncheckedUpdateManyWithoutSchoolYearNestedInput
   attendanceSession?: Prisma.AttendanceSessionUncheckedUpdateManyWithoutSchoolYearNestedInput
+  issuedDocuments?: Prisma.IssuedDocumentUncheckedUpdateManyWithoutSchoolYearNestedInput
 }
 
 export type SchoolYearCreateWithoutFraisInput = {
@@ -1008,6 +1043,7 @@ export type SchoolYearCreateWithoutFraisInput = {
   grades?: Prisma.StudentGradeCreateNestedManyWithoutSchoolYearInput
   parentFeedback?: Prisma.ParentFeedbackCreateNestedManyWithoutSchoolYearInput
   attendanceSession?: Prisma.AttendanceSessionCreateNestedManyWithoutSchoolYearInput
+  issuedDocuments?: Prisma.IssuedDocumentCreateNestedManyWithoutSchoolYearInput
   branch: Prisma.BranchCreateNestedOneWithoutSchoolYearInput
 }
 
@@ -1030,6 +1066,7 @@ export type SchoolYearUncheckedCreateWithoutFraisInput = {
   grades?: Prisma.StudentGradeUncheckedCreateNestedManyWithoutSchoolYearInput
   parentFeedback?: Prisma.ParentFeedbackUncheckedCreateNestedManyWithoutSchoolYearInput
   attendanceSession?: Prisma.AttendanceSessionUncheckedCreateNestedManyWithoutSchoolYearInput
+  issuedDocuments?: Prisma.IssuedDocumentUncheckedCreateNestedManyWithoutSchoolYearInput
 }
 
 export type SchoolYearCreateOrConnectWithoutFraisInput = {
@@ -1066,6 +1103,7 @@ export type SchoolYearUpdateWithoutFraisInput = {
   grades?: Prisma.StudentGradeUpdateManyWithoutSchoolYearNestedInput
   parentFeedback?: Prisma.ParentFeedbackUpdateManyWithoutSchoolYearNestedInput
   attendanceSession?: Prisma.AttendanceSessionUpdateManyWithoutSchoolYearNestedInput
+  issuedDocuments?: Prisma.IssuedDocumentUpdateManyWithoutSchoolYearNestedInput
   branch?: Prisma.BranchUpdateOneRequiredWithoutSchoolYearNestedInput
 }
 
@@ -1088,6 +1126,7 @@ export type SchoolYearUncheckedUpdateWithoutFraisInput = {
   grades?: Prisma.StudentGradeUncheckedUpdateManyWithoutSchoolYearNestedInput
   parentFeedback?: Prisma.ParentFeedbackUncheckedUpdateManyWithoutSchoolYearNestedInput
   attendanceSession?: Prisma.AttendanceSessionUncheckedUpdateManyWithoutSchoolYearNestedInput
+  issuedDocuments?: Prisma.IssuedDocumentUncheckedUpdateManyWithoutSchoolYearNestedInput
 }
 
 export type SchoolYearCreateWithoutClassEnrollmentInput = {
@@ -1108,6 +1147,7 @@ export type SchoolYearCreateWithoutClassEnrollmentInput = {
   grades?: Prisma.StudentGradeCreateNestedManyWithoutSchoolYearInput
   parentFeedback?: Prisma.ParentFeedbackCreateNestedManyWithoutSchoolYearInput
   attendanceSession?: Prisma.AttendanceSessionCreateNestedManyWithoutSchoolYearInput
+  issuedDocuments?: Prisma.IssuedDocumentCreateNestedManyWithoutSchoolYearInput
   branch: Prisma.BranchCreateNestedOneWithoutSchoolYearInput
 }
 
@@ -1130,6 +1170,7 @@ export type SchoolYearUncheckedCreateWithoutClassEnrollmentInput = {
   grades?: Prisma.StudentGradeUncheckedCreateNestedManyWithoutSchoolYearInput
   parentFeedback?: Prisma.ParentFeedbackUncheckedCreateNestedManyWithoutSchoolYearInput
   attendanceSession?: Prisma.AttendanceSessionUncheckedCreateNestedManyWithoutSchoolYearInput
+  issuedDocuments?: Prisma.IssuedDocumentUncheckedCreateNestedManyWithoutSchoolYearInput
 }
 
 export type SchoolYearCreateOrConnectWithoutClassEnrollmentInput = {
@@ -1166,6 +1207,7 @@ export type SchoolYearUpdateWithoutClassEnrollmentInput = {
   grades?: Prisma.StudentGradeUpdateManyWithoutSchoolYearNestedInput
   parentFeedback?: Prisma.ParentFeedbackUpdateManyWithoutSchoolYearNestedInput
   attendanceSession?: Prisma.AttendanceSessionUpdateManyWithoutSchoolYearNestedInput
+  issuedDocuments?: Prisma.IssuedDocumentUpdateManyWithoutSchoolYearNestedInput
   branch?: Prisma.BranchUpdateOneRequiredWithoutSchoolYearNestedInput
 }
 
@@ -1188,6 +1230,7 @@ export type SchoolYearUncheckedUpdateWithoutClassEnrollmentInput = {
   grades?: Prisma.StudentGradeUncheckedUpdateManyWithoutSchoolYearNestedInput
   parentFeedback?: Prisma.ParentFeedbackUncheckedUpdateManyWithoutSchoolYearNestedInput
   attendanceSession?: Prisma.AttendanceSessionUncheckedUpdateManyWithoutSchoolYearNestedInput
+  issuedDocuments?: Prisma.IssuedDocumentUncheckedUpdateManyWithoutSchoolYearNestedInput
 }
 
 export type SchoolYearCreateWithoutTeachingInput = {
@@ -1208,6 +1251,7 @@ export type SchoolYearCreateWithoutTeachingInput = {
   grades?: Prisma.StudentGradeCreateNestedManyWithoutSchoolYearInput
   parentFeedback?: Prisma.ParentFeedbackCreateNestedManyWithoutSchoolYearInput
   attendanceSession?: Prisma.AttendanceSessionCreateNestedManyWithoutSchoolYearInput
+  issuedDocuments?: Prisma.IssuedDocumentCreateNestedManyWithoutSchoolYearInput
   branch: Prisma.BranchCreateNestedOneWithoutSchoolYearInput
 }
 
@@ -1230,6 +1274,7 @@ export type SchoolYearUncheckedCreateWithoutTeachingInput = {
   grades?: Prisma.StudentGradeUncheckedCreateNestedManyWithoutSchoolYearInput
   parentFeedback?: Prisma.ParentFeedbackUncheckedCreateNestedManyWithoutSchoolYearInput
   attendanceSession?: Prisma.AttendanceSessionUncheckedCreateNestedManyWithoutSchoolYearInput
+  issuedDocuments?: Prisma.IssuedDocumentUncheckedCreateNestedManyWithoutSchoolYearInput
 }
 
 export type SchoolYearCreateOrConnectWithoutTeachingInput = {
@@ -1266,6 +1311,7 @@ export type SchoolYearUpdateWithoutTeachingInput = {
   grades?: Prisma.StudentGradeUpdateManyWithoutSchoolYearNestedInput
   parentFeedback?: Prisma.ParentFeedbackUpdateManyWithoutSchoolYearNestedInput
   attendanceSession?: Prisma.AttendanceSessionUpdateManyWithoutSchoolYearNestedInput
+  issuedDocuments?: Prisma.IssuedDocumentUpdateManyWithoutSchoolYearNestedInput
   branch?: Prisma.BranchUpdateOneRequiredWithoutSchoolYearNestedInput
 }
 
@@ -1288,6 +1334,7 @@ export type SchoolYearUncheckedUpdateWithoutTeachingInput = {
   grades?: Prisma.StudentGradeUncheckedUpdateManyWithoutSchoolYearNestedInput
   parentFeedback?: Prisma.ParentFeedbackUncheckedUpdateManyWithoutSchoolYearNestedInput
   attendanceSession?: Prisma.AttendanceSessionUncheckedUpdateManyWithoutSchoolYearNestedInput
+  issuedDocuments?: Prisma.IssuedDocumentUncheckedUpdateManyWithoutSchoolYearNestedInput
 }
 
 export type SchoolYearCreateWithoutCalendarEventInput = {
@@ -1308,6 +1355,7 @@ export type SchoolYearCreateWithoutCalendarEventInput = {
   grades?: Prisma.StudentGradeCreateNestedManyWithoutSchoolYearInput
   parentFeedback?: Prisma.ParentFeedbackCreateNestedManyWithoutSchoolYearInput
   attendanceSession?: Prisma.AttendanceSessionCreateNestedManyWithoutSchoolYearInput
+  issuedDocuments?: Prisma.IssuedDocumentCreateNestedManyWithoutSchoolYearInput
   branch: Prisma.BranchCreateNestedOneWithoutSchoolYearInput
 }
 
@@ -1330,6 +1378,7 @@ export type SchoolYearUncheckedCreateWithoutCalendarEventInput = {
   grades?: Prisma.StudentGradeUncheckedCreateNestedManyWithoutSchoolYearInput
   parentFeedback?: Prisma.ParentFeedbackUncheckedCreateNestedManyWithoutSchoolYearInput
   attendanceSession?: Prisma.AttendanceSessionUncheckedCreateNestedManyWithoutSchoolYearInput
+  issuedDocuments?: Prisma.IssuedDocumentUncheckedCreateNestedManyWithoutSchoolYearInput
 }
 
 export type SchoolYearCreateOrConnectWithoutCalendarEventInput = {
@@ -1366,6 +1415,7 @@ export type SchoolYearUpdateWithoutCalendarEventInput = {
   grades?: Prisma.StudentGradeUpdateManyWithoutSchoolYearNestedInput
   parentFeedback?: Prisma.ParentFeedbackUpdateManyWithoutSchoolYearNestedInput
   attendanceSession?: Prisma.AttendanceSessionUpdateManyWithoutSchoolYearNestedInput
+  issuedDocuments?: Prisma.IssuedDocumentUpdateManyWithoutSchoolYearNestedInput
   branch?: Prisma.BranchUpdateOneRequiredWithoutSchoolYearNestedInput
 }
 
@@ -1388,6 +1438,7 @@ export type SchoolYearUncheckedUpdateWithoutCalendarEventInput = {
   grades?: Prisma.StudentGradeUncheckedUpdateManyWithoutSchoolYearNestedInput
   parentFeedback?: Prisma.ParentFeedbackUncheckedUpdateManyWithoutSchoolYearNestedInput
   attendanceSession?: Prisma.AttendanceSessionUncheckedUpdateManyWithoutSchoolYearNestedInput
+  issuedDocuments?: Prisma.IssuedDocumentUncheckedUpdateManyWithoutSchoolYearNestedInput
 }
 
 export type SchoolYearCreateWithoutInvoicesInput = {
@@ -1408,6 +1459,7 @@ export type SchoolYearCreateWithoutInvoicesInput = {
   grades?: Prisma.StudentGradeCreateNestedManyWithoutSchoolYearInput
   parentFeedback?: Prisma.ParentFeedbackCreateNestedManyWithoutSchoolYearInput
   attendanceSession?: Prisma.AttendanceSessionCreateNestedManyWithoutSchoolYearInput
+  issuedDocuments?: Prisma.IssuedDocumentCreateNestedManyWithoutSchoolYearInput
   branch: Prisma.BranchCreateNestedOneWithoutSchoolYearInput
 }
 
@@ -1430,6 +1482,7 @@ export type SchoolYearUncheckedCreateWithoutInvoicesInput = {
   grades?: Prisma.StudentGradeUncheckedCreateNestedManyWithoutSchoolYearInput
   parentFeedback?: Prisma.ParentFeedbackUncheckedCreateNestedManyWithoutSchoolYearInput
   attendanceSession?: Prisma.AttendanceSessionUncheckedCreateNestedManyWithoutSchoolYearInput
+  issuedDocuments?: Prisma.IssuedDocumentUncheckedCreateNestedManyWithoutSchoolYearInput
 }
 
 export type SchoolYearCreateOrConnectWithoutInvoicesInput = {
@@ -1466,6 +1519,7 @@ export type SchoolYearUpdateWithoutInvoicesInput = {
   grades?: Prisma.StudentGradeUpdateManyWithoutSchoolYearNestedInput
   parentFeedback?: Prisma.ParentFeedbackUpdateManyWithoutSchoolYearNestedInput
   attendanceSession?: Prisma.AttendanceSessionUpdateManyWithoutSchoolYearNestedInput
+  issuedDocuments?: Prisma.IssuedDocumentUpdateManyWithoutSchoolYearNestedInput
   branch?: Prisma.BranchUpdateOneRequiredWithoutSchoolYearNestedInput
 }
 
@@ -1488,6 +1542,7 @@ export type SchoolYearUncheckedUpdateWithoutInvoicesInput = {
   grades?: Prisma.StudentGradeUncheckedUpdateManyWithoutSchoolYearNestedInput
   parentFeedback?: Prisma.ParentFeedbackUncheckedUpdateManyWithoutSchoolYearNestedInput
   attendanceSession?: Prisma.AttendanceSessionUncheckedUpdateManyWithoutSchoolYearNestedInput
+  issuedDocuments?: Prisma.IssuedDocumentUncheckedUpdateManyWithoutSchoolYearNestedInput
 }
 
 export type SchoolYearCreateWithoutBranchInput = {
@@ -1509,6 +1564,7 @@ export type SchoolYearCreateWithoutBranchInput = {
   grades?: Prisma.StudentGradeCreateNestedManyWithoutSchoolYearInput
   parentFeedback?: Prisma.ParentFeedbackCreateNestedManyWithoutSchoolYearInput
   attendanceSession?: Prisma.AttendanceSessionCreateNestedManyWithoutSchoolYearInput
+  issuedDocuments?: Prisma.IssuedDocumentCreateNestedManyWithoutSchoolYearInput
 }
 
 export type SchoolYearUncheckedCreateWithoutBranchInput = {
@@ -1530,6 +1586,7 @@ export type SchoolYearUncheckedCreateWithoutBranchInput = {
   grades?: Prisma.StudentGradeUncheckedCreateNestedManyWithoutSchoolYearInput
   parentFeedback?: Prisma.ParentFeedbackUncheckedCreateNestedManyWithoutSchoolYearInput
   attendanceSession?: Prisma.AttendanceSessionUncheckedCreateNestedManyWithoutSchoolYearInput
+  issuedDocuments?: Prisma.IssuedDocumentUncheckedCreateNestedManyWithoutSchoolYearInput
 }
 
 export type SchoolYearCreateOrConnectWithoutBranchInput = {
@@ -1575,6 +1632,110 @@ export type SchoolYearScalarWhereInput = {
   branchId?: Prisma.StringFilter<"SchoolYear"> | string
 }
 
+export type SchoolYearCreateWithoutIssuedDocumentsInput = {
+  id?: string
+  nameYear: string
+  startYear: Date | string
+  endYear: Date | string
+  isCurrentYear?: boolean
+  isArchived?: boolean
+  archivedAt?: Date | string | null
+  archivedById?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  classEnrollment?: Prisma.ClassEnrollmentCreateNestedManyWithoutSchoolYearInput
+  teaching?: Prisma.TeachingCreateNestedManyWithoutSchoolYearInput
+  frais?: Prisma.FraisCreateNestedManyWithoutSchoolYearInput
+  CalendarEvent?: Prisma.CalendarEventCreateNestedManyWithoutSchoolYearInput
+  invoices?: Prisma.InvoiceCreateNestedManyWithoutSchoolYearInput
+  grades?: Prisma.StudentGradeCreateNestedManyWithoutSchoolYearInput
+  parentFeedback?: Prisma.ParentFeedbackCreateNestedManyWithoutSchoolYearInput
+  attendanceSession?: Prisma.AttendanceSessionCreateNestedManyWithoutSchoolYearInput
+  branch: Prisma.BranchCreateNestedOneWithoutSchoolYearInput
+}
+
+export type SchoolYearUncheckedCreateWithoutIssuedDocumentsInput = {
+  id?: string
+  nameYear: string
+  startYear: Date | string
+  endYear: Date | string
+  isCurrentYear?: boolean
+  isArchived?: boolean
+  archivedAt?: Date | string | null
+  archivedById?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  branchId: string
+  classEnrollment?: Prisma.ClassEnrollmentUncheckedCreateNestedManyWithoutSchoolYearInput
+  teaching?: Prisma.TeachingUncheckedCreateNestedManyWithoutSchoolYearInput
+  frais?: Prisma.FraisUncheckedCreateNestedManyWithoutSchoolYearInput
+  CalendarEvent?: Prisma.CalendarEventUncheckedCreateNestedManyWithoutSchoolYearInput
+  invoices?: Prisma.InvoiceUncheckedCreateNestedManyWithoutSchoolYearInput
+  grades?: Prisma.StudentGradeUncheckedCreateNestedManyWithoutSchoolYearInput
+  parentFeedback?: Prisma.ParentFeedbackUncheckedCreateNestedManyWithoutSchoolYearInput
+  attendanceSession?: Prisma.AttendanceSessionUncheckedCreateNestedManyWithoutSchoolYearInput
+}
+
+export type SchoolYearCreateOrConnectWithoutIssuedDocumentsInput = {
+  where: Prisma.SchoolYearWhereUniqueInput
+  create: Prisma.XOR<Prisma.SchoolYearCreateWithoutIssuedDocumentsInput, Prisma.SchoolYearUncheckedCreateWithoutIssuedDocumentsInput>
+}
+
+export type SchoolYearUpsertWithoutIssuedDocumentsInput = {
+  update: Prisma.XOR<Prisma.SchoolYearUpdateWithoutIssuedDocumentsInput, Prisma.SchoolYearUncheckedUpdateWithoutIssuedDocumentsInput>
+  create: Prisma.XOR<Prisma.SchoolYearCreateWithoutIssuedDocumentsInput, Prisma.SchoolYearUncheckedCreateWithoutIssuedDocumentsInput>
+  where?: Prisma.SchoolYearWhereInput
+}
+
+export type SchoolYearUpdateToOneWithWhereWithoutIssuedDocumentsInput = {
+  where?: Prisma.SchoolYearWhereInput
+  data: Prisma.XOR<Prisma.SchoolYearUpdateWithoutIssuedDocumentsInput, Prisma.SchoolYearUncheckedUpdateWithoutIssuedDocumentsInput>
+}
+
+export type SchoolYearUpdateWithoutIssuedDocumentsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  nameYear?: Prisma.StringFieldUpdateOperationsInput | string
+  startYear?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  endYear?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  isCurrentYear?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  classEnrollment?: Prisma.ClassEnrollmentUpdateManyWithoutSchoolYearNestedInput
+  teaching?: Prisma.TeachingUpdateManyWithoutSchoolYearNestedInput
+  frais?: Prisma.FraisUpdateManyWithoutSchoolYearNestedInput
+  CalendarEvent?: Prisma.CalendarEventUpdateManyWithoutSchoolYearNestedInput
+  invoices?: Prisma.InvoiceUpdateManyWithoutSchoolYearNestedInput
+  grades?: Prisma.StudentGradeUpdateManyWithoutSchoolYearNestedInput
+  parentFeedback?: Prisma.ParentFeedbackUpdateManyWithoutSchoolYearNestedInput
+  attendanceSession?: Prisma.AttendanceSessionUpdateManyWithoutSchoolYearNestedInput
+  branch?: Prisma.BranchUpdateOneRequiredWithoutSchoolYearNestedInput
+}
+
+export type SchoolYearUncheckedUpdateWithoutIssuedDocumentsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  nameYear?: Prisma.StringFieldUpdateOperationsInput | string
+  startYear?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  endYear?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  isCurrentYear?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  branchId?: Prisma.StringFieldUpdateOperationsInput | string
+  classEnrollment?: Prisma.ClassEnrollmentUncheckedUpdateManyWithoutSchoolYearNestedInput
+  teaching?: Prisma.TeachingUncheckedUpdateManyWithoutSchoolYearNestedInput
+  frais?: Prisma.FraisUncheckedUpdateManyWithoutSchoolYearNestedInput
+  CalendarEvent?: Prisma.CalendarEventUncheckedUpdateManyWithoutSchoolYearNestedInput
+  invoices?: Prisma.InvoiceUncheckedUpdateManyWithoutSchoolYearNestedInput
+  grades?: Prisma.StudentGradeUncheckedUpdateManyWithoutSchoolYearNestedInput
+  parentFeedback?: Prisma.ParentFeedbackUncheckedUpdateManyWithoutSchoolYearNestedInput
+  attendanceSession?: Prisma.AttendanceSessionUncheckedUpdateManyWithoutSchoolYearNestedInput
+}
+
 export type SchoolYearCreateManyBranchInput = {
   id?: string
   nameYear: string
@@ -1607,6 +1768,7 @@ export type SchoolYearUpdateWithoutBranchInput = {
   grades?: Prisma.StudentGradeUpdateManyWithoutSchoolYearNestedInput
   parentFeedback?: Prisma.ParentFeedbackUpdateManyWithoutSchoolYearNestedInput
   attendanceSession?: Prisma.AttendanceSessionUpdateManyWithoutSchoolYearNestedInput
+  issuedDocuments?: Prisma.IssuedDocumentUpdateManyWithoutSchoolYearNestedInput
 }
 
 export type SchoolYearUncheckedUpdateWithoutBranchInput = {
@@ -1628,6 +1790,7 @@ export type SchoolYearUncheckedUpdateWithoutBranchInput = {
   grades?: Prisma.StudentGradeUncheckedUpdateManyWithoutSchoolYearNestedInput
   parentFeedback?: Prisma.ParentFeedbackUncheckedUpdateManyWithoutSchoolYearNestedInput
   attendanceSession?: Prisma.AttendanceSessionUncheckedUpdateManyWithoutSchoolYearNestedInput
+  issuedDocuments?: Prisma.IssuedDocumentUncheckedUpdateManyWithoutSchoolYearNestedInput
 }
 
 export type SchoolYearUncheckedUpdateManyWithoutBranchInput = {
@@ -1657,6 +1820,7 @@ export type SchoolYearCountOutputType = {
   grades: number
   parentFeedback: number
   attendanceSession: number
+  issuedDocuments: number
 }
 
 export type SchoolYearCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1668,6 +1832,7 @@ export type SchoolYearCountOutputTypeSelect<ExtArgs extends runtime.Types.Extens
   grades?: boolean | SchoolYearCountOutputTypeCountGradesArgs
   parentFeedback?: boolean | SchoolYearCountOutputTypeCountParentFeedbackArgs
   attendanceSession?: boolean | SchoolYearCountOutputTypeCountAttendanceSessionArgs
+  issuedDocuments?: boolean | SchoolYearCountOutputTypeCountIssuedDocumentsArgs
 }
 
 /**
@@ -1736,6 +1901,13 @@ export type SchoolYearCountOutputTypeCountAttendanceSessionArgs<ExtArgs extends 
   where?: Prisma.AttendanceSessionWhereInput
 }
 
+/**
+ * SchoolYearCountOutputType without action
+ */
+export type SchoolYearCountOutputTypeCountIssuedDocumentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.IssuedDocumentWhereInput
+}
+
 
 export type SchoolYearSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1757,6 +1929,7 @@ export type SchoolYearSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   grades?: boolean | Prisma.SchoolYear$gradesArgs<ExtArgs>
   parentFeedback?: boolean | Prisma.SchoolYear$parentFeedbackArgs<ExtArgs>
   attendanceSession?: boolean | Prisma.SchoolYear$attendanceSessionArgs<ExtArgs>
+  issuedDocuments?: boolean | Prisma.SchoolYear$issuedDocumentsArgs<ExtArgs>
   branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
   _count?: boolean | Prisma.SchoolYearCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["schoolYear"]>
@@ -1815,6 +1988,7 @@ export type SchoolYearInclude<ExtArgs extends runtime.Types.Extensions.InternalA
   grades?: boolean | Prisma.SchoolYear$gradesArgs<ExtArgs>
   parentFeedback?: boolean | Prisma.SchoolYear$parentFeedbackArgs<ExtArgs>
   attendanceSession?: boolean | Prisma.SchoolYear$attendanceSessionArgs<ExtArgs>
+  issuedDocuments?: boolean | Prisma.SchoolYear$issuedDocumentsArgs<ExtArgs>
   branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
   _count?: boolean | Prisma.SchoolYearCountOutputTypeDefaultArgs<ExtArgs>
 }
@@ -1836,6 +2010,7 @@ export type $SchoolYearPayload<ExtArgs extends runtime.Types.Extensions.Internal
     grades: Prisma.$StudentGradePayload<ExtArgs>[]
     parentFeedback: Prisma.$ParentFeedbackPayload<ExtArgs>[]
     attendanceSession: Prisma.$AttendanceSessionPayload<ExtArgs>[]
+    issuedDocuments: Prisma.$IssuedDocumentPayload<ExtArgs>[]
     branch: Prisma.$BranchPayload<ExtArgs>
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
@@ -2252,6 +2427,7 @@ export interface Prisma__SchoolYearClient<T, Null = never, ExtArgs extends runti
   grades<T extends Prisma.SchoolYear$gradesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.SchoolYear$gradesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$StudentGradePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   parentFeedback<T extends Prisma.SchoolYear$parentFeedbackArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.SchoolYear$parentFeedbackArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ParentFeedbackPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   attendanceSession<T extends Prisma.SchoolYear$attendanceSessionArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.SchoolYear$attendanceSessionArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AttendanceSessionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  issuedDocuments<T extends Prisma.SchoolYear$issuedDocumentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.SchoolYear$issuedDocumentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$IssuedDocumentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   branch<T extends Prisma.BranchDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.BranchDefaultArgs<ExtArgs>>): Prisma.Prisma__BranchClient<runtime.Types.Result.GetResult<Prisma.$BranchPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -2883,6 +3059,30 @@ export type SchoolYear$attendanceSessionArgs<ExtArgs extends runtime.Types.Exten
   take?: number
   skip?: number
   distinct?: Prisma.AttendanceSessionScalarFieldEnum | Prisma.AttendanceSessionScalarFieldEnum[]
+}
+
+/**
+ * SchoolYear.issuedDocuments
+ */
+export type SchoolYear$issuedDocumentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the IssuedDocument
+   */
+  select?: Prisma.IssuedDocumentSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the IssuedDocument
+   */
+  omit?: Prisma.IssuedDocumentOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.IssuedDocumentInclude<ExtArgs> | null
+  where?: Prisma.IssuedDocumentWhereInput
+  orderBy?: Prisma.IssuedDocumentOrderByWithRelationInput | Prisma.IssuedDocumentOrderByWithRelationInput[]
+  cursor?: Prisma.IssuedDocumentWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.IssuedDocumentScalarFieldEnum | Prisma.IssuedDocumentScalarFieldEnum[]
 }
 
 /**

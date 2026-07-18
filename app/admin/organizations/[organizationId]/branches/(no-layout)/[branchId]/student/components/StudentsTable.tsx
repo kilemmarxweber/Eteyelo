@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Table } from "@tanstack/react-table";
 import { createStudentColumns } from "./columns";
 import { ResponsiveDataTable } from "@/components/custom";
 import { TableSkeleton } from "@/components/custom";
@@ -8,10 +9,15 @@ import { EmptyTableState } from "@/components/custom";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { IStudent } from "@/src/interfaces/Student";
 import { getStudentsAction } from "../student.action";
+import { getStudentPageContextAction } from "../../brevets/brevet.action";
 import { DataTableToolbar } from "./data-table-toolbar";
+import { ImportStudentDialog } from "./import-student-dialog";
 import { IconAlertCircle, IconUsers } from "@tabler/icons-react";
 import { useRefresh } from "@/src/hooks/RefreshContext";
 import { UpdateStudentDialog } from "./edit-student-dialog";
+import type { PeopleLabels } from "@/lib/people-labels";
+import { DEFAULT_PEOPLE_LABELS } from "@/lib/people-labels";
+import { getClassDisplayLabel, isUniversiteBranch } from "@/lib/branch-capabilities";
 
 const StudentsList = ({
   refreshKey,
@@ -27,6 +33,15 @@ const StudentsList = ({
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [editingStudent, setEditingStudent] = useState<IStudent | null>(null);
+  const [requiresImport, setRequiresImport] = useState(false);
+  const [supportsImport, setSupportsImport] = useState(false);
+  const [importScope, setImportScope] = useState<"school_only" | "organization">(
+    "school_only",
+  );
+  const [requiresAuditoireOnImport, setRequiresAuditoireOnImport] = useState(false);
+  const [peopleLabels, setPeopleLabels] = useState<PeopleLabels>(DEFAULT_PEOPLE_LABELS);
+  const [classLabel, setClassLabel] = useState("Classe");
+  const [importOpen, setImportOpen] = useState(false);
   const hasLoadedOnce = useRef(false);
   const { refreshKey: contextRefreshKey } = useRefresh();
 
@@ -41,6 +56,25 @@ const StudentsList = ({
     () => createStudentColumns(onRefresh, canManageStudents, tableActions),
     [canManageStudents, onRefresh, tableActions],
   );
+
+  const StudentToolbar = useMemo(() => {
+    function Toolbar(props: { table: Table<IStudent> }) {
+      return (
+        <DataTableToolbar
+          {...props}
+          canManageStudents={canManageStudents}
+          requiresImport={requiresImport}
+          supportsImport={supportsImport}
+          importScope={importScope}
+          peopleLabels={peopleLabels}
+          classLabel={classLabel}
+          onOpenImport={() => setImportOpen(true)}
+        />
+      );
+    }
+
+    return Toolbar;
+  }, [canManageStudents, classLabel, importScope, peopleLabels, requiresImport, supportsImport]);
 
   const fetchStudents = useCallback(async () => {
     const isInitialLoad = !hasLoadedOnce.current;
@@ -69,8 +103,33 @@ const StudentsList = ({
     void fetchStudents();
   }, [fetchStudents, refreshKey, contextRefreshKey]);
 
+  useEffect(() => {
+    void getStudentPageContextAction().then((context) => {
+      setRequiresImport(Boolean(context.requiresImport));
+      setSupportsImport(Boolean(context.supportsImport));
+      setImportScope(context.importScope ?? "school_only");
+      setRequiresAuditoireOnImport(Boolean(context.requiresAuditoireOnImport));
+      if (isUniversiteBranch(context.typebranch)) {
+        if (context.peopleLabels) {
+          setPeopleLabels(context.peopleLabels);
+        }
+        setClassLabel(getClassDisplayLabel(context.typebranch));
+      }
+    });
+  }, [refreshKey, contextRefreshKey]);
+
   const dialogs = (
     <>
+      <ImportStudentDialog
+        open={importOpen}
+        onOpenChange={setImportOpen}
+        importScope={importScope}
+        requiresAuditoireOnImport={requiresAuditoireOnImport}
+        peopleLabels={
+          requiresAuditoireOnImport ? peopleLabels : DEFAULT_PEOPLE_LABELS
+        }
+        onSuccess={onRefresh}
+      />
       {editingStudent && canManageStudents ? (
         <UpdateStudentDialog
           open
@@ -116,11 +175,44 @@ const StudentsList = ({
     return (
       <>
         {dialogs}
-        <div className="p-4">
+        <div className="space-y-4 p-4">
+          {requiresImport ? (
+            <Alert className="rounded-xl border-primary/20 bg-primary/5">
+              <AlertDescription>
+                Les eleves d&apos;atelier doivent etre importes depuis une
+                branche scolaire (primaire ou secondaire) de l&apos;organisation.
+              </AlertDescription>
+            </Alert>
+          ) : supportsImport ? (
+            <Alert className="rounded-xl border-primary/20 bg-primary/5">
+              <AlertDescription>
+                Vous pouvez creer des {peopleLabels.studentPluralLower} directement
+                ou les importer depuis une autre branche de l&apos;organisation.
+              </AlertDescription>
+            </Alert>
+          ) : null}
           <EmptyTableState
-            title="Aucun élève"
-            description="Ajoutez un élève pour commencer"
+            title={`Aucun ${peopleLabels.studentLower}`}
+            description={
+              requiresImport
+                ? "Importez un eleve scolaire pour commencer"
+                : supportsImport
+                  ? `Creez ou importez un ${peopleLabels.studentLower} pour commencer`
+                  : `Ajoutez un ${peopleLabels.studentLower} pour commencer`
+            }
             icon={<IconUsers />}
+            actionLabel={
+              (requiresImport || supportsImport) && canManageStudents
+                ? requiresImport
+                  ? "Importer un eleve"
+                  : `Importer un ${peopleLabels.studentLower}`
+                : undefined
+            }
+            onAction={
+              (requiresImport || supportsImport) && canManageStudents
+                ? () => setImportOpen(true)
+                : undefined
+            }
           />
         </div>
       </>
@@ -138,9 +230,9 @@ const StudentsList = ({
         ) : null}
         <ResponsiveDataTable
           columns={columns}
-          ToolbarComponent={DataTableToolbar}
+          ToolbarComponent={StudentToolbar}
           data={students}
-          emptyText="Aucun élève"
+          emptyText={`Aucun ${peopleLabels.studentLower}`}
           mobileCardTitle={(row) => `${row.nom} ${row.postnom} ${row.prenom}`}
           mobileCardSubtitle={(row) => row.username ?? ""}
         />

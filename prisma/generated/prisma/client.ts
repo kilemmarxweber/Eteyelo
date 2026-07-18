@@ -292,6 +292,16 @@ export type Partnaire = Prisma.PartnaireModel
  */
 export type BranchMember = Prisma.BranchMemberModel
 /**
+ * Model StudentBranchLink
+ * 
+ */
+export type StudentBranchLink = Prisma.StudentBranchLinkModel
+/**
+ * Model IssuedDocument
+ * 
+ */
+export type IssuedDocument = Prisma.IssuedDocumentModel
+/**
  * Model BranchInvitation
  * 
  */

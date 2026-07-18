@@ -16,7 +16,10 @@ interface Props {
   refreshKey?: number;
 }
 
+import { useSchoolYearLabels } from "@/hooks/use-school-year-labels";
+
 export default function SchoolYearsList({ branchId, refreshKey = 0 }: Props) {
+  const { labelLower } = useSchoolYearLabels();
   const [schoolYears, setSchoolYears] = useState<ISchoolYear[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -36,7 +39,7 @@ export default function SchoolYearsList({ branchId, refreshKey = 0 }: Props) {
 
         if (err) {
           throw new Error(
-            err.message || "Erreur lors du chargement des années scolaires",
+            err.message || `Erreur lors du chargement des ${labelLower}s`,
           );
         }
 
@@ -78,8 +81,8 @@ export default function SchoolYearsList({ branchId, refreshKey = 0 }: Props) {
     return (
       <div className="p-6">
         <EmptyTableState
-          title="Aucune année scolaire"
-          description="Ajoutez votre première année scolaire pour commencer."
+          title={`Aucune ${labelLower}`}
+          description={`Ajoutez votre première ${labelLower} pour commencer.`}
           icon={<IconCalendar className="h-10 w-10 text-muted-foreground" />}
         />
       </div>
@@ -92,7 +95,7 @@ export default function SchoolYearsList({ branchId, refreshKey = 0 }: Props) {
         columns={columns}
         ToolbarComponent={DataTableToolbar}
         data={schoolYears}
-        emptyText="Aucune année scolaire ajoutée"
+        emptyText={`Aucune ${labelLower} ajoutée`}
         mobileCardTitle={(row) => row.nameYear}
         mobileCardSubtitle={(row) =>
           `${new Date(row.startYear).getFullYear()} - ${new Date(

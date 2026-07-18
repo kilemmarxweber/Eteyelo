@@ -36,6 +36,10 @@ import generateUsername from "@/src/hooks/generateUsername";
 import { teacherSchema } from "@/src/interfaces/Teacher";
 
 import { createTeacherAction, updateTeacherAction } from "../teacher.action";
+import { getStaffPageContextAction } from "../../staff-import.action";
+import { isUniversiteBranch } from "@/lib/branch-capabilities";
+import type { PeopleLabels } from "@/lib/people-labels";
+import { DEFAULT_PEOPLE_LABELS } from "@/lib/people-labels";
 
 interface TeacherUpFormProps extends HTMLAttributes<HTMLDivElement> {
   onTeacherCreated?: () => void;
@@ -58,6 +62,7 @@ export function TeacherUpForm({
   const fieldClass = isDialog ? "space-y-0.5" : "space-y-1";
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [peopleLabels, setPeopleLabels] = useState<PeopleLabels>(DEFAULT_PEOPLE_LABELS);
   const sexeToUi: Record<string, "masculin" | "feminin"> = {
     M: "masculin",
     F: "feminin",
@@ -86,6 +91,14 @@ export function TeacherUpForm({
   const prenom = form.watch("prenom");
 
   useEffect(() => {
+    void getStaffPageContextAction().then((context) => {
+      if (isUniversiteBranch(context.typebranch) && context.peopleLabels) {
+        setPeopleLabels(context.peopleLabels);
+      }
+    });
+  }, []);
+
+  useEffect(() => {
     if (!nom || !prenom) return;
 
     const username = generateUsername("Teacher", nom, prenom);
@@ -106,7 +119,7 @@ export function TeacherUpForm({
           throw new Error(result?.message || "Creation impossible");
         }
 
-        toast.success("Enseignant cree avec succes");
+        toast.success(`${peopleLabels.teacher} cree avec succes`);
       } else {
         const [result, err] = await updateTeacherAction({ ...data });
         if (err) throw new Error(err.message);
@@ -114,7 +127,7 @@ export function TeacherUpForm({
           throw new Error(result?.message || "Mise a jour impossible");
         }
 
-        toast.success("Enseignant mis a jour avec succes");
+        toast.success(`${peopleLabels.teacher} mis a jour avec succes`);
       }
 
       if (mode === "create") {

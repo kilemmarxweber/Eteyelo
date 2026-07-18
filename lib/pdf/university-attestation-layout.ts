@@ -1,0 +1,135 @@
+import jsPDF from "jspdf";
+
+import {
+  downloadPdfOutput,
+  finalizePdfDocument,
+  formatFrenchDate,
+  safePdfFilePart,
+  type PdfOutput,
+} from "@/lib/pdf/pdf-engine";
+
+export const UNIVERSITY_ATTESTATION_KINDS = [
+  "INSCRIPTION",
+  "ASSIDUITE",
+  "REUSSITE_SEMESTRE",
+] as const;
+
+export type UniversityAttestationKind =
+  (typeof UNIVERSITY_ATTESTATION_KINDS)[number];
+
+export const UNIVERSITY_ATTESTATION_LABELS: Record<
+  UniversityAttestationKind,
+  string
+> = {
+  INSCRIPTION: "Attestation d'inscription",
+  ASSIDUITE: "Attestation d'assiduite",
+  REUSSITE_SEMESTRE: "Attestation de reussite semestrielle",
+};
+
+export type UniversityAttestationPdfInput = {
+  organizationName: string;
+  branchName: string;
+  schoolYearName?: string | null;
+  studentName: string;
+  username?: string | null;
+  auditoireName?: string | null;
+  filiereName?: string | null;
+  faculteName?: string | null;
+  semesterLabel?: string | null;
+  kind: UniversityAttestationKind;
+  issuedAt?: Date;
+};
+
+function buildBodyLines(input: UniversityAttestationPdfInput): string[] {
+  const common = [
+    "Nous soussignes certifions que",
+    input.studentName.toUpperCase(),
+    input.username ? `Matricule : ${input.username}` : null,
+    input.faculteName ? `Faculte : ${input.faculteName}` : null,
+    input.filiereName ? `Filiere : ${input.filiereName}` : null,
+    input.auditoireName ? `Auditoire : ${input.auditoireName}` : null,
+    input.schoolYearName ? `Annee academique : ${input.schoolYearName}` : null,
+  ].filter(Boolean) as string[];
+
+  switch (input.kind) {
+    case "INSCRIPTION":
+      return [
+        ...common,
+        "est regulierement inscrit(e) dans notre etablissement pour l'annee academique en cours.",
+      ];
+    case "ASSIDUITE":
+      return [
+        ...common,
+        "a fait preuve d'une assiduite satisfaisante aux cours et activites academiques.",
+      ];
+    case "REUSSITE_SEMESTRE":
+      return [
+        ...common,
+        input.semesterLabel
+          ? `a valide avec succes le ${input.semesterLabel}.`
+          : "a valide avec succes le semestre academique concerne.",
+      ];
+    default:
+      return common;
+  }
+}
+
+export function buildUniversityAttestationPdfDoc(input: UniversityAttestationPdfInput) {
+  const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const issuedAt = input.issuedAt ?? new Date();
+  const dateLabel = formatFrenchDate(issuedAt);
+
+  doc.setTextColor(15, 23, 42);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(14);
+  doc.text(input.organizationName, pageWidth / 2, 24, { align: "center" });
+
+  doc.setFontSize(11);
+  doc.setFont("helvetica", "normal");
+  doc.text(input.branchName, pageWidth / 2, 31, { align: "center" });
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(16);
+  doc.setTextColor(30, 64, 175);
+  doc.text(
+    UNIVERSITY_ATTESTATION_LABELS[input.kind].toUpperCase(),
+    pageWidth / 2,
+    48,
+    { align: "center", maxWidth: 170 },
+  );
+
+  doc.setTextColor(15, 23, 42);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(12);
+
+  const lines = buildBodyLines(input);
+  let y = 68;
+
+  for (const line of lines) {
+    const isName = line === input.studentName.toUpperCase();
+    doc.setFont("helvetica", isName ? "bold" : "normal");
+    doc.setFontSize(isName ? 14 : 12);
+    doc.text(line, pageWidth / 2, y, { align: "center", maxWidth: 170 });
+    y += isName ? 12 : 8;
+  }
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(11);
+  doc.text(`Fait le ${dateLabel}`, pageWidth / 2, y + 16, { align: "center" });
+  doc.text("Le secretaire academique", 30, 250);
+  doc.text("Le doyen / directeur", pageWidth - 30, 250, { align: "right" });
+
+  return doc;
+}
+
+export function createUniversityAttestationPdfOutput(
+  input: UniversityAttestationPdfInput,
+): PdfOutput {
+  const fileName = `attestation-${safePdfFilePart(input.kind)}-${safePdfFilePart(input.studentName)}.pdf`;
+  return finalizePdfDocument(buildUniversityAttestationPdfDoc(input), fileName);
+}
+
+export function generateUniversityAttestationPdf(input: UniversityAttestationPdfInput) {
+  downloadPdfOutput(createUniversityAttestationPdfOutput(input));
+}

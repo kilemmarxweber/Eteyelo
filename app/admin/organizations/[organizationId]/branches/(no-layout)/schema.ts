@@ -1,9 +1,6 @@
 import { z } from "zod";
 
-const branchTypeSchema = z.enum(["PRIMAIRE", "SECONDAIRE"], {
-  required_error: "Le type de branche est requis.",
-  invalid_type_error: "Le type de branche est invalide.",
-});
+import { branchTypeSchema } from "@/lib/schemas/extended-branch";
 
 const branchImagesSchema = z.object({
   logo: z.string(),

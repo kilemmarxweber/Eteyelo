@@ -2,6 +2,7 @@ import {
   type ManagedBranchType,
   normalizeBranchType,
 } from "@/lib/academic-structure";
+import { usesBulletinForBranch } from "@/lib/branch-capabilities";
 import { KLAMBOCORE_DEFAULT_IMAGE_PATH } from "@/lib/brand/klambocore-image";
 
 export type BulletinLayoutKind = "primary" | "secondary";
@@ -10,6 +11,10 @@ export type BulletinLayoutKind = "primary" | "secondary";
 export function resolveBulletinLayoutKind(
   branchType: ManagedBranchType | unknown,
 ): BulletinLayoutKind {
+  if (!usesBulletinForBranch(branchType)) {
+    return "secondary";
+  }
+
   return normalizeBranchType(branchType) === "PRIMAIRE" ? "primary" : "secondary";
 }
 

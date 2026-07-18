@@ -2,11 +2,19 @@
 
 import { Table } from "@tanstack/react-table";
 
-export function NotesToolbar({ table }: { table: Table<any> }) {
+type NotesToolbarProps = {
+  table: Table<any>;
+  studentPlural?: string;
+};
+
+export function NotesToolbar({
+  table,
+  studentPlural = "élèves",
+}: NotesToolbarProps) {
   return (
     <div className="flex items-center justify-between">
       <div className="text-sm text-muted-foreground">
-        {table.getFilteredRowModel().rows.length} élèves
+        {table.getFilteredRowModel().rows.length} {studentPlural}
       </div>
     </div>
   );

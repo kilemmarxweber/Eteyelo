@@ -434,6 +434,8 @@ export const ModelName = {
   JobApplication: 'JobApplication',
   Partnaire: 'Partnaire',
   BranchMember: 'BranchMember',
+  StudentBranchLink: 'StudentBranchLink',
+  IssuedDocument: 'IssuedDocument',
   BranchInvitation: 'BranchInvitation',
   PlatformSupportAgent: 'PlatformSupportAgent',
   OrganizationSupportAgent: 'OrganizationSupportAgent',
@@ -454,7 +456,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "parent" | "student" | "attendanceSession" | "studentAttendance" | "teacherAttendance" | "personnelAttendance" | "parentFeedback" | "studentGrade" | "personnel" | "frais" | "typeFrais" | "classe" | "creneau" | "option" | "section" | "schoolYear" | "classEnrollment" | "teacher" | "teaching" | "cours" | "coursOptionPonderation" | "schedule" | "calendarEvent" | "eventType" | "semester" | "period" | "periodResultLock" | "fiche" | "invoice" | "paymentBatch" | "familyPayment" | "cashierExpense" | "paymentAllocation" | "mobileMoneyTransaction" | "paymentEvent" | "discountRule" | "transaction" | "session" | "account" | "verification" | "organization" | "organizationRole" | "member" | "invitation" | "branch" | "registrationRequest" | "jobApplication" | "partnaire" | "branchMember" | "branchInvitation" | "platformSupportAgent" | "organizationSupportAgent" | "organizationSupportBranchScope" | "platformSupportEscalation"
+    modelProps: "user" | "parent" | "student" | "attendanceSession" | "studentAttendance" | "teacherAttendance" | "personnelAttendance" | "parentFeedback" | "studentGrade" | "personnel" | "frais" | "typeFrais" | "classe" | "creneau" | "option" | "section" | "schoolYear" | "classEnrollment" | "teacher" | "teaching" | "cours" | "coursOptionPonderation" | "schedule" | "calendarEvent" | "eventType" | "semester" | "period" | "periodResultLock" | "fiche" | "invoice" | "paymentBatch" | "familyPayment" | "cashierExpense" | "paymentAllocation" | "mobileMoneyTransaction" | "paymentEvent" | "discountRule" | "transaction" | "session" | "account" | "verification" | "organization" | "organizationRole" | "member" | "invitation" | "branch" | "registrationRequest" | "jobApplication" | "partnaire" | "branchMember" | "studentBranchLink" | "issuedDocument" | "branchInvitation" | "platformSupportAgent" | "organizationSupportAgent" | "organizationSupportBranchScope" | "platformSupportEscalation"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -4158,6 +4160,154 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    StudentBranchLink: {
+      payload: Prisma.$StudentBranchLinkPayload<ExtArgs>
+      fields: Prisma.StudentBranchLinkFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.StudentBranchLinkFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StudentBranchLinkPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.StudentBranchLinkFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StudentBranchLinkPayload>
+        }
+        findFirst: {
+          args: Prisma.StudentBranchLinkFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StudentBranchLinkPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.StudentBranchLinkFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StudentBranchLinkPayload>
+        }
+        findMany: {
+          args: Prisma.StudentBranchLinkFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StudentBranchLinkPayload>[]
+        }
+        create: {
+          args: Prisma.StudentBranchLinkCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StudentBranchLinkPayload>
+        }
+        createMany: {
+          args: Prisma.StudentBranchLinkCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.StudentBranchLinkCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StudentBranchLinkPayload>[]
+        }
+        delete: {
+          args: Prisma.StudentBranchLinkDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StudentBranchLinkPayload>
+        }
+        update: {
+          args: Prisma.StudentBranchLinkUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StudentBranchLinkPayload>
+        }
+        deleteMany: {
+          args: Prisma.StudentBranchLinkDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.StudentBranchLinkUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.StudentBranchLinkUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StudentBranchLinkPayload>[]
+        }
+        upsert: {
+          args: Prisma.StudentBranchLinkUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StudentBranchLinkPayload>
+        }
+        aggregate: {
+          args: Prisma.StudentBranchLinkAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateStudentBranchLink>
+        }
+        groupBy: {
+          args: Prisma.StudentBranchLinkGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.StudentBranchLinkGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.StudentBranchLinkCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.StudentBranchLinkCountAggregateOutputType> | number
+        }
+      }
+    }
+    IssuedDocument: {
+      payload: Prisma.$IssuedDocumentPayload<ExtArgs>
+      fields: Prisma.IssuedDocumentFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.IssuedDocumentFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IssuedDocumentPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.IssuedDocumentFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IssuedDocumentPayload>
+        }
+        findFirst: {
+          args: Prisma.IssuedDocumentFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IssuedDocumentPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.IssuedDocumentFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IssuedDocumentPayload>
+        }
+        findMany: {
+          args: Prisma.IssuedDocumentFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IssuedDocumentPayload>[]
+        }
+        create: {
+          args: Prisma.IssuedDocumentCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IssuedDocumentPayload>
+        }
+        createMany: {
+          args: Prisma.IssuedDocumentCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.IssuedDocumentCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IssuedDocumentPayload>[]
+        }
+        delete: {
+          args: Prisma.IssuedDocumentDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IssuedDocumentPayload>
+        }
+        update: {
+          args: Prisma.IssuedDocumentUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IssuedDocumentPayload>
+        }
+        deleteMany: {
+          args: Prisma.IssuedDocumentDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.IssuedDocumentUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.IssuedDocumentUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IssuedDocumentPayload>[]
+        }
+        upsert: {
+          args: Prisma.IssuedDocumentUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IssuedDocumentPayload>
+        }
+        aggregate: {
+          args: Prisma.IssuedDocumentAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateIssuedDocument>
+        }
+        groupBy: {
+          args: Prisma.IssuedDocumentGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.IssuedDocumentGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.IssuedDocumentCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.IssuedDocumentCountAggregateOutputType> | number
+        }
+      }
+    }
     BranchInvitation: {
       payload: Prisma.$BranchInvitationPayload<ExtArgs>
       fields: Prisma.BranchInvitationFieldRefs
@@ -5380,6 +5530,40 @@ export const BranchMemberScalarFieldEnum = {
 export type BranchMemberScalarFieldEnum = (typeof BranchMemberScalarFieldEnum)[keyof typeof BranchMemberScalarFieldEnum]
 
 
+export const StudentBranchLinkScalarFieldEnum = {
+  id: 'id',
+  studentId: 'studentId',
+  targetBranchId: 'targetBranchId',
+  sourceBranchId: 'sourceBranchId',
+  linkType: 'linkType',
+  isActive: 'isActive',
+  enrolledAt: 'enrolledAt',
+  endedAt: 'endedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type StudentBranchLinkScalarFieldEnum = (typeof StudentBranchLinkScalarFieldEnum)[keyof typeof StudentBranchLinkScalarFieldEnum]
+
+
+export const IssuedDocumentScalarFieldEnum = {
+  id: 'id',
+  branchId: 'branchId',
+  studentId: 'studentId',
+  schoolYearId: 'schoolYearId',
+  documentType: 'documentType',
+  title: 'title',
+  metadata: 'metadata',
+  issuedAt: 'issuedAt',
+  issuedById: 'issuedById',
+  pdfUrl: 'pdfUrl',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type IssuedDocumentScalarFieldEnum = (typeof IssuedDocumentScalarFieldEnum)[keyof typeof IssuedDocumentScalarFieldEnum]
+
+
 export const BranchInvitationScalarFieldEnum = {
   id: 'id',
   email: 'email',
@@ -5796,6 +5980,34 @@ export type ListEnumBranchRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$P
 
 
 /**
+ * Reference to a field of type 'StudentLinkType'
+ */
+export type EnumStudentLinkTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'StudentLinkType'>
+    
+
+
+/**
+ * Reference to a field of type 'StudentLinkType[]'
+ */
+export type ListEnumStudentLinkTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'StudentLinkType[]'>
+    
+
+
+/**
+ * Reference to a field of type 'IssuedDocumentType'
+ */
+export type EnumIssuedDocumentTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'IssuedDocumentType'>
+    
+
+
+/**
+ * Reference to a field of type 'IssuedDocumentType[]'
+ */
+export type ListEnumIssuedDocumentTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'IssuedDocumentType[]'>
+    
+
+
+/**
  * Reference to a field of type 'PlatformSupportEscalationStatus'
  */
 export type EnumPlatformSupportEscalationStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PlatformSupportEscalationStatus'>
@@ -5968,6 +6180,8 @@ export type GlobalOmitConfig = {
   jobApplication?: Prisma.JobApplicationOmit
   partnaire?: Prisma.PartnaireOmit
   branchMember?: Prisma.BranchMemberOmit
+  studentBranchLink?: Prisma.StudentBranchLinkOmit
+  issuedDocument?: Prisma.IssuedDocumentOmit
   branchInvitation?: Prisma.BranchInvitationOmit
   platformSupportAgent?: Prisma.PlatformSupportAgentOmit
   organizationSupportAgent?: Prisma.OrganizationSupportAgentOmit

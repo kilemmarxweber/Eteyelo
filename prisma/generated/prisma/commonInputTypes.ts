@@ -626,6 +626,40 @@ export type EnumBranchRoleWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedEnumBranchRoleFilter<$PrismaModel>
 }
 
+export type EnumStudentLinkTypeFilter<$PrismaModel = never> = {
+  equals?: $Enums.StudentLinkType | Prisma.EnumStudentLinkTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.StudentLinkType[] | Prisma.ListEnumStudentLinkTypeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.StudentLinkType[] | Prisma.ListEnumStudentLinkTypeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumStudentLinkTypeFilter<$PrismaModel> | $Enums.StudentLinkType
+}
+
+export type EnumStudentLinkTypeWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.StudentLinkType | Prisma.EnumStudentLinkTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.StudentLinkType[] | Prisma.ListEnumStudentLinkTypeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.StudentLinkType[] | Prisma.ListEnumStudentLinkTypeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumStudentLinkTypeWithAggregatesFilter<$PrismaModel> | $Enums.StudentLinkType
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumStudentLinkTypeFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumStudentLinkTypeFilter<$PrismaModel>
+}
+
+export type EnumIssuedDocumentTypeFilter<$PrismaModel = never> = {
+  equals?: $Enums.IssuedDocumentType | Prisma.EnumIssuedDocumentTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.IssuedDocumentType[] | Prisma.ListEnumIssuedDocumentTypeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.IssuedDocumentType[] | Prisma.ListEnumIssuedDocumentTypeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumIssuedDocumentTypeFilter<$PrismaModel> | $Enums.IssuedDocumentType
+}
+
+export type EnumIssuedDocumentTypeWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.IssuedDocumentType | Prisma.EnumIssuedDocumentTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.IssuedDocumentType[] | Prisma.ListEnumIssuedDocumentTypeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.IssuedDocumentType[] | Prisma.ListEnumIssuedDocumentTypeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumIssuedDocumentTypeWithAggregatesFilter<$PrismaModel> | $Enums.IssuedDocumentType
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumIssuedDocumentTypeFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumIssuedDocumentTypeFilter<$PrismaModel>
+}
+
 export type EnumPlatformSupportEscalationStatusFilter<$PrismaModel = never> = {
   equals?: $Enums.PlatformSupportEscalationStatus | Prisma.EnumPlatformSupportEscalationStatusFieldRefInput<$PrismaModel>
   in?: $Enums.PlatformSupportEscalationStatus[] | Prisma.ListEnumPlatformSupportEscalationStatusFieldRefInput<$PrismaModel>
@@ -1201,6 +1235,40 @@ export type NestedEnumBranchRoleWithAggregatesFilter<$PrismaModel = never> = {
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumBranchRoleFilter<$PrismaModel>
   _max?: Prisma.NestedEnumBranchRoleFilter<$PrismaModel>
+}
+
+export type NestedEnumStudentLinkTypeFilter<$PrismaModel = never> = {
+  equals?: $Enums.StudentLinkType | Prisma.EnumStudentLinkTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.StudentLinkType[] | Prisma.ListEnumStudentLinkTypeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.StudentLinkType[] | Prisma.ListEnumStudentLinkTypeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumStudentLinkTypeFilter<$PrismaModel> | $Enums.StudentLinkType
+}
+
+export type NestedEnumStudentLinkTypeWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.StudentLinkType | Prisma.EnumStudentLinkTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.StudentLinkType[] | Prisma.ListEnumStudentLinkTypeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.StudentLinkType[] | Prisma.ListEnumStudentLinkTypeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumStudentLinkTypeWithAggregatesFilter<$PrismaModel> | $Enums.StudentLinkType
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumStudentLinkTypeFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumStudentLinkTypeFilter<$PrismaModel>
+}
+
+export type NestedEnumIssuedDocumentTypeFilter<$PrismaModel = never> = {
+  equals?: $Enums.IssuedDocumentType | Prisma.EnumIssuedDocumentTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.IssuedDocumentType[] | Prisma.ListEnumIssuedDocumentTypeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.IssuedDocumentType[] | Prisma.ListEnumIssuedDocumentTypeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumIssuedDocumentTypeFilter<$PrismaModel> | $Enums.IssuedDocumentType
+}
+
+export type NestedEnumIssuedDocumentTypeWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.IssuedDocumentType | Prisma.EnumIssuedDocumentTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.IssuedDocumentType[] | Prisma.ListEnumIssuedDocumentTypeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.IssuedDocumentType[] | Prisma.ListEnumIssuedDocumentTypeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumIssuedDocumentTypeWithAggregatesFilter<$PrismaModel> | $Enums.IssuedDocumentType
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumIssuedDocumentTypeFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumIssuedDocumentTypeFilter<$PrismaModel>
 }
 
 export type NestedEnumPlatformSupportEscalationStatusFilter<$PrismaModel = never> = {

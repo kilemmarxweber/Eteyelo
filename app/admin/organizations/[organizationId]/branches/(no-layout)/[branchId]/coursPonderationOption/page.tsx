@@ -13,11 +13,14 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getCoursPonderationOptionPageDataAction, createCoursOptionPonderationAction, updateCoursOptionPonderationAction } from "./cours-ponderation-option.action";
+import { useBranchRouteGuard } from "@/hooks/use-branch-route-guard";
 
 type PageData = NonNullable<Awaited<ReturnType<typeof getCoursPonderationOptionPageDataAction>>[0]>;
 type Ponderation = PageData["ponderations"][number];
 
 export default function CoursPonderationOptionPage() {
+  useBranchRouteGuard({ routeSuffix: "/coursPonderationOption" });
+
   const [data, setData] = useState<PageData | null>(null);
   const [selectedOptionId, setSelectedOptionId] = useState("");
   const [search, setSearch] = useState("");

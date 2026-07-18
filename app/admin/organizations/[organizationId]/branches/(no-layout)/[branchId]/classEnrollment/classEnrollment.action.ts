@@ -39,9 +39,14 @@ export const createClassEnrollmentAction = action
       prisma.student.findFirst({
         where: {
           id: studentId,
-          branchMember: {
-            branchId,
-          },
+          OR: [
+            { branchMember: { branchId } },
+            {
+              branchLinks: {
+                some: { targetBranchId: branchId, isActive: true },
+              },
+            },
+          ],
         },
       }),
     ]);

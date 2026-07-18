@@ -19,6 +19,9 @@ import { Input } from "@/components/ui/input";
 import { HomeNavbar } from "@/components/home-navbar";
 
 import { createBranch } from "./ecole.action";
+import { BranchTypeSelect } from "@/components/branch/branch-type-select";
+import type { ManagedBranchType } from "@/lib/academic-structure";
+import { getBranchTypeDescription } from "@/lib/branch-route-guard";
 
 const BranchMapPicker = dynamic(() => import("./branch-map-picker"), {
   ssr: false,
@@ -42,7 +45,7 @@ export function BranchCreateForm({
     latitude: -4.4419,
     longitude: 15.2663,
     attendanceRadius: 100,
-    typebranch: "SECONDAIRE",
+    typebranch: "SECONDAIRE" as ManagedBranchType,
   });
 
   const update = (key: keyof typeof form, value: string | number) => {
@@ -98,8 +101,7 @@ export function BranchCreateForm({
       const res = await createBranch({
         ...form,
         organizationId,
-        typebranch:
-          form.typebranch === "PRIMAIRE" ? "PRIMAIRE" : "SECONDAIRE",
+        typebranch: form.typebranch as ManagedBranchType,
         latitude: Number(form.latitude),
         longitude: Number(form.longitude),
         attendanceRadius: Number(form.attendanceRadius),
@@ -177,14 +179,16 @@ export function BranchCreateForm({
               />
 
               <div className="grid gap-4 sm:grid-cols-2">
-                <select
-                  value={form.typebranch}
-                  onChange={(e) => update("typebranch", e.target.value)}
-                  className="h-12 rounded-2xl border border-input bg-background px-3 text-sm"
-                >
-                  <option value="PRIMAIRE">Primaire</option>
-                  <option value="SECONDAIRE">Secondaire</option>
-                </select>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-slate-700">
+                    Type d&apos;etablissement
+                  </label>
+                  <BranchTypeSelect
+                    value={form.typebranch as ManagedBranchType}
+                    onValueChange={(value) => update("typebranch", value)}
+                    className="h-12 rounded-2xl"
+                  />
+                </div>
 
                 <Input
                   placeholder="ID NAT"
@@ -193,6 +197,10 @@ export function BranchCreateForm({
                   className="h-12 rounded-2xl"
                 />
               </div>
+
+              <p className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm leading-6 text-slate-600">
+                {getBranchTypeDescription(form.typebranch)}
+              </p>
 
               <div className="relative">
                 <Phone className="absolute left-3 top-4 h-4 w-4 text-slate-400" />

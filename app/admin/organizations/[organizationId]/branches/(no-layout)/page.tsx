@@ -9,6 +9,7 @@ import { BackLink } from "@/components/ui/back-link";
 import { enforceOrganizationManagerPage } from "@/lib/auth/require-organization-permission";
 import { prisma } from "@/lib/prisma";
 import { BranchCard } from "./branchCard";
+import { BranchTypeBadge } from "@/components/branch/branch-type-badge";
 
 export const dynamic = "force-dynamic";
 
@@ -117,11 +118,8 @@ export default async function BranchesPage({ params }: BranchesPageProps) {
                     {branch.name}
                   </span>
 
-                  <span className="mt-1 block text-sm leading-5 text-muted-foreground">
-                    Type:{" "}
-                    {branch.typebranch === "PRIMAIRE"
-                      ? "Primaire"
-                      : "Secondaire"}
+                  <span className="mt-2 flex flex-wrap items-center gap-2">
+                    <BranchTypeBadge typebranch={branch.typebranch} />
                   </span>
 
                   <span className="mt-0.5 block text-sm leading-5 text-muted-foreground">

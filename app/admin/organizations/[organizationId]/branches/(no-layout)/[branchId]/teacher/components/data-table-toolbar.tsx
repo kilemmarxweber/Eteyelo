@@ -1,9 +1,9 @@
 "use client";
 
 import { Table } from "@tanstack/react-table";
-import { IconSearch, IconX } from "@tabler/icons-react";
+import { IconSearch, IconUpload, IconX } from "@tabler/icons-react";
 
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/custom/button";
 import { Input } from "@/components/ui/input";
 import { DataTableViewOptions } from "@/components/data-table-view-options";
 import { DataTableFacetedFilter } from "@/components/data-table-faceted-filter";
@@ -11,6 +11,9 @@ import type { ITeacher } from "@/src/interfaces/Teacher";
 
 interface DataTableToolbarProps<TData> {
   table: Table<TData>;
+  canManageTeachers?: boolean;
+  supportsStaffImport?: boolean;
+  onOpenImport?: () => void;
 }
 
 const assignmentStatuses = [
@@ -27,6 +30,9 @@ function uniqueOptions(values: string[]) {
 
 export function DataTableToolbar<TData>({
   table,
+  canManageTeachers = false,
+  supportsStaffImport = false,
+  onOpenImport,
 }: DataTableToolbarProps<TData>) {
   const isFiltered = table.getState().columnFilters.length > 0;
   const teachers = table
@@ -89,6 +95,16 @@ export function DataTableToolbar<TData>({
           >
             Reinitialiser
             <IconX className="ml-2 size-4" />
+          </Button>
+        ) : null}
+        {canManageTeachers && supportsStaffImport ? (
+          <Button
+            variant="outline"
+            size="sm"
+            leftSection={<IconUpload size={16} />}
+            onClick={() => onOpenImport?.()}
+          >
+            Importer
           </Button>
         ) : null}
         <DataTableViewOptions table={table} />

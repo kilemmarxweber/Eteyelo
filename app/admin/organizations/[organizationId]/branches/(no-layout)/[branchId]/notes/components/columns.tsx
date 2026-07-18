@@ -17,10 +17,17 @@ export const APPLICATION_VALUES: ApplicationValue[] = [
   "A",
   "AA",
 ];
+import { isUniversiteBranch } from "@/lib/branch-capabilities";
+import { UNIVERSITY_NOTES_LABELS } from "@/lib/university-lmd-labels";
+
 export const lessonColumns = (
   onSelect: (lessonId: string) => void,
   selectedLessonId: string | null,
-): ColumnDef<LessonRow>[] => [
+  typebranch?: unknown,
+): ColumnDef<LessonRow>[] => {
+  const isUniversite = isUniversiteBranch(typebranch);
+
+  return [
   {
     id: "select",
     header: "#",
@@ -43,16 +50,17 @@ export const lessonColumns = (
   },
   {
     accessorKey: "className",
-    header: "Classe",
+    header: isUniversite ? UNIVERSITY_NOTES_LABELS.auditoire : "Classe",
     size: 100,
     cell: ({ row }) => <div className="truncate">{row.original.className}</div>,
   },
   {
     accessorKey: "subjectName",
-    header: "Matière",
+    header: isUniversite ? UNIVERSITY_NOTES_LABELS.course : "Matière",
     size: 120,
     cell: ({ row }) => (
       <div className="truncate">{row.original.subjectName}</div>
     ),
   },
 ];
+};

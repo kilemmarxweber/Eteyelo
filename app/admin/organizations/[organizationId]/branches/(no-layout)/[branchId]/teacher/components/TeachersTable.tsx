@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { Table } from "@tanstack/react-table";
 import { createTeacherColumns } from "./columns";
 import { ResponsiveDataTable } from "@/components/custom";
 import { TableSkeleton } from "@/components/custom";
@@ -24,11 +25,15 @@ const TeachersList = ({
   onRefresh,
   canManageTeachers,
   assignmentFilter,
+  supportsStaffImport = false,
+  onOpenImport,
 }: {
   refreshKey: number;
   onRefresh: () => void;
   canManageTeachers: boolean;
   assignmentFilter: TeacherAssignmentFilter;
+  supportsStaffImport?: boolean;
+  onOpenImport?: () => void;
 }) => {
   const [teachers, setTeachers] = useState<ITeacher[]>([]);
   const [loading, setLoading] = useState(true);
@@ -49,6 +54,21 @@ const TeachersList = ({
     () => createTeacherColumns(onRefresh, canManageTeachers, tableActions),
     [canManageTeachers, onRefresh, tableActions],
   );
+
+  const TeacherToolbar = useMemo(() => {
+    function Toolbar(props: { table: Table<ITeacher> }) {
+      return (
+        <DataTableToolbar
+          {...props}
+          canManageTeachers={canManageTeachers}
+          supportsStaffImport={supportsStaffImport}
+          onOpenImport={onOpenImport}
+        />
+      );
+    }
+
+    return Toolbar;
+  }, [canManageTeachers, onOpenImport, supportsStaffImport]);
 
   const displayedTeachers = useMemo(
     () =>
@@ -159,8 +179,20 @@ const TeachersList = ({
         <div className="p-6">
           <EmptyTableState
             title="Aucun enseignant enregistré"
-            description="Ajoutez votre premier enseignant pour commencer."
+            description={
+              supportsStaffImport
+                ? "Creez ou importez un enseignant depuis une autre branche pour commencer."
+                : "Ajoutez votre premier enseignant pour commencer."
+            }
             icon={<IconUsers className="h-10 w-10 text-muted-foreground" />}
+            actionLabel={
+              supportsStaffImport && canManageTeachers
+                ? "Importer un enseignant"
+                : undefined
+            }
+            onAction={
+              supportsStaffImport && canManageTeachers ? onOpenImport : undefined
+            }
           />
         </div>
       </>
@@ -178,7 +210,7 @@ const TeachersList = ({
         ) : null}
         <ResponsiveDataTable
           columns={columns}
-          ToolbarComponent={DataTableToolbar}
+          ToolbarComponent={TeacherToolbar}
           data={displayedTeachers}
           emptyText="Aucun enseignant Ajouté"
           mobileCardTitle={(row) => `${row.nom} ${row.postnom} ${row.prenom}`}

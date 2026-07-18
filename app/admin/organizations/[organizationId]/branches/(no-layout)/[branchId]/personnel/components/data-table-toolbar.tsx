@@ -1,7 +1,7 @@
 "use client";
 
 import { Cross2Icon } from "@radix-ui/react-icons";
-import { IconFilter, IconSearch } from "@tabler/icons-react";
+import { IconFilter, IconSearch, IconUpload } from "@tabler/icons-react";
 import type { Table } from "@tanstack/react-table";
 
 import { Button } from "@/components/custom/button";
@@ -12,6 +12,8 @@ import { Input } from "@/components/ui/input";
 interface DataTableToolbarProps<TData> {
   table: Table<TData>;
   canManagePersonnel?: boolean;
+  supportsStaffImport?: boolean;
+  onOpenImport?: () => void;
 }
 
 const sexes = [
@@ -21,6 +23,9 @@ const sexes = [
 
 export function DataTableToolbar<TData>({
   table,
+  canManagePersonnel = false,
+  supportsStaffImport = false,
+  onOpenImport,
 }: DataTableToolbarProps<TData>) {
   const isFiltered = table.getState().columnFilters.length > 0;
 
@@ -59,6 +64,16 @@ export function DataTableToolbar<TData>({
         <Button variant="outline" leftSection={<IconFilter size={16} />}>
           Filtres
         </Button>
+
+        {canManagePersonnel && supportsStaffImport ? (
+          <Button
+            variant="outline"
+            leftSection={<IconUpload size={16} />}
+            onClick={() => onOpenImport?.()}
+          >
+            Importer
+          </Button>
+        ) : null}
 
         {isFiltered ? (
           <Button

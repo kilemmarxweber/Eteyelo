@@ -101,6 +101,8 @@ export const ModelName = {
   JobApplication: 'JobApplication',
   Partnaire: 'Partnaire',
   BranchMember: 'BranchMember',
+  StudentBranchLink: 'StudentBranchLink',
+  IssuedDocument: 'IssuedDocument',
   BranchInvitation: 'BranchInvitation',
   PlatformSupportAgent: 'PlatformSupportAgent',
   OrganizationSupportAgent: 'OrganizationSupportAgent',
@@ -935,6 +937,40 @@ export const BranchMemberScalarFieldEnum = {
 } as const
 
 export type BranchMemberScalarFieldEnum = (typeof BranchMemberScalarFieldEnum)[keyof typeof BranchMemberScalarFieldEnum]
+
+
+export const StudentBranchLinkScalarFieldEnum = {
+  id: 'id',
+  studentId: 'studentId',
+  targetBranchId: 'targetBranchId',
+  sourceBranchId: 'sourceBranchId',
+  linkType: 'linkType',
+  isActive: 'isActive',
+  enrolledAt: 'enrolledAt',
+  endedAt: 'endedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type StudentBranchLinkScalarFieldEnum = (typeof StudentBranchLinkScalarFieldEnum)[keyof typeof StudentBranchLinkScalarFieldEnum]
+
+
+export const IssuedDocumentScalarFieldEnum = {
+  id: 'id',
+  branchId: 'branchId',
+  studentId: 'studentId',
+  schoolYearId: 'schoolYearId',
+  documentType: 'documentType',
+  title: 'title',
+  metadata: 'metadata',
+  issuedAt: 'issuedAt',
+  issuedById: 'issuedById',
+  pdfUrl: 'pdfUrl',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type IssuedDocumentScalarFieldEnum = (typeof IssuedDocumentScalarFieldEnum)[keyof typeof IssuedDocumentScalarFieldEnum]
 
 
 export const BranchInvitationScalarFieldEnum = {

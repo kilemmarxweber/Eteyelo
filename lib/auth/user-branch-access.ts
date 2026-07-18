@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { ORG_ROLE } from "@/lib/permissions";
-import { BranchRole } from "@/prisma/generated/prisma/enums";
+import { BranchRole, TypeBrache } from "@/prisma/generated/prisma/enums";
 
 /** Rôles BranchMember qui doivent atterrir sur une branche. */
 const BRANCH_USER_ROLES = [
@@ -21,6 +21,7 @@ export const BRANCH_LOGIN_ORG_ROLES = new Set<string>([
 export type UserBranchMembership = {
   branchId: string;
   branchName: string;
+  typebranch: TypeBrache;
 };
 
 function splitRoles(value: string | null | undefined) {
@@ -33,12 +34,13 @@ function splitRoles(value: string | null | undefined) {
 function mapBranchMemberships(
   memberships: Array<{
     branchId: string;
-    branch: { name: string };
+    branch: { name: string; typebranch: TypeBrache };
   }>,
 ): UserBranchMembership[] {
   return memberships.map((membership) => ({
     branchId: membership.branchId,
     branchName: membership.branch.name,
+    typebranch: membership.branch.typebranch,
   }));
 }
 
@@ -64,6 +66,7 @@ export async function getUserBranchMemberships(
       branch: {
         select: {
           name: true,
+          typebranch: true,
         },
       },
     },
@@ -96,6 +99,7 @@ export async function getAnyUserBranchMemberships(
       branch: {
         select: {
           name: true,
+          typebranch: true,
         },
       },
     },
@@ -140,7 +144,7 @@ export async function getUserBranchMembershipsForLogin(
   const fallbackBranch = await prisma.branch.findFirst({
     where: { organizationId, isActive: true },
     orderBy: { createdAt: "asc" },
-    select: { id: true, name: true },
+    select: { id: true, name: true, typebranch: true },
   });
 
   if (!fallbackBranch) {
@@ -151,6 +155,7 @@ export async function getUserBranchMembershipsForLogin(
     {
       branchId: fallbackBranch.id,
       branchName: fallbackBranch.name,
+      typebranch: fallbackBranch.typebranch,
     },
   ];
 }

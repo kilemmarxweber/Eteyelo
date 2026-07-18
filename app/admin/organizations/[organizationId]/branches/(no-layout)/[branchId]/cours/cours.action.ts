@@ -15,6 +15,11 @@ import { getCatalogPrimaryPlacement, type PrimaryDomainCode } from "@/lib/primar
 import { upsertSecondaryCatalogCoursesForBranch } from "@/lib/secondary-catalog-sync";
 import { normalizeBranchType } from "@/lib/academic-structure";
 import { canManageOrganization } from "@/lib/auth/session-roles";
+import {
+  importCourseToBranch,
+  searchOrganizationCoursesForBranchImport,
+  supportsCourseImport,
+} from "@/lib/extended-course-import";
 
 function requireCoursManagement(session: unknown) {
   if (!canManageOrganization(session as Parameters<typeof canManageOrganization>[0])) {
@@ -323,6 +328,73 @@ export async function importSecondaryCatalogCoursesAction() {
       ` · ${result.ponderationsCreated} pondération(s) créée(s), ${result.ponderationsUpdated} mise(s) à jour`,
     ...result,
   };
+}
+
+export async function searchOrganizationCoursesForImportAction(params: {
+  query?: string;
+  limit?: number;
+}) {
+  const { branchId, organizationId, session, typebranch } =
+    await requireBranchContext();
+  requireCoursManagement(session);
+
+  if (!supportsCourseImport(typebranch)) {
+    return {
+      ok: false as const,
+      message: "L'import de cours n'est pas disponible pour ce type de branche",
+    };
+  }
+
+  const courses = await searchOrganizationCoursesForBranchImport({
+    organizationId,
+    targetBranchId: branchId,
+    query: params.query,
+    limit: params.limit,
+  });
+
+  return { ok: true as const, courses };
+}
+
+export async function importCourseFromBranchAction(input: {
+  courseId: string;
+  sourceBranchId: string;
+}) {
+  const { branchId, organizationId, session, typebranch } =
+    await requireBranchContext();
+  requireCoursManagement(session);
+
+  if (!supportsCourseImport(typebranch)) {
+    return {
+      ok: false as const,
+      message: "L'import de cours n'est pas disponible pour ce type de branche",
+    };
+  }
+
+  if (!input.courseId?.trim() || !input.sourceBranchId?.trim()) {
+    return { ok: false as const, message: "Donnees invalides" };
+  }
+
+  try {
+    await importCourseToBranch({
+      courseId: input.courseId.trim(),
+      sourceBranchId: input.sourceBranchId.trim(),
+      targetBranchId: branchId,
+      organizationId,
+      targetBranchType: typebranch,
+    });
+
+    revalidateCoursPages(organizationId, branchId);
+    revalidatePath(
+      `/admin/organizations/${organizationId}/branches/${branchId}/coursPonderationOption`,
+    );
+
+    return { ok: true as const };
+  } catch (error) {
+    return {
+      ok: false as const,
+      message: error instanceof Error ? error.message : "Import impossible",
+    };
+  }
 }
 
 // GET COURS BY CLASSE

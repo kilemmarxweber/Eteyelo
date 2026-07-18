@@ -58,6 +58,12 @@ import {
   requiresOptionForClass,
 } from "@/lib/class-structure";
 import {
+  getClassDisplayLabel,
+  getClassDisplayLabelPlural,
+} from "@/lib/branch-capabilities";
+import { getSchoolYearDisplayLabel, getSchoolYearDisplayLabelLower } from "@/lib/university-lmd";
+import { getPeopleLabels } from "@/lib/people-labels";
+import {
   REGISTRATION_PREFILL_EVENT,
   type PrefillEventDetail,
 } from "@/lib/prefill-events";
@@ -105,12 +111,6 @@ const emptyStudent: StudentForm = {
   placeOfBirth: "",
 };
 const emptyParent: ParentForm = { ...emptyPerson, discountPercentage: 0 };
-const steps = [
-  { label: "Élève", icon: IconUser },
-  { label: "Parent", icon: IconUsers },
-  { label: "Classe", icon: IconSchool },
-  { label: "Confirmation", icon: IconCheck },
-];
 
 function userOf(item: any) {
   return item.branchMember?.member?.user;
@@ -162,13 +162,6 @@ function isParentStepReady(
     parent.address,
   );
 }
-
-const historyLabels = {
-  new: "Nouvel élève",
-  passed: "Réussi — niveau supérieur",
-  failed: "Échoué — même niveau",
-  returning: "Retour après absence",
-} as const;
 
 function previewStudentCode(
   branchName: string,
@@ -233,6 +226,46 @@ export function RegistrationForm() {
   const photoPreview = useMemo(
     () => (photoFile ? URL.createObjectURL(photoFile) : photoUrl),
     [photoFile, photoUrl],
+  );
+  const peopleLabels = useMemo(
+    () => getPeopleLabels(options.typebranch),
+    [options.typebranch],
+  );
+  const classLabel = useMemo(
+    () => getClassDisplayLabel(options.typebranch),
+    [options.typebranch],
+  );
+  const classLabelPlural = useMemo(
+    () => getClassDisplayLabelPlural(options.typebranch),
+    [options.typebranch],
+  );
+  const classLabelLower = classLabel.toLowerCase();
+  const classLabelPluralLower = classLabelPlural.toLowerCase();
+  const schoolYearLabel = useMemo(
+    () => getSchoolYearDisplayLabel(options.typebranch),
+    [options.typebranch],
+  );
+  const schoolYearLabelLower = useMemo(
+    () => getSchoolYearDisplayLabelLower(options.typebranch),
+    [options.typebranch],
+  );
+  const registrationSteps = useMemo(
+    () => [
+      { label: peopleLabels.student, icon: IconUser },
+      { label: "Parent", icon: IconUsers },
+      { label: classLabel, icon: IconSchool },
+      { label: "Confirmation", icon: IconCheck },
+    ],
+    [classLabel, peopleLabels.student],
+  );
+  const historyLabels = useMemo(
+    () => ({
+      new: `Nouvel ${peopleLabels.studentLower}`,
+      passed: "Réussi — niveau supérieur",
+      failed: "Échoué — même niveau",
+      returning: "Retour après absence",
+    }),
+    [peopleLabels.studentLower],
   );
   useEffect(
     () => () => {
@@ -500,14 +533,14 @@ export function RegistrationForm() {
   }
   function goNext() {
     if (step === 0 && studentMode === "existing" && !studentId)
-      return toast.error("Sélectionnez un élève.");
+      return toast.error(`Sélectionnez un ${peopleLabels.studentLower}.`);
     if (
       step === 0 &&
       studentMode === "new" &&
       !isStudentStepReady(studentMode, studentId, student)
     )
       return toast.error(
-        "Complétez toutes les informations obligatoires de l'élève.",
+        `Complétez toutes les informations obligatoires de l'${peopleLabels.studentLower}.`,
       );
     if (step === 1 && parentMode === "existing" && !parentId)
       return toast.error("Sélectionnez un parent.");
@@ -522,18 +555,18 @@ export function RegistrationForm() {
     if (step === 2) {
       if (!schoolYearId || !level)
         return toast.error(
-          "Choisissez l'année scolaire et la classe demandée.",
+          `Choisissez l'${schoolYearLabelLower} et l'${classLabelLower} demandé(e).`,
         );
       if (requiresOptionForLevel(options.typebranch, level) && !optionId) {
         return toast.error("Choisissez une option pour ce niveau.");
       }
       if (selectedClasses.length === 0)
         return toast.error(
-          "Aucune classe n'est configurée pour ce niveau. Créez la première classe.",
+          `Aucun ${classLabelLower} n'est configuré pour ce niveau. Créez le premier ${classLabelLower}.`,
         );
       if (classesNeedingCapacity)
         return toast.error(
-          "Définissez la capacité de la classe avant de continuer.",
+          `Définissez la capacité de l'${classLabelLower} avant de continuer.`,
         );
       if (allClassesFull || !predictedClass)
         return toast.error(
@@ -641,16 +674,20 @@ export function RegistrationForm() {
   async function createNextParallel() {
     if (!level || !schoolYearId)
       return toast.error(
-        "Choisissez d'abord l'année scolaire et la classe demandée.",
+        `Choisissez d'abord l'${schoolYearLabelLower} et l'${classLabelLower} demandé(e).`,
       );
     if (requiresOptionForLevel(options.typebranch, level) && !optionId) {
       return toast.error("Choisissez une option pour ce niveau.");
     }
     if (!creneauId)
-      return toast.error("Sélectionnez une vacation pour créer la classe.");
+      return toast.error(
+        `Sélectionnez une vacation pour créer l'${classLabelLower}.`,
+      );
     const capacity = Number(classCapacity);
     if (!Number.isFinite(capacity) || capacity <= 0) {
-      return toast.error("Indiquez une capacité valide pour la classe.");
+      return toast.error(
+        `Indiquez une capacité valide pour l'${classLabelLower}.`,
+      );
     }
     setCreatingClass(true);
     const [classe, error] = await createNextParallelForRegistrationAction({
@@ -666,7 +703,7 @@ export function RegistrationForm() {
       ? ` (parallèle ${classe.parallel})`
       : "";
     toast.success(
-      `${classe.nameClasse}${parallelLabel} — capacité ${classe.capacity} élèves.`,
+      `${classe.nameClasse}${parallelLabel} — capacité ${classe.capacity} ${peopleLabels.studentPluralLower}.`,
     );
     await loadRegistrationOptions();
   }
@@ -792,7 +829,7 @@ export function RegistrationForm() {
                 </SelectContent>
               </Select>
             </Field>
-            <Field label="Capacité de la classe *">
+            <Field label={`Capacité de l'${classLabelLower} *`}>
               <Input
                 type="number"
                 min={1}
@@ -1123,8 +1160,8 @@ export function RegistrationForm() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-5">
-          <Progress value={((step + 1) / steps.length) * 100} />
-          {steps.map(({ label, icon: Icon }, index) => (
+          <Progress value={((step + 1) / registrationSteps.length) * 100} />
+          {registrationSteps.map(({ label, icon: Icon }, index) => (
             <div
               key={label}
               className={`flex items-center gap-3 rounded-lg border p-3 ${index === step ? "border-primary bg-primary/5" : ""}`}
@@ -1149,15 +1186,15 @@ export function RegistrationForm() {
         <CardHeader className="border-b">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <CardTitle className="text-2xl">{steps[step].label}</CardTitle>
+              <CardTitle className="text-2xl">{registrationSteps[step].label}</CardTitle>
               <CardDescription className="mt-1">
                 {step === 2
-                  ? "Choisissez la classe demandée ; la parallèle sera attribuée selon les places disponibles."
+                  ? `Choisissez l'${classLabelLower} demandé(e) ; la parallèle sera attribuée selon les places disponibles.`
                   : "Les champs marqués d'un astérisque sont obligatoires."}
               </CardDescription>
             </div>
             <Badge variant="secondary">
-              {step + 1} / {steps.length}
+              {step + 1} / {registrationSteps.length}
             </Badge>
           </div>
         </CardHeader>
@@ -1175,13 +1212,13 @@ export function RegistrationForm() {
                 <ModeChoice
                   id="student-new"
                   value="new"
-                  title="Nouvel élève"
+                  title={`Nouvel ${peopleLabels.studentLower}`}
                   description="Créer son compte et son dossier scolaire."
                 />
                 <ModeChoice
                   id="student-existing"
                   value="existing"
-                  title="Ancien élève"
+                  title={`Ancien ${peopleLabels.studentLower}`}
                   description="Retrouver son historique et le réinscrire."
                 />
               </RadioGroup>
@@ -1193,7 +1230,7 @@ export function RegistrationForm() {
                   query={studentQuery}
                   setQuery={setStudentQuery}
                   onSearch={searchStudents}
-                  placeholder="Nom, email ou téléphone de l'élève"
+                  placeholder={`Nom, email ou téléphone de l'${peopleLabels.studentLower}`}
                 >
                   {studentResults.map((item) => {
                     const user = userOf(item);
@@ -1206,7 +1243,7 @@ export function RegistrationForm() {
                         title={`${user?.name ?? ""} ${user?.postnom ?? ""} ${user?.prenom ?? ""}`}
                         subtitle={
                           last
-                            ? `Dernière classe : ${last.classe?.nameClasse} — ${last.schoolYear.nameYear}`
+                            ? `Dernière ${classLabelLower} : ${last.classe?.nameClasse} — ${last.schoolYear.nameYear}`
                             : "Aucune inscription précédente"
                         }
                       />
@@ -1214,7 +1251,9 @@ export function RegistrationForm() {
                   })}
                   {studentId && (
                     <div className="rounded-lg border bg-muted/30 p-4">
-                      <Label className="mb-3 block">Situation de l'élève</Label>
+                      <Label className="mb-3 block">
+                        {`Situation de l'${peopleLabels.studentLower}`}
+                      </Label>
                       <div className="flex flex-wrap gap-2">
                         <Button
                           variant={
@@ -1266,7 +1305,7 @@ export function RegistrationForm() {
                   id="parent-existing"
                   value="existing"
                   title="Parent existant"
-                  description="Lier l'élève à un responsable connu."
+                  description={`Lier l'${peopleLabels.studentLower} à un responsable connu.`}
                 />
               </RadioGroup>
               <Separator />
@@ -1298,13 +1337,13 @@ export function RegistrationForm() {
           {step === 2 && (
             <div className="space-y-6">
               {loadingOptions ? (
-                <p className="text-muted-foreground">Chargement des classes…</p>
+                <p className="text-muted-foreground">{`Chargement des ${classLabelPluralLower}…`}</p>
               ) : (
                 <>
                   <div
                     className={`grid gap-5 ${options.allowsOption ? "lg:grid-cols-3" : "lg:grid-cols-4"}`}
                   >
-                    <Field label="Année scolaire *">
+                    <Field label={`${schoolYearLabel} *`}>
                       <Select
                         value={schoolYearId}
                         onValueChange={setSchoolYearId}
@@ -1322,7 +1361,7 @@ export function RegistrationForm() {
                         </SelectContent>
                       </Select>
                     </Field>
-                    <Field label="Classe / niveau demandé *">
+                    <Field label={`${classLabel} / niveau demandé *`}>
                       <Select
                         value={level}
                         onValueChange={(value) => {
@@ -1331,7 +1370,7 @@ export function RegistrationForm() {
                         }}
                       >
                         <SelectTrigger>
-                          <SelectValue placeholder="Choisir la classe" />
+                          <SelectValue placeholder={`Choisir l'${classLabelLower}`} />
                         </SelectTrigger>
                         <SelectContent>
                           {options.levels.map((item: string) => (
@@ -1408,27 +1447,24 @@ export function RegistrationForm() {
                     <IconSchool className="h-4 w-4" />
                     <AlertTitle>Affectation automatique</AlertTitle>
                     <AlertDescription>
-                      La première classe est créée sans lettre. Lorsqu'elle est
-                      pleine, elle devient A et la nouvelle classe devient B,
-                      puis C, etc.
+                      {`Le premier ${classLabelLower} est créé sans lettre. Lorsqu'il est plein, il devient A et le nouveau ${classLabelLower} devient B, puis C, etc.`}
                     </AlertDescription>
                   </Alert>
                   <div>
                     <div className="mb-3 flex items-center justify-between">
                       <h3 className="font-semibold">Parallèles existantes</h3>
                       <Badge variant="outline">
-                        {selectedClasses.length} classe(s)
+                        {selectedClasses.length} {classLabelLower}(s)
                       </Badge>
                     </div>
                     {!level ? (
                       <p className="rounded-lg border border-dashed p-8 text-center text-muted-foreground">
-                        Sélectionnez une classe pour voir les parallèles.
+                        {`Sélectionnez un ${classLabelLower} pour voir les parallèles.`}
                       </p>
                     ) : requiresOptionForLevel(options.typebranch, level) &&
                       !optionId ? (
                       <p className="rounded-lg border border-dashed p-8 text-center text-muted-foreground">
-                        Choisissez une option pour afficher les classes et leur
-                        capacité.
+                        {`Choisissez une option pour afficher les ${classLabelPluralLower} et leur capacité.`}
                       </p>
                     ) : (
                       <>
@@ -1486,17 +1522,17 @@ export function RegistrationForm() {
                         {needsClassAction
                           ? renderClassCreationPanel(
                               selectedClasses.length === 0
-                                ? "Aucune classe configurée pour ce niveau"
+                                ? `Aucun ${classLabelLower} configuré pour ce niveau`
                                 : classesNeedingCapacity
                                   ? "Capacité à définir"
                                   : "Toutes les parallèles sont pleines",
                               selectedClasses.length === 0
-                                ? "Créez la première classe avec une vacation et une capacité."
+                                ? `Créez le premier ${classLabelLower} avec une vacation et une capacité.`
                                 : classesNeedingCapacity
-                                  ? "Les classes catalogue n'ont pas encore de capacité. Définissez-la pour pouvoir inscrire."
-                                  : "Créez la prochaine parallèle (A → B → C…). La classe simple pleine devient A.",
+                                  ? `Les ${classLabelPluralLower} catalogue n'ont pas encore de capacité. Définissez-la pour pouvoir inscrire.`
+                                  : `Créez la prochaine parallèle (A → B → C…). Le ${classLabelLower} simple plein devient A.`,
                               selectedClasses.length === 0
-                                ? "Créer la classe"
+                                ? `Créer l'${classLabelLower}`
                                 : classesNeedingCapacity
                                   ? "Définir la capacité"
                                   : "Créer la prochaine parallèle",
@@ -1508,7 +1544,7 @@ export function RegistrationForm() {
                             <IconCheck className="h-4 w-4" />
                             <AlertTitle>Affectation prévue</AlertTitle>
                             <AlertDescription>
-                              L'élève sera inscrit dans{" "}
+                              {`L'${peopleLabels.studentLower} sera inscrit dans `}
                               <strong>{predictedClass.nameClasse}</strong> (
                               {predictedClass.occupied + 1} /{" "}
                               {predictedClass.capacity} places).
@@ -1534,7 +1570,7 @@ export function RegistrationForm() {
               </Alert>
               <div className="grid gap-4 md:grid-cols-2">
                 <Summary
-                  title="Élève"
+                  title={peopleLabels.student}
                   lines={
                     studentMode === "new"
                       ? [
@@ -1549,11 +1585,11 @@ export function RegistrationForm() {
                         ]
                       : [
                           `${userOf(selectedStudent)?.name ?? ""} ${userOf(selectedStudent)?.postnom ?? ""} ${userOf(selectedStudent)?.prenom ?? ""}`.trim() ||
-                            "Élève existant",
+                            `${peopleLabels.student} existant`,
                           `Situation : ${historyLabels[historyOutcome]}`,
                           selectedStudent?.classEnrollment?.[0]?.classe
                             ?.nameClasse
-                            ? `Dernière classe : ${selectedStudent.classEnrollment[0].classe.nameClasse}`
+                            ? `Dernière ${classLabelLower} : ${selectedStudent.classEnrollment[0].classe.nameClasse}`
                             : "Aucune inscription précédente",
                         ]
                   }
@@ -1610,7 +1646,7 @@ export function RegistrationForm() {
                     predictedClass
                       ? `Places : ${predictedClass.occupied + 1} / ${predictedClass.capacity}`
                       : classesNeedingCapacity
-                        ? "Définissez d'abord la capacité de la classe"
+                        ? `Définissez d'abord la capacité de l'${classLabelLower}`
                         : "Créez une parallèle avant de confirmer",
                     "Inscription protégée contre les doublons",
                   ]}

@@ -22,10 +22,14 @@ const PersonnelsList = ({
   refreshKey,
   onRefresh,
   canManagePersonnel,
+  supportsStaffImport = false,
+  onOpenImport,
 }: {
   refreshKey: number;
   onRefresh: () => void;
   canManagePersonnel: boolean;
+  supportsStaffImport?: boolean;
+  onOpenImport?: () => void;
 }) => {
   const [personnels, setPersonnels] = useState<IPersonnel[]>([]);
   const [loading, setLoading] = useState(true);
@@ -57,10 +61,12 @@ const PersonnelsList = ({
           <DataTableToolbar
             table={table}
             canManagePersonnel={canManagePersonnel}
+            supportsStaffImport={supportsStaffImport}
+            onOpenImport={onOpenImport}
           />
         );
       },
-    [canManagePersonnel],
+    [canManagePersonnel, onOpenImport, supportsStaffImport],
   );
 
   const fetchPersonnels = useCallback(async () => {
@@ -137,8 +143,20 @@ const PersonnelsList = ({
         {dialogs}
         <EmptyTableState
           title="Aucun personnel enregistré"
-          description="Ajoutez votre premier membre du personnel pour commencer."
+          description={
+            supportsStaffImport
+              ? "Creez ou importez un personnel depuis une autre branche pour commencer."
+              : "Ajoutez votre premier membre du personnel pour commencer."
+          }
           icon={<IconUsers />}
+          actionLabel={
+            supportsStaffImport && canManagePersonnel
+              ? "Importer un personnel"
+              : undefined
+          }
+          onAction={
+            supportsStaffImport && canManagePersonnel ? onOpenImport : undefined
+          }
         />
       </>
     );

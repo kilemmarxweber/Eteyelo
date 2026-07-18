@@ -30,12 +30,15 @@ interface DeleteSchoolYearsDialogProps extends React.ComponentPropsWithoutRef<
   SchoolYears: Row<ISchoolYear>["original"][];
 }
 
+import { useSchoolYearLabels } from "@/hooks/use-school-year-labels";
+
 export function DeleteSchoolYearsDialog({
   showTrigger = true,
   onSuccess,
   SchoolYears,
   ...props
 }: DeleteSchoolYearsDialogProps) {
+  const { label, labelLower, labelPlural } = useSchoolYearLabels();
   const [isArchivePending, startArchiveTransition] = useTransition();
 
   const { refresh } = useRefresh();
@@ -54,8 +57,8 @@ export function DeleteSchoolYearsDialog({
       if (!hasError) {
         toast.success(
           SchoolYears.length === 1
-            ? "Année scolaire clôturée"
-            : "Années scolaires clôturées",
+            ? `${label} clôturée`
+            : `${labelPlural} clôturées`,
         );
         refresh();
         onSuccess?.();
@@ -80,13 +83,13 @@ export function DeleteSchoolYearsDialog({
         <DialogHeader>
           <DialogTitle>
             {count === 1
-              ? "Clôturer l'année scolaire ?"
-              : `Clôturer ${count} années scolaires ?`}
+              ? `Clôturer l'${labelLower} ?`
+              : `Clôturer ${count} ${labelPlural.toLowerCase()} ?`}
           </DialogTitle>
           <DialogDescription>
             {count === 1
-              ? "L'année scolaire sera clôturée et masquée des listes actives mais l'historique sera conservé."
-              : "Ces années scolaires seront clôturées et masquées des listes actives mais l'historique sera conservé."}
+              ? `L'${labelLower} sera clôturée et masquée des listes actives mais l'historique sera conservé.`
+              : `Ces ${labelPlural.toLowerCase()} seront clôturées et masquées des listes actives mais l'historique sera conservé.`}
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="gap-2 sm:space-x-0">

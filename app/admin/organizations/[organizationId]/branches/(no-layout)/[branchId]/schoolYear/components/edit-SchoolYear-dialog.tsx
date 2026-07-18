@@ -13,6 +13,8 @@ import { SchoolYearUpForm } from "./SchoolYear-form"; // Importez votre formulai
 import { ISchoolYear } from "@/src/interfaces/SchoolYear";
 import { useRefresh } from "@/src/hooks/RefreshContext";
 
+import { useSchoolYearLabels } from "@/hooks/use-school-year-labels";
+
 interface UpdateSchoolYearDialogProps extends React.ComponentPropsWithoutRef<
   typeof Dialog
 > {
@@ -29,6 +31,7 @@ export function UpdateSchoolYearDialog({
   branchId,
   ...props
 }: UpdateSchoolYearDialogProps) {
+  const { labelLower } = useSchoolYearLabels();
   const { refresh } = useRefresh();
 
   const handleUpdate = () => {
@@ -40,10 +43,9 @@ export function UpdateSchoolYearDialog({
     <Dialog {...props}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Éditer l'année scolaire</DialogTitle>
+          <DialogTitle>{`Éditer l'${labelLower}`}</DialogTitle>
           <DialogDescription>
-            Modifiez les détails de l'année scolaire ici. Cliquez sur
-            Enregistrer lorsque vous êtes fait.
+            {`Modifiez les détails de l'${labelLower} ici. Cliquez sur Enregistrer lorsque vous avez terminé.`}
           </DialogDescription>
         </DialogHeader>
         <SchoolYearUpForm

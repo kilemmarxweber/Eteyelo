@@ -21,9 +21,17 @@ import { useRefresh } from "@/src/hooks/RefreshContext";
 import { getCoursAction, importSecondaryCatalogCoursesAction } from "../cours.action";
 import { CoursUpForm } from "./cours-form";
 import CoursList from "./coursTable";
+import { ImportCourseDialog } from "./import-course-dialog";
 
-export default function Cours({ isPrimary = false }: { isPrimary?: boolean }) {
+export default function Cours({
+  isPrimary = false,
+  supportsCourseImport = false,
+}: {
+  isPrimary?: boolean;
+  supportsCourseImport?: boolean;
+}) {
   const [open, setOpen] = useState(false);
+  const [importCourseOpen, setImportCourseOpen] = useState(false);
   const [stats, setStats] = useState({ total: 0, active: 0, inactive: 0 });
   const [importing, startImport] = useTransition();
   const { refreshKey, refresh } = useRefresh();
@@ -64,7 +72,7 @@ export default function Cours({ isPrimary = false }: { isPrimary?: boolean }) {
 
   const headerActions = canCreate ? (
     <div className="flex flex-wrap gap-2">
-      {!isPrimary ? (
+      {!isPrimary && !supportsCourseImport ? (
         <Button
           type="button"
           variant="outline"
@@ -73,6 +81,16 @@ export default function Cours({ isPrimary = false }: { isPrimary?: boolean }) {
         >
           <IconDownload size={16} className="mr-2" />
           Importer catalogue
+        </Button>
+      ) : null}
+      {supportsCourseImport ? (
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => setImportCourseOpen(true)}
+        >
+          <IconDownload size={16} className="mr-2" />
+          Importer un cours
         </Button>
       ) : null}
       <Dialog open={open} onOpenChange={setOpen}>
@@ -95,9 +113,16 @@ export default function Cours({ isPrimary = false }: { isPrimary?: boolean }) {
   ) : null;
 
   return <Layout><LayoutBody className="space-y-5">
-    <PageHeader title="Gestion des cours" description={isPrimary ? "Créez et organisez les matières enseignées dans cet établissement." : "Créez les matières ou importez le catalogue RDC (socle commun + spécialités par option)."} badge={<Badge variant="outline-primary" icon={<IconBooks size={14} />}>Cours</Badge>} actions={headerActions} />
+    <PageHeader title="Gestion des cours" description={isPrimary ? "Créez et organisez les matières enseignées dans cet établissement." : supportsCourseImport ? "Créez les matières ou importez des cours depuis une autre branche de l'organisation." : "Créez les matières ou importez le catalogue RDC (socle commun + spécialités par option)."} badge={<Badge variant="outline-primary" icon={<IconBooks size={14} />}>Cours</Badge>} actions={headerActions} />
     <div className="grid gap-3 sm:grid-cols-3"><StatCard label="Total des cours" value={stats.total} icon={<IconBooks className="size-5" />} /><StatCard label="Cours actifs" value={stats.active} icon={<IconBook className="size-5 text-emerald-600" />} /><StatCard label="Cours inactifs" value={stats.inactive} icon={<IconBookOff className="size-5 text-slate-500" />} /></div>
     <Card variant="elevated" className="overflow-hidden rounded-md border p-1 shadow-sm md:p-3"><CoursList refreshKey={refreshKey} isPrimary={isPrimary} /></Card>
+    {supportsCourseImport ? (
+      <ImportCourseDialog
+        open={importCourseOpen}
+        onOpenChange={setImportCourseOpen}
+        onSuccess={refresh}
+      />
+    ) : null}
   </LayoutBody></Layout>;
 }
 

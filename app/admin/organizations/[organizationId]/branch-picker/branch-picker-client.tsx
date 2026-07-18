@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { BranchTypeBadge } from "@/components/branch/branch-type-badge";
 import type { UserBranchMembership } from "@/lib/auth/user-branch-access";
 
 type BranchPickerClientProps = {
@@ -27,11 +28,14 @@ export function BranchPickerClient({
         >
           <Link href={`${base}/enter/${branch.branchId}`}>
             <span>
-              <span className="block font-semibold text-foreground">
-                {branch.branchName}
+              <span className="flex flex-wrap items-center gap-2">
+                <span className="font-semibold text-foreground">
+                  {branch.branchName}
+                </span>
+                <BranchTypeBadge typebranch={branch.typebranch} />
               </span>
               <span className="mt-1 block text-xs text-muted-foreground">
-                Ouvrir cet établissement
+                Ouvrir cet etablissement
               </span>
             </span>
             <ArrowRight className="size-4 shrink-0 text-muted-foreground" />

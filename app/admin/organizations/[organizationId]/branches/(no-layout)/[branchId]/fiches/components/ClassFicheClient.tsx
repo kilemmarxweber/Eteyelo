@@ -48,6 +48,10 @@ import {
   isAcademicGroupComplete,
   type AcademicGroupConfig,
 } from "@/lib/academic-structure";
+import {
+  getSchoolYearDisplayLabel,
+  getSchoolYearDisplayLabelLower,
+} from "@/lib/university-lmd";
 import type { BulletinBranchContext } from "@/lib/bulletin-context";
 import {
   calculateBulletinPercentage,
@@ -158,6 +162,14 @@ export default function ClassFicheClient({
   const [selectedAnnee, setSelectedAnnee] = useState("");
   const [selectedSubjects, setSelectedSubjects] = useState<string[]>([]);
   const [totalPeriods, setTotalPeriods] = useState(0);
+  const schoolYearLabel = useMemo(
+    () => getSchoolYearDisplayLabel(branchContext.branchType),
+    [branchContext.branchType],
+  );
+  const schoolYearLabelLower = useMemo(
+    () => getSchoolYearDisplayLabelLower(branchContext.branchType),
+    [branchContext.branchType],
+  );
   // ================= PERIOD AGGREGATION RULES =================
   // Retourne toutes les périodes à inclure selon selectedPeriod
   // ================= PERIOD AGGREGATION RULES =================
@@ -1059,7 +1071,7 @@ export default function ClassFicheClient({
           />
           <ContextCard
             icon={<GraduationCap className="size-5" />}
-            label="Année scolaire"
+            label={schoolYearLabel}
             value={selectedAnnee || "Non sélectionnée"}
             active={Boolean(selectedAnnee)}
           />
@@ -1168,7 +1180,7 @@ export default function ClassFicheClient({
             {!selectedClassId ? (
               <EmptyState message="Choisissez une classe pour charger les fiches." />
             ) : !selectedAnnee || !selectedPeriod ? (
-              <EmptyState message="Sélectionnez l’année scolaire et la période pour afficher les résultats." />
+              <EmptyState message={`Sélectionnez l'${schoolYearLabelLower} et la période pour afficher les résultats.`} />
             ) : studentCount === 0 ? (
               <EmptyState message="Aucune fiche trouvée pour cette combinaison classe / année / période." />
             ) : visibleSubjects.length === 0 ? (

@@ -34,6 +34,9 @@ import {
   getPersonnelPresenceStatsAction,
   getPersonnelsAction,
 } from "./personnel.action";
+import { ImportStaffDialog } from "../components/import-staff-dialog";
+import { getStaffPageContextAction } from "../staff-import.action";
+import { IconUpload } from "@tabler/icons-react";
 
 type PersonnelStats = {
   total: number;
@@ -54,6 +57,8 @@ const emptyStats: PersonnelStats = {
 export default function Personnels() {
   const [refreshKey, setRefreshKey] = useState(0);
   const [open, setOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
+  const [supportsStaffImport, setSupportsStaffImport] = useState(false);
   const [stats, setStats] = useState<PersonnelStats>(emptyStats);
 
   const { data: session, isPending } = useSession();
@@ -87,6 +92,12 @@ export default function Personnels() {
     }
 
     void loadStats();
+  }, [refreshKey]);
+
+  useEffect(() => {
+    void getStaffPageContextAction().then((context) => {
+      setSupportsStaffImport(Boolean(context.supportsStaffImport));
+    });
   }, [refreshKey]);
 
   if (isPending) return <Loading />;
@@ -130,32 +141,44 @@ export default function Personnels() {
           }
           actions={
             canManage ? (
-              <Dialog open={open} onOpenChange={setOpen}>
-                <DialogTrigger asChild>
+              <div className="flex flex-wrap items-center gap-2">
+                {supportsStaffImport ? (
                   <Button
                     size="sm"
-                    variant="default"
-                    leftSection={<IconUserPlus size={16} />}
+                    variant="outline"
+                    leftSection={<IconUpload size={16} />}
+                    onClick={() => setImportOpen(true)}
                   >
-                    Ajouter un personnel
+                    Importer un personnel
                   </Button>
-                </DialogTrigger>
+                ) : null}
+                <Dialog open={open} onOpenChange={setOpen}>
+                  <DialogTrigger asChild>
+                    <Button
+                      size="sm"
+                      variant="default"
+                      leftSection={<IconUserPlus size={16} />}
+                    >
+                      Ajouter un personnel
+                    </Button>
+                  </DialogTrigger>
 
-                <DialogContent size="xl">
-                  <DialogHeader>
-                    <DialogTitle>Créer un personnel administratif</DialogTitle>
-                    <DialogDescription>
-                      Ajoutez un nouveau membre du personnel.
-                    </DialogDescription>
-                  </DialogHeader>
+                  <DialogContent size="xl">
+                    <DialogHeader>
+                      <DialogTitle>Créer un personnel administratif</DialogTitle>
+                      <DialogDescription>
+                        Ajoutez un nouveau membre du personnel.
+                      </DialogDescription>
+                    </DialogHeader>
 
-                  <PersonnelUpForm
-                    mode="create"
-                    onCreated={handleUserAction}
-                    onPersonnelCreated={handleUserAction}
-                  />
-                </DialogContent>
-              </Dialog>
+                    <PersonnelUpForm
+                      mode="create"
+                      onCreated={handleUserAction}
+                      onPersonnelCreated={handleUserAction}
+                    />
+                  </DialogContent>
+                </Dialog>
+              </div>
             ) : null
           }
         />
@@ -219,11 +242,19 @@ export default function Personnels() {
           variant="elevated"
           className="overflow-hidden rounded-2xl border border-border"
         >
+          <ImportStaffDialog
+            kind="personnel"
+            open={importOpen}
+            onOpenChange={setImportOpen}
+            onSuccess={handleUserAction}
+          />
           <UserList
             key={refreshKey}
             refreshKey={refreshKey}
             onRefresh={handleUserAction}
             canManagePersonnel={canManage}
+            supportsStaffImport={supportsStaffImport}
+            onOpenImport={() => setImportOpen(true)}
           />
         </Card>
       </LayoutBody>

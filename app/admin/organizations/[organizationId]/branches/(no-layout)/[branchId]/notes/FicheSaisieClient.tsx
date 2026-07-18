@@ -19,6 +19,7 @@ import { BookOpen, CalendarDays, CircleFadingArrowUpIcon, ClipboardCheck, Users 
 import { ResponsiveDataTable } from "@/components/custom";
 import { notesColumns } from "./components/notes.columns";
 import { NotesToolbar } from "./components/notes.toolbar";
+import { useSchoolYearLabels } from "@/hooks/use-school-year-labels";
 import { useAppRouter as useRouter } from "@/hooks/use-app-router";
 import { cn } from "@/lib/utils";
 import {
@@ -28,7 +29,8 @@ import {
   getSchoolYear,
   getStudentsByClass,
 } from "./note.action";
-import { getAcademicPeriodOrder } from "@/lib/academic-structure";
+import { useNotesLabels } from "@/hooks/use-notes-labels";
+import { getAcademicPeriodOrder, isAcademicExamPeriodName } from "@/lib/academic-structure";
 
 /* ===== DYNAMIC ===== */
 const TeacherCombobox = dynamic(
@@ -41,11 +43,15 @@ const TeacherCombobox = dynamic(
 export default function FicheSaisieClient({
   teachers,
   isAdmin,
+  typebranch,
 }: {
   teachers: Teacher[];
   isAdmin: boolean;
+  typebranch?: unknown;
 }) {
   const router = useRouter();
+  const { label: schoolYearLabel } = useSchoolYearLabels(typebranch);
+  const notesLabels = useNotesLabels(typebranch);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedTeacherId, setSelectedTeacherId] = useState<string | null>(
     !isAdmin && teachers.length > 0 ? teachers[0].id : null,
@@ -71,8 +77,13 @@ export default function FicheSaisieClient({
   useEffect(() => {
     getPeriods().then(setPeriods);
   }, []);
-  const isExamPeriod = (period?: Period | null) =>
-    Boolean(period?.label?.startsWith("Exam"));
+  const isExamPeriod = (period?: Period | null) => {
+    if (!period?.label) return false;
+    if (notesLabels.isUniversite) {
+      return isAcademicExamPeriodName(period.label, notesLabels.typebranch);
+    }
+    return period.label.startsWith("Exam");
+  };
   /* ===== LOAD STUDENTS ===== */
   useEffect(() => {
     let ignore = false;
@@ -254,7 +265,7 @@ export default function FicheSaisieClient({
     try {
       const schoolYear = schoolYears.find((y) => y.id === selectedYearId);
       if (!schoolYear) {
-        toast.error("Année scolaire non sélectionnée");
+        toast.error(`${schoolYearLabel} non sélectionnée`);
         return;
       }
       const lesson = selectedTeacher?.lessons.find(
@@ -333,9 +344,9 @@ export default function FicheSaisieClient({
 
     // Méta : classe, période, cours
     const meta = [
-      ["Classe:", lesson.className],
-      ["Période:", period.label],
-      ["Cours:", lesson.subjectName],
+      [notesLabels.exportClassLabel, lesson.className],
+      [notesLabels.exportSessionLabel, period.label],
+      [`${notesLabels.subjectColumnLabel}:`, lesson.subjectName],
       [],
     ];
 
@@ -459,6 +470,19 @@ export default function FicheSaisieClient({
     canFilter,
   ]);
 
+  const NotesToolbarBound = useMemo(
+    () =>
+      function BoundNotesToolbar({ table }: { table: Parameters<typeof NotesToolbar>[0]["table"] }) {
+        return (
+          <NotesToolbar
+            table={table}
+            studentPlural={notesLabels.studentPlural}
+          />
+        );
+      },
+    [notesLabels.studentPlural],
+  );
+
   const columns = React.useMemo(
     () =>
       notesColumns(
@@ -492,7 +516,11 @@ export default function FicheSaisieClient({
         {/* ===== HEADER ===== */}
         <PageHeader
           title="Saisie des notes"
-          description="Sélectionnez le contexte pédagogique, puis saisissez ou importez les notes des élèves."
+          description={
+            notesLabels.isUniversite
+              ? `Sélectionnez le contexte pédagogique, puis saisissez ou importez les notes des ${notesLabels.studentPlural}.`
+              : "Sélectionnez le contexte pédagogique, puis saisissez ou importez les notes des élèves."
+          }
           badge={
             <Badge variant="outline-primary" icon={<IconNotes size={14} />}>
               Notes
@@ -501,8 +529,8 @@ export default function FicheSaisieClient({
         />
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           <ContextCard icon={<Users className="size-5" />} label="Enseignant" value={selectedTeacher?.name ?? "Non sélectionné"} active={Boolean(selectedTeacherId)} />
-          <ContextCard icon={<BookOpen className="size-5" />} label="Cours et classe" value={selectedTeacher?.lessons.find(item => item.id === selectedLessonId) ? `${selectedTeacher.lessons.find(item => item.id === selectedLessonId)?.subjectName} · ${selectedTeacher.lessons.find(item => item.id === selectedLessonId)?.codeclasse}` : "Non sélectionné"} active={Boolean(selectedLessonId)} />
-          <ContextCard icon={<CalendarDays className="size-5" />} label="Période" value={period?.label ?? "Non sélectionnée"} active={Boolean(selectedPeriodId)} />
+          <ContextCard icon={<BookOpen className="size-5" />} label={notesLabels.courseContextLabel} value={selectedTeacher?.lessons.find(item => item.id === selectedLessonId) ? `${selectedTeacher.lessons.find(item => item.id === selectedLessonId)?.subjectName} · ${selectedTeacher.lessons.find(item => item.id === selectedLessonId)?.codeclasse}` : "Non sélectionné"} active={Boolean(selectedLessonId)} />
+          <ContextCard icon={<CalendarDays className="size-5" />} label={notesLabels.sessionLabel} value={period?.label ?? "Non sélectionnée"} active={Boolean(selectedPeriodId)} />
           <ContextCard icon={<ClipboardCheck className="size-5" />} label="Progression" value={`${filled}/${students.length} notes saisies`} active={students.length > 0 && filled === students.length} />
         </div>
         <Card
@@ -537,7 +565,7 @@ export default function FicheSaisieClient({
                 </div>
               )}
               <Combobox
-                label="Année scolaire"
+                label={schoolYearLabel}
                 placeholder="Sélectionner une année"
                 items={schoolYears.map((y) => ({
                   value: y.id,
@@ -556,13 +584,18 @@ export default function FicheSaisieClient({
                   )
                   .filter((p) => {
                     if (isAdmin) return true;
-
+                    if (notesLabels.isUniversite) {
+                      return !isAcademicExamPeriodName(
+                        p.label,
+                        notesLabels.typebranch,
+                      );
+                    }
                     return !p.label.startsWith("Exam");
                   });
                 return (
                   <Combobox
-                    label="Période"
-                    placeholder="Sélectionner une période"
+                    label={notesLabels.sessionLabel}
+                    placeholder={notesLabels.sessionPlaceholder}
                     items={orderedPeriods.map((p) => ({
                       value: String(p.id),
                       label: p.label,
@@ -647,7 +680,7 @@ export default function FicheSaisieClient({
             <Card className="col-span-1 overflow-hidden lg:col-span-4 xl:col-span-3">
               <CardHeader className="space-y-3 border-b bg-muted/20 py-4">
                 <div>
-                  <CardTitle className="text-base">Cours et classes</CardTitle>
+                  <CardTitle className="text-base">{notesLabels.coursesListTitle}</CardTitle>
                   <p className="mt-1 text-xs text-muted-foreground">
                     {selectedTeacher
                       ? `${visibleLessons.length} cours affecté(s)`
@@ -718,7 +751,7 @@ export default function FicheSaisieClient({
             {/* ===== TABLE ÉLÈVES ===== */}
             <Card className="col-span-1 min-w-0 overflow-hidden lg:col-span-8 xl:col-span-9">
               <CardHeader className="flex flex-col gap-3 border-b bg-muted/20 py-4 sm:flex-row sm:items-center sm:justify-between">
-                <div><CardTitle className="text-base">Élèves</CardTitle><p className="mt-1 text-xs text-muted-foreground">{students.length ? `${filled} note(s) sur ${students.length}` : "Sélectionnez un cours pour charger les élèves"}</p></div>
+                <div><CardTitle className="text-base capitalize">{notesLabels.studentPlural}</CardTitle><p className="mt-1 text-xs text-muted-foreground">{students.length ? `${filled} note(s) sur ${students.length}` : `Sélectionnez un cours pour charger les ${notesLabels.studentPlural}`}</p></div>
 
                 {/* Progress bar */}
                 <div className="h-2.5 w-full overflow-hidden rounded-full bg-muted sm:w-44">
@@ -736,8 +769,8 @@ export default function FicheSaisieClient({
                   <ResponsiveDataTable<StudentRow, unknown>
                     data={students}
                     columns={columns}
-                    ToolbarComponent={NotesToolbar}
-                    emptyText="Aucun élève trouvé"
+                    ToolbarComponent={NotesToolbarBound}
+                    emptyText={`Aucun ${notesLabels.studentSingular} trouvé`}
                     mobileCardTitle={(s) => `${s.name} ${s.firstname}`}
                     mobileCardSubtitle={(s) => s.classname}
                     mobileCardBadges={(s) => [

@@ -17,6 +17,7 @@ import {
 } from "@/lib/generated-identifiers";
 import { ensurePrimaryAcademicStructure } from "@/lib/primary-academic-structure";
 import { ensureDefaultCreneaux } from "@/lib/default-creneaux";
+import { ensureExtendedBranchStructure } from "@/lib/extended-branch-bootstrap";
 
 export async function getBranchNameAction(branchId: string) {
   if (!branchId) return null;
@@ -114,6 +115,12 @@ export async function createBranchAction(
     if (parsed.data.typebranch === "PRIMAIRE") {
       await ensurePrimaryAcademicStructure(tx, createdBranch.id);
     }
+
+    await ensureExtendedBranchStructure(
+      tx,
+      createdBranch.id,
+      parsed.data.typebranch,
+    );
     await ensureDefaultCreneaux(tx, createdBranch.id);
 
     return createdBranch;
@@ -290,6 +297,8 @@ export async function updateBranchAction(
   if (branch.typebranch === "PRIMAIRE") {
     await ensurePrimaryAcademicStructure(prisma, branchId);
   }
+
+  await ensureExtendedBranchStructure(prisma, branchId, branch.typebranch);
 
   revalidatePath(
     `/admin/organizations/${existingBranch.organizationId}/branches`,

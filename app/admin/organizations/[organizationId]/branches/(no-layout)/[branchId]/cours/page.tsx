@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
 import { canAccessTeachingArea } from "@/lib/auth/session-roles";
+import { isUniversiteBranch } from "@/lib/branch-capabilities";
 
 import Cours from "./components/coursClient";
 
@@ -12,5 +13,10 @@ export default async function Page() {
     notFound();
   }
 
-  return <Cours isPrimary={typebranch === "PRIMAIRE"} />;
+  return (
+    <Cours
+      isPrimary={typebranch === "PRIMAIRE"}
+      supportsCourseImport={isUniversiteBranch(typebranch)}
+    />
+  );
 }

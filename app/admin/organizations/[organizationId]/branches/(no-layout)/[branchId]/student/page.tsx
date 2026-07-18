@@ -20,6 +20,10 @@ import { canManageOrganization } from "@/lib/auth/session-roles";
 
 import Loading from "../loading";
 import { getStudentsAction } from "./student.action";
+import { getStudentPageContextAction } from "../brevets/brevet.action";
+import { isUniversiteBranch } from "@/lib/branch-capabilities";
+import type { PeopleLabels } from "@/lib/people-labels";
+import { DEFAULT_PEOPLE_LABELS } from "@/lib/people-labels";
 import UserList from "./components/StudentsTable";
 
 type StudentStats = {
@@ -53,6 +57,7 @@ function getCurrentQuarterRange() {
 export default function Students() {
   const [refreshKey, setRefreshKey] = useState(0);
   const [stats, setStats] = useState<StudentStats>(emptyStats);
+  const [peopleLabels, setPeopleLabels] = useState<PeopleLabels>(DEFAULT_PEOPLE_LABELS);
 
   const { data: session, isPending } = useSession();
   const canManage = canManageOrganization(session);
@@ -60,6 +65,14 @@ export default function Students() {
   const handleUserAction = () => {
     setRefreshKey((prev) => prev + 1);
   };
+
+  useEffect(() => {
+    void getStudentPageContextAction().then((context) => {
+      if (isUniversiteBranch(context.typebranch) && context.peopleLabels) {
+        setPeopleLabels(context.peopleLabels);
+      }
+    });
+  }, [refreshKey]);
 
   useEffect(() => {
     async function loadStats() {
@@ -107,9 +120,9 @@ export default function Students() {
 
   const statCards = [
     {
-      label: "Total élèves",
+      label: `Total ${peopleLabels.studentPluralLower}`,
       value: stats.total,
-      description: "élèves",
+      description: peopleLabels.studentPluralLower,
       icon: IconUsersGroup,
     },
     {
@@ -125,9 +138,9 @@ export default function Students() {
       icon: IconUserOff,
     },
     {
-      label: "Nouvels élèves",
+      label: `Nouveaux ${peopleLabels.studentPluralLower}`,
       value: stats.nouveauxTrimestre,
-      description: "élèves",
+      description: peopleLabels.studentPluralLower,
       icon: IconUserPlus,
     },
   ];
@@ -142,11 +155,11 @@ export default function Students() {
     <Layout>
       <LayoutBody className="space-y-6">
         <PageHeader
-          title="Gestion des élèves"
-          description="Dossiers élèves et suivi académique en temps réel."
+          title={`Gestion des ${peopleLabels.studentPluralLower}`}
+          description={`Dossiers ${peopleLabels.studentPluralLower} et suivi académique en temps réel.`}
           badge={
             <Badge variant="outline-primary" icon={<IconUsers size={14} />}>
-              Élèves
+              {peopleLabels.studentPlural}
             </Badge>
           }
         />

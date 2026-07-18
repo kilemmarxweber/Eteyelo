@@ -7,10 +7,12 @@ import {
   canManageOrganization,
   hasSessionRole,
 } from "@/lib/auth/session-roles";
+import { isUniversiteBranch } from "@/lib/branch-capabilities";
 import {
   getCoursePonderationMap,
   resolveCoursePonderation,
 } from "@/lib/course-ponderation";
+import { UNIVERSITY_NOTES_LABELS } from "@/lib/university-lmd-labels";
 
 export const dynamic = "force-dynamic";
 
@@ -39,7 +41,7 @@ type TeacherType = {
 };
 
 export default async function NotesPage() {
-  const { session, userId, branchId } = await requireBranchContext();
+  const { session, userId, branchId, typebranch } = await requireBranchContext();
   const canManage = canManageOrganization(session);
   const isTeacher = hasSessionRole(session, [ORG_ROLE.TEACHER, "TEACHER"]);
 
@@ -206,6 +208,10 @@ export default async function NotesPage() {
     ),
   });
 
+  const undefinedClassLabel = isUniversiteBranch(typebranch)
+    ? UNIVERSITY_NOTES_LABELS.auditoireUndefined
+    : "Classe non définie";
+
   const teacherMap = new Map<string, TeacherType>();
 
   /* ===== BUILD TEACHERS ===== */
@@ -240,7 +246,7 @@ export default async function NotesPage() {
 
         classId: teaching?.classeId || "N/A",
 
-        className: classe?.nameClasse || "Classe non definie",
+        className: classe?.nameClasse || undefinedClassLabel,
 
         codeclasse: classe?.codeClasse || "N/A",
 
@@ -277,7 +283,7 @@ export default async function NotesPage() {
         return {
           id: teaching.id,
           classId: teaching.classeId || "N/A",
-          className: classe?.nameClasse || "Classe non définie",
+          className: classe?.nameClasse || undefinedClassLabel,
           codeclasse: classe?.codeClasse || "N/A",
           subjectId: teaching.coursId || "N/A",
           subjectName: cours?.nameCours || "Cours non défini",
@@ -299,5 +305,11 @@ export default async function NotesPage() {
     // Fiche : uniquement les enseignants ayant au moins un cours affecté
     .filter((t) => t.lessons.length > 0);
 
-  return <FicheSaisieClient isAdmin={canManage} teachers={teachers} />;
+  return (
+    <FicheSaisieClient
+      isAdmin={canManage}
+      teachers={teachers}
+      typebranch={typebranch}
+    />
+  );
 }

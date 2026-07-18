@@ -25,13 +25,10 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { BranchTypeSelect } from "@/components/branch/branch-type-select";
+import type { ManagedBranchType } from "@/lib/academic-structure";
+import { getBranchTypeDescription } from "@/lib/branch-route-guard";
 import {
   Dialog,
   DialogContent,
@@ -127,6 +124,7 @@ export function CreateBranchForm({
   });
 
   const { isSubmitting } = form.formState;
+  const selectedTypebranch = form.watch("typebranch") as ManagedBranchType;
 
   async function reverseGeocode(lat: number, lng: number) {
     try {
@@ -442,23 +440,13 @@ export function CreateBranchForm({
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Type de branche</FormLabel>
-                          <Select
-                            value={field.value}
-                            onValueChange={field.onChange}
-                            disabled={isSubmitting}
-                          >
-                            <FormControl>
-                              <SelectTrigger className="h-9 rounded-xl">
-                                <SelectValue placeholder="Selectionner le type" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="PRIMAIRE">Primaire</SelectItem>
-                              <SelectItem value="SECONDAIRE">
-                                Secondaire
-                              </SelectItem>
-                            </SelectContent>
-                          </Select>
+                          <FormControl>
+                            <BranchTypeSelect
+                              value={field.value as ManagedBranchType}
+                              onValueChange={field.onChange}
+                              disabled={isSubmitting}
+                            />
+                          </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -496,6 +484,12 @@ export function CreateBranchForm({
                       )}
                     />
                   </div>
+
+                  <Alert className="rounded-xl border-primary/20 bg-primary/5">
+                    <AlertDescription className="text-sm leading-6">
+                      {getBranchTypeDescription(selectedTypebranch)}
+                    </AlertDescription>
+                  </Alert>
 
                   <FormField
                     control={form.control}

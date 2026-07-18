@@ -172,10 +172,32 @@ export type BranchRole = (typeof BranchRole)[keyof typeof BranchRole]
 
 export const TypeBrache = {
   PRIMAIRE: 'PRIMAIRE',
-  SECONDAIRE: 'SECONDAIRE'
+  SECONDAIRE: 'SECONDAIRE',
+  ATELIER: 'ATELIER',
+  CENTRE_FORMATION: 'CENTRE_FORMATION',
+  UNIVERSITE: 'UNIVERSITE'
 } as const
 
 export type TypeBrache = (typeof TypeBrache)[keyof typeof TypeBrache]
+
+
+export const StudentLinkType = {
+  IMPORTED: 'IMPORTED',
+  NATIVE: 'NATIVE'
+} as const
+
+export type StudentLinkType = (typeof StudentLinkType)[keyof typeof StudentLinkType]
+
+
+export const IssuedDocumentType = {
+  BULLETIN: 'BULLETIN',
+  BREVET: 'BREVET',
+  RELEVE_NOTES: 'RELEVE_NOTES',
+  ATTESTATION: 'ATTESTATION',
+  ATTESTATION_PARTICIPATION: 'ATTESTATION_PARTICIPATION'
+} as const
+
+export type IssuedDocumentType = (typeof IssuedDocumentType)[keyof typeof IssuedDocumentType]
 
 
 export const PrimaryDomain = {

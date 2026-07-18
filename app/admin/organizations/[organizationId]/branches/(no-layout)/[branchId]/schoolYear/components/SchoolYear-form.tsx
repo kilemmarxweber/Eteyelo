@@ -50,6 +50,8 @@ interface SchoolYearUpFormProps extends HTMLAttributes<HTMLDivElement> {
   branchId: string;
 }
 
+import { useSchoolYearLabels } from "@/hooks/use-school-year-labels";
+
 export function SchoolYearUpForm({
   className,
   onSuccess,
@@ -60,6 +62,7 @@ export function SchoolYearUpForm({
   branchId,
   ...props
 }: SchoolYearUpFormProps) {
+  const { label, labelLower } = useSchoolYearLabels();
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -103,8 +106,8 @@ export function SchoolYearUpForm({
 
       toast.success(
         mode === "create"
-          ? "Année scolaire créée"
-          : "Année scolaire mise à jour",
+          ? `${label} créée`
+          : `${label} mise à jour`,
       );
 
       if (mode === "create") {
@@ -146,7 +149,7 @@ export function SchoolYearUpForm({
                   <FormLabel>Nom de la schoolYear</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="Le nom de l'année scolaire"
+                      placeholder={`Le nom de l'${labelLower}`}
                       {...field}
                     />
                   </FormControl>

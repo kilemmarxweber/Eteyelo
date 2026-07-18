@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { action } from "@/lib/zsa";
 import { IOption, optionSchema } from "@/src/interfaces/Option";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
-import { assertSecondaryBranchFeatures } from "@/lib/class-structure";
+import { assertSectionOptionBranchFeatures } from "@/lib/branch-capabilities";
 import { z } from "zod";
 import {
   ensureUniqueIdentifier,
@@ -24,7 +24,7 @@ export const createOptionAction = action
   .input(optionSchema)
   .handler(async ({ input }) => {
     const { branchId, organizationId, typebranch } = await requireBranchContext();
-    assertSecondaryBranchFeatures(typebranch);
+    assertSectionOptionBranchFeatures(typebranch);
     const { nameOption, sectionId } = input;
     const codeOption = await ensureUniqueIdentifier({
       base: generateCode(nameOption, "OPT", 16),
@@ -93,7 +93,7 @@ export const updateOptionAction = action
   .input(optionSchema)
   .handler(async ({ input }) => {
     const { branchId, organizationId, typebranch } = await requireBranchContext();
-    assertSecondaryBranchFeatures(typebranch);
+    assertSectionOptionBranchFeatures(typebranch);
     const { id, nameOption, sectionId, statusOption } = input;
 
     if (!id) throw new Error("ID requis");

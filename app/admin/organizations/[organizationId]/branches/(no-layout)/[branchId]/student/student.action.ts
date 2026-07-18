@@ -23,6 +23,14 @@ import {
 } from "@/lib/admin-created-user-password";
 import { createOrganizationMemberAction } from "../../../../members/actions";
 import { generateSecurePassword } from "@/lib/generate-password";
+import {
+  canCreateStudentInBranch,
+  isCentreFormationBranch,
+  isUniversiteBranch,
+  requiresStudentImport,
+} from "@/lib/branch-capabilities";
+import { buildStudentAccessWhere } from "@/lib/atelier-student-access";
+import { canIssueBranchDocuments } from "@/lib/branch-document-permissions";
 
 export async function getCurrentBranch() {
   const session = await auth.api.getSession({
@@ -35,6 +43,18 @@ export async function getCurrentBranch() {
 
   if (!session?.user?.id || !branchId || !organizationId) {
     throw new Error("Aucune branche active");
+  }
+
+  const branch = await prisma.branch.findFirst({
+    where: {
+      id: branchId,
+      organizationId,
+    },
+    select: { typebranch: true },
+  });
+
+  if (!branch) {
+    throw new Error("Branche introuvable");
   }
 
   const branchMember = await prisma.branchMember.findFirst({
@@ -56,9 +76,12 @@ export async function getCurrentBranch() {
     branchId,
     organizationId,
     userId: session.user.id,
+    typebranch: branch.typebranch,
     branchMemberId: branchMember?.id ?? null,
+    branchMemberRole: branchMember?.role ?? null,
     roles,
     canManageStudents: canManageOrganization(session, branchMember?.role),
+    canIssueDocuments: canIssueBranchDocuments(session, branchMember?.role),
     isParent: hasSessionRole(
       session,
       [ORG_ROLE.PARENT, "PARENT"],
@@ -122,12 +145,20 @@ function revalidateStudentPages(organizationId: string, branchId: string) {
 export const createStudentAction = action
   .input(studentSchema)
   .handler(async ({ input }) => {
-    const { branchId, organizationId, canManageStudents } =
+    const { branchId, organizationId, canManageStudents, typebranch } =
       await getCurrentBranch();
     if (!canManageStudents) {
       return {
         ok: false,
         message: "Action non autorisee",
+      };
+    }
+
+    if (!canCreateStudentInBranch(typebranch)) {
+      return {
+        ok: false,
+        message:
+          "Les eleves d'atelier doivent etre importes depuis une branche scolaire de l'organisation.",
       };
     }
 
@@ -227,6 +258,147 @@ export const createStudentAction = action
 /* ======================================================
    GET ALL
 ====================================================== */
+function mapStudentRecord(
+  student: {
+    id: string;
+    category: StudentCategory;
+    placeOfBirth: string | null;
+    createdAt: Date;
+    updatedAt: Date;
+    branchMember: {
+      memberId: string;
+      member: {
+        user: {
+          id: string;
+          name: string;
+          postnom: string | null;
+          prenom: string | null;
+          dateOfBirth: Date | null;
+          sexe: string | null;
+          email: string | null;
+          username: string | null;
+          telephone: string | null;
+          statusUser: boolean | null;
+          address: string | null;
+        } | null;
+      };
+      branch?: { id: string; name: string } | null;
+    };
+    parent: {
+      id: string;
+      createdAt: Date;
+      updatedAt: Date;
+      branchMember: {
+        memberId: string;
+        member: { user: {
+          id: string;
+          name: string;
+          postnom: string | null;
+          prenom: string | null;
+          dateOfBirth: Date | null;
+          sexe: string | null;
+          email: string | null;
+          username: string | null;
+          telephone: string | null;
+          statusUser: boolean | null;
+          address: string | null;
+        } | null };
+      } | null;
+    };
+    classEnrollment: Array<{
+      classe: { codeClasse: string; nameClasse: string } | null;
+    }>;
+  },
+  extras?: {
+    sourceBranchName?: string | null;
+    sourceBranchId?: string | null;
+    isLinkedStudent?: boolean;
+  },
+): IStudent {
+  const user = student.branchMember?.member?.user;
+  const parentUser = student.parent.branchMember?.member.user;
+  const currentEnrollment = student.classEnrollment[0];
+
+  return {
+    id: student.id,
+    nom: user?.name || "",
+    postnom: user?.postnom || "",
+    prenom: user?.prenom || "",
+    dateOfBirth: user?.dateOfBirth || new Date(),
+    sexe: user?.sexe || "",
+    email: user?.email || "",
+    username: user?.username || "",
+    telephone: user?.telephone || "",
+    createdAt: student.createdAt,
+    updatedAt: student.updatedAt,
+    statusUser: user?.statusUser || true,
+    address: user?.address || "",
+    category: student.category || "NORMAL",
+    placeOfBirth: student.placeOfBirth,
+    classCode: currentEnrollment?.classe?.codeClasse ?? null,
+    className: currentEnrollment?.classe?.nameClasse ?? null,
+    memberId: student.branchMember?.memberId ?? "",
+    userId: student.branchMember?.member?.user?.id ?? "",
+    sourceBranchName: extras?.sourceBranchName ?? null,
+    sourceBranchId: extras?.sourceBranchId ?? null,
+    isLinkedStudent: extras?.isLinkedStudent ?? false,
+    parent: student.parent
+      ? {
+          id: student.parent.id,
+          memberId: student.parent.branchMember?.memberId ?? "",
+          userId: parentUser?.id ?? "",
+          nom: parentUser?.name || "",
+          postnom: parentUser?.postnom || "",
+          prenom: parentUser?.prenom || "",
+          dateOfBirth: parentUser?.dateOfBirth || new Date(),
+          sexe: parentUser?.sexe || "",
+          email: parentUser?.email || "",
+          username: parentUser?.username || "",
+          telephone: parentUser?.telephone || "",
+          createdAt: student.parent.createdAt,
+          updatedAt: student.parent.updatedAt,
+          statusUser: parentUser?.statusUser || true,
+          address: parentUser?.address || "",
+          students: null,
+        }
+      : undefined,
+  };
+}
+
+const studentListInclude = {
+  branchMember: {
+    include: {
+      member: {
+        include: {
+          user: true,
+        },
+      },
+      branch: { select: { id: true, name: true } },
+    },
+  },
+  parent: {
+    include: {
+      branchMember: {
+        include: {
+          member: {
+            include: {
+              user: true,
+            },
+          },
+        },
+      },
+    },
+  },
+  classEnrollment: {
+    where: {
+      statusEnrollment: true,
+      schoolYear: { isCurrentYear: true },
+    },
+    take: 1,
+    include: { classe: true },
+  },
+} as const;
+
 export const getStudentsAction = action.handler(
   async (): Promise<IStudent[]> => {
     const {
@@ -237,16 +409,103 @@ export const getStudentsAction = action.handler(
       isParent,
       isStudent,
       isTeacher,
+      typebranch,
     } = await getCurrentBranch();
 
-    const baseWhere = {
-      branchMember: {
-        branchId,
-        member: {
-          organizationId,
+    if (requiresStudentImport(typebranch)) {
+      const links = await prisma.studentBranchLink.findMany({
+        where: { targetBranchId: branchId, isActive: true },
+        include: {
+          sourceBranch: { select: { id: true, name: true } },
+          student: {
+            include: {
+              ...studentListInclude,
+              classEnrollment: {
+                where: {
+                  branchId,
+                  statusEnrollment: true,
+                  schoolYear: { isCurrentYear: true },
+                },
+                take: 1,
+                include: { classe: true },
+              },
+            },
+          },
         },
-      },
-    };
+        orderBy: { enrolledAt: "desc" },
+      });
+
+      return links.map((link) =>
+        mapStudentRecord(link.student, {
+          sourceBranchName: link.sourceBranch.name,
+          sourceBranchId: link.sourceBranch.id,
+          isLinkedStudent: true,
+        }),
+      );
+    }
+
+    if (isCentreFormationBranch(typebranch) || isUniversiteBranch(typebranch)) {
+      const [nativeStudents, links] = await Promise.all([
+        prisma.student.findMany({
+          where: canManageStudents
+            ? { branchMember: { branchId, member: { organizationId } } }
+            : { id: "__no_student_access__" },
+          include: {
+            ...studentListInclude,
+            classEnrollment: {
+              where: {
+                branchId,
+                statusEnrollment: true,
+                schoolYear: { isCurrentYear: true },
+              },
+              take: 1,
+              include: { classe: true },
+            },
+          },
+        }),
+        prisma.studentBranchLink.findMany({
+          where: { targetBranchId: branchId, isActive: true },
+          include: {
+            sourceBranch: { select: { id: true, name: true } },
+            student: {
+              include: {
+                ...studentListInclude,
+                classEnrollment: {
+                  where: {
+                    branchId,
+                    statusEnrollment: true,
+                    schoolYear: { isCurrentYear: true },
+                  },
+                  take: 1,
+                  include: { classe: true },
+                },
+              },
+            },
+          },
+        }),
+      ]);
+
+      const merged = new Map<string, IStudent>();
+
+      for (const student of nativeStudents) {
+        merged.set(student.id, mapStudentRecord(student));
+      }
+
+      for (const link of links) {
+        merged.set(
+          link.student.id,
+          mapStudentRecord(link.student, {
+            sourceBranchName: link.sourceBranch.name,
+            sourceBranchId: link.sourceBranch.id,
+            isLinkedStudent: true,
+          }),
+        );
+      }
+
+      return Array.from(merged.values());
+    }
+
+    const baseWhere = buildStudentAccessWhere(branchId, organizationId);
 
     const students = await prisma.student.findMany({
       where: canManageStudents
@@ -287,28 +546,7 @@ export const getStudentsAction = action.handler(
                   id: "__no_student_access__",
                 },
       include: {
-        branchMember: {
-          include: {
-            member: {
-              include: {
-                user: true,
-              },
-            },
-          },
-        },
-        parent: {
-          include: {
-            branchMember: {
-              include: {
-                member: {
-                  include: {
-                    user: true,
-                  },
-                },
-              },
-            },
-          },
-        },
+        ...studentListInclude,
         classEnrollment: {
           where: {
             branchId,
@@ -321,61 +559,7 @@ export const getStudentsAction = action.handler(
       },
     });
 
-    const transformedStudents: IStudent[] = students.map((student) => {
-      const user = student.branchMember?.member?.user;
-
-      const parentUser = student.parent.branchMember?.member.user;
-      const currentEnrollment = student.classEnrollment[0];
-
-      return {
-        id: student.id,
-        studentId: student.id || "",
-        nom: user?.name || "",
-        postnom: user?.postnom || "",
-        prenom: user?.prenom || "",
-        dateOfBirth: user?.dateOfBirth || new Date(),
-        sexe: user?.sexe || "",
-        email: user?.email || "",
-        username: user?.username || "",
-        telephone: user?.telephone || "",
-        createdAt: student.createdAt,
-        updatedAt: student.updatedAt,
-        statusUser: user?.statusUser || true,
-        address: user?.address || "",
-        category: student.category || "NORMAL",
-        placeOfBirth: student.placeOfBirth,
-        classCode: currentEnrollment?.classe?.codeClasse ?? null,
-        className: currentEnrollment?.classe?.nameClasse ?? null,
-        memberId: student.branchMember?.memberId ?? "",
-        userId: student.branchMember?.member?.user?.id ?? "",
-        parent: student.parent
-          ? {
-              id: student.parent.id,
-              memberId: student.parent.branchMember?.memberId ?? "",
-              userId: parentUser?.id ?? "",
-
-              nom: parentUser?.name || "",
-              postnom: parentUser?.postnom || "",
-              prenom: parentUser?.prenom || "",
-              dateOfBirth: parentUser?.dateOfBirth || new Date(),
-              sexe: parentUser?.sexe || "",
-              email: parentUser?.email || "",
-              username: parentUser?.username || "",
-              telephone: parentUser?.telephone || "",
-
-              createdAt: student.parent.createdAt,
-              updatedAt: student.parent.updatedAt,
-
-              statusUser: parentUser?.statusUser || true,
-              address: parentUser?.address || "",
-              category: student.category || "NORMAL",
-              student: null,
-            }
-          : undefined,
-      };
-    });
-
-    return transformedStudents;
+    return students.map((student) => mapStudentRecord(student));
   },
 );
 
@@ -455,6 +639,21 @@ export const updateStudentAction = action
 
       if (!student) {
         throw new Error("Étudiant introuvable");
+      }
+
+      const linkedInBranch = await prisma.studentBranchLink.findFirst({
+        where: {
+          studentId: student.id,
+          targetBranchId: branchId,
+          isActive: true,
+        },
+        select: { id: true },
+      });
+
+      if (linkedInBranch) {
+        throw new Error(
+          "Les eleves importes se modifient depuis leur branche scolaire d'origine",
+        );
       }
 
       if (student.branchMember?.branchId !== branchId) {
@@ -559,6 +758,22 @@ export const archiveStudentAction = action
         success: false,
         message: "Étudiant introuvable",
       };
+    }
+
+    const linkedInBranch = await prisma.studentBranchLink.findFirst({
+      where: {
+        studentId: student.id,
+        targetBranchId: branchId,
+        isActive: true,
+      },
+      select: { id: true },
+    });
+
+    if (linkedInBranch) {
+      const { unlinkStudentFromBranchAction } = await import(
+        "../brevets/brevet.action"
+      );
+      return unlinkStudentFromBranchAction(student.id);
     }
 
     if (student.branchMember?.branchId !== branchId) {

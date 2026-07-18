@@ -1,7 +1,12 @@
 import { getOrganizationAccessRoleLabel } from "@/lib/auth/role-labels";
 import { orgRoleLabel } from "@/lib/org-role-labels";
 import { APP_ROLE, ORG_ROLE } from "@/lib/permissions";
-import { isPrimaryBranch } from "@/lib/class-structure";
+import { shouldHideSidebarHref } from "@/lib/branch-route-guard";
+import { getClassDisplayLabelPlural, getClassDisplayLabel, isUniversiteBranch } from "@/lib/branch-capabilities";
+import { getPeopleLabels } from "@/lib/people-labels";
+import { getSchoolYearDisplayLabel } from "@/lib/university-lmd";
+import { getTrainingLabels, usesTrainingLabels } from "@/lib/training-labels";
+import { normalizeBranchType } from "@/lib/academic-structure";
 import type { SideLink } from "@/src/data/sidelinks";
 
 export type NavigationContext = "platform" | "organization" | "branch";
@@ -191,6 +196,18 @@ const staticSidebarMenu: StaticMenuItem[] = [
         roles: ADMIN_ROLES,
       },
       {
+        title: "Programmes",
+        href: "/admin/programmes",
+        icon: "sections",
+        roles: ADMIN_ROLES,
+      },
+      {
+        title: "Modules",
+        href: "/admin/modules",
+        icon: "options",
+        roles: ADMIN_ROLES,
+      },
+      {
         title: "Classe",
         href: "/admin/classe",
         icon: "classe",
@@ -249,7 +266,31 @@ const staticSidebarMenu: StaticMenuItem[] = [
         icon: "fiches",
         roles: TITULAIRE_CURSUS_ROLES,
       },
+      {
+        title: "Attestations",
+        href: "/admin/attestations",
+        icon: "results",
+        roles: ADMIN_ROLES,
+      },
+      {
+        title: "Brevets",
+        href: "/admin/brevets",
+        icon: "results",
+        roles: ADMIN_ROLES,
+      },
+      {
+        title: "Relevés de notes",
+        href: "/admin/releves",
+        icon: "results",
+        roles: ADMIN_ROLES,
+      },
     ],
+  },
+  {
+    title: "Aide",
+    href: "/admin/help",
+    icon: "cursus",
+    roles: ["*"],
   },
   {
     title: "Paramètres",
@@ -314,10 +355,7 @@ function mapMenuItem(
 ): SideLink | null {
   if (!canSeeMenu(item, roles)) return null;
 
-  if (
-    isPrimaryBranch(typebranch) &&
-    (item.href === "/admin/section" || item.href === "/admin/option")
-  ) {
+  if (shouldHideSidebarHref(item.href, typebranch)) {
     return null;
   }
 
@@ -327,9 +365,49 @@ function mapMenuItem(
 
   if (item.sub?.length && !sub?.length) return null;
 
+  const resolvedTypebranch = normalizeBranchType(typebranch);
+  let title = item.title;
+  let href = item.href;
+
+  if (item.title === "Classes" && item.href === "#") {
+    title = getClassDisplayLabelPlural(resolvedTypebranch);
+  }
+
+  if (item.href === "/admin/classe") {
+    title = getClassDisplayLabel(resolvedTypebranch);
+  }
+
+  if (item.href === "/admin/schoolYear") {
+    title = getSchoolYearDisplayLabel(resolvedTypebranch);
+  }
+
+  if (isUniversiteBranch(resolvedTypebranch)) {
+    const peopleLabels = getPeopleLabels(resolvedTypebranch);
+
+    if (item.href === "/admin/student") {
+      title = peopleLabels.student;
+    }
+
+    if (item.href === "/admin/teacher") {
+      title = peopleLabels.teacher;
+    }
+  }
+
+  if (usesTrainingLabels(resolvedTypebranch)) {
+    const labels = getTrainingLabels(resolvedTypebranch);
+
+    if (item.href === "/admin/programmes") {
+      title = labels.programmesMenu;
+    }
+
+    if (item.href === "/admin/modules") {
+      title = labels.modulesMenu;
+    }
+  }
+
   return {
-    title: item.title,
-    href: resolveHref(item.href, branchBasePath),
+    title,
+    href: resolveHref(href, branchBasePath),
     icon: item.icon,
     sub,
   } as SideLink;

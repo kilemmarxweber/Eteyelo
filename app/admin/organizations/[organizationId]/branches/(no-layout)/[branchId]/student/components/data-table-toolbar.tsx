@@ -16,6 +16,8 @@ import { DataTableFacetedFilter } from "@/components/data-table-faceted-filter";
 import { DataTableViewOptions } from "@/components/data-table-view-options";
 import { Input } from "@/components/ui/input";
 import type { IStudent } from "@/src/interfaces/Student";
+import type { PeopleLabels } from "@/lib/people-labels";
+import { DEFAULT_PEOPLE_LABELS } from "@/lib/people-labels";
 import { exportStudentsReportPdf } from "./export-students-pdf";
 import { getStudentReportContextAction } from "../student.action";
 import { toast } from "sonner";
@@ -23,6 +25,12 @@ import { toast } from "sonner";
 interface DataTableToolbarProps<TData> {
   table: Table<TData>;
   canManageStudents?: boolean;
+  requiresImport?: boolean;
+  supportsImport?: boolean;
+  importScope?: "school_only" | "organization";
+  peopleLabels?: PeopleLabels;
+  classLabel?: string;
+  onOpenImport?: () => void;
 }
 
 const sexes = [
@@ -39,6 +47,12 @@ const sexes = [
 export function DataTableToolbar<TData>({
   table,
   canManageStudents = true,
+  requiresImport = false,
+  supportsImport = false,
+  importScope = "school_only",
+  peopleLabels = DEFAULT_PEOPLE_LABELS,
+  classLabel = "Classe",
+  onOpenImport,
 }: DataTableToolbarProps<TData>) {
   const [exportingPdf, setExportingPdf] = useState(false);
   const isFiltered = table.getState().columnFilters.length > 0;
@@ -101,7 +115,7 @@ export function DataTableToolbar<TData>({
             }
           : null,
       });
-      toast.success("Le rapport PDF des eleves a ete genere.");
+      toast.success(`Le rapport PDF des ${peopleLabels.studentPluralLower} a ete genere.`);
     } catch (error) {
       console.error(error);
       toast.error(
@@ -116,85 +130,99 @@ export function DataTableToolbar<TData>({
 
   return (
     <div className="flex flex-col gap-3 border-b border bg-card p-4 lg:flex-row lg:items-center lg:justify-between">
-      <div className="relative w-full lg:max-w-[300px]">
-        <IconSearch className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-foreground/40" />
+        <div className="relative w-full lg:max-w-[300px]">
+          <IconSearch className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-foreground/40" />
 
-        <Input
-          placeholder="Rechercher par nom ou matricule..."
-          value={(table.getColumn("nom")?.getFilterValue() as string) ?? ""}
-          onChange={(event) =>
-            table.getColumn("nom")?.setFilterValue(event.target.value)
-          }
-          className="h-11 rounded-xl border bg-card pl-9 text-foreground placeholder:text-foreground/40 focus-visible:ring-blue-200"
-        />
-      </div>
-
-      <div className="flex flex-wrap items-center justify-end gap-2">
-        {table.getColumn("classCode") && classOptions.length ? (
-          <DataTableFacetedFilter
-            column={table.getColumn("classCode")}
-            title="Classe"
-            options={classOptions}
-            value="all"
-            onValueChange={() => undefined}
-          />
-        ) : null}
-
-        {table.getColumn("sexe") ? (
-          <DataTableFacetedFilter
-            column={table.getColumn("sexe")}
-            title="Sexe"
-            options={sexes}
-            value={
-              (table.getColumn("sexe")?.getFilterValue() as string) ?? "all"
+          <Input
+            placeholder="Rechercher par nom ou matricule..."
+            value={(table.getColumn("nom")?.getFilterValue() as string) ?? ""}
+            onChange={(event) =>
+              table.getColumn("nom")?.setFilterValue(event.target.value)
             }
-            onValueChange={(value) =>
-              table
-                .getColumn("sexe")
-                ?.setFilterValue(value === "all" ? "" : value)
-            }
+            className="h-11 rounded-xl border bg-card pl-9 text-foreground placeholder:text-foreground/40 focus-visible:ring-blue-200"
           />
-        ) : null}
+        </div>
 
-        <Button variant="outline" leftSection={<IconFilter size={16} />}>
-          Filtres
-        </Button>
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          {table.getColumn("classCode") && classOptions.length ? (
+            <DataTableFacetedFilter
+              column={table.getColumn("classCode")}
+              title={classLabel}
+              options={classOptions}
+              value="all"
+              onValueChange={() => undefined}
+            />
+          ) : null}
 
-        <Button
-          variant="outline"
-          leftSection={<IconFileTypePdf size={16} />}
-          onClick={exportFilteredPdf}
-          loading={exportingPdf}
-          disabled={!table.getFilteredRowModel().rows.length || exportingPdf}
-        >
-          {exportingPdf ? "Generation..." : "Rapport PDF"}
-        </Button>
+          {table.getColumn("sexe") ? (
+            <DataTableFacetedFilter
+              column={table.getColumn("sexe")}
+              title="Sexe"
+              options={sexes}
+              value={
+                (table.getColumn("sexe")?.getFilterValue() as string) ?? "all"
+              }
+              onValueChange={(value) =>
+                table
+                  .getColumn("sexe")
+                  ?.setFilterValue(value === "all" ? "" : value)
+              }
+            />
+          ) : null}
 
-        {isFiltered ? (
+          <Button variant="outline" leftSection={<IconFilter size={16} />}>
+            Filtres
+          </Button>
+
           <Button
             variant="outline"
-            onClick={() => table.resetColumnFilters()}
-            className="h-10 border-border text-primary hover:bg-blue-50 hover:text-blue-800"
+            leftSection={<IconFileTypePdf size={16} />}
+            onClick={exportFilteredPdf}
+            loading={exportingPdf}
+            disabled={!table.getFilteredRowModel().rows.length || exportingPdf}
           >
-            Réinitialiser
-            <Cross2Icon className="ml-2 size-4" />
+            {exportingPdf ? "Generation..." : "Rapport PDF"}
           </Button>
-        ) : null}
 
-        {canManageStudents ? (
-          <>
-            <Button variant="outline" leftSection={<IconUpload size={16} />}>
-              Importer
+          {isFiltered ? (
+            <Button
+              variant="outline"
+              onClick={() => table.resetColumnFilters()}
+              className="h-10 border-border text-primary hover:bg-blue-50 hover:text-blue-800"
+            >
+              Réinitialiser
+              <Cross2Icon className="ml-2 size-4" />
             </Button>
+          ) : null}
 
-            <Button variant="outline" leftSection={<IconKey size={16} />}>
-              Générer logins
+          {canManageStudents && (requiresImport || supportsImport) ? (
+            <Button
+              variant={requiresImport ? "default" : "outline"}
+              leftSection={<IconUpload size={16} />}
+              onClick={() => onOpenImport?.()}
+            >
+              {requiresImport
+                ? "Importer un eleve"
+                : `Importer un ${peopleLabels.studentLower}`}
             </Button>
-          </>
-        ) : null}
+          ) : null}
 
-        <DataTableViewOptions table={table} />
+          {canManageStudents && !requiresImport ? (
+            <>
+              {!supportsImport ? (
+                <Button variant="outline" leftSection={<IconUpload size={16} />}>
+                  Importer
+                </Button>
+              ) : null}
+
+              <Button variant="outline" leftSection={<IconKey size={16} />}>
+                Générer logins
+              </Button>
+            </>
+          ) : null}
+
+          <DataTableViewOptions table={table} />
+        </div>
       </div>
-    </div>
   );
 }

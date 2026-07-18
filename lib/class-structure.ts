@@ -2,6 +2,10 @@ import {
   ManagedBranchType,
   normalizeBranchType,
 } from "@/lib/academic-structure";
+import {
+  getBranchTypeLabel as getBranchTypeLabelFromCapabilities,
+  isPrimaryBranch as isPrimaryBranchFromCapabilities,
+} from "@/lib/branch-capabilities";
 
 /** Primaire : levels internes 1è–6è (name/code = 1è-PR …). */
 export const PRIMARY_CLASS_LEVELS = [
@@ -19,6 +23,22 @@ export const SECONDARY_CTEB_LEVELS = ["7è", "8è"] as const;
 /** Humanités (anc. 3ᵉ–6ᵉ secondaire) — section filière + option obligatoires. */
 export const SECONDARY_HUMANITES_LEVELS = ["1è", "2è", "3è", "4è"] as const;
 
+/** Niveaux universitaires (LMD — ESU RDC). */
+export const UNIVERSITY_CLASS_LEVELS = [
+  "L1",
+  "L2",
+  "L3",
+  "M1",
+  "M2",
+  "Doctorat",
+] as const;
+
+/** Sessions de formation professionnelle. */
+export const TRAINING_CLASS_LEVELS = ["Session"] as const;
+
+/** Groupes d'atelier pratique. */
+export const WORKSHOP_CLASS_LEVELS = ["Groupe"] as const;
+
 /** @deprecated empty — CTEB uses option Tronc commun, not "without option". */
 export const SECONDARY_CLASS_LEVELS_WITHOUT_OPTION = [] as const;
 
@@ -34,7 +54,15 @@ export const SECONDARY_CLASS_LEVELS = [
 
 export type PrimaryClassLevel = (typeof PRIMARY_CLASS_LEVELS)[number];
 export type SecondaryClassLevel = (typeof SECONDARY_CLASS_LEVELS)[number];
-export type ClassLevel = PrimaryClassLevel | SecondaryClassLevel;
+export type UniversityClassLevel = (typeof UNIVERSITY_CLASS_LEVELS)[number];
+export type TrainingClassLevel = (typeof TRAINING_CLASS_LEVELS)[number];
+export type WorkshopClassLevel = (typeof WORKSHOP_CLASS_LEVELS)[number];
+export type ClassLevel =
+  | PrimaryClassLevel
+  | SecondaryClassLevel
+  | UniversityClassLevel
+  | TrainingClassLevel
+  | WorkshopClassLevel;
 
 export function isCtebLevel(level: string): boolean {
   return (SECONDARY_CTEB_LEVELS as readonly string[]).includes(level);
@@ -45,9 +73,22 @@ export function isHumanitesLevel(level: string): boolean {
 }
 
 export function getClassLevelsForBranch(typebranch: unknown): readonly string[] {
-  return normalizeBranchType(typebranch) === "PRIMAIRE"
-    ? PRIMARY_CLASS_LEVELS
-    : SECONDARY_CLASS_LEVELS;
+  const branchType = normalizeBranchType(typebranch);
+
+  switch (branchType) {
+    case "PRIMAIRE":
+      return PRIMARY_CLASS_LEVELS;
+    case "SECONDAIRE":
+      return SECONDARY_CLASS_LEVELS;
+    case "UNIVERSITE":
+      return UNIVERSITY_CLASS_LEVELS;
+    case "CENTRE_FORMATION":
+      return TRAINING_CLASS_LEVELS;
+    case "ATELIER":
+      return WORKSHOP_CLASS_LEVELS;
+    default:
+      return SECONDARY_CLASS_LEVELS;
+  }
 }
 
 /** Libellés UI (niveau + aide historique). */
@@ -55,12 +96,29 @@ export function getClassLevelLabel(
   typebranch: unknown,
   level: string,
 ): string {
-  if (normalizeBranchType(typebranch) === "PRIMAIRE") {
+  const branchType = normalizeBranchType(typebranch);
+
+  if (branchType === "PRIMAIRE") {
     return `${level}-PR`;
   }
+
+  if (branchType === "UNIVERSITE") {
+    if (level === "Doctorat") return "Doctorat";
+    return level;
+  }
+
+  if (branchType === "CENTRE_FORMATION") {
+    return "Session de formation";
+  }
+
+  if (branchType === "ATELIER") {
+    return "Groupe atelier";
+  }
+
   if (isCtebLevel(level)) {
     return `${level} année (Éducation de Base)`;
   }
+
   const legacy: Record<string, string> = {
     "1è": "3ᵉ secondaire",
     "2è": "4ᵉ secondaire",
@@ -74,14 +132,28 @@ export function requiresOptionForClass(
   typebranch: unknown,
   level: string,
 ): boolean {
-  return (
-    normalizeBranchType(typebranch) === "SECONDAIRE" &&
-    (SECONDARY_CLASS_LEVELS_WITH_OPTION as readonly string[]).includes(level)
-  );
+  const branchType = normalizeBranchType(typebranch);
+
+  if (branchType === "SECONDAIRE") {
+    return (SECONDARY_CLASS_LEVELS_WITH_OPTION as readonly string[]).includes(
+      level,
+    );
+  }
+
+  if (branchType === "UNIVERSITE" || branchType === "CENTRE_FORMATION") {
+    return true;
+  }
+
+  return false;
 }
 
 export function allowsOptionForBranch(typebranch: unknown): boolean {
-  return normalizeBranchType(typebranch) === "SECONDAIRE";
+  const branchType = normalizeBranchType(typebranch);
+  return (
+    branchType === "SECONDAIRE" ||
+    branchType === "UNIVERSITE" ||
+    branchType === "CENTRE_FORMATION"
+  );
 }
 
 export function isValidClassLevel(
@@ -115,6 +187,18 @@ export function buildClassName(input: BuildClassIdentityInput): string {
     return parallel ? `${base} ${parallel}` : base;
   }
 
+  if (branchType === "ATELIER") {
+    const base = "Groupe atelier";
+    return parallel ? `${base} ${parallel}` : base;
+  }
+
+  if (branchType === "CENTRE_FORMATION") {
+    const parts = ["Session"];
+    if (input.optionName?.trim()) parts.push(input.optionName.trim());
+    if (parallel) parts.push(parallel);
+    return parts.join(" ");
+  }
+
   const parts: string[] = [level];
   if (parallel) parts.push(parallel);
   if (requiresOptionForClass(branchType, level) && input.optionName?.trim()) {
@@ -132,6 +216,24 @@ export function buildClassCode(input: BuildClassIdentityInput): string {
     const parts = [`${level}-PR`];
     if (parallel) parts.push(parallel);
     return parts.join("-");
+  }
+
+  if (branchType === "ATELIER") {
+    const parts = ["ATEL", parallel].filter(Boolean);
+    return parts.join("-") || "ATEL";
+  }
+
+  if (branchType === "CENTRE_FORMATION") {
+    const abbrev =
+      input.optionAbbrev?.trim().toUpperCase() ||
+      (input.optionName
+        ? input.optionName
+            .replace(/[^a-zA-Z0-9]/g, "")
+            .toUpperCase()
+            .slice(0, 4)
+        : "SESSION");
+    const parts = ["CF", abbrev, parallel].filter(Boolean);
+    return parts.join("-") || "CF-SESSION";
   }
 
   const abbrev =
@@ -176,10 +278,18 @@ export function validateClassInput(params: {
       );
     }
 
+    if (branchType === "ATELIER" && params.optionId) {
+      throw new Error(
+        "Les groupes d'atelier ne peuvent pas avoir d'option",
+      );
+    }
+
     return {
       nameClasse,
       optionId:
-        branchType === "PRIMAIRE" ? undefined : params.optionId ?? undefined,
+        branchType === "PRIMAIRE" || branchType === "ATELIER"
+          ? undefined
+          : params.optionId ?? undefined,
     };
   }
 
@@ -194,6 +304,10 @@ export function validateClassInput(params: {
 
   if (branchType === "PRIMAIRE" && params.optionId) {
     throw new Error("Les classes primaires ne peuvent pas avoir d'option");
+  }
+
+  if (branchType === "ATELIER" && params.optionId) {
+    throw new Error("Les groupes d'atelier ne peuvent pas avoir d'option");
   }
 
   if (requiresOptionForClass(branchType, level) && !params.optionId) {
@@ -215,7 +329,7 @@ export function validateClassInput(params: {
 }
 
 export function isPrimaryBranch(typebranch: unknown): boolean {
-  return normalizeBranchType(typebranch) === "PRIMAIRE";
+  return isPrimaryBranchFromCapabilities(typebranch);
 }
 
 export function assertSecondaryBranchFeatures(typebranch: unknown) {
@@ -227,9 +341,7 @@ export function assertSecondaryBranchFeatures(typebranch: unknown) {
 }
 
 export function getBranchTypeLabel(typebranch: unknown): string {
-  return normalizeBranchType(typebranch) === "PRIMAIRE"
-    ? "Primaire"
-    : "Secondaire";
+  return getBranchTypeLabelFromCapabilities(typebranch);
 }
 
 export type BranchType = ManagedBranchType;

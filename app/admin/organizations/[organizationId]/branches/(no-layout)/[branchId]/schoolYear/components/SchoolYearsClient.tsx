@@ -23,6 +23,8 @@ import { PageHeader } from "@/components/ui/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 
+import { useSchoolYearLabels } from "@/hooks/use-school-year-labels";
+
 interface Props {
   branchId: string;
 }
@@ -31,6 +33,7 @@ export default function SchoolYearsClient({ branchId }: Props) {
   const [open, setOpen] = useState(false);
   const [isPreparing, startPreparing] = useTransition();
   const { refreshKey, refresh } = useRefresh();
+  const { label, labelPlural, labelLower } = useSchoolYearLabels();
 
   const handleCreated = () => {
     refresh();
@@ -61,14 +64,14 @@ export default function SchoolYearsClient({ branchId }: Props) {
     <Layout>
       <LayoutBody className="space-y-4">
         <PageHeader
-          title="Liste des annees scolaires"
-          description="Gerez les annees scolaires actives et preparez la suivante."
+          title={`Liste des ${labelPlural.toLowerCase()}`}
+          description={`Gérez les ${labelPlural.toLowerCase()} actives et préparez la suivante.`}
           badge={
             <Badge
               variant="outline-primary"
               icon={<IconCalendarEvent size={14} />}
             >
-              Annees scolaires
+              {labelPlural}
             </Badge>
           }
           actions={
@@ -81,8 +84,8 @@ export default function SchoolYearsClient({ branchId }: Props) {
                   disabled={!canPrepareNextYear}
                   title={
                     canPrepareNextYear
-                      ? "Cree automatiquement la prochaine annee scolaire (ex. 2026-2027)"
-                      : "Disponible a partir du mois d'aout"
+                      ? `Crée automatiquement la prochaine ${labelLower} (ex. 2026-2027)`
+                      : "Disponible à partir du mois d'août"
                   }
                   onClick={handlePrepareNextYear}
                 >
@@ -99,8 +102,8 @@ export default function SchoolYearsClient({ branchId }: Props) {
               </div>
               {!canPrepareNextYear ? (
                 <p className="text-xs text-muted-foreground">
-                  Disponible a partir d&apos;aout — cree la prochaine annee
-                  scolaire pour preparation.
+                  Disponible à partir d&apos;août — crée la prochaine {labelLower}{" "}
+                  pour préparation.
                 </p>
               ) : null}
             </div>
@@ -110,9 +113,9 @@ export default function SchoolYearsClient({ branchId }: Props) {
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogContent size="lg">
             <DialogHeader>
-              <DialogTitle>Ajouter une annee scolaire</DialogTitle>
+              <DialogTitle>Ajouter une {labelLower}</DialogTitle>
               <DialogDescription>
-                Renseignez les informations de l'annee scolaire puis enregistrez.
+                Renseignez les informations de l&apos;{labelLower} puis enregistrez.
               </DialogDescription>
             </DialogHeader>
 

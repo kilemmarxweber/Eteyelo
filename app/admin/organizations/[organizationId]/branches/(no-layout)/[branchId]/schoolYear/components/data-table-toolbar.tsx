@@ -16,9 +16,12 @@ interface DataTableToolbarProps<TData> {
   table: Table<TData>;
 }
 
+import { useSchoolYearLabels } from "@/hooks/use-school-year-labels";
+
 export function DataTableToolbar<TData>({
   table,
 }: DataTableToolbarProps<TData>) {
+  const { labelLower } = useSchoolYearLabels();
   const isFiltered = table.getState().columnFilters.length > 0;
   const [schoolYears, setSchoolYears] = useState<ISchoolYear[]>([]);
   const [loading, setLoading] = useState(true);
@@ -48,7 +51,7 @@ export function DataTableToolbar<TData>({
     <div className="flex items-center justify-between">
       <div className="flex flex-1 items-center space-x-2">
         <Input
-          placeholder="chercher une année scolaire..."
+          placeholder={`chercher une ${labelLower}...`}
           value={
             (table.getColumn("nameYear")?.getFilterValue() as string) ?? ""
           }

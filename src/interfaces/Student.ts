@@ -22,6 +22,9 @@ export interface IStudent extends Omit<
   placeOfBirth?: string | null;
   classCode?: string | null;
   className?: string | null;
+  sourceBranchName?: string | null;
+  sourceBranchId?: string | null;
+  isLinkedStudent?: boolean;
   paiement?: IPaiement[];
   parent?: IParent;
   category: StudentCategoryType;

@@ -21,12 +21,14 @@ import { PageHeader } from "@/components/ui/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { getBranchTypeAction } from "../classe/classe.action";
-import { isPrimaryBranch } from "@/lib/class-structure";
+import { usesSectionOptionForBranch } from "@/lib/branch-capabilities";
+import { getTrainingLabels } from "@/lib/training-labels";
 import Loading from "../loading";
 
 export default function Options() {
   const [open, setOpen] = useState(false);
   const [checkingBranch, setCheckingBranch] = useState(true);
+  const [labels, setLabels] = useState(getTrainingLabels("SECONDAIRE"));
   const { refreshKey, refresh } = useRefresh();
   const router = useRouter();
   const params = useParams<{
@@ -41,11 +43,15 @@ export default function Options() {
       .then(([result, err]) => {
         if (ignore) return;
 
-        if (!err && isPrimaryBranch(result?.typebranch)) {
+        if (!err && !usesSectionOptionForBranch(result?.typebranch)) {
           router.replace(
             `/admin/organizations/${params.organizationId}/branches/${params.branchId}/classe`,
           );
           return;
+        }
+
+        if (result?.typebranch) {
+          setLabels(getTrainingLabels(result.typebranch));
         }
 
         setCheckingBranch(false);
@@ -72,17 +78,17 @@ export default function Options() {
     <Layout>
       <LayoutBody className="space-y-4">
         <PageHeader
-          title="Liste des options"
-          description="Definissez les options disponibles pour les classes secondaires."
+          title={labels.optionTitle}
+          description={labels.optionDescription}
           badge={
             <Badge variant="outline-primary" icon={<IconSettings size={14} />}>
-              Options
+              {labels.optionBadge}
             </Badge>
           }
           actions={
             <Button type="button" variant="default" onClick={() => setOpen(true)}>
               <IconPlus size={16} className="mr-2" />
-              Creer une option
+              {labels.optionCreate}
             </Button>
           }
         />
@@ -90,9 +96,9 @@ export default function Options() {
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogContent size="lg">
             <DialogHeader>
-              <DialogTitle>Creer une option</DialogTitle>
+              <DialogTitle>{labels.optionCreate}</DialogTitle>
               <DialogDescription>
-                Renseignez les informations de l'option puis enregistrez.
+                Renseignez les informations puis enregistrez.
               </DialogDescription>
             </DialogHeader>
 

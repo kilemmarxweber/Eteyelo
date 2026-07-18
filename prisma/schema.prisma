@@ -83,6 +83,8 @@ model Student {
   updatedAt         DateTime            @updatedAt
   studentAttendance StudentAttendance[]
   grades            StudentGrade[]
+  branchLinks       StudentBranchLink[]
+  issuedDocuments   IssuedDocument[]
 
   @@index([parentId])
   @@unique([branchMemberId])
@@ -368,6 +370,7 @@ model SchoolYear {
   grades            StudentGrade[]
   parentFeedback    ParentFeedback[]
   attendanceSession AttendanceSession[]
+  issuedDocuments   IssuedDocument[]
   branchId             String
   branch               Branch             @relation(fields: [branchId], references: [id], onDelete: Cascade)
   @@index([branchId, startYear, endYear])
@@ -1100,6 +1103,9 @@ model Branch {
   organizationSupportBranchScopes OrganizationSupportBranchScope[]
   registrationRequests RegistrationRequest[]
   jobApplications      JobApplication[]
+  targetStudentLinks   StudentBranchLink[] @relation("TargetBranchLinks")
+  sourceStudentLinks   StudentBranchLink[] @relation("SourceBranchLinks")
+  issuedDocuments      IssuedDocument[]
 
   @@index([organizationId])
   @@index([organizationId, isActive])
@@ -1286,6 +1292,69 @@ enum BranchRole {
 enum TypeBrache {
   PRIMAIRE
   SECONDAIRE
+  ATELIER
+  CENTRE_FORMATION
+  UNIVERSITE
+}
+
+enum StudentLinkType {
+  IMPORTED
+  NATIVE
+}
+
+enum IssuedDocumentType {
+  BULLETIN
+  BREVET
+  RELEVE_NOTES
+  ATTESTATION
+  ATTESTATION_PARTICIPATION
+}
+
+model StudentBranchLink {
+  id             String          @id @default(cuid())
+  studentId      String
+  targetBranchId String
+  sourceBranchId String
+  linkType       StudentLinkType @default(IMPORTED)
+  isActive       Boolean         @default(true)
+  enrolledAt     DateTime        @default(now())
+  endedAt        DateTime?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  student      Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  targetBranch Branch  @relation("TargetBranchLinks", fields: [targetBranchId], references: [id], onDelete: Cascade)
+  sourceBranch Branch  @relation("SourceBranchLinks", fields: [sourceBranchId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, targetBranchId])
+  @@index([targetBranchId])
+  @@index([sourceBranchId])
+  @@index([studentId])
+  @@index([targetBranchId, isActive])
+}
+
+model IssuedDocument {
+  id           String             @id @default(cuid())
+  branchId     String
+  studentId    String
+  schoolYearId String?
+  documentType IssuedDocumentType
+  title        String
+  metadata     Json?
+  issuedAt     DateTime           @default(now())
+  issuedById   String?
+  pdfUrl       String?
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+
+  branch     Branch      @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  student    Student     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  schoolYear SchoolYear? @relation(fields: [schoolYearId], references: [id], onDelete: SetNull)
+
+  @@index([branchId, documentType])
+  @@index([studentId])
+  @@index([branchId, studentId])
+  @@index([schoolYearId])
 }
 
 /// Domaines du bulletin primaire RDC

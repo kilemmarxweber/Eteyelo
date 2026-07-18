@@ -6,7 +6,7 @@ import { action } from "@/lib/zsa";
 import { ISection, sectionSchema } from "@/src/interfaces/Section";
 import { Prisma } from "@/prisma/generated/prisma/client";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
-import { assertSecondaryBranchFeatures } from "@/lib/class-structure";
+import { assertSectionOptionBranchFeatures } from "@/lib/branch-capabilities";
 import {
   ensureUniqueIdentifier,
   generateCode,
@@ -21,7 +21,7 @@ export const createSectionAction = action
   .handler(async ({ input }) => {
     try {
       const { branchId, organizationId, typebranch } = await requireBranchContext();
-      assertSecondaryBranchFeatures(typebranch);
+      assertSectionOptionBranchFeatures(typebranch);
       const { nameSection } = input;
       const codeSection = await ensureUniqueIdentifier({
         base: generateCode(nameSection, "SEC", 16),
@@ -91,7 +91,7 @@ export const updateSectionAction = action
   .input(sectionSchema)
   .handler(async ({ input }) => {
     const { branchId, organizationId, typebranch } = await requireBranchContext();
-    assertSecondaryBranchFeatures(typebranch);
+    assertSectionOptionBranchFeatures(typebranch);
     const { nameSection, id } = input;
     const existSection = await prisma.section.findFirst({
       where: { id, branchId },

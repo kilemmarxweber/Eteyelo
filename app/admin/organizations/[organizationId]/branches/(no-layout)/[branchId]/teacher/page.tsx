@@ -30,6 +30,12 @@ import Loading from "../loading";
 import UserList from "./components/TeachersTable";
 import { TeacherUpForm } from "./components/teacher-form";
 import { getTeacherDashboardStatsAction } from "./teacher.action";
+import { ImportStaffDialog } from "../components/import-staff-dialog";
+import { getStaffPageContextAction } from "../staff-import.action";
+import { isUniversiteBranch } from "@/lib/branch-capabilities";
+import type { PeopleLabels } from "@/lib/people-labels";
+import { DEFAULT_PEOPLE_LABELS } from "@/lib/people-labels";
+import { IconUpload } from "@tabler/icons-react";
 
 export type TeacherAssignmentFilter =
   | "all"
@@ -50,6 +56,9 @@ type TeacherDashboardStats = {
 export default function Teachers() {
   const [refreshKey, setRefreshKey] = useState(0);
   const [open, setOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
+  const [supportsStaffImport, setSupportsStaffImport] = useState(false);
+  const [peopleLabels, setPeopleLabels] = useState<PeopleLabels>(DEFAULT_PEOPLE_LABELS);
   const [stats, setStats] = useState<TeacherDashboardStats | null>(null);
   const [assignmentFilter, setAssignmentFilter] =
     useState<TeacherAssignmentFilter>("all");
@@ -68,6 +77,15 @@ export default function Teachers() {
     if (session) void loadStats();
   }, [refreshKey, session]);
 
+  useEffect(() => {
+    void getStaffPageContextAction().then((context) => {
+      setSupportsStaffImport(Boolean(context.supportsStaffImport));
+      if (isUniversiteBranch(context.typebranch) && context.peopleLabels) {
+        setPeopleLabels(context.peopleLabels);
+      }
+    });
+  }, [refreshKey]);
+
   if (isPending) {
     return <Loading />;
   }
@@ -80,47 +98,58 @@ export default function Teachers() {
     <Layout>
       <LayoutBody className="space-y-6">
         <PageHeader
-          title="Gestion des Enseignants"
-          description="Gerer les informations des enseignants et leurs contrats dans l'etablissement"
+          title={`Gestion des ${peopleLabels.teacherPlural}`}
+          description={`Gerer les informations des ${peopleLabels.teacherPluralLower} et leurs contrats dans l'etablissement`}
           badge={
             <Badge variant="outline-primary" icon={<IconUsers size={14} />}>
-              Enseignants
+              {peopleLabels.teacherPlural}
             </Badge>
           }
           actions={
             canManage ? (
-              <Dialog open={open} onOpenChange={setOpen}>
-                <DialogTrigger asChild>
+              <div className="flex flex-wrap items-center gap-2">
+                {supportsStaffImport ? (
                   <Button
-                    variant="default"
-                    leftSection={<IconUserPlus size={16} />}
+                    variant="outline"
+                    leftSection={<IconUpload size={16} />}
+                    onClick={() => setImportOpen(true)}
                   >
-                    Ajouter un Enseignant
+                    Importer un {peopleLabels.teacherLower}
                   </Button>
-                </DialogTrigger>
-                <DialogContent size="lg">
-                  <DialogHeader>
-                    <DialogTitle>Creer un Enseignant</DialogTitle>
-                    <DialogDescription>
-                      Remplir les informations de l'enseignant.
-                    </DialogDescription>
-                  </DialogHeader>
-                  <TeacherUpForm
-                    mode="create"
-                    onTeacherCreated={() => {
-                      handleUserAction();
-                      setOpen(false);
-                    }}
-                  />
-                </DialogContent>
-              </Dialog>
+                ) : null}
+                <Dialog open={open} onOpenChange={setOpen}>
+                  <DialogTrigger asChild>
+                    <Button
+                      variant="default"
+                      leftSection={<IconUserPlus size={16} />}
+                    >
+                      Ajouter un {peopleLabels.teacher}
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent size="lg">
+                    <DialogHeader>
+                      <DialogTitle>Creer un {peopleLabels.teacher}</DialogTitle>
+                      <DialogDescription>
+                        Remplir les informations du {peopleLabels.teacherLower}.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <TeacherUpForm
+                      mode="create"
+                      onTeacherCreated={() => {
+                        handleUserAction();
+                        setOpen(false);
+                      }}
+                    />
+                  </DialogContent>
+                </Dialog>
+              </div>
             ) : null
           }
         />
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
           {[
             {
-              label: "Enseignants actifs",
+              label: `${peopleLabels.teacherPlural} actifs`,
               value: stats?.totalActive,
               icon: IconUsers,
               filter: "active" as const,
@@ -152,7 +181,7 @@ export default function Teachers() {
               value: stats?.averageAssignments,
               icon: IconChalkboardTeacher,
               filter: "assigned" as const,
-              description: "Par enseignant affecte",
+              description: `Par ${peopleLabels.teacherLower} affecte`,
             },
           ].map((item) => {
             const Icon = item.icon;
@@ -201,12 +230,21 @@ export default function Teachers() {
           variant="elevated"
           className="mt-0 border p-1 md:p-4 rounded-md shadow-sm"
         >
+          <ImportStaffDialog
+            kind="teacher"
+            open={importOpen}
+            onOpenChange={setImportOpen}
+            onSuccess={handleUserAction}
+            peopleLabels={peopleLabels}
+          />
           <UserList
             key={refreshKey}
             refreshKey={refreshKey}
             onRefresh={handleUserAction}
             canManageTeachers={canManage}
             assignmentFilter={assignmentFilter}
+            supportsStaffImport={supportsStaffImport}
+            onOpenImport={() => setImportOpen(true)}
           />
         </Card>
       </LayoutBody>
