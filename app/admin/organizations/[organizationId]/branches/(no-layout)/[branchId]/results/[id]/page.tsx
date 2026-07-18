@@ -34,7 +34,7 @@ const StudentResultPage = async ({
   const { studentId, period } = sp;
 
   const subjectName = decodeURIComponent(id);
-  const { session, userId, branchId } = await requireBranchContext();
+  const { session, userId, branchId, typebranch } = await requireBranchContext();
   const listHref = `/admin/organizations/${organizationId}/branches/${branchIdParam}/results`;
   const canManage = canManageOrganization(session);
   const role = canManage
@@ -186,7 +186,11 @@ const StudentResultPage = async ({
                   Evaluations : {subjectName}
                 </h1>
               </div>
-              <ResultTable data={tableData} totalPercentage="0" />
+              <ResultTable
+                data={tableData}
+                totalPercentage="0"
+                typebranch={typebranch}
+              />
             </div>
           </div>
         </Card>

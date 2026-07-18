@@ -53,7 +53,12 @@ export type Teacher = {
   name: string;
   lessons: TeacherLesson[];
 };
-export type Period = { id: number; label: string };
+export type Period = {
+  id: number;
+  label: string;
+  rawLabel?: string;
+  kind?: "PERIOD" | "EXAM" | null;
+};
 export type FicheTypes = "ficheCote" | "evaluations";
 /* ===== ÉLÈVES ===== */
 

@@ -15,9 +15,8 @@ import { ImportStudentDialog } from "./import-student-dialog";
 import { IconAlertCircle, IconUsers } from "@tabler/icons-react";
 import { useRefresh } from "@/src/hooks/RefreshContext";
 import { UpdateStudentDialog } from "./edit-student-dialog";
-import type { PeopleLabels } from "@/lib/people-labels";
-import { DEFAULT_PEOPLE_LABELS } from "@/lib/people-labels";
-import { getClassDisplayLabel, isUniversiteBranch } from "@/lib/branch-capabilities";
+import { useBranchPeopleLabels } from "@/hooks/use-branch-people-labels";
+import { getClassDisplayLabel, isSchoolBranch } from "@/lib/branch-capabilities";
 
 const StudentsList = ({
   refreshKey,
@@ -38,9 +37,12 @@ const StudentsList = ({
   const [importScope, setImportScope] = useState<"school_only" | "organization">(
     "school_only",
   );
-  const [requiresAuditoireOnImport, setRequiresAuditoireOnImport] = useState(false);
-  const [peopleLabels, setPeopleLabels] = useState<PeopleLabels>(DEFAULT_PEOPLE_LABELS);
+  const [importEnrollmentMode, setImportEnrollmentMode] = useState<
+    "university" | "centre" | null
+  >(null);
+  const peopleLabels = useBranchPeopleLabels();
   const [classLabel, setClassLabel] = useState("Classe");
+  const [showGenerateLogins, setShowGenerateLogins] = useState(true);
   const [importOpen, setImportOpen] = useState(false);
   const hasLoadedOnce = useRef(false);
   const { refreshKey: contextRefreshKey } = useRefresh();
@@ -68,13 +70,14 @@ const StudentsList = ({
           importScope={importScope}
           peopleLabels={peopleLabels}
           classLabel={classLabel}
+          showGenerateLogins={showGenerateLogins}
           onOpenImport={() => setImportOpen(true)}
         />
       );
     }
 
     return Toolbar;
-  }, [canManageStudents, classLabel, importScope, peopleLabels, requiresImport, supportsImport]);
+  }, [canManageStudents, classLabel, importScope, peopleLabels, requiresImport, showGenerateLogins, supportsImport]);
 
   const fetchStudents = useCallback(async () => {
     const isInitialLoad = !hasLoadedOnce.current;
@@ -108,11 +111,9 @@ const StudentsList = ({
       setRequiresImport(Boolean(context.requiresImport));
       setSupportsImport(Boolean(context.supportsImport));
       setImportScope(context.importScope ?? "school_only");
-      setRequiresAuditoireOnImport(Boolean(context.requiresAuditoireOnImport));
-      if (isUniversiteBranch(context.typebranch)) {
-        if (context.peopleLabels) {
-          setPeopleLabels(context.peopleLabels);
-        }
+      setImportEnrollmentMode(context.importEnrollmentMode ?? null);
+      setShowGenerateLogins(context.showGenerateLogins ?? true);
+      if (context.typebranch && !isSchoolBranch(context.typebranch)) {
         setClassLabel(getClassDisplayLabel(context.typebranch));
       }
     });
@@ -124,10 +125,8 @@ const StudentsList = ({
         open={importOpen}
         onOpenChange={setImportOpen}
         importScope={importScope}
-        requiresAuditoireOnImport={requiresAuditoireOnImport}
-        peopleLabels={
-          requiresAuditoireOnImport ? peopleLabels : DEFAULT_PEOPLE_LABELS
-        }
+        importEnrollmentMode={importEnrollmentMode}
+        peopleLabels={peopleLabels}
         onSuccess={onRefresh}
       />
       {editingStudent && canManageStudents ? (

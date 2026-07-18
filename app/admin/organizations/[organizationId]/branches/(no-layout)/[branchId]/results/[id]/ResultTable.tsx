@@ -10,6 +10,7 @@ import {
 import { Eye, FileText, MessageSquare } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { getResultSummaryTypeLabels } from "@/lib/fiche-type-options";
 
 type InterventionResult = Result & {
   ficheId?: string;
@@ -18,9 +19,11 @@ type InterventionResult = Result & {
 export default function ResultTable({
   data,
   totalPercentage,
+  typebranch,
 }: {
   data: InterventionResult[];
   totalPercentage: string;
+  typebranch?: unknown;
 }) {
   const params = useParams<{ organizationId: string; branchId: string }>();
   const organizationId = params.organizationId;
@@ -186,17 +189,7 @@ export default function ResultTable({
         ))}
       </tbody>
       <tfoot className="text-sm">
-        {[
-          "TP",
-          "Projets",
-          "Tests Standardisés",
-          "Assignments",
-          "Devoir",
-          "Veilles",
-          "Evaluation",
-          "Discipline",
-          "Rétrospectives",
-        ].map((label, i) => {
+        {getResultSummaryTypeLabels(typebranch).map((label, i) => {
           const group = groupedByType[label];
 
           const totalNote = group?.totalNote ?? 0;

@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/select";
 import { BranchTypeBadge } from "@/components/branch/branch-type-badge";
 import {
-  getUniversityImportEnrollmentOptionsAction,
+  getImportEnrollmentOptionsAction,
   linkStudentToBranchAction,
   searchOrganizationStudentsForImport,
 } from "../../brevets/brevet.action";
@@ -32,23 +32,27 @@ import type { PeopleLabels } from "@/lib/people-labels";
 import { DEFAULT_PEOPLE_LABELS } from "@/lib/people-labels";
 
 type ImportScope = "school_only" | "organization";
+type ImportEnrollmentMode = "university" | "centre";
 
 type ImportStudentDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess: () => void;
   importScope?: ImportScope;
+  /** @deprecated Utiliser importEnrollmentMode */
   requiresAuditoireOnImport?: boolean;
+  importEnrollmentMode?: ImportEnrollmentMode | null;
   peopleLabels?: PeopleLabels;
 };
 
-type UniversityEnrollmentOption = {
-  filieres: Array<{
+type ImportEnrollmentOptions = {
+  mode: ImportEnrollmentMode;
+  modules: Array<{
     id: string;
     nameOption: string;
     sectionName: string | null;
   }>;
-  auditoires: Array<{
+  sessions: Array<{
     id: string;
     nameClasse: string;
     optionId: string;
@@ -77,6 +81,43 @@ const IMPORT_COPY: Record<
   },
 };
 
+const ENROLLMENT_UI: Record<
+  ImportEnrollmentMode,
+  {
+    description: (labels: PeopleLabels) => string;
+    primaryLabel: string;
+    secondaryLabel: string;
+    primaryPlaceholder: string;
+    secondaryPlaceholder: string;
+    selectPrimaryFirst: string;
+    noSecondary: string;
+    validationError: string;
+  }
+> = {
+  university: {
+    description: (labels) =>
+      `Selectionnez une filiere et un auditoire, puis importez l'${labels.studentLower} dans l'annee academique en cours.`,
+    primaryLabel: "Filiere",
+    secondaryLabel: "Auditoire",
+    primaryPlaceholder: "Selectionner une filiere",
+    secondaryPlaceholder: "Selectionner un auditoire",
+    selectPrimaryFirst: "Choisissez d'abord une filiere",
+    noSecondary: "Aucun auditoire pour cette filiere",
+    validationError: "Selectionnez une filiere et un auditoire avant l'import",
+  },
+  centre: {
+    description: (labels) =>
+      `Selectionnez un module et une session, puis importez l'${labels.studentLower} dans l'annee academique en cours.`,
+    primaryLabel: "Module",
+    secondaryLabel: "Session",
+    primaryPlaceholder: "Selectionner un module",
+    secondaryPlaceholder: "Selectionner une session",
+    selectPrimaryFirst: "Choisissez d'abord un module",
+    noSecondary: "Aucune session pour ce module",
+    validationError: "Selectionnez un module et une session avant l'import",
+  },
+};
+
 function buildOrganizationImportCopy(labels: PeopleLabels) {
   const studentLower = labels.studentLower;
 
@@ -88,40 +129,40 @@ function buildOrganizationImportCopy(labels: PeopleLabels) {
   };
 }
 
-function buildUniversityImportDescription(labels: PeopleLabels) {
-  return `Selectionnez une filiere et un auditoire, puis importez l'${labels.studentLower} dans l'annee academique en cours.`;
-}
-
 export function ImportStudentDialog({
   open,
   onOpenChange,
   onSuccess,
   importScope = "school_only",
   requiresAuditoireOnImport = false,
+  importEnrollmentMode = requiresAuditoireOnImport ? "university" : null,
   peopleLabels = DEFAULT_PEOPLE_LABELS,
 }: ImportStudentDialogProps) {
   const copy =
     importScope === "organization"
       ? buildOrganizationImportCopy(peopleLabels)
       : IMPORT_COPY[importScope];
+  const enrollmentUi = importEnrollmentMode
+    ? ENROLLMENT_UI[importEnrollmentMode]
+    : null;
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(false);
   const [linkingId, setLinkingId] = useState<string | null>(null);
   const [results, setResults] = useState<ImportSearchResult[]>([]);
   const [enrollmentOptions, setEnrollmentOptions] =
-    useState<UniversityEnrollmentOption | null>(null);
+    useState<ImportEnrollmentOptions | null>(null);
   const [loadingEnrollmentOptions, setLoadingEnrollmentOptions] = useState(false);
-  const [selectedFiliereId, setSelectedFiliereId] = useState("");
-  const [selectedAuditoireId, setSelectedAuditoireId] = useState("");
+  const [selectedModuleId, setSelectedModuleId] = useState("");
+  const [selectedSessionId, setSelectedSessionId] = useState("");
 
-  const filteredAuditoires =
-    enrollmentOptions?.auditoires.filter(
-      (auditoire) => auditoire.optionId === selectedFiliereId,
+  const filteredSessions =
+    enrollmentOptions?.sessions.filter(
+      (session) => session.optionId === selectedModuleId,
     ) ?? [];
 
   const canImport =
-    !requiresAuditoireOnImport ||
-    Boolean(selectedFiliereId && selectedAuditoireId && enrollmentOptions);
+    !importEnrollmentMode ||
+    Boolean(selectedModuleId && selectedSessionId && enrollmentOptions);
 
   const searchStudents = useCallback(async (value: string) => {
     setLoading(true);
@@ -149,14 +190,14 @@ export function ImportStudentDialog({
       setResults([]);
       setLinkingId(null);
       setEnrollmentOptions(null);
-      setSelectedFiliereId("");
-      setSelectedAuditoireId("");
+      setSelectedModuleId("");
+      setSelectedSessionId("");
       return;
     }
 
-    if (requiresAuditoireOnImport) {
+    if (importEnrollmentMode) {
       setLoadingEnrollmentOptions(true);
-      void getUniversityImportEnrollmentOptionsAction()
+      void getImportEnrollmentOptionsAction()
         .then((response) => {
           if (!response.ok) {
             toast.error(response.message);
@@ -165,8 +206,9 @@ export function ImportStudentDialog({
           }
 
           setEnrollmentOptions({
-            filieres: response.filieres,
-            auditoires: response.auditoires,
+            mode: response.mode,
+            modules: response.modules,
+            sessions: response.sessions,
             schoolYear: response.schoolYear,
           });
         })
@@ -180,11 +222,11 @@ export function ImportStudentDialog({
     }, 300);
 
     return () => window.clearTimeout(timeout);
-  }, [open, query, requiresAuditoireOnImport, searchStudents]);
+  }, [open, query, importEnrollmentMode, searchStudents]);
 
   useEffect(() => {
-    setSelectedAuditoireId("");
-  }, [selectedFiliereId]);
+    setSelectedSessionId("");
+  }, [selectedModuleId]);
 
   async function handleImport(student: ImportSearchResult) {
     if (student.alreadyLinked) {
@@ -193,7 +235,10 @@ export function ImportStudentDialog({
     }
 
     if (!canImport) {
-      toast.error("Selectionnez une filiere et un auditoire avant l'import");
+      toast.error(
+        enrollmentUi?.validationError ??
+          "Selectionnez le contexte pedagogique avant l'import",
+      );
       return;
     }
 
@@ -202,7 +247,7 @@ export function ImportStudentDialog({
       const result = await linkStudentToBranchAction({
         studentId: student.id,
         sourceBranchId: student.sourceBranchId,
-        classeId: requiresAuditoireOnImport ? selectedAuditoireId : undefined,
+        classeId: importEnrollmentMode ? selectedSessionId : undefined,
       });
 
       if (!result.ok) {
@@ -224,19 +269,21 @@ export function ImportStudentDialog({
         <DialogHeader>
           <DialogTitle>{copy.title}</DialogTitle>
           <DialogDescription>
-            {requiresAuditoireOnImport
-              ? buildUniversityImportDescription(peopleLabels)
+            {enrollmentUi
+              ? enrollmentUi.description(peopleLabels)
               : copy.description}
           </DialogDescription>
         </DialogHeader>
 
-        {requiresAuditoireOnImport ? (
+        {importEnrollmentMode && enrollmentUi ? (
           <div className="grid gap-3 rounded-xl border bg-muted/20 p-3 sm:grid-cols-2">
             <div>
-              <label className="text-sm font-medium">Filiere</label>
+              <label className="text-sm font-medium">
+                {enrollmentUi.primaryLabel}
+              </label>
               <Select
-                value={selectedFiliereId}
-                onValueChange={setSelectedFiliereId}
+                value={selectedModuleId}
+                onValueChange={setSelectedModuleId}
                 disabled={loadingEnrollmentOptions || !enrollmentOptions}
               >
                 <SelectTrigger className="mt-2 h-11 rounded-xl">
@@ -244,46 +291,48 @@ export function ImportStudentDialog({
                     placeholder={
                       loadingEnrollmentOptions
                         ? "Chargement..."
-                        : "Selectionner une filiere"
+                        : enrollmentUi.primaryPlaceholder
                     }
                   />
                 </SelectTrigger>
                 <SelectContent>
-                  {enrollmentOptions?.filieres.map((filiere) => (
-                    <SelectItem key={filiere.id} value={filiere.id}>
-                      {filiere.nameOption}
-                      {filiere.sectionName ? ` · ${filiere.sectionName}` : ""}
+                  {enrollmentOptions?.modules.map((module) => (
+                    <SelectItem key={module.id} value={module.id}>
+                      {module.nameOption}
+                      {module.sectionName ? ` · ${module.sectionName}` : ""}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
             <div>
-              <label className="text-sm font-medium">Auditoire</label>
+              <label className="text-sm font-medium">
+                {enrollmentUi.secondaryLabel}
+              </label>
               <Select
-                value={selectedAuditoireId}
-                onValueChange={setSelectedAuditoireId}
+                value={selectedSessionId}
+                onValueChange={setSelectedSessionId}
                 disabled={
                   loadingEnrollmentOptions ||
-                  !selectedFiliereId ||
-                  filteredAuditoires.length === 0
+                  !selectedModuleId ||
+                  filteredSessions.length === 0
                 }
               >
                 <SelectTrigger className="mt-2 h-11 rounded-xl">
                   <SelectValue
                     placeholder={
-                      !selectedFiliereId
-                        ? "Choisissez d'abord une filiere"
-                        : filteredAuditoires.length === 0
-                          ? "Aucun auditoire pour cette filiere"
-                          : "Selectionner un auditoire"
+                      !selectedModuleId
+                        ? enrollmentUi.selectPrimaryFirst
+                        : filteredSessions.length === 0
+                          ? enrollmentUi.noSecondary
+                          : enrollmentUi.secondaryPlaceholder
                     }
                   />
                 </SelectTrigger>
                 <SelectContent>
-                  {filteredAuditoires.map((auditoire) => (
-                    <SelectItem key={auditoire.id} value={auditoire.id}>
-                      {auditoire.nameClasse}
+                  {filteredSessions.map((session) => (
+                    <SelectItem key={session.id} value={session.id}>
+                      {session.nameClasse}
                     </SelectItem>
                   ))}
                 </SelectContent>

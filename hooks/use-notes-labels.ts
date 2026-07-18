@@ -30,6 +30,8 @@ export function useNotesLabels(typebranchOverride?: unknown) {
     subjectColumnLabel: isUniversite ? UNIVERSITY_NOTES_LABELS.course : "Matière",
     studentPlural: peopleLabels.studentPluralLower,
     studentSingular: peopleLabels.studentLower,
+    teacher: peopleLabels.teacher,
+    teacherLower: peopleLabels.teacherLower,
     exportClassLabel: isUniversite ? "Auditoire:" : "Classe:",
     exportSessionLabel: isUniversite ? "Session:" : "Période:",
     undefinedClassLabel: isUniversite

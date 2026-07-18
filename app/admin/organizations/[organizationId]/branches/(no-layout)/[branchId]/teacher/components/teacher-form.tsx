@@ -36,10 +36,7 @@ import generateUsername from "@/src/hooks/generateUsername";
 import { teacherSchema } from "@/src/interfaces/Teacher";
 
 import { createTeacherAction, updateTeacherAction } from "../teacher.action";
-import { getStaffPageContextAction } from "../../staff-import.action";
-import { isUniversiteBranch } from "@/lib/branch-capabilities";
-import type { PeopleLabels } from "@/lib/people-labels";
-import { DEFAULT_PEOPLE_LABELS } from "@/lib/people-labels";
+import { useBranchPeopleLabels } from "@/hooks/use-branch-people-labels";
 
 interface TeacherUpFormProps extends HTMLAttributes<HTMLDivElement> {
   onTeacherCreated?: () => void;
@@ -62,7 +59,7 @@ export function TeacherUpForm({
   const fieldClass = isDialog ? "space-y-0.5" : "space-y-1";
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const [peopleLabels, setPeopleLabels] = useState<PeopleLabels>(DEFAULT_PEOPLE_LABELS);
+  const peopleLabels = useBranchPeopleLabels();
   const sexeToUi: Record<string, "masculin" | "feminin"> = {
     M: "masculin",
     F: "feminin",
@@ -89,14 +86,6 @@ export function TeacherUpForm({
 
   const nom = form.watch("nom");
   const prenom = form.watch("prenom");
-
-  useEffect(() => {
-    void getStaffPageContextAction().then((context) => {
-      if (isUniversiteBranch(context.typebranch) && context.peopleLabels) {
-        setPeopleLabels(context.peopleLabels);
-      }
-    });
-  }, []);
 
   useEffect(() => {
     if (!nom || !prenom) return;
@@ -161,7 +150,7 @@ export function TeacherUpForm({
                 <FormItem className={fieldClass}>
                   <FormLabel>Nom</FormLabel>
                   <FormControl>
-                    <Input placeholder="Le nom de l'enseignant" {...field} />
+                    <Input placeholder={`Le nom du ${peopleLabels.teacherLower}`} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -175,7 +164,7 @@ export function TeacherUpForm({
                 <FormItem className={fieldClass}>
                   <FormLabel>Postnom</FormLabel>
                   <FormControl>
-                    <Input placeholder="Le postnom de l'enseignant" {...field} />
+                    <Input placeholder={`Le postnom du ${peopleLabels.teacherLower}`} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -189,7 +178,7 @@ export function TeacherUpForm({
                 <FormItem className={fieldClass}>
                   <FormLabel>Prénom</FormLabel>
                   <FormControl>
-                    <Input placeholder="Le prénom de l'enseignant" {...field} />
+                    <Input placeholder={`Le prénom du ${peopleLabels.teacherLower}`} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -292,7 +281,7 @@ export function TeacherUpForm({
                 <FormItem className={fieldClass}>
                   <FormLabel>E-mail</FormLabel>
                   <FormControl>
-                    <Input placeholder="Email de l'enseignant" {...field} />
+                    <Input placeholder={`Email du ${peopleLabels.teacherLower}`} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -306,7 +295,7 @@ export function TeacherUpForm({
                 <FormItem className={fieldClass}>
                   <FormLabel>Adresse</FormLabel>
                   <FormControl>
-                    <Input placeholder="Adresse de l'enseignant" {...field} />
+                    <Input placeholder={`Adresse du ${peopleLabels.teacherLower}`} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -336,8 +325,8 @@ export function TeacherUpForm({
             <div className={cn(isDialog && "sm:col-span-2")}>
               <Button type="submit" className="mt-1 w-full sm:w-auto" loading={isLoading}>
                 {mode === "create"
-                  ? "Enregistrer l'enseignant"
-                  : "Mettre à jour l'enseignant"}
+                  ? `Enregistrer le ${peopleLabels.teacherLower}`
+                  : `Mettre à jour le ${peopleLabels.teacherLower}`}
               </Button>
               {errorMessage ? (
                 <p className="mt-2 text-center text-sm text-red-500">

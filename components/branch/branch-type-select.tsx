@@ -23,6 +23,7 @@ type BranchTypeSelectProps = {
   onValueChange: (value: ManagedBranchType) => void;
   disabled?: boolean;
   className?: string;
+  excludeTypes?: readonly ManagedBranchType[];
 };
 
 export function BranchTypeSelect({
@@ -30,7 +31,12 @@ export function BranchTypeSelect({
   onValueChange,
   disabled,
   className,
+  excludeTypes,
 }: BranchTypeSelectProps) {
+  const availableTypes = excludeTypes?.length
+    ? BRANCH_TYPES.filter((type) => !excludeTypes.includes(type))
+    : BRANCH_TYPES;
+
   return (
     <Select
       value={value}
@@ -41,7 +47,7 @@ export function BranchTypeSelect({
         <SelectValue placeholder="Selectionner le type" />
       </SelectTrigger>
       <SelectContent>
-        {BRANCH_TYPES.map((type) => (
+        {availableTypes.map((type) => (
           <SelectItem key={type} value={type}>
             {BRANCH_TYPE_LABELS[type] ?? getBranchTypeLabel(type)}
           </SelectItem>

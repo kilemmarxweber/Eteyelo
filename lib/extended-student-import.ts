@@ -196,25 +196,31 @@ export async function linkStudentToExtendedBranch(params: {
         },
       });
 
-  if (isUniversiteBranch(params.typebranch)) {
+  if (isUniversiteBranch(params.typebranch) || isCentreFormationBranch(params.typebranch)) {
     if (!params.classeId) {
-      throw new Error("L'auditoire est obligatoire pour importer un etudiant");
+      throw new Error(
+        isUniversiteBranch(params.typebranch)
+          ? "L'auditoire est obligatoire pour importer un etudiant"
+          : "La session est obligatoire pour importer un apprenant",
+      );
     }
 
-    await enrollStudentInUniversiteAuditoire({
+    await enrollStudentInBranchClass({
       studentId: params.studentId,
       branchId: params.targetBranchId,
       classeId: params.classeId,
+      typebranch: params.typebranch,
     });
   }
 
   return link;
 }
 
-export async function enrollStudentInUniversiteAuditoire(params: {
+export async function enrollStudentInBranchClass(params: {
   studentId: string;
   branchId: string;
   classeId: string;
+  typebranch?: unknown;
 }) {
   const [schoolYear, classe] = await Promise.all([
     prisma.schoolYear.findFirst({
@@ -241,7 +247,11 @@ export async function enrollStudentInUniversiteAuditoire(params: {
   }
 
   if (!classe) {
-    throw new Error("Auditoire ou filiere invalide");
+    throw new Error(
+      isCentreFormationBranch(params.typebranch)
+        ? "Session ou module invalide"
+        : "Auditoire ou filiere invalide",
+    );
   }
 
   await prisma.classEnrollment.upsert({
@@ -262,6 +272,18 @@ export async function enrollStudentInUniversiteAuditoire(params: {
       classeId: params.classeId,
       statusEnrollment: true,
     },
+  });
+}
+
+/** @deprecated Utiliser enrollStudentInBranchClass */
+export async function enrollStudentInUniversiteAuditoire(params: {
+  studentId: string;
+  branchId: string;
+  classeId: string;
+}) {
+  return enrollStudentInBranchClass({
+    ...params,
+    typebranch: "UNIVERSITE",
   });
 }
 

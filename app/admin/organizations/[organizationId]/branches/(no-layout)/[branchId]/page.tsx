@@ -27,10 +27,12 @@ import {
   getParentFeedbackStatus,
 } from "./admin-stats";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { getCalendarEvents } from "./CalendarEvent/CalendarEvent.acton";
+import { useBranchPeopleLabels } from "@/hooks/use-branch-people-labels";
 
 export default function AdminDashboard() {
+  const peopleLabels = useBranchPeopleLabels();
   // ✅ params (Promise style support indirect via useParams)
   const params = useParams();
 
@@ -134,36 +136,39 @@ export default function AdminDashboard() {
 
     check();
   }, []);
-  const quickActions = [
-    {
-      title: "Gérer les élèves",
-      description: "Ajouter, modifier ou archiver des eleves",
-      icon: <IconUsers className="h-6 w-6" />,
-      href: "/admin/student",
-      color: "bg-blue-500",
-    },
-    {
-      title: "Gérer les classes",
-      description: "Créer et organiser les classes",
-      icon: <IconSchool className="h-6 w-6" />,
-      href: "/admin/classe",
-      color: "bg-green-500",
-    },
-    {
-      title: "Gérer les cours",
-      description: "Configurer les cours et matières",
-      icon: <IconBook className="h-6 w-6" />,
-      href: "/admin/cours",
-      color: "bg-purple-500",
-    },
-    {
-      title: "Gérer les frais",
-      description: "Configurer les frais scolaires",
-      icon: <IconCurrencyDollar className="h-6 w-6" />,
-      href: "/admin/frais",
-      color: "bg-orange-500",
-    },
-  ];
+  const quickActions = useMemo(
+    () => [
+      {
+        title: `Gérer les ${peopleLabels.studentPluralLower}`,
+        description: `Ajouter, modifier ou archiver des ${peopleLabels.studentPluralLower}`,
+        icon: <IconUsers className="h-6 w-6" />,
+        href: "/admin/student",
+        color: "bg-blue-500",
+      },
+      {
+        title: "Gérer les classes",
+        description: "Créer et organiser les classes",
+        icon: <IconSchool className="h-6 w-6" />,
+        href: "/admin/classe",
+        color: "bg-green-500",
+      },
+      {
+        title: "Gérer les cours",
+        description: "Configurer les cours et matières",
+        icon: <IconBook className="h-6 w-6" />,
+        href: "/admin/cours",
+        color: "bg-purple-500",
+      },
+      {
+        title: "Gérer les frais",
+        description: "Configurer les frais scolaires",
+        icon: <IconCurrencyDollar className="h-6 w-6" />,
+        href: "/admin/frais",
+        color: "bg-orange-500",
+      },
+    ],
+    [peopleLabels.studentPluralLower],
+  );
   const upcomingEvents = events
     .filter((event) => new Date(event.dateStart).getTime() >= Date.now())
     .sort(
@@ -278,7 +283,9 @@ export default function AdminDashboard() {
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Élèves</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  {peopleLabels.studentPlural}
+                </CardTitle>
                 <IconUsers className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
@@ -295,7 +302,7 @@ export default function AdminDashboard() {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
-                  Enseignants
+                  {peopleLabels.teacherPlural}
                 </CardTitle>
                 <IconUsers className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
@@ -481,7 +488,7 @@ export default function AdminDashboard() {
                     </div>
                     <p className="mt-1 text-xs text-muted-foreground">
                       {metrics.studentsCount > 0
-                        ? `Réussite ${metrics.successRate}% · ${metrics.passedCount}/${metrics.studentsCount} élèves ≥ 50%`
+                        ? `Réussite ${metrics.successRate}% · ${metrics.passedCount}/${metrics.studentsCount} ${peopleLabels.studentPluralLower} ≥ 50%`
                         : "Aucune cote enregistrée pour le moment"}
                     </p>
                   </div>

@@ -93,6 +93,13 @@ export async function linkStudentToBranchAction(input: {
     };
   }
 
+  if (isCentreFormationBranch(typebranch) && !input.classeId?.trim()) {
+    return {
+      ok: false as const,
+      message: "Selectionnez un module et une session avant l'import",
+    };
+  }
+
   const parsed = importStudentSchema.safeParse({
     studentId: input.studentId,
     targetBranchId: branchId,
@@ -177,6 +184,12 @@ export async function getStudentPageContextAction() {
     requiresImport: requiresStudentImport(ctx.typebranch),
     supportsImport: supportsOptionalStudentImport(ctx.typebranch),
     requiresAuditoireOnImport: isUniversiteBranch(ctx.typebranch),
+    importEnrollmentMode: isUniversiteBranch(ctx.typebranch)
+      ? ("university" as const)
+      : isCentreFormationBranch(ctx.typebranch)
+        ? ("centre" as const)
+        : null,
+    showGenerateLogins: !isCentreFormationBranch(ctx.typebranch),
     importScope: requiresStudentImport(ctx.typebranch)
       ? ("school_only" as const)
       : ("organization" as const),
@@ -184,21 +197,24 @@ export async function getStudentPageContextAction() {
   };
 }
 
-export async function getUniversityImportEnrollmentOptionsAction() {
+export async function getImportEnrollmentOptionsAction() {
   const { branchId, canManageStudents, typebranch } = await getCurrentBranch();
 
   if (!canManageStudents) {
     return { ok: false as const, message: "Action non autorisee" };
   }
 
-  if (!isUniversiteBranch(typebranch)) {
+  const isUniversity = isUniversiteBranch(typebranch);
+  const isCentre = isCentreFormationBranch(typebranch);
+
+  if (!isUniversity && !isCentre) {
     return {
       ok: false as const,
-      message: "Disponible uniquement pour une branche universite",
+      message: "Disponible uniquement pour une branche universite ou centre de formation",
     };
   }
 
-  const [filieres, auditoires, schoolYear] = await Promise.all([
+  const [modules, sessions, schoolYear] = await Promise.all([
     prisma.option.findMany({
       where: { branchId, statusOption: { not: false } },
       include: { section: { select: { nameSection: true } } },
@@ -230,18 +246,41 @@ export async function getUniversityImportEnrollmentOptionsAction() {
 
   return {
     ok: true as const,
+    mode: isUniversity ? ("university" as const) : ("centre" as const),
     schoolYear,
-    filieres: filieres.map((filiere) => ({
-      id: filiere.id,
-      nameOption: filiere.nameOption,
-      sectionName: filiere.section?.nameSection ?? null,
+    modules: modules.map((module) => ({
+      id: module.id,
+      nameOption: module.nameOption,
+      sectionName: module.section?.nameSection ?? null,
     })),
-    auditoires: auditoires.map((auditoire) => ({
-      id: auditoire.id,
-      nameClasse: auditoire.nameClasse,
-      optionId: auditoire.optionId!,
-      optionName: auditoire.option?.nameOption ?? "",
+    sessions: sessions.map((session) => ({
+      id: session.id,
+      nameClasse: session.nameClasse,
+      optionId: session.optionId!,
+      optionName: session.option?.nameOption ?? "",
     })),
+  };
+}
+
+export async function getUniversityImportEnrollmentOptionsAction() {
+  const response = await getImportEnrollmentOptionsAction();
+
+  if (!response.ok) {
+    return response;
+  }
+
+  if (response.mode !== "university") {
+    return {
+      ok: false as const,
+      message: "Disponible uniquement pour une branche universite",
+    };
+  }
+
+  return {
+    ok: true as const,
+    schoolYear: response.schoolYear,
+    filieres: response.modules,
+    auditoires: response.sessions,
   };
 }
 

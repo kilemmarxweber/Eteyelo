@@ -182,15 +182,59 @@ export function drawPrimarySectionHeader(
 
 export function drawPrimarySousTotalRow(
   drawCell: DrawCellFn,
-  doc: Parameters<typeof drawPrimaryTrimesterMaximaRow>[0],
   layout: PrimaryBulletinLayout,
   y: number,
   height: number,
   label: string,
   values: PrimaryTrimesterMaximaValues,
+  ptsByCell: Partial<Record<string, string>> = {},
+  getColor?: GetColorFn,
 ) {
   drawBranchesCell(drawCell, layout, y, height, label, "left", true);
-  drawPrimaryTrimesterMaximaRow(doc, y, values, layout, height, { plain: true });
+
+  const maxForPtsCell = (cell: (typeof layout.evalCells)[number]): number => {
+    if (cell.kind === "period-score" && cell.periodKey) {
+      const key = cell.periodKey as keyof PrimaryTrimesterMaximaValues;
+      return Number(values[key] ?? 0) || 0;
+    }
+    if (cell.kind === "pts-exam") {
+      if (cell.trimesterIndex === 1) return Number(values.exam1 ?? 0) || 0;
+      if (cell.trimesterIndex === 2) return Number(values.exam2 ?? 0) || 0;
+      return Number(values.exam3 ?? 0) || 0;
+    }
+    if (cell.kind === "pts-trim") {
+      if (cell.trimesterIndex === 1) return Number(values.tt1 ?? 0) || 0;
+      if (cell.trimesterIndex === 2) return Number(values.tt2 ?? 0) || 0;
+      return Number(values.tt3 ?? 0) || 0;
+    }
+    if (cell.kind === "pts-total") {
+      return Number(values.maxAnnuel ?? 0) || 0;
+    }
+    return 0;
+  };
+
+  for (const cell of layout.evalCells) {
+    const isMaxCell =
+      cell.kind === "max-per" ||
+      cell.kind === "max-exam" ||
+      cell.kind === "max-trim" ||
+      cell.kind === "max-total";
+    const text = isMaxCell
+      ? getPrimaryMaximaCellText(cell, values)
+      : (ptsByCell[cell.key] ?? "");
+
+    let textColor = "black";
+    if (!isMaxCell && text && getColor) {
+      const value = Number.parseFloat(text.replace(",", ".")) || 0;
+      textColor = getColor(value, "score", maxForPtsCell(cell));
+    }
+
+    drawCell(cell.x, y, cell.width, height, text, false, "center", {
+      text: textColor,
+      fill: "white",
+      bold: true,
+    });
+  }
 }
 
 export function drawPrimaryGeneralMaximaRow(
@@ -405,8 +449,6 @@ export function drawPrimarySubjectRow(
   }
 
   const isPercentage = subject.name === "POURCENTAGES";
-  const specialRows = ["APPLICATIONS", "CONDUITE"];
-  const isSpecial = specialRows.includes(subject.name);
 
   drawBranchesCell(drawCell, layout, yPosBlocs, maximaHeight, subject.name, "left");
 
@@ -417,6 +459,9 @@ export function drawPrimarySubjectRow(
     generalesMaxima,
     isPercentage,
   );
+
+  const scoreTextColor = (value: number, max: number): string =>
+    isPercentage ? getColor(value, "percentage", max) : "black";
 
   for (const cell of layout.evalCells) {
     const valStr = cellValues[cell.key] ?? "";
@@ -450,41 +495,17 @@ export function drawPrimarySubjectRow(
         p6: generalesMaxima.p6,
       };
       fill = {
-        text: getColor(valNum, isPercentage ? "percentage" : "score", maxMap[cell.periodKey ?? ""] ?? 0),
+        text: scoreTextColor(valNum, maxMap[cell.periodKey ?? ""] ?? 0),
         fill: "white",
         ...PERIOD_SCORE_STYLE,
       };
     } else if (
+      isPercentage &&
       (cell.kind === "pts-exam" || cell.kind === "pts-trim" || cell.kind === "pts-total") &&
-      valStr &&
-      !isSpecial
+      valStr
     ) {
-      const maxKey =
-        cell.kind === "pts-trim"
-          ? cell.trimesterIndex === 1
-            ? "tt1"
-            : cell.trimesterIndex === 2
-              ? "tt2"
-              : "tt3"
-          : cell.kind === "pts-total"
-            ? "tg"
-            : cell.trimesterIndex === 1
-              ? "tt1"
-              : cell.trimesterIndex === 2
-                ? "tt2"
-                : "tt3";
-      const maxMap: Record<string, number> = {
-        tt1: generalesMaxima.tt1,
-        tt2: generalesMaxima.tt2,
-        tt3: generalesMaxima.tt3,
-        tg: generalesMaxima.tg,
-      };
       fill = {
-        text: getColor(
-          valNum,
-          isPercentage ? "percentage" : "score",
-          isPercentage ? 100 : maxMap[maxKey] ?? 0,
-        ),
+        text: scoreTextColor(valNum, 100),
         fill: "white",
       };
     }
@@ -589,6 +610,74 @@ function safeStrLocal(value: unknown): string {
   if (typeof value === "number") return value === 0 ? "" : String(value);
   if (typeof value === "string") return value.trim();
   return "";
+}
+
+export function buildPrimaryDomainPtsByCell(
+  layout: PrimaryBulletinLayout,
+  subjects: (Subject & { maxima?: Record<string, number> })[],
+  activePeriodKeys: string[],
+  branchType: ManagedBranchType,
+): Partial<Record<string, string>> {
+  const values: Partial<Record<string, string>> = {};
+
+  for (const cell of layout.evalCells) {
+    if (cell.kind === "period-score" && cell.periodKey) {
+      let sum = 0;
+      for (const subject of subjects) {
+        sum += getPeriodScore(subject, cell.periodKey, activePeriodKeys).value;
+      }
+      values[cell.key] =
+        activePeriodKeys.includes(cell.periodKey) && sum !== 0 ? String(sum) : "";
+      continue;
+    }
+
+    if (cell.kind === "pts-exam" && cell.periodKey) {
+      let sum = 0;
+      for (const subject of subjects) {
+        sum += getPeriodScore(subject, cell.periodKey, activePeriodKeys).value;
+      }
+      values[cell.key] =
+        activePeriodKeys.includes(cell.periodKey) && sum !== 0 ? String(sum) : "";
+      continue;
+    }
+
+    if (cell.kind === "pts-trim" && cell.trimesterIndex >= 1 && cell.trimesterIndex <= 3) {
+      const trimesterIndex = cell.trimesterIndex as 1 | 2 | 3;
+      const groupOrder = getTrimesterGroupOrder(trimesterIndex);
+      let sum = 0;
+      for (const subject of subjects) {
+        sum += computeGroupTotal(subject, groupOrder, activePeriodKeys, branchType);
+      }
+      values[cell.key] =
+        canShowGroupTotal(groupOrder, activePeriodKeys, branchType) && sum !== 0
+          ? String(sum)
+          : "";
+      continue;
+    }
+
+    if (cell.kind === "pts-total") {
+      const tt1 = subjects.reduce(
+        (sum, subject) => sum + computeGroupTotal(subject, 1, activePeriodKeys, branchType),
+        0,
+      );
+      const tt2 = subjects.reduce(
+        (sum, subject) => sum + computeGroupTotal(subject, 2, activePeriodKeys, branchType),
+        0,
+      );
+      const tt3 = subjects.reduce(
+        (sum, subject) => sum + computeGroupTotal(subject, 3, activePeriodKeys, branchType),
+        0,
+      );
+      const canAnnuel =
+        canShowGroupTotal(1, activePeriodKeys, branchType) &&
+        canShowGroupTotal(2, activePeriodKeys, branchType) &&
+        canShowGroupTotal(3, activePeriodKeys, branchType);
+      const annuel = tt1 > 0 && tt2 > 0 && tt3 > 0 && canAnnuel ? tt1 + tt2 + tt3 : 0;
+      values[cell.key] = annuel !== 0 ? String(annuel) : "";
+    }
+  }
+
+  return values;
 }
 
 export function buildPrimaryMaximaValues(

@@ -1,3 +1,5 @@
+import type { ManagedBranchType } from "@/lib/academic-structure";
+import { getBranchTypeLabel } from "@/lib/branch-capabilities";
 import { sendMail } from "./mailer";
 import {
   DEFAULT_APP_NAME,
@@ -12,11 +14,11 @@ type SchoolRegistrationConfirmationInput = {
   to: string;
   schoolName: string;
   reference: string;
-  typebranch: "PRIMAIRE" | "SECONDAIRE";
+  typebranch: ManagedBranchType;
 };
 
-function formatBranchType(type: SchoolRegistrationConfirmationInput["typebranch"]) {
-  return type === "PRIMAIRE" ? "Primaire" : "Secondaire";
+function formatBranchType(type: ManagedBranchType) {
+  return getBranchTypeLabel(type);
 }
 
 export function schoolRegistrationConfirmationTemplate(

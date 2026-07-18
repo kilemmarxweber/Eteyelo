@@ -217,7 +217,12 @@ test("libelles ESU (Etudiant, Professeur, Auditoire) reserves a UNIVERSITE", () 
 test("calendrier LMD : uniquement UNIVERSITE", () => {
   const uniStructure = getAcademicStructure("UNIVERSITE");
   assert.equal(uniStructure.groups[0]?.label, "Premier semestre");
-  assert.ok(uniStructure.periods.some((period) => period.label.includes("Délibérations")));
+  assert.ok(
+    uniStructure.periods.some((period) => period.label.includes("Première session")),
+  );
+  assert.ok(
+    !uniStructure.periods.some((period) => period.label.includes("Délibérations")),
+  );
 
   const secondaryStructure = getAcademicStructure("SECONDAIRE");
   assert.equal(secondaryStructure.groups[0]?.label, "Semestre 1");

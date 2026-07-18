@@ -1,9 +1,14 @@
 import { prisma } from "@/lib/prisma";
+import { isUniversiteBranch } from "@/lib/branch-capabilities";
 import {
   getAcademicPeriodAliases,
+  getAcademicPeriodOrderForSemester,
   getAcademicStructure,
+  normalizeAcademicPeriodLabel,
   normalizeBranchType,
+  resolveAcademicPeriodConfig,
 } from "@/lib/academic-structure";
+import { UNIVERSITY_LMD_LABELS } from "@/lib/university-lmd-labels";
 
 function addDays(date: Date, days: number) {
   const next = new Date(date);
@@ -104,6 +109,37 @@ export async function ensureAcademicPeriodsForBranch(params: {
         continue;
       }
 
+      if (
+        isUniversiteBranch(typebranch) &&
+        group.label === UNIVERSITY_LMD_LABELS.secondSemester &&
+        period.label === UNIVERSITY_LMD_LABELS.secondSession
+      ) {
+        const staleFirstSession = await prisma.period.findFirst({
+          where: {
+            branchId: params.branchId,
+            semesterId: semester.id,
+            label: {
+              in: [
+                UNIVERSITY_LMD_LABELS.firstSession,
+                ...getAcademicPeriodAliases(UNIVERSITY_LMD_LABELS.firstSession),
+              ],
+            },
+          },
+        });
+
+        if (staleFirstSession) {
+          await prisma.period.update({
+            where: { id: staleFirstSession.id },
+            data: {
+              label: period.label,
+              startDate: periodStart,
+              endDate: periodEnd,
+            },
+          });
+          continue;
+        }
+      }
+
       await prisma.period.create({
         data: {
           label: period.label,
@@ -115,4 +151,115 @@ export async function ensureAcademicPeriodsForBranch(params: {
       });
     }
   }
+}
+
+export type BranchPeriodOption = {
+  id: number;
+  label: string;
+  rawLabel: string;
+  semesterLabel: string | null;
+  kind: "PERIOD" | "EXAM" | null;
+};
+
+function isKnownAcademicPeriod(
+  label: string,
+  typebranch: unknown,
+  semesterLabel?: string | null,
+): boolean {
+  return (
+    resolveAcademicPeriodConfig(label, typebranch, semesterLabel) !== null
+  );
+}
+
+function dedupeUniversitySessions(
+  periods: BranchPeriodOption[],
+): BranchPeriodOption[] {
+  const seen = new Set<string>();
+  return periods.filter((period) => {
+    if (seen.has(period.rawLabel)) return false;
+    seen.add(period.rawLabel);
+    return true;
+  });
+}
+
+/** Periodes / sessions de la branche, synchronisees sur le calendrier du type. */
+export async function listBranchPeriodOptions(params: {
+  branchId: string;
+  typebranch: unknown;
+  ensure?: boolean;
+  /** Universite : ne retourner que Premiere session et Deuxieme session. */
+  sessionsOnly?: boolean;
+}): Promise<BranchPeriodOption[]> {
+  const typebranch = normalizeBranchType(params.typebranch);
+
+  if (params.ensure !== false && isUniversiteBranch(typebranch)) {
+    await ensureAcademicPeriodsForBranch({
+      branchId: params.branchId,
+      typebranch,
+    });
+  }
+
+  const periods = await prisma.period.findMany({
+    where: { branchId: params.branchId },
+    include: {
+      semester: {
+        select: { label: true },
+      },
+    },
+  });
+
+  const mapped = periods
+    .map((period) => {
+      const rawLabel = normalizeAcademicPeriodLabel(period.label);
+      const semesterLabel = period.semester?.label ?? null;
+      const config = resolveAcademicPeriodConfig(
+        rawLabel,
+        typebranch,
+        semesterLabel,
+      );
+      const kind = config?.kind ?? null;
+      const isUniversitySession =
+        isUniversiteBranch(typebranch) && kind === "EXAM";
+      const label = isUniversitySession
+        ? rawLabel
+        : isUniversiteBranch(typebranch) && semesterLabel
+          ? `${rawLabel} · ${semesterLabel}`
+          : rawLabel;
+
+      return {
+        id: period.id,
+        label,
+        rawLabel,
+        semesterLabel,
+        kind,
+      };
+    })
+    .filter((period) =>
+      isKnownAcademicPeriod(period.rawLabel, typebranch, period.semesterLabel),
+    )
+    .filter((period) => {
+      if (!params.sessionsOnly || !isUniversiteBranch(typebranch)) {
+        return true;
+      }
+      return period.kind === "EXAM";
+    })
+    .sort(
+      (left, right) =>
+        getAcademicPeriodOrderForSemester(
+          left.rawLabel,
+          typebranch,
+          left.semesterLabel,
+        ) -
+        getAcademicPeriodOrderForSemester(
+          right.rawLabel,
+          typebranch,
+          right.semesterLabel,
+        ),
+    );
+
+  if (params.sessionsOnly && isUniversiteBranch(typebranch)) {
+    return dedupeUniversitySessions(mapped);
+  }
+
+  return mapped;
 }

@@ -4,6 +4,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@/prisma/generated/prisma/client";
 import { isPrimaryBranch } from "@/lib/class-structure";
+import { isAtelierBranch } from "@/lib/branch-capabilities";
 
 const PRIMARY_MIN_AGE = 5;
 
@@ -58,7 +59,10 @@ function ageFromDate(dateStr: string) {
 
 export async function getActiveBranches() {
   return prisma.branch.findMany({
-    where: { isActive: true },
+    where: {
+      isActive: true,
+      typebranch: { not: "ATELIER" },
+    },
     orderBy: { name: "asc" },
     select: {
       id: true,
@@ -102,6 +106,14 @@ export async function registerStudentOnline(raw: OnlineRegistrationInput) {
   });
   if (!branch) {
     return { success: false as const, message: "Ecole introuvable." };
+  }
+
+  if (isAtelierBranch(branch.typebranch)) {
+    return {
+      success: false as const,
+      message:
+        "Les inscriptions en ligne ne sont pas disponibles pour les ateliers.",
+    };
   }
 
   if (isPrimaryBranch(branch.typebranch)) {

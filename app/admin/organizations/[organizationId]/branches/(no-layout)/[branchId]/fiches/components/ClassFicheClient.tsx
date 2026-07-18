@@ -207,7 +207,10 @@ export default function ClassFicheClient({
         { score: number; maxScore: number }
       > = {};
 
-      const isExam = selectedPeriod.startsWith("Exam");
+      const isExam = isAcademicExamPeriodName(
+        selectedPeriod,
+        branchContext.branchType,
+      );
       let periodsToInclude: RecapPeriod[];
 
       if (isExam) {
@@ -232,7 +235,7 @@ export default function ClassFicheClient({
 
       return notesPerSubject;
     },
-    [getAggregatedPeriods], // ✅ important dependency
+    [branchContext.branchType, getAggregatedPeriods],
   );
 
   /**

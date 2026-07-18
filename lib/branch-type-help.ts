@@ -108,7 +108,7 @@ export function getBranchTypeHelpContent(typebranch: unknown): BranchTypeHelpCon
             items: [
               "Les bulletins scolaires sont remplaces par les releves de notes.",
               "Calendrier LMD : annee academique en 2 semestres (S1-S16 selon le niveau).",
-              "Periodes par semestre : Cours, Evaluations, Premiere session, Deliberations ; 2e session, defense TFC et deliberations finales au 2e semestre.",
+              "Periodes par semestre : Cours et Evaluations ; Premiere session au 1er semestre, Deuxieme session au 2e semestre.",
               "Les credits proviennent des ponderations cours/filiere.",
               "Les parents ne sont pas geres ici : ils sont renseignes uniquement a l'inscription.",
               "Les releves et attestations supportent apercu, impression et stockage PDF.",

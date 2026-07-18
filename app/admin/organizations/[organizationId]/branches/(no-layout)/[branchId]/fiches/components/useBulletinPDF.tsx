@@ -69,6 +69,7 @@ import {
 } from "./bulletin-primary-layout";
 import {
   buildGenerauxCellValues,
+  buildPrimaryDomainPtsByCell,
   buildPrimaryMaximaValues,
   drawPrimaryDomainHeader,
   drawPrimaryGeneralMaximaRow,
@@ -1131,14 +1132,22 @@ export default function BulletinPDF({
           }
 
           if (row.type === "sous-total") {
+            const sousTotalMaxima = buildPrimaryMaximaValues(row.maxima);
+            const sousTotalPts = buildPrimaryDomainPtsByCell(
+              primaryLayout!,
+              row.subjects,
+              activePeriodKeys,
+              branchContext.branchType,
+            );
             drawPrimarySousTotalRow(
               drawCell,
-              doc,
               primaryLayout!,
               yPosBlocs,
               maximaHeight,
               "Sous-total",
-              buildPrimaryMaximaValues(row.maxima),
+              sousTotalMaxima,
+              sousTotalPts,
+              getColorText,
             );
             yPosBlocs += maximaHeight;
             continue;

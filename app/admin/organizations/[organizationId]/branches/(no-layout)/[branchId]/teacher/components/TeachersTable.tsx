@@ -13,6 +13,7 @@ import { DataTableToolbar } from "./data-table-toolbar";
 import { IconAlertCircle, IconUsers } from "@tabler/icons-react";
 import { useRefresh } from "@/src/hooks/RefreshContext";
 import { UpdateTeacherDialog } from "./edit-teacher-dialog";
+import { useBranchPeopleLabels } from "@/hooks/use-branch-people-labels";
 
 type TeacherAssignmentFilter =
   | "all"
@@ -42,6 +43,7 @@ const TeachersList = ({
   const [editingTeacher, setEditingTeacher] = useState<ITeacher | null>(null);
   const hasLoadedOnce = useRef(false);
   const { refreshKey: contextRefreshKey } = useRefresh();
+  const peopleLabels = useBranchPeopleLabels();
 
   const tableActions = useMemo(
     () => ({
@@ -63,12 +65,13 @@ const TeachersList = ({
           canManageTeachers={canManageTeachers}
           supportsStaffImport={supportsStaffImport}
           onOpenImport={onOpenImport}
+          peopleLabels={peopleLabels}
         />
       );
     }
 
     return Toolbar;
-  }, [canManageTeachers, onOpenImport, supportsStaffImport]);
+  }, [canManageTeachers, onOpenImport, peopleLabels, supportsStaffImport]);
 
   const displayedTeachers = useMemo(
     () =>
@@ -104,7 +107,7 @@ const TeachersList = ({
       const [rawTeachers, err] = await getTeachersAction();
       if (err) {
         throw new Error(
-          err.message || "Erreur lors du chargement des enseignants",
+          err.message || `Erreur lors du chargement des ${peopleLabels.teacherPluralLower}`,
         );
       }
 
@@ -121,7 +124,7 @@ const TeachersList = ({
       setLoading(false);
       setIsRefreshing(false);
     }
-  }, []);
+  }, [peopleLabels.teacherPluralLower]);
 
   useEffect(() => {
     void fetchTeachers();
@@ -178,16 +181,16 @@ const TeachersList = ({
         {dialogs}
         <div className="p-6">
           <EmptyTableState
-            title="Aucun enseignant enregistré"
+            title={`Aucun ${peopleLabels.teacherLower} enregistré`}
             description={
               supportsStaffImport
-                ? "Creez ou importez un enseignant depuis une autre branche pour commencer."
-                : "Ajoutez votre premier enseignant pour commencer."
+                ? `Créez ou importez un ${peopleLabels.teacherLower} depuis une autre branche pour commencer.`
+                : `Ajoutez votre premier ${peopleLabels.teacherLower} pour commencer.`
             }
             icon={<IconUsers className="h-10 w-10 text-muted-foreground" />}
             actionLabel={
               supportsStaffImport && canManageTeachers
-                ? "Importer un enseignant"
+                ? `Importer un ${peopleLabels.teacherLower}`
                 : undefined
             }
             onAction={
@@ -212,7 +215,7 @@ const TeachersList = ({
           columns={columns}
           ToolbarComponent={TeacherToolbar}
           data={displayedTeachers}
-          emptyText="Aucun enseignant Ajouté"
+          emptyText={`Aucun ${peopleLabels.teacherLower} ajouté`}
           mobileCardTitle={(row) => `${row.nom} ${row.postnom} ${row.prenom}`}
           mobileCardSubtitle={(row) => row.username ?? ""}
           mobileCardBadges={(row) =>

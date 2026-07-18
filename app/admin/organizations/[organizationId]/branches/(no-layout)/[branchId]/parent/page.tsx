@@ -18,6 +18,7 @@ import { useSession } from "@/lib/auth-client";
 import Loading from "../loading";
 import UserList from "./components/ParentsTable";
 import { getParentEnrollmentStatsAction } from "./parent.action";
+import { useBranchPeopleLabels } from "@/hooks/use-branch-people-labels";
 
 type ParentStats = {
   totalParents: number;
@@ -43,6 +44,7 @@ const emptyStats: ParentStats = {
 
 export default function Parents() {
   const [stats, setStats] = useState<ParentStats>(emptyStats);
+  const peopleLabels = useBranchPeopleLabels();
   const { data: session, isPending } = useSession();
 
   useEffect(() => {
@@ -79,13 +81,13 @@ export default function Parents() {
     {
       label: `Tuteurs ${yearLabel}`,
       value: stats.parentsCurrentYear,
-      description: "avec élève inscrit",
+      description: `avec ${peopleLabels.studentLower} inscrit`,
       icon: IconUsers,
     },
     {
       label: `Inscriptions ${yearLabel}`,
       value: stats.enrollmentsCurrentYear,
-      description: "élèves inscrits",
+      description: `${peopleLabels.studentPluralLower} inscrits`,
       icon: IconSchool,
     },
   ];
@@ -168,7 +170,7 @@ export default function Parents() {
                 Répartition par année scolaire
               </h2>
               <p className="text-xs text-muted-foreground">
-                Selon les inscriptions élèves
+                Selon les inscriptions {peopleLabels.studentPluralLower}
               </p>
             </div>
 

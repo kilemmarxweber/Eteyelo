@@ -23,6 +23,11 @@ import {
 } from "../lib/branch-capabilities";
 import { getAcademicStructure } from "../lib/academic-structure";
 import { supportsOptionalStudentImport } from "../lib/extended-student-import";
+import {
+  getFicheTypeComboboxItems,
+  getIntermediateFicheTypes,
+  isAllowedFicheType,
+} from "../lib/fiche-type-options";
 
 function test(name: string, assertion: () => void) {
   assertion();
@@ -78,6 +83,67 @@ test("libelles universite", () => {
   const uniStructure = getAcademicStructure("UNIVERSITE");
   assert.equal(uniStructure.groups[0]?.label, "Premier semestre");
   assert.equal(uniStructure.groups[1]?.label, "Deuxième semestre");
+});
+
+test("universite : pas de devoir, evaluation TP TFC et memoire", () => {
+  assert.deepEqual(getIntermediateFicheTypes("UNIVERSITE"), [
+    "Evaluation",
+    "TP",
+    "TFC",
+    "Memoire",
+  ]);
+  assert.deepEqual(getIntermediateFicheTypes("SECONDAIRE"), [
+    "Devoir",
+    "Evaluation",
+    "TP",
+  ]);
+
+  assert.deepEqual(
+    getFicheTypeComboboxItems({
+      typebranch: "UNIVERSITE",
+      isAdmin: true,
+      isExam: true,
+    }).map((item) => item.value),
+    ["Evaluation", "TP", "TFC", "Memoire", "ficheCote"],
+  );
+  assert.equal(
+    isAllowedFicheType("Evaluation", "UNIVERSITE", {
+      isAdmin: false,
+      isExam: true,
+    }),
+    true,
+  );
+  assert.equal(
+    isAllowedFicheType("TP", "UNIVERSITE", { isAdmin: true, isExam: true }),
+    true,
+  );
+
+  const uniItems = getFicheTypeComboboxItems({
+    typebranch: "UNIVERSITE",
+    isAdmin: true,
+    isExam: false,
+  });
+  assert.deepEqual(
+    uniItems.map((item) => item.value),
+    ["Evaluation", "TP", "TFC", "Memoire", "ficheCote"],
+  );
+  assert.equal(
+    uniItems.some((item) => item.value === "Devoir"),
+    false,
+  );
+
+  assert.equal(
+    isAllowedFicheType("Devoir", "UNIVERSITE", { isAdmin: true, isExam: false }),
+    false,
+  );
+  assert.equal(
+    isAllowedFicheType("Evaluation", "UNIVERSITE", { isAdmin: false, isExam: false }),
+    true,
+  );
+  assert.equal(
+    isAllowedFicheType("Devoir", "SECONDAIRE", { isAdmin: false, isExam: false }),
+    true,
+  );
 });
 
 test("generateReleveNotesPdf est invocable", () => {

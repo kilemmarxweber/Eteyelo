@@ -30,6 +30,7 @@ interface DataTableToolbarProps<TData> {
   importScope?: "school_only" | "organization";
   peopleLabels?: PeopleLabels;
   classLabel?: string;
+  showGenerateLogins?: boolean;
   onOpenImport?: () => void;
 }
 
@@ -52,6 +53,7 @@ export function DataTableToolbar<TData>({
   importScope = "school_only",
   peopleLabels = DEFAULT_PEOPLE_LABELS,
   classLabel = "Classe",
+  showGenerateLogins = true,
   onOpenImport,
 }: DataTableToolbarProps<TData>) {
   const [exportingPdf, setExportingPdf] = useState(false);
@@ -201,9 +203,7 @@ export function DataTableToolbar<TData>({
               leftSection={<IconUpload size={16} />}
               onClick={() => onOpenImport?.()}
             >
-              {requiresImport
-                ? "Importer un eleve"
-                : `Importer un ${peopleLabels.studentLower}`}
+              Importer
             </Button>
           ) : null}
 
@@ -215,9 +215,11 @@ export function DataTableToolbar<TData>({
                 </Button>
               ) : null}
 
-              <Button variant="outline" leftSection={<IconKey size={16} />}>
-                Générer logins
-              </Button>
+              {showGenerateLogins ? (
+                <Button variant="outline" leftSection={<IconKey size={16} />}>
+                  Générer logins
+                </Button>
+              ) : null}
             </>
           ) : null}
 

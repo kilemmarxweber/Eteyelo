@@ -381,16 +381,14 @@ function mapMenuItem(
     title = getSchoolYearDisplayLabel(resolvedTypebranch);
   }
 
-  if (isUniversiteBranch(resolvedTypebranch)) {
-    const peopleLabels = getPeopleLabels(resolvedTypebranch);
+  const peopleLabels = getPeopleLabels(resolvedTypebranch);
 
-    if (item.href === "/admin/student") {
-      title = peopleLabels.student;
-    }
+  if (item.href === "/admin/student") {
+    title = peopleLabels.student;
+  }
 
-    if (item.href === "/admin/teacher") {
-      title = peopleLabels.teacher;
-    }
+  if (item.href === "/admin/teacher") {
+    title = peopleLabels.teacher;
   }
 
   if (usesTrainingLabels(resolvedTypebranch)) {

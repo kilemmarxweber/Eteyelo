@@ -260,6 +260,20 @@ export function listBranchTypesForCreation(): ManagedBranchType[] {
   return Object.keys(BRANCH_CAPABILITIES) as ManagedBranchType[];
 }
 
+export const PUBLIC_REGISTRATION_BRANCH_TYPES = listBranchTypesForCreation().filter(
+  (type) => type !== "ATELIER",
+);
+
+export function listBranchTypesForPublicRegistration(): ManagedBranchType[] {
+  return PUBLIC_REGISTRATION_BRANCH_TYPES;
+}
+
+export function isBranchTypePubliclyRegistrable(
+  value: unknown,
+): value is ManagedBranchType {
+  return isManagedBranchType(value) && value !== "ATELIER";
+}
+
 export function isBranchTypeCreatable(value: unknown): value is ManagedBranchType {
   return isManagedBranchType(value);
 }

@@ -31,10 +31,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { createStudentAction, updateStudentAction } from "../student.action";
-import { getStudentPageContextAction } from "../../brevets/brevet.action";
-import { isUniversiteBranch } from "@/lib/branch-capabilities";
-import type { PeopleLabels } from "@/lib/people-labels";
-import { DEFAULT_PEOPLE_LABELS } from "@/lib/people-labels";
+import { useBranchPeopleLabels } from "@/hooks/use-branch-people-labels";
 import { getParentsAction } from "../../parent/parent.action";
 import { IParent } from "@/src/interfaces/Parent";
 import { studentSchema } from "@/src/interfaces/Student";
@@ -80,7 +77,7 @@ export function StudentUpForm({
   const fieldClass = isDialog ? "space-y-0.5" : "space-y-1";
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const [peopleLabels, setPeopleLabels] = useState<PeopleLabels>(DEFAULT_PEOPLE_LABELS);
+  const peopleLabels = useBranchPeopleLabels();
   const [Parents, setParents] = useState<IParent[]>([]);
   const sexeToUi: Record<string, "masculin" | "feminin"> = {
     M: "masculin",
@@ -108,14 +105,6 @@ export function StudentUpForm({
       orgRole: initialData?.orgRole,
     },
   });
-
-  useEffect(() => {
-    void getStudentPageContextAction().then((context) => {
-      if (isUniversiteBranch(context.typebranch) && context.peopleLabels) {
-        setPeopleLabels(context.peopleLabels);
-      }
-    });
-  }, []);
 
   useEffect(() => {
     const fecthParents = async () => {

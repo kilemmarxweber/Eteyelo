@@ -156,13 +156,6 @@ const UNIVERSITY_LMD_GROUPS: AcademicGroupConfig[] = [
         order: 3,
         kind: "EXAM",
       },
-      {
-        key: "delib1",
-        label: UNIVERSITY_LMD_LABELS.deliberations,
-        groupLabel: UNIVERSITY_LMD_LABELS.firstSemester,
-        order: 4,
-        kind: "PERIOD",
-      },
     ],
   },
   {
@@ -186,31 +179,10 @@ const UNIVERSITY_LMD_GROUPS: AcademicGroupConfig[] = [
       },
       {
         key: "session2",
-        label: UNIVERSITY_LMD_LABELS.firstSession,
+        label: UNIVERSITY_LMD_LABELS.secondSession,
         groupLabel: UNIVERSITY_LMD_LABELS.secondSemester,
         order: 7,
         kind: "EXAM",
-      },
-      {
-        key: "rattrapage",
-        label: UNIVERSITY_LMD_LABELS.secondSession,
-        groupLabel: UNIVERSITY_LMD_LABELS.secondSemester,
-        order: 8,
-        kind: "EXAM",
-      },
-      {
-        key: "defense",
-        label: UNIVERSITY_LMD_LABELS.defense,
-        groupLabel: UNIVERSITY_LMD_LABELS.secondSemester,
-        order: 9,
-        kind: "EXAM",
-      },
-      {
-        key: "delib2",
-        label: UNIVERSITY_LMD_LABELS.deliberations,
-        groupLabel: UNIVERSITY_LMD_LABELS.secondSemester,
-        order: 10,
-        kind: "PERIOD",
       },
     ],
   },
@@ -282,6 +254,9 @@ const ACADEMIC_PERIOD_ALIASES: Record<string, string> = {
   "Défense TFC / Mémoire": UNIVERSITY_LMD_LABELS.defense,
   "1re session (examens ordinaires)": UNIVERSITY_LMD_LABELS.firstSession,
   "2e session (rattrapage)": UNIVERSITY_LMD_LABELS.secondSession,
+  "Première session (examens ordinaires)": UNIVERSITY_LMD_LABELS.firstSession,
+  "Deuxième session (rattrapage, si organisée)":
+    UNIVERSITY_LMD_LABELS.secondSession,
 };
 export function normalizeAcademicPeriodLabel(label: string): string {
   return ACADEMIC_PERIOD_ALIASES[label] ?? label;
@@ -320,6 +295,35 @@ export function getAcademicPeriodOrder(label: string, typebranch?: unknown): num
   }
 
   return Number.MAX_SAFE_INTEGER;
+}
+
+/** Periode attendue pour un semestre donne (evite les doublons inter-semestres). */
+export function resolveAcademicPeriodConfig(
+  label: string,
+  typebranch?: unknown,
+  semesterLabel?: string | null,
+): AcademicPeriodConfig | null {
+  const normalizedLabel = normalizeAcademicPeriodLabel(label);
+  const structure = getAcademicStructure(typebranch);
+
+  if (semesterLabel) {
+    const group = structure.groups.find((item) => item.label === semesterLabel);
+    const match = group?.periods.find((period) => period.label === normalizedLabel);
+    if (match) return match;
+  }
+
+  return structure.periods.find((period) => period.label === normalizedLabel) ?? null;
+}
+
+export function getAcademicPeriodOrderForSemester(
+  label: string,
+  typebranch?: unknown,
+  semesterLabel?: string | null,
+): number {
+  return (
+    resolveAcademicPeriodConfig(label, typebranch, semesterLabel)?.order ??
+    Number.MAX_SAFE_INTEGER
+  );
 }
 
 export function getActivePeriodKeys(label: string, typebranch?: unknown): string[] {

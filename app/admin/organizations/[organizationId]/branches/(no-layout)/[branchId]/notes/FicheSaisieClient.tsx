@@ -30,7 +30,11 @@ import {
   getStudentsByClass,
 } from "./note.action";
 import { useNotesLabels } from "@/hooks/use-notes-labels";
-import { getAcademicPeriodOrder, isAcademicExamPeriodName } from "@/lib/academic-structure";
+import { getAcademicPeriodOrder } from "@/lib/academic-structure";
+import {
+  getFicheTypeComboboxItems,
+  isStandardFicheType,
+} from "@/lib/fiche-type-options";
 
 /* ===== DYNAMIC ===== */
 const TeacherCombobox = dynamic(
@@ -78,11 +82,8 @@ export default function FicheSaisieClient({
     getPeriods().then(setPeriods);
   }, []);
   const isExamPeriod = (period?: Period | null) => {
-    if (!period?.label) return false;
-    if (notesLabels.isUniversite) {
-      return isAcademicExamPeriodName(period.label, notesLabels.typebranch);
-    }
-    return period.label.startsWith("Exam");
+    if (!period) return false;
+    return period.kind === "EXAM";
   };
   /* ===== LOAD STUDENTS ===== */
   useEffect(() => {
@@ -112,8 +113,12 @@ export default function FicheSaisieClient({
         return;
       }
 
-      if (isExamPeriod(period) && typeFiche !== "ficheCote") {
-        setTypeFiche("ficheCote"); // UI sync
+      if (
+        !notesLabels.isUniversite &&
+        isExamPeriod(period) &&
+        typeFiche !== "ficheCote"
+      ) {
+        setTypeFiche("ficheCote"); // UI sync (primaire/secondaire)
       }
       // 🔥 LOCK CHECK IMMÉDIAT (avant fetch)
       if (isLocked(lesson)) {
@@ -138,15 +143,15 @@ export default function FicheSaisieClient({
         return;
       }
 
-      const isStandardType = ["Evaluation", "Devoir", "TP"].includes(typeFiche);
-      const isExam = period.label.startsWith("Exam");
+      const isStandardType = isStandardFicheType(typeFiche, typebranch);
+      const isExam = isExamPeriod(period);
       const isFicheCote = typeFiche === "ficheCote";
 
       let finalMaxScore = lesson.maxScore;
 
       if (isStandardType) {
         finalMaxScore = 10;
-      } else if (isExam) {
+      } else if (isExam && !notesLabels.isUniversite) {
         finalMaxScore = lesson.maxScore * 2;
       } else if (isFicheCote) {
         finalMaxScore = lesson.maxScore;
@@ -250,7 +255,7 @@ export default function FicheSaisieClient({
 
     const missingFields: string[] = [];
 
-    if (!selectedTeacherId) missingFields.push("Enseignant");
+    if (!selectedTeacherId) missingFields.push(notesLabels.teacher);
     if (!selectedLessonId) missingFields.push("Leçon");
     if (!selectedPeriodId) missingFields.push("Périodicité");
     if (!typeFiche) missingFields.push("Type de fiche");
@@ -519,7 +524,7 @@ export default function FicheSaisieClient({
           description={
             notesLabels.isUniversite
               ? `Sélectionnez le contexte pédagogique, puis saisissez ou importez les notes des ${notesLabels.studentPlural}.`
-              : "Sélectionnez le contexte pédagogique, puis saisissez ou importez les notes des élèves."
+              : `Sélectionnez le contexte pédagogique, puis saisissez ou importez les notes des ${notesLabels.studentPlural}.`
           }
           badge={
             <Badge variant="outline-primary" icon={<IconNotes size={14} />}>
@@ -528,7 +533,7 @@ export default function FicheSaisieClient({
           }
         />
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          <ContextCard icon={<Users className="size-5" />} label="Enseignant" value={selectedTeacher?.name ?? "Non sélectionné"} active={Boolean(selectedTeacherId)} />
+          <ContextCard icon={<Users className="size-5" />} label={notesLabels.teacher} value={selectedTeacher?.name ?? "Non sélectionné"} active={Boolean(selectedTeacherId)} />
           <ContextCard icon={<BookOpen className="size-5" />} label={notesLabels.courseContextLabel} value={selectedTeacher?.lessons.find(item => item.id === selectedLessonId) ? `${selectedTeacher.lessons.find(item => item.id === selectedLessonId)?.subjectName} · ${selectedTeacher.lessons.find(item => item.id === selectedLessonId)?.codeclasse}` : "Non sélectionné"} active={Boolean(selectedLessonId)} />
           <ContextCard icon={<CalendarDays className="size-5" />} label={notesLabels.sessionLabel} value={period?.label ?? "Non sélectionnée"} active={Boolean(selectedPeriodId)} />
           <ContextCard icon={<ClipboardCheck className="size-5" />} label="Progression" value={`${filled}/${students.length} notes saisies`} active={students.length > 0 && filled === students.length} />
@@ -551,7 +556,7 @@ export default function FicheSaisieClient({
               {isAdmin && (
                 <div className="flex min-w-0 flex-col gap-1.5 sm:col-span-2 xl:col-span-1">
                   <span className="text-xs font-medium text-muted-foreground">
-                    Enseignant
+                    {notesLabels.teacher}
                   </span>
                   <TeacherCombobox
                     teachers={filteredTeachers}
@@ -577,29 +582,30 @@ export default function FicheSaisieClient({
               />
               {(() => {
                 const orderedPeriods = [...periods]
+                  .filter((p) => {
+                    if (notesLabels.isUniversite) return true;
+                    if (isAdmin) return true;
+                    return p.kind !== "EXAM";
+                  })
                   .sort(
                     (a, b) =>
-                      getAcademicPeriodOrder(a.label) -
-                      getAcademicPeriodOrder(b.label),
-                  )
-                  .filter((p) => {
-                    if (isAdmin) return true;
-                    if (notesLabels.isUniversite) {
-                      return !isAcademicExamPeriodName(
-                        p.label,
+                      getAcademicPeriodOrder(
+                        a.rawLabel ?? a.label,
                         notesLabels.typebranch,
-                      );
-                    }
-                    return !p.label.startsWith("Exam");
-                  });
+                      ) -
+                      getAcademicPeriodOrder(
+                        b.rawLabel ?? b.label,
+                        notesLabels.typebranch,
+                      ),
+                  );
                 return (
                   <Combobox
                     label={notesLabels.sessionLabel}
                     placeholder={notesLabels.sessionPlaceholder}
                     items={orderedPeriods.map((p) => ({
                       value: String(p.id),
-                      label: p.label,
-                      search: p.label,
+                      label: p.rawLabel ?? p.label,
+                      search: p.rawLabel ?? p.label,
                     }))}
                     value={selectedPeriodId ? String(selectedPeriodId) : ""}
                     onChange={(value) =>
@@ -612,28 +618,19 @@ export default function FicheSaisieClient({
               <Combobox
                 label="Type de fiche"
                 placeholder="Sélectionner une fiche"
-                items={
-                  isAdmin
-                    ? isExam
-                      ? [{ value: "ficheCote", label: "Fiche" }]
-                      : [
-                          { value: "Devoir", label: "Devoir" },
-                          { value: "Evaluation", label: "Evaluation" },
-                          { value: "TP", label: "TP" },
-                          { value: "ficheCote", label: "Fiche" },
-                        ]
-                    : [
-                        { value: "Devoir", label: "Devoir" },
-                        { value: "Evaluation", label: "Evaluation" },
-                        { value: "TP", label: "TP" },
-                      ]
-                }
+                items={getFicheTypeComboboxItems({
+                  typebranch,
+                  isAdmin,
+                  isExam,
+                })}
                 value={typeFiche ?? ""}
                 onChange={(value) => {
                   const v = value ? (value as FicheTypes) : null;
 
-                  // sécurité anti-bypass
-                  if (isExam && v !== "ficheCote") return;
+                  // sécurité anti-bypass (primaire/secondaire : examen = fiche seule)
+                  if (!notesLabels.isUniversite && isExam && v !== "ficheCote") {
+                    return;
+                  }
 
                   setTypeFiche(v);
                 }}
@@ -684,7 +681,7 @@ export default function FicheSaisieClient({
                   <p className="mt-1 text-xs text-muted-foreground">
                     {selectedTeacher
                       ? `${visibleLessons.length} cours affecté(s)`
-                      : "Choisissez un enseignant avec des cours affectés"}
+                      : `Choisissez un ${notesLabels.teacherLower} avec des cours affectés`}
                   </p>
                 </div>
                 <div className="relative">
@@ -702,11 +699,11 @@ export default function FicheSaisieClient({
               <CardContent className="max-h-[520px] overflow-auto p-2">
                 {!selectedTeacher ? (
                   <p className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
-                    Sélectionnez un enseignant pour afficher ses cours affectés.
+                    Sélectionnez un {notesLabels.teacherLower} pour afficher ses cours affectés.
                   </p>
                 ) : visibleLessons.length === 0 ? (
                   <p className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
-                    Aucun cours affecté disponible pour cet enseignant.
+                    Aucun cours affecté disponible pour ce {notesLabels.teacherLower}.
                   </p>
                 ) : (
                   <ul className="divide-y rounded-xl border bg-background">

@@ -20,24 +20,20 @@ test("structure universite : calendrier LMD RDC (2 semestres)", () => {
   assert.equal(structure.groups.length, 2);
   assert.equal(structure.groups[0]?.label, "Premier semestre");
   assert.equal(structure.groups[1]?.label, "Deuxième semestre");
-  assert.equal(structure.periods.length, 10);
+  assert.equal(structure.periods.length, 6);
 
   const sem1 = structure.groups[0]?.periods.map((period) => period.label) ?? [];
   assert.deepEqual(sem1, [
     "Cours",
     "Évaluations",
-    "Première session (examens ordinaires)",
-    "Délibérations",
+    "Première session",
   ]);
 
   const sem2 = structure.groups[1]?.periods.map((period) => period.label) ?? [];
   assert.deepEqual(sem2, [
     "Cours",
     "Évaluations",
-    "Première session (examens ordinaires)",
-    "Deuxième session (rattrapage, si organisée)",
-    "Défense de TFC ou de mémoire (pour les finalistes)",
-    "Délibérations",
+    "Deuxième session",
   ]);
 });
 
@@ -74,15 +70,15 @@ test("libelle annee academique reserve a UNIVERSITE", () => {
 test("aliases periodes universite : compatibilite anciens libelles", () => {
   assert.equal(
     normalizeAcademicPeriodLabel("Examen (1re session — 1er semestre)"),
-    "Première session (examens ordinaires)",
+    "Première session",
   );
   assert.equal(
     normalizeAcademicPeriodLabel("2e session (Rattrapage)"),
-    "Deuxième session (rattrapage, si organisée)",
+    "Deuxième session",
   );
   assert.equal(
-    normalizeAcademicPeriodLabel("Défense TFC / Mémoire"),
-    "Défense de TFC ou de mémoire (pour les finalistes)",
+    normalizeAcademicPeriodLabel("Première session (examens ordinaires)"),
+    "Première session",
   );
 });
 

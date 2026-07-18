@@ -15,10 +15,13 @@ import {
   CreateFicheResult,
   typeFichesDefault,
 } from "./components/types";
+import { listBranchPeriodOptions } from "@/lib/academic-periods";
+import { isUniversiteBranch } from "@/lib/branch-capabilities";
 import {
   getCoursePonderationMap,
   resolveCoursePonderation,
 } from "@/lib/course-ponderation";
+import { isAllowedFicheType } from "@/lib/fiche-type-options";
 
 export async function getSchoolYear() {
   return getCurrentSchoolYear();
@@ -94,17 +97,20 @@ async function syncClassStudentsAcrossFiches({
 
   if (updates.length) await prisma.$transaction(updates);
 }
-// récupère toutes les périodes
+// récupère toutes les périodes / sessions selon le type de branche
 export async function getPeriods() {
-  const { branchId } = await requireBranchContext();
-  const periods = await prisma.period.findMany({
-    where: { branchId },
-    orderBy: { startDate: "asc" },
+  const { branchId, typebranch } = await requireBranchContext();
+  const periods = await listBranchPeriodOptions({
+    branchId,
+    typebranch,
+    sessionsOnly: isUniversiteBranch(typebranch),
   });
 
-  return periods.map((p) => ({
-    id: p.id,
-    label: p.label,
+  return periods.map((period) => ({
+    id: period.id,
+    label: period.label,
+    rawLabel: period.rawLabel,
+    kind: period.kind,
   }));
 }
 export async function checkExistingFiche(params: {
@@ -152,9 +158,29 @@ export async function createFiche(
   data: CreateFicheParams,
 ): Promise<CreateFicheResult> {
   try {
-    const { session, userId, branchId } = await requireBranchContext();
+    const { session, userId, branchId, typebranch } =
+      await requireBranchContext();
     const canManage = canManageOrganization(session);
     const isTeacher = hasSessionRole(session, [ORG_ROLE.TEACHER, "TEACHER"]);
+
+    const periodRecord = await listBranchPeriodOptions({ branchId, typebranch });
+    const selectedPeriod = periodRecord.find((p) => p.id === data.periodId);
+    const isExamPeriod = selectedPeriod?.kind === "EXAM";
+
+    if (
+      !isAllowedFicheType(data.typeFiche, typebranch, {
+        isAdmin: canManage,
+        isExam: isExamPeriod,
+      })
+    ) {
+      return {
+        success: false,
+        error: true,
+        message: isUniversiteBranch(typebranch)
+          ? "Type de fiche non autorise pour une universite (Evaluation, TP, TFC, Memoire ou Fiche uniquement)."
+          : "Type de fiche non autorise pour cette branche.",
+      };
+    }
 
     const annees = await prisma.schoolYear.findFirst({
       where: { isCurrentYear: true, branchId },

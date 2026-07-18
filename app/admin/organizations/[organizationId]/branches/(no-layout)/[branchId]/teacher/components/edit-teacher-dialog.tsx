@@ -12,6 +12,7 @@ import {
 import { useRefresh } from "@/src/hooks/RefreshContext";
 import { ITeacher } from "@/src/interfaces/Teacher";
 import { TeacherUpForm } from "./teacher-form";
+import { useBranchPeopleLabels } from "@/hooks/use-branch-people-labels";
 
 interface UpdateTeacherDialogProps
   extends React.ComponentPropsWithoutRef<typeof Dialog> {
@@ -27,6 +28,7 @@ export function UpdateTeacherDialog({
   ...dialogProps
 }: UpdateTeacherDialogProps) {
   const { refresh } = useRefresh();
+  const peopleLabels = useBranchPeopleLabels();
 
   const handleUpdated = () => {
     refresh();
@@ -38,9 +40,9 @@ export function UpdateTeacherDialog({
     <Dialog open={open} onOpenChange={onOpenChange} {...dialogProps}>
       <DialogContent size="lg">
         <DialogHeader>
-          <DialogTitle>Modifier l&apos;enseignant</DialogTitle>
+          <DialogTitle>Modifier le {peopleLabels.teacherLower}</DialogTitle>
           <DialogDescription>
-            Ajustez les informations de l&apos;enseignant, puis enregistrez.
+            Ajustez les informations du {peopleLabels.teacherLower}, puis enregistrez.
           </DialogDescription>
         </DialogHeader>
 

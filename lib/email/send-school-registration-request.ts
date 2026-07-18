@@ -1,3 +1,5 @@
+import type { ManagedBranchType } from "@/lib/academic-structure";
+import { getBranchTypeLabel } from "@/lib/branch-capabilities";
 import {
   DEFAULT_APP_NAME,
   emailInfoCard,
@@ -10,7 +12,7 @@ export type SchoolRegistrationRequestInput = {
   reference: string;
   name: string;
   code?: string;
-  typebranch: "PRIMAIRE" | "SECONDAIRE";
+  typebranch: ManagedBranchType;
   idnat?: string;
   tel?: string;
   contactEmail?: string;
@@ -24,8 +26,8 @@ export type SchoolRegistrationRequestInput = {
   attendanceRadius: number;
 };
 
-function formatBranchType(type: SchoolRegistrationRequestInput["typebranch"]) {
-  return type === "PRIMAIRE" ? "Primaire" : "Secondaire";
+function formatBranchType(type: ManagedBranchType) {
+  return getBranchTypeLabel(type);
 }
 
 function displayValue(value?: string | number | null) {

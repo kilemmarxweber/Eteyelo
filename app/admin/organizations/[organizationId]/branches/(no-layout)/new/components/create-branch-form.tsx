@@ -29,7 +29,7 @@ import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { BranchTypeSelect } from "@/components/branch/branch-type-select";
 import type { ManagedBranchType } from "@/lib/academic-structure";
-import { getBranchTypeDescription } from "@/lib/branch-route-guard";
+import { getRegistrationFormLabels } from "@/lib/registration-form-labels";
 import {
   Dialog,
   DialogContent,
@@ -146,6 +146,7 @@ export function CreateBranchForm({
 
   const { isSubmitting } = form.formState;
   const selectedTypebranch = form.watch("typebranch") as ManagedBranchType;
+  const labels = getRegistrationFormLabels(selectedTypebranch);
 
   async function reverseGeocode(lat: number, lng: number) {
     try {
@@ -366,19 +367,17 @@ export function CreateBranchForm({
             <section className="flex flex-col rounded-2xl bg-primary p-5 text-primary-foreground shadow-lg shadow-primary/10 sm:p-6">
               <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-primary-foreground/15 px-3 py-1 text-xs font-semibold">
                 <School className="size-3.5" />
-                Inscription école
+                {labels.badge}
               </div>
 
               <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
-                {isRequestMode
-                  ? "Demandez l'inscription de votre établissement"
-                  : "Ajoutez votre établissement"}
+                {isRequestMode ? labels.titleRequest : labels.titleCreate}
               </h1>
 
               <p className="mt-2 max-w-[430px] text-sm leading-6 text-primary-foreground/90">
                 {isRequestMode
-                  ? "Remplissez le formulaire avec les informations de votre école. Klambocore examinera votre demande avant publication sur la plateforme."
-                  : "Créez la fiche de votre école, indiquez ses coordonnées et positionnez-la sur la carte pour faciliter la recherche locale."}
+                  ? labels.descriptionRequest
+                  : labels.descriptionCreate}
               </p>
 
               <div className="mt-4 grid gap-2 text-sm">
@@ -386,8 +385,8 @@ export function CreateBranchForm({
                   <BadgeCheck className="mt-0.5 size-4 shrink-0" />
                   <span>
                     {isRequestMode
-                      ? "Votre demande sera transmise à Klambocore pour examen."
-                      : "Une fiche claire pour présenter votre établissement."}
+                      ? labels.benefit1Request
+                      : labels.benefit1Create}
                   </span>
                 </div>
 
@@ -395,8 +394,8 @@ export function CreateBranchForm({
                   <MapPin className="mt-0.5 size-4 shrink-0" />
                   <span>
                     {isRequestMode
-                      ? "Indiquez une localisation précise pour faciliter la validation."
-                      : "Une localisation précise pour les élèves et les parents."}
+                      ? labels.benefit2Request
+                      : labels.benefit2Create}
                   </span>
                 </div>
               </div>
@@ -411,11 +410,12 @@ export function CreateBranchForm({
 
                   <div>
                     <h2 className="text-base font-semibold text-foreground">
-                      Informations de l’école
+                      {labels.sectionTitle}
                     </h2>
                     <p className="text-sm text-muted-foreground">
-                      Les champs essentiels permettent de créer la fiche de
-                      base.
+                      {isRequestMode
+                        ? labels.sectionDescriptionRequest
+                        : labels.sectionDescriptionCreate}
                     </p>
                   </div>
                 </div>
@@ -426,11 +426,11 @@ export function CreateBranchForm({
                     name="name"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Nom de l’établissement</FormLabel>
+                        <FormLabel>{labels.nameLabel}</FormLabel>
                         <FormControl>
                           <Input
                             {...field}
-                            placeholder="Nom de l’école *"
+                            placeholder={labels.namePlaceholder}
                             autoComplete="organization"
                             className="h-9 rounded-xl"
                             disabled={isSubmitting}
@@ -447,7 +447,7 @@ export function CreateBranchForm({
                       name="code"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Code école (bulletin)</FormLabel>
+                          <FormLabel>{labels.codeLabel}</FormLabel>
                           <FormControl>
                             <Input
                               {...field}
@@ -488,12 +488,15 @@ export function CreateBranchForm({
                       name="typebranch"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Type de branche</FormLabel>
+                          <FormLabel>{labels.typeLabel}</FormLabel>
                           <FormControl>
                             <BranchTypeSelect
                               value={field.value as ManagedBranchType}
                               onValueChange={field.onChange}
                               disabled={isSubmitting}
+                              excludeTypes={
+                                isRequestMode ? (["ATELIER"] as const) : undefined
+                              }
                             />
                           </FormControl>
                           <FormMessage />
@@ -534,13 +537,12 @@ export function CreateBranchForm({
                     />
                   </div>
 
-<<<<<<< HEAD
                   <Alert className="rounded-xl border-primary/20 bg-primary/5">
                     <AlertDescription className="text-sm leading-6">
-                      {getBranchTypeDescription(selectedTypebranch)}
+                      {labels.typeDescription}
                     </AlertDescription>
                   </Alert>
-=======
+
                   {isRequestMode && (
                     <FormField
                       control={form.control}
@@ -570,7 +572,6 @@ export function CreateBranchForm({
                       )}
                     />
                   )}
->>>>>>> origin/main
 
                   <FormField
                     control={form.control}
@@ -1010,8 +1011,8 @@ export function CreateBranchForm({
                         : mode === "update"
                           ? "Modifier l’établissement"
                           : isRequestMode
-                            ? "Envoyer la demande"
-                            : "Créer l’école"}
+                            ? labels.submitRequest
+                            : labels.submitCreate}
                     </Button>
                   </div>
                 </div>
@@ -1024,11 +1025,9 @@ export function CreateBranchForm({
         <DialogContent className="max-w-5xl rounded-2xl p-0">
           <DialogHeader className="px-5 pt-5">
             <DialogTitle className="text-lg font-semibold text-foreground">
-              Emplacement de l’école
+              {labels.mapTitle}
             </DialogTitle>
-            <DialogDescription>
-              Cliquez sur la carte pour pointer l’emplacement exact de l’école.
-            </DialogDescription>
+            <DialogDescription>{labels.mapDescription}</DialogDescription>
           </DialogHeader>
 
           <div className="px-4 pb-4">
@@ -1046,16 +1045,12 @@ export function CreateBranchForm({
             <div className="mt-4 grid gap-3 text-sm md:grid-cols-2">
               <div className="flex items-start gap-3 rounded-2xl bg-primary/5 p-4 text-foreground">
                 <BadgeCheck className="mt-0.5 size-5 shrink-0" />
-                <span>
-                  Une fiche claire pour présenter votre établissement.
-                </span>
+                <span>{labels.mapBenefit1}</span>
               </div>
 
               <div className="flex items-start gap-3 rounded-2xl bg-primary/5 p-4 text-foreground">
                 <MapPin className="mt-0.5 size-5 shrink-0" />
-                <span>
-                  Une localisation précise pour les élèves et les parents.
-                </span>
+                <span>{labels.mapBenefit2}</span>
               </div>
             </div>
           </div>

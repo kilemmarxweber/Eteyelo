@@ -4,6 +4,8 @@ import { notFound, redirect } from "next/navigation";
 import { headers } from "next/headers";
 import Image from "next/image";
 import Link from "next/link";
+import { requireBranchContext } from "@/lib/auth/require-branch-context";
+import { getPeopleLabels } from "@/lib/people-labels";
 
 import { Card } from "@/components/ui/card";
 import { Layout, LayoutBody } from "@/components/custom/layout";
@@ -32,6 +34,9 @@ const SingleTeacherPage = async ({
   /* ================= AUTH ================= */
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session) notFound();
+
+  const { typebranch } = await requireBranchContext();
+  const peopleLabels = getPeopleLabels(typebranch);
 
   const { id } = await params;
 
@@ -118,11 +123,11 @@ const SingleTeacherPage = async ({
       <LayoutBody className="space-y-4">
         {/* HEADER */}
         <PageHeader
-          title="Enseignant"
-          description="Vue d'ensemble des informations et activités de l'enseignant."
+          title={peopleLabels.teacher}
+          description={`Vue d'ensemble des informations et activités du ${peopleLabels.teacherLower}.`}
           badge={
             <Badge variant="outline-primary" icon={<IconUser size={14} />}>
-              Enseignant
+              {peopleLabels.teacher}
             </Badge>
           }
         />
@@ -150,7 +155,7 @@ const SingleTeacherPage = async ({
                     </h1>
 
                     <p className="text-sm text-gray-500 mt-2">
-                      Enseignant de l'établissement
+                      {peopleLabels.teacher} de l&apos;établissement
                     </p>
                   </div>
 

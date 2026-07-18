@@ -9,8 +9,9 @@ export const UNIVERSITY_LMD_LABELS = {
   secondSemester: "Deuxième semestre",
   courses: "Cours",
   evaluations: "Évaluations",
-  firstSession: "Première session (examens ordinaires)",
-  secondSession: "Deuxième session (rattrapage, si organisée)",
+  firstSession: "Première session",
+  secondSession: "Deuxième session",
+  /** Alias historiques — periodes retirees du calendrier actif. */
   deliberations: "Délibérations",
   defense: "Défense de TFC ou de mémoire (pour les finalistes)",
 } as const;
@@ -33,7 +34,6 @@ export const UNIVERSITY_LMD_CALENDAR_OUTLINE = [
       UNIVERSITY_LMD_LABELS.courses,
       UNIVERSITY_LMD_LABELS.evaluations,
       UNIVERSITY_LMD_LABELS.firstSession,
-      UNIVERSITY_LMD_LABELS.deliberations,
     ],
   },
   {
@@ -41,10 +41,7 @@ export const UNIVERSITY_LMD_CALENDAR_OUTLINE = [
     periods: [
       UNIVERSITY_LMD_LABELS.courses,
       UNIVERSITY_LMD_LABELS.evaluations,
-      UNIVERSITY_LMD_LABELS.firstSession,
       UNIVERSITY_LMD_LABELS.secondSession,
-      UNIVERSITY_LMD_LABELS.defense,
-      UNIVERSITY_LMD_LABELS.deliberations,
     ],
   },
 ] as const;

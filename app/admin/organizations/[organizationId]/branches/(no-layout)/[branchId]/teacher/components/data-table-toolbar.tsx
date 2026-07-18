@@ -8,12 +8,15 @@ import { Input } from "@/components/ui/input";
 import { DataTableViewOptions } from "@/components/data-table-view-options";
 import { DataTableFacetedFilter } from "@/components/data-table-faceted-filter";
 import type { ITeacher } from "@/src/interfaces/Teacher";
+import type { PeopleLabels } from "@/lib/people-labels";
+import { DEFAULT_PEOPLE_LABELS } from "@/lib/people-labels";
 
 interface DataTableToolbarProps<TData> {
   table: Table<TData>;
   canManageTeachers?: boolean;
   supportsStaffImport?: boolean;
   onOpenImport?: () => void;
+  peopleLabels?: PeopleLabels;
 }
 
 const assignmentStatuses = [
@@ -33,6 +36,7 @@ export function DataTableToolbar<TData>({
   canManageTeachers = false,
   supportsStaffImport = false,
   onOpenImport,
+  peopleLabels = DEFAULT_PEOPLE_LABELS,
 }: DataTableToolbarProps<TData>) {
   const isFiltered = table.getState().columnFilters.length > 0;
   const teachers = table
@@ -50,7 +54,7 @@ export function DataTableToolbar<TData>({
       <div className="relative max-w-3xl">
         <IconSearch className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
         <Input
-          placeholder="Rechercher un enseignant..."
+          placeholder={`Rechercher un ${peopleLabels.teacherLower}...`}
           value={(table.getColumn("nom")?.getFilterValue() as string) ?? ""}
           onChange={(event) =>
             table.getColumn("nom")?.setFilterValue(event.target.value)

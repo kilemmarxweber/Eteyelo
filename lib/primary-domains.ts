@@ -371,7 +371,7 @@ export type PrimaryBulletinRow =
   | { type: "domain-header"; domain: PrimaryDomainCode; label: string }
   | { type: "section-header"; domain: PrimaryDomainCode; label: string }
   | { type: "course"; domain: PrimaryDomainCode; subject: SubjectWithMaxima }
-  | { type: "sous-total"; domain: PrimaryDomainCode; section: string; maxima: BulletinPeriodMaxima }
+  | { type: "sous-total"; domain: PrimaryDomainCode; section: string; maxima: BulletinPeriodMaxima; subjects: SubjectWithMaxima[] }
   | { type: "maxima-general"; maxima: BulletinPeriodMaxima };
 
 export type SubjectWithPrimaryPlacement = SubjectWithMaxima & {
@@ -502,6 +502,7 @@ export function buildPrimaryBulletinRows(
       domain: currentDomain,
       section: currentDomain,
       maxima: aggregateBulletinPeriodMaxima(domainSubjects.map((s) => s.maxima)),
+      subjects: [...domainSubjects],
     });
     domainSubjects = [];
   };

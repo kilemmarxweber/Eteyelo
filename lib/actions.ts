@@ -15,6 +15,7 @@ import { headers } from "next/headers";
 import { FicheTypes } from "./types";
 import { auth } from "@/lib/auth";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
+import { listBranchPeriodOptions } from "@/lib/academic-periods";
 import { canManageOrganization } from "@/lib/auth/session-roles";
 import { getSchoolYear as getCurrentSchoolYear } from "@/lib/school-year";
 import {
@@ -291,17 +292,16 @@ export async function getStudentsByClass(
       };
     });
 }
-// récupère toutes les périodes
+// récupère toutes les périodes / sessions selon le type de branche
 export async function getPeriods() {
-  const { branchId } = await requireBranchContext();
-  const periods = await prisma.period.findMany({
-    where: { branchId },
-    orderBy: { startDate: "asc" },
-  });
+  const { branchId, typebranch } = await requireBranchContext();
+  const periods = await listBranchPeriodOptions({ branchId, typebranch });
 
-  return periods.map((p) => ({
-    id: p.id,
-    label: p.label,
+  return periods.map((period) => ({
+    id: period.id,
+    label: period.label,
+    rawLabel: period.rawLabel,
+    kind: period.kind,
   }));
 }
 

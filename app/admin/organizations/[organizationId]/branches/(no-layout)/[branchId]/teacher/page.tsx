@@ -32,9 +32,7 @@ import { TeacherUpForm } from "./components/teacher-form";
 import { getTeacherDashboardStatsAction } from "./teacher.action";
 import { ImportStaffDialog } from "../components/import-staff-dialog";
 import { getStaffPageContextAction } from "../staff-import.action";
-import { isUniversiteBranch } from "@/lib/branch-capabilities";
-import type { PeopleLabels } from "@/lib/people-labels";
-import { DEFAULT_PEOPLE_LABELS } from "@/lib/people-labels";
+import { useBranchPeopleLabels } from "@/hooks/use-branch-people-labels";
 import { IconUpload } from "@tabler/icons-react";
 
 export type TeacherAssignmentFilter =
@@ -58,7 +56,7 @@ export default function Teachers() {
   const [open, setOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
   const [supportsStaffImport, setSupportsStaffImport] = useState(false);
-  const [peopleLabels, setPeopleLabels] = useState<PeopleLabels>(DEFAULT_PEOPLE_LABELS);
+  const peopleLabels = useBranchPeopleLabels();
   const [stats, setStats] = useState<TeacherDashboardStats | null>(null);
   const [assignmentFilter, setAssignmentFilter] =
     useState<TeacherAssignmentFilter>("all");
@@ -80,9 +78,6 @@ export default function Teachers() {
   useEffect(() => {
     void getStaffPageContextAction().then((context) => {
       setSupportsStaffImport(Boolean(context.supportsStaffImport));
-      if (isUniversiteBranch(context.typebranch) && context.peopleLabels) {
-        setPeopleLabels(context.peopleLabels);
-      }
     });
   }, [refreshKey]);
 

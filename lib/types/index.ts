@@ -1439,7 +1439,10 @@ const getColorPourcentage = (
 
   return value < maxValue / 2 ? "red" : "black";
 };
+
 type GetColorFn = (value: number, type: string, max: number) => string;
+
+const getColorBlack: GetColorFn = () => "black";
 
 export function drawMatiere(
   drawCell: DrawCellFn,
@@ -1699,19 +1702,19 @@ export const generauxConfig: Record<
     isGeneraux: true,
   },
   "PLACE/NOMBRE D'ELEVES": {
-    getColor: getColorPourcentage,
+    getColor: getColorBlack,
     isGeneraux: true,
   },
   APPLICATIONS: {
-    getColor: getColorPourcentage,
+    getColor: getColorBlack,
     isGeneraux: true,
   },
   CONDUITE: {
-    getColor: getColorPourcentage,
+    getColor: getColorBlack,
     isGeneraux: true,
   },
   "SIGNATURE PARENTS": {
-    getColor: getColorPourcentage,
+    getColor: getColorBlack,
     isGeneraux: true,
   },
 };
