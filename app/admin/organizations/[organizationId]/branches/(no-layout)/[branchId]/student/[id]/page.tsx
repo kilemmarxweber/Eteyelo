@@ -1,16 +1,10 @@
 import { headers } from "next/headers";
-import Image from "next/image";
-import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
-import { CheckCircle, Clock } from "lucide-react";
+import { notFound } from "next/navigation";
 import { IconUser } from "@tabler/icons-react";
 
-import BigCalendarContainer from "../components/BigCalendarContainer";
-import Performance from "../components/Performance";
-import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
 import { Layout, LayoutBody } from "@/components/custom/layout";
 import { PageHeader } from "@/components/ui/page-header";
+import { Badge } from "@/components/ui/badge";
 import { auth } from "@/lib/auth";
 import {
   canManageOrganization,
@@ -18,13 +12,53 @@ import {
 } from "@/lib/auth/session-roles";
 import { ORG_ROLE } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
-import { normalizeImageSrc } from "@/lib/utils";
+import {
+  buildStudentBadgeQrCode,
+  formatStudentBadgeDate,
+  type StudentBadgeData,
+} from "@/lib/student-badge";
+import { listBranchPeriodOptions } from "@/lib/academic-periods";
+import { buildReleveNotesData } from "@/lib/releve-notes-builder";
+import { buildStudentDocumentsData } from "@/lib/student-documents";
+import { buildStudentScheduleData } from "@/lib/student-schedule";
+import { buildStudentAnnouncementsData } from "@/lib/student-announcements";
+import { getBranchImage } from "@/lib/utils";
+import { StudentProfileClient } from "./components/student-profile-client";
+import type {
+  StudentProfileData,
+  StudentProfileFee,
+  StudentProfileFinanceSummary,
+  StudentProfileSemester,
+} from "./components/student-profile-types";
 
 export const dynamic = "force-dynamic";
 
 function safeNumber(value: unknown) {
   const number = Number(value);
   return Number.isFinite(number) ? number : 0;
+}
+
+function calculateAge(dateOfBirth: Date | string | null | undefined) {
+  if (!dateOfBirth) return null;
+  const birth = new Date(dateOfBirth);
+  if (Number.isNaN(birth.getTime())) return null;
+  const today = new Date();
+  let age = today.getFullYear() - birth.getFullYear();
+  const birthdayNotReached =
+    today.getMonth() < birth.getMonth() ||
+    (today.getMonth() === birth.getMonth() && today.getDate() < birth.getDate());
+  if (birthdayNotReached) age -= 1;
+  return age >= 0 ? age : null;
+}
+
+function formatTeacherName(user?: {
+  name?: string | null;
+  postnom?: string | null;
+  prenom?: string | null;
+} | null) {
+  if (!user) return "Non assigne";
+  const fullName = [user.name, user.postnom, user.prenom].filter(Boolean).join(" ");
+  return fullName || "Non assigne";
 }
 
 const SingleStudentPage = async ({
@@ -58,6 +92,20 @@ const SingleStudentPage = async ({
   });
 
   const canReadAll = canManageOrganization(session, currentBranchMember?.role);
+
+  const branch = await prisma.branch.findFirst({
+    where: { id: branchId, organizationId },
+    include: {
+      organization: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+    },
+  });
+
+  if (!branch) notFound();
 
   const currentYear = await prisma.schoolYear.findFirst({
     where: {
@@ -136,9 +184,9 @@ const SingleStudentPage = async ({
               teaching: {
                 where: {
                   OR: [{ branchId }, { branchId: null }],
+                  titulaire: true,
                 },
                 include: {
-                  cours: true,
                   teacher: {
                     include: {
                       branchMember: {
@@ -152,7 +200,6 @@ const SingleStudentPage = async ({
                       },
                     },
                   },
-                  Schedule: true,
                 },
               },
               fiche: {
@@ -167,7 +214,6 @@ const SingleStudentPage = async ({
                   },
                 },
               },
-              creneau: true,
             },
           },
         },
@@ -218,16 +264,222 @@ const SingleStudentPage = async ({
     notFound();
   }
 
-  const studentName =
-    [user.name, user.prenom].filter(Boolean).join(" ") || "Eleve";
+  const nom = user.name ?? "";
+  const postnom = user.postnom ?? "";
+  const prenom = user.prenom ?? "";
+  const fullName =
+    [nom, postnom, prenom].filter(Boolean).join(" ").trim() || "Eleve";
+  const age = calculateAge(user.dateOfBirth);
+  const sectionName = classe?.option?.section?.nameSection ?? "-";
+  const optionName = classe?.option?.nameOption ?? "-";
+  const classLabel = classe
+    ? `${classe.nameClasse ?? classe.codeClasse ?? "-"} (${sectionName})`
+    : "Non assigne";
+  const matricule =
+    user.username?.trim() ||
+    `ELV-${new Date().getFullYear()}-${student.id.slice(-6).toUpperCase()}`;
+  const statusActive = student.statusStudent !== false;
+  const titulaireTeacher = classe?.teaching?.[0]?.teacher?.branchMember?.member
+    ?.user;
+  const branchImages = getBranchImage(branch.image);
+  const yearId = currentYear?.id ?? enrollment?.schoolYearId ?? "na";
+  const yearCode =
+    currentYear?.nameYear ??
+    enrollment?.schoolYear?.nameYear ??
+    new Date().getFullYear().toString();
 
-  const formattedFees = (enrollment?.paiement ?? []).map((payment) => ({
-    id: payment.id,
-    label: payment.frais?.nameFrais ?? "Frais",
-    amount: safeNumber(payment.amount),
-    typeFrais: payment.frais?.typeFrais?.nameType ?? "",
-    status: payment.status,
-  }));
+  const parentFullName = parentUser
+    ? [parentUser.name, parentUser.postnom, parentUser.prenom]
+        .filter(Boolean)
+        .join(" ")
+    : "-";
+
+  const badge: StudentBadgeData = {
+    studentId: student.id,
+    userId: user.id,
+    lastName: nom,
+    postName: postnom,
+    firstName: prenom,
+    fullName,
+    img: user.image,
+    sexe: user.sexe,
+    dateOfBirth: user.dateOfBirth,
+    placeOfBirth: student.placeOfBirth,
+    nationality: branch.pays ?? "Congolaise",
+    matricule,
+    className: classLabel,
+    schoolName: branch.name,
+    yearCode,
+    yearId,
+    branchId,
+    organizationId,
+    organizationName: branch.organization.name,
+    organizationLogo: branchImages.logo ?? null,
+    branchLogo: branchImages.logo ?? null,
+    parentName: parentFullName !== "-" ? parentFullName : null,
+    parentPhone: parentUser?.telephone ?? null,
+    qrCode: buildStudentBadgeQrCode(student.id, yearId, branchId),
+    displayId: student.id.slice(-6).padStart(6, "0"),
+  };
+
+  const formattedFees: StudentProfileFee[] = [];
+  const paymentsByFrais = new Map<string, number>();
+
+  for (const payment of enrollment?.paiement ?? []) {
+    if (payment.status !== "VALIDE") continue;
+    const fraisId = payment.fraisId;
+    paymentsByFrais.set(
+      fraisId,
+      (paymentsByFrais.get(fraisId) ?? 0) + safeNumber(payment.amount),
+    );
+  }
+
+  const classFrais =
+    classe?.id && currentYear?.id
+      ? await prisma.frais.findMany({
+          where: {
+            branchId,
+            classeId: classe.id,
+            statusFrais: true,
+            schoolYearId: currentYear.id,
+          },
+          include: {
+            typeFrais: true,
+          },
+          orderBy: [{ priority: "asc" }, { nameFrais: "asc" }],
+        })
+      : [];
+
+  if (classFrais.length > 0) {
+    for (const frais of classFrais) {
+      const amountDue = safeNumber(frais.montantFrais);
+      const amountPaid = paymentsByFrais.get(frais.id) ?? 0;
+      const remaining = Math.max(amountDue - amountPaid, 0);
+
+      formattedFees.push({
+        id: frais.id,
+        label: frais.nameFrais,
+        typeFrais: frais.typeFrais?.nameType ?? "",
+        amountDue,
+        amountPaid,
+        remaining,
+        isPaid: remaining <= 0,
+      });
+    }
+  } else {
+    const fraisFromPayments = new Map<
+      string,
+      {
+        label: string;
+        typeFrais: string;
+        amountDue: number;
+      }
+    >();
+
+    for (const payment of enrollment?.paiement ?? []) {
+      if (!payment.frais) continue;
+
+      fraisFromPayments.set(payment.fraisId, {
+        label: payment.frais.nameFrais ?? "Frais",
+        typeFrais: payment.frais.typeFrais?.nameType ?? "",
+        amountDue: safeNumber(payment.frais.montantFrais),
+      });
+    }
+
+    for (const [fraisId, frais] of fraisFromPayments) {
+      const amountDue = frais.amountDue;
+      const amountPaid = paymentsByFrais.get(fraisId) ?? 0;
+      const remaining = Math.max(amountDue - amountPaid, 0);
+
+      formattedFees.push({
+        id: fraisId,
+        label: frais.label,
+        typeFrais: frais.typeFrais,
+        amountDue,
+        amountPaid,
+        remaining,
+        isPaid: remaining <= 0,
+      });
+    }
+  }
+
+  const financeSummary: StudentProfileFinanceSummary = formattedFees.reduce(
+    (summary, fee) => ({
+      totalDue: summary.totalDue + fee.amountDue,
+      totalPaid: summary.totalPaid + fee.amountPaid,
+      totalRemaining: summary.totalRemaining + fee.remaining,
+    }),
+    { totalDue: 0, totalPaid: 0, totalRemaining: 0 },
+  );
+
+  const [studentFiches, periodOptions, releveDataFromBuilder] = await Promise.all([
+    classe?.id && currentYear?.id
+      ? prisma.fiche.findMany({
+          where: {
+            branchId,
+            anneeId: currentYear.id,
+            classSectionId: classe.id,
+          },
+          include: {
+            lesson: {
+              include: {
+                cours: true,
+              },
+            },
+            period: true,
+            teacher: {
+              include: {
+                branchMember: {
+                  include: {
+                    member: {
+                      include: {
+                        user: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          orderBy: { dateCreated: "desc" },
+        })
+      : Promise.resolve([]),
+    listBranchPeriodOptions({
+      branchId,
+      typebranch: branch.typebranch,
+      ensure: false,
+    }),
+    buildReleveNotesData({
+      studentId: student.id,
+      branchId,
+      typebranch: branch.typebranch,
+    }),
+  ]);
+
+  const documents = buildStudentDocumentsData({
+    studentId: student.id,
+    fiches: studentFiches,
+    periods: periodOptions.map((period) => ({
+      id: period.id,
+      label: period.label,
+    })),
+    organizationName: branch.organization.name,
+    branchName: branch.name,
+    schoolYear: yearCode,
+    schoolYearId: currentYear?.id ?? enrollment?.schoolYearId ?? "",
+    className: classe?.nameClasse ?? classLabel,
+    studentName: fullName,
+    matricule,
+    classLevel: classe?.level ?? null,
+    optionName: optionName !== "-" ? optionName : null,
+    sectionName: sectionName !== "-" ? sectionName : null,
+    relevesHref: `${baseHref}/releves`,
+    resultsHref: `${baseHref}/results`,
+    releveData:
+      releveDataFromBuilder && releveDataFromBuilder.semesters.length > 0
+        ? releveDataFromBuilder
+        : null,
+  });
 
   const markData = (classe?.fiche ?? [])
     .flatMap((fiche) => {
@@ -238,8 +490,8 @@ const SingleStudentPage = async ({
         if (!Array.isArray(parsed)) return [];
 
         return parsed
-          .filter((note: any) => note.studentId === student.id)
-          .map((note: any) => ({
+          .filter((note: { studentId?: string }) => note.studentId === student.id)
+          .map((note: { score?: unknown; maxScore?: unknown }) => ({
             mark: safeNumber(note.score),
             maxScore: safeNumber(note.maxScore),
             semester: semesterLabel,
@@ -250,28 +502,27 @@ const SingleStudentPage = async ({
     })
     .filter((mark) => mark.maxScore > 0);
 
-  const semesters = Object.entries(
-    markData.reduce((acc: any, mark: any) => {
+  const semesters: StudentProfileSemester[] = Object.entries(
+    markData.reduce<
+      Record<string, { marks: number[]; max: number[] }>
+    >((acc, mark) => {
       if (!acc[mark.semester]) {
         acc[mark.semester] = { marks: [], max: [] };
       }
-
       acc[mark.semester].marks.push(mark.mark);
       acc[mark.semester].max.push(mark.maxScore);
-
       return acc;
     }, {}),
   )
-    .map(([semester, data]: any) => {
+    .map(([label, data]) => {
       const normalized = data.marks.map(
-        (mark: number, index: number) => (mark / data.max[index]) * 10,
+        (mark, index) => (mark / data.max[index]) * 10,
       );
       const avg =
-        normalized.reduce((total: number, mark: number) => total + mark, 0) /
-        normalized.length;
+        normalized.reduce((total, mark) => total + mark, 0) / normalized.length;
 
       return {
-        label: semester,
+        label,
         average: Number(avg.toFixed(1)),
         max: 10,
       };
@@ -282,12 +533,74 @@ const SingleStudentPage = async ({
     semesters.push({ label: "No data", average: 0, max: 10 });
   }
 
+  const schedule = await buildStudentScheduleData(
+    classe?.id ?? null,
+    branchId,
+    organizationId,
+  );
+
+  const announcements = await buildStudentAnnouncementsData(
+    branchId,
+    organizationId,
+    studentClassIds.filter(Boolean).length > 0
+      ? studentClassIds.filter(Boolean)
+      : classe?.id
+        ? [classe.id]
+        : [],
+    currentYear?.id ?? enrollment?.schoolYearId ?? null,
+  );
+
+  const profile: StudentProfileData = {
+    baseHref,
+    studentListHref: `${baseHref}/student`,
+    studentId: student.id,
+    fullName,
+    nom,
+    postnom,
+    prenom,
+    sexe: user.sexe ?? "-",
+    dateOfBirthLabel: formatStudentBadgeDate(user.dateOfBirth),
+    ageLabel: age != null ? `${age} ans` : "-",
+    placeOfBirth: student.placeOfBirth ?? "-",
+    nationality: branch.pays ?? "Congolaise",
+    bloodGroup: "-",
+    allergies: "Aucune",
+    vulnerability: "Aucune",
+    schoolName: branch.name,
+    matricule,
+    schoolYearLabel: yearCode,
+    classLabel,
+    sectionLabel: [sectionName, optionName].filter((value) => value !== "-").join(" / ") || "-",
+    optionLabel: optionName,
+    titulaireName: formatTeacherName(titulaireTeacher),
+    statusLabel: statusActive ? "Actif" : "Inactif",
+    statusActive,
+    enrollmentDateLabel: formatStudentBadgeDate(enrollment?.createdAt),
+    image: user.image,
+    canManageStudents: canReadAll,
+    parentFullName,
+    parentPhone: parentUser?.telephone ?? "-",
+    parentEmail: parentUser?.email ?? "-",
+    parentProfession: "-",
+    parentAddress: parentUser?.address ?? "-",
+    parentEmergencyContact: "-",
+    displayId: badge.displayId,
+    badge,
+    fees: formattedFees,
+    financeSummary,
+    documents,
+    semesters,
+    classeId: classe?.id ?? null,
+    schedule,
+    announcements,
+  };
+
   return (
     <Layout>
       <LayoutBody className="space-y-4">
         <PageHeader
-          title="Information et performances"
-          description="Vue d'ensemble de vos details scolaires et annonces importantes."
+          title="Profil eleve"
+          description="Informations personnelles, scolarite et carte d'identite scolaire."
           badge={
             <Badge variant="outline-primary" icon={<IconUser size={14} />}>
               Eleve
@@ -296,206 +609,7 @@ const SingleStudentPage = async ({
           className="mb-0 space-y-1"
         />
 
-        <Card className="flex-1 p-8 flex flex-col gap-4 xl:flex-row rounded-2xl">
-          <div className="w-full xl:w-2/2">
-            <div className="flex flex-col lg:flex-row gap-4">
-              <Card className="bg-kalasa-sky py-6 px-4 flex-1 flex gap-4 p-8">
-                <div className="w-1/3">
-                  <Image
-                    src={normalizeImageSrc(user.image)}
-                    alt={studentName}
-                    width={144}
-                    height={144}
-                    className="w-36 h-36 rounded-full object-cover"
-                  />
-                </div>
-
-                <div className="w-2/3 flex flex-col justify-between gap-4">
-                  <div className="flex items-center gap-4">
-                    <h1 className="text-xl font-semibold">{studentName}</h1>
-                  </div>
-                  <p className="text-sm text-gray-500">
-                    Informations scolaires de l'eleve dans cette branche.
-                  </p>
-                  <div className="flex items-center justify-between gap-2 flex-wrap text-xs font-medium">
-                    <div className="w-full md:w-1/3 flex items-center gap-2">
-                      <Image
-                        src="/uploads/blood.png"
-                        alt=""
-                        width={14}
-                        height={14}
-                      />
-                      <span>{user.sexe || "-"}</span>
-                    </div>
-                    <div className="w-full md:w-1/3 flex items-center gap-2">
-                      <Image
-                        src="/uploads/date.png"
-                        alt=""
-                        width={14}
-                        height={14}
-                      />
-                      <span>
-                        {user.dateOfBirth
-                          ? new Intl.DateTimeFormat("fr-FR").format(
-                              user.dateOfBirth,
-                            )
-                          : "-"}
-                      </span>
-                    </div>
-                    <div className="w-full md:w-1/3 flex items-center gap-2">
-                      <Image
-                        src="/uploads/mail.png"
-                        alt=""
-                        width={14}
-                        height={14}
-                      />
-                      <span>{user.email || "-"}</span>
-                    </div>
-                    <div className="w-full md:w-1/3 flex items-center gap-2">
-                      <Image
-                        src="/uploads/phone.png"
-                        alt=""
-                        width={14}
-                        height={14}
-                      />
-                      <span>{user.telephone || "-"}</span>
-                    </div>
-                  </div>
-                </div>
-              </Card>
-
-              <div className="flex-1 flex gap-4 justify-between flex-wrap">
-                <Card className="bg-kalasa-sky-light p-4 rounded-md flex gap-4 w-full md:w-[48%]">
-                  <Image
-                    src="/uploads/singleAttendance.png"
-                    alt=""
-                    width={24}
-                    height={24}
-                    className="w-6 h-6"
-                  />
-                </Card>
-
-                <Card className="bg-kalasa-sky-light p-4 rounded-md flex gap-4 w-full md:w-[48%]">
-                  <Image
-                    src="/uploads/singleBranch.png"
-                    alt=""
-                    width={24}
-                    height={24}
-                    className="w-6 h-6"
-                  />
-                  <div>
-                    <h1 className="text-xl font-semibold">
-                      {classe?.option?.section?.nameSection || "No branch"}
-                    </h1>
-                    <span className="text-sm text-gray-400">Section</span>
-                  </div>
-                </Card>
-
-                <Card className="bg-kalasa-sky-light p-4 rounded-md flex gap-4 w-full md:w-[48%]">
-                  <Image
-                    src="/uploads/singleLesson.png"
-                    alt=""
-                    width={24}
-                    height={24}
-                    className="w-6 h-6"
-                  />
-                  <div>
-                    <h1 className="text-xl font-semibold">
-                      {classe?.teaching.length ?? 0} Lessons
-                    </h1>
-                    <span className="text-sm text-gray-400">Lessons</span>
-                  </div>
-                </Card>
-
-                <Card className="bg-kalasa-sky-light p-4 rounded-md flex gap-4 w-full md:w-[48%]">
-                  <Image
-                    src="/uploads/singleClass.png"
-                    alt=""
-                    width={24}
-                    height={24}
-                    className="w-6 h-6"
-                  />
-                  <div>
-                    <h1 className="text-xl font-semibold">
-                      {classe?.codeClasse || "-"}
-                    </h1>
-                    <span className="text-sm text-gray-400">Classe</span>
-                  </div>
-                </Card>
-              </div>
-            </div>
-
-            <div className="mt-4 rounded-md p-4 h-[550px]">
-              <h1>Horaire de l'eleve</h1>
-              {classe ? (
-                <BigCalendarContainer type="classId" id={classe.id} />
-              ) : null}
-            </div>
-          </div>
-
-          <div className="w-full xl:w-1/3 flex flex-col gap-4">
-            <div className="bg-secondary p-4 rounded-md">
-              <h1 className="text-xl font-semibold">Raccourcis</h1>
-              <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-                <Link
-                  className="p-3 rounded-md bg-kalasa-sky-light"
-                  href={`${baseHref}/classe`}
-                >
-                  Classes
-                </Link>
-                <Link
-                  className="p-3 rounded-md bg-kalasa-purple-light"
-                  href={`${baseHref}/teacher`}
-                >
-                  Enseignants
-                </Link>
-                <Link
-                  className="p-3 rounded-md bg-kalasa-yellow-light"
-                  href={`${baseHref}/cours`}
-                >
-                  Cours
-                </Link>
-                <Link
-                  className="p-3 rounded-md bg-pink-50"
-                  href={`${baseHref}/results/${student.id}`}
-                >
-                  Resultats
-                </Link>
-              </div>
-            </div>
-
-            <div className="p-4 bg-secondary rounded-md">
-              <h1 className="text-xl font-semibold">Details des paiements</h1>
-
-              {formattedFees.length ? (
-                formattedFees.map((fee) => {
-                  const isPaid = fee.amount >= 1;
-
-                  return (
-                    <div
-                      key={fee.id}
-                      className="flex justify-between items-center px-4 py-2 border rounded-md"
-                    >
-                      <span>{fee.label}</span>
-                      <span>${fee.amount}</span>
-                      {isPaid ? (
-                        <CheckCircle className="text-green-500" />
-                      ) : (
-                        <Clock className="text-yellow-500" />
-                      )}
-                    </div>
-                  );
-                })
-              ) : (
-                <p className="text-sm text-muted-foreground">
-                  Aucun paiement trouve.
-                </p>
-              )}
-            </div>
-
-            <Performance semesters={semesters} />
-          </div>
-        </Card>
+        <StudentProfileClient profile={profile} />
       </LayoutBody>
     </Layout>
   );

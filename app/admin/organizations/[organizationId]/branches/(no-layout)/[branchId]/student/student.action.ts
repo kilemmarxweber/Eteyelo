@@ -31,6 +31,7 @@ import {
 } from "@/lib/branch-capabilities";
 import { buildStudentAccessWhere } from "@/lib/atelier-student-access";
 import { canIssueBranchDocuments } from "@/lib/branch-document-permissions";
+import { z } from "zod";
 
 export async function getCurrentBranch() {
   const session = await auth.api.getSession({
@@ -329,6 +330,7 @@ function mapStudentRecord(
     email: user?.email || "",
     username: user?.username || "",
     telephone: user?.telephone || "",
+    image: user?.image?.trim() || undefined,
     createdAt: student.createdAt,
     updatedAt: student.updatedAt,
     statusUser: user?.statusUser || true,
@@ -808,6 +810,92 @@ export const archiveStudentAction = action
         success: false,
         message: error.message || "Erreur lors de l'archivage",
       };
+    }
+  });
+
+const updateStudentPhotoSchema = z.object({
+  studentId: z.string().min(1),
+  imageUrl: z.string().min(1),
+});
+
+export const updateStudentPhotoAction = action
+  .input(updateStudentPhotoSchema)
+  .handler(async ({ input }) => {
+    try {
+      const { branchId, organizationId, canManageStudents } = await getCurrentBranch();
+      if (!canManageStudents) {
+        return {
+          ok: false,
+          message: "Action non autorisee",
+        };
+      }
+
+      const { studentId, imageUrl } = input;
+
+      const student = await prisma.student.findUnique({
+        where: { id: studentId },
+        include: {
+          branchMember: {
+            include: {
+              member: {
+                include: {
+                  user: true,
+                },
+              },
+            },
+          },
+        },
+      });
+
+      if (!student) {
+        throw new Error("Etudiant introuvable");
+      }
+
+      const linkedInBranch = await prisma.studentBranchLink.findFirst({
+        where: {
+          studentId: student.id,
+          targetBranchId: branchId,
+          isActive: true,
+        },
+        select: { id: true },
+      });
+
+      if (linkedInBranch) {
+        throw new Error(
+          "Les eleves importes se modifient depuis leur branche scolaire d'origine",
+        );
+      }
+
+      if (student.branchMember?.branchId !== branchId) {
+        throw new Error("Etudiant introuvable dans cette branche");
+      }
+
+      const userId = student.branchMember?.member?.user?.id;
+      if (!userId) {
+        throw new Error("User lie introuvable");
+      }
+
+      const hadPhoto = Boolean(student.branchMember.member.user.image?.trim());
+
+      await prisma.user.update({
+        where: { id: userId },
+        data: { image: imageUrl },
+      });
+
+      revalidateStudentPages(organizationId, branchId);
+      revalidatePath(
+        `/admin/organizations/${organizationId}/branches/${branchId}/student/${studentId}`,
+      );
+
+      return {
+        ok: true,
+        message: hadPhoto
+          ? "Photo mise a jour avec succes"
+          : "Photo ajoutee avec succes",
+      };
+    } catch (error: unknown) {
+      console.error("UPDATE STUDENT PHOTO ERROR:", error);
+      throw new Error(errMessage(error));
     }
   });
 

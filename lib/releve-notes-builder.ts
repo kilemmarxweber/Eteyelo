@@ -175,6 +175,7 @@ export async function buildReleveNotesData(params: {
             branchId: params.branchId,
             typeFiche: "ficheCote",
             anneeId: enrollment.schoolYearId,
+            status: true,
           },
         },
       },

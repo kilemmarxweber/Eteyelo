@@ -6,7 +6,6 @@ import { Table } from "@tanstack/react-table";
 import {
   IconFilter,
   IconFileTypePdf,
-  IconKey,
   IconSearch,
   IconUpload,
 } from "@tabler/icons-react";
@@ -30,7 +29,6 @@ interface DataTableToolbarProps<TData> {
   importScope?: "school_only" | "organization";
   peopleLabels?: PeopleLabels;
   classLabel?: string;
-  showGenerateLogins?: boolean;
   onOpenImport?: () => void;
 }
 
@@ -53,7 +51,6 @@ export function DataTableToolbar<TData>({
   importScope = "school_only",
   peopleLabels = DEFAULT_PEOPLE_LABELS,
   classLabel = "Classe",
-  showGenerateLogins = true,
   onOpenImport,
 }: DataTableToolbarProps<TData>) {
   const [exportingPdf, setExportingPdf] = useState(false);
@@ -207,20 +204,10 @@ export function DataTableToolbar<TData>({
             </Button>
           ) : null}
 
-          {canManageStudents && !requiresImport ? (
-            <>
-              {!supportsImport ? (
-                <Button variant="outline" leftSection={<IconUpload size={16} />}>
-                  Importer
-                </Button>
-              ) : null}
-
-              {showGenerateLogins ? (
-                <Button variant="outline" leftSection={<IconKey size={16} />}>
-                  Générer logins
-                </Button>
-              ) : null}
-            </>
+          {canManageStudents && !requiresImport && !supportsImport ? (
+            <Button variant="outline" leftSection={<IconUpload size={16} />}>
+              Importer
+            </Button>
           ) : null}
 
           <DataTableViewOptions table={table} />

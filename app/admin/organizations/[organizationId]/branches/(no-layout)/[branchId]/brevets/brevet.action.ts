@@ -189,7 +189,6 @@ export async function getStudentPageContextAction() {
       : isCentreFormationBranch(ctx.typebranch)
         ? ("centre" as const)
         : null,
-    showGenerateLogins: !isCentreFormationBranch(ctx.typebranch),
     importScope: requiresStudentImport(ctx.typebranch)
       ? ("school_only" as const)
       : ("organization" as const),

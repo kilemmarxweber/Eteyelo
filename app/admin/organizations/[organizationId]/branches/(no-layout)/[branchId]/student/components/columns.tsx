@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import Link from "next/link";
 import { useParams } from "next/navigation";
 import { ColumnDef } from "@tanstack/react-table";
 import { IconDots } from "@tabler/icons-react";
@@ -21,28 +20,12 @@ import { IStudent } from "@/src/interfaces/Student";
 import { DeleteStudentsDialog } from "./delete-students-dialog";
 import { DetailsStudentDialog } from "./details-student-dialog";
 import { ResetUsersDialog } from "./reset-users-dialog";
-import Image from "next/image";
+import { StudentListPhotoCell } from "./student-list-photo-cell";
 import { openOverlayAfterMenuDismiss } from "@/lib/radix-portal-dismiss";
 
 export type StudentTableActions = {
   onEdit: (student: IStudent) => void;
 };
-
-function getStudentImage(student: IStudent): string | undefined {
-  const image = student.image || undefined;
-
-  if (!image || typeof image !== "string") return undefined;
-
-  if (
-    image.startsWith("http") ||
-    image.startsWith("data:") ||
-    image.startsWith("/")
-  ) {
-    return image;
-  }
-
-  return `/uploads/${image}`;
-}
 
 function calculateAge(dateOfBirth: Date | string | null | undefined) {
   if (!dateOfBirth) return null;
@@ -89,32 +72,17 @@ export const createStudentColumns = (
     header: "PHOTO",
     cell: ({ row }) => {
       const student = row.original;
-      const image = getStudentImage(student);
-
       const fullName = [student.nom, student.postnom, student.prenom]
         .filter(Boolean)
         .join(" ");
 
-      const initials =
-        `${student.nom?.[0] ?? ""}${student.prenom?.[0] ?? ""}`.toUpperCase() ||
-        "EL";
-
       return (
-        <div className="flex items-center justify-center">
-          <div className="flex size-11 items-center justify-center overflow-hidden rounded-full border border-border bg-blue-50 ring-2 ring-white">
-            {image ? (
-              <Image
-                src={image}
-                alt={fullName || "Élève"}
-                className="h-full w-full object-cover"
-              />
-            ) : (
-              <span className="text-sm font-black text-primary">
-                {initials}
-              </span>
-            )}
-          </div>
-        </div>
+        <StudentListPhotoCell
+          image={student.image}
+          nom={student.nom}
+          prenom={student.prenom}
+          fullName={fullName}
+        />
       );
     },
     enableSorting: false,
@@ -221,7 +189,6 @@ export const createStudentColumns = (
         React.useState(false);
 
       const params = useParams<{ organizationId: string; branchId: string }>();
-      const studentHref = `/admin/organizations/${params.organizationId}/branches/${params.branchId}/student/${row.original.id}`;
 
       const handleSuccess = () => {
         row.toggleSelected(false);
@@ -269,10 +236,6 @@ export const createStudentColumns = (
             </DropdownMenuTrigger>
 
             <DropdownMenuContent align="end" className="w-44">
-              <DropdownMenuItem asChild>
-                <Link href={studentHref}>Voir</Link>
-              </DropdownMenuItem>
-
               <DropdownMenuItem onSelect={() => setShowDetailsTaskDialog(true)}>
                 Détails
               </DropdownMenuItem>

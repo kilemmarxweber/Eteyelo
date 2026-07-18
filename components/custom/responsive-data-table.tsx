@@ -50,6 +50,7 @@ interface ResponsiveDataTableProps<TData, TValue> {
     label: string;
     variant?: "default" | "secondary" | "destructive" | "outline";
   }[];
+  onRowClick?: (row: TData) => void;
   className?: string;
 }
 
@@ -62,6 +63,7 @@ export function ResponsiveDataTable<TData, TValue>({
   mobileCardSubtitle,
   mobileCardActions,
   mobileCardBadges,
+  onRowClick,
   className,
 }: ResponsiveDataTableProps<TData, TValue>) {
   const [rowSelection, setRowSelection] = React.useState({});
@@ -106,6 +108,24 @@ export function ResponsiveDataTable<TData, TValue>({
     getFacetedUniqueValues: getFacetedUniqueValues(),
   });
 
+  function handleRowNavigate(
+    event: React.MouseEvent<HTMLElement>,
+    row: TData,
+  ) {
+    if (!onRowClick) return;
+
+    const target = event.target as HTMLElement;
+    if (
+      target.closest(
+        'button, a, input, label, [role="checkbox"], [role="menuitem"], [data-no-row-nav="true"]',
+      )
+    ) {
+      return;
+    }
+
+    onRowClick(row);
+  }
+
   // Vue mobile - Cards
   const MobileCardView = () => (
     <div className="space-y-4">
@@ -113,7 +133,14 @@ export function ResponsiveDataTable<TData, TValue>({
         table.getRowModel().rows.map((row) => {
           const rowData = row.original as TData;
           return (
-            <Card key={row.id} className="transition-all hover:shadow-md">
+            <Card
+              key={row.id}
+              className={cn(
+                "transition-all hover:shadow-md",
+                onRowClick && "cursor-pointer",
+              )}
+              onClick={(event) => handleRowNavigate(event, rowData)}
+            >
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
                   <div className="flex-1 min-w-0">
@@ -228,7 +255,11 @@ export function ResponsiveDataTable<TData, TValue>({
               <TableRow
                 key={row.id}
                 data-state={row.getIsSelected() && "selected"}
-                className="hover:bg-muted/50 transition-colors"
+                className={cn(
+                  "hover:bg-muted/50 transition-colors",
+                  onRowClick && "cursor-pointer",
+                )}
+                onClick={(event) => handleRowNavigate(event, row.original)}
               >
                 {row.getVisibleCells().map((cell) => (
                   <TableCell key={cell.id}>

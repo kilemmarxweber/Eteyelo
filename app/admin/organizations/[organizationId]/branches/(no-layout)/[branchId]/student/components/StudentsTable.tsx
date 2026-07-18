@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
 import { Table } from "@tanstack/react-table";
 import { createStudentColumns } from "./columns";
 import { ResponsiveDataTable } from "@/components/custom";
@@ -42,10 +43,20 @@ const StudentsList = ({
   >(null);
   const peopleLabels = useBranchPeopleLabels();
   const [classLabel, setClassLabel] = useState("Classe");
-  const [showGenerateLogins, setShowGenerateLogins] = useState(true);
   const [importOpen, setImportOpen] = useState(false);
   const hasLoadedOnce = useRef(false);
   const { refreshKey: contextRefreshKey } = useRefresh();
+  const router = useRouter();
+  const params = useParams<{ organizationId: string; branchId: string }>();
+
+  const handleStudentRowClick = useCallback(
+    (student: IStudent) => {
+      router.push(
+        `/admin/organizations/${params.organizationId}/branches/${params.branchId}/student/${student.id}`,
+      );
+    },
+    [params.branchId, params.organizationId, router],
+  );
 
   const tableActions = useMemo(
     () => ({
@@ -70,14 +81,13 @@ const StudentsList = ({
           importScope={importScope}
           peopleLabels={peopleLabels}
           classLabel={classLabel}
-          showGenerateLogins={showGenerateLogins}
           onOpenImport={() => setImportOpen(true)}
         />
       );
     }
 
     return Toolbar;
-  }, [canManageStudents, classLabel, importScope, peopleLabels, requiresImport, showGenerateLogins, supportsImport]);
+  }, [canManageStudents, classLabel, importScope, peopleLabels, requiresImport, supportsImport]);
 
   const fetchStudents = useCallback(async () => {
     const isInitialLoad = !hasLoadedOnce.current;
@@ -112,7 +122,6 @@ const StudentsList = ({
       setSupportsImport(Boolean(context.supportsImport));
       setImportScope(context.importScope ?? "school_only");
       setImportEnrollmentMode(context.importEnrollmentMode ?? null);
-      setShowGenerateLogins(context.showGenerateLogins ?? true);
       if (context.typebranch && !isSchoolBranch(context.typebranch)) {
         setClassLabel(getClassDisplayLabel(context.typebranch));
       }
@@ -234,6 +243,7 @@ const StudentsList = ({
           emptyText={`Aucun ${peopleLabels.studentLower}`}
           mobileCardTitle={(row) => `${row.nom} ${row.postnom} ${row.prenom}`}
           mobileCardSubtitle={(row) => row.username ?? ""}
+          onRowClick={handleStudentRowClick}
         />
       </div>
     </>
