@@ -5,13 +5,15 @@ import { usePathname } from "next/navigation";
 
 import { HomeNavbar } from "@/components/home-navbar";
 
+/** Routes métier d'une branche (hors new / edit / enter). */
+const BRANCH_WORKSPACE_SEGMENT =
+  /^\/admin\/organizations\/[^/]+\/branches\/(?!new(?:\/|$)|edit(?:\/|$)|enter(?:\/|$))[^/]+/;
+
 export function AdminShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const isBranchRoute = /^\/admin\/organizations\/[^/]+\/branches\/[^/]+/.test(
-    pathname,
-  );
+  const isBranchWorkspaceRoute = BRANCH_WORKSPACE_SEGMENT.test(pathname);
 
-  if (isBranchRoute) {
+  if (isBranchWorkspaceRoute) {
     return (
       <div className="h-dvh overflow-hidden bg-background text-foreground">
         {children}
@@ -30,7 +32,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
       </div>
 
       <HomeNavbar />
-      <main className="flex-1">{children}</main>
+      <main className="flex-1 overflow-y-auto">{children}</main>
     </div>
   );
 }
