@@ -8,6 +8,8 @@ import {
 import { SupportTeamSection } from "@/app/components/support/support-team-section";
 import { HomeNavbar } from "@/components/home-navbar";
 
+export const dynamic = "force-dynamic";
+
 type PageProps = {
   params: Promise<{ organizationSlug: string }>;
   searchParams: Promise<{ branchId?: string }>;
@@ -32,29 +34,34 @@ export default async function OrganizationSupportPublicPage({
   );
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-background">
       <HomeNavbar />
 
-      <main className="mx-auto max-w-6xl px-4 py-14">
-        <section className="max-w-3xl">
-          <div className="inline-flex items-center gap-2 rounded-full bg-blue-950/10 px-3 py-1.5 text-xs font-semibold text-blue-950">
+      <section className="border-b border-primary/10 bg-primary text-primary-foreground shadow-lg shadow-primary/10">
+        <div className="mx-auto max-w-6xl px-4 py-10 md:py-12">
+          <div className="inline-flex items-center gap-2 rounded-full bg-primary-foreground/15 px-3 py-1.5 text-xs font-semibold text-primary-foreground/90">
             <HeadphonesIcon className="size-4" />
             Support {organization.name}
           </div>
 
-          <h1 className="mt-4 text-4xl font-bold tracking-tight text-slate-950 md:text-5xl">
-            Une équipe dédiée à votre établissement
+          <h1 className="mt-4 max-w-3xl text-3xl font-bold tracking-tight md:text-4xl">
+            Une equipe dediee a votre etablissement
           </h1>
 
-          <p className="mt-4 text-sm leading-relaxed text-slate-600 md:text-base">
+          <p className="mt-3 max-w-3xl text-sm leading-relaxed text-primary-foreground/90 md:text-base">
             Contactez les agents support de {organization.name} pour toute
-            question liée à la gestion scolaire, aux comptes utilisateurs ou aux
+            question liee a la gestion scolaire, aux comptes utilisateurs ou aux
             incidents du quotidien.
           </p>
-        </section>
+        </div>
+      </section>
 
-        <section className="mt-10">
-          <h2 className="text-lg font-semibold text-slate-950">
+      <main className="mx-auto max-w-6xl px-4 py-12 md:py-14">
+        <section>
+          <p className="text-xs font-semibold uppercase tracking-wide text-primary">
+            Besoins frequents
+          </p>
+          <h2 className="mt-2 text-lg font-semibold text-foreground">
             Comment pouvons-nous vous aider ?
           </h2>
 
@@ -62,10 +69,10 @@ export default async function OrganizationSupportPublicPage({
             {SUPPORT_TOPICS.map((item) => (
               <div
                 key={item.title}
-                className="rounded-2xl border bg-white p-5 shadow-sm"
+                className="rounded-2xl border border-border bg-card p-5 shadow-sm transition hover:border-primary/30 hover:bg-primary/5"
               >
-                <h3 className="font-semibold text-slate-950">{item.title}</h3>
-                <p className="mt-3 text-sm leading-relaxed text-slate-600">
+                <h3 className="font-semibold text-foreground">{item.title}</h3>
+                <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
                   {item.text}
                 </p>
               </div>
@@ -76,10 +83,10 @@ export default async function OrganizationSupportPublicPage({
         {team.length > 0 ? (
           <SupportTeamSection team={team} organizationId={organization.id} />
         ) : (
-          <p className="mt-14 text-sm text-slate-600">
-            L&apos;équipe support de cet établissement sera bientôt disponible.
+          <p className="mt-14 text-sm text-muted-foreground">
+            L&apos;equipe support de cet etablissement sera bientot disponible.
             Pour une assistance plateforme, consultez la{" "}
-            <a href="/support" className="font-medium text-blue-950 underline">
+            <a href="/support" className="font-medium text-primary underline">
               page support Kalasa Edu
             </a>
             .

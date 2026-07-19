@@ -6,6 +6,8 @@ import { SUPPORT_TOPICS } from "@/lib/support/types";
 
 import { SupportTeamSection } from "./support-team-section";
 
+export const dynamic = "force-dynamic";
+
 export default async function SupportPage() {
   const team = await listActivePlatformSupportAgents();
 

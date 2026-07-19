@@ -90,6 +90,13 @@ export async function createOrganizationSupportAgentAction(
     });
 
     revalidatePath(`/admin/organizations/${organizationId}/support`);
+    const org = await prisma.organization.findUnique({
+      where: { id: organizationId },
+      select: { slug: true },
+    });
+    if (org?.slug) {
+      revalidatePath(`/support/organization/${org.slug}`);
+    }
 
     return { ok: true as const, id: agent.id };
   } catch (e) {
@@ -162,6 +169,13 @@ export async function updateOrganizationSupportAgentAction(
     });
 
     revalidatePath(`/admin/organizations/${organizationId}/support`);
+    const org = await prisma.organization.findUnique({
+      where: { id: organizationId },
+      select: { slug: true },
+    });
+    if (org?.slug) {
+      revalidatePath(`/support/organization/${org.slug}`);
+    }
 
     return { ok: true as const };
   } catch (e) {
@@ -197,6 +211,13 @@ export async function deleteOrganizationSupportAgentAction(input: {
     });
 
     revalidatePath(`/admin/organizations/${input.organizationId}/support`);
+    const org = await prisma.organization.findUnique({
+      where: { id: input.organizationId },
+      select: { slug: true },
+    });
+    if (org?.slug) {
+      revalidatePath(`/support/organization/${org.slug}`);
+    }
 
     return { ok: true as const };
   } catch (e) {

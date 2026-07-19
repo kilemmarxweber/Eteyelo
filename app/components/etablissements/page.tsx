@@ -7,7 +7,9 @@ import { HomeNavbar } from "@/components/home-navbar";
 import { prisma } from "@/lib/prisma";
 import { KLAMBOCORE_DEFAULT_IMAGE_PATH } from "@/lib/brand/klambocore-image";
 import { getBranchImage } from "@/lib/utils";
+
 export const dynamic = "force-dynamic";
+
 export default async function EtablissementsPage() {
   const branches = await prisma.branch.findMany({
     where: {
@@ -36,20 +38,23 @@ export default async function EtablissementsPage() {
   });
 
   return (
-    <main className="min-h-screen bg-slate-50 text-slate-900">
+    <main className="min-h-screen bg-background text-foreground">
       <HomeNavbar />
 
-      <section className="bg-gradient-to-br from-blue-700 via-blue-600 to-cyan-500 py-16 text-white">
-        <div className="mx-auto max-w-7xl px-6">
-          <Badge className="bg-white/20 text-white">Établissements</Badge>
+      <section className="border-b border-primary/10 bg-primary text-primary-foreground shadow-lg shadow-primary/10">
+        <div className="mx-auto max-w-7xl px-6 py-12 md:py-14">
+          <div className="inline-flex items-center gap-2 rounded-full bg-primary-foreground/15 px-3 py-1.5 text-xs font-semibold text-primary-foreground/90">
+            <School className="size-3.5" />
+            Etablissements
+          </div>
 
-          <h1 className="mt-4 max-w-3xl text-4xl font-black md:text-6xl">
-            Découvrez les écoles partenaires
+          <h1 className="mt-4 max-w-3xl text-3xl font-bold tracking-tight md:text-5xl">
+            Decouvrez les ecoles partenaires
           </h1>
 
-          <p className="mt-5 max-w-7xl text-blue-50">
-            Consultez les informations, photos, effectifs, références et
-            services proposés par chaque établissement.
+          <p className="mt-4 max-w-3xl text-sm leading-relaxed text-primary-foreground/90 md:text-base">
+            Consultez les informations, photos, effectifs et services proposes
+            par chaque etablissement.
           </p>
         </div>
       </section>
@@ -72,7 +77,7 @@ export default async function EtablissementsPage() {
 
             return (
               <Link key={branch.id} href={`/etablissements/${branch.id}`}>
-                <article className="group overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-blue-100 transition duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-blue-950/10">
+                <article className="group overflow-hidden rounded-3xl border border-border bg-card shadow-sm transition duration-300 hover:-translate-y-1 hover:border-primary/30 hover:shadow-md">
                   <div
                     className="h-52 bg-cover bg-center transition duration-500 group-hover:scale-105"
                     style={{
@@ -82,29 +87,32 @@ export default async function EtablissementsPage() {
 
                   <div className="p-5">
                     <div className="mb-3 flex items-center justify-between">
-                      <Badge className="bg-blue-100 text-blue-700">
-                        <School className="mr-1 h-3 w-3" />
+                      <Badge
+                        variant="outline"
+                        className="border-primary/30 bg-primary/10 text-primary"
+                      >
+                        <School className="mr-1 size-3" />
                         Partenaire
                       </Badge>
 
-                      <ArrowRight className="h-5 w-5 text-blue-700 transition group-hover:translate-x-1" />
+                      <ArrowRight className="size-5 text-primary transition group-hover:translate-x-1" />
                     </div>
 
-                    <h2 className="line-clamp-2 text-xl font-black text-blue-950">
+                    <h2 className="line-clamp-2 text-xl font-bold text-foreground">
                       {branch.name}
                     </h2>
 
-                    <p className="mt-3 flex items-center gap-2 text-sm text-slate-500">
-                      <MapPin className="h-4 w-4 text-blue-700" />
+                    <p className="mt-3 flex items-center gap-2 text-sm text-muted-foreground">
+                      <MapPin className="size-4 text-primary" />
                       {branch.adresse ||
                         branch.ville ||
                         branch.pays ||
-                        "Adresse non renseignée"}
+                        "Adresse non renseignee"}
                     </p>
 
-                    <p className="mt-4 inline-flex items-center gap-2 rounded-2xl bg-blue-50 px-3 py-2 text-sm font-semibold text-blue-950">
-                      <Users className="h-4 w-4 text-blue-700" />
-                      {studentsCount} élèves inscrits
+                    <p className="mt-4 inline-flex items-center gap-2 rounded-2xl bg-primary/5 px-3 py-2 text-sm font-semibold text-foreground">
+                      <Users className="size-4 text-primary" />
+                      {studentsCount} eleves inscrits
                     </p>
                   </div>
                 </article>

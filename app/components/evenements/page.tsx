@@ -1,4 +1,3 @@
-// app/evenements/page.tsx
 import { CalendarDays, MapPin, School } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -42,15 +41,20 @@ export default async function EventsPage() {
   });
 
   return (
-    <main className="min-h-screen bg-slate-50 text-slate-900">
+    <main className="min-h-screen bg-background text-foreground">
       <HomeNavbar />
 
-      <section className="bg-gradient-to-br from-blue-700 to-cyan-500 py-16 text-white">
-        <div className="mx-auto max-w-7xl px-6">
-          <Badge className="bg-white/20 text-white">Événements</Badge>
-          <h1 className="mt-4 text-4xl font-black">Tous les événements</h1>
-          <p className="mt-3 max-w-[320px] text-blue-50">
-            Découvrez les activités, cérémonies et annonces des établissements
+      <section className="border-b border-primary/10 bg-primary text-primary-foreground shadow-lg shadow-primary/10">
+        <div className="mx-auto max-w-7xl px-6 py-12 md:py-14">
+          <div className="inline-flex items-center gap-2 rounded-full bg-primary-foreground/15 px-3 py-1.5 text-xs font-semibold text-primary-foreground/90">
+            <CalendarDays className="size-3.5" />
+            Evenements
+          </div>
+          <h1 className="mt-4 text-3xl font-bold tracking-tight md:text-4xl">
+            Tous les evenements
+          </h1>
+          <p className="mt-3 max-w-xl text-sm leading-relaxed text-primary-foreground/90 md:text-base">
+            Decouvrez les activites, ceremonies et annonces des etablissements
             partenaires.
           </p>
         </div>
@@ -61,7 +65,7 @@ export default async function EventsPage() {
           {events.map((event) => (
             <article
               key={event.id}
-              className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-blue-100"
+              className="overflow-hidden rounded-3xl border border-border bg-card shadow-sm transition hover:border-primary/30"
             >
               <div
                 className="h-52 bg-cover bg-center"
@@ -75,32 +79,35 @@ export default async function EventsPage() {
               />
 
               <div className="p-5">
-                <Badge className="bg-blue-100 text-blue-700">
-                  <CalendarDays className="mr-1 h-3 w-3" />
+                <Badge
+                  variant="outline"
+                  className="border-primary/30 bg-primary/10 text-primary"
+                >
+                  <CalendarDays className="mr-1 size-3" />
                   {formatDate(event.dateStart)}
                 </Badge>
 
-                <h2 className="mt-4 text-lg font-black text-blue-950">
-                  {event.title || "Événement scolaire"}
+                <h2 className="mt-4 text-lg font-bold text-foreground">
+                  {event.title || "Evenement scolaire"}
                 </h2>
 
-                <p className="mt-2 flex items-center gap-2 text-sm text-slate-500">
-                  <School className="h-4 w-4" />
+                <p className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
+                  <School className="size-4 text-primary" />
                   {event.branch.name}
                 </p>
 
-                {event.location && (
-                  <p className="mt-2 flex items-center gap-2 text-sm text-slate-500">
-                    <MapPin className="h-4 w-4" />
+                {event.location ? (
+                  <p className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
+                    <MapPin className="size-4 text-primary" />
                     {event.location}
                   </p>
-                )}
+                ) : null}
 
-                {event.description && (
-                  <p className="mt-4 line-clamp-3 text-sm leading-6 text-slate-600">
+                {event.description ? (
+                  <p className="mt-4 line-clamp-3 text-sm leading-6 text-muted-foreground">
                     {event.description}
                   </p>
-                )}
+                ) : null}
               </div>
             </article>
           ))}

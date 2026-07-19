@@ -123,6 +123,7 @@ export async function createPlatformSupportAgentAction(
     ]);
 
     revalidatePath("/admin/platform-support");
+    revalidatePath("/support");
     return { ok: true as const };
   } catch (e) {
     return { ok: false as const, message: errMessage(e) };
@@ -152,6 +153,7 @@ export async function updatePlatformSupportAgentAction(
       },
     });
     revalidatePath("/admin/platform-support");
+    revalidatePath("/support");
     return { ok: true as const };
   } catch (e) {
     return { ok: false as const, message: errMessage(e) };

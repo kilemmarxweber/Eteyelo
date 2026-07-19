@@ -276,21 +276,23 @@ export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
 
   if (reference)
     return (
-      <div className="min-h-screen bg-slate-50">
+      <div className="min-h-screen bg-background">
         <HomeNavbar />
         <main className="mx-auto max-w-7xl px-4 py-20">
-          <Card className="text-center">
+          <Card className="border-border text-center shadow-sm">
             <CardContent className="space-y-5 p-10">
-              <span className="mx-auto flex size-16 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
+              <span className="mx-auto flex size-16 items-center justify-center rounded-full bg-primary/10 text-primary">
                 <Check className="size-8" />
               </span>
-              <h1 className="text-2xl font-bold">Demande envoyee</h1>
-              <p>Conservez cette reference :</p>
-              <p className="rounded-xl bg-slate-100 p-4 font-mono text-xl font-bold">
+              <h1 className="text-2xl font-bold text-foreground">
+                Demande envoyee
+              </h1>
+              <p className="text-muted-foreground">Conservez cette reference :</p>
+              <p className="rounded-xl border border-primary/20 bg-primary/5 p-4 font-mono text-xl font-bold text-primary">
                 {reference}
               </p>
               <p className="text-sm text-muted-foreground">
-                L'ecole doit confirmer la demande avant l'inscription
+                L&apos;ecole doit confirmer la demande avant l&apos;inscription
                 definitive.
               </p>
             </CardContent>
@@ -300,17 +302,37 @@ export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
     );
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-background">
       <HomeNavbar />
-      <main className="mx-auto max-w-4xl px-4 py-10">
-        <Card>
-          <CardHeader>
-            <CardTitle>Demande d'inscription scolaire</CardTitle>
+
+      <section className="border-b border-primary/10 bg-primary text-primary-foreground shadow-lg shadow-primary/10">
+        <div className="mx-auto max-w-4xl px-4 py-8 md:py-10">
+          <div className="inline-flex items-center gap-2 rounded-full bg-primary-foreground/15 px-3 py-1.5 text-xs font-semibold text-primary-foreground/90">
+            <UserPlus className="size-4" />
+            Inscription scolaire
+          </div>
+          <h1 className="mt-3 text-2xl font-bold tracking-tight md:text-3xl">
+            Demande d&apos;inscription
+          </h1>
+          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-primary-foreground/90">
+            Etape {step + 1} sur 4 · cette demande ne cree pas encore de compte.
+          </p>
+          <Progress
+            value={(step + 1) * 25}
+            className="mt-4 h-2 bg-primary-foreground/20 [&>div]:bg-primary-foreground"
+          />
+        </div>
+      </section>
+
+      <main className="mx-auto max-w-4xl px-4 py-8 md:py-10">
+        <Card className="border-border shadow-sm">
+          <CardHeader className="space-y-1 pb-4">
+            <CardTitle className="text-lg text-foreground">
+              Formulaire d&apos;inscription
+            </CardTitle>
             <p className="text-sm text-muted-foreground">
-              Etape {step + 1} sur 4 · cette demande ne cree pas encore de
-              compte.
+              Remplissez les informations de l&apos;eleve et du responsable.
             </p>
-            <Progress value={(step + 1) * 25} />
           </CardHeader>
           <CardContent className="space-y-6">
             {step === 0 && (
@@ -508,7 +530,7 @@ export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
                         className="size-20 rounded-xl object-cover"
                       />
                     ) : (
-                      <div className="flex size-20 items-center justify-center rounded-xl bg-slate-100">
+                      <div className="flex size-20 items-center justify-center rounded-xl border border-border bg-muted/40 text-muted-foreground">
                         <ImagePlus />
                       </div>
                     )}
@@ -539,7 +561,7 @@ export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
             )}
             {step === 3 && (
               <div className="space-y-5">
-                <div className="grid gap-3 rounded-xl bg-slate-50 p-5 md:grid-cols-2">
+                <div className="grid gap-3 rounded-xl border border-primary/15 bg-primary/5 p-5 md:grid-cols-2">
                   <p>
                     <b>Eleve :</b> {form.name} {form.postnom} {form.prenom}
                   </p>

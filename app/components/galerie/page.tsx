@@ -1,7 +1,5 @@
-// app/galerie/page.tsx
 import { Camera } from "lucide-react";
 
-import { Badge } from "@/components/ui/badge";
 import { HomeNavbar } from "@/components/home-navbar";
 import { HomeFooter } from "@/components/home-footer";
 import { prisma } from "@/lib/prisma";
@@ -9,8 +7,7 @@ import { getBranchImage, normalizeImageSrc } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
-type Props = {};
-export default async function GalleryPage(props: Props) {
+export default async function GalleryPage() {
   const branches = await prisma.branch.findMany({
     where: { isActive: true },
     orderBy: { createdAt: "desc" },
@@ -34,18 +31,20 @@ export default async function GalleryPage(props: Props) {
   });
 
   return (
-    <main className="min-h-screen bg-slate-50 text-slate-900">
+    <main className="min-h-screen bg-background text-foreground">
       <HomeNavbar />
 
-      <section className="bg-gradient-to-br from-blue-700 to-cyan-500 py-16 text-white">
-        <div className="mx-auto max-w-7xl px-6">
-          <Badge className="bg-white/20 text-white">
-            <Camera className="mr-1 h-3 w-3" />
+      <section className="border-b border-primary/10 bg-primary text-primary-foreground shadow-lg shadow-primary/10">
+        <div className="mx-auto max-w-7xl px-6 py-12 md:py-14">
+          <div className="inline-flex items-center gap-2 rounded-full bg-primary-foreground/15 px-3 py-1.5 text-xs font-semibold text-primary-foreground/90">
+            <Camera className="size-3.5" />
             Galerie
-          </Badge>
-          <h1 className="mt-4 text-4xl font-black">Galerie photos</h1>
-          <p className="mt-3 max-w-[300px] text-blue-50">
-            Toutes les photos des écoles, événements et activités partenaires.
+          </div>
+          <h1 className="mt-4 text-3xl font-bold tracking-tight md:text-4xl">
+            Galerie photos
+          </h1>
+          <p className="mt-3 max-w-xl text-sm leading-relaxed text-primary-foreground/90 md:text-base">
+            Photos des ecoles, evenements et activites partenaires.
           </p>
         </div>
       </section>
@@ -55,7 +54,7 @@ export default async function GalleryPage(props: Props) {
           {images.map((item, index) => (
             <article
               key={`${item.image}-${index}`}
-              className="group overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-blue-100"
+              className="group overflow-hidden rounded-3xl border border-border bg-card shadow-sm transition hover:border-primary/30"
             >
               <div
                 className="aspect-square bg-cover bg-center transition duration-500 group-hover:scale-105"
@@ -65,10 +64,10 @@ export default async function GalleryPage(props: Props) {
               />
 
               <div className="p-4">
-                <h2 className="line-clamp-1 text-sm font-black text-blue-950">
+                <h2 className="line-clamp-1 text-sm font-bold text-foreground">
                   {item.school}
                 </h2>
-                <p className="mt-1 text-xs text-slate-500">{item.city}</p>
+                <p className="mt-1 text-xs text-muted-foreground">{item.city}</p>
               </div>
             </article>
           ))}

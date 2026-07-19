@@ -253,22 +253,22 @@ export function JobApplicationForm({ branches }: { branches: Branch[] }) {
 
   if (step >= STEPS.length) {
     return (
-      <div className="min-h-screen bg-slate-50">
+      <div className="min-h-screen bg-background">
         <HomeNavbar />
         <main className="mx-auto flex max-w-2xl flex-col items-center px-4 py-16 text-center">
-          <div className="flex size-16 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
+          <div className="flex size-16 items-center justify-center rounded-full bg-primary/10 text-primary">
             <Check className="size-8" />
           </div>
-          <h1 className="mt-6 text-3xl font-black text-blue-950">
-            Candidature envoyée
+          <h1 className="mt-6 text-3xl font-bold text-foreground">
+            Candidature envoyee
           </h1>
-          <p className="mt-3 text-slate-600">
-            Votre dossier a été transmis à l&apos;établissement. Un email de
-            confirmation a été envoyé à <strong>{form.email}</strong>.
+          <p className="mt-3 text-muted-foreground">
+            Votre dossier a ete transmis a l&apos;etablissement. Un email de
+            confirmation a ete envoye a <strong>{form.email}</strong>.
           </p>
           {reference ? (
-            <p className="mt-4 rounded-full bg-blue-100 px-4 py-2 text-sm font-bold text-blue-800">
-              Référence : {reference}
+            <p className="mt-4 rounded-full border border-primary/20 bg-primary/10 px-4 py-2 text-sm font-semibold text-primary">
+              Reference : {reference}
             </p>
           ) : null}
         </main>
@@ -277,31 +277,40 @@ export function JobApplicationForm({ branches }: { branches: Branch[] }) {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-background">
       <HomeNavbar />
-      <main className="mx-auto max-w-4xl px-4 py-10">
-        <div className="mb-8 text-center">
-          <p className="text-sm font-bold uppercase tracking-wide text-blue-600">
-            Recrutement
-          </p>
-          <h1 className="mt-2 text-3xl font-black text-blue-950">
-            Déposer une candidature
-          </h1>
-          <p className="mt-2 text-slate-600">
-            Postulez comme enseignant ou personnel dans un établissement
-            partenaire.
-          </p>
-        </div>
 
-        <Card className="border-blue-100 shadow-lg shadow-blue-950/5">
-          <CardHeader>
+      <section className="border-b border-primary/10 bg-primary text-primary-foreground shadow-lg shadow-primary/10">
+        <div className="mx-auto max-w-4xl px-4 py-8 md:py-10">
+          <div className="inline-flex items-center gap-2 rounded-full bg-primary-foreground/15 px-3 py-1.5 text-xs font-semibold text-primary-foreground/90">
+            <Briefcase className="size-4" />
+            Recrutement
+          </div>
+          <h1 className="mt-3 text-2xl font-bold tracking-tight md:text-3xl">
+            Deposer une candidature
+          </h1>
+          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-primary-foreground/90">
+            Etape {step + 1} / {STEPS.length} · postulez comme enseignant ou
+            personnel dans un etablissement partenaire.
+          </p>
+          <Progress
+            value={((step + 1) / STEPS.length) * 100}
+            className="mt-4 h-2 bg-primary-foreground/20 [&>div]:bg-primary-foreground"
+          />
+        </div>
+      </section>
+
+      <main className="mx-auto max-w-4xl px-4 py-8 md:py-10">
+        <Card className="border-border shadow-sm">
+          <CardHeader className="space-y-1 pb-4">
             <div className="flex items-center justify-between gap-4">
-              <CardTitle>{STEPS[step]}</CardTitle>
-              <span className="text-sm text-slate-500">
-                Étape {step + 1} / {STEPS.length}
+              <CardTitle className="text-lg text-foreground">
+                {STEPS[step]}
+              </CardTitle>
+              <span className="text-sm text-muted-foreground">
+                Etape {step + 1} / {STEPS.length}
               </span>
             </div>
-            <Progress value={((step + 1) / STEPS.length) * 100} className="mt-4" />
           </CardHeader>
           <CardContent className="space-y-6">
             {step === 0 && (
@@ -345,11 +354,11 @@ export function JobApplicationForm({ branches }: { branches: Branch[] }) {
                         onClick={() => update("applicationType", option.value)}
                         className={`flex items-center gap-3 rounded-2xl border p-4 text-left transition ${
                           form.applicationType === option.value
-                            ? "border-blue-600 bg-blue-50"
-                            : "border-slate-200 hover:border-blue-200"
+                            ? "border-primary bg-primary/5"
+                            : "border-border hover:border-primary/30"
                         }`}
                       >
-                        <option.icon className="size-5 text-blue-700" />
+                        <option.icon className="size-5 text-primary" />
                         <span className="font-semibold">{option.label}</span>
                       </button>
                     ))}
@@ -410,7 +419,7 @@ export function JobApplicationForm({ branches }: { branches: Branch[] }) {
                         className="size-20 rounded-xl object-cover"
                       />
                     ) : (
-                      <div className="flex size-20 items-center justify-center rounded-xl bg-slate-100">
+                      <div className="flex size-20 items-center justify-center rounded-xl border border-border bg-muted/40 text-muted-foreground">
                         <ImagePlus />
                       </div>
                     )}
@@ -540,9 +549,9 @@ export function JobApplicationForm({ branches }: { branches: Branch[] }) {
               <div className="grid gap-5">
                 <Field label="CV * (PDF, DOC, DOCX — max 10 Mo)" wide>
                   <Label className="flex cursor-pointer items-center gap-3 rounded-xl border border-dashed p-4">
-                    <FileText className="size-5 text-blue-700" />
+                    <FileText className="size-5 text-primary" />
                     <span>{cvFile ? cvFile.name : "Sélectionner votre CV"}</span>
-                    <Upload className="ml-auto size-4 text-slate-400" />
+                    <Upload className="ml-auto size-4 text-muted-foreground" />
                     <Input
                       className="hidden"
                       type="file"
@@ -559,13 +568,13 @@ export function JobApplicationForm({ branches }: { branches: Branch[] }) {
                   wide
                 >
                   <Label className="flex cursor-pointer items-center gap-3 rounded-xl border border-dashed p-4">
-                    <Briefcase className="size-5 text-blue-700" />
+                    <Briefcase className="size-5 text-primary" />
                     <span>
                       {coverLetterFile
                         ? coverLetterFile.name
                         : "Sélectionner votre lettre"}
                     </span>
-                    <Upload className="ml-auto size-4 text-slate-400" />
+                    <Upload className="ml-auto size-4 text-muted-foreground" />
                     <Input
                       className="hidden"
                       type="file"
@@ -578,9 +587,9 @@ export function JobApplicationForm({ branches }: { branches: Branch[] }) {
                 </Field>
 
                 {selectedBranch ? (
-                  <p className="rounded-xl bg-blue-50 px-4 py-3 text-sm text-blue-900">
+                  <p className="rounded-xl border border-primary/20 bg-primary/5 px-4 py-3 text-sm text-foreground">
                     Candidature pour <strong>{selectedBranch.name}</strong> en
-                    qualité de{" "}
+                    qualite de{" "}
                     <strong>
                       {form.applicationType === "TEACHER"
                         ? "Enseignant"
@@ -594,7 +603,7 @@ export function JobApplicationForm({ branches }: { branches: Branch[] }) {
 
             {step === 4 && (
               <div className="space-y-5">
-                <div className="grid gap-3 rounded-xl bg-slate-50 p-5 md:grid-cols-2">
+                <div className="grid gap-3 rounded-xl border border-primary/15 bg-primary/5 p-5 md:grid-cols-2">
                   <p>
                     <b>Candidat :</b> {form.prenom} {form.nom} {form.postnom}
                   </p>

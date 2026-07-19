@@ -175,20 +175,20 @@ export default async function EtablissementDetailPage({ params }: PageProps) {
   ];
 
   return (
-    <main className="min-h-screen bg-slate-50 text-slate-900">
+    <main className="min-h-screen bg-background text-foreground">
       <HomeNavbar />
 
-      <section className="relative overflow-hidden bg-blue-950 text-white">
+      <section className="relative overflow-hidden bg-primary text-primary-foreground">
         <div
           className="absolute inset-0 bg-cover bg-center opacity-30"
           style={{ backgroundImage: `url('${cover}')` }}
         />
 
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-950 via-blue-950/90 to-blue-950/30" />
+        <div className="absolute inset-0 bg-gradient-to-r from-primary via-primary/90 to-primary/30" />
 
         <div className="relative mx-auto grid max-w-7xl gap-8 px-6 py-20 lg:grid-cols-[1.2fr_0.8fr] lg:items-end">
           <div>
-            <Badge className="bg-white/15 text-white">
+            <Badge className="bg-primary-foreground/15 text-primary-foreground">
               <School className="mr-1 h-3 w-3" />
               Établissement partenaire
             </Badge>
@@ -197,7 +197,7 @@ export default async function EtablissementDetailPage({ params }: PageProps) {
               {branch.name}
             </h1>
 
-            <div className="mt-5 grid gap-3 text-sm text-blue-50 sm:grid-cols-2">
+            <div className="mt-5 grid gap-3 text-sm text-primary-foreground/90 sm:grid-cols-2">
               <p className="flex items-center gap-2">
                 <MapPin className="h-4 w-4" />
                 {branch.adresse || "Adresse non renseignée"}
@@ -210,8 +210,8 @@ export default async function EtablissementDetailPage({ params }: PageProps) {
             </div>
           </div>
 
-          <div className="rounded-3xl border border-white/15 bg-white/10 p-5 backdrop-blur">
-            <p className="text-sm text-blue-100">Résumé rapide</p>
+          <div className="rounded-3xl border border-primary-foreground/15 bg-primary-foreground/10 p-5 backdrop-blur">
+            <p className="text-sm text-primary-foreground/80">Résumé rapide</p>
 
             <div className="mt-4 grid grid-cols-2 gap-3">
               <Stat label="Élèves" value={totalStudents} icon={Users} />
@@ -238,12 +238,12 @@ export default async function EtablissementDetailPage({ params }: PageProps) {
               {references.map((item) => (
                 <div
                   key={item.label}
-                  className="rounded-2xl border border-blue-100 bg-blue-50/50 p-4"
+                  className="rounded-2xl border border-border bg-primary/5 p-4"
                 >
-                  <p className="text-xs font-bold uppercase text-blue-700">
+                  <p className="text-xs font-bold uppercase text-primary">
                     {item.label}
                   </p>
-                  <p className="mt-1 font-semibold text-blue-950">
+                  <p className="mt-1 font-semibold text-foreground">
                     {item.value || "Non renseigné"}
                   </p>
                 </div>
@@ -259,7 +259,7 @@ export default async function EtablissementDetailPage({ params }: PageProps) {
             </div>
 
             <div className="mt-6">
-              <h3 className="mb-3 font-black text-blue-950">
+              <h3 className="mb-3 font-black text-foreground">
                 Nombre d’élèves par année
               </h3>
 
@@ -267,19 +267,19 @@ export default async function EtablissementDetailPage({ params }: PageProps) {
                 {Object.entries(studentsByYear).map(([year, count]) => (
                   <div
                     key={year}
-                    className="flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-3"
+                    className="flex items-center justify-between rounded-2xl bg-muted/40 px-4 py-3"
                   >
-                    <span className="font-semibold text-slate-700">
+                    <span className="font-semibold text-foreground">
                       Année {year}
                     </span>
-                    <span className="rounded-full bg-blue-100 px-3 py-1 text-sm font-bold text-blue-700">
+                    <span className="rounded-full bg-primary/10 px-3 py-1 text-sm font-bold text-primary">
                       {count} élève(s)
                     </span>
                   </div>
                 ))}
 
                 {!Object.keys(studentsByYear).length ? (
-                  <p className="text-sm text-slate-500">
+                  <p className="text-sm text-muted-foreground">
                     Aucun élève enregistré pour le moment.
                   </p>
                 ) : null}
@@ -299,7 +299,7 @@ export default async function EtablissementDetailPage({ params }: PageProps) {
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-slate-500">
+              <p className="text-sm text-muted-foreground">
                 Aucune galerie disponible.
               </p>
             )}
@@ -308,10 +308,10 @@ export default async function EtablissementDetailPage({ params }: PageProps) {
 
         <div className="space-y-6">
           <Card title="Équipe pédagogique" icon={GraduationCap}>
-            <p className="text-3xl font-black text-blue-950">
+            <p className="text-3xl font-black text-foreground">
               {teachers.length}
             </p>
-            <p className="text-sm text-slate-500">enseignant(s)</p>
+            <p className="text-sm text-muted-foreground">enseignant(s)</p>
 
             <div className="mt-4 space-y-2">
               {teachers.slice(0, 8).map((teacher, index) => {
@@ -334,8 +334,8 @@ export default async function EtablissementDetailPage({ params }: PageProps) {
           </Card>
 
           <Card title="Personnel administratif" icon={BriefcaseBusiness}>
-            <p className="text-3xl font-black text-blue-950">{admins.length}</p>
-            <p className="text-sm text-slate-500">membre(s)</p>
+            <p className="text-3xl font-black text-foreground">{admins.length}</p>
+            <p className="text-sm text-muted-foreground">membre(s)</p>
 
             <div className="mt-4 space-y-2">
               {admins.slice(0, 8).map((admin, index) => {
@@ -397,19 +397,19 @@ function Stat({
   icon: React.ElementType;
 }) {
   return (
-    <div className="rounded-2xl bg-white/10 p-4">
-      <Icon className="h-5 w-5 text-cyan-300" />
+    <div className="rounded-2xl bg-primary-foreground/10 p-4">
+      <Icon className="h-5 w-5 text-primary-foreground/80" />
       <p className="mt-3 text-2xl font-black">{value}</p>
-      <p className="text-xs text-blue-100">{label}</p>
+      <p className="text-xs text-primary-foreground/80">{label}</p>
     </div>
   );
 }
 
 function BigStat({ label, value }: { label: string; value: number }) {
   return (
-    <div className="rounded-3xl border border-blue-100 bg-blue-50 p-5">
-      <p className="text-3xl font-black text-blue-950">{value}</p>
-      <p className="mt-1 text-sm font-semibold text-blue-700">{label}</p>
+    <div className="rounded-3xl border border-primary/20 bg-primary/5 p-5">
+      <p className="text-3xl font-black text-foreground">{value}</p>
+      <p className="mt-1 text-sm font-semibold text-primary">{label}</p>
     </div>
   );
 }
@@ -424,12 +424,12 @@ function Card({
   children: React.ReactNode;
 }) {
   return (
-    <section className="rounded-3xl border border-blue-100 bg-white p-6 shadow-sm">
+    <section className="rounded-3xl border border-border bg-card p-6 shadow-sm">
       <div className="mb-5 flex items-center gap-3">
-        <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-950 text-white">
+        <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary text-primary-foreground">
           <Icon className="h-5 w-5" />
         </span>
-        <h2 className="text-xl font-black text-blue-950">{title}</h2>
+        <h2 className="text-xl font-black text-foreground">{title}</h2>
       </div>
 
       {children}
@@ -439,10 +439,10 @@ function Card({
 
 function PersonRow({ name, detail }: { name: string; detail: string }) {
   return (
-    <div className="flex items-center justify-between gap-3 rounded-2xl bg-slate-50 px-4 py-3">
+    <div className="flex items-center justify-between gap-3 rounded-2xl bg-muted/40 px-4 py-3">
       <div>
-        <p className="font-semibold text-blue-950">{name}</p>
-        <p className="text-xs text-slate-500">{detail}</p>
+        <p className="font-semibold text-foreground">{name}</p>
+        <p className="text-xs text-muted-foreground">{detail}</p>
       </div>
     </div>
   );
@@ -460,18 +460,18 @@ function FeatureItem({
   enabled: boolean;
 }) {
   return (
-    <div className="flex items-start gap-3 rounded-2xl border border-blue-100 bg-blue-50/50 p-4">
-      <Icon className="mt-1 h-5 w-5 text-blue-700" />
+    <div className="flex items-start gap-3 rounded-2xl border border-border bg-primary/5 p-4">
+      <Icon className="mt-1 h-5 w-5 text-primary" />
 
       <div>
-        <p className="font-black text-blue-950">{title}</p>
-        <p className="mt-1 text-sm text-slate-500">{description}</p>
+        <p className="font-black text-foreground">{title}</p>
+        <p className="mt-1 text-sm text-muted-foreground">{description}</p>
 
         <Badge
           className={
             enabled
               ? "mt-3 bg-emerald-100 text-emerald-700"
-              : "mt-3 bg-slate-100 text-slate-500"
+              : "mt-3 bg-muted text-muted-foreground"
           }
         >
           {enabled ? "Disponible" : "Non renseigné"}
