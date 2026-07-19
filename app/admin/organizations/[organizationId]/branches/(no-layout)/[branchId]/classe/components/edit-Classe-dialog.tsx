@@ -36,11 +36,11 @@ export function UpdateClasseDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange} {...props}>
-      <DialogContent size="lg">
-        <DialogHeader>
+      <DialogContent size="lg" className="gap-3">
+        <DialogHeader className="space-y-1">
           <DialogTitle>Modifier la classe</DialogTitle>
           <DialogDescription>
-            Ajustez le niveau, la filière, la vacation et la capacité.
+            Niveau, filière, vacation et capacité.
           </DialogDescription>
         </DialogHeader>
 

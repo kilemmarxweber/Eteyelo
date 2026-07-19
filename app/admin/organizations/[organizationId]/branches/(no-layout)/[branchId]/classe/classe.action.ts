@@ -14,11 +14,15 @@ import { requireBranchContext } from "@/lib/auth/require-branch-context";
 import {
   buildClassCode,
   buildClassName,
+  isCtebLevel,
   isPrimaryBranch,
   validateClassInput,
 } from "@/lib/class-structure";
-import { getCatalogAbbrevForOptionName } from "@/lib/class-catalog";
+import {
+  getCatalogAbbrevForOptionName,
+} from "@/lib/class-catalog";
 import { ensurePrimaryAcademicStructure } from "@/lib/primary-academic-structure";
+import { ensureSecondaryCtebStructure } from "@/lib/secondary-cteb-structure";
 import {
   ensureUniqueIdentifier,
   generateClassCode,
@@ -41,11 +45,18 @@ async function resolveClassIdentity(params: {
   isLegacy?: boolean;
 }) {
   const primary = isPrimaryBranch(params.typebranch);
+
+  let optionId = primary ? undefined : params.optionId;
+  if (!primary && !params.isLegacy && isCtebLevel(params.level ?? "")) {
+    const cteb = await ensureSecondaryCtebStructure(prisma, params.branchId);
+    optionId = cteb.option.id;
+  }
+
   const validated = validateClassInput({
     typebranch: params.typebranch,
     level: params.level,
     parallel: params.parallel,
-    optionId: primary ? undefined : params.optionId,
+    optionId,
     nameClasse: params.nameClasse,
     isLegacy: params.isLegacy,
   });
@@ -62,12 +73,14 @@ async function resolveClassIdentity(params: {
 
   const option = primary
     ? (await ensurePrimaryAcademicStructure(prisma, params.branchId)).option
-    : validated.optionId
-      ? await prisma.option.findFirst({
-          where: { id: validated.optionId, branchId: params.branchId },
-          select: { id: true, nameOption: true },
-        })
-      : null;
+    : isCtebLevel(validated.level ?? "")
+      ? (await ensureSecondaryCtebStructure(prisma, params.branchId)).option
+      : validated.optionId
+        ? await prisma.option.findFirst({
+            where: { id: validated.optionId, branchId: params.branchId },
+            select: { id: true, nameOption: true, codeOption: true },
+          })
+        : null;
 
   if (validated.optionId && !option) {
     throw new Error("Option introuvable dans cette branche");

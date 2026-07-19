@@ -16,6 +16,7 @@ import {
   generateCode,
 } from "@/lib/generated-identifiers";
 import { ensurePrimaryAcademicStructure } from "@/lib/primary-academic-structure";
+import { ensureSecondaryCtebStructure } from "@/lib/secondary-cteb-structure";
 import { ensureDefaultCreneaux } from "@/lib/default-creneaux";
 import { ensureExtendedBranchStructure } from "@/lib/extended-branch-bootstrap";
 
@@ -114,6 +115,10 @@ export async function createBranchAction(
 
     if (parsed.data.typebranch === "PRIMAIRE") {
       await ensurePrimaryAcademicStructure(tx, createdBranch.id);
+    }
+
+    if (parsed.data.typebranch === "SECONDAIRE") {
+      await ensureSecondaryCtebStructure(tx, createdBranch.id);
     }
 
     await ensureExtendedBranchStructure(
@@ -296,6 +301,10 @@ export async function updateBranchAction(
   });
   if (branch.typebranch === "PRIMAIRE") {
     await ensurePrimaryAcademicStructure(prisma, branchId);
+  }
+
+  if (branch.typebranch === "SECONDAIRE") {
+    await ensureSecondaryCtebStructure(prisma, branchId);
   }
 
   await ensureExtendedBranchStructure(prisma, branchId, branch.typebranch);

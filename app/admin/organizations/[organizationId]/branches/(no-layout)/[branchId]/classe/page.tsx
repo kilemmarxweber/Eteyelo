@@ -121,7 +121,7 @@ export default function Page() {
                 onClick={() => setOpen(true)}
               >
                 <IconUserPlus size={16} className="mr-2" />
-                {`Créer un ${classLabel.toLowerCase()}`}
+                {`Créer une ${classLabel.toLowerCase()}`}
               </Button>
             </div>
           }
@@ -130,14 +130,14 @@ export default function Page() {
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogContent
             size="lg"
-            className="max-h-[90vh]"
+            className="gap-3"
             onOpenAutoFocus={(event) => event.preventDefault()}
             onCloseAutoFocus={(event) => event.preventDefault()}
           >
-            <DialogHeader>
-              <DialogTitle>{`Créer un ${classLabel.toLowerCase()}`}</DialogTitle>
+            <DialogHeader className="space-y-1">
+              <DialogTitle>{`Créer une ${classLabel.toLowerCase()}`}</DialogTitle>
               <DialogDescription>
-                {`Remplir les informations de l'${classLabel.toLowerCase()}. Les listes (niveau, section, option, vacation) restent utilisables sans fermer ce dialog.`}
+                {`Niveau, section, option et vacation de la ${classLabel.toLowerCase()}.`}
               </DialogDescription>
             </DialogHeader>
 

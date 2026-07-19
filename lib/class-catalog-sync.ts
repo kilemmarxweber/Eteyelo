@@ -15,6 +15,7 @@ import {
   buildClassName,
 } from "@/lib/class-structure";
 import { ensurePrimaryAcademicStructure } from "@/lib/primary-academic-structure";
+import { ensureSecondaryCtebStructure } from "@/lib/secondary-cteb-structure";
 import { ensureUniqueIdentifier } from "@/lib/generated-identifiers";
 import { normalizeBranchType } from "@/lib/academic-structure";
 
@@ -212,31 +213,19 @@ export async function upsertClassCatalogForBranch(
     }
   }
 
-  // Toujours garantir CTEB + Tronc commun
-  const ctebSectionMeta = CLASS_CATALOG_SECTIONS.find(
-    (s) => s.codeSection === CTEB_SECTION_CODE,
-  )!;
+  // Toujours garantir CTEB + Tronc commun (7è / 8è)
+  const cteb = await ensureSecondaryCtebStructure(Prisma, branchId);
+  if (cteb.sectionCreated) sectionsCreated += 1;
+  if (cteb.optionCreated) optionsCreated += 1;
+
   const ctebOptMeta = getCatalogOptionByCode(CTEB_OPTION_CODE)!;
-  const ctebSection = await ensureSection(
-    branchId,
-    ctebSectionMeta.codeSection,
-    ctebSectionMeta.nameSection,
-  );
-  if (ctebSection.created) sectionsCreated += 1;
-  const troncCommun = await ensureOption(
-    branchId,
-    ctebSection.id,
-    ctebOptMeta.codeOption,
-    ctebOptMeta.nameOption,
-  );
-  if (troncCommun.created) optionsCreated += 1;
 
   for (const level of SECONDARY_CTEB_LEVELS) {
     const result = await upsertClasseRow({
       branchId,
       typebranch: "SECONDAIRE",
       level,
-      optionId: troncCommun.id,
+      optionId: cteb.option.id,
       optionName: ctebOptMeta.nameOption,
       optionAbbrev: ctebOptMeta.abbrev,
     });

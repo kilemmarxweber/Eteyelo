@@ -6,6 +6,8 @@ import { action } from "@/lib/zsa";
 import { IOption, optionSchema } from "@/src/interfaces/Option";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
 import { assertSectionOptionBranchFeatures } from "@/lib/branch-capabilities";
+import { normalizeBranchType } from "@/lib/academic-structure";
+import { ensureSecondaryCtebStructure } from "@/lib/secondary-cteb-structure";
 import { z } from "zod";
 import {
   ensureUniqueIdentifier,
@@ -175,7 +177,10 @@ export const deleteOptionAction = archiveOptionAction;
 /* ================= GET OPTIONS ================= */
 export const getOptionsAction = action.handler(async (): Promise<IOption[]> => {
   try {
-    const { branchId } = await requireBranchContext();
+    const { branchId, typebranch } = await requireBranchContext();
+    if (normalizeBranchType(typebranch) === "SECONDAIRE") {
+      await ensureSecondaryCtebStructure(prisma, branchId);
+    }
     const options = await prisma.option.findMany({
       where: { branchId },
       include: {
