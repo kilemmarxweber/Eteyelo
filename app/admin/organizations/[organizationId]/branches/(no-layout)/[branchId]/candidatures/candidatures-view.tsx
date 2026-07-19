@@ -41,6 +41,7 @@ import {
   rejectJobApplicationAction,
   reviewJobApplicationAction,
 } from "@/app/components/depot-candidature/job-application.actions";
+import Image from "next/image";
 
 const STATUS_LABEL: Record<string, string> = {
   PENDING: "En attente",
@@ -322,7 +323,9 @@ export function CandidaturesView() {
               {detail.photoUrl ? (
                 <div className="overflow-hidden rounded-xl border bg-muted/20 shadow-inner">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
+                  <Image
+                    width={100}
+                    height={100}
                     src={detail.photoUrl}
                     alt={`${detail.prenom} ${detail.nom}`}
                     className="mx-auto max-h-[min(28dvh,12rem)] w-full object-contain"

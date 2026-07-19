@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import Image from "next/image";
 import { useAppTransition as useTransition } from "@/hooks/use-app-transition";
 import { useParams, usePathname, useSearchParams } from "next/navigation";
 import { useAppRouter as useRouter } from "@/hooks/use-app-router";
@@ -126,10 +127,12 @@ function PersonAvatar({
 
   if (photoUrl) {
     return (
-      // eslint-disable-next-line @next/next/no-img-element
-      <img
+      <Image
         src={photoUrl}
         alt={name}
+        width={36}
+        height={36}
+        unoptimized
         className="size-9 shrink-0 rounded-full object-cover ring-2 ring-primary/10"
       />
     );

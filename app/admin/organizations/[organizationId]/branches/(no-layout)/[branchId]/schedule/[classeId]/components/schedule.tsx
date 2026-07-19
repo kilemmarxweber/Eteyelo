@@ -21,6 +21,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { AlertTriangle, Download, Printer, Trash2 } from "lucide-react";
+import Image from "next/image";
 import {
   Dialog,
   DialogContent,
@@ -457,10 +458,12 @@ export default function Schedule({
         {reportContext && (
           <div className="hidden border-b pb-3 text-center print:block">
             {reportContext.logoUrl && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
+              <Image
                 src={reportContext.logoUrl}
                 alt="Logo de la branche"
+                width={48}
+                height={48}
+                unoptimized
                 className="mx-auto mb-1 h-12 w-12 object-contain"
               />
             )}

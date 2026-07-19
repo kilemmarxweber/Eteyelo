@@ -8,6 +8,7 @@ import {
 } from "@/lib/staff-badge";
 import { KLAMBOCORE_DEFAULT_IMAGE_PATH } from "@/lib/brand/klambocore-image";
 import { cn, normalizeImageSrc } from "@/lib/utils";
+import Image from "next/image";
 
 type StaffBadgeCardProps = {
   badge: StaffBadgeData;
@@ -113,11 +114,13 @@ export const StaffBadgeCard = React.forwardRef<HTMLDivElement, StaffBadgeCardPro
         <div className="h-1.5 w-full bg-gradient-to-r from-[#0b5cab] via-[#1d7bd8] to-[#0b5cab]" />
 
         <div className="flex flex-col items-center px-6 pb-5 pt-5">
-          <div className="relative mb-2 flex h-14 w-32 items-center justify-center">
-            <img
+          <div className="relative mb-2 h-14 w-32">
+            <Image
               src={branchLogoSrc}
               alt={badge.schoolName ?? "Logo"}
-              className="max-h-full max-w-full object-contain object-center"
+              fill
+              unoptimized
+              className="object-contain object-center"
               onError={() => {
                 if (branchLogoSrc !== KLAMBOCORE_DEFAULT_IMAGE_PATH) {
                   setBranchLogoSrc(KLAMBOCORE_DEFAULT_IMAGE_PATH);
@@ -142,10 +145,12 @@ export const StaffBadgeCard = React.forwardRef<HTMLDivElement, StaffBadgeCardPro
 
             <div className="relative z-10 h-[124px] w-[102px] overflow-hidden rounded-2xl border-[3px] border-white bg-slate-100 shadow-[0_8px_24px_rgba(15,23,42,0.18)] ring-1 ring-slate-200">
               {photoSrcState ? (
-                <img
+                <Image
                   src={photoSrcState}
                   alt={badge.fullName}
-                  className="h-full w-full object-cover"
+                  fill
+                  unoptimized
+                  className="object-cover"
                   onError={() => setPhotoSrcState(null)}
                 />
               ) : (

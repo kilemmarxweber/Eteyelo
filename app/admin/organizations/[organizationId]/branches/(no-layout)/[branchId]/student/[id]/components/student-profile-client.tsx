@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
+import Image from "next/image";
 import {
   ArrowLeft,
   CalendarDays,
@@ -275,9 +276,12 @@ export function StudentProfileClient({ profile }: { profile: StudentProfileData 
                   <InfoCard title="Identification" icon={<Grid3X3 className="size-4" />}>
                     <div className="flex flex-col items-center justify-center gap-3 py-4">
                       {identificationQr ? (
-                        <img
+                        <Image
                           src={identificationQr}
                           alt="QR identification"
+                          width={144}
+                          height={144}
+                          unoptimized
                           className="size-36 rounded-lg border bg-white p-2"
                         />
                       ) : (

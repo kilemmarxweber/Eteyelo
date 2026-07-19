@@ -5,6 +5,7 @@ import JsBarcode from "jsbarcode";
 import type { StudentBadgeData } from "@/lib/student-badge";
 import { KLAMBOCORE_DEFAULT_IMAGE_PATH } from "@/lib/brand/klambocore-image";
 import { cn, normalizeImageSrc } from "@/lib/utils";
+import Image from "next/image";
 import type { StudentPhotoUploadState } from "./use-student-photo-upload";
 import { Camera, Loader2 } from "lucide-react";
 
@@ -137,11 +138,13 @@ export const StudentBadgeCard = React.forwardRef<
       <div className="h-1.5 w-full bg-gradient-to-r from-[#0b5cab] via-[#1d7bd8] to-[#0b5cab]" />
 
       <div className="flex flex-col items-center px-6 pb-5 pt-5">
-        <div className="relative mb-2 flex h-14 w-32 items-center justify-center">
-          <img
+        <div className="relative mb-2 h-14 w-32">
+          <Image
             src={branchLogoSrc}
             alt={badge.schoolName ?? "Logo"}
-            className="max-h-full max-w-full object-contain object-center"
+            fill
+            unoptimized
+            className="object-contain object-center"
             onError={() => {
               if (branchLogoSrc !== KLAMBOCORE_DEFAULT_IMAGE_PATH) {
                 setBranchLogoSrc(KLAMBOCORE_DEFAULT_IMAGE_PATH);
@@ -177,10 +180,12 @@ export const StudentBadgeCard = React.forwardRef<
                 aria-label="Ajouter une photo"
               >
                 {photoSrcState ? (
-                  <img
+                  <Image
                     src={photoSrcState}
                     alt={badge.fullName}
-                    className="h-full w-full object-cover"
+                    fill
+                    unoptimized
+                    className="object-cover"
                     onError={() => setPhotoSrcState(null)}
                   />
                 ) : (
@@ -200,10 +205,12 @@ export const StudentBadgeCard = React.forwardRef<
             ) : (
               <div className={photoFrameClassName}>
                 {photoSrcState ? (
-                  <img
+                  <Image
                     src={photoSrcState}
                     alt={badge.fullName}
-                    className="h-full w-full object-cover"
+                    fill
+                    unoptimized
+                    className="object-cover"
                     onError={() => setPhotoSrcState(null)}
                   />
                 ) : (
