@@ -7,7 +7,6 @@ import {
   IconClock,
   IconListDetails,
   IconScan,
-  IconSettings,
   IconUserCheck,
 } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
@@ -36,11 +35,6 @@ const NAV_ITEMS = [
     title: "Historique",
     segment: "/historique",
     icon: IconClock,
-  },
-  {
-    title: "Parametres",
-    segment: "/parametres",
-    icon: IconSettings,
   },
 ] as const;
 

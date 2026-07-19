@@ -224,7 +224,7 @@ export function EstablishmentSupportView({
               <Headphones className="size-7 text-muted-foreground" />
             </div>
             <p className="mt-4 font-medium">Équipe support non configurée</p>
-            <p className="mt-2 max-w-md text-sm text-muted-foreground">
+            <p className="mt-2 max-w-7xl text-sm text-muted-foreground">
               L&apos;équipe support n&apos;est pas encore disponible. Contactez
               votre administrateur pour obtenir de l&apos;aide.
             </p>

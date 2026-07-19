@@ -3,7 +3,10 @@ import type { FacturePaymentStudentData } from "@/components/FacturePaymentStude
 import { DEFAULT_EXCHANGE_RATE_USD_CDF } from "@/lib/reports/types";
 import { cn } from "@/lib/utils";
 import {
-  formatReceiptCdf,
+  formatReceiptLocal,
+  resolveItemLocalAmount,
+  resolveReceiptLocalCurrency,
+  sumReceiptLocal,
   sumReceiptUsd,
 } from "@/components/reports/receipt-format";
 
@@ -24,7 +27,19 @@ export function ReceiptPreviewBody({
 }: ReceiptPreviewBodyProps) {
   const exchangeRate =
     data.exchangeRateUsdCdf ?? DEFAULT_EXCHANGE_RATE_USD_CDF;
+  const receivedCurrency = data.receivedCurrency ?? "USD";
+  const localCurrency = resolveReceiptLocalCurrency(receivedCurrency);
+  const showLocalColumn =
+    receivedCurrency === "CDF" ||
+    receivedCurrency === "AOA" ||
+    receivedCurrency === "USD";
   const totalUsd = sumReceiptUsd(data.items);
+  const totalLocal = sumReceiptLocal(
+    data.items,
+    localCurrency,
+    exchangeRate,
+    receivedCurrency,
+  );
   const dateLabel = issuedAt.toLocaleDateString("fr-FR");
 
   return (
@@ -62,7 +77,11 @@ export function ReceiptPreviewBody({
               <th className="px-2 py-2 text-right font-semibold">Statut</th>
               <th className="px-2 py-2 text-right font-semibold">Prix USD</th>
               <th className="px-2 py-2 text-right font-semibold">Mnt USD</th>
-              <th className="px-2 py-2 text-right font-semibold">Mnt CDF</th>
+              {showLocalColumn ? (
+                <th className="px-2 py-2 text-right font-semibold">
+                  Mnt {localCurrency}
+                </th>
+              ) : null}
             </tr>
           </thead>
           <tbody>
@@ -76,9 +95,19 @@ export function ReceiptPreviewBody({
                 <td className="px-2 py-2 text-right">
                   {Number(item.montant).toFixed(2)}
                 </td>
-                <td className="px-2 py-2 text-right">
-                  {formatReceiptCdf(Number(item.montant), exchangeRate)}
-                </td>
+                {showLocalColumn ? (
+                  <td className="px-2 py-2 text-right">
+                    {formatReceiptLocal(
+                      resolveItemLocalAmount(
+                        item,
+                        localCurrency,
+                        exchangeRate,
+                        receivedCurrency,
+                      ),
+                      localCurrency,
+                    )}
+                  </td>
+                ) : null}
               </tr>
             ))}
           </tbody>
@@ -90,12 +119,14 @@ export function ReceiptPreviewBody({
           Total USD :{" "}
           <span className="tabular-nums">${totalUsd.toFixed(2)}</span>
         </p>
-        <p>
-          Total CDF :{" "}
-          <span className="tabular-nums">
-            {formatReceiptCdf(totalUsd, exchangeRate)}
-          </span>
-        </p>
+        {showLocalColumn ? (
+          <p>
+            Total {localCurrency} :{" "}
+            <span className="tabular-nums">
+              {formatReceiptLocal(totalLocal, localCurrency)}
+            </span>
+          </p>
+        ) : null}
       </div>
 
       <Separator />

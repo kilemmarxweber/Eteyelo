@@ -7,6 +7,9 @@ export interface IPaiement {
   id: string;
   numeroRecu: string;
   montantPaye: number;
+  receivedCurrency?: "USD" | "CDF" | "AOA";
+  receivedAmount?: number;
+  exchangeRateUsed?: number | null;
 
   modePaiement: ModePaiement;
   status: StatusPaiement;
@@ -87,7 +90,15 @@ export const paiementSchema = z.object({
   id: z.string().optional(),
   numeroRecu: z.string().optional(),
 
+  /** Montant de référence métier en USD (après conversion). */
   amount: z.coerce.number().min(0.01),
+
+  /** Devise réellement perçue à la caisse. */
+  receivedCurrency: z.enum(["USD", "CDF", "AOA"]).optional(),
+  /** Montant perçu dans receivedCurrency. */
+  receivedAmount: z.coerce.number().positive().optional(),
+  /** Taux figé au moment du paiement (received → USD, ou 1 si USD). */
+  exchangeRateUsed: z.coerce.number().positive().optional(),
 
   modePaiement: z.nativeEnum(ModePaiement),
   status: z.nativeEnum(StatusPaiement),

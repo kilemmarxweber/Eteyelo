@@ -14,8 +14,11 @@ export type CashierReportPdfOptions = {
 };
 
 export type ReportData = {
+  openingBalance?: number;
+  hasOpeningBalance?: boolean;
   incomeTotal: number;
   outflowTotal: number;
+  periodBalance?: number;
   balance: number;
   payments: Array<{
     id: string;
@@ -198,7 +201,7 @@ export async function buildCashierReportPdf(
 
   doc.setFillColor(248, 250, 252);
   doc.setDrawColor(203, 213, 225);
-  doc.roundedRect(10, finalY, 90, 35, 2, 2, "FD");
+  doc.roundedRect(10, finalY, 90, 42, 2, 2, "FD");
 
   doc.setFontSize(10);
   doc.setTextColor(15, 23, 42);
@@ -208,26 +211,31 @@ export async function buildCashierReportPdf(
   doc.setFontSize(9);
   doc.setFont("helvetica", "normal");
 
-  doc.text("Total Encaissements :", 14, finalY + 14);
+  const opening = data.openingBalance ?? 0;
+
+  doc.text("Solde d'ouverture (veille) :", 14, finalY + 14);
+  doc.text(formatAmount(opening), 95, finalY + 14, { align: "right" });
+
+  doc.text("Total Encaissements :", 14, finalY + 20);
   doc.setTextColor(16, 185, 129);
-  doc.text(formatAmount(data.incomeTotal), 95, finalY + 14, {
+  doc.text(formatAmount(data.incomeTotal), 95, finalY + 20, {
     align: "right",
   });
 
   doc.setTextColor(15, 23, 42);
-  doc.text("Total Dépenses :", 14, finalY + 20);
+  doc.text("Total Dépenses :", 14, finalY + 26);
   doc.setTextColor(225, 29, 72);
-  doc.text(formatAmount(data.outflowTotal), 95, finalY + 20, {
+  doc.text(formatAmount(data.outflowTotal), 95, finalY + 26, {
     align: "right",
   });
 
   doc.setDrawColor(203, 213, 225);
-  doc.line(14, finalY + 24, 96, finalY + 24);
+  doc.line(14, finalY + 30, 96, finalY + 30);
 
   doc.setTextColor(15, 23, 42);
   doc.setFont("helvetica", "bold");
-  doc.text("Solde Net :", 14, finalY + 30);
-  doc.text(formatAmount(data.balance), 95, finalY + 30, { align: "right" });
+  doc.text("Solde Net :", 14, finalY + 36);
+  doc.text(formatAmount(data.balance), 95, finalY + 36, { align: "right" });
 
   drawReportFooterOnAllPages(doc, context, {
     leftText: branchLabel,

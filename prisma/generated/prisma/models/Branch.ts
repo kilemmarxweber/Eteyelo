@@ -353,6 +353,7 @@ export type BranchWhereInput = {
   calendarEvent?: Prisma.CalendarEventListRelationFilter
   periodResultLock?: Prisma.PeriodResultLockListRelationFilter
   cashierExpense?: Prisma.CashierExpenseListRelationFilter
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceListRelationFilter
   invoice?: Prisma.InvoiceListRelationFilter
   creneau?: Prisma.CreneauListRelationFilter
   paymentAllocation?: Prisma.PaymentAllocationListRelationFilter
@@ -417,6 +418,7 @@ export type BranchOrderByWithRelationInput = {
   calendarEvent?: Prisma.CalendarEventOrderByRelationAggregateInput
   periodResultLock?: Prisma.PeriodResultLockOrderByRelationAggregateInput
   cashierExpense?: Prisma.CashierExpenseOrderByRelationAggregateInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceOrderByRelationAggregateInput
   invoice?: Prisma.InvoiceOrderByRelationAggregateInput
   creneau?: Prisma.CreneauOrderByRelationAggregateInput
   paymentAllocation?: Prisma.PaymentAllocationOrderByRelationAggregateInput
@@ -485,6 +487,7 @@ export type BranchWhereUniqueInput = Prisma.AtLeast<{
   calendarEvent?: Prisma.CalendarEventListRelationFilter
   periodResultLock?: Prisma.PeriodResultLockListRelationFilter
   cashierExpense?: Prisma.CashierExpenseListRelationFilter
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceListRelationFilter
   invoice?: Prisma.InvoiceListRelationFilter
   creneau?: Prisma.CreneauListRelationFilter
   paymentAllocation?: Prisma.PaymentAllocationListRelationFilter
@@ -600,6 +603,7 @@ export type BranchCreateInput = {
   calendarEvent?: Prisma.CalendarEventCreateNestedManyWithoutBranchInput
   periodResultLock?: Prisma.PeriodResultLockCreateNestedManyWithoutBranchInput
   cashierExpense?: Prisma.CashierExpenseCreateNestedManyWithoutBranchInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceCreateNestedManyWithoutBranchInput
   invoice?: Prisma.InvoiceCreateNestedManyWithoutBranchInput
   creneau?: Prisma.CreneauCreateNestedManyWithoutBranchInput
   paymentAllocation?: Prisma.PaymentAllocationCreateNestedManyWithoutBranchInput
@@ -663,6 +667,7 @@ export type BranchUncheckedCreateInput = {
   calendarEvent?: Prisma.CalendarEventUncheckedCreateNestedManyWithoutBranchInput
   periodResultLock?: Prisma.PeriodResultLockUncheckedCreateNestedManyWithoutBranchInput
   cashierExpense?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutBranchInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUncheckedCreateNestedManyWithoutBranchInput
   invoice?: Prisma.InvoiceUncheckedCreateNestedManyWithoutBranchInput
   creneau?: Prisma.CreneauUncheckedCreateNestedManyWithoutBranchInput
   paymentAllocation?: Prisma.PaymentAllocationUncheckedCreateNestedManyWithoutBranchInput
@@ -726,6 +731,7 @@ export type BranchUpdateInput = {
   calendarEvent?: Prisma.CalendarEventUpdateManyWithoutBranchNestedInput
   periodResultLock?: Prisma.PeriodResultLockUpdateManyWithoutBranchNestedInput
   cashierExpense?: Prisma.CashierExpenseUpdateManyWithoutBranchNestedInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUpdateManyWithoutBranchNestedInput
   invoice?: Prisma.InvoiceUpdateManyWithoutBranchNestedInput
   creneau?: Prisma.CreneauUpdateManyWithoutBranchNestedInput
   paymentAllocation?: Prisma.PaymentAllocationUpdateManyWithoutBranchNestedInput
@@ -789,6 +795,7 @@ export type BranchUncheckedUpdateInput = {
   calendarEvent?: Prisma.CalendarEventUncheckedUpdateManyWithoutBranchNestedInput
   periodResultLock?: Prisma.PeriodResultLockUncheckedUpdateManyWithoutBranchNestedInput
   cashierExpense?: Prisma.CashierExpenseUncheckedUpdateManyWithoutBranchNestedInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUncheckedUpdateManyWithoutBranchNestedInput
   invoice?: Prisma.InvoiceUncheckedUpdateManyWithoutBranchNestedInput
   creneau?: Prisma.CreneauUncheckedUpdateManyWithoutBranchNestedInput
   paymentAllocation?: Prisma.PaymentAllocationUncheckedUpdateManyWithoutBranchNestedInput
@@ -1360,6 +1367,20 @@ export type BranchUpdateOneRequiredWithoutCashierExpenseNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.BranchUpdateToOneWithWhereWithoutCashierExpenseInput, Prisma.BranchUpdateWithoutCashierExpenseInput>, Prisma.BranchUncheckedUpdateWithoutCashierExpenseInput>
 }
 
+export type BranchCreateNestedOneWithoutCashierOpeningBalanceInput = {
+  create?: Prisma.XOR<Prisma.BranchCreateWithoutCashierOpeningBalanceInput, Prisma.BranchUncheckedCreateWithoutCashierOpeningBalanceInput>
+  connectOrCreate?: Prisma.BranchCreateOrConnectWithoutCashierOpeningBalanceInput
+  connect?: Prisma.BranchWhereUniqueInput
+}
+
+export type BranchUpdateOneRequiredWithoutCashierOpeningBalanceNestedInput = {
+  create?: Prisma.XOR<Prisma.BranchCreateWithoutCashierOpeningBalanceInput, Prisma.BranchUncheckedCreateWithoutCashierOpeningBalanceInput>
+  connectOrCreate?: Prisma.BranchCreateOrConnectWithoutCashierOpeningBalanceInput
+  upsert?: Prisma.BranchUpsertWithoutCashierOpeningBalanceInput
+  connect?: Prisma.BranchWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.BranchUpdateToOneWithWhereWithoutCashierOpeningBalanceInput, Prisma.BranchUpdateWithoutCashierOpeningBalanceInput>, Prisma.BranchUncheckedUpdateWithoutCashierOpeningBalanceInput>
+}
+
 export type BranchCreateNestedOneWithoutPaymentAllocationInput = {
   create?: Prisma.XOR<Prisma.BranchCreateWithoutPaymentAllocationInput, Prisma.BranchUncheckedCreateWithoutPaymentAllocationInput>
   connectOrCreate?: Prisma.BranchCreateOrConnectWithoutPaymentAllocationInput
@@ -1646,6 +1667,7 @@ export type BranchCreateWithoutAttendanceSessionsInput = {
   calendarEvent?: Prisma.CalendarEventCreateNestedManyWithoutBranchInput
   periodResultLock?: Prisma.PeriodResultLockCreateNestedManyWithoutBranchInput
   cashierExpense?: Prisma.CashierExpenseCreateNestedManyWithoutBranchInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceCreateNestedManyWithoutBranchInput
   invoice?: Prisma.InvoiceCreateNestedManyWithoutBranchInput
   creneau?: Prisma.CreneauCreateNestedManyWithoutBranchInput
   paymentAllocation?: Prisma.PaymentAllocationCreateNestedManyWithoutBranchInput
@@ -1708,6 +1730,7 @@ export type BranchUncheckedCreateWithoutAttendanceSessionsInput = {
   calendarEvent?: Prisma.CalendarEventUncheckedCreateNestedManyWithoutBranchInput
   periodResultLock?: Prisma.PeriodResultLockUncheckedCreateNestedManyWithoutBranchInput
   cashierExpense?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutBranchInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUncheckedCreateNestedManyWithoutBranchInput
   invoice?: Prisma.InvoiceUncheckedCreateNestedManyWithoutBranchInput
   creneau?: Prisma.CreneauUncheckedCreateNestedManyWithoutBranchInput
   paymentAllocation?: Prisma.PaymentAllocationUncheckedCreateNestedManyWithoutBranchInput
@@ -1786,6 +1809,7 @@ export type BranchUpdateWithoutAttendanceSessionsInput = {
   calendarEvent?: Prisma.CalendarEventUpdateManyWithoutBranchNestedInput
   periodResultLock?: Prisma.PeriodResultLockUpdateManyWithoutBranchNestedInput
   cashierExpense?: Prisma.CashierExpenseUpdateManyWithoutBranchNestedInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUpdateManyWithoutBranchNestedInput
   invoice?: Prisma.InvoiceUpdateManyWithoutBranchNestedInput
   creneau?: Prisma.CreneauUpdateManyWithoutBranchNestedInput
   paymentAllocation?: Prisma.PaymentAllocationUpdateManyWithoutBranchNestedInput
@@ -1848,6 +1872,7 @@ export type BranchUncheckedUpdateWithoutAttendanceSessionsInput = {
   calendarEvent?: Prisma.CalendarEventUncheckedUpdateManyWithoutBranchNestedInput
   periodResultLock?: Prisma.PeriodResultLockUncheckedUpdateManyWithoutBranchNestedInput
   cashierExpense?: Prisma.CashierExpenseUncheckedUpdateManyWithoutBranchNestedInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUncheckedUpdateManyWithoutBranchNestedInput
   invoice?: Prisma.InvoiceUncheckedUpdateManyWithoutBranchNestedInput
   creneau?: Prisma.CreneauUncheckedUpdateManyWithoutBranchNestedInput
   paymentAllocation?: Prisma.PaymentAllocationUncheckedUpdateManyWithoutBranchNestedInput
@@ -1909,6 +1934,7 @@ export type BranchCreateWithoutStudentAttendanceInput = {
   calendarEvent?: Prisma.CalendarEventCreateNestedManyWithoutBranchInput
   periodResultLock?: Prisma.PeriodResultLockCreateNestedManyWithoutBranchInput
   cashierExpense?: Prisma.CashierExpenseCreateNestedManyWithoutBranchInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceCreateNestedManyWithoutBranchInput
   invoice?: Prisma.InvoiceCreateNestedManyWithoutBranchInput
   creneau?: Prisma.CreneauCreateNestedManyWithoutBranchInput
   paymentAllocation?: Prisma.PaymentAllocationCreateNestedManyWithoutBranchInput
@@ -1971,6 +1997,7 @@ export type BranchUncheckedCreateWithoutStudentAttendanceInput = {
   calendarEvent?: Prisma.CalendarEventUncheckedCreateNestedManyWithoutBranchInput
   periodResultLock?: Prisma.PeriodResultLockUncheckedCreateNestedManyWithoutBranchInput
   cashierExpense?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutBranchInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUncheckedCreateNestedManyWithoutBranchInput
   invoice?: Prisma.InvoiceUncheckedCreateNestedManyWithoutBranchInput
   creneau?: Prisma.CreneauUncheckedCreateNestedManyWithoutBranchInput
   paymentAllocation?: Prisma.PaymentAllocationUncheckedCreateNestedManyWithoutBranchInput
@@ -2049,6 +2076,7 @@ export type BranchUpdateWithoutStudentAttendanceInput = {
   calendarEvent?: Prisma.CalendarEventUpdateManyWithoutBranchNestedInput
   periodResultLock?: Prisma.PeriodResultLockUpdateManyWithoutBranchNestedInput
   cashierExpense?: Prisma.CashierExpenseUpdateManyWithoutBranchNestedInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUpdateManyWithoutBranchNestedInput
   invoice?: Prisma.InvoiceUpdateManyWithoutBranchNestedInput
   creneau?: Prisma.CreneauUpdateManyWithoutBranchNestedInput
   paymentAllocation?: Prisma.PaymentAllocationUpdateManyWithoutBranchNestedInput
@@ -2111,6 +2139,7 @@ export type BranchUncheckedUpdateWithoutStudentAttendanceInput = {
   calendarEvent?: Prisma.CalendarEventUncheckedUpdateManyWithoutBranchNestedInput
   periodResultLock?: Prisma.PeriodResultLockUncheckedUpdateManyWithoutBranchNestedInput
   cashierExpense?: Prisma.CashierExpenseUncheckedUpdateManyWithoutBranchNestedInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUncheckedUpdateManyWithoutBranchNestedInput
   invoice?: Prisma.InvoiceUncheckedUpdateManyWithoutBranchNestedInput
   creneau?: Prisma.CreneauUncheckedUpdateManyWithoutBranchNestedInput
   paymentAllocation?: Prisma.PaymentAllocationUncheckedUpdateManyWithoutBranchNestedInput
@@ -2174,6 +2203,7 @@ export type BranchCreateWithoutTeacherAttendanceInput = {
   calendarEvent?: Prisma.CalendarEventCreateNestedManyWithoutBranchInput
   periodResultLock?: Prisma.PeriodResultLockCreateNestedManyWithoutBranchInput
   cashierExpense?: Prisma.CashierExpenseCreateNestedManyWithoutBranchInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceCreateNestedManyWithoutBranchInput
   invoice?: Prisma.InvoiceCreateNestedManyWithoutBranchInput
   creneau?: Prisma.CreneauCreateNestedManyWithoutBranchInput
   paymentAllocation?: Prisma.PaymentAllocationCreateNestedManyWithoutBranchInput
@@ -2236,6 +2266,7 @@ export type BranchUncheckedCreateWithoutTeacherAttendanceInput = {
   calendarEvent?: Prisma.CalendarEventUncheckedCreateNestedManyWithoutBranchInput
   periodResultLock?: Prisma.PeriodResultLockUncheckedCreateNestedManyWithoutBranchInput
   cashierExpense?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutBranchInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUncheckedCreateNestedManyWithoutBranchInput
   invoice?: Prisma.InvoiceUncheckedCreateNestedManyWithoutBranchInput
   creneau?: Prisma.CreneauUncheckedCreateNestedManyWithoutBranchInput
   paymentAllocation?: Prisma.PaymentAllocationUncheckedCreateNestedManyWithoutBranchInput
@@ -2314,6 +2345,7 @@ export type BranchUpdateWithoutTeacherAttendanceInput = {
   calendarEvent?: Prisma.CalendarEventUpdateManyWithoutBranchNestedInput
   periodResultLock?: Prisma.PeriodResultLockUpdateManyWithoutBranchNestedInput
   cashierExpense?: Prisma.CashierExpenseUpdateManyWithoutBranchNestedInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUpdateManyWithoutBranchNestedInput
   invoice?: Prisma.InvoiceUpdateManyWithoutBranchNestedInput
   creneau?: Prisma.CreneauUpdateManyWithoutBranchNestedInput
   paymentAllocation?: Prisma.PaymentAllocationUpdateManyWithoutBranchNestedInput
@@ -2376,6 +2408,7 @@ export type BranchUncheckedUpdateWithoutTeacherAttendanceInput = {
   calendarEvent?: Prisma.CalendarEventUncheckedUpdateManyWithoutBranchNestedInput
   periodResultLock?: Prisma.PeriodResultLockUncheckedUpdateManyWithoutBranchNestedInput
   cashierExpense?: Prisma.CashierExpenseUncheckedUpdateManyWithoutBranchNestedInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUncheckedUpdateManyWithoutBranchNestedInput
   invoice?: Prisma.InvoiceUncheckedUpdateManyWithoutBranchNestedInput
   creneau?: Prisma.CreneauUncheckedUpdateManyWithoutBranchNestedInput
   paymentAllocation?: Prisma.PaymentAllocationUncheckedUpdateManyWithoutBranchNestedInput
@@ -2438,6 +2471,7 @@ export type BranchCreateWithoutPersonnelAttendanceInput = {
   calendarEvent?: Prisma.CalendarEventCreateNestedManyWithoutBranchInput
   periodResultLock?: Prisma.PeriodResultLockCreateNestedManyWithoutBranchInput
   cashierExpense?: Prisma.CashierExpenseCreateNestedManyWithoutBranchInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceCreateNestedManyWithoutBranchInput
   invoice?: Prisma.InvoiceCreateNestedManyWithoutBranchInput
   creneau?: Prisma.CreneauCreateNestedManyWithoutBranchInput
   paymentAllocation?: Prisma.PaymentAllocationCreateNestedManyWithoutBranchInput
@@ -2500,6 +2534,7 @@ export type BranchUncheckedCreateWithoutPersonnelAttendanceInput = {
   calendarEvent?: Prisma.CalendarEventUncheckedCreateNestedManyWithoutBranchInput
   periodResultLock?: Prisma.PeriodResultLockUncheckedCreateNestedManyWithoutBranchInput
   cashierExpense?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutBranchInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUncheckedCreateNestedManyWithoutBranchInput
   invoice?: Prisma.InvoiceUncheckedCreateNestedManyWithoutBranchInput
   creneau?: Prisma.CreneauUncheckedCreateNestedManyWithoutBranchInput
   paymentAllocation?: Prisma.PaymentAllocationUncheckedCreateNestedManyWithoutBranchInput
@@ -2578,6 +2613,7 @@ export type BranchUpdateWithoutPersonnelAttendanceInput = {
   calendarEvent?: Prisma.CalendarEventUpdateManyWithoutBranchNestedInput
   periodResultLock?: Prisma.PeriodResultLockUpdateManyWithoutBranchNestedInput
   cashierExpense?: Prisma.CashierExpenseUpdateManyWithoutBranchNestedInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUpdateManyWithoutBranchNestedInput
   invoice?: Prisma.InvoiceUpdateManyWithoutBranchNestedInput
   creneau?: Prisma.CreneauUpdateManyWithoutBranchNestedInput
   paymentAllocation?: Prisma.PaymentAllocationUpdateManyWithoutBranchNestedInput
@@ -2640,6 +2676,7 @@ export type BranchUncheckedUpdateWithoutPersonnelAttendanceInput = {
   calendarEvent?: Prisma.CalendarEventUncheckedUpdateManyWithoutBranchNestedInput
   periodResultLock?: Prisma.PeriodResultLockUncheckedUpdateManyWithoutBranchNestedInput
   cashierExpense?: Prisma.CashierExpenseUncheckedUpdateManyWithoutBranchNestedInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUncheckedUpdateManyWithoutBranchNestedInput
   invoice?: Prisma.InvoiceUncheckedUpdateManyWithoutBranchNestedInput
   creneau?: Prisma.CreneauUncheckedUpdateManyWithoutBranchNestedInput
   paymentAllocation?: Prisma.PaymentAllocationUncheckedUpdateManyWithoutBranchNestedInput
@@ -2702,6 +2739,7 @@ export type BranchCreateWithoutParentFeedbackInput = {
   calendarEvent?: Prisma.CalendarEventCreateNestedManyWithoutBranchInput
   periodResultLock?: Prisma.PeriodResultLockCreateNestedManyWithoutBranchInput
   cashierExpense?: Prisma.CashierExpenseCreateNestedManyWithoutBranchInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceCreateNestedManyWithoutBranchInput
   invoice?: Prisma.InvoiceCreateNestedManyWithoutBranchInput
   creneau?: Prisma.CreneauCreateNestedManyWithoutBranchInput
   paymentAllocation?: Prisma.PaymentAllocationCreateNestedManyWithoutBranchInput
@@ -2764,6 +2802,7 @@ export type BranchUncheckedCreateWithoutParentFeedbackInput = {
   calendarEvent?: Prisma.CalendarEventUncheckedCreateNestedManyWithoutBranchInput
   periodResultLock?: Prisma.PeriodResultLockUncheckedCreateNestedManyWithoutBranchInput
   cashierExpense?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutBranchInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUncheckedCreateNestedManyWithoutBranchInput
   invoice?: Prisma.InvoiceUncheckedCreateNestedManyWithoutBranchInput
   creneau?: Prisma.CreneauUncheckedCreateNestedManyWithoutBranchInput
   paymentAllocation?: Prisma.PaymentAllocationUncheckedCreateNestedManyWithoutBranchInput
@@ -2842,6 +2881,7 @@ export type BranchUpdateWithoutParentFeedbackInput = {
   calendarEvent?: Prisma.CalendarEventUpdateManyWithoutBranchNestedInput
   periodResultLock?: Prisma.PeriodResultLockUpdateManyWithoutBranchNestedInput
   cashierExpense?: Prisma.CashierExpenseUpdateManyWithoutBranchNestedInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUpdateManyWithoutBranchNestedInput
   invoice?: Prisma.InvoiceUpdateManyWithoutBranchNestedInput
   creneau?: Prisma.CreneauUpdateManyWithoutBranchNestedInput
   paymentAllocation?: Prisma.PaymentAllocationUpdateManyWithoutBranchNestedInput
@@ -2904,6 +2944,7 @@ export type BranchUncheckedUpdateWithoutParentFeedbackInput = {
   calendarEvent?: Prisma.CalendarEventUncheckedUpdateManyWithoutBranchNestedInput
   periodResultLock?: Prisma.PeriodResultLockUncheckedUpdateManyWithoutBranchNestedInput
   cashierExpense?: Prisma.CashierExpenseUncheckedUpdateManyWithoutBranchNestedInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUncheckedUpdateManyWithoutBranchNestedInput
   invoice?: Prisma.InvoiceUncheckedUpdateManyWithoutBranchNestedInput
   creneau?: Prisma.CreneauUncheckedUpdateManyWithoutBranchNestedInput
   paymentAllocation?: Prisma.PaymentAllocationUncheckedUpdateManyWithoutBranchNestedInput
@@ -2966,6 +3007,7 @@ export type BranchCreateWithoutStudentGradeInput = {
   calendarEvent?: Prisma.CalendarEventCreateNestedManyWithoutBranchInput
   periodResultLock?: Prisma.PeriodResultLockCreateNestedManyWithoutBranchInput
   cashierExpense?: Prisma.CashierExpenseCreateNestedManyWithoutBranchInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceCreateNestedManyWithoutBranchInput
   invoice?: Prisma.InvoiceCreateNestedManyWithoutBranchInput
   creneau?: Prisma.CreneauCreateNestedManyWithoutBranchInput
   paymentAllocation?: Prisma.PaymentAllocationCreateNestedManyWithoutBranchInput
@@ -3028,6 +3070,7 @@ export type BranchUncheckedCreateWithoutStudentGradeInput = {
   calendarEvent?: Prisma.CalendarEventUncheckedCreateNestedManyWithoutBranchInput
   periodResultLock?: Prisma.PeriodResultLockUncheckedCreateNestedManyWithoutBranchInput
   cashierExpense?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutBranchInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUncheckedCreateNestedManyWithoutBranchInput
   invoice?: Prisma.InvoiceUncheckedCreateNestedManyWithoutBranchInput
   creneau?: Prisma.CreneauUncheckedCreateNestedManyWithoutBranchInput
   paymentAllocation?: Prisma.PaymentAllocationUncheckedCreateNestedManyWithoutBranchInput
@@ -3106,6 +3149,7 @@ export type BranchUpdateWithoutStudentGradeInput = {
   calendarEvent?: Prisma.CalendarEventUpdateManyWithoutBranchNestedInput
   periodResultLock?: Prisma.PeriodResultLockUpdateManyWithoutBranchNestedInput
   cashierExpense?: Prisma.CashierExpenseUpdateManyWithoutBranchNestedInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUpdateManyWithoutBranchNestedInput
   invoice?: Prisma.InvoiceUpdateManyWithoutBranchNestedInput
   creneau?: Prisma.CreneauUpdateManyWithoutBranchNestedInput
   paymentAllocation?: Prisma.PaymentAllocationUpdateManyWithoutBranchNestedInput
@@ -3168,6 +3212,7 @@ export type BranchUncheckedUpdateWithoutStudentGradeInput = {
   calendarEvent?: Prisma.CalendarEventUncheckedUpdateManyWithoutBranchNestedInput
   periodResultLock?: Prisma.PeriodResultLockUncheckedUpdateManyWithoutBranchNestedInput
   cashierExpense?: Prisma.CashierExpenseUncheckedUpdateManyWithoutBranchNestedInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUncheckedUpdateManyWithoutBranchNestedInput
   invoice?: Prisma.InvoiceUncheckedUpdateManyWithoutBranchNestedInput
   creneau?: Prisma.CreneauUncheckedUpdateManyWithoutBranchNestedInput
   paymentAllocation?: Prisma.PaymentAllocationUncheckedUpdateManyWithoutBranchNestedInput
@@ -3229,6 +3274,7 @@ export type BranchCreateWithoutFraisInput = {
   calendarEvent?: Prisma.CalendarEventCreateNestedManyWithoutBranchInput
   periodResultLock?: Prisma.PeriodResultLockCreateNestedManyWithoutBranchInput
   cashierExpense?: Prisma.CashierExpenseCreateNestedManyWithoutBranchInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceCreateNestedManyWithoutBranchInput
   invoice?: Prisma.InvoiceCreateNestedManyWithoutBranchInput
   creneau?: Prisma.CreneauCreateNestedManyWithoutBranchInput
   paymentAllocation?: Prisma.PaymentAllocationCreateNestedManyWithoutBranchInput
@@ -3291,6 +3337,7 @@ export type BranchUncheckedCreateWithoutFraisInput = {
   calendarEvent?: Prisma.CalendarEventUncheckedCreateNestedManyWithoutBranchInput
   periodResultLock?: Prisma.PeriodResultLockUncheckedCreateNestedManyWithoutBranchInput
   cashierExpense?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutBranchInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUncheckedCreateNestedManyWithoutBranchInput
   invoice?: Prisma.InvoiceUncheckedCreateNestedManyWithoutBranchInput
   creneau?: Prisma.CreneauUncheckedCreateNestedManyWithoutBranchInput
   paymentAllocation?: Prisma.PaymentAllocationUncheckedCreateNestedManyWithoutBranchInput
@@ -3369,6 +3416,7 @@ export type BranchUpdateWithoutFraisInput = {
   calendarEvent?: Prisma.CalendarEventUpdateManyWithoutBranchNestedInput
   periodResultLock?: Prisma.PeriodResultLockUpdateManyWithoutBranchNestedInput
   cashierExpense?: Prisma.CashierExpenseUpdateManyWithoutBranchNestedInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUpdateManyWithoutBranchNestedInput
   invoice?: Prisma.InvoiceUpdateManyWithoutBranchNestedInput
   creneau?: Prisma.CreneauUpdateManyWithoutBranchNestedInput
   paymentAllocation?: Prisma.PaymentAllocationUpdateManyWithoutBranchNestedInput
@@ -3431,6 +3479,7 @@ export type BranchUncheckedUpdateWithoutFraisInput = {
   calendarEvent?: Prisma.CalendarEventUncheckedUpdateManyWithoutBranchNestedInput
   periodResultLock?: Prisma.PeriodResultLockUncheckedUpdateManyWithoutBranchNestedInput
   cashierExpense?: Prisma.CashierExpenseUncheckedUpdateManyWithoutBranchNestedInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUncheckedUpdateManyWithoutBranchNestedInput
   invoice?: Prisma.InvoiceUncheckedUpdateManyWithoutBranchNestedInput
   creneau?: Prisma.CreneauUncheckedUpdateManyWithoutBranchNestedInput
   paymentAllocation?: Prisma.PaymentAllocationUncheckedUpdateManyWithoutBranchNestedInput
@@ -3493,6 +3542,7 @@ export type BranchCreateWithoutTypeFraisInput = {
   calendarEvent?: Prisma.CalendarEventCreateNestedManyWithoutBranchInput
   periodResultLock?: Prisma.PeriodResultLockCreateNestedManyWithoutBranchInput
   cashierExpense?: Prisma.CashierExpenseCreateNestedManyWithoutBranchInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceCreateNestedManyWithoutBranchInput
   invoice?: Prisma.InvoiceCreateNestedManyWithoutBranchInput
   creneau?: Prisma.CreneauCreateNestedManyWithoutBranchInput
   paymentAllocation?: Prisma.PaymentAllocationCreateNestedManyWithoutBranchInput
@@ -3555,6 +3605,7 @@ export type BranchUncheckedCreateWithoutTypeFraisInput = {
   calendarEvent?: Prisma.CalendarEventUncheckedCreateNestedManyWithoutBranchInput
   periodResultLock?: Prisma.PeriodResultLockUncheckedCreateNestedManyWithoutBranchInput
   cashierExpense?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutBranchInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUncheckedCreateNestedManyWithoutBranchInput
   invoice?: Prisma.InvoiceUncheckedCreateNestedManyWithoutBranchInput
   creneau?: Prisma.CreneauUncheckedCreateNestedManyWithoutBranchInput
   paymentAllocation?: Prisma.PaymentAllocationUncheckedCreateNestedManyWithoutBranchInput
@@ -3633,6 +3684,7 @@ export type BranchUpdateWithoutTypeFraisInput = {
   calendarEvent?: Prisma.CalendarEventUpdateManyWithoutBranchNestedInput
   periodResultLock?: Prisma.PeriodResultLockUpdateManyWithoutBranchNestedInput
   cashierExpense?: Prisma.CashierExpenseUpdateManyWithoutBranchNestedInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUpdateManyWithoutBranchNestedInput
   invoice?: Prisma.InvoiceUpdateManyWithoutBranchNestedInput
   creneau?: Prisma.CreneauUpdateManyWithoutBranchNestedInput
   paymentAllocation?: Prisma.PaymentAllocationUpdateManyWithoutBranchNestedInput
@@ -3695,6 +3747,7 @@ export type BranchUncheckedUpdateWithoutTypeFraisInput = {
   calendarEvent?: Prisma.CalendarEventUncheckedUpdateManyWithoutBranchNestedInput
   periodResultLock?: Prisma.PeriodResultLockUncheckedUpdateManyWithoutBranchNestedInput
   cashierExpense?: Prisma.CashierExpenseUncheckedUpdateManyWithoutBranchNestedInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUncheckedUpdateManyWithoutBranchNestedInput
   invoice?: Prisma.InvoiceUncheckedUpdateManyWithoutBranchNestedInput
   creneau?: Prisma.CreneauUncheckedUpdateManyWithoutBranchNestedInput
   paymentAllocation?: Prisma.PaymentAllocationUncheckedUpdateManyWithoutBranchNestedInput
@@ -3757,6 +3810,7 @@ export type BranchCreateWithoutClassesInput = {
   calendarEvent?: Prisma.CalendarEventCreateNestedManyWithoutBranchInput
   periodResultLock?: Prisma.PeriodResultLockCreateNestedManyWithoutBranchInput
   cashierExpense?: Prisma.CashierExpenseCreateNestedManyWithoutBranchInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceCreateNestedManyWithoutBranchInput
   invoice?: Prisma.InvoiceCreateNestedManyWithoutBranchInput
   creneau?: Prisma.CreneauCreateNestedManyWithoutBranchInput
   paymentAllocation?: Prisma.PaymentAllocationCreateNestedManyWithoutBranchInput
@@ -3819,6 +3873,7 @@ export type BranchUncheckedCreateWithoutClassesInput = {
   calendarEvent?: Prisma.CalendarEventUncheckedCreateNestedManyWithoutBranchInput
   periodResultLock?: Prisma.PeriodResultLockUncheckedCreateNestedManyWithoutBranchInput
   cashierExpense?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutBranchInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUncheckedCreateNestedManyWithoutBranchInput
   invoice?: Prisma.InvoiceUncheckedCreateNestedManyWithoutBranchInput
   creneau?: Prisma.CreneauUncheckedCreateNestedManyWithoutBranchInput
   paymentAllocation?: Prisma.PaymentAllocationUncheckedCreateNestedManyWithoutBranchInput
@@ -3897,6 +3952,7 @@ export type BranchUpdateWithoutClassesInput = {
   calendarEvent?: Prisma.CalendarEventUpdateManyWithoutBranchNestedInput
   periodResultLock?: Prisma.PeriodResultLockUpdateManyWithoutBranchNestedInput
   cashierExpense?: Prisma.CashierExpenseUpdateManyWithoutBranchNestedInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUpdateManyWithoutBranchNestedInput
   invoice?: Prisma.InvoiceUpdateManyWithoutBranchNestedInput
   creneau?: Prisma.CreneauUpdateManyWithoutBranchNestedInput
   paymentAllocation?: Prisma.PaymentAllocationUpdateManyWithoutBranchNestedInput
@@ -3959,6 +4015,7 @@ export type BranchUncheckedUpdateWithoutClassesInput = {
   calendarEvent?: Prisma.CalendarEventUncheckedUpdateManyWithoutBranchNestedInput
   periodResultLock?: Prisma.PeriodResultLockUncheckedUpdateManyWithoutBranchNestedInput
   cashierExpense?: Prisma.CashierExpenseUncheckedUpdateManyWithoutBranchNestedInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUncheckedUpdateManyWithoutBranchNestedInput
   invoice?: Prisma.InvoiceUncheckedUpdateManyWithoutBranchNestedInput
   creneau?: Prisma.CreneauUncheckedUpdateManyWithoutBranchNestedInput
   paymentAllocation?: Prisma.PaymentAllocationUncheckedUpdateManyWithoutBranchNestedInput
@@ -4022,6 +4079,7 @@ export type BranchCreateWithoutCreneauInput = {
   calendarEvent?: Prisma.CalendarEventCreateNestedManyWithoutBranchInput
   periodResultLock?: Prisma.PeriodResultLockCreateNestedManyWithoutBranchInput
   cashierExpense?: Prisma.CashierExpenseCreateNestedManyWithoutBranchInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceCreateNestedManyWithoutBranchInput
   invoice?: Prisma.InvoiceCreateNestedManyWithoutBranchInput
   paymentAllocation?: Prisma.PaymentAllocationCreateNestedManyWithoutBranchInput
   teaching?: Prisma.TeachingCreateNestedManyWithoutBranchInput
@@ -4084,6 +4142,7 @@ export type BranchUncheckedCreateWithoutCreneauInput = {
   calendarEvent?: Prisma.CalendarEventUncheckedCreateNestedManyWithoutBranchInput
   periodResultLock?: Prisma.PeriodResultLockUncheckedCreateNestedManyWithoutBranchInput
   cashierExpense?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutBranchInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUncheckedCreateNestedManyWithoutBranchInput
   invoice?: Prisma.InvoiceUncheckedCreateNestedManyWithoutBranchInput
   paymentAllocation?: Prisma.PaymentAllocationUncheckedCreateNestedManyWithoutBranchInput
   teaching?: Prisma.TeachingUncheckedCreateNestedManyWithoutBranchInput
@@ -4162,6 +4221,7 @@ export type BranchUpdateWithoutCreneauInput = {
   calendarEvent?: Prisma.CalendarEventUpdateManyWithoutBranchNestedInput
   periodResultLock?: Prisma.PeriodResultLockUpdateManyWithoutBranchNestedInput
   cashierExpense?: Prisma.CashierExpenseUpdateManyWithoutBranchNestedInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUpdateManyWithoutBranchNestedInput
   invoice?: Prisma.InvoiceUpdateManyWithoutBranchNestedInput
   paymentAllocation?: Prisma.PaymentAllocationUpdateManyWithoutBranchNestedInput
   teaching?: Prisma.TeachingUpdateManyWithoutBranchNestedInput
@@ -4224,6 +4284,7 @@ export type BranchUncheckedUpdateWithoutCreneauInput = {
   calendarEvent?: Prisma.CalendarEventUncheckedUpdateManyWithoutBranchNestedInput
   periodResultLock?: Prisma.PeriodResultLockUncheckedUpdateManyWithoutBranchNestedInput
   cashierExpense?: Prisma.CashierExpenseUncheckedUpdateManyWithoutBranchNestedInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUncheckedUpdateManyWithoutBranchNestedInput
   invoice?: Prisma.InvoiceUncheckedUpdateManyWithoutBranchNestedInput
   paymentAllocation?: Prisma.PaymentAllocationUncheckedUpdateManyWithoutBranchNestedInput
   teaching?: Prisma.TeachingUncheckedUpdateManyWithoutBranchNestedInput
@@ -4285,6 +4346,7 @@ export type BranchCreateWithoutOptionInput = {
   calendarEvent?: Prisma.CalendarEventCreateNestedManyWithoutBranchInput
   periodResultLock?: Prisma.PeriodResultLockCreateNestedManyWithoutBranchInput
   cashierExpense?: Prisma.CashierExpenseCreateNestedManyWithoutBranchInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceCreateNestedManyWithoutBranchInput
   invoice?: Prisma.InvoiceCreateNestedManyWithoutBranchInput
   creneau?: Prisma.CreneauCreateNestedManyWithoutBranchInput
   paymentAllocation?: Prisma.PaymentAllocationCreateNestedManyWithoutBranchInput
@@ -4347,6 +4409,7 @@ export type BranchUncheckedCreateWithoutOptionInput = {
   calendarEvent?: Prisma.CalendarEventUncheckedCreateNestedManyWithoutBranchInput
   periodResultLock?: Prisma.PeriodResultLockUncheckedCreateNestedManyWithoutBranchInput
   cashierExpense?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutBranchInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUncheckedCreateNestedManyWithoutBranchInput
   invoice?: Prisma.InvoiceUncheckedCreateNestedManyWithoutBranchInput
   creneau?: Prisma.CreneauUncheckedCreateNestedManyWithoutBranchInput
   paymentAllocation?: Prisma.PaymentAllocationUncheckedCreateNestedManyWithoutBranchInput
@@ -4425,6 +4488,7 @@ export type BranchUpdateWithoutOptionInput = {
   calendarEvent?: Prisma.CalendarEventUpdateManyWithoutBranchNestedInput
   periodResultLock?: Prisma.PeriodResultLockUpdateManyWithoutBranchNestedInput
   cashierExpense?: Prisma.CashierExpenseUpdateManyWithoutBranchNestedInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUpdateManyWithoutBranchNestedInput
   invoice?: Prisma.InvoiceUpdateManyWithoutBranchNestedInput
   creneau?: Prisma.CreneauUpdateManyWithoutBranchNestedInput
   paymentAllocation?: Prisma.PaymentAllocationUpdateManyWithoutBranchNestedInput
@@ -4487,6 +4551,7 @@ export type BranchUncheckedUpdateWithoutOptionInput = {
   calendarEvent?: Prisma.CalendarEventUncheckedUpdateManyWithoutBranchNestedInput
   periodResultLock?: Prisma.PeriodResultLockUncheckedUpdateManyWithoutBranchNestedInput
   cashierExpense?: Prisma.CashierExpenseUncheckedUpdateManyWithoutBranchNestedInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUncheckedUpdateManyWithoutBranchNestedInput
   invoice?: Prisma.InvoiceUncheckedUpdateManyWithoutBranchNestedInput
   creneau?: Prisma.CreneauUncheckedUpdateManyWithoutBranchNestedInput
   paymentAllocation?: Prisma.PaymentAllocationUncheckedUpdateManyWithoutBranchNestedInput
@@ -4549,6 +4614,7 @@ export type BranchCreateWithoutSectionInput = {
   calendarEvent?: Prisma.CalendarEventCreateNestedManyWithoutBranchInput
   periodResultLock?: Prisma.PeriodResultLockCreateNestedManyWithoutBranchInput
   cashierExpense?: Prisma.CashierExpenseCreateNestedManyWithoutBranchInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceCreateNestedManyWithoutBranchInput
   invoice?: Prisma.InvoiceCreateNestedManyWithoutBranchInput
   creneau?: Prisma.CreneauCreateNestedManyWithoutBranchInput
   paymentAllocation?: Prisma.PaymentAllocationCreateNestedManyWithoutBranchInput
@@ -4611,6 +4677,7 @@ export type BranchUncheckedCreateWithoutSectionInput = {
   calendarEvent?: Prisma.CalendarEventUncheckedCreateNestedManyWithoutBranchInput
   periodResultLock?: Prisma.PeriodResultLockUncheckedCreateNestedManyWithoutBranchInput
   cashierExpense?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutBranchInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUncheckedCreateNestedManyWithoutBranchInput
   invoice?: Prisma.InvoiceUncheckedCreateNestedManyWithoutBranchInput
   creneau?: Prisma.CreneauUncheckedCreateNestedManyWithoutBranchInput
   paymentAllocation?: Prisma.PaymentAllocationUncheckedCreateNestedManyWithoutBranchInput
@@ -4689,6 +4756,7 @@ export type BranchUpdateWithoutSectionInput = {
   calendarEvent?: Prisma.CalendarEventUpdateManyWithoutBranchNestedInput
   periodResultLock?: Prisma.PeriodResultLockUpdateManyWithoutBranchNestedInput
   cashierExpense?: Prisma.CashierExpenseUpdateManyWithoutBranchNestedInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUpdateManyWithoutBranchNestedInput
   invoice?: Prisma.InvoiceUpdateManyWithoutBranchNestedInput
   creneau?: Prisma.CreneauUpdateManyWithoutBranchNestedInput
   paymentAllocation?: Prisma.PaymentAllocationUpdateManyWithoutBranchNestedInput
@@ -4751,6 +4819,7 @@ export type BranchUncheckedUpdateWithoutSectionInput = {
   calendarEvent?: Prisma.CalendarEventUncheckedUpdateManyWithoutBranchNestedInput
   periodResultLock?: Prisma.PeriodResultLockUncheckedUpdateManyWithoutBranchNestedInput
   cashierExpense?: Prisma.CashierExpenseUncheckedUpdateManyWithoutBranchNestedInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUncheckedUpdateManyWithoutBranchNestedInput
   invoice?: Prisma.InvoiceUncheckedUpdateManyWithoutBranchNestedInput
   creneau?: Prisma.CreneauUncheckedUpdateManyWithoutBranchNestedInput
   paymentAllocation?: Prisma.PaymentAllocationUncheckedUpdateManyWithoutBranchNestedInput
@@ -4813,6 +4882,7 @@ export type BranchCreateWithoutSchoolYearInput = {
   calendarEvent?: Prisma.CalendarEventCreateNestedManyWithoutBranchInput
   periodResultLock?: Prisma.PeriodResultLockCreateNestedManyWithoutBranchInput
   cashierExpense?: Prisma.CashierExpenseCreateNestedManyWithoutBranchInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceCreateNestedManyWithoutBranchInput
   invoice?: Prisma.InvoiceCreateNestedManyWithoutBranchInput
   creneau?: Prisma.CreneauCreateNestedManyWithoutBranchInput
   paymentAllocation?: Prisma.PaymentAllocationCreateNestedManyWithoutBranchInput
@@ -4875,6 +4945,7 @@ export type BranchUncheckedCreateWithoutSchoolYearInput = {
   calendarEvent?: Prisma.CalendarEventUncheckedCreateNestedManyWithoutBranchInput
   periodResultLock?: Prisma.PeriodResultLockUncheckedCreateNestedManyWithoutBranchInput
   cashierExpense?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutBranchInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUncheckedCreateNestedManyWithoutBranchInput
   invoice?: Prisma.InvoiceUncheckedCreateNestedManyWithoutBranchInput
   creneau?: Prisma.CreneauUncheckedCreateNestedManyWithoutBranchInput
   paymentAllocation?: Prisma.PaymentAllocationUncheckedCreateNestedManyWithoutBranchInput
@@ -4953,6 +5024,7 @@ export type BranchUpdateWithoutSchoolYearInput = {
   calendarEvent?: Prisma.CalendarEventUpdateManyWithoutBranchNestedInput
   periodResultLock?: Prisma.PeriodResultLockUpdateManyWithoutBranchNestedInput
   cashierExpense?: Prisma.CashierExpenseUpdateManyWithoutBranchNestedInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUpdateManyWithoutBranchNestedInput
   invoice?: Prisma.InvoiceUpdateManyWithoutBranchNestedInput
   creneau?: Prisma.CreneauUpdateManyWithoutBranchNestedInput
   paymentAllocation?: Prisma.PaymentAllocationUpdateManyWithoutBranchNestedInput
@@ -5015,6 +5087,7 @@ export type BranchUncheckedUpdateWithoutSchoolYearInput = {
   calendarEvent?: Prisma.CalendarEventUncheckedUpdateManyWithoutBranchNestedInput
   periodResultLock?: Prisma.PeriodResultLockUncheckedUpdateManyWithoutBranchNestedInput
   cashierExpense?: Prisma.CashierExpenseUncheckedUpdateManyWithoutBranchNestedInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUncheckedUpdateManyWithoutBranchNestedInput
   invoice?: Prisma.InvoiceUncheckedUpdateManyWithoutBranchNestedInput
   creneau?: Prisma.CreneauUncheckedUpdateManyWithoutBranchNestedInput
   paymentAllocation?: Prisma.PaymentAllocationUncheckedUpdateManyWithoutBranchNestedInput
@@ -5077,6 +5150,7 @@ export type BranchCreateWithoutClassEnrollmentInput = {
   calendarEvent?: Prisma.CalendarEventCreateNestedManyWithoutBranchInput
   periodResultLock?: Prisma.PeriodResultLockCreateNestedManyWithoutBranchInput
   cashierExpense?: Prisma.CashierExpenseCreateNestedManyWithoutBranchInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceCreateNestedManyWithoutBranchInput
   invoice?: Prisma.InvoiceCreateNestedManyWithoutBranchInput
   creneau?: Prisma.CreneauCreateNestedManyWithoutBranchInput
   paymentAllocation?: Prisma.PaymentAllocationCreateNestedManyWithoutBranchInput
@@ -5139,6 +5213,7 @@ export type BranchUncheckedCreateWithoutClassEnrollmentInput = {
   calendarEvent?: Prisma.CalendarEventUncheckedCreateNestedManyWithoutBranchInput
   periodResultLock?: Prisma.PeriodResultLockUncheckedCreateNestedManyWithoutBranchInput
   cashierExpense?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutBranchInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUncheckedCreateNestedManyWithoutBranchInput
   invoice?: Prisma.InvoiceUncheckedCreateNestedManyWithoutBranchInput
   creneau?: Prisma.CreneauUncheckedCreateNestedManyWithoutBranchInput
   paymentAllocation?: Prisma.PaymentAllocationUncheckedCreateNestedManyWithoutBranchInput
@@ -5217,6 +5292,7 @@ export type BranchUpdateWithoutClassEnrollmentInput = {
   calendarEvent?: Prisma.CalendarEventUpdateManyWithoutBranchNestedInput
   periodResultLock?: Prisma.PeriodResultLockUpdateManyWithoutBranchNestedInput
   cashierExpense?: Prisma.CashierExpenseUpdateManyWithoutBranchNestedInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUpdateManyWithoutBranchNestedInput
   invoice?: Prisma.InvoiceUpdateManyWithoutBranchNestedInput
   creneau?: Prisma.CreneauUpdateManyWithoutBranchNestedInput
   paymentAllocation?: Prisma.PaymentAllocationUpdateManyWithoutBranchNestedInput
@@ -5279,6 +5355,7 @@ export type BranchUncheckedUpdateWithoutClassEnrollmentInput = {
   calendarEvent?: Prisma.CalendarEventUncheckedUpdateManyWithoutBranchNestedInput
   periodResultLock?: Prisma.PeriodResultLockUncheckedUpdateManyWithoutBranchNestedInput
   cashierExpense?: Prisma.CashierExpenseUncheckedUpdateManyWithoutBranchNestedInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUncheckedUpdateManyWithoutBranchNestedInput
   invoice?: Prisma.InvoiceUncheckedUpdateManyWithoutBranchNestedInput
   creneau?: Prisma.CreneauUncheckedUpdateManyWithoutBranchNestedInput
   paymentAllocation?: Prisma.PaymentAllocationUncheckedUpdateManyWithoutBranchNestedInput
@@ -5342,6 +5419,7 @@ export type BranchCreateWithoutTeachingInput = {
   calendarEvent?: Prisma.CalendarEventCreateNestedManyWithoutBranchInput
   periodResultLock?: Prisma.PeriodResultLockCreateNestedManyWithoutBranchInput
   cashierExpense?: Prisma.CashierExpenseCreateNestedManyWithoutBranchInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceCreateNestedManyWithoutBranchInput
   invoice?: Prisma.InvoiceCreateNestedManyWithoutBranchInput
   creneau?: Prisma.CreneauCreateNestedManyWithoutBranchInput
   paymentAllocation?: Prisma.PaymentAllocationCreateNestedManyWithoutBranchInput
@@ -5404,6 +5482,7 @@ export type BranchUncheckedCreateWithoutTeachingInput = {
   calendarEvent?: Prisma.CalendarEventUncheckedCreateNestedManyWithoutBranchInput
   periodResultLock?: Prisma.PeriodResultLockUncheckedCreateNestedManyWithoutBranchInput
   cashierExpense?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutBranchInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUncheckedCreateNestedManyWithoutBranchInput
   invoice?: Prisma.InvoiceUncheckedCreateNestedManyWithoutBranchInput
   creneau?: Prisma.CreneauUncheckedCreateNestedManyWithoutBranchInput
   paymentAllocation?: Prisma.PaymentAllocationUncheckedCreateNestedManyWithoutBranchInput
@@ -5482,6 +5561,7 @@ export type BranchUpdateWithoutTeachingInput = {
   calendarEvent?: Prisma.CalendarEventUpdateManyWithoutBranchNestedInput
   periodResultLock?: Prisma.PeriodResultLockUpdateManyWithoutBranchNestedInput
   cashierExpense?: Prisma.CashierExpenseUpdateManyWithoutBranchNestedInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUpdateManyWithoutBranchNestedInput
   invoice?: Prisma.InvoiceUpdateManyWithoutBranchNestedInput
   creneau?: Prisma.CreneauUpdateManyWithoutBranchNestedInput
   paymentAllocation?: Prisma.PaymentAllocationUpdateManyWithoutBranchNestedInput
@@ -5544,6 +5624,7 @@ export type BranchUncheckedUpdateWithoutTeachingInput = {
   calendarEvent?: Prisma.CalendarEventUncheckedUpdateManyWithoutBranchNestedInput
   periodResultLock?: Prisma.PeriodResultLockUncheckedUpdateManyWithoutBranchNestedInput
   cashierExpense?: Prisma.CashierExpenseUncheckedUpdateManyWithoutBranchNestedInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUncheckedUpdateManyWithoutBranchNestedInput
   invoice?: Prisma.InvoiceUncheckedUpdateManyWithoutBranchNestedInput
   creneau?: Prisma.CreneauUncheckedUpdateManyWithoutBranchNestedInput
   paymentAllocation?: Prisma.PaymentAllocationUncheckedUpdateManyWithoutBranchNestedInput
@@ -5605,6 +5686,7 @@ export type BranchCreateWithoutCoursInput = {
   calendarEvent?: Prisma.CalendarEventCreateNestedManyWithoutBranchInput
   periodResultLock?: Prisma.PeriodResultLockCreateNestedManyWithoutBranchInput
   cashierExpense?: Prisma.CashierExpenseCreateNestedManyWithoutBranchInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceCreateNestedManyWithoutBranchInput
   invoice?: Prisma.InvoiceCreateNestedManyWithoutBranchInput
   creneau?: Prisma.CreneauCreateNestedManyWithoutBranchInput
   paymentAllocation?: Prisma.PaymentAllocationCreateNestedManyWithoutBranchInput
@@ -5667,6 +5749,7 @@ export type BranchUncheckedCreateWithoutCoursInput = {
   calendarEvent?: Prisma.CalendarEventUncheckedCreateNestedManyWithoutBranchInput
   periodResultLock?: Prisma.PeriodResultLockUncheckedCreateNestedManyWithoutBranchInput
   cashierExpense?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutBranchInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUncheckedCreateNestedManyWithoutBranchInput
   invoice?: Prisma.InvoiceUncheckedCreateNestedManyWithoutBranchInput
   creneau?: Prisma.CreneauUncheckedCreateNestedManyWithoutBranchInput
   paymentAllocation?: Prisma.PaymentAllocationUncheckedCreateNestedManyWithoutBranchInput
@@ -5745,6 +5828,7 @@ export type BranchUpdateWithoutCoursInput = {
   calendarEvent?: Prisma.CalendarEventUpdateManyWithoutBranchNestedInput
   periodResultLock?: Prisma.PeriodResultLockUpdateManyWithoutBranchNestedInput
   cashierExpense?: Prisma.CashierExpenseUpdateManyWithoutBranchNestedInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUpdateManyWithoutBranchNestedInput
   invoice?: Prisma.InvoiceUpdateManyWithoutBranchNestedInput
   creneau?: Prisma.CreneauUpdateManyWithoutBranchNestedInput
   paymentAllocation?: Prisma.PaymentAllocationUpdateManyWithoutBranchNestedInput
@@ -5807,6 +5891,7 @@ export type BranchUncheckedUpdateWithoutCoursInput = {
   calendarEvent?: Prisma.CalendarEventUncheckedUpdateManyWithoutBranchNestedInput
   periodResultLock?: Prisma.PeriodResultLockUncheckedUpdateManyWithoutBranchNestedInput
   cashierExpense?: Prisma.CashierExpenseUncheckedUpdateManyWithoutBranchNestedInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUncheckedUpdateManyWithoutBranchNestedInput
   invoice?: Prisma.InvoiceUncheckedUpdateManyWithoutBranchNestedInput
   creneau?: Prisma.CreneauUncheckedUpdateManyWithoutBranchNestedInput
   paymentAllocation?: Prisma.PaymentAllocationUncheckedUpdateManyWithoutBranchNestedInput
@@ -5869,6 +5954,7 @@ export type BranchCreateWithoutCoursPonderationsInput = {
   calendarEvent?: Prisma.CalendarEventCreateNestedManyWithoutBranchInput
   periodResultLock?: Prisma.PeriodResultLockCreateNestedManyWithoutBranchInput
   cashierExpense?: Prisma.CashierExpenseCreateNestedManyWithoutBranchInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceCreateNestedManyWithoutBranchInput
   invoice?: Prisma.InvoiceCreateNestedManyWithoutBranchInput
   creneau?: Prisma.CreneauCreateNestedManyWithoutBranchInput
   paymentAllocation?: Prisma.PaymentAllocationCreateNestedManyWithoutBranchInput
@@ -5931,6 +6017,7 @@ export type BranchUncheckedCreateWithoutCoursPonderationsInput = {
   calendarEvent?: Prisma.CalendarEventUncheckedCreateNestedManyWithoutBranchInput
   periodResultLock?: Prisma.PeriodResultLockUncheckedCreateNestedManyWithoutBranchInput
   cashierExpense?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutBranchInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUncheckedCreateNestedManyWithoutBranchInput
   invoice?: Prisma.InvoiceUncheckedCreateNestedManyWithoutBranchInput
   creneau?: Prisma.CreneauUncheckedCreateNestedManyWithoutBranchInput
   paymentAllocation?: Prisma.PaymentAllocationUncheckedCreateNestedManyWithoutBranchInput
@@ -6009,6 +6096,7 @@ export type BranchUpdateWithoutCoursPonderationsInput = {
   calendarEvent?: Prisma.CalendarEventUpdateManyWithoutBranchNestedInput
   periodResultLock?: Prisma.PeriodResultLockUpdateManyWithoutBranchNestedInput
   cashierExpense?: Prisma.CashierExpenseUpdateManyWithoutBranchNestedInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUpdateManyWithoutBranchNestedInput
   invoice?: Prisma.InvoiceUpdateManyWithoutBranchNestedInput
   creneau?: Prisma.CreneauUpdateManyWithoutBranchNestedInput
   paymentAllocation?: Prisma.PaymentAllocationUpdateManyWithoutBranchNestedInput
@@ -6071,6 +6159,7 @@ export type BranchUncheckedUpdateWithoutCoursPonderationsInput = {
   calendarEvent?: Prisma.CalendarEventUncheckedUpdateManyWithoutBranchNestedInput
   periodResultLock?: Prisma.PeriodResultLockUncheckedUpdateManyWithoutBranchNestedInput
   cashierExpense?: Prisma.CashierExpenseUncheckedUpdateManyWithoutBranchNestedInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUncheckedUpdateManyWithoutBranchNestedInput
   invoice?: Prisma.InvoiceUncheckedUpdateManyWithoutBranchNestedInput
   creneau?: Prisma.CreneauUncheckedUpdateManyWithoutBranchNestedInput
   paymentAllocation?: Prisma.PaymentAllocationUncheckedUpdateManyWithoutBranchNestedInput
@@ -6133,6 +6222,7 @@ export type BranchCreateWithoutCalendarEventInput = {
   frais?: Prisma.FraisCreateNestedManyWithoutBranchInput
   periodResultLock?: Prisma.PeriodResultLockCreateNestedManyWithoutBranchInput
   cashierExpense?: Prisma.CashierExpenseCreateNestedManyWithoutBranchInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceCreateNestedManyWithoutBranchInput
   invoice?: Prisma.InvoiceCreateNestedManyWithoutBranchInput
   creneau?: Prisma.CreneauCreateNestedManyWithoutBranchInput
   paymentAllocation?: Prisma.PaymentAllocationCreateNestedManyWithoutBranchInput
@@ -6195,6 +6285,7 @@ export type BranchUncheckedCreateWithoutCalendarEventInput = {
   frais?: Prisma.FraisUncheckedCreateNestedManyWithoutBranchInput
   periodResultLock?: Prisma.PeriodResultLockUncheckedCreateNestedManyWithoutBranchInput
   cashierExpense?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutBranchInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUncheckedCreateNestedManyWithoutBranchInput
   invoice?: Prisma.InvoiceUncheckedCreateNestedManyWithoutBranchInput
   creneau?: Prisma.CreneauUncheckedCreateNestedManyWithoutBranchInput
   paymentAllocation?: Prisma.PaymentAllocationUncheckedCreateNestedManyWithoutBranchInput
@@ -6273,6 +6364,7 @@ export type BranchUpdateWithoutCalendarEventInput = {
   frais?: Prisma.FraisUpdateManyWithoutBranchNestedInput
   periodResultLock?: Prisma.PeriodResultLockUpdateManyWithoutBranchNestedInput
   cashierExpense?: Prisma.CashierExpenseUpdateManyWithoutBranchNestedInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUpdateManyWithoutBranchNestedInput
   invoice?: Prisma.InvoiceUpdateManyWithoutBranchNestedInput
   creneau?: Prisma.CreneauUpdateManyWithoutBranchNestedInput
   paymentAllocation?: Prisma.PaymentAllocationUpdateManyWithoutBranchNestedInput
@@ -6335,6 +6427,7 @@ export type BranchUncheckedUpdateWithoutCalendarEventInput = {
   frais?: Prisma.FraisUncheckedUpdateManyWithoutBranchNestedInput
   periodResultLock?: Prisma.PeriodResultLockUncheckedUpdateManyWithoutBranchNestedInput
   cashierExpense?: Prisma.CashierExpenseUncheckedUpdateManyWithoutBranchNestedInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUncheckedUpdateManyWithoutBranchNestedInput
   invoice?: Prisma.InvoiceUncheckedUpdateManyWithoutBranchNestedInput
   creneau?: Prisma.CreneauUncheckedUpdateManyWithoutBranchNestedInput
   paymentAllocation?: Prisma.PaymentAllocationUncheckedUpdateManyWithoutBranchNestedInput
@@ -6397,6 +6490,7 @@ export type BranchCreateWithoutEventTypeInput = {
   calendarEvent?: Prisma.CalendarEventCreateNestedManyWithoutBranchInput
   periodResultLock?: Prisma.PeriodResultLockCreateNestedManyWithoutBranchInput
   cashierExpense?: Prisma.CashierExpenseCreateNestedManyWithoutBranchInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceCreateNestedManyWithoutBranchInput
   invoice?: Prisma.InvoiceCreateNestedManyWithoutBranchInput
   creneau?: Prisma.CreneauCreateNestedManyWithoutBranchInput
   paymentAllocation?: Prisma.PaymentAllocationCreateNestedManyWithoutBranchInput
@@ -6459,6 +6553,7 @@ export type BranchUncheckedCreateWithoutEventTypeInput = {
   calendarEvent?: Prisma.CalendarEventUncheckedCreateNestedManyWithoutBranchInput
   periodResultLock?: Prisma.PeriodResultLockUncheckedCreateNestedManyWithoutBranchInput
   cashierExpense?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutBranchInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUncheckedCreateNestedManyWithoutBranchInput
   invoice?: Prisma.InvoiceUncheckedCreateNestedManyWithoutBranchInput
   creneau?: Prisma.CreneauUncheckedCreateNestedManyWithoutBranchInput
   paymentAllocation?: Prisma.PaymentAllocationUncheckedCreateNestedManyWithoutBranchInput
@@ -6537,6 +6632,7 @@ export type BranchUpdateWithoutEventTypeInput = {
   calendarEvent?: Prisma.CalendarEventUpdateManyWithoutBranchNestedInput
   periodResultLock?: Prisma.PeriodResultLockUpdateManyWithoutBranchNestedInput
   cashierExpense?: Prisma.CashierExpenseUpdateManyWithoutBranchNestedInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUpdateManyWithoutBranchNestedInput
   invoice?: Prisma.InvoiceUpdateManyWithoutBranchNestedInput
   creneau?: Prisma.CreneauUpdateManyWithoutBranchNestedInput
   paymentAllocation?: Prisma.PaymentAllocationUpdateManyWithoutBranchNestedInput
@@ -6599,6 +6695,7 @@ export type BranchUncheckedUpdateWithoutEventTypeInput = {
   calendarEvent?: Prisma.CalendarEventUncheckedUpdateManyWithoutBranchNestedInput
   periodResultLock?: Prisma.PeriodResultLockUncheckedUpdateManyWithoutBranchNestedInput
   cashierExpense?: Prisma.CashierExpenseUncheckedUpdateManyWithoutBranchNestedInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUncheckedUpdateManyWithoutBranchNestedInput
   invoice?: Prisma.InvoiceUncheckedUpdateManyWithoutBranchNestedInput
   creneau?: Prisma.CreneauUncheckedUpdateManyWithoutBranchNestedInput
   paymentAllocation?: Prisma.PaymentAllocationUncheckedUpdateManyWithoutBranchNestedInput
@@ -6661,6 +6758,7 @@ export type BranchCreateWithoutSemesterInput = {
   calendarEvent?: Prisma.CalendarEventCreateNestedManyWithoutBranchInput
   periodResultLock?: Prisma.PeriodResultLockCreateNestedManyWithoutBranchInput
   cashierExpense?: Prisma.CashierExpenseCreateNestedManyWithoutBranchInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceCreateNestedManyWithoutBranchInput
   invoice?: Prisma.InvoiceCreateNestedManyWithoutBranchInput
   creneau?: Prisma.CreneauCreateNestedManyWithoutBranchInput
   paymentAllocation?: Prisma.PaymentAllocationCreateNestedManyWithoutBranchInput
@@ -6723,6 +6821,7 @@ export type BranchUncheckedCreateWithoutSemesterInput = {
   calendarEvent?: Prisma.CalendarEventUncheckedCreateNestedManyWithoutBranchInput
   periodResultLock?: Prisma.PeriodResultLockUncheckedCreateNestedManyWithoutBranchInput
   cashierExpense?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutBranchInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUncheckedCreateNestedManyWithoutBranchInput
   invoice?: Prisma.InvoiceUncheckedCreateNestedManyWithoutBranchInput
   creneau?: Prisma.CreneauUncheckedCreateNestedManyWithoutBranchInput
   paymentAllocation?: Prisma.PaymentAllocationUncheckedCreateNestedManyWithoutBranchInput
@@ -6801,6 +6900,7 @@ export type BranchUpdateWithoutSemesterInput = {
   calendarEvent?: Prisma.CalendarEventUpdateManyWithoutBranchNestedInput
   periodResultLock?: Prisma.PeriodResultLockUpdateManyWithoutBranchNestedInput
   cashierExpense?: Prisma.CashierExpenseUpdateManyWithoutBranchNestedInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUpdateManyWithoutBranchNestedInput
   invoice?: Prisma.InvoiceUpdateManyWithoutBranchNestedInput
   creneau?: Prisma.CreneauUpdateManyWithoutBranchNestedInput
   paymentAllocation?: Prisma.PaymentAllocationUpdateManyWithoutBranchNestedInput
@@ -6863,6 +6963,7 @@ export type BranchUncheckedUpdateWithoutSemesterInput = {
   calendarEvent?: Prisma.CalendarEventUncheckedUpdateManyWithoutBranchNestedInput
   periodResultLock?: Prisma.PeriodResultLockUncheckedUpdateManyWithoutBranchNestedInput
   cashierExpense?: Prisma.CashierExpenseUncheckedUpdateManyWithoutBranchNestedInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUncheckedUpdateManyWithoutBranchNestedInput
   invoice?: Prisma.InvoiceUncheckedUpdateManyWithoutBranchNestedInput
   creneau?: Prisma.CreneauUncheckedUpdateManyWithoutBranchNestedInput
   paymentAllocation?: Prisma.PaymentAllocationUncheckedUpdateManyWithoutBranchNestedInput
@@ -6925,6 +7026,7 @@ export type BranchCreateWithoutPeriodInput = {
   calendarEvent?: Prisma.CalendarEventCreateNestedManyWithoutBranchInput
   periodResultLock?: Prisma.PeriodResultLockCreateNestedManyWithoutBranchInput
   cashierExpense?: Prisma.CashierExpenseCreateNestedManyWithoutBranchInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceCreateNestedManyWithoutBranchInput
   invoice?: Prisma.InvoiceCreateNestedManyWithoutBranchInput
   creneau?: Prisma.CreneauCreateNestedManyWithoutBranchInput
   paymentAllocation?: Prisma.PaymentAllocationCreateNestedManyWithoutBranchInput
@@ -6987,6 +7089,7 @@ export type BranchUncheckedCreateWithoutPeriodInput = {
   calendarEvent?: Prisma.CalendarEventUncheckedCreateNestedManyWithoutBranchInput
   periodResultLock?: Prisma.PeriodResultLockUncheckedCreateNestedManyWithoutBranchInput
   cashierExpense?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutBranchInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUncheckedCreateNestedManyWithoutBranchInput
   invoice?: Prisma.InvoiceUncheckedCreateNestedManyWithoutBranchInput
   creneau?: Prisma.CreneauUncheckedCreateNestedManyWithoutBranchInput
   paymentAllocation?: Prisma.PaymentAllocationUncheckedCreateNestedManyWithoutBranchInput
@@ -7065,6 +7168,7 @@ export type BranchUpdateWithoutPeriodInput = {
   calendarEvent?: Prisma.CalendarEventUpdateManyWithoutBranchNestedInput
   periodResultLock?: Prisma.PeriodResultLockUpdateManyWithoutBranchNestedInput
   cashierExpense?: Prisma.CashierExpenseUpdateManyWithoutBranchNestedInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUpdateManyWithoutBranchNestedInput
   invoice?: Prisma.InvoiceUpdateManyWithoutBranchNestedInput
   creneau?: Prisma.CreneauUpdateManyWithoutBranchNestedInput
   paymentAllocation?: Prisma.PaymentAllocationUpdateManyWithoutBranchNestedInput
@@ -7127,6 +7231,7 @@ export type BranchUncheckedUpdateWithoutPeriodInput = {
   calendarEvent?: Prisma.CalendarEventUncheckedUpdateManyWithoutBranchNestedInput
   periodResultLock?: Prisma.PeriodResultLockUncheckedUpdateManyWithoutBranchNestedInput
   cashierExpense?: Prisma.CashierExpenseUncheckedUpdateManyWithoutBranchNestedInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUncheckedUpdateManyWithoutBranchNestedInput
   invoice?: Prisma.InvoiceUncheckedUpdateManyWithoutBranchNestedInput
   creneau?: Prisma.CreneauUncheckedUpdateManyWithoutBranchNestedInput
   paymentAllocation?: Prisma.PaymentAllocationUncheckedUpdateManyWithoutBranchNestedInput
@@ -7189,6 +7294,7 @@ export type BranchCreateWithoutPeriodResultLockInput = {
   frais?: Prisma.FraisCreateNestedManyWithoutBranchInput
   calendarEvent?: Prisma.CalendarEventCreateNestedManyWithoutBranchInput
   cashierExpense?: Prisma.CashierExpenseCreateNestedManyWithoutBranchInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceCreateNestedManyWithoutBranchInput
   invoice?: Prisma.InvoiceCreateNestedManyWithoutBranchInput
   creneau?: Prisma.CreneauCreateNestedManyWithoutBranchInput
   paymentAllocation?: Prisma.PaymentAllocationCreateNestedManyWithoutBranchInput
@@ -7251,6 +7357,7 @@ export type BranchUncheckedCreateWithoutPeriodResultLockInput = {
   frais?: Prisma.FraisUncheckedCreateNestedManyWithoutBranchInput
   calendarEvent?: Prisma.CalendarEventUncheckedCreateNestedManyWithoutBranchInput
   cashierExpense?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutBranchInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUncheckedCreateNestedManyWithoutBranchInput
   invoice?: Prisma.InvoiceUncheckedCreateNestedManyWithoutBranchInput
   creneau?: Prisma.CreneauUncheckedCreateNestedManyWithoutBranchInput
   paymentAllocation?: Prisma.PaymentAllocationUncheckedCreateNestedManyWithoutBranchInput
@@ -7329,6 +7436,7 @@ export type BranchUpdateWithoutPeriodResultLockInput = {
   frais?: Prisma.FraisUpdateManyWithoutBranchNestedInput
   calendarEvent?: Prisma.CalendarEventUpdateManyWithoutBranchNestedInput
   cashierExpense?: Prisma.CashierExpenseUpdateManyWithoutBranchNestedInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUpdateManyWithoutBranchNestedInput
   invoice?: Prisma.InvoiceUpdateManyWithoutBranchNestedInput
   creneau?: Prisma.CreneauUpdateManyWithoutBranchNestedInput
   paymentAllocation?: Prisma.PaymentAllocationUpdateManyWithoutBranchNestedInput
@@ -7391,6 +7499,7 @@ export type BranchUncheckedUpdateWithoutPeriodResultLockInput = {
   frais?: Prisma.FraisUncheckedUpdateManyWithoutBranchNestedInput
   calendarEvent?: Prisma.CalendarEventUncheckedUpdateManyWithoutBranchNestedInput
   cashierExpense?: Prisma.CashierExpenseUncheckedUpdateManyWithoutBranchNestedInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUncheckedUpdateManyWithoutBranchNestedInput
   invoice?: Prisma.InvoiceUncheckedUpdateManyWithoutBranchNestedInput
   creneau?: Prisma.CreneauUncheckedUpdateManyWithoutBranchNestedInput
   paymentAllocation?: Prisma.PaymentAllocationUncheckedUpdateManyWithoutBranchNestedInput
@@ -7453,6 +7562,7 @@ export type BranchCreateWithoutFicheInput = {
   calendarEvent?: Prisma.CalendarEventCreateNestedManyWithoutBranchInput
   periodResultLock?: Prisma.PeriodResultLockCreateNestedManyWithoutBranchInput
   cashierExpense?: Prisma.CashierExpenseCreateNestedManyWithoutBranchInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceCreateNestedManyWithoutBranchInput
   invoice?: Prisma.InvoiceCreateNestedManyWithoutBranchInput
   creneau?: Prisma.CreneauCreateNestedManyWithoutBranchInput
   paymentAllocation?: Prisma.PaymentAllocationCreateNestedManyWithoutBranchInput
@@ -7515,6 +7625,7 @@ export type BranchUncheckedCreateWithoutFicheInput = {
   calendarEvent?: Prisma.CalendarEventUncheckedCreateNestedManyWithoutBranchInput
   periodResultLock?: Prisma.PeriodResultLockUncheckedCreateNestedManyWithoutBranchInput
   cashierExpense?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutBranchInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUncheckedCreateNestedManyWithoutBranchInput
   invoice?: Prisma.InvoiceUncheckedCreateNestedManyWithoutBranchInput
   creneau?: Prisma.CreneauUncheckedCreateNestedManyWithoutBranchInput
   paymentAllocation?: Prisma.PaymentAllocationUncheckedCreateNestedManyWithoutBranchInput
@@ -7593,6 +7704,7 @@ export type BranchUpdateWithoutFicheInput = {
   calendarEvent?: Prisma.CalendarEventUpdateManyWithoutBranchNestedInput
   periodResultLock?: Prisma.PeriodResultLockUpdateManyWithoutBranchNestedInput
   cashierExpense?: Prisma.CashierExpenseUpdateManyWithoutBranchNestedInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUpdateManyWithoutBranchNestedInput
   invoice?: Prisma.InvoiceUpdateManyWithoutBranchNestedInput
   creneau?: Prisma.CreneauUpdateManyWithoutBranchNestedInput
   paymentAllocation?: Prisma.PaymentAllocationUpdateManyWithoutBranchNestedInput
@@ -7655,6 +7767,7 @@ export type BranchUncheckedUpdateWithoutFicheInput = {
   calendarEvent?: Prisma.CalendarEventUncheckedUpdateManyWithoutBranchNestedInput
   periodResultLock?: Prisma.PeriodResultLockUncheckedUpdateManyWithoutBranchNestedInput
   cashierExpense?: Prisma.CashierExpenseUncheckedUpdateManyWithoutBranchNestedInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUncheckedUpdateManyWithoutBranchNestedInput
   invoice?: Prisma.InvoiceUncheckedUpdateManyWithoutBranchNestedInput
   creneau?: Prisma.CreneauUncheckedUpdateManyWithoutBranchNestedInput
   paymentAllocation?: Prisma.PaymentAllocationUncheckedUpdateManyWithoutBranchNestedInput
@@ -7718,6 +7831,7 @@ export type BranchCreateWithoutInvoiceInput = {
   calendarEvent?: Prisma.CalendarEventCreateNestedManyWithoutBranchInput
   periodResultLock?: Prisma.PeriodResultLockCreateNestedManyWithoutBranchInput
   cashierExpense?: Prisma.CashierExpenseCreateNestedManyWithoutBranchInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceCreateNestedManyWithoutBranchInput
   creneau?: Prisma.CreneauCreateNestedManyWithoutBranchInput
   paymentAllocation?: Prisma.PaymentAllocationCreateNestedManyWithoutBranchInput
   teaching?: Prisma.TeachingCreateNestedManyWithoutBranchInput
@@ -7780,6 +7894,7 @@ export type BranchUncheckedCreateWithoutInvoiceInput = {
   calendarEvent?: Prisma.CalendarEventUncheckedCreateNestedManyWithoutBranchInput
   periodResultLock?: Prisma.PeriodResultLockUncheckedCreateNestedManyWithoutBranchInput
   cashierExpense?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutBranchInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUncheckedCreateNestedManyWithoutBranchInput
   creneau?: Prisma.CreneauUncheckedCreateNestedManyWithoutBranchInput
   paymentAllocation?: Prisma.PaymentAllocationUncheckedCreateNestedManyWithoutBranchInput
   teaching?: Prisma.TeachingUncheckedCreateNestedManyWithoutBranchInput
@@ -7858,6 +7973,7 @@ export type BranchUpdateWithoutInvoiceInput = {
   calendarEvent?: Prisma.CalendarEventUpdateManyWithoutBranchNestedInput
   periodResultLock?: Prisma.PeriodResultLockUpdateManyWithoutBranchNestedInput
   cashierExpense?: Prisma.CashierExpenseUpdateManyWithoutBranchNestedInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUpdateManyWithoutBranchNestedInput
   creneau?: Prisma.CreneauUpdateManyWithoutBranchNestedInput
   paymentAllocation?: Prisma.PaymentAllocationUpdateManyWithoutBranchNestedInput
   teaching?: Prisma.TeachingUpdateManyWithoutBranchNestedInput
@@ -7920,6 +8036,7 @@ export type BranchUncheckedUpdateWithoutInvoiceInput = {
   calendarEvent?: Prisma.CalendarEventUncheckedUpdateManyWithoutBranchNestedInput
   periodResultLock?: Prisma.PeriodResultLockUncheckedUpdateManyWithoutBranchNestedInput
   cashierExpense?: Prisma.CashierExpenseUncheckedUpdateManyWithoutBranchNestedInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUncheckedUpdateManyWithoutBranchNestedInput
   creneau?: Prisma.CreneauUncheckedUpdateManyWithoutBranchNestedInput
   paymentAllocation?: Prisma.PaymentAllocationUncheckedUpdateManyWithoutBranchNestedInput
   teaching?: Prisma.TeachingUncheckedUpdateManyWithoutBranchNestedInput
@@ -7981,6 +8098,7 @@ export type BranchCreateWithoutPaymentBatchInput = {
   calendarEvent?: Prisma.CalendarEventCreateNestedManyWithoutBranchInput
   periodResultLock?: Prisma.PeriodResultLockCreateNestedManyWithoutBranchInput
   cashierExpense?: Prisma.CashierExpenseCreateNestedManyWithoutBranchInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceCreateNestedManyWithoutBranchInput
   invoice?: Prisma.InvoiceCreateNestedManyWithoutBranchInput
   creneau?: Prisma.CreneauCreateNestedManyWithoutBranchInput
   paymentAllocation?: Prisma.PaymentAllocationCreateNestedManyWithoutBranchInput
@@ -8043,6 +8161,7 @@ export type BranchUncheckedCreateWithoutPaymentBatchInput = {
   calendarEvent?: Prisma.CalendarEventUncheckedCreateNestedManyWithoutBranchInput
   periodResultLock?: Prisma.PeriodResultLockUncheckedCreateNestedManyWithoutBranchInput
   cashierExpense?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutBranchInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUncheckedCreateNestedManyWithoutBranchInput
   invoice?: Prisma.InvoiceUncheckedCreateNestedManyWithoutBranchInput
   creneau?: Prisma.CreneauUncheckedCreateNestedManyWithoutBranchInput
   paymentAllocation?: Prisma.PaymentAllocationUncheckedCreateNestedManyWithoutBranchInput
@@ -8121,6 +8240,7 @@ export type BranchUpdateWithoutPaymentBatchInput = {
   calendarEvent?: Prisma.CalendarEventUpdateManyWithoutBranchNestedInput
   periodResultLock?: Prisma.PeriodResultLockUpdateManyWithoutBranchNestedInput
   cashierExpense?: Prisma.CashierExpenseUpdateManyWithoutBranchNestedInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUpdateManyWithoutBranchNestedInput
   invoice?: Prisma.InvoiceUpdateManyWithoutBranchNestedInput
   creneau?: Prisma.CreneauUpdateManyWithoutBranchNestedInput
   paymentAllocation?: Prisma.PaymentAllocationUpdateManyWithoutBranchNestedInput
@@ -8183,6 +8303,7 @@ export type BranchUncheckedUpdateWithoutPaymentBatchInput = {
   calendarEvent?: Prisma.CalendarEventUncheckedUpdateManyWithoutBranchNestedInput
   periodResultLock?: Prisma.PeriodResultLockUncheckedUpdateManyWithoutBranchNestedInput
   cashierExpense?: Prisma.CashierExpenseUncheckedUpdateManyWithoutBranchNestedInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUncheckedUpdateManyWithoutBranchNestedInput
   invoice?: Prisma.InvoiceUncheckedUpdateManyWithoutBranchNestedInput
   creneau?: Prisma.CreneauUncheckedUpdateManyWithoutBranchNestedInput
   paymentAllocation?: Prisma.PaymentAllocationUncheckedUpdateManyWithoutBranchNestedInput
@@ -8245,6 +8366,7 @@ export type BranchCreateWithoutFamilyPaymentInput = {
   calendarEvent?: Prisma.CalendarEventCreateNestedManyWithoutBranchInput
   periodResultLock?: Prisma.PeriodResultLockCreateNestedManyWithoutBranchInput
   cashierExpense?: Prisma.CashierExpenseCreateNestedManyWithoutBranchInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceCreateNestedManyWithoutBranchInput
   invoice?: Prisma.InvoiceCreateNestedManyWithoutBranchInput
   creneau?: Prisma.CreneauCreateNestedManyWithoutBranchInput
   paymentAllocation?: Prisma.PaymentAllocationCreateNestedManyWithoutBranchInput
@@ -8307,6 +8429,7 @@ export type BranchUncheckedCreateWithoutFamilyPaymentInput = {
   calendarEvent?: Prisma.CalendarEventUncheckedCreateNestedManyWithoutBranchInput
   periodResultLock?: Prisma.PeriodResultLockUncheckedCreateNestedManyWithoutBranchInput
   cashierExpense?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutBranchInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUncheckedCreateNestedManyWithoutBranchInput
   invoice?: Prisma.InvoiceUncheckedCreateNestedManyWithoutBranchInput
   creneau?: Prisma.CreneauUncheckedCreateNestedManyWithoutBranchInput
   paymentAllocation?: Prisma.PaymentAllocationUncheckedCreateNestedManyWithoutBranchInput
@@ -8385,6 +8508,7 @@ export type BranchUpdateWithoutFamilyPaymentInput = {
   calendarEvent?: Prisma.CalendarEventUpdateManyWithoutBranchNestedInput
   periodResultLock?: Prisma.PeriodResultLockUpdateManyWithoutBranchNestedInput
   cashierExpense?: Prisma.CashierExpenseUpdateManyWithoutBranchNestedInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUpdateManyWithoutBranchNestedInput
   invoice?: Prisma.InvoiceUpdateManyWithoutBranchNestedInput
   creneau?: Prisma.CreneauUpdateManyWithoutBranchNestedInput
   paymentAllocation?: Prisma.PaymentAllocationUpdateManyWithoutBranchNestedInput
@@ -8447,6 +8571,7 @@ export type BranchUncheckedUpdateWithoutFamilyPaymentInput = {
   calendarEvent?: Prisma.CalendarEventUncheckedUpdateManyWithoutBranchNestedInput
   periodResultLock?: Prisma.PeriodResultLockUncheckedUpdateManyWithoutBranchNestedInput
   cashierExpense?: Prisma.CashierExpenseUncheckedUpdateManyWithoutBranchNestedInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUncheckedUpdateManyWithoutBranchNestedInput
   invoice?: Prisma.InvoiceUncheckedUpdateManyWithoutBranchNestedInput
   creneau?: Prisma.CreneauUncheckedUpdateManyWithoutBranchNestedInput
   paymentAllocation?: Prisma.PaymentAllocationUncheckedUpdateManyWithoutBranchNestedInput
@@ -8509,6 +8634,7 @@ export type BranchCreateWithoutCashierExpenseInput = {
   frais?: Prisma.FraisCreateNestedManyWithoutBranchInput
   calendarEvent?: Prisma.CalendarEventCreateNestedManyWithoutBranchInput
   periodResultLock?: Prisma.PeriodResultLockCreateNestedManyWithoutBranchInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceCreateNestedManyWithoutBranchInput
   invoice?: Prisma.InvoiceCreateNestedManyWithoutBranchInput
   creneau?: Prisma.CreneauCreateNestedManyWithoutBranchInput
   paymentAllocation?: Prisma.PaymentAllocationCreateNestedManyWithoutBranchInput
@@ -8571,6 +8697,7 @@ export type BranchUncheckedCreateWithoutCashierExpenseInput = {
   frais?: Prisma.FraisUncheckedCreateNestedManyWithoutBranchInput
   calendarEvent?: Prisma.CalendarEventUncheckedCreateNestedManyWithoutBranchInput
   periodResultLock?: Prisma.PeriodResultLockUncheckedCreateNestedManyWithoutBranchInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUncheckedCreateNestedManyWithoutBranchInput
   invoice?: Prisma.InvoiceUncheckedCreateNestedManyWithoutBranchInput
   creneau?: Prisma.CreneauUncheckedCreateNestedManyWithoutBranchInput
   paymentAllocation?: Prisma.PaymentAllocationUncheckedCreateNestedManyWithoutBranchInput
@@ -8649,6 +8776,7 @@ export type BranchUpdateWithoutCashierExpenseInput = {
   frais?: Prisma.FraisUpdateManyWithoutBranchNestedInput
   calendarEvent?: Prisma.CalendarEventUpdateManyWithoutBranchNestedInput
   periodResultLock?: Prisma.PeriodResultLockUpdateManyWithoutBranchNestedInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUpdateManyWithoutBranchNestedInput
   invoice?: Prisma.InvoiceUpdateManyWithoutBranchNestedInput
   creneau?: Prisma.CreneauUpdateManyWithoutBranchNestedInput
   paymentAllocation?: Prisma.PaymentAllocationUpdateManyWithoutBranchNestedInput
@@ -8711,6 +8839,275 @@ export type BranchUncheckedUpdateWithoutCashierExpenseInput = {
   frais?: Prisma.FraisUncheckedUpdateManyWithoutBranchNestedInput
   calendarEvent?: Prisma.CalendarEventUncheckedUpdateManyWithoutBranchNestedInput
   periodResultLock?: Prisma.PeriodResultLockUncheckedUpdateManyWithoutBranchNestedInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUncheckedUpdateManyWithoutBranchNestedInput
+  invoice?: Prisma.InvoiceUncheckedUpdateManyWithoutBranchNestedInput
+  creneau?: Prisma.CreneauUncheckedUpdateManyWithoutBranchNestedInput
+  paymentAllocation?: Prisma.PaymentAllocationUncheckedUpdateManyWithoutBranchNestedInput
+  teaching?: Prisma.TeachingUncheckedUpdateManyWithoutBranchNestedInput
+  mobileMoneyTransaction?: Prisma.MobileMoneyTransactionUncheckedUpdateManyWithoutBranchNestedInput
+  branchInvitation?: Prisma.BranchInvitationUncheckedUpdateManyWithoutBranchNestedInput
+  attendanceSessions?: Prisma.AttendanceSessionUncheckedUpdateManyWithoutBranchNestedInput
+  teacherAttendance?: Prisma.TeacherAttendanceUncheckedUpdateManyWithoutBranchNestedInput
+  personnelAttendance?: Prisma.PersonnelAttendanceUncheckedUpdateManyWithoutBranchNestedInput
+  studentGrade?: Prisma.StudentGradeUncheckedUpdateManyWithoutBranchNestedInput
+  parentFeedback?: Prisma.ParentFeedbackUncheckedUpdateManyWithoutBranchNestedInput
+  transaction?: Prisma.TransactionUncheckedUpdateManyWithoutBranchNestedInput
+  discountRule?: Prisma.DiscountRuleUncheckedUpdateManyWithoutBranchNestedInput
+  paymentEvent?: Prisma.PaymentEventUncheckedUpdateManyWithoutBranchNestedInput
+  partnaires?: Prisma.PartnaireUncheckedUpdateManyWithoutBranchNestedInput
+  organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedUpdateManyWithoutBranchNestedInput
+  registrationRequests?: Prisma.RegistrationRequestUncheckedUpdateManyWithoutBranchNestedInput
+  jobApplications?: Prisma.JobApplicationUncheckedUpdateManyWithoutBranchNestedInput
+  targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
+  sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
+  issuedDocuments?: Prisma.IssuedDocumentUncheckedUpdateManyWithoutBranchNestedInput
+}
+
+export type BranchCreateWithoutCashierOpeningBalanceInput = {
+  id?: string
+  name: string
+  code?: string | null
+  image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  adresse?: string | null
+  province?: string | null
+  ville?: string | null
+  commune?: string | null
+  pays?: string | null
+  idnat?: string | null
+  tel?: string | null
+  latitude: number
+  longitude: number
+  attendanceRadius?: number
+  typebranch: $Enums.TypeBrache
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  organization: Prisma.OrganizationCreateNestedOneWithoutBranchesInput
+  studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
+  branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
+  classes?: Prisma.ClasseCreateNestedManyWithoutBranchInput
+  paymentBatch?: Prisma.PaymentBatchCreateNestedManyWithoutBranchInput
+  familyPayment?: Prisma.FamilyPaymentCreateNestedManyWithoutBranchInput
+  fiche?: Prisma.ficheCreateNestedManyWithoutBranchInput
+  eventType?: Prisma.EventTypeCreateNestedManyWithoutBranchInput
+  period?: Prisma.periodCreateNestedManyWithoutBranchInput
+  cours?: Prisma.CoursCreateNestedManyWithoutBranchInput
+  schoolYear?: Prisma.SchoolYearCreateNestedManyWithoutBranchInput
+  typeFrais?: Prisma.TypeFraisCreateNestedManyWithoutBranchInput
+  option?: Prisma.OptionCreateNestedManyWithoutBranchInput
+  coursPonderations?: Prisma.CoursOptionPonderationCreateNestedManyWithoutBranchInput
+  classEnrollment?: Prisma.ClassEnrollmentCreateNestedManyWithoutBranchInput
+  section?: Prisma.SectionCreateNestedManyWithoutBranchInput
+  semester?: Prisma.semesterCreateNestedManyWithoutBranchInput
+  frais?: Prisma.FraisCreateNestedManyWithoutBranchInput
+  calendarEvent?: Prisma.CalendarEventCreateNestedManyWithoutBranchInput
+  periodResultLock?: Prisma.PeriodResultLockCreateNestedManyWithoutBranchInput
+  cashierExpense?: Prisma.CashierExpenseCreateNestedManyWithoutBranchInput
+  invoice?: Prisma.InvoiceCreateNestedManyWithoutBranchInput
+  creneau?: Prisma.CreneauCreateNestedManyWithoutBranchInput
+  paymentAllocation?: Prisma.PaymentAllocationCreateNestedManyWithoutBranchInput
+  teaching?: Prisma.TeachingCreateNestedManyWithoutBranchInput
+  mobileMoneyTransaction?: Prisma.MobileMoneyTransactionCreateNestedManyWithoutBranchInput
+  branchInvitation?: Prisma.BranchInvitationCreateNestedManyWithoutBranchInput
+  attendanceSessions?: Prisma.AttendanceSessionCreateNestedManyWithoutBranchInput
+  teacherAttendance?: Prisma.TeacherAttendanceCreateNestedManyWithoutBranchInput
+  personnelAttendance?: Prisma.PersonnelAttendanceCreateNestedManyWithoutBranchInput
+  studentGrade?: Prisma.StudentGradeCreateNestedManyWithoutBranchInput
+  parentFeedback?: Prisma.ParentFeedbackCreateNestedManyWithoutBranchInput
+  transaction?: Prisma.TransactionCreateNestedManyWithoutBranchInput
+  discountRule?: Prisma.DiscountRuleCreateNestedManyWithoutBranchInput
+  paymentEvent?: Prisma.PaymentEventCreateNestedManyWithoutBranchInput
+  partnaires?: Prisma.PartnaireCreateNestedManyWithoutBranchInput
+  organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeCreateNestedManyWithoutBranchInput
+  registrationRequests?: Prisma.RegistrationRequestCreateNestedManyWithoutBranchInput
+  jobApplications?: Prisma.JobApplicationCreateNestedManyWithoutBranchInput
+  targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
+  sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
+  issuedDocuments?: Prisma.IssuedDocumentCreateNestedManyWithoutBranchInput
+}
+
+export type BranchUncheckedCreateWithoutCashierOpeningBalanceInput = {
+  id?: string
+  name: string
+  code?: string | null
+  image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  adresse?: string | null
+  province?: string | null
+  ville?: string | null
+  commune?: string | null
+  pays?: string | null
+  idnat?: string | null
+  tel?: string | null
+  latitude: number
+  longitude: number
+  attendanceRadius?: number
+  organizationId: string
+  typebranch: $Enums.TypeBrache
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
+  branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
+  classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
+  paymentBatch?: Prisma.PaymentBatchUncheckedCreateNestedManyWithoutBranchInput
+  familyPayment?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutBranchInput
+  fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutBranchInput
+  eventType?: Prisma.EventTypeUncheckedCreateNestedManyWithoutBranchInput
+  period?: Prisma.periodUncheckedCreateNestedManyWithoutBranchInput
+  cours?: Prisma.CoursUncheckedCreateNestedManyWithoutBranchInput
+  schoolYear?: Prisma.SchoolYearUncheckedCreateNestedManyWithoutBranchInput
+  typeFrais?: Prisma.TypeFraisUncheckedCreateNestedManyWithoutBranchInput
+  option?: Prisma.OptionUncheckedCreateNestedManyWithoutBranchInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedCreateNestedManyWithoutBranchInput
+  classEnrollment?: Prisma.ClassEnrollmentUncheckedCreateNestedManyWithoutBranchInput
+  section?: Prisma.SectionUncheckedCreateNestedManyWithoutBranchInput
+  semester?: Prisma.semesterUncheckedCreateNestedManyWithoutBranchInput
+  frais?: Prisma.FraisUncheckedCreateNestedManyWithoutBranchInput
+  calendarEvent?: Prisma.CalendarEventUncheckedCreateNestedManyWithoutBranchInput
+  periodResultLock?: Prisma.PeriodResultLockUncheckedCreateNestedManyWithoutBranchInput
+  cashierExpense?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutBranchInput
+  invoice?: Prisma.InvoiceUncheckedCreateNestedManyWithoutBranchInput
+  creneau?: Prisma.CreneauUncheckedCreateNestedManyWithoutBranchInput
+  paymentAllocation?: Prisma.PaymentAllocationUncheckedCreateNestedManyWithoutBranchInput
+  teaching?: Prisma.TeachingUncheckedCreateNestedManyWithoutBranchInput
+  mobileMoneyTransaction?: Prisma.MobileMoneyTransactionUncheckedCreateNestedManyWithoutBranchInput
+  branchInvitation?: Prisma.BranchInvitationUncheckedCreateNestedManyWithoutBranchInput
+  attendanceSessions?: Prisma.AttendanceSessionUncheckedCreateNestedManyWithoutBranchInput
+  teacherAttendance?: Prisma.TeacherAttendanceUncheckedCreateNestedManyWithoutBranchInput
+  personnelAttendance?: Prisma.PersonnelAttendanceUncheckedCreateNestedManyWithoutBranchInput
+  studentGrade?: Prisma.StudentGradeUncheckedCreateNestedManyWithoutBranchInput
+  parentFeedback?: Prisma.ParentFeedbackUncheckedCreateNestedManyWithoutBranchInput
+  transaction?: Prisma.TransactionUncheckedCreateNestedManyWithoutBranchInput
+  discountRule?: Prisma.DiscountRuleUncheckedCreateNestedManyWithoutBranchInput
+  paymentEvent?: Prisma.PaymentEventUncheckedCreateNestedManyWithoutBranchInput
+  partnaires?: Prisma.PartnaireUncheckedCreateNestedManyWithoutBranchInput
+  organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedCreateNestedManyWithoutBranchInput
+  registrationRequests?: Prisma.RegistrationRequestUncheckedCreateNestedManyWithoutBranchInput
+  jobApplications?: Prisma.JobApplicationUncheckedCreateNestedManyWithoutBranchInput
+  targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
+  sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
+  issuedDocuments?: Prisma.IssuedDocumentUncheckedCreateNestedManyWithoutBranchInput
+}
+
+export type BranchCreateOrConnectWithoutCashierOpeningBalanceInput = {
+  where: Prisma.BranchWhereUniqueInput
+  create: Prisma.XOR<Prisma.BranchCreateWithoutCashierOpeningBalanceInput, Prisma.BranchUncheckedCreateWithoutCashierOpeningBalanceInput>
+}
+
+export type BranchUpsertWithoutCashierOpeningBalanceInput = {
+  update: Prisma.XOR<Prisma.BranchUpdateWithoutCashierOpeningBalanceInput, Prisma.BranchUncheckedUpdateWithoutCashierOpeningBalanceInput>
+  create: Prisma.XOR<Prisma.BranchCreateWithoutCashierOpeningBalanceInput, Prisma.BranchUncheckedCreateWithoutCashierOpeningBalanceInput>
+  where?: Prisma.BranchWhereInput
+}
+
+export type BranchUpdateToOneWithWhereWithoutCashierOpeningBalanceInput = {
+  where?: Prisma.BranchWhereInput
+  data: Prisma.XOR<Prisma.BranchUpdateWithoutCashierOpeningBalanceInput, Prisma.BranchUncheckedUpdateWithoutCashierOpeningBalanceInput>
+}
+
+export type BranchUpdateWithoutCashierOpeningBalanceInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  commune?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pays?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  idnat?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  latitude?: Prisma.FloatFieldUpdateOperationsInput | number
+  longitude?: Prisma.FloatFieldUpdateOperationsInput | number
+  attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  organization?: Prisma.OrganizationUpdateOneRequiredWithoutBranchesNestedInput
+  studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
+  branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
+  classes?: Prisma.ClasseUpdateManyWithoutBranchNestedInput
+  paymentBatch?: Prisma.PaymentBatchUpdateManyWithoutBranchNestedInput
+  familyPayment?: Prisma.FamilyPaymentUpdateManyWithoutBranchNestedInput
+  fiche?: Prisma.ficheUpdateManyWithoutBranchNestedInput
+  eventType?: Prisma.EventTypeUpdateManyWithoutBranchNestedInput
+  period?: Prisma.periodUpdateManyWithoutBranchNestedInput
+  cours?: Prisma.CoursUpdateManyWithoutBranchNestedInput
+  schoolYear?: Prisma.SchoolYearUpdateManyWithoutBranchNestedInput
+  typeFrais?: Prisma.TypeFraisUpdateManyWithoutBranchNestedInput
+  option?: Prisma.OptionUpdateManyWithoutBranchNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUpdateManyWithoutBranchNestedInput
+  classEnrollment?: Prisma.ClassEnrollmentUpdateManyWithoutBranchNestedInput
+  section?: Prisma.SectionUpdateManyWithoutBranchNestedInput
+  semester?: Prisma.semesterUpdateManyWithoutBranchNestedInput
+  frais?: Prisma.FraisUpdateManyWithoutBranchNestedInput
+  calendarEvent?: Prisma.CalendarEventUpdateManyWithoutBranchNestedInput
+  periodResultLock?: Prisma.PeriodResultLockUpdateManyWithoutBranchNestedInput
+  cashierExpense?: Prisma.CashierExpenseUpdateManyWithoutBranchNestedInput
+  invoice?: Prisma.InvoiceUpdateManyWithoutBranchNestedInput
+  creneau?: Prisma.CreneauUpdateManyWithoutBranchNestedInput
+  paymentAllocation?: Prisma.PaymentAllocationUpdateManyWithoutBranchNestedInput
+  teaching?: Prisma.TeachingUpdateManyWithoutBranchNestedInput
+  mobileMoneyTransaction?: Prisma.MobileMoneyTransactionUpdateManyWithoutBranchNestedInput
+  branchInvitation?: Prisma.BranchInvitationUpdateManyWithoutBranchNestedInput
+  attendanceSessions?: Prisma.AttendanceSessionUpdateManyWithoutBranchNestedInput
+  teacherAttendance?: Prisma.TeacherAttendanceUpdateManyWithoutBranchNestedInput
+  personnelAttendance?: Prisma.PersonnelAttendanceUpdateManyWithoutBranchNestedInput
+  studentGrade?: Prisma.StudentGradeUpdateManyWithoutBranchNestedInput
+  parentFeedback?: Prisma.ParentFeedbackUpdateManyWithoutBranchNestedInput
+  transaction?: Prisma.TransactionUpdateManyWithoutBranchNestedInput
+  discountRule?: Prisma.DiscountRuleUpdateManyWithoutBranchNestedInput
+  paymentEvent?: Prisma.PaymentEventUpdateManyWithoutBranchNestedInput
+  partnaires?: Prisma.PartnaireUpdateManyWithoutBranchNestedInput
+  organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUpdateManyWithoutBranchNestedInput
+  registrationRequests?: Prisma.RegistrationRequestUpdateManyWithoutBranchNestedInput
+  jobApplications?: Prisma.JobApplicationUpdateManyWithoutBranchNestedInput
+  targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
+  sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
+  issuedDocuments?: Prisma.IssuedDocumentUpdateManyWithoutBranchNestedInput
+}
+
+export type BranchUncheckedUpdateWithoutCashierOpeningBalanceInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  commune?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pays?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  idnat?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  latitude?: Prisma.FloatFieldUpdateOperationsInput | number
+  longitude?: Prisma.FloatFieldUpdateOperationsInput | number
+  attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  organizationId?: Prisma.StringFieldUpdateOperationsInput | string
+  typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
+  branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
+  classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
+  paymentBatch?: Prisma.PaymentBatchUncheckedUpdateManyWithoutBranchNestedInput
+  familyPayment?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutBranchNestedInput
+  fiche?: Prisma.ficheUncheckedUpdateManyWithoutBranchNestedInput
+  eventType?: Prisma.EventTypeUncheckedUpdateManyWithoutBranchNestedInput
+  period?: Prisma.periodUncheckedUpdateManyWithoutBranchNestedInput
+  cours?: Prisma.CoursUncheckedUpdateManyWithoutBranchNestedInput
+  schoolYear?: Prisma.SchoolYearUncheckedUpdateManyWithoutBranchNestedInput
+  typeFrais?: Prisma.TypeFraisUncheckedUpdateManyWithoutBranchNestedInput
+  option?: Prisma.OptionUncheckedUpdateManyWithoutBranchNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedUpdateManyWithoutBranchNestedInput
+  classEnrollment?: Prisma.ClassEnrollmentUncheckedUpdateManyWithoutBranchNestedInput
+  section?: Prisma.SectionUncheckedUpdateManyWithoutBranchNestedInput
+  semester?: Prisma.semesterUncheckedUpdateManyWithoutBranchNestedInput
+  frais?: Prisma.FraisUncheckedUpdateManyWithoutBranchNestedInput
+  calendarEvent?: Prisma.CalendarEventUncheckedUpdateManyWithoutBranchNestedInput
+  periodResultLock?: Prisma.PeriodResultLockUncheckedUpdateManyWithoutBranchNestedInput
+  cashierExpense?: Prisma.CashierExpenseUncheckedUpdateManyWithoutBranchNestedInput
   invoice?: Prisma.InvoiceUncheckedUpdateManyWithoutBranchNestedInput
   creneau?: Prisma.CreneauUncheckedUpdateManyWithoutBranchNestedInput
   paymentAllocation?: Prisma.PaymentAllocationUncheckedUpdateManyWithoutBranchNestedInput
@@ -8774,6 +9171,7 @@ export type BranchCreateWithoutPaymentAllocationInput = {
   calendarEvent?: Prisma.CalendarEventCreateNestedManyWithoutBranchInput
   periodResultLock?: Prisma.PeriodResultLockCreateNestedManyWithoutBranchInput
   cashierExpense?: Prisma.CashierExpenseCreateNestedManyWithoutBranchInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceCreateNestedManyWithoutBranchInput
   invoice?: Prisma.InvoiceCreateNestedManyWithoutBranchInput
   creneau?: Prisma.CreneauCreateNestedManyWithoutBranchInput
   teaching?: Prisma.TeachingCreateNestedManyWithoutBranchInput
@@ -8836,6 +9234,7 @@ export type BranchUncheckedCreateWithoutPaymentAllocationInput = {
   calendarEvent?: Prisma.CalendarEventUncheckedCreateNestedManyWithoutBranchInput
   periodResultLock?: Prisma.PeriodResultLockUncheckedCreateNestedManyWithoutBranchInput
   cashierExpense?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutBranchInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUncheckedCreateNestedManyWithoutBranchInput
   invoice?: Prisma.InvoiceUncheckedCreateNestedManyWithoutBranchInput
   creneau?: Prisma.CreneauUncheckedCreateNestedManyWithoutBranchInput
   teaching?: Prisma.TeachingUncheckedCreateNestedManyWithoutBranchInput
@@ -8914,6 +9313,7 @@ export type BranchUpdateWithoutPaymentAllocationInput = {
   calendarEvent?: Prisma.CalendarEventUpdateManyWithoutBranchNestedInput
   periodResultLock?: Prisma.PeriodResultLockUpdateManyWithoutBranchNestedInput
   cashierExpense?: Prisma.CashierExpenseUpdateManyWithoutBranchNestedInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUpdateManyWithoutBranchNestedInput
   invoice?: Prisma.InvoiceUpdateManyWithoutBranchNestedInput
   creneau?: Prisma.CreneauUpdateManyWithoutBranchNestedInput
   teaching?: Prisma.TeachingUpdateManyWithoutBranchNestedInput
@@ -8976,6 +9376,7 @@ export type BranchUncheckedUpdateWithoutPaymentAllocationInput = {
   calendarEvent?: Prisma.CalendarEventUncheckedUpdateManyWithoutBranchNestedInput
   periodResultLock?: Prisma.PeriodResultLockUncheckedUpdateManyWithoutBranchNestedInput
   cashierExpense?: Prisma.CashierExpenseUncheckedUpdateManyWithoutBranchNestedInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUncheckedUpdateManyWithoutBranchNestedInput
   invoice?: Prisma.InvoiceUncheckedUpdateManyWithoutBranchNestedInput
   creneau?: Prisma.CreneauUncheckedUpdateManyWithoutBranchNestedInput
   teaching?: Prisma.TeachingUncheckedUpdateManyWithoutBranchNestedInput
@@ -9038,6 +9439,7 @@ export type BranchCreateWithoutMobileMoneyTransactionInput = {
   calendarEvent?: Prisma.CalendarEventCreateNestedManyWithoutBranchInput
   periodResultLock?: Prisma.PeriodResultLockCreateNestedManyWithoutBranchInput
   cashierExpense?: Prisma.CashierExpenseCreateNestedManyWithoutBranchInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceCreateNestedManyWithoutBranchInput
   invoice?: Prisma.InvoiceCreateNestedManyWithoutBranchInput
   creneau?: Prisma.CreneauCreateNestedManyWithoutBranchInput
   paymentAllocation?: Prisma.PaymentAllocationCreateNestedManyWithoutBranchInput
@@ -9100,6 +9502,7 @@ export type BranchUncheckedCreateWithoutMobileMoneyTransactionInput = {
   calendarEvent?: Prisma.CalendarEventUncheckedCreateNestedManyWithoutBranchInput
   periodResultLock?: Prisma.PeriodResultLockUncheckedCreateNestedManyWithoutBranchInput
   cashierExpense?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutBranchInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUncheckedCreateNestedManyWithoutBranchInput
   invoice?: Prisma.InvoiceUncheckedCreateNestedManyWithoutBranchInput
   creneau?: Prisma.CreneauUncheckedCreateNestedManyWithoutBranchInput
   paymentAllocation?: Prisma.PaymentAllocationUncheckedCreateNestedManyWithoutBranchInput
@@ -9178,6 +9581,7 @@ export type BranchUpdateWithoutMobileMoneyTransactionInput = {
   calendarEvent?: Prisma.CalendarEventUpdateManyWithoutBranchNestedInput
   periodResultLock?: Prisma.PeriodResultLockUpdateManyWithoutBranchNestedInput
   cashierExpense?: Prisma.CashierExpenseUpdateManyWithoutBranchNestedInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUpdateManyWithoutBranchNestedInput
   invoice?: Prisma.InvoiceUpdateManyWithoutBranchNestedInput
   creneau?: Prisma.CreneauUpdateManyWithoutBranchNestedInput
   paymentAllocation?: Prisma.PaymentAllocationUpdateManyWithoutBranchNestedInput
@@ -9240,6 +9644,7 @@ export type BranchUncheckedUpdateWithoutMobileMoneyTransactionInput = {
   calendarEvent?: Prisma.CalendarEventUncheckedUpdateManyWithoutBranchNestedInput
   periodResultLock?: Prisma.PeriodResultLockUncheckedUpdateManyWithoutBranchNestedInput
   cashierExpense?: Prisma.CashierExpenseUncheckedUpdateManyWithoutBranchNestedInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUncheckedUpdateManyWithoutBranchNestedInput
   invoice?: Prisma.InvoiceUncheckedUpdateManyWithoutBranchNestedInput
   creneau?: Prisma.CreneauUncheckedUpdateManyWithoutBranchNestedInput
   paymentAllocation?: Prisma.PaymentAllocationUncheckedUpdateManyWithoutBranchNestedInput
@@ -9302,6 +9707,7 @@ export type BranchCreateWithoutPaymentEventInput = {
   calendarEvent?: Prisma.CalendarEventCreateNestedManyWithoutBranchInput
   periodResultLock?: Prisma.PeriodResultLockCreateNestedManyWithoutBranchInput
   cashierExpense?: Prisma.CashierExpenseCreateNestedManyWithoutBranchInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceCreateNestedManyWithoutBranchInput
   invoice?: Prisma.InvoiceCreateNestedManyWithoutBranchInput
   creneau?: Prisma.CreneauCreateNestedManyWithoutBranchInput
   paymentAllocation?: Prisma.PaymentAllocationCreateNestedManyWithoutBranchInput
@@ -9364,6 +9770,7 @@ export type BranchUncheckedCreateWithoutPaymentEventInput = {
   calendarEvent?: Prisma.CalendarEventUncheckedCreateNestedManyWithoutBranchInput
   periodResultLock?: Prisma.PeriodResultLockUncheckedCreateNestedManyWithoutBranchInput
   cashierExpense?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutBranchInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUncheckedCreateNestedManyWithoutBranchInput
   invoice?: Prisma.InvoiceUncheckedCreateNestedManyWithoutBranchInput
   creneau?: Prisma.CreneauUncheckedCreateNestedManyWithoutBranchInput
   paymentAllocation?: Prisma.PaymentAllocationUncheckedCreateNestedManyWithoutBranchInput
@@ -9442,6 +9849,7 @@ export type BranchUpdateWithoutPaymentEventInput = {
   calendarEvent?: Prisma.CalendarEventUpdateManyWithoutBranchNestedInput
   periodResultLock?: Prisma.PeriodResultLockUpdateManyWithoutBranchNestedInput
   cashierExpense?: Prisma.CashierExpenseUpdateManyWithoutBranchNestedInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUpdateManyWithoutBranchNestedInput
   invoice?: Prisma.InvoiceUpdateManyWithoutBranchNestedInput
   creneau?: Prisma.CreneauUpdateManyWithoutBranchNestedInput
   paymentAllocation?: Prisma.PaymentAllocationUpdateManyWithoutBranchNestedInput
@@ -9504,6 +9912,7 @@ export type BranchUncheckedUpdateWithoutPaymentEventInput = {
   calendarEvent?: Prisma.CalendarEventUncheckedUpdateManyWithoutBranchNestedInput
   periodResultLock?: Prisma.PeriodResultLockUncheckedUpdateManyWithoutBranchNestedInput
   cashierExpense?: Prisma.CashierExpenseUncheckedUpdateManyWithoutBranchNestedInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUncheckedUpdateManyWithoutBranchNestedInput
   invoice?: Prisma.InvoiceUncheckedUpdateManyWithoutBranchNestedInput
   creneau?: Prisma.CreneauUncheckedUpdateManyWithoutBranchNestedInput
   paymentAllocation?: Prisma.PaymentAllocationUncheckedUpdateManyWithoutBranchNestedInput
@@ -9566,6 +9975,7 @@ export type BranchCreateWithoutDiscountRuleInput = {
   calendarEvent?: Prisma.CalendarEventCreateNestedManyWithoutBranchInput
   periodResultLock?: Prisma.PeriodResultLockCreateNestedManyWithoutBranchInput
   cashierExpense?: Prisma.CashierExpenseCreateNestedManyWithoutBranchInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceCreateNestedManyWithoutBranchInput
   invoice?: Prisma.InvoiceCreateNestedManyWithoutBranchInput
   creneau?: Prisma.CreneauCreateNestedManyWithoutBranchInput
   paymentAllocation?: Prisma.PaymentAllocationCreateNestedManyWithoutBranchInput
@@ -9628,6 +10038,7 @@ export type BranchUncheckedCreateWithoutDiscountRuleInput = {
   calendarEvent?: Prisma.CalendarEventUncheckedCreateNestedManyWithoutBranchInput
   periodResultLock?: Prisma.PeriodResultLockUncheckedCreateNestedManyWithoutBranchInput
   cashierExpense?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutBranchInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUncheckedCreateNestedManyWithoutBranchInput
   invoice?: Prisma.InvoiceUncheckedCreateNestedManyWithoutBranchInput
   creneau?: Prisma.CreneauUncheckedCreateNestedManyWithoutBranchInput
   paymentAllocation?: Prisma.PaymentAllocationUncheckedCreateNestedManyWithoutBranchInput
@@ -9706,6 +10117,7 @@ export type BranchUpdateWithoutDiscountRuleInput = {
   calendarEvent?: Prisma.CalendarEventUpdateManyWithoutBranchNestedInput
   periodResultLock?: Prisma.PeriodResultLockUpdateManyWithoutBranchNestedInput
   cashierExpense?: Prisma.CashierExpenseUpdateManyWithoutBranchNestedInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUpdateManyWithoutBranchNestedInput
   invoice?: Prisma.InvoiceUpdateManyWithoutBranchNestedInput
   creneau?: Prisma.CreneauUpdateManyWithoutBranchNestedInput
   paymentAllocation?: Prisma.PaymentAllocationUpdateManyWithoutBranchNestedInput
@@ -9768,6 +10180,7 @@ export type BranchUncheckedUpdateWithoutDiscountRuleInput = {
   calendarEvent?: Prisma.CalendarEventUncheckedUpdateManyWithoutBranchNestedInput
   periodResultLock?: Prisma.PeriodResultLockUncheckedUpdateManyWithoutBranchNestedInput
   cashierExpense?: Prisma.CashierExpenseUncheckedUpdateManyWithoutBranchNestedInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUncheckedUpdateManyWithoutBranchNestedInput
   invoice?: Prisma.InvoiceUncheckedUpdateManyWithoutBranchNestedInput
   creneau?: Prisma.CreneauUncheckedUpdateManyWithoutBranchNestedInput
   paymentAllocation?: Prisma.PaymentAllocationUncheckedUpdateManyWithoutBranchNestedInput
@@ -9830,6 +10243,7 @@ export type BranchCreateWithoutTransactionInput = {
   calendarEvent?: Prisma.CalendarEventCreateNestedManyWithoutBranchInput
   periodResultLock?: Prisma.PeriodResultLockCreateNestedManyWithoutBranchInput
   cashierExpense?: Prisma.CashierExpenseCreateNestedManyWithoutBranchInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceCreateNestedManyWithoutBranchInput
   invoice?: Prisma.InvoiceCreateNestedManyWithoutBranchInput
   creneau?: Prisma.CreneauCreateNestedManyWithoutBranchInput
   paymentAllocation?: Prisma.PaymentAllocationCreateNestedManyWithoutBranchInput
@@ -9892,6 +10306,7 @@ export type BranchUncheckedCreateWithoutTransactionInput = {
   calendarEvent?: Prisma.CalendarEventUncheckedCreateNestedManyWithoutBranchInput
   periodResultLock?: Prisma.PeriodResultLockUncheckedCreateNestedManyWithoutBranchInput
   cashierExpense?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutBranchInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUncheckedCreateNestedManyWithoutBranchInput
   invoice?: Prisma.InvoiceUncheckedCreateNestedManyWithoutBranchInput
   creneau?: Prisma.CreneauUncheckedCreateNestedManyWithoutBranchInput
   paymentAllocation?: Prisma.PaymentAllocationUncheckedCreateNestedManyWithoutBranchInput
@@ -9970,6 +10385,7 @@ export type BranchUpdateWithoutTransactionInput = {
   calendarEvent?: Prisma.CalendarEventUpdateManyWithoutBranchNestedInput
   periodResultLock?: Prisma.PeriodResultLockUpdateManyWithoutBranchNestedInput
   cashierExpense?: Prisma.CashierExpenseUpdateManyWithoutBranchNestedInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUpdateManyWithoutBranchNestedInput
   invoice?: Prisma.InvoiceUpdateManyWithoutBranchNestedInput
   creneau?: Prisma.CreneauUpdateManyWithoutBranchNestedInput
   paymentAllocation?: Prisma.PaymentAllocationUpdateManyWithoutBranchNestedInput
@@ -10032,6 +10448,7 @@ export type BranchUncheckedUpdateWithoutTransactionInput = {
   calendarEvent?: Prisma.CalendarEventUncheckedUpdateManyWithoutBranchNestedInput
   periodResultLock?: Prisma.PeriodResultLockUncheckedUpdateManyWithoutBranchNestedInput
   cashierExpense?: Prisma.CashierExpenseUncheckedUpdateManyWithoutBranchNestedInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUncheckedUpdateManyWithoutBranchNestedInput
   invoice?: Prisma.InvoiceUncheckedUpdateManyWithoutBranchNestedInput
   creneau?: Prisma.CreneauUncheckedUpdateManyWithoutBranchNestedInput
   paymentAllocation?: Prisma.PaymentAllocationUncheckedUpdateManyWithoutBranchNestedInput
@@ -10093,6 +10510,7 @@ export type BranchCreateWithoutOrganizationInput = {
   calendarEvent?: Prisma.CalendarEventCreateNestedManyWithoutBranchInput
   periodResultLock?: Prisma.PeriodResultLockCreateNestedManyWithoutBranchInput
   cashierExpense?: Prisma.CashierExpenseCreateNestedManyWithoutBranchInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceCreateNestedManyWithoutBranchInput
   invoice?: Prisma.InvoiceCreateNestedManyWithoutBranchInput
   creneau?: Prisma.CreneauCreateNestedManyWithoutBranchInput
   paymentAllocation?: Prisma.PaymentAllocationCreateNestedManyWithoutBranchInput
@@ -10155,6 +10573,7 @@ export type BranchUncheckedCreateWithoutOrganizationInput = {
   calendarEvent?: Prisma.CalendarEventUncheckedCreateNestedManyWithoutBranchInput
   periodResultLock?: Prisma.PeriodResultLockUncheckedCreateNestedManyWithoutBranchInput
   cashierExpense?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutBranchInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUncheckedCreateNestedManyWithoutBranchInput
   invoice?: Prisma.InvoiceUncheckedCreateNestedManyWithoutBranchInput
   creneau?: Prisma.CreneauUncheckedCreateNestedManyWithoutBranchInput
   paymentAllocation?: Prisma.PaymentAllocationUncheckedCreateNestedManyWithoutBranchInput
@@ -10269,6 +10688,7 @@ export type BranchCreateWithoutRegistrationRequestsInput = {
   calendarEvent?: Prisma.CalendarEventCreateNestedManyWithoutBranchInput
   periodResultLock?: Prisma.PeriodResultLockCreateNestedManyWithoutBranchInput
   cashierExpense?: Prisma.CashierExpenseCreateNestedManyWithoutBranchInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceCreateNestedManyWithoutBranchInput
   invoice?: Prisma.InvoiceCreateNestedManyWithoutBranchInput
   creneau?: Prisma.CreneauCreateNestedManyWithoutBranchInput
   paymentAllocation?: Prisma.PaymentAllocationCreateNestedManyWithoutBranchInput
@@ -10331,6 +10751,7 @@ export type BranchUncheckedCreateWithoutRegistrationRequestsInput = {
   calendarEvent?: Prisma.CalendarEventUncheckedCreateNestedManyWithoutBranchInput
   periodResultLock?: Prisma.PeriodResultLockUncheckedCreateNestedManyWithoutBranchInput
   cashierExpense?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutBranchInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUncheckedCreateNestedManyWithoutBranchInput
   invoice?: Prisma.InvoiceUncheckedCreateNestedManyWithoutBranchInput
   creneau?: Prisma.CreneauUncheckedCreateNestedManyWithoutBranchInput
   paymentAllocation?: Prisma.PaymentAllocationUncheckedCreateNestedManyWithoutBranchInput
@@ -10409,6 +10830,7 @@ export type BranchUpdateWithoutRegistrationRequestsInput = {
   calendarEvent?: Prisma.CalendarEventUpdateManyWithoutBranchNestedInput
   periodResultLock?: Prisma.PeriodResultLockUpdateManyWithoutBranchNestedInput
   cashierExpense?: Prisma.CashierExpenseUpdateManyWithoutBranchNestedInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUpdateManyWithoutBranchNestedInput
   invoice?: Prisma.InvoiceUpdateManyWithoutBranchNestedInput
   creneau?: Prisma.CreneauUpdateManyWithoutBranchNestedInput
   paymentAllocation?: Prisma.PaymentAllocationUpdateManyWithoutBranchNestedInput
@@ -10471,6 +10893,7 @@ export type BranchUncheckedUpdateWithoutRegistrationRequestsInput = {
   calendarEvent?: Prisma.CalendarEventUncheckedUpdateManyWithoutBranchNestedInput
   periodResultLock?: Prisma.PeriodResultLockUncheckedUpdateManyWithoutBranchNestedInput
   cashierExpense?: Prisma.CashierExpenseUncheckedUpdateManyWithoutBranchNestedInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUncheckedUpdateManyWithoutBranchNestedInput
   invoice?: Prisma.InvoiceUncheckedUpdateManyWithoutBranchNestedInput
   creneau?: Prisma.CreneauUncheckedUpdateManyWithoutBranchNestedInput
   paymentAllocation?: Prisma.PaymentAllocationUncheckedUpdateManyWithoutBranchNestedInput
@@ -10533,6 +10956,7 @@ export type BranchCreateWithoutJobApplicationsInput = {
   calendarEvent?: Prisma.CalendarEventCreateNestedManyWithoutBranchInput
   periodResultLock?: Prisma.PeriodResultLockCreateNestedManyWithoutBranchInput
   cashierExpense?: Prisma.CashierExpenseCreateNestedManyWithoutBranchInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceCreateNestedManyWithoutBranchInput
   invoice?: Prisma.InvoiceCreateNestedManyWithoutBranchInput
   creneau?: Prisma.CreneauCreateNestedManyWithoutBranchInput
   paymentAllocation?: Prisma.PaymentAllocationCreateNestedManyWithoutBranchInput
@@ -10595,6 +11019,7 @@ export type BranchUncheckedCreateWithoutJobApplicationsInput = {
   calendarEvent?: Prisma.CalendarEventUncheckedCreateNestedManyWithoutBranchInput
   periodResultLock?: Prisma.PeriodResultLockUncheckedCreateNestedManyWithoutBranchInput
   cashierExpense?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutBranchInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUncheckedCreateNestedManyWithoutBranchInput
   invoice?: Prisma.InvoiceUncheckedCreateNestedManyWithoutBranchInput
   creneau?: Prisma.CreneauUncheckedCreateNestedManyWithoutBranchInput
   paymentAllocation?: Prisma.PaymentAllocationUncheckedCreateNestedManyWithoutBranchInput
@@ -10673,6 +11098,7 @@ export type BranchUpdateWithoutJobApplicationsInput = {
   calendarEvent?: Prisma.CalendarEventUpdateManyWithoutBranchNestedInput
   periodResultLock?: Prisma.PeriodResultLockUpdateManyWithoutBranchNestedInput
   cashierExpense?: Prisma.CashierExpenseUpdateManyWithoutBranchNestedInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUpdateManyWithoutBranchNestedInput
   invoice?: Prisma.InvoiceUpdateManyWithoutBranchNestedInput
   creneau?: Prisma.CreneauUpdateManyWithoutBranchNestedInput
   paymentAllocation?: Prisma.PaymentAllocationUpdateManyWithoutBranchNestedInput
@@ -10735,6 +11161,7 @@ export type BranchUncheckedUpdateWithoutJobApplicationsInput = {
   calendarEvent?: Prisma.CalendarEventUncheckedUpdateManyWithoutBranchNestedInput
   periodResultLock?: Prisma.PeriodResultLockUncheckedUpdateManyWithoutBranchNestedInput
   cashierExpense?: Prisma.CashierExpenseUncheckedUpdateManyWithoutBranchNestedInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUncheckedUpdateManyWithoutBranchNestedInput
   invoice?: Prisma.InvoiceUncheckedUpdateManyWithoutBranchNestedInput
   creneau?: Prisma.CreneauUncheckedUpdateManyWithoutBranchNestedInput
   paymentAllocation?: Prisma.PaymentAllocationUncheckedUpdateManyWithoutBranchNestedInput
@@ -10797,6 +11224,7 @@ export type BranchCreateWithoutPartnairesInput = {
   calendarEvent?: Prisma.CalendarEventCreateNestedManyWithoutBranchInput
   periodResultLock?: Prisma.PeriodResultLockCreateNestedManyWithoutBranchInput
   cashierExpense?: Prisma.CashierExpenseCreateNestedManyWithoutBranchInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceCreateNestedManyWithoutBranchInput
   invoice?: Prisma.InvoiceCreateNestedManyWithoutBranchInput
   creneau?: Prisma.CreneauCreateNestedManyWithoutBranchInput
   paymentAllocation?: Prisma.PaymentAllocationCreateNestedManyWithoutBranchInput
@@ -10859,6 +11287,7 @@ export type BranchUncheckedCreateWithoutPartnairesInput = {
   calendarEvent?: Prisma.CalendarEventUncheckedCreateNestedManyWithoutBranchInput
   periodResultLock?: Prisma.PeriodResultLockUncheckedCreateNestedManyWithoutBranchInput
   cashierExpense?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutBranchInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUncheckedCreateNestedManyWithoutBranchInput
   invoice?: Prisma.InvoiceUncheckedCreateNestedManyWithoutBranchInput
   creneau?: Prisma.CreneauUncheckedCreateNestedManyWithoutBranchInput
   paymentAllocation?: Prisma.PaymentAllocationUncheckedCreateNestedManyWithoutBranchInput
@@ -10937,6 +11366,7 @@ export type BranchUpdateWithoutPartnairesInput = {
   calendarEvent?: Prisma.CalendarEventUpdateManyWithoutBranchNestedInput
   periodResultLock?: Prisma.PeriodResultLockUpdateManyWithoutBranchNestedInput
   cashierExpense?: Prisma.CashierExpenseUpdateManyWithoutBranchNestedInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUpdateManyWithoutBranchNestedInput
   invoice?: Prisma.InvoiceUpdateManyWithoutBranchNestedInput
   creneau?: Prisma.CreneauUpdateManyWithoutBranchNestedInput
   paymentAllocation?: Prisma.PaymentAllocationUpdateManyWithoutBranchNestedInput
@@ -10999,6 +11429,7 @@ export type BranchUncheckedUpdateWithoutPartnairesInput = {
   calendarEvent?: Prisma.CalendarEventUncheckedUpdateManyWithoutBranchNestedInput
   periodResultLock?: Prisma.PeriodResultLockUncheckedUpdateManyWithoutBranchNestedInput
   cashierExpense?: Prisma.CashierExpenseUncheckedUpdateManyWithoutBranchNestedInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUncheckedUpdateManyWithoutBranchNestedInput
   invoice?: Prisma.InvoiceUncheckedUpdateManyWithoutBranchNestedInput
   creneau?: Prisma.CreneauUncheckedUpdateManyWithoutBranchNestedInput
   paymentAllocation?: Prisma.PaymentAllocationUncheckedUpdateManyWithoutBranchNestedInput
@@ -11060,6 +11491,7 @@ export type BranchCreateWithoutBranchemembersInput = {
   calendarEvent?: Prisma.CalendarEventCreateNestedManyWithoutBranchInput
   periodResultLock?: Prisma.PeriodResultLockCreateNestedManyWithoutBranchInput
   cashierExpense?: Prisma.CashierExpenseCreateNestedManyWithoutBranchInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceCreateNestedManyWithoutBranchInput
   invoice?: Prisma.InvoiceCreateNestedManyWithoutBranchInput
   creneau?: Prisma.CreneauCreateNestedManyWithoutBranchInput
   paymentAllocation?: Prisma.PaymentAllocationCreateNestedManyWithoutBranchInput
@@ -11122,6 +11554,7 @@ export type BranchUncheckedCreateWithoutBranchemembersInput = {
   calendarEvent?: Prisma.CalendarEventUncheckedCreateNestedManyWithoutBranchInput
   periodResultLock?: Prisma.PeriodResultLockUncheckedCreateNestedManyWithoutBranchInput
   cashierExpense?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutBranchInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUncheckedCreateNestedManyWithoutBranchInput
   invoice?: Prisma.InvoiceUncheckedCreateNestedManyWithoutBranchInput
   creneau?: Prisma.CreneauUncheckedCreateNestedManyWithoutBranchInput
   paymentAllocation?: Prisma.PaymentAllocationUncheckedCreateNestedManyWithoutBranchInput
@@ -11200,6 +11633,7 @@ export type BranchUpdateWithoutBranchemembersInput = {
   calendarEvent?: Prisma.CalendarEventUpdateManyWithoutBranchNestedInput
   periodResultLock?: Prisma.PeriodResultLockUpdateManyWithoutBranchNestedInput
   cashierExpense?: Prisma.CashierExpenseUpdateManyWithoutBranchNestedInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUpdateManyWithoutBranchNestedInput
   invoice?: Prisma.InvoiceUpdateManyWithoutBranchNestedInput
   creneau?: Prisma.CreneauUpdateManyWithoutBranchNestedInput
   paymentAllocation?: Prisma.PaymentAllocationUpdateManyWithoutBranchNestedInput
@@ -11262,6 +11696,7 @@ export type BranchUncheckedUpdateWithoutBranchemembersInput = {
   calendarEvent?: Prisma.CalendarEventUncheckedUpdateManyWithoutBranchNestedInput
   periodResultLock?: Prisma.PeriodResultLockUncheckedUpdateManyWithoutBranchNestedInput
   cashierExpense?: Prisma.CashierExpenseUncheckedUpdateManyWithoutBranchNestedInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUncheckedUpdateManyWithoutBranchNestedInput
   invoice?: Prisma.InvoiceUncheckedUpdateManyWithoutBranchNestedInput
   creneau?: Prisma.CreneauUncheckedUpdateManyWithoutBranchNestedInput
   paymentAllocation?: Prisma.PaymentAllocationUncheckedUpdateManyWithoutBranchNestedInput
@@ -11325,6 +11760,7 @@ export type BranchCreateWithoutTargetStudentLinksInput = {
   calendarEvent?: Prisma.CalendarEventCreateNestedManyWithoutBranchInput
   periodResultLock?: Prisma.PeriodResultLockCreateNestedManyWithoutBranchInput
   cashierExpense?: Prisma.CashierExpenseCreateNestedManyWithoutBranchInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceCreateNestedManyWithoutBranchInput
   invoice?: Prisma.InvoiceCreateNestedManyWithoutBranchInput
   creneau?: Prisma.CreneauCreateNestedManyWithoutBranchInput
   paymentAllocation?: Prisma.PaymentAllocationCreateNestedManyWithoutBranchInput
@@ -11387,6 +11823,7 @@ export type BranchUncheckedCreateWithoutTargetStudentLinksInput = {
   calendarEvent?: Prisma.CalendarEventUncheckedCreateNestedManyWithoutBranchInput
   periodResultLock?: Prisma.PeriodResultLockUncheckedCreateNestedManyWithoutBranchInput
   cashierExpense?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutBranchInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUncheckedCreateNestedManyWithoutBranchInput
   invoice?: Prisma.InvoiceUncheckedCreateNestedManyWithoutBranchInput
   creneau?: Prisma.CreneauUncheckedCreateNestedManyWithoutBranchInput
   paymentAllocation?: Prisma.PaymentAllocationUncheckedCreateNestedManyWithoutBranchInput
@@ -11454,6 +11891,7 @@ export type BranchCreateWithoutSourceStudentLinksInput = {
   calendarEvent?: Prisma.CalendarEventCreateNestedManyWithoutBranchInput
   periodResultLock?: Prisma.PeriodResultLockCreateNestedManyWithoutBranchInput
   cashierExpense?: Prisma.CashierExpenseCreateNestedManyWithoutBranchInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceCreateNestedManyWithoutBranchInput
   invoice?: Prisma.InvoiceCreateNestedManyWithoutBranchInput
   creneau?: Prisma.CreneauCreateNestedManyWithoutBranchInput
   paymentAllocation?: Prisma.PaymentAllocationCreateNestedManyWithoutBranchInput
@@ -11516,6 +11954,7 @@ export type BranchUncheckedCreateWithoutSourceStudentLinksInput = {
   calendarEvent?: Prisma.CalendarEventUncheckedCreateNestedManyWithoutBranchInput
   periodResultLock?: Prisma.PeriodResultLockUncheckedCreateNestedManyWithoutBranchInput
   cashierExpense?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutBranchInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUncheckedCreateNestedManyWithoutBranchInput
   invoice?: Prisma.InvoiceUncheckedCreateNestedManyWithoutBranchInput
   creneau?: Prisma.CreneauUncheckedCreateNestedManyWithoutBranchInput
   paymentAllocation?: Prisma.PaymentAllocationUncheckedCreateNestedManyWithoutBranchInput
@@ -11594,6 +12033,7 @@ export type BranchUpdateWithoutTargetStudentLinksInput = {
   calendarEvent?: Prisma.CalendarEventUpdateManyWithoutBranchNestedInput
   periodResultLock?: Prisma.PeriodResultLockUpdateManyWithoutBranchNestedInput
   cashierExpense?: Prisma.CashierExpenseUpdateManyWithoutBranchNestedInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUpdateManyWithoutBranchNestedInput
   invoice?: Prisma.InvoiceUpdateManyWithoutBranchNestedInput
   creneau?: Prisma.CreneauUpdateManyWithoutBranchNestedInput
   paymentAllocation?: Prisma.PaymentAllocationUpdateManyWithoutBranchNestedInput
@@ -11656,6 +12096,7 @@ export type BranchUncheckedUpdateWithoutTargetStudentLinksInput = {
   calendarEvent?: Prisma.CalendarEventUncheckedUpdateManyWithoutBranchNestedInput
   periodResultLock?: Prisma.PeriodResultLockUncheckedUpdateManyWithoutBranchNestedInput
   cashierExpense?: Prisma.CashierExpenseUncheckedUpdateManyWithoutBranchNestedInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUncheckedUpdateManyWithoutBranchNestedInput
   invoice?: Prisma.InvoiceUncheckedUpdateManyWithoutBranchNestedInput
   creneau?: Prisma.CreneauUncheckedUpdateManyWithoutBranchNestedInput
   paymentAllocation?: Prisma.PaymentAllocationUncheckedUpdateManyWithoutBranchNestedInput
@@ -11729,6 +12170,7 @@ export type BranchUpdateWithoutSourceStudentLinksInput = {
   calendarEvent?: Prisma.CalendarEventUpdateManyWithoutBranchNestedInput
   periodResultLock?: Prisma.PeriodResultLockUpdateManyWithoutBranchNestedInput
   cashierExpense?: Prisma.CashierExpenseUpdateManyWithoutBranchNestedInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUpdateManyWithoutBranchNestedInput
   invoice?: Prisma.InvoiceUpdateManyWithoutBranchNestedInput
   creneau?: Prisma.CreneauUpdateManyWithoutBranchNestedInput
   paymentAllocation?: Prisma.PaymentAllocationUpdateManyWithoutBranchNestedInput
@@ -11791,6 +12233,7 @@ export type BranchUncheckedUpdateWithoutSourceStudentLinksInput = {
   calendarEvent?: Prisma.CalendarEventUncheckedUpdateManyWithoutBranchNestedInput
   periodResultLock?: Prisma.PeriodResultLockUncheckedUpdateManyWithoutBranchNestedInput
   cashierExpense?: Prisma.CashierExpenseUncheckedUpdateManyWithoutBranchNestedInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUncheckedUpdateManyWithoutBranchNestedInput
   invoice?: Prisma.InvoiceUncheckedUpdateManyWithoutBranchNestedInput
   creneau?: Prisma.CreneauUncheckedUpdateManyWithoutBranchNestedInput
   paymentAllocation?: Prisma.PaymentAllocationUncheckedUpdateManyWithoutBranchNestedInput
@@ -11853,6 +12296,7 @@ export type BranchCreateWithoutIssuedDocumentsInput = {
   calendarEvent?: Prisma.CalendarEventCreateNestedManyWithoutBranchInput
   periodResultLock?: Prisma.PeriodResultLockCreateNestedManyWithoutBranchInput
   cashierExpense?: Prisma.CashierExpenseCreateNestedManyWithoutBranchInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceCreateNestedManyWithoutBranchInput
   invoice?: Prisma.InvoiceCreateNestedManyWithoutBranchInput
   creneau?: Prisma.CreneauCreateNestedManyWithoutBranchInput
   paymentAllocation?: Prisma.PaymentAllocationCreateNestedManyWithoutBranchInput
@@ -11915,6 +12359,7 @@ export type BranchUncheckedCreateWithoutIssuedDocumentsInput = {
   calendarEvent?: Prisma.CalendarEventUncheckedCreateNestedManyWithoutBranchInput
   periodResultLock?: Prisma.PeriodResultLockUncheckedCreateNestedManyWithoutBranchInput
   cashierExpense?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutBranchInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUncheckedCreateNestedManyWithoutBranchInput
   invoice?: Prisma.InvoiceUncheckedCreateNestedManyWithoutBranchInput
   creneau?: Prisma.CreneauUncheckedCreateNestedManyWithoutBranchInput
   paymentAllocation?: Prisma.PaymentAllocationUncheckedCreateNestedManyWithoutBranchInput
@@ -11993,6 +12438,7 @@ export type BranchUpdateWithoutIssuedDocumentsInput = {
   calendarEvent?: Prisma.CalendarEventUpdateManyWithoutBranchNestedInput
   periodResultLock?: Prisma.PeriodResultLockUpdateManyWithoutBranchNestedInput
   cashierExpense?: Prisma.CashierExpenseUpdateManyWithoutBranchNestedInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUpdateManyWithoutBranchNestedInput
   invoice?: Prisma.InvoiceUpdateManyWithoutBranchNestedInput
   creneau?: Prisma.CreneauUpdateManyWithoutBranchNestedInput
   paymentAllocation?: Prisma.PaymentAllocationUpdateManyWithoutBranchNestedInput
@@ -12055,6 +12501,7 @@ export type BranchUncheckedUpdateWithoutIssuedDocumentsInput = {
   calendarEvent?: Prisma.CalendarEventUncheckedUpdateManyWithoutBranchNestedInput
   periodResultLock?: Prisma.PeriodResultLockUncheckedUpdateManyWithoutBranchNestedInput
   cashierExpense?: Prisma.CashierExpenseUncheckedUpdateManyWithoutBranchNestedInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUncheckedUpdateManyWithoutBranchNestedInput
   invoice?: Prisma.InvoiceUncheckedUpdateManyWithoutBranchNestedInput
   creneau?: Prisma.CreneauUncheckedUpdateManyWithoutBranchNestedInput
   paymentAllocation?: Prisma.PaymentAllocationUncheckedUpdateManyWithoutBranchNestedInput
@@ -12117,6 +12564,7 @@ export type BranchCreateWithoutBranchInvitationInput = {
   calendarEvent?: Prisma.CalendarEventCreateNestedManyWithoutBranchInput
   periodResultLock?: Prisma.PeriodResultLockCreateNestedManyWithoutBranchInput
   cashierExpense?: Prisma.CashierExpenseCreateNestedManyWithoutBranchInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceCreateNestedManyWithoutBranchInput
   invoice?: Prisma.InvoiceCreateNestedManyWithoutBranchInput
   creneau?: Prisma.CreneauCreateNestedManyWithoutBranchInput
   paymentAllocation?: Prisma.PaymentAllocationCreateNestedManyWithoutBranchInput
@@ -12179,6 +12627,7 @@ export type BranchUncheckedCreateWithoutBranchInvitationInput = {
   calendarEvent?: Prisma.CalendarEventUncheckedCreateNestedManyWithoutBranchInput
   periodResultLock?: Prisma.PeriodResultLockUncheckedCreateNestedManyWithoutBranchInput
   cashierExpense?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutBranchInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUncheckedCreateNestedManyWithoutBranchInput
   invoice?: Prisma.InvoiceUncheckedCreateNestedManyWithoutBranchInput
   creneau?: Prisma.CreneauUncheckedCreateNestedManyWithoutBranchInput
   paymentAllocation?: Prisma.PaymentAllocationUncheckedCreateNestedManyWithoutBranchInput
@@ -12257,6 +12706,7 @@ export type BranchUpdateWithoutBranchInvitationInput = {
   calendarEvent?: Prisma.CalendarEventUpdateManyWithoutBranchNestedInput
   periodResultLock?: Prisma.PeriodResultLockUpdateManyWithoutBranchNestedInput
   cashierExpense?: Prisma.CashierExpenseUpdateManyWithoutBranchNestedInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUpdateManyWithoutBranchNestedInput
   invoice?: Prisma.InvoiceUpdateManyWithoutBranchNestedInput
   creneau?: Prisma.CreneauUpdateManyWithoutBranchNestedInput
   paymentAllocation?: Prisma.PaymentAllocationUpdateManyWithoutBranchNestedInput
@@ -12319,6 +12769,7 @@ export type BranchUncheckedUpdateWithoutBranchInvitationInput = {
   calendarEvent?: Prisma.CalendarEventUncheckedUpdateManyWithoutBranchNestedInput
   periodResultLock?: Prisma.PeriodResultLockUncheckedUpdateManyWithoutBranchNestedInput
   cashierExpense?: Prisma.CashierExpenseUncheckedUpdateManyWithoutBranchNestedInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUncheckedUpdateManyWithoutBranchNestedInput
   invoice?: Prisma.InvoiceUncheckedUpdateManyWithoutBranchNestedInput
   creneau?: Prisma.CreneauUncheckedUpdateManyWithoutBranchNestedInput
   paymentAllocation?: Prisma.PaymentAllocationUncheckedUpdateManyWithoutBranchNestedInput
@@ -12381,6 +12832,7 @@ export type BranchCreateWithoutOrganizationSupportBranchScopesInput = {
   calendarEvent?: Prisma.CalendarEventCreateNestedManyWithoutBranchInput
   periodResultLock?: Prisma.PeriodResultLockCreateNestedManyWithoutBranchInput
   cashierExpense?: Prisma.CashierExpenseCreateNestedManyWithoutBranchInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceCreateNestedManyWithoutBranchInput
   invoice?: Prisma.InvoiceCreateNestedManyWithoutBranchInput
   creneau?: Prisma.CreneauCreateNestedManyWithoutBranchInput
   paymentAllocation?: Prisma.PaymentAllocationCreateNestedManyWithoutBranchInput
@@ -12443,6 +12895,7 @@ export type BranchUncheckedCreateWithoutOrganizationSupportBranchScopesInput = {
   calendarEvent?: Prisma.CalendarEventUncheckedCreateNestedManyWithoutBranchInput
   periodResultLock?: Prisma.PeriodResultLockUncheckedCreateNestedManyWithoutBranchInput
   cashierExpense?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutBranchInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUncheckedCreateNestedManyWithoutBranchInput
   invoice?: Prisma.InvoiceUncheckedCreateNestedManyWithoutBranchInput
   creneau?: Prisma.CreneauUncheckedCreateNestedManyWithoutBranchInput
   paymentAllocation?: Prisma.PaymentAllocationUncheckedCreateNestedManyWithoutBranchInput
@@ -12521,6 +12974,7 @@ export type BranchUpdateWithoutOrganizationSupportBranchScopesInput = {
   calendarEvent?: Prisma.CalendarEventUpdateManyWithoutBranchNestedInput
   periodResultLock?: Prisma.PeriodResultLockUpdateManyWithoutBranchNestedInput
   cashierExpense?: Prisma.CashierExpenseUpdateManyWithoutBranchNestedInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUpdateManyWithoutBranchNestedInput
   invoice?: Prisma.InvoiceUpdateManyWithoutBranchNestedInput
   creneau?: Prisma.CreneauUpdateManyWithoutBranchNestedInput
   paymentAllocation?: Prisma.PaymentAllocationUpdateManyWithoutBranchNestedInput
@@ -12583,6 +13037,7 @@ export type BranchUncheckedUpdateWithoutOrganizationSupportBranchScopesInput = {
   calendarEvent?: Prisma.CalendarEventUncheckedUpdateManyWithoutBranchNestedInput
   periodResultLock?: Prisma.PeriodResultLockUncheckedUpdateManyWithoutBranchNestedInput
   cashierExpense?: Prisma.CashierExpenseUncheckedUpdateManyWithoutBranchNestedInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUncheckedUpdateManyWithoutBranchNestedInput
   invoice?: Prisma.InvoiceUncheckedUpdateManyWithoutBranchNestedInput
   creneau?: Prisma.CreneauUncheckedUpdateManyWithoutBranchNestedInput
   paymentAllocation?: Prisma.PaymentAllocationUncheckedUpdateManyWithoutBranchNestedInput
@@ -12665,6 +13120,7 @@ export type BranchUpdateWithoutOrganizationInput = {
   calendarEvent?: Prisma.CalendarEventUpdateManyWithoutBranchNestedInput
   periodResultLock?: Prisma.PeriodResultLockUpdateManyWithoutBranchNestedInput
   cashierExpense?: Prisma.CashierExpenseUpdateManyWithoutBranchNestedInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUpdateManyWithoutBranchNestedInput
   invoice?: Prisma.InvoiceUpdateManyWithoutBranchNestedInput
   creneau?: Prisma.CreneauUpdateManyWithoutBranchNestedInput
   paymentAllocation?: Prisma.PaymentAllocationUpdateManyWithoutBranchNestedInput
@@ -12727,6 +13183,7 @@ export type BranchUncheckedUpdateWithoutOrganizationInput = {
   calendarEvent?: Prisma.CalendarEventUncheckedUpdateManyWithoutBranchNestedInput
   periodResultLock?: Prisma.PeriodResultLockUncheckedUpdateManyWithoutBranchNestedInput
   cashierExpense?: Prisma.CashierExpenseUncheckedUpdateManyWithoutBranchNestedInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUncheckedUpdateManyWithoutBranchNestedInput
   invoice?: Prisma.InvoiceUncheckedUpdateManyWithoutBranchNestedInput
   creneau?: Prisma.CreneauUncheckedUpdateManyWithoutBranchNestedInput
   paymentAllocation?: Prisma.PaymentAllocationUncheckedUpdateManyWithoutBranchNestedInput
@@ -12797,6 +13254,7 @@ export type BranchCountOutputType = {
   calendarEvent: number
   periodResultLock: number
   cashierExpense: number
+  cashierOpeningBalance: number
   invoice: number
   creneau: number
   paymentAllocation: number
@@ -12841,6 +13299,7 @@ export type BranchCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions
   calendarEvent?: boolean | BranchCountOutputTypeCountCalendarEventArgs
   periodResultLock?: boolean | BranchCountOutputTypeCountPeriodResultLockArgs
   cashierExpense?: boolean | BranchCountOutputTypeCountCashierExpenseArgs
+  cashierOpeningBalance?: boolean | BranchCountOutputTypeCountCashierOpeningBalanceArgs
   invoice?: boolean | BranchCountOutputTypeCountInvoiceArgs
   creneau?: boolean | BranchCountOutputTypeCountCreneauArgs
   paymentAllocation?: boolean | BranchCountOutputTypeCountPaymentAllocationArgs
@@ -13012,6 +13471,13 @@ export type BranchCountOutputTypeCountPeriodResultLockArgs<ExtArgs extends runti
  */
 export type BranchCountOutputTypeCountCashierExpenseArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.CashierExpenseWhereInput
+}
+
+/**
+ * BranchCountOutputType without action
+ */
+export type BranchCountOutputTypeCountCashierOpeningBalanceArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.CashierOpeningBalanceWhereInput
 }
 
 /**
@@ -13203,6 +13669,7 @@ export type BranchSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   calendarEvent?: boolean | Prisma.Branch$calendarEventArgs<ExtArgs>
   periodResultLock?: boolean | Prisma.Branch$periodResultLockArgs<ExtArgs>
   cashierExpense?: boolean | Prisma.Branch$cashierExpenseArgs<ExtArgs>
+  cashierOpeningBalance?: boolean | Prisma.Branch$cashierOpeningBalanceArgs<ExtArgs>
   invoice?: boolean | Prisma.Branch$invoiceArgs<ExtArgs>
   creneau?: boolean | Prisma.Branch$creneauArgs<ExtArgs>
   paymentAllocation?: boolean | Prisma.Branch$paymentAllocationArgs<ExtArgs>
@@ -13318,6 +13785,7 @@ export type BranchInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   calendarEvent?: boolean | Prisma.Branch$calendarEventArgs<ExtArgs>
   periodResultLock?: boolean | Prisma.Branch$periodResultLockArgs<ExtArgs>
   cashierExpense?: boolean | Prisma.Branch$cashierExpenseArgs<ExtArgs>
+  cashierOpeningBalance?: boolean | Prisma.Branch$cashierOpeningBalanceArgs<ExtArgs>
   invoice?: boolean | Prisma.Branch$invoiceArgs<ExtArgs>
   creneau?: boolean | Prisma.Branch$creneauArgs<ExtArgs>
   paymentAllocation?: boolean | Prisma.Branch$paymentAllocationArgs<ExtArgs>
@@ -13372,6 +13840,7 @@ export type $BranchPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     calendarEvent: Prisma.$CalendarEventPayload<ExtArgs>[]
     periodResultLock: Prisma.$PeriodResultLockPayload<ExtArgs>[]
     cashierExpense: Prisma.$CashierExpensePayload<ExtArgs>[]
+    cashierOpeningBalance: Prisma.$CashierOpeningBalancePayload<ExtArgs>[]
     invoice: Prisma.$InvoicePayload<ExtArgs>[]
     creneau: Prisma.$CreneauPayload<ExtArgs>[]
     paymentAllocation: Prisma.$PaymentAllocationPayload<ExtArgs>[]
@@ -13829,6 +14298,7 @@ export interface Prisma__BranchClient<T, Null = never, ExtArgs extends runtime.T
   calendarEvent<T extends Prisma.Branch$calendarEventArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Branch$calendarEventArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CalendarEventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   periodResultLock<T extends Prisma.Branch$periodResultLockArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Branch$periodResultLockArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PeriodResultLockPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   cashierExpense<T extends Prisma.Branch$cashierExpenseArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Branch$cashierExpenseArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CashierExpensePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  cashierOpeningBalance<T extends Prisma.Branch$cashierOpeningBalanceArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Branch$cashierOpeningBalanceArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CashierOpeningBalancePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   invoice<T extends Prisma.Branch$invoiceArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Branch$invoiceArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$InvoicePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   creneau<T extends Prisma.Branch$creneauArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Branch$creneauArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CreneauPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   paymentAllocation<T extends Prisma.Branch$paymentAllocationArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Branch$paymentAllocationArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PaymentAllocationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -14776,6 +15246,30 @@ export type Branch$cashierExpenseArgs<ExtArgs extends runtime.Types.Extensions.I
   take?: number
   skip?: number
   distinct?: Prisma.CashierExpenseScalarFieldEnum | Prisma.CashierExpenseScalarFieldEnum[]
+}
+
+/**
+ * Branch.cashierOpeningBalance
+ */
+export type Branch$cashierOpeningBalanceArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the CashierOpeningBalance
+   */
+  select?: Prisma.CashierOpeningBalanceSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the CashierOpeningBalance
+   */
+  omit?: Prisma.CashierOpeningBalanceOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.CashierOpeningBalanceInclude<ExtArgs> | null
+  where?: Prisma.CashierOpeningBalanceWhereInput
+  orderBy?: Prisma.CashierOpeningBalanceOrderByWithRelationInput | Prisma.CashierOpeningBalanceOrderByWithRelationInput[]
+  cursor?: Prisma.CashierOpeningBalanceWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.CashierOpeningBalanceScalarFieldEnum | Prisma.CashierOpeningBalanceScalarFieldEnum[]
 }
 
 /**

@@ -84,6 +84,8 @@ export const ModelName = {
   PaymentBatch: 'PaymentBatch',
   FamilyPayment: 'FamilyPayment',
   CashierExpense: 'CashierExpense',
+  CashierOpeningBalance: 'CashierOpeningBalance',
+  ExchangeRate: 'ExchangeRate',
   PaymentAllocation: 'PaymentAllocation',
   MobileMoneyTransaction: 'MobileMoneyTransaction',
   PaymentEvent: 'PaymentEvent',
@@ -488,6 +490,8 @@ export const CalendarEventScalarFieldEnum = {
   allDay: 'allDay',
   location: 'location',
   description: 'description',
+  titleI18n: 'titleI18n',
+  descriptionI18n: 'descriptionI18n',
   createdBy: 'createdBy',
   isArchived: 'isArchived',
   archivedAt: 'archivedAt',
@@ -608,6 +612,9 @@ export const FamilyPaymentScalarFieldEnum = {
   parentId: 'parentId',
   batchId: 'batchId',
   amount: 'amount',
+  receivedCurrency: 'receivedCurrency',
+  receivedAmount: 'receivedAmount',
+  exchangeRateUsed: 'exchangeRateUsed',
   method: 'method',
   transactionRef: 'transactionRef',
   notes: 'notes',
@@ -634,6 +641,35 @@ export const CashierExpenseScalarFieldEnum = {
 } as const
 
 export type CashierExpenseScalarFieldEnum = (typeof CashierExpenseScalarFieldEnum)[keyof typeof CashierExpenseScalarFieldEnum]
+
+
+export const CashierOpeningBalanceScalarFieldEnum = {
+  id: 'id',
+  amount: 'amount',
+  date: 'date',
+  note: 'note',
+  createdBy: 'createdBy',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  branchId: 'branchId'
+} as const
+
+export type CashierOpeningBalanceScalarFieldEnum = (typeof CashierOpeningBalanceScalarFieldEnum)[keyof typeof CashierOpeningBalanceScalarFieldEnum]
+
+
+export const ExchangeRateScalarFieldEnum = {
+  id: 'id',
+  fromCurrency: 'fromCurrency',
+  toCurrency: 'toCurrency',
+  rate: 'rate',
+  isActive: 'isActive',
+  organizationId: 'organizationId',
+  createdBy: 'createdBy',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ExchangeRateScalarFieldEnum = (typeof ExchangeRateScalarFieldEnum)[keyof typeof ExchangeRateScalarFieldEnum]
 
 
 export const PaymentAllocationScalarFieldEnum = {

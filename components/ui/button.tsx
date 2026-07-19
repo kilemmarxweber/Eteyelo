@@ -41,7 +41,7 @@ const Button = React.forwardRef<
   return (
     <Comp
       ref={ref}
-      className={cn(buttonVariants({ variant, size, className }))}
+      className={cn(buttonVariants({ variant, size }), className)}
       {...props}
     />
   );

@@ -3,11 +3,11 @@
 import { useAppTransition as useTransition } from "@/hooks/use-app-transition";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 
 import {
   calendarEventSchema,
   Recurrence,
+  type CalendarEventFormInput,
 } from "@/src/interfaces/CalendarEvent";
 import { createCalendarEvent } from "../CalendarEvent.acton";
 
@@ -17,13 +17,13 @@ import { Textarea } from "@/components/ui/textarea";
 
 interface EventFormProps extends React.FormHTMLAttributes<HTMLFormElement> {
   onEventAction?: () => void;
-  initialData?: z.infer<typeof calendarEventSchema>;
+  initialData?: CalendarEventFormInput;
   mode: "create" | "update";
   userId: string;
   onSuccess?: () => void;
 }
 
-type FormValues = z.infer<typeof calendarEventSchema>;
+type FormValues = CalendarEventFormInput;
 
 export function EventForm({
   userId,

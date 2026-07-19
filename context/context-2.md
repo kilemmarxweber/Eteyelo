@@ -444,6 +444,150 @@ Le chantier sera considere termine lorsque :
 1. Confirmer si un eleve peut avoir plusieurs responsables permanents dans le modele final ou seulement dans la demande publique.
 2. Confirmer le stockage des images (service cloud existant, stockage local gere, S3/Cloudinary autre) et la taille maximale.
 3. Confirmer les roles autorises a confirmer/rejeter les demandes.
-4. Confirmer la devise d'affichage du rapport de caisse et l'existence eventuelle d'un solde d'ouverture.
+4. ~~Confirmer la devise d'affichage du rapport de caisse et l'existence eventuelle d'un solde d'ouverture.~~  
+   Solde d'ouverture : implemente (automatique = solde net cumule avant la date de debut). Devise caisse / taux multi-devises : voir Phase 18.
 5. Confirmer si les pages Calendrier et Presences doivent etre deplacees sous Parametres ou seulement ajoutees comme raccourcis sans changer leurs URLs actuelles.
 6. Confirmer si les horaires doivent inclure une salle; le schema actuel doit etre verifie avant de promettre cette colonne.
+
+## 23. Phase 18 - Taux de change et double stockage devise (par organisation)
+
+**Statut :** plan uniquement — ne pas implementer tant que ce plan n'est pas valide.
+
+### Objectif
+
+1. Gerer des **taux dynamiques** CDF / USD / AOA au niveau **organisation** (partages par toutes les branches).
+2. Au paiement : basculer la devise **percue** pour eviter le calcul manuel.
+3. **Stocker la devise telle que percue** (ex. CDF) **et** la conversion en **USD**.
+
+Hors scope : billetage / coupures (retire du plan).
+
+### Principes de stockage (paiement)
+
+Si le caissier percoit en CDF :
+
+| Champ | Exemple | Role |
+|-------|---------|------|
+| `receivedCurrency` | `CDF` | Devise reellement recue |
+| `receivedAmount` | `120000` | Montant perçu dans cette devise |
+| `amount` (USD) | `50.00` | Equivalent USD au taux actif du jour |
+| `exchangeRateUsed` | `2400` | Taux applique (audit) |
+| `exchangeRatePair` | `USD→CDF` ou `CDF→USD` | Paire utilisee |
+
+Regle : **toujours** persister les deux montants quand la devise percue ≠ USD.  
+Si devise percue = USD : `receivedAmount = amount`, `receivedCurrency = USD`.
+
+Les soldes eleves / frais / situation financiere restent calculees en **USD** (devise de reference metier).  
+Le rapport de caisse peut ventiler encaissements par devise percue + total USD.
+
+Les taux sont lus depuis l'**organisation** de la branche active (pas de taux par branche).
+
+### Devises par defaut
+
+| Code | Libelle |
+|------|---------|
+| `USD` | Dollar americain (pivot + reference soldes) |
+| `CDF` | Franc congolais |
+| `AOA` | Kwanza angolais |
+
+### Paires de taux actives
+
+1. `AOA → USD`
+2. `USD → AOA`
+3. `CDF → USD`
+4. `USD → CDF`
+
+Pas de paire directe `CDF ↔ AOA` en v1.
+
+### Modeles Prisma proposes
+
+```prisma
+enum CurrencyCode {
+  USD
+  CDF
+  AOA
+}
+
+model ExchangeRate {
+  id             String       @id @default(cuid())
+  fromCurrency   CurrencyCode
+  toCurrency     CurrencyCode
+  /// 1 unite fromCurrency = rate unites toCurrency
+  rate           Float
+  isActive       Boolean      @default(true)
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdBy      String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@unique([organizationId, fromCurrency, toCurrency])
+  @@index([organizationId, isActive])
+}
+```
+
+Extensions `FamilyPayment` (migration) :
+
+```prisma
+// sur FamilyPayment — en plus de `amount` (USD de reference)
+receivedCurrency   CurrencyCode @default(USD)
+receivedAmount     Float        /// montant perçu dans receivedCurrency
+exchangeRateUsed   Float?       /// taux applique au moment du paiement
+```
+
+Relation a ajouter sur `Organization` : `exchangeRates ExchangeRate[]`.
+
+Seed taux par organisation (placeholder a confirmer) :
+
+- `USD → CDF` : **2800** (aligne sur `DEFAULT_EXCHANGE_RATE_USD_CDF` des recus)
+- `CDF → USD` : `1/2800`
+- `USD → AOA` : 918
+- `AOA → USD` : inverse
+
+### UI Parametres
+
+- **Taux de change** au niveau organisation (ecran settings org ou `settings/exchange-rates` partage) : 4 paires, taux + `isActive`.
+- Acces : roles pouvant gerer l'organisation (`canAccessBranchOrgSettings` / owner-gestionnaire).
+- Desactiver une paire = elle n'apparait plus dans le basculeur paiement de **toutes** les branches de l'org.
+
+### UI Paiement (`PaymentsForm`)
+
+1. Basculeur devise percue : `USD | CDF | AOA` (selon paires actives de l'organisation).
+2. Saisie du **montant perçu** dans la devise choisie.
+3. Conversion live → **USD** (taux org actif) ; affichage `X CDF ≈ Y USD`.
+4. Submit :
+   - `receivedCurrency` / `receivedAmount` = saisie ;
+   - `amount` = equivalent USD ;
+   - `exchangeRateUsed` fige au taux org du moment.
+
+### Actions serveur proposees
+
+- `getActiveExchangeRatesAction()` — paires actives de l'`organizationId` courante (seed si aucune).
+- `listExchangeRatesAction()` — toutes les paires org (settings).
+- `upsertExchangeRateAction({ from, to, rate, isActive })` — create/update scope org.
+- Helper `convertAmount(amount, from, to, rates)` — refuse si paire inactive/absente.
+- Etendre `createPaiementAction` : devise percue + USD + taux fige.
+
+### Impacts connexes
+
+- Recu PDF / preview : afficher montant perçu + devise + equivalent USD.
+- Rapport de caisse : totaux USD (reference) + ventilation par `receivedCurrency`.
+- Impayes / soldes eleves : toujours USD.
+- Depenses caisse : meme logique devise percue + USD en v1.1 (hors scope strict v1 si besoin).
+
+### Criteres de validation
+
+1. Perception CDF → en base : `receivedCurrency=CDF`, `receivedAmount` CDF, `amount` USD coherent avec le taux org actif.
+2. Perception USD → les deux montants egaux, taux nullable ou 1.
+3. Modifier le taux org apres coup n'altere pas `exchangeRateUsed` des paiements deja enregistres.
+4. Un taux modifie dans l'org s'applique immediatement a toutes les branches de cette org.
+5. Desactiver `USD→CDF` retire CDF du basculeur sur toutes les branches.
+6. Seed des 4 paires a la premiere lecture organisation si tables vides.
+
+### Points a confirmer avant code
+
+1. Taux defaut exacts `USD ↔ AOA` (et confirmer 2400 pour CDF).
+2. Tolerance d'arrondi (ex. 1 CDF / 0.01 USD).
+3. Historiser les taux (snapshot deja via `exchangeRateUsed`) vs table d'historique separee.
+4. Les frais restent-ils toujours tarifes en USD ?
+5. Ou placer l'ecran settings (niveau org vs branche avec lecture seule org) ?
+

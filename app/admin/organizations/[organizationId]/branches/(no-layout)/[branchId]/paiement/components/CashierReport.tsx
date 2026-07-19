@@ -1,18 +1,28 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { HandCoins } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { getCashierReportAction, getCashierReportContextAction } from "../paiement.action";
+import {
+  getCashierReportAction,
+  getCashierReportContextAction,
+} from "../paiement.action";
 import { exportCashierReportPdf } from "./export-cashier-pdf";
 import { toast } from "sonner";
 import { IconFileTypePdf, IconRefresh } from "@tabler/icons-react";
+import { cn } from "@/lib/utils";
 
 type CashierReportData = {
   date: string;
   endDate: string;
+  openingBalance: number;
+  hasOpeningBalance: boolean;
+  openingLabel?: string;
+  openingNote: string | null;
   incomeTotal: number;
   outflowTotal: number;
+  periodBalance: number;
   balance: number;
   payments: Array<{
     id: string;
@@ -54,12 +64,12 @@ export default function CashierReport({
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+
   const [startDate, setStartDate] = useState<string>(
-    new Date().toISOString().slice(0, 10)
+    new Date().toISOString().slice(0, 10),
   );
   const [endDate, setEndDate] = useState<string>(
-    new Date().toISOString().slice(0, 10)
+    new Date().toISOString().slice(0, 10),
   );
 
   const fetchReport = async () => {
@@ -70,7 +80,7 @@ export default function CashierReport({
       startDate: new Date(startDate),
       endDate: new Date(endDate),
     });
-    
+
     if (err || !data) {
       setError(err?.message ?? "Impossible de charger le rapport de caisse.");
       setReport(null);
@@ -86,8 +96,10 @@ export default function CashierReport({
     setExporting(true);
     try {
       const [context, err] = await getCashierReportContextAction();
-      if (err || !context) throw new Error(err?.message || "Impossible de charger le contexte");
-      
+      if (err || !context) {
+        throw new Error(err?.message || "Impossible de charger le contexte");
+      }
+
       await exportCashierReportPdf(report, context, {
         dateStart: report.date,
         dateEnd: report.endDate,
@@ -101,39 +113,40 @@ export default function CashierReport({
   };
 
   useEffect(() => {
-    fetchReport();
+    void fetchReport();
   }, [refreshKey, startDate, endDate]);
 
   return (
     <Card className="rounded-xl border p-4">
-      <CardHeader className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between px-0 pt-0">
+      <CardHeader className="flex flex-col gap-4 px-0 pt-0 md:flex-row md:items-start md:justify-between">
         <div>
           <CardTitle>Rapport de caisse</CardTitle>
           <p className="text-sm text-muted-foreground">
-            Bilan des encaissements et sorties.
+            Solde d&apos;ouverture = solde net de la veille. Solde net =
+            ouverture + encaissements - depenses.
           </p>
         </div>
-        <div className="flex flex-wrap gap-2 items-center">
-          <div className="flex gap-2 items-center bg-muted/50 p-1 rounded-md">
-            <input 
-              type="date" 
+        <div className="flex w-full flex-wrap items-center justify-end gap-2">
+          <div className="flex items-center gap-2 rounded-md bg-muted/50 p-1">
+            <input
+              type="date"
               value={startDate}
-              onChange={e => setStartDate(e.target.value)}
-              className="text-sm border-none bg-transparent focus:ring-0"
+              onChange={(e) => setStartDate(e.target.value)}
+              className="border-none bg-transparent text-sm focus:ring-0"
             />
             <span className="text-sm text-muted-foreground">au</span>
-            <input 
-              type="date" 
+            <input
+              type="date"
               value={endDate}
-              onChange={e => setEndDate(e.target.value)}
-              className="text-sm border-none bg-transparent focus:ring-0"
+              onChange={(e) => setEndDate(e.target.value)}
+              className="border-none bg-transparent text-sm focus:ring-0"
             />
           </div>
-          
+
           <Button
             variant="outline"
             size="sm"
-            onClick={fetchReport}
+            onClick={() => void fetchReport()}
             disabled={loading}
           >
             <IconRefresh size={16} className="mr-2" />
@@ -150,27 +163,44 @@ export default function CashierReport({
             {exporting ? "Génération..." : "Imprimer PDF"}
           </Button>
 
-          <Button variant="default" size="sm" onClick={onToggleExpenseForm}>
-            {showExpenseForm ? "Masquer" : "Ajouter"} dépense
+          <Button
+            type="button"
+            size="sm"
+            onClick={onToggleExpenseForm}
+            aria-label={
+              showExpenseForm ? "Masquer la dépense" : "Ajouter une dépense"
+            }
+            title={
+              showExpenseForm ? "Masquer la dépense" : "Ajouter une dépense"
+            }
+            className={cn(
+              "size-8 shrink-0 border-transparent p-0 text-white shadow-sm",
+              "bg-red-900 hover:bg-red-950 focus-visible:ring-red-900/40",
+              showExpenseForm && "bg-red-950 ring-2 ring-red-900/30",
+            )}
+          >
+            <HandCoins className="size-4" />
           </Button>
         </div>
       </CardHeader>
       <CardContent className="space-y-4 px-0 pb-0">
         {loading ? (
-          <div className="py-4 text-center text-sm text-muted-foreground animate-pulse">
+          <div className="animate-pulse py-4 text-center text-sm text-muted-foreground">
             Chargement du rapport...
           </div>
         ) : error ? (
-          <div className="text-sm text-destructive py-4">{error}</div>
+          <div className="py-4 text-sm text-destructive">{error}</div>
         ) : report ? (
           <div className="grid gap-4 md:grid-cols-4">
             <div className="rounded-xl border border-border bg-muted p-4">
-              <div className="text-sm text-muted-foreground">Solde d'ouverture</div>
-              <div className="mt-2 text-xl font-semibold text-muted-foreground">
-                Non géré
+              <div className="text-sm text-muted-foreground">
+                Solde d&apos;ouverture
               </div>
-              <div className="text-xs text-secondary mt-1">
-                Phase 15
+              <div className="mt-2 text-2xl font-semibold">
+                {formatAmount(report.openingBalance)}
+              </div>
+              <div className="mt-1 text-xs text-muted-foreground">
+                {report.openingLabel ?? "Solde net de la veille (automatique)"}
               </div>
             </div>
             <div className="rounded-xl border border-border bg-muted p-4">
@@ -197,12 +227,14 @@ export default function CashierReport({
                 {formatAmount(report.balance)}
               </div>
               <div className="text-sm text-secondary">
-                Sur la période
+                Periode {formatAmount(report.periodBalance)}
               </div>
             </div>
           </div>
         ) : (
-          <div className="py-4 text-sm text-muted-foreground">Aucune donnée disponible.</div>
+          <div className="py-4 text-sm text-muted-foreground">
+            Aucune donnée disponible.
+          </div>
         )}
       </CardContent>
     </Card>

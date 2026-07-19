@@ -9,6 +9,8 @@ import {
   IconCalendarCog,
   IconBooks,
   IconUser,
+  IconUserCheck,
+  IconCurrencyDollar,
 } from "@tabler/icons-react";
 
 import { Layout, LayoutBody } from "@/components/custom/layout";
@@ -49,9 +51,21 @@ export default function Settings({ children }: { children: React.ReactNode }) {
         orgSettingsOnly: true,
       },
       {
+        title: "Taux de change",
+        icon: <IconCurrencyDollar size={18} />,
+        href: `${settingsBasePath}/exchange-rates`,
+        orgSettingsOnly: true,
+      },
+      {
         title: "Calendrier scolaire",
         icon: <IconCalendarCog size={18} />,
         href: `${settingsBasePath}/calendar`,
+        orgSettingsOnly: true,
+      },
+      {
+        title: "Presences",
+        icon: <IconUserCheck size={18} />,
+        href: `${settingsBasePath}/attendance`,
         orgSettingsOnly: true,
       },
       {

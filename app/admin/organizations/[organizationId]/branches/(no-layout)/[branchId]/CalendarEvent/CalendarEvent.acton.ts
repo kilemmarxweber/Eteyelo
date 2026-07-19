@@ -1,19 +1,27 @@
 "use server";
-import { prisma } from "@/lib/prisma"; // Assumes Prisma client is in lib/prisma
+
+import { prisma } from "@/lib/prisma";
 import { calendarEventSchema } from "@/src/interfaces/CalendarEvent";
 import { action } from "@/lib/zsa";
 import { ICalendarEvent } from "@/src/interfaces/CalendarEvent";
-import { Recurrence } from "@/prisma/generated/prisma/client";
+import { Recurrence, Prisma } from "@/prisma/generated/prisma/client";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
 import { buildIsArchivedUpdate } from "@/lib/archive";
 import { requireCurrentSchoolYear } from "@/lib/school-year";
+import {
+  compactLocaleMap,
+  normalizeLocaleMap,
+  type EventLocaleMap,
+} from "@/lib/calendar-event-i18n";
+import { revalidatePath } from "next/cache";
+import { z } from "zod";
 
 async function assertCalendarEventRelationsInBranch(
   input: {
     schoolYearId?: string;
-    teachingId?: string;
-    classeId?: string;
-    typeId?: string;
+    teachingId?: string | null;
+    classeId?: string | null;
+    typeId?: string | null;
   },
   branchId: string,
 ) {
@@ -30,16 +38,9 @@ async function assertCalendarEventRelationsInBranch(
             id: input.teachingId,
             OR: [
               { branchId },
-              {
-                branchId: null,
-                classe: {
-                  branchId,
-                },
-              },
+              { branchId: null, classe: { branchId } },
             ],
-            cours: {
-              branchId,
-            },
+            cours: { branchId },
           },
           select: { id: true },
         })
@@ -61,64 +62,150 @@ async function assertCalendarEventRelationsInBranch(
   if (input.schoolYearId && !schoolYear) {
     throw new Error("Annee scolaire introuvable dans cette branche");
   }
-
   if (input.teachingId && !teaching) {
     throw new Error("Enseignement introuvable dans cette branche");
   }
-
   if (input.classeId && !classe) {
     throw new Error("Classe introuvable dans cette branche");
   }
-
   if (input.typeId && !eventType) {
     throw new Error("Type d'evenement introuvable dans cette branche");
   }
 }
 
-// Action pour créer un événement
+function toJsonValue(
+  map: EventLocaleMap | null | undefined,
+): Prisma.InputJsonValue | typeof Prisma.DbNull {
+  const compacted = map ? compactLocaleMap(map) : null;
+  return compacted ? (compacted as Prisma.InputJsonValue) : Prisma.DbNull;
+}
+
+function buildEventData(
+  input: z.infer<typeof calendarEventSchema>,
+  branchId: string,
+  userId: string,
+  schoolYearId: string,
+) {
+  const titleI18n = input.translationsEnabled
+    ? {
+        ...normalizeLocaleMap(input.titleI18n),
+        fr: input.title,
+      }
+    : null;
+  const descriptionI18n = input.translationsEnabled
+    ? {
+        ...normalizeLocaleMap(input.descriptionI18n),
+        fr: input.description ?? "",
+      }
+    : null;
+
+  return {
+    title: input.title,
+    description: input.description || null,
+    location: input.location || null,
+    image: input.image || null,
+    allDay: input.allDay,
+    dateStart: input.dateStart,
+    dateEnd: input.dateEnd || null,
+    recurrence: input.recurrence,
+    typeId: input.typeId || null,
+    classeId: input.classeId || null,
+    teachingId: input.teachingId || null,
+    titleI18n: toJsonValue(titleI18n),
+    descriptionI18n: toJsonValue(descriptionI18n),
+    branchId,
+    createdBy: input.createdBy || userId,
+    schoolYearId,
+  };
+}
+
+function mapEvent(event: {
+  id: string;
+  title: string | null;
+  dateStart: Date;
+  dateEnd: Date | null;
+  image: string | null;
+  allDay: boolean;
+  location: string | null;
+  description: string | null;
+  titleI18n: unknown;
+  descriptionI18n: unknown;
+  createdBy: string;
+  createdAt: Date;
+  updatedAt: Date;
+  teachingId: string | null;
+  schoolYearId: string | null;
+  typeId: string | null;
+  classeId: string | null;
+  recurrence: Recurrence | null;
+  eventType?: { id: string; name: string } | null;
+  schoolYear?: ICalendarEvent["schoolYear"] | null;
+  teaching?: unknown;
+  classe?: unknown;
+}): ICalendarEvent {
+  return {
+    id: event.id,
+    title: event.title || "",
+    dateStart: event.dateStart,
+    dateEnd: event.dateEnd || undefined,
+    image: event.image,
+    allDay: event.allDay,
+    location: event.location || "",
+    description: event.description || "",
+    titleI18n: normalizeLocaleMap(event.titleI18n),
+    descriptionI18n: normalizeLocaleMap(event.descriptionI18n),
+    createdBy: event.createdBy,
+    createdAt: event.createdAt,
+    updatedAt: event.updatedAt,
+    teachingId: event.teachingId || "",
+    schoolYearId: event.schoolYearId || "",
+    typeId: event.typeId || "",
+    classeId: event.classeId || "",
+    recurrence: event.recurrence || Recurrence.HEBDOMADAIRE,
+    eventType: event.eventType ?? null,
+    schoolYear: event.schoolYear ?? undefined,
+    teaching: event.teaching as ICalendarEvent["teaching"],
+  };
+}
+
 export const createCalendarEvent = action
   .input(calendarEventSchema)
   .handler(async ({ input }) => {
     try {
-      const { branchId, userId } = await requireBranchContext();
+      const { branchId, userId, organizationId } = await requireBranchContext();
       const currentSchoolYear = await requireCurrentSchoolYear(branchId);
-
-      // 2. création event
       await assertCalendarEventRelationsInBranch(input, branchId);
 
       const event = await prisma.calendarEvent.create({
-        data: {
-          ...input,
-          branchId,
-          createdBy: input.createdBy || userId,
-          schoolYearId: currentSchoolYear.id,
-        },
+        data: buildEventData(input, branchId, userId, currentSchoolYear.id),
       });
+
+      revalidatePath(
+        `/admin/organizations/${organizationId}/branches/${branchId}/settings/calendar`,
+      );
 
       return {
         success: true,
-        message: "Événement créé avec succès",
+        message: "Evenement cree avec succes",
         event,
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("CREATE EVENT ERROR:", error);
-
       return {
         success: false,
-        message: error.message || "Erreur lors de la création",
+        message:
+          error instanceof Error
+            ? error.message
+            : "Erreur lors de la creation",
       };
     }
   });
 
-// Action pour récupérer tous les événements
 export const getCalendarEvents = action.handler(
   async (): Promise<ICalendarEvent[]> => {
     const { branchId } = await requireBranchContext();
-    const Events = await prisma.calendarEvent.findMany({
-      where: {
-        branchId,
-        isArchived: false,
-      },
+    const events = await prisma.calendarEvent.findMany({
+      where: { branchId, isArchived: false },
       include: {
         eventType: true,
         schoolYear: true,
@@ -127,13 +214,7 @@ export const getCalendarEvents = action.handler(
             teacher: {
               include: {
                 branchMember: {
-                  include: {
-                    member: {
-                      include: {
-                        user: true,
-                      },
-                    },
-                  },
+                  include: { member: { include: { user: true } } },
                 },
               },
             },
@@ -142,92 +223,64 @@ export const getCalendarEvents = action.handler(
         },
         classe: true,
       },
+      orderBy: { dateStart: "desc" },
     });
-    const transormedEvents: ICalendarEvent[] = Events.map((event) => ({
-      ...event,
-      title: event.title || "",
-      dateEnd: event.dateEnd || new Date(),
-      location: event.location || "",
-      description: event.description || "",
-      teachingId: event.teachingId || "",
-      schoolYearId: event.schoolYearId || "",
-      typeId: event.typeId || "",
-      classeId: event.classeId || "",
-      recurrence: event.recurrence || Recurrence.HEBDOMADAIRE,
-      schoolYear: event.schoolYear
-        ? {
-            ...event.schoolYear,
-          }
-        : undefined,
-      teaching: event.teaching
-        ? {
-            ...event.teaching,
-            id: event.teaching.id,
-            classeId: event.teaching.classeId || null,
-            teacherId: event.teaching.teacherId || null,
-            cours: event.teaching.cours
-              ? {
-                  coursId: event.teaching.coursId || "",
-                  codeCours: event.teaching.cours?.codeCours,
-                  nameCours: event.teaching.cours?.nameCours || "",
-                  ponderation: 0,
-                  description: event.teaching.cours?.description || "",
-                }
-              : undefined,
-            teacher: event.teaching.teacher
-              ? {
-                  ...event.teaching.teacher,
-                }
-              : undefined,
-          }
-        : undefined,
-    }));
-    return transormedEvents;
+
+    return events.map(mapEvent);
   },
 );
 
-// Action pour mettre à jour un événement
 export const updateCalendarEvent = action
   .input(calendarEventSchema)
   .handler(async ({ input }) => {
-    // Validation des données d'entrée
-    const { branchId } = await requireBranchContext();
+    const { branchId, userId, organizationId } = await requireBranchContext();
+    if (!input.id) throw new Error("Identifiant evenement manquant");
+
     const event = await prisma.calendarEvent.findFirst({
       where: { id: input.id, branchId },
-      select: { id: true },
+      select: { id: true, schoolYearId: true },
     });
     if (!event) throw new Error("Evenement introuvable dans cette branche");
 
     await assertCalendarEventRelationsInBranch(input, branchId);
 
-    const updatedEvent = await prisma.calendarEvent.update({
+    const updated = await prisma.calendarEvent.update({
       where: { id: input.id },
-      data: {
-        ...input,
+      data: buildEventData(
+        input,
         branchId,
-      },
+        userId,
+        input.schoolYearId || event.schoolYearId,
+      ),
     });
 
-    return updatedEvent;
+    revalidatePath(
+      `/admin/organizations/${organizationId}/branches/${branchId}/settings/calendar`,
+    );
+
+    return updated;
   });
 
-// Action pour archiver un événement
 export const archiveCalendarEvent = action
-  .input(calendarEventSchema)
+  .input(z.object({ id: z.string().min(1) }))
   .handler(async ({ input }) => {
-    const { branchId, userId } = await requireBranchContext();
+    const { branchId, userId, organizationId } = await requireBranchContext();
     const event = await prisma.calendarEvent.findFirst({
       where: { id: input.id, branchId },
       select: { id: true },
     });
     if (!event) throw new Error("Evenement introuvable dans cette branche");
 
-    const archivedEvent = await prisma.calendarEvent.update({
+    const archived = await prisma.calendarEvent.update({
       where: { id: input.id },
       data: buildIsArchivedUpdate(userId),
     });
 
-    return archivedEvent;
+    revalidatePath(
+      `/admin/organizations/${organizationId}/branches/${branchId}/settings/calendar`,
+    );
+
+    return archived;
   });
 
 /** @deprecated Utiliser archiveCalendarEvent */

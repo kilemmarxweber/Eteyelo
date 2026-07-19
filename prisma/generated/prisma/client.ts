@@ -207,6 +207,16 @@ export type FamilyPayment = Prisma.FamilyPaymentModel
  */
 export type CashierExpense = Prisma.CashierExpenseModel
 /**
+ * Model CashierOpeningBalance
+ * 
+ */
+export type CashierOpeningBalance = Prisma.CashierOpeningBalanceModel
+/**
+ * Model ExchangeRate
+ * Taux de change par organisation (partages par toutes les branches)
+ */
+export type ExchangeRate = Prisma.ExchangeRateModel
+/**
  * Model PaymentAllocation
  * 
  */

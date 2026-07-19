@@ -530,6 +530,10 @@ model CalendarEvent {
   allDay       Boolean   @default(false)
   location     String?
   description  String?
+  /// Traductions titre: { fr?, en?, pt?, ln? }
+  titleI18n    Json?
+  /// Traductions description: { fr?, en?, pt?, ln? }
+  descriptionI18n Json?
   createdBy    String
   isArchived   Boolean   @default(false)
   archivedAt   DateTime?
@@ -725,7 +729,14 @@ model FamilyPayment {
   id                String                  @id @default(cuid())
   parentId          String
   batchId           Int?
+  /// Montant de reference metier (USD)
   amount            Float
+  /// Devise reellement percue a la caisse
+  receivedCurrency  CurrencyCode            @default(USD)
+  /// Montant perçu dans receivedCurrency
+  receivedAmount    Float?
+  /// Taux applique au moment du paiement (audit)
+  exchangeRateUsed  Float?
   method            PaymentMethod
   transactionRef    String
   notes             String?
@@ -750,6 +761,7 @@ model FamilyPayment {
   @@index([branchId])
   @@index([branchId, parentId])
   @@index([branchId, createdAt])
+  @@index([branchId, receivedCurrency])
   @@unique([branchId, transactionRef])
 }
 
@@ -765,6 +777,40 @@ model CashierExpense {
   branch               Branch             @relation(fields: [branchId], references: [id], onDelete: Cascade)
   @@index([branchId])
   @@unique([branchId, transactionRef])
+}
+
+model CashierOpeningBalance {
+  id        String   @id @default(cuid())
+  amount    Float
+  /// Jour civil du solde d'ouverture (minuit UTC localise cote app)
+  date      DateTime @db.Date
+  note      String?
+  createdBy String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  branchId  String
+  branch    Branch   @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  @@unique([branchId, date])
+  @@index([branchId, date])
+}
+
+/// Taux de change par organisation (partages par toutes les branches)
+model ExchangeRate {
+  id             String       @id @default(cuid())
+  fromCurrency   CurrencyCode
+  toCurrency     CurrencyCode
+  /// 1 unite fromCurrency = rate unites toCurrency
+  rate           Float
+  isActive       Boolean      @default(true)
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdBy      String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@unique([organizationId, fromCurrency, toCurrency])
+  @@index([organizationId, isActive])
 }
 
 model PaymentAllocation {
@@ -877,6 +923,12 @@ enum PaymentMethod {
   BANQUE
 }
 
+enum CurrencyCode {
+  USD
+  CDF
+  AOA
+}
+
 enum PaymentStatus {
   VALIDE
   ANNULE
@@ -981,6 +1033,7 @@ model Organization {
   invitations       Invitation[]
   organizationSupportAgents OrganizationSupportAgent[]
   platformSupportEscalations PlatformSupportEscalation[]
+  exchangeRates     ExchangeRate[]
 
   @@unique([name])
   @@unique([slug])
@@ -1085,6 +1138,7 @@ model Branch {
   calendarEvent CalendarEvent[]
   periodResultLock PeriodResultLock[]
   cashierExpense CashierExpense[]
+  cashierOpeningBalance CashierOpeningBalance[]
   invoice Invoice[]
   creneau Creneau[]
   paymentAllocation PaymentAllocation[]

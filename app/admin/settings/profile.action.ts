@@ -9,14 +9,12 @@ import { prisma } from "@/lib/prisma";
 import { sendProfileUpdatedEmail } from "@/lib/email/send-profile-updated-email";
 
 const profileUpdateSchema = z.object({
-  username: z.string().trim().min(3, "Nom d'utilisateur requis"),
-  name: z.string().trim().min(2, "Nom requis"),
+  name: z.string().trim().min(2, "Le nom doit contenir au moins 2 caracteres."),
   prenom: z.string().trim().optional(),
   postnom: z.string().trim().optional(),
   sexe: z.string().trim().optional(),
   telephone: z.string().trim().optional(),
   address: z.string().trim().optional(),
-  image: z.string().trim().optional(),
   dateOfBirth: z.string().trim().optional(),
 });
 
@@ -33,6 +31,36 @@ export type ProfileFormState = {
   image: string;
   dateOfBirth: string;
 };
+
+function mapUserToProfile(user: {
+  id: string;
+  username: string | null;
+  email: string | null;
+  name: string;
+  prenom: string | null;
+  postnom: string | null;
+  sexe: string | null;
+  telephone: string | null;
+  address: string | null;
+  image: string | null;
+  dateOfBirth: Date | null;
+}): ProfileFormState {
+  return {
+    id: user.id,
+    username: user.username ?? "",
+    email: user.email ?? "",
+    name: user.name ?? "",
+    prenom: user.prenom ?? "",
+    postnom: user.postnom ?? "",
+    sexe: user.sexe ?? "",
+    telephone: user.telephone ?? "",
+    address: user.address ?? "",
+    image: user.image ?? "",
+    dateOfBirth: user.dateOfBirth
+      ? user.dateOfBirth.toISOString().slice(0, 10)
+      : "",
+  };
+}
 
 async function getSessionUserId() {
   const session = await auth.api.getSession({ headers: await headers() });
@@ -70,23 +98,7 @@ export async function getCurrentProfileAction(): Promise<{
     return { error: "Utilisateur introuvable" };
   }
 
-  return {
-    profile: {
-      id: user.id,
-      username: user.username ?? "",
-      email: user.email ?? "",
-      name: user.name ?? "",
-      prenom: user.prenom ?? "",
-      postnom: user.postnom ?? "",
-      sexe: user.sexe ?? "",
-      telephone: user.telephone ?? "",
-      address: user.address ?? "",
-      image: user.image ?? "",
-      dateOfBirth: user.dateOfBirth
-        ? user.dateOfBirth.toISOString().slice(0, 10)
-        : "",
-    },
-  };
+  return { profile: mapUserToProfile(user) };
 }
 
 export async function updateCurrentProfileAction(
@@ -95,14 +107,14 @@ export async function updateCurrentProfileAction(
   const userId = await getSessionUserId();
 
   if (!userId) {
-    return { success: false, error: "Session introuvable" };
+    return { success: false as const, error: "Session introuvable" };
   }
 
   const parsed = profileUpdateSchema.safeParse(values);
 
   if (!parsed.success) {
     return {
-      success: false,
+      success: false as const,
       error: parsed.error.issues[0]?.message ?? "Donnees invalides",
     };
   }
@@ -113,7 +125,7 @@ export async function updateCurrentProfileAction(
   });
 
   if (!currentUser) {
-    return { success: false, error: "Utilisateur introuvable" };
+    return { success: false as const, error: "Utilisateur introuvable" };
   }
 
   const data = parsed.data;
@@ -122,14 +134,12 @@ export async function updateCurrentProfileAction(
     const updatedUser = await prisma.user.update({
       where: { id: userId },
       data: {
-        username: data.username,
         name: data.name,
         prenom: data.prenom || null,
         postnom: data.postnom || null,
         sexe: data.sexe || null,
         telephone: data.telephone || null,
         address: data.address || null,
-        image: data.image || null,
         dateOfBirth: data.dateOfBirth ? new Date(data.dateOfBirth) : null,
       },
       select: {
@@ -147,6 +157,16 @@ export async function updateCurrentProfileAction(
       },
     });
 
+    // Keep better-auth session display name in sync.
+    try {
+      await auth.api.updateUser({
+        body: { name: updatedUser.name },
+        headers: await headers(),
+      });
+    } catch (error) {
+      console.error("[updateCurrentProfileAction] session sync:", error);
+    }
+
     if (updatedUser.email) {
       try {
         await sendProfileUpdatedEmail({
@@ -159,23 +179,12 @@ export async function updateCurrentProfileAction(
     }
 
     revalidatePath("/admin/settings");
+    revalidatePath("/admin/account");
+    revalidatePath("/admin", "layout");
 
     return {
-      success: true,
-      profile: {
-        ...updatedUser,
-        email: updatedUser.email ?? "",
-        username: updatedUser.username ?? "",
-        prenom: updatedUser.prenom ?? "",
-        postnom: updatedUser.postnom ?? "",
-        sexe: updatedUser.sexe ?? "",
-        telephone: updatedUser.telephone ?? "",
-        address: updatedUser.address ?? "",
-        image: updatedUser.image ?? "",
-        dateOfBirth: updatedUser.dateOfBirth
-          ? updatedUser.dateOfBirth.toISOString().slice(0, 10)
-          : "",
-      },
+      success: true as const,
+      profile: mapUserToProfile(updatedUser),
     };
   } catch (error) {
     if (
@@ -183,8 +192,8 @@ export async function updateCurrentProfileAction(
       error.code === "P2002"
     ) {
       return {
-        success: false,
-        error: "Ce nom d'utilisateur est deja utilise.",
+        success: false as const,
+        error: "Conflit de donnees. Reessayez.",
       };
     }
 

@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { toast } from "sonner";
+import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/custom/button";
 import {
   Card,
@@ -33,40 +34,24 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  getCurrentProfileAction,
   updateCurrentProfileAction,
   type ProfileFormState,
 } from "./profile.action";
 
 const profileSchema = z.object({
   id: z.string(),
-  username: z.string().trim().min(3, "Nom d'utilisateur requis"),
+  username: z.string(),
   email: z.string(),
-  name: z.string().trim().min(2, "Nom requis"),
+  name: z.string().trim().min(2, "Nom requis (min. 2 caracteres)"),
   prenom: z.string().trim().optional(),
   postnom: z.string().trim().optional(),
   sexe: z.string().trim().optional(),
   telephone: z.string().trim().optional(),
   address: z.string().trim().optional(),
-  image: z.string().trim().optional(),
   dateOfBirth: z.string().trim().optional(),
 });
 
 type ProfileValues = z.infer<typeof profileSchema>;
-
-const emptyProfile: ProfileValues = {
-  id: "",
-  username: "",
-  email: "",
-  name: "",
-  prenom: "",
-  postnom: "",
-  sexe: "",
-  telephone: "",
-  address: "",
-  image: "",
-  dateOfBirth: "",
-};
 
 function toFormValues(profile: ProfileFormState): ProfileValues {
   return {
@@ -79,51 +64,38 @@ function toFormValues(profile: ProfileFormState): ProfileValues {
     sexe: profile.sexe,
     telephone: profile.telephone,
     address: profile.address,
-    image: profile.image,
     dateOfBirth: profile.dateOfBirth,
   };
 }
 
-export default function ProfileForm() {
+type ProfileFormProps = {
+  initialProfile: ProfileFormState;
+};
+
+export default function ProfileForm({ initialProfile }: ProfileFormProps) {
   const [isPending, startTransition] = useTransition();
+  const { refetch } = authClient.useSession();
 
   const form = useForm<ProfileValues>({
     resolver: zodResolver(profileSchema),
-    defaultValues: emptyProfile,
+    defaultValues: toFormValues(initialProfile),
     mode: "onChange",
   });
 
   useEffect(() => {
-    let mounted = true;
-
-    void getCurrentProfileAction().then((result) => {
-      if (!mounted) return;
-
-      if (result.error || !result.profile) {
-        toast.error(result.error ?? "Profil introuvable");
-        return;
-      }
-
-      form.reset(toFormValues(result.profile));
-    });
-
-    return () => {
-      mounted = false;
-    };
-  }, [form]);
+    form.reset(toFormValues(initialProfile));
+  }, [form, initialProfile]);
 
   function onSubmit(values: ProfileValues) {
     startTransition(() => {
       void (async () => {
         const result = await updateCurrentProfileAction({
-          username: values.username,
           name: values.name,
           prenom: values.prenom,
           postnom: values.postnom,
           sexe: values.sexe,
           telephone: values.telephone,
           address: values.address,
-          image: values.image,
           dateOfBirth: values.dateOfBirth,
         });
 
@@ -136,7 +108,8 @@ export default function ProfileForm() {
           form.reset(toFormValues(result.profile));
         }
 
-        toast.success("Profil mis a jour. Un email de confirmation a ete envoye.");
+        await refetch();
+        toast.success("Profil mis a jour.");
       })();
     });
   }
@@ -146,8 +119,8 @@ export default function ProfileForm() {
       <div>
         <h3 className="text-lg font-medium">Profil</h3>
         <p className="text-sm text-muted-foreground">
-          Modifiez vos informations personnelles. L'adresse email reste
-          verrouillee pour proteger votre compte.
+          Vos informations personnelles. Vous pouvez modifier votre nom,
+          prenom et post-nom.
         </p>
       </div>
 
@@ -157,24 +130,10 @@ export default function ProfileForm() {
             <CardHeader>
               <CardTitle>Compte</CardTitle>
               <CardDescription>
-                Identifiants du compte connecte.
+                Identifiants du compte connecte (lecture seule).
               </CardDescription>
             </CardHeader>
             <CardContent className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <FormField
-                control={form.control}
-                name="id"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>ID utilisateur</FormLabel>
-                    <FormControl>
-                      <Input {...field} disabled />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
               <FormField
                 control={form.control}
                 name="email"
@@ -185,7 +144,7 @@ export default function ProfileForm() {
                       <Input type="email" {...field} disabled />
                     </FormControl>
                     <FormDescription>
-                      L'email ne peut pas etre modifie depuis ce profil.
+                      L&apos;email se change depuis Mon compte.
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -196,11 +155,14 @@ export default function ProfileForm() {
                 control={form.control}
                 name="username"
                 render={({ field }) => (
-                  <FormItem className="sm:col-span-2">
-                    <FormLabel>Nom d'utilisateur</FormLabel>
+                  <FormItem>
+                    <FormLabel>Code d&apos;acces</FormLabel>
                     <FormControl>
-                      <Input placeholder="Nom d'utilisateur" {...field} />
+                      <Input {...field} disabled />
                     </FormControl>
+                    <FormDescription>
+                      Identifiant de connexion (non modifiable ici).
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -212,7 +174,7 @@ export default function ProfileForm() {
             <CardHeader>
               <CardTitle>Identite</CardTitle>
               <CardDescription>
-                Informations personnelles affichees dans l'application.
+                Nom affiche dans l&apos;application et sur les documents.
               </CardDescription>
             </CardHeader>
             <CardContent className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -223,7 +185,7 @@ export default function ProfileForm() {
                   <FormItem>
                     <FormLabel>Nom</FormLabel>
                     <FormControl>
-                      <Input placeholder="Nom" {...field} />
+                      <Input placeholder="Votre nom" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -237,7 +199,7 @@ export default function ProfileForm() {
                   <FormItem>
                     <FormLabel>Prenom</FormLabel>
                     <FormControl>
-                      <Input placeholder="Prenom" {...field} />
+                      <Input placeholder="Votre prenom" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -251,7 +213,7 @@ export default function ProfileForm() {
                   <FormItem>
                     <FormLabel>Post-nom</FormLabel>
                     <FormControl>
-                      <Input placeholder="Post-nom" {...field} />
+                      <Input placeholder="Votre post-nom" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -279,8 +241,6 @@ export default function ProfileForm() {
                         <SelectItem value="none">Non renseigne</SelectItem>
                         <SelectItem value="M">Masculin</SelectItem>
                         <SelectItem value="F">Feminin</SelectItem>
-                        <SelectItem value="masculin">Masculin</SelectItem>
-                        <SelectItem value="feminin">Feminin</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -310,20 +270,6 @@ export default function ProfileForm() {
                     <FormLabel>Telephone</FormLabel>
                     <FormControl>
                       <Input placeholder="+243..." {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="image"
-                render={({ field }) => (
-                  <FormItem className="sm:col-span-2">
-                    <FormLabel>Image</FormLabel>
-                    <FormControl>
-                      <Input placeholder="URL ou data image" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

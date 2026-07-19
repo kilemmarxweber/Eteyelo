@@ -31,13 +31,17 @@ import { exportUnpaidReportPdf } from "./export-unpaid-pdf";
 type ClassOption = { id: string; name: string };
 type YearOption = { id: string; name: string };
 
+type UnpaidReportProps = {
+  refreshKey?: number;
+};
+
 const formatAmount = (value: number) =>
   value.toLocaleString("fr-FR", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });
 
-export default function UnpaidReport() {
+export default function UnpaidReport({ refreshKey = 0 }: UnpaidReportProps) {
   const pathname = usePathname();
   const { data: session } = useSession();
   const branchIdFromPath = pathname.match(/\/branches\/([^/]+)/)?.[1];
@@ -150,7 +154,7 @@ export default function UnpaidReport() {
     };
 
     void fetchReport();
-  }, [filtersReady, schoolYearId, classeId]);
+  }, [filtersReady, schoolYearId, classeId, refreshKey]);
 
   const selectedClasseName =
     classeId === "all"

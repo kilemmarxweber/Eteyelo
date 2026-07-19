@@ -86,6 +86,15 @@ export const PaymentMethod = {
 export type PaymentMethod = (typeof PaymentMethod)[keyof typeof PaymentMethod]
 
 
+export const CurrencyCode = {
+  USD: 'USD',
+  CDF: 'CDF',
+  AOA: 'AOA'
+} as const
+
+export type CurrencyCode = (typeof CurrencyCode)[keyof typeof CurrencyCode]
+
+
 export const PaymentStatus = {
   VALIDE: 'VALIDE',
   ANNULE: 'ANNULE',

@@ -7,13 +7,14 @@ import { paiementSchema, StatusPaiement } from "@/src/interfaces/Paiement";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
 import { canManageOrganization } from "@/lib/auth/session-roles";
 import { randomUUID } from "node:crypto";
-import { Prisma } from "@/prisma/generated/prisma/client";
+import { Prisma, CurrencyCode } from "@/prisma/generated/prisma/client";
 import {
   buildSchoolReportContext,
   schoolReportBranchSelect,
 } from "@/lib/reports/resolve-school-branding";
 import { DEFAULT_EXCHANGE_RATE_USD_CDF } from "@/lib/reports/types";
 import { getSchoolYearForBranch } from "@/lib/school-year";
+import { roundCurrency } from "@/lib/exchange-rate";
 
 const linkedUserInclude = {
   branchMember: {
@@ -33,6 +34,36 @@ function getLinkedUser(record: any) {
 
 function revalidatePaiementPages(organizationId: string, branchId: string) {
   revalidatePath(`/admin/organizations/${organizationId}/branches/${branchId}/paiement`);
+}
+
+/**
+ * Solde d'ouverture automatique = solde net cumule juste avant `before`
+ * (encaissements VALIDES - depenses). Equivalent au solde net de la veille
+ * lorsque `before` est le debut du jour affiche.
+ */
+async function getAutomaticOpeningBalance(branchId: string, before: Date) {
+  const [incomeBefore, expenseBefore] = await Promise.all([
+    prisma.familyPayment.aggregate({
+      where: {
+        branchId,
+        status: StatusPaiement.VALIDE,
+        createdAt: { lt: before },
+      },
+      _sum: { amount: true },
+    }),
+    prisma.cashierExpense.aggregate({
+      where: {
+        branchId,
+        createdAt: { lt: before },
+      },
+      _sum: { amount: true },
+    }),
+  ]);
+
+  return (
+    Number(incomeBefore._sum.amount ?? 0) -
+    Number(expenseBefore._sum.amount ?? 0)
+  );
 }
 
 function buildFamilyPaymentRef(baseRef: string, lineIndex: number) {
@@ -65,10 +96,12 @@ type ReceiptPayload = {
     price: number;
     statut: string;
     montant: number;
+    receivedAmount?: number;
   }[];
   logoUrl: string;
   exchangeRateUsdCdf: number;
   issuedPlace?: string;
+  receivedCurrency?: "USD" | "CDF" | "AOA";
 };
 
 /* ======================================================
@@ -140,6 +173,9 @@ export const createPaiementAction = action
       notes,
       classEnrollIds,
       fraisIds,
+      receivedCurrency: rawReceivedCurrency,
+      receivedAmount: rawReceivedAmount,
+      exchangeRateUsed: rawExchangeRateUsed,
     } = input;
 
     if (!classEnrollIds.length) throw new Error("❌ Aucun élève sélectionné");
@@ -147,6 +183,72 @@ export const createPaiementAction = action
     if (amount === 0 || amount === undefined || amount === null) {
       throw new Error("❌ Montant invalide");
     }
+
+    const receivedCurrency =
+      (rawReceivedCurrency as CurrencyCode | undefined) ?? CurrencyCode.USD;
+    const totalUsdTarget = Number(amount);
+    const totalReceivedTarget =
+      rawReceivedAmount != null && Number.isFinite(Number(rawReceivedAmount))
+        ? Number(rawReceivedAmount)
+        : receivedCurrency === CurrencyCode.USD
+          ? totalUsdTarget
+          : null;
+    const exchangeRateUsed =
+      rawExchangeRateUsed != null && Number.isFinite(Number(rawExchangeRateUsed))
+        ? Number(rawExchangeRateUsed)
+        : receivedCurrency === CurrencyCode.USD
+          ? 1
+          : null;
+
+    if (receivedCurrency !== CurrencyCode.USD) {
+      if (totalReceivedTarget == null || totalReceivedTarget <= 0) {
+        throw new Error("❌ Montant perçu invalide pour la devise sélectionnée");
+      }
+      if (exchangeRateUsed == null || exchangeRateUsed <= 0) {
+        throw new Error("❌ Taux de change manquant pour ce paiement");
+      }
+    }
+
+    let allocatedReceived = 0;
+
+    const buildCurrencyFields = (
+      usdLineAmount: number,
+      totalUsdPaid: number,
+      totalReceivedPaid: number,
+      isLastLine: boolean,
+    ) => {
+      if (
+        receivedCurrency === CurrencyCode.USD ||
+        totalReceivedPaid <= 0 ||
+        totalUsdPaid <= 0
+      ) {
+        return {
+          receivedCurrency: CurrencyCode.USD as CurrencyCode,
+          receivedAmount: usdLineAmount,
+          exchangeRateUsed: exchangeRateUsed ?? 1,
+        };
+      }
+
+      let receivedLine: number;
+      if (isLastLine) {
+        receivedLine = roundCurrency(
+          Math.max(totalReceivedPaid - allocatedReceived, 0),
+          receivedCurrency,
+        );
+      } else {
+        receivedLine = roundCurrency(
+          (usdLineAmount / totalUsdPaid) * totalReceivedPaid,
+          receivedCurrency,
+        );
+        allocatedReceived += receivedLine;
+      }
+
+      return {
+        receivedCurrency,
+        receivedAmount: receivedLine,
+        exchangeRateUsed,
+      };
+    };
 
     const { branchId, organizationId } = await requireBranchContext();
     const uniqueClassEnrollIds = Array.from(new Set(classEnrollIds));
@@ -309,8 +411,12 @@ export const createPaiementAction = action
       /* ======================================================
          DISTRIBUTION ENGINE
       ====================================================== */
-      const results: any[] = [];
-      let paymentLineIndex = 0;
+      type PlannedLine = {
+        amount: number;
+        fraisId: string;
+        studentId: string;
+      };
+      const planned: PlannedLine[] = [];
 
       for (const priority of sortedPriorities) {
         if (globalBudget <= 0) break;
@@ -324,22 +430,11 @@ export const createPaiementAction = action
         =============================== */
         if (globalBudget >= totalNeeded) {
           for (const item of items) {
-            const payment = await tx.familyPayment.create({
-              data: {
-                amount: item.remaining,
-                method: modePaiement,
-                status,
-                parentId,
-                fraisId: item.fraisId,
-                classEnrollmentId: item.studentId,
-                transactionRef: buildFamilyPaymentRef(reference, paymentLineIndex),
-                notes,
-                branchId,
-              },
+            planned.push({
+              amount: item.remaining,
+              fraisId: item.fraisId,
+              studentId: item.studentId,
             });
-
-            paymentLineIndex += 1;
-            results.push(payment);
           }
 
           globalBudget -= totalNeeded;
@@ -374,27 +469,57 @@ export const createPaiementAction = action
 
         for (const t of temp) {
           if (t.share <= 0) continue;
-
-          const payment = await tx.familyPayment.create({
-            data: {
-              amount: t.share,
-              method: modePaiement,
-              status,
-              parentId,
-              fraisId: t.item.fraisId,
-              classEnrollmentId: t.item.studentId,
-              transactionRef: buildFamilyPaymentRef(reference, paymentLineIndex),
-              notes,
-              branchId,
-            },
+          planned.push({
+            amount: t.share,
+            fraisId: t.item.fraisId,
+            studentId: t.item.studentId,
           });
-
-          paymentLineIndex += 1;
-          results.push(payment);
         }
 
         globalBudget = 0;
         break;
+      }
+
+      const totalUsdPaid = planned.reduce((sum, line) => sum + line.amount, 0);
+      const totalReceivedPaid =
+        receivedCurrency === CurrencyCode.USD
+          ? totalUsdPaid
+          : totalReceivedTarget != null && totalUsdTarget > 0
+            ? roundCurrency(
+                (totalUsdPaid / totalUsdTarget) * totalReceivedTarget,
+                receivedCurrency,
+              )
+            : totalUsdPaid;
+
+      const results: any[] = [];
+      let paymentLineIndex = 0;
+
+      for (let i = 0; i < planned.length; i += 1) {
+        const line = planned[i];
+        const currencyFields = buildCurrencyFields(
+          line.amount,
+          totalUsdPaid,
+          totalReceivedPaid,
+          i === planned.length - 1,
+        );
+
+        const payment = await tx.familyPayment.create({
+          data: {
+            amount: line.amount,
+            method: modePaiement,
+            status,
+            parentId,
+            fraisId: line.fraisId,
+            classEnrollmentId: line.studentId,
+            transactionRef: buildFamilyPaymentRef(reference, paymentLineIndex),
+            notes,
+            branchId,
+            ...currencyFields,
+          },
+        });
+
+        paymentLineIndex += 1;
+        results.push(payment);
       }
 
       /* ======================================================
@@ -501,6 +626,13 @@ export const createPaiementAction = action
         exchangeRateUsdCdf: DEFAULT_EXCHANGE_RATE_USD_CDF,
       });
 
+      const receiptCurrency =
+        (receiptPayments[0]?.receivedCurrency as
+          | "USD"
+          | "CDF"
+          | "AOA"
+          | undefined) ?? "USD";
+
       const receipt: ReceiptPayload = {
         invoiceNumber: reference,
         sender: {
@@ -518,11 +650,16 @@ export const createPaiementAction = action
           price: Number(payment.frais?.montantFrais ?? payment.amount),
           statut: payment.status,
           montant: Number(payment.amount),
+          receivedAmount:
+            payment.receivedAmount != null
+              ? Number(payment.receivedAmount)
+              : Number(payment.amount),
         })),
         logoUrl: branding.logoUrl,
         exchangeRateUsdCdf:
           branding.exchangeRateUsdCdf ?? DEFAULT_EXCHANGE_RATE_USD_CDF,
         issuedPlace: branding.city,
+        receivedCurrency: receiptCurrency,
       };
 
       /* ======================================================
@@ -701,6 +838,10 @@ export const getCashierReportAction = action
           orderBy: { createdAt: "desc" },
         });
 
+    const openingBalance = await getAutomaticOpeningBalance(branchId, start);
+    const previousDay = new Date(start);
+    previousDay.setDate(previousDay.getDate() - 1);
+
     const incomeTotal = payments.reduce(
       (sum: number, item) => sum + Number(item.amount),
       0,
@@ -713,9 +854,15 @@ export const getCashierReportAction = action
     return {
       date: start.toISOString(),
       endDate: end.toISOString(),
+      openingBalance,
+      hasOpeningBalance: true,
+      openingSource: "previous_net" as const,
+      openingLabel: `Solde net du ${previousDay.toLocaleDateString("fr-FR")}`,
+      openingNote: null,
       incomeTotal,
       outflowTotal,
-      balance: incomeTotal - outflowTotal,
+      periodBalance: incomeTotal - outflowTotal,
+      balance: openingBalance + incomeTotal - outflowTotal,
       payments: payments.map((payment) => ({
         id: payment.id,
         amount: Number(payment.amount),
@@ -821,6 +968,11 @@ export const getAllPaiementAction = action.handler(async () => {
   return paiements.map((p) => ({
     id: p.id,
     amount: Number(p.amount),
+    receivedCurrency: p.receivedCurrency,
+    receivedAmount:
+      p.receivedAmount != null ? Number(p.receivedAmount) : Number(p.amount),
+    exchangeRateUsed:
+      p.exchangeRateUsed != null ? Number(p.exchangeRateUsed) : null,
     method: p.method,
     status: p.status,
     transactionRef: p.transactionRef,

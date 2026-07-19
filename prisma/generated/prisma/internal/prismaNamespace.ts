@@ -417,6 +417,8 @@ export const ModelName = {
   PaymentBatch: 'PaymentBatch',
   FamilyPayment: 'FamilyPayment',
   CashierExpense: 'CashierExpense',
+  CashierOpeningBalance: 'CashierOpeningBalance',
+  ExchangeRate: 'ExchangeRate',
   PaymentAllocation: 'PaymentAllocation',
   MobileMoneyTransaction: 'MobileMoneyTransaction',
   PaymentEvent: 'PaymentEvent',
@@ -456,7 +458,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "parent" | "student" | "attendanceSession" | "studentAttendance" | "teacherAttendance" | "personnelAttendance" | "parentFeedback" | "studentGrade" | "personnel" | "frais" | "typeFrais" | "classe" | "creneau" | "option" | "section" | "schoolYear" | "classEnrollment" | "teacher" | "teaching" | "cours" | "coursOptionPonderation" | "schedule" | "calendarEvent" | "eventType" | "semester" | "period" | "periodResultLock" | "fiche" | "invoice" | "paymentBatch" | "familyPayment" | "cashierExpense" | "paymentAllocation" | "mobileMoneyTransaction" | "paymentEvent" | "discountRule" | "transaction" | "session" | "account" | "verification" | "organization" | "organizationRole" | "member" | "invitation" | "branch" | "registrationRequest" | "jobApplication" | "partnaire" | "branchMember" | "studentBranchLink" | "issuedDocument" | "branchInvitation" | "platformSupportAgent" | "organizationSupportAgent" | "organizationSupportBranchScope" | "platformSupportEscalation"
+    modelProps: "user" | "parent" | "student" | "attendanceSession" | "studentAttendance" | "teacherAttendance" | "personnelAttendance" | "parentFeedback" | "studentGrade" | "personnel" | "frais" | "typeFrais" | "classe" | "creneau" | "option" | "section" | "schoolYear" | "classEnrollment" | "teacher" | "teaching" | "cours" | "coursOptionPonderation" | "schedule" | "calendarEvent" | "eventType" | "semester" | "period" | "periodResultLock" | "fiche" | "invoice" | "paymentBatch" | "familyPayment" | "cashierExpense" | "cashierOpeningBalance" | "exchangeRate" | "paymentAllocation" | "mobileMoneyTransaction" | "paymentEvent" | "discountRule" | "transaction" | "session" | "account" | "verification" | "organization" | "organizationRole" | "member" | "invitation" | "branch" | "registrationRequest" | "jobApplication" | "partnaire" | "branchMember" | "studentBranchLink" | "issuedDocument" | "branchInvitation" | "platformSupportAgent" | "organizationSupportAgent" | "organizationSupportBranchScope" | "platformSupportEscalation"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -2902,6 +2904,154 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    CashierOpeningBalance: {
+      payload: Prisma.$CashierOpeningBalancePayload<ExtArgs>
+      fields: Prisma.CashierOpeningBalanceFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.CashierOpeningBalanceFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CashierOpeningBalancePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.CashierOpeningBalanceFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CashierOpeningBalancePayload>
+        }
+        findFirst: {
+          args: Prisma.CashierOpeningBalanceFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CashierOpeningBalancePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.CashierOpeningBalanceFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CashierOpeningBalancePayload>
+        }
+        findMany: {
+          args: Prisma.CashierOpeningBalanceFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CashierOpeningBalancePayload>[]
+        }
+        create: {
+          args: Prisma.CashierOpeningBalanceCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CashierOpeningBalancePayload>
+        }
+        createMany: {
+          args: Prisma.CashierOpeningBalanceCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.CashierOpeningBalanceCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CashierOpeningBalancePayload>[]
+        }
+        delete: {
+          args: Prisma.CashierOpeningBalanceDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CashierOpeningBalancePayload>
+        }
+        update: {
+          args: Prisma.CashierOpeningBalanceUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CashierOpeningBalancePayload>
+        }
+        deleteMany: {
+          args: Prisma.CashierOpeningBalanceDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.CashierOpeningBalanceUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.CashierOpeningBalanceUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CashierOpeningBalancePayload>[]
+        }
+        upsert: {
+          args: Prisma.CashierOpeningBalanceUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CashierOpeningBalancePayload>
+        }
+        aggregate: {
+          args: Prisma.CashierOpeningBalanceAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateCashierOpeningBalance>
+        }
+        groupBy: {
+          args: Prisma.CashierOpeningBalanceGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.CashierOpeningBalanceGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.CashierOpeningBalanceCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.CashierOpeningBalanceCountAggregateOutputType> | number
+        }
+      }
+    }
+    ExchangeRate: {
+      payload: Prisma.$ExchangeRatePayload<ExtArgs>
+      fields: Prisma.ExchangeRateFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ExchangeRateFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExchangeRatePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ExchangeRateFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExchangeRatePayload>
+        }
+        findFirst: {
+          args: Prisma.ExchangeRateFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExchangeRatePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ExchangeRateFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExchangeRatePayload>
+        }
+        findMany: {
+          args: Prisma.ExchangeRateFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExchangeRatePayload>[]
+        }
+        create: {
+          args: Prisma.ExchangeRateCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExchangeRatePayload>
+        }
+        createMany: {
+          args: Prisma.ExchangeRateCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ExchangeRateCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExchangeRatePayload>[]
+        }
+        delete: {
+          args: Prisma.ExchangeRateDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExchangeRatePayload>
+        }
+        update: {
+          args: Prisma.ExchangeRateUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExchangeRatePayload>
+        }
+        deleteMany: {
+          args: Prisma.ExchangeRateDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ExchangeRateUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ExchangeRateUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExchangeRatePayload>[]
+        }
+        upsert: {
+          args: Prisma.ExchangeRateUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExchangeRatePayload>
+        }
+        aggregate: {
+          args: Prisma.ExchangeRateAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateExchangeRate>
+        }
+        groupBy: {
+          args: Prisma.ExchangeRateGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ExchangeRateGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ExchangeRateCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ExchangeRateCountAggregateOutputType> | number
+        }
+      }
+    }
     PaymentAllocation: {
       payload: Prisma.$PaymentAllocationPayload<ExtArgs>
       fields: Prisma.PaymentAllocationFieldRefs
@@ -5079,6 +5229,8 @@ export const CalendarEventScalarFieldEnum = {
   allDay: 'allDay',
   location: 'location',
   description: 'description',
+  titleI18n: 'titleI18n',
+  descriptionI18n: 'descriptionI18n',
   createdBy: 'createdBy',
   isArchived: 'isArchived',
   archivedAt: 'archivedAt',
@@ -5199,6 +5351,9 @@ export const FamilyPaymentScalarFieldEnum = {
   parentId: 'parentId',
   batchId: 'batchId',
   amount: 'amount',
+  receivedCurrency: 'receivedCurrency',
+  receivedAmount: 'receivedAmount',
+  exchangeRateUsed: 'exchangeRateUsed',
   method: 'method',
   transactionRef: 'transactionRef',
   notes: 'notes',
@@ -5225,6 +5380,35 @@ export const CashierExpenseScalarFieldEnum = {
 } as const
 
 export type CashierExpenseScalarFieldEnum = (typeof CashierExpenseScalarFieldEnum)[keyof typeof CashierExpenseScalarFieldEnum]
+
+
+export const CashierOpeningBalanceScalarFieldEnum = {
+  id: 'id',
+  amount: 'amount',
+  date: 'date',
+  note: 'note',
+  createdBy: 'createdBy',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  branchId: 'branchId'
+} as const
+
+export type CashierOpeningBalanceScalarFieldEnum = (typeof CashierOpeningBalanceScalarFieldEnum)[keyof typeof CashierOpeningBalanceScalarFieldEnum]
+
+
+export const ExchangeRateScalarFieldEnum = {
+  id: 'id',
+  fromCurrency: 'fromCurrency',
+  toCurrency: 'toCurrency',
+  rate: 'rate',
+  isActive: 'isActive',
+  organizationId: 'organizationId',
+  createdBy: 'createdBy',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ExchangeRateScalarFieldEnum = (typeof ExchangeRateScalarFieldEnum)[keyof typeof ExchangeRateScalarFieldEnum]
 
 
 export const PaymentAllocationScalarFieldEnum = {
@@ -5826,6 +6010,20 @@ export type ListEnumDayFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaMo
 
 
 /**
+ * Reference to a field of type 'Json'
+ */
+export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Json'>
+    
+
+
+/**
+ * Reference to a field of type 'QueryMode'
+ */
+export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
+    
+
+
+/**
  * Reference to a field of type 'Recurrence'
  */
 export type EnumRecurrenceFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Recurrence'>
@@ -5868,6 +6066,20 @@ export type ListEnumPaymentStatusFieldRefInput<$PrismaModel> = FieldRefInputType
 
 
 /**
+ * Reference to a field of type 'CurrencyCode'
+ */
+export type EnumCurrencyCodeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'CurrencyCode'>
+    
+
+
+/**
+ * Reference to a field of type 'CurrencyCode[]'
+ */
+export type ListEnumCurrencyCodeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'CurrencyCode[]'>
+    
+
+
+/**
  * Reference to a field of type 'PaymentMethod'
  */
 export type EnumPaymentMethodFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PaymentMethod'>
@@ -5892,20 +6104,6 @@ export type EnumDiscountScopeFieldRefInput<$PrismaModel> = FieldRefInputType<$Pr
  * Reference to a field of type 'DiscountScope[]'
  */
 export type ListEnumDiscountScopeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DiscountScope[]'>
-    
-
-
-/**
- * Reference to a field of type 'Json'
- */
-export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Json'>
-    
-
-
-/**
- * Reference to a field of type 'QueryMode'
- */
-export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
     
 
 
@@ -6163,6 +6361,8 @@ export type GlobalOmitConfig = {
   paymentBatch?: Prisma.PaymentBatchOmit
   familyPayment?: Prisma.FamilyPaymentOmit
   cashierExpense?: Prisma.CashierExpenseOmit
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceOmit
+  exchangeRate?: Prisma.ExchangeRateOmit
   paymentAllocation?: Prisma.PaymentAllocationOmit
   mobileMoneyTransaction?: Prisma.MobileMoneyTransactionOmit
   paymentEvent?: Prisma.PaymentEventOmit

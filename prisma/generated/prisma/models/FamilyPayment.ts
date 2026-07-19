@@ -29,11 +29,15 @@ export type AggregateFamilyPayment = {
 export type FamilyPaymentAvgAggregateOutputType = {
   batchId: number | null
   amount: number | null
+  receivedAmount: number | null
+  exchangeRateUsed: number | null
 }
 
 export type FamilyPaymentSumAggregateOutputType = {
   batchId: number | null
   amount: number | null
+  receivedAmount: number | null
+  exchangeRateUsed: number | null
 }
 
 export type FamilyPaymentMinAggregateOutputType = {
@@ -41,6 +45,9 @@ export type FamilyPaymentMinAggregateOutputType = {
   parentId: string | null
   batchId: number | null
   amount: number | null
+  receivedCurrency: $Enums.CurrencyCode | null
+  receivedAmount: number | null
+  exchangeRateUsed: number | null
   method: $Enums.PaymentMethod | null
   transactionRef: string | null
   notes: string | null
@@ -57,6 +64,9 @@ export type FamilyPaymentMaxAggregateOutputType = {
   parentId: string | null
   batchId: number | null
   amount: number | null
+  receivedCurrency: $Enums.CurrencyCode | null
+  receivedAmount: number | null
+  exchangeRateUsed: number | null
   method: $Enums.PaymentMethod | null
   transactionRef: string | null
   notes: string | null
@@ -73,6 +83,9 @@ export type FamilyPaymentCountAggregateOutputType = {
   parentId: number
   batchId: number
   amount: number
+  receivedCurrency: number
+  receivedAmount: number
+  exchangeRateUsed: number
   method: number
   transactionRef: number
   notes: number
@@ -89,11 +102,15 @@ export type FamilyPaymentCountAggregateOutputType = {
 export type FamilyPaymentAvgAggregateInputType = {
   batchId?: true
   amount?: true
+  receivedAmount?: true
+  exchangeRateUsed?: true
 }
 
 export type FamilyPaymentSumAggregateInputType = {
   batchId?: true
   amount?: true
+  receivedAmount?: true
+  exchangeRateUsed?: true
 }
 
 export type FamilyPaymentMinAggregateInputType = {
@@ -101,6 +118,9 @@ export type FamilyPaymentMinAggregateInputType = {
   parentId?: true
   batchId?: true
   amount?: true
+  receivedCurrency?: true
+  receivedAmount?: true
+  exchangeRateUsed?: true
   method?: true
   transactionRef?: true
   notes?: true
@@ -117,6 +137,9 @@ export type FamilyPaymentMaxAggregateInputType = {
   parentId?: true
   batchId?: true
   amount?: true
+  receivedCurrency?: true
+  receivedAmount?: true
+  exchangeRateUsed?: true
   method?: true
   transactionRef?: true
   notes?: true
@@ -133,6 +156,9 @@ export type FamilyPaymentCountAggregateInputType = {
   parentId?: true
   batchId?: true
   amount?: true
+  receivedCurrency?: true
+  receivedAmount?: true
+  exchangeRateUsed?: true
   method?: true
   transactionRef?: true
   notes?: true
@@ -236,6 +262,9 @@ export type FamilyPaymentGroupByOutputType = {
   parentId: string
   batchId: number | null
   amount: number
+  receivedCurrency: $Enums.CurrencyCode
+  receivedAmount: number | null
+  exchangeRateUsed: number | null
   method: $Enums.PaymentMethod
   transactionRef: string
   notes: string | null
@@ -275,6 +304,9 @@ export type FamilyPaymentWhereInput = {
   parentId?: Prisma.StringFilter<"FamilyPayment"> | string
   batchId?: Prisma.IntNullableFilter<"FamilyPayment"> | number | null
   amount?: Prisma.FloatFilter<"FamilyPayment"> | number
+  receivedCurrency?: Prisma.EnumCurrencyCodeFilter<"FamilyPayment"> | $Enums.CurrencyCode
+  receivedAmount?: Prisma.FloatNullableFilter<"FamilyPayment"> | number | null
+  exchangeRateUsed?: Prisma.FloatNullableFilter<"FamilyPayment"> | number | null
   method?: Prisma.EnumPaymentMethodFilter<"FamilyPayment"> | $Enums.PaymentMethod
   transactionRef?: Prisma.StringFilter<"FamilyPayment"> | string
   notes?: Prisma.StringNullableFilter<"FamilyPayment"> | string | null
@@ -299,6 +331,9 @@ export type FamilyPaymentOrderByWithRelationInput = {
   parentId?: Prisma.SortOrder
   batchId?: Prisma.SortOrderInput | Prisma.SortOrder
   amount?: Prisma.SortOrder
+  receivedCurrency?: Prisma.SortOrder
+  receivedAmount?: Prisma.SortOrderInput | Prisma.SortOrder
+  exchangeRateUsed?: Prisma.SortOrderInput | Prisma.SortOrder
   method?: Prisma.SortOrder
   transactionRef?: Prisma.SortOrder
   notes?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -327,6 +362,9 @@ export type FamilyPaymentWhereUniqueInput = Prisma.AtLeast<{
   parentId?: Prisma.StringFilter<"FamilyPayment"> | string
   batchId?: Prisma.IntNullableFilter<"FamilyPayment"> | number | null
   amount?: Prisma.FloatFilter<"FamilyPayment"> | number
+  receivedCurrency?: Prisma.EnumCurrencyCodeFilter<"FamilyPayment"> | $Enums.CurrencyCode
+  receivedAmount?: Prisma.FloatNullableFilter<"FamilyPayment"> | number | null
+  exchangeRateUsed?: Prisma.FloatNullableFilter<"FamilyPayment"> | number | null
   method?: Prisma.EnumPaymentMethodFilter<"FamilyPayment"> | $Enums.PaymentMethod
   transactionRef?: Prisma.StringFilter<"FamilyPayment"> | string
   notes?: Prisma.StringNullableFilter<"FamilyPayment"> | string | null
@@ -351,6 +389,9 @@ export type FamilyPaymentOrderByWithAggregationInput = {
   parentId?: Prisma.SortOrder
   batchId?: Prisma.SortOrderInput | Prisma.SortOrder
   amount?: Prisma.SortOrder
+  receivedCurrency?: Prisma.SortOrder
+  receivedAmount?: Prisma.SortOrderInput | Prisma.SortOrder
+  exchangeRateUsed?: Prisma.SortOrderInput | Prisma.SortOrder
   method?: Prisma.SortOrder
   transactionRef?: Prisma.SortOrder
   notes?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -375,6 +416,9 @@ export type FamilyPaymentScalarWhereWithAggregatesInput = {
   parentId?: Prisma.StringWithAggregatesFilter<"FamilyPayment"> | string
   batchId?: Prisma.IntNullableWithAggregatesFilter<"FamilyPayment"> | number | null
   amount?: Prisma.FloatWithAggregatesFilter<"FamilyPayment"> | number
+  receivedCurrency?: Prisma.EnumCurrencyCodeWithAggregatesFilter<"FamilyPayment"> | $Enums.CurrencyCode
+  receivedAmount?: Prisma.FloatNullableWithAggregatesFilter<"FamilyPayment"> | number | null
+  exchangeRateUsed?: Prisma.FloatNullableWithAggregatesFilter<"FamilyPayment"> | number | null
   method?: Prisma.EnumPaymentMethodWithAggregatesFilter<"FamilyPayment"> | $Enums.PaymentMethod
   transactionRef?: Prisma.StringWithAggregatesFilter<"FamilyPayment"> | string
   notes?: Prisma.StringNullableWithAggregatesFilter<"FamilyPayment"> | string | null
@@ -389,6 +433,9 @@ export type FamilyPaymentScalarWhereWithAggregatesInput = {
 export type FamilyPaymentCreateInput = {
   id?: string
   amount: number
+  receivedCurrency?: $Enums.CurrencyCode
+  receivedAmount?: number | null
+  exchangeRateUsed?: number | null
   method: $Enums.PaymentMethod
   transactionRef: string
   notes?: string | null
@@ -410,6 +457,9 @@ export type FamilyPaymentUncheckedCreateInput = {
   parentId: string
   batchId?: number | null
   amount: number
+  receivedCurrency?: $Enums.CurrencyCode
+  receivedAmount?: number | null
+  exchangeRateUsed?: number | null
   method: $Enums.PaymentMethod
   transactionRef: string
   notes?: string | null
@@ -427,6 +477,9 @@ export type FamilyPaymentUncheckedCreateInput = {
 export type FamilyPaymentUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  receivedCurrency?: Prisma.EnumCurrencyCodeFieldUpdateOperationsInput | $Enums.CurrencyCode
+  receivedAmount?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  exchangeRateUsed?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   method?: Prisma.EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
   transactionRef?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -448,6 +501,9 @@ export type FamilyPaymentUncheckedUpdateInput = {
   parentId?: Prisma.StringFieldUpdateOperationsInput | string
   batchId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  receivedCurrency?: Prisma.EnumCurrencyCodeFieldUpdateOperationsInput | $Enums.CurrencyCode
+  receivedAmount?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  exchangeRateUsed?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   method?: Prisma.EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
   transactionRef?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -467,6 +523,9 @@ export type FamilyPaymentCreateManyInput = {
   parentId: string
   batchId?: number | null
   amount: number
+  receivedCurrency?: $Enums.CurrencyCode
+  receivedAmount?: number | null
+  exchangeRateUsed?: number | null
   method: $Enums.PaymentMethod
   transactionRef: string
   notes?: string | null
@@ -481,6 +540,9 @@ export type FamilyPaymentCreateManyInput = {
 export type FamilyPaymentUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  receivedCurrency?: Prisma.EnumCurrencyCodeFieldUpdateOperationsInput | $Enums.CurrencyCode
+  receivedAmount?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  exchangeRateUsed?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   method?: Prisma.EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
   transactionRef?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -494,6 +556,9 @@ export type FamilyPaymentUncheckedUpdateManyInput = {
   parentId?: Prisma.StringFieldUpdateOperationsInput | string
   batchId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  receivedCurrency?: Prisma.EnumCurrencyCodeFieldUpdateOperationsInput | $Enums.CurrencyCode
+  receivedAmount?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  exchangeRateUsed?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   method?: Prisma.EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
   transactionRef?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -525,6 +590,9 @@ export type FamilyPaymentCountOrderByAggregateInput = {
   parentId?: Prisma.SortOrder
   batchId?: Prisma.SortOrder
   amount?: Prisma.SortOrder
+  receivedCurrency?: Prisma.SortOrder
+  receivedAmount?: Prisma.SortOrder
+  exchangeRateUsed?: Prisma.SortOrder
   method?: Prisma.SortOrder
   transactionRef?: Prisma.SortOrder
   notes?: Prisma.SortOrder
@@ -539,6 +607,8 @@ export type FamilyPaymentCountOrderByAggregateInput = {
 export type FamilyPaymentAvgOrderByAggregateInput = {
   batchId?: Prisma.SortOrder
   amount?: Prisma.SortOrder
+  receivedAmount?: Prisma.SortOrder
+  exchangeRateUsed?: Prisma.SortOrder
 }
 
 export type FamilyPaymentMaxOrderByAggregateInput = {
@@ -546,6 +616,9 @@ export type FamilyPaymentMaxOrderByAggregateInput = {
   parentId?: Prisma.SortOrder
   batchId?: Prisma.SortOrder
   amount?: Prisma.SortOrder
+  receivedCurrency?: Prisma.SortOrder
+  receivedAmount?: Prisma.SortOrder
+  exchangeRateUsed?: Prisma.SortOrder
   method?: Prisma.SortOrder
   transactionRef?: Prisma.SortOrder
   notes?: Prisma.SortOrder
@@ -562,6 +635,9 @@ export type FamilyPaymentMinOrderByAggregateInput = {
   parentId?: Prisma.SortOrder
   batchId?: Prisma.SortOrder
   amount?: Prisma.SortOrder
+  receivedCurrency?: Prisma.SortOrder
+  receivedAmount?: Prisma.SortOrder
+  exchangeRateUsed?: Prisma.SortOrder
   method?: Prisma.SortOrder
   transactionRef?: Prisma.SortOrder
   notes?: Prisma.SortOrder
@@ -576,6 +652,8 @@ export type FamilyPaymentMinOrderByAggregateInput = {
 export type FamilyPaymentSumOrderByAggregateInput = {
   batchId?: Prisma.SortOrder
   amount?: Prisma.SortOrder
+  receivedAmount?: Prisma.SortOrder
+  exchangeRateUsed?: Prisma.SortOrder
 }
 
 export type FamilyPaymentScalarRelationFilter = {
@@ -751,6 +829,18 @@ export type FamilyPaymentUncheckedUpdateManyWithoutBatchNestedInput = {
   deleteMany?: Prisma.FamilyPaymentScalarWhereInput | Prisma.FamilyPaymentScalarWhereInput[]
 }
 
+export type EnumCurrencyCodeFieldUpdateOperationsInput = {
+  set?: $Enums.CurrencyCode
+}
+
+export type NullableFloatFieldUpdateOperationsInput = {
+  set?: number | null
+  increment?: number
+  decrement?: number
+  multiply?: number
+  divide?: number
+}
+
 export type EnumPaymentMethodFieldUpdateOperationsInput = {
   set?: $Enums.PaymentMethod
 }
@@ -842,6 +932,9 @@ export type FamilyPaymentUncheckedUpdateManyWithoutBranchNestedInput = {
 export type FamilyPaymentCreateWithoutParentInput = {
   id?: string
   amount: number
+  receivedCurrency?: $Enums.CurrencyCode
+  receivedAmount?: number | null
+  exchangeRateUsed?: number | null
   method: $Enums.PaymentMethod
   transactionRef: string
   notes?: string | null
@@ -861,6 +954,9 @@ export type FamilyPaymentUncheckedCreateWithoutParentInput = {
   id?: string
   batchId?: number | null
   amount: number
+  receivedCurrency?: $Enums.CurrencyCode
+  receivedAmount?: number | null
+  exchangeRateUsed?: number | null
   method: $Enums.PaymentMethod
   transactionRef: string
   notes?: string | null
@@ -909,6 +1005,9 @@ export type FamilyPaymentScalarWhereInput = {
   parentId?: Prisma.StringFilter<"FamilyPayment"> | string
   batchId?: Prisma.IntNullableFilter<"FamilyPayment"> | number | null
   amount?: Prisma.FloatFilter<"FamilyPayment"> | number
+  receivedCurrency?: Prisma.EnumCurrencyCodeFilter<"FamilyPayment"> | $Enums.CurrencyCode
+  receivedAmount?: Prisma.FloatNullableFilter<"FamilyPayment"> | number | null
+  exchangeRateUsed?: Prisma.FloatNullableFilter<"FamilyPayment"> | number | null
   method?: Prisma.EnumPaymentMethodFilter<"FamilyPayment"> | $Enums.PaymentMethod
   transactionRef?: Prisma.StringFilter<"FamilyPayment"> | string
   notes?: Prisma.StringNullableFilter<"FamilyPayment"> | string | null
@@ -923,6 +1022,9 @@ export type FamilyPaymentScalarWhereInput = {
 export type FamilyPaymentCreateWithoutFraisInput = {
   id?: string
   amount: number
+  receivedCurrency?: $Enums.CurrencyCode
+  receivedAmount?: number | null
+  exchangeRateUsed?: number | null
   method: $Enums.PaymentMethod
   transactionRef: string
   notes?: string | null
@@ -943,6 +1045,9 @@ export type FamilyPaymentUncheckedCreateWithoutFraisInput = {
   parentId: string
   batchId?: number | null
   amount: number
+  receivedCurrency?: $Enums.CurrencyCode
+  receivedAmount?: number | null
+  exchangeRateUsed?: number | null
   method: $Enums.PaymentMethod
   transactionRef: string
   notes?: string | null
@@ -985,6 +1090,9 @@ export type FamilyPaymentUpdateManyWithWhereWithoutFraisInput = {
 export type FamilyPaymentCreateWithoutClassEnrollmentInput = {
   id?: string
   amount: number
+  receivedCurrency?: $Enums.CurrencyCode
+  receivedAmount?: number | null
+  exchangeRateUsed?: number | null
   method: $Enums.PaymentMethod
   transactionRef: string
   notes?: string | null
@@ -1005,6 +1113,9 @@ export type FamilyPaymentUncheckedCreateWithoutClassEnrollmentInput = {
   parentId: string
   batchId?: number | null
   amount: number
+  receivedCurrency?: $Enums.CurrencyCode
+  receivedAmount?: number | null
+  exchangeRateUsed?: number | null
   method: $Enums.PaymentMethod
   transactionRef: string
   notes?: string | null
@@ -1047,6 +1158,9 @@ export type FamilyPaymentUpdateManyWithWhereWithoutClassEnrollmentInput = {
 export type FamilyPaymentCreateWithoutBatchInput = {
   id?: string
   amount: number
+  receivedCurrency?: $Enums.CurrencyCode
+  receivedAmount?: number | null
+  exchangeRateUsed?: number | null
   method: $Enums.PaymentMethod
   transactionRef: string
   notes?: string | null
@@ -1066,6 +1180,9 @@ export type FamilyPaymentUncheckedCreateWithoutBatchInput = {
   id?: string
   parentId: string
   amount: number
+  receivedCurrency?: $Enums.CurrencyCode
+  receivedAmount?: number | null
+  exchangeRateUsed?: number | null
   method: $Enums.PaymentMethod
   transactionRef: string
   notes?: string | null
@@ -1109,6 +1226,9 @@ export type FamilyPaymentUpdateManyWithWhereWithoutBatchInput = {
 export type FamilyPaymentCreateWithoutAllocationsInput = {
   id?: string
   amount: number
+  receivedCurrency?: $Enums.CurrencyCode
+  receivedAmount?: number | null
+  exchangeRateUsed?: number | null
   method: $Enums.PaymentMethod
   transactionRef: string
   notes?: string | null
@@ -1129,6 +1249,9 @@ export type FamilyPaymentUncheckedCreateWithoutAllocationsInput = {
   parentId: string
   batchId?: number | null
   amount: number
+  receivedCurrency?: $Enums.CurrencyCode
+  receivedAmount?: number | null
+  exchangeRateUsed?: number | null
   method: $Enums.PaymentMethod
   transactionRef: string
   notes?: string | null
@@ -1161,6 +1284,9 @@ export type FamilyPaymentUpdateToOneWithWhereWithoutAllocationsInput = {
 export type FamilyPaymentUpdateWithoutAllocationsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  receivedCurrency?: Prisma.EnumCurrencyCodeFieldUpdateOperationsInput | $Enums.CurrencyCode
+  receivedAmount?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  exchangeRateUsed?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   method?: Prisma.EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
   transactionRef?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1181,6 +1307,9 @@ export type FamilyPaymentUncheckedUpdateWithoutAllocationsInput = {
   parentId?: Prisma.StringFieldUpdateOperationsInput | string
   batchId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  receivedCurrency?: Prisma.EnumCurrencyCodeFieldUpdateOperationsInput | $Enums.CurrencyCode
+  receivedAmount?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  exchangeRateUsed?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   method?: Prisma.EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
   transactionRef?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1197,6 +1326,9 @@ export type FamilyPaymentUncheckedUpdateWithoutAllocationsInput = {
 export type FamilyPaymentCreateWithoutMobileTxInput = {
   id?: string
   amount: number
+  receivedCurrency?: $Enums.CurrencyCode
+  receivedAmount?: number | null
+  exchangeRateUsed?: number | null
   method: $Enums.PaymentMethod
   transactionRef: string
   notes?: string | null
@@ -1217,6 +1349,9 @@ export type FamilyPaymentUncheckedCreateWithoutMobileTxInput = {
   parentId: string
   batchId?: number | null
   amount: number
+  receivedCurrency?: $Enums.CurrencyCode
+  receivedAmount?: number | null
+  exchangeRateUsed?: number | null
   method: $Enums.PaymentMethod
   transactionRef: string
   notes?: string | null
@@ -1249,6 +1384,9 @@ export type FamilyPaymentUpdateToOneWithWhereWithoutMobileTxInput = {
 export type FamilyPaymentUpdateWithoutMobileTxInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  receivedCurrency?: Prisma.EnumCurrencyCodeFieldUpdateOperationsInput | $Enums.CurrencyCode
+  receivedAmount?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  exchangeRateUsed?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   method?: Prisma.EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
   transactionRef?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1269,6 +1407,9 @@ export type FamilyPaymentUncheckedUpdateWithoutMobileTxInput = {
   parentId?: Prisma.StringFieldUpdateOperationsInput | string
   batchId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  receivedCurrency?: Prisma.EnumCurrencyCodeFieldUpdateOperationsInput | $Enums.CurrencyCode
+  receivedAmount?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  exchangeRateUsed?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   method?: Prisma.EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
   transactionRef?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1285,6 +1426,9 @@ export type FamilyPaymentUncheckedUpdateWithoutMobileTxInput = {
 export type FamilyPaymentCreateWithoutEventsInput = {
   id?: string
   amount: number
+  receivedCurrency?: $Enums.CurrencyCode
+  receivedAmount?: number | null
+  exchangeRateUsed?: number | null
   method: $Enums.PaymentMethod
   transactionRef: string
   notes?: string | null
@@ -1305,6 +1449,9 @@ export type FamilyPaymentUncheckedCreateWithoutEventsInput = {
   parentId: string
   batchId?: number | null
   amount: number
+  receivedCurrency?: $Enums.CurrencyCode
+  receivedAmount?: number | null
+  exchangeRateUsed?: number | null
   method: $Enums.PaymentMethod
   transactionRef: string
   notes?: string | null
@@ -1337,6 +1484,9 @@ export type FamilyPaymentUpdateToOneWithWhereWithoutEventsInput = {
 export type FamilyPaymentUpdateWithoutEventsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  receivedCurrency?: Prisma.EnumCurrencyCodeFieldUpdateOperationsInput | $Enums.CurrencyCode
+  receivedAmount?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  exchangeRateUsed?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   method?: Prisma.EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
   transactionRef?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1357,6 +1507,9 @@ export type FamilyPaymentUncheckedUpdateWithoutEventsInput = {
   parentId?: Prisma.StringFieldUpdateOperationsInput | string
   batchId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  receivedCurrency?: Prisma.EnumCurrencyCodeFieldUpdateOperationsInput | $Enums.CurrencyCode
+  receivedAmount?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  exchangeRateUsed?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   method?: Prisma.EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
   transactionRef?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1373,6 +1526,9 @@ export type FamilyPaymentUncheckedUpdateWithoutEventsInput = {
 export type FamilyPaymentCreateWithoutBranchInput = {
   id?: string
   amount: number
+  receivedCurrency?: $Enums.CurrencyCode
+  receivedAmount?: number | null
+  exchangeRateUsed?: number | null
   method: $Enums.PaymentMethod
   transactionRef: string
   notes?: string | null
@@ -1393,6 +1549,9 @@ export type FamilyPaymentUncheckedCreateWithoutBranchInput = {
   parentId: string
   batchId?: number | null
   amount: number
+  receivedCurrency?: $Enums.CurrencyCode
+  receivedAmount?: number | null
+  exchangeRateUsed?: number | null
   method: $Enums.PaymentMethod
   transactionRef: string
   notes?: string | null
@@ -1436,6 +1595,9 @@ export type FamilyPaymentCreateManyParentInput = {
   id?: string
   batchId?: number | null
   amount: number
+  receivedCurrency?: $Enums.CurrencyCode
+  receivedAmount?: number | null
+  exchangeRateUsed?: number | null
   method: $Enums.PaymentMethod
   transactionRef: string
   notes?: string | null
@@ -1450,6 +1612,9 @@ export type FamilyPaymentCreateManyParentInput = {
 export type FamilyPaymentUpdateWithoutParentInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  receivedCurrency?: Prisma.EnumCurrencyCodeFieldUpdateOperationsInput | $Enums.CurrencyCode
+  receivedAmount?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  exchangeRateUsed?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   method?: Prisma.EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
   transactionRef?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1469,6 +1634,9 @@ export type FamilyPaymentUncheckedUpdateWithoutParentInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   batchId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  receivedCurrency?: Prisma.EnumCurrencyCodeFieldUpdateOperationsInput | $Enums.CurrencyCode
+  receivedAmount?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  exchangeRateUsed?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   method?: Prisma.EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
   transactionRef?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1487,6 +1655,9 @@ export type FamilyPaymentUncheckedUpdateManyWithoutParentInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   batchId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  receivedCurrency?: Prisma.EnumCurrencyCodeFieldUpdateOperationsInput | $Enums.CurrencyCode
+  receivedAmount?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  exchangeRateUsed?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   method?: Prisma.EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
   transactionRef?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1503,6 +1674,9 @@ export type FamilyPaymentCreateManyFraisInput = {
   parentId: string
   batchId?: number | null
   amount: number
+  receivedCurrency?: $Enums.CurrencyCode
+  receivedAmount?: number | null
+  exchangeRateUsed?: number | null
   method: $Enums.PaymentMethod
   transactionRef: string
   notes?: string | null
@@ -1516,6 +1690,9 @@ export type FamilyPaymentCreateManyFraisInput = {
 export type FamilyPaymentUpdateWithoutFraisInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  receivedCurrency?: Prisma.EnumCurrencyCodeFieldUpdateOperationsInput | $Enums.CurrencyCode
+  receivedAmount?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  exchangeRateUsed?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   method?: Prisma.EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
   transactionRef?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1536,6 +1713,9 @@ export type FamilyPaymentUncheckedUpdateWithoutFraisInput = {
   parentId?: Prisma.StringFieldUpdateOperationsInput | string
   batchId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  receivedCurrency?: Prisma.EnumCurrencyCodeFieldUpdateOperationsInput | $Enums.CurrencyCode
+  receivedAmount?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  exchangeRateUsed?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   method?: Prisma.EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
   transactionRef?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1554,6 +1734,9 @@ export type FamilyPaymentUncheckedUpdateManyWithoutFraisInput = {
   parentId?: Prisma.StringFieldUpdateOperationsInput | string
   batchId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  receivedCurrency?: Prisma.EnumCurrencyCodeFieldUpdateOperationsInput | $Enums.CurrencyCode
+  receivedAmount?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  exchangeRateUsed?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   method?: Prisma.EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
   transactionRef?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1569,6 +1752,9 @@ export type FamilyPaymentCreateManyClassEnrollmentInput = {
   parentId: string
   batchId?: number | null
   amount: number
+  receivedCurrency?: $Enums.CurrencyCode
+  receivedAmount?: number | null
+  exchangeRateUsed?: number | null
   method: $Enums.PaymentMethod
   transactionRef: string
   notes?: string | null
@@ -1582,6 +1768,9 @@ export type FamilyPaymentCreateManyClassEnrollmentInput = {
 export type FamilyPaymentUpdateWithoutClassEnrollmentInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  receivedCurrency?: Prisma.EnumCurrencyCodeFieldUpdateOperationsInput | $Enums.CurrencyCode
+  receivedAmount?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  exchangeRateUsed?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   method?: Prisma.EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
   transactionRef?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1602,6 +1791,9 @@ export type FamilyPaymentUncheckedUpdateWithoutClassEnrollmentInput = {
   parentId?: Prisma.StringFieldUpdateOperationsInput | string
   batchId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  receivedCurrency?: Prisma.EnumCurrencyCodeFieldUpdateOperationsInput | $Enums.CurrencyCode
+  receivedAmount?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  exchangeRateUsed?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   method?: Prisma.EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
   transactionRef?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1620,6 +1812,9 @@ export type FamilyPaymentUncheckedUpdateManyWithoutClassEnrollmentInput = {
   parentId?: Prisma.StringFieldUpdateOperationsInput | string
   batchId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  receivedCurrency?: Prisma.EnumCurrencyCodeFieldUpdateOperationsInput | $Enums.CurrencyCode
+  receivedAmount?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  exchangeRateUsed?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   method?: Prisma.EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
   transactionRef?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1634,6 +1829,9 @@ export type FamilyPaymentCreateManyBatchInput = {
   id?: string
   parentId: string
   amount: number
+  receivedCurrency?: $Enums.CurrencyCode
+  receivedAmount?: number | null
+  exchangeRateUsed?: number | null
   method: $Enums.PaymentMethod
   transactionRef: string
   notes?: string | null
@@ -1648,6 +1846,9 @@ export type FamilyPaymentCreateManyBatchInput = {
 export type FamilyPaymentUpdateWithoutBatchInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  receivedCurrency?: Prisma.EnumCurrencyCodeFieldUpdateOperationsInput | $Enums.CurrencyCode
+  receivedAmount?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  exchangeRateUsed?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   method?: Prisma.EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
   transactionRef?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1667,6 +1868,9 @@ export type FamilyPaymentUncheckedUpdateWithoutBatchInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   parentId?: Prisma.StringFieldUpdateOperationsInput | string
   amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  receivedCurrency?: Prisma.EnumCurrencyCodeFieldUpdateOperationsInput | $Enums.CurrencyCode
+  receivedAmount?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  exchangeRateUsed?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   method?: Prisma.EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
   transactionRef?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1685,6 +1889,9 @@ export type FamilyPaymentUncheckedUpdateManyWithoutBatchInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   parentId?: Prisma.StringFieldUpdateOperationsInput | string
   amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  receivedCurrency?: Prisma.EnumCurrencyCodeFieldUpdateOperationsInput | $Enums.CurrencyCode
+  receivedAmount?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  exchangeRateUsed?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   method?: Prisma.EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
   transactionRef?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1701,6 +1908,9 @@ export type FamilyPaymentCreateManyBranchInput = {
   parentId: string
   batchId?: number | null
   amount: number
+  receivedCurrency?: $Enums.CurrencyCode
+  receivedAmount?: number | null
+  exchangeRateUsed?: number | null
   method: $Enums.PaymentMethod
   transactionRef: string
   notes?: string | null
@@ -1714,6 +1924,9 @@ export type FamilyPaymentCreateManyBranchInput = {
 export type FamilyPaymentUpdateWithoutBranchInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  receivedCurrency?: Prisma.EnumCurrencyCodeFieldUpdateOperationsInput | $Enums.CurrencyCode
+  receivedAmount?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  exchangeRateUsed?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   method?: Prisma.EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
   transactionRef?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1734,6 +1947,9 @@ export type FamilyPaymentUncheckedUpdateWithoutBranchInput = {
   parentId?: Prisma.StringFieldUpdateOperationsInput | string
   batchId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  receivedCurrency?: Prisma.EnumCurrencyCodeFieldUpdateOperationsInput | $Enums.CurrencyCode
+  receivedAmount?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  exchangeRateUsed?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   method?: Prisma.EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
   transactionRef?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1752,6 +1968,9 @@ export type FamilyPaymentUncheckedUpdateManyWithoutBranchInput = {
   parentId?: Prisma.StringFieldUpdateOperationsInput | string
   batchId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  receivedCurrency?: Prisma.EnumCurrencyCodeFieldUpdateOperationsInput | $Enums.CurrencyCode
+  receivedAmount?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  exchangeRateUsed?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   method?: Prisma.EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
   transactionRef?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1807,6 +2026,9 @@ export type FamilyPaymentSelect<ExtArgs extends runtime.Types.Extensions.Interna
   parentId?: boolean
   batchId?: boolean
   amount?: boolean
+  receivedCurrency?: boolean
+  receivedAmount?: boolean
+  exchangeRateUsed?: boolean
   method?: boolean
   transactionRef?: boolean
   notes?: boolean
@@ -1832,6 +2054,9 @@ export type FamilyPaymentSelectCreateManyAndReturn<ExtArgs extends runtime.Types
   parentId?: boolean
   batchId?: boolean
   amount?: boolean
+  receivedCurrency?: boolean
+  receivedAmount?: boolean
+  exchangeRateUsed?: boolean
   method?: boolean
   transactionRef?: boolean
   notes?: boolean
@@ -1853,6 +2078,9 @@ export type FamilyPaymentSelectUpdateManyAndReturn<ExtArgs extends runtime.Types
   parentId?: boolean
   batchId?: boolean
   amount?: boolean
+  receivedCurrency?: boolean
+  receivedAmount?: boolean
+  exchangeRateUsed?: boolean
   method?: boolean
   transactionRef?: boolean
   notes?: boolean
@@ -1874,6 +2102,9 @@ export type FamilyPaymentSelectScalar = {
   parentId?: boolean
   batchId?: boolean
   amount?: boolean
+  receivedCurrency?: boolean
+  receivedAmount?: boolean
+  exchangeRateUsed?: boolean
   method?: boolean
   transactionRef?: boolean
   notes?: boolean
@@ -1885,7 +2116,7 @@ export type FamilyPaymentSelectScalar = {
   branchId?: boolean
 }
 
-export type FamilyPaymentOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "parentId" | "batchId" | "amount" | "method" | "transactionRef" | "notes" | "status" | "createdAt" | "updatedAt" | "fraisId" | "classEnrollmentId" | "branchId", ExtArgs["result"]["familyPayment"]>
+export type FamilyPaymentOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "parentId" | "batchId" | "amount" | "receivedCurrency" | "receivedAmount" | "exchangeRateUsed" | "method" | "transactionRef" | "notes" | "status" | "createdAt" | "updatedAt" | "fraisId" | "classEnrollmentId" | "branchId", ExtArgs["result"]["familyPayment"]>
 export type FamilyPaymentInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   parent?: boolean | Prisma.ParentDefaultArgs<ExtArgs>
   batch?: boolean | Prisma.FamilyPayment$batchArgs<ExtArgs>
@@ -1928,7 +2159,22 @@ export type $FamilyPaymentPayload<ExtArgs extends runtime.Types.Extensions.Inter
     id: string
     parentId: string
     batchId: number | null
+    /**
+     * Montant de reference metier (USD)
+     */
     amount: number
+    /**
+     * Devise reellement percue a la caisse
+     */
+    receivedCurrency: $Enums.CurrencyCode
+    /**
+     * Montant perçu dans receivedCurrency
+     */
+    receivedAmount: number | null
+    /**
+     * Taux applique au moment du paiement (audit)
+     */
+    exchangeRateUsed: number | null
     method: $Enums.PaymentMethod
     transactionRef: string
     notes: string | null
@@ -2373,6 +2619,9 @@ export interface FamilyPaymentFieldRefs {
   readonly parentId: Prisma.FieldRef<"FamilyPayment", 'String'>
   readonly batchId: Prisma.FieldRef<"FamilyPayment", 'Int'>
   readonly amount: Prisma.FieldRef<"FamilyPayment", 'Float'>
+  readonly receivedCurrency: Prisma.FieldRef<"FamilyPayment", 'CurrencyCode'>
+  readonly receivedAmount: Prisma.FieldRef<"FamilyPayment", 'Float'>
+  readonly exchangeRateUsed: Prisma.FieldRef<"FamilyPayment", 'Float'>
   readonly method: Prisma.FieldRef<"FamilyPayment", 'PaymentMethod'>
   readonly transactionRef: Prisma.FieldRef<"FamilyPayment", 'String'>
   readonly notes: Prisma.FieldRef<"FamilyPayment", 'String'>

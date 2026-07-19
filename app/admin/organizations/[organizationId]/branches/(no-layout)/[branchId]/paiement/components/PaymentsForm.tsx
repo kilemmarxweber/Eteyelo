@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -26,6 +26,15 @@ import { CheckCircle2, Receipt, X } from "lucide-react";
 
 import { createPaiementAction, getFraisWithBalance } from "../paiement.action";
 import { getFraisAction } from "../../frais/frais.action";
+import { getActiveExchangeRatesAction } from "../../settings/exchange-rate.action";
+import {
+  convertAmount,
+  getRateUsed,
+  listSelectableCurrencies,
+  roundCurrency,
+  type ExchangeRatePair,
+} from "@/lib/exchange-rate";
+import { CurrencyCode } from "@/prisma/generated/prisma/enums";
 
 import FamilySelector from "./FamilySelector";
 import z from "zod";
@@ -58,6 +67,12 @@ function formatAmount(value: number) {
     minimumFractionDigits: 0,
     maximumFractionDigits: 2,
   });
+}
+
+function parseAmountInput(value: string): number | null {
+  if (value.trim() === "" || value === ".") return null;
+  const parsed = Number(value.replace(",", "."));
+  return Number.isFinite(parsed) ? parsed : null;
 }
 
 export default function PaymentsForm({
@@ -99,6 +114,10 @@ export default function PaymentsForm({
   const amountManuallyEditedRef = useRef(false);
   const lastAutoFillKeyRef = useRef("");
   const [isLargeScreen, setIsLargeScreen] = useState(false);
+  const [exchangeRates, setExchangeRates] = useState<ExchangeRatePair[]>([]);
+  const [receivedCurrency, setReceivedCurrency] = useState<CurrencyCode>(
+    CurrencyCode.USD,
+  );
 
   useEffect(() => {
     const mql = window.matchMedia("(min-width: 1024px)");
@@ -107,6 +126,45 @@ export default function PaymentsForm({
     mql.addEventListener("change", update);
     return () => mql.removeEventListener("change", update);
   }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const [data, err] = await getActiveExchangeRatesAction();
+      if (cancelled || err || !data) return;
+      setExchangeRates(data);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const selectableCurrencies = useMemo(
+    () => listSelectableCurrencies(exchangeRates),
+    [exchangeRates],
+  );
+
+  useEffect(() => {
+    if (!selectableCurrencies.includes(receivedCurrency)) {
+      setReceivedCurrency(CurrencyCode.USD);
+    }
+  }, [selectableCurrencies, receivedCurrency]);
+
+  const toUsd = useCallback(
+    (value: number, from: CurrencyCode) => {
+      if (from === CurrencyCode.USD) return roundCurrency(value, CurrencyCode.USD);
+      return convertAmount(value, from, CurrencyCode.USD, exchangeRates);
+    },
+    [exchangeRates],
+  );
+
+  const fromUsd = useCallback(
+    (usd: number, to: CurrencyCode) => {
+      if (to === CurrencyCode.USD) return roundCurrency(usd, CurrencyCode.USD);
+      return convertAmount(usd, CurrencyCode.USD, to, exchangeRates);
+    },
+    [exchangeRates],
+  );
   const rawAmount = watch("amount");
   const amount = Number.isFinite(Number(rawAmount)) ? Number(rawAmount) : 0;
   const fraisIds = watch("fraisIds") || [];
@@ -305,9 +363,15 @@ export default function PaymentsForm({
     if (lastAutoFillKeyRef.current === selectionKey) return;
     if (balances.length === 0) return;
 
-    const remaining = summary.remaining;
-    setValue("amount", remaining, { shouldValidate: true });
-    setAmountInput(remaining > 0 ? String(remaining) : "");
+    const remainingUsd = summary.remaining;
+    let displayAmount = remainingUsd;
+    try {
+      displayAmount = fromUsd(remainingUsd, receivedCurrency);
+    } catch {
+      displayAmount = remainingUsd;
+    }
+    setValue("amount", remainingUsd, { shouldValidate: true });
+    setAmountInput(remainingUsd > 0 ? String(displayAmount) : "");
     lastAutoFillKeyRef.current = selectionKey;
   }, [
     hasNoSelection,
@@ -316,6 +380,8 @@ export default function PaymentsForm({
     balances.length,
     summary.remaining,
     setValue,
+    fromUsd,
+    receivedCurrency,
   ]);
 
   const handleAmountChange = (value: string) => {
@@ -324,14 +390,51 @@ export default function PaymentsForm({
     setAmountManuallyEdited(true);
     setAmountInput(value);
 
-    if (value.trim() === "" || value === ".") {
+    const parsed = parseAmountInput(value);
+    if (parsed == null) {
       setValue("amount", emptyAmount);
       return;
     }
 
-    const parsed = Number(value.replace(",", "."));
-    if (Number.isFinite(parsed)) {
-      setValue("amount", parsed, { shouldValidate: true });
+    try {
+      const usd = toUsd(parsed, receivedCurrency);
+      setValue("amount", usd, { shouldValidate: true });
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Conversion impossible.",
+      );
+    }
+  };
+
+  const handleCurrencyChange = (next: CurrencyCode) => {
+    if (next === receivedCurrency) return;
+
+    const parsed = parseAmountInput(amountInput);
+    setReceivedCurrency(next);
+
+    if (parsed == null) {
+      // Keep current USD amount if any; refresh display from form amount
+      const currentUsd = Number.isFinite(Number(rawAmount))
+        ? Number(rawAmount)
+        : null;
+      if (currentUsd != null && currentUsd > 0) {
+        try {
+          setAmountInput(String(fromUsd(currentUsd, next)));
+        } catch {
+          /* ignore until rates ready */
+        }
+      }
+      return;
+    }
+
+    try {
+      const usd = toUsd(parsed, receivedCurrency);
+      setValue("amount", usd, { shouldValidate: true });
+      setAmountInput(String(fromUsd(usd, next)));
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Conversion impossible.",
+      );
     }
   };
 
@@ -352,25 +455,49 @@ export default function PaymentsForm({
         return;
       }
 
-      // 🏦 BANK CHECK 3: Valid amount?
-      const inputAmount = Number.isFinite(Number(data.amount))
+      // 🏦 BANK CHECK 3: Valid amount? (USD de référence)
+      const inputAmountUsd = Number.isFinite(Number(data.amount))
         ? Number(data.amount)
         : 0;
-      if (!inputAmount || inputAmount <= 0) {
+      if (!inputAmountUsd || inputAmountUsd <= 0) {
         toast.error("❌ Impossible: Montant doit être > 0");
         return;
       }
 
       setLoading(true);
 
-      // 🏦 BANK CHECK 4: Amount cap + Refund calculation
-      const finalAmount = Math.min(inputAmount, summary.remaining);
-      const refundAmount = Math.max(inputAmount - summary.remaining, 0);
+      // 🏦 BANK CHECK 4: Amount cap + Refund calculation (toujours en USD)
+      const finalAmountUsd = Math.min(inputAmountUsd, summary.remaining);
+      const refundAmountUsd = Math.max(inputAmountUsd - summary.remaining, 0);
+
+      let receivedAmount = finalAmountUsd;
+      let exchangeRateUsed: number | undefined = 1;
+      try {
+        if (receivedCurrency !== CurrencyCode.USD) {
+          receivedAmount = fromUsd(finalAmountUsd, receivedCurrency);
+          exchangeRateUsed =
+            getRateUsed(receivedCurrency, CurrencyCode.USD, exchangeRates) ??
+            undefined;
+          if (exchangeRateUsed == null) {
+            toast.error(
+              `Taux de change inactif pour ${receivedCurrency} → USD.`,
+            );
+            setLoading(false);
+            return;
+          }
+        }
+      } catch (error) {
+        toast.error(
+          error instanceof Error ? error.message : "Conversion impossible.",
+        );
+        setLoading(false);
+        return;
+      }
 
       // 💰 Show refund warning if applicable
-      if (refundAmount > 0) {
+      if (refundAmountUsd > 0) {
         setAmountWarning(
-          `💰 Montant saisi: ${inputAmount} | À payer: ${finalAmount} | Remboursement: ${refundAmount}`,
+          `💰 Montant saisi: ${formatAmount(inputAmountUsd)} USD | À payer: ${formatAmount(finalAmountUsd)} USD | Remboursement: ${formatAmount(refundAmountUsd)} USD`,
         );
       }
 
@@ -379,7 +506,10 @@ export default function PaymentsForm({
         parentId: selection.parentId,
         classEnrollIds: selection.classEnrollIds,
         transactionRef,
-        amount: finalAmount,
+        amount: finalAmountUsd,
+        receivedCurrency,
+        receivedAmount,
+        exchangeRateUsed,
       });
 
       if (err) {
@@ -403,8 +533,8 @@ export default function PaymentsForm({
 
       // 💰 Show success with refund info if applicable
       const successMsg =
-        refundAmount > 0
-          ? `✅ Paiement: ${finalAmount} | Remboursement: ${refundAmount}`
+        refundAmountUsd > 0
+          ? `✅ Paiement: ${formatAmount(finalAmountUsd)} USD | Remboursement: ${formatAmount(refundAmountUsd)} USD`
           : `✅ ${res?.message || "Paiement enregistré avec succès"}`;
 
       toast.success(successMsg);
@@ -421,7 +551,11 @@ export default function PaymentsForm({
         classEnrollIds: [],
         parentId: "",
         notes: "",
+        receivedCurrency: CurrencyCode.USD,
+        receivedAmount: undefined,
+        exchangeRateUsed: undefined,
       });
+      setReceivedCurrency(CurrencyCode.USD);
       setSelection({ parentId: "", classEnrollIds: [] });
       setBalances([]);
       setDiscountValue(0);
@@ -505,7 +639,9 @@ export default function PaymentsForm({
     type: "text" as const,
     inputMode: "decimal" as const,
     placeholder:
-      !hasNoSelection && isSolded ? "Déjà soldé" : "Montant payé",
+      !hasNoSelection && isSolded
+        ? "Déjà soldé"
+        : `Montant payé (${receivedCurrency})`,
     value: amountInput,
     onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
       handleAmountChange(e.target.value),
@@ -515,6 +651,29 @@ export default function PaymentsForm({
       !hasNoSelection && isSolded && "opacity-50 cursor-not-allowed",
     ),
   };
+
+  const usdHint =
+    receivedCurrency !== CurrencyCode.USD && amount > 0
+      ? `≈ ${formatAmount(amount)} USD`
+      : null;
+
+  const currencyToggle = (
+    <div className="flex flex-wrap gap-1">
+      {selectableCurrencies.map((currency) => (
+        <Button
+          key={currency}
+          type="button"
+          size="sm"
+          variant={receivedCurrency === currency ? "default" : "outline"}
+          className="h-8 px-2.5 text-xs"
+          disabled={!hasNoSelection && isSolded}
+          onClick={() => handleCurrencyChange(currency)}
+        >
+          {currency}
+        </Button>
+      ))}
+    </div>
+  );
   // ================= UI (INCHANGÉ) =================
   return (
     <>
@@ -543,15 +702,18 @@ export default function PaymentsForm({
         {/* Montant payé — panneau gauche (desktop) */}
         {isLargeScreen && (
           <>
+            {currencyToggle}
             <Input
               {...amountInputProps}
               className={cn(amountInputProps.className, "sm:w-[200px]")}
             />
             {!hasNoSelection && !isSolded && (
               <p className="text-[11px] text-muted-foreground -mt-1">
-                {amountManuallyEdited
-                  ? "Montant modifié manuellement"
-                  : "Calculé automatiquement"}
+                {usdHint
+                  ? usdHint
+                  : amountManuallyEdited
+                    ? "Montant modifié manuellement"
+                    : "Calculé automatiquement"}
               </p>
             )}
           </>
@@ -749,11 +911,14 @@ export default function PaymentsForm({
             {!isLargeScreen && !hasNoSelection && !isSolded && (
               <div className="border-t pt-3 space-y-2">
                 <label className="text-sm font-medium">Montant payé</label>
+                {currencyToggle}
                 <Input {...amountInputProps} />
                 <p className="text-[11px] text-muted-foreground">
-                  {amountManuallyEdited
-                    ? "Montant modifié manuellement"
-                    : "Calculé automatiquement"}
+                  {usdHint
+                    ? usdHint
+                    : amountManuallyEdited
+                      ? "Montant modifié manuellement"
+                      : "Calculé automatiquement"}
                 </p>
                 <Button
                   type="submit"

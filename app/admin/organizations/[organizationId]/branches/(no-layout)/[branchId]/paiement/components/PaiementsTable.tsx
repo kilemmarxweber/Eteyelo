@@ -47,6 +47,11 @@ function mapPaiement(p: any): IPaiement {
     id: p.id,
     numeroRecu: p.id,
     montantPaye: Number(p.amount),
+    receivedCurrency: p.receivedCurrency ?? "USD",
+    receivedAmount:
+      p.receivedAmount != null ? Number(p.receivedAmount) : Number(p.amount),
+    exchangeRateUsed:
+      p.exchangeRateUsed != null ? Number(p.exchangeRateUsed) : null,
     modePaiement: p.method,
     status: p.status,
     datePaiement: new Date(p.createdAt),
@@ -100,6 +105,9 @@ function mapGroupedToReceipt(
     ),
   );
 
+  const receivedCurrency =
+    g.items.find((i) => i.receivedCurrency)?.receivedCurrency ?? "USD";
+
   return {
     invoiceNumber: g.reference,
     sender: {
@@ -116,11 +124,16 @@ function mapGroupedToReceipt(
       price: Number(i.frais?.montantFrais ?? i.montantPaye),
       statut: i.status,
       montant: Number(i.montantPaye),
+      receivedAmount:
+        i.receivedAmount != null
+          ? Number(i.receivedAmount)
+          : Number(i.montantPaye),
     })),
     logoUrl: branding.logoUrl,
     exchangeRateUsdCdf:
       branding.exchangeRateUsdCdf ?? DEFAULT_EXCHANGE_RATE_USD_CDF,
     issuedPlace: branding.city,
+    receivedCurrency,
   };
 }
 

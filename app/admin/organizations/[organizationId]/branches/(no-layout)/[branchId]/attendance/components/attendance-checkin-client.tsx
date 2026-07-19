@@ -12,7 +12,7 @@ import { useAppTransition as useTransition } from "@/hooks/use-app-transition";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/utils";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   checkInByScanAction,
   checkInPersonByIdAction,
@@ -26,6 +26,7 @@ import type {
 import { AttendanceScanner } from "./attendance-scanner";
 
 type RecentCheckIn = AttendanceCheckInResult & { id: string };
+type PointageMode = "scan" | "manual";
 
 const personTypeLabels: Record<AttendancePersonType, string> = {
   student: "Eleve",
@@ -34,7 +35,7 @@ const personTypeLabels: Record<AttendancePersonType, string> = {
 };
 
 export function AttendanceCheckInClient() {
-  const [mode, setMode] = useState<"scan" | "manual">("scan");
+  const [mode, setMode] = useState<PointageMode>("scan");
   const [manualCode, setManualCode] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [results, setResults] = useState<AttendancePersonLookup[]>([]);
@@ -147,36 +148,42 @@ export function AttendanceCheckInClient() {
         </p>
       </div>
 
-      <div className="flex w-full max-w-xl rounded-lg border bg-muted p-1">
-        <Button
-          type="button"
-          variant={mode === "scan" ? "default" : "ghost"}
-          className={cn("h-10 flex-1 rounded-md", mode !== "scan" && "hover:bg-background/70")}
-          onClick={() => setMode("scan")}
-        >
-          <IconScan size={16} className="mr-2 shrink-0" />
-          Scan
-        </Button>
-        <Button
-          type="button"
-          variant={mode === "manual" ? "default" : "ghost"}
-          className={cn("h-10 flex-1 rounded-md", mode !== "manual" && "hover:bg-background/70")}
-          onClick={() => setMode("manual")}
-        >
-          <IconKeyboard size={16} className="mr-2 shrink-0" />
-          Manuel
-        </Button>
-      </div>
+      <Tabs
+        value={mode}
+        onValueChange={(value) => setMode(value as PointageMode)}
+        className="space-y-4"
+      >
+        <div className="sticky top-0 z-10 flex flex-col gap-3 rounded-xl border bg-card/95 p-3 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-card/80 lg:flex-row lg:items-center lg:justify-between">
+          <div
+            className="hidden min-h-9 w-full lg:block lg:max-w-md"
+            aria-hidden
+          />
+          <TabsList className="grid h-auto w-full shrink-0 grid-cols-2 border border-primary/20 bg-primary/10 lg:w-auto">
+            <TabsTrigger
+              value="scan"
+              className="gap-1.5 text-xs text-primary/70 sm:text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm"
+            >
+              <IconScan size={16} className="shrink-0" />
+              Scan
+            </TabsTrigger>
+            <TabsTrigger
+              value="manual"
+              className="gap-1.5 text-xs text-primary/70 sm:text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm"
+            >
+              <IconKeyboard size={16} className="shrink-0" />
+              Manuel
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
-      {mode === "scan" ? (
-        <div className="space-y-4">
+        <TabsContent value="scan" className="mt-0 space-y-4">
           <AttendanceScanner onScan={runScan} disabled={pending} />
           <p className="text-xs text-muted-foreground">
             Placez le code-barres ou le QR code de la carte devant la camera.
           </p>
-        </div>
-      ) : (
-        <div className="space-y-4">
+        </TabsContent>
+
+        <TabsContent value="manual" className="mt-0 space-y-4">
           <div className="space-y-2">
             <label className="text-sm font-medium">Matricule ou code carte</label>
             <div className="flex flex-col gap-2 sm:flex-row">
@@ -216,7 +223,8 @@ export function AttendanceCheckInClient() {
                   type="button"
                   onClick={() => setSelected(person)}
                   className={`flex w-full items-center justify-between rounded-lg border px-4 py-3 text-left transition ${
-                    selected?.id === person.id && selected?.personType === person.personType
+                    selected?.id === person.id &&
+                    selected?.personType === person.personType
                       ? "border-primary bg-primary/5"
                       : "hover:bg-muted/40"
                   }`}
@@ -250,8 +258,8 @@ export function AttendanceCheckInClient() {
             <IconUserCheck className="mr-2 size-4" />
             Pointer present
           </Button>
-        </div>
-      )}
+        </TabsContent>
+      </Tabs>
 
       {recent.length > 0 ? (
         <div className="space-y-3 border-t pt-4">
@@ -262,19 +270,27 @@ export function AttendanceCheckInClient() {
                 key={item.id}
                 className="flex flex-wrap items-center gap-2 rounded-lg border px-4 py-3 text-sm"
               >
-                <span className="font-medium">{item.person?.name ?? "Personne"}</span>
-                <span className="text-muted-foreground">{item.person?.matricule}</span>
+                <span className="font-medium">
+                  {item.person?.name ?? "Personne"}
+                </span>
+                <span className="text-muted-foreground">
+                  {item.person?.matricule}
+                </span>
                 {item.personType ? (
                   <Badge variant="outline">
                     {personTypeLabels[item.personType]}
                   </Badge>
                 ) : null}
                 {item.statusLabel ? (
-                  <Badge variant={item.status === "LATE" ? "warning" : "success"}>
+                  <Badge
+                    variant={item.status === "LATE" ? "warning" : "success"}
+                  >
                     {item.statusLabel}
                   </Badge>
                 ) : null}
-                <span className="text-xs text-muted-foreground">{item.message}</span>
+                <span className="text-xs text-muted-foreground">
+                  {item.message}
+                </span>
               </div>
             ))}
           </div>

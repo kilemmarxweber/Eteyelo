@@ -17,23 +17,14 @@ function cleanPart(value?: string | null): string | null {
   return trimmed;
 }
 
-/** Resolve a simple display name: username → real name parts → name → email local-part. */
+/** Affiche uniquement prenom + name (sans username ni postnom). */
 export function resolveUserDisplayName(
   user?: SessionUserDisplay | null,
 ): string {
-  const username = cleanPart(user?.username);
-  if (username) return username;
-
   const prenom = cleanPart(user?.prenom);
-  const postnom = cleanPart(user?.postnom);
   const name = cleanPart(user?.name);
-  const structured = [prenom, postnom].filter(Boolean).join(" ");
-
-  if (structured && name && !name.includes(" ")) {
-    return `${structured} ${name}`.trim();
-  }
-  if (structured) return structured;
-  if (name) return name;
+  const display = [prenom, name].filter(Boolean).join(" ").trim();
+  if (display) return display;
 
   const email = user?.email?.trim();
   if (email?.includes("@")) return email.split("@")[0] ?? "Utilisateur";

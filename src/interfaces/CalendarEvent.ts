@@ -1,7 +1,6 @@
 import { z } from "zod";
+import type { EventLocaleMap } from "@/lib/calendar-event-i18n";
 
-// import { Recurrence } from "@/prisma/generated/prisma/client"; // Import de l'enum généré par Prisma
-// Define Recurrence enum locally to avoid importing Prisma client in client components
 export const Recurrence = {
   JOURNALIER: "JOURNALIER",
   HEBDOMADAIRE: "HEBDOMADAIRE",
@@ -20,52 +19,67 @@ export interface ICalendarEvent {
   title?: string;
   dateStart: Date;
   dateEnd?: Date;
+  image?: string | null;
   allDay: boolean;
   createdBy: string;
   createdAt: Date;
   updatedAt: Date;
   location?: string;
   description?: string;
+  titleI18n?: EventLocaleMap | null;
+  descriptionI18n?: EventLocaleMap | null;
   classeId?: string;
-
-  teachingId?: String;
-
+  teachingId?: string;
   schoolYearId?: string;
   typeId?: string;
-
-  recurrence: RecurrenceType; // Utilisation de l'enum généré par Prisma
+  recurrence: RecurrenceType;
   teaching?: {};
   schoolYear?: ISchoolYear;
+  eventType?: { id: string; name: string } | null;
 }
+
+const localeMapSchema = z
+  .object({
+    fr: z.string().optional(),
+    en: z.string().optional(),
+    pt: z.string().optional(),
+    ln: z.string().optional(),
+  })
+  .optional()
+  .nullable();
 
 export const calendarEventSchema = z.object({
   id: z.string().optional(),
-  title: z.string().optional(),
-  dateStart: z.date(),
-  dateEnd: z.date().optional(),
-  allDay: z.boolean(),
-  location: z.string().optional(),
-  description: z.string().optional(),
-  createdBy: z.string(),
-  schoolYearId: z.string({
-    required_error: "Année scolaire obligatoire",
-  }),
-  teachingId: z.string().optional(),
-  typeId: z.string().optional(),
-  classeId: z.string().optional(),
-  recurrence: z.nativeEnum(Recurrence),
+  title: z.string().trim().min(2, "Le titre est requis."),
+  dateStart: z.coerce.date(),
+  dateEnd: z.coerce.date().optional().nullable(),
+  allDay: z.boolean().default(false),
+  location: z.string().nullish().transform((value) => value ?? ""),
+  description: z.string().nullish().transform((value) => value ?? ""),
+  image: z.string().nullish().transform((value) => value ?? ""),
+  titleI18n: localeMapSchema,
+  descriptionI18n: localeMapSchema,
+  translationsEnabled: z.boolean().optional(),
+  createdBy: z.string().optional(),
+  schoolYearId: z.string().optional(),
+  teachingId: z.string().optional().nullable(),
+  typeId: z.string().optional().nullable(),
+  classeId: z.string().optional().nullable(),
+  recurrence: z.nativeEnum(Recurrence).default(Recurrence.HEBDOMADAIRE),
 });
 
 export interface IEventType {
-  id: String;
-  name: String;
+  id: string;
+  name: string;
   events: ICalendarEvent[];
 }
+
 export const eventTypeSchema = z.object({
   id: z.string().optional(),
   name: z.string().min(3, "Le Nom est requis"),
 });
+
 export type CalendarEventFormData = z.infer<typeof calendarEventSchema>;
-export const calendarEventDbSchema = calendarEventSchema.extend({
-  dateStart: z.date(),
-});
+/** Valeurs formulaire (avant transforms) — pour react-hook-form + zodResolver. */
+export type CalendarEventFormInput = z.input<typeof calendarEventSchema>;
+export const calendarEventDbSchema = calendarEventSchema;
