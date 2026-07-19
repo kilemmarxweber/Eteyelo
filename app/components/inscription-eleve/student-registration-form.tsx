@@ -306,7 +306,7 @@ export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
       <HomeNavbar />
 
       <section className="border-b border-primary/10 bg-primary text-primary-foreground shadow-lg shadow-primary/10">
-        <div className="mx-auto max-w-4xl px-4 py-8 md:py-10">
+        <div className="mx-auto max-w-7xl px-4 py-8 md:py-10">
           <div className="inline-flex items-center gap-2 rounded-full bg-primary-foreground/15 px-3 py-1.5 text-xs font-semibold text-primary-foreground/90">
             <UserPlus className="size-4" />
             Inscription scolaire
@@ -314,7 +314,7 @@ export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
           <h1 className="mt-3 text-2xl font-bold tracking-tight md:text-3xl">
             Demande d&apos;inscription
           </h1>
-          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-primary-foreground/90">
+          <p className="mt-2 max-w-7xl text-sm leading-relaxed text-primary-foreground/90">
             Etape {step + 1} sur 4 · cette demande ne cree pas encore de compte.
           </p>
           <Progress

@@ -255,7 +255,7 @@ export function JobApplicationForm({ branches }: { branches: Branch[] }) {
     return (
       <div className="min-h-screen bg-background">
         <HomeNavbar />
-        <main className="mx-auto flex max-w-2xl flex-col items-center px-4 py-16 text-center">
+        <main className="mx-auto flex max-w-7xl flex-col items-center px-4 py-16 text-center">
           <div className="flex size-16 items-center justify-center rounded-full bg-primary/10 text-primary">
             <Check className="size-8" />
           </div>
@@ -281,7 +281,7 @@ export function JobApplicationForm({ branches }: { branches: Branch[] }) {
       <HomeNavbar />
 
       <section className="border-b border-primary/10 bg-primary text-primary-foreground shadow-lg shadow-primary/10">
-        <div className="mx-auto max-w-4xl px-4 py-8 md:py-10">
+        <div className="mx-auto max-w-7xl px-4 py-8 md:py-10">
           <div className="inline-flex items-center gap-2 rounded-full bg-primary-foreground/15 px-3 py-1.5 text-xs font-semibold text-primary-foreground/90">
             <Briefcase className="size-4" />
             Recrutement
@@ -289,7 +289,7 @@ export function JobApplicationForm({ branches }: { branches: Branch[] }) {
           <h1 className="mt-3 text-2xl font-bold tracking-tight md:text-3xl">
             Deposer une candidature
           </h1>
-          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-primary-foreground/90">
+          <p className="mt-2 max-w-7xl text-sm leading-relaxed text-primary-foreground/90">
             Etape {step + 1} / {STEPS.length} · postulez comme enseignant ou
             personnel dans un etablissement partenaire.
           </p>
