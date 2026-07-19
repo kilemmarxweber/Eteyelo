@@ -61,12 +61,27 @@ export async function searchPlatformSupportCandidatesAction(query: string) {
   return { ok: true as const, users };
 }
 
+const imagePathSchema = z
+  .string()
+  .trim()
+  .max(500)
+  .optional()
+  .or(z.literal(""))
+  .refine(
+    (value) =>
+      !value ||
+      value.startsWith("/") ||
+      value.startsWith("http://") ||
+      value.startsWith("https://"),
+    { message: "Image invalide." },
+  );
+
 const createPlatformAgentSchema = z.object({
   userId: z.string().min(1),
   displayTitle: z.string().trim().max(120).optional(),
   bio: z.string().trim().max(2000).optional(),
   specialties: z.array(z.string().trim().max(80)).max(10).default([]),
-  image: z.string().url().optional().or(z.literal("")),
+  image: imagePathSchema,
   isLead: z.boolean().default(false),
   sortOrder: z.number().int().min(0).default(0),
 });
@@ -139,7 +154,10 @@ export async function updatePlatformSupportAgentAction(
 
   const parsed = updatePlatformAgentSchema.safeParse(input);
   if (!parsed.success) {
-    return { ok: false as const, message: "Données invalides." };
+    return {
+      ok: false as const,
+      message: parsed.error.issues[0]?.message ?? "Données invalides.",
+    };
   }
 
   const { id, image, ...data } = parsed.data;

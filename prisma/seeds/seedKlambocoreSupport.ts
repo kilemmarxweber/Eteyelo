@@ -4,12 +4,12 @@ import { prisma } from "@/lib/prisma";
 const KILEM_IMAGE = "/uploads/kilem.jpeg";
 const DISPLAY_TITLE = "Support Klambocore";
 const BIO =
-  "Yannick Kilem — support plateforme Klambocore pour les établissements Eteyelo.";
+  "Yan marxweber Kilem — support plateforme Klambocore pour les établissements Kalasa.";
 const SPECIALTIES = [
-  "Plateforme",
+  "Fondateur",
   "Comptes & accès",
-  "Paiements",
-  "Escalades",
+  "Développeur",
+  "Infrastructure",
 ];
 
 function resolveSuperAdminEmail() {

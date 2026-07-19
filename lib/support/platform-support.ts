@@ -25,6 +25,7 @@ export async function listActivePlatformSupportAgents(): Promise<
 
   return agents.map((agent) => ({
     id: agent.id,
+    userId: agent.user.id,
     name: agent.user.name,
     email: agent.user.email ?? "",
     role: agent.displayTitle ?? "Support plateforme Kalasa",

@@ -86,14 +86,13 @@ export default function ContactForm({
     >
       <div className="pointer-events-none absolute -right-20 -top-20 h-52 w-52 rounded-full bg-primary/10 blur-3xl" />
 
-      <input type="hidden" {...form.register("recipientId")} />
-
       {showSupportAgentPicker && supportAgents.length > 0 ? (
         <label className="relative mb-4 block space-y-2 text-sm font-medium text-foreground">
           Destinataire
           <select
             {...form.register("recipientId")}
             disabled={pending}
+            defaultValue={defaultRecipientId}
             className="h-12 w-full rounded-2xl border border-border bg-background px-4 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             <option value="">Choisir un destinataire</option>
@@ -105,7 +104,9 @@ export default function ContactForm({
           </select>
           <FormError message={form.formState.errors.recipientId?.message} />
         </label>
-      ) : null}
+      ) : (
+        <input type="hidden" {...form.register("recipientId")} />
+      )}
 
       <div className="relative grid gap-4 md:grid-cols-2">
         <label className="space-y-2 text-sm font-medium text-foreground">

@@ -1,10 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import Image from "next/image";
 import { useAppTransition as useTransition } from "@/hooks/use-app-transition";
 import { useAppRouter as useRouter } from "@/hooks/use-app-router";
 import { toast } from "sonner";
-import { Pencil, UserPlus } from "lucide-react";
+import { ImagePlus, Pencil, UserPlus } from "lucide-react";
 import { AutoComplete, type Option } from "@/components/autocomplete";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,6 +21,8 @@ import {
   searchPlatformSupportCandidatesAction,
   updatePlatformSupportAgentAction,
 } from "@/lib/support/actions";
+import { MAX_IMAGE_UPLOAD_BYTES, uploadFile } from "@/lib/upload-file";
+import { normalizeImageSrc } from "@/lib/utils";
 
 type AgentRow = {
   id: string;
@@ -78,6 +81,7 @@ export function PlatformSupportAdminClient({ initialAgents }: Props) {
   const [editImage, setEditImage] = useState("");
   const [editIsLead, setEditIsLead] = useState(false);
   const [editSortOrder, setEditSortOrder] = useState(0);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
 
   useEffect(() => {
     setAgents(initialAgents);
@@ -125,6 +129,32 @@ export function PlatformSupportAdminClient({ initialAgents }: Props) {
     setEditImage(agent.image ?? "");
     setEditIsLead(agent.isLead);
     setEditSortOrder(agent.sortOrder);
+  }
+
+  async function handleEditImageUpload(file: File | null) {
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast.error("Choisissez une image (JPEG, PNG, WebP…).");
+      return;
+    }
+    if (file.size > MAX_IMAGE_UPLOAD_BYTES) {
+      toast.error("Image trop volumineuse (max. 5 Mo).");
+      return;
+    }
+
+    setIsUploadingImage(true);
+    try {
+      const uploaded = await uploadFile(file);
+      if (!uploaded.ok) {
+        toast.error(uploaded.message);
+        return;
+      }
+      setEditImage(uploaded.url);
+      toast.success("Photo importée.");
+    } finally {
+      setIsUploadingImage(false);
+    }
   }
 
   function handleCreate() {
@@ -370,13 +400,59 @@ export function PlatformSupportAdminClient({ initialAgents }: Props) {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="editImage">URL de la photo</Label>
-              <Input
-                id="editImage"
-                value={editImage}
-                onChange={(e) => setEditImage(e.target.value)}
-                placeholder="https://..."
-              />
+              <Label>Photo publique</Label>
+              <div className="flex flex-wrap items-center gap-3">
+                {editImage ? (
+                  <Image
+                    src={normalizeImageSrc(editImage)}
+                    alt="Aperçu photo support"
+                    width={72}
+                    height={72}
+                    unoptimized
+                    className="size-[72px] rounded-xl object-cover"
+                  />
+                ) : (
+                  <div className="flex size-[72px] items-center justify-center rounded-xl border border-dashed bg-muted/40 text-muted-foreground">
+                    <ImagePlus className="size-5" />
+                  </div>
+                )}
+                <div className="flex flex-col gap-2">
+                  <Label
+                    htmlFor="editImageFile"
+                    className="inline-flex h-9 cursor-pointer items-center justify-center rounded-md border px-3 text-sm font-medium hover:bg-muted/50"
+                  >
+                    {isUploadingImage ? "Import…" : "Importer une photo"}
+                    <Input
+                      id="editImageFile"
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      className="hidden"
+                      disabled={isPending || isUploadingImage}
+                      onChange={(event) => {
+                        void handleEditImageUpload(
+                          event.target.files?.[0] ?? null,
+                        );
+                        event.target.value = "";
+                      }}
+                    />
+                  </Label>
+                  {editImage ? (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 justify-start px-2 text-muted-foreground"
+                      disabled={isPending || isUploadingImage}
+                      onClick={() => setEditImage("")}
+                    >
+                      Retirer la photo
+                    </Button>
+                  ) : null}
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                JPEG, PNG ou WebP — max. 5 Mo.
+              </p>
             </div>
 
             <div className="space-y-2">
@@ -401,7 +477,7 @@ export function PlatformSupportAdminClient({ initialAgents }: Props) {
 
           <Button
             type="button"
-            disabled={isPending}
+            disabled={isPending || isUploadingImage}
             onClick={handleSaveEdit}
           >
             Enregistrer

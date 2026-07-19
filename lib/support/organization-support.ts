@@ -41,6 +41,7 @@ export async function listActiveOrganizationSupportAgents(
 
   return agents.map((agent) => ({
     id: agent.id,
+    userId: agent.member.user.id,
     name: agent.member.user.name,
     email: agent.member.user.email ?? "",
     role: agent.displayTitle ?? "Support établissement",

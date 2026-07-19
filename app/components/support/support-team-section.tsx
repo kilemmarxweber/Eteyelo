@@ -29,68 +29,69 @@ export function SupportTeamSection({
               Notre equipe
             </p>
             <h2 className="mt-2 text-2xl font-bold text-foreground">
-              Des interlocuteurs dedies a votre ecole
+              Des interlocuteurs dédiés à votre disposition
             </h2>
           </div>
         </div>
 
-        <div className="mt-6 grid gap-5 md:grid-cols-2">
+        <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {team.map((agent) => (
             <article
               key={agent.id}
-              className="overflow-hidden rounded-3xl border border-border bg-card shadow-sm transition hover:border-primary/30 hover:shadow-md"
+              className="flex flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition hover:border-primary/30 hover:shadow-md"
             >
-              <div className="flex flex-col sm:flex-row">
-                <div className="relative h-52 w-full shrink-0 sm:h-auto sm:w-44">
-                  <Image
-                    src={agent.image}
-                    alt={`Photo de ${agent.name}`}
-                    fill
-                    className="object-cover"
-                    sizes="(max-width: 640px) 100vw, 176px"
-                  />
-                </div>
+              <div className="relative h-36 w-full shrink-0">
+                <Image
+                  src={agent.image}
+                  alt={`Photo de ${agent.name}`}
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                />
+              </div>
 
-                <div className="flex flex-1 flex-col justify-between p-5">
-                  <div>
-                    <h3 className="text-lg font-semibold text-foreground">
-                      {agent.name}
-                    </h3>
-                    <p className="mt-1 text-sm font-medium text-primary">
-                      {agent.role}
-                    </p>
-                    <a
-                      href={`mailto:${agent.email}`}
-                      className="mt-3 inline-flex items-center gap-2 text-sm text-muted-foreground transition hover:text-primary"
-                    >
-                      <Mail className="size-4 text-primary" />
-                      {agent.email}
-                    </a>
-                    <ul className="mt-4 flex flex-wrap gap-2">
+              <div className="flex flex-1 flex-col justify-between p-4">
+                <div>
+                  <h3 className="text-base font-semibold text-foreground">
+                    {agent.name}
+                  </h3>
+                  <p className="mt-0.5 text-sm font-medium text-primary">
+                    {agent.role}
+                  </p>
+                  <a
+                    href={`mailto:${agent.email}`}
+                    className="mt-2 inline-flex max-w-full items-center gap-1.5 truncate text-xs text-muted-foreground transition hover:text-primary"
+                  >
+                    <Mail className="size-3.5 shrink-0 text-primary" />
+                    <span className="truncate">{agent.email}</span>
+                  </a>
+                  {agent.topics.length > 0 ? (
+                    <ul className="mt-3 flex flex-wrap gap-1.5">
                       {agent.topics.map((topic) => (
                         <li
                           key={topic}
-                          className="rounded-full border border-border bg-muted/40 px-3 py-1 text-xs text-muted-foreground"
+                          className="rounded-full border border-border bg-muted/40 px-2 py-0.5 text-[11px] text-muted-foreground"
                         >
                           {topic}
                         </li>
                       ))}
                     </ul>
-                  </div>
-
-                  <Button
-                    type="button"
-                    className="mt-5 h-10 w-full rounded-xl"
-                    onClick={() => {
-                      setSelectedAgent(agent);
-                      document
-                        .getElementById("support-contact-form")
-                        ?.scrollIntoView({ behavior: "smooth", block: "start" });
-                    }}
-                  >
-                    Contacter {agent.name.split(" ")[0]}
-                  </Button>
+                  ) : null}
                 </div>
+
+                <Button
+                  type="button"
+                  size="sm"
+                  className="mt-4 h-9 w-full rounded-lg"
+                  onClick={() => {
+                    setSelectedAgent(agent);
+                    document
+                      .getElementById("support-contact-form")
+                      ?.scrollIntoView({ behavior: "smooth", block: "start" });
+                  }}
+                >
+                  Contacter {agent.name.split(" ")[0]}
+                </Button>
               </div>
             </article>
           ))}
@@ -135,16 +136,21 @@ export function SupportTeamSection({
         </div>
 
         <ContactForm
-          key={selectedAgent?.id ?? "all"}
+          key={selectedAgent?.userId ?? "all"}
           showSupportAgentPicker
           organizationId={organizationId}
-          supportAgents={team.map(({ id, name, email }) => ({
-            id,
+          supportAgents={team.map(({ userId, name, email }) => ({
+            id: userId,
             name,
             email,
           }))}
-          supportAgent={selectedAgent?.name}
+          supportAgent={selectedAgent?.userId}
           recipientEmail={selectedAgent?.email}
+          subject={
+            selectedAgent
+              ? `Support — ${selectedAgent.name}`
+              : "Demande de support"
+          }
         />
       </section>
     </>

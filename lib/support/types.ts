@@ -1,5 +1,7 @@
 export type SupportAgentPublic = {
   id: string;
+  /** Id utilisateur — utilisé par le formulaire de contact (destinataire). */
+  userId: string;
   name: string;
   email: string;
   role: string;
