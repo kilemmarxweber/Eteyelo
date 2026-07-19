@@ -281,6 +281,7 @@ function mapStudentRecord(
           telephone: string | null;
           statusUser: boolean | null;
           address: string | null;
+          image: string | null;
         } | null;
       };
       branch?: { id: string; name: string } | null;
@@ -303,6 +304,7 @@ function mapStudentRecord(
           telephone: string | null;
           statusUser: boolean | null;
           address: string | null;
+          image: string | null;
         } | null };
       } | null;
     };

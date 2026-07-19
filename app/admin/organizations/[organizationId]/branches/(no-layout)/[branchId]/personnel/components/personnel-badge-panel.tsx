@@ -1,8 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { getStaffBadgeAction } from "../staff-badge.action";
-import { StaffBadgeSection } from "../components/staff-badge-section";
+import { getStaffBadgeAction } from "../../staff-badge.action";
+import { StaffBadgeSection } from "../../components/staff-badge-section";
 import type { StaffBadgeData } from "@/lib/staff-badge";
 
 type PersonnelBadgePanelProps = {

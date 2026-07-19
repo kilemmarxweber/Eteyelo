@@ -37,7 +37,7 @@ type UserInfo = {
   name: string;
   postnom: string | null;
   prenom: string | null;
-  username: string;
+  username: string | null;
 };
 
 type UnifiedRecord = {

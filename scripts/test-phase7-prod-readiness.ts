@@ -151,6 +151,7 @@ test("E2E simule universite : auditoire puis releve", () => {
     studentName: "Paul Mbuyi",
     username: "PM001",
     auditoireName: "L2 Droit",
+    auditoireLevel: "L2",
     filiereName: "Droit",
     faculteName: "Faculte de Droit",
     schoolYearName: "2025-2026",
