@@ -1,13 +1,14 @@
 "use client";
 
+import { useState } from "react";
 import { useAppRouter as useRouter } from "@/hooks/use-app-router";
 import {
   Banknote,
   BarChart3,
-  CalendarDays,
   FileSpreadsheet,
   FileText,
   GraduationCap,
+  Loader2,
   PieChart,
   TrendingDown,
   TrendingUp,
@@ -29,12 +30,13 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { toast } from "sonner";
 import * as XLSX from "xlsx";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
 
 import { BackLink } from "@/components/ui/back-link";
 import { Button } from "@/components/ui/button";
+import { exportRapportEffectifsPdf } from "./export-rapport-effectifs-pdf";
+import { getRapportReportContextAction } from "./rapport.action";
 
 type ReportData = Awaited<
   ReturnType<typeof import("./rapport.action").getOrganizationReportData>
@@ -55,6 +57,7 @@ function formatMoney(value: number) {
 
 export function RapportDashboard({ organizationId, data }: Props) {
   const router = useRouter();
+  const [exportingPdf, setExportingPdf] = useState(false);
 
   const {
     branches,
@@ -128,55 +131,40 @@ export function RapportDashboard({ organizationId, data }: Props) {
     XLSX.writeFile(workbook, "rapport-etablissement.xlsx");
   }
 
-  function exportPdf() {
-    const doc = new jsPDF();
+  async function exportPdf() {
+    if (!selectedBranchId) {
+      toast.error("Sélectionnez un établissement pour exporter le PDF.");
+      return;
+    }
 
-    doc.setFontSize(18);
-    doc.text("Rapport établissement", 14, 18);
-
-    doc.setFontSize(10);
-    doc.text("Tableau de bord analytique", 14, 26);
-
-    autoTable(doc, {
-      startY: 35,
-      head: [["Indicateur", "Valeur"]],
-      body: [
-        ["Total élèves", summary.totalStudents],
-        ["Élèves actifs", summary.activeStudents],
-        ["Élèves inactifs", summary.inactiveStudents],
-        ["Garçons", summary.boys],
-        ["Filles", summary.girls],
-        ["Enseignants", summary.teachers],
-        ["Parents", summary.parents],
-        ["Paiements", `${formatMoney(summary.totalPayments)} FC`],
-        ["Dépenses", `${formatMoney(summary.totalExpenses)} FC`],
-        ["Balance", `${formatMoney(summary.balance)} FC`],
-      ],
-    });
-
-    autoTable(doc, {
-      startY: (doc as any).lastAutoTable.finalY + 10,
-      head: [["Mois", "Paiements", "Dépenses"]],
-      body: financeByMonth.map((item) => [
-        item.month,
-        `${formatMoney(item.paiements)} FC`,
-        `${formatMoney(item.depenses)} FC`,
-      ]),
-    });
-
-    autoTable(doc, {
-      startY: (doc as any).lastAutoTable.finalY + 10,
-      head: [["Classe", "Total élèves"]],
-      body: studentsByClass.map((item) => [item.name, item.total]),
-    });
-
-    autoTable(doc, {
-      startY: (doc as any).lastAutoTable.finalY + 10,
-      head: [["Présence", "Total"]],
-      body: attendanceStats.map((item) => [item.name, item.value]),
-    });
-
-    doc.save("rapport-etablissement.pdf");
+    setExportingPdf(true);
+    try {
+      const context = await getRapportReportContextAction({
+        organizationId,
+        branchId: selectedBranchId,
+      });
+      await exportRapportEffectifsPdf(
+        {
+          summary,
+          studentsByClass,
+          genderStats,
+          statusStats,
+          attendanceStats,
+          financeByMonth,
+        },
+        context,
+      );
+      toast.success("Le rapport PDF des effectifs a été généré.");
+    } catch (error) {
+      console.error(error);
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Impossible de générer le rapport PDF.",
+      );
+    } finally {
+      setExportingPdf(false);
+    }
   }
 
   return (
@@ -221,11 +209,16 @@ export function RapportDashboard({ organizationId, data }: Props) {
               size="sm"
               type="button"
               onClick={exportPdf}
+              disabled={exportingPdf || !selectedBranchId}
               variant="outline"
               className="rounded-full border-white/30 bg-card/10 text-white hover:bg-card hover:text-foreground"
             >
-              <FileText className="mr-1.5 size-3.5" />
-              Export PDF
+              {exportingPdf ? (
+                <Loader2 className="mr-1.5 size-3.5 animate-spin" />
+              ) : (
+                <FileText className="mr-1.5 size-3.5" />
+              )}
+              {exportingPdf ? "Export…" : "Export PDF"}
             </Button>
 
             <Button

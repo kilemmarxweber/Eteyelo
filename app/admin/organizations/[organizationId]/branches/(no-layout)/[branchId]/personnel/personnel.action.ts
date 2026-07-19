@@ -15,6 +15,10 @@ import {
 } from "@/lib/admin-created-user-password";
 import { generateSecurePassword } from "@/lib/generate-password";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
+import {
+  buildSchoolReportContext,
+  schoolReportBranchSelect,
+} from "@/lib/reports/resolve-school-branding";
 
 function errMessage(err: unknown): string {
   if (
@@ -439,3 +443,16 @@ export const updatePersonnelAction = action
 
     return result;
   });
+
+export const getPersonnelReportContextAction = action.handler(async () => {
+  const { branchId, organizationId } = await getCurrentBranch();
+
+  const branch = await prisma.branch.findFirst({
+    where: { id: branchId, organizationId },
+    select: schoolReportBranchSelect,
+  });
+
+  if (!branch) throw new Error("Branche active introuvable");
+
+  return buildSchoolReportContext(branch);
+});

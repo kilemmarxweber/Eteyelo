@@ -2,10 +2,19 @@
 
 import { prisma } from "@/lib/prisma";
 import { guardOrganizationAccess } from "@/lib/auth/require-organization-permission";
+import {
+  buildSchoolReportContext,
+  schoolReportBranchSelect,
+} from "@/lib/reports/resolve-school-branding";
 
 type ReportParams = {
   organizationId: string;
   branchId?: string;
+};
+
+type ReportContextParams = {
+  organizationId: string;
+  branchId: string;
 };
 
 function monthLabel(date: Date) {
@@ -241,4 +250,30 @@ export async function getOrganizationReportData({
     ],
     financeByMonth: Array.from(paymentByMonth.values()),
   };
+}
+
+/** Contexte branding pour l'export PDF synthèse effectifs (`/rapport`). */
+export async function getRapportReportContextAction({
+  organizationId,
+  branchId,
+}: ReportContextParams) {
+  const guard = await guardOrganizationAccess(organizationId);
+  if (!guard.ok) {
+    throw new Error(guard.message);
+  }
+
+  if (!branchId?.trim()) {
+    throw new Error("Établissement non sélectionné");
+  }
+
+  const branch = await prisma.branch.findFirst({
+    where: { id: branchId, organizationId },
+    select: schoolReportBranchSelect,
+  });
+
+  if (!branch) {
+    throw new Error("Établissement introuvable");
+  }
+
+  return buildSchoolReportContext(branch);
 }

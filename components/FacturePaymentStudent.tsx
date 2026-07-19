@@ -1,5 +1,6 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { DEFAULT_EXCHANGE_RATE_USD_CDF } from "@/lib/reports/types";
 
 export type FacturePaymentStudentData = {
   invoiceNumber: string;
@@ -11,7 +12,11 @@ export type FacturePaymentStudentData = {
     statut: string;
     montant: number;
   }[];
+  /** Data URL (ou URL déjà convertie côté client) pour jsPDF. */
   logoUrl?: string;
+  exchangeRateUsdCdf?: number;
+  /** Ville d'émission du reçu (branche) — pas de hardcode. */
+  issuedPlace?: string;
 };
 
 export function generateFacturePaymentStudentPDF({
@@ -20,23 +25,31 @@ export function generateFacturePaymentStudentPDF({
   recipient,
   items,
   logoUrl = "",
+  exchangeRateUsdCdf = DEFAULT_EXCHANGE_RATE_USD_CDF,
+  issuedPlace,
 }: FacturePaymentStudentData) {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
   const primaryColor = "#000000";
-  const exchangeRate = 2800;
+  const exchangeRate = exchangeRateUsdCdf;
+  const schoolName = sender.name || "Établissement";
+  const placeLabel = issuedPlace?.trim() || undefined;
 
   // --- LOGO EN HAUT À DROITE ---
   if (logoUrl) {
-    doc.addImage(logoUrl, "PNG", pageWidth - 38, 14, 20, 20);
+    try {
+      doc.addImage(logoUrl, pageWidth - 38, 14, 20, 20);
+    } catch {
+      // Un logo invalide ne doit pas empêcher le téléchargement du reçu.
+    }
   }
 
   // --- TITRE CENTRÉ + SOULIGNÉ ---
   doc.setFont("helvetica", "bold");
   doc.setFontSize(13);
   doc.setTextColor(primaryColor);
-  doc.text("COMPLEXE SCOLAIRE MARGUERITE M", pageWidth / 2, 25, { align: "center" });
-  const textWidth = doc.getTextWidth("COMPLEXE SCOLAIRE MARGUERITE");
+  doc.text(schoolName, pageWidth / 2, 25, { align: "center" });
+  const textWidth = doc.getTextWidth(schoolName);
   doc.setLineWidth(0.3);
   doc.line((pageWidth - textWidth) / 2, 27, (pageWidth + textWidth) / 2, 27);
 
@@ -48,10 +61,12 @@ export function generateFacturePaymentStudentPDF({
 
   // --- CLIENT OR STUDENT ---
   doc.text(sender.name, 14, 48);
-  doc.text(sender.address, 14, 53);
-  doc.text("Noms  : "+recipient.name, 105, 48);
-  doc.text("Classe: "+recipient.class, 105, 53);
-  doc.text("Sexe  : "+recipient.sexe, 105, 58);
+  if (sender.address) {
+    doc.text(sender.address, 14, 53);
+  }
+  doc.text("Noms  : " + recipient.name, 105, 48);
+  doc.text("Classe: " + recipient.class, 105, 53);
+  doc.text("Sexe  : " + recipient.sexe, 105, 58);
   // --- TABLEAU DES ARTICLES ---
   const startY = 60;
   autoTable(doc, {
@@ -115,16 +130,19 @@ export function generateFacturePaymentStudentPDF({
     align: "right",
   });
 
-  // --- FAIT À KINSHASA (aligné avec tableau) ---
+  // --- LIEU + DATE (aligné avec tableau) ---
   const currentDate = new Date().toLocaleDateString("fr-FR");
   doc.setFont("helvetica", "normal");
   doc.setFontSize(9);
-  doc.text(`Fait à Kinshasa, le ${currentDate}`, tableRightX, yAfterTable + 18, {
+  const issuedLine = placeLabel
+    ? `Fait à ${placeLabel}, le ${currentDate}`
+    : `Fait le ${currentDate}`;
+  doc.text(issuedLine, tableRightX, yAfterTable + 18, {
     align: "right",
   });
 
   // --- VÉRIFICATEUR ALIGNÉ ---
-  doc.setFont("Vérificateur", "bold");
+  doc.setFont("helvetica", "bold");
   doc.text("", tableRightX, yAfterTable + 26, { align: "right" });
 
   doc.setLineWidth(0.3);

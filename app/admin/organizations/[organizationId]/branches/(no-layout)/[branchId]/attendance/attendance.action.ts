@@ -10,6 +10,10 @@ import { personnelAttendanceSchema } from "./interface/Attendance";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
+import {
+  buildSchoolReportContext,
+  schoolReportBranchSelect,
+} from "@/lib/reports/resolve-school-branding";
 
 /* =========================
    SESSIONS
@@ -1268,3 +1272,458 @@ export async function checkTeacherAttendanceNeeded({
     return null;
   }
 }
+
+/* =========================
+   RAPPORT PRÉSENCES ÉLÈVES
+========================= */
+
+export type StudentAttendanceStatusCounts = {
+  present: number;
+  absent: number;
+  late: number;
+  excused: number;
+  total: number;
+};
+
+export type StudentAttendanceDetailRow = {
+  studentId: string;
+  studentName: string;
+  classeName: string;
+  present: number;
+  absent: number;
+  late: number;
+  excused: number;
+  total: number;
+};
+
+export type StudentAttendanceReport = {
+  dateStart: string;
+  dateEnd: string;
+  classeId: string | null;
+  classeName: string | null;
+  summary: StudentAttendanceStatusCounts;
+  details: StudentAttendanceDetailRow[];
+};
+
+function emptyAttendanceCounts(): StudentAttendanceStatusCounts {
+  return { present: 0, absent: 0, late: 0, excused: 0, total: 0 };
+}
+
+function bumpAttendanceStatus(
+  counts: StudentAttendanceStatusCounts,
+  status: string,
+) {
+  counts.total += 1;
+  switch (status) {
+    case "PRESENT":
+      counts.present += 1;
+      break;
+    case "ABSENT":
+      counts.absent += 1;
+      break;
+    case "LATE":
+      counts.late += 1;
+      break;
+    case "EXCUSED":
+      counts.excused += 1;
+      break;
+    default:
+      break;
+  }
+}
+
+function formatAttendanceStudentName(user: {
+  name?: string | null;
+  postnom?: string | null;
+  prenom?: string | null;
+} | null): string {
+  if (!user) return "-";
+  return (
+    [user.name, user.postnom, user.prenom].filter(Boolean).join(" ").trim() ||
+    "-"
+  );
+}
+
+export const getStudentAttendanceReportContextAction = action.handler(
+  async () => {
+    const { branchId, organizationId } = await requireBranchContext();
+
+    const branch = await prisma.branch.findFirst({
+      where: { id: branchId, organizationId },
+      select: schoolReportBranchSelect,
+    });
+
+    if (!branch) {
+      throw new Error("Contexte introuvable.");
+    }
+
+    return buildSchoolReportContext(branch);
+  },
+);
+
+export const getStudentAttendanceReportAction = action
+  .input(
+    z.object({
+      startDate: z.coerce.date(),
+      endDate: z.coerce.date(),
+      classeId: z.string().optional().nullable(),
+    }),
+  )
+  .handler(async ({ input }): Promise<StudentAttendanceReport> => {
+    const { branchId, organizationId } = await requireBranchContext();
+
+    const start = new Date(input.startDate);
+    start.setHours(0, 0, 0, 0);
+
+    const end = new Date(input.endDate);
+    end.setHours(23, 59, 59, 999);
+
+    if (end < start) {
+      throw new Error("La date de fin doit être postérieure à la date de début.");
+    }
+
+    const classeId = input.classeId?.trim() || null;
+    let classeName: string | null = null;
+
+    if (classeId) {
+      const classe = await prisma.classe.findFirst({
+        where: {
+          id: classeId,
+          branchId,
+          branch: { organizationId },
+        },
+        select: { id: true, nameClasse: true, codeClasse: true },
+      });
+      if (!classe) {
+        throw new Error("Classe introuvable pour cette branche.");
+      }
+      classeName =
+        classe.nameClasse?.trim() || classe.codeClasse?.trim() || "Classe";
+    }
+
+    const records = await prisma.studentAttendance.findMany({
+      where: {
+        branchId,
+        session: {
+          date: { gte: start, lte: end },
+          ...(classeId
+            ? { teaching: { classeId } }
+            : {}),
+        },
+      },
+      include: {
+        student: {
+          include: {
+            branchMember: {
+              include: {
+                member: {
+                  include: {
+                    user: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+        session: {
+          include: {
+            teaching: {
+              include: {
+                classe: {
+                  select: {
+                    id: true,
+                    nameClasse: true,
+                    codeClasse: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      orderBy: [{ recordedAt: "asc" }],
+    });
+
+    const summary = emptyAttendanceCounts();
+    const byStudent = new Map<string, StudentAttendanceDetailRow>();
+
+    for (const record of records) {
+      bumpAttendanceStatus(summary, record.status);
+
+      const user = record.student?.branchMember?.member?.user ?? null;
+      const classe = record.session?.teaching?.classe;
+      const rowClasseName =
+        classe?.nameClasse?.trim() ||
+        classe?.codeClasse?.trim() ||
+        classeName ||
+        "-";
+
+      let entry = byStudent.get(record.studentId);
+      if (!entry) {
+        entry = {
+          studentId: record.studentId,
+          studentName: formatAttendanceStudentName(user),
+          classeName: rowClasseName,
+          present: 0,
+          absent: 0,
+          late: 0,
+          excused: 0,
+          total: 0,
+        };
+        byStudent.set(record.studentId, entry);
+      }
+
+      bumpAttendanceStatus(entry, record.status);
+    }
+
+    const details = Array.from(byStudent.values()).sort((a, b) => {
+      const byClass = a.classeName.localeCompare(b.classeName, "fr");
+      if (byClass !== 0) return byClass;
+      return a.studentName.localeCompare(b.studentName, "fr");
+    });
+
+    return {
+      dateStart: start.toISOString(),
+      dateEnd: end.toISOString(),
+      classeId,
+      classeName,
+      summary,
+      details,
+    };
+  });
+
+/* =========================
+   RAPPORT PRÉSENCES ENSEIGNANTS
+========================= */
+
+export type TeacherAttendanceDetailRow = {
+  teacherId: string;
+  teacherName: string;
+  present: number;
+  absent: number;
+  late: number;
+  excused: number;
+  total: number;
+};
+
+export type TeacherAttendanceReport = {
+  dateStart: string;
+  dateEnd: string;
+  summary: StudentAttendanceStatusCounts;
+  details: TeacherAttendanceDetailRow[];
+};
+
+export const getTeacherAttendanceReportContextAction = action.handler(
+  async () => {
+    const { branchId, organizationId } = await requireBranchContext();
+
+    const branch = await prisma.branch.findFirst({
+      where: { id: branchId, organizationId },
+      select: schoolReportBranchSelect,
+    });
+
+    if (!branch) {
+      throw new Error("Contexte introuvable.");
+    }
+
+    return buildSchoolReportContext(branch);
+  },
+);
+
+export const getTeacherAttendanceReportAction = action
+  .input(
+    z.object({
+      startDate: z.coerce.date(),
+      endDate: z.coerce.date(),
+    }),
+  )
+  .handler(async ({ input }): Promise<TeacherAttendanceReport> => {
+    const { branchId } = await requireBranchContext();
+
+    const start = new Date(input.startDate);
+    start.setHours(0, 0, 0, 0);
+
+    const end = new Date(input.endDate);
+    end.setHours(23, 59, 59, 999);
+
+    if (end < start) {
+      throw new Error("La date de fin doit être postérieure à la date de début.");
+    }
+
+    const records = await prisma.teacherAttendance.findMany({
+      where: {
+        branchId,
+        date: { gte: start, lte: end },
+      },
+      include: {
+        teacher: {
+          include: {
+            branchMember: {
+              include: {
+                member: {
+                  include: {
+                    user: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      orderBy: [{ date: "asc" }],
+    });
+
+    const summary = emptyAttendanceCounts();
+    const byTeacher = new Map<string, TeacherAttendanceDetailRow>();
+
+    for (const record of records) {
+      bumpAttendanceStatus(summary, record.status);
+
+      const user = record.teacher?.branchMember?.member?.user ?? null;
+
+      let entry = byTeacher.get(record.teacherId);
+      if (!entry) {
+        entry = {
+          teacherId: record.teacherId,
+          teacherName: formatAttendanceStudentName(user),
+          present: 0,
+          absent: 0,
+          late: 0,
+          excused: 0,
+          total: 0,
+        };
+        byTeacher.set(record.teacherId, entry);
+      }
+
+      bumpAttendanceStatus(entry, record.status);
+    }
+
+    const details = Array.from(byTeacher.values()).sort((a, b) =>
+      a.teacherName.localeCompare(b.teacherName, "fr"),
+    );
+
+    return {
+      dateStart: start.toISOString(),
+      dateEnd: end.toISOString(),
+      summary,
+      details,
+    };
+  });
+
+/* =========================
+   RAPPORT PRÉSENCES PERSONNEL
+========================= */
+
+export type PersonnelAttendanceDetailRow = {
+  personnelId: string;
+  personnelName: string;
+  present: number;
+  absent: number;
+  late: number;
+  excused: number;
+  total: number;
+};
+
+export type PersonnelAttendanceReport = {
+  dateStart: string;
+  dateEnd: string;
+  summary: StudentAttendanceStatusCounts;
+  details: PersonnelAttendanceDetailRow[];
+};
+
+export const getPersonnelAttendanceReportContextAction = action.handler(
+  async () => {
+    const { branchId, organizationId } = await requireBranchContext();
+
+    const branch = await prisma.branch.findFirst({
+      where: { id: branchId, organizationId },
+      select: schoolReportBranchSelect,
+    });
+
+    if (!branch) {
+      throw new Error("Contexte introuvable.");
+    }
+
+    return buildSchoolReportContext(branch);
+  },
+);
+
+export const getPersonnelAttendanceReportAction = action
+  .input(
+    z.object({
+      startDate: z.coerce.date(),
+      endDate: z.coerce.date(),
+    }),
+  )
+  .handler(async ({ input }): Promise<PersonnelAttendanceReport> => {
+    const { branchId } = await requireBranchContext();
+
+    const start = new Date(input.startDate);
+    start.setHours(0, 0, 0, 0);
+
+    const end = new Date(input.endDate);
+    end.setHours(23, 59, 59, 999);
+
+    if (end < start) {
+      throw new Error("La date de fin doit être postérieure à la date de début.");
+    }
+
+    const records = await prisma.personnelAttendance.findMany({
+      where: {
+        branchId,
+        date: { gte: start, lte: end },
+      },
+      include: {
+        personnel: {
+          include: {
+            branchMember: {
+              include: {
+                member: {
+                  include: {
+                    user: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      orderBy: [{ date: "asc" }],
+    });
+
+    const summary = emptyAttendanceCounts();
+    const byPersonnel = new Map<string, PersonnelAttendanceDetailRow>();
+
+    for (const record of records) {
+      bumpAttendanceStatus(summary, record.status);
+
+      const user = record.personnel?.branchMember?.member?.user ?? null;
+
+      let entry = byPersonnel.get(record.personnelId);
+      if (!entry) {
+        entry = {
+          personnelId: record.personnelId,
+          personnelName: formatAttendanceStudentName(user),
+          present: 0,
+          absent: 0,
+          late: 0,
+          excused: 0,
+          total: 0,
+        };
+        byPersonnel.set(record.personnelId, entry);
+      }
+
+      bumpAttendanceStatus(entry, record.status);
+    }
+
+    const details = Array.from(byPersonnel.values()).sort((a, b) =>
+      a.personnelName.localeCompare(b.personnelName, "fr"),
+    );
+
+    return {
+      dateStart: start.toISOString(),
+      dateEnd: end.toISOString(),
+      summary,
+      details,
+    };
+  });

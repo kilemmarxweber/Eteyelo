@@ -115,7 +115,7 @@ const CardFooter = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      "mt-4 flex items-center justify-between border-t border-border/50 pt-4",
+      "mt-4 flex items-center justify-between border-t border-border pt-4",
       className,
     )}
     {...props}

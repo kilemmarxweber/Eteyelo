@@ -101,7 +101,29 @@ export const createParentColumns = (
       );
     },
     filterFn: (row, id, value) => {
-      return value.includes(row.getValue(id));
+      const raw = String(row.getValue(id) ?? "").toLowerCase();
+      const selected = (Array.isArray(value) ? value : [value]).map((v) =>
+        String(v).toLowerCase(),
+      );
+      return selected.some((v) => {
+        if (v === "masculin" || v === "m") return raw === "m" || raw === "masculin";
+        if (v === "feminin" || v === "f") return raw === "f" || raw === "feminin";
+        return raw === v;
+      });
+    },
+  },
+  {
+    id: "statusUser",
+    accessorFn: (row) => (row.statusUser === false ? "archived" : "active"),
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Statut" />
+    ),
+    cell: ({ row }) => {
+      return row.original.statusUser === false ? "Archivé" : "Actif";
+    },
+    filterFn: (row, id, value) => {
+      const selected = Array.isArray(value) ? value : [value];
+      return selected.includes(row.getValue(id));
     },
   },
   {

@@ -21,15 +21,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-} from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { CheckCircle2, Printer, Receipt, X } from "lucide-react";
+import { CheckCircle2, Receipt, X } from "lucide-react";
 
 import { createPaiementAction, getFraisWithBalance } from "../paiement.action";
 import { getFraisAction } from "../../frais/frais.action";
@@ -37,10 +30,8 @@ import { getFraisAction } from "../../frais/frais.action";
 import FamilySelector from "./FamilySelector";
 import z from "zod";
 import { MultiSelect } from "./MultiSelect";
-import {
-  FacturePaymentStudentData,
-  generateFacturePaymentStudentPDF,
-} from "@/components/FacturePaymentStudent";
+import type { FacturePaymentStudentData } from "@/components/FacturePaymentStudent";
+import { ReceiptPreviewDialog } from "@/components/reports/ReceiptPreviewDialog";
 
 type FormData = z.infer<typeof paiementSchema>;
 
@@ -103,7 +94,6 @@ export default function PaymentsForm({
   const [receiptDialogOpen, setReceiptDialogOpen] = useState(false);
   const [receiptData, setReceiptData] =
     useState<FacturePaymentStudentData | null>(null);
-  const [printMessage, setPrintMessage] = useState("");
   const [amountManuallyEdited, setAmountManuallyEdited] = useState(false);
   const [amountInput, setAmountInput] = useState("");
   const amountManuallyEditedRef = useRef(false);
@@ -345,14 +335,6 @@ export default function PaymentsForm({
     }
   };
 
-  const handlePrintReceipt = () => {
-    if (!receiptData) return;
-
-    generateFacturePaymentStudentPDF(receiptData);
-    setPrintMessage("Recu genere. Vous pouvez lancer l'impression depuis le PDF.");
-    toast.success("Recu genere avec succes");
-  };
-
   // ================= SUBMIT =================
   const onSubmit = async (data: FormData) => {
     try {
@@ -428,7 +410,6 @@ export default function PaymentsForm({
       toast.success(successMsg);
       if (res.receipt) {
         setReceiptData(res.receipt);
-        setPrintMessage("");
         setReceiptDialogOpen(true);
       }
 
@@ -821,56 +802,23 @@ export default function PaymentsForm({
         </Card>
       </div>
     </form>
-    <Dialog open={receiptDialogOpen} onOpenChange={setReceiptDialogOpen}>
-      <DialogContent title="Paiement enregistre" className="sm:max-w-[520px]">
-        <DialogHeader>
-          <DialogDescription>
-            Recu {receiptData?.invoiceNumber ?? ""} pret pour impression.
-          </DialogDescription>
-        </DialogHeader>
-
-        {receiptData && (
-          <div className="rounded-md border p-3 text-sm space-y-2">
-            <div className="flex items-center gap-2 text-green-700 font-medium">
-              <CheckCircle2 className="h-4 w-4" />
-              Paiement cree avec succes
-            </div>
-            <div className="grid grid-cols-[90px_1fr] gap-2">
-              <span className="text-muted-foreground">Eleve</span>
-              <span>{receiptData.recipient.name}</span>
-              <span className="text-muted-foreground">Classe</span>
-              <span>{receiptData.recipient.class}</span>
-              <span className="text-muted-foreground">Total</span>
-              <span className="font-semibold">
-                {receiptData.items
-                  .reduce((sum, item) => sum + Number(item.montant), 0)
-                  .toFixed(2)}{" "}
-                USD
-              </span>
-            </div>
-          </div>
-        )}
-
-        <DialogFooter className="gap-2 sm:justify-between">
-          <div className="min-h-5 text-xs text-green-700">
-            {printMessage}
-          </div>
-          <div className="flex flex-col-reverse sm:flex-row gap-2">
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={() => setReceiptDialogOpen(false)}
-            >
-              Fermer
-            </Button>
-            <Button type="button" onClick={handlePrintReceipt}>
-              <Printer className="mr-2 h-4 w-4" />
-              Imprimer le recu
-            </Button>
-          </div>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+    <ReceiptPreviewDialog
+      open={receiptDialogOpen}
+      onOpenChange={setReceiptDialogOpen}
+      data={receiptData}
+      title="Paiement enregistré"
+      description={
+        receiptData
+          ? `Reçu ${receiptData.invoiceNumber} prêt pour impression.`
+          : undefined
+      }
+      banner={
+        <div className="flex items-center gap-2 font-medium text-green-700">
+          <CheckCircle2 className="size-4" />
+          Paiement créé avec succès
+        </div>
+      }
+    />
     </>
   );
 }

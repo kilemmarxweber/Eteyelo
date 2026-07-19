@@ -14,6 +14,10 @@ import {
 import { generateSecurePassword } from "@/lib/generate-password";
 import { ORG_ROLE } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
+import {
+  buildSchoolReportContext,
+  schoolReportBranchSelect,
+} from "@/lib/reports/resolve-school-branding";
 import { action } from "@/lib/zsa";
 import { createOrganizationMemberAction } from "../../../../members/actions";
 import {
@@ -516,3 +520,21 @@ export const updateTeacherAction = action
       user,
     };
   });
+
+export const getTeacherReportContextAction = action.handler(async () => {
+  const { branchId, organizationId, canManageTeachers, isTeacher } =
+    await getCurrentBranch();
+
+  if (!canManageTeachers && !isTeacher) {
+    throw new Error("Action non autorisee");
+  }
+
+  const branch = await prisma.branch.findFirst({
+    where: { id: branchId, organizationId },
+    select: schoolReportBranchSelect,
+  });
+
+  if (!branch) throw new Error("Branche active introuvable");
+
+  return buildSchoolReportContext(branch);
+});

@@ -1,7 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import { Table } from "@tanstack/react-table";
-import { IconSearch, IconUpload, IconX } from "@tabler/icons-react";
+import { IconFileTypePdf, IconSearch, IconUpload, IconX } from "@tabler/icons-react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/custom/button";
 import { Input } from "@/components/ui/input";
@@ -10,6 +12,12 @@ import { DataTableFacetedFilter } from "@/components/data-table-faceted-filter";
 import type { ITeacher } from "@/src/interfaces/Teacher";
 import type { PeopleLabels } from "@/lib/people-labels";
 import { DEFAULT_PEOPLE_LABELS } from "@/lib/people-labels";
+import {
+  exportTeachersReportPdf,
+  type TeacherAssignmentStatus,
+  type TeacherReportOptions,
+} from "./export-teachers-pdf";
+import { getTeacherReportContextAction } from "../teacher.action";
 
 interface DataTableToolbarProps<TData> {
   table: Table<TData>;
@@ -31,6 +39,34 @@ function uniqueOptions(values: string[]) {
     .map((value) => ({ value, label: value }));
 }
 
+function readFilterValues(value: unknown): string[] {
+  if (Array.isArray(value)) return value.map(String).filter(Boolean);
+  if (typeof value === "string" && value.trim() && value !== "all") {
+    return [value];
+  }
+  return [];
+}
+
+function resolveReportOptions(table: Table<unknown>): TeacherReportOptions {
+  const assignmentValues = readFilterValues(
+    table.getColumn("assignmentStatus")?.getFilterValue(),
+  );
+  const assignmentStatus =
+    assignmentValues.length === 1 &&
+    (assignmentValues[0] === "assigned" ||
+      assignmentValues[0] === "unassigned")
+      ? (assignmentValues[0] as TeacherAssignmentStatus)
+      : null;
+
+  return {
+    assignmentStatus,
+    classNames: readFilterValues(table.getColumn("classNames")?.getFilterValue()),
+    courseNames: readFilterValues(
+      table.getColumn("courseNames")?.getFilterValue(),
+    ),
+  };
+}
+
 export function DataTableToolbar<TData>({
   table,
   canManageTeachers = false,
@@ -38,6 +74,7 @@ export function DataTableToolbar<TData>({
   onOpenImport,
   peopleLabels = DEFAULT_PEOPLE_LABELS,
 }: DataTableToolbarProps<TData>) {
+  const [exportingPdf, setExportingPdf] = useState(false);
   const isFiltered = table.getState().columnFilters.length > 0;
   const teachers = table
     .getPreFilteredRowModel()
@@ -48,6 +85,34 @@ export function DataTableToolbar<TData>({
   const courseOptions = uniqueOptions(
     teachers.flatMap((teacher) => teacher.courseNames ?? []),
   );
+  const hasRows = table.getFilteredRowModel().rows.length > 0;
+
+  const exportFilteredPdf = async () => {
+    setExportingPdf(true);
+    try {
+      const filteredTeachers = table
+        .getFilteredRowModel()
+        .rows.map((row) => row.original as ITeacher);
+      const options = resolveReportOptions(table as Table<unknown>);
+      const [context, error] = await getTeacherReportContextAction();
+      if (error || !context) {
+        throw new Error(
+          error?.message || "Impossible de charger les informations du rapport.",
+        );
+      }
+      await exportTeachersReportPdf(filteredTeachers, context, options);
+      toast.success("Le rapport PDF des enseignants a été généré.");
+    } catch (error) {
+      console.error(error);
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Impossible de générer le rapport PDF.",
+      );
+    } finally {
+      setExportingPdf(false);
+    }
+  };
 
   return (
     <div className="flex flex-col gap-3 border-b pb-4 xl:flex-row xl:items-center xl:justify-between">
@@ -91,6 +156,15 @@ export function DataTableToolbar<TData>({
             onValueChange={() => undefined}
           />
         ) : null}
+        <Button
+          variant="outline"
+          leftSection={<IconFileTypePdf size={16} />}
+          onClick={exportFilteredPdf}
+          loading={exportingPdf}
+          disabled={!hasRows || exportingPdf}
+        >
+          {exportingPdf ? "Génération..." : "Rapport PDF"}
+        </Button>
         {isFiltered ? (
           <Button
             variant="ghost"

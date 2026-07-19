@@ -1,16 +1,23 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import type { IStudent } from "@/src/interfaces/Student";
+import { imageUrlToDataUrl } from "@/lib/reports/image-to-data-url";
+import {
+  drawReportFooterOnAllPages,
+  drawReportHeader,
+  REPORT_HEADER_CONTENT_TOP_MM,
+} from "@/lib/reports/pdf-header-footer";
+import type { SchoolReportContext } from "@/lib/reports/types";
 
-export type StudentReportContext = {
-  branchName: string;
-  organizationName: string;
-  schoolYearName: string;
-  logoUrl: string;
-};
+export type StudentReportSexe = "M" | "F";
+export type StudentReportStatus = "active" | "inactive";
 
 export type StudentReportOptions = {
   selectedClass?: { code: string; name: string } | null;
+  /** Filtre genre UI (un seul sexe actif). */
+  sexe?: StudentReportSexe | null;
+  /** Filtre statut UI si présent. */
+  status?: StudentReportStatus | null;
 };
 
 function ageFromBirthDate(value: Date | string | null | undefined) {
@@ -48,81 +55,87 @@ function safeFilePart(value: string) {
     .toLowerCase();
 }
 
-async function imageUrlToDataUrl(url: string): Promise<string | null> {
-  if (!url) return null;
-  if (url.startsWith("data:")) return url;
-
-  try {
-    const response = await fetch(url);
-    if (!response.ok) return null;
-    const blob = await response.blob();
-    return await new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onload = () =>
-        resolve(typeof reader.result === "string" ? reader.result : null);
-      reader.onerror = () => resolve(null);
-      reader.readAsDataURL(blob);
-    });
-  } catch {
-    return null;
-  }
+function sexeLabel(sexe: StudentReportSexe): string {
+  return sexe === "M" ? "Garçons" : "Filles";
 }
 
-function drawReportHeader(
-  doc: jsPDF,
-  context: StudentReportContext,
-  title: string,
-  studentCount: number,
-  logo: string | null,
-) {
-  const pageWidth = doc.internal.pageSize.getWidth();
+function statusLabel(status: StudentReportStatus): string {
+  return status === "active" ? "Actifs" : "Inactifs";
+}
 
-  if (logo) {
-    try {
-      doc.addImage(logo, 12, 8, 18, 18);
-    } catch {
-      // Un logo invalide ne doit pas empecher la production du rapport.
-    }
+/** Titre PDF aligné sur l'intention des filtres UI. */
+export function buildStudentsReportTitle(
+  options: StudentReportOptions = {},
+): string {
+  const selectedClass = options.selectedClass ?? null;
+  const sexe = options.sexe ?? null;
+  const status = options.status ?? null;
+
+  let title = "Liste des élèves";
+
+  if (selectedClass) {
+    title = `Liste des élèves de la classe ${selectedClass.name}`;
   }
 
-  doc.setTextColor(15, 23, 42);
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(13);
-  doc.text(context.organizationName || "Eteyelo", pageWidth / 2, 10, {
-    align: "center",
-  });
-  doc.setFontSize(11);
-  doc.text(context.branchName, pageWidth / 2, 16, { align: "center" });
+  if (sexe) {
+    title = `${title} — ${sexeLabel(sexe)}`;
+  }
 
-  doc.setTextColor(30, 64, 175);
-  doc.setFontSize(15);
-  doc.text(title, pageWidth / 2, 24, { align: "center" });
+  if (status) {
+    title = `${title} — ${statusLabel(status)}`;
+  }
 
-  doc.setFont("helvetica", "normal");
-  doc.setTextColor(71, 85, 105);
-  doc.setFontSize(8);
-  const details = [
-    context.schoolYearName ? `Annee scolaire : ${context.schoolYearName}` : "",
-    `${studentCount} eleve(s)`,
-    `Genere le ${new Date().toLocaleString("fr-FR")}`,
-  ]
-    .filter(Boolean)
-    .join("  |  ");
-  doc.text(details, pageWidth / 2, 30, { align: "center" });
-  doc.setDrawColor(191, 219, 254);
-  doc.line(10, 33, pageWidth - 10, 33);
+  return title;
+}
+
+/** Libellés des filtres actifs (pour sous-titre / métadonnées). */
+export function buildStudentsReportFilterLabels(
+  options: StudentReportOptions = {},
+): string[] {
+  const labels: string[] = [];
+  const selectedClass = options.selectedClass ?? null;
+  const sexe = options.sexe ?? null;
+  const status = options.status ?? null;
+
+  if (selectedClass) {
+    labels.push(`Classe : ${selectedClass.name}`);
+  }
+  if (sexe) {
+    labels.push(`Genre : ${sexeLabel(sexe)}`);
+  }
+  if (status) {
+    labels.push(`Statut : ${statusLabel(status)}`);
+  }
+
+  return labels;
+}
+
+function buildReportFileName(options: StudentReportOptions = {}): string {
+  const parts = ["liste-eleves"];
+  const selectedClass = options.selectedClass ?? null;
+  const sexe = options.sexe ?? null;
+  const status = options.status ?? null;
+
+  if (selectedClass) {
+    parts.push(safeFilePart(selectedClass.name));
+  }
+  if (sexe === "M") parts.push("garcons");
+  if (sexe === "F") parts.push("filles");
+  if (status === "active") parts.push("actifs");
+  if (status === "inactive") parts.push("inactifs");
+
+  return parts.join("-");
 }
 
 export async function buildStudentsReportPdf(
   students: IStudent[],
-  context: StudentReportContext,
+  context: SchoolReportContext,
   options: StudentReportOptions = {},
 ) {
   const selectedClass = options.selectedClass ?? null;
   const isClassReport = Boolean(selectedClass);
-  const title = isClassReport
-    ? `Liste des eleves de la classe ${selectedClass?.name}`
-    : "Liste globale de tous les eleves";
+  const title = buildStudentsReportTitle(options);
+  const filterLabels = buildStudentsReportFilterLabels(options);
   const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
   const logo = await imageUrlToDataUrl(context.logoUrl);
 
@@ -162,8 +175,13 @@ export async function buildStudentsReportPdf(
   ]);
 
   autoTable(doc, {
-    startY: 37,
-    margin: { top: 37, right: 10, bottom: 14, left: 10 },
+    startY: REPORT_HEADER_CONTENT_TOP_MM,
+    margin: {
+      top: REPORT_HEADER_CONTENT_TOP_MM,
+      right: 10,
+      bottom: 14,
+      left: 10,
+    },
     head: [isClassReport ? classHead : globalHead],
     body: isClassReport ? classBody : globalBody,
     theme: "grid",
@@ -204,40 +222,29 @@ export async function buildStudentsReportPdf(
           9: { cellWidth: 42 },
         },
     didDrawPage: () => {
-      drawReportHeader(doc, context, title, students.length, logo);
-      const pageHeight = doc.internal.pageSize.getHeight();
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(7.5);
-      doc.setTextColor(100);
-      doc.text(context.branchName, 10, pageHeight - 6);
+      drawReportHeader(doc, context, {
+        title,
+        subtitle: context.branchName,
+        details: [...filterLabels, `${students.length} élève(s)`],
+        logoDataUrl: logo,
+      });
     },
   });
 
-  const totalPages = doc.getNumberOfPages();
-  const pageWidth = doc.internal.pageSize.getWidth();
-  const pageHeight = doc.internal.pageSize.getHeight();
-  for (let page = 1; page <= totalPages; page += 1) {
-    doc.setPage(page);
-    doc.setFontSize(7.5);
-    doc.setTextColor(100);
-    doc.text(`Page ${page} / ${totalPages}`, pageWidth - 10, pageHeight - 6, {
-      align: "right",
-    });
-  }
+  drawReportFooterOnAllPages(doc, context, {
+    leftText: context.branchName || context.schoolName,
+  });
 
   return doc;
 }
 
 export async function exportStudentsReportPdf(
   students: IStudent[],
-  context: StudentReportContext,
+  context: SchoolReportContext,
   options: StudentReportOptions = {},
 ) {
   const date = new Date().toISOString().slice(0, 10);
-  const selectedClass = options.selectedClass ?? null;
-  const reportName = selectedClass
-    ? `liste-eleves-${safeFilePart(selectedClass.name)}`
-    : "liste-globale-eleves";
+  const reportName = buildReportFileName(options);
   const doc = await buildStudentsReportPdf(students, context, options);
   doc.save(`${reportName}-${date}.pdf`);
 }
