@@ -70,7 +70,7 @@ export default function CashierExpenseForm({
           <Input
             type="number"
             step="0.01"
-            placeholder="Montant de la dépense"
+            placeholder="Montant (devise de base de l'organisation)"
             {...register("amount", { valueAsNumber: true })}
           />
           <Input

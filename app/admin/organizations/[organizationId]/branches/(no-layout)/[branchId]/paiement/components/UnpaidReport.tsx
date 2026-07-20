@@ -35,11 +35,11 @@ type UnpaidReportProps = {
   refreshKey?: number;
 };
 
-const formatAmount = (value: number) =>
-  value.toLocaleString("fr-FR", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
+const formatAmount = (value: number, currency = "USD") =>
+  `${value.toLocaleString("fr-FR", {
+    minimumFractionDigits: currency === "USD" ? 2 : 0,
+    maximumFractionDigits: currency === "USD" ? 2 : 0,
+  })} ${currency}`;
 
 export default function UnpaidReport({ refreshKey = 0 }: UnpaidReportProps) {
   const pathname = usePathname();
@@ -70,6 +70,16 @@ export default function UnpaidReport({ refreshKey = 0 }: UnpaidReportProps) {
   const [exporting, setExporting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [filtersReady, setFiltersReady] = useState(false);
+  const [baseCurrency, setBaseCurrency] = useState<string>("USD");
+
+  useEffect(() => {
+    void (async () => {
+      const [context] = await getUnpaidReportContextAction();
+      if (context?.baseCurrency) {
+        setBaseCurrency(context.baseCurrency);
+      }
+    })();
+  }, []);
 
   useEffect(() => {
     if (!branchId) return;
@@ -177,6 +187,9 @@ export default function UnpaidReport({ refreshKey = 0 }: UnpaidReportProps) {
             ? "Aucun élève / aucun impayé pour ces filtres."
             : undefined,
       });
+      if (context.baseCurrency) {
+        setBaseCurrency(context.baseCurrency);
+      }
       toast.success("Rapport PDF généré avec succès.");
     } catch (e) {
       toast.error(
@@ -195,7 +208,8 @@ export default function UnpaidReport({ refreshKey = 0 }: UnpaidReportProps) {
         <div>
           <CardTitle>Situation financière / impayés</CardTitle>
           <p className="text-sm text-muted-foreground">
-            Élèves à jour, partiels ou en retard — montants dus et restes.
+            Élèves à jour, partiels ou en retard — montants dus et restes (
+            {baseCurrency}).
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -275,11 +289,11 @@ export default function UnpaidReport({ refreshKey = 0 }: UnpaidReportProps) {
                   Reste total
                 </div>
                 <div className="mt-2 text-2xl font-black text-primary">
-                  {formatAmount(totals.totalReste)}
+                  {formatAmount(totals.totalReste, baseCurrency)}
                 </div>
                 <div className="mt-1 text-xs text-muted-foreground">
-                  Dû {formatAmount(totals.totalDu)} · Payé{" "}
-                  {formatAmount(totals.totalPaye)}
+                  Dû {formatAmount(totals.totalDu, baseCurrency)} · Payé{" "}
+                  {formatAmount(totals.totalPaye, baseCurrency)}
                 </div>
               </div>
             </div>

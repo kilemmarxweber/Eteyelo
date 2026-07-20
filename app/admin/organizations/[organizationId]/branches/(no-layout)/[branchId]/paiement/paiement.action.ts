@@ -12,9 +12,51 @@ import {
   buildSchoolReportContext,
   schoolReportBranchSelect,
 } from "@/lib/reports/resolve-school-branding";
+import {
+  convertAmount,
+  getBaseCurrency,
+  getQuoteCurrency,
+  getRateUsed,
+  getSelectedRate,
+  roundCurrency,
+  type ExchangeRatePair,
+} from "@/lib/exchange-rate";
 import { DEFAULT_EXCHANGE_RATE_USD_CDF } from "@/lib/reports/types";
 import { getSchoolYearForBranch } from "@/lib/school-year";
-import { roundCurrency } from "@/lib/exchange-rate";
+
+async function loadOrgExchangeRates(organizationId: string): Promise<{
+  rates: ExchangeRatePair[];
+  baseCurrency: CurrencyCode;
+  quoteCurrency: CurrencyCode | null;
+  selectedRate: number | null;
+}> {
+  const rows = await prisma.exchangeRate.findMany({
+    where: { organizationId, isActive: true },
+    orderBy: [{ fromCurrency: "asc" }, { toCurrency: "asc" }],
+  });
+  const rates: ExchangeRatePair[] = rows.map((row) => ({
+    fromCurrency: row.fromCurrency,
+    toCurrency: row.toCurrency,
+    rate: row.rate,
+    isActive: row.isActive,
+    isSelected: row.isSelected,
+  }));
+  const selected = getSelectedRate(rates);
+  return {
+    rates,
+    baseCurrency: getBaseCurrency(rates),
+    quoteCurrency: getQuoteCurrency(rates),
+    selectedRate: selected?.rate ?? null,
+  };
+}
+
+function resolveUsdCdfRate(rates: ExchangeRatePair[]): number {
+  const direct = getRateUsed(CurrencyCode.USD, CurrencyCode.CDF, rates);
+  if (direct != null) return direct;
+  const inverse = getRateUsed(CurrencyCode.CDF, CurrencyCode.USD, rates);
+  if (inverse != null && inverse !== 0) return 1 / inverse;
+  return DEFAULT_EXCHANGE_RATE_USD_CDF;
+}
 
 const linkedUserInclude = {
   branchMember: {
@@ -94,7 +136,7 @@ type ReceiptPayload = {
   items: {
     description: string;
     price: number;
-    statut: string;
+    mode: string;
     montant: number;
     receivedAmount?: number;
   }[];
@@ -102,6 +144,9 @@ type ReceiptPayload = {
   exchangeRateUsdCdf: number;
   issuedPlace?: string;
   receivedCurrency?: "USD" | "CDF" | "AOA";
+  baseCurrency?: "USD" | "CDF" | "AOA";
+  quoteCurrency?: "USD" | "CDF" | "AOA" | null;
+  selectedRate?: number | null;
 };
 
 /* ======================================================
@@ -184,23 +229,50 @@ export const createPaiementAction = action
       throw new Error("❌ Montant invalide");
     }
 
+    const { branchId, organizationId } = await requireBranchContext();
+    const {
+      rates: exchangeRates,
+      baseCurrency,
+      quoteCurrency,
+      selectedRate,
+    } = await loadOrgExchangeRates(organizationId);
+    const usdCdfRate = resolveUsdCdfRate(exchangeRates);
+
     const receivedCurrency =
-      (rawReceivedCurrency as CurrencyCode | undefined) ?? CurrencyCode.USD;
-    const totalUsdTarget = Number(amount);
-    const totalReceivedTarget =
+      (rawReceivedCurrency as CurrencyCode | undefined) ?? baseCurrency;
+    const totalBaseTarget = Number(amount);
+
+    let totalReceivedTarget =
       rawReceivedAmount != null && Number.isFinite(Number(rawReceivedAmount))
         ? Number(rawReceivedAmount)
-        : receivedCurrency === CurrencyCode.USD
-          ? totalUsdTarget
-          : null;
-    const exchangeRateUsed =
+        : null;
+    let exchangeRateUsed =
       rawExchangeRateUsed != null && Number.isFinite(Number(rawExchangeRateUsed))
         ? Number(rawExchangeRateUsed)
-        : receivedCurrency === CurrencyCode.USD
-          ? 1
-          : null;
+        : null;
 
-    if (receivedCurrency !== CurrencyCode.USD) {
+    if (receivedCurrency === baseCurrency) {
+      totalReceivedTarget = totalBaseTarget;
+      exchangeRateUsed = 1;
+    } else {
+      try {
+        const serverReceived = convertAmount(
+          totalBaseTarget,
+          baseCurrency,
+          receivedCurrency,
+          exchangeRates,
+          baseCurrency,
+        );
+        totalReceivedTarget = serverReceived;
+        exchangeRateUsed =
+          getRateUsed(receivedCurrency, baseCurrency, exchangeRates) ??
+          (serverReceived !== 0 ? totalBaseTarget / serverReceived : null);
+      } catch {
+        // keep client values if conversion pair missing; validated below
+      }
+    }
+
+    if (receivedCurrency !== baseCurrency) {
       if (totalReceivedTarget == null || totalReceivedTarget <= 0) {
         throw new Error("❌ Montant perçu invalide pour la devise sélectionnée");
       }
@@ -212,19 +284,19 @@ export const createPaiementAction = action
     let allocatedReceived = 0;
 
     const buildCurrencyFields = (
-      usdLineAmount: number,
-      totalUsdPaid: number,
+      baseLineAmount: number,
+      totalBasePaid: number,
       totalReceivedPaid: number,
       isLastLine: boolean,
     ) => {
       if (
-        receivedCurrency === CurrencyCode.USD ||
+        receivedCurrency === baseCurrency ||
         totalReceivedPaid <= 0 ||
-        totalUsdPaid <= 0
+        totalBasePaid <= 0
       ) {
         return {
-          receivedCurrency: CurrencyCode.USD as CurrencyCode,
-          receivedAmount: usdLineAmount,
+          receivedCurrency: baseCurrency,
+          receivedAmount: baseLineAmount,
           exchangeRateUsed: exchangeRateUsed ?? 1,
         };
       }
@@ -237,7 +309,7 @@ export const createPaiementAction = action
         );
       } else {
         receivedLine = roundCurrency(
-          (usdLineAmount / totalUsdPaid) * totalReceivedPaid,
+          (baseLineAmount / totalBasePaid) * totalReceivedPaid,
           receivedCurrency,
         );
         allocatedReceived += receivedLine;
@@ -250,7 +322,6 @@ export const createPaiementAction = action
       };
     };
 
-    const { branchId, organizationId } = await requireBranchContext();
     const uniqueClassEnrollIds = Array.from(new Set(classEnrollIds));
     const uniqueFraisIds = Array.from(new Set(fraisIds));
 
@@ -480,16 +551,16 @@ export const createPaiementAction = action
         break;
       }
 
-      const totalUsdPaid = planned.reduce((sum, line) => sum + line.amount, 0);
+      const totalBasePaid = planned.reduce((sum, line) => sum + line.amount, 0);
       const totalReceivedPaid =
-        receivedCurrency === CurrencyCode.USD
-          ? totalUsdPaid
-          : totalReceivedTarget != null && totalUsdTarget > 0
+        receivedCurrency === baseCurrency
+          ? totalBasePaid
+          : totalReceivedTarget != null && totalBaseTarget > 0
             ? roundCurrency(
-                (totalUsdPaid / totalUsdTarget) * totalReceivedTarget,
+                (totalBasePaid / totalBaseTarget) * totalReceivedTarget,
                 receivedCurrency,
               )
-            : totalUsdPaid;
+            : totalBasePaid;
 
       const results: any[] = [];
       let paymentLineIndex = 0;
@@ -498,7 +569,7 @@ export const createPaiementAction = action
         const line = planned[i];
         const currencyFields = buildCurrencyFields(
           line.amount,
-          totalUsdPaid,
+          totalBasePaid,
           totalReceivedPaid,
           i === planned.length - 1,
         );
@@ -623,7 +694,9 @@ export const createPaiementAction = action
       }
 
       const branding = buildSchoolReportContext(branchRecord, {
-        exchangeRateUsdCdf: DEFAULT_EXCHANGE_RATE_USD_CDF,
+        exchangeRateUsdCdf: usdCdfRate,
+        baseCurrency,
+        quoteCurrency: quoteCurrency ?? undefined,
       });
 
       const receiptCurrency =
@@ -631,7 +704,7 @@ export const createPaiementAction = action
           | "USD"
           | "CDF"
           | "AOA"
-          | undefined) ?? "USD";
+          | undefined) ?? baseCurrency;
 
       const receipt: ReceiptPayload = {
         invoiceNumber: reference,
@@ -648,7 +721,7 @@ export const createPaiementAction = action
         items: receiptPayments.map((payment) => ({
           description: payment.frais?.nameFrais ?? "Frais scolaire",
           price: Number(payment.frais?.montantFrais ?? payment.amount),
-          statut: payment.status,
+          mode: payment.method ?? "ESPECES",
           montant: Number(payment.amount),
           receivedAmount:
             payment.receivedAmount != null
@@ -657,9 +730,12 @@ export const createPaiementAction = action
         })),
         logoUrl: branding.logoUrl,
         exchangeRateUsdCdf:
-          branding.exchangeRateUsdCdf ?? DEFAULT_EXCHANGE_RATE_USD_CDF,
+          branding.exchangeRateUsdCdf ?? usdCdfRate,
         issuedPlace: branding.city,
         receivedCurrency: receiptCurrency,
+        baseCurrency,
+        quoteCurrency,
+        selectedRate,
       };
 
       /* ======================================================
@@ -902,16 +978,27 @@ export const getCashierReportContextAction = action.handler(async () => {
     throw new Error("Action non autorisée");
   }
 
-  const branch = await prisma.branch.findFirst({
-    where: { id: branchId, organizationId },
-    select: schoolReportBranchSelect,
-  });
+  const [branch, { rates, baseCurrency, quoteCurrency, selectedRate }] =
+    await Promise.all([
+      prisma.branch.findFirst({
+        where: { id: branchId, organizationId },
+        select: schoolReportBranchSelect,
+      }),
+      loadOrgExchangeRates(organizationId),
+    ]);
 
   if (!branch) {
     throw new Error("Contexte introuvable.");
   }
 
-  return buildSchoolReportContext(branch);
+  return {
+    ...buildSchoolReportContext(branch, {
+      exchangeRateUsdCdf: resolveUsdCdfRate(rates),
+      baseCurrency,
+      quoteCurrency: quoteCurrency ?? undefined,
+    }),
+    selectedRate,
+  };
 });
 
 /** Branding reçu / aperçu HTML — même source que le PDF post-paiement. */
@@ -922,18 +1009,27 @@ export const getPaymentReportContextAction = action.handler(async () => {
     throw new Error("Action non autorisée");
   }
 
-  const branch = await prisma.branch.findFirst({
-    where: { id: branchId, organizationId },
-    select: schoolReportBranchSelect,
-  });
+  const [branch, { rates, baseCurrency, quoteCurrency, selectedRate }] =
+    await Promise.all([
+      prisma.branch.findFirst({
+        where: { id: branchId, organizationId },
+        select: schoolReportBranchSelect,
+      }),
+      loadOrgExchangeRates(organizationId),
+    ]);
 
   if (!branch) {
     throw new Error("Branche active introuvable");
   }
 
-  return buildSchoolReportContext(branch, {
-    exchangeRateUsdCdf: DEFAULT_EXCHANGE_RATE_USD_CDF,
-  });
+  return {
+    ...buildSchoolReportContext(branch, {
+      exchangeRateUsdCdf: resolveUsdCdfRate(rates),
+      baseCurrency,
+      quoteCurrency: quoteCurrency ?? undefined,
+    }),
+    selectedRate,
+  };
 });
 
 /* ======================================================
@@ -1506,17 +1602,22 @@ export const getUnpaidReportContextAction = action.handler(async () => {
     throw new Error("Action non autorisée");
   }
 
-  const branch = await prisma.branch.findFirst({
-    where: { id: branchId, organizationId },
-    select: schoolReportBranchSelect,
-  });
+  const [branch, { rates, baseCurrency, quoteCurrency }] = await Promise.all([
+    prisma.branch.findFirst({
+      where: { id: branchId, organizationId },
+      select: schoolReportBranchSelect,
+    }),
+    loadOrgExchangeRates(organizationId),
+  ]);
 
   if (!branch) {
     throw new Error("Contexte introuvable.");
   }
 
   return buildSchoolReportContext(branch, {
-    exchangeRateUsdCdf: DEFAULT_EXCHANGE_RATE_USD_CDF,
+    exchangeRateUsdCdf: resolveUsdCdfRate(rates),
+    baseCurrency,
+    quoteCurrency: quoteCurrency ?? undefined,
   });
 });
 

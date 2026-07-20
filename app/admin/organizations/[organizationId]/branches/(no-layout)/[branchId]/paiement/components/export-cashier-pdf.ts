@@ -39,11 +39,11 @@ export type ReportData = {
   }>;
 };
 
-const formatAmount = (value: number) =>
-  value.toLocaleString("fr-FR", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
+const formatAmount = (value: number, currency = "USD") =>
+  `${value.toLocaleString("fr-FR", {
+    minimumFractionDigits: currency === "USD" ? 2 : 0,
+    maximumFractionDigits: currency === "USD" ? 2 : 0,
+  })} ${currency}`;
 
 function safeFilePart(value: string) {
   return value
@@ -75,6 +75,8 @@ export async function buildCashierReportPdf(
   const title = "Rapport de Caisse";
   const periodDetail = buildPeriodDetail(options.dateStart, options.dateEnd);
   const branchLabel = context.branchName || context.schoolName;
+  const currency = context.baseCurrency ?? "USD";
+  const money = (value: number) => formatAmount(value, currency);
 
   const drawHeader = () => {
     drawReportHeader(doc, context, {
@@ -86,7 +88,14 @@ export async function buildCashierReportPdf(
   };
 
   // 1. Table des encaissements
-  const incomeHead = ["Heure", "Référence", "Élève", "Motif", "Mode", "Montant"];
+  const incomeHead = [
+    "Heure",
+    "Référence",
+    "Élève",
+    "Motif",
+    "Mode",
+    `Montant (${currency})`,
+  ];
   const incomeBody = data.payments.map((p) => [
     new Date(p.createdAt).toLocaleTimeString("fr-FR", {
       hour: "2-digit",
@@ -96,7 +105,7 @@ export async function buildCashierReportPdf(
     p.studentName || "-",
     p.frais?.nameFrais || "-",
     p.method || "-",
-    formatAmount(p.amount),
+    money(p.amount),
   ]);
 
   const incomeFirstPageTop = REPORT_HEADER_CONTENT_TOP_MM + 5;
@@ -147,7 +156,7 @@ export async function buildCashierReportPdf(
       "Référence",
       "Catégorie",
       "Description",
-      "Montant",
+      `Montant (${currency})`,
     ];
     const expenseBody = data.expenses.map((e) => [
       new Date(e.createdAt).toLocaleTimeString("fr-FR", {
@@ -157,7 +166,7 @@ export async function buildCashierReportPdf(
       e.transactionRef || "-",
       e.category || "-",
       e.description || "-",
-      formatAmount(e.amount),
+      money(e.amount),
     ]);
 
     doc.setFontSize(10);
@@ -214,18 +223,18 @@ export async function buildCashierReportPdf(
   const opening = data.openingBalance ?? 0;
 
   doc.text("Solde d'ouverture (veille) :", 14, finalY + 14);
-  doc.text(formatAmount(opening), 95, finalY + 14, { align: "right" });
+  doc.text(money(opening), 95, finalY + 14, { align: "right" });
 
   doc.text("Total Encaissements :", 14, finalY + 20);
   doc.setTextColor(16, 185, 129);
-  doc.text(formatAmount(data.incomeTotal), 95, finalY + 20, {
+  doc.text(money(data.incomeTotal), 95, finalY + 20, {
     align: "right",
   });
 
   doc.setTextColor(15, 23, 42);
   doc.text("Total Dépenses :", 14, finalY + 26);
   doc.setTextColor(225, 29, 72);
-  doc.text(formatAmount(data.outflowTotal), 95, finalY + 26, {
+  doc.text(money(data.outflowTotal), 95, finalY + 26, {
     align: "right",
   });
 
@@ -235,7 +244,7 @@ export async function buildCashierReportPdf(
   doc.setTextColor(15, 23, 42);
   doc.setFont("helvetica", "bold");
   doc.text("Solde Net :", 14, finalY + 36);
-  doc.text(formatAmount(data.balance), 95, finalY + 36, { align: "right" });
+  doc.text(money(data.balance), 95, finalY + 36, { align: "right" });
 
   drawReportFooterOnAllPages(doc, context, {
     leftText: branchLabel,

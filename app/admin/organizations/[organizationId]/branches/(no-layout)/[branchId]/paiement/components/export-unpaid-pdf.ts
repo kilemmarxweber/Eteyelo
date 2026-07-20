@@ -24,11 +24,12 @@ function safeFilePart(value: string) {
     .toLowerCase();
 }
 
-function formatUsd(value: number): string {
-  return value.toLocaleString("en-US", {
-    style: "currency",
-    currency: "USD",
-  });
+function formatMoney(value: number, currency = "USD"): string {
+  const isUsd = currency === "USD";
+  return `${value.toLocaleString("fr-FR", {
+    minimumFractionDigits: isUsd ? 2 : 0,
+    maximumFractionDigits: isUsd ? 2 : 0,
+  })} ${currency}`;
 }
 
 export function unpaidStatusLabel(status: UnpaidFinancialStatus): string {
@@ -103,15 +104,23 @@ export async function buildUnpaidReportPdf(
   const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
   const logo = await imageUrlToDataUrl(context.logoUrl);
 
-  const head = ["Élève", "Classe", "Dû", "Payé", "Reste", "Statut"];
+  const currency = context.baseCurrency ?? "USD";
+  const head = [
+    "Élève",
+    "Classe",
+    `Dû (${currency})`,
+    `Payé (${currency})`,
+    `Reste (${currency})`,
+    "Statut",
+  ];
   const body =
     rows.length > 0
       ? rows.map((row) => [
           row.studentName,
           row.classeName,
-          formatUsd(row.montantDu),
-          formatUsd(row.montantPaye),
-          formatUsd(row.reste),
+          formatMoney(row.montantDu, currency),
+          formatMoney(row.montantPaye, currency),
+          formatMoney(row.reste, currency),
           unpaidStatusLabel(row.status),
         ])
       : [[emptyMessage, "", "", "", "", ""]];
@@ -174,9 +183,9 @@ export async function buildUnpaidReportPdf(
             : emptyMessage,
           ...(rows.length > 0
             ? [
-                `Total dû : ${formatUsd(totalDu)}`,
-                `Total payé : ${formatUsd(totalPaye)}`,
-                `Total reste : ${formatUsd(totalReste)}`,
+                `Total dû : ${formatMoney(totalDu, currency)}`,
+                `Total payé : ${formatMoney(totalPaye, currency)}`,
+                `Total reste : ${formatMoney(totalReste, currency)}`,
               ]
             : []),
         ],

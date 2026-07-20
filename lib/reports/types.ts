@@ -15,4 +15,10 @@ export type SchoolReportContext = {
   academicYearLabel?: string;
   generatedAt: string;
   exchangeRateUsdCdf?: number;
+  /** Devise de base org (fromCurrency du taux sélectionné). */
+  baseCurrency?: "USD" | "CDF" | "AOA";
+  /** Devise cible du taux sélectionné (ex. USD si AOA→USD). */
+  quoteCurrency?: "USD" | "CDF" | "AOA";
+  /** Taux sélectionné : 1 base = selectedRate quote. */
+  selectedRate?: number | null;
 };

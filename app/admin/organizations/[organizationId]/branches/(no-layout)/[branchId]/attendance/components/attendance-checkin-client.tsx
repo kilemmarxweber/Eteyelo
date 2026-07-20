@@ -45,6 +45,20 @@ export function AttendanceCheckInClient() {
   const lastScanRef = useRef<string>("");
   const lastScanAtRef = useRef(0);
 
+  const fetchResults = useCallback(
+    async (query: string) => {
+      const trimmed = query.trim();
+      if (trimmed.length < 2) {
+        setResults([]);
+        return;
+      }
+
+      const items = await searchPeopleForCheckInAction(trimmed);
+      setResults(items);
+    },
+    [],
+  );
+
   useEffect(() => {
     if (searchQuery.trim().length < 2) {
       setResults([]);
@@ -54,8 +68,7 @@ export function AttendanceCheckInClient() {
     const timeout = window.setTimeout(() => {
       startTransition(async () => {
         try {
-          const items = await searchPeopleForCheckInAction(searchQuery);
-          setResults(items);
+          await fetchResults(searchQuery);
         } catch (error) {
           toast.error(
             error instanceof Error ? error.message : "Recherche impossible.",
@@ -65,7 +78,38 @@ export function AttendanceCheckInClient() {
     }, 300);
 
     return () => window.clearTimeout(timeout);
-  }, [searchQuery]);
+  }, [fetchResults, searchQuery]);
+
+  useEffect(() => {
+    if (searchQuery.trim().length < 2) {
+      return;
+    }
+
+    const interval = window.setInterval(() => {
+      startTransition(async () => {
+        try {
+          await fetchResults(searchQuery);
+        } catch {
+          // Ignore background refresh errors.
+        }
+      });
+    }, 60_000);
+
+    return () => window.clearInterval(interval);
+  }, [fetchResults, searchQuery]);
+
+  useEffect(() => {
+    if (!selected) return;
+
+    const updated = results.find(
+      (person) =>
+        person.id === selected.id && person.personType === selected.personType,
+    );
+
+    if (updated) {
+      setSelected(updated);
+    }
+  }, [results, selected]);
 
   const pushRecent = useCallback((result: AttendanceCheckInResult) => {
     setRecent((items) => [
@@ -234,6 +278,11 @@ export function AttendanceCheckInClient() {
                     <p className="text-xs text-muted-foreground">
                       {person.matricule} • {person.roleLabel}
                     </p>
+                    {person.expectedSessionLabel ? (
+                      <p className="text-xs text-primary">
+                        Cours prevu: {person.expectedSessionLabel}
+                      </p>
+                    ) : null}
                   </div>
                   <div className="flex items-center gap-2">
                     <Badge variant="outline">
@@ -273,6 +322,9 @@ export function AttendanceCheckInClient() {
                 <span className="font-medium">
                   {item.person?.name ?? "Personne"}
                 </span>
+                {item.sessionLabel ? (
+                  <span className="text-primary">{item.sessionLabel}</span>
+                ) : null}
                 <span className="text-muted-foreground">
                   {item.person?.matricule}
                 </span>

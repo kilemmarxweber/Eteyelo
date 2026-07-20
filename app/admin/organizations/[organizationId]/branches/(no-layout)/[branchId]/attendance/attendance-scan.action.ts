@@ -2,13 +2,20 @@
 
 import { prisma } from "@/lib/prisma";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
-import { findTeacherCheckInSession } from "@/lib/attendance-teacher-session";
+import { formatExpectedSessionLabel } from "@/lib/attendance-schedule-label";
+import {
+  findStudentCheckInSession,
+  getExpectedStudentSessionLabel,
+} from "@/lib/attendance-student-session";
+import {
+  findTeacherCheckInSession,
+  getExpectedTeacherSessionLabel,
+} from "@/lib/attendance-teacher-session";
 import { orgRoleLabel } from "@/lib/org-role-labels";
-import type { AttendanceStatus } from "@/prisma/generated/prisma/client";
+import type { AttendanceStatus, Prisma } from "@/prisma/generated/prisma/client";
 import {
   nowLocal,
   scheduleHourToMinutes,
-  startOfTodayParis,
   toMinutes,
 } from "@/lib/timezone";
 import { z } from "zod";
@@ -406,63 +413,40 @@ function sessionInclude() {
   };
 }
 
-async function findSessionForStudent(studentId: string, branchId: string) {
-  const now = nowLocal();
-  const today = startOfTodayParis(now);
-  const tomorrow = new Date(today);
-  tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
+type AttendanceSessionWithTeaching = Prisma.AttendanceSessionGetPayload<{
+  include: ReturnType<typeof sessionInclude>;
+}>;
 
-  const enrollment = await prisma.classEnrollment.findFirst({
-    where: {
-      studentId,
-      branchId,
-      OR: [{ statusEnrollment: true }, { statusEnrollment: null }],
-    },
-    orderBy: { createdAt: "desc" },
-    select: { classeId: true },
-  });
-
-  if (!enrollment) return null;
-
-  const teachings = await prisma.teaching.findMany({
-    where: {
-      classeId: enrollment.classeId,
-      OR: [{ branchId }, { branchId: null, classe: { branchId } }],
-    },
-    select: { id: true },
-  });
-
-  const teachingIds = teachings.map((item) => item.id);
-  if (!teachingIds.length) return null;
-
-  const active = await prisma.attendanceSession.findFirst({
-    where: {
-      branchId,
-      teachingId: { in: teachingIds },
-      isClosed: false,
-      date: { gte: today, lt: tomorrow },
-      startTime: { lte: now },
-      endTime: { gte: now },
-    },
-    orderBy: { startTime: "asc" },
-    include: sessionInclude(),
-  });
-
-  if (active) return active;
-
-  return prisma.attendanceSession.findFirst({
-    where: {
-      branchId,
-      teachingId: { in: teachingIds },
-      date: { gte: today, lt: tomorrow },
-    },
-    orderBy: { startTime: "asc" },
-    include: sessionInclude(),
-  });
+function formatSessionLabel(session: {
+  startTime: Date;
+  teaching?: {
+    cours?: { nameCours: string | null } | null;
+    classe?: { codeClasse: string | null; nameClasse: string | null } | null;
+  } | null;
+}) {
+  return formatExpectedSessionLabel(session.startTime, session.teaching);
 }
 
-async function findSessionForTeacher(teacherId: string, branchId: string) {
-  return findTeacherCheckInSession(teacherId, branchId, sessionInclude());
+async function findSessionForStudent(
+  studentId: string,
+  branchId: string,
+): Promise<AttendanceSessionWithTeaching | null> {
+  return findStudentCheckInSession(
+    studentId,
+    branchId,
+    sessionInclude(),
+  ) as Promise<AttendanceSessionWithTeaching | null>;
+}
+
+async function findSessionForTeacher(
+  teacherId: string,
+  branchId: string,
+): Promise<AttendanceSessionWithTeaching | null> {
+  return findTeacherCheckInSession(
+    teacherId,
+    branchId,
+    sessionInclude(),
+  ) as Promise<AttendanceSessionWithTeaching | null>;
 }
 
 function buildAlreadyCheckedInResult(
@@ -523,12 +507,7 @@ async function performStudentCheckIn(
 
   const status = resolveStatusFromTime(session.startTime);
   const now = nowLocal();
-  const cours = session.teaching?.cours?.nameCours ?? "Cours";
-  const classe =
-    session.teaching?.classe?.codeClasse ??
-    session.teaching?.classe?.nameClasse ??
-    lookup.roleLabel;
-  const sessionLabel = `${classe} • ${cours}`;
+  const sessionLabel = formatSessionLabel(session);
 
   const existingAttendance = await prisma.studentAttendance.findUnique({
     where: {
@@ -606,12 +585,7 @@ async function performTeacherCheckIn(
 
   const status = resolveStatusFromTime(hydratedSession.startTime);
   const now = nowLocal();
-  const cours = hydratedSession.teaching?.cours?.nameCours ?? "Cours";
-  const classe =
-    hydratedSession.teaching?.classe?.codeClasse ??
-    hydratedSession.teaching?.classe?.nameClasse ??
-    "Classe";
-  const sessionLabel = `${classe} • ${cours}`;
+  const sessionLabel = formatSessionLabel(hydratedSession);
 
   const existingAttendance = await prisma.teacherAttendance.findUnique({
     where: {
@@ -751,9 +725,29 @@ export async function searchPeopleForCheckInAction(
     }),
   ]);
 
+  const studentLookups = await Promise.all(
+    students.map(async (student) => ({
+      ...mapStudentLookup(student),
+      expectedSessionLabel: await getExpectedStudentSessionLabel(
+        student.id,
+        branchId,
+      ),
+    })),
+  );
+
+  const teacherLookups = await Promise.all(
+    teachers.map(async (teacher) => ({
+      ...mapTeacherLookup(teacher),
+      expectedSessionLabel: await getExpectedTeacherSessionLabel(
+        teacher.id,
+        branchId,
+      ),
+    })),
+  );
+
   return [
-    ...students.map(mapStudentLookup),
-    ...teachers.map(mapTeacherLookup),
+    ...studentLookups,
+    ...teacherLookups,
     ...personnels.map(mapPersonnelLookup),
   ].slice(0, 8);
 }

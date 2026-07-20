@@ -2,11 +2,13 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { DEFAULT_EXCHANGE_RATE_USD_CDF } from "@/lib/reports/types";
 import {
-  formatReceiptLocal,
-  resolveItemLocalAmount,
-  resolveReceiptLocalCurrency,
-  sumReceiptLocal,
-  sumReceiptUsd,
+  formatReceiptCurrency,
+  formatModePaiementLabel,
+  resolveItemSecondaryAmount,
+  resolveReceiptSecondaryCurrency,
+  sumReceiptBase,
+  sumReceiptSecondary,
+  type ReceiptCurrency,
 } from "@/components/reports/receipt-format";
 
 export type FacturePaymentStudentData = {
@@ -16,10 +18,13 @@ export type FacturePaymentStudentData = {
   items: {
     description: string;
     price: number;
-    statut: string;
-    /** Montant USD de reference. */
+    /** Mode de paiement (ESPECES, MPESA, …). */
+    mode: string;
+    /** @deprecated Prefer `mode` — conservé pour anciens payloads. */
+    statut?: string;
+    /** Montant en devise de base org. */
     montant: number;
-    /** Montant reellement percu (CDF / AOA / USD). */
+    /** Montant réellement perçu (devise reçue). */
     receivedAmount?: number;
   }[];
   /** Data URL (ou URL déjà convertie côté client) pour jsPDF. */
@@ -27,9 +32,25 @@ export type FacturePaymentStudentData = {
   exchangeRateUsdCdf?: number;
   /** Ville d'émission du reçu (branche) — pas de hardcode. */
   issuedPlace?: string;
-  /** Devise reelle percue a la caisse. */
-  receivedCurrency?: "USD" | "CDF" | "AOA";
+  /** Devise réellement perçue à la caisse. */
+  receivedCurrency?: ReceiptCurrency;
+  /** Devise de base (fromCurrency du taux sélectionné). */
+  baseCurrency?: ReceiptCurrency;
+  /** Devise cible du taux sélectionné. */
+  quoteCurrency?: ReceiptCurrency | null;
+  /** Taux sélectionné : 1 base = selectedRate quote. */
+  selectedRate?: number | null;
 };
+
+function formatBaseCell(amount: number, currency: ReceiptCurrency): string {
+  if (currency === "USD") {
+    return Number(amount).toFixed(2);
+  }
+  return Number(amount).toLocaleString("fr-FR", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  });
+}
 
 export function generateFacturePaymentStudentPDF({
   invoiceNumber,
@@ -40,6 +61,9 @@ export function generateFacturePaymentStudentPDF({
   exchangeRateUsdCdf = DEFAULT_EXCHANGE_RATE_USD_CDF,
   issuedPlace,
   receivedCurrency = "USD",
+  baseCurrency = "USD",
+  quoteCurrency,
+  selectedRate,
 }: FacturePaymentStudentData) {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
@@ -47,11 +71,20 @@ export function generateFacturePaymentStudentPDF({
   const exchangeRate = exchangeRateUsdCdf;
   const schoolName = sender.name || "Établissement";
   const placeLabel = issuedPlace?.trim() || undefined;
-  const localCurrency = resolveReceiptLocalCurrency(receivedCurrency);
-  const showLocalColumn =
-    receivedCurrency === "CDF" ||
-    receivedCurrency === "AOA" ||
-    receivedCurrency === "USD";
+  const base = baseCurrency;
+  const secondary = resolveReceiptSecondaryCurrency(
+    receivedCurrency,
+    base,
+    quoteCurrency,
+  );
+  const showSecondaryColumn = secondary != null && secondary !== base;
+
+  const secondaryOpts = {
+    exchangeRateUsdCdf: exchangeRate,
+    receivedCurrency,
+    baseCurrency: base,
+    selectedRate,
+  };
 
   // --- LOGO EN HAUT À DROITE ---
   if (logoUrl) {
@@ -88,9 +121,24 @@ export function generateFacturePaymentStudentPDF({
 
   // --- TABLEAU DES ARTICLES ---
   const startY = 60;
-  const head = showLocalColumn
-    ? [["Description", "Statut", "Prix USD", "Mnt USD", `Mnt ${localCurrency}`]]
-    : [["Description", "Statut", "Prix USD", "Mnt USD"]];
+  const head = showSecondaryColumn
+    ? [
+        [
+          "Description",
+          "Mode",
+          `Mnt a payer ${base}`,
+          `Mnt payer ${base}`,
+          `Mnt ${secondary}`,
+        ],
+      ]
+    : [
+        [
+          "Description",
+          "Mode",
+          `Mnt a payer ${base}`,
+          `Mnt payer ${base}`,
+        ],
+      ];
 
   autoTable(doc, {
     startY,
@@ -102,7 +150,7 @@ export function generateFacturePaymentStudentPDF({
       textColor: [255, 255, 255],
       fontStyle: "bold",
     },
-    columnStyles: showLocalColumn
+    columnStyles: showSecondaryColumn
       ? {
           0: { cellWidth: 70 },
           1: { halign: "right", cellWidth: 25 },
@@ -118,21 +166,19 @@ export function generateFacturePaymentStudentPDF({
         },
     head,
     body: items.map((item) => {
-      const montantUSD = item.montant;
       const row = [
         item.description,
-        item.statut,
-        item.price.toFixed(2),
-        montantUSD.toFixed(2),
+        formatModePaiementLabel(item.mode ?? item.statut),
+        formatBaseCell(item.price, base),
+        formatBaseCell(item.montant, base),
       ];
-      if (showLocalColumn) {
-        const localAmount = resolveItemLocalAmount(
+      if (showSecondaryColumn && secondary) {
+        const secondaryAmount = resolveItemSecondaryAmount(
           item,
-          localCurrency,
-          exchangeRate,
-          receivedCurrency,
+          secondary,
+          secondaryOpts,
         );
-        row.push(formatReceiptLocal(localAmount, localCurrency));
+        row.push(formatReceiptCurrency(secondaryAmount, secondary));
       }
       return row;
     }),
@@ -153,30 +199,31 @@ export function generateFacturePaymentStudentPDF({
   const yAfterTable = (doc as any).lastAutoTable.finalY + 5;
 
   // --- TOTALS ---
-  const totalUSD = sumReceiptUsd(items);
-  const totalLocal = sumReceiptLocal(
-    items,
-    localCurrency,
-    exchangeRate,
-    receivedCurrency,
-  );
-  const tableRightX = showLocalColumn
+  const totalBase = sumReceiptBase(items);
+  const totalSecondary =
+    showSecondaryColumn && secondary
+      ? sumReceiptSecondary(items, secondary, secondaryOpts)
+      : 0;
+  const tableRightX = showSecondaryColumn
     ? 14 + 70 + 25 + 25 + 25 + 30
     : 14 + 85 + 30 + 30 + 30;
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(9);
-  doc.text("Total USD :", tableRightX - 45, yAfterTable);
-  doc.text(`$${totalUSD.toFixed(2)}`, tableRightX, yAfterTable, {
+  doc.text(`Total ${base} :`, tableRightX - 45, yAfterTable);
+  doc.text(formatReceiptCurrency(totalBase, base), tableRightX, yAfterTable, {
     align: "right",
   });
 
   let nextY = yAfterTable + 6;
-  if (showLocalColumn) {
-    doc.text(`Total ${localCurrency} :`, tableRightX - 45, nextY);
-    doc.text(formatReceiptLocal(totalLocal, localCurrency), tableRightX, nextY, {
-      align: "right",
-    });
+  if (showSecondaryColumn && secondary) {
+    doc.text(`Total ${secondary} :`, tableRightX - 45, nextY);
+    doc.text(
+      formatReceiptCurrency(totalSecondary, secondary),
+      tableRightX,
+      nextY,
+      { align: "right" },
+    );
     nextY += 6;
   }
 

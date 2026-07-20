@@ -2160,7 +2160,7 @@ export type $FamilyPaymentPayload<ExtArgs extends runtime.Types.Extensions.Inter
     parentId: string
     batchId: number | null
     /**
-     * Montant de reference metier (USD)
+     * Montant de reference metier (devise de base de l'organisation)
      */
     amount: number
     /**

@@ -5402,6 +5402,7 @@ export const ExchangeRateScalarFieldEnum = {
   toCurrency: 'toCurrency',
   rate: 'rate',
   isActive: 'isActive',
+  isSelected: 'isSelected',
   organizationId: 'organizationId',
   createdBy: 'createdBy',
   createdAt: 'createdAt',

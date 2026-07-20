@@ -106,7 +106,9 @@ function mapGroupedToReceipt(
   );
 
   const receivedCurrency =
-    g.items.find((i) => i.receivedCurrency)?.receivedCurrency ?? "USD";
+    g.items.find((i) => i.receivedCurrency)?.receivedCurrency ??
+    branding.baseCurrency ??
+    "USD";
 
   return {
     invoiceNumber: g.reference,
@@ -122,7 +124,7 @@ function mapGroupedToReceipt(
     items: g.items.map((i) => ({
       description: i.frais?.nameFrais || "Frais scolaire",
       price: Number(i.frais?.montantFrais ?? i.montantPaye),
-      statut: i.status,
+      mode: String(i.modePaiement || ModePaiement.ESPECES),
       montant: Number(i.montantPaye),
       receivedAmount:
         i.receivedAmount != null
@@ -134,6 +136,9 @@ function mapGroupedToReceipt(
       branding.exchangeRateUsdCdf ?? DEFAULT_EXCHANGE_RATE_USD_CDF,
     issuedPlace: branding.city,
     receivedCurrency,
+    baseCurrency: branding.baseCurrency ?? "USD",
+    quoteCurrency: branding.quoteCurrency,
+    selectedRate: branding.selectedRate,
   };
 }
 
@@ -396,6 +401,10 @@ const PaiementsTable = ({ refreshKey }: { refreshKey?: string }) => {
 
   const exchangeRate =
     branding?.exchangeRateUsdCdf ?? DEFAULT_EXCHANGE_RATE_USD_CDF;
+  const baseCurrency = branding?.baseCurrency ?? "USD";
+  const quoteCurrency =
+    branding?.quoteCurrency ??
+    (baseCurrency === "AOA" || baseCurrency === "CDF" ? "USD" : "CDF");
 
   const columns = [
     {
@@ -414,22 +423,49 @@ const PaiementsTable = ({ refreshKey }: { refreshKey?: string }) => {
       cell: (g: GroupedPaiement) => formatStudents(g.students),
     },
     {
-      key: "usd",
-      header: "USD",
+      key: "base",
+      header: baseCurrency,
       cell: (g: GroupedPaiement) =>
-        g.total.toLocaleString("en-US", {
-          style: "currency",
-          currency: "USD",
-        }),
+        `${g.total.toLocaleString("fr-FR", {
+          minimumFractionDigits: baseCurrency === "USD" ? 2 : 0,
+          maximumFractionDigits: baseCurrency === "USD" ? 2 : 0,
+        })} ${baseCurrency}`,
     },
     {
       key: "total",
-      header: "Total (CDF)",
-      cell: (g: GroupedPaiement) =>
-        (g.total * exchangeRate).toLocaleString("fr-FR", {
-          style: "currency",
-          currency: "CDF",
-        }),
+      header: `Total (${quoteCurrency})`,
+      cell: (g: GroupedPaiement) => {
+        if (baseCurrency === "USD" && quoteCurrency === "CDF") {
+          return (g.total * exchangeRate).toLocaleString("fr-FR", {
+            style: "currency",
+            currency: "CDF",
+          });
+        }
+        if (baseCurrency !== "USD" && quoteCurrency === "USD") {
+          const usd =
+            exchangeRate > 0 && baseCurrency === "CDF"
+              ? g.total / exchangeRate
+              : g.total;
+          // AOA→USD uses stored received amounts when available; fallback display
+          const first = g.items[0];
+          if (
+            first?.receivedCurrency === "USD" &&
+            first.receivedAmount != null &&
+            g.total > 0
+          ) {
+            const ratio = Number(first.receivedAmount) / Number(first.montantPaye || g.total);
+            return (g.total * ratio).toLocaleString("en-US", {
+              style: "currency",
+              currency: "USD",
+            });
+          }
+          return usd.toLocaleString("en-US", {
+            style: "currency",
+            currency: "USD",
+          });
+        }
+        return `${g.total.toLocaleString("fr-FR")} ${quoteCurrency}`;
+      },
     },
     {
       key: "mode",

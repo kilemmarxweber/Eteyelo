@@ -729,7 +729,7 @@ model FamilyPayment {
   id                String                  @id @default(cuid())
   parentId          String
   batchId           Int?
-  /// Montant de reference metier (USD)
+  /// Montant de reference metier (devise de base de l'organisation)
   amount            Float
   /// Devise reellement percue a la caisse
   receivedCurrency  CurrencyCode            @default(USD)
@@ -803,6 +803,8 @@ model ExchangeRate {
   /// 1 unite fromCurrency = rate unites toCurrency
   rate           Float
   isActive       Boolean      @default(true)
+  /// Un seul taux selectionne par organisation : fromCurrency = devise de base
+  isSelected     Boolean      @default(false)
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   createdBy      String?
@@ -811,6 +813,7 @@ model ExchangeRate {
 
   @@unique([organizationId, fromCurrency, toCurrency])
   @@index([organizationId, isActive])
+  @@index([organizationId, isSelected])
 }
 
 model PaymentAllocation {

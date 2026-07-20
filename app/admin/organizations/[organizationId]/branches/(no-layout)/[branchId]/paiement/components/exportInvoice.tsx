@@ -13,7 +13,7 @@ function isReceiptPayload(
 }
 
 /**
- * PDF reçu aligné sur `FacturePaymentStudent` (USD / CDF).
+ * PDF reçu aligné sur `FacturePaymentStudent` (devise de base / devises).
  * Accepte l’ancien `InvoiceProps` ou le payload unifié.
  */
 export async function generateInvoicePDF(

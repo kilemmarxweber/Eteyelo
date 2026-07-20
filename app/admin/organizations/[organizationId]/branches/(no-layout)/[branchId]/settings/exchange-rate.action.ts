@@ -9,6 +9,7 @@ import { canAccessBranchOrgSettings } from "@/lib/auth/session-roles";
 import { action } from "@/lib/zsa";
 import {
   DEFAULT_EXCHANGE_PAIRS,
+  getBaseCurrency,
   type ExchangeRatePair,
 } from "@/lib/exchange-rate";
 
@@ -26,12 +27,44 @@ const upsertSchema = z
     path: ["toCurrency"],
   });
 
+const selectSchema = z.object({
+  id: z.string().min(1),
+});
+
 function assertCanManage(
   session: Awaited<ReturnType<typeof requireBranchContext>>["session"],
 ) {
   if (!canAccessBranchOrgSettings(session)) {
     throw new Error("Action non autorisée.");
   }
+}
+
+function revalidateRatePaths(organizationId: string, branchId: string) {
+  revalidatePath(
+    `/admin/organizations/${organizationId}/branches/${branchId}/settings/exchange-rates`,
+  );
+  revalidatePath(
+    `/admin/organizations/${organizationId}/branches/${branchId}/paiement`,
+  );
+}
+
+async function ensureSelectedRate(organizationId: string) {
+  const selected = await prisma.exchangeRate.findFirst({
+    where: { organizationId, isSelected: true },
+    select: { id: true },
+  });
+  if (selected) return;
+
+  const preferred = await prisma.exchangeRate.findFirst({
+    where: { organizationId, isActive: true },
+    orderBy: [{ fromCurrency: "asc" }, { toCurrency: "asc" }],
+  });
+  if (!preferred) return;
+
+  await prisma.exchangeRate.update({
+    where: { id: preferred.id },
+    data: { isSelected: true },
+  });
 }
 
 async function seedDefaultRatesIfEmpty(
@@ -41,7 +74,10 @@ async function seedDefaultRatesIfEmpty(
   const existing = await prisma.exchangeRate.count({
     where: { organizationId },
   });
-  if (existing > 0) return;
+  if (existing > 0) {
+    await ensureSelectedRate(organizationId);
+    return;
+  }
 
   await prisma.exchangeRate.createMany({
     data: DEFAULT_EXCHANGE_PAIRS.map((pair) => ({
@@ -50,10 +86,13 @@ async function seedDefaultRatesIfEmpty(
       toCurrency: pair.toCurrency,
       rate: pair.rate,
       isActive: true,
+      isSelected: pair.isSelected === true,
       createdBy: createdBy ?? null,
     })),
     skipDuplicates: true,
   });
+
+  await ensureSelectedRate(organizationId);
 }
 
 function mapRate(row: {
@@ -61,6 +100,7 @@ function mapRate(row: {
   toCurrency: CurrencyCode;
   rate: number;
   isActive: boolean;
+  isSelected: boolean;
   id: string;
   updatedAt: Date;
 }): ExchangeRatePair & { id: string; updatedAt: Date } {
@@ -70,6 +110,7 @@ function mapRate(row: {
     toCurrency: row.toCurrency,
     rate: row.rate,
     isActive: row.isActive,
+    isSelected: row.isSelected,
     updatedAt: row.updatedAt,
   };
 }
@@ -85,6 +126,21 @@ export const getActiveExchangeRatesAction = action.handler(async () => {
   });
 
   return rows.map(mapRate);
+});
+
+/** Contexte monétaire (taux + devise de base) pour paiement / reçus. */
+export const getPaymentCurrencyContextAction = action.handler(async () => {
+  const { organizationId, userId } = await requireBranchContext();
+  await seedDefaultRatesIfEmpty(organizationId, userId);
+
+  const rows = await prisma.exchangeRate.findMany({
+    where: { organizationId, isActive: true },
+    orderBy: [{ fromCurrency: "asc" }, { toCurrency: "asc" }],
+  });
+  const rates = rows.map(mapRate);
+  const baseCurrency = getBaseCurrency(rates);
+
+  return { rates, baseCurrency };
 });
 
 /** Toutes les paires org (écran settings). */
@@ -132,12 +188,51 @@ export const upsertExchangeRateAction = action
       },
     });
 
-    revalidatePath(
-      `/admin/organizations/${organizationId}/branches/${branchId}/settings/exchange-rates`,
-    );
-    revalidatePath(
-      `/admin/organizations/${organizationId}/branches/${branchId}/paiement`,
-    );
+    if (row.isSelected && !row.isActive) {
+      await prisma.exchangeRate.update({
+        where: { id: row.id },
+        data: { isSelected: false },
+      });
+      await ensureSelectedRate(organizationId);
+    }
 
-    return mapRate(row);
+    revalidateRatePaths(organizationId, branchId);
+    return mapRate(
+      await prisma.exchangeRate.findUniqueOrThrow({ where: { id: row.id } }),
+    );
+  });
+
+/** Sélectionne un taux comme référence (devise de base = fromCurrency). */
+export const selectExchangeRateAction = action
+  .input(selectSchema)
+  .handler(async ({ input }) => {
+    const { organizationId, session, branchId } = await requireBranchContext();
+    assertCanManage(session);
+
+    const target = await prisma.exchangeRate.findFirst({
+      where: { id: input.id, organizationId },
+    });
+    if (!target) {
+      throw new Error("Taux introuvable.");
+    }
+    if (!target.isActive) {
+      throw new Error("Activez le taux avant de le sélectionner.");
+    }
+
+    await prisma.$transaction([
+      prisma.exchangeRate.updateMany({
+        where: { organizationId, isSelected: true },
+        data: { isSelected: false },
+      }),
+      prisma.exchangeRate.update({
+        where: { id: target.id },
+        data: { isSelected: true },
+      }),
+    ]);
+
+    revalidateRatePaths(organizationId, branchId);
+
+    return mapRate(
+      await prisma.exchangeRate.findUniqueOrThrow({ where: { id: target.id } }),
+    );
   });

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAppTransition as useTransition } from "@/hooks/use-app-transition";
 import { IconCurrencyDollar, IconDeviceFloppy } from "@tabler/icons-react";
 import { toast } from "sonner";
@@ -11,9 +11,10 @@ import { Switch } from "@/components/ui/switch";
 import { RequireBranchOrgSettingsAccess } from "../components/require-branch-org-settings-access";
 import {
   listExchangeRatesAction,
+  selectExchangeRateAction,
   upsertExchangeRateAction,
 } from "../exchange-rate.action";
-import { CURRENCY_LABELS } from "@/lib/exchange-rate";
+import { CURRENCY_LABELS, getBaseCurrency } from "@/lib/exchange-rate";
 import type { CurrencyCode } from "@/prisma/generated/prisma/enums";
 
 type RateRow = {
@@ -22,6 +23,7 @@ type RateRow = {
   toCurrency: CurrencyCode;
   rate: number;
   isActive: boolean;
+  isSelected?: boolean;
   updatedAt: Date;
 };
 
@@ -36,7 +38,14 @@ export default function ExchangeRatesSettingsPage() {
   const [drafts, setDrafts] = useState<Record<string, Draft>>({});
   const [loading, setLoading] = useState(true);
   const [savingId, setSavingId] = useState<string | null>(null);
+  const [selectingId, setSelectingId] = useState<string | null>(null);
   const [, startTransition] = useTransition();
+
+  const baseCurrency = useMemo(() => getBaseCurrency(rows), [rows]);
+  const selectedRow = useMemo(
+    () => rows.find((row) => row.isSelected) ?? null,
+    [rows],
+  );
 
   const loadRates = useCallback(() => {
     startTransition(async () => {
@@ -115,12 +124,34 @@ export default function ExchangeRatesSettingsPage() {
           },
         }));
       }
+      loadRates();
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "Enregistrement impossible.",
       );
     } finally {
       setSavingId(null);
+    }
+  }
+
+  async function selectRow(row: RateRow) {
+    setSelectingId(row.id);
+    try {
+      const [saved, err] = await selectExchangeRateAction({ id: row.id });
+      if (err) {
+        toast.error(err.message);
+        return;
+      }
+      toast.success(
+        `Taux sélectionné : devise de base = ${saved?.fromCurrency ?? row.fromCurrency}`,
+      );
+      loadRates();
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Sélection impossible.",
+      );
+    } finally {
+      setSelectingId(null);
     }
   }
 
@@ -138,9 +169,28 @@ export default function ExchangeRatesSettingsPage() {
             </Badge>
           </div>
           <p className="mt-1 text-sm text-muted-foreground">
-            Ces taux s&apos;appliquent à toutes les branches. Une devise
-            désactivée disparaît du basculeur de paiement.
+            Le taux sélectionné définit la devise de base (source). Exemple :
+            AOA → USD ⇒ base = AOA, convertible en USD. Ces taux
+            s&apos;appliquent à toutes les branches.
           </p>
+        </div>
+
+        <div className="rounded-xl border bg-muted/30 px-4 py-3 text-sm">
+          <p>
+            <span className="font-medium">Devise de base :</span>{" "}
+            {CURRENCY_LABELS[baseCurrency]} ({baseCurrency})
+          </p>
+          {selectedRow ? (
+            <p className="mt-1 text-muted-foreground">
+              Taux sélectionné : {selectedRow.fromCurrency} →{" "}
+              {selectedRow.toCurrency} (1 {selectedRow.fromCurrency} ={" "}
+              {selectedRow.rate} {selectedRow.toCurrency})
+            </p>
+          ) : (
+            <p className="mt-1 text-muted-foreground">
+              Aucun taux sélectionné — sélectionnez une paire ci-dessous.
+            </p>
+          )}
         </div>
 
         <div className="overflow-hidden rounded-xl border">
@@ -150,22 +200,35 @@ export default function ExchangeRatesSettingsPage() {
                 <th className="px-3 py-2">Paire</th>
                 <th className="px-3 py-2">Taux</th>
                 <th className="px-3 py-2">Actif</th>
+                <th className="px-3 py-2">Base</th>
                 <th className="px-3 py-2 text-right">Action</th>
               </tr>
             </thead>
             <tbody>
               {rows.map((row) => {
                 const draft = drafts[row.id];
+                const isSelected = Boolean(row.isSelected);
                 return (
-                  <tr key={row.id} className="border-t">
+                  <tr
+                    key={row.id}
+                    className={`border-t ${isSelected ? "bg-primary/5" : ""}`}
+                  >
                     <td className="px-3 py-3">
-                      <p className="font-medium">
-                        {row.fromCurrency} → {row.toCurrency}
-                      </p>
+                      <div className="flex flex-wrap items-center gap-2 font-medium">
+                        <span>
+                          {row.fromCurrency} → {row.toCurrency}
+                        </span>
+                        {isSelected ? (
+                          <Badge variant="outline-primary">Sélectionné</Badge>
+                        ) : null}
+                      </div>
                       <p className="text-xs text-muted-foreground">
                         1 {CURRENCY_LABELS[row.fromCurrency]} ={" "}
                         {draft?.rate || row.rate}{" "}
                         {CURRENCY_LABELS[row.toCurrency]}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Base si sélectionné : {row.fromCurrency}
                       </p>
                     </td>
                     <td className="px-3 py-3">
@@ -186,6 +249,25 @@ export default function ExchangeRatesSettingsPage() {
                         }
                       />
                     </td>
+                    <td className="px-3 py-3">
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant={isSelected ? "default" : "outline"}
+                        disabled={
+                          isSelected ||
+                          !(draft?.isActive ?? row.isActive) ||
+                          selectingId === row.id
+                        }
+                        onClick={() => void selectRow(row)}
+                      >
+                        {selectingId === row.id
+                          ? "..."
+                          : isSelected
+                            ? "Base"
+                            : "Utiliser"}
+                      </Button>
+                    </td>
                     <td className="px-3 py-3 text-right">
                       <Button
                         type="button"
@@ -204,7 +286,7 @@ export default function ExchangeRatesSettingsPage() {
               {!rows.length ? (
                 <tr>
                   <td
-                    colSpan={4}
+                    colSpan={5}
                     className="px-3 py-8 text-center text-muted-foreground"
                   >
                     {loading

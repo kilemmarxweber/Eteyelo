@@ -49,11 +49,11 @@ interface Props {
   showExpenseForm?: boolean;
 }
 
-const formatAmount = (value: number) =>
-  value.toLocaleString("fr-FR", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
+const formatAmount = (value: number, currency = "USD") =>
+  `${value.toLocaleString("fr-FR", {
+    minimumFractionDigits: currency === "USD" ? 2 : 0,
+    maximumFractionDigits: currency === "USD" ? 2 : 0,
+  })} ${currency}`;
 
 export default function CashierReport({
   refreshKey,
@@ -64,6 +64,7 @@ export default function CashierReport({
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [baseCurrency, setBaseCurrency] = useState<string>("USD");
 
   const [startDate, setStartDate] = useState<string>(
     new Date().toISOString().slice(0, 10),
@@ -104,6 +105,9 @@ export default function CashierReport({
         dateStart: report.date,
         dateEnd: report.endDate,
       });
+      if (context.baseCurrency) {
+        setBaseCurrency(context.baseCurrency);
+      }
       toast.success("Rapport PDF généré avec succès.");
     } catch (e: any) {
       toast.error(e.message || "Erreur lors de la génération du PDF");
@@ -116,6 +120,15 @@ export default function CashierReport({
     void fetchReport();
   }, [refreshKey, startDate, endDate]);
 
+  useEffect(() => {
+    void (async () => {
+      const [context] = await getCashierReportContextAction();
+      if (context?.baseCurrency) {
+        setBaseCurrency(context.baseCurrency);
+      }
+    })();
+  }, []);
+
   return (
     <Card className="rounded-xl border p-4">
       <CardHeader className="flex flex-col gap-4 px-0 pt-0 md:flex-row md:items-start md:justify-between">
@@ -123,7 +136,8 @@ export default function CashierReport({
           <CardTitle>Rapport de caisse</CardTitle>
           <p className="text-sm text-muted-foreground">
             Solde d&apos;ouverture = solde net de la veille. Solde net =
-            ouverture + encaissements - depenses.
+            ouverture + encaissements - depenses. Montants en{" "}
+            <span className="font-medium text-foreground">{baseCurrency}</span>.
           </p>
         </div>
         <div className="flex w-full flex-wrap items-center justify-end gap-2">
@@ -197,7 +211,7 @@ export default function CashierReport({
                 Solde d&apos;ouverture
               </div>
               <div className="mt-2 text-2xl font-semibold">
-                {formatAmount(report.openingBalance)}
+                {formatAmount(report.openingBalance, baseCurrency)}
               </div>
               <div className="mt-1 text-xs text-muted-foreground">
                 {report.openingLabel ?? "Solde net de la veille (automatique)"}
@@ -206,7 +220,7 @@ export default function CashierReport({
             <div className="rounded-xl border border-border bg-muted p-4">
               <div className="text-sm text-muted-foreground">Encaissements</div>
               <div className="mt-2 text-2xl font-semibold text-emerald-600 dark:text-emerald-400">
-                {formatAmount(report.incomeTotal)}
+                {formatAmount(report.incomeTotal, baseCurrency)}
               </div>
               <div className="text-sm text-secondary">
                 {report.payments.length} entrée(s)
@@ -215,7 +229,7 @@ export default function CashierReport({
             <div className="rounded-xl border border-border bg-muted p-4">
               <div className="text-sm text-muted-foreground">Sorties</div>
               <div className="mt-2 text-2xl font-semibold text-rose-600 dark:text-rose-400">
-                {formatAmount(report.outflowTotal)}
+                {formatAmount(report.outflowTotal, baseCurrency)}
               </div>
               <div className="text-sm text-secondary">
                 {report.expenses.length} dépense(s)
@@ -224,10 +238,10 @@ export default function CashierReport({
             <div className="rounded-xl border border-primary/30 bg-muted p-4 shadow-sm">
               <div className="text-sm font-medium text-foreground">Solde Net</div>
               <div className="mt-2 text-2xl font-black text-primary">
-                {formatAmount(report.balance)}
+                {formatAmount(report.balance, baseCurrency)}
               </div>
               <div className="text-sm text-secondary">
-                Periode {formatAmount(report.periodBalance)}
+                Periode {formatAmount(report.periodBalance, baseCurrency)}
               </div>
             </div>
           </div>

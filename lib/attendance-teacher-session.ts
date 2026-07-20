@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { Day, type Prisma } from "@/prisma/generated/prisma/client";
+import { formatExpectedSessionLabel } from "@/lib/attendance-schedule-label";
 import {
   getParisWeekday,
   isTeacherCheckInWindow,
@@ -226,6 +227,35 @@ export async function getOrCreateTeacherAttendanceSession(
       schoolYearId: schedule.teaching.schoolYearId,
     },
   });
+}
+
+export async function getExpectedTeacherSessionLabel(
+  teacherId: string,
+  branchId: string,
+  now = nowLocal(),
+) {
+  const candidates = await listTeacherScheduleCandidates(
+    teacherId,
+    branchId,
+    now,
+  );
+  if (!candidates.length) return null;
+
+  const schedule = await prisma.schedule.findFirst({
+    where: { id: candidates[0].scheduleId },
+    include: {
+      teaching: {
+        include: {
+          cours: { select: { nameCours: true } },
+          classe: { select: { codeClasse: true, nameClasse: true } },
+        },
+      },
+    },
+  });
+
+  if (!schedule?.hour || !schedule.teaching) return null;
+
+  return formatExpectedSessionLabel(schedule.hour, schedule.teaching);
 }
 
 export async function findTeacherCheckInSession(

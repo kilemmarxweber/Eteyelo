@@ -7,7 +7,7 @@ const adapter = new PrismaPg({
 });
 
 /** Bump when Prisma schema fields change so the cached client is rebuilt in dev. */
-const PRISMA_CLIENT_VERSION = "phase18-exchange-rates-1";
+const PRISMA_CLIENT_VERSION = "phase19-exchange-rate-is-selected-1";
 
 const globalForPrisma = globalThis as unknown as {
   prisma?: PrismaClient;

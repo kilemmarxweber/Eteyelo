@@ -75,6 +75,8 @@ export function formatSchoolAddress(
 export type BuildSchoolReportContextOptions = {
   generatedAt?: string;
   exchangeRateUsdCdf?: number;
+  baseCurrency?: SchoolReportContext["baseCurrency"];
+  quoteCurrency?: SchoolReportContext["quoteCurrency"];
   /** Si fourni, remplace le libellé année scolaire dérivé de la branche. */
   academicYearLabel?: string;
 };
@@ -104,6 +106,8 @@ export function buildSchoolReportContext(
       options.academicYearLabel?.trim() || academicYearFromBranch || undefined,
     generatedAt: options.generatedAt ?? new Date().toISOString(),
     exchangeRateUsdCdf: options.exchangeRateUsdCdf,
+    baseCurrency: options.baseCurrency,
+    quoteCurrency: options.quoteCurrency,
   };
 }
 

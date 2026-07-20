@@ -29,6 +29,7 @@ import { getFraisAction } from "../../frais/frais.action";
 import { getActiveExchangeRatesAction } from "../../settings/exchange-rate.action";
 import {
   convertAmount,
+  getBaseCurrency,
   getRateUsed,
   listSelectableCurrencies,
   roundCurrency,
@@ -119,6 +120,11 @@ export default function PaymentsForm({
     CurrencyCode.USD,
   );
 
+  const baseCurrency = useMemo(
+    () => getBaseCurrency(exchangeRates),
+    [exchangeRates],
+  );
+
   useEffect(() => {
     const mql = window.matchMedia("(min-width: 1024px)");
     const update = () => setIsLargeScreen(mql.matches);
@@ -133,6 +139,11 @@ export default function PaymentsForm({
       const [data, err] = await getActiveExchangeRatesAction();
       if (cancelled || err || !data) return;
       setExchangeRates(data);
+      const base = getBaseCurrency(data);
+      setReceivedCurrency((current) => {
+        const selectable = listSelectableCurrencies(data, base);
+        return selectable.includes(current) ? current : base;
+      });
     })();
     return () => {
       cancelled = true;
@@ -140,30 +151,36 @@ export default function PaymentsForm({
   }, []);
 
   const selectableCurrencies = useMemo(
-    () => listSelectableCurrencies(exchangeRates),
-    [exchangeRates],
+    () => listSelectableCurrencies(exchangeRates, baseCurrency),
+    [exchangeRates, baseCurrency],
   );
 
   useEffect(() => {
     if (!selectableCurrencies.includes(receivedCurrency)) {
-      setReceivedCurrency(CurrencyCode.USD);
+      setReceivedCurrency(baseCurrency);
     }
-  }, [selectableCurrencies, receivedCurrency]);
+  }, [selectableCurrencies, receivedCurrency, baseCurrency]);
 
-  const toUsd = useCallback(
+  const toBase = useCallback(
     (value: number, from: CurrencyCode) => {
-      if (from === CurrencyCode.USD) return roundCurrency(value, CurrencyCode.USD);
-      return convertAmount(value, from, CurrencyCode.USD, exchangeRates);
+      if (from === baseCurrency) return roundCurrency(value, baseCurrency);
+      return convertAmount(value, from, baseCurrency, exchangeRates, baseCurrency);
     },
-    [exchangeRates],
+    [exchangeRates, baseCurrency],
   );
 
-  const fromUsd = useCallback(
-    (usd: number, to: CurrencyCode) => {
-      if (to === CurrencyCode.USD) return roundCurrency(usd, CurrencyCode.USD);
-      return convertAmount(usd, CurrencyCode.USD, to, exchangeRates);
+  const fromBase = useCallback(
+    (baseAmount: number, to: CurrencyCode) => {
+      if (to === baseCurrency) return roundCurrency(baseAmount, baseCurrency);
+      return convertAmount(
+        baseAmount,
+        baseCurrency,
+        to,
+        exchangeRates,
+        baseCurrency,
+      );
     },
-    [exchangeRates],
+    [exchangeRates, baseCurrency],
   );
   const rawAmount = watch("amount");
   const amount = Number.isFinite(Number(rawAmount)) ? Number(rawAmount) : 0;
@@ -363,15 +380,15 @@ export default function PaymentsForm({
     if (lastAutoFillKeyRef.current === selectionKey) return;
     if (balances.length === 0) return;
 
-    const remainingUsd = summary.remaining;
-    let displayAmount = remainingUsd;
+    const remainingBase = summary.remaining;
+    let displayAmount = remainingBase;
     try {
-      displayAmount = fromUsd(remainingUsd, receivedCurrency);
+      displayAmount = fromBase(remainingBase, receivedCurrency);
     } catch {
-      displayAmount = remainingUsd;
+      displayAmount = remainingBase;
     }
-    setValue("amount", remainingUsd, { shouldValidate: true });
-    setAmountInput(remainingUsd > 0 ? String(displayAmount) : "");
+    setValue("amount", remainingBase, { shouldValidate: true });
+    setAmountInput(remainingBase > 0 ? String(displayAmount) : "");
     lastAutoFillKeyRef.current = selectionKey;
   }, [
     hasNoSelection,
@@ -380,7 +397,7 @@ export default function PaymentsForm({
     balances.length,
     summary.remaining,
     setValue,
-    fromUsd,
+    fromBase,
     receivedCurrency,
   ]);
 
@@ -397,8 +414,8 @@ export default function PaymentsForm({
     }
 
     try {
-      const usd = toUsd(parsed, receivedCurrency);
-      setValue("amount", usd, { shouldValidate: true });
+      const baseAmount = toBase(parsed, receivedCurrency);
+      setValue("amount", baseAmount, { shouldValidate: true });
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "Conversion impossible.",
@@ -413,13 +430,12 @@ export default function PaymentsForm({
     setReceivedCurrency(next);
 
     if (parsed == null) {
-      // Keep current USD amount if any; refresh display from form amount
-      const currentUsd = Number.isFinite(Number(rawAmount))
+      const currentBase = Number.isFinite(Number(rawAmount))
         ? Number(rawAmount)
         : null;
-      if (currentUsd != null && currentUsd > 0) {
+      if (currentBase != null && currentBase > 0) {
         try {
-          setAmountInput(String(fromUsd(currentUsd, next)));
+          setAmountInput(String(fromBase(currentBase, next)));
         } catch {
           /* ignore until rates ready */
         }
@@ -428,9 +444,9 @@ export default function PaymentsForm({
     }
 
     try {
-      const usd = toUsd(parsed, receivedCurrency);
-      setValue("amount", usd, { shouldValidate: true });
-      setAmountInput(String(fromUsd(usd, next)));
+      const baseAmount = toBase(parsed, receivedCurrency);
+      setValue("amount", baseAmount, { shouldValidate: true });
+      setAmountInput(String(fromBase(baseAmount, next)));
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "Conversion impossible.",
@@ -455,32 +471,32 @@ export default function PaymentsForm({
         return;
       }
 
-      // 🏦 BANK CHECK 3: Valid amount? (USD de référence)
-      const inputAmountUsd = Number.isFinite(Number(data.amount))
+      // 🏦 BANK CHECK 3: Valid amount? (devise de base)
+      const inputAmountBase = Number.isFinite(Number(data.amount))
         ? Number(data.amount)
         : 0;
-      if (!inputAmountUsd || inputAmountUsd <= 0) {
+      if (!inputAmountBase || inputAmountBase <= 0) {
         toast.error("❌ Impossible: Montant doit être > 0");
         return;
       }
 
       setLoading(true);
 
-      // 🏦 BANK CHECK 4: Amount cap + Refund calculation (toujours en USD)
-      const finalAmountUsd = Math.min(inputAmountUsd, summary.remaining);
-      const refundAmountUsd = Math.max(inputAmountUsd - summary.remaining, 0);
+      // 🏦 BANK CHECK 4: Amount cap + Refund calculation (devise de base)
+      const finalAmountBase = Math.min(inputAmountBase, summary.remaining);
+      const refundAmountBase = Math.max(inputAmountBase - summary.remaining, 0);
 
-      let receivedAmount = finalAmountUsd;
+      let receivedAmount = finalAmountBase;
       let exchangeRateUsed: number | undefined = 1;
       try {
-        if (receivedCurrency !== CurrencyCode.USD) {
-          receivedAmount = fromUsd(finalAmountUsd, receivedCurrency);
+        if (receivedCurrency !== baseCurrency) {
+          receivedAmount = fromBase(finalAmountBase, receivedCurrency);
           exchangeRateUsed =
-            getRateUsed(receivedCurrency, CurrencyCode.USD, exchangeRates) ??
+            getRateUsed(receivedCurrency, baseCurrency, exchangeRates) ??
             undefined;
           if (exchangeRateUsed == null) {
             toast.error(
-              `Taux de change inactif pour ${receivedCurrency} → USD.`,
+              `Taux de change inactif pour ${receivedCurrency} → ${baseCurrency}.`,
             );
             setLoading(false);
             return;
@@ -495,9 +511,9 @@ export default function PaymentsForm({
       }
 
       // 💰 Show refund warning if applicable
-      if (refundAmountUsd > 0) {
+      if (refundAmountBase > 0) {
         setAmountWarning(
-          `💰 Montant saisi: ${formatAmount(inputAmountUsd)} USD | À payer: ${formatAmount(finalAmountUsd)} USD | Remboursement: ${formatAmount(refundAmountUsd)} USD`,
+          `💰 Montant saisi: ${formatAmount(inputAmountBase)} ${baseCurrency} | À payer: ${formatAmount(finalAmountBase)} ${baseCurrency} | Remboursement: ${formatAmount(refundAmountBase)} ${baseCurrency}`,
         );
       }
 
@@ -506,7 +522,7 @@ export default function PaymentsForm({
         parentId: selection.parentId,
         classEnrollIds: selection.classEnrollIds,
         transactionRef,
-        amount: finalAmountUsd,
+        amount: finalAmountBase,
         receivedCurrency,
         receivedAmount,
         exchangeRateUsed,
@@ -533,8 +549,8 @@ export default function PaymentsForm({
 
       // 💰 Show success with refund info if applicable
       const successMsg =
-        refundAmountUsd > 0
-          ? `✅ Paiement: ${formatAmount(finalAmountUsd)} USD | Remboursement: ${formatAmount(refundAmountUsd)} USD`
+        refundAmountBase > 0
+          ? `✅ Paiement: ${formatAmount(finalAmountBase)} ${baseCurrency} | Remboursement: ${formatAmount(refundAmountBase)} ${baseCurrency}`
           : `✅ ${res?.message || "Paiement enregistré avec succès"}`;
 
       toast.success(successMsg);
@@ -551,11 +567,11 @@ export default function PaymentsForm({
         classEnrollIds: [],
         parentId: "",
         notes: "",
-        receivedCurrency: CurrencyCode.USD,
+        receivedCurrency: baseCurrency,
         receivedAmount: undefined,
         exchangeRateUsed: undefined,
       });
-      setReceivedCurrency(CurrencyCode.USD);
+      setReceivedCurrency(baseCurrency);
       setSelection({ parentId: "", classEnrollIds: [] });
       setBalances([]);
       setDiscountValue(0);
@@ -606,7 +622,7 @@ export default function PaymentsForm({
         return selectedClasseIds.includes(f.classeId);
       })
       .map((f: any) => ({
-        label: `${f.nameFrais} (${formatAmount(Number(f.montantFrais))})`,
+        label: `${f.nameFrais} (${formatAmount(Number(f.montantFrais))} ${baseCurrency})`,
         value: f.id,
       }));
   }, [
@@ -615,6 +631,7 @@ export default function PaymentsForm({
     selectedClasseIds,
     selection.classEnrollIds,
     normalizedSchoolYearId,
+    baseCurrency,
   ]);
 
   const handleFraisChange = (values: string[]) => {
@@ -652,9 +669,9 @@ export default function PaymentsForm({
     ),
   };
 
-  const usdHint =
-    receivedCurrency !== CurrencyCode.USD && amount > 0
-      ? `≈ ${formatAmount(amount)} USD`
+  const baseHint =
+    receivedCurrency !== baseCurrency && amount > 0
+      ? `≈ ${formatAmount(amount)} ${baseCurrency}`
       : null;
 
   const currencyToggle = (
@@ -709,8 +726,8 @@ export default function PaymentsForm({
             />
             {!hasNoSelection && !isSolded && (
               <p className="text-[11px] text-muted-foreground -mt-1">
-                {usdHint
-                  ? usdHint
+                {baseHint
+                  ? baseHint
                   : amountManuallyEdited
                     ? "Montant modifié manuellement"
                     : "Calculé automatiquement"}
@@ -914,8 +931,8 @@ export default function PaymentsForm({
                 {currencyToggle}
                 <Input {...amountInputProps} />
                 <p className="text-[11px] text-muted-foreground">
-                  {usdHint
-                    ? usdHint
+                  {baseHint
+                    ? baseHint
                     : amountManuallyEdited
                       ? "Montant modifié manuellement"
                       : "Calculé automatiquement"}

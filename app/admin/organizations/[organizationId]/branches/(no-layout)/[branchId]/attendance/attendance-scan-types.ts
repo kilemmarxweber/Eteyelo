@@ -6,6 +6,7 @@ export type AttendancePersonLookup = {
   matricule: string;
   roleLabel: string;
   personType: AttendancePersonType;
+  expectedSessionLabel?: string | null;
   image?: string | null;
 };
 

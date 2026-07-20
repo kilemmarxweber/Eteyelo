@@ -40,6 +40,7 @@ export type ExchangeRateMinAggregateOutputType = {
   toCurrency: $Enums.CurrencyCode | null
   rate: number | null
   isActive: boolean | null
+  isSelected: boolean | null
   organizationId: string | null
   createdBy: string | null
   createdAt: Date | null
@@ -52,6 +53,7 @@ export type ExchangeRateMaxAggregateOutputType = {
   toCurrency: $Enums.CurrencyCode | null
   rate: number | null
   isActive: boolean | null
+  isSelected: boolean | null
   organizationId: string | null
   createdBy: string | null
   createdAt: Date | null
@@ -64,6 +66,7 @@ export type ExchangeRateCountAggregateOutputType = {
   toCurrency: number
   rate: number
   isActive: number
+  isSelected: number
   organizationId: number
   createdBy: number
   createdAt: number
@@ -86,6 +89,7 @@ export type ExchangeRateMinAggregateInputType = {
   toCurrency?: true
   rate?: true
   isActive?: true
+  isSelected?: true
   organizationId?: true
   createdBy?: true
   createdAt?: true
@@ -98,6 +102,7 @@ export type ExchangeRateMaxAggregateInputType = {
   toCurrency?: true
   rate?: true
   isActive?: true
+  isSelected?: true
   organizationId?: true
   createdBy?: true
   createdAt?: true
@@ -110,6 +115,7 @@ export type ExchangeRateCountAggregateInputType = {
   toCurrency?: true
   rate?: true
   isActive?: true
+  isSelected?: true
   organizationId?: true
   createdBy?: true
   createdAt?: true
@@ -209,6 +215,7 @@ export type ExchangeRateGroupByOutputType = {
   toCurrency: $Enums.CurrencyCode
   rate: number
   isActive: boolean
+  isSelected: boolean
   organizationId: string
   createdBy: string | null
   createdAt: Date
@@ -244,6 +251,7 @@ export type ExchangeRateWhereInput = {
   toCurrency?: Prisma.EnumCurrencyCodeFilter<"ExchangeRate"> | $Enums.CurrencyCode
   rate?: Prisma.FloatFilter<"ExchangeRate"> | number
   isActive?: Prisma.BoolFilter<"ExchangeRate"> | boolean
+  isSelected?: Prisma.BoolFilter<"ExchangeRate"> | boolean
   organizationId?: Prisma.StringFilter<"ExchangeRate"> | string
   createdBy?: Prisma.StringNullableFilter<"ExchangeRate"> | string | null
   createdAt?: Prisma.DateTimeFilter<"ExchangeRate"> | Date | string
@@ -257,6 +265,7 @@ export type ExchangeRateOrderByWithRelationInput = {
   toCurrency?: Prisma.SortOrder
   rate?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
+  isSelected?: Prisma.SortOrder
   organizationId?: Prisma.SortOrder
   createdBy?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -274,6 +283,7 @@ export type ExchangeRateWhereUniqueInput = Prisma.AtLeast<{
   toCurrency?: Prisma.EnumCurrencyCodeFilter<"ExchangeRate"> | $Enums.CurrencyCode
   rate?: Prisma.FloatFilter<"ExchangeRate"> | number
   isActive?: Prisma.BoolFilter<"ExchangeRate"> | boolean
+  isSelected?: Prisma.BoolFilter<"ExchangeRate"> | boolean
   organizationId?: Prisma.StringFilter<"ExchangeRate"> | string
   createdBy?: Prisma.StringNullableFilter<"ExchangeRate"> | string | null
   createdAt?: Prisma.DateTimeFilter<"ExchangeRate"> | Date | string
@@ -287,6 +297,7 @@ export type ExchangeRateOrderByWithAggregationInput = {
   toCurrency?: Prisma.SortOrder
   rate?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
+  isSelected?: Prisma.SortOrder
   organizationId?: Prisma.SortOrder
   createdBy?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -307,6 +318,7 @@ export type ExchangeRateScalarWhereWithAggregatesInput = {
   toCurrency?: Prisma.EnumCurrencyCodeWithAggregatesFilter<"ExchangeRate"> | $Enums.CurrencyCode
   rate?: Prisma.FloatWithAggregatesFilter<"ExchangeRate"> | number
   isActive?: Prisma.BoolWithAggregatesFilter<"ExchangeRate"> | boolean
+  isSelected?: Prisma.BoolWithAggregatesFilter<"ExchangeRate"> | boolean
   organizationId?: Prisma.StringWithAggregatesFilter<"ExchangeRate"> | string
   createdBy?: Prisma.StringNullableWithAggregatesFilter<"ExchangeRate"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"ExchangeRate"> | Date | string
@@ -319,6 +331,7 @@ export type ExchangeRateCreateInput = {
   toCurrency: $Enums.CurrencyCode
   rate: number
   isActive?: boolean
+  isSelected?: boolean
   createdBy?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -331,6 +344,7 @@ export type ExchangeRateUncheckedCreateInput = {
   toCurrency: $Enums.CurrencyCode
   rate: number
   isActive?: boolean
+  isSelected?: boolean
   organizationId: string
   createdBy?: string | null
   createdAt?: Date | string
@@ -343,6 +357,7 @@ export type ExchangeRateUpdateInput = {
   toCurrency?: Prisma.EnumCurrencyCodeFieldUpdateOperationsInput | $Enums.CurrencyCode
   rate?: Prisma.FloatFieldUpdateOperationsInput | number
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isSelected?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -355,6 +370,7 @@ export type ExchangeRateUncheckedUpdateInput = {
   toCurrency?: Prisma.EnumCurrencyCodeFieldUpdateOperationsInput | $Enums.CurrencyCode
   rate?: Prisma.FloatFieldUpdateOperationsInput | number
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isSelected?: Prisma.BoolFieldUpdateOperationsInput | boolean
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   createdBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -367,6 +383,7 @@ export type ExchangeRateCreateManyInput = {
   toCurrency: $Enums.CurrencyCode
   rate: number
   isActive?: boolean
+  isSelected?: boolean
   organizationId: string
   createdBy?: string | null
   createdAt?: Date | string
@@ -379,6 +396,7 @@ export type ExchangeRateUpdateManyMutationInput = {
   toCurrency?: Prisma.EnumCurrencyCodeFieldUpdateOperationsInput | $Enums.CurrencyCode
   rate?: Prisma.FloatFieldUpdateOperationsInput | number
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isSelected?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -390,6 +408,7 @@ export type ExchangeRateUncheckedUpdateManyInput = {
   toCurrency?: Prisma.EnumCurrencyCodeFieldUpdateOperationsInput | $Enums.CurrencyCode
   rate?: Prisma.FloatFieldUpdateOperationsInput | number
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isSelected?: Prisma.BoolFieldUpdateOperationsInput | boolean
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   createdBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -408,6 +427,7 @@ export type ExchangeRateCountOrderByAggregateInput = {
   toCurrency?: Prisma.SortOrder
   rate?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
+  isSelected?: Prisma.SortOrder
   organizationId?: Prisma.SortOrder
   createdBy?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -424,6 +444,7 @@ export type ExchangeRateMaxOrderByAggregateInput = {
   toCurrency?: Prisma.SortOrder
   rate?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
+  isSelected?: Prisma.SortOrder
   organizationId?: Prisma.SortOrder
   createdBy?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -436,6 +457,7 @@ export type ExchangeRateMinOrderByAggregateInput = {
   toCurrency?: Prisma.SortOrder
   rate?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
+  isSelected?: Prisma.SortOrder
   organizationId?: Prisma.SortOrder
   createdBy?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -504,6 +526,7 @@ export type ExchangeRateCreateWithoutOrganizationInput = {
   toCurrency: $Enums.CurrencyCode
   rate: number
   isActive?: boolean
+  isSelected?: boolean
   createdBy?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -515,6 +538,7 @@ export type ExchangeRateUncheckedCreateWithoutOrganizationInput = {
   toCurrency: $Enums.CurrencyCode
   rate: number
   isActive?: boolean
+  isSelected?: boolean
   createdBy?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -555,6 +579,7 @@ export type ExchangeRateScalarWhereInput = {
   toCurrency?: Prisma.EnumCurrencyCodeFilter<"ExchangeRate"> | $Enums.CurrencyCode
   rate?: Prisma.FloatFilter<"ExchangeRate"> | number
   isActive?: Prisma.BoolFilter<"ExchangeRate"> | boolean
+  isSelected?: Prisma.BoolFilter<"ExchangeRate"> | boolean
   organizationId?: Prisma.StringFilter<"ExchangeRate"> | string
   createdBy?: Prisma.StringNullableFilter<"ExchangeRate"> | string | null
   createdAt?: Prisma.DateTimeFilter<"ExchangeRate"> | Date | string
@@ -567,6 +592,7 @@ export type ExchangeRateCreateManyOrganizationInput = {
   toCurrency: $Enums.CurrencyCode
   rate: number
   isActive?: boolean
+  isSelected?: boolean
   createdBy?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -578,6 +604,7 @@ export type ExchangeRateUpdateWithoutOrganizationInput = {
   toCurrency?: Prisma.EnumCurrencyCodeFieldUpdateOperationsInput | $Enums.CurrencyCode
   rate?: Prisma.FloatFieldUpdateOperationsInput | number
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isSelected?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -589,6 +616,7 @@ export type ExchangeRateUncheckedUpdateWithoutOrganizationInput = {
   toCurrency?: Prisma.EnumCurrencyCodeFieldUpdateOperationsInput | $Enums.CurrencyCode
   rate?: Prisma.FloatFieldUpdateOperationsInput | number
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isSelected?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -600,6 +628,7 @@ export type ExchangeRateUncheckedUpdateManyWithoutOrganizationInput = {
   toCurrency?: Prisma.EnumCurrencyCodeFieldUpdateOperationsInput | $Enums.CurrencyCode
   rate?: Prisma.FloatFieldUpdateOperationsInput | number
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isSelected?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -613,6 +642,7 @@ export type ExchangeRateSelect<ExtArgs extends runtime.Types.Extensions.Internal
   toCurrency?: boolean
   rate?: boolean
   isActive?: boolean
+  isSelected?: boolean
   organizationId?: boolean
   createdBy?: boolean
   createdAt?: boolean
@@ -626,6 +656,7 @@ export type ExchangeRateSelectCreateManyAndReturn<ExtArgs extends runtime.Types.
   toCurrency?: boolean
   rate?: boolean
   isActive?: boolean
+  isSelected?: boolean
   organizationId?: boolean
   createdBy?: boolean
   createdAt?: boolean
@@ -639,6 +670,7 @@ export type ExchangeRateSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.
   toCurrency?: boolean
   rate?: boolean
   isActive?: boolean
+  isSelected?: boolean
   organizationId?: boolean
   createdBy?: boolean
   createdAt?: boolean
@@ -652,13 +684,14 @@ export type ExchangeRateSelectScalar = {
   toCurrency?: boolean
   rate?: boolean
   isActive?: boolean
+  isSelected?: boolean
   organizationId?: boolean
   createdBy?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type ExchangeRateOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "fromCurrency" | "toCurrency" | "rate" | "isActive" | "organizationId" | "createdBy" | "createdAt" | "updatedAt", ExtArgs["result"]["exchangeRate"]>
+export type ExchangeRateOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "fromCurrency" | "toCurrency" | "rate" | "isActive" | "isSelected" | "organizationId" | "createdBy" | "createdAt" | "updatedAt", ExtArgs["result"]["exchangeRate"]>
 export type ExchangeRateInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
 }
@@ -683,6 +716,10 @@ export type $ExchangeRatePayload<ExtArgs extends runtime.Types.Extensions.Intern
      */
     rate: number
     isActive: boolean
+    /**
+     * Un seul taux selectionne par organisation : fromCurrency = devise de base
+     */
+    isSelected: boolean
     organizationId: string
     createdBy: string | null
     createdAt: Date
@@ -1116,6 +1153,7 @@ export interface ExchangeRateFieldRefs {
   readonly toCurrency: Prisma.FieldRef<"ExchangeRate", 'CurrencyCode'>
   readonly rate: Prisma.FieldRef<"ExchangeRate", 'Float'>
   readonly isActive: Prisma.FieldRef<"ExchangeRate", 'Boolean'>
+  readonly isSelected: Prisma.FieldRef<"ExchangeRate", 'Boolean'>
   readonly organizationId: Prisma.FieldRef<"ExchangeRate", 'String'>
   readonly createdBy: Prisma.FieldRef<"ExchangeRate", 'String'>
   readonly createdAt: Prisma.FieldRef<"ExchangeRate", 'DateTime'>

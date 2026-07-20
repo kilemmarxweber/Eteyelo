@@ -178,20 +178,32 @@ export async function buildPaiementsReportPdf(
   const title = buildPaiementsReportTitle(options);
   const filterLabels = buildPaiementsReportFilterLabels(options);
   const exchangeRate = resolveExchangeRate(context);
-  const totalUsd = rows.reduce((sum, row) => sum + row.total, 0);
+  const baseCurrency = context.baseCurrency ?? "USD";
+  const totalBase = rows.reduce((sum, row) => sum + row.total, 0);
 
   const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
   const logo = await imageUrlToDataUrl(context.logoUrl);
 
-  const head = ["Date", "Élève", "Mode", "USD", "CDF", "Référence"];
-  const body = rows.map((row) => [
-    formatDate(row.date),
-    row.students.join(", ") || "-",
-    modeLabel(row.mode),
-    formatUsd(row.total),
-    formatCdf(row.total * exchangeRate),
-    row.reference,
-  ]);
+  const quoteLabel =
+    context.quoteCurrency ??
+    (baseCurrency === "USD" ? "CDF" : "USD");
+  const head = ["Date", "Élève", "Mode", baseCurrency, quoteLabel, "Référence"];
+  const body = rows.map((row) => {
+    const quoteValue =
+      baseCurrency === "USD" && quoteLabel === "CDF"
+        ? formatCdf(row.total * exchangeRate)
+        : quoteLabel === "USD"
+          ? formatUsd(exchangeRate > 0 ? row.total / exchangeRate : 0)
+          : `${row.total.toLocaleString("fr-FR")} ${quoteLabel}`;
+    return [
+      formatDate(row.date),
+      row.students.join(", ") || "-",
+      modeLabel(row.mode),
+      `${row.total.toLocaleString("fr-FR")} ${baseCurrency}`,
+      quoteValue,
+      row.reference,
+    ];
+  });
 
   autoTable(doc, {
     startY: REPORT_HEADER_CONTENT_TOP_MM,
@@ -234,8 +246,12 @@ export async function buildPaiementsReportPdf(
         details: [
           ...filterLabels,
           `${rows.length} paiement(s)`,
-          `Total : ${formatUsd(totalUsd)}`,
-          `Taux : 1 USD = ${exchangeRate.toLocaleString("fr-FR")} CDF`,
+          `Total : ${totalBase.toLocaleString("fr-FR")} ${baseCurrency}`,
+          baseCurrency === "USD" && quoteLabel === "CDF"
+            ? `Taux : 1 USD = ${exchangeRate.toLocaleString("fr-FR")} CDF`
+            : context.selectedRate != null
+              ? `Taux : 1 ${baseCurrency} = ${context.selectedRate.toLocaleString("fr-FR")} ${quoteLabel}`
+              : `Devise de base : ${baseCurrency}`,
         ],
         logoDataUrl: logo,
       });

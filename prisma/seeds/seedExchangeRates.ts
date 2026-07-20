@@ -37,6 +37,7 @@ export async function seedExchangeRates() {
           toCurrency: pair.toCurrency,
           rate: pair.rate,
           isActive: true,
+          isSelected: pair.isSelected === true,
         },
         update: {
           rate: pair.rate,
@@ -44,6 +45,26 @@ export async function seedExchangeRates() {
         },
       });
       pairsUpserted += 1;
+    }
+
+    const hasSelected = await prisma.exchangeRate.findFirst({
+      where: { organizationId: org.id, isSelected: true },
+      select: { id: true },
+    });
+    if (!hasSelected) {
+      const preferred = await prisma.exchangeRate.findFirst({
+        where: {
+          organizationId: org.id,
+          fromCurrency: "USD",
+          toCurrency: "CDF",
+        },
+      });
+      if (preferred) {
+        await prisma.exchangeRate.update({
+          where: { id: preferred.id },
+          data: { isSelected: true },
+        });
+      }
     }
     console.log(
       `  OK ${org.name} (${org.slug}) — ${DEFAULT_EXCHANGE_PAIRS.length} paires`,
