@@ -4,7 +4,15 @@ import { prisma } from "@/lib/prisma"; // Assumes Prisma client is in lib/prisma
 import { action } from "@/lib/zsa";
 import { Day } from "@/prisma/generated/prisma/client";
 //const Dayj = ...Day, 0:"Dimanche"
-import { nowLocal, toMinutes } from "@/lib/timezone";
+import {
+  getParisWeekday,
+  isTeacherCheckInWindow,
+  nowLocal,
+  scheduleHourToMinutes,
+  startOfTodayParis,
+  TEACHER_COURSE_DURATION_MINUTES,
+  toMinutes,
+} from "@/lib/timezone";
 import { z } from "zod";
 import { personnelAttendanceSchema } from "./interface/Attendance";
 import { auth } from "@/lib/auth";
@@ -265,7 +273,7 @@ export async function generateTodaySessions(branchId: string) {
     "Jeudi",
     "Vendredi",
     "Samedi",
-  ][now.getDay()];
+  ][getParisWeekday(now)];
 
   const schedules = await prisma.schedule.findMany({
     where: {
@@ -627,6 +635,13 @@ export async function getOrCreateSession(
 ) {
   const { branchId } = await getCurrentBranch();
   const now = nowLocal();
+  const creneau = await prisma.creneau.findFirst({
+    where: { branchId, isArchived: false },
+    orderBy: { createdAt: "desc" },
+    select: { durationCourse: true },
+  });
+  const courseDurationMinutes =
+    creneau?.durationCourse ?? TEACHER_COURSE_DURATION_MINUTES;
 
   const schedule = await prisma.schedule.findFirst({
     where: {
@@ -670,10 +685,9 @@ export async function getOrCreateSession(
   const start = new Date(schedule.hour);
   start.setSeconds(0, 0);
 
-  const end = new Date(start.getTime() + 60 * 60 * 1000);
+  const end = new Date(start.getTime() + courseDurationMinutes * 60 * 1000);
 
-  const today = new Date(now);
-  today.setHours(0, 0, 0, 0);
+  const today = startOfTodayParis(now);
 
   // 1. check existing session (branch SAFE)
   const existing = await prisma.attendanceSession.findFirst({
@@ -689,12 +703,11 @@ export async function getOrCreateSession(
 
   // 2. time window
   const currentMinutes = toMinutes(now);
-  const startMinutes = toMinutes(schedule.hour);
+  const startMinutes = scheduleHourToMinutes(schedule.hour);
 
-  const isValidWindow =
-    currentMinutes >= startMinutes - 30 && currentMinutes <= startMinutes + 10;
-
-  if (!isValidWindow) return null;
+  if (!isTeacherCheckInWindow(currentMinutes, startMinutes, courseDurationMinutes)) {
+    return null;
+  }
 
   // 3. create session
   return prisma.attendanceSession.create({
@@ -737,7 +750,7 @@ export async function autoMarkTeacherAbsent() {
   for (const s of schedules) {
     if (!s.teachingId || !s.hour) continue;
 
-    const start = toMinutes(s.hour);
+    const start = scheduleHourToMinutes(s.hour);
     const end = start + 60;
 
     const isPast = current > end + 15;
@@ -906,7 +919,7 @@ export async function getActiveTeachersNow(search?: string) {
     6: Day.Samedi,
   } as const;
 
-  const dayj = dayMap[now.getDay() as keyof typeof dayMap];
+  const dayj = dayMap[getParisWeekday(now) as keyof typeof dayMap];
 
   const teachers = await prisma.teacher.findMany({
     where: {
@@ -962,10 +975,8 @@ export async function getActiveTeachersNow(search?: string) {
       for (const s of teach.Schedule) {
         if (!s.hour) continue;
 
-        const start = toMinutes(s.hour);
-        const end = start + 60;
-
-        const isActive = current >= start - 30 && current <= end + 10;
+        const start = scheduleHourToMinutes(s.hour);
+        const isActive = isTeacherCheckInWindow(current, start);
 
         if (!isActive) continue;
 
@@ -1013,7 +1024,7 @@ export async function getTeacherCurrentSessions(teacherId: string) {
     6: Day.Samedi,
   } as const;
 
-  const today = dayMap[now.getDay() as keyof typeof dayMap];
+  const today = dayMap[getParisWeekday(now) as keyof typeof dayMap];
 
   const teacher = await prisma.teacher.findFirst({
     where: {
@@ -1090,11 +1101,8 @@ export async function getTeacherCurrentSessions(teacherId: string) {
     for (const schedule of teaching.Schedule) {
       if (!schedule.hour) continue;
 
-      const start = toMinutes(schedule.hour);
-      const end = start + 60;
-
-      // fenêtre large (cohérente avec tes autres fonctions)
-      const isActive = current >= start - 30 && current <= end + 10;
+      const start = scheduleHourToMinutes(schedule.hour);
+      const isActive = isTeacherCheckInWindow(current, start);
 
       if (!isActive) continue;
 

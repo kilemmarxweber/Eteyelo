@@ -3,7 +3,15 @@
 import { prisma } from "@/lib/prisma";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
 import { orgRoleLabel } from "@/lib/org-role-labels";
-import { nowLocal, toMinutes } from "@/lib/timezone";
+import {
+  getParisWeekday,
+  isTeacherCheckInWindow,
+  nowLocal,
+  scheduleHourToMinutes,
+  startOfTodayParis,
+  TEACHER_COURSE_DURATION_MINUTES,
+  toMinutes,
+} from "@/lib/timezone";
 import { Day } from "@/prisma/generated/prisma/client";
 import { z } from "zod";
 import type {
@@ -378,7 +386,7 @@ function mapPersonnelLookup(
 
 function resolveStatusFromTime(reference: Date) {
   const now = nowLocal();
-  const lateThreshold = toMinutes(reference) + 10;
+  const lateThreshold = scheduleHourToMinutes(reference) + 10;
   return toMinutes(now) > lateThreshold ? ("LATE" as const) : ("PRESENT" as const);
 }
 
@@ -389,10 +397,21 @@ function resolvePersonnelStatus() {
   return resolveStatusFromTime(start);
 }
 
+async function getBranchCourseDurationMinutes(branchId: string) {
+  const creneau = await prisma.creneau.findFirst({
+    where: { branchId, isArchived: false },
+    orderBy: { createdAt: "desc" },
+    select: { durationCourse: true },
+  });
+
+  return creneau?.durationCourse ?? TEACHER_COURSE_DURATION_MINUTES;
+}
+
 async function getOrCreateSession(
   teachingId: string,
   scheduleId: string,
   branchId: string,
+  courseDurationMinutes: number,
 ) {
   const now = nowLocal();
 
@@ -414,9 +433,10 @@ async function getOrCreateSession(
     return null;
   }
 
-  const end = new Date(new Date(schedule.hour).getTime() + 60 * 60 * 1000);
-  const today = new Date(now);
-  today.setHours(0, 0, 0, 0);
+  const end = new Date(
+    new Date(schedule.hour).getTime() + courseDurationMinutes * 60 * 1000,
+  );
+  const today = startOfTodayParis(now);
 
   const existing = await prisma.attendanceSession.findFirst({
     where: {
@@ -430,11 +450,10 @@ async function getOrCreateSession(
   if (existing) return existing;
 
   const currentMinutes = toMinutes(now);
-  const startMinutes = toMinutes(schedule.hour);
-  const isValidWindow =
-    currentMinutes >= startMinutes - 30 && currentMinutes <= startMinutes + 10;
-
-  if (!isValidWindow) return null;
+  const startMinutes = scheduleHourToMinutes(schedule.hour);
+  if (!isTeacherCheckInWindow(currentMinutes, startMinutes, courseDurationMinutes)) {
+    return null;
+  }
 
   return prisma.attendanceSession.create({
     data: {
@@ -450,10 +469,9 @@ async function getOrCreateSession(
 
 async function findSessionForStudent(studentId: string, branchId: string) {
   const now = nowLocal();
-  const today = new Date(now);
-  today.setHours(0, 0, 0, 0);
+  const today = startOfTodayParis(now);
   const tomorrow = new Date(today);
-  tomorrow.setDate(tomorrow.getDate() + 1);
+  tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
 
   const enrollment = await prisma.classEnrollment.findFirst({
     where: {
@@ -507,6 +525,7 @@ async function findSessionForStudent(studentId: string, branchId: string) {
 async function findSessionForTeacher(teacherId: string, branchId: string) {
   const now = nowLocal();
   const current = toMinutes(now);
+  const courseDurationMinutes = await getBranchCourseDurationMinutes(branchId);
 
   const dayMap = {
     0: Day.Dimanche,
@@ -518,7 +537,7 @@ async function findSessionForTeacher(teacherId: string, branchId: string) {
     6: Day.Samedi,
   } as const;
 
-  const today = dayMap[now.getDay() as keyof typeof dayMap];
+  const today = dayMap[getParisWeekday(now) as keyof typeof dayMap];
 
   const teacher = await prisma.teacher.findFirst({
     where: {
@@ -547,13 +566,21 @@ async function findSessionForTeacher(teacherId: string, branchId: string) {
     for (const schedule of teaching.Schedule) {
       if (!schedule.hour) continue;
 
-      const start = toMinutes(schedule.hour);
-      const end = start + 60;
-      const isActive = current >= start - 30 && current <= end + 10;
+      const start = scheduleHourToMinutes(schedule.hour);
+      const isActive = isTeacherCheckInWindow(
+        current,
+        start,
+        courseDurationMinutes,
+      );
 
       if (!isActive) continue;
 
-      const session = await getOrCreateSession(teaching.id, schedule.id, branchId);
+      const session = await getOrCreateSession(
+        teaching.id,
+        schedule.id,
+        branchId,
+        courseDurationMinutes,
+      );
       if (!session) continue;
 
       return prisma.attendanceSession.findFirst({
