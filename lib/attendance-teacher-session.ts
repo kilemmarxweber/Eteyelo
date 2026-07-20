@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { Day } from "@/prisma/generated/prisma/client";
+import { Day, type Prisma } from "@/prisma/generated/prisma/client";
 import {
   getParisWeekday,
   isTeacherCheckInWindow,
@@ -44,8 +44,8 @@ function teachingBranchWhere(branchId: string) {
       },
     ],
     schoolYear: {
+      branchId,
       isCurrentYear: true,
-      OR: [{ branchId }, { branchId: null }],
     },
   };
 }
@@ -231,7 +231,7 @@ export async function getOrCreateTeacherAttendanceSession(
 export async function findTeacherCheckInSession(
   teacherId: string,
   branchId: string,
-  include?: Parameters<typeof prisma.attendanceSession.findFirst>[0]["include"],
+  include?: Prisma.AttendanceSessionInclude,
 ) {
   const courseDurationMinutes = await getBranchCourseDurationMinutes(branchId);
   const candidates = await listTeacherScheduleCandidates(

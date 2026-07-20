@@ -2,17 +2,15 @@
 
 import { prisma } from "@/lib/prisma";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
+import { findTeacherCheckInSession } from "@/lib/attendance-teacher-session";
 import { orgRoleLabel } from "@/lib/org-role-labels";
+import type { AttendanceStatus } from "@/prisma/generated/prisma/client";
 import {
-  getParisWeekday,
-  isTeacherCheckInWindow,
   nowLocal,
   scheduleHourToMinutes,
   startOfTodayParis,
-  TEACHER_COURSE_DURATION_MINUTES,
   toMinutes,
 } from "@/lib/timezone";
-import { Day } from "@/prisma/generated/prisma/client";
 import { z } from "zod";
 import type {
   AttendanceCheckInResult,
@@ -397,74 +395,15 @@ function resolvePersonnelStatus() {
   return resolveStatusFromTime(start);
 }
 
-async function getBranchCourseDurationMinutes(branchId: string) {
-  const creneau = await prisma.creneau.findFirst({
-    where: { branchId, isArchived: false },
-    orderBy: { createdAt: "desc" },
-    select: { durationCourse: true },
-  });
-
-  return creneau?.durationCourse ?? TEACHER_COURSE_DURATION_MINUTES;
-}
-
-async function getOrCreateSession(
-  teachingId: string,
-  scheduleId: string,
-  branchId: string,
-  courseDurationMinutes: number,
-) {
-  const now = nowLocal();
-
-  const schedule = await prisma.schedule.findFirst({
-    where: {
-      id: scheduleId,
-      teachingId,
-      OR: [
-        { branchMember: { branchId } },
-        { teaching: { branchId } },
-        { teaching: { branchId: null, classe: { branchId } } },
-      ],
+function sessionInclude() {
+  return {
+    teaching: {
+      include: {
+        cours: { select: { nameCours: true } },
+        classe: { select: { codeClasse: true, nameClasse: true } },
+      },
     },
-    include: { teaching: true },
-  });
-
-  if (!schedule?.teachingId || !schedule.hour) return null;
-  if (schedule.teaching?.branchId && schedule.teaching.branchId !== branchId) {
-    return null;
-  }
-
-  const end = new Date(
-    new Date(schedule.hour).getTime() + courseDurationMinutes * 60 * 1000,
-  );
-  const today = startOfTodayParis(now);
-
-  const existing = await prisma.attendanceSession.findFirst({
-    where: {
-      teachingId,
-      branchId,
-      date: today,
-      startTime: schedule.hour,
-    },
-  });
-
-  if (existing) return existing;
-
-  const currentMinutes = toMinutes(now);
-  const startMinutes = scheduleHourToMinutes(schedule.hour);
-  if (!isTeacherCheckInWindow(currentMinutes, startMinutes, courseDurationMinutes)) {
-    return null;
-  }
-
-  return prisma.attendanceSession.create({
-    data: {
-      teachingId,
-      branchId,
-      date: today,
-      startTime: schedule.hour,
-      endTime: end,
-      schoolYearId: schedule.teaching!.schoolYearId!,
-    },
-  });
+  };
 }
 
 async function findSessionForStudent(studentId: string, branchId: string) {
@@ -523,84 +462,25 @@ async function findSessionForStudent(studentId: string, branchId: string) {
 }
 
 async function findSessionForTeacher(teacherId: string, branchId: string) {
-  const now = nowLocal();
-  const current = toMinutes(now);
-  const courseDurationMinutes = await getBranchCourseDurationMinutes(branchId);
-
-  const dayMap = {
-    0: Day.Dimanche,
-    1: Day.Lundi,
-    2: Day.Mardi,
-    3: Day.Mercredi,
-    4: Day.Jeudi,
-    5: Day.Vendredi,
-    6: Day.Samedi,
-  } as const;
-
-  const today = dayMap[getParisWeekday(now) as keyof typeof dayMap];
-
-  const teacher = await prisma.teacher.findFirst({
-    where: {
-      id: teacherId,
-      branchMember: { branchId },
-    },
-    include: {
-      teaching: {
-        where: {
-          OR: [{ branchId }, { branchId: null, classe: { branchId } }],
-        },
-        include: {
-          Schedule: {
-            where: { day: today },
-          },
-          cours: true,
-          classe: true,
-        },
-      },
-    },
-  });
-
-  if (!teacher) return null;
-
-  for (const teaching of teacher.teaching) {
-    for (const schedule of teaching.Schedule) {
-      if (!schedule.hour) continue;
-
-      const start = scheduleHourToMinutes(schedule.hour);
-      const isActive = isTeacherCheckInWindow(
-        current,
-        start,
-        courseDurationMinutes,
-      );
-
-      if (!isActive) continue;
-
-      const session = await getOrCreateSession(
-        teaching.id,
-        schedule.id,
-        branchId,
-        courseDurationMinutes,
-      );
-      if (!session) continue;
-
-      return prisma.attendanceSession.findFirst({
-        where: { id: session.id, branchId },
-        include: sessionInclude(),
-      });
-    }
-  }
-
-  return null;
+  return findTeacherCheckInSession(teacherId, branchId, sessionInclude());
 }
 
-function sessionInclude() {
+function buildAlreadyCheckedInResult(
+  lookup: AttendancePersonLookup,
+  status: AttendanceStatus,
+  sessionLabel: string,
+  checkedAt: Date,
+): AttendanceCheckInResult {
+  const isKnownCheckInStatus = status === "PRESENT" || status === "LATE";
   return {
-    teaching: {
-      include: {
-        cours: { select: { nameCours: true } },
-        classe: { select: { codeClasse: true, nameClasse: true } },
-      },
-    },
+    ok: false,
+    message: `${lookup.name} a deja pointe pour ce cours a cette heure.`,
+    personType: lookup.personType,
+    person: lookup,
+    status: isKnownCheckInStatus ? status : undefined,
+    statusLabel: status === "LATE" ? "Retard" : status === "PRESENT" ? "Present" : undefined,
+    sessionLabel,
+    checkedAt: checkedAt.toISOString(),
   };
 }
 
@@ -643,6 +523,31 @@ async function performStudentCheckIn(
 
   const status = resolveStatusFromTime(session.startTime);
   const now = nowLocal();
+  const cours = session.teaching?.cours?.nameCours ?? "Cours";
+  const classe =
+    session.teaching?.classe?.codeClasse ??
+    session.teaching?.classe?.nameClasse ??
+    lookup.roleLabel;
+  const sessionLabel = `${classe} • ${cours}`;
+
+  const existingAttendance = await prisma.studentAttendance.findUnique({
+    where: {
+      branchId_sessionId_studentId: {
+        branchId,
+        sessionId: session.id,
+        studentId: student.id,
+      },
+    },
+  });
+
+  if (existingAttendance) {
+    return buildAlreadyCheckedInResult(
+      lookup,
+      existingAttendance.status,
+      sessionLabel,
+      existingAttendance.recordedAt,
+    );
+  }
 
   await prisma.studentAttendance.upsert({
     where: {
@@ -665,13 +570,7 @@ async function performStudentCheckIn(
     },
   });
 
-  const cours = session.teaching?.cours?.nameCours ?? "Cours";
-  const classe =
-    session.teaching?.classe?.codeClasse ??
-    session.teaching?.classe?.nameClasse ??
-    lookup.roleLabel;
-
-  return buildSuccessResult(lookup, status, `${classe} • ${cours}`, now);
+  return buildSuccessResult(lookup, status, sessionLabel, now);
 }
 
 async function performTeacherCheckIn(
@@ -684,20 +583,60 @@ async function performTeacherCheckIn(
   if (!session) {
     return {
       ok: false,
-      message: "Aucune session de cours disponible pour cet enseignant maintenant.",
+      message:
+        "Aucune session de cours disponible pour cet enseignant maintenant. Le pointage est ouvert a partir de 15 minutes avant le debut du cours.",
       personType: "teacher",
       person: lookup,
     };
   }
 
-  const status = resolveStatusFromTime(session.startTime);
+  const hydratedSession = await prisma.attendanceSession.findFirst({
+    where: { id: session.id, branchId },
+    include: sessionInclude(),
+  });
+
+  if (!hydratedSession) {
+    return {
+      ok: false,
+      message: "Session de cours introuvable pour cet enseignant.",
+      personType: "teacher",
+      person: lookup,
+    };
+  }
+
+  const status = resolveStatusFromTime(hydratedSession.startTime);
   const now = nowLocal();
+  const cours = hydratedSession.teaching?.cours?.nameCours ?? "Cours";
+  const classe =
+    hydratedSession.teaching?.classe?.codeClasse ??
+    hydratedSession.teaching?.classe?.nameClasse ??
+    "Classe";
+  const sessionLabel = `${classe} • ${cours}`;
+
+  const existingAttendance = await prisma.teacherAttendance.findUnique({
+    where: {
+      teacherId_sessionId_branchId: {
+        teacherId: teacher.id,
+        sessionId: hydratedSession.id,
+        branchId,
+      },
+    },
+  });
+
+  if (existingAttendance) {
+    return buildAlreadyCheckedInResult(
+      lookup,
+      existingAttendance.status,
+      sessionLabel,
+      existingAttendance.date,
+    );
+  }
 
   await prisma.teacherAttendance.upsert({
     where: {
       teacherId_sessionId_branchId: {
         teacherId: teacher.id,
-        sessionId: session.id,
+        sessionId: hydratedSession.id,
         branchId,
       },
     },
@@ -707,20 +646,14 @@ async function performTeacherCheckIn(
     },
     create: {
       branchId,
-      sessionId: session.id,
+      sessionId: hydratedSession.id,
       teacherId: teacher.id,
       status,
       date: now,
     },
   });
 
-  const cours = session.teaching?.cours?.nameCours ?? "Cours";
-  const classe =
-    session.teaching?.classe?.codeClasse ??
-    session.teaching?.classe?.nameClasse ??
-    "Classe";
-
-  return buildSuccessResult(lookup, status, `${classe} • ${cours}`, now);
+  return buildSuccessResult(lookup, status, sessionLabel, now);
 }
 
 async function performPersonnelCheckIn(
@@ -732,6 +665,25 @@ async function performPersonnelCheckIn(
   const today = new Date(now);
   today.setHours(0, 0, 0, 0);
   const status = resolvePersonnelStatus();
+
+  const existingAttendance = await prisma.personnelAttendance.findUnique({
+    where: {
+      personnelId_date_branchId: {
+        personnelId: personnel.id,
+        date: today,
+        branchId,
+      },
+    },
+  });
+
+  if (existingAttendance?.checkIn) {
+    return buildAlreadyCheckedInResult(
+      lookup,
+      existingAttendance.status,
+      "Presence journaliere",
+      existingAttendance.checkIn,
+    );
+  }
 
   await prisma.personnelAttendance.upsert({
     where: {

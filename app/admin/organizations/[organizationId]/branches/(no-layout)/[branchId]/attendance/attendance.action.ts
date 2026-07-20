@@ -19,6 +19,11 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
 import {
+  getBranchCourseDurationMinutes,
+  getOrCreateTeacherAttendanceSession,
+  listTeacherScheduleCandidates,
+} from "@/lib/attendance-teacher-session";
+import {
   buildSchoolReportContext,
   schoolReportBranchSelect,
 } from "@/lib/reports/resolve-school-branding";
@@ -634,92 +639,14 @@ export async function getOrCreateSession(
   scheduleId: string,
 ) {
   const { branchId } = await getCurrentBranch();
-  const now = nowLocal();
-  const creneau = await prisma.creneau.findFirst({
-    where: { branchId, isArchived: false },
-    orderBy: { createdAt: "desc" },
-    select: { durationCourse: true },
-  });
-  const courseDurationMinutes =
-    creneau?.durationCourse ?? TEACHER_COURSE_DURATION_MINUTES;
+  const courseDurationMinutes = await getBranchCourseDurationMinutes(branchId);
 
-  const schedule = await prisma.schedule.findFirst({
-    where: {
-      id: scheduleId,
-      teachingId,
-      OR: [
-        {
-          branchMember: {
-            branchId,
-          },
-        },
-        {
-          teaching: {
-            branchId,
-          },
-        },
-        {
-          teaching: {
-            branchId: null,
-            classe: {
-              branchId,
-            },
-          },
-        },
-      ],
-    },
-    include: {
-      teaching: true,
-    },
-  });
-
-  if (!schedule || !schedule.teachingId || !schedule.hour) return null;
-  if (
-    schedule.teaching?.branchId &&
-    schedule.teaching.branchId !== branchId
-  ) {
-    return null;
-  }
-
-  // 🔥 NORMALISATION
-  const start = new Date(schedule.hour);
-  start.setSeconds(0, 0);
-
-  const end = new Date(start.getTime() + courseDurationMinutes * 60 * 1000);
-
-  const today = startOfTodayParis(now);
-
-  // 1. check existing session (branch SAFE)
-  const existing = await prisma.attendanceSession.findFirst({
-    where: {
-      teachingId,
-      branchId, // 🔥 IMPORTANT
-      date: today,
-      startTime: schedule.hour,
-    },
-  });
-
-  if (existing) return existing;
-
-  // 2. time window
-  const currentMinutes = toMinutes(now);
-  const startMinutes = scheduleHourToMinutes(schedule.hour);
-
-  if (!isTeacherCheckInWindow(currentMinutes, startMinutes, courseDurationMinutes)) {
-    return null;
-  }
-
-  // 3. create session
-  return prisma.attendanceSession.create({
-    data: {
-      teachingId,
-      branchId, // 🔥 IMPORTANT
-      date: today,
-      startTime: schedule.hour,
-      endTime: end,
-      schoolYearId: schedule.teaching!.schoolYearId!,
-    },
-  });
+  return getOrCreateTeacherAttendanceSession(
+    teachingId,
+    scheduleId,
+    branchId,
+    courseDurationMinutes,
+  );
 }
 
 export async function autoMarkTeacherAbsent() {
@@ -906,20 +833,7 @@ export async function getTodayTeachers(search?: string) {
 
 export async function getActiveTeachersNow(search?: string) {
   const { branchId } = await getCurrentBranch();
-  const now = nowLocal();
-  const current = toMinutes(now);
-
-  const dayMap = {
-    0: Day.Dimanche,
-    1: Day.Lundi,
-    2: Day.Mardi,
-    3: Day.Mercredi,
-    4: Day.Jeudi,
-    5: Day.Vendredi,
-    6: Day.Samedi,
-  } as const;
-
-  const dayj = dayMap[getParisWeekday(now) as keyof typeof dayMap];
+  const courseDurationMinutes = await getBranchCourseDurationMinutes(branchId);
 
   const teachers = await prisma.teacher.findMany({
     where: {
@@ -950,53 +864,39 @@ export async function getActiveTeachersNow(search?: string) {
           },
         },
       },
-
-      teaching: {
-        where: {
-          OR: [{ branchId }, { branchId: null }],
-        },
-        include: {
-          Schedule: {
-            where: {
-              day: dayj,
-            },
-          },
-        },
-      },
     },
   });
 
   const results: any[] = [];
 
-  for (const t of teachers) {
+  for (const teacher of teachers) {
+    const candidates = await listTeacherScheduleCandidates(
+      teacher.id,
+      branchId,
+    );
+
     let activeSession = null;
 
-    for (const teach of t.teaching) {
-      for (const s of teach.Schedule) {
-        if (!s.hour) continue;
+    for (const candidate of candidates) {
+      const session = await getOrCreateTeacherAttendanceSession(
+        candidate.teachingId,
+        candidate.scheduleId,
+        branchId,
+        courseDurationMinutes,
+      );
 
-        const start = scheduleHourToMinutes(s.hour);
-        const isActive = isTeacherCheckInWindow(current, start);
-
-        if (!isActive) continue;
-
-        const session = await getOrCreateSession(teach.id, s.id);
-
-        if (session) {
-          activeSession = session;
-          break;
-        }
+      if (session) {
+        activeSession = session;
+        break;
       }
-
-      if (activeSession) break;
     }
 
     if (!activeSession) continue;
 
-    const user = t.branchMember?.member?.user;
+    const user = teacher.branchMember?.member?.user;
 
     results.push({
-      id: t.id,
+      id: teacher.id,
       user: {
         name: user?.name,
       },
