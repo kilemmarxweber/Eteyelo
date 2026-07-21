@@ -169,8 +169,9 @@ export async function ensureCentreDefaultParent(params: {
     select: { id: true, parent: { select: { id: true } } },
   });
 
-  if (existingBranchMember?.parent?.id) {
-    return existingBranchMember.parent.id;
+  const existingParentId = existingBranchMember?.parent[0]?.id;
+  if (existingParentId) {
+    return existingParentId;
   }
 
   const branchMember =

@@ -18,7 +18,7 @@ import { getBranchTypeHelpContent } from "../lib/branch-type-help";
 import { branchTypeSchema } from "../lib/schemas/extended-branch";
 import { ORG_ROLE } from "../lib/permissions";
 import { createAttestationPdfOutput } from "../lib/pdf/attestation-layout";
-import { createBrevetPdfOutputSync } from "../lib/pdf/brevet-layout";
+import { createBrevetPdfOutputSync } from "../lib/pdf/brevet-layout-server";
 import { createReleveNotesPdfOutput } from "../lib/pdf/releve-notes-layout";
 
 function test(name: string, assertion: () => void) {

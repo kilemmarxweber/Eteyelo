@@ -1,9 +1,6 @@
 import jsPDF from "jspdf";
 
-import {
-  loadBrevetCertificateTemplate,
-  getBrevetCertificateTemplateDataUrlSync,
-} from "@/lib/pdf/brevet-certificate-template";
+import { loadBrevetCertificateTemplate } from "@/lib/pdf/brevet-certificate-template";
 import {
   downloadPdfOutput,
   finalizePdfDocument,
@@ -133,12 +130,6 @@ export function buildBrevetPdfDoc(
   );
 
   return doc;
-}
-
-export function createBrevetPdfOutputSync(input: BrevetPdfInput): PdfOutput {
-  const templateDataUrl = getBrevetCertificateTemplateDataUrlSync();
-  const fileName = `certificat-${safePdfFilePart(input.brevetNumber || input.studentName)}.pdf`;
-  return finalizePdfDocument(buildBrevetPdfDoc(input, templateDataUrl), fileName);
 }
 
 export async function createBrevetPdfOutput(input: BrevetPdfInput): Promise<PdfOutput> {

@@ -6,10 +6,10 @@ import {
   generateAttestationPdf,
 } from "../lib/pdf/attestation-layout";
 import {
-  createBrevetPdfOutputSync,
   generateBrevetPdf,
   buildCertificateParagraphsForTest,
 } from "../lib/pdf/brevet-layout";
+import { createBrevetPdfOutputSync } from "../lib/pdf/brevet-layout-server";
 import {
   finalizePdfDocument,
   safePdfFilePart,

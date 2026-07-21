@@ -39,7 +39,11 @@ import { IParent } from "@/src/interfaces/Parent";
 import { studentSchema } from "@/src/interfaces/Student";
 import generateUsername from "@/src/hooks/generateUsername";
 
-type StudentFormValues = z.infer<typeof studentSchema>;
+const studentFormSchemaBase = studentSchema.extend({
+  parentId: z.string().optional(),
+});
+
+type StudentFormValues = z.infer<typeof studentFormSchemaBase>;
 type StudentInitialData = Partial<StudentFormValues>;
 
 interface StudentUpFormProps extends HTMLAttributes<HTMLDivElement> {
@@ -85,10 +89,11 @@ export function StudentUpForm({
   const formSchema = useMemo(
     () =>
       hidesParent && mode === "create"
-        ? studentSchema.extend({
-            parentId: z.string().optional(),
-          })
-        : studentSchema,
+        ? studentFormSchemaBase
+        : studentFormSchemaBase.refine((data) => Boolean(data.parentId?.trim()), {
+            path: ["parentId"],
+            message: "Veuillez selectionner un parent",
+          }),
     [hidesParent, mode],
   );
   const [Parents, setParents] = useState<IParent[]>([]);
@@ -152,6 +157,7 @@ export function StudentUpForm({
       if (mode === "create") {
         const [result, err] = await createStudentAction({
           ...data,
+          parentId: data.parentId ?? "",
         });
         if (err) throw new Error(err.message);
         if (!result?.ok) throw new Error(result?.message);
@@ -176,6 +182,7 @@ export function StudentUpForm({
       } else {
         const [result, err] = await updateStudentAction({
           ...data,
+          parentId: data.parentId ?? "",
         });
         if (err) throw new Error(err.message);
         if (!result?.ok) throw new Error(result?.message);

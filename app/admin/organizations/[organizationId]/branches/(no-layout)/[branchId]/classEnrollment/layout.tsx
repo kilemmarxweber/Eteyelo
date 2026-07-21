@@ -72,6 +72,7 @@ export default function RootLayout({
   }, [classeId]);
 
   const hasClasse = !!classeId;
+  const peopleLabels = useBranchPeopleLabels();
   if (isPending) {
     return <Loading />;
   }
@@ -80,7 +81,6 @@ export default function RootLayout({
     return <NotFoundView />;
   }
   const canCreateEnrollment = canManageOrganization(session);
-  const peopleLabels = useBranchPeopleLabels();
   return (
     <Layout fadedBelow fixedHeight>
       <LayoutBody className="flex flex-col space-y-6" fixedHeight>
