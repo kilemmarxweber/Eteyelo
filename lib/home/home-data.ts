@@ -37,6 +37,7 @@ export type HomePartner = {
 };
 
 export type NewSchool = {
+  id: string;
   name: string;
   city: string;
   date: string;
@@ -231,21 +232,25 @@ export const galleryImages = [
 
 const fallbackNewSchools: NewSchool[] = [
   {
+    id: "fallback-new-school-1",
     name: "Groupe Scolaire Sainte Marie",
     city: "Kinshasa",
     date: "Inscrite recemment",
   },
   {
+    id: "fallback-new-school-2",
     name: "Academie Les Genies",
     city: "Lubumbashi",
     date: "Inscrite recemment",
   },
   {
+    id: "fallback-new-school-3",
     name: "Institut Moderne La Reussite",
     city: "Goma",
     date: "Inscrite recemment",
   },
   {
+    id: "fallback-new-school-4",
     name: "Complexe Scolaire Lumiere",
     city: "Kolwezi",
     date: "Inscrite recemment",
@@ -481,6 +486,7 @@ export async function getHomeData(): Promise<HomeData> {
     const dynamicNewSchools: NewSchool[] = branches
       .slice(0, 4)
       .map((branch) => ({
+        id: branch.id,
         name: branch.name,
         city: branch.ville || branch.pays || "RDC",
         date: formatRegistrationDate(branch.createdAt),

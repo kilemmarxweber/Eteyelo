@@ -16,6 +16,10 @@ import { registrationSchema } from "@/src/interfaces/registration";
 import { creneauSchema } from "@/src/interfaces/creneau";
 import { createOrganizationMemberAction } from "../../../../members/actions";
 import { ensurePrimaryAcademicStructure } from "@/lib/primary-academic-structure";
+import { getPeopleLabels } from "@/lib/people-labels";
+import { isCentreFormationBranch } from "@/lib/branch-capabilities";
+import { ensureCentreDefaultParent } from "@/lib/centre-default-parent";
+import { validateRegistrationParentInput } from "@/src/interfaces/registration";
 
 async function requireRegistrationContext() {
   const context = await requireBranchContext();
@@ -188,7 +192,7 @@ export const getRegistrationOptionsAction = action.handler(async () => {
     typebranch === "PRIMAIRE"
       ? await ensurePrimaryAcademicStructure(prisma, branchId)
       : null;
-  const [schoolYears, classes, options, branch, annualCounts, creneaux] = await Promise.all([
+  const [schoolYears, classes, options, sections, branch, annualCounts, creneaux] = await Promise.all([
     prisma.schoolYear.findMany({
       where: { branchId, isArchived: false },
       orderBy: { startYear: "desc" },
@@ -217,7 +221,20 @@ export const getRegistrationOptionsAction = action.handler(async () => {
     prisma.option.findMany({
       where: { branchId, statusOption: true },
       orderBy: { nameOption: "asc" },
-      select: { id: true, nameOption: true },
+      select: {
+        id: true,
+        nameOption: true,
+        codeOption: true,
+        sectionId: true,
+        section: {
+          select: { id: true, nameSection: true, codeSection: true },
+        },
+      },
+    }),
+    prisma.section.findMany({
+      where: { branchId, statusSection: true },
+      orderBy: { nameSection: "asc" },
+      select: { id: true, nameSection: true, codeSection: true },
     }),
     prisma.branch.findUniqueOrThrow({
       where: { id: branchId },
@@ -238,6 +255,7 @@ export const getRegistrationOptionsAction = action.handler(async () => {
     schoolYears,
     classes,
     options,
+    sections,
     creneaux,
     levels: [...getClassLevelsForBranch(typebranch)],
     typebranch,
@@ -555,6 +573,24 @@ export const createRegistrationFlowAction = action
   .input(registrationSchema)
   .handler(async ({ input }) => {
     const { branchId, organizationId, typebranch, userId } = await requireRegistrationContext();
+    const peopleLabels = getPeopleLabels(typebranch);
+    const parentValidationError = validateRegistrationParentInput(typebranch, input);
+    if (parentValidationError) {
+      throw new Error(parentValidationError);
+    }
+    const usesDefaultParent = isCentreFormationBranch(typebranch);
+    let centreDefaultParentId: string | null = null;
+    if (usesDefaultParent) {
+      const branch = await prisma.branch.findUnique({
+        where: { id: branchId },
+        select: { name: true },
+      });
+      centreDefaultParentId = await ensureCentreDefaultParent({
+        branchId,
+        organizationId,
+        branchName: branch?.name,
+      });
+    }
     const request = input.requestId
       ? (await prisma.$queryRaw<Array<{ id: string; photoUrl: string | null }>>(Prisma.sql`
           SELECT "id", "photoUrl" FROM "RegistrationRequest" WHERE "id" = ${input.requestId}
@@ -584,11 +620,11 @@ export const createRegistrationFlowAction = action
         input.parentMode === "existing" ? prisma.parent.findFirst({ where: { id: input.parentId, branchMember: { branchId, member: { organizationId } } }, select: { id: true } }) : null,
       ]);
       if (!schoolYear) throw new Error("Année scolaire introuvable dans cette branche.");
-      if (input.studentMode === "existing" && !existingStudent) throw new Error("Élève introuvable dans cette branche.");
-      if (input.parentMode === "existing" && !existingParent) throw new Error("Parent introuvable dans cette branche.");
+      if (input.studentMode === "existing" && !existingStudent) throw new Error(`${peopleLabels.student} introuvable dans cette branche.`);
+      if (input.parentMode === "existing" && !existingParent && !usesDefaultParent) throw new Error("Parent introuvable dans cette branche.");
 
       let newParentMemberId: string | null = null;
-      if (input.parentMode === "new" && input.parent) {
+      if (!usesDefaultParent && input.parentMode === "new" && input.parent) {
         const duplicate = await prisma.user.findFirst({
           where: {
             OR: [
@@ -623,7 +659,7 @@ export const createRegistrationFlowAction = action
           where: { email: generatedStudentEmail.toLowerCase() },
           select: { id: true },
         });
-        if (duplicate) throw new Error("Un compte élève existe déjà avec cet email. Recherchez-le avant de continuer.");
+        if (duplicate) throw new Error(`Un compte ${peopleLabels.studentLower} existe déjà avec cet email. Recherchez-le avant de continuer.`);
         const created = await createOrganizationMemberAction({
           ...input.student,
           email: generatedStudentEmail,
@@ -639,7 +675,8 @@ export const createRegistrationFlowAction = action
       }
 
       const result = await prisma.$transaction(async (tx) => {
-        let parentId = existingParent?.id ?? existingStudent?.parentId;
+        let parentId =
+          centreDefaultParentId ?? existingParent?.id ?? existingStudent?.parentId;
         if (newParentMemberId) {
           const branchMember = await tx.branchMember.create({ data: { branchId, memberId: newParentMemberId, role: "PARENT" } });
           const parent = await tx.parent.create({ data: { branchMemberId: branchMember.id } });
@@ -673,7 +710,9 @@ export const createRegistrationFlowAction = action
               category: input.student.category,
               statusStudent: true,
               observation: input.student.observation || null,
-              provenanceEcole: input.student.provenanceEcole || null,
+              provenanceEcole: isCentreFormationBranch(typebranch)
+                ? null
+                : input.student.provenanceEcole || null,
               placeOfBirth: input.student.placeOfBirth || null,
               suppositionClasseName: input.level,
               suppositionOption: input.optionId || null,
@@ -683,7 +722,7 @@ export const createRegistrationFlowAction = action
         } else if (studentId && existingStudent?.parentId !== parentId) {
           await tx.student.update({ where: { id: studentId }, data: { parentId, statusStudent: true } });
         }
-        if (!studentId) throw new Error("Élève requis pour l'inscription.");
+        if (!studentId) throw new Error(`${peopleLabels.student} requis pour l'inscription.`);
 
         const duplicateEnrollment = await tx.classEnrollment.findFirst({
           where: {
@@ -695,7 +734,7 @@ export const createRegistrationFlowAction = action
           select: { id: true },
         });
         if (duplicateEnrollment) {
-          throw new Error("Cet élève est déjà inscrit pour cette année scolaire.");
+          throw new Error(`Cet ${peopleLabels.studentLower} est déjà inscrit pour cette année scolaire.`);
         }
 
         const classe = await findAvailableClassForLevel(tx, {
@@ -728,7 +767,7 @@ export const createRegistrationFlowAction = action
     } catch (error) {
       await Promise.all(createdUserIds.map((id) => prisma.user.delete({ where: { id } }).catch(() => undefined)));
       if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002")
-        throw new Error("Cet élève est déjà inscrit pour cette année scolaire.");
+        throw new Error(`Cet ${peopleLabels.studentLower} est déjà inscrit pour cette année scolaire.`);
       throw error;
     }
   });

@@ -9,7 +9,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { EnrollmentUpForm } from "./Enrollment-form"; // Importez votre formulaire d'éditionimport { IclassEnrollment } from"@/src/interfaces/Student";
+import { useBranchPeopleLabels } from "@/hooks/use-branch-people-labels";
+import { EnrollmentUpForm } from "./Enrollment-form";
 import { IclassEnrollment } from "@/src/interfaces/classEnrollment";
 import { useRefresh } from "@/src/hooks/RefreshContext";
 
@@ -27,6 +28,7 @@ export function UpdateStudentDialog({
   classEnrollment,
   ...props
 }: UpdateStudentDialogProps) {
+  const peopleLabels = useBranchPeopleLabels();
   const { refresh } = useRefresh();
 
   const handleUpdate = () => {
@@ -42,11 +44,8 @@ export function UpdateStudentDialog({
     <Dialog {...props}>
       <DialogContent size="lg">
         <DialogHeader>
-          <DialogTitle>Éditer l'élève</DialogTitle>
-          <DialogDescription>
-            Modifiez les détails de l'élève ici. Cliquez sur Enregistrer lorsque
-            vous êtes fait.
-          </DialogDescription>
+          <DialogTitle>{peopleLabels.editTitle}</DialogTitle>
+          <DialogDescription>{peopleLabels.editDescription}</DialogDescription>
         </DialogHeader>
         <EnrollmentUpForm
           mode="update"

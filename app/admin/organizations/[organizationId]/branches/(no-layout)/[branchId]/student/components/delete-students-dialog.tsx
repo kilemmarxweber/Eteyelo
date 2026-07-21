@@ -21,6 +21,7 @@ import {
 import { IStudent } from "@/src/interfaces/Student";
 import { archiveStudentAction } from "../student.action";
 import { useRefresh } from "@/src/hooks/RefreshContext";
+import { useBranchPeopleLabels } from "@/hooks/use-branch-people-labels";
 
 interface DeleteStudentsDialogProps extends React.ComponentPropsWithoutRef<
   typeof Dialog
@@ -36,6 +37,7 @@ export function DeleteStudentsDialog({
   students,
   ...props
 }: DeleteStudentsDialogProps) {
+  const peopleLabels = useBranchPeopleLabels();
   const [isArchivePending, startArchiveTransition] = useTransition();
 
   const { refresh } = useRefresh();
@@ -56,7 +58,9 @@ export function DeleteStudentsDialog({
       }
       if (!hasError) {
         toast.success(
-          students.length === 1 ? "Élève archivé" : "Élèves archivés",
+          students.length === 1
+            ? `${peopleLabels.student} archivé`
+            : `${peopleLabels.studentPlural} archivés`,
         );
         refresh();
         onSuccess?.();
@@ -81,13 +85,13 @@ export function DeleteStudentsDialog({
         <DialogHeader>
           <DialogTitle>
             {count === 1
-              ? "Archiver l'élève ?"
-              : `Archiver ${count} élèves ?`}
+              ? peopleLabels.archiveTitle
+              : `Archiver ${count} ${peopleLabels.studentPluralLower} ?`}
           </DialogTitle>
           <DialogDescription>
             {count === 1
-              ? "L'élève sera masqué des listes actives mais l'historique sera conservé."
-              : "Ces élèves seront masqués des listes actives mais l'historique sera conservé."}
+              ? peopleLabels.archiveDescriptionSingular
+              : peopleLabels.archiveDescriptionPlural}
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="gap-2 sm:space-x-0">

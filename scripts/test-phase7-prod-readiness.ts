@@ -18,7 +18,7 @@ import { getBranchTypeHelpContent } from "../lib/branch-type-help";
 import { branchTypeSchema } from "../lib/schemas/extended-branch";
 import { ORG_ROLE } from "../lib/permissions";
 import { createAttestationPdfOutput } from "../lib/pdf/attestation-layout";
-import { createBrevetPdfOutput } from "../lib/pdf/brevet-layout";
+import { createBrevetPdfOutputSync } from "../lib/pdf/brevet-layout";
 import { createReleveNotesPdfOutput } from "../lib/pdf/releve-notes-layout";
 
 function test(name: string, assertion: () => void) {
@@ -128,7 +128,7 @@ test("E2E simule centre : creation apprenant puis brevet", () => {
   const help = getBranchTypeHelpContent("CENTRE_FORMATION");
   assert.match(help.sections[0].items.join(" "), /brevet/i);
 
-  const pdf = createBrevetPdfOutput({
+  const pdf = createBrevetPdfOutputSync({
     organizationName: "Org",
     branchName: "Centre",
     studentName: "Marie Dupont",

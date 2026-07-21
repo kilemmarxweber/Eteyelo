@@ -6,6 +6,7 @@ import { MapPin, Megaphone } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { useBranchPeopleLabels } from "@/hooks/use-branch-people-labels";
 import type { StudentAnnouncementsData } from "@/lib/student-announcements-types";
 
 type StudentAnnouncementsSectionProps = {
@@ -22,6 +23,7 @@ const CARD_ACCENTS = [
 export function StudentAnnouncementsSection({
   announcements,
 }: StudentAnnouncementsSectionProps) {
+  const peopleLabels = useBranchPeopleLabels();
   const { items } = announcements;
 
   return (
@@ -31,14 +33,14 @@ export function StudentAnnouncementsSection({
         <div>
           <h3 className="text-sm font-semibold">Annonces de l&apos;ecole</h3>
           <p className="text-xs text-muted-foreground">
-            Annonces generales et annonces de la classe de l&apos;eleve
+            Annonces generales et annonces de la classe de {peopleLabels.studentDefinite}
           </p>
         </div>
       </div>
 
       {items.length === 0 ? (
         <div className="rounded-xl border border-dashed p-8 text-center text-sm text-muted-foreground">
-          Aucune annonce disponible pour cet eleve.
+          Aucune annonce disponible pour cet {peopleLabels.studentLower}.
         </div>
       ) : (
         <div className="space-y-3">

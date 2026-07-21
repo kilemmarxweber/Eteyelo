@@ -22,6 +22,7 @@ import { useRefresh } from "@/src/hooks/RefreshContext";
 import { useParams } from "next/navigation";
 import { NotFoundView } from "@/components/not-found-view";
 import { useSession } from "@/lib/auth-client";
+import { useBranchPeopleLabels } from "@/hooks/use-branch-people-labels";
 import {
   canAccessTeachingArea,
   canManageOrganization,
@@ -79,6 +80,7 @@ export default function RootLayout({
     return <NotFoundView />;
   }
   const canCreateEnrollment = canManageOrganization(session);
+  const peopleLabels = useBranchPeopleLabels();
   return (
     <Layout fadedBelow fixedHeight>
       <LayoutBody className="flex flex-col space-y-6" fixedHeight>
@@ -86,7 +88,7 @@ export default function RootLayout({
           title={
             hasClasse
               ? `Inscriptions - ${classes?.codeClasse || ""}`
-              : "Gérer les inscriptions des élèves"
+              : peopleLabels.enrollmentsPageTitle
           }
           badge={
             <Badge

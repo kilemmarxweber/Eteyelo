@@ -14,6 +14,12 @@ import {
   isLinkOnlyBranch,
 } from "../lib/extended-student-import";
 import { generateBrevetPdf } from "../lib/pdf/brevet-layout";
+import { hidesParentManagement, hidesProvenanceEcole } from "../lib/branch-capabilities";
+import {
+  buildCentreSystemParentAddress,
+  buildCentreSystemParentEmail,
+  buildCentreSystemParentUsername,
+} from "../lib/centre-default-parent";
 import { getTrainingLabels, usesTrainingLabels } from "../lib/training-labels";
 
 function test(name: string, assertion: () => void) {
@@ -79,6 +85,32 @@ test("libelles centre de formation", () => {
 
 test("generateBrevetPdf est invocable", () => {
   assert.equal(typeof generateBrevetPdf, "function");
+});
+
+test("centre masque la gestion des parents", () => {
+  assert.equal(hidesParentManagement("CENTRE_FORMATION"), true);
+  assert.equal(hidesProvenanceEcole("CENTRE_FORMATION"), true);
+  assert.equal(hidesProvenanceEcole("SECONDAIRE"), false);
+  assert.match(buildCentreSystemParentEmail("branch-centre-1"), /branch-centre-1/);
+  assert.match(buildCentreSystemParentUsername("branch-centre-1"), /^parent\.systeme\./);
+  assert.equal(
+    buildCentreSystemParentAddress({
+      branchName: "CFPA Kinshasa",
+      adresse: "12 Av. de la Formation",
+      commune: "Gombe",
+      ville: "Kinshasa",
+      province: "Kinshasa",
+      pays: "RDC",
+    }),
+    "12 Av. de la Formation, Gombe, Kinshasa, Kinshasa, RDC",
+  );
+  assert.equal(
+    buildCentreSystemParentAddress({
+      branchName: "CFPA Kinshasa",
+      ville: "Kinshasa",
+    }),
+    "Kinshasa",
+  );
 });
 
 console.log("\nTous les tests Phase 4 (centre) sont passes.");

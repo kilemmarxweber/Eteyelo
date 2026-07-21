@@ -13,6 +13,7 @@ import { ISchoolYear } from "@/src/interfaces/SchoolYear";
 import { getSchoolYearsAction } from "../../../schoolYear/schoolYear.action";
 import { useSession } from "@/lib/auth-client";
 import { getCurrentSchoolYearName } from "@/lib/school-year-utils";
+import { useBranchPeopleLabels } from "@/hooks/use-branch-people-labels";
 
 interface DataTableToolbarProps<TData> {
   table: Table<TData>;
@@ -36,6 +37,7 @@ export function DataTableToolbar<TData>({
   const [loading, setLoading] = useState(true);
   const { data: session } = useSession();
   const branchId = session?.branch?.id ?? session?.session?.activeBranchId;
+  const peopleLabels = useBranchPeopleLabels();
   useEffect(() => {
     const fetchSchoolYears = async () => {
       try {
@@ -65,7 +67,7 @@ export function DataTableToolbar<TData>({
     <div className="flex items-center justify-between">
       <div className="flex flex-1 items-center space-x-2">
         <Input
-          placeholder="chercher un élève..."
+          placeholder={peopleLabels.searchPlaceholder}
           value={
             (table.getColumn("username")?.getFilterValue() as string) ?? ""
           }

@@ -147,6 +147,18 @@ export function requiresOptionForClass(
   return false;
 }
 
+/** Humanités (1è–4è) ou programme/filière en centre / université. */
+export function requiresSectionForClass(
+  typebranch: unknown,
+  level: string,
+): boolean {
+  const branchType = normalizeBranchType(typebranch);
+  if (branchType === "CENTRE_FORMATION" || branchType === "UNIVERSITE") {
+    return Boolean(level?.trim());
+  }
+  return branchType === "SECONDAIRE" && isHumanitesLevel(level);
+}
+
 export function allowsOptionForBranch(typebranch: unknown): boolean {
   const branchType = normalizeBranchType(typebranch);
   return (

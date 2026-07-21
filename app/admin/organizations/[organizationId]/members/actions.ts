@@ -46,6 +46,19 @@ function errMessage(err: unknown): string {
 function zodFirstMessage(err: ZodError): string {
   return err.issues[0]?.message ?? "Données invalides.";
 }
+
+function normalizeStatusUser(
+  value: string | boolean | undefined,
+): boolean | undefined {
+  if (value === undefined) return undefined;
+  if (typeof value === "boolean") return value;
+
+  const normalized = value.trim().toLowerCase();
+  if (normalized === "true") return true;
+  if (normalized === "false") return false;
+
+  return undefined;
+}
 type CreateOrganizationMemberResult =
   | {
       ok: true;
@@ -147,7 +160,7 @@ export async function createOrganizationMemberAction(
         telephone,
         dateOfBirth,
         address,
-        statusUser,
+        statusUser: normalizeStatusUser(statusUser),
       },
     });
     const user = (created as { user?: { id: string } } | null)?.user;

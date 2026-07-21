@@ -201,9 +201,14 @@ const NON_UNIVERSITY_TYPES = [
 test("libelles ESU (Etudiant, Professeur, Auditoire) reserves a UNIVERSITE", () => {
   const uniPeople = getPeopleLabels("UNIVERSITE");
   assert.equal(uniPeople.student, "Étudiant");
+  assert.equal(uniPeople.matriculeLabel, "Matricule étudiant");
   assert.equal(uniPeople.teacher, "Professeur");
   assert.equal(getClassDisplayLabel("UNIVERSITE"), "Auditoire");
   assert.equal(getClassDisplayLabelPlural("UNIVERSITE"), "Auditoires");
+
+  const centrePeople = getPeopleLabels("CENTRE_FORMATION");
+  assert.equal(centrePeople.student, "Apprenant");
+  assert.equal(centrePeople.matriculeAutoLabel, "Matricule apprenant (automatique)");
 
   for (const typebranch of NON_UNIVERSITY_TYPES) {
     const people = getPeopleLabels(typebranch);
@@ -242,12 +247,12 @@ test("import cours et auditoire obligatoire : reserves a UNIVERSITE", () => {
   }
 });
 
-test("parents masques : atelier et universite seulement", () => {
+test("parents masques : atelier, universite et centre de formation", () => {
   assert.equal(hidesParentManagement("UNIVERSITE"), true);
   assert.equal(hidesParentManagement("ATELIER"), true);
   assert.equal(hidesParentManagement("PRIMAIRE"), false);
   assert.equal(hidesParentManagement("SECONDAIRE"), false);
-  assert.equal(hidesParentManagement("CENTRE_FORMATION"), false);
+  assert.equal(hidesParentManagement("CENTRE_FORMATION"), true);
 });
 
 test("isUniversiteBranch : garde explicite pour les features ESU", () => {

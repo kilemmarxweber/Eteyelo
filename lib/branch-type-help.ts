@@ -74,7 +74,7 @@ export function getBranchTypeHelpContent(typebranch: unknown): BranchTypeHelpCon
             title: "Bon a savoir",
             items: [
               "Les ponderations servent de credits pour les evaluations.",
-              "Un brevet ne peut etre emis qu'une fois par apprenant et par annee.",
+              "Un brevet peut etre emis par programme et session pour chaque apprenant.",
               "Les apprenants importes restent rattaches a leur branche d'origine.",
             ],
           },

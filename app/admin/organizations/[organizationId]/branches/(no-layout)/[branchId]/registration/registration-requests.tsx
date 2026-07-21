@@ -1,13 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams, usePathname, useSearchParams } from "next/navigation";
+import { useParams, usePathname } from "next/navigation";
 import { useAppRouter as useRouter } from "@/hooks/use-app-router";
 import { Bell, Clock3, FileInput } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { readClientSearchParam } from "@/lib/client-search-params";
 import { dispatchRegistrationPrefill } from "@/lib/prefill-events";
 import {
   confirmRegistrationRequestAction,
@@ -19,7 +20,6 @@ export function RegistrationRequests() {
   const [loadingId, setLoadingId] = useState("");
   const router = useRouter();
   const pathname = usePathname();
-  const searchParams = useSearchParams();
   const params = useParams<{ organizationId: string; branchId: string }>();
 
   useEffect(() => {
@@ -52,7 +52,7 @@ export function RegistrationRequests() {
 
     const target = `/admin/organizations/${params.organizationId}/branches/${params.branchId}/registration?requestId=${request.id}`;
     const onRegistrationPage = pathname.includes("/registration");
-    const currentId = searchParams.get("requestId");
+    const currentId = readClientSearchParam("requestId");
 
     if (onRegistrationPage) {
       if (currentId === request.id) {

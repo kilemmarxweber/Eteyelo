@@ -6,6 +6,22 @@
 
 ---
 
+## Libellés selon le type de branche
+
+Les textes UI utilisent `getPeopleLabels(typebranch)` (`lib/people-labels.ts`) :
+
+| Type | Personne | Ex. matricule |
+|------|----------|----------------|
+| PRIMAIRE / SECONDAIRE / ATELIER | Élève | Matricule élève |
+| CENTRE_FORMATION | Apprenant | Matricule apprenant |
+| UNIVERSITE | Étudiant | Matricule étudiant |
+
+Ces libellés s'appliquent dans l'admin branche (inscription, liste, paiements, dashboard, profil) et sur le formulaire public une fois l'établissement sélectionné.
+
+**Centre de formation :** aucun parent à saisir à l'inscription (admin et formulaire public `/inscription-eleve`). Un parent technique unique (`Parent Systeme Centre`) est créé automatiquement par branche ; le sous-menu **Parent** est masqué dans Utilisateurs.
+
+---
+
 ## 1. État actuel (après implémentation)
 
 | Élément | Situation |

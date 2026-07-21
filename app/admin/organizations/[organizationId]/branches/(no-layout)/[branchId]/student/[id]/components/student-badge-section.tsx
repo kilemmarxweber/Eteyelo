@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import type { StudentBadgeData } from "@/lib/student-badge";
 import { StudentBadgeCard } from "./student-badge-card";
 import type { StudentPhotoUploadState } from "./use-student-photo-upload";
+import { useBranchPeopleLabels } from "@/hooks/use-branch-people-labels";
 
 const TRANSPARENT_IMAGE_PLACEHOLDER =
   "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
@@ -95,6 +96,7 @@ export const StudentBadgeSection = React.forwardRef<
   StudentBadgeSectionHandle,
   StudentBadgeSectionProps
 >(function StudentBadgeSection({ badge, upload }, ref) {
+  const peopleLabels = useBranchPeopleLabels();
   const badgeRef = React.useRef<HTMLDivElement>(null);
   const [mounted, setMounted] = React.useState(false);
   const [downloading, setDownloading] = React.useState(false);
@@ -165,7 +167,7 @@ export const StudentBadgeSection = React.forwardRef<
 <html lang="fr">
   <head>
     <meta charset="utf-8" />
-    <title>Carte eleve - ${badge.fullName}</title>
+    <title>Carte ${peopleLabels.studentLower} - ${badge.fullName}</title>
     <style>
       @page {
         size: auto;
@@ -205,7 +207,7 @@ export const StudentBadgeSection = React.forwardRef<
     </style>
   </head>
   <body>
-    <img id="student-card-print" src="${dataUrl}" alt="Carte eleve" />
+    <img id="student-card-print" src="${dataUrl}" alt="Carte ${peopleLabels.studentLower}" />
     <script>
       const image = document.getElementById("student-card-print");
       function launchPrint() {
@@ -241,7 +243,7 @@ export const StudentBadgeSection = React.forwardRef<
       <div className="mb-4 flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <IdCard className="size-4 text-primary" />
-          <h3 className="text-sm font-semibold">Carte d&apos;eleve</h3>
+          <h3 className="text-sm font-semibold">Carte d&apos;{peopleLabels.studentLower}</h3>
         </div>
         <div className="flex items-center gap-1">
           <Button

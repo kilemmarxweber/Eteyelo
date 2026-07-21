@@ -12,7 +12,7 @@ export type CreateOrganizationUserInput = {
     telephone?: string | null;
     dateOfBirth?: Date | string | null;
     address?: string | null;
-    statusUser?: boolean | string | null;
+    statusUser?: boolean | null;
   };
 };
 

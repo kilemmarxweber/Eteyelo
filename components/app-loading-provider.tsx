@@ -11,7 +11,7 @@ import {
   startTransition,
   type ReactNode,
 } from "react";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 
 import { GlobalTopLoader } from "@/components/global-top-loader";
 
@@ -108,7 +108,6 @@ function hasDedicatedBranchLoader(pathname: string) {
 
 export function AppLoadingProvider({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
   const [pendingCount, setPendingCount] = useState(0);
   const pendingCountRef = useRef(0);
   const navigationCountRef = useRef(0);
@@ -206,7 +205,7 @@ export function AppLoadingProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     finishNavigation();
-  }, [pathname, searchParams, finishNavigation]);
+  }, [pathname, finishNavigation]);
 
   useEffect(() => {
     const resetOnLeave = () => resetLoading();
@@ -229,7 +228,6 @@ export function AppLoadingProvider({ children }: { children: ReactNode }) {
 
       try {
         const nextPath = new URL(anchor.href).pathname;
-        // Le layout [branchId] / enter gère déjà son loader dédié.
         if (hasDedicatedBranchLoader(nextPath)) return;
       } catch {
         // ignore invalid href

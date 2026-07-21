@@ -34,7 +34,7 @@ export const createOrgMemberSchema = z.object({
     .string()
     .min(10, { message: "Veuillez saisir l'adresse" })
     .optional(),
-  statusUser: z.string().optional(),
+  statusUser: z.union([z.boolean(), z.string()]).optional(),
 });
 
 export const updateOrgMemberSchema = z.object({

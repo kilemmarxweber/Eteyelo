@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
-import { useSearchParams } from "next/navigation";
 import { useAppRouter as useRouter } from "@/hooks/use-app-router";
 import { toast } from "sonner";
 import {
@@ -56,10 +55,19 @@ import { matchesClassForLevel } from "@/lib/class-enrollment/match-class-for-lev
 import {
   getClassLevelLabel,
   requiresOptionForClass,
+  requiresSectionForClass,
+  isCtebLevel,
+  isHumanitesLevel,
 } from "@/lib/class-structure";
+import {
+  CTEB_OPTION_CODE,
+  CTEB_SECTION_CODE,
+} from "@/lib/class-catalog";
 import {
   getClassDisplayLabel,
   getClassDisplayLabelPlural,
+  hidesParentManagement,
+  hidesProvenanceEcole,
 } from "@/lib/branch-capabilities";
 import { getSchoolYearDisplayLabel, getSchoolYearDisplayLabelLower } from "@/lib/university-lmd";
 import { getPeopleLabels } from "@/lib/people-labels";
@@ -72,6 +80,8 @@ import {
   defaultCreneauValues,
   type CreneauFormValues,
 } from "@/src/interfaces/creneau";
+
+type RegistrationStepKey = "student" | "parent" | "class" | "confirm";
 
 type Person = {
   username: string;
@@ -182,10 +192,13 @@ function previewStudentCode(
   return `${initials || "ETB"}-${dayMonth}${studentName.trim().charAt(0).toUpperCase() || "X"}${sequence}`;
 }
 
-export function RegistrationForm() {
+export function RegistrationForm({
+  initialRequestId = "",
+}: {
+  initialRequestId?: string;
+}) {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const requestedRequestId = searchParams.get("requestId") ?? "";
+  const requestedRequestId = initialRequestId;
   const [requestId, setRequestId] = useState("");
   const [requestReference, setRequestReference] = useState("");
   const [step, setStep] = useState(0);
@@ -195,6 +208,7 @@ export function RegistrationForm() {
     schoolYears: [],
     classes: [],
     options: [],
+    sections: [],
     levels: [],
     creneaux: [],
   });
@@ -213,6 +227,7 @@ export function RegistrationForm() {
   >("new");
   const [schoolYearId, setSchoolYearId] = useState("");
   const [level, setLevel] = useState("");
+  const [sectionId, setSectionId] = useState("");
   const [optionId, setOptionId] = useState("");
   const [creneauId, setCreneauId] = useState("");
   const [classCapacity, setClassCapacity] = useState("30");
@@ -249,15 +264,35 @@ export function RegistrationForm() {
     () => getSchoolYearDisplayLabelLower(options.typebranch),
     [options.typebranch],
   );
-  const registrationSteps = useMemo(
-    () => [
-      { label: peopleLabels.student, icon: IconUser },
-      { label: "Parent", icon: IconUsers },
-      { label: classLabel, icon: IconSchool },
-      { label: "Confirmation", icon: IconCheck },
-    ],
-    [classLabel, peopleLabels.student],
+  const hidesParent = hidesParentManagement(options.typebranch);
+  const hidesProvenance = hidesProvenanceEcole(options.typebranch);
+  const registrationStepKeys = useMemo<RegistrationStepKey[]>(
+    () =>
+      hidesParent
+        ? ["student", "class", "confirm"]
+        : ["student", "parent", "class", "confirm"],
+    [hidesParent],
   );
+  const registrationSteps = useMemo(
+    () =>
+      registrationStepKeys.map((key) => {
+        switch (key) {
+          case "student":
+            return { label: peopleLabels.student, icon: IconUser };
+          case "parent":
+            return { label: "Parent", icon: IconUsers };
+          case "class":
+            return { label: classLabel, icon: IconSchool };
+          case "confirm":
+            return { label: "Confirmation", icon: IconCheck };
+        }
+      }),
+    [registrationStepKeys, peopleLabels.student, classLabel],
+  );
+  const currentStepKey = registrationStepKeys[step] ?? "student";
+  const lastStepIndex = registrationStepKeys.length - 1;
+  const studentStepIndex = registrationStepKeys.indexOf("student");
+  const parentStepIndex = registrationStepKeys.indexOf("parent");
   const historyLabels = useMemo(
     () => ({
       new: `Nouvel ${peopleLabels.studentLower}`,
@@ -358,6 +393,86 @@ export function RegistrationForm() {
       );
     }
   }
+
+  const sectionsForLevel = useMemo(() => {
+    const sections = options.sections ?? [];
+    if (options.typebranch !== "SECONDAIRE" || !level) return sections;
+    if (isCtebLevel(level)) {
+      return sections.filter(
+        (section: { codeSection: string }) =>
+          section.codeSection === CTEB_SECTION_CODE,
+      );
+    }
+    if (isHumanitesLevel(level)) {
+      return sections.filter(
+        (section: { codeSection: string }) =>
+          section.codeSection !== CTEB_SECTION_CODE,
+      );
+    }
+    return sections;
+  }, [level, options.sections, options.typebranch]);
+
+  const optionsForSection = useMemo(() => {
+    const branchOptions = options.options ?? [];
+    if (options.typebranch !== "SECONDAIRE") return branchOptions;
+    if (!sectionId) return [];
+    const inSection = branchOptions.filter(
+      (item: { sectionId?: string | null }) => item.sectionId === sectionId,
+    );
+    if (isCtebLevel(level)) {
+      return inSection.filter(
+        (item: { codeOption?: string; nameOption?: string }) =>
+          item.codeOption === CTEB_OPTION_CODE ||
+          item.nameOption?.toLowerCase() === "tronc commun",
+      );
+    }
+    return inSection;
+  }, [level, options.options, options.typebranch, sectionId]);
+
+  const secondaryHumanitesLevel =
+    options.typebranch === "SECONDAIRE" &&
+    requiresSectionForClass(options.typebranch, level);
+
+  useEffect(() => {
+    if (options.typebranch !== "SECONDAIRE" || !isCtebLevel(level)) return;
+
+    const ctebSection = (options.sections ?? []).find(
+      (section: { codeSection: string; id: string }) =>
+        section.codeSection === CTEB_SECTION_CODE,
+    );
+    const troncCommun = (options.options ?? []).find(
+      (item: { codeOption?: string; nameOption?: string; id: string }) =>
+        item.codeOption === CTEB_OPTION_CODE ||
+        item.nameOption?.toLowerCase() === "tronc commun",
+    );
+
+    if (ctebSection && sectionId !== ctebSection.id) {
+      setSectionId(ctebSection.id);
+    }
+    if (troncCommun && optionId !== troncCommun.id) {
+      setOptionId(troncCommun.id);
+    }
+  }, [
+    level,
+    optionId,
+    options.options,
+    options.sections,
+    options.typebranch,
+    sectionId,
+  ]);
+
+  useEffect(() => {
+    if (options.typebranch !== "SECONDAIRE" || !level || isCtebLevel(level)) {
+      return;
+    }
+    if (
+      sectionId &&
+      !sectionsForLevel.some((section: { id: string }) => section.id === sectionId)
+    ) {
+      setSectionId("");
+      setOptionId("");
+    }
+  }, [level, options.typebranch, sectionId, sectionsForLevel]);
 
   const selectedClasses = useMemo(() => {
     const optionName = options.options.find(
@@ -479,6 +594,7 @@ export function RegistrationForm() {
     setParentResults([]);
     setHistoryOutcome("new");
     setLevel("");
+    setSectionId("");
     setOptionId("");
     setCreneauId("");
     setClassCapacity("30");
@@ -532,31 +648,34 @@ export function RegistrationForm() {
     setter({ ...current, [key]: value });
   }
   function goNext() {
-    if (step === 0 && studentMode === "existing" && !studentId)
+    if (currentStepKey === "student" && studentMode === "existing" && !studentId)
       return toast.error(`Sélectionnez un ${peopleLabels.studentLower}.`);
     if (
-      step === 0 &&
+      currentStepKey === "student" &&
       studentMode === "new" &&
       !isStudentStepReady(studentMode, studentId, student)
     )
       return toast.error(
         `Complétez toutes les informations obligatoires de l'${peopleLabels.studentLower}.`,
       );
-    if (step === 1 && parentMode === "existing" && !parentId)
+    if (currentStepKey === "parent" && parentMode === "existing" && !parentId)
       return toast.error("Sélectionnez un parent.");
     if (
-      step === 1 &&
+      currentStepKey === "parent" &&
       parentMode === "new" &&
       !isParentStepReady(parentMode, parentId, parent)
     )
       return toast.error(
         "Complétez toutes les informations obligatoires du parent.",
       );
-    if (step === 2) {
+    if (currentStepKey === "class") {
       if (!schoolYearId || !level)
         return toast.error(
           `Choisissez l'${schoolYearLabelLower} et l'${classLabelLower} demandé(e).`,
         );
+      if (requiresSectionForClass(options.typebranch, level) && !sectionId) {
+        return toast.error("Choisissez une section (filière) pour ce niveau.");
+      }
       if (requiresOptionForLevel(options.typebranch, level) && !optionId) {
         return toast.error("Choisissez une option pour ce niveau.");
       }
@@ -613,18 +732,18 @@ export function RegistrationForm() {
               dateOfBirth: new Date(student.dateOfBirth),
             }
           : undefined,
-      parentMode,
-      parentId: parentId || undefined,
+      parentMode: hidesParent ? "existing" : parentMode,
+      parentId: hidesParent ? undefined : parentId || undefined,
       parent:
-        parentMode === "new"
-          ? {
+        hidesParent || parentMode !== "new"
+          ? undefined
+          : {
               ...parent,
               username: generatedParentUsername,
               dateOfBirth: parent.dateOfBirth
                 ? new Date(parent.dateOfBirth)
                 : undefined,
-            }
-          : undefined,
+            },
       historyOutcome,
       photoUrl: studentMode === "new" ? resolvedPhotoUrl || undefined : undefined,
     });
@@ -676,6 +795,9 @@ export function RegistrationForm() {
       return toast.error(
         `Choisissez d'abord l'${schoolYearLabelLower} et l'${classLabelLower} demandé(e).`,
       );
+    if (requiresSectionForClass(options.typebranch, level) && !sectionId) {
+      return toast.error("Choisissez une section (filière) pour ce niveau.");
+    }
     if (requiresOptionForLevel(options.typebranch, level) && !optionId) {
       return toast.error("Choisissez une option pour ce niveau.");
     }
@@ -860,7 +982,7 @@ export function RegistrationForm() {
       <div className="space-y-6">
         <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
           {studentFields ? (
-            <Field label="Matricule élève (automatique)">
+            <Field label={peopleLabels.matriculeAutoLabel}>
               <Input
                 disabled
                 className="bg-muted font-mono text-foreground opacity-100"
@@ -929,7 +1051,7 @@ export function RegistrationForm() {
                   }
                 />
               </Field>
-              <Field label="Email élève (automatique)">
+              <Field label={peopleLabels.emailAutoLabel}>
                 <Input
                   disabled
                   className="bg-muted font-mono text-foreground opacity-100"
@@ -1019,19 +1141,21 @@ export function RegistrationForm() {
                 </Select>
               </Field>
 
-              <Field label="École de provenance (facultatif)">
-                <Input
-                  value={(value as StudentForm).provenanceEcole}
-                  onChange={(event) =>
-                    updatePerson(
-                      value,
-                      setter,
-                      "provenanceEcole",
-                      event.target.value,
-                    )
-                  }
-                />
-              </Field>
+              {!hidesProvenance ? (
+                <Field label="École de provenance (facultatif)">
+                  <Input
+                    value={(value as StudentForm).provenanceEcole}
+                    onChange={(event) =>
+                      updatePerson(
+                        value,
+                        setter,
+                        "provenanceEcole",
+                        event.target.value,
+                      )
+                    }
+                  />
+                </Field>
+              ) : null}
               <Field label="Observation (facultatif)" className="md:col-span-2">
                 <Textarea
                   value={(value as StudentForm).observation}
@@ -1045,19 +1169,19 @@ export function RegistrationForm() {
                   }
                   onBlur={() =>
                     advanceAfterLastOptional(
-                      0,
+                      studentStepIndex,
                       isStudentStepReady(studentMode, studentId, student),
                     )
                   }
                   rows={4}
                 />
               </Field>
-              <Field label="Photo élève (facultatif)" className="md:col-span-2">
+              <Field label={peopleLabels.photoOptionalLabel} className="md:col-span-2">
                 <div className="flex flex-wrap items-center gap-3">
                   {photoPreview ? (
                     <Image
                       src={photoPreview}
-                      alt="Aperçu photo élève"
+                      alt={peopleLabels.photoPreviewAlt}
                       width={80}
                       height={80}
                       unoptimized
@@ -1128,10 +1252,12 @@ export function RegistrationForm() {
                   )
                 }
                 onBlur={() =>
-                  advanceAfterLastOptional(
-                    1,
-                    isParentStepReady(parentMode, parentId, parent),
-                  )
+                  parentStepIndex >= 0
+                    ? advanceAfterLastOptional(
+                        parentStepIndex,
+                        isParentStepReady(parentMode, parentId, parent),
+                      )
+                    : undefined
                 }
               />
             </Field>
@@ -1188,7 +1314,7 @@ export function RegistrationForm() {
             <div>
               <CardTitle className="text-2xl">{registrationSteps[step].label}</CardTitle>
               <CardDescription className="mt-1">
-                {step === 2
+                {currentStepKey === "class"
                   ? `Choisissez l'${classLabelLower} demandé(e) ; la parallèle sera attribuée selon les places disponibles.`
                   : "Les champs marqués d'un astérisque sont obligatoires."}
               </CardDescription>
@@ -1199,7 +1325,7 @@ export function RegistrationForm() {
           </div>
         </CardHeader>
         <CardContent className="flex-1 space-y-6 p-6 lg:p-8">
-          {step === 0 && (
+          {currentStepKey === "student" && (
             <>
               <RadioGroup
                 className="grid gap-3 sm:grid-cols-2"
@@ -1288,7 +1414,7 @@ export function RegistrationForm() {
               )}
             </>
           )}
-          {step === 1 && (
+          {currentStepKey === "parent" && (
             <>
               <RadioGroup
                 className="grid gap-3 sm:grid-cols-2"
@@ -1334,7 +1460,7 @@ export function RegistrationForm() {
               )}
             </>
           )}
-          {step === 2 && (
+          {currentStepKey === "class" && (
             <div className="space-y-6">
               {loadingOptions ? (
                 <p className="text-muted-foreground">{`Chargement des ${classLabelPluralLower}…`}</p>
@@ -1366,6 +1492,7 @@ export function RegistrationForm() {
                         value={level}
                         onValueChange={(value) => {
                           setLevel(value);
+                          setSectionId("");
                           setOptionId("");
                         }}
                       >
@@ -1382,42 +1509,122 @@ export function RegistrationForm() {
                       </Select>
                     </Field>
                     {options.allowsOption ? (
-                      <Field
-                        label={
-                          requiresOptionForLevel(options.typebranch, level)
-                            ? "Option *"
-                            : "Option"
-                        }
-                      >
-                        <Select
-                          value={
-                            optionId ||
-                            (requiresOptionForLevel(options.typebranch, level)
-                              ? undefined
-                              : "none")
-                          }
-                          onValueChange={(value) =>
-                            setOptionId(value === "none" ? "" : value)
+                      options.typebranch === "SECONDAIRE" ? (
+                        <>
+                          {secondaryHumanitesLevel ? (
+                            <Field label="Section (filière) *">
+                              <Select
+                                value={sectionId || undefined}
+                                onValueChange={(value) => {
+                                  setSectionId(value);
+                                  setOptionId("");
+                                }}
+                                disabled={!level}
+                              >
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Choisir une section" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {sectionsForLevel.map(
+                                    (section: {
+                                      id: string;
+                                      nameSection: string;
+                                    }) => (
+                                      <SelectItem
+                                        key={section.id}
+                                        value={section.id}
+                                      >
+                                        {section.nameSection}
+                                      </SelectItem>
+                                    ),
+                                  )}
+                                </SelectContent>
+                              </Select>
+                            </Field>
+                          ) : null}
+                          <Field
+                            label={
+                              requiresOptionForLevel(options.typebranch, level)
+                                ? "Option *"
+                                : "Option"
+                            }
+                          >
+                            <Select
+                              value={optionId || undefined}
+                              onValueChange={setOptionId}
+                              disabled={
+                                !level ||
+                                isCtebLevel(level) ||
+                                (secondaryHumanitesLevel && !sectionId)
+                              }
+                            >
+                              <SelectTrigger>
+                                <SelectValue
+                                  placeholder={
+                                    secondaryHumanitesLevel && !sectionId
+                                      ? "Choisir d'abord une section"
+                                      : isCtebLevel(level)
+                                        ? "Tronc commun"
+                                        : "Choisir l'option"
+                                  }
+                                />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {(secondaryHumanitesLevel || isCtebLevel(level)
+                                  ? optionsForSection
+                                  : options.options
+                                ).map((item: any) => (
+                                  <SelectItem key={item.id} value={item.id}>
+                                    {item.nameOption}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            {isCtebLevel(level) ? (
+                              <p className="mt-1 text-xs text-muted-foreground">
+                                7ᵉ / 8ᵉ année : Tronc commun (CTEB).
+                              </p>
+                            ) : null}
+                          </Field>
+                        </>
+                      ) : (
+                        <Field
+                          label={
+                            requiresOptionForLevel(options.typebranch, level)
+                              ? "Option *"
+                              : "Option"
                           }
                         >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Choisir l'option" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {!requiresOptionForLevel(
-                              options.typebranch,
-                              level,
-                            ) ? (
-                              <SelectItem value="none">Aucune option</SelectItem>
-                            ) : null}
-                            {options.options.map((item: any) => (
-                              <SelectItem key={item.id} value={item.id}>
-                                {item.nameOption}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </Field>
+                          <Select
+                            value={
+                              optionId ||
+                              (requiresOptionForLevel(options.typebranch, level)
+                                ? undefined
+                                : "none")
+                            }
+                            onValueChange={(value) =>
+                              setOptionId(value === "none" ? "" : value)
+                            }
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Choisir l'option" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {!requiresOptionForLevel(
+                                options.typebranch,
+                                level,
+                              ) ? (
+                                <SelectItem value="none">Aucune option</SelectItem>
+                              ) : null}
+                              {options.options.map((item: any) => (
+                                <SelectItem key={item.id} value={item.id}>
+                                  {item.nameOption}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </Field>
+                      )
                     ) : (
                       <>
                         <Field label="Section">
@@ -1558,7 +1765,7 @@ export function RegistrationForm() {
               )}
             </div>
           )}
-          {step === 3 && (
+          {currentStepKey === "confirm" && (
             <div className="space-y-6">
               <Alert>
                 <IconCheck className="h-4 w-4" />
@@ -1575,12 +1782,16 @@ export function RegistrationForm() {
                     studentMode === "new"
                       ? [
                           `${student.name} ${student.postnom} ${student.prenom}`,
-                          `Matricule : ${generatedStudentCode}`,
+                          `${peopleLabels.matriculeLabel} : ${generatedStudentCode}`,
                           `Email : ${generatedStudentEmail}`,
                           `Catégorie : ${student.category}`,
-                          student.provenanceEcole
-                            ? `Provenance : ${student.provenanceEcole}`
-                            : "Sans école de provenance",
+                          ...(hidesProvenance
+                            ? []
+                            : [
+                                student.provenanceEcole
+                                  ? `Provenance : ${student.provenanceEcole}`
+                                  : "Sans école de provenance",
+                              ]),
                           photoPreview ? "Photo : ajoutée" : "Photo : non ajoutée",
                         ]
                       : [
@@ -1594,31 +1805,33 @@ export function RegistrationForm() {
                         ]
                   }
                 />
-                <Summary
-                  title="Parent / tuteur"
-                  lines={
-                    parentMode === "new"
-                      ? [
-                          `${parent.name} ${parent.postnom} ${parent.prenom}`,
-                          `Code d'accès : ${generatedParentUsername}`,
-                          `Téléphone : ${parent.telephone}`,
-                          `Email : ${parent.email}`,
-                          parent.discountPercentage
-                            ? `Remise : ${parent.discountPercentage}%`
-                            : "Sans remise",
-                        ]
-                      : [
-                          `${userOf(selectedParent)?.name ?? ""} ${userOf(selectedParent)?.postnom ?? ""} ${userOf(selectedParent)?.prenom ?? ""}`.trim() ||
-                            "Parent existant",
-                          userOf(selectedParent)?.telephone
-                            ? `Téléphone : ${userOf(selectedParent)?.telephone}`
-                            : "Sans téléphone",
-                          userOf(selectedParent)?.email
-                            ? `Email : ${userOf(selectedParent)?.email}`
-                            : "Sans email",
-                        ]
-                  }
-                />
+                {!hidesParent ? (
+                  <Summary
+                    title="Parent / tuteur"
+                    lines={
+                      parentMode === "new"
+                        ? [
+                            `${parent.name} ${parent.postnom} ${parent.prenom}`,
+                            `Code d'accès : ${generatedParentUsername}`,
+                            `Téléphone : ${parent.telephone}`,
+                            `Email : ${parent.email}`,
+                            parent.discountPercentage
+                              ? `Remise : ${parent.discountPercentage}%`
+                              : "Sans remise",
+                          ]
+                        : [
+                            `${userOf(selectedParent)?.name ?? ""} ${userOf(selectedParent)?.postnom ?? ""} ${userOf(selectedParent)?.prenom ?? ""}`.trim() ||
+                              "Parent existant",
+                            userOf(selectedParent)?.telephone
+                              ? `Téléphone : ${userOf(selectedParent)?.telephone}`
+                              : "Sans téléphone",
+                            userOf(selectedParent)?.email
+                              ? `Email : ${userOf(selectedParent)?.email}`
+                              : "Sans email",
+                          ]
+                    }
+                  />
+                ) : null}
                 <Summary
                   title="Scolarité"
                   lines={[
@@ -1628,6 +1841,19 @@ export function RegistrationForm() {
                     `Niveau demandé : ${level}`,
                     ...(options.allowsOption
                       ? [
+                          ...(secondaryHumanitesLevel &&
+                          sectionsForLevel.find(
+                            (item: { id: string }) => item.id === sectionId,
+                          )?.nameSection
+                            ? [
+                                `Section : ${
+                                  sectionsForLevel.find(
+                                    (item: { id: string }) =>
+                                      item.id === sectionId,
+                                  )?.nameSection
+                                }`,
+                              ]
+                            : []),
                           options.options.find(
                             (item: any) => item.id === optionId,
                           )?.nameOption
@@ -1664,7 +1890,7 @@ export function RegistrationForm() {
             <IconArrowLeft className="mr-2 h-4 w-4" />
             Précédent
           </Button>
-          {step < 3 ? (
+          {step < lastStepIndex ? (
             <Button onClick={goNext}>
               Continuer
               <IconArrowRight className="ml-2 h-4 w-4" />

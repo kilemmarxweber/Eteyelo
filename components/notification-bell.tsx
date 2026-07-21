@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import Image from "next/image";
 import { useAppTransition as useTransition } from "@/hooks/use-app-transition";
-import { useParams, usePathname, useSearchParams } from "next/navigation";
+import { useParams, usePathname } from "next/navigation";
 import { useAppRouter as useRouter } from "@/hooks/use-app-router";
 import {
   Bell,
@@ -28,6 +28,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
+import { readClientSearchParam } from "@/lib/client-search-params";
 import {
   dispatchCandidaturePrefill,
   dispatchRegistrationPrefill,
@@ -283,7 +284,6 @@ export function NotificationBell() {
   const params = useParams<{ organizationId: string; branchId: string }>();
   const router = useRouter();
   const pathname = usePathname();
-  const searchParams = useSearchParams();
   const { data: session } = authClient.useSession();
 
   const [open, setOpen] = useState(false);
@@ -416,7 +416,7 @@ export function NotificationBell() {
         const targetPath = `${branchBase}/registration`;
         const url = `${targetPath}?requestId=${item.id}`;
         const onPage = pathname.includes("/registration");
-        const currentId = searchParams.get("requestId");
+        const currentId = readClientSearchParam("requestId");
 
         if (onPage) {
           if (currentId === item.id) {
@@ -433,7 +433,7 @@ export function NotificationBell() {
       const targetPath = `${branchBase}/candidatures`;
       const url = `${targetPath}?applicationId=${item.id}`;
       const onPage = pathname.includes("/candidatures");
-      const currentId = searchParams.get("applicationId");
+      const currentId = readClientSearchParam("applicationId");
 
       if (onPage) {
         if (currentId === item.id) {
@@ -445,7 +445,7 @@ export function NotificationBell() {
       }
       router.push(url);
     },
-    [branchBase, pathname, router, searchParams],
+    [branchBase, pathname, router],
   );
 
   if (!params.branchId || !canSeeNotifications) return null;

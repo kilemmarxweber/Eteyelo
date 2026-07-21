@@ -1,4 +1,4 @@
-﻿import {
+import {
   Search,
   School,
   GraduationCap,
@@ -375,9 +375,9 @@ export default async function HomePage() {
           {/* CARDS ÉTABLISSEMENTS schoolEvents */}
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {schools.slice(0, 3).map((school) => (
-              <Link href={`/etablissements/${school.id}`} key={school.name}>
+              <Link href={`/etablissements/${school.id}`} key={school.id}>
                 <article
-                  key={school.name}
+                  key={school.id}
                   className="group overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-blue-100 transition duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-blue-950/10"
                 >
                   <div className="relative h-48 overflow-hidden">
@@ -679,7 +679,7 @@ export default async function HomePage() {
             <div className="mt-5 space-y-2">
               {newSchools.map((school) => (
                 <div
-                  key={school.name}
+                  key={school.id}
                   className="grid gap-2 rounded-xl border border-slate-100 px-3 py-3 transition hover:bg-slate-50 sm:flex sm:items-start sm:gap-3 sm:py-2"
                 >
                   <div className="flex min-w-0 items-start gap-3">

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { IconCertificate, IconDownload } from "@tabler/icons-react";
 import { toast } from "sonner";
 
@@ -19,6 +19,8 @@ import {
 import Loading from "../../loading";
 
 type BrevetLearner = {
+  enrollmentId: string;
+  classeId: string;
   studentId: string;
   nom: string;
   postnom: string;
@@ -30,12 +32,63 @@ type BrevetLearner = {
   isLinked: boolean;
 };
 
+type IssuedBrevetDocument = {
+  id: string;
+  studentId: string | null;
+  title: string;
+  issuedAt: string;
+  metadata: unknown;
+};
+
+function getIssuedClasseIds(documents: IssuedBrevetDocument[]) {
+  const issued = new Set<string>();
+
+  for (const document of documents) {
+    if (!document.studentId || !document.metadata || typeof document.metadata !== "object") {
+      continue;
+    }
+
+    const metadata = document.metadata as Record<string, unknown>;
+    if (typeof metadata.classeId === "string") {
+      issued.add(`${document.studentId}:${metadata.classeId}`);
+      continue;
+    }
+
+    const programmeName =
+      typeof metadata.programmeName === "string" ? metadata.programmeName : "";
+    const sessionName =
+      typeof metadata.sessionName === "string" ? metadata.sessionName : "";
+    if (programmeName && sessionName) {
+      issued.add(`${document.studentId}:${programmeName}:${sessionName}`);
+    }
+  }
+
+  return issued;
+}
+
+function isBrevetIssuedForEnrollment(
+  learner: BrevetLearner,
+  issuedKeys: Set<string>,
+) {
+  if (issuedKeys.has(`${learner.studentId}:${learner.classeId}`)) {
+    return true;
+  }
+
+  if (learner.programmeName && learner.sessionName) {
+    return issuedKeys.has(
+      `${learner.studentId}:${learner.programmeName}:${learner.sessionName}`,
+    );
+  }
+
+  return false;
+}
+
 export function BrevetsClient() {
   useBranchRouteGuard({ routeSuffix: "/brevets" });
 
   const { preview, openPreview, setPreviewOpen } = useDocumentPdfPreview();
   const [loading, setLoading] = useState(true);
-  const [issuingId, setIssuingId] = useState<string | null>(null);
+  const [issuingKey, setIssuingKey] = useState<string | null>(null);
   const [context, setContext] = useState<{
     branchName: string;
     branchCode: string;
@@ -43,13 +96,7 @@ export function BrevetsClient() {
     schoolYearName: string;
     canManage: boolean;
     learners: BrevetLearner[];
-    documents: Array<{
-      id: string;
-      studentId: string;
-      title: string;
-      issuedAt: string;
-      metadata: unknown;
-    }>;
+    documents: IssuedBrevetDocument[];
   } | null>(null);
 
   useEffect(() => {
@@ -77,11 +124,19 @@ export function BrevetsClient() {
     })();
   }, []);
 
+  const issuedKeys = useMemo(
+    () => getIssuedClasseIds(context?.documents ?? []),
+    [context?.documents],
+  );
+
   async function handleIssue(learner: BrevetLearner) {
-    setIssuingId(learner.studentId);
+    const rowKey = learner.enrollmentId;
+    setIssuingKey(rowKey);
     try {
       const result = await issueCentreBrevetAction({
         studentId: learner.studentId,
+        enrollmentId: learner.enrollmentId,
+        classeId: learner.classeId,
         programmeName: learner.programmeName ?? undefined,
       });
 
@@ -90,10 +145,11 @@ export function BrevetsClient() {
         return;
       }
 
-      const pdfOutput = createBrevetPdfOutput({
+      const pdfOutput = await createBrevetPdfOutput({
         organizationName: result.document.organizationName,
         branchName: result.document.branchName,
         branchCode: result.document.branchCode,
+        branchCity: result.document.branchCity,
         schoolYearName: result.document.schoolYearName,
         studentName: result.document.studentName,
         username: result.document.username,
@@ -101,6 +157,17 @@ export function BrevetsClient() {
         sessionName: result.document.sessionName,
         brevetNumber: result.document.brevetNumber,
         issuedAt: new Date(result.document.issuedAt),
+        placeOfBirth: result.document.placeOfBirth,
+        dateOfBirth: result.document.dateOfBirth
+          ? new Date(result.document.dateOfBirth)
+          : null,
+        sexe: result.document.sexe,
+        trainingStartDate: result.document.trainingStartDate
+          ? new Date(result.document.trainingStartDate)
+          : null,
+        trainingEndDate: result.document.trainingEndDate
+          ? new Date(result.document.trainingEndDate)
+          : null,
       });
 
       openPreview({
@@ -120,7 +187,12 @@ export function BrevetsClient() {
                   studentId: learner.studentId,
                   title: result.document.title,
                   issuedAt: result.document.issuedAt,
-                  metadata: { brevetNumber: result.document.brevetNumber },
+                  metadata: {
+                    brevetNumber: result.document.brevetNumber,
+                    programmeName: result.document.programmeName,
+                    sessionName: result.document.sessionName,
+                    classeId: learner.classeId,
+                  },
                 },
                 ...current.documents,
               ],
@@ -130,15 +202,13 @@ export function BrevetsClient() {
 
       toast.success("Brevet emis");
     } finally {
-      setIssuingId(null);
+      setIssuingKey(null);
     }
   }
 
   if (loading) return <Loading />;
 
-  const issuedStudentIds = new Set(
-    context?.documents.map((doc) => doc.studentId).filter(Boolean) ?? [],
-  );
+  const distinctStudents = new Set(context?.learners.map((learner) => learner.studentId));
 
   return (
     <>
@@ -162,9 +232,14 @@ export function BrevetsClient() {
               <p className="mt-1 text-xs text-muted-foreground">
                 {context?.organizationName} · {context?.schoolYearName}
               </p>
+              <p className="mt-2 text-xs text-muted-foreground">
+                Un brevet peut etre emis par programme et session. Un apprenant
+                inscrit a plusieurs formations peut recevoir plusieurs brevets.
+              </p>
             </div>
             <Badge variant="outline-primary" icon={<IconCertificate size={14} />}>
-              {context?.learners.length ?? 0} apprenant(s)
+              {distinctStudents.size} apprenant(s) · {context?.learners.length ?? 0}{" "}
+              inscription(s)
             </Badge>
           </div>
         </Card>
@@ -177,11 +252,12 @@ export function BrevetsClient() {
         ) : (
           <div className="grid gap-3">
             {context.learners.map((learner) => {
-              const alreadyIssued = issuedStudentIds.has(learner.studentId);
+              const alreadyIssued = isBrevetIssuedForEnrollment(learner, issuedKeys);
+              const rowKey = learner.enrollmentId;
 
               return (
                 <Card
-                  key={learner.studentId}
+                  key={rowKey}
                   className="flex flex-col gap-3 rounded-2xl border p-4 md:flex-row md:items-center md:justify-between"
                 >
                   <div>
@@ -191,31 +267,27 @@ export function BrevetsClient() {
                     <p className="mt-1 text-sm text-muted-foreground">
                       {learner.username} · {learner.sourceLabel}
                     </p>
-                    {learner.programmeName ? (
-                      <p className="mt-1 text-xs text-muted-foreground">
-                        Programme : {learner.programmeName}
-                        {learner.sessionName
-                          ? ` · Session : ${learner.sessionName}`
-                          : ""}
-                      </p>
-                    ) : null}
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      Programme : {learner.programmeName ?? "—"}
+                      {learner.sessionName
+                        ? ` · Session : ${learner.sessionName}`
+                        : ""}
+                    </p>
                   </div>
 
                   <div className="flex flex-wrap items-center gap-2">
                     {alreadyIssued ? (
                       <Badge variant="secondary">Brevet deja emis</Badge>
                     ) : null}
-                    {context.canManage && learner.sessionName ? (
+                    {context.canManage ? (
                       <Button
                         leftSection={<IconDownload size={16} />}
-                        loading={issuingId === learner.studentId}
-                        disabled={issuingId !== null || alreadyIssued}
+                        loading={issuingKey === rowKey}
+                        disabled={issuingKey !== null || alreadyIssued}
                         onClick={() => void handleIssue(learner)}
                       >
                         Emettre brevet
                       </Button>
-                    ) : context.canManage && !learner.sessionName ? (
-                      <Badge variant="outline">Session requise</Badge>
                     ) : null}
                   </div>
                 </Card>

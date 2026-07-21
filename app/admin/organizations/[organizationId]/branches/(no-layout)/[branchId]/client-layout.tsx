@@ -19,9 +19,14 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
   const { resetLoading } = useAppLoading();
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isHydrated, setIsHydrated] = useState(false);
 
   useEffect(() => {
-    if (isPending) return;
+    setIsHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isHydrated || isPending) return;
     if (session) return;
 
     const timeout = window.setTimeout(() => {
@@ -30,10 +35,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     }, 1200);
 
     return () => window.clearTimeout(timeout);
-  }, [session, isPending, resetLoading]);
+  }, [session, isPending, resetLoading, isHydrated]);
 
-  // Session déjà prête : un seul loader (loading.tsx), pas celui du layout.
-  if (isPending) {
+  if (!isHydrated || isPending) {
     return (
       <BranchLoadingFallback
         label="Chargement de l'établissement..."

@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { isCentreFormationBranch } from "@/lib/branch-capabilities";
+
 const personSchema = z.object({
   username: z.string().trim().min(4, "Code d'accès requis").optional(),
   name: z.string().trim().min(2, "Nom requis"),
@@ -45,10 +47,28 @@ export const registrationSchema = z
       ctx.addIssue({ code: "custom", path: ["studentId"], message: "Élève requis" });
     if (value.studentMode === "new" && !value.student)
       ctx.addIssue({ code: "custom", path: ["student"], message: "Informations de l'élève requises" });
-    if (value.parentMode === "existing" && !value.parentId)
-      ctx.addIssue({ code: "custom", path: ["parentId"], message: "Parent requis" });
-    if (value.parentMode === "new" && !value.parent)
-      ctx.addIssue({ code: "custom", path: ["parent"], message: "Informations du parent requises" });
   });
+
+export function validateRegistrationParentInput(
+  typebranch: unknown,
+  value: Pick<
+    z.infer<typeof registrationSchema>,
+    "parentMode" | "parentId" | "parent"
+  >,
+): string | null {
+  if (isCentreFormationBranch(typebranch)) {
+    return null;
+  }
+
+  if (value.parentMode === "existing" && !value.parentId) {
+    return "Parent requis";
+  }
+
+  if (value.parentMode === "new" && !value.parent) {
+    return "Informations du parent requises";
+  }
+
+  return null;
+}
 
 export type RegistrationInput = z.infer<typeof registrationSchema>;

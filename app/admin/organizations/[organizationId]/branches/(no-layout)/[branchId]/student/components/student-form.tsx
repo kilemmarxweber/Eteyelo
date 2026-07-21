@@ -1,5 +1,5 @@
 "use client";
-import { HTMLAttributes, useState, useEffect } from "react";
+import { HTMLAttributes, useState, useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -32,6 +32,8 @@ import {
 } from "@/components/ui/popover";
 import { createStudentAction, updateStudentAction } from "../student.action";
 import { useBranchPeopleLabels } from "@/hooks/use-branch-people-labels";
+import { hidesParentManagement } from "@/lib/branch-capabilities";
+import { useSession } from "@/lib/auth-client";
 import { getParentsAction } from "../../parent/parent.action";
 import { IParent } from "@/src/interfaces/Parent";
 import { studentSchema } from "@/src/interfaces/Student";
@@ -78,6 +80,17 @@ export function StudentUpForm({
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const peopleLabels = useBranchPeopleLabels();
+  const { data: session } = useSession();
+  const hidesParent = hidesParentManagement(session?.branch?.typebranch);
+  const formSchema = useMemo(
+    () =>
+      hidesParent && mode === "create"
+        ? studentSchema.extend({
+            parentId: z.string().optional(),
+          })
+        : studentSchema,
+    [hidesParent, mode],
+  );
   const [Parents, setParents] = useState<IParent[]>([]);
   const sexeToUi: Record<string, "masculin" | "feminin"> = {
     M: "masculin",
@@ -86,7 +99,7 @@ export function StudentUpForm({
     feminin: "feminin",
   };
   const form = useForm<StudentFormValues>({
-    resolver: zodResolver(studentSchema),
+    resolver: zodResolver(formSchema),
     defaultValues: {
       username: initialData?.username ?? "",
       name: initialData?.name ?? "",
@@ -107,6 +120,7 @@ export function StudentUpForm({
   });
 
   useEffect(() => {
+    if (hidesParent && mode === "create") return;
     const fecthParents = async () => {
       const [rawParents, err] = await getParentsAction();
       if (err) {
@@ -115,7 +129,7 @@ export function StudentUpForm({
       setParents(rawParents);
     };
     fecthParents();
-  }, []);
+  }, [hidesParent, mode]);
 
   useEffect(() => {
     const nom = form.getValues("name");
@@ -207,7 +221,7 @@ export function StudentUpForm({
                 <FormItem className={fieldClass}>
                   <FormLabel>Nom</FormLabel>
                   <FormControl>
-                    <Input placeholder="Le nom de l'élève" {...field} />
+                    <Input placeholder={peopleLabels.namePlaceholder} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -221,7 +235,7 @@ export function StudentUpForm({
                 <FormItem className={fieldClass}>
                   <FormLabel>Postnom</FormLabel>
                   <FormControl>
-                    <Input placeholder="Le postnom de l'élève" {...field} />
+                    <Input placeholder={peopleLabels.postnomPlaceholder} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -235,7 +249,7 @@ export function StudentUpForm({
                 <FormItem className={fieldClass}>
                   <FormLabel>Prénom</FormLabel>
                   <FormControl>
-                    <Input placeholder="Le prénom de l'élève" {...field} />
+                    <Input placeholder={peopleLabels.prenomPlaceholder} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -335,7 +349,7 @@ export function StudentUpForm({
                 <FormItem className={cn(fieldClass, isDialog && "sm:col-span-2")}>
                   <FormLabel>Adresse</FormLabel>
                   <FormControl>
-                    <Input placeholder="Adresse de l'élève" {...field} />
+                    <Input placeholder={peopleLabels.addressPlaceholder} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -439,6 +453,7 @@ export function StudentUpForm({
                 )}
               />
             </div>
+            {!hidesParent || mode === "update" ? (
             <FormField
               control={form.control}
               name="parentId"
@@ -474,12 +489,13 @@ export function StudentUpForm({
                 </FormItem>
               )}
             />
+            ) : null}
 
             <div className={cn(isDialog && "sm:col-span-2")}>
               <Button type="submit" className="mt-1 w-full sm:w-auto" loading={isLoading}>
                 {mode === "create"
-                  ? "Enregistrer l'élève"
-                  : "Mettre à jour l'élève"}
+                  ? peopleLabels.saveLabel
+                  : peopleLabels.updateLabel}
               </Button>
               {errorMessage ? (
                 <p className="mt-2 text-center text-sm text-red-500">

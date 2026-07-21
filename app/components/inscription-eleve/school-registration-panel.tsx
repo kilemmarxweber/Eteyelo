@@ -15,12 +15,14 @@ type Props = {
   info: PublicBranchRegistrationInfo | null;
   loading?: boolean;
   onTermsVisible?: () => void;
+  establishmentLabel?: string;
 };
 
 export function SchoolRegistrationPanel({
   info,
   loading,
   onTermsVisible,
+  establishmentLabel = "École",
 }: Props) {
   useEffect(() => {
     if (info?.termsContent) onTermsVisible?.();
@@ -29,7 +31,7 @@ export function SchoolRegistrationPanel({
   if (loading) {
     return (
       <div className="rounded-2xl border bg-card p-4 text-sm text-muted-foreground">
-        Chargement des informations de l&apos;ecole...
+        Chargement des informations de l&apos;{establishmentLabel.toLowerCase()}...
       </div>
     );
   }
@@ -39,9 +41,9 @@ export function SchoolRegistrationPanel({
       <Alert>
         <AlertTitle>Informations d&apos;inscription</AlertTitle>
         <AlertDescription>
-          Cette ecole n&apos;a pas encore publie ses conditions, frais ou
-          programme de rentree. Vous pouvez continuer la demande et contacter
-          l&apos;etablissement pour les details.
+          Cet {establishmentLabel.toLowerCase()} n&apos;a pas encore publie ses
+          conditions, frais ou programme de rentree. Vous pouvez continuer la
+          demande et contacter l&apos;etablissement pour les details.
         </AlertDescription>
       </Alert>
     );

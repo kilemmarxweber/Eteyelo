@@ -221,7 +221,15 @@ export function usesUniversityLmdFeatures(typebranch: unknown): boolean {
 }
 
 export function hidesParentManagement(typebranch: unknown): boolean {
-  return isAtelierBranch(typebranch) || isUniversiteBranch(typebranch);
+  return (
+    isAtelierBranch(typebranch) ||
+    isUniversiteBranch(typebranch) ||
+    isCentreFormationBranch(typebranch)
+  );
+}
+
+export function hidesProvenanceEcole(typebranch: unknown): boolean {
+  return isCentreFormationBranch(typebranch);
 }
 
 export function isPrimaryBranch(typebranch: unknown): boolean {

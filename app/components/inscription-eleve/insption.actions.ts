@@ -3,7 +3,7 @@
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { isPrimaryBranch } from "@/lib/class-structure";
-import { isAtelierBranch } from "@/lib/branch-capabilities";
+import { isAtelierBranch, isCentreFormationBranch } from "@/lib/branch-capabilities";
 import { fetchPublishedBranchRegistrationInfo } from "@/lib/fetch-published-branch-registration-info";
 
 const PRIMARY_MIN_AGE = 5;
@@ -33,7 +33,7 @@ const onlineRegistrationSchema = z.object({
     email: z.string().trim().email().optional().or(z.literal("")),
     provenanceEcole: z.string().trim().optional(),
   }),
-  guardians: z.array(guardianSchema).min(1).max(2),
+  guardians: z.array(guardianSchema).max(2),
   requestedLevel: z.string().trim().min(1, "Classe ou niveau souhaite requis"),
   requestedSection: z.string().trim().optional(),
   requestedOption: z.string().trim().optional(),
@@ -79,6 +79,67 @@ export async function getActiveBranches() {
 export async function getPublishedBranchRegistrationInfo(branchId: string) {
   return fetchPublishedBranchRegistrationInfo(branchId);
 }
+
+export type PublicAcademicChoiceSection = {
+  id: string;
+  codeSection: string;
+  nameSection: string;
+  options: {
+    id: string;
+    codeOption: string;
+    nameOption: string;
+  }[];
+};
+
+export async function getPublicRegistrationAcademicChoices(branchId: string) {
+  const branch = await prisma.branch.findFirst({
+    where: {
+      id: branchId,
+      isActive: true,
+      typebranch: { not: "ATELIER" },
+    },
+    select: { typebranch: true },
+  });
+
+  if (!branch || !["CENTRE_FORMATION", "UNIVERSITE"].includes(branch.typebranch)) {
+    return null;
+  }
+
+  const [sections, options] = await Promise.all([
+    prisma.section.findMany({
+      where: { branchId, statusSection: true },
+      orderBy: { nameSection: "asc" },
+      select: { id: true, codeSection: true, nameSection: true },
+    }),
+    prisma.option.findMany({
+      where: { branchId, statusOption: true },
+      orderBy: { nameOption: "asc" },
+      select: {
+        id: true,
+        codeOption: true,
+        nameOption: true,
+        sectionId: true,
+      },
+    }),
+  ]);
+
+  const tree: PublicAcademicChoiceSection[] = sections.map((section) => ({
+    ...section,
+    options: options
+      .filter((option) => option.sectionId === section.id)
+      .map(({ id, codeOption, nameOption }) => ({
+        id,
+        codeOption,
+        nameOption,
+      })),
+  }));
+
+  return {
+    typebranch: branch.typebranch,
+    sections: tree,
+  };
+}
+
 function createReference() {
   const date = new Date();
   const stamp = `${date.getFullYear()}${String(date.getMonth() + 1).padStart(2, "0")}${String(date.getDate()).padStart(2, "0")}`;
@@ -117,6 +178,16 @@ export async function registerStudentOnline(raw: OnlineRegistrationInput) {
       success: false as const,
       message:
         "Les inscriptions en ligne ne sont pas disponibles pour les ateliers.",
+    };
+  }
+
+  if (
+    !isCentreFormationBranch(branch.typebranch) &&
+    data.guardians.length < 1
+  ) {
+    return {
+      success: false as const,
+      message: "Au moins un responsable est requis.",
     };
   }
 

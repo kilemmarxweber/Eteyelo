@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useAppTransition as useTransition } from "@/hooks/use-app-transition";
-import { useSearchParams } from "next/navigation";
 import {
   Briefcase,
   CheckCircle2,
@@ -58,9 +57,12 @@ function statusVariant(status: string) {
   return "secondary";
 }
 
-export function CandidaturesView() {
-  const searchParams = useSearchParams();
-  const requestedApplicationId = searchParams.get("applicationId") ?? "";
+export function CandidaturesView({
+  initialApplicationId = "",
+}: {
+  initialApplicationId?: string;
+}) {
+  const requestedApplicationId = initialApplicationId;
   const [applications, setApplications] = useState<JobApplicationListItem[]>(
     [],
   );

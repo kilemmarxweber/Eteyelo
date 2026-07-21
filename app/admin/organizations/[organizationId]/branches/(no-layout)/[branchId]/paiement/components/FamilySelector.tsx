@@ -17,6 +17,7 @@ import { ISchoolYear } from "@/src/interfaces/SchoolYear";
 import { Check, Loader2, Search, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSession } from "@/lib/auth-client";
+import { useBranchPeopleLabels } from "@/hooks/use-branch-people-labels";
 
 interface Props {
   onChange: (data: {
@@ -40,6 +41,7 @@ export default function FamilySelector({ onChange, resetKey }: Props) {
   const [schoolYear, setSchoolYear] = useState<string>("");
   const [schoolYears, setSchoolYears] = useState<ISchoolYear[]>([]);
   const { data: session } = useSession();
+  const peopleLabels = useBranchPeopleLabels();
   const pathname = usePathname();
   const branchIdFromPath = pathname.match(/\/branches\/([^/]+)/)?.[1];
   const branchId =
@@ -240,11 +242,11 @@ export default function FamilySelector({ onChange, resetKey }: Props) {
     <div className="flex flex-col gap-3">
       <div className="space-y-2">
         <label htmlFor="student-search" className="text-sm font-medium">
-          Rechercher un élève
+          {peopleLabels.searchLabel}
         </label>
         <Input
           id="student-search"
-          placeholder="Nom, prénom ou postnom de l'élève ou du parent…"
+          placeholder={`Nom, prénom ou postnom de ${peopleLabels.studentDefinite} ou du parent…`}
           className="h-10 text-sm"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
@@ -286,7 +288,7 @@ export default function FamilySelector({ onChange, resetKey }: Props) {
         <div className="rounded-md border bg-muted/30 p-3 space-y-2">
           <div className="flex items-center justify-between gap-2">
             <p className="text-sm font-medium">
-              Élèves sélectionnés ({selectedStudents.length})
+              {peopleLabels.studentPlural} sélectionnés ({selectedStudents.length})
             </p>
             <button
               type="button"
@@ -327,7 +329,7 @@ export default function FamilySelector({ onChange, resetKey }: Props) {
 
         {search.trim().length >= 2 && !searching && results.length === 0 && (
           <p className="text-sm text-muted-foreground">
-            Aucun élève ou parent trouvé pour « {search.trim()} ».
+            Aucun {peopleLabels.studentLower} ou parent trouvé pour « {search.trim()} ».
           </p>
         )}
 

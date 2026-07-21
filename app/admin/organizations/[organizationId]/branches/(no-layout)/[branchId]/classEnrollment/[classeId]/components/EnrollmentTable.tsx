@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useEffect, useState } from "react";
 import { columns } from "./columns";
 import { ResponsiveDataTable } from "@/components/custom";
@@ -11,8 +13,10 @@ import {
 } from "../../classEnrollment.action";
 import { DataTableToolbar } from "./data-table-toolbar";
 import { IconAlertCircle, IconUsers } from "@tabler/icons-react";
+import { useBranchPeopleLabels } from "@/hooks/use-branch-people-labels";
 
 const ClassEnrollmentsList = ({ params }: { params: { classeId: string } }) => {
+  const peopleLabels = useBranchPeopleLabels();
   const [classEnrollments, setClassEnrollments] = useState<IclassEnrollment[]>(
     [],
   );
@@ -82,8 +86,8 @@ const ClassEnrollmentsList = ({ params }: { params: { classeId: string } }) => {
     return (
       <div className="p-6">
         <EmptyTableState
-          title="Aucun élève inscrit"
-          description="Aucun élève n'est actuellement inscrit dans cette classe."
+          title={peopleLabels.noneEnrolledTitle}
+          description={peopleLabels.noneEnrolledDescription}
           icon={<IconUsers className="h-10 w-10 text-muted-foreground" />}
         />
       </div>

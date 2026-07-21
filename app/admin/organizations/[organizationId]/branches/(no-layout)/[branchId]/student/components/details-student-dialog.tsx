@@ -10,6 +10,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { IStudent } from "@/src/interfaces/Student";
+import { useBranchPeopleLabels } from "@/hooks/use-branch-people-labels";
 
 interface DetailsStudentDialogProps
   extends React.ComponentPropsWithoutRef<typeof Dialog> {
@@ -29,6 +30,7 @@ export function DetailsStudentDialog({
   student,
   ...props
 }: DetailsStudentDialogProps) {
+  const peopleLabels = useBranchPeopleLabels();
   const studentName = [student.nom, student.postnom, student.prenom]
     .filter(Boolean)
     .join(" ");
@@ -44,14 +46,14 @@ export function DetailsStudentDialog({
     <Dialog {...props}>
       <DialogContent size="xl">
         <DialogHeader>
-          <DialogTitle>Details de l'eleve</DialogTitle>
+          <DialogTitle>{peopleLabels.detailsTitle}</DialogTitle>
         </DialogHeader>
 
         <Card className="space-y-4 p-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <h2 className="text-lg font-semibold">
-                {studentName || "Eleve"}
+                {studentName || peopleLabels.student}
               </h2>
               <p className="text-sm text-muted-foreground">
                 {student.username || "Code non defini"}

@@ -30,6 +30,7 @@ import {
   requiresStudentImport,
 } from "@/lib/branch-capabilities";
 import { buildStudentAccessWhere } from "@/lib/atelier-student-access";
+import { resolveStudentParentId } from "@/lib/centre-default-parent";
 import { canIssueBranchDocuments } from "@/lib/branch-document-permissions";
 import {
   buildSchoolReportContext,
@@ -167,14 +168,19 @@ export const createStudentAction = action
       };
     }
 
-    const parentId = input.parentId;
+    const parentId = await resolveStudentParentId({
+      typebranch,
+      branchId,
+      organizationId,
+      branchName: (
+        await prisma.branch.findUnique({
+          where: { id: branchId },
+          select: { name: true },
+        })
+      )?.name,
+      requestedParentId: input.parentId,
+    });
     const { category, orgRole, email, telephone, placeOfBirth, ...data } = input;
-    if (!parentId) {
-      return {
-        ok: false,
-        message: "Parent obligatoire pour créer un élève",
-      };
-    }
 
     //const emailLower = data.email?.toLowerCase() ?? "";
     const count = await prisma.student.count();

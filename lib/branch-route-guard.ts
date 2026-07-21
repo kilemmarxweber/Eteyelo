@@ -216,7 +216,7 @@ export function getBranchTypeDescription(typebranch: unknown): string {
     case "ATELIER":
       return "Formation pratique : importez eleves, enseignants et personnels depuis les autres branches de l'organisation. Les parents ne sont pas geres ici.";
     case "CENTRE_FORMATION":
-      return "Formation certifiante avec programmes, sessions et emission de brevet.";
+      return "Formation certifiante avec programmes, sessions et emission de brevet. Les apprenants sont rattaches automatiquement a un parent systeme.";
     case "UNIVERSITE":
       return "Enseignement superieur : importez apprenants, cours, enseignants et personnels. Les parents sont renseignes uniquement a l'inscription.";
     default:

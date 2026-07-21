@@ -9,11 +9,13 @@ import { notFound } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import PaymentClient from "./components/PaymentClient";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
+import { getPeopleLabels } from "@/lib/people-labels";
 import { PageHeader } from "@/components/ui/page-header";
 import { Badge } from "@/components/ui/badge";
 import { IconWallet } from "@tabler/icons-react";
 export default async function PaymentPage() {
-  await requireBranchContext();
+  const { typebranch } = await requireBranchContext();
+  const peopleLabels = getPeopleLabels(typebranch);
 
   const [fraisListResult, fraisError] = await getFraisAction({});
   if (fraisError) {
@@ -39,7 +41,7 @@ export default async function PaymentPage() {
       <LayoutBody className="space-y-4">
         <PageHeader
           title="Gestion des paiements"
-          description="Suivez les paiements des eleves et les soldes restants."
+          description={`Suivez les paiements des ${peopleLabels.studentPluralLower} et les soldes restants.`}
           badge={
             <Badge variant="outline-primary" icon={<IconWallet size={14} />}>
               Paiements

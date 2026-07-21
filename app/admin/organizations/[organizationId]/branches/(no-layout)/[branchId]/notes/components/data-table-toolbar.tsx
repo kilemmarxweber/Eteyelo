@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { DataTableViewOptions } from "@/components/data-table-view-options";
 
 import { DataTableFacetedFilter } from "@/components/data-table-faceted-filter";
+import { useBranchPeopleLabels } from "@/hooks/use-branch-people-labels";
 
 interface DataTableToolbarProps<TData> {
   table: Table<TData>;
@@ -26,6 +27,7 @@ const sexe = [
 export function DataTableToolbar<TData>({
   table,
 }: DataTableToolbarProps<TData>) {
+  const peopleLabels = useBranchPeopleLabels();
   const isFiltered = table.getState().columnFilters.length > 0;
 
   // Fonction de transformation
@@ -34,7 +36,7 @@ export function DataTableToolbar<TData>({
     <div className="flex items-center justify-between">
       <div className="flex flex-1 items-center space-x-2">
         <Input
-          placeholder="chercher un élève..."
+          placeholder={peopleLabels.searchPlaceholder}
           value={
             (table.getColumn("username")?.getFilterValue() as string) ?? ""
           }

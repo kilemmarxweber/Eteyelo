@@ -22,6 +22,7 @@ import { buildReleveNotesData } from "@/lib/releve-notes-builder";
 import { buildStudentDocumentsData } from "@/lib/student-documents";
 import { buildStudentScheduleData } from "@/lib/student-schedule";
 import { buildStudentAnnouncementsData } from "@/lib/student-announcements";
+import { getPeopleLabels } from "@/lib/people-labels";
 import { getBranchImage } from "@/lib/utils";
 import { StudentProfileClient } from "./components/student-profile-client";
 import type {
@@ -106,6 +107,8 @@ const SingleStudentPage = async ({
   });
 
   if (!branch) notFound();
+
+  const peopleLabels = getPeopleLabels(branch.typebranch);
 
   const currentYear = await prisma.schoolYear.findFirst({
     where: {
@@ -268,7 +271,7 @@ const SingleStudentPage = async ({
   const postnom = user.postnom ?? "";
   const prenom = user.prenom ?? "";
   const fullName =
-    [nom, postnom, prenom].filter(Boolean).join(" ").trim() || "Eleve";
+    [nom, postnom, prenom].filter(Boolean).join(" ").trim() || peopleLabels.student;
   const age = calculateAge(user.dateOfBirth);
   const sectionName = classe?.option?.section?.nameSection ?? "-";
   const optionName = classe?.option?.nameOption ?? "-";
@@ -599,11 +602,11 @@ const SingleStudentPage = async ({
     <Layout>
       <LayoutBody className="space-y-4">
         <PageHeader
-          title="Profil eleve"
-          description="Informations personnelles, scolarite et carte d'identite scolaire."
+          title={`Profil ${peopleLabels.studentLower}`}
+          description={`Informations personnelles, scolarite et carte d'identite de ${peopleLabels.studentDefinite}.`}
           badge={
             <Badge variant="outline-primary" icon={<IconUser size={14} />}>
-              Eleve
+              {peopleLabels.student}
             </Badge>
           }
           className="mb-0 space-y-1"

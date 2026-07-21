@@ -1,6 +1,7 @@
 "use client";
 
 import { CameraCaptureDialog } from "@/components/camera-capture-dialog";
+import { useBranchPeopleLabels } from "@/hooks/use-branch-people-labels";
 import type { StudentPhotoUploadState } from "./use-student-photo-upload";
 
 type StudentPhotoUploadInputProps = {
@@ -8,6 +9,7 @@ type StudentPhotoUploadInputProps = {
 };
 
 export function StudentPhotoUploadInput({ upload }: StudentPhotoUploadInputProps) {
+  const peopleLabels = useBranchPeopleLabels();
   const {
     fileInputId,
     fileInputRef,
@@ -33,7 +35,7 @@ export function StudentPhotoUploadInput({ upload }: StudentPhotoUploadInputProps
       <CameraCaptureDialog
         open={cameraOpen}
         onOpenChange={setCameraOpen}
-        title="Photo eleve"
+        title={peopleLabels.photoOptionalLabel.replace(" (facultatif)", "")}
         onCapture={(file) => {
           void savePhoto(file);
         }}

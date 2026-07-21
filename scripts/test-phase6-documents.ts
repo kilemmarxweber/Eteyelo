@@ -6,8 +6,9 @@ import {
   generateAttestationPdf,
 } from "../lib/pdf/attestation-layout";
 import {
-  createBrevetPdfOutput,
+  createBrevetPdfOutputSync,
   generateBrevetPdf,
+  buildCertificateParagraphsForTest,
 } from "../lib/pdf/brevet-layout";
 import {
   finalizePdfDocument,
@@ -39,17 +40,49 @@ test("safePdfFilePart nettoie les noms de fichiers", () => {
   assert.equal(safePdfFilePart("Jean-Paul Été"), "jean-paul-ete");
 });
 
-test("createBrevetPdfOutput genere un document valide", () => {
-  const output = createBrevetPdfOutput({
+test("createBrevetPdfOutputSync genere un document valide", () => {
+  const output = createBrevetPdfOutputSync({
     organizationName: "Org Test",
-    branchName: "Centre Test",
-    studentName: "Jean Dupont",
+    branchName: "Centre de Formation Professionnelle en Agronomie (CFPA)",
+    branchCity: "Kinshasa",
+    studentName: "Kanioka Kanioka Elva",
     brevetNumber: "CF-2026-0001",
-    programmeName: "Informatique",
+    programmeName: "Agronomie",
     sessionName: "Session A",
+    placeOfBirth: "Kinshasa",
+    dateOfBirth: new Date("1994-06-26"),
+    sexe: "feminin",
+    trainingStartDate: new Date("2022-03-01"),
+    trainingEndDate: new Date("2022-10-11"),
   });
 
   assert.ok(output.blob.size > 0);
+});
+
+test("texte officiel du brevet centre de formation", () => {
+  const paragraphs = buildCertificateParagraphsForTest({
+    organizationName: "Org",
+    branchName: "Centre de Formation Professionnelle en Agronomie (CFPA)",
+    branchCity: "Kinshasa",
+    studentName: "Kanioka Kanioka Elva",
+    brevetNumber: "CF-2026-0001",
+    programmeName: "Agronomie",
+    placeOfBirth: "Kinshasa",
+    dateOfBirth: new Date("1994-06-26"),
+    sexe: "feminin",
+    trainingStartDate: new Date("2022-03-01"),
+    trainingEndDate: new Date("2022-10-11"),
+  });
+
+  assert.match(paragraphs[0], /Nous certifions que KANIOKA KANIOKA ELVA, Née à KINSHASA/);
+  assert.match(paragraphs[0], /formation technique en agronomie/);
+  assert.match(paragraphs[0], /01 \/ 03 \/ 2022/);
+  assert.match(paragraphs[0], /11 \/ 10 \/ 2022/);
+  assert.match(paragraphs[1], /L'apprenante a été évaluée sur base des Examens théoriques/);
+  assert.equal(
+    paragraphs[2],
+    "Nous lui remettons ce document pour servir et valoir ce que de droit.",
+  );
 });
 
 test("createRelevePdfOutput genere un document valide", () => {

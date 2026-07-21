@@ -473,7 +473,6 @@ export async function getCentreBrevetsAction() {
             statusEnrollment: true,
             schoolYear: { isCurrentYear: true },
           },
-          take: 1,
           include: {
             classe: {
               include: {
@@ -497,7 +496,6 @@ export async function getCentreBrevetsAction() {
                 statusEnrollment: true,
                 schoolYear: { isCurrentYear: true },
               },
-              take: 1,
               include: {
                 classe: {
                   include: {
@@ -530,7 +528,9 @@ export async function getCentreBrevetsAction() {
     }),
   ]);
 
-  const learnerMap = new Map<string, {
+  const learnerRows: Array<{
+    enrollmentId: string;
+    classeId: string;
     studentId: string;
     nom: string;
     postnom: string;
@@ -540,39 +540,82 @@ export async function getCentreBrevetsAction() {
     sessionName: string | null;
     sourceLabel: string;
     isLinked: boolean;
-  }>();
+  }> = [];
+
+  function pushLearnerEnrollments(
+    studentId: string,
+    user: {
+      name?: string | null;
+      postnom?: string | null;
+      prenom?: string | null;
+      username?: string | null;
+    } | null | undefined,
+    enrollments: Array<{
+      id: string;
+      classe: {
+        id: string;
+        nameClasse: string;
+        option: {
+          nameOption: string;
+          section: { nameSection: string } | null;
+        } | null;
+      } | null;
+    }>,
+    sourceLabel: string,
+    isLinked: boolean,
+  ) {
+    for (const enrollment of enrollments) {
+      if (!enrollment.classe) continue;
+      learnerRows.push({
+        enrollmentId: enrollment.id,
+        classeId: enrollment.classe.id,
+        studentId,
+        nom: user?.name ?? "",
+        postnom: user?.postnom ?? "",
+        prenom: user?.prenom ?? "",
+        username: user?.username ?? "",
+        programmeName:
+          enrollment.classe.option?.nameOption ??
+          enrollment.classe.option?.section?.nameSection ??
+          null,
+        sessionName: enrollment.classe.nameClasse,
+        sourceLabel,
+        isLinked,
+      });
+    }
+  }
 
   for (const student of nativeStudents) {
     const user = student.branchMember.member.user;
-    const enrollment = student.classEnrollment[0];
-    learnerMap.set(student.id, {
-      studentId: student.id,
-      nom: user?.name ?? "",
-      postnom: user?.postnom ?? "",
-      prenom: user?.prenom ?? "",
-      username: user?.username ?? "",
-      programmeName: enrollment?.classe?.option?.nameOption ?? enrollment?.classe?.option?.section?.nameSection ?? null,
-      sessionName: enrollment?.classe?.nameClasse ?? null,
-      sourceLabel: "Cree au centre",
-      isLinked: false,
-    });
+    pushLearnerEnrollments(
+      student.id,
+      user,
+      student.classEnrollment,
+      "Cree au centre",
+      false,
+    );
   }
 
   for (const link of links) {
     const user = link.student.branchMember.member.user;
-    const enrollment = link.student.classEnrollment[0];
-    learnerMap.set(link.student.id, {
-      studentId: link.student.id,
-      nom: user?.name ?? "",
-      postnom: user?.postnom ?? "",
-      prenom: user?.prenom ?? "",
-      username: user?.username ?? "",
-      programmeName: enrollment?.classe?.option?.nameOption ?? null,
-      sessionName: enrollment?.classe?.nameClasse ?? null,
-      sourceLabel: `Importe · ${link.sourceBranch.name}`,
-      isLinked: true,
-    });
+    pushLearnerEnrollments(
+      link.student.id,
+      user,
+      link.student.classEnrollment,
+      `Importe · ${link.sourceBranch.name}`,
+      true,
+    );
   }
+
+  learnerRows.sort((a, b) => {
+    const nameA = `${a.nom} ${a.postnom} ${a.prenom}`.trim();
+    const nameB = `${b.nom} ${b.postnom} ${b.prenom}`.trim();
+    return (
+      nameA.localeCompare(nameB, "fr") ||
+      (a.programmeName ?? "").localeCompare(b.programmeName ?? "", "fr") ||
+      (a.sessionName ?? "").localeCompare(b.sessionName ?? "", "fr")
+    );
+  });
 
   return {
     ok: true as const,
@@ -581,7 +624,7 @@ export async function getCentreBrevetsAction() {
     branchCode: branch?.code ?? "",
     organizationName: branch?.organization.name ?? "",
     schoolYearName: branch?.schoolYear[0]?.nameYear ?? "",
-    learners: Array.from(learnerMap.values()),
+    learners: learnerRows,
     documents: documents.map((doc) => ({
       id: doc.id,
       studentId: doc.studentId,
@@ -594,6 +637,8 @@ export async function getCentreBrevetsAction() {
 
 export async function issueCentreBrevetAction(input: {
   studentId: string;
+  enrollmentId?: string;
+  classeId?: string;
   programmeName?: string;
 }) {
   const { branchId, organizationId, canIssueDocuments, typebranch } =
@@ -621,12 +666,32 @@ export async function issueCentreBrevetAction(input: {
     return { ok: false as const, message: "Apprenant introuvable dans ce centre" };
   }
 
+  if (!input.enrollmentId && !input.classeId) {
+    const enrollmentCount = await prisma.classEnrollment.count({
+      where: {
+        studentId: input.studentId,
+        branchId,
+        statusEnrollment: true,
+        schoolYear: { isCurrentYear: true },
+      },
+    });
+
+    if (enrollmentCount > 1) {
+      return {
+        ok: false as const,
+        message: "Selectionnez le programme et la session a certifier.",
+      };
+    }
+  }
+
   const enrollment = await prisma.classEnrollment.findFirst({
     where: {
       studentId: input.studentId,
       branchId,
       statusEnrollment: true,
       schoolYear: { isCurrentYear: true },
+      ...(input.enrollmentId ? { id: input.enrollmentId } : {}),
+      ...(input.classeId ? { classeId: input.classeId } : {}),
     },
     include: {
       classe: { include: { option: true } },
@@ -659,7 +724,12 @@ export async function issueCentreBrevetAction(input: {
     }),
     prisma.branch.findUnique({
       where: { id: branchId },
-      select: { name: true, code: true, organization: { select: { name: true } } },
+      select: {
+        name: true,
+        code: true,
+        ville: true,
+        organization: { select: { name: true } },
+      },
     }),
     generateBrevetNumber(branchId),
   ]);
@@ -673,12 +743,24 @@ export async function issueCentreBrevetAction(input: {
     input.programmeName?.trim() ||
     classe.option?.nameOption ||
     "Programme de formation";
+  const studentName = [user?.name, user?.postnom, user?.prenom]
+    .filter(Boolean)
+    .join(" ");
+  const placeOfBirth = student.placeOfBirth ?? null;
+  const dateOfBirth = user?.dateOfBirth ?? null;
+  const sexe = user?.sexe ?? null;
+  const trainingStartDate = enrollment.schoolYear.startYear;
+  const trainingEndDate = enrollment.schoolYear.endYear;
+  const branchCity = branch?.ville ?? null;
 
   const duplicate = await findDuplicateIssuedDocument({
     branchId,
     studentId: input.studentId,
     schoolYearId: enrollment.schoolYearId,
     documentType: "BREVET",
+    metadata: {
+      classeId: classe.id,
+    },
   });
 
   if (duplicate) {
@@ -699,8 +781,16 @@ export async function issueCentreBrevetAction(input: {
         brevetNumber,
         programmeName,
         sessionName: classe.nameClasse,
+        classeId: classe.id,
+        enrollmentId: enrollment.id,
         schoolYearName: enrollment.schoolYear.nameYear,
-        studentName: [user?.name, user?.postnom, user?.prenom].filter(Boolean).join(" "),
+        studentName,
+        placeOfBirth,
+        dateOfBirth: dateOfBirth?.toISOString() ?? null,
+        sexe,
+        branchCity,
+        trainingStartDate: trainingStartDate.toISOString(),
+        trainingEndDate: trainingEndDate.toISOString(),
       },
     },
   });
@@ -716,7 +806,7 @@ export async function issueCentreBrevetAction(input: {
       brevetNumber,
       title: document.title,
       issuedAt: document.issuedAt.toISOString(),
-      studentName: [user?.name, user?.postnom, user?.prenom].filter(Boolean).join(" "),
+      studentName,
       username: user?.username ?? "",
       programmeName,
       sessionName: classe.nameClasse,
@@ -724,6 +814,12 @@ export async function issueCentreBrevetAction(input: {
       organizationName: branch.organization.name,
       branchName: branch.name,
       branchCode: branch.code,
+      branchCity,
+      placeOfBirth,
+      dateOfBirth: dateOfBirth?.toISOString() ?? null,
+      sexe,
+      trainingStartDate: trainingStartDate.toISOString(),
+      trainingEndDate: trainingEndDate.toISOString(),
     },
   };
 }

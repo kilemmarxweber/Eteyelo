@@ -25,6 +25,8 @@ import { toast } from "sonner";
 import { CheckCircle2, Receipt, X } from "lucide-react";
 
 import { createPaiementAction, getFraisWithBalance } from "../paiement.action";
+import { useBranchPeopleLabels } from "@/hooks/use-branch-people-labels";
+import { pluralizeStudentLabelLower } from "@/lib/people-labels";
 import { getFraisAction } from "../../frais/frais.action";
 import { getActiveExchangeRatesAction } from "../../settings/exchange-rate.action";
 import {
@@ -76,6 +78,7 @@ export default function PaymentsForm({
   onCreated,
   onSuccess,
 }: Props) {
+  const peopleLabels = useBranchPeopleLabels();
   const { register, handleSubmit, setValue, watch, reset } = useForm<FormData>({
     resolver: zodResolver(paiementSchema),
     defaultValues: {
@@ -451,7 +454,7 @@ export default function PaymentsForm({
       // 🏦 BANK CHECK 2: Selection complete?
       if (hasNoSelection) {
         toast.error(
-          "❌ Impossible: Sélectionnez un élève et au moins un frais.",
+          `❌ Impossible: Sélectionnez ${peopleLabels.studentIndefinite} et au moins un frais.`,
         );
         return;
       }
@@ -801,7 +804,7 @@ export default function PaymentsForm({
                     <p className="text-xs text-muted-foreground">
                       {formatAmount(frais.unitAmount)}
                       {frais.studentCount > 1 &&
-                        ` × ${frais.studentCount} élèves`}
+                        ` × ${frais.studentCount} ${peopleLabels.studentPluralLower}`}
                     </p>
                     {frais.alreadyPaid > 0 && (
                       <p className="text-xs text-green-700">
@@ -837,7 +840,7 @@ export default function PaymentsForm({
 
             {hasNoSelection ? (
               <p className="text-sm text-muted-foreground">
-                Sélectionnez un élève et au moins un frais pour voir le
+                Sélectionnez {peopleLabels.studentIndefinite} et au moins un frais pour voir le
                 récapitulatif.
               </p>
             ) : balances.length === 0 ? (
@@ -848,8 +851,8 @@ export default function PaymentsForm({
               <>
                 {summary.studentCount > 0 && (
                   <p className="text-xs text-muted-foreground">
-                    {summary.studentCount} élève
-                    {summary.studentCount > 1 ? "s" : ""} ·{" "}
+                    {summary.studentCount}{" "}
+                    {pluralizeStudentLabelLower(peopleLabels, summary.studentCount)} ·{" "}
                     {summary.fraisCount} frais
                   </p>
                 )}

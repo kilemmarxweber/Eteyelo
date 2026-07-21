@@ -4,7 +4,13 @@ import { PageHeader } from "@/components/ui/page-header";
 import { IconBriefcase } from "@tabler/icons-react";
 import { CandidaturesView } from "./candidatures-view";
 
-export default function CandidaturesPage() {
+export default async function CandidaturesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ applicationId?: string }>;
+}) {
+  const query = await searchParams;
+
   return (
     <Layout>
       <LayoutBody className="w-full space-y-6">
@@ -17,7 +23,7 @@ export default function CandidaturesPage() {
             </Badge>
           }
         />
-        <CandidaturesView />
+        <CandidaturesView initialApplicationId={query.applicationId ?? ""} />
       </LayoutBody>
     </Layout>
   );

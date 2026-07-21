@@ -18,6 +18,7 @@ import {
   getClassLevelsForBranch,
   isValidClassLevel,
   requiresOptionForClass,
+  requiresSectionForClass,
 } from "../lib/class-structure";
 import { branchTypeSchema, importStudentSchema } from "../lib/schemas/extended-branch";
 
@@ -79,6 +80,10 @@ test("niveaux de classe par type", () => {
   assert.equal(getClassLevelsForBranch("ATELIER").includes("Groupe"), true);
   assert.equal(isValidClassLevel("CENTRE_FORMATION", "Session"), true);
   assert.equal(requiresOptionForClass("UNIVERSITE", "L1"), true);
+  assert.equal(requiresSectionForClass("SECONDAIRE", "1ère"), true);
+  assert.equal(requiresSectionForClass("SECONDAIRE", "7ème"), false);
+  assert.equal(requiresSectionForClass("SECONDAIRE", "8ème"), false);
+  assert.equal(requiresSectionForClass("SECONDAIRE", "1"), true);
 });
 
 test("importStudentSchema valide les champs requis", () => {

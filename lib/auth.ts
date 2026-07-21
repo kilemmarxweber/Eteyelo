@@ -52,7 +52,7 @@ const authOptions = {
         required: false,
       },
       statusUser: {
-        type: "string",
+        type: "boolean",
         required: false,
       },
       mustChangePassword: {

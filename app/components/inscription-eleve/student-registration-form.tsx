@@ -34,7 +34,8 @@ import {
 } from "@/components/ui/select";
 import { uploadFile } from "@/lib/upload-file";
 import { generateSlug } from "@/lib/generated-identifiers";
-import { registerStudentOnline, getPublishedBranchRegistrationInfo } from "./insption.actions";
+import { registerStudentOnline, getPublishedBranchRegistrationInfo, getPublicRegistrationAcademicChoices } from "./insption.actions";
+import type { PublicAcademicChoiceSection } from "./insption.actions";
 import { SchoolRegistrationPanel } from "./school-registration-panel";
 import {
   formatRegistrationFee,
@@ -43,7 +44,17 @@ import {
 } from "@/lib/registration-public-info";
 import { LevelSectionOptionFields } from "@/components/level-section-option-fields";
 import type { ManagedBranchType } from "@/lib/academic-structure";
-import { isPrimaryBranch } from "@/lib/class-structure";
+import { isPrimaryBranch, requiresOptionForClass, requiresSectionForClass } from "@/lib/class-structure";
+import { isCentreFormationBranch, hidesProvenanceEcole } from "@/lib/branch-capabilities";
+import { getPeopleLabels } from "@/lib/people-labels";
+import {
+  getEstablishmentPickerLabel,
+  getEstablishmentTypeFilterLabel,
+  isPublicRegistrationBranchType,
+  PUBLIC_REGISTRATION_BRANCH_TYPES,
+  usesBranchAcademicTree,
+  getPublicLevelFieldLabels,
+} from "@/lib/public-establishment-labels";
 
 type Branch = {
   id: string;
@@ -150,6 +161,23 @@ function maxBirthDateForMinAge(minAge: number) {
   return date.toISOString().slice(0, 10);
 }
 
+type RegistrationStepKind = "student" | "guardian" | "level" | "recap";
+
+function resolveRegistrationStepKind(
+  step: number,
+  skipsGuardian: boolean,
+): RegistrationStepKind {
+  if (skipsGuardian) {
+    if (step === 0) return "student";
+    if (step === 1) return "level";
+    return "recap";
+  }
+  if (step === 0) return "student";
+  if (step === 1) return "guardian";
+  if (step === 2) return "level";
+  return "recap";
+}
+
 export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
   const [step, setStep] = useState(0);
   const [isPending, startTransition] = useTransition();
@@ -160,6 +188,13 @@ export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
   const [schoolInfo, setSchoolInfo] =
     useState<PublicBranchRegistrationInfo | null>(null);
   const [schoolInfoLoading, setSchoolInfoLoading] = useState(false);
+  const [academicChoices, setAcademicChoices] = useState<{
+    sections: PublicAcademicChoiceSection[];
+  } | null>(null);
+  const [academicChoicesLoading, setAcademicChoicesLoading] = useState(false);
+  const [branchTypeFilter, setBranchTypeFilter] = useState<
+    ManagedBranchType | ""
+  >("");
   const [form, setForm] = useState({
     branchId: "",
     name: "",
@@ -193,23 +228,33 @@ export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
   useEffect(() => {
     if (!form.branchId) {
       setSchoolInfo(null);
+      setAcademicChoices(null);
       return;
     }
 
     let ignore = false;
     setSchoolInfoLoading(true);
+    setAcademicChoicesLoading(true);
 
-    getPublishedBranchRegistrationInfo(form.branchId)
-      .then((info) => {
+    void Promise.all([
+      getPublishedBranchRegistrationInfo(form.branchId),
+      getPublicRegistrationAcademicChoices(form.branchId),
+    ])
+      .then(([info, choices]) => {
         if (ignore) return;
         setSchoolInfo(info);
+        setAcademicChoices(choices ? { sections: choices.sections } : null);
       })
       .catch(() => {
         if (ignore) return;
         setSchoolInfo(null);
+        setAcademicChoices(null);
       })
       .finally(() => {
-        if (!ignore) setSchoolInfoLoading(false);
+        if (!ignore) {
+          setSchoolInfoLoading(false);
+          setAcademicChoicesLoading(false);
+        }
       });
 
     return () => {
@@ -217,10 +262,51 @@ export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
     };
   }, [form.branchId]);
 
+  const availableBranchTypes = useMemo(
+    () =>
+      PUBLIC_REGISTRATION_BRANCH_TYPES.filter((type) =>
+        branches.some((branch) => branch.typebranch === type),
+      ),
+    [branches],
+  );
+
+  const filteredBranches = useMemo(
+    () =>
+      branchTypeFilter
+        ? branches.filter((branch) => branch.typebranch === branchTypeFilter)
+        : [],
+    [branches, branchTypeFilter],
+  );
+
   const selectedBranch = branches.find((b) => b.id === form.branchId);
+  const establishmentLabel = getEstablishmentPickerLabel(
+    branchTypeFilter || selectedBranch?.typebranch,
+  );
   const branchType = (selectedBranch?.typebranch ??
     "SECONDAIRE") as ManagedBranchType;
+  const peopleLabels = useMemo(
+    () => getPeopleLabels(branchType),
+    [branchType],
+  );
   const isPrimary = isPrimaryBranch(branchType);
+  const skipsGuardian = isCentreFormationBranch(branchType);
+  const hidesProvenance = hidesProvenanceEcole(branchType);
+  const usesBranchTree = usesBranchAcademicTree(branchType);
+  const branchAcademicTree = academicChoices?.sections.map((section) => ({
+    codeSection: section.codeSection,
+    nameSection: section.nameSection,
+    options: section.options.map((option) => ({
+      codeOption: option.codeOption,
+      nameOption: option.nameOption,
+    })),
+  }));
+  const totalSteps = skipsGuardian ? 3 : 4;
+  const maxStep = totalSteps - 1;
+  const stepKind = resolveRegistrationStepKind(step, skipsGuardian);
+
+  useEffect(() => {
+    setStep((current) => Math.min(current, maxStep));
+  }, [maxStep]);
   const generatedStudentEmail = useMemo(
     () => previewStudentEmail(form.prenom, form.name),
     [form.prenom, form.name],
@@ -229,6 +315,28 @@ export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
 
   const update = (key: keyof typeof form, value: string | boolean) =>
     setForm((current) => ({ ...current, [key]: value }));
+
+  function onBranchTypeChange(value: string) {
+    if (!isPublicRegistrationBranchType(value)) return;
+    setBranchTypeFilter(value);
+    setForm((current) => ({
+      ...current,
+      branchId: "",
+      requestedLevel: "",
+      requestedSection: "",
+      requestedOption: "",
+    }));
+  }
+
+  function onBranchChange(value: string) {
+    setForm((current) => ({
+      ...current,
+      branchId: value,
+      requestedLevel: "",
+      requestedSection: "",
+      requestedOption: "",
+    }));
+  }
 
   const updateGuardian = (index: number, key: keyof Guardian, value: string) =>
     setGuardians((current) =>
@@ -255,8 +363,9 @@ export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
 
   function validateStep() {
     if (
-      step === 0 &&
-      (!form.branchId ||
+      stepKind === "student" &&
+      (!branchTypeFilter ||
+        !form.branchId ||
         !form.name ||
         !form.postnom ||
         !form.prenom ||
@@ -265,10 +374,10 @@ export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
         !form.placeOfBirth ||
         !form.address)
     ) {
-      toast.error("Completez les informations obligatoires de l'eleve.");
+      toast.error(`Completez les informations obligatoires de ${peopleLabels.studentDefinite}.`);
       return false;
     }
-    if (step === 0 && isPrimary) {
+    if (stepKind === "student" && isPrimary) {
       const age = ageFromDate(form.dateOfBirth);
       if (age === null || age < PRIMARY_MIN_AGE) {
         toast.error(
@@ -279,7 +388,7 @@ export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
     }
     const primary = guardians[0];
     if (
-      step === 1 &&
+      stepKind === "guardian" &&
       (!primary.name ||
         !primary.postnom ||
         !primary.prenom ||
@@ -291,14 +400,14 @@ export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
       return false;
     }
     if (
-      step === 1 &&
+      stepKind === "guardian" &&
       primary.relationshipPreset === "autre" &&
       !primary.relationshipOther.trim()
     ) {
       toast.error("Precisez le lien de parente (Autre).");
       return false;
     }
-    if (step === 1 && secondGuardian) {
+    if (stepKind === "guardian" && secondGuardian) {
       const second = guardians[1];
       if (
         !second.name ||
@@ -319,16 +428,25 @@ export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
         return false;
       }
     }
-    if (step === 2 && !form.requestedLevel) {
-      toast.error("Indiquez la classe ou le niveau souhaite.");
+    const levelLabels = getPublicLevelFieldLabels(branchType);
+    if (stepKind === "level" && !form.requestedLevel) {
+      toast.error(`Indiquez ${levelLabels.level.toLowerCase()} souhaite(e).`);
       return false;
     }
     if (
-      step === 2 &&
-      !isPrimaryBranch(branchType) &&
-      (!form.requestedSection || !form.requestedOption)
+      stepKind === "level" &&
+      requiresSectionForClass(branchType, form.requestedLevel) &&
+      !form.requestedSection
     ) {
-      toast.error("Choisissez la section et l'option.");
+      toast.error(`Choisissez ${levelLabels.section.toLowerCase()}.`);
+      return false;
+    }
+    if (
+      stepKind === "level" &&
+      requiresOptionForClass(branchType, form.requestedLevel) &&
+      !form.requestedOption
+    ) {
+      toast.error(`Choisissez ${levelLabels.option.toLowerCase()}.`);
       return false;
     }
     return true;
@@ -347,19 +465,19 @@ export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
         }
         photoUrl = uploaded.url;
       }
-      const guardiansPayload = (secondGuardian ? guardians : [guardians[0]]).map(
-        (guardian) => ({
-          name: guardian.name,
-          postnom: guardian.postnom,
-          prenom: guardian.prenom,
-          relationship: resolveRelationship(guardian),
-          sexe: guardian.sexe,
-          telephone: guardian.telephone,
-          email: guardian.email,
-          address: guardian.address,
-          isPrimary: guardian.isPrimary,
-        }),
-      );
+      const guardiansPayload = skipsGuardian
+        ? []
+        : (secondGuardian ? guardians : [guardians[0]]).map((guardian) => ({
+            name: guardian.name,
+            postnom: guardian.postnom,
+            prenom: guardian.prenom,
+            relationship: resolveRelationship(guardian),
+            sexe: guardian.sexe,
+            telephone: guardian.telephone,
+            email: guardian.email,
+            address: guardian.address,
+            isPrimary: guardian.isPrimary,
+          }));
       const result = await registerStudentOnline({
         branchId: form.branchId,
         student: {
@@ -371,7 +489,7 @@ export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
           placeOfBirth: form.placeOfBirth,
           address: form.address,
           email: generatedStudentEmail,
-          provenanceEcole: form.provenanceEcole,
+          provenanceEcole: hidesProvenance ? undefined : form.provenanceEcole,
         },
         guardians: guardiansPayload,
         requestedLevel: form.requestedLevel,
@@ -400,6 +518,11 @@ export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
     const plannedRentree = schoolInfo
       ? getPlannedRentree(schoolInfo.rentreeProgram)
       : null;
+    const needsPhysicalConfirmation =
+      isCentreFormationBranch(branchType) || branchType === "UNIVERSITE";
+    const confirmationMessage = needsPhysicalConfirmation
+      ? `Le ${establishmentLabel.toLowerCase()} doit confirmer la demande avant l'inscription definitive. Passez physiquement pour la confirmation.`
+      : "L'ecole doit confirmer la demande avant l'inscription definitive.";
 
     return (
       <div className="min-h-screen bg-background">
@@ -421,8 +544,7 @@ export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
                   {reference}
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  L&apos;ecole doit confirmer la demande avant l&apos;inscription
-                  definitive.
+                  {confirmationMessage}
                 </p>
               </div>
 
@@ -497,16 +619,16 @@ export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
         <div className="mx-auto max-w-7xl px-4 py-8 md:py-10">
           <div className="inline-flex items-center gap-2 rounded-full bg-primary-foreground/15 px-3 py-1.5 text-xs font-semibold text-primary-foreground/90">
             <UserPlus className="size-4" />
-            Inscription scolaire
+            Inscription en ligne
           </div>
           <h1 className="mt-3 text-2xl font-bold tracking-tight md:text-3xl">
             Demande d&apos;inscription
           </h1>
           <p className="mt-2 max-w-7xl text-sm leading-relaxed text-primary-foreground/90">
-            Etape {step + 1} sur 4 · cette demande ne cree pas encore de compte.
+            Etape {step + 1} sur {totalSteps} · cette demande ne cree pas encore de compte.
           </p>
           <Progress
-            value={(step + 1) * 25}
+            value={((step + 1) / totalSteps) * 100}
             className="mt-4 h-2 bg-primary-foreground/20 [&>div]:bg-primary-foreground"
           />
         </div>
@@ -520,22 +642,47 @@ export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
               Formulaire d&apos;inscription
             </CardTitle>
             <p className="text-sm text-muted-foreground">
-              Remplissez les informations de l&apos;eleve et du responsable.
+              Remplissez les informations de {peopleLabels.studentDefinite}
+              {skipsGuardian ? "" : " et du responsable"}.
             </p>
           </CardHeader>
           <CardContent className="space-y-6">
-            {step === 0 && (
+            {stepKind === "student" && (
               <div className="grid gap-4 md:grid-cols-2">
-                <Field label="Ecole *" wide>
+                <Field label="Type d'etablissement *" wide>
                   <Select
-                    value={form.branchId}
-                    onValueChange={(value) => update("branchId", value)}
+                    value={branchTypeFilter || undefined}
+                    onValueChange={onBranchTypeChange}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Choisir une ecole" />
+                      <SelectValue placeholder="Ecole, centre ou universite" />
                     </SelectTrigger>
                     <SelectContent>
-                      {branches.map((branch) => (
+                      {availableBranchTypes.map((type) => (
+                        <SelectItem key={type} value={type}>
+                          {getEstablishmentTypeFilterLabel(type)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </Field>
+                <Field label={`${establishmentLabel} *`} wide>
+                  <Select
+                    value={form.branchId}
+                    onValueChange={onBranchChange}
+                    disabled={!branchTypeFilter}
+                  >
+                    <SelectTrigger>
+                      <SelectValue
+                        placeholder={
+                          branchTypeFilter
+                            ? `Choisir ${establishmentLabel.toLowerCase()}`
+                            : "Choisissez d'abord le type"
+                        }
+                      />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {filteredBranches.map((branch) => (
                         <SelectItem key={branch.id} value={branch.id}>
                           {branch.name} · {branch.ville || branch.pays || "RDC"}
                         </SelectItem>
@@ -548,6 +695,7 @@ export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
                     <SchoolRegistrationPanel
                       info={schoolInfo}
                       loading={schoolInfoLoading}
+                      establishmentLabel={establishmentLabel}
                     />
                   </div>
                 ) : null}
@@ -606,7 +754,7 @@ export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
                   value={form.address}
                   onChange={(v) => update("address", v)}
                 />
-                <Field label="Email eleve (automatique)">
+                <Field label={peopleLabels.emailAutoLabel}>
                   <Input
                     disabled
                     className="bg-muted font-mono text-foreground opacity-100"
@@ -615,7 +763,7 @@ export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
                 </Field>
               </div>
             )}
-            {step === 1 && (
+            {stepKind === "guardian" && (
               <div className="space-y-6">
                 {guardians
                   .slice(0, secondGuardian ? 2 : 1)
@@ -715,35 +863,53 @@ export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
                 </Button>
               </div>
             )}
-            {step === 2 && (
+            {stepKind === "level" && (
               <div className="grid gap-4">
                 {!form.branchId ? (
                   <p className="text-sm text-muted-foreground">
                     Sélectionnez d&apos;abord un établissement à l&apos;étape 1.
                   </p>
                 ) : (
-                  <LevelSectionOptionFields
-                    typebranch={branchType}
-                    value={{
-                      level: form.requestedLevel,
-                      sectionName: form.requestedSection,
-                      optionName: form.requestedOption,
-                    }}
-                    onChange={(next) =>
-                      setForm((current) => ({
-                        ...current,
-                        requestedLevel: next.level,
-                        requestedSection: next.sectionName,
-                        requestedOption: next.optionName,
-                      }))
-                    }
-                  />
+                  <>
+                    {usesBranchTree && academicChoicesLoading ? (
+                      <p className="text-sm text-muted-foreground">
+                        Chargement des programmes et modules...
+                      </p>
+                    ) : null}
+                    {usesBranchTree &&
+                    !academicChoicesLoading &&
+                    !branchAcademicTree?.length ? (
+                      <p className="rounded-lg border border-dashed px-3 py-2 text-sm text-muted-foreground">
+                        Ce centre n&apos;a pas encore publie de programmes ou
+                        modules. Contactez l&apos;etablissement.
+                      </p>
+                    ) : null}
+                    <LevelSectionOptionFields
+                      typebranch={branchType}
+                      branchTree={branchAcademicTree}
+                      value={{
+                        level: form.requestedLevel,
+                        sectionName: form.requestedSection,
+                        optionName: form.requestedOption,
+                      }}
+                      onChange={(next) =>
+                        setForm((current) => ({
+                          ...current,
+                          requestedLevel: next.level,
+                          requestedSection: next.sectionName,
+                          requestedOption: next.optionName,
+                        }))
+                      }
+                    />
+                  </>
                 )}
-                <Text
-                  label="Ecole de provenance"
-                  value={form.provenanceEcole}
-                  onChange={(v) => update("provenanceEcole", v)}
-                />
+                {!hidesProvenance ? (
+                  <Text
+                    label="Ecole de provenance"
+                    value={form.provenanceEcole}
+                    onChange={(v) => update("provenanceEcole", v)}
+                  />
+                ) : null}
                 <Field label="Photo facultative" wide>
                   <div className="flex flex-wrap items-center gap-3">
                     {preview ? (
@@ -785,11 +951,12 @@ export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
                 </Field>
               </div>
             )}
-            {step === 3 && (
+            {stepKind === "recap" && (
               <div className="space-y-5">
                 <div className="grid gap-3 rounded-xl border border-primary/15 bg-primary/5 p-5 md:grid-cols-2">
                   <p>
-                    <b>Eleve :</b> {form.name} {form.postnom} {form.prenom}
+                    <b>{peopleLabels.student} :</b> {form.name}{" "}
+                    {form.postnom} {form.prenom}
                   </p>
                   <p>
                     <b>Email :</b> {generatedStudentEmail}
@@ -803,10 +970,12 @@ export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
                       ? ` · ${form.requestedOption}`
                       : ""}
                   </p>
-                  <p>
-                    <b>Responsable :</b> {guardians[0].name}{" "}
-                    {guardians[0].postnom}
-                  </p>
+                  {!skipsGuardian ? (
+                    <p>
+                      <b>Responsable :</b> {guardians[0].name}{" "}
+                      {guardians[0].postnom}
+                    </p>
+                  ) : null}
                   <p>
                     <b>Photo :</b> {photo ? "Ajoutee" : "Non ajoutee"}
                   </p>
@@ -839,13 +1008,15 @@ export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
                 <ChevronLeft className="mr-2 size-4" />
                 Precedent
               </Button>
-              {step < 3 ? (
+              {step < maxStep ? (
                 <Button
                   type="button"
                   onClick={() => {
                     if (!validateStep()) return;
-                    if (step === 0) prefillPrimaryGuardianFromStudent();
-                    setStep((value) => value + 1);
+                    if (stepKind === "student" && !skipsGuardian) {
+                      prefillPrimaryGuardianFromStudent();
+                    }
+                    setStep((value) => Math.min(value + 1, maxStep));
                   }}
                 >
                   Continuer
@@ -864,17 +1035,19 @@ export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
           <aside className="hidden lg:block">
             <div className="sticky top-6 space-y-3">
               <p className="text-sm font-medium text-foreground">
-                Infos de l&apos;ecole
+                Infos de l&apos;{establishmentLabel.toLowerCase()}
               </p>
               {form.branchId ? (
                 <SchoolRegistrationPanel
                   info={schoolInfo}
                   loading={schoolInfoLoading}
+                  establishmentLabel={establishmentLabel}
                 />
               ) : (
                 <div className="rounded-2xl border border-dashed p-4 text-sm text-muted-foreground">
-                  Selectionnez une ecole pour voir les conditions, les frais
-                  d&apos;inscription et le programme de rentree.
+                  Selectionnez un type puis un {establishmentLabel.toLowerCase()}{" "}
+                  pour voir les conditions, les frais d&apos;inscription et le
+                  programme de rentree.
                 </div>
               )}
             </div>

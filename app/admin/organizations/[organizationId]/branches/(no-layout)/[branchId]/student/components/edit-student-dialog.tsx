@@ -15,6 +15,7 @@ import {
   StudentCategoryEnum,
   studentSchema,
 } from "@/src/interfaces/Student";
+import { useBranchPeopleLabels } from "@/hooks/use-branch-people-labels";
 import { StudentUpForm } from "./student-form";
 
 type StudentFormData = z.infer<typeof studentSchema>;
@@ -63,6 +64,7 @@ export function UpdateStudentDialog({
   onOpenChange,
   ...props
 }: UpdateStudentDialogProps) {
+  const peopleLabels = useBranchPeopleLabels();
   const { refresh } = useRefresh();
 
   const initialData: StudentFormData = {
@@ -91,10 +93,8 @@ export function UpdateStudentDialog({
     <Dialog open={open} onOpenChange={onOpenChange} {...props}>
       <DialogContent size="lg">
         <DialogHeader>
-          <DialogTitle>Modifier l&apos;élève</DialogTitle>
-          <DialogDescription>
-            Ajustez les informations de l&apos;élève, puis enregistrez.
-          </DialogDescription>
+          <DialogTitle>{peopleLabels.editTitle}</DialogTitle>
+          <DialogDescription>{peopleLabels.editDescription}</DialogDescription>
         </DialogHeader>
 
         {open ? (

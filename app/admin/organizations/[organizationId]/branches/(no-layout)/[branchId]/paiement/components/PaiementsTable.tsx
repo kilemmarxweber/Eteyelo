@@ -26,6 +26,7 @@ import { ReceiptPreviewDialog } from "@/components/reports/ReceiptPreviewDialog"
 import type { SchoolReportContext } from "@/lib/reports/types";
 import { DEFAULT_EXCHANGE_RATE_USD_CDF } from "@/lib/reports/types";
 import { toast } from "sonner";
+import { useBranchPeopleLabels } from "@/hooks/use-branch-people-labels";
 import {
   exportPaiementsReportPdf,
   type PaiementReportPeriod,
@@ -89,6 +90,7 @@ function mapPaiement(p: any): IPaiement {
 function mapGroupedToReceipt(
   g: GroupedPaiement,
   branding: SchoolReportContext,
+  studentFallback = "Élève",
 ): FacturePaymentStudentData {
   const classNames = Array.from(
     new Set(
@@ -117,7 +119,7 @@ function mapGroupedToReceipt(
       address: branding.address ?? "",
     },
     recipient: {
-      name: g.students.join(", ") || "Élève",
+      name: g.students.join(", ") || studentFallback,
       class: classNames.join(", ") || "-",
       sexe: sexes.join(", ") || "-",
     },
@@ -143,6 +145,7 @@ function mapGroupedToReceipt(
 }
 
 const PaiementsTable = ({ refreshKey }: { refreshKey?: string }) => {
+  const peopleLabels = useBranchPeopleLabels();
   const [paiements, setPaiements] = useState<IPaiement[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -190,13 +193,13 @@ const PaiementsTable = ({ refreshKey }: { refreshKey?: string }) => {
       toast.error("Contexte établissement indisponible pour le reçu.");
       return;
     }
-    setReceiptData(mapGroupedToReceipt(g, branding));
+    setReceiptData(mapGroupedToReceipt(g, branding, peopleLabels.student));
     setReceiptIssuedAt(g.date);
     setReceiptOpen(true);
   };
 
   const formatStudents = (students: string[]) => {
-    if (!students || students.length === 0) return "Aucun élève";
+    if (!students || students.length === 0) return peopleLabels.noneLabel;
 
     if (students.length <= 5) return students.join(", ");
 
@@ -419,7 +422,7 @@ const PaiementsTable = ({ refreshKey }: { refreshKey?: string }) => {
     },
     {
       key: "students",
-      header: "Élèves",
+      header: peopleLabels.studentPlural,
       cell: (g: GroupedPaiement) => formatStudents(g.students),
     },
     {
@@ -503,7 +506,7 @@ const PaiementsTable = ({ refreshKey }: { refreshKey?: string }) => {
     title: (g: GroupedPaiement) => g.reference,
     subtitle: (g: GroupedPaiement) => g.parentName,
     details: (g: GroupedPaiement) => [
-      { label: "Élèves", value: g.students.join(", ") },
+      { label: peopleLabels.studentPlural, value: g.students.join(", ") },
       {
         label: "Total",
         value: (g.total * exchangeRate).toLocaleString("fr-FR", {
