@@ -194,6 +194,7 @@ export const auth = betterAuth({
       const organization = await getSessionOrganizationContext(
         user.id,
         session.activeOrganizationId,
+        user.role,
       );
       // Récupère les champs additionnels de l'utilisateur
       const userWithFields = await prisma.user.findUnique({

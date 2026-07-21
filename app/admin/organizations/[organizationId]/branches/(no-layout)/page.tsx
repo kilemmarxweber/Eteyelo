@@ -99,7 +99,7 @@ export default async function BranchesPage({ params }: BranchesPageProps) {
             <BranchCard
               key={branch.id}
               branchId={branch.id}
-              enterHref={`${base}/enter/${branch.id}`}
+              enterHref={`${base}/${branch.id}`}
               editHref={`${base}/edit?branchId=${branch.id}`}
               isActive={branch.isActive}
             >

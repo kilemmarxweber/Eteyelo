@@ -101,4 +101,8 @@ export function printDemoAccounts() {
   );
   console.log("Parents     : *@parent.cd / Password123!");
   console.log("Eleves      : *@eleve.cd / Student123!");
+  console.log("Personnel   : pers.*@eteyelo.cd / Password123!");
+  console.log(
+    "Rapports    : paiements, caisse, présences, fiches (seed report*)",
+  );
 }

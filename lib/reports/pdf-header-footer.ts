@@ -1,8 +1,11 @@
 import type jsPDF from "jspdf";
 import type { SchoolReportContext } from "@/lib/reports/types";
 
-/** Marge haute recommandée pour le corps (autotable `startY` / `margin.top`). */
-export const REPORT_HEADER_CONTENT_TOP_MM = 37;
+/**
+ * Marge haute de secours (autotable). Préférer la valeur renvoyée par
+ * `drawReportHeader` quand elle est disponible.
+ */
+export const REPORT_HEADER_CONTENT_TOP_MM = 72;
 
 export type DrawReportHeaderOptions = {
   title: string;
@@ -22,41 +25,94 @@ export type DrawReportFooterOptions = {
 function formatGeneratedAt(value: string): string {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
-  return date.toLocaleString("fr-FR");
+  return new Intl.DateTimeFormat("fr-FR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
+}
+
+function detectImageFormat(dataUrl: string): "PNG" | "JPEG" | "WEBP" {
+  if (dataUrl.startsWith("data:image/png")) return "PNG";
+  if (dataUrl.startsWith("data:image/webp")) return "WEBP";
+  return "JPEG";
+}
+
+function schoolInitials(name: string): string {
+  return name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? "")
+    .join("");
 }
 
 /**
- * En-tête standard : logo + établissement + adresse + titre + meta.
- * Aligné sur le style de l'export élèves / caisse.
+ * En-tête document : logo centré + identité + titre + meta.
+ * @returns Y (mm) où le corps du document doit commencer.
  */
 export function drawReportHeader(
   doc: jsPDF,
   context: SchoolReportContext,
   options: DrawReportHeaderOptions,
-): void {
+): number {
   const pageWidth = doc.internal.pageSize.getWidth();
   const { title, subtitle, details = [], logoDataUrl } = options;
+  const marginX = 14;
+  const logoSize = 20;
+  const logoX = (pageWidth - logoSize) / 2;
+  const logoY = 10;
 
   if (logoDataUrl) {
     try {
-      doc.addImage(logoDataUrl, 12, 8, 18, 18);
+      doc.addImage(
+        logoDataUrl,
+        detectImageFormat(logoDataUrl),
+        logoX,
+        logoY,
+        logoSize,
+        logoSize,
+      );
     } catch {
-      // Un logo invalide ne doit pas empêcher la production du rapport.
+      try {
+        doc.addImage(logoDataUrl, logoX, logoY, logoSize, logoSize);
+      } catch {
+        // ignore
+      }
     }
+  } else {
+    doc.setDrawColor(226, 232, 240);
+    doc.setFillColor(248, 250, 252);
+    doc.roundedRect(logoX, logoY, logoSize, logoSize, 2, 2, "FD");
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(10);
+    doc.setTextColor(100, 116, 139);
+    doc.text(
+      schoolInitials(context.schoolName || "E") || "E",
+      pageWidth / 2,
+      logoY + logoSize / 2 + 1.8,
+      { align: "center" },
+    );
   }
+
+  let y = logoY + logoSize + 5;
 
   doc.setTextColor(15, 23, 42);
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(13);
-  doc.text(context.schoolName || "Eteyelo", pageWidth / 2, 10, {
+  doc.setFontSize(14);
+  doc.text(context.schoolName || "Établissement", pageWidth / 2, y, {
     align: "center",
   });
+  y += 5.5;
 
-  let y = 16;
   if (subtitle?.trim()) {
-    doc.setFontSize(11);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+    doc.setTextColor(71, 85, 105);
     doc.text(subtitle.trim(), pageWidth / 2, y, { align: "center" });
-    y += 5;
+    y += 4.5;
   }
 
   const contactLine = [context.address, context.phone]
@@ -66,38 +122,65 @@ export function drawReportHeader(
 
   if (contactLine) {
     doc.setFont("helvetica", "normal");
-    doc.setTextColor(71, 85, 105);
+    doc.setTextColor(100, 116, 139);
     doc.setFontSize(8);
-    doc.text(contactLine, pageWidth / 2, y, { align: "center" });
-    y += 5;
+    doc.text(contactLine, pageWidth / 2, y, {
+      align: "center",
+      maxWidth: pageWidth - marginX * 2,
+    });
+    y += 4;
   }
+
+  if (context.academicYearLabel) {
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(100, 116, 139);
+    doc.setFontSize(8);
+    doc.text(`Année scolaire : ${context.academicYearLabel}`, pageWidth / 2, y, {
+      align: "center",
+    });
+    y += 4;
+  }
+
+  y += 2;
+  doc.setDrawColor(226, 232, 240);
+  doc.setLineWidth(0.35);
+  doc.line(marginX, y, pageWidth - marginX, y);
+  y += 7;
 
   doc.setFont("helvetica", "bold");
   doc.setTextColor(30, 64, 175);
-  doc.setFontSize(15);
-  doc.text(title, pageWidth / 2, Math.max(y, 24), { align: "center" });
+  doc.setFontSize(13);
+  doc.text(title, pageWidth / 2, y, {
+    align: "center",
+    maxWidth: pageWidth - marginX * 2,
+  });
+  y += 6;
 
-  doc.setFont("helvetica", "normal");
-  doc.setTextColor(71, 85, 105);
-  doc.setFontSize(8);
   const meta = [
-    context.academicYearLabel
-      ? `Année scolaire : ${context.academicYearLabel}`
-      : "",
     ...details,
     context.generatedAt
       ? `Généré le ${formatGeneratedAt(context.generatedAt)}`
       : "",
   ]
     .filter(Boolean)
-    .join("  |  ");
+    .join("  ·  ");
 
   if (meta) {
-    doc.text(meta, pageWidth / 2, 30, { align: "center" });
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(100, 116, 139);
+    doc.setFontSize(8);
+    doc.text(meta, pageWidth / 2, y, {
+      align: "center",
+      maxWidth: pageWidth - marginX * 2,
+    });
+    y += 5;
   }
 
   doc.setDrawColor(191, 219, 254);
-  doc.line(10, 33, pageWidth - 10, 33);
+  doc.setLineWidth(0.5);
+  doc.line(marginX, y, pageWidth - marginX, y);
+
+  return y + 5;
 }
 
 /**
@@ -116,16 +199,20 @@ export function drawReportFooter(
     leftText = context.schoolName,
   } = options;
 
+  doc.setDrawColor(226, 232, 240);
+  doc.setLineWidth(0.3);
+  doc.line(14, pageHeight - 10, pageWidth - 14, pageHeight - 10);
+
   doc.setFont("helvetica", "normal");
   doc.setFontSize(7.5);
   doc.setTextColor(100);
 
   if (leftText) {
-    doc.text(leftText, 10, pageHeight - 6);
+    doc.text(leftText, 14, pageHeight - 6);
   }
 
   if (pageNumber != null && totalPages != null) {
-    doc.text(`Page ${pageNumber} / ${totalPages}`, pageWidth - 10, pageHeight - 6, {
+    doc.text(`Page ${pageNumber} / ${totalPages}`, pageWidth - 14, pageHeight - 6, {
       align: "right",
     });
   }

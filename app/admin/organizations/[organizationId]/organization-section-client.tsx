@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, type ReactNode } from "react";
-import { authClient } from "@/lib/auth-client";
+
+import { activateOrganizationSessionAction } from "./activate-organization.action";
 
 export function OrganizationSectionClient({
   organizationId,
@@ -11,7 +12,7 @@ export function OrganizationSectionClient({
   children: ReactNode;
 }) {
   useEffect(() => {
-    void authClient.organization.setActive({ organizationId });
+    void activateOrganizationSessionAction(organizationId);
   }, [organizationId]);
 
   return <div className="flex flex-col">{children}</div>;

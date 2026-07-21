@@ -13,6 +13,7 @@
     "seed:clear": "tsx prisma/seeds/seedData.ts --clear",
     "seed:help": "tsx prisma/seeds/seedData.ts --help",
     "seed:list": "tsx prisma/seeds/seedData.ts --list",
+    "seed:reports": "tsx prisma/seeds/seedData.ts --init personnel,reportPayments,reportAttendance,reportFiches",
     "seed:primary-cours": "tsx prisma/seeds/initPrimaryCours.ts",
     "seed:secondary-cours": "tsx prisma/seeds/initSecondaryCours.ts",
     "seed:demo": "tsx prisma/seeds/quickDemo.ts",

@@ -1,3 +1,4 @@
+import { APP_ROLE, isPlatformOwnerRole } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 
 const SINGLE_ORG_MESSAGE =
@@ -48,7 +49,23 @@ export type SessionOrganization = {
 export async function getSessionOrganizationContext(
   userId: string,
   activeOrganizationId?: string | null,
+  appRole?: string | null,
 ): Promise<SessionOrganization | null> {
+  // Owner plateforme : peut activer n'importe quelle org sans row Member.
+  if (isPlatformOwnerRole(appRole) && activeOrganizationId) {
+    const organization = await prisma.organization.findUnique({
+      where: { id: activeOrganizationId },
+      select: { id: true, name: true },
+    });
+    if (organization) {
+      return {
+        id: organization.id,
+        name: organization.name,
+        role: APP_ROLE.OWNER,
+      };
+    }
+  }
+
   const member = await prisma.member.findFirst({
     where: activeOrganizationId
       ? { userId, organizationId: activeOrganizationId }

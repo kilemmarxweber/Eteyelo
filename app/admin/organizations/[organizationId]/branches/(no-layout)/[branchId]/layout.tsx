@@ -1,8 +1,8 @@
-import { redirect } from "next/navigation";
 import ClientLayout from "./client-layout";
 import AttendanceGuard from "./attendance/component/AttendanceGuard ";
 import { IdleLogout } from "@/lib/idle-logout";
 import { enforceOrganizationBranchPage } from "@/lib/auth/require-organization-permission";
+import { switchActiveBranch } from "@/lib/auth/switch-branch";
 
 export default async function Layout({
   children,
@@ -13,6 +13,12 @@ export default async function Layout({
 }) {
   const { organizationId, branchId } = await params;
   await enforceOrganizationBranchPage(organizationId, branchId);
+
+  // Active la branche sur la session (owner plateforme sans membership inclus).
+  const switched = await switchActiveBranch(organizationId, branchId);
+  if (!switched.ok) {
+    console.error("[BranchLayout] switchActiveBranch:", switched.message);
+  }
 
   return (
     <ClientLayout>

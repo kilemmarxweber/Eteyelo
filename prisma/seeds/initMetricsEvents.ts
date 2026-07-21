@@ -431,6 +431,7 @@ export async function initMetricsEvents() {
 export async function clearMetricsEvents() {
   console.log("Suppression des métriques et des événements...");
   await Prisma.studentAttendance.deleteMany({});
+  await Prisma.teacherAttendance.deleteMany({});
   await Prisma.attendanceSession.deleteMany({});
   await Prisma.studentGrade.deleteMany({});
   await Prisma.parentFeedback.deleteMany({});

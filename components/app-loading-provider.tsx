@@ -97,13 +97,11 @@ function isInternalNavigationLink(anchor: HTMLAnchorElement, pathname: string) {
 
 /** Routes qui ont déjà leur propre loading.tsx / fallback établissement. */
 function hasDedicatedBranchLoader(pathname: string) {
-  if (pathname.includes("/branches/enter/")) return true;
-
   const match = pathname.match(/\/branches\/([^/]+)(?:\/|$)/);
   if (!match) return false;
 
   const segment = match[1];
-  return segment !== "new" && segment !== "edit" && segment !== "enter";
+  return segment !== "new" && segment !== "edit";
 }
 
 export function AppLoadingProvider({ children }: { children: ReactNode }) {

@@ -9,6 +9,7 @@ import {
   resolveMembershipPostLoginPath,
   resolveStaticAppRolePostLoginPath,
 } from "@/lib/auth/post-login-routing";
+import { setActiveOrganizationAndBranch } from "@/lib/auth/set-active-context";
 import { APP_ROLE } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 
@@ -19,23 +20,19 @@ function normalizeRole(value: string | null | undefined) {
 async function setActiveOrganizationContext(
   requestHeaders: Headers,
   organizationId: string,
-  branchId?: string | null,
-  sessionId?: string | null,
+  branchId: string | null | undefined,
+  sessionId: string,
+  userId: string,
+  appRole: string | null | undefined,
 ) {
-  await auth.api.setActiveOrganization({
-    body: { organizationId },
-    headers: requestHeaders,
+  await setActiveOrganizationAndBranch({
+    organizationId,
+    branchId: branchId ?? null,
+    userId,
+    appRole,
+    sessionId,
+    requestHeaders,
   });
-
-  if (sessionId) {
-    await prisma.session.update({
-      where: { id: sessionId },
-      data: {
-        activeOrganizationId: organizationId,
-        activeBranchId: branchId ?? null,
-      },
-    });
-  }
 }
 
 export async function resolvePostLoginPath(requestHeaders: Headers): Promise<string> {
@@ -70,6 +67,8 @@ export async function resolvePostLoginPath(requestHeaders: Headers): Promise<str
       membership.organizationId,
       null,
       session.session.id,
+      session.user.id,
+      appRole,
     );
 
     return resolveAppAdminPostLoginPath(membership.organizationId);
@@ -91,28 +90,14 @@ export async function resolvePostLoginPath(requestHeaders: Headers): Promise<str
     membership.role,
   );
 
-  if (branchId) {
-    await setActiveOrganizationContext(
-      requestHeaders,
-      membership.organizationId,
-      branchId,
-      session.session.id,
-    );
-  } else if (branchMemberships.length > 1) {
-    await setActiveOrganizationContext(
-      requestHeaders,
-      membership.organizationId,
-      null,
-      session.session.id,
-    );
-  } else {
-    await setActiveOrganizationContext(
-      requestHeaders,
-      membership.organizationId,
-      null,
-      session.session.id,
-    );
-  }
+  await setActiveOrganizationContext(
+    requestHeaders,
+    membership.organizationId,
+    branchId,
+    session.session.id,
+    session.user.id,
+    appRole,
+  );
 
   return resolveMembershipPostLoginPath({
     organizationId: membership.organizationId,

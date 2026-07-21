@@ -10,6 +10,7 @@ import {
   IconCalendarCog,
   IconUserCheck,
   IconBooks,
+  IconClockHour4,
 } from "@tabler/icons-react";
 
 import { Layout, LayoutBody } from "@/components/custom/layout";
@@ -51,6 +52,12 @@ export default function Settings({ children }: { children: React.ReactNode }) {
         title: "Calendrier scolaire",
         icon: <IconCalendarCog size={18} />,
         href: `${settingsBasePath}/calendar`,
+        orgSettingsOnly: true,
+      },
+      {
+        title: "Horaires",
+        icon: <IconClockHour4 size={18} />,
+        href: `${settingsBasePath}/horaires`,
         orgSettingsOnly: true,
       },
       {

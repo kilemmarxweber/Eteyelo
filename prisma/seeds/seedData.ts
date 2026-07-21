@@ -41,6 +41,16 @@ import { initFrais, clearFrais } from "./initFrais";
 // import { initRoles, clearRoles } from "./initRole";
 import { initPeriods, clearPeriods } from "./initPeriod";
 import { initMetricsEvents, clearMetricsEvents } from "./initMetricsEvents";
+import { initPersonnel, clearPersonnel } from "./initPersonnel";
+import {
+  initReportPayments,
+  clearReportPayments,
+} from "./initReportPayments";
+import {
+  initReportAttendance,
+  clearReportAttendance,
+} from "./initReportAttendance";
+import { initReportFiches, clearReportFiches } from "./initReportFiches";
 import { prisma as Prisma } from "@/lib/prisma";
 // Ordre d'exécution des scripts (important pour les dépendances)
 const INIT_ORDER = [
@@ -80,6 +90,18 @@ const INIT_ORDER = [
   { name: "frais", init: initFrais, clear: clearFrais },
   { name: "periods", init: initPeriods, clear: clearPeriods },
   { name: "metricsEvents", init: initMetricsEvents, clear: clearMetricsEvents },
+  { name: "personnel", init: initPersonnel, clear: clearPersonnel },
+  {
+    name: "reportPayments",
+    init: initReportPayments,
+    clear: clearReportPayments,
+  },
+  {
+    name: "reportAttendance",
+    init: initReportAttendance,
+    clear: clearReportAttendance,
+  },
+  { name: "reportFiches", init: initReportFiches, clear: clearReportFiches },
 ];
 
 // Ordre inverse pour la suppression
@@ -117,6 +139,10 @@ async function seedAll() {
     console.log("   - Horaires: Variable");
     console.log("   - Types de frais: 10");
     console.log("   - Frais scolaires: Variable");
+    console.log("   - Personnel: 3");
+    console.log("   - Paiements / dépenses (rapports): seedés");
+    console.log("   - Présences enseignants / personnel (rapports): seedées");
+    console.log("   - Fiches de notes (rapports): seedées");
   } catch (error) {
     console.error("❌ Erreur lors de l'initialisation:", error);
     throw error;
@@ -200,7 +226,8 @@ Ordre recommandé pour les dépendances:
 1. organizationBranch, schoolYears, sections, options, creneaux, cours, users
 2. teachers, parents, students, classes
 3. classEnrollments, teaching, schedules
-4. typeFrais, frais
+4. typeFrais, frais, periods, metricsEvents
+5. personnel, reportPayments, reportAttendance, reportFiches  (données rapports)
 `);
 }
 

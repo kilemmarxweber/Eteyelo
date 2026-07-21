@@ -11,14 +11,15 @@ export default function Teaching({
   params: Promise<{ classeId: string }>;
 }) {
   const { classeId } = use(params);
-  const { refreshKey, refresh } = useRefresh(); // État pour gérer le rafraîchissement
+  const { refreshKey } = useRefresh();
 
   return (
     <div className="flex h-full min-h-0 flex-col space-y-4">
       <div className="flex items-center gap-2 text-muted-foreground">
         <IconCalendarTime size={18} />
         <span className="text-sm">
-          Composez, consultez et imprimez l'horaire hebdomadaire de la classe
+          Planifiez l&apos;horaire de la semaine (lundi à samedi) dans une seule
+          grille
         </span>
       </div>
       <div className="min-h-0 flex-1">

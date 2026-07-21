@@ -87,3 +87,61 @@ export function resolveCourseEndTime(
   if (index === -1) return "";
   return orderedSlots[index + 1] ?? vacationEnd;
 }
+
+export type PeriodPreview = {
+  before: number;
+  after: number;
+  total: number;
+  slots: string[];
+};
+
+/** Compte les périodes de cours avant / après la récréation pour un aperçu UX. */
+export function previewPeriodsAroundRecreation(
+  startTime: string,
+  endTime: string,
+  durationCourse: number,
+  recreationHour: string,
+  recreationDuration: number,
+): PeriodPreview | null {
+  if (
+    !startTime ||
+    !endTime ||
+    !recreationHour ||
+    !Number.isFinite(durationCourse) ||
+    durationCourse <= 0 ||
+    !Number.isFinite(recreationDuration) ||
+    recreationDuration <= 0
+  ) {
+    return null;
+  }
+
+  const start = new Date(`2000-01-01T${startTime}`);
+  const end = new Date(`2000-01-01T${endTime}`);
+  const recreation = new Date(`2000-01-01T${recreationHour}`);
+  if (
+    Number.isNaN(start.getTime()) ||
+    Number.isNaN(end.getTime()) ||
+    Number.isNaN(recreation.getTime()) ||
+    end <= start
+  ) {
+    return null;
+  }
+
+  const slots = genererCreneaux(
+    start,
+    end,
+    durationCourse,
+    recreation,
+    recreationDuration,
+  );
+  const courseSlots = slots.filter((slot) => slot !== recreationHour);
+  const before = courseSlots.filter((slot) => slot < recreationHour).length;
+  const after = courseSlots.filter((slot) => slot > recreationHour).length;
+
+  return {
+    before,
+    after,
+    total: before + after,
+    slots: courseSlots,
+  };
+}
