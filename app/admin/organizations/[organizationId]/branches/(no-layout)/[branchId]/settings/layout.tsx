@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import { usePathname } from "next/navigation";
 import {
+  IconClipboardList,
   IconHeadphones,
   IconPalette,
   IconReportMoney,
@@ -54,6 +55,12 @@ export default function Settings({ children }: { children: React.ReactNode }) {
         title: "Taux de change",
         icon: <IconCurrencyDollar size={18} />,
         href: `${settingsBasePath}/exchange-rates`,
+        orgSettingsOnly: true,
+      },
+      {
+        title: "Communication publique",
+        icon: <IconClipboardList size={18} />,
+        href: `${settingsBasePath}/inscription-publique`,
         orgSettingsOnly: true,
       },
       {

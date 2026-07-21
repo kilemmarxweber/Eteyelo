@@ -12,7 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { getSchoolYearsAction1 } from "../../schoolYear/schoolYear.action";
+import { getCurrentSchoolYearAction, getSchoolYearsAction1 } from "../../schoolYear/schoolYear.action";
 import { ISchoolYear } from "@/src/interfaces/SchoolYear";
 import { Check, Loader2, Search, X } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -48,6 +48,8 @@ export default function FamilySelector({ onChange, resetKey }: Props) {
     session?.session?.activeBranchId;
   const didMountRef = useRef(false);
   const searchRequestRef = useRef(0);
+  const onChangeRef = useRef(onChange);
+  onChangeRef.current = onChange;
 
   const emitChange = (
     next: Partial<{
@@ -177,18 +179,26 @@ export default function FamilySelector({ onChange, resetKey }: Props) {
   useEffect(() => {
     const loadYears = async () => {
       if (!branchId) return;
-      const [data, error] = await getSchoolYearsAction1({ branchId });
 
-      if (error || !data) return;
+      const [[yearsData, yearsError], [currentYear]] = await Promise.all([
+        getSchoolYearsAction1({ branchId }),
+        getCurrentSchoolYearAction(),
+      ]);
 
-      setSchoolYears(data);
+      if (yearsError || !yearsData) return;
 
-      const current = data.find((y) => y.isCurrentYear);
-      const resolvedYear = current?.id ?? data[0]?.id ?? "";
+      setSchoolYears(yearsData);
+
+      const resolvedYear =
+        currentYear?.id ??
+        yearsData.find((y) => y.isCurrentYear)?.id ??
+        yearsData[0]?.id ??
+        "";
+
       setSchoolYear(resolvedYear);
 
       if (resolvedYear) {
-        onChange({
+        onChangeRef.current({
           parentId: "",
           classEnrollIds: [],
           schoolYearId: resolvedYear,
@@ -196,7 +206,7 @@ export default function FamilySelector({ onChange, resetKey }: Props) {
       }
     };
 
-    loadYears();
+    void loadYears();
   }, [branchId]);
 
   useEffect(() => {
@@ -222,6 +232,7 @@ export default function FamilySelector({ onChange, resetKey }: Props) {
     emitChange({
       parentId: "",
       classEnrollIds: [],
+      schoolYearId: schoolYear,
     });
   }, [resetKey]);
 
@@ -253,7 +264,10 @@ export default function FamilySelector({ onChange, resetKey }: Props) {
         <span className="text-sm text-muted-foreground shrink-0">
           Année scolaire
         </span>
-        <Select value={schoolYear} onValueChange={setSchoolYear}>
+        <Select
+          value={schoolYear || undefined}
+          onValueChange={setSchoolYear}
+        >
           <SelectTrigger className="w-full sm:w-[200px] h-9 text-sm">
             <SelectValue placeholder="Année scolaire" />
           </SelectTrigger>
@@ -261,6 +275,7 @@ export default function FamilySelector({ onChange, resetKey }: Props) {
             {schoolYears.map((year) => (
               <SelectItem key={year.id} value={year.id}>
                 {year.nameYear}
+                {year.isCurrentYear ? " (en cours)" : ""}
               </SelectItem>
             ))}
           </SelectContent>

@@ -11,7 +11,7 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { MontantInput } from "@/components/ui/montant-input";
 import { cn } from "@/lib/utils";
 import {
   Select,
@@ -70,12 +70,6 @@ function formatAmount(value: number) {
   });
 }
 
-function parseAmountInput(value: string): number | null {
-  if (value.trim() === "" || value === ".") return null;
-  const parsed = Number(value.replace(",", "."));
-  return Number.isFinite(parsed) ? parsed : null;
-}
-
 export default function PaymentsForm({
   fraisList,
   classEnrollList,
@@ -111,7 +105,8 @@ export default function PaymentsForm({
   const [receiptData, setReceiptData] =
     useState<FacturePaymentStudentData | null>(null);
   const [amountManuallyEdited, setAmountManuallyEdited] = useState(false);
-  const [amountInput, setAmountInput] = useState("");
+  /** Montant affiché dans la devise sélectionnée (saisie style frais). */
+  const [displayAmount, setDisplayAmount] = useState<number | undefined>();
   const amountManuallyEditedRef = useRef(false);
   const lastAutoFillKeyRef = useRef("");
   const [isLargeScreen, setIsLargeScreen] = useState(false);
@@ -208,15 +203,6 @@ export default function PaymentsForm({
 
   useEffect(() => {
     setAvailableFrais(fraisList);
-  }, [fraisList]);
-
-  useEffect(() => {
-    const initialYearId =
-      fraisList.find((frais: any) => frais?.schoolYearId)?.schoolYearId ?? "";
-
-    if (initialYearId) {
-      setSchoolYearId((current) => current || initialYearId);
-    }
   }, [fraisList]);
 
   useEffect(() => {
@@ -360,7 +346,7 @@ export default function PaymentsForm({
   useEffect(() => {
     if (hasNoSelection) {
       setValue("amount", emptyAmount);
-      setAmountInput("");
+      setDisplayAmount(undefined);
       amountManuallyEditedRef.current = false;
       setAmountManuallyEdited(false);
       lastAutoFillKeyRef.current = "";
@@ -369,7 +355,7 @@ export default function PaymentsForm({
 
     if (isSolded) {
       setValue("amount", 0);
-      setAmountInput("0");
+      setDisplayAmount(0);
       return;
     }
 
@@ -381,14 +367,14 @@ export default function PaymentsForm({
     if (balances.length === 0) return;
 
     const remainingBase = summary.remaining;
-    let displayAmount = remainingBase;
+    let nextDisplay = remainingBase;
     try {
-      displayAmount = fromBase(remainingBase, receivedCurrency);
+      nextDisplay = fromBase(remainingBase, receivedCurrency);
     } catch {
-      displayAmount = remainingBase;
+      nextDisplay = remainingBase;
     }
     setValue("amount", remainingBase, { shouldValidate: true });
-    setAmountInput(remainingBase > 0 ? String(displayAmount) : "");
+    setDisplayAmount(remainingBase > 0 ? nextDisplay : undefined);
     lastAutoFillKeyRef.current = selectionKey;
   }, [
     hasNoSelection,
@@ -401,20 +387,19 @@ export default function PaymentsForm({
     receivedCurrency,
   ]);
 
-  const handleAmountChange = (value: string) => {
+  const handleAmountChange = (value: number | undefined) => {
     // Ref synchrone pour bloquer l'auto-remplissage avant le prochain render
     amountManuallyEditedRef.current = true;
     setAmountManuallyEdited(true);
-    setAmountInput(value);
+    setDisplayAmount(value);
 
-    const parsed = parseAmountInput(value);
-    if (parsed == null) {
+    if (value == null) {
       setValue("amount", emptyAmount);
       return;
     }
 
     try {
-      const baseAmount = toBase(parsed, receivedCurrency);
+      const baseAmount = toBase(value, receivedCurrency);
       setValue("amount", baseAmount, { shouldValidate: true });
     } catch (error) {
       toast.error(
@@ -426,27 +411,27 @@ export default function PaymentsForm({
   const handleCurrencyChange = (next: CurrencyCode) => {
     if (next === receivedCurrency) return;
 
-    const parsed = parseAmountInput(amountInput);
     setReceivedCurrency(next);
 
-    if (parsed == null) {
-      const currentBase = Number.isFinite(Number(rawAmount))
-        ? Number(rawAmount)
-        : null;
-      if (currentBase != null && currentBase > 0) {
-        try {
-          setAmountInput(String(fromBase(currentBase, next)));
-        } catch {
-          /* ignore until rates ready */
-        }
+    const currentBase = Number.isFinite(Number(rawAmount))
+      ? Number(rawAmount)
+      : null;
+
+    if (currentBase != null && currentBase > 0) {
+      try {
+        setDisplayAmount(fromBase(currentBase, next));
+      } catch {
+        /* ignore until rates ready */
       }
       return;
     }
 
+    if (displayAmount == null) return;
+
     try {
-      const baseAmount = toBase(parsed, receivedCurrency);
+      const baseAmount = toBase(displayAmount, receivedCurrency);
       setValue("amount", baseAmount, { shouldValidate: true });
-      setAmountInput(String(fromBase(baseAmount, next)));
+      setDisplayAmount(fromBase(baseAmount, next));
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "Conversion impossible.",
@@ -578,9 +563,9 @@ export default function PaymentsForm({
       setAmountWarning(null);
       setAmountManuallyEdited(false);
       amountManuallyEditedRef.current = false;
-      setAmountInput("");
+      setDisplayAmount(undefined);
       lastAutoFillKeyRef.current = "";
-      setSchoolYearId("");
+      // Conserver l'année scolaire (réémise par FamilySelector au reset)
       setTransactionRef(buildTransactionRef());
       setFamilyResetKey((key) => key + 1);
 
@@ -653,18 +638,15 @@ export default function PaymentsForm({
   };
 
   const amountInputProps = {
-    type: "text" as const,
-    inputMode: "decimal" as const,
+    value: displayAmount,
+    onChange: handleAmountChange,
     placeholder:
       !hasNoSelection && isSolded
         ? "Déjà soldé"
         : `Montant payé (${receivedCurrency})`,
-    value: amountInput,
-    onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
-      handleAmountChange(e.target.value),
     disabled: !hasNoSelection && isSolded,
     className: cn(
-      "h-9 text-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none",
+      "h-9 text-sm",
       !hasNoSelection && isSolded && "opacity-50 cursor-not-allowed",
     ),
   };
@@ -720,7 +702,7 @@ export default function PaymentsForm({
         {isLargeScreen && (
           <>
             {currencyToggle}
-            <Input
+            <MontantInput
               {...amountInputProps}
               className={cn(amountInputProps.className, "sm:w-[200px]")}
             />
@@ -929,7 +911,7 @@ export default function PaymentsForm({
               <div className="border-t pt-3 space-y-2">
                 <label className="text-sm font-medium">Montant payé</label>
                 {currencyToggle}
-                <Input {...amountInputProps} />
+                <MontantInput {...amountInputProps} />
                 <p className="text-[11px] text-muted-foreground">
                   {baseHint
                     ? baseHint

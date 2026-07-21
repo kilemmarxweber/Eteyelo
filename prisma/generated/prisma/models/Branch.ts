@@ -371,6 +371,7 @@ export type BranchWhereInput = {
   partnaires?: Prisma.PartnaireListRelationFilter
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeListRelationFilter
   registrationRequests?: Prisma.RegistrationRequestListRelationFilter
+  registrationInfos?: Prisma.BranchRegistrationInfoListRelationFilter
   jobApplications?: Prisma.JobApplicationListRelationFilter
   targetStudentLinks?: Prisma.StudentBranchLinkListRelationFilter
   sourceStudentLinks?: Prisma.StudentBranchLinkListRelationFilter
@@ -436,6 +437,7 @@ export type BranchOrderByWithRelationInput = {
   partnaires?: Prisma.PartnaireOrderByRelationAggregateInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeOrderByRelationAggregateInput
   registrationRequests?: Prisma.RegistrationRequestOrderByRelationAggregateInput
+  registrationInfos?: Prisma.BranchRegistrationInfoOrderByRelationAggregateInput
   jobApplications?: Prisma.JobApplicationOrderByRelationAggregateInput
   targetStudentLinks?: Prisma.StudentBranchLinkOrderByRelationAggregateInput
   sourceStudentLinks?: Prisma.StudentBranchLinkOrderByRelationAggregateInput
@@ -505,6 +507,7 @@ export type BranchWhereUniqueInput = Prisma.AtLeast<{
   partnaires?: Prisma.PartnaireListRelationFilter
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeListRelationFilter
   registrationRequests?: Prisma.RegistrationRequestListRelationFilter
+  registrationInfos?: Prisma.BranchRegistrationInfoListRelationFilter
   jobApplications?: Prisma.JobApplicationListRelationFilter
   targetStudentLinks?: Prisma.StudentBranchLinkListRelationFilter
   sourceStudentLinks?: Prisma.StudentBranchLinkListRelationFilter
@@ -621,6 +624,7 @@ export type BranchCreateInput = {
   partnaires?: Prisma.PartnaireCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeCreateNestedManyWithoutBranchInput
   registrationRequests?: Prisma.RegistrationRequestCreateNestedManyWithoutBranchInput
+  registrationInfos?: Prisma.BranchRegistrationInfoCreateNestedManyWithoutBranchInput
   jobApplications?: Prisma.JobApplicationCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
@@ -685,6 +689,7 @@ export type BranchUncheckedCreateInput = {
   partnaires?: Prisma.PartnaireUncheckedCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedCreateNestedManyWithoutBranchInput
   registrationRequests?: Prisma.RegistrationRequestUncheckedCreateNestedManyWithoutBranchInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUncheckedCreateNestedManyWithoutBranchInput
   jobApplications?: Prisma.JobApplicationUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
@@ -749,6 +754,7 @@ export type BranchUpdateInput = {
   partnaires?: Prisma.PartnaireUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUpdateManyWithoutBranchNestedInput
   registrationRequests?: Prisma.RegistrationRequestUpdateManyWithoutBranchNestedInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUpdateManyWithoutBranchNestedInput
   jobApplications?: Prisma.JobApplicationUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
@@ -813,6 +819,7 @@ export type BranchUncheckedUpdateInput = {
   partnaires?: Prisma.PartnaireUncheckedUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedUpdateManyWithoutBranchNestedInput
   registrationRequests?: Prisma.RegistrationRequestUncheckedUpdateManyWithoutBranchNestedInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUncheckedUpdateManyWithoutBranchNestedInput
   jobApplications?: Prisma.JobApplicationUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
@@ -1497,6 +1504,20 @@ export type EnumTypeBracheFieldUpdateOperationsInput = {
   set?: $Enums.TypeBrache
 }
 
+export type BranchCreateNestedOneWithoutRegistrationInfosInput = {
+  create?: Prisma.XOR<Prisma.BranchCreateWithoutRegistrationInfosInput, Prisma.BranchUncheckedCreateWithoutRegistrationInfosInput>
+  connectOrCreate?: Prisma.BranchCreateOrConnectWithoutRegistrationInfosInput
+  connect?: Prisma.BranchWhereUniqueInput
+}
+
+export type BranchUpdateOneRequiredWithoutRegistrationInfosNestedInput = {
+  create?: Prisma.XOR<Prisma.BranchCreateWithoutRegistrationInfosInput, Prisma.BranchUncheckedCreateWithoutRegistrationInfosInput>
+  connectOrCreate?: Prisma.BranchCreateOrConnectWithoutRegistrationInfosInput
+  upsert?: Prisma.BranchUpsertWithoutRegistrationInfosInput
+  connect?: Prisma.BranchWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.BranchUpdateToOneWithWhereWithoutRegistrationInfosInput, Prisma.BranchUpdateWithoutRegistrationInfosInput>, Prisma.BranchUncheckedUpdateWithoutRegistrationInfosInput>
+}
+
 export type BranchCreateNestedOneWithoutRegistrationRequestsInput = {
   create?: Prisma.XOR<Prisma.BranchCreateWithoutRegistrationRequestsInput, Prisma.BranchUncheckedCreateWithoutRegistrationRequestsInput>
   connectOrCreate?: Prisma.BranchCreateOrConnectWithoutRegistrationRequestsInput
@@ -1684,6 +1705,7 @@ export type BranchCreateWithoutAttendanceSessionsInput = {
   partnaires?: Prisma.PartnaireCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeCreateNestedManyWithoutBranchInput
   registrationRequests?: Prisma.RegistrationRequestCreateNestedManyWithoutBranchInput
+  registrationInfos?: Prisma.BranchRegistrationInfoCreateNestedManyWithoutBranchInput
   jobApplications?: Prisma.JobApplicationCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
@@ -1747,6 +1769,7 @@ export type BranchUncheckedCreateWithoutAttendanceSessionsInput = {
   partnaires?: Prisma.PartnaireUncheckedCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedCreateNestedManyWithoutBranchInput
   registrationRequests?: Prisma.RegistrationRequestUncheckedCreateNestedManyWithoutBranchInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUncheckedCreateNestedManyWithoutBranchInput
   jobApplications?: Prisma.JobApplicationUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
@@ -1826,6 +1849,7 @@ export type BranchUpdateWithoutAttendanceSessionsInput = {
   partnaires?: Prisma.PartnaireUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUpdateManyWithoutBranchNestedInput
   registrationRequests?: Prisma.RegistrationRequestUpdateManyWithoutBranchNestedInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUpdateManyWithoutBranchNestedInput
   jobApplications?: Prisma.JobApplicationUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
@@ -1889,6 +1913,7 @@ export type BranchUncheckedUpdateWithoutAttendanceSessionsInput = {
   partnaires?: Prisma.PartnaireUncheckedUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedUpdateManyWithoutBranchNestedInput
   registrationRequests?: Prisma.RegistrationRequestUncheckedUpdateManyWithoutBranchNestedInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUncheckedUpdateManyWithoutBranchNestedInput
   jobApplications?: Prisma.JobApplicationUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
@@ -1952,6 +1977,7 @@ export type BranchCreateWithoutStudentAttendanceInput = {
   partnaires?: Prisma.PartnaireCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeCreateNestedManyWithoutBranchInput
   registrationRequests?: Prisma.RegistrationRequestCreateNestedManyWithoutBranchInput
+  registrationInfos?: Prisma.BranchRegistrationInfoCreateNestedManyWithoutBranchInput
   jobApplications?: Prisma.JobApplicationCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
@@ -2015,6 +2041,7 @@ export type BranchUncheckedCreateWithoutStudentAttendanceInput = {
   partnaires?: Prisma.PartnaireUncheckedCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedCreateNestedManyWithoutBranchInput
   registrationRequests?: Prisma.RegistrationRequestUncheckedCreateNestedManyWithoutBranchInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUncheckedCreateNestedManyWithoutBranchInput
   jobApplications?: Prisma.JobApplicationUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
@@ -2094,6 +2121,7 @@ export type BranchUpdateWithoutStudentAttendanceInput = {
   partnaires?: Prisma.PartnaireUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUpdateManyWithoutBranchNestedInput
   registrationRequests?: Prisma.RegistrationRequestUpdateManyWithoutBranchNestedInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUpdateManyWithoutBranchNestedInput
   jobApplications?: Prisma.JobApplicationUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
@@ -2157,6 +2185,7 @@ export type BranchUncheckedUpdateWithoutStudentAttendanceInput = {
   partnaires?: Prisma.PartnaireUncheckedUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedUpdateManyWithoutBranchNestedInput
   registrationRequests?: Prisma.RegistrationRequestUncheckedUpdateManyWithoutBranchNestedInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUncheckedUpdateManyWithoutBranchNestedInput
   jobApplications?: Prisma.JobApplicationUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
@@ -2220,6 +2249,7 @@ export type BranchCreateWithoutTeacherAttendanceInput = {
   partnaires?: Prisma.PartnaireCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeCreateNestedManyWithoutBranchInput
   registrationRequests?: Prisma.RegistrationRequestCreateNestedManyWithoutBranchInput
+  registrationInfos?: Prisma.BranchRegistrationInfoCreateNestedManyWithoutBranchInput
   jobApplications?: Prisma.JobApplicationCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
@@ -2283,6 +2313,7 @@ export type BranchUncheckedCreateWithoutTeacherAttendanceInput = {
   partnaires?: Prisma.PartnaireUncheckedCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedCreateNestedManyWithoutBranchInput
   registrationRequests?: Prisma.RegistrationRequestUncheckedCreateNestedManyWithoutBranchInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUncheckedCreateNestedManyWithoutBranchInput
   jobApplications?: Prisma.JobApplicationUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
@@ -2362,6 +2393,7 @@ export type BranchUpdateWithoutTeacherAttendanceInput = {
   partnaires?: Prisma.PartnaireUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUpdateManyWithoutBranchNestedInput
   registrationRequests?: Prisma.RegistrationRequestUpdateManyWithoutBranchNestedInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUpdateManyWithoutBranchNestedInput
   jobApplications?: Prisma.JobApplicationUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
@@ -2425,6 +2457,7 @@ export type BranchUncheckedUpdateWithoutTeacherAttendanceInput = {
   partnaires?: Prisma.PartnaireUncheckedUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedUpdateManyWithoutBranchNestedInput
   registrationRequests?: Prisma.RegistrationRequestUncheckedUpdateManyWithoutBranchNestedInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUncheckedUpdateManyWithoutBranchNestedInput
   jobApplications?: Prisma.JobApplicationUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
@@ -2488,6 +2521,7 @@ export type BranchCreateWithoutPersonnelAttendanceInput = {
   partnaires?: Prisma.PartnaireCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeCreateNestedManyWithoutBranchInput
   registrationRequests?: Prisma.RegistrationRequestCreateNestedManyWithoutBranchInput
+  registrationInfos?: Prisma.BranchRegistrationInfoCreateNestedManyWithoutBranchInput
   jobApplications?: Prisma.JobApplicationCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
@@ -2551,6 +2585,7 @@ export type BranchUncheckedCreateWithoutPersonnelAttendanceInput = {
   partnaires?: Prisma.PartnaireUncheckedCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedCreateNestedManyWithoutBranchInput
   registrationRequests?: Prisma.RegistrationRequestUncheckedCreateNestedManyWithoutBranchInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUncheckedCreateNestedManyWithoutBranchInput
   jobApplications?: Prisma.JobApplicationUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
@@ -2630,6 +2665,7 @@ export type BranchUpdateWithoutPersonnelAttendanceInput = {
   partnaires?: Prisma.PartnaireUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUpdateManyWithoutBranchNestedInput
   registrationRequests?: Prisma.RegistrationRequestUpdateManyWithoutBranchNestedInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUpdateManyWithoutBranchNestedInput
   jobApplications?: Prisma.JobApplicationUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
@@ -2693,6 +2729,7 @@ export type BranchUncheckedUpdateWithoutPersonnelAttendanceInput = {
   partnaires?: Prisma.PartnaireUncheckedUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedUpdateManyWithoutBranchNestedInput
   registrationRequests?: Prisma.RegistrationRequestUncheckedUpdateManyWithoutBranchNestedInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUncheckedUpdateManyWithoutBranchNestedInput
   jobApplications?: Prisma.JobApplicationUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
@@ -2756,6 +2793,7 @@ export type BranchCreateWithoutParentFeedbackInput = {
   partnaires?: Prisma.PartnaireCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeCreateNestedManyWithoutBranchInput
   registrationRequests?: Prisma.RegistrationRequestCreateNestedManyWithoutBranchInput
+  registrationInfos?: Prisma.BranchRegistrationInfoCreateNestedManyWithoutBranchInput
   jobApplications?: Prisma.JobApplicationCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
@@ -2819,6 +2857,7 @@ export type BranchUncheckedCreateWithoutParentFeedbackInput = {
   partnaires?: Prisma.PartnaireUncheckedCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedCreateNestedManyWithoutBranchInput
   registrationRequests?: Prisma.RegistrationRequestUncheckedCreateNestedManyWithoutBranchInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUncheckedCreateNestedManyWithoutBranchInput
   jobApplications?: Prisma.JobApplicationUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
@@ -2898,6 +2937,7 @@ export type BranchUpdateWithoutParentFeedbackInput = {
   partnaires?: Prisma.PartnaireUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUpdateManyWithoutBranchNestedInput
   registrationRequests?: Prisma.RegistrationRequestUpdateManyWithoutBranchNestedInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUpdateManyWithoutBranchNestedInput
   jobApplications?: Prisma.JobApplicationUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
@@ -2961,6 +3001,7 @@ export type BranchUncheckedUpdateWithoutParentFeedbackInput = {
   partnaires?: Prisma.PartnaireUncheckedUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedUpdateManyWithoutBranchNestedInput
   registrationRequests?: Prisma.RegistrationRequestUncheckedUpdateManyWithoutBranchNestedInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUncheckedUpdateManyWithoutBranchNestedInput
   jobApplications?: Prisma.JobApplicationUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
@@ -3024,6 +3065,7 @@ export type BranchCreateWithoutStudentGradeInput = {
   partnaires?: Prisma.PartnaireCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeCreateNestedManyWithoutBranchInput
   registrationRequests?: Prisma.RegistrationRequestCreateNestedManyWithoutBranchInput
+  registrationInfos?: Prisma.BranchRegistrationInfoCreateNestedManyWithoutBranchInput
   jobApplications?: Prisma.JobApplicationCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
@@ -3087,6 +3129,7 @@ export type BranchUncheckedCreateWithoutStudentGradeInput = {
   partnaires?: Prisma.PartnaireUncheckedCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedCreateNestedManyWithoutBranchInput
   registrationRequests?: Prisma.RegistrationRequestUncheckedCreateNestedManyWithoutBranchInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUncheckedCreateNestedManyWithoutBranchInput
   jobApplications?: Prisma.JobApplicationUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
@@ -3166,6 +3209,7 @@ export type BranchUpdateWithoutStudentGradeInput = {
   partnaires?: Prisma.PartnaireUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUpdateManyWithoutBranchNestedInput
   registrationRequests?: Prisma.RegistrationRequestUpdateManyWithoutBranchNestedInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUpdateManyWithoutBranchNestedInput
   jobApplications?: Prisma.JobApplicationUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
@@ -3229,6 +3273,7 @@ export type BranchUncheckedUpdateWithoutStudentGradeInput = {
   partnaires?: Prisma.PartnaireUncheckedUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedUpdateManyWithoutBranchNestedInput
   registrationRequests?: Prisma.RegistrationRequestUncheckedUpdateManyWithoutBranchNestedInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUncheckedUpdateManyWithoutBranchNestedInput
   jobApplications?: Prisma.JobApplicationUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
@@ -3292,6 +3337,7 @@ export type BranchCreateWithoutFraisInput = {
   partnaires?: Prisma.PartnaireCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeCreateNestedManyWithoutBranchInput
   registrationRequests?: Prisma.RegistrationRequestCreateNestedManyWithoutBranchInput
+  registrationInfos?: Prisma.BranchRegistrationInfoCreateNestedManyWithoutBranchInput
   jobApplications?: Prisma.JobApplicationCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
@@ -3355,6 +3401,7 @@ export type BranchUncheckedCreateWithoutFraisInput = {
   partnaires?: Prisma.PartnaireUncheckedCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedCreateNestedManyWithoutBranchInput
   registrationRequests?: Prisma.RegistrationRequestUncheckedCreateNestedManyWithoutBranchInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUncheckedCreateNestedManyWithoutBranchInput
   jobApplications?: Prisma.JobApplicationUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
@@ -3434,6 +3481,7 @@ export type BranchUpdateWithoutFraisInput = {
   partnaires?: Prisma.PartnaireUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUpdateManyWithoutBranchNestedInput
   registrationRequests?: Prisma.RegistrationRequestUpdateManyWithoutBranchNestedInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUpdateManyWithoutBranchNestedInput
   jobApplications?: Prisma.JobApplicationUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
@@ -3497,6 +3545,7 @@ export type BranchUncheckedUpdateWithoutFraisInput = {
   partnaires?: Prisma.PartnaireUncheckedUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedUpdateManyWithoutBranchNestedInput
   registrationRequests?: Prisma.RegistrationRequestUncheckedUpdateManyWithoutBranchNestedInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUncheckedUpdateManyWithoutBranchNestedInput
   jobApplications?: Prisma.JobApplicationUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
@@ -3560,6 +3609,7 @@ export type BranchCreateWithoutTypeFraisInput = {
   partnaires?: Prisma.PartnaireCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeCreateNestedManyWithoutBranchInput
   registrationRequests?: Prisma.RegistrationRequestCreateNestedManyWithoutBranchInput
+  registrationInfos?: Prisma.BranchRegistrationInfoCreateNestedManyWithoutBranchInput
   jobApplications?: Prisma.JobApplicationCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
@@ -3623,6 +3673,7 @@ export type BranchUncheckedCreateWithoutTypeFraisInput = {
   partnaires?: Prisma.PartnaireUncheckedCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedCreateNestedManyWithoutBranchInput
   registrationRequests?: Prisma.RegistrationRequestUncheckedCreateNestedManyWithoutBranchInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUncheckedCreateNestedManyWithoutBranchInput
   jobApplications?: Prisma.JobApplicationUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
@@ -3702,6 +3753,7 @@ export type BranchUpdateWithoutTypeFraisInput = {
   partnaires?: Prisma.PartnaireUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUpdateManyWithoutBranchNestedInput
   registrationRequests?: Prisma.RegistrationRequestUpdateManyWithoutBranchNestedInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUpdateManyWithoutBranchNestedInput
   jobApplications?: Prisma.JobApplicationUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
@@ -3765,6 +3817,7 @@ export type BranchUncheckedUpdateWithoutTypeFraisInput = {
   partnaires?: Prisma.PartnaireUncheckedUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedUpdateManyWithoutBranchNestedInput
   registrationRequests?: Prisma.RegistrationRequestUncheckedUpdateManyWithoutBranchNestedInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUncheckedUpdateManyWithoutBranchNestedInput
   jobApplications?: Prisma.JobApplicationUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
@@ -3828,6 +3881,7 @@ export type BranchCreateWithoutClassesInput = {
   partnaires?: Prisma.PartnaireCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeCreateNestedManyWithoutBranchInput
   registrationRequests?: Prisma.RegistrationRequestCreateNestedManyWithoutBranchInput
+  registrationInfos?: Prisma.BranchRegistrationInfoCreateNestedManyWithoutBranchInput
   jobApplications?: Prisma.JobApplicationCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
@@ -3891,6 +3945,7 @@ export type BranchUncheckedCreateWithoutClassesInput = {
   partnaires?: Prisma.PartnaireUncheckedCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedCreateNestedManyWithoutBranchInput
   registrationRequests?: Prisma.RegistrationRequestUncheckedCreateNestedManyWithoutBranchInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUncheckedCreateNestedManyWithoutBranchInput
   jobApplications?: Prisma.JobApplicationUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
@@ -3970,6 +4025,7 @@ export type BranchUpdateWithoutClassesInput = {
   partnaires?: Prisma.PartnaireUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUpdateManyWithoutBranchNestedInput
   registrationRequests?: Prisma.RegistrationRequestUpdateManyWithoutBranchNestedInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUpdateManyWithoutBranchNestedInput
   jobApplications?: Prisma.JobApplicationUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
@@ -4033,6 +4089,7 @@ export type BranchUncheckedUpdateWithoutClassesInput = {
   partnaires?: Prisma.PartnaireUncheckedUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedUpdateManyWithoutBranchNestedInput
   registrationRequests?: Prisma.RegistrationRequestUncheckedUpdateManyWithoutBranchNestedInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUncheckedUpdateManyWithoutBranchNestedInput
   jobApplications?: Prisma.JobApplicationUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
@@ -4096,6 +4153,7 @@ export type BranchCreateWithoutCreneauInput = {
   partnaires?: Prisma.PartnaireCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeCreateNestedManyWithoutBranchInput
   registrationRequests?: Prisma.RegistrationRequestCreateNestedManyWithoutBranchInput
+  registrationInfos?: Prisma.BranchRegistrationInfoCreateNestedManyWithoutBranchInput
   jobApplications?: Prisma.JobApplicationCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
@@ -4159,6 +4217,7 @@ export type BranchUncheckedCreateWithoutCreneauInput = {
   partnaires?: Prisma.PartnaireUncheckedCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedCreateNestedManyWithoutBranchInput
   registrationRequests?: Prisma.RegistrationRequestUncheckedCreateNestedManyWithoutBranchInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUncheckedCreateNestedManyWithoutBranchInput
   jobApplications?: Prisma.JobApplicationUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
@@ -4238,6 +4297,7 @@ export type BranchUpdateWithoutCreneauInput = {
   partnaires?: Prisma.PartnaireUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUpdateManyWithoutBranchNestedInput
   registrationRequests?: Prisma.RegistrationRequestUpdateManyWithoutBranchNestedInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUpdateManyWithoutBranchNestedInput
   jobApplications?: Prisma.JobApplicationUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
@@ -4301,6 +4361,7 @@ export type BranchUncheckedUpdateWithoutCreneauInput = {
   partnaires?: Prisma.PartnaireUncheckedUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedUpdateManyWithoutBranchNestedInput
   registrationRequests?: Prisma.RegistrationRequestUncheckedUpdateManyWithoutBranchNestedInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUncheckedUpdateManyWithoutBranchNestedInput
   jobApplications?: Prisma.JobApplicationUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
@@ -4364,6 +4425,7 @@ export type BranchCreateWithoutOptionInput = {
   partnaires?: Prisma.PartnaireCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeCreateNestedManyWithoutBranchInput
   registrationRequests?: Prisma.RegistrationRequestCreateNestedManyWithoutBranchInput
+  registrationInfos?: Prisma.BranchRegistrationInfoCreateNestedManyWithoutBranchInput
   jobApplications?: Prisma.JobApplicationCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
@@ -4427,6 +4489,7 @@ export type BranchUncheckedCreateWithoutOptionInput = {
   partnaires?: Prisma.PartnaireUncheckedCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedCreateNestedManyWithoutBranchInput
   registrationRequests?: Prisma.RegistrationRequestUncheckedCreateNestedManyWithoutBranchInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUncheckedCreateNestedManyWithoutBranchInput
   jobApplications?: Prisma.JobApplicationUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
@@ -4506,6 +4569,7 @@ export type BranchUpdateWithoutOptionInput = {
   partnaires?: Prisma.PartnaireUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUpdateManyWithoutBranchNestedInput
   registrationRequests?: Prisma.RegistrationRequestUpdateManyWithoutBranchNestedInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUpdateManyWithoutBranchNestedInput
   jobApplications?: Prisma.JobApplicationUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
@@ -4569,6 +4633,7 @@ export type BranchUncheckedUpdateWithoutOptionInput = {
   partnaires?: Prisma.PartnaireUncheckedUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedUpdateManyWithoutBranchNestedInput
   registrationRequests?: Prisma.RegistrationRequestUncheckedUpdateManyWithoutBranchNestedInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUncheckedUpdateManyWithoutBranchNestedInput
   jobApplications?: Prisma.JobApplicationUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
@@ -4632,6 +4697,7 @@ export type BranchCreateWithoutSectionInput = {
   partnaires?: Prisma.PartnaireCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeCreateNestedManyWithoutBranchInput
   registrationRequests?: Prisma.RegistrationRequestCreateNestedManyWithoutBranchInput
+  registrationInfos?: Prisma.BranchRegistrationInfoCreateNestedManyWithoutBranchInput
   jobApplications?: Prisma.JobApplicationCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
@@ -4695,6 +4761,7 @@ export type BranchUncheckedCreateWithoutSectionInput = {
   partnaires?: Prisma.PartnaireUncheckedCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedCreateNestedManyWithoutBranchInput
   registrationRequests?: Prisma.RegistrationRequestUncheckedCreateNestedManyWithoutBranchInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUncheckedCreateNestedManyWithoutBranchInput
   jobApplications?: Prisma.JobApplicationUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
@@ -4774,6 +4841,7 @@ export type BranchUpdateWithoutSectionInput = {
   partnaires?: Prisma.PartnaireUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUpdateManyWithoutBranchNestedInput
   registrationRequests?: Prisma.RegistrationRequestUpdateManyWithoutBranchNestedInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUpdateManyWithoutBranchNestedInput
   jobApplications?: Prisma.JobApplicationUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
@@ -4837,6 +4905,7 @@ export type BranchUncheckedUpdateWithoutSectionInput = {
   partnaires?: Prisma.PartnaireUncheckedUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedUpdateManyWithoutBranchNestedInput
   registrationRequests?: Prisma.RegistrationRequestUncheckedUpdateManyWithoutBranchNestedInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUncheckedUpdateManyWithoutBranchNestedInput
   jobApplications?: Prisma.JobApplicationUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
@@ -4900,6 +4969,7 @@ export type BranchCreateWithoutSchoolYearInput = {
   partnaires?: Prisma.PartnaireCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeCreateNestedManyWithoutBranchInput
   registrationRequests?: Prisma.RegistrationRequestCreateNestedManyWithoutBranchInput
+  registrationInfos?: Prisma.BranchRegistrationInfoCreateNestedManyWithoutBranchInput
   jobApplications?: Prisma.JobApplicationCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
@@ -4963,6 +5033,7 @@ export type BranchUncheckedCreateWithoutSchoolYearInput = {
   partnaires?: Prisma.PartnaireUncheckedCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedCreateNestedManyWithoutBranchInput
   registrationRequests?: Prisma.RegistrationRequestUncheckedCreateNestedManyWithoutBranchInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUncheckedCreateNestedManyWithoutBranchInput
   jobApplications?: Prisma.JobApplicationUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
@@ -5042,6 +5113,7 @@ export type BranchUpdateWithoutSchoolYearInput = {
   partnaires?: Prisma.PartnaireUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUpdateManyWithoutBranchNestedInput
   registrationRequests?: Prisma.RegistrationRequestUpdateManyWithoutBranchNestedInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUpdateManyWithoutBranchNestedInput
   jobApplications?: Prisma.JobApplicationUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
@@ -5105,6 +5177,7 @@ export type BranchUncheckedUpdateWithoutSchoolYearInput = {
   partnaires?: Prisma.PartnaireUncheckedUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedUpdateManyWithoutBranchNestedInput
   registrationRequests?: Prisma.RegistrationRequestUncheckedUpdateManyWithoutBranchNestedInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUncheckedUpdateManyWithoutBranchNestedInput
   jobApplications?: Prisma.JobApplicationUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
@@ -5168,6 +5241,7 @@ export type BranchCreateWithoutClassEnrollmentInput = {
   partnaires?: Prisma.PartnaireCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeCreateNestedManyWithoutBranchInput
   registrationRequests?: Prisma.RegistrationRequestCreateNestedManyWithoutBranchInput
+  registrationInfos?: Prisma.BranchRegistrationInfoCreateNestedManyWithoutBranchInput
   jobApplications?: Prisma.JobApplicationCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
@@ -5231,6 +5305,7 @@ export type BranchUncheckedCreateWithoutClassEnrollmentInput = {
   partnaires?: Prisma.PartnaireUncheckedCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedCreateNestedManyWithoutBranchInput
   registrationRequests?: Prisma.RegistrationRequestUncheckedCreateNestedManyWithoutBranchInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUncheckedCreateNestedManyWithoutBranchInput
   jobApplications?: Prisma.JobApplicationUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
@@ -5310,6 +5385,7 @@ export type BranchUpdateWithoutClassEnrollmentInput = {
   partnaires?: Prisma.PartnaireUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUpdateManyWithoutBranchNestedInput
   registrationRequests?: Prisma.RegistrationRequestUpdateManyWithoutBranchNestedInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUpdateManyWithoutBranchNestedInput
   jobApplications?: Prisma.JobApplicationUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
@@ -5373,6 +5449,7 @@ export type BranchUncheckedUpdateWithoutClassEnrollmentInput = {
   partnaires?: Prisma.PartnaireUncheckedUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedUpdateManyWithoutBranchNestedInput
   registrationRequests?: Prisma.RegistrationRequestUncheckedUpdateManyWithoutBranchNestedInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUncheckedUpdateManyWithoutBranchNestedInput
   jobApplications?: Prisma.JobApplicationUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
@@ -5436,6 +5513,7 @@ export type BranchCreateWithoutTeachingInput = {
   partnaires?: Prisma.PartnaireCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeCreateNestedManyWithoutBranchInput
   registrationRequests?: Prisma.RegistrationRequestCreateNestedManyWithoutBranchInput
+  registrationInfos?: Prisma.BranchRegistrationInfoCreateNestedManyWithoutBranchInput
   jobApplications?: Prisma.JobApplicationCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
@@ -5499,6 +5577,7 @@ export type BranchUncheckedCreateWithoutTeachingInput = {
   partnaires?: Prisma.PartnaireUncheckedCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedCreateNestedManyWithoutBranchInput
   registrationRequests?: Prisma.RegistrationRequestUncheckedCreateNestedManyWithoutBranchInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUncheckedCreateNestedManyWithoutBranchInput
   jobApplications?: Prisma.JobApplicationUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
@@ -5578,6 +5657,7 @@ export type BranchUpdateWithoutTeachingInput = {
   partnaires?: Prisma.PartnaireUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUpdateManyWithoutBranchNestedInput
   registrationRequests?: Prisma.RegistrationRequestUpdateManyWithoutBranchNestedInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUpdateManyWithoutBranchNestedInput
   jobApplications?: Prisma.JobApplicationUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
@@ -5641,6 +5721,7 @@ export type BranchUncheckedUpdateWithoutTeachingInput = {
   partnaires?: Prisma.PartnaireUncheckedUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedUpdateManyWithoutBranchNestedInput
   registrationRequests?: Prisma.RegistrationRequestUncheckedUpdateManyWithoutBranchNestedInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUncheckedUpdateManyWithoutBranchNestedInput
   jobApplications?: Prisma.JobApplicationUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
@@ -5704,6 +5785,7 @@ export type BranchCreateWithoutCoursInput = {
   partnaires?: Prisma.PartnaireCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeCreateNestedManyWithoutBranchInput
   registrationRequests?: Prisma.RegistrationRequestCreateNestedManyWithoutBranchInput
+  registrationInfos?: Prisma.BranchRegistrationInfoCreateNestedManyWithoutBranchInput
   jobApplications?: Prisma.JobApplicationCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
@@ -5767,6 +5849,7 @@ export type BranchUncheckedCreateWithoutCoursInput = {
   partnaires?: Prisma.PartnaireUncheckedCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedCreateNestedManyWithoutBranchInput
   registrationRequests?: Prisma.RegistrationRequestUncheckedCreateNestedManyWithoutBranchInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUncheckedCreateNestedManyWithoutBranchInput
   jobApplications?: Prisma.JobApplicationUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
@@ -5846,6 +5929,7 @@ export type BranchUpdateWithoutCoursInput = {
   partnaires?: Prisma.PartnaireUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUpdateManyWithoutBranchNestedInput
   registrationRequests?: Prisma.RegistrationRequestUpdateManyWithoutBranchNestedInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUpdateManyWithoutBranchNestedInput
   jobApplications?: Prisma.JobApplicationUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
@@ -5909,6 +5993,7 @@ export type BranchUncheckedUpdateWithoutCoursInput = {
   partnaires?: Prisma.PartnaireUncheckedUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedUpdateManyWithoutBranchNestedInput
   registrationRequests?: Prisma.RegistrationRequestUncheckedUpdateManyWithoutBranchNestedInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUncheckedUpdateManyWithoutBranchNestedInput
   jobApplications?: Prisma.JobApplicationUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
@@ -5972,6 +6057,7 @@ export type BranchCreateWithoutCoursPonderationsInput = {
   partnaires?: Prisma.PartnaireCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeCreateNestedManyWithoutBranchInput
   registrationRequests?: Prisma.RegistrationRequestCreateNestedManyWithoutBranchInput
+  registrationInfos?: Prisma.BranchRegistrationInfoCreateNestedManyWithoutBranchInput
   jobApplications?: Prisma.JobApplicationCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
@@ -6035,6 +6121,7 @@ export type BranchUncheckedCreateWithoutCoursPonderationsInput = {
   partnaires?: Prisma.PartnaireUncheckedCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedCreateNestedManyWithoutBranchInput
   registrationRequests?: Prisma.RegistrationRequestUncheckedCreateNestedManyWithoutBranchInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUncheckedCreateNestedManyWithoutBranchInput
   jobApplications?: Prisma.JobApplicationUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
@@ -6114,6 +6201,7 @@ export type BranchUpdateWithoutCoursPonderationsInput = {
   partnaires?: Prisma.PartnaireUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUpdateManyWithoutBranchNestedInput
   registrationRequests?: Prisma.RegistrationRequestUpdateManyWithoutBranchNestedInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUpdateManyWithoutBranchNestedInput
   jobApplications?: Prisma.JobApplicationUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
@@ -6177,6 +6265,7 @@ export type BranchUncheckedUpdateWithoutCoursPonderationsInput = {
   partnaires?: Prisma.PartnaireUncheckedUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedUpdateManyWithoutBranchNestedInput
   registrationRequests?: Prisma.RegistrationRequestUncheckedUpdateManyWithoutBranchNestedInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUncheckedUpdateManyWithoutBranchNestedInput
   jobApplications?: Prisma.JobApplicationUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
@@ -6240,6 +6329,7 @@ export type BranchCreateWithoutCalendarEventInput = {
   partnaires?: Prisma.PartnaireCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeCreateNestedManyWithoutBranchInput
   registrationRequests?: Prisma.RegistrationRequestCreateNestedManyWithoutBranchInput
+  registrationInfos?: Prisma.BranchRegistrationInfoCreateNestedManyWithoutBranchInput
   jobApplications?: Prisma.JobApplicationCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
@@ -6303,6 +6393,7 @@ export type BranchUncheckedCreateWithoutCalendarEventInput = {
   partnaires?: Prisma.PartnaireUncheckedCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedCreateNestedManyWithoutBranchInput
   registrationRequests?: Prisma.RegistrationRequestUncheckedCreateNestedManyWithoutBranchInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUncheckedCreateNestedManyWithoutBranchInput
   jobApplications?: Prisma.JobApplicationUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
@@ -6382,6 +6473,7 @@ export type BranchUpdateWithoutCalendarEventInput = {
   partnaires?: Prisma.PartnaireUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUpdateManyWithoutBranchNestedInput
   registrationRequests?: Prisma.RegistrationRequestUpdateManyWithoutBranchNestedInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUpdateManyWithoutBranchNestedInput
   jobApplications?: Prisma.JobApplicationUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
@@ -6445,6 +6537,7 @@ export type BranchUncheckedUpdateWithoutCalendarEventInput = {
   partnaires?: Prisma.PartnaireUncheckedUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedUpdateManyWithoutBranchNestedInput
   registrationRequests?: Prisma.RegistrationRequestUncheckedUpdateManyWithoutBranchNestedInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUncheckedUpdateManyWithoutBranchNestedInput
   jobApplications?: Prisma.JobApplicationUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
@@ -6508,6 +6601,7 @@ export type BranchCreateWithoutEventTypeInput = {
   partnaires?: Prisma.PartnaireCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeCreateNestedManyWithoutBranchInput
   registrationRequests?: Prisma.RegistrationRequestCreateNestedManyWithoutBranchInput
+  registrationInfos?: Prisma.BranchRegistrationInfoCreateNestedManyWithoutBranchInput
   jobApplications?: Prisma.JobApplicationCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
@@ -6571,6 +6665,7 @@ export type BranchUncheckedCreateWithoutEventTypeInput = {
   partnaires?: Prisma.PartnaireUncheckedCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedCreateNestedManyWithoutBranchInput
   registrationRequests?: Prisma.RegistrationRequestUncheckedCreateNestedManyWithoutBranchInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUncheckedCreateNestedManyWithoutBranchInput
   jobApplications?: Prisma.JobApplicationUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
@@ -6650,6 +6745,7 @@ export type BranchUpdateWithoutEventTypeInput = {
   partnaires?: Prisma.PartnaireUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUpdateManyWithoutBranchNestedInput
   registrationRequests?: Prisma.RegistrationRequestUpdateManyWithoutBranchNestedInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUpdateManyWithoutBranchNestedInput
   jobApplications?: Prisma.JobApplicationUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
@@ -6713,6 +6809,7 @@ export type BranchUncheckedUpdateWithoutEventTypeInput = {
   partnaires?: Prisma.PartnaireUncheckedUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedUpdateManyWithoutBranchNestedInput
   registrationRequests?: Prisma.RegistrationRequestUncheckedUpdateManyWithoutBranchNestedInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUncheckedUpdateManyWithoutBranchNestedInput
   jobApplications?: Prisma.JobApplicationUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
@@ -6776,6 +6873,7 @@ export type BranchCreateWithoutSemesterInput = {
   partnaires?: Prisma.PartnaireCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeCreateNestedManyWithoutBranchInput
   registrationRequests?: Prisma.RegistrationRequestCreateNestedManyWithoutBranchInput
+  registrationInfos?: Prisma.BranchRegistrationInfoCreateNestedManyWithoutBranchInput
   jobApplications?: Prisma.JobApplicationCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
@@ -6839,6 +6937,7 @@ export type BranchUncheckedCreateWithoutSemesterInput = {
   partnaires?: Prisma.PartnaireUncheckedCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedCreateNestedManyWithoutBranchInput
   registrationRequests?: Prisma.RegistrationRequestUncheckedCreateNestedManyWithoutBranchInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUncheckedCreateNestedManyWithoutBranchInput
   jobApplications?: Prisma.JobApplicationUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
@@ -6918,6 +7017,7 @@ export type BranchUpdateWithoutSemesterInput = {
   partnaires?: Prisma.PartnaireUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUpdateManyWithoutBranchNestedInput
   registrationRequests?: Prisma.RegistrationRequestUpdateManyWithoutBranchNestedInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUpdateManyWithoutBranchNestedInput
   jobApplications?: Prisma.JobApplicationUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
@@ -6981,6 +7081,7 @@ export type BranchUncheckedUpdateWithoutSemesterInput = {
   partnaires?: Prisma.PartnaireUncheckedUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedUpdateManyWithoutBranchNestedInput
   registrationRequests?: Prisma.RegistrationRequestUncheckedUpdateManyWithoutBranchNestedInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUncheckedUpdateManyWithoutBranchNestedInput
   jobApplications?: Prisma.JobApplicationUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
@@ -7044,6 +7145,7 @@ export type BranchCreateWithoutPeriodInput = {
   partnaires?: Prisma.PartnaireCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeCreateNestedManyWithoutBranchInput
   registrationRequests?: Prisma.RegistrationRequestCreateNestedManyWithoutBranchInput
+  registrationInfos?: Prisma.BranchRegistrationInfoCreateNestedManyWithoutBranchInput
   jobApplications?: Prisma.JobApplicationCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
@@ -7107,6 +7209,7 @@ export type BranchUncheckedCreateWithoutPeriodInput = {
   partnaires?: Prisma.PartnaireUncheckedCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedCreateNestedManyWithoutBranchInput
   registrationRequests?: Prisma.RegistrationRequestUncheckedCreateNestedManyWithoutBranchInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUncheckedCreateNestedManyWithoutBranchInput
   jobApplications?: Prisma.JobApplicationUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
@@ -7186,6 +7289,7 @@ export type BranchUpdateWithoutPeriodInput = {
   partnaires?: Prisma.PartnaireUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUpdateManyWithoutBranchNestedInput
   registrationRequests?: Prisma.RegistrationRequestUpdateManyWithoutBranchNestedInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUpdateManyWithoutBranchNestedInput
   jobApplications?: Prisma.JobApplicationUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
@@ -7249,6 +7353,7 @@ export type BranchUncheckedUpdateWithoutPeriodInput = {
   partnaires?: Prisma.PartnaireUncheckedUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedUpdateManyWithoutBranchNestedInput
   registrationRequests?: Prisma.RegistrationRequestUncheckedUpdateManyWithoutBranchNestedInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUncheckedUpdateManyWithoutBranchNestedInput
   jobApplications?: Prisma.JobApplicationUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
@@ -7312,6 +7417,7 @@ export type BranchCreateWithoutPeriodResultLockInput = {
   partnaires?: Prisma.PartnaireCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeCreateNestedManyWithoutBranchInput
   registrationRequests?: Prisma.RegistrationRequestCreateNestedManyWithoutBranchInput
+  registrationInfos?: Prisma.BranchRegistrationInfoCreateNestedManyWithoutBranchInput
   jobApplications?: Prisma.JobApplicationCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
@@ -7375,6 +7481,7 @@ export type BranchUncheckedCreateWithoutPeriodResultLockInput = {
   partnaires?: Prisma.PartnaireUncheckedCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedCreateNestedManyWithoutBranchInput
   registrationRequests?: Prisma.RegistrationRequestUncheckedCreateNestedManyWithoutBranchInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUncheckedCreateNestedManyWithoutBranchInput
   jobApplications?: Prisma.JobApplicationUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
@@ -7454,6 +7561,7 @@ export type BranchUpdateWithoutPeriodResultLockInput = {
   partnaires?: Prisma.PartnaireUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUpdateManyWithoutBranchNestedInput
   registrationRequests?: Prisma.RegistrationRequestUpdateManyWithoutBranchNestedInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUpdateManyWithoutBranchNestedInput
   jobApplications?: Prisma.JobApplicationUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
@@ -7517,6 +7625,7 @@ export type BranchUncheckedUpdateWithoutPeriodResultLockInput = {
   partnaires?: Prisma.PartnaireUncheckedUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedUpdateManyWithoutBranchNestedInput
   registrationRequests?: Prisma.RegistrationRequestUncheckedUpdateManyWithoutBranchNestedInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUncheckedUpdateManyWithoutBranchNestedInput
   jobApplications?: Prisma.JobApplicationUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
@@ -7580,6 +7689,7 @@ export type BranchCreateWithoutFicheInput = {
   partnaires?: Prisma.PartnaireCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeCreateNestedManyWithoutBranchInput
   registrationRequests?: Prisma.RegistrationRequestCreateNestedManyWithoutBranchInput
+  registrationInfos?: Prisma.BranchRegistrationInfoCreateNestedManyWithoutBranchInput
   jobApplications?: Prisma.JobApplicationCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
@@ -7643,6 +7753,7 @@ export type BranchUncheckedCreateWithoutFicheInput = {
   partnaires?: Prisma.PartnaireUncheckedCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedCreateNestedManyWithoutBranchInput
   registrationRequests?: Prisma.RegistrationRequestUncheckedCreateNestedManyWithoutBranchInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUncheckedCreateNestedManyWithoutBranchInput
   jobApplications?: Prisma.JobApplicationUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
@@ -7722,6 +7833,7 @@ export type BranchUpdateWithoutFicheInput = {
   partnaires?: Prisma.PartnaireUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUpdateManyWithoutBranchNestedInput
   registrationRequests?: Prisma.RegistrationRequestUpdateManyWithoutBranchNestedInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUpdateManyWithoutBranchNestedInput
   jobApplications?: Prisma.JobApplicationUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
@@ -7785,6 +7897,7 @@ export type BranchUncheckedUpdateWithoutFicheInput = {
   partnaires?: Prisma.PartnaireUncheckedUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedUpdateManyWithoutBranchNestedInput
   registrationRequests?: Prisma.RegistrationRequestUncheckedUpdateManyWithoutBranchNestedInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUncheckedUpdateManyWithoutBranchNestedInput
   jobApplications?: Prisma.JobApplicationUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
@@ -7848,6 +7961,7 @@ export type BranchCreateWithoutInvoiceInput = {
   partnaires?: Prisma.PartnaireCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeCreateNestedManyWithoutBranchInput
   registrationRequests?: Prisma.RegistrationRequestCreateNestedManyWithoutBranchInput
+  registrationInfos?: Prisma.BranchRegistrationInfoCreateNestedManyWithoutBranchInput
   jobApplications?: Prisma.JobApplicationCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
@@ -7911,6 +8025,7 @@ export type BranchUncheckedCreateWithoutInvoiceInput = {
   partnaires?: Prisma.PartnaireUncheckedCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedCreateNestedManyWithoutBranchInput
   registrationRequests?: Prisma.RegistrationRequestUncheckedCreateNestedManyWithoutBranchInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUncheckedCreateNestedManyWithoutBranchInput
   jobApplications?: Prisma.JobApplicationUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
@@ -7990,6 +8105,7 @@ export type BranchUpdateWithoutInvoiceInput = {
   partnaires?: Prisma.PartnaireUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUpdateManyWithoutBranchNestedInput
   registrationRequests?: Prisma.RegistrationRequestUpdateManyWithoutBranchNestedInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUpdateManyWithoutBranchNestedInput
   jobApplications?: Prisma.JobApplicationUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
@@ -8053,6 +8169,7 @@ export type BranchUncheckedUpdateWithoutInvoiceInput = {
   partnaires?: Prisma.PartnaireUncheckedUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedUpdateManyWithoutBranchNestedInput
   registrationRequests?: Prisma.RegistrationRequestUncheckedUpdateManyWithoutBranchNestedInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUncheckedUpdateManyWithoutBranchNestedInput
   jobApplications?: Prisma.JobApplicationUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
@@ -8116,6 +8233,7 @@ export type BranchCreateWithoutPaymentBatchInput = {
   partnaires?: Prisma.PartnaireCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeCreateNestedManyWithoutBranchInput
   registrationRequests?: Prisma.RegistrationRequestCreateNestedManyWithoutBranchInput
+  registrationInfos?: Prisma.BranchRegistrationInfoCreateNestedManyWithoutBranchInput
   jobApplications?: Prisma.JobApplicationCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
@@ -8179,6 +8297,7 @@ export type BranchUncheckedCreateWithoutPaymentBatchInput = {
   partnaires?: Prisma.PartnaireUncheckedCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedCreateNestedManyWithoutBranchInput
   registrationRequests?: Prisma.RegistrationRequestUncheckedCreateNestedManyWithoutBranchInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUncheckedCreateNestedManyWithoutBranchInput
   jobApplications?: Prisma.JobApplicationUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
@@ -8258,6 +8377,7 @@ export type BranchUpdateWithoutPaymentBatchInput = {
   partnaires?: Prisma.PartnaireUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUpdateManyWithoutBranchNestedInput
   registrationRequests?: Prisma.RegistrationRequestUpdateManyWithoutBranchNestedInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUpdateManyWithoutBranchNestedInput
   jobApplications?: Prisma.JobApplicationUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
@@ -8321,6 +8441,7 @@ export type BranchUncheckedUpdateWithoutPaymentBatchInput = {
   partnaires?: Prisma.PartnaireUncheckedUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedUpdateManyWithoutBranchNestedInput
   registrationRequests?: Prisma.RegistrationRequestUncheckedUpdateManyWithoutBranchNestedInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUncheckedUpdateManyWithoutBranchNestedInput
   jobApplications?: Prisma.JobApplicationUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
@@ -8384,6 +8505,7 @@ export type BranchCreateWithoutFamilyPaymentInput = {
   partnaires?: Prisma.PartnaireCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeCreateNestedManyWithoutBranchInput
   registrationRequests?: Prisma.RegistrationRequestCreateNestedManyWithoutBranchInput
+  registrationInfos?: Prisma.BranchRegistrationInfoCreateNestedManyWithoutBranchInput
   jobApplications?: Prisma.JobApplicationCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
@@ -8447,6 +8569,7 @@ export type BranchUncheckedCreateWithoutFamilyPaymentInput = {
   partnaires?: Prisma.PartnaireUncheckedCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedCreateNestedManyWithoutBranchInput
   registrationRequests?: Prisma.RegistrationRequestUncheckedCreateNestedManyWithoutBranchInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUncheckedCreateNestedManyWithoutBranchInput
   jobApplications?: Prisma.JobApplicationUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
@@ -8526,6 +8649,7 @@ export type BranchUpdateWithoutFamilyPaymentInput = {
   partnaires?: Prisma.PartnaireUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUpdateManyWithoutBranchNestedInput
   registrationRequests?: Prisma.RegistrationRequestUpdateManyWithoutBranchNestedInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUpdateManyWithoutBranchNestedInput
   jobApplications?: Prisma.JobApplicationUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
@@ -8589,6 +8713,7 @@ export type BranchUncheckedUpdateWithoutFamilyPaymentInput = {
   partnaires?: Prisma.PartnaireUncheckedUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedUpdateManyWithoutBranchNestedInput
   registrationRequests?: Prisma.RegistrationRequestUncheckedUpdateManyWithoutBranchNestedInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUncheckedUpdateManyWithoutBranchNestedInput
   jobApplications?: Prisma.JobApplicationUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
@@ -8652,6 +8777,7 @@ export type BranchCreateWithoutCashierExpenseInput = {
   partnaires?: Prisma.PartnaireCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeCreateNestedManyWithoutBranchInput
   registrationRequests?: Prisma.RegistrationRequestCreateNestedManyWithoutBranchInput
+  registrationInfos?: Prisma.BranchRegistrationInfoCreateNestedManyWithoutBranchInput
   jobApplications?: Prisma.JobApplicationCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
@@ -8715,6 +8841,7 @@ export type BranchUncheckedCreateWithoutCashierExpenseInput = {
   partnaires?: Prisma.PartnaireUncheckedCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedCreateNestedManyWithoutBranchInput
   registrationRequests?: Prisma.RegistrationRequestUncheckedCreateNestedManyWithoutBranchInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUncheckedCreateNestedManyWithoutBranchInput
   jobApplications?: Prisma.JobApplicationUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
@@ -8794,6 +8921,7 @@ export type BranchUpdateWithoutCashierExpenseInput = {
   partnaires?: Prisma.PartnaireUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUpdateManyWithoutBranchNestedInput
   registrationRequests?: Prisma.RegistrationRequestUpdateManyWithoutBranchNestedInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUpdateManyWithoutBranchNestedInput
   jobApplications?: Prisma.JobApplicationUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
@@ -8857,6 +8985,7 @@ export type BranchUncheckedUpdateWithoutCashierExpenseInput = {
   partnaires?: Prisma.PartnaireUncheckedUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedUpdateManyWithoutBranchNestedInput
   registrationRequests?: Prisma.RegistrationRequestUncheckedUpdateManyWithoutBranchNestedInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUncheckedUpdateManyWithoutBranchNestedInput
   jobApplications?: Prisma.JobApplicationUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
@@ -8920,6 +9049,7 @@ export type BranchCreateWithoutCashierOpeningBalanceInput = {
   partnaires?: Prisma.PartnaireCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeCreateNestedManyWithoutBranchInput
   registrationRequests?: Prisma.RegistrationRequestCreateNestedManyWithoutBranchInput
+  registrationInfos?: Prisma.BranchRegistrationInfoCreateNestedManyWithoutBranchInput
   jobApplications?: Prisma.JobApplicationCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
@@ -8983,6 +9113,7 @@ export type BranchUncheckedCreateWithoutCashierOpeningBalanceInput = {
   partnaires?: Prisma.PartnaireUncheckedCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedCreateNestedManyWithoutBranchInput
   registrationRequests?: Prisma.RegistrationRequestUncheckedCreateNestedManyWithoutBranchInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUncheckedCreateNestedManyWithoutBranchInput
   jobApplications?: Prisma.JobApplicationUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
@@ -9062,6 +9193,7 @@ export type BranchUpdateWithoutCashierOpeningBalanceInput = {
   partnaires?: Prisma.PartnaireUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUpdateManyWithoutBranchNestedInput
   registrationRequests?: Prisma.RegistrationRequestUpdateManyWithoutBranchNestedInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUpdateManyWithoutBranchNestedInput
   jobApplications?: Prisma.JobApplicationUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
@@ -9125,6 +9257,7 @@ export type BranchUncheckedUpdateWithoutCashierOpeningBalanceInput = {
   partnaires?: Prisma.PartnaireUncheckedUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedUpdateManyWithoutBranchNestedInput
   registrationRequests?: Prisma.RegistrationRequestUncheckedUpdateManyWithoutBranchNestedInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUncheckedUpdateManyWithoutBranchNestedInput
   jobApplications?: Prisma.JobApplicationUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
@@ -9188,6 +9321,7 @@ export type BranchCreateWithoutPaymentAllocationInput = {
   partnaires?: Prisma.PartnaireCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeCreateNestedManyWithoutBranchInput
   registrationRequests?: Prisma.RegistrationRequestCreateNestedManyWithoutBranchInput
+  registrationInfos?: Prisma.BranchRegistrationInfoCreateNestedManyWithoutBranchInput
   jobApplications?: Prisma.JobApplicationCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
@@ -9251,6 +9385,7 @@ export type BranchUncheckedCreateWithoutPaymentAllocationInput = {
   partnaires?: Prisma.PartnaireUncheckedCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedCreateNestedManyWithoutBranchInput
   registrationRequests?: Prisma.RegistrationRequestUncheckedCreateNestedManyWithoutBranchInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUncheckedCreateNestedManyWithoutBranchInput
   jobApplications?: Prisma.JobApplicationUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
@@ -9330,6 +9465,7 @@ export type BranchUpdateWithoutPaymentAllocationInput = {
   partnaires?: Prisma.PartnaireUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUpdateManyWithoutBranchNestedInput
   registrationRequests?: Prisma.RegistrationRequestUpdateManyWithoutBranchNestedInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUpdateManyWithoutBranchNestedInput
   jobApplications?: Prisma.JobApplicationUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
@@ -9393,6 +9529,7 @@ export type BranchUncheckedUpdateWithoutPaymentAllocationInput = {
   partnaires?: Prisma.PartnaireUncheckedUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedUpdateManyWithoutBranchNestedInput
   registrationRequests?: Prisma.RegistrationRequestUncheckedUpdateManyWithoutBranchNestedInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUncheckedUpdateManyWithoutBranchNestedInput
   jobApplications?: Prisma.JobApplicationUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
@@ -9456,6 +9593,7 @@ export type BranchCreateWithoutMobileMoneyTransactionInput = {
   partnaires?: Prisma.PartnaireCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeCreateNestedManyWithoutBranchInput
   registrationRequests?: Prisma.RegistrationRequestCreateNestedManyWithoutBranchInput
+  registrationInfos?: Prisma.BranchRegistrationInfoCreateNestedManyWithoutBranchInput
   jobApplications?: Prisma.JobApplicationCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
@@ -9519,6 +9657,7 @@ export type BranchUncheckedCreateWithoutMobileMoneyTransactionInput = {
   partnaires?: Prisma.PartnaireUncheckedCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedCreateNestedManyWithoutBranchInput
   registrationRequests?: Prisma.RegistrationRequestUncheckedCreateNestedManyWithoutBranchInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUncheckedCreateNestedManyWithoutBranchInput
   jobApplications?: Prisma.JobApplicationUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
@@ -9598,6 +9737,7 @@ export type BranchUpdateWithoutMobileMoneyTransactionInput = {
   partnaires?: Prisma.PartnaireUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUpdateManyWithoutBranchNestedInput
   registrationRequests?: Prisma.RegistrationRequestUpdateManyWithoutBranchNestedInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUpdateManyWithoutBranchNestedInput
   jobApplications?: Prisma.JobApplicationUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
@@ -9661,6 +9801,7 @@ export type BranchUncheckedUpdateWithoutMobileMoneyTransactionInput = {
   partnaires?: Prisma.PartnaireUncheckedUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedUpdateManyWithoutBranchNestedInput
   registrationRequests?: Prisma.RegistrationRequestUncheckedUpdateManyWithoutBranchNestedInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUncheckedUpdateManyWithoutBranchNestedInput
   jobApplications?: Prisma.JobApplicationUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
@@ -9724,6 +9865,7 @@ export type BranchCreateWithoutPaymentEventInput = {
   partnaires?: Prisma.PartnaireCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeCreateNestedManyWithoutBranchInput
   registrationRequests?: Prisma.RegistrationRequestCreateNestedManyWithoutBranchInput
+  registrationInfos?: Prisma.BranchRegistrationInfoCreateNestedManyWithoutBranchInput
   jobApplications?: Prisma.JobApplicationCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
@@ -9787,6 +9929,7 @@ export type BranchUncheckedCreateWithoutPaymentEventInput = {
   partnaires?: Prisma.PartnaireUncheckedCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedCreateNestedManyWithoutBranchInput
   registrationRequests?: Prisma.RegistrationRequestUncheckedCreateNestedManyWithoutBranchInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUncheckedCreateNestedManyWithoutBranchInput
   jobApplications?: Prisma.JobApplicationUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
@@ -9866,6 +10009,7 @@ export type BranchUpdateWithoutPaymentEventInput = {
   partnaires?: Prisma.PartnaireUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUpdateManyWithoutBranchNestedInput
   registrationRequests?: Prisma.RegistrationRequestUpdateManyWithoutBranchNestedInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUpdateManyWithoutBranchNestedInput
   jobApplications?: Prisma.JobApplicationUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
@@ -9929,6 +10073,7 @@ export type BranchUncheckedUpdateWithoutPaymentEventInput = {
   partnaires?: Prisma.PartnaireUncheckedUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedUpdateManyWithoutBranchNestedInput
   registrationRequests?: Prisma.RegistrationRequestUncheckedUpdateManyWithoutBranchNestedInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUncheckedUpdateManyWithoutBranchNestedInput
   jobApplications?: Prisma.JobApplicationUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
@@ -9992,6 +10137,7 @@ export type BranchCreateWithoutDiscountRuleInput = {
   partnaires?: Prisma.PartnaireCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeCreateNestedManyWithoutBranchInput
   registrationRequests?: Prisma.RegistrationRequestCreateNestedManyWithoutBranchInput
+  registrationInfos?: Prisma.BranchRegistrationInfoCreateNestedManyWithoutBranchInput
   jobApplications?: Prisma.JobApplicationCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
@@ -10055,6 +10201,7 @@ export type BranchUncheckedCreateWithoutDiscountRuleInput = {
   partnaires?: Prisma.PartnaireUncheckedCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedCreateNestedManyWithoutBranchInput
   registrationRequests?: Prisma.RegistrationRequestUncheckedCreateNestedManyWithoutBranchInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUncheckedCreateNestedManyWithoutBranchInput
   jobApplications?: Prisma.JobApplicationUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
@@ -10134,6 +10281,7 @@ export type BranchUpdateWithoutDiscountRuleInput = {
   partnaires?: Prisma.PartnaireUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUpdateManyWithoutBranchNestedInput
   registrationRequests?: Prisma.RegistrationRequestUpdateManyWithoutBranchNestedInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUpdateManyWithoutBranchNestedInput
   jobApplications?: Prisma.JobApplicationUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
@@ -10197,6 +10345,7 @@ export type BranchUncheckedUpdateWithoutDiscountRuleInput = {
   partnaires?: Prisma.PartnaireUncheckedUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedUpdateManyWithoutBranchNestedInput
   registrationRequests?: Prisma.RegistrationRequestUncheckedUpdateManyWithoutBranchNestedInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUncheckedUpdateManyWithoutBranchNestedInput
   jobApplications?: Prisma.JobApplicationUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
@@ -10260,6 +10409,7 @@ export type BranchCreateWithoutTransactionInput = {
   partnaires?: Prisma.PartnaireCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeCreateNestedManyWithoutBranchInput
   registrationRequests?: Prisma.RegistrationRequestCreateNestedManyWithoutBranchInput
+  registrationInfos?: Prisma.BranchRegistrationInfoCreateNestedManyWithoutBranchInput
   jobApplications?: Prisma.JobApplicationCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
@@ -10323,6 +10473,7 @@ export type BranchUncheckedCreateWithoutTransactionInput = {
   partnaires?: Prisma.PartnaireUncheckedCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedCreateNestedManyWithoutBranchInput
   registrationRequests?: Prisma.RegistrationRequestUncheckedCreateNestedManyWithoutBranchInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUncheckedCreateNestedManyWithoutBranchInput
   jobApplications?: Prisma.JobApplicationUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
@@ -10402,6 +10553,7 @@ export type BranchUpdateWithoutTransactionInput = {
   partnaires?: Prisma.PartnaireUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUpdateManyWithoutBranchNestedInput
   registrationRequests?: Prisma.RegistrationRequestUpdateManyWithoutBranchNestedInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUpdateManyWithoutBranchNestedInput
   jobApplications?: Prisma.JobApplicationUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
@@ -10465,6 +10617,7 @@ export type BranchUncheckedUpdateWithoutTransactionInput = {
   partnaires?: Prisma.PartnaireUncheckedUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedUpdateManyWithoutBranchNestedInput
   registrationRequests?: Prisma.RegistrationRequestUncheckedUpdateManyWithoutBranchNestedInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUncheckedUpdateManyWithoutBranchNestedInput
   jobApplications?: Prisma.JobApplicationUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
@@ -10528,6 +10681,7 @@ export type BranchCreateWithoutOrganizationInput = {
   partnaires?: Prisma.PartnaireCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeCreateNestedManyWithoutBranchInput
   registrationRequests?: Prisma.RegistrationRequestCreateNestedManyWithoutBranchInput
+  registrationInfos?: Prisma.BranchRegistrationInfoCreateNestedManyWithoutBranchInput
   jobApplications?: Prisma.JobApplicationCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
@@ -10591,6 +10745,7 @@ export type BranchUncheckedCreateWithoutOrganizationInput = {
   partnaires?: Prisma.PartnaireUncheckedCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedCreateNestedManyWithoutBranchInput
   registrationRequests?: Prisma.RegistrationRequestUncheckedCreateNestedManyWithoutBranchInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUncheckedCreateNestedManyWithoutBranchInput
   jobApplications?: Prisma.JobApplicationUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
@@ -10646,6 +10801,278 @@ export type BranchScalarWhereInput = {
   isActive?: Prisma.BoolFilter<"Branch"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Branch"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Branch"> | Date | string
+}
+
+export type BranchCreateWithoutRegistrationInfosInput = {
+  id?: string
+  name: string
+  code?: string | null
+  image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  adresse?: string | null
+  province?: string | null
+  ville?: string | null
+  commune?: string | null
+  pays?: string | null
+  idnat?: string | null
+  tel?: string | null
+  latitude: number
+  longitude: number
+  attendanceRadius?: number
+  typebranch: $Enums.TypeBrache
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  organization: Prisma.OrganizationCreateNestedOneWithoutBranchesInput
+  studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
+  branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
+  classes?: Prisma.ClasseCreateNestedManyWithoutBranchInput
+  paymentBatch?: Prisma.PaymentBatchCreateNestedManyWithoutBranchInput
+  familyPayment?: Prisma.FamilyPaymentCreateNestedManyWithoutBranchInput
+  fiche?: Prisma.ficheCreateNestedManyWithoutBranchInput
+  eventType?: Prisma.EventTypeCreateNestedManyWithoutBranchInput
+  period?: Prisma.periodCreateNestedManyWithoutBranchInput
+  cours?: Prisma.CoursCreateNestedManyWithoutBranchInput
+  schoolYear?: Prisma.SchoolYearCreateNestedManyWithoutBranchInput
+  typeFrais?: Prisma.TypeFraisCreateNestedManyWithoutBranchInput
+  option?: Prisma.OptionCreateNestedManyWithoutBranchInput
+  coursPonderations?: Prisma.CoursOptionPonderationCreateNestedManyWithoutBranchInput
+  classEnrollment?: Prisma.ClassEnrollmentCreateNestedManyWithoutBranchInput
+  section?: Prisma.SectionCreateNestedManyWithoutBranchInput
+  semester?: Prisma.semesterCreateNestedManyWithoutBranchInput
+  frais?: Prisma.FraisCreateNestedManyWithoutBranchInput
+  calendarEvent?: Prisma.CalendarEventCreateNestedManyWithoutBranchInput
+  periodResultLock?: Prisma.PeriodResultLockCreateNestedManyWithoutBranchInput
+  cashierExpense?: Prisma.CashierExpenseCreateNestedManyWithoutBranchInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceCreateNestedManyWithoutBranchInput
+  invoice?: Prisma.InvoiceCreateNestedManyWithoutBranchInput
+  creneau?: Prisma.CreneauCreateNestedManyWithoutBranchInput
+  paymentAllocation?: Prisma.PaymentAllocationCreateNestedManyWithoutBranchInput
+  teaching?: Prisma.TeachingCreateNestedManyWithoutBranchInput
+  mobileMoneyTransaction?: Prisma.MobileMoneyTransactionCreateNestedManyWithoutBranchInput
+  branchInvitation?: Prisma.BranchInvitationCreateNestedManyWithoutBranchInput
+  attendanceSessions?: Prisma.AttendanceSessionCreateNestedManyWithoutBranchInput
+  teacherAttendance?: Prisma.TeacherAttendanceCreateNestedManyWithoutBranchInput
+  personnelAttendance?: Prisma.PersonnelAttendanceCreateNestedManyWithoutBranchInput
+  studentGrade?: Prisma.StudentGradeCreateNestedManyWithoutBranchInput
+  parentFeedback?: Prisma.ParentFeedbackCreateNestedManyWithoutBranchInput
+  transaction?: Prisma.TransactionCreateNestedManyWithoutBranchInput
+  discountRule?: Prisma.DiscountRuleCreateNestedManyWithoutBranchInput
+  paymentEvent?: Prisma.PaymentEventCreateNestedManyWithoutBranchInput
+  partnaires?: Prisma.PartnaireCreateNestedManyWithoutBranchInput
+  organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeCreateNestedManyWithoutBranchInput
+  registrationRequests?: Prisma.RegistrationRequestCreateNestedManyWithoutBranchInput
+  jobApplications?: Prisma.JobApplicationCreateNestedManyWithoutBranchInput
+  targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
+  sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
+  issuedDocuments?: Prisma.IssuedDocumentCreateNestedManyWithoutBranchInput
+}
+
+export type BranchUncheckedCreateWithoutRegistrationInfosInput = {
+  id?: string
+  name: string
+  code?: string | null
+  image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  adresse?: string | null
+  province?: string | null
+  ville?: string | null
+  commune?: string | null
+  pays?: string | null
+  idnat?: string | null
+  tel?: string | null
+  latitude: number
+  longitude: number
+  attendanceRadius?: number
+  organizationId: string
+  typebranch: $Enums.TypeBrache
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
+  branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
+  classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
+  paymentBatch?: Prisma.PaymentBatchUncheckedCreateNestedManyWithoutBranchInput
+  familyPayment?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutBranchInput
+  fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutBranchInput
+  eventType?: Prisma.EventTypeUncheckedCreateNestedManyWithoutBranchInput
+  period?: Prisma.periodUncheckedCreateNestedManyWithoutBranchInput
+  cours?: Prisma.CoursUncheckedCreateNestedManyWithoutBranchInput
+  schoolYear?: Prisma.SchoolYearUncheckedCreateNestedManyWithoutBranchInput
+  typeFrais?: Prisma.TypeFraisUncheckedCreateNestedManyWithoutBranchInput
+  option?: Prisma.OptionUncheckedCreateNestedManyWithoutBranchInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedCreateNestedManyWithoutBranchInput
+  classEnrollment?: Prisma.ClassEnrollmentUncheckedCreateNestedManyWithoutBranchInput
+  section?: Prisma.SectionUncheckedCreateNestedManyWithoutBranchInput
+  semester?: Prisma.semesterUncheckedCreateNestedManyWithoutBranchInput
+  frais?: Prisma.FraisUncheckedCreateNestedManyWithoutBranchInput
+  calendarEvent?: Prisma.CalendarEventUncheckedCreateNestedManyWithoutBranchInput
+  periodResultLock?: Prisma.PeriodResultLockUncheckedCreateNestedManyWithoutBranchInput
+  cashierExpense?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutBranchInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUncheckedCreateNestedManyWithoutBranchInput
+  invoice?: Prisma.InvoiceUncheckedCreateNestedManyWithoutBranchInput
+  creneau?: Prisma.CreneauUncheckedCreateNestedManyWithoutBranchInput
+  paymentAllocation?: Prisma.PaymentAllocationUncheckedCreateNestedManyWithoutBranchInput
+  teaching?: Prisma.TeachingUncheckedCreateNestedManyWithoutBranchInput
+  mobileMoneyTransaction?: Prisma.MobileMoneyTransactionUncheckedCreateNestedManyWithoutBranchInput
+  branchInvitation?: Prisma.BranchInvitationUncheckedCreateNestedManyWithoutBranchInput
+  attendanceSessions?: Prisma.AttendanceSessionUncheckedCreateNestedManyWithoutBranchInput
+  teacherAttendance?: Prisma.TeacherAttendanceUncheckedCreateNestedManyWithoutBranchInput
+  personnelAttendance?: Prisma.PersonnelAttendanceUncheckedCreateNestedManyWithoutBranchInput
+  studentGrade?: Prisma.StudentGradeUncheckedCreateNestedManyWithoutBranchInput
+  parentFeedback?: Prisma.ParentFeedbackUncheckedCreateNestedManyWithoutBranchInput
+  transaction?: Prisma.TransactionUncheckedCreateNestedManyWithoutBranchInput
+  discountRule?: Prisma.DiscountRuleUncheckedCreateNestedManyWithoutBranchInput
+  paymentEvent?: Prisma.PaymentEventUncheckedCreateNestedManyWithoutBranchInput
+  partnaires?: Prisma.PartnaireUncheckedCreateNestedManyWithoutBranchInput
+  organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedCreateNestedManyWithoutBranchInput
+  registrationRequests?: Prisma.RegistrationRequestUncheckedCreateNestedManyWithoutBranchInput
+  jobApplications?: Prisma.JobApplicationUncheckedCreateNestedManyWithoutBranchInput
+  targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
+  sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
+  issuedDocuments?: Prisma.IssuedDocumentUncheckedCreateNestedManyWithoutBranchInput
+}
+
+export type BranchCreateOrConnectWithoutRegistrationInfosInput = {
+  where: Prisma.BranchWhereUniqueInput
+  create: Prisma.XOR<Prisma.BranchCreateWithoutRegistrationInfosInput, Prisma.BranchUncheckedCreateWithoutRegistrationInfosInput>
+}
+
+export type BranchUpsertWithoutRegistrationInfosInput = {
+  update: Prisma.XOR<Prisma.BranchUpdateWithoutRegistrationInfosInput, Prisma.BranchUncheckedUpdateWithoutRegistrationInfosInput>
+  create: Prisma.XOR<Prisma.BranchCreateWithoutRegistrationInfosInput, Prisma.BranchUncheckedCreateWithoutRegistrationInfosInput>
+  where?: Prisma.BranchWhereInput
+}
+
+export type BranchUpdateToOneWithWhereWithoutRegistrationInfosInput = {
+  where?: Prisma.BranchWhereInput
+  data: Prisma.XOR<Prisma.BranchUpdateWithoutRegistrationInfosInput, Prisma.BranchUncheckedUpdateWithoutRegistrationInfosInput>
+}
+
+export type BranchUpdateWithoutRegistrationInfosInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  commune?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pays?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  idnat?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  latitude?: Prisma.FloatFieldUpdateOperationsInput | number
+  longitude?: Prisma.FloatFieldUpdateOperationsInput | number
+  attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  organization?: Prisma.OrganizationUpdateOneRequiredWithoutBranchesNestedInput
+  studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
+  branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
+  classes?: Prisma.ClasseUpdateManyWithoutBranchNestedInput
+  paymentBatch?: Prisma.PaymentBatchUpdateManyWithoutBranchNestedInput
+  familyPayment?: Prisma.FamilyPaymentUpdateManyWithoutBranchNestedInput
+  fiche?: Prisma.ficheUpdateManyWithoutBranchNestedInput
+  eventType?: Prisma.EventTypeUpdateManyWithoutBranchNestedInput
+  period?: Prisma.periodUpdateManyWithoutBranchNestedInput
+  cours?: Prisma.CoursUpdateManyWithoutBranchNestedInput
+  schoolYear?: Prisma.SchoolYearUpdateManyWithoutBranchNestedInput
+  typeFrais?: Prisma.TypeFraisUpdateManyWithoutBranchNestedInput
+  option?: Prisma.OptionUpdateManyWithoutBranchNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUpdateManyWithoutBranchNestedInput
+  classEnrollment?: Prisma.ClassEnrollmentUpdateManyWithoutBranchNestedInput
+  section?: Prisma.SectionUpdateManyWithoutBranchNestedInput
+  semester?: Prisma.semesterUpdateManyWithoutBranchNestedInput
+  frais?: Prisma.FraisUpdateManyWithoutBranchNestedInput
+  calendarEvent?: Prisma.CalendarEventUpdateManyWithoutBranchNestedInput
+  periodResultLock?: Prisma.PeriodResultLockUpdateManyWithoutBranchNestedInput
+  cashierExpense?: Prisma.CashierExpenseUpdateManyWithoutBranchNestedInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUpdateManyWithoutBranchNestedInput
+  invoice?: Prisma.InvoiceUpdateManyWithoutBranchNestedInput
+  creneau?: Prisma.CreneauUpdateManyWithoutBranchNestedInput
+  paymentAllocation?: Prisma.PaymentAllocationUpdateManyWithoutBranchNestedInput
+  teaching?: Prisma.TeachingUpdateManyWithoutBranchNestedInput
+  mobileMoneyTransaction?: Prisma.MobileMoneyTransactionUpdateManyWithoutBranchNestedInput
+  branchInvitation?: Prisma.BranchInvitationUpdateManyWithoutBranchNestedInput
+  attendanceSessions?: Prisma.AttendanceSessionUpdateManyWithoutBranchNestedInput
+  teacherAttendance?: Prisma.TeacherAttendanceUpdateManyWithoutBranchNestedInput
+  personnelAttendance?: Prisma.PersonnelAttendanceUpdateManyWithoutBranchNestedInput
+  studentGrade?: Prisma.StudentGradeUpdateManyWithoutBranchNestedInput
+  parentFeedback?: Prisma.ParentFeedbackUpdateManyWithoutBranchNestedInput
+  transaction?: Prisma.TransactionUpdateManyWithoutBranchNestedInput
+  discountRule?: Prisma.DiscountRuleUpdateManyWithoutBranchNestedInput
+  paymentEvent?: Prisma.PaymentEventUpdateManyWithoutBranchNestedInput
+  partnaires?: Prisma.PartnaireUpdateManyWithoutBranchNestedInput
+  organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUpdateManyWithoutBranchNestedInput
+  registrationRequests?: Prisma.RegistrationRequestUpdateManyWithoutBranchNestedInput
+  jobApplications?: Prisma.JobApplicationUpdateManyWithoutBranchNestedInput
+  targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
+  sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
+  issuedDocuments?: Prisma.IssuedDocumentUpdateManyWithoutBranchNestedInput
+}
+
+export type BranchUncheckedUpdateWithoutRegistrationInfosInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  commune?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pays?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  idnat?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  latitude?: Prisma.FloatFieldUpdateOperationsInput | number
+  longitude?: Prisma.FloatFieldUpdateOperationsInput | number
+  attendanceRadius?: Prisma.IntFieldUpdateOperationsInput | number
+  organizationId?: Prisma.StringFieldUpdateOperationsInput | string
+  typebranch?: Prisma.EnumTypeBracheFieldUpdateOperationsInput | $Enums.TypeBrache
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
+  branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
+  classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
+  paymentBatch?: Prisma.PaymentBatchUncheckedUpdateManyWithoutBranchNestedInput
+  familyPayment?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutBranchNestedInput
+  fiche?: Prisma.ficheUncheckedUpdateManyWithoutBranchNestedInput
+  eventType?: Prisma.EventTypeUncheckedUpdateManyWithoutBranchNestedInput
+  period?: Prisma.periodUncheckedUpdateManyWithoutBranchNestedInput
+  cours?: Prisma.CoursUncheckedUpdateManyWithoutBranchNestedInput
+  schoolYear?: Prisma.SchoolYearUncheckedUpdateManyWithoutBranchNestedInput
+  typeFrais?: Prisma.TypeFraisUncheckedUpdateManyWithoutBranchNestedInput
+  option?: Prisma.OptionUncheckedUpdateManyWithoutBranchNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedUpdateManyWithoutBranchNestedInput
+  classEnrollment?: Prisma.ClassEnrollmentUncheckedUpdateManyWithoutBranchNestedInput
+  section?: Prisma.SectionUncheckedUpdateManyWithoutBranchNestedInput
+  semester?: Prisma.semesterUncheckedUpdateManyWithoutBranchNestedInput
+  frais?: Prisma.FraisUncheckedUpdateManyWithoutBranchNestedInput
+  calendarEvent?: Prisma.CalendarEventUncheckedUpdateManyWithoutBranchNestedInput
+  periodResultLock?: Prisma.PeriodResultLockUncheckedUpdateManyWithoutBranchNestedInput
+  cashierExpense?: Prisma.CashierExpenseUncheckedUpdateManyWithoutBranchNestedInput
+  cashierOpeningBalance?: Prisma.CashierOpeningBalanceUncheckedUpdateManyWithoutBranchNestedInput
+  invoice?: Prisma.InvoiceUncheckedUpdateManyWithoutBranchNestedInput
+  creneau?: Prisma.CreneauUncheckedUpdateManyWithoutBranchNestedInput
+  paymentAllocation?: Prisma.PaymentAllocationUncheckedUpdateManyWithoutBranchNestedInput
+  teaching?: Prisma.TeachingUncheckedUpdateManyWithoutBranchNestedInput
+  mobileMoneyTransaction?: Prisma.MobileMoneyTransactionUncheckedUpdateManyWithoutBranchNestedInput
+  branchInvitation?: Prisma.BranchInvitationUncheckedUpdateManyWithoutBranchNestedInput
+  attendanceSessions?: Prisma.AttendanceSessionUncheckedUpdateManyWithoutBranchNestedInput
+  teacherAttendance?: Prisma.TeacherAttendanceUncheckedUpdateManyWithoutBranchNestedInput
+  personnelAttendance?: Prisma.PersonnelAttendanceUncheckedUpdateManyWithoutBranchNestedInput
+  studentGrade?: Prisma.StudentGradeUncheckedUpdateManyWithoutBranchNestedInput
+  parentFeedback?: Prisma.ParentFeedbackUncheckedUpdateManyWithoutBranchNestedInput
+  transaction?: Prisma.TransactionUncheckedUpdateManyWithoutBranchNestedInput
+  discountRule?: Prisma.DiscountRuleUncheckedUpdateManyWithoutBranchNestedInput
+  paymentEvent?: Prisma.PaymentEventUncheckedUpdateManyWithoutBranchNestedInput
+  partnaires?: Prisma.PartnaireUncheckedUpdateManyWithoutBranchNestedInput
+  organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedUpdateManyWithoutBranchNestedInput
+  registrationRequests?: Prisma.RegistrationRequestUncheckedUpdateManyWithoutBranchNestedInput
+  jobApplications?: Prisma.JobApplicationUncheckedUpdateManyWithoutBranchNestedInput
+  targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
+  sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
+  issuedDocuments?: Prisma.IssuedDocumentUncheckedUpdateManyWithoutBranchNestedInput
 }
 
 export type BranchCreateWithoutRegistrationRequestsInput = {
@@ -10705,6 +11132,7 @@ export type BranchCreateWithoutRegistrationRequestsInput = {
   paymentEvent?: Prisma.PaymentEventCreateNestedManyWithoutBranchInput
   partnaires?: Prisma.PartnaireCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeCreateNestedManyWithoutBranchInput
+  registrationInfos?: Prisma.BranchRegistrationInfoCreateNestedManyWithoutBranchInput
   jobApplications?: Prisma.JobApplicationCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
@@ -10768,6 +11196,7 @@ export type BranchUncheckedCreateWithoutRegistrationRequestsInput = {
   paymentEvent?: Prisma.PaymentEventUncheckedCreateNestedManyWithoutBranchInput
   partnaires?: Prisma.PartnaireUncheckedCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedCreateNestedManyWithoutBranchInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUncheckedCreateNestedManyWithoutBranchInput
   jobApplications?: Prisma.JobApplicationUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
@@ -10847,6 +11276,7 @@ export type BranchUpdateWithoutRegistrationRequestsInput = {
   paymentEvent?: Prisma.PaymentEventUpdateManyWithoutBranchNestedInput
   partnaires?: Prisma.PartnaireUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUpdateManyWithoutBranchNestedInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUpdateManyWithoutBranchNestedInput
   jobApplications?: Prisma.JobApplicationUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
@@ -10910,6 +11340,7 @@ export type BranchUncheckedUpdateWithoutRegistrationRequestsInput = {
   paymentEvent?: Prisma.PaymentEventUncheckedUpdateManyWithoutBranchNestedInput
   partnaires?: Prisma.PartnaireUncheckedUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedUpdateManyWithoutBranchNestedInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUncheckedUpdateManyWithoutBranchNestedInput
   jobApplications?: Prisma.JobApplicationUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
@@ -10974,6 +11405,7 @@ export type BranchCreateWithoutJobApplicationsInput = {
   partnaires?: Prisma.PartnaireCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeCreateNestedManyWithoutBranchInput
   registrationRequests?: Prisma.RegistrationRequestCreateNestedManyWithoutBranchInput
+  registrationInfos?: Prisma.BranchRegistrationInfoCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
   issuedDocuments?: Prisma.IssuedDocumentCreateNestedManyWithoutBranchInput
@@ -11037,6 +11469,7 @@ export type BranchUncheckedCreateWithoutJobApplicationsInput = {
   partnaires?: Prisma.PartnaireUncheckedCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedCreateNestedManyWithoutBranchInput
   registrationRequests?: Prisma.RegistrationRequestUncheckedCreateNestedManyWithoutBranchInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedCreateNestedManyWithoutBranchInput
@@ -11116,6 +11549,7 @@ export type BranchUpdateWithoutJobApplicationsInput = {
   partnaires?: Prisma.PartnaireUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUpdateManyWithoutBranchNestedInput
   registrationRequests?: Prisma.RegistrationRequestUpdateManyWithoutBranchNestedInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUpdateManyWithoutBranchNestedInput
@@ -11179,6 +11613,7 @@ export type BranchUncheckedUpdateWithoutJobApplicationsInput = {
   partnaires?: Prisma.PartnaireUncheckedUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedUpdateManyWithoutBranchNestedInput
   registrationRequests?: Prisma.RegistrationRequestUncheckedUpdateManyWithoutBranchNestedInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedUpdateManyWithoutBranchNestedInput
@@ -11241,6 +11676,7 @@ export type BranchCreateWithoutPartnairesInput = {
   paymentEvent?: Prisma.PaymentEventCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeCreateNestedManyWithoutBranchInput
   registrationRequests?: Prisma.RegistrationRequestCreateNestedManyWithoutBranchInput
+  registrationInfos?: Prisma.BranchRegistrationInfoCreateNestedManyWithoutBranchInput
   jobApplications?: Prisma.JobApplicationCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
@@ -11304,6 +11740,7 @@ export type BranchUncheckedCreateWithoutPartnairesInput = {
   paymentEvent?: Prisma.PaymentEventUncheckedCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedCreateNestedManyWithoutBranchInput
   registrationRequests?: Prisma.RegistrationRequestUncheckedCreateNestedManyWithoutBranchInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUncheckedCreateNestedManyWithoutBranchInput
   jobApplications?: Prisma.JobApplicationUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
@@ -11383,6 +11820,7 @@ export type BranchUpdateWithoutPartnairesInput = {
   paymentEvent?: Prisma.PaymentEventUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUpdateManyWithoutBranchNestedInput
   registrationRequests?: Prisma.RegistrationRequestUpdateManyWithoutBranchNestedInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUpdateManyWithoutBranchNestedInput
   jobApplications?: Prisma.JobApplicationUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
@@ -11446,6 +11884,7 @@ export type BranchUncheckedUpdateWithoutPartnairesInput = {
   paymentEvent?: Prisma.PaymentEventUncheckedUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedUpdateManyWithoutBranchNestedInput
   registrationRequests?: Prisma.RegistrationRequestUncheckedUpdateManyWithoutBranchNestedInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUncheckedUpdateManyWithoutBranchNestedInput
   jobApplications?: Prisma.JobApplicationUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
@@ -11509,6 +11948,7 @@ export type BranchCreateWithoutBranchemembersInput = {
   partnaires?: Prisma.PartnaireCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeCreateNestedManyWithoutBranchInput
   registrationRequests?: Prisma.RegistrationRequestCreateNestedManyWithoutBranchInput
+  registrationInfos?: Prisma.BranchRegistrationInfoCreateNestedManyWithoutBranchInput
   jobApplications?: Prisma.JobApplicationCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
@@ -11572,6 +12012,7 @@ export type BranchUncheckedCreateWithoutBranchemembersInput = {
   partnaires?: Prisma.PartnaireUncheckedCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedCreateNestedManyWithoutBranchInput
   registrationRequests?: Prisma.RegistrationRequestUncheckedCreateNestedManyWithoutBranchInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUncheckedCreateNestedManyWithoutBranchInput
   jobApplications?: Prisma.JobApplicationUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
@@ -11651,6 +12092,7 @@ export type BranchUpdateWithoutBranchemembersInput = {
   partnaires?: Prisma.PartnaireUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUpdateManyWithoutBranchNestedInput
   registrationRequests?: Prisma.RegistrationRequestUpdateManyWithoutBranchNestedInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUpdateManyWithoutBranchNestedInput
   jobApplications?: Prisma.JobApplicationUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
@@ -11714,6 +12156,7 @@ export type BranchUncheckedUpdateWithoutBranchemembersInput = {
   partnaires?: Prisma.PartnaireUncheckedUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedUpdateManyWithoutBranchNestedInput
   registrationRequests?: Prisma.RegistrationRequestUncheckedUpdateManyWithoutBranchNestedInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUncheckedUpdateManyWithoutBranchNestedInput
   jobApplications?: Prisma.JobApplicationUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
@@ -11778,6 +12221,7 @@ export type BranchCreateWithoutTargetStudentLinksInput = {
   partnaires?: Prisma.PartnaireCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeCreateNestedManyWithoutBranchInput
   registrationRequests?: Prisma.RegistrationRequestCreateNestedManyWithoutBranchInput
+  registrationInfos?: Prisma.BranchRegistrationInfoCreateNestedManyWithoutBranchInput
   jobApplications?: Prisma.JobApplicationCreateNestedManyWithoutBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
   issuedDocuments?: Prisma.IssuedDocumentCreateNestedManyWithoutBranchInput
@@ -11841,6 +12285,7 @@ export type BranchUncheckedCreateWithoutTargetStudentLinksInput = {
   partnaires?: Prisma.PartnaireUncheckedCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedCreateNestedManyWithoutBranchInput
   registrationRequests?: Prisma.RegistrationRequestUncheckedCreateNestedManyWithoutBranchInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUncheckedCreateNestedManyWithoutBranchInput
   jobApplications?: Prisma.JobApplicationUncheckedCreateNestedManyWithoutBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedCreateNestedManyWithoutBranchInput
@@ -11909,6 +12354,7 @@ export type BranchCreateWithoutSourceStudentLinksInput = {
   partnaires?: Prisma.PartnaireCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeCreateNestedManyWithoutBranchInput
   registrationRequests?: Prisma.RegistrationRequestCreateNestedManyWithoutBranchInput
+  registrationInfos?: Prisma.BranchRegistrationInfoCreateNestedManyWithoutBranchInput
   jobApplications?: Prisma.JobApplicationCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   issuedDocuments?: Prisma.IssuedDocumentCreateNestedManyWithoutBranchInput
@@ -11972,6 +12418,7 @@ export type BranchUncheckedCreateWithoutSourceStudentLinksInput = {
   partnaires?: Prisma.PartnaireUncheckedCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedCreateNestedManyWithoutBranchInput
   registrationRequests?: Prisma.RegistrationRequestUncheckedCreateNestedManyWithoutBranchInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUncheckedCreateNestedManyWithoutBranchInput
   jobApplications?: Prisma.JobApplicationUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedCreateNestedManyWithoutBranchInput
@@ -12051,6 +12498,7 @@ export type BranchUpdateWithoutTargetStudentLinksInput = {
   partnaires?: Prisma.PartnaireUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUpdateManyWithoutBranchNestedInput
   registrationRequests?: Prisma.RegistrationRequestUpdateManyWithoutBranchNestedInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUpdateManyWithoutBranchNestedInput
   jobApplications?: Prisma.JobApplicationUpdateManyWithoutBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUpdateManyWithoutBranchNestedInput
@@ -12114,6 +12562,7 @@ export type BranchUncheckedUpdateWithoutTargetStudentLinksInput = {
   partnaires?: Prisma.PartnaireUncheckedUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedUpdateManyWithoutBranchNestedInput
   registrationRequests?: Prisma.RegistrationRequestUncheckedUpdateManyWithoutBranchNestedInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUncheckedUpdateManyWithoutBranchNestedInput
   jobApplications?: Prisma.JobApplicationUncheckedUpdateManyWithoutBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedUpdateManyWithoutBranchNestedInput
@@ -12188,6 +12637,7 @@ export type BranchUpdateWithoutSourceStudentLinksInput = {
   partnaires?: Prisma.PartnaireUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUpdateManyWithoutBranchNestedInput
   registrationRequests?: Prisma.RegistrationRequestUpdateManyWithoutBranchNestedInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUpdateManyWithoutBranchNestedInput
   jobApplications?: Prisma.JobApplicationUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUpdateManyWithoutBranchNestedInput
@@ -12251,6 +12701,7 @@ export type BranchUncheckedUpdateWithoutSourceStudentLinksInput = {
   partnaires?: Prisma.PartnaireUncheckedUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedUpdateManyWithoutBranchNestedInput
   registrationRequests?: Prisma.RegistrationRequestUncheckedUpdateManyWithoutBranchNestedInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUncheckedUpdateManyWithoutBranchNestedInput
   jobApplications?: Prisma.JobApplicationUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedUpdateManyWithoutBranchNestedInput
@@ -12314,6 +12765,7 @@ export type BranchCreateWithoutIssuedDocumentsInput = {
   partnaires?: Prisma.PartnaireCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeCreateNestedManyWithoutBranchInput
   registrationRequests?: Prisma.RegistrationRequestCreateNestedManyWithoutBranchInput
+  registrationInfos?: Prisma.BranchRegistrationInfoCreateNestedManyWithoutBranchInput
   jobApplications?: Prisma.JobApplicationCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
@@ -12377,6 +12829,7 @@ export type BranchUncheckedCreateWithoutIssuedDocumentsInput = {
   partnaires?: Prisma.PartnaireUncheckedCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedCreateNestedManyWithoutBranchInput
   registrationRequests?: Prisma.RegistrationRequestUncheckedCreateNestedManyWithoutBranchInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUncheckedCreateNestedManyWithoutBranchInput
   jobApplications?: Prisma.JobApplicationUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
@@ -12456,6 +12909,7 @@ export type BranchUpdateWithoutIssuedDocumentsInput = {
   partnaires?: Prisma.PartnaireUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUpdateManyWithoutBranchNestedInput
   registrationRequests?: Prisma.RegistrationRequestUpdateManyWithoutBranchNestedInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUpdateManyWithoutBranchNestedInput
   jobApplications?: Prisma.JobApplicationUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
@@ -12519,6 +12973,7 @@ export type BranchUncheckedUpdateWithoutIssuedDocumentsInput = {
   partnaires?: Prisma.PartnaireUncheckedUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedUpdateManyWithoutBranchNestedInput
   registrationRequests?: Prisma.RegistrationRequestUncheckedUpdateManyWithoutBranchNestedInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUncheckedUpdateManyWithoutBranchNestedInput
   jobApplications?: Prisma.JobApplicationUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
@@ -12581,6 +13036,7 @@ export type BranchCreateWithoutBranchInvitationInput = {
   partnaires?: Prisma.PartnaireCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeCreateNestedManyWithoutBranchInput
   registrationRequests?: Prisma.RegistrationRequestCreateNestedManyWithoutBranchInput
+  registrationInfos?: Prisma.BranchRegistrationInfoCreateNestedManyWithoutBranchInput
   jobApplications?: Prisma.JobApplicationCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
@@ -12644,6 +13100,7 @@ export type BranchUncheckedCreateWithoutBranchInvitationInput = {
   partnaires?: Prisma.PartnaireUncheckedCreateNestedManyWithoutBranchInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedCreateNestedManyWithoutBranchInput
   registrationRequests?: Prisma.RegistrationRequestUncheckedCreateNestedManyWithoutBranchInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUncheckedCreateNestedManyWithoutBranchInput
   jobApplications?: Prisma.JobApplicationUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
@@ -12723,6 +13180,7 @@ export type BranchUpdateWithoutBranchInvitationInput = {
   partnaires?: Prisma.PartnaireUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUpdateManyWithoutBranchNestedInput
   registrationRequests?: Prisma.RegistrationRequestUpdateManyWithoutBranchNestedInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUpdateManyWithoutBranchNestedInput
   jobApplications?: Prisma.JobApplicationUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
@@ -12786,6 +13244,7 @@ export type BranchUncheckedUpdateWithoutBranchInvitationInput = {
   partnaires?: Prisma.PartnaireUncheckedUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedUpdateManyWithoutBranchNestedInput
   registrationRequests?: Prisma.RegistrationRequestUncheckedUpdateManyWithoutBranchNestedInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUncheckedUpdateManyWithoutBranchNestedInput
   jobApplications?: Prisma.JobApplicationUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
@@ -12849,6 +13308,7 @@ export type BranchCreateWithoutOrganizationSupportBranchScopesInput = {
   paymentEvent?: Prisma.PaymentEventCreateNestedManyWithoutBranchInput
   partnaires?: Prisma.PartnaireCreateNestedManyWithoutBranchInput
   registrationRequests?: Prisma.RegistrationRequestCreateNestedManyWithoutBranchInput
+  registrationInfos?: Prisma.BranchRegistrationInfoCreateNestedManyWithoutBranchInput
   jobApplications?: Prisma.JobApplicationCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutSourceBranchInput
@@ -12912,6 +13372,7 @@ export type BranchUncheckedCreateWithoutOrganizationSupportBranchScopesInput = {
   paymentEvent?: Prisma.PaymentEventUncheckedCreateNestedManyWithoutBranchInput
   partnaires?: Prisma.PartnaireUncheckedCreateNestedManyWithoutBranchInput
   registrationRequests?: Prisma.RegistrationRequestUncheckedCreateNestedManyWithoutBranchInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUncheckedCreateNestedManyWithoutBranchInput
   jobApplications?: Prisma.JobApplicationUncheckedCreateNestedManyWithoutBranchInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutTargetBranchInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutSourceBranchInput
@@ -12991,6 +13452,7 @@ export type BranchUpdateWithoutOrganizationSupportBranchScopesInput = {
   paymentEvent?: Prisma.PaymentEventUpdateManyWithoutBranchNestedInput
   partnaires?: Prisma.PartnaireUpdateManyWithoutBranchNestedInput
   registrationRequests?: Prisma.RegistrationRequestUpdateManyWithoutBranchNestedInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUpdateManyWithoutBranchNestedInput
   jobApplications?: Prisma.JobApplicationUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
@@ -13054,6 +13516,7 @@ export type BranchUncheckedUpdateWithoutOrganizationSupportBranchScopesInput = {
   paymentEvent?: Prisma.PaymentEventUncheckedUpdateManyWithoutBranchNestedInput
   partnaires?: Prisma.PartnaireUncheckedUpdateManyWithoutBranchNestedInput
   registrationRequests?: Prisma.RegistrationRequestUncheckedUpdateManyWithoutBranchNestedInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUncheckedUpdateManyWithoutBranchNestedInput
   jobApplications?: Prisma.JobApplicationUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
@@ -13138,6 +13601,7 @@ export type BranchUpdateWithoutOrganizationInput = {
   partnaires?: Prisma.PartnaireUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUpdateManyWithoutBranchNestedInput
   registrationRequests?: Prisma.RegistrationRequestUpdateManyWithoutBranchNestedInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUpdateManyWithoutBranchNestedInput
   jobApplications?: Prisma.JobApplicationUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUpdateManyWithoutSourceBranchNestedInput
@@ -13201,6 +13665,7 @@ export type BranchUncheckedUpdateWithoutOrganizationInput = {
   partnaires?: Prisma.PartnaireUncheckedUpdateManyWithoutBranchNestedInput
   organizationSupportBranchScopes?: Prisma.OrganizationSupportBranchScopeUncheckedUpdateManyWithoutBranchNestedInput
   registrationRequests?: Prisma.RegistrationRequestUncheckedUpdateManyWithoutBranchNestedInput
+  registrationInfos?: Prisma.BranchRegistrationInfoUncheckedUpdateManyWithoutBranchNestedInput
   jobApplications?: Prisma.JobApplicationUncheckedUpdateManyWithoutBranchNestedInput
   targetStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutTargetBranchNestedInput
   sourceStudentLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutSourceBranchNestedInput
@@ -13272,6 +13737,7 @@ export type BranchCountOutputType = {
   partnaires: number
   organizationSupportBranchScopes: number
   registrationRequests: number
+  registrationInfos: number
   jobApplications: number
   targetStudentLinks: number
   sourceStudentLinks: number
@@ -13317,6 +13783,7 @@ export type BranchCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions
   partnaires?: boolean | BranchCountOutputTypeCountPartnairesArgs
   organizationSupportBranchScopes?: boolean | BranchCountOutputTypeCountOrganizationSupportBranchScopesArgs
   registrationRequests?: boolean | BranchCountOutputTypeCountRegistrationRequestsArgs
+  registrationInfos?: boolean | BranchCountOutputTypeCountRegistrationInfosArgs
   jobApplications?: boolean | BranchCountOutputTypeCountJobApplicationsArgs
   targetStudentLinks?: boolean | BranchCountOutputTypeCountTargetStudentLinksArgs
   sourceStudentLinks?: boolean | BranchCountOutputTypeCountSourceStudentLinksArgs
@@ -13602,6 +14069,13 @@ export type BranchCountOutputTypeCountRegistrationRequestsArgs<ExtArgs extends r
 /**
  * BranchCountOutputType without action
  */
+export type BranchCountOutputTypeCountRegistrationInfosArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.BranchRegistrationInfoWhereInput
+}
+
+/**
+ * BranchCountOutputType without action
+ */
 export type BranchCountOutputTypeCountJobApplicationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.JobApplicationWhereInput
 }
@@ -13687,6 +14161,7 @@ export type BranchSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   partnaires?: boolean | Prisma.Branch$partnairesArgs<ExtArgs>
   organizationSupportBranchScopes?: boolean | Prisma.Branch$organizationSupportBranchScopesArgs<ExtArgs>
   registrationRequests?: boolean | Prisma.Branch$registrationRequestsArgs<ExtArgs>
+  registrationInfos?: boolean | Prisma.Branch$registrationInfosArgs<ExtArgs>
   jobApplications?: boolean | Prisma.Branch$jobApplicationsArgs<ExtArgs>
   targetStudentLinks?: boolean | Prisma.Branch$targetStudentLinksArgs<ExtArgs>
   sourceStudentLinks?: boolean | Prisma.Branch$sourceStudentLinksArgs<ExtArgs>
@@ -13803,6 +14278,7 @@ export type BranchInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   partnaires?: boolean | Prisma.Branch$partnairesArgs<ExtArgs>
   organizationSupportBranchScopes?: boolean | Prisma.Branch$organizationSupportBranchScopesArgs<ExtArgs>
   registrationRequests?: boolean | Prisma.Branch$registrationRequestsArgs<ExtArgs>
+  registrationInfos?: boolean | Prisma.Branch$registrationInfosArgs<ExtArgs>
   jobApplications?: boolean | Prisma.Branch$jobApplicationsArgs<ExtArgs>
   targetStudentLinks?: boolean | Prisma.Branch$targetStudentLinksArgs<ExtArgs>
   sourceStudentLinks?: boolean | Prisma.Branch$sourceStudentLinksArgs<ExtArgs>
@@ -13858,6 +14334,7 @@ export type $BranchPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     partnaires: Prisma.$PartnairePayload<ExtArgs>[]
     organizationSupportBranchScopes: Prisma.$OrganizationSupportBranchScopePayload<ExtArgs>[]
     registrationRequests: Prisma.$RegistrationRequestPayload<ExtArgs>[]
+    registrationInfos: Prisma.$BranchRegistrationInfoPayload<ExtArgs>[]
     jobApplications: Prisma.$JobApplicationPayload<ExtArgs>[]
     targetStudentLinks: Prisma.$StudentBranchLinkPayload<ExtArgs>[]
     sourceStudentLinks: Prisma.$StudentBranchLinkPayload<ExtArgs>[]
@@ -14316,6 +14793,7 @@ export interface Prisma__BranchClient<T, Null = never, ExtArgs extends runtime.T
   partnaires<T extends Prisma.Branch$partnairesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Branch$partnairesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PartnairePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   organizationSupportBranchScopes<T extends Prisma.Branch$organizationSupportBranchScopesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Branch$organizationSupportBranchScopesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OrganizationSupportBranchScopePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   registrationRequests<T extends Prisma.Branch$registrationRequestsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Branch$registrationRequestsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RegistrationRequestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  registrationInfos<T extends Prisma.Branch$registrationInfosArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Branch$registrationInfosArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$BranchRegistrationInfoPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   jobApplications<T extends Prisma.Branch$jobApplicationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Branch$jobApplicationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$JobApplicationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   targetStudentLinks<T extends Prisma.Branch$targetStudentLinksArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Branch$targetStudentLinksArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$StudentBranchLinkPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   sourceStudentLinks<T extends Prisma.Branch$sourceStudentLinksArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Branch$sourceStudentLinksArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$StudentBranchLinkPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -15678,6 +16156,30 @@ export type Branch$registrationRequestsArgs<ExtArgs extends runtime.Types.Extens
   take?: number
   skip?: number
   distinct?: Prisma.RegistrationRequestScalarFieldEnum | Prisma.RegistrationRequestScalarFieldEnum[]
+}
+
+/**
+ * Branch.registrationInfos
+ */
+export type Branch$registrationInfosArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the BranchRegistrationInfo
+   */
+  select?: Prisma.BranchRegistrationInfoSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the BranchRegistrationInfo
+   */
+  omit?: Prisma.BranchRegistrationInfoOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.BranchRegistrationInfoInclude<ExtArgs> | null
+  where?: Prisma.BranchRegistrationInfoWhereInput
+  orderBy?: Prisma.BranchRegistrationInfoOrderByWithRelationInput | Prisma.BranchRegistrationInfoOrderByWithRelationInput[]
+  cursor?: Prisma.BranchRegistrationInfoWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.BranchRegistrationInfoScalarFieldEnum | Prisma.BranchRegistrationInfoScalarFieldEnum[]
 }
 
 /**

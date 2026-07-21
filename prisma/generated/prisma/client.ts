@@ -282,6 +282,11 @@ export type Invitation = Prisma.InvitationModel
  */
 export type Branch = Prisma.BranchModel
 /**
+ * Model BranchRegistrationInfo
+ * Infos publiques d'inscription en ligne (conditions, frais, programme rentrée), par école / année.
+ */
+export type BranchRegistrationInfo = Prisma.BranchRegistrationInfoModel
+/**
  * Model RegistrationRequest
  * 
  */

@@ -371,6 +371,7 @@ model SchoolYear {
   parentFeedback    ParentFeedback[]
   attendanceSession AttendanceSession[]
   issuedDocuments   IssuedDocument[]
+  registrationInfos BranchRegistrationInfo[]
   branchId             String
   branch               Branch             @relation(fields: [branchId], references: [id], onDelete: Cascade)
   @@index([branchId, startYear, endYear])
@@ -1159,6 +1160,7 @@ model Branch {
   partnaires Partnaire[]
   organizationSupportBranchScopes OrganizationSupportBranchScope[]
   registrationRequests RegistrationRequest[]
+  registrationInfos    BranchRegistrationInfo[]
   jobApplications      JobApplication[]
   targetStudentLinks   StudentBranchLink[] @relation("TargetBranchLinks")
   sourceStudentLinks   StudentBranchLink[] @relation("SourceBranchLinks")
@@ -1169,6 +1171,38 @@ model Branch {
   @@index([organizationId, typebranch])
   @@index([code])
   @@unique([organizationId, code])
+}
+
+/// Infos publiques d'inscription en ligne (conditions, frais, programme rentrée), par école / année.
+model BranchRegistrationInfo {
+  id           String  @id @default(cuid())
+  branchId     String
+  schoolYearId String?
+  isPublished  Boolean @default(false)
+
+  termsTitle   String @default("Conditions d'inscription")
+  termsContent String @db.Text
+
+  registrationFeeRequired Boolean  @default(true)
+  registrationFeeAmount   Decimal? @db.Decimal(12, 2)
+  registrationFeeCurrency String   @default("CDF")
+  registrationFeeLabel    String?
+  registrationFeeDueNote  String?
+  registrationFeeTypeId   String?
+
+  /// [{ "date": "2026-09-01", "title": "...", "description": "..." }, ...]
+  rentreeProgram Json?
+
+  publishedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  branch     Branch      @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  schoolYear SchoolYear? @relation(fields: [schoolYearId], references: [id], onDelete: SetNull)
+
+  @@unique([branchId, schoolYearId])
+  @@index([branchId, isPublished])
+  @@index([schoolYearId])
 }
 
 model RegistrationRequest {
@@ -1185,6 +1219,8 @@ model RegistrationRequest {
   requestedOption    String?
   photoUrl           String?
   consentAccepted    Boolean                   @default(false)
+  termsAcceptedAt    DateTime?
+  termsInfoId        String?
   confirmedById      String?
   confirmedAt        DateTime?
   registeredById     String?

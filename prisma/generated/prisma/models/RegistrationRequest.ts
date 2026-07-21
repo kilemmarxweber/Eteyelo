@@ -36,6 +36,8 @@ export type RegistrationRequestMinAggregateOutputType = {
   requestedOption: string | null
   photoUrl: string | null
   consentAccepted: boolean | null
+  termsAcceptedAt: Date | null
+  termsInfoId: string | null
   confirmedById: string | null
   confirmedAt: Date | null
   registeredById: string | null
@@ -58,6 +60,8 @@ export type RegistrationRequestMaxAggregateOutputType = {
   requestedOption: string | null
   photoUrl: string | null
   consentAccepted: boolean | null
+  termsAcceptedAt: Date | null
+  termsInfoId: string | null
   confirmedById: string | null
   confirmedAt: Date | null
   registeredById: string | null
@@ -82,6 +86,8 @@ export type RegistrationRequestCountAggregateOutputType = {
   requestedOption: number
   photoUrl: number
   consentAccepted: number
+  termsAcceptedAt: number
+  termsInfoId: number
   confirmedById: number
   confirmedAt: number
   registeredById: number
@@ -106,6 +112,8 @@ export type RegistrationRequestMinAggregateInputType = {
   requestedOption?: true
   photoUrl?: true
   consentAccepted?: true
+  termsAcceptedAt?: true
+  termsInfoId?: true
   confirmedById?: true
   confirmedAt?: true
   registeredById?: true
@@ -128,6 +136,8 @@ export type RegistrationRequestMaxAggregateInputType = {
   requestedOption?: true
   photoUrl?: true
   consentAccepted?: true
+  termsAcceptedAt?: true
+  termsInfoId?: true
   confirmedById?: true
   confirmedAt?: true
   registeredById?: true
@@ -152,6 +162,8 @@ export type RegistrationRequestCountAggregateInputType = {
   requestedOption?: true
   photoUrl?: true
   consentAccepted?: true
+  termsAcceptedAt?: true
+  termsInfoId?: true
   confirmedById?: true
   confirmedAt?: true
   registeredById?: true
@@ -249,6 +261,8 @@ export type RegistrationRequestGroupByOutputType = {
   requestedOption: string | null
   photoUrl: string | null
   consentAccepted: boolean
+  termsAcceptedAt: Date | null
+  termsInfoId: string | null
   confirmedById: string | null
   confirmedAt: Date | null
   registeredById: string | null
@@ -294,6 +308,8 @@ export type RegistrationRequestWhereInput = {
   requestedOption?: Prisma.StringNullableFilter<"RegistrationRequest"> | string | null
   photoUrl?: Prisma.StringNullableFilter<"RegistrationRequest"> | string | null
   consentAccepted?: Prisma.BoolFilter<"RegistrationRequest"> | boolean
+  termsAcceptedAt?: Prisma.DateTimeNullableFilter<"RegistrationRequest"> | Date | string | null
+  termsInfoId?: Prisma.StringNullableFilter<"RegistrationRequest"> | string | null
   confirmedById?: Prisma.StringNullableFilter<"RegistrationRequest"> | string | null
   confirmedAt?: Prisma.DateTimeNullableFilter<"RegistrationRequest"> | Date | string | null
   registeredById?: Prisma.StringNullableFilter<"RegistrationRequest"> | string | null
@@ -319,6 +335,8 @@ export type RegistrationRequestOrderByWithRelationInput = {
   requestedOption?: Prisma.SortOrderInput | Prisma.SortOrder
   photoUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   consentAccepted?: Prisma.SortOrder
+  termsAcceptedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  termsInfoId?: Prisma.SortOrderInput | Prisma.SortOrder
   confirmedById?: Prisma.SortOrderInput | Prisma.SortOrder
   confirmedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   registeredById?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -347,6 +365,8 @@ export type RegistrationRequestWhereUniqueInput = Prisma.AtLeast<{
   requestedOption?: Prisma.StringNullableFilter<"RegistrationRequest"> | string | null
   photoUrl?: Prisma.StringNullableFilter<"RegistrationRequest"> | string | null
   consentAccepted?: Prisma.BoolFilter<"RegistrationRequest"> | boolean
+  termsAcceptedAt?: Prisma.DateTimeNullableFilter<"RegistrationRequest"> | Date | string | null
+  termsInfoId?: Prisma.StringNullableFilter<"RegistrationRequest"> | string | null
   confirmedById?: Prisma.StringNullableFilter<"RegistrationRequest"> | string | null
   confirmedAt?: Prisma.DateTimeNullableFilter<"RegistrationRequest"> | Date | string | null
   registeredById?: Prisma.StringNullableFilter<"RegistrationRequest"> | string | null
@@ -372,6 +392,8 @@ export type RegistrationRequestOrderByWithAggregationInput = {
   requestedOption?: Prisma.SortOrderInput | Prisma.SortOrder
   photoUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   consentAccepted?: Prisma.SortOrder
+  termsAcceptedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  termsInfoId?: Prisma.SortOrderInput | Prisma.SortOrder
   confirmedById?: Prisma.SortOrderInput | Prisma.SortOrder
   confirmedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   registeredById?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -402,6 +424,8 @@ export type RegistrationRequestScalarWhereWithAggregatesInput = {
   requestedOption?: Prisma.StringNullableWithAggregatesFilter<"RegistrationRequest"> | string | null
   photoUrl?: Prisma.StringNullableWithAggregatesFilter<"RegistrationRequest"> | string | null
   consentAccepted?: Prisma.BoolWithAggregatesFilter<"RegistrationRequest"> | boolean
+  termsAcceptedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"RegistrationRequest"> | Date | string | null
+  termsInfoId?: Prisma.StringNullableWithAggregatesFilter<"RegistrationRequest"> | string | null
   confirmedById?: Prisma.StringNullableWithAggregatesFilter<"RegistrationRequest"> | string | null
   confirmedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"RegistrationRequest"> | Date | string | null
   registeredById?: Prisma.StringNullableWithAggregatesFilter<"RegistrationRequest"> | string | null
@@ -425,6 +449,8 @@ export type RegistrationRequestCreateInput = {
   requestedOption?: string | null
   photoUrl?: string | null
   consentAccepted?: boolean
+  termsAcceptedAt?: Date | string | null
+  termsInfoId?: string | null
   confirmedById?: string | null
   confirmedAt?: Date | string | null
   registeredById?: string | null
@@ -450,6 +476,8 @@ export type RegistrationRequestUncheckedCreateInput = {
   requestedOption?: string | null
   photoUrl?: string | null
   consentAccepted?: boolean
+  termsAcceptedAt?: Date | string | null
+  termsInfoId?: string | null
   confirmedById?: string | null
   confirmedAt?: Date | string | null
   registeredById?: string | null
@@ -473,6 +501,8 @@ export type RegistrationRequestUpdateInput = {
   requestedOption?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   photoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   consentAccepted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  termsAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  termsInfoId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   confirmedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   confirmedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   registeredById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -498,6 +528,8 @@ export type RegistrationRequestUncheckedUpdateInput = {
   requestedOption?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   photoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   consentAccepted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  termsAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  termsInfoId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   confirmedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   confirmedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   registeredById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -522,6 +554,8 @@ export type RegistrationRequestCreateManyInput = {
   requestedOption?: string | null
   photoUrl?: string | null
   consentAccepted?: boolean
+  termsAcceptedAt?: Date | string | null
+  termsInfoId?: string | null
   confirmedById?: string | null
   confirmedAt?: Date | string | null
   registeredById?: string | null
@@ -545,6 +579,8 @@ export type RegistrationRequestUpdateManyMutationInput = {
   requestedOption?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   photoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   consentAccepted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  termsAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  termsInfoId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   confirmedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   confirmedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   registeredById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -569,6 +605,8 @@ export type RegistrationRequestUncheckedUpdateManyInput = {
   requestedOption?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   photoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   consentAccepted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  termsAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  termsInfoId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   confirmedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   confirmedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   registeredById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -603,6 +641,8 @@ export type RegistrationRequestCountOrderByAggregateInput = {
   requestedOption?: Prisma.SortOrder
   photoUrl?: Prisma.SortOrder
   consentAccepted?: Prisma.SortOrder
+  termsAcceptedAt?: Prisma.SortOrder
+  termsInfoId?: Prisma.SortOrder
   confirmedById?: Prisma.SortOrder
   confirmedAt?: Prisma.SortOrder
   registeredById?: Prisma.SortOrder
@@ -625,6 +665,8 @@ export type RegistrationRequestMaxOrderByAggregateInput = {
   requestedOption?: Prisma.SortOrder
   photoUrl?: Prisma.SortOrder
   consentAccepted?: Prisma.SortOrder
+  termsAcceptedAt?: Prisma.SortOrder
+  termsInfoId?: Prisma.SortOrder
   confirmedById?: Prisma.SortOrder
   confirmedAt?: Prisma.SortOrder
   registeredById?: Prisma.SortOrder
@@ -647,6 +689,8 @@ export type RegistrationRequestMinOrderByAggregateInput = {
   requestedOption?: Prisma.SortOrder
   photoUrl?: Prisma.SortOrder
   consentAccepted?: Prisma.SortOrder
+  termsAcceptedAt?: Prisma.SortOrder
+  termsInfoId?: Prisma.SortOrder
   confirmedById?: Prisma.SortOrder
   confirmedAt?: Prisma.SortOrder
   registeredById?: Prisma.SortOrder
@@ -716,6 +760,8 @@ export type RegistrationRequestCreateWithoutBranchInput = {
   requestedOption?: string | null
   photoUrl?: string | null
   consentAccepted?: boolean
+  termsAcceptedAt?: Date | string | null
+  termsInfoId?: string | null
   confirmedById?: string | null
   confirmedAt?: Date | string | null
   registeredById?: string | null
@@ -739,6 +785,8 @@ export type RegistrationRequestUncheckedCreateWithoutBranchInput = {
   requestedOption?: string | null
   photoUrl?: string | null
   consentAccepted?: boolean
+  termsAcceptedAt?: Date | string | null
+  termsInfoId?: string | null
   confirmedById?: string | null
   confirmedAt?: Date | string | null
   registeredById?: string | null
@@ -792,6 +840,8 @@ export type RegistrationRequestScalarWhereInput = {
   requestedOption?: Prisma.StringNullableFilter<"RegistrationRequest"> | string | null
   photoUrl?: Prisma.StringNullableFilter<"RegistrationRequest"> | string | null
   consentAccepted?: Prisma.BoolFilter<"RegistrationRequest"> | boolean
+  termsAcceptedAt?: Prisma.DateTimeNullableFilter<"RegistrationRequest"> | Date | string | null
+  termsInfoId?: Prisma.StringNullableFilter<"RegistrationRequest"> | string | null
   confirmedById?: Prisma.StringNullableFilter<"RegistrationRequest"> | string | null
   confirmedAt?: Prisma.DateTimeNullableFilter<"RegistrationRequest"> | Date | string | null
   registeredById?: Prisma.StringNullableFilter<"RegistrationRequest"> | string | null
@@ -815,6 +865,8 @@ export type RegistrationRequestCreateManyBranchInput = {
   requestedOption?: string | null
   photoUrl?: string | null
   consentAccepted?: boolean
+  termsAcceptedAt?: Date | string | null
+  termsInfoId?: string | null
   confirmedById?: string | null
   confirmedAt?: Date | string | null
   registeredById?: string | null
@@ -838,6 +890,8 @@ export type RegistrationRequestUpdateWithoutBranchInput = {
   requestedOption?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   photoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   consentAccepted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  termsAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  termsInfoId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   confirmedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   confirmedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   registeredById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -861,6 +915,8 @@ export type RegistrationRequestUncheckedUpdateWithoutBranchInput = {
   requestedOption?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   photoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   consentAccepted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  termsAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  termsInfoId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   confirmedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   confirmedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   registeredById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -884,6 +940,8 @@ export type RegistrationRequestUncheckedUpdateManyWithoutBranchInput = {
   requestedOption?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   photoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   consentAccepted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  termsAcceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  termsInfoId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   confirmedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   confirmedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   registeredById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -910,6 +968,8 @@ export type RegistrationRequestSelect<ExtArgs extends runtime.Types.Extensions.I
   requestedOption?: boolean
   photoUrl?: boolean
   consentAccepted?: boolean
+  termsAcceptedAt?: boolean
+  termsInfoId?: boolean
   confirmedById?: boolean
   confirmedAt?: boolean
   registeredById?: boolean
@@ -935,6 +995,8 @@ export type RegistrationRequestSelectCreateManyAndReturn<ExtArgs extends runtime
   requestedOption?: boolean
   photoUrl?: boolean
   consentAccepted?: boolean
+  termsAcceptedAt?: boolean
+  termsInfoId?: boolean
   confirmedById?: boolean
   confirmedAt?: boolean
   registeredById?: boolean
@@ -960,6 +1022,8 @@ export type RegistrationRequestSelectUpdateManyAndReturn<ExtArgs extends runtime
   requestedOption?: boolean
   photoUrl?: boolean
   consentAccepted?: boolean
+  termsAcceptedAt?: boolean
+  termsInfoId?: boolean
   confirmedById?: boolean
   confirmedAt?: boolean
   registeredById?: boolean
@@ -985,6 +1049,8 @@ export type RegistrationRequestSelectScalar = {
   requestedOption?: boolean
   photoUrl?: boolean
   consentAccepted?: boolean
+  termsAcceptedAt?: boolean
+  termsInfoId?: boolean
   confirmedById?: boolean
   confirmedAt?: boolean
   registeredById?: boolean
@@ -995,7 +1061,7 @@ export type RegistrationRequestSelectScalar = {
   updatedAt?: boolean
 }
 
-export type RegistrationRequestOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "reference" | "branchId" | "organizationId" | "schoolYearId" | "status" | "studentData" | "guardiansData" | "requestedLevel" | "requestedSection" | "requestedOption" | "photoUrl" | "consentAccepted" | "confirmedById" | "confirmedAt" | "registeredById" | "registeredAt" | "studentId" | "rejectedReason" | "createdAt" | "updatedAt", ExtArgs["result"]["registrationRequest"]>
+export type RegistrationRequestOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "reference" | "branchId" | "organizationId" | "schoolYearId" | "status" | "studentData" | "guardiansData" | "requestedLevel" | "requestedSection" | "requestedOption" | "photoUrl" | "consentAccepted" | "termsAcceptedAt" | "termsInfoId" | "confirmedById" | "confirmedAt" | "registeredById" | "registeredAt" | "studentId" | "rejectedReason" | "createdAt" | "updatedAt", ExtArgs["result"]["registrationRequest"]>
 export type RegistrationRequestInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
 }
@@ -1025,6 +1091,8 @@ export type $RegistrationRequestPayload<ExtArgs extends runtime.Types.Extensions
     requestedOption: string | null
     photoUrl: string | null
     consentAccepted: boolean
+    termsAcceptedAt: Date | null
+    termsInfoId: string | null
     confirmedById: string | null
     confirmedAt: Date | null
     registeredById: string | null
@@ -1470,6 +1538,8 @@ export interface RegistrationRequestFieldRefs {
   readonly requestedOption: Prisma.FieldRef<"RegistrationRequest", 'String'>
   readonly photoUrl: Prisma.FieldRef<"RegistrationRequest", 'String'>
   readonly consentAccepted: Prisma.FieldRef<"RegistrationRequest", 'Boolean'>
+  readonly termsAcceptedAt: Prisma.FieldRef<"RegistrationRequest", 'DateTime'>
+  readonly termsInfoId: Prisma.FieldRef<"RegistrationRequest", 'String'>
   readonly confirmedById: Prisma.FieldRef<"RegistrationRequest", 'String'>
   readonly confirmedAt: Prisma.FieldRef<"RegistrationRequest", 'DateTime'>
   readonly registeredById: Prisma.FieldRef<"RegistrationRequest", 'String'>

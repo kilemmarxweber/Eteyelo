@@ -5,12 +5,15 @@ import Image from "next/image";
 import { useAppTransition as useTransition } from "@/hooks/use-app-transition";
 import {
   Camera,
+  CalendarDays,
   Check,
   ChevronLeft,
   ChevronRight,
+  FileText,
   ImagePlus,
   Send,
   UserPlus,
+  Wallet,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -31,7 +34,13 @@ import {
 } from "@/components/ui/select";
 import { uploadFile } from "@/lib/upload-file";
 import { generateSlug } from "@/lib/generated-identifiers";
-import { registerStudentOnline } from "./insption.actions";
+import { registerStudentOnline, getPublishedBranchRegistrationInfo } from "./insption.actions";
+import { SchoolRegistrationPanel } from "./school-registration-panel";
+import {
+  formatRegistrationFee,
+  type PublicBranchRegistrationInfo,
+  type RentreeProgramItem,
+} from "@/lib/registration-public-info";
 import { LevelSectionOptionFields } from "@/components/level-section-option-fields";
 import type { ManagedBranchType } from "@/lib/academic-structure";
 import { isPrimaryBranch } from "@/lib/class-structure";
@@ -48,7 +57,8 @@ type Guardian = {
   name: string;
   postnom: string;
   prenom: string;
-  relationship: string;
+  relationshipPreset: string;
+  relationshipOther: string;
   sexe: "masculin" | "feminin";
   telephone: string;
   email: string;
@@ -59,17 +69,64 @@ type Guardian = {
 const STUDENT_EMAIL_DOMAIN = "klambocore.com";
 const PRIMARY_MIN_AGE = 5;
 
+const RELATIONSHIP_OPTIONS = [
+  { value: "pere", label: "Pere" },
+  { value: "mere", label: "Mere" },
+  { value: "tuteur", label: "Tuteur" },
+  { value: "tutrice", label: "Tutrice" },
+  { value: "oncle", label: "Oncle" },
+  { value: "tante", label: "Tante" },
+  { value: "grand-pere", label: "Grand-pere" },
+  { value: "grand-mere", label: "Grand-mere" },
+  { value: "frere", label: "Frere" },
+  { value: "soeur", label: "Soeur" },
+  { value: "autre", label: "Autre" },
+] as const;
+
 const emptyGuardian = (isPrimary: boolean): Guardian => ({
   name: "",
   postnom: "",
   prenom: "",
-  relationship: "",
+  relationshipPreset: "",
+  relationshipOther: "",
   sexe: "masculin",
   telephone: "+243",
   email: "",
   address: "",
   isPrimary,
 });
+
+function resolveRelationship(guardian: Guardian) {
+  if (guardian.relationshipPreset === "autre") {
+    return guardian.relationshipOther.trim();
+  }
+  return (
+    RELATIONSHIP_OPTIONS.find(
+      (option) => option.value === guardian.relationshipPreset,
+    )?.label ?? ""
+  );
+}
+
+function getPlannedRentree(program: RentreeProgramItem[]) {
+  if (!program.length) return null;
+  const sorted = [...program].sort((a, b) => a.date.localeCompare(b.date));
+  const preferred =
+    sorted.find((item) =>
+      /rentr[eé]e|reprise|ouverture/i.test(`${item.title} ${item.description ?? ""}`),
+    ) ?? sorted[0];
+  return preferred;
+}
+
+function formatRentreeDate(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return new Intl.DateTimeFormat("fr-FR", {
+    weekday: "long",
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  }).format(date);
+}
 
 function previewStudentEmail(prenom: string, name: string) {
   return `${generateSlug(`${prenom}.${name}`, "eleve")}@${STUDENT_EMAIL_DOMAIN}`;
@@ -100,6 +157,9 @@ export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
   const [photo, setPhoto] = useState<File | null>(null);
   const [secondGuardian, setSecondGuardian] = useState(false);
   const [cameraOpen, setCameraOpen] = useState(false);
+  const [schoolInfo, setSchoolInfo] =
+    useState<PublicBranchRegistrationInfo | null>(null);
+  const [schoolInfoLoading, setSchoolInfoLoading] = useState(false);
   const [form, setForm] = useState({
     branchId: "",
     name: "",
@@ -129,6 +189,33 @@ export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
     },
     [preview],
   );
+
+  useEffect(() => {
+    if (!form.branchId) {
+      setSchoolInfo(null);
+      return;
+    }
+
+    let ignore = false;
+    setSchoolInfoLoading(true);
+
+    getPublishedBranchRegistrationInfo(form.branchId)
+      .then((info) => {
+        if (ignore) return;
+        setSchoolInfo(info);
+      })
+      .catch(() => {
+        if (ignore) return;
+        setSchoolInfo(null);
+      })
+      .finally(() => {
+        if (!ignore) setSchoolInfoLoading(false);
+      });
+
+    return () => {
+      ignore = true;
+    };
+  }, [form.branchId]);
 
   const selectedBranch = branches.find((b) => b.id === form.branchId);
   const branchType = (selectedBranch?.typebranch ??
@@ -196,11 +283,19 @@ export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
       (!primary.name ||
         !primary.postnom ||
         !primary.prenom ||
-        !primary.relationship ||
+        !primary.relationshipPreset ||
         !primary.telephone ||
         !primary.address)
     ) {
       toast.error("Completez le responsable principal.");
+      return false;
+    }
+    if (
+      step === 1 &&
+      primary.relationshipPreset === "autre" &&
+      !primary.relationshipOther.trim()
+    ) {
+      toast.error("Precisez le lien de parente (Autre).");
       return false;
     }
     if (step === 1 && secondGuardian) {
@@ -209,11 +304,18 @@ export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
         !second.name ||
         !second.postnom ||
         !second.prenom ||
-        !second.relationship ||
+        !second.relationshipPreset ||
         !second.telephone ||
         !second.address
       ) {
         toast.error("Completez le second responsable ou retirez-le.");
+        return false;
+      }
+      if (
+        second.relationshipPreset === "autre" &&
+        !second.relationshipOther.trim()
+      ) {
+        toast.error("Precisez le lien de parente du second responsable.");
         return false;
       }
     }
@@ -245,6 +347,19 @@ export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
         }
         photoUrl = uploaded.url;
       }
+      const guardiansPayload = (secondGuardian ? guardians : [guardians[0]]).map(
+        (guardian) => ({
+          name: guardian.name,
+          postnom: guardian.postnom,
+          prenom: guardian.prenom,
+          relationship: resolveRelationship(guardian),
+          sexe: guardian.sexe,
+          telephone: guardian.telephone,
+          email: guardian.email,
+          address: guardian.address,
+          isPrimary: guardian.isPrimary,
+        }),
+      );
       const result = await registerStudentOnline({
         branchId: form.branchId,
         student: {
@@ -258,12 +373,13 @@ export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
           email: generatedStudentEmail,
           provenanceEcole: form.provenanceEcole,
         },
-        guardians: secondGuardian ? guardians : [guardians[0]],
+        guardians: guardiansPayload,
         requestedLevel: form.requestedLevel,
         requestedSection: form.requestedSection,
         requestedOption: form.requestedOption,
         photoUrl,
         consentAccepted: true,
+        termsInfoId: schoolInfo?.id ?? null,
       });
       if (!result.success) {
         toast.error(result.message);
@@ -274,32 +390,104 @@ export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
     });
   }
 
-  if (reference)
+  if (reference) {
+    const feeLabel = schoolInfo
+      ? formatRegistrationFee(
+          schoolInfo.registrationFeeAmount,
+          schoolInfo.registrationFeeCurrency,
+        )
+      : null;
+    const plannedRentree = schoolInfo
+      ? getPlannedRentree(schoolInfo.rentreeProgram)
+      : null;
+
     return (
       <div className="min-h-screen bg-background">
         <HomeNavbar />
-        <main className="mx-auto max-w-7xl px-4 py-20">
-          <Card className="border-border text-center shadow-sm">
-            <CardContent className="space-y-5 p-10">
-              <span className="mx-auto flex size-16 items-center justify-center rounded-full bg-primary/10 text-primary">
+        <main className="mx-auto flex max-w-7xl justify-center px-4 py-16 md:py-20">
+          <Card className="w-full border-border shadow-sm">
+            <CardContent className="flex flex-col items-center space-y-6 p-8 text-center md:p-10">
+              <span className="flex size-16 items-center justify-center rounded-full bg-primary/10 text-primary">
                 <Check className="size-8" />
               </span>
-              <h1 className="text-2xl font-bold text-foreground">
-                Demande envoyee
-              </h1>
-              <p className="text-muted-foreground">Conservez cette reference :</p>
-              <p className="rounded-xl border border-primary/20 bg-primary/5 p-4 font-mono text-xl font-bold text-primary">
-                {reference}
-              </p>
-              <p className="text-sm text-muted-foreground">
-                L&apos;ecole doit confirmer la demande avant l&apos;inscription
-                definitive.
-              </p>
+              <div className="w-full space-y-2">
+                <h1 className="text-2xl font-bold text-foreground">
+                  Demande envoyee
+                </h1>
+                <p className="text-muted-foreground">
+                  Conservez cette reference :
+                </p>
+                <p className="rounded-xl border border-primary/20 bg-primary/5 p-4 font-mono text-xl font-bold text-primary">
+                  {reference}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  L&apos;ecole doit confirmer la demande avant l&apos;inscription
+                  definitive.
+                </p>
+              </div>
+
+              {schoolInfo ? (
+                <div className="flex w-full flex-col items-center space-y-3">
+                  {schoolInfo.registrationFeeRequired ? (
+                    <div className="w-full rounded-xl border border-primary/30 bg-primary/5 p-4 text-center">
+                      <div className="mb-2 flex items-center justify-center gap-2 text-sm font-semibold text-foreground">
+                        <Wallet className="size-4 shrink-0 text-primary" />
+                        <span>
+                          {schoolInfo.registrationFeeLabel ||
+                            "Frais d'inscription"}
+                          {feeLabel ? ` — ${feeLabel}` : ""}
+                        </span>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        {schoolInfo.registrationFeeDueNote ||
+                          "A regler aupres de la caisse de l'etablissement avant la confirmation."}
+                      </p>
+                    </div>
+                  ) : null}
+
+                  {plannedRentree ? (
+                    <div className="w-full rounded-xl border p-4 text-center">
+                      <div className="mb-2 flex items-center justify-center gap-2 text-sm font-semibold text-foreground">
+                        <CalendarDays className="size-4 shrink-0 text-primary" />
+                        Date de rentree prevue
+                      </div>
+                      <p className="text-sm font-medium text-foreground">
+                        {formatRentreeDate(plannedRentree.date)}
+                      </p>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        {plannedRentree.title}
+                        {plannedRentree.description
+                          ? ` · ${plannedRentree.description}`
+                          : ""}
+                      </p>
+                    </div>
+                  ) : null}
+
+                  <div className="w-full rounded-xl border bg-muted/20 p-4 text-center">
+                    <div className="mb-2 flex items-center justify-center gap-2 text-sm font-medium">
+                      <FileText className="size-4 shrink-0 text-primary" />
+                      {schoolInfo.termsTitle || "Conditions a retenir"}
+                    </div>
+                    <p className="whitespace-pre-wrap text-sm leading-6 text-muted-foreground">
+                      {schoolInfo.termsContent}
+                    </p>
+                    {schoolInfo.branchName ? (
+                      <p className="mt-3 text-xs text-muted-foreground">
+                        {schoolInfo.branchName}
+                        {schoolInfo.schoolYearName
+                          ? ` · ${schoolInfo.schoolYearName}`
+                          : ""}
+                      </p>
+                    ) : null}
+                  </div>
+                </div>
+              ) : null}
             </CardContent>
           </Card>
         </main>
       </div>
     );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -324,8 +512,9 @@ export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
         </div>
       </section>
 
-      <main className="mx-auto max-w-4xl px-4 py-8 md:py-10">
-        <Card className="border-border shadow-sm">
+      <main className="mx-auto max-w-7xl px-4 py-8 md:py-10">
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1.4fr)_minmax(280px,0.8fr)] lg:items-start">
+          <Card className="border-border shadow-sm">
           <CardHeader className="space-y-1 pb-4">
             <CardTitle className="text-lg text-foreground">
               Formulaire d&apos;inscription
@@ -354,6 +543,14 @@ export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
                     </SelectContent>
                   </Select>
                 </Field>
+                {form.branchId ? (
+                  <div className="md:col-span-2 lg:hidden">
+                    <SchoolRegistrationPanel
+                      info={schoolInfo}
+                      loading={schoolInfoLoading}
+                    />
+                  </div>
+                ) : null}
                 <Text
                   label="Nom *"
                   value={form.name}
@@ -435,7 +632,6 @@ export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
                             "name",
                             "postnom",
                             "prenom",
-                            "relationship",
                             "telephone",
                             "email",
                             "address",
@@ -448,7 +644,6 @@ export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
                                 name: "Nom *",
                                 postnom: "Postnom *",
                                 prenom: "Prenom *",
-                                relationship: "Lien de parente *",
                                 telephone: "Telephone *",
                                 email: "Email",
                                 address: "Adresse *",
@@ -458,6 +653,37 @@ export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
                             onChange={(v) => updateGuardian(index, key, v)}
                           />
                         ))}
+                        <Field label="Lien de parente *">
+                          <Select
+                            value={guardian.relationshipPreset}
+                            onValueChange={(value) =>
+                              updateGuardian(index, "relationshipPreset", value)
+                            }
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Choisir" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {RELATIONSHIP_OPTIONS.map((option) => (
+                                <SelectItem
+                                  key={option.value}
+                                  value={option.value}
+                                >
+                                  {option.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </Field>
+                        {guardian.relationshipPreset === "autre" ? (
+                          <Text
+                            label="Preciser le lien *"
+                            value={guardian.relationshipOther}
+                            onChange={(v) =>
+                              updateGuardian(index, "relationshipOther", v)
+                            }
+                          />
+                        ) : null}
                         <Field label="Sexe *">
                           <Select
                             value={guardian.sexe}
@@ -593,8 +819,12 @@ export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
                     }
                   />
                   <span>
-                    J'accepte le traitement de ces donnees pour la demande
-                    d'inscription.
+                    J&apos;accepte le traitement de ces donnees pour la demande
+                    d&apos;inscription
+                    {selectedBranch ? ` a ${selectedBranch.name}` : ""}.
+                    {schoolInfo
+                      ? " J'ai pris connaissance des conditions d'inscription de l'ecole."
+                      : ""}
                   </span>
                 </Label>
               </div>
@@ -630,6 +860,26 @@ export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
             </div>
           </CardContent>
         </Card>
+
+          <aside className="hidden lg:block">
+            <div className="sticky top-6 space-y-3">
+              <p className="text-sm font-medium text-foreground">
+                Infos de l&apos;ecole
+              </p>
+              {form.branchId ? (
+                <SchoolRegistrationPanel
+                  info={schoolInfo}
+                  loading={schoolInfoLoading}
+                />
+              ) : (
+                <div className="rounded-2xl border border-dashed p-4 text-sm text-muted-foreground">
+                  Selectionnez une ecole pour voir les conditions, les frais
+                  d&apos;inscription et le programme de rentree.
+                </div>
+              )}
+            </div>
+          </aside>
+        </div>
       </main>
       <CameraCaptureDialog
         open={cameraOpen}

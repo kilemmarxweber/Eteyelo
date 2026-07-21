@@ -99,6 +99,7 @@ export const ModelName = {
   Member: 'Member',
   Invitation: 'Invitation',
   Branch: 'Branch',
+  BranchRegistrationInfo: 'BranchRegistrationInfo',
   RegistrationRequest: 'RegistrationRequest',
   JobApplication: 'JobApplication',
   Partnaire: 'Partnaire',
@@ -862,6 +863,28 @@ export const BranchScalarFieldEnum = {
 export type BranchScalarFieldEnum = (typeof BranchScalarFieldEnum)[keyof typeof BranchScalarFieldEnum]
 
 
+export const BranchRegistrationInfoScalarFieldEnum = {
+  id: 'id',
+  branchId: 'branchId',
+  schoolYearId: 'schoolYearId',
+  isPublished: 'isPublished',
+  termsTitle: 'termsTitle',
+  termsContent: 'termsContent',
+  registrationFeeRequired: 'registrationFeeRequired',
+  registrationFeeAmount: 'registrationFeeAmount',
+  registrationFeeCurrency: 'registrationFeeCurrency',
+  registrationFeeLabel: 'registrationFeeLabel',
+  registrationFeeDueNote: 'registrationFeeDueNote',
+  registrationFeeTypeId: 'registrationFeeTypeId',
+  rentreeProgram: 'rentreeProgram',
+  publishedAt: 'publishedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type BranchRegistrationInfoScalarFieldEnum = (typeof BranchRegistrationInfoScalarFieldEnum)[keyof typeof BranchRegistrationInfoScalarFieldEnum]
+
+
 export const RegistrationRequestScalarFieldEnum = {
   id: 'id',
   reference: 'reference',
@@ -876,6 +899,8 @@ export const RegistrationRequestScalarFieldEnum = {
   requestedOption: 'requestedOption',
   photoUrl: 'photoUrl',
   consentAccepted: 'consentAccepted',
+  termsAcceptedAt: 'termsAcceptedAt',
+  termsInfoId: 'termsInfoId',
   confirmedById: 'confirmedById',
   confirmedAt: 'confirmedAt',
   registeredById: 'registeredById',

@@ -2,9 +2,9 @@
 
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { Prisma } from "@/prisma/generated/prisma/client";
 import { isPrimaryBranch } from "@/lib/class-structure";
 import { isAtelierBranch } from "@/lib/branch-capabilities";
+import { fetchPublishedBranchRegistrationInfo } from "@/lib/fetch-published-branch-registration-info";
 
 const PRIMARY_MIN_AGE = 5;
 
@@ -41,6 +41,7 @@ const onlineRegistrationSchema = z.object({
   consentAccepted: z.literal(true, {
     errorMap: () => ({ message: "Le consentement est obligatoire" }),
   }),
+  termsInfoId: z.string().optional().nullable(),
 });
 
 export type OnlineRegistrationInput = z.infer<typeof onlineRegistrationSchema>;
@@ -75,6 +76,9 @@ export async function getActiveBranches() {
   });
 }
 
+export async function getPublishedBranchRegistrationInfo(branchId: string) {
+  return fetchPublishedBranchRegistrationInfo(branchId);
+}
 function createReference() {
   const date = new Date();
   const stamp = `${date.getFullYear()}${String(date.getMonth() + 1).padStart(2, "0")}${String(date.getDate()).padStart(2, "0")}`;
@@ -127,18 +131,35 @@ export async function registerStudentOnline(raw: OnlineRegistrationInput) {
   }
 
   const reference = createReference();
-  await prisma.$executeRaw(Prisma.sql`
-    INSERT INTO "RegistrationRequest" (
-      "id", "reference", "branchId", "organizationId", "schoolYearId", "status",
-      "studentData", "guardiansData", "requestedLevel", "requestedSection",
-      "requestedOption", "photoUrl", "consentAccepted", "createdAt", "updatedAt"
-    ) VALUES (
-      ${crypto.randomUUID()}, ${reference}, ${branch.id}, ${branch.organizationId}, ${branch.schoolYear[0]?.id ?? null},
-      'PENDING'::"RegistrationRequestStatus", ${JSON.stringify(data.student)}::jsonb,
-      ${JSON.stringify(data.guardians)}::jsonb, ${data.requestedLevel}, ${data.requestedSection || null},
-      ${data.requestedOption || null}, ${data.photoUrl || null}, ${data.consentAccepted}, NOW(), NOW()
-    )
-  `);
+  const publishedInfo = data.termsInfoId
+    ? await prisma.branchRegistrationInfo.findFirst({
+        where: {
+          id: data.termsInfoId,
+          branchId: branch.id,
+          isPublished: true,
+        },
+        select: { id: true },
+      })
+    : null;
+
+  await prisma.registrationRequest.create({
+    data: {
+      reference,
+      branchId: branch.id,
+      organizationId: branch.organizationId,
+      schoolYearId: branch.schoolYear[0]?.id ?? null,
+      status: "PENDING",
+      studentData: data.student,
+      guardiansData: data.guardians,
+      requestedLevel: data.requestedLevel,
+      requestedSection: data.requestedSection || null,
+      requestedOption: data.requestedOption || null,
+      photoUrl: data.photoUrl || null,
+      consentAccepted: true,
+      termsAcceptedAt: publishedInfo ? new Date() : null,
+      termsInfoId: publishedInfo?.id ?? null,
+    },
+  });
 
   return {
     success: true as const,

@@ -35,7 +35,7 @@ const sections = [
   },
   {
     title: "Rapports et statistiques",
-    description: "Gerer les parents, tuteurs et responsables legaux.",
+    description: "Consulter les effectifs et indicateurs de l'organisation.",
     path: "rapport",
     icon: ChartBar,
   },

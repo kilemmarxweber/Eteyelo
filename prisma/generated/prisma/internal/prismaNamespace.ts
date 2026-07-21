@@ -432,6 +432,7 @@ export const ModelName = {
   Member: 'Member',
   Invitation: 'Invitation',
   Branch: 'Branch',
+  BranchRegistrationInfo: 'BranchRegistrationInfo',
   RegistrationRequest: 'RegistrationRequest',
   JobApplication: 'JobApplication',
   Partnaire: 'Partnaire',
@@ -458,7 +459,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "parent" | "student" | "attendanceSession" | "studentAttendance" | "teacherAttendance" | "personnelAttendance" | "parentFeedback" | "studentGrade" | "personnel" | "frais" | "typeFrais" | "classe" | "creneau" | "option" | "section" | "schoolYear" | "classEnrollment" | "teacher" | "teaching" | "cours" | "coursOptionPonderation" | "schedule" | "calendarEvent" | "eventType" | "semester" | "period" | "periodResultLock" | "fiche" | "invoice" | "paymentBatch" | "familyPayment" | "cashierExpense" | "cashierOpeningBalance" | "exchangeRate" | "paymentAllocation" | "mobileMoneyTransaction" | "paymentEvent" | "discountRule" | "transaction" | "session" | "account" | "verification" | "organization" | "organizationRole" | "member" | "invitation" | "branch" | "registrationRequest" | "jobApplication" | "partnaire" | "branchMember" | "studentBranchLink" | "issuedDocument" | "branchInvitation" | "platformSupportAgent" | "organizationSupportAgent" | "organizationSupportBranchScope" | "platformSupportEscalation"
+    modelProps: "user" | "parent" | "student" | "attendanceSession" | "studentAttendance" | "teacherAttendance" | "personnelAttendance" | "parentFeedback" | "studentGrade" | "personnel" | "frais" | "typeFrais" | "classe" | "creneau" | "option" | "section" | "schoolYear" | "classEnrollment" | "teacher" | "teaching" | "cours" | "coursOptionPonderation" | "schedule" | "calendarEvent" | "eventType" | "semester" | "period" | "periodResultLock" | "fiche" | "invoice" | "paymentBatch" | "familyPayment" | "cashierExpense" | "cashierOpeningBalance" | "exchangeRate" | "paymentAllocation" | "mobileMoneyTransaction" | "paymentEvent" | "discountRule" | "transaction" | "session" | "account" | "verification" | "organization" | "organizationRole" | "member" | "invitation" | "branch" | "branchRegistrationInfo" | "registrationRequest" | "jobApplication" | "partnaire" | "branchMember" | "studentBranchLink" | "issuedDocument" | "branchInvitation" | "platformSupportAgent" | "organizationSupportAgent" | "organizationSupportBranchScope" | "platformSupportEscalation"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -4014,6 +4015,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    BranchRegistrationInfo: {
+      payload: Prisma.$BranchRegistrationInfoPayload<ExtArgs>
+      fields: Prisma.BranchRegistrationInfoFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.BranchRegistrationInfoFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BranchRegistrationInfoPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.BranchRegistrationInfoFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BranchRegistrationInfoPayload>
+        }
+        findFirst: {
+          args: Prisma.BranchRegistrationInfoFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BranchRegistrationInfoPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.BranchRegistrationInfoFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BranchRegistrationInfoPayload>
+        }
+        findMany: {
+          args: Prisma.BranchRegistrationInfoFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BranchRegistrationInfoPayload>[]
+        }
+        create: {
+          args: Prisma.BranchRegistrationInfoCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BranchRegistrationInfoPayload>
+        }
+        createMany: {
+          args: Prisma.BranchRegistrationInfoCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.BranchRegistrationInfoCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BranchRegistrationInfoPayload>[]
+        }
+        delete: {
+          args: Prisma.BranchRegistrationInfoDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BranchRegistrationInfoPayload>
+        }
+        update: {
+          args: Prisma.BranchRegistrationInfoUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BranchRegistrationInfoPayload>
+        }
+        deleteMany: {
+          args: Prisma.BranchRegistrationInfoDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.BranchRegistrationInfoUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.BranchRegistrationInfoUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BranchRegistrationInfoPayload>[]
+        }
+        upsert: {
+          args: Prisma.BranchRegistrationInfoUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BranchRegistrationInfoPayload>
+        }
+        aggregate: {
+          args: Prisma.BranchRegistrationInfoAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateBranchRegistrationInfo>
+        }
+        groupBy: {
+          args: Prisma.BranchRegistrationInfoGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.BranchRegistrationInfoGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.BranchRegistrationInfoCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.BranchRegistrationInfoCountAggregateOutputType> | number
+        }
+      }
+    }
     RegistrationRequest: {
       payload: Prisma.$RegistrationRequestPayload<ExtArgs>
       fields: Prisma.RegistrationRequestFieldRefs
@@ -5601,6 +5676,28 @@ export const BranchScalarFieldEnum = {
 export type BranchScalarFieldEnum = (typeof BranchScalarFieldEnum)[keyof typeof BranchScalarFieldEnum]
 
 
+export const BranchRegistrationInfoScalarFieldEnum = {
+  id: 'id',
+  branchId: 'branchId',
+  schoolYearId: 'schoolYearId',
+  isPublished: 'isPublished',
+  termsTitle: 'termsTitle',
+  termsContent: 'termsContent',
+  registrationFeeRequired: 'registrationFeeRequired',
+  registrationFeeAmount: 'registrationFeeAmount',
+  registrationFeeCurrency: 'registrationFeeCurrency',
+  registrationFeeLabel: 'registrationFeeLabel',
+  registrationFeeDueNote: 'registrationFeeDueNote',
+  registrationFeeTypeId: 'registrationFeeTypeId',
+  rentreeProgram: 'rentreeProgram',
+  publishedAt: 'publishedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type BranchRegistrationInfoScalarFieldEnum = (typeof BranchRegistrationInfoScalarFieldEnum)[keyof typeof BranchRegistrationInfoScalarFieldEnum]
+
+
 export const RegistrationRequestScalarFieldEnum = {
   id: 'id',
   reference: 'reference',
@@ -5615,6 +5712,8 @@ export const RegistrationRequestScalarFieldEnum = {
   requestedOption: 'requestedOption',
   photoUrl: 'photoUrl',
   consentAccepted: 'consentAccepted',
+  termsAcceptedAt: 'termsAcceptedAt',
+  termsInfoId: 'termsInfoId',
   confirmedById: 'confirmedById',
   confirmedAt: 'confirmedAt',
   registeredById: 'registeredById',
@@ -6377,6 +6476,7 @@ export type GlobalOmitConfig = {
   member?: Prisma.MemberOmit
   invitation?: Prisma.InvitationOmit
   branch?: Prisma.BranchOmit
+  branchRegistrationInfo?: Prisma.BranchRegistrationInfoOmit
   registrationRequest?: Prisma.RegistrationRequestOmit
   jobApplication?: Prisma.JobApplicationOmit
   partnaire?: Prisma.PartnaireOmit
