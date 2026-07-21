@@ -140,7 +140,7 @@ export function BranchRegistrationSettingsForm() {
           <h2 className="text-lg font-semibold">Communication publique</h2>
           <p className="text-sm text-muted-foreground">
             Conditions, frais et programme de rentree affiches sur
-            /inscription-eleve apres le choix de cette ecole.
+            /inscription apres le choix de cette ecole.
           </p>
         </div>
 
@@ -397,7 +397,7 @@ export function BranchRegistrationSettingsForm() {
                 />
               </FormControl>
               <div>
-                <FormLabel>Publier sur /inscription-eleve</FormLabel>
+                <FormLabel>Publier sur /inscription</FormLabel>
                 <FormDescription>
                   Tant que ce n&apos;est pas publie, les parents ne voient pas
                   ces informations.

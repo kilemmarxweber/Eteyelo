@@ -1,4 +1,4 @@
-# Contexte — Inscription élève publique (`/inscription-eleve`)
+# Contexte — Inscription élève publique (`/inscription`)
 
 > Document de plan produit / technique.  
 > Objectif : après choix de l’école, exposer conditions dynamiques, frais d’inscription et programme de rentrée ; améliorer le design (shadcn).  
@@ -18,7 +18,7 @@ Les textes UI utilisent `getPeopleLabels(typebranch)` (`lib/people-labels.ts`) :
 
 Ces libellés s'appliquent dans l'admin branche (inscription, liste, paiements, dashboard, profil) et sur le formulaire public une fois l'établissement sélectionné.
 
-**Centre de formation :** aucun parent à saisir à l'inscription (admin et formulaire public `/inscription-eleve`). Un parent technique unique (`Parent Systeme Centre`) est créé automatiquement par branche ; le sous-menu **Parent** est masqué dans Utilisateurs.
+**Centre de formation :** aucun parent à saisir à l'inscription (admin et formulaire public `/inscription`). Un parent technique unique (`Parent Systeme Centre`) est créé automatiquement par branche ; le sous-menu **Parent** est masqué dans Utilisateurs.
 
 ---
 
@@ -72,5 +72,5 @@ Voir `prisma/schema.prisma` — migration `20260721010000_add_branch_registratio
 
 1. Ecole → **Parametres** → **Inscription publique**
 2. Remplir conditions / frais / programme, cocher **Publier**
-3. Ouvrir `/inscription-eleve`, selectionner l'ecole
+3. Ouvrir `/inscription`, selectionner l'ecole
 4. Lire les conditions, completer le wizard, envoyer

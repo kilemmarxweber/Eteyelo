@@ -186,6 +186,7 @@ export async function saveBranchRegistrationSettingsAction(input: unknown) {
   revalidatePath(
     `/admin/organizations/${organizationId}/branches/${branchId}/settings/inscription-publique`,
   );
+  revalidatePath("/inscription");
   revalidatePath("/inscription-eleve");
 
   return {

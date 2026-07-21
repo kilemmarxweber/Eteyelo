@@ -208,22 +208,13 @@ export default async function HomePage() {
               segments={stats.segments}
               verified={stats.verified}
             >
-              <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row sm:flex-wrap lg:justify-start">
-                <Button
-                  asChild
-                  className="rounded-full bg-blue-950 px-7 text-white hover:bg-blue-900"
-                >
-                  <Link href="/inscription-eleve">Inscrire un élève</Link>
-                </Button>
-
-                <Button
-                  asChild
-                  variant="outline"
-                  className="rounded-full border-white bg-white text-slate-950 hover:bg-slate-100 hover:text-slate-950"
-                >
-                  <Link href="/rejoindre-klambocore">Rejoindre Klambocore</Link>
-                </Button>
-              </div>
+              <Button
+                asChild
+                variant="outline"
+                className="rounded-full border-white bg-white text-slate-950 hover:bg-slate-100 hover:text-slate-950"
+              >
+                <Link href="/rejoindre-klambocore">Rejoindre Klambocore</Link>
+              </Button>
             </HeroRotatingContent>
           </div>
           {/* Ecole images schools*/}
@@ -648,7 +639,7 @@ export default async function HomePage() {
                 asChild
                 className="w-full rounded-full bg-blue-950 px-6 text-white hover:bg-blue-900 sm:w-auto"
               >
-                <Link href="/inscription-eleve">Inscrire un élève</Link>
+                <Link href="/inscription">Inscrire un élève ou un apprenant</Link>
               </Button>
 
               <Button

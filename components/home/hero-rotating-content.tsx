@@ -8,8 +8,10 @@ import {
   School,
   Users,
 } from "lucide-react";
+import Link from "next/link";
 
 import { AnimatedCounter } from "@/components/animated-counter";
+import { Button } from "@/components/ui/button";
 import type { HomeStatsSegment } from "@/lib/home/home-data";
 import { pluralizeLabel } from "@/lib/people-labels";
 
@@ -78,7 +80,22 @@ export function HeroRotatingContent({
         {segment.heroSubtitle}
       </p>
 
-      {children}
+      <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row sm:flex-wrap lg:justify-start">
+        <Button
+          asChild
+          className="rounded-full bg-blue-950 px-7 text-white hover:bg-blue-900"
+        >
+          <Link href="/inscription">
+            {segment.key === "centres"
+              ? "Inscrire un apprenant"
+              : segment.key === "universities"
+                ? "Inscrire un étudiant"
+                : "Inscrire un élève"}
+          </Link>
+        </Button>
+
+        {children}
+      </div>
 
       <div className="mx-auto mt-7 w-full sm:w-[36rem] lg:mx-0">
         <div className="mb-3 flex justify-center lg:justify-start">

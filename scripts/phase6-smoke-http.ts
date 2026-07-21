@@ -7,7 +7,7 @@ import { DEMO_ACCOUNTS } from "../prisma/seeds/demoAccounts";
 const baseUrl = (process.argv[2] ?? "http://localhost:3000").replace(/\/$/, "");
 
 const publicPages = [
-  "/inscription-eleve",
+  "/inscription",
   "/depot-candidature",
   "/resultats",
   "/etablissements",

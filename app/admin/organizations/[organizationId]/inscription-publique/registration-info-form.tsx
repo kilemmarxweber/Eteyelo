@@ -403,7 +403,7 @@ export function RegistrationInfoForm({
                 />
               </FormControl>
               <div>
-                <FormLabel>Publier sur /inscription-eleve</FormLabel>
+                <FormLabel>Publier sur /inscription</FormLabel>
                 <FormDescription>
                   Tant que ce n&apos;est pas publie, les parents ne voient pas
                   ces informations.

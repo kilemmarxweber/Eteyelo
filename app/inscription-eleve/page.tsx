@@ -1,2 +1,7 @@
+import { redirect } from "next/navigation";
+
 export const dynamic = "force-dynamic";
-export { default } from "../components/inscription-eleve/page";
+
+export default function LegacyInscriptionElevePage() {
+  redirect("/inscription");
+}

@@ -197,6 +197,7 @@ export async function upsertBranchRegistrationInfoAction(input: unknown) {
   revalidatePath(
     `/admin/organizations/${branch.organizationId}/inscription-publique`,
   );
+  revalidatePath("/inscription");
   revalidatePath("/inscription-eleve");
 
   return {
@@ -230,6 +231,7 @@ export async function deleteBranchRegistrationInfoAction(
 
   await prisma.branchRegistrationInfo.delete({ where: { id: infoId } });
   revalidatePath(`/admin/organizations/${organizationId}/inscription-publique`);
+  revalidatePath("/inscription");
   revalidatePath("/inscription-eleve");
 
   return { ok: true as const, message: "Fiche supprimee." };
