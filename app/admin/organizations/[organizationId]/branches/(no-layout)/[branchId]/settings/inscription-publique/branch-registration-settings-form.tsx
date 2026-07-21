@@ -79,9 +79,8 @@ export function BranchRegistrationSettingsForm() {
         const data = await getBranchRegistrationSettingsAction();
         if (ignore) return;
         setSchoolYears(data.schoolYears);
-        form.reset({
+        const defaults: Partial<BranchRegistrationInfoFormValues> = {
           id: undefined,
-          branchId: data.branchId,
           schoolYearId: "",
           isPublished: false,
           termsTitle: "Conditions d'inscription",
@@ -93,6 +92,9 @@ export function BranchRegistrationSettingsForm() {
           registrationFeeDueNote:
             "A regler aupres de la caisse avant la confirmation du dossier.",
           rentreeProgram: [],
+        };
+        form.reset({
+          ...defaults,
           ...data.initialValues,
           branchId: data.branchId,
         });

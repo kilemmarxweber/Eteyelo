@@ -1,5 +1,15 @@
 import { z } from "zod";
 
+export const FEE_CURRENCIES = ["CDF", "USD", "AOA"] as const;
+export type FeeCurrency = (typeof FEE_CURRENCIES)[number];
+
+export function toFeeCurrency(value: string | null | undefined): FeeCurrency {
+  if (value && (FEE_CURRENCIES as readonly string[]).includes(value)) {
+    return value as FeeCurrency;
+  }
+  return "CDF";
+}
+
 export const rentreeProgramItemSchema = z.object({
   date: z.string().trim().min(1, "Date requise"),
   title: z.string().trim().min(2, "Titre requis"),
@@ -19,7 +29,7 @@ export const branchRegistrationInfoFormSchema = z
       .min(20, "Les conditions doivent contenir au moins 20 caracteres"),
     registrationFeeRequired: z.boolean(),
     registrationFeeAmount: z.string().optional().or(z.literal("")),
-    registrationFeeCurrency: z.enum(["CDF", "USD", "AOA"], {
+    registrationFeeCurrency: z.enum(FEE_CURRENCIES, {
       message: "Devise requise",
     }),
     registrationFeeLabel: z.string().trim().optional().or(z.literal("")),

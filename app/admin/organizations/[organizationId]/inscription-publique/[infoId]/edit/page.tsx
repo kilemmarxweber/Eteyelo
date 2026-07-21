@@ -4,6 +4,7 @@ import { BackLink } from "@/components/ui/back-link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { enforceOrganizationManagerPage } from "@/lib/auth/require-organization-permission";
 import { parseRentreeProgram } from "@/lib/registration-public-info";
+import { toFeeCurrency } from "../../schema";
 import {
   getOrganizationBranchesForRegistration,
   getRegistrationInfoForEdit,
@@ -61,7 +62,9 @@ export default async function EditInscriptionPubliquePage({
                 info.registrationFeeAmount != null
                   ? String(Number(info.registrationFeeAmount))
                   : "",
-              registrationFeeCurrency: info.registrationFeeCurrency,
+              registrationFeeCurrency: toFeeCurrency(
+                info.registrationFeeCurrency,
+              ),
               registrationFeeLabel: info.registrationFeeLabel ?? "",
               registrationFeeDueNote: info.registrationFeeDueNote ?? "",
               rentreeProgram: parseRentreeProgram(info.rentreeProgram),

@@ -8,6 +8,7 @@ import { canAccessBranchOrgSettings } from "@/lib/auth/session-roles";
 import { parseRentreeProgram } from "@/lib/registration-public-info";
 import {
   branchRegistrationInfoFormSchema,
+  toFeeCurrency,
   type BranchRegistrationInfoFormValues,
 } from "@/app/admin/organizations/[organizationId]/inscription-publique/schema";
 
@@ -63,7 +64,9 @@ export async function getBranchRegistrationSettingsAction() {
             preferred.registrationFeeAmount != null
               ? String(Number(preferred.registrationFeeAmount))
               : "",
-          registrationFeeCurrency: preferred.registrationFeeCurrency,
+          registrationFeeCurrency: toFeeCurrency(
+            preferred.registrationFeeCurrency,
+          ),
           registrationFeeLabel: preferred.registrationFeeLabel ?? "",
           registrationFeeDueNote: preferred.registrationFeeDueNote ?? "",
           rentreeProgram: parseRentreeProgram(preferred.rentreeProgram),
