@@ -10,6 +10,7 @@ import {
   BRANCH_LOGIN_ORG_ROLES,
   resolveActiveBranchId,
 } from "@/lib/auth/user-branch-access";
+import { prisma } from "@/lib/prisma";
 
 function splitRoles(value: string | null | undefined) {
   return (value ?? "")
@@ -57,6 +58,11 @@ export default async function AdminOrganizationHomePage({
     notFound();
   }
 
+  const [branchesCount, membersCount] = await Promise.all([
+    prisma.branch.count({ where: { organizationId } }),
+    prisma.member.count({ where: { organizationId } }),
+  ]);
+
   return (
     <OrganizationHomeView
       organizationId={organizationId}
@@ -68,6 +74,10 @@ export default async function AdminOrganizationHomePage({
       canDelete={access.canDelete}
       canListAll={access.canListAll}
       roleLabel={access.roleLabel}
+      counts={{
+        branches: branchesCount,
+        members: membersCount,
+      }}
     />
   );
 }
