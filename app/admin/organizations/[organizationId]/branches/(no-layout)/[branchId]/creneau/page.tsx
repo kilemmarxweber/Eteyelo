@@ -33,7 +33,7 @@ export default function Creneaus() {
       <LayoutBody className="space-y-4">
         <PageHeader
           title="Vacations"
-          description="Definissez les plages horaires utilisees par les classes."
+          description="Configurez les périodes et la récréation (ex. 3 cours avant / 3 après au secondaire)."
           badge={
             <Badge variant="outline-primary" icon={<IconBeach size={14} />}>
               Vacations
@@ -52,7 +52,8 @@ export default function Creneaus() {
             <DialogHeader>
               <DialogTitle>Nouvelle vacation</DialogTitle>
               <DialogDescription>
-                Renseignez les horaires, la duree des cours et la recreation.
+                Utilisez un modèle secondaire ou primaire, puis ajustez les
+                horaires si besoin.
               </DialogDescription>
             </DialogHeader>
 

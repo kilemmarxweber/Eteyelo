@@ -13,13 +13,11 @@ function hasDedicatedBranchLoader(href: string) {
       ? new URL(href).pathname
       : href.split("?")[0] ?? href;
 
-    if (pathname.includes("/branches/enter/")) return true;
-
     const match = pathname.match(/\/branches\/([^/]+)(?:\/|$)/);
     if (!match) return false;
 
     const segment = match[1];
-    return segment !== "new" && segment !== "edit" && segment !== "enter";
+    return segment !== "new" && segment !== "edit";
   } catch {
     return false;
   }

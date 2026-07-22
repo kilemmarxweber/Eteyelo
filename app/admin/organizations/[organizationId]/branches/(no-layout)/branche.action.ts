@@ -3,12 +3,10 @@
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { createBranchFormSchema, type CreateBranchFormValues } from "./schema";
-import { auth } from "@/lib/auth";
 import {
-  guardOrganizationBranchAccess,
   guardOrganizationManager,
 } from "@/lib/auth/require-organization-permission";
-import { headers } from "next/headers";
+import { switchActiveBranch } from "@/lib/auth/switch-branch";
 import { ensureAcademicPeriodsForBranch } from "@/lib/academic-periods";
 import { getAcademicYearForDate } from "@/lib/academic-year";
 import {
@@ -148,46 +146,10 @@ export async function switchBranchAction(
   organizationId: string,
   branchId: string,
 ) {
-  const guard = await guardOrganizationBranchAccess(organizationId, branchId);
-  if (!guard.ok) {
-    throw new Error(guard.message);
+  const result = await switchActiveBranch(organizationId, branchId);
+  if (!result.ok) {
+    throw new Error(result.message);
   }
-
-  const requestHeaders = await headers();
-  const session = await auth.api.getSession({
-    headers: requestHeaders,
-  });
-
-  if (!session?.session?.id) {
-    throw new Error("Session introuvable");
-  }
-
-  const branch = await prisma.branch.findFirst({
-    where: {
-      id: branchId,
-      organizationId,
-    },
-    select: { id: true },
-  });
-
-  if (!branch) {
-    throw new Error("Branche introuvable dans cette organisation");
-  }
-
-  await auth.api.setActiveOrganization({
-    body: { organizationId },
-    headers: requestHeaders,
-  });
-
-  await prisma.session.update({
-    where: {
-      id: session.session.id,
-    },
-    data: {
-      activeOrganizationId: organizationId,
-      activeBranchId: branchId,
-    },
-  });
 
   return {
     success: true,

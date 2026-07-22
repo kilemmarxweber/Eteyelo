@@ -247,6 +247,15 @@ export async function guardOrganizationBranchAccess(
 
   const { context } = access;
 
+  const branch = await prisma.branch.findFirst({
+    where: { id: branchId, organizationId },
+    select: { id: true, isActive: true },
+  });
+
+  if (!branch) {
+    return { ok: false, message: "Etablissement introuvable." };
+  }
+
   if (isPlatformOwnerRole(context.appRole) || isAppAdminRole(context.appRole)) {
     return { ok: true, context };
   }
@@ -265,11 +274,7 @@ export async function guardOrganizationBranchAccess(
     membership &&
     splitRoles(membership.role).some((role) => BRANCH_LOGIN_ORG_ROLES.has(role))
   ) {
-    const branch = await prisma.branch.findFirst({
-      where: { id: branchId, organizationId, isActive: true },
-      select: { id: true },
-    });
-    if (branch) {
+    if (branch.isActive) {
       return { ok: true, context };
     }
   }

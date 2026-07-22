@@ -5,7 +5,6 @@ import { imageUrlToDataUrl } from "@/lib/reports/image-to-data-url";
 import {
   drawReportFooterOnAllPages,
   drawReportHeader,
-  REPORT_HEADER_CONTENT_TOP_MM,
 } from "@/lib/reports/pdf-header-footer";
 import type { SchoolReportContext } from "@/lib/reports/types";
 
@@ -19,32 +18,6 @@ export type StudentReportOptions = {
   /** Filtre statut UI si présent. */
   status?: StudentReportStatus | null;
 };
-
-function ageFromBirthDate(value: Date | string | null | undefined) {
-  if (!value) return "-";
-  const birth = new Date(value);
-  if (Number.isNaN(birth.getTime())) return "-";
-  const today = new Date();
-  let age = today.getFullYear() - birth.getFullYear();
-  if (
-    today.getMonth() < birth.getMonth() ||
-    (today.getMonth() === birth.getMonth() && today.getDate() < birth.getDate())
-  ) {
-    age -= 1;
-  }
-  return age >= 0 ? String(age) : "-";
-}
-
-function formatBirthDate(value: Date | string | null | undefined) {
-  if (!value) return "-";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "-";
-  return new Intl.DateTimeFormat("fr-FR", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  }).format(date);
-}
 
 function safeFilePart(value: string) {
   return value
@@ -136,98 +109,98 @@ export async function buildStudentsReportPdf(
   const isClassReport = Boolean(selectedClass);
   const title = buildStudentsReportTitle(options);
   const filterLabels = buildStudentsReportFilterLabels(options);
-  const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+  const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const marginX = 14;
+  const usableWidth = pageWidth - marginX * 2;
   const logo = await imageUrlToDataUrl(context.logoUrl);
 
-  const globalHead = [
-    "#",
-    "Matricule",
-    "Nom",
-    "Postnom",
-    "Prenom",
-    "Sexe",
-    "Lieu de naissance",
-    "Date de naissance",
-    "Age",
-    "Classe",
-  ];
-  const classHead = ["#", "Matricule", "Nom", "Postnom", "Prenom", "Sexe"];
+  const headerOptions = {
+    title,
+    subtitle: context.branchName,
+    details: [...filterLabels, `${students.length} élève(s)`],
+    logoDataUrl: logo,
+  };
 
-  const globalBody = students.map((student, index) => [
-    index + 1,
-    student.username || "-",
-    student.nom || "-",
-    student.postnom || "-",
-    student.prenom || "-",
-    student.sexe || "-",
-    student.placeOfBirth || "-",
-    formatBirthDate(student.dateOfBirth),
-    ageFromBirthDate(student.dateOfBirth),
-    student.className || "Non affecte",
-  ]);
-  const classBody = students.map((student, index) => [
-    index + 1,
-    student.username || "-",
-    student.nom || "-",
-    student.postnom || "-",
-    student.prenom || "-",
-    student.sexe || "-",
-  ]);
+  // Dessine l'en-tête page 1 et récupère la vraie hauteur (évite le chevauchement).
+  const contentTop = drawReportHeader(doc, context, headerOptions);
+
+  const head = isClassReport
+    ? ["#", "Matricule", "Nom", "Postnom", "Prénom", "Sexe"]
+    : ["#", "Matricule", "Nom", "Postnom", "Prénom", "Sexe", "Classe"];
+
+  const body = students.map((student, index) => {
+    const row: (string | number)[] = [
+      index + 1,
+      student.username || "-",
+      student.nom || "-",
+      student.postnom || "-",
+      student.prenom || "-",
+      student.sexe || "-",
+    ];
+    if (!isClassReport) {
+      row.push(student.className || "Non affecté");
+    }
+    return row;
+  });
+
+  // Largeurs proportionnelles sur toute la largeur utile A4.
+  const columnStyles = isClassReport
+    ? {
+        0: { cellWidth: usableWidth * 0.06, halign: "center" as const },
+        1: { cellWidth: usableWidth * 0.28, halign: "left" as const },
+        2: { cellWidth: usableWidth * 0.18, halign: "left" as const },
+        3: { cellWidth: usableWidth * 0.18, halign: "left" as const },
+        4: { cellWidth: usableWidth * 0.18, halign: "left" as const },
+        5: { cellWidth: usableWidth * 0.12, halign: "center" as const },
+      }
+    : {
+        0: { cellWidth: usableWidth * 0.05, halign: "center" as const },
+        1: { cellWidth: usableWidth * 0.22, halign: "left" as const },
+        2: { cellWidth: usableWidth * 0.14, halign: "left" as const },
+        3: { cellWidth: usableWidth * 0.14, halign: "left" as const },
+        4: { cellWidth: usableWidth * 0.14, halign: "left" as const },
+        5: { cellWidth: usableWidth * 0.08, halign: "center" as const },
+        6: { cellWidth: usableWidth * 0.23, halign: "left" as const },
+      };
 
   autoTable(doc, {
-    startY: REPORT_HEADER_CONTENT_TOP_MM,
+    startY: contentTop,
     margin: {
-      top: REPORT_HEADER_CONTENT_TOP_MM,
-      right: 10,
-      bottom: 14,
-      left: 10,
+      top: contentTop,
+      right: marginX,
+      bottom: 16,
+      left: marginX,
     },
-    head: [isClassReport ? classHead : globalHead],
-    body: isClassReport ? classBody : globalBody,
-    theme: "grid",
+    tableWidth: usableWidth,
+    head: [head],
+    body,
+    theme: "striped",
     showHead: "everyPage",
     styles: {
       font: "helvetica",
-      fontSize: isClassReport ? 9 : 7.2,
-      cellPadding: 2,
+      fontSize: 8,
+      cellPadding: { top: 2.8, right: 2, bottom: 2.8, left: 2 },
       overflow: "linebreak",
       valign: "middle",
+      lineColor: [226, 232, 240],
+      lineWidth: 0.2,
+      textColor: [30, 41, 59],
     },
     headStyles: {
       fillColor: [30, 64, 175],
       textColor: 255,
       fontStyle: "bold",
       halign: "center",
+      fontSize: 8,
+      cellPadding: { top: 3.2, right: 2, bottom: 3.2, left: 2 },
     },
-    alternateRowStyles: { fillColor: [239, 246, 255] },
-    columnStyles: isClassReport
-      ? {
-          0: { cellWidth: 10, halign: "center" },
-          1: { cellWidth: 42 },
-          2: { cellWidth: 54 },
-          3: { cellWidth: 54 },
-          4: { cellWidth: 54 },
-          5: { cellWidth: 22, halign: "center" },
-        }
-      : {
-          0: { cellWidth: 8, halign: "center" },
-          1: { cellWidth: 27 },
-          2: { cellWidth: 31 },
-          3: { cellWidth: 31 },
-          4: { cellWidth: 31 },
-          5: { cellWidth: 13, halign: "center" },
-          6: { cellWidth: 35 },
-          7: { cellWidth: 28, halign: "center" },
-          8: { cellWidth: 11, halign: "center" },
-          9: { cellWidth: 42 },
-        },
-    didDrawPage: () => {
-      drawReportHeader(doc, context, {
-        title,
-        subtitle: context.branchName,
-        details: [...filterLabels, `${students.length} élève(s)`],
-        logoDataUrl: logo,
-      });
+    alternateRowStyles: { fillColor: [248, 250, 252] },
+    columnStyles,
+    didDrawPage: (data) => {
+      if (data.pageNumber > 1) {
+        drawReportHeader(doc, context, headerOptions);
+      }
     },
   });
 

@@ -12,6 +12,7 @@ import {
   IconUser,
   IconUserCheck,
   IconCurrencyDollar,
+  IconClockHour4,
 } from "@tabler/icons-react";
 
 import { Layout, LayoutBody } from "@/components/custom/layout";
@@ -70,7 +71,13 @@ export default function Settings({ children }: { children: React.ReactNode }) {
         orgSettingsOnly: true,
       },
       {
-        title: "Presences",
+        title: "Horaires",
+        icon: <IconClockHour4 size={18} />,
+        href: `${settingsBasePath}/horaires`,
+        orgSettingsOnly: true,
+      },
+      {
+        title: "Présences",
         icon: <IconUserCheck size={18} />,
         href: `${settingsBasePath}/attendance`,
         orgSettingsOnly: true,

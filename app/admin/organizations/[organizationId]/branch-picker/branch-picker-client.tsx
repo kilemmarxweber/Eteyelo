@@ -26,7 +26,7 @@ export function BranchPickerClient({
           variant="outline"
           className="h-auto min-h-12 justify-between rounded-xl px-3.5 py-3 text-left"
         >
-          <Link href={`${base}/enter/${branch.branchId}`}>
+          <Link href={`${base}/${branch.branchId}`}>
             <span>
               <span className="flex flex-wrap items-center gap-2">
                 <span className="font-semibold text-foreground">

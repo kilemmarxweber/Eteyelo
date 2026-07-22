@@ -1,6 +1,6 @@
 "use client";
-import { HTMLAttributes, useState, useEffect } from "react";
-import { useForm, SubmitHandler } from "react-hook-form";
+import { HTMLAttributes, useMemo, useState, useEffect } from "react";
+import { useForm, SubmitHandler, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Form,
@@ -22,6 +22,7 @@ import {
   defaultCreneauValues,
   type CreneauFormValues,
 } from "@/src/interfaces/creneau";
+import { previewPeriodsAroundRecreation } from "@/src/hooks/getCourseHours";
 
 const emptyCreneauValues = (): CreneauFormValues => ({
   ...defaultCreneauValues,
@@ -61,6 +62,55 @@ const toFormNumber = (value: string, fallback: number) => {
   return Number.isFinite(parsed) ? parsed : fallback;
 };
 
+type StructurePreset = {
+  id: string;
+  label: string;
+  description: string;
+  values: Partial<CreneauFormValues>;
+};
+
+const STRUCTURE_PRESETS: StructurePreset[] = [
+  {
+    id: "secondaire-matin",
+    label: "Secondaire matin (3 + 3)",
+    description: "6 périodes de 45 min, récréation 15 min",
+    values: {
+      nameCreneau: "Horaire standard matin",
+      startTime: "07:30",
+      endTime: "12:15",
+      durationCourse: 45,
+      recreationHour: "09:45",
+      recreationDuration: 15,
+    },
+  },
+  {
+    id: "secondaire-aprem",
+    label: "Secondaire après-midi (3 + 3)",
+    description: "6 périodes de 45 min, récréation 15 min",
+    values: {
+      nameCreneau: "Horaire standard après-midi",
+      startTime: "12:30",
+      endTime: "17:15",
+      durationCourse: 45,
+      recreationHour: "14:45",
+      recreationDuration: 15,
+    },
+  },
+  {
+    id: "primaire-matin",
+    label: "Primaire matin (4 + 2)",
+    description: "6 périodes de 40 min, récréation 20 min",
+    values: {
+      nameCreneau: "Horaire primaire matin",
+      startTime: "07:30",
+      endTime: "11:50",
+      durationCourse: 40,
+      recreationHour: "10:10",
+      recreationDuration: 20,
+    },
+  },
+];
+
 interface CreneauUpFormProps extends HTMLAttributes<HTMLDivElement> {
   onCreneauAction?: () => void;
   onSuccess?: () => void;
@@ -91,6 +141,27 @@ export function CreneauUpForm({
   useEffect(() => {
     form.reset(normalizeCreneauValues(initialData));
   }, [form, mode, initialData?.id]);
+
+  const watched = useWatch({ control: form.control });
+  const periodPreview = useMemo(
+    () =>
+      previewPeriodsAroundRecreation(
+        watched.startTime ?? "",
+        watched.endTime ?? "",
+        Number(watched.durationCourse) || 0,
+        watched.recreationHour ?? "",
+        Number(watched.recreationDuration) || 0,
+      ),
+    [watched],
+  );
+
+  function applyPreset(preset: StructurePreset) {
+    form.reset({
+      ...normalizeCreneauValues(form.getValues()),
+      ...preset.values,
+      id: form.getValues("id"),
+    });
+  }
 
   const onSubmit: SubmitHandler<CreneauFormValues> = async (data) => {
     setIsLoading(true);
@@ -141,6 +212,31 @@ export function CreneauUpForm({
     <div className={cn("grid gap-6", className)} {...props}>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          {mode === "create" && (
+            <div className="space-y-3">
+              <div>
+                <h3 className="text-sm font-medium">Modèles rapides</h3>
+                <p className="text-sm text-muted-foreground">
+                  Secondaire / humanités : souvent 3 cours avant et 3 après la
+                  récréation. Le primaire peut différer.
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {STRUCTURE_PRESETS.map((preset) => (
+                  <Button
+                    key={preset.id}
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => applyPreset(preset)}
+                  >
+                    {preset.label}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          )}
+
           <FormField
             control={form.control}
             name="nameCreneau"
@@ -300,6 +396,22 @@ export function CreneauUpForm({
               />
             </div>
           </div>
+
+          {periodPreview && (
+            <div className="rounded-lg border bg-background p-4 text-sm">
+              <p className="font-medium">Aperçu de la journée</p>
+              <p className="mt-1 text-muted-foreground">
+                {periodPreview.before} cours avant la récréation ·{" "}
+                {periodPreview.after} cours après · {periodPreview.total}{" "}
+                périodes au total
+              </p>
+              {periodPreview.slots.length > 0 && (
+                <p className="mt-2 text-xs text-muted-foreground">
+                  Débuts : {periodPreview.slots.join(" · ")}
+                </p>
+              )}
+            </div>
+          )}
 
           <Button type="submit" className="w-full" loading={isLoading}>
             {mode === "create"
