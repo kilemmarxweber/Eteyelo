@@ -20,7 +20,6 @@ export function Invoice(props: InvoiceProps) {
           address: data.sender.address || undefined,
           logoUrl: data.logoUrl ?? "",
         }}
-        title="Reçu de paiement"
       />
       <ReceiptPreviewBody data={data} />
     </div>

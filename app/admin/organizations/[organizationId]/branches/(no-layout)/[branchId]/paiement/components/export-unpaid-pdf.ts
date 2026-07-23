@@ -7,6 +7,7 @@ import {
   REPORT_HEADER_CONTENT_TOP_MM,
 } from "@/lib/reports/pdf-header-footer";
 import type { SchoolReportContext } from "@/lib/reports/types";
+import { formatReportAmount } from "@/lib/reports/format-amount";
 import type { UnpaidFinancialStatus, UnpaidReportRow } from "../paiement.action";
 
 export type UnpaidReportOptions = {
@@ -22,14 +23,6 @@ function safeFilePart(value: string) {
     .replace(/[^a-zA-Z0-9]+/g, "-")
     .replace(/^-|-$/g, "")
     .toLowerCase();
-}
-
-function formatMoney(value: number, currency = "USD"): string {
-  const isUsd = currency === "USD";
-  return `${value.toLocaleString("fr-FR", {
-    minimumFractionDigits: isUsd ? 2 : 0,
-    maximumFractionDigits: isUsd ? 2 : 0,
-  })} ${currency}`;
 }
 
 export function unpaidStatusLabel(status: UnpaidFinancialStatus): string {
@@ -118,12 +111,26 @@ export async function buildUnpaidReportPdf(
       ? rows.map((row) => [
           row.studentName,
           row.classeName,
-          formatMoney(row.montantDu, currency),
-          formatMoney(row.montantPaye, currency),
-          formatMoney(row.reste, currency),
+          formatReportAmount(row.montantDu, currency),
+          formatReportAmount(row.montantPaye, currency),
+          formatReportAmount(row.reste, currency),
           unpaidStatusLabel(row.status),
         ])
       : [[emptyMessage, "", "", "", "", ""]];
+
+  const foot =
+    rows.length > 0
+      ? [
+          [
+            "Total",
+            "",
+            formatReportAmount(totalDu, currency),
+            formatReportAmount(totalPaye, currency),
+            formatReportAmount(totalReste, currency),
+            "",
+          ],
+        ]
+      : undefined;
 
   autoTable(doc, {
     startY: REPORT_HEADER_CONTENT_TOP_MM,
@@ -135,8 +142,10 @@ export async function buildUnpaidReportPdf(
     },
     head: [head],
     body,
+    foot,
     theme: "grid",
     showHead: "everyPage",
+    showFoot: rows.length > 0 ? "lastPage" : "never",
     styles: {
       font: "helvetica",
       fontSize: 8,
@@ -149,6 +158,12 @@ export async function buildUnpaidReportPdf(
       textColor: 255,
       fontStyle: "bold",
       halign: "center",
+    },
+    footStyles: {
+      fillColor: [226, 232, 240],
+      textColor: [15, 23, 42],
+      fontStyle: "bold",
+      fontSize: 8,
     },
     alternateRowStyles: { fillColor: [239, 246, 255] },
     columnStyles: {
@@ -171,6 +186,15 @@ export async function buildUnpaidReportPdf(
           data.cell.text = [];
         }
       }
+
+      if (data.section === "foot") {
+        if (data.column.index === 0) {
+          data.cell.styles.halign = "left";
+        }
+        if (data.column.index === 2 || data.column.index === 3 || data.column.index === 4) {
+          data.cell.styles.halign = "right";
+        }
+      }
     },
     didDrawPage: () => {
       drawReportHeader(doc, context, {
@@ -181,13 +205,6 @@ export async function buildUnpaidReportPdf(
           rows.length > 0
             ? `${rows.length} élève(s) — À jour ${counts.aJour} · Partiel ${counts.partiel} · En retard ${counts.enRetard}`
             : emptyMessage,
-          ...(rows.length > 0
-            ? [
-                `Total dû : ${formatMoney(totalDu, currency)}`,
-                `Total payé : ${formatMoney(totalPaye, currency)}`,
-                `Total reste : ${formatMoney(totalReste, currency)}`,
-              ]
-            : []),
         ],
         logoDataUrl: logo,
       });

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { KeyRound, ShieldCheck } from "lucide-react";
+import { IconKey, IconShield } from "@tabler/icons-react";
 import { toast } from "sonner";
 
 import { clearMustChangePasswordAction } from "@/app/admin/account/change-password/actions";
@@ -12,6 +12,13 @@ import {
   type ChangePasswordValues,
 } from "@/app/admin/account/schema";
 import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   Form,
   FormControl,
@@ -23,15 +30,15 @@ import {
 import { Input } from "@/components/ui/input";
 import { useAppRouter as useRouter } from "@/hooks/use-app-router";
 import { authClient } from "@/lib/auth-client";
+import { safeInternalCallbackUrl } from "@/lib/auth/safe-callback-url";
 
-const PASSWORD_RULES = [
-  "Au moins 8 caractères",
-  "Une lettre majuscule",
-  "Une lettre minuscule",
-  "Un chiffre ou un caractère spécial",
-] as const;
-
-export function ChangePasswordForm({ forced }: { forced: boolean }) {
+export function ChangePasswordForm({
+  forced,
+  callbackUrl,
+}: {
+  forced: boolean;
+  callbackUrl?: string | null;
+}) {
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
   const form = useForm<ChangePasswordValues>({
@@ -67,6 +74,13 @@ export function ChangePasswordForm({ forced }: { forced: boolean }) {
 
       toast.success("Mot de passe mis à jour.");
 
+      const safeCallback = safeInternalCallbackUrl(callbackUrl);
+      if (safeCallback) {
+        router.push(safeCallback);
+        router.refresh();
+        return;
+      }
+
       const redirectRes = await fetch("/api/auth/post-login-redirect");
       const redirectData = (await redirectRes.json().catch(() => null)) as {
         path?: string;
@@ -80,42 +94,46 @@ export function ChangePasswordForm({ forced }: { forced: boolean }) {
     }
   }
 
+  const forcedInviteCopy = Boolean(
+    forced && callbackUrl?.includes("/accept-invitation"),
+  );
+
   return (
-    <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
-      <section className="overflow-hidden rounded-3xl border bg-white shadow-sm">
-        <div className="grid gap-0 lg:grid-cols-[0.95fr_1.05fr]">
-          <div className="bg-blue-950 p-6 text-white sm:p-8 lg:p-10">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1.5 text-xs font-semibold">
-              <KeyRound className="size-4" />
-              Sécurité du compte
+    <div className="flex h-svh max-h-svh items-center justify-center overflow-hidden bg-gradient-to-br from-background via-muted/20 to-accent/10 p-3">
+      <div className="w-full max-w-[380px] animate-fade-in">
+        <div className="mb-3 flex items-center justify-center gap-2.5">
+          <div className="flex items-center gap-2.5 rounded-xl border border-primary/20 bg-primary/10 px-3 py-2">
+            <IconKey size={22} className="text-primary" />
+            <div className="text-left leading-tight">
+              <p className="text-sm font-bold text-foreground">Kalasa</p>
+              <p className="text-[11px] text-muted-foreground">
+                Gestion scolaire
+              </p>
             </div>
-
-            <h1 className="mt-5 text-3xl font-black tracking-tight sm:text-4xl">
-              {forced
-                ? "Modifiez votre mot de passe"
-                : "Changer le mot de passe"}
-            </h1>
-
-            <p className="mt-4 max-w-7xl text-sm leading-7 text-blue-50 sm:text-base">
-              {forced
-                ? "Pour sécuriser votre compte, vous devez remplacer le mot de passe temporaire avant d’accéder à la plateforme."
-                : "Choisissez un mot de passe robuste pour protéger votre compte."}
-            </p>
-
-            <ul className="mt-8 space-y-2 text-sm text-blue-50">
-              {PASSWORD_RULES.map((rule) => (
-                <li key={rule} className="flex items-center gap-2">
-                  <ShieldCheck className="size-4 shrink-0 text-white" />
-                  {rule}
-                </li>
-              ))}
-            </ul>
           </div>
+        </div>
 
-          <div className="p-5 sm:p-6 lg:p-8">
+        <Card variant="elevated" className="bg-primary/10">
+          <CardHeader className="space-y-1.5 px-4 pb-2 pt-4 text-center">
+            <CardTitle className="flex items-center justify-center gap-2 text-base">
+              <IconShield size={18} className="text-primary" />
+              {forced
+                ? "Nouveau mot de passe"
+                : "Changer le mot de passe"}
+            </CardTitle>
+            <CardDescription className="text-xs leading-snug">
+              {forcedInviteCopy
+                ? "Remplacez le mot de passe temporaire avant d’accepter l’invitation."
+                : forced
+                  ? "Remplacez le mot de passe temporaire pour continuer."
+                  : "Choisissez un mot de passe robuste."}
+            </CardDescription>
+          </CardHeader>
+
+          <CardContent className="px-4 pb-4 pt-1">
             <Form {...form}>
               <form
-                className="flex flex-col gap-5"
+                className="flex flex-col gap-3"
                 noValidate
                 onSubmit={(event) => {
                   event.preventDefault();
@@ -126,8 +144,8 @@ export function ChangePasswordForm({ forced }: { forced: boolean }) {
                   control={form.control}
                   name="currentPassword"
                   render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
+                    <FormItem className="gap-1.5">
+                      <FormLabel className="text-xs">
                         {forced
                           ? "Mot de passe temporaire"
                           : "Mot de passe actuel"}
@@ -137,7 +155,7 @@ export function ChangePasswordForm({ forced }: { forced: boolean }) {
                           {...field}
                           type="password"
                           autoComplete="current-password"
-                          className="h-11"
+                          className="h-10"
                           disabled={submitting}
                         />
                       </FormControl>
@@ -150,14 +168,15 @@ export function ChangePasswordForm({ forced }: { forced: boolean }) {
                   control={form.control}
                   name="newPassword"
                   render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Nouveau mot de passe</FormLabel>
+                    <FormItem className="gap-1.5">
+                      <FormLabel className="text-xs">Nouveau</FormLabel>
                       <FormControl>
                         <Input
                           {...field}
                           type="password"
                           autoComplete="new-password"
-                          className="h-11"
+                          placeholder="8+ car., maj., min., chiffre/symbole"
+                          className="h-10"
                           disabled={submitting}
                         />
                       </FormControl>
@@ -170,14 +189,14 @@ export function ChangePasswordForm({ forced }: { forced: boolean }) {
                   control={form.control}
                   name="confirmPassword"
                   render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Confirmer le mot de passe</FormLabel>
+                    <FormItem className="gap-1.5">
+                      <FormLabel className="text-xs">Confirmer</FormLabel>
                       <FormControl>
                         <Input
                           {...field}
                           type="password"
                           autoComplete="new-password"
-                          className="h-11"
+                          className="h-10"
                           disabled={submitting}
                         />
                       </FormControl>
@@ -188,16 +207,16 @@ export function ChangePasswordForm({ forced }: { forced: boolean }) {
 
                 <Button
                   type="submit"
-                  className="h-11 w-full sm:w-auto sm:self-start"
+                  className="mt-1 h-10 w-full"
                   disabled={submitting}
                 >
-                  {submitting ? "Enregistrement…" : "Enregistrer le mot de passe"}
+                  {submitting ? "Enregistrement…" : "Enregistrer"}
                 </Button>
               </form>
             </Form>
-          </div>
-        </div>
-      </section>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

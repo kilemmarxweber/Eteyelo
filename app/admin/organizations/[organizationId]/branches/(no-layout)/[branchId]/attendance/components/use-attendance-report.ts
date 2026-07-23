@@ -44,8 +44,8 @@ function rowsToSheet(rows: AttendanceReportRow[]) {
     Matricule: row.agentId,
     Poste: row.poste,
     Statut: row.statusLabel,
-    Arrivee: row.arrival ?? "",
-    Depart: row.departure ?? "",
+    "Heure debut": row.arrival ?? "",
+    "Heure fin": row.departure ?? "",
   }));
 }
 

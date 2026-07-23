@@ -30,6 +30,9 @@ export type MemberMinAggregateOutputType = {
   userId: string | null
   role: string | null
   createdAt: Date | null
+  isArchived: boolean | null
+  archivedAt: Date | null
+  archivedById: string | null
 }
 
 export type MemberMaxAggregateOutputType = {
@@ -38,6 +41,9 @@ export type MemberMaxAggregateOutputType = {
   userId: string | null
   role: string | null
   createdAt: Date | null
+  isArchived: boolean | null
+  archivedAt: Date | null
+  archivedById: string | null
 }
 
 export type MemberCountAggregateOutputType = {
@@ -46,6 +52,9 @@ export type MemberCountAggregateOutputType = {
   userId: number
   role: number
   createdAt: number
+  isArchived: number
+  archivedAt: number
+  archivedById: number
   _all: number
 }
 
@@ -56,6 +65,9 @@ export type MemberMinAggregateInputType = {
   userId?: true
   role?: true
   createdAt?: true
+  isArchived?: true
+  archivedAt?: true
+  archivedById?: true
 }
 
 export type MemberMaxAggregateInputType = {
@@ -64,6 +76,9 @@ export type MemberMaxAggregateInputType = {
   userId?: true
   role?: true
   createdAt?: true
+  isArchived?: true
+  archivedAt?: true
+  archivedById?: true
 }
 
 export type MemberCountAggregateInputType = {
@@ -72,6 +87,9 @@ export type MemberCountAggregateInputType = {
   userId?: true
   role?: true
   createdAt?: true
+  isArchived?: true
+  archivedAt?: true
+  archivedById?: true
   _all?: true
 }
 
@@ -153,6 +171,9 @@ export type MemberGroupByOutputType = {
   userId: string
   role: string
   createdAt: Date
+  isArchived: boolean
+  archivedAt: Date | null
+  archivedById: string | null
   _count: MemberCountAggregateOutputType | null
   _min: MemberMinAggregateOutputType | null
   _max: MemberMaxAggregateOutputType | null
@@ -182,6 +203,9 @@ export type MemberWhereInput = {
   userId?: Prisma.StringFilter<"Member"> | string
   role?: Prisma.StringFilter<"Member"> | string
   createdAt?: Prisma.DateTimeFilter<"Member"> | Date | string
+  isArchived?: Prisma.BoolFilter<"Member"> | boolean
+  archivedAt?: Prisma.DateTimeNullableFilter<"Member"> | Date | string | null
+  archivedById?: Prisma.StringNullableFilter<"Member"> | string | null
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   branchMember?: Prisma.BranchMemberListRelationFilter
@@ -194,6 +218,9 @@ export type MemberOrderByWithRelationInput = {
   userId?: Prisma.SortOrder
   role?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  isArchived?: Prisma.SortOrder
+  archivedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  archivedById?: Prisma.SortOrderInput | Prisma.SortOrder
   organization?: Prisma.OrganizationOrderByWithRelationInput
   user?: Prisma.UserOrderByWithRelationInput
   branchMember?: Prisma.BranchMemberOrderByRelationAggregateInput
@@ -210,6 +237,9 @@ export type MemberWhereUniqueInput = Prisma.AtLeast<{
   userId?: Prisma.StringFilter<"Member"> | string
   role?: Prisma.StringFilter<"Member"> | string
   createdAt?: Prisma.DateTimeFilter<"Member"> | Date | string
+  isArchived?: Prisma.BoolFilter<"Member"> | boolean
+  archivedAt?: Prisma.DateTimeNullableFilter<"Member"> | Date | string | null
+  archivedById?: Prisma.StringNullableFilter<"Member"> | string | null
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   branchMember?: Prisma.BranchMemberListRelationFilter
@@ -222,6 +252,9 @@ export type MemberOrderByWithAggregationInput = {
   userId?: Prisma.SortOrder
   role?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  isArchived?: Prisma.SortOrder
+  archivedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  archivedById?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.MemberCountOrderByAggregateInput
   _max?: Prisma.MemberMaxOrderByAggregateInput
   _min?: Prisma.MemberMinOrderByAggregateInput
@@ -236,12 +269,18 @@ export type MemberScalarWhereWithAggregatesInput = {
   userId?: Prisma.StringWithAggregatesFilter<"Member"> | string
   role?: Prisma.StringWithAggregatesFilter<"Member"> | string
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Member"> | Date | string
+  isArchived?: Prisma.BoolWithAggregatesFilter<"Member"> | boolean
+  archivedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Member"> | Date | string | null
+  archivedById?: Prisma.StringNullableWithAggregatesFilter<"Member"> | string | null
 }
 
 export type MemberCreateInput = {
   id: string
   role?: string
   createdAt: Date | string
+  isArchived?: boolean
+  archivedAt?: Date | string | null
+  archivedById?: string | null
   organization: Prisma.OrganizationCreateNestedOneWithoutMembersInput
   user: Prisma.UserCreateNestedOneWithoutMembersInput
   branchMember?: Prisma.BranchMemberCreateNestedManyWithoutMemberInput
@@ -254,6 +293,9 @@ export type MemberUncheckedCreateInput = {
   userId: string
   role?: string
   createdAt: Date | string
+  isArchived?: boolean
+  archivedAt?: Date | string | null
+  archivedById?: string | null
   branchMember?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutMemberInput
   organizationSupportAgent?: Prisma.OrganizationSupportAgentUncheckedCreateNestedOneWithoutMemberInput
 }
@@ -262,6 +304,9 @@ export type MemberUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutMembersNestedInput
   user?: Prisma.UserUpdateOneRequiredWithoutMembersNestedInput
   branchMember?: Prisma.BranchMemberUpdateManyWithoutMemberNestedInput
@@ -274,6 +319,9 @@ export type MemberUncheckedUpdateInput = {
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   branchMember?: Prisma.BranchMemberUncheckedUpdateManyWithoutMemberNestedInput
   organizationSupportAgent?: Prisma.OrganizationSupportAgentUncheckedUpdateOneWithoutMemberNestedInput
 }
@@ -284,12 +332,18 @@ export type MemberCreateManyInput = {
   userId: string
   role?: string
   createdAt: Date | string
+  isArchived?: boolean
+  archivedAt?: Date | string | null
+  archivedById?: string | null
 }
 
 export type MemberUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type MemberUncheckedUpdateManyInput = {
@@ -298,6 +352,9 @@ export type MemberUncheckedUpdateManyInput = {
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type MemberListRelationFilter = {
@@ -321,6 +378,9 @@ export type MemberCountOrderByAggregateInput = {
   userId?: Prisma.SortOrder
   role?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  isArchived?: Prisma.SortOrder
+  archivedAt?: Prisma.SortOrder
+  archivedById?: Prisma.SortOrder
 }
 
 export type MemberMaxOrderByAggregateInput = {
@@ -329,6 +389,9 @@ export type MemberMaxOrderByAggregateInput = {
   userId?: Prisma.SortOrder
   role?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  isArchived?: Prisma.SortOrder
+  archivedAt?: Prisma.SortOrder
+  archivedById?: Prisma.SortOrder
 }
 
 export type MemberMinOrderByAggregateInput = {
@@ -337,6 +400,9 @@ export type MemberMinOrderByAggregateInput = {
   userId?: Prisma.SortOrder
   role?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  isArchived?: Prisma.SortOrder
+  archivedAt?: Prisma.SortOrder
+  archivedById?: Prisma.SortOrder
 }
 
 export type MemberScalarRelationFilter = {
@@ -460,6 +526,9 @@ export type MemberCreateWithoutUserInput = {
   id: string
   role?: string
   createdAt: Date | string
+  isArchived?: boolean
+  archivedAt?: Date | string | null
+  archivedById?: string | null
   organization: Prisma.OrganizationCreateNestedOneWithoutMembersInput
   branchMember?: Prisma.BranchMemberCreateNestedManyWithoutMemberInput
   organizationSupportAgent?: Prisma.OrganizationSupportAgentCreateNestedOneWithoutMemberInput
@@ -470,6 +539,9 @@ export type MemberUncheckedCreateWithoutUserInput = {
   organizationId: string
   role?: string
   createdAt: Date | string
+  isArchived?: boolean
+  archivedAt?: Date | string | null
+  archivedById?: string | null
   branchMember?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutMemberInput
   organizationSupportAgent?: Prisma.OrganizationSupportAgentUncheckedCreateNestedOneWithoutMemberInput
 }
@@ -509,12 +581,18 @@ export type MemberScalarWhereInput = {
   userId?: Prisma.StringFilter<"Member"> | string
   role?: Prisma.StringFilter<"Member"> | string
   createdAt?: Prisma.DateTimeFilter<"Member"> | Date | string
+  isArchived?: Prisma.BoolFilter<"Member"> | boolean
+  archivedAt?: Prisma.DateTimeNullableFilter<"Member"> | Date | string | null
+  archivedById?: Prisma.StringNullableFilter<"Member"> | string | null
 }
 
 export type MemberCreateWithoutOrganizationInput = {
   id: string
   role?: string
   createdAt: Date | string
+  isArchived?: boolean
+  archivedAt?: Date | string | null
+  archivedById?: string | null
   user: Prisma.UserCreateNestedOneWithoutMembersInput
   branchMember?: Prisma.BranchMemberCreateNestedManyWithoutMemberInput
   organizationSupportAgent?: Prisma.OrganizationSupportAgentCreateNestedOneWithoutMemberInput
@@ -525,6 +603,9 @@ export type MemberUncheckedCreateWithoutOrganizationInput = {
   userId: string
   role?: string
   createdAt: Date | string
+  isArchived?: boolean
+  archivedAt?: Date | string | null
+  archivedById?: string | null
   branchMember?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutMemberInput
   organizationSupportAgent?: Prisma.OrganizationSupportAgentUncheckedCreateNestedOneWithoutMemberInput
 }
@@ -559,6 +640,9 @@ export type MemberCreateWithoutBranchMemberInput = {
   id: string
   role?: string
   createdAt: Date | string
+  isArchived?: boolean
+  archivedAt?: Date | string | null
+  archivedById?: string | null
   organization: Prisma.OrganizationCreateNestedOneWithoutMembersInput
   user: Prisma.UserCreateNestedOneWithoutMembersInput
   organizationSupportAgent?: Prisma.OrganizationSupportAgentCreateNestedOneWithoutMemberInput
@@ -570,6 +654,9 @@ export type MemberUncheckedCreateWithoutBranchMemberInput = {
   userId: string
   role?: string
   createdAt: Date | string
+  isArchived?: boolean
+  archivedAt?: Date | string | null
+  archivedById?: string | null
   organizationSupportAgent?: Prisma.OrganizationSupportAgentUncheckedCreateNestedOneWithoutMemberInput
 }
 
@@ -593,6 +680,9 @@ export type MemberUpdateWithoutBranchMemberInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutMembersNestedInput
   user?: Prisma.UserUpdateOneRequiredWithoutMembersNestedInput
   organizationSupportAgent?: Prisma.OrganizationSupportAgentUpdateOneWithoutMemberNestedInput
@@ -604,6 +694,9 @@ export type MemberUncheckedUpdateWithoutBranchMemberInput = {
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   organizationSupportAgent?: Prisma.OrganizationSupportAgentUncheckedUpdateOneWithoutMemberNestedInput
 }
 
@@ -611,6 +704,9 @@ export type MemberCreateWithoutOrganizationSupportAgentInput = {
   id: string
   role?: string
   createdAt: Date | string
+  isArchived?: boolean
+  archivedAt?: Date | string | null
+  archivedById?: string | null
   organization: Prisma.OrganizationCreateNestedOneWithoutMembersInput
   user: Prisma.UserCreateNestedOneWithoutMembersInput
   branchMember?: Prisma.BranchMemberCreateNestedManyWithoutMemberInput
@@ -622,6 +718,9 @@ export type MemberUncheckedCreateWithoutOrganizationSupportAgentInput = {
   userId: string
   role?: string
   createdAt: Date | string
+  isArchived?: boolean
+  archivedAt?: Date | string | null
+  archivedById?: string | null
   branchMember?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutMemberInput
 }
 
@@ -645,6 +744,9 @@ export type MemberUpdateWithoutOrganizationSupportAgentInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutMembersNestedInput
   user?: Prisma.UserUpdateOneRequiredWithoutMembersNestedInput
   branchMember?: Prisma.BranchMemberUpdateManyWithoutMemberNestedInput
@@ -656,6 +758,9 @@ export type MemberUncheckedUpdateWithoutOrganizationSupportAgentInput = {
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   branchMember?: Prisma.BranchMemberUncheckedUpdateManyWithoutMemberNestedInput
 }
 
@@ -664,12 +769,18 @@ export type MemberCreateManyUserInput = {
   organizationId: string
   role?: string
   createdAt: Date | string
+  isArchived?: boolean
+  archivedAt?: Date | string | null
+  archivedById?: string | null
 }
 
 export type MemberUpdateWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutMembersNestedInput
   branchMember?: Prisma.BranchMemberUpdateManyWithoutMemberNestedInput
   organizationSupportAgent?: Prisma.OrganizationSupportAgentUpdateOneWithoutMemberNestedInput
@@ -680,6 +791,9 @@ export type MemberUncheckedUpdateWithoutUserInput = {
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   branchMember?: Prisma.BranchMemberUncheckedUpdateManyWithoutMemberNestedInput
   organizationSupportAgent?: Prisma.OrganizationSupportAgentUncheckedUpdateOneWithoutMemberNestedInput
 }
@@ -689,6 +803,9 @@ export type MemberUncheckedUpdateManyWithoutUserInput = {
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type MemberCreateManyOrganizationInput = {
@@ -696,12 +813,18 @@ export type MemberCreateManyOrganizationInput = {
   userId: string
   role?: string
   createdAt: Date | string
+  isArchived?: boolean
+  archivedAt?: Date | string | null
+  archivedById?: string | null
 }
 
 export type MemberUpdateWithoutOrganizationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   user?: Prisma.UserUpdateOneRequiredWithoutMembersNestedInput
   branchMember?: Prisma.BranchMemberUpdateManyWithoutMemberNestedInput
   organizationSupportAgent?: Prisma.OrganizationSupportAgentUpdateOneWithoutMemberNestedInput
@@ -712,6 +835,9 @@ export type MemberUncheckedUpdateWithoutOrganizationInput = {
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   branchMember?: Prisma.BranchMemberUncheckedUpdateManyWithoutMemberNestedInput
   organizationSupportAgent?: Prisma.OrganizationSupportAgentUncheckedUpdateOneWithoutMemberNestedInput
 }
@@ -721,6 +847,9 @@ export type MemberUncheckedUpdateManyWithoutOrganizationInput = {
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 
@@ -760,6 +889,9 @@ export type MemberSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   userId?: boolean
   role?: boolean
   createdAt?: boolean
+  isArchived?: boolean
+  archivedAt?: boolean
+  archivedById?: boolean
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   branchMember?: boolean | Prisma.Member$branchMemberArgs<ExtArgs>
@@ -773,6 +905,9 @@ export type MemberSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extens
   userId?: boolean
   role?: boolean
   createdAt?: boolean
+  isArchived?: boolean
+  archivedAt?: boolean
+  archivedById?: boolean
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["member"]>
@@ -783,6 +918,9 @@ export type MemberSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extens
   userId?: boolean
   role?: boolean
   createdAt?: boolean
+  isArchived?: boolean
+  archivedAt?: boolean
+  archivedById?: boolean
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["member"]>
@@ -793,9 +931,12 @@ export type MemberSelectScalar = {
   userId?: boolean
   role?: boolean
   createdAt?: boolean
+  isArchived?: boolean
+  archivedAt?: boolean
+  archivedById?: boolean
 }
 
-export type MemberOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "userId" | "role" | "createdAt", ExtArgs["result"]["member"]>
+export type MemberOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "userId" | "role" | "createdAt" | "isArchived" | "archivedAt" | "archivedById", ExtArgs["result"]["member"]>
 export type MemberInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -826,6 +967,9 @@ export type $MemberPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     userId: string
     role: string
     createdAt: Date
+    isArchived: boolean
+    archivedAt: Date | null
+    archivedById: string | null
   }, ExtArgs["result"]["member"]>
   composites: {}
 }
@@ -1258,6 +1402,9 @@ export interface MemberFieldRefs {
   readonly userId: Prisma.FieldRef<"Member", 'String'>
   readonly role: Prisma.FieldRef<"Member", 'String'>
   readonly createdAt: Prisma.FieldRef<"Member", 'DateTime'>
+  readonly isArchived: Prisma.FieldRef<"Member", 'Boolean'>
+  readonly archivedAt: Prisma.FieldRef<"Member", 'DateTime'>
+  readonly archivedById: Prisma.FieldRef<"Member", 'String'>
 }
     
 

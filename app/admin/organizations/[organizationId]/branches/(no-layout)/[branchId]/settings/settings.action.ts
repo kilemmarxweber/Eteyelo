@@ -24,6 +24,22 @@ export async function getCalendarSettingsAction() {
   });
 }
 
+export async function getCalendarClassesAction() {
+  const { branchId } = await requireBranchContext();
+  return prisma.classe.findMany({
+    where: {
+      branchId,
+      OR: [{ statusClasse: true }, { statusClasse: null }],
+    },
+    orderBy: [{ nameClasse: "asc" }, { codeClasse: "asc" }],
+    select: {
+      id: true,
+      nameClasse: true,
+      codeClasse: true,
+    },
+  });
+}
+
 export async function saveEventTypeAction(input: z.infer<typeof eventTypeSchema>) {
   const context = await requireBranchContext();
   assertCanManage(context.session);

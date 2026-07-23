@@ -67,7 +67,11 @@ export function formatReceiptCurrency(
     return `$${Number(amount).toFixed(2)}`;
   }
   const rounded = Math.round(Number(amount) || 0);
-  return `${rounded.toLocaleString("fr-FR")} ${currency}`;
+  const withDots = String(Math.abs(rounded)).replace(
+    /\B(?=(\d{3})+(?!\d))/g,
+    ".",
+  );
+  return `${rounded < 0 ? "-" : ""}${withDots} ${currency}`;
 }
 
 /** @deprecated Prefer formatReceiptCurrency */
@@ -246,6 +250,8 @@ export function mapInvoicePropsToReceipt(
       price: Number(fee.amountPaid),
       mode: "ESPECES",
       montant: Number(fee.amountPaid),
+      classe: fee.className || "",
+      codeClasse: "",
     })),
     logoUrl: extras?.logoUrl ?? "",
     exchangeRateUsdCdf:

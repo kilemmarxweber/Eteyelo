@@ -138,6 +138,25 @@ export const createStudentColumns = (
     filterFn: (row, id, value) => value.includes(row.getValue(id)),
   },
   {
+    id: "schoolYearId",
+    accessorKey: "schoolYearId",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Annee" />
+    ),
+    cell: ({ row }) => row.original.schoolYearName ?? "—",
+    filterFn: (row, _id, value) => {
+      const selected = Array.isArray(value) ? value.map(String) : [];
+      if (!selected.length) return true;
+      const yearIds = row.original.enrollmentYearIds ?? [];
+      if (!yearIds.length) {
+        const fallback = row.original.schoolYearId;
+        return fallback ? selected.includes(fallback) : false;
+      }
+      return selected.some((yearId) => yearIds.includes(yearId));
+    },
+    enableHiding: true,
+  },
+  {
     accessorKey: "dateOfBirth",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Date naissance" />
@@ -152,13 +171,36 @@ export const createStudentColumns = (
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Code classe" />
     ),
-    cell: ({ row }) => (
-      <span className="font-medium text-primary">
-        {row.original.classCode || "Non inscrit"}
-      </span>
-    ),
-    filterFn: (row, id, value) =>
-      Array.isArray(value) ? value.includes(row.getValue(id)) : true,
+    cell: ({ row, table }) => {
+      const yearFilter = table.getColumn("schoolYearId")?.getFilterValue();
+      const selectedYears = Array.isArray(yearFilter)
+        ? yearFilter.map(String)
+        : [];
+      const enrollment =
+        selectedYears.length === 1
+          ? row.original.enrollments?.find(
+              (item) => item.schoolYearId === selectedYears[0],
+            )
+          : null;
+      const classCode =
+        enrollment?.classCode ?? row.original.classCode ?? null;
+
+      return (
+        <span className="font-medium text-primary">
+          {classCode || "Non inscrit"}
+        </span>
+      );
+    },
+    filterFn: (row, id, value) => {
+      if (!Array.isArray(value) || !value.length) return true;
+      const classCodes = new Set<string>();
+      const current = row.getValue(id);
+      if (typeof current === "string" && current) classCodes.add(current);
+      for (const enrollment of row.original.enrollments ?? []) {
+        if (enrollment.classCode) classCodes.add(enrollment.classCode);
+      }
+      return value.some((code) => classCodes.has(String(code)));
+    },
   },
   {
     id: "age",

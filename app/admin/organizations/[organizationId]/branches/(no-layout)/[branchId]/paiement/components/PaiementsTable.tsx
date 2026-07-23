@@ -31,6 +31,7 @@ import {
   exportPaiementsReportPdf,
   type PaiementReportPeriod,
 } from "./export-paiements-pdf";
+import { formatReportAmount } from "@/lib/reports/format-amount";
 
 type GroupedPaiement = {
   reference: string;
@@ -75,10 +76,12 @@ function mapPaiement(p: any): IPaiement {
           prenom: p.classEnrollment.prenom,
           sexe: p.classEnrollment.sexe,
           nameClasse: p.classEnrollment.nameClasse,
+          codeClasse: p.classEnrollment.codeClasse,
           nameYear: p.classEnrollment.nameYear,
           parentId: p.classEnrollment.parentId,
           parentName: p.classEnrollment.parentNom,
           parentPrenom: p.classEnrollment.parentPrenom,
+          parentPostnom: p.classEnrollment.parentPostnom,
         }
       : undefined,
 
@@ -90,23 +93,8 @@ function mapPaiement(p: any): IPaiement {
 function mapGroupedToReceipt(
   g: GroupedPaiement,
   branding: SchoolReportContext,
-  studentFallback = "Élève",
+  parentFallback = "Parent",
 ): FacturePaymentStudentData {
-  const classNames = Array.from(
-    new Set(
-      g.items
-        .map((i) => i.classEnrollment?.nameClasse?.trim())
-        .filter((v): v is string => Boolean(v)),
-    ),
-  );
-  const sexes = Array.from(
-    new Set(
-      g.items
-        .map((i) => i.classEnrollment?.sexe?.trim())
-        .filter((v): v is string => Boolean(v)),
-    ),
-  );
-
   const receivedCurrency =
     g.items.find((i) => i.receivedCurrency)?.receivedCurrency ??
     branding.baseCurrency ??
@@ -119,9 +107,7 @@ function mapGroupedToReceipt(
       address: branding.address ?? "",
     },
     recipient: {
-      name: g.students.join(", ") || studentFallback,
-      class: classNames.join(", ") || "-",
-      sexe: sexes.join(", ") || "-",
+      name: g.parentName.trim() || parentFallback,
     },
     items: g.items.map((i) => ({
       description: i.frais?.nameFrais || "Frais scolaire",
@@ -132,6 +118,8 @@ function mapGroupedToReceipt(
         i.receivedAmount != null
           ? Number(i.receivedAmount)
           : Number(i.montantPaye),
+      classe: i.classEnrollment?.nameClasse ?? "",
+      codeClasse: i.classEnrollment?.codeClasse ?? "",
     })),
     logoUrl: branding.logoUrl,
     exchangeRateUsdCdf:
@@ -193,7 +181,7 @@ const PaiementsTable = ({ refreshKey }: { refreshKey?: string }) => {
       toast.error("Contexte établissement indisponible pour le reçu.");
       return;
     }
-    setReceiptData(mapGroupedToReceipt(g, branding, peopleLabels.student));
+    setReceiptData(mapGroupedToReceipt(g, branding));
     setReceiptIssuedAt(g.date);
     setReceiptOpen(true);
   };
@@ -232,9 +220,14 @@ const PaiementsTable = ({ refreshKey }: { refreshKey?: string }) => {
 
       return {
         reference: ref,
-        parentName: `${first.classEnrollment?.parentPrenom ?? ""} ${
-          first.classEnrollment?.parentName ?? ""
-        }`.trim(),
+        parentName: [
+          first.classEnrollment?.parentPrenom,
+          first.classEnrollment?.parentName,
+          first.classEnrollment?.parentPostnom,
+        ]
+          .filter(Boolean)
+          .join(" ")
+          .trim(),
 
         students,
 
@@ -429,20 +422,14 @@ const PaiementsTable = ({ refreshKey }: { refreshKey?: string }) => {
       key: "base",
       header: baseCurrency,
       cell: (g: GroupedPaiement) =>
-        `${g.total.toLocaleString("fr-FR", {
-          minimumFractionDigits: baseCurrency === "USD" ? 2 : 0,
-          maximumFractionDigits: baseCurrency === "USD" ? 2 : 0,
-        })} ${baseCurrency}`,
+        formatReportAmount(g.total, baseCurrency),
     },
     {
       key: "total",
       header: `Total (${quoteCurrency})`,
       cell: (g: GroupedPaiement) => {
         if (baseCurrency === "USD" && quoteCurrency === "CDF") {
-          return (g.total * exchangeRate).toLocaleString("fr-FR", {
-            style: "currency",
-            currency: "CDF",
-          });
+          return formatReportAmount(g.total * exchangeRate, "CDF");
         }
         if (baseCurrency !== "USD" && quoteCurrency === "USD") {
           const usd =
@@ -456,18 +443,14 @@ const PaiementsTable = ({ refreshKey }: { refreshKey?: string }) => {
             first.receivedAmount != null &&
             g.total > 0
           ) {
-            const ratio = Number(first.receivedAmount) / Number(first.montantPaye || g.total);
-            return (g.total * ratio).toLocaleString("en-US", {
-              style: "currency",
-              currency: "USD",
-            });
+            const ratio =
+              Number(first.receivedAmount) /
+              Number(first.montantPaye || g.total);
+            return formatReportAmount(g.total * ratio, "USD");
           }
-          return usd.toLocaleString("en-US", {
-            style: "currency",
-            currency: "USD",
-          });
+          return formatReportAmount(usd, "USD");
         }
-        return `${g.total.toLocaleString("fr-FR")} ${quoteCurrency}`;
+        return formatReportAmount(g.total, quoteCurrency);
       },
     },
     {
@@ -509,10 +492,7 @@ const PaiementsTable = ({ refreshKey }: { refreshKey?: string }) => {
       { label: peopleLabels.studentPlural, value: g.students.join(", ") },
       {
         label: "Total",
-        value: (g.total * exchangeRate).toLocaleString("fr-FR", {
-          style: "currency",
-          currency: "CDF",
-        }),
+        value: formatReportAmount(g.total, baseCurrency),
       },
     ],
     actions: () => [],

@@ -145,7 +145,11 @@ export async function listOrganizationsForUser(
   }
 
   const memberships = await prisma.member.findMany({
-    where: { userId },
+    where: {
+      userId,
+      isArchived: false,
+      organization: { isArchived: false },
+    },
     select: {
       organization: {
         select: organizationSelect,
@@ -171,10 +175,18 @@ export async function canAccessOrganization(
         userId,
       },
     },
-    select: { id: true },
+    select: {
+      id: true,
+      isArchived: true,
+      organization: { select: { isArchived: true } },
+    },
   });
 
-  return membership != null;
+  if (!membership) return false;
+  if (membership.isArchived) return false;
+  if (membership.organization.isArchived) return false;
+
+  return true;
 }
 
 export async function getOrganizationByIdForUser(

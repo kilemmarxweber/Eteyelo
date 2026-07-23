@@ -7,6 +7,7 @@ import {
   REPORT_HEADER_CONTENT_TOP_MM,
 } from "@/lib/reports/pdf-header-footer";
 import type { SchoolReportContext } from "@/lib/reports/types";
+import { formatReportAmount } from "@/lib/reports/format-amount";
 
 export type CashierReportPdfOptions = {
   dateStart: string;
@@ -39,12 +40,6 @@ export type ReportData = {
   }>;
 };
 
-const formatAmount = (value: number, currency = "USD") =>
-  `${value.toLocaleString("fr-FR", {
-    minimumFractionDigits: currency === "USD" ? 2 : 0,
-    maximumFractionDigits: currency === "USD" ? 2 : 0,
-  })} ${currency}`;
-
 function safeFilePart(value: string) {
   return value
     .normalize("NFD")
@@ -76,7 +71,10 @@ export async function buildCashierReportPdf(
   const periodDetail = buildPeriodDetail(options.dateStart, options.dateEnd);
   const branchLabel = context.branchName || context.schoolName;
   const currency = context.baseCurrency ?? "USD";
-  const money = (value: number) => formatAmount(value, currency);
+  const money = (value: number) => formatReportAmount(value, currency);
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const marginX = 10;
+  const usableWidth = pageWidth - marginX * 2;
 
   const drawHeader = () => {
     drawReportHeader(doc, context, {
@@ -114,10 +112,11 @@ export async function buildCashierReportPdf(
     startY: incomeFirstPageTop,
     margin: {
       top: REPORT_HEADER_CONTENT_TOP_MM,
-      right: 10,
+      right: marginX,
       bottom: 14,
-      left: 10,
+      left: marginX,
     },
+    tableWidth: usableWidth,
     head: [incomeHead],
     body: incomeBody,
     theme: "grid",
@@ -126,21 +125,30 @@ export async function buildCashierReportPdf(
       font: "helvetica",
       fontSize: 8,
       cellPadding: 2,
+      overflow: "linebreak",
       valign: "middle",
     },
     headStyles: {
       fillColor: [16, 185, 129],
       textColor: 255,
       fontStyle: "bold",
+      halign: "center",
     },
-    columnStyles: { 5: { halign: "right" } },
+    columnStyles: {
+      0: { cellWidth: usableWidth * 0.1, halign: "center" },
+      1: { cellWidth: usableWidth * 0.18 },
+      2: { cellWidth: usableWidth * 0.22 },
+      3: { cellWidth: usableWidth * 0.22 },
+      4: { cellWidth: usableWidth * 0.12, halign: "center" },
+      5: { cellWidth: usableWidth * 0.16, halign: "right" },
+    },
     didDrawPage: (hookData) => {
       drawHeader();
       if (hookData.pageNumber === 1) {
         doc.setFontSize(10);
         doc.setTextColor(15, 23, 42);
         doc.setFont("helvetica", "bold");
-        doc.text("Détail des Encaissements", 10, REPORT_HEADER_CONTENT_TOP_MM - 2);
+        doc.text("Détail des Encaissements", marginX, REPORT_HEADER_CONTENT_TOP_MM - 2);
       }
     },
   });
@@ -172,11 +180,12 @@ export async function buildCashierReportPdf(
     doc.setFontSize(10);
     doc.setTextColor(15, 23, 42);
     doc.setFont("helvetica", "bold");
-    doc.text("Détail des Dépenses", 10, finalY + 10);
+    doc.text("Détail des Dépenses", marginX, finalY + 10);
 
     autoTable(doc, {
       startY: finalY + 14,
-      margin: { right: 10, left: 10, bottom: 14 },
+      margin: { right: marginX, left: marginX, bottom: 14 },
+      tableWidth: usableWidth,
       head: [expenseHead],
       body: expenseBody,
       theme: "grid",
@@ -184,14 +193,22 @@ export async function buildCashierReportPdf(
         font: "helvetica",
         fontSize: 8,
         cellPadding: 2,
+        overflow: "linebreak",
         valign: "middle",
       },
       headStyles: {
         fillColor: [225, 29, 72],
         textColor: 255,
         fontStyle: "bold",
+        halign: "center",
       },
-      columnStyles: { 4: { halign: "right" } },
+      columnStyles: {
+        0: { cellWidth: usableWidth * 0.1, halign: "center" },
+        1: { cellWidth: usableWidth * 0.2 },
+        2: { cellWidth: usableWidth * 0.18 },
+        3: { cellWidth: usableWidth * 0.34 },
+        4: { cellWidth: usableWidth * 0.18, halign: "right" },
+      },
     });
 
     finalY =
@@ -200,7 +217,7 @@ export async function buildCashierReportPdf(
   }
 
   // 3. Totaux (Summary box)
-  if (finalY + 40 > doc.internal.pageSize.getHeight()) {
+  if (finalY + 44 > doc.internal.pageSize.getHeight()) {
     doc.addPage();
     drawHeader();
     finalY = REPORT_HEADER_CONTENT_TOP_MM;
@@ -208,43 +225,48 @@ export async function buildCashierReportPdf(
     finalY += 15;
   }
 
+  const boxWidth = 110;
+  const boxX = marginX;
+  const labelX = boxX + 4;
+  const valueX = boxX + boxWidth - 4;
+
   doc.setFillColor(248, 250, 252);
   doc.setDrawColor(203, 213, 225);
-  doc.roundedRect(10, finalY, 90, 42, 2, 2, "FD");
+  doc.roundedRect(boxX, finalY, boxWidth, 42, 2, 2, "FD");
 
   doc.setFontSize(10);
   doc.setTextColor(15, 23, 42);
   doc.setFont("helvetica", "bold");
-  doc.text("Récapitulatif", 14, finalY + 6);
+  doc.text("Récapitulatif", labelX, finalY + 6);
 
   doc.setFontSize(9);
   doc.setFont("helvetica", "normal");
 
   const opening = data.openingBalance ?? 0;
 
-  doc.text("Solde d'ouverture (veille) :", 14, finalY + 14);
-  doc.text(money(opening), 95, finalY + 14, { align: "right" });
+  doc.text("Solde d'ouverture (veille) :", labelX, finalY + 14);
+  doc.text(money(opening), valueX, finalY + 14, { align: "right" });
 
-  doc.text("Total Encaissements :", 14, finalY + 20);
+  doc.text("Total Encaissements :", labelX, finalY + 20);
   doc.setTextColor(16, 185, 129);
-  doc.text(money(data.incomeTotal), 95, finalY + 20, {
+  doc.text(money(data.incomeTotal), valueX, finalY + 20, {
     align: "right",
   });
 
   doc.setTextColor(15, 23, 42);
-  doc.text("Total Dépenses :", 14, finalY + 26);
+  doc.text("Total Dépenses :", labelX, finalY + 26);
   doc.setTextColor(225, 29, 72);
-  doc.text(money(data.outflowTotal), 95, finalY + 26, {
+  doc.text(money(data.outflowTotal), valueX, finalY + 26, {
     align: "right",
   });
 
   doc.setDrawColor(203, 213, 225);
-  doc.line(14, finalY + 30, 96, finalY + 30);
+  doc.line(labelX, finalY + 30, valueX, finalY + 30);
 
   doc.setTextColor(15, 23, 42);
   doc.setFont("helvetica", "bold");
-  doc.text("Solde Net :", 14, finalY + 36);
-  doc.text(money(data.balance), 95, finalY + 36, { align: "right" });
+  doc.text("Solde Net :", labelX, finalY + 36);
+  doc.text(money(data.balance), valueX, finalY + 36, { align: "right" });
 
   drawReportFooterOnAllPages(doc, context, {
     leftText: branchLabel,

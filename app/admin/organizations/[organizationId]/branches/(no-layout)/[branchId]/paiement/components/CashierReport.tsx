@@ -12,6 +12,7 @@ import { exportCashierReportPdf } from "./export-cashier-pdf";
 import { toast } from "sonner";
 import { IconFileTypePdf, IconRefresh } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
+import { formatReportAmount } from "@/lib/reports/format-amount";
 
 type CashierReportData = {
   date: string;
@@ -48,12 +49,6 @@ interface Props {
   onToggleExpenseForm?: () => void;
   showExpenseForm?: boolean;
 }
-
-const formatAmount = (value: number, currency = "USD") =>
-  `${value.toLocaleString("fr-FR", {
-    minimumFractionDigits: currency === "USD" ? 2 : 0,
-    maximumFractionDigits: currency === "USD" ? 2 : 0,
-  })} ${currency}`;
 
 export default function CashierReport({
   refreshKey,
@@ -210,8 +205,8 @@ export default function CashierReport({
               <div className="text-sm text-muted-foreground">
                 Solde d&apos;ouverture
               </div>
-              <div className="mt-2 text-2xl font-semibold">
-                {formatAmount(report.openingBalance, baseCurrency)}
+              <div className="mt-2 text-xl font-semibold tabular-nums tracking-normal sm:text-2xl">
+                {formatReportAmount(report.openingBalance, baseCurrency)}
               </div>
               <div className="mt-1 text-xs text-muted-foreground">
                 {report.openingLabel ?? "Solde net de la veille (automatique)"}
@@ -219,8 +214,8 @@ export default function CashierReport({
             </div>
             <div className="rounded-xl border border-border bg-muted p-4">
               <div className="text-sm text-muted-foreground">Encaissements</div>
-              <div className="mt-2 text-2xl font-semibold text-emerald-600 dark:text-emerald-400">
-                {formatAmount(report.incomeTotal, baseCurrency)}
+              <div className="mt-2 text-xl font-semibold tabular-nums tracking-normal text-emerald-600 sm:text-2xl dark:text-emerald-400">
+                {formatReportAmount(report.incomeTotal, baseCurrency)}
               </div>
               <div className="text-sm text-secondary">
                 {report.payments.length} entrée(s)
@@ -228,8 +223,8 @@ export default function CashierReport({
             </div>
             <div className="rounded-xl border border-border bg-muted p-4">
               <div className="text-sm text-muted-foreground">Sorties</div>
-              <div className="mt-2 text-2xl font-semibold text-rose-600 dark:text-rose-400">
-                {formatAmount(report.outflowTotal, baseCurrency)}
+              <div className="mt-2 text-xl font-semibold tabular-nums tracking-normal text-rose-600 sm:text-2xl dark:text-rose-400">
+                {formatReportAmount(report.outflowTotal, baseCurrency)}
               </div>
               <div className="text-sm text-secondary">
                 {report.expenses.length} dépense(s)
@@ -237,11 +232,11 @@ export default function CashierReport({
             </div>
             <div className="rounded-xl border border-primary/30 bg-muted p-4 shadow-sm">
               <div className="text-sm font-medium text-foreground">Solde Net</div>
-              <div className="mt-2 text-2xl font-black text-primary">
-                {formatAmount(report.balance, baseCurrency)}
+              <div className="mt-2 text-xl font-black tabular-nums tracking-normal text-primary sm:text-2xl">
+                {formatReportAmount(report.balance, baseCurrency)}
               </div>
-              <div className="text-sm text-secondary">
-                Periode {formatAmount(report.periodBalance, baseCurrency)}
+              <div className="text-sm tabular-nums text-secondary">
+                Periode {formatReportAmount(report.periodBalance, baseCurrency)}
               </div>
             </div>
           </div>

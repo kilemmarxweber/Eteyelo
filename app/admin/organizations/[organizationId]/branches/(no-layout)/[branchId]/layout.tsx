@@ -1,6 +1,5 @@
 import ClientLayout from "./client-layout";
 import AttendanceGuard from "./attendance/component/AttendanceGuard ";
-import { IdleLogout } from "@/lib/idle-logout";
 import { enforceOrganizationBranchPage } from "@/lib/auth/require-organization-permission";
 import { switchActiveBranch } from "@/lib/auth/switch-branch";
 
@@ -22,7 +21,6 @@ export default async function Layout({
 
   return (
     <ClientLayout>
-      <IdleLogout />
       <AttendanceGuard />
       {children}
     </ClientLayout>

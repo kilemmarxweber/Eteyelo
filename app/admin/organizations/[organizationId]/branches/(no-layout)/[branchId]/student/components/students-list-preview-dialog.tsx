@@ -100,7 +100,6 @@ export function StudentsListPreviewDialog({
           ? {
               schoolName: context.schoolName,
               address: context.address,
-              phone: context.phone,
               logoUrl: context.logoUrl,
               academicYearLabel: context.academicYearLabel,
             }

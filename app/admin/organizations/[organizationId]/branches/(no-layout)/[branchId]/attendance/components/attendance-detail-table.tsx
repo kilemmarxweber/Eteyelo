@@ -39,8 +39,8 @@ export function AttendanceDetailTable({ rows }: { rows: AttendanceReportRow[] })
               <th className="px-5 py-3 font-medium">Agent</th>
               <th className="px-5 py-3 font-medium">Poste</th>
               <th className="px-5 py-3 font-medium">Statut</th>
-              <th className="px-5 py-3 font-medium">Arrivee</th>
-              <th className="px-5 py-3 font-medium">Depart</th>
+              <th className="px-5 py-3 font-medium">Heure debut</th>
+              <th className="px-5 py-3 font-medium">Heure fin</th>
             </tr>
           </thead>
           <tbody>

@@ -36,6 +36,7 @@ import { StudentBadgeSection, type StudentBadgeSectionHandle } from "./student-b
 import { StudentDocumentsSection } from "./student-documents-section";
 import { StudentScheduleSection } from "./student-schedule-section";
 import { StudentAnnouncementsSection } from "./student-announcements-section";
+import { StudentPresenceSection } from "./student-presence-section";
 import { StudentPhotoAvatar } from "./student-photo-avatar";
 import { StudentPhotoUploadInput } from "./student-photo-upload-input";
 import { useStudentPhotoUpload } from "./use-student-photo-upload";
@@ -742,9 +743,7 @@ export function StudentProfileClient({ profile }: { profile: StudentProfileData 
             </TabsContent>
 
             <TabsContent value="presence" className="mt-0">
-              <Card className="rounded-xl border border-dashed p-8 text-center text-sm text-muted-foreground">
-                Module presence en cours de preparation.
-              </Card>
+              <StudentPresenceSection studentId={profile.studentId} />
             </TabsContent>
 
             <TabsContent value="documents" className="mt-0">

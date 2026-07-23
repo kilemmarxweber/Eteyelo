@@ -4,8 +4,9 @@ import type { SchoolReportContext } from "@/lib/reports/types";
 /**
  * Marge haute de secours (autotable). Préférer la valeur renvoyée par
  * `drawReportHeader` quand elle est disponible.
+ * Aligné sur l’en-tête horizontal (logo à gauche + identité).
  */
-export const REPORT_HEADER_CONTENT_TOP_MM = 72;
+export const REPORT_HEADER_CONTENT_TOP_MM = 58;
 
 export type DrawReportHeaderOptions = {
   title: string;
@@ -50,7 +51,8 @@ function schoolInitials(name: string): string {
 }
 
 /**
- * En-tête document : logo centré + identité + titre + meta.
+ * En-tête document : logo à gauche, identité au même niveau, puis titre + meta.
+ * Aligné sur `SchoolBrandHeader` (aperçu HTML = PDF).
  * @returns Y (mm) où le corps du document doit commencer.
  */
 export function drawReportHeader(
@@ -61,9 +63,11 @@ export function drawReportHeader(
   const pageWidth = doc.internal.pageSize.getWidth();
   const { title, subtitle, details = [], logoDataUrl } = options;
   const marginX = 14;
-  const logoSize = 20;
-  const logoX = (pageWidth - logoSize) / 2;
+  const logoSize = 18;
+  const logoX = marginX;
   const logoY = 10;
+  const textX = logoX + logoSize + 5;
+  const textMaxWidth = pageWidth - textX - marginX;
 
   if (logoDataUrl) {
     try {
@@ -87,74 +91,73 @@ export function drawReportHeader(
     doc.setFillColor(248, 250, 252);
     doc.roundedRect(logoX, logoY, logoSize, logoSize, 2, 2, "FD");
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(10);
+    doc.setFontSize(9);
     doc.setTextColor(100, 116, 139);
     doc.text(
       schoolInitials(context.schoolName || "E") || "E",
-      pageWidth / 2,
-      logoY + logoSize / 2 + 1.8,
+      logoX + logoSize / 2,
+      logoY + logoSize / 2 + 1.5,
       { align: "center" },
     );
   }
 
-  let y = logoY + logoSize + 5;
+  let textY = logoY + 5;
 
   doc.setTextColor(15, 23, 42);
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(14);
-  doc.text(context.schoolName || "Établissement", pageWidth / 2, y, {
-    align: "center",
+  doc.setFontSize(13);
+  doc.text(context.schoolName || "Établissement", textX, textY, {
+    maxWidth: textMaxWidth,
   });
-  y += 5.5;
+  textY += 5;
 
   if (subtitle?.trim()) {
     doc.setFont("helvetica", "normal");
-    doc.setFontSize(10);
+    doc.setFontSize(9);
     doc.setTextColor(71, 85, 105);
-    doc.text(subtitle.trim(), pageWidth / 2, y, { align: "center" });
-    y += 4.5;
+    doc.text(subtitle.trim(), textX, textY, {
+      maxWidth: textMaxWidth,
+    });
+    textY += 4;
   }
 
-  const contactLine = [context.address, context.phone]
-    .map((part) => part?.trim())
-    .filter(Boolean)
-    .join("  ·  ");
+  const contactLine = context.address?.trim() || "";
 
   if (contactLine) {
     doc.setFont("helvetica", "normal");
     doc.setTextColor(100, 116, 139);
     doc.setFontSize(8);
-    doc.text(contactLine, pageWidth / 2, y, {
-      align: "center",
-      maxWidth: pageWidth - marginX * 2,
+    doc.text(contactLine, textX, textY, {
+      maxWidth: textMaxWidth,
     });
-    y += 4;
+    textY += 3.8;
   }
 
   if (context.academicYearLabel) {
     doc.setFont("helvetica", "normal");
     doc.setTextColor(100, 116, 139);
     doc.setFontSize(8);
-    doc.text(`Année scolaire : ${context.academicYearLabel}`, pageWidth / 2, y, {
-      align: "center",
+    doc.text(`Année scolaire : ${context.academicYearLabel}`, textX, textY, {
+      maxWidth: textMaxWidth,
     });
-    y += 4;
+    textY += 3.8;
   }
 
-  y += 2;
+  let y = Math.max(logoY + logoSize, textY) + 3;
+
   doc.setDrawColor(226, 232, 240);
   doc.setLineWidth(0.35);
   doc.line(marginX, y, pageWidth - marginX, y);
-  y += 7;
+  y += 6;
 
   doc.setFont("helvetica", "bold");
   doc.setTextColor(30, 64, 175);
-  doc.setFontSize(13);
+  doc.setFontSize(12);
   doc.text(title, pageWidth / 2, y, {
     align: "center",
     maxWidth: pageWidth - marginX * 2,
   });
-  y += 6;
+  y += 5.5;
 
   const meta = [
     ...details,
@@ -173,7 +176,7 @@ export function drawReportHeader(
       align: "center",
       maxWidth: pageWidth - marginX * 2,
     });
-    y += 5;
+    y += 4.5;
   }
 
   doc.setDrawColor(191, 219, 254);

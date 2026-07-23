@@ -3,16 +3,25 @@ import { prismaAdapter } from "better-auth/adapters/prisma";
 import { prisma } from "@/lib/prisma";
 import { consumeAdminCreatedUserPlainPassword } from "@/lib/admin-created-user-password";
 import {
+  assertUserCanAcceptOrganizationInvitation,
   assertUserCanJoinOrganization,
   countUserOrganizations,
   getSessionOrganizationContext,
 } from "@/lib/auth/org-membership";
 import { isAppAdminRole, hasPlatformSupportPrivileges, isPlatformOwnerRole } from "@/lib/permissions";
 import { sendNewUserCredentialsEmail } from "@/lib/email/send-new-user-credentials";
+import { sendOrganizationInvitationEmail } from "@/lib/email/send-organization-invitation-email";
 import { sendVerificationEmail } from "@/lib/email/send-verification-email";
+import {
+  getOrganizationInvitationsConfig,
+  invitationExpiresAtFromConfig,
+  isInvitableRole,
+} from "@/lib/invitations/config";
+import { INVITATION_MESSAGES } from "@/lib/invitations/messages";
 import { admin, customSession, organization } from "better-auth/plugins";
 import {
   APP_ROLE,
+  ALL_ORG_ROLE_SLUGS,
   ORG_ROLE,
   applicationRoles,
   authAccessControl,
@@ -151,6 +160,18 @@ const authOptions = {
         const count = await countUserOrganizations(user.id);
         return count >= 1;
       },
+      invitationExpiresIn: 60 * 60 * 24 * 7,
+      cancelPendingInvitationsOnReInvite: true,
+      requireEmailVerificationOnInvitation: false,
+      sendInvitationEmail: async (data) => {
+        await sendOrganizationInvitationEmail({
+          to: data.email,
+          invitationId: data.id,
+          organizationName: data.organization.name,
+          role: data.role,
+          inviterName: data.inviter.user.name,
+        });
+      },
       dynamicAccessControl: {
         enabled: true,
       },
@@ -171,14 +192,44 @@ const authOptions = {
             );
           }
         },
+        beforeCreateInvitation: async ({ invitation, organization }) => {
+          const config = await getOrganizationInvitationsConfig(organization.id);
+          if (!config.enabled) {
+            throw new Error(INVITATION_MESSAGES.disabled);
+          }
+
+          const role = String(invitation.role ?? "").trim();
+          if (!role) {
+            throw new Error(INVITATION_MESSAGES.roleRequired);
+          }
+          if (
+            !(ALL_ORG_ROLE_SLUGS as readonly string[]).includes(role) ||
+            !isInvitableRole(role, config)
+          ) {
+            throw new Error(INVITATION_MESSAGES.roleInvalid);
+          }
+
+          return {
+            data: {
+              ...invitation,
+              role,
+              expiresAt: invitationExpiresAtFromConfig(config),
+            },
+          };
+        },
         beforeAddMember: async ({ user, organization }) => {
           // Les owners plateforme peuvent appartenir à plusieurs organisations.
           if (isPlatformOwnerRole(user.role)) return;
+          // Ajout direct : toujours 1 org max (hors invitation).
           await assertUserCanJoinOrganization(user.id, organization.id);
         },
         beforeAcceptInvitation: async ({ user, organization }) => {
           if (isPlatformOwnerRole(user.role)) return;
-          await assertUserCanJoinOrganization(user.id, organization.id);
+          // Multi-org uniquement via invitation + config org.
+          await assertUserCanAcceptOrganizationInvitation(
+            user.id,
+            organization.id,
+          );
         },
       },
     }),

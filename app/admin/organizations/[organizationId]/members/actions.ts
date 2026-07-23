@@ -14,10 +14,12 @@ import { prisma } from "@/lib/prisma";
 import {
   createOrgMemberSchema,
   removeOrgMemberSchema,
+  archiveOrgMemberSchema,
   resetOrgMemberPasswordSchema,
   updateOrgMemberSchema,
   type CreateOrgMemberInput,
   type RemoveOrgMemberInput,
+  type ArchiveOrgMemberInput,
   type ResetOrgMemberPasswordInput,
   updateUserSchema,
   type UpdateOrgMemberInput,
@@ -29,6 +31,7 @@ import {
   removeOrganizationMember,
   updateOrganizationMemberRole,
 } from "@/lib/auth/organization-member-operations";
+import { buildIsArchivedUpdate } from "@/lib/archive";
 import { orgRoleLabel } from "@/lib/org-role-labels";
 
 function errMessage(err: unknown): string {
@@ -328,6 +331,123 @@ export async function removeOrganizationMemberAction(
     );
     revalidatePath(`/admin/organizations/${organizationId}/members`, "page");
     return { ok: true };
+  } catch (e) {
+    return { ok: false, message: errMessage(e) };
+  }
+}
+
+export async function archiveOrganizationMemberAction(
+  input: ArchiveOrgMemberInput,
+): Promise<{ ok: true } | { ok: false; message: string }> {
+  const parsed = archiveOrgMemberSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false, message: zodFirstMessage(parsed.error) };
+  }
+
+  const { organizationId, memberId, archive } = parsed.data;
+  const guard = await guardOrganizationMemberPermission(organizationId, {
+    member: ["update"],
+  });
+  if (!guard.ok) {
+    return { ok: false, message: guard.message };
+  }
+
+  try {
+    const member = await prisma.member.findFirst({
+      where: { id: memberId, organizationId },
+      select: { id: true, userId: true, isArchived: true },
+    });
+    if (!member) {
+      return { ok: false, message: "Membre introuvable." };
+    }
+
+    if (archive && member.isArchived) {
+      return { ok: false, message: "Ce membre est déjà archivé." };
+    }
+    if (!archive && !member.isArchived) {
+      return { ok: false, message: "Ce membre est déjà actif." };
+    }
+
+    await prisma.member.update({
+      where: { id: member.id },
+      data: archive
+        ? buildIsArchivedUpdate(guard.context.userId)
+        : {
+            isArchived: false,
+            archivedAt: null,
+            archivedById: null,
+          },
+    });
+
+    if (archive) {
+      await prisma.session.updateMany({
+        where: {
+          userId: member.userId,
+          activeOrganizationId: organizationId,
+        },
+        data: {
+          activeOrganizationId: null,
+          activeBranchId: null,
+        },
+      });
+    }
+
+    revalidatePath(`/admin/organizations/${organizationId}/members`, "page");
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, message: errMessage(e) };
+  }
+}
+
+export type OrganizationMemberListItem = {
+  id: string;
+  userId: string;
+  role: string;
+  isArchived: boolean;
+  createdAt: Date;
+  user: {
+    id: string;
+    email: string | null;
+    name: string;
+    image: string | null;
+  };
+};
+
+export async function listOrganizationMembersAction(
+  organizationId: string,
+): Promise<
+  | { ok: true; members: OrganizationMemberListItem[] }
+  | { ok: false; message: string }
+> {
+  const guard = await guardOrganizationMemberPermission(organizationId, {
+    member: ["read"],
+  });
+  if (!guard.ok) {
+    return { ok: false, message: guard.message };
+  }
+
+  try {
+    const members = await prisma.member.findMany({
+      where: { organizationId },
+      select: {
+        id: true,
+        userId: true,
+        role: true,
+        isArchived: true,
+        createdAt: true,
+        user: {
+          select: {
+            id: true,
+            email: true,
+            name: true,
+            image: true,
+          },
+        },
+      },
+      orderBy: [{ isArchived: "asc" }, { createdAt: "desc" }],
+    });
+
+    return { ok: true, members };
   } catch (e) {
     return { ok: false, message: errMessage(e) };
   }

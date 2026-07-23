@@ -1068,12 +1068,16 @@ model Member {
   user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   role           String         @default("member")
   createdAt      DateTime
+  isArchived     Boolean        @default(false)
+  archivedAt     DateTime?
+  archivedById   String?
   branchMember   BranchMember[]
   organizationSupportAgent OrganizationSupportAgent?
 
   @@index([organizationId])
   @@index([userId])
   @@index([organizationId, role])
+  @@index([organizationId, isArchived])
   @@unique([organizationId, userId])
   @@map("member")
 }

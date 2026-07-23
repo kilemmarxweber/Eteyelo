@@ -28,6 +28,7 @@ import {
   type EventLocaleCode,
   type EventLocaleMap,
 } from "@/lib/calendar-event-i18n";
+import { translateEventTextsAction } from "../translate-event.action";
 import { MAX_IMAGE_UPLOAD_BYTES, uploadFile } from "@/lib/upload-file";
 import { normalizeImageSrc, cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -42,13 +43,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Loader2 } from "lucide-react";
 
 type EventTypeOption = { id: string; name: string };
+type ClasseOption = { id: string; nameClasse: string; codeClasse: string };
 
 type CalendarEventFormProps = {
   userId: string;
   mode: "create" | "update";
   eventTypes: EventTypeOption[];
+  classes?: ClasseOption[];
   initialEvent?: ICalendarEvent | null;
   onSuccess?: () => void;
 };
@@ -94,6 +98,7 @@ function buildDefaultValues(
       ? new Date(initialEvent.dateEnd)
       : null,
     typeId: initialEvent?.typeId ?? "",
+    classeId: initialEvent?.classeId ?? "",
     titleI18n,
     descriptionI18n,
     translationsEnabled: hasTranslations,
@@ -113,11 +118,13 @@ export function CalendarEventForm({
   userId,
   mode,
   eventTypes,
+  classes = [],
   initialEvent,
   onSuccess,
 }: CalendarEventFormProps) {
   const [pending, startTransition] = useTransition();
   const [uploading, setUploading] = useState(false);
+  const [translating, setTranslating] = useState(false);
   const [activeLocale, setActiveLocale] = useState<EventLocaleCode>("fr");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -155,6 +162,45 @@ export function CalendarEventForm({
       } else {
         form.setValue("description", value, { shouldDirty: true });
       }
+    }
+  }
+
+  async function handleLocaleChange(locale: EventLocaleCode) {
+    setActiveLocale(locale);
+
+    if (locale === "fr" || translating) return;
+
+    const titles = normalizeLocaleMap(form.getValues("titleI18n"));
+    const descriptions = normalizeLocaleMap(form.getValues("descriptionI18n"));
+    const sourceTitle = (titles.fr || form.getValues("title") || "").trim();
+    const sourceDescription = (
+      descriptions.fr ||
+      form.getValues("description") ||
+      ""
+    ).trim();
+
+    if (!sourceTitle && !sourceDescription) return;
+
+    setTranslating(true);
+    try {
+      const translated = await translateEventTextsAction({
+        title: sourceTitle,
+        description: sourceDescription,
+        targetLocale: locale,
+      });
+
+      if (translated.title) {
+        setLocaleField("titleI18n", locale, translated.title);
+      }
+      if (translated.description) {
+        setLocaleField("descriptionI18n", locale, translated.description);
+      }
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Traduction impossible.",
+      );
+    } finally {
+      setTranslating(false);
     }
   }
 
@@ -305,22 +351,37 @@ export function CalendarEventForm({
           </div>
 
           {translationsEnabled ? (
-            <div className="flex flex-wrap gap-1 rounded-lg border bg-muted/30 p-1">
-              {EVENT_LOCALES.map((locale) => (
-                <button
-                  key={locale.code}
-                  type="button"
-                  onClick={() => setActiveLocale(locale.code)}
-                  className={cn(
-                    "rounded-md px-3 py-1.5 text-xs font-medium transition",
-                    activeLocale === locale.code
-                      ? "bg-background text-foreground shadow-sm"
-                      : "text-muted-foreground hover:text-foreground",
-                  )}
-                >
-                  {locale.short}
-                </button>
-              ))}
+            <div className="space-y-2">
+              <div className="flex flex-wrap gap-1 rounded-lg border bg-muted/30 p-1">
+                {EVENT_LOCALES.map((locale) => (
+                  <button
+                    key={locale.code}
+                    type="button"
+                    disabled={translating}
+                    onClick={() => void handleLocaleChange(locale.code)}
+                    className={cn(
+                      "rounded-md px-3 py-1.5 text-xs font-medium transition",
+                      activeLocale === locale.code
+                        ? "bg-background text-foreground shadow-sm"
+                        : "text-muted-foreground hover:text-foreground",
+                      translating && "opacity-60",
+                    )}
+                  >
+                    {locale.short}
+                  </button>
+                ))}
+              </div>
+              {translating ? (
+                <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <Loader2 className="size-3.5 animate-spin" />
+                  Traduction en cours depuis le francais...
+                </p>
+              ) : (
+                <p className="text-[11px] text-muted-foreground">
+                  Ecrivez en FR, puis cliquez EN / PT / LN pour traduire
+                  automatiquement.
+                </p>
+              )}
             </div>
           ) : null}
 
@@ -332,6 +393,7 @@ export function CalendarEventForm({
                 </Label>
                 <Input
                   value={titleI18n[activeLocale] ?? ""}
+                  disabled={translating}
                   onChange={(event) =>
                     setLocaleField("titleI18n", activeLocale, event.target.value)
                   }
@@ -346,6 +408,7 @@ export function CalendarEventForm({
                 <Textarea
                   rows={4}
                   value={descriptionI18n[activeLocale] ?? ""}
+                  disabled={translating}
                   onChange={(event) =>
                     setLocaleField(
                       "descriptionI18n",
@@ -454,6 +517,35 @@ export function CalendarEventForm({
         </div>
       </div>
 
+      <div className="space-y-2">
+        <Label>Classe (optionnel)</Label>
+        <Select
+          value={form.watch("classeId") || "global"}
+          onValueChange={(value) =>
+            form.setValue("classeId", value === "global" ? "" : value, {
+              shouldDirty: true,
+            })
+          }
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Global (toute l'ecole)" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="global">Global (toute l&apos;ecole)</SelectItem>
+            {classes.map((classe) => (
+              <SelectItem key={classe.id} value={classe.id}>
+                {classe.nameClasse}
+                {classe.codeClasse ? ` (${classe.codeClasse})` : ""}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <p className="text-[11px] text-muted-foreground">
+          Laissez Global pour un evenement visible de toute l&apos;ecole, ou
+          choisissez une classe pour le cibler.
+        </p>
+      </div>
+
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
           <Label>Recurrence</Label>
@@ -491,7 +583,7 @@ export function CalendarEventForm({
       </div>
 
       <div className="flex justify-end gap-2 border-t pt-4">
-        <Button type="submit" disabled={pending || uploading}>
+        <Button type="submit" disabled={pending || uploading || translating}>
           {pending
             ? "Enregistrement..."
             : mode === "create"

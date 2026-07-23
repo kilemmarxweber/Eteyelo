@@ -36,6 +36,7 @@ export interface ICalendarEvent {
   teaching?: {};
   schoolYear?: ISchoolYear;
   eventType?: { id: string; name: string } | null;
+  classe?: { id: string; nameClasse: string; codeClasse: string } | null;
 }
 
 const localeMapSchema = z

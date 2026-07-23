@@ -1,5 +1,7 @@
 import { auth } from "@/lib/auth";
-import { getUserOrganizationMembership } from "@/lib/auth/org-membership";
+import {
+  listAccessibleOrganizationMemberships,
+} from "@/lib/auth/org-membership";
 import {
   getUserBranchMembershipsForLogin,
   resolveActiveBranchId,
@@ -12,6 +14,8 @@ import {
 import { setActiveOrganizationAndBranch } from "@/lib/auth/set-active-context";
 import { APP_ROLE } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
+
+export const ORGANIZATION_PICKER_PATH = "/admin/organization-picker";
 
 function normalizeRole(value: string | null | undefined) {
   return (value ?? "").trim().toLowerCase();
@@ -35,6 +39,43 @@ async function setActiveOrganizationContext(
   });
 }
 
+async function resolvePathForMembership(input: {
+  requestHeaders: Headers;
+  sessionId: string;
+  userId: string;
+  appRole: string;
+  organizationId: string;
+  membershipRole: string;
+}) {
+  const branchMemberships = await getUserBranchMembershipsForLogin(
+    input.userId,
+    input.organizationId,
+    input.membershipRole,
+  );
+  const branchId = await resolveActiveBranchId(
+    input.userId,
+    input.organizationId,
+    null,
+    input.membershipRole,
+  );
+
+  await setActiveOrganizationContext(
+    input.requestHeaders,
+    input.organizationId,
+    branchId,
+    input.sessionId,
+    input.userId,
+    input.appRole,
+  );
+
+  return resolveMembershipPostLoginPath({
+    organizationId: input.organizationId,
+    membershipRole: input.membershipRole,
+    branchId,
+    branchCount: branchMemberships.length,
+  });
+}
+
 export async function resolvePostLoginPath(requestHeaders: Headers): Promise<string> {
   const session = await auth.api.getSession({ headers: requestHeaders });
   if (!session?.user) {
@@ -46,7 +87,7 @@ export async function resolvePostLoginPath(requestHeaders: Headers): Promise<str
     select: { mustChangePassword: true },
   });
   if (passwordState?.mustChangePassword) {
-    return "/admin/account/change-password";
+    return "/auth/change-password";
   }
 
   const appRole = normalizeRole(session.user.role);
@@ -55,54 +96,46 @@ export async function resolvePostLoginPath(requestHeaders: Headers): Promise<str
     return staticPath;
   }
 
-  const membership = await getUserOrganizationMembership(session.user.id);
+  const memberships = await listAccessibleOrganizationMemberships(
+    session.user.id,
+  );
 
   if (appRole === APP_ROLE.ADMIN) {
-    if (!membership) {
+    if (memberships.length === 0) {
       return resolveAppAdminPostLoginPath(null);
     }
+    if (memberships.length > 1) {
+      return ORGANIZATION_PICKER_PATH;
+    }
 
+    const only = memberships[0];
     await setActiveOrganizationContext(
       requestHeaders,
-      membership.organizationId,
+      only.organizationId,
       null,
       session.session.id,
       session.user.id,
       appRole,
     );
 
-    return resolveAppAdminPostLoginPath(membership.organizationId);
+    return resolveAppAdminPostLoginPath(only.organizationId);
   }
 
-  if (!membership) {
+  if (memberships.length === 0) {
     return "/admin/no-organization";
   }
 
-  const branchMemberships = await getUserBranchMembershipsForLogin(
-    session.user.id,
-    membership.organizationId,
-    membership.role,
-  );
-  const branchId = await resolveActiveBranchId(
-    session.user.id,
-    membership.organizationId,
-    session.session.activeBranchId,
-    membership.role,
-  );
+  if (memberships.length > 1) {
+    return ORGANIZATION_PICKER_PATH;
+  }
 
-  await setActiveOrganizationContext(
+  const only = memberships[0];
+  return resolvePathForMembership({
     requestHeaders,
-    membership.organizationId,
-    branchId,
-    session.session.id,
-    session.user.id,
+    sessionId: session.session.id,
+    userId: session.user.id,
     appRole,
-  );
-
-  return resolveMembershipPostLoginPath({
-    organizationId: membership.organizationId,
-    membershipRole: membership.role,
-    branchId,
-    branchCount: branchMemberships.length,
+    organizationId: only.organizationId,
+    membershipRole: only.role,
   });
 }

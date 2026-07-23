@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { School } from "lucide-react";
 import { BackLink } from "@/components/ui/back-link";
-import { getUserOrganizationMembership } from "@/lib/auth/org-membership";
+import { getOrganizationMembership } from "@/lib/auth/org-membership";
 import { getOrganizationAuthContext } from "@/lib/auth/require-organization-permission";
 import { getUserBranchMembershipsForLogin } from "@/lib/auth/user-branch-access";
 import { APP_ROLE } from "@/lib/permissions";
@@ -19,9 +19,12 @@ export default async function BranchPickerPage({ params }: BranchPickerPageProps
     redirect("/auth/sign-in");
   }
 
-  const membership = await getUserOrganizationMembership(context.userId);
-  if (!membership || membership.organizationId !== organizationId) {
-    redirect("/admin");
+  const membership = await getOrganizationMembership(
+    context.userId,
+    organizationId,
+  );
+  if (!membership) {
+    redirect("/admin/organization-picker");
   }
 
   const branches = await getUserBranchMembershipsForLogin(

@@ -320,6 +320,12 @@ function mapStudentRecord(
     };
     classEnrollment: Array<{
       classe: { codeClasse: string; nameClasse: string } | null;
+      schoolYear?: {
+        id: string;
+        nameYear: string;
+        isCurrentYear: boolean;
+        startYear?: Date;
+      } | null;
     }>;
   },
   extras?: {
@@ -330,7 +336,34 @@ function mapStudentRecord(
 ): IStudent {
   const user = student.branchMember?.member?.user;
   const parentUser = student.parent.branchMember?.member.user;
-  const currentEnrollment = student.classEnrollment[0];
+  const enrollments = (student.classEnrollment ?? [])
+    .map((enrollment) => {
+      const year = enrollment.schoolYear;
+      if (!year?.id) return null;
+      return {
+        schoolYearId: year.id,
+        schoolYearName: year.nameYear,
+        isCurrentYear: year.isCurrentYear,
+        classCode: enrollment.classe?.codeClasse ?? null,
+        className: enrollment.classe?.nameClasse ?? null,
+      };
+    })
+    .filter(
+      (
+        enrollment,
+      ): enrollment is {
+        schoolYearId: string;
+        schoolYearName: string;
+        isCurrentYear: boolean;
+        classCode: string | null;
+        className: string | null;
+      } => Boolean(enrollment),
+    );
+
+  const preferredEnrollment =
+    enrollments.find((enrollment) => enrollment.isCurrentYear) ??
+    enrollments[0] ??
+    null;
 
   return {
     id: student.id,
@@ -349,8 +382,17 @@ function mapStudentRecord(
     address: user?.address || "",
     category: student.category || "NORMAL",
     placeOfBirth: student.placeOfBirth,
-    classCode: currentEnrollment?.classe?.codeClasse ?? null,
-    className: currentEnrollment?.classe?.nameClasse ?? null,
+    classCode: preferredEnrollment?.classCode ?? null,
+    className: preferredEnrollment?.className ?? null,
+    schoolYearId: preferredEnrollment?.schoolYearId ?? null,
+    schoolYearName: preferredEnrollment?.schoolYearName ?? null,
+    enrollmentYearIds: enrollments.map((enrollment) => enrollment.schoolYearId),
+    enrollments: enrollments.map((enrollment) => ({
+      schoolYearId: enrollment.schoolYearId,
+      schoolYearName: enrollment.schoolYearName,
+      classCode: enrollment.classCode,
+      className: enrollment.className,
+    })),
     memberId: student.branchMember?.memberId ?? "",
     userId: student.branchMember?.member?.user?.id ?? "",
     sourceBranchName: extras?.sourceBranchName ?? null,
@@ -379,6 +421,38 @@ function mapStudentRecord(
   };
 }
 
+const classEnrollmentListInclude = {
+  where: {
+    statusEnrollment: true,
+  },
+  include: {
+    classe: true,
+    schoolYear: {
+      select: {
+        id: true,
+        nameYear: true,
+        isCurrentYear: true,
+        startYear: true,
+      },
+    },
+  },
+  orderBy: {
+    schoolYear: {
+      startYear: "desc" as const,
+    },
+  },
+} as const;
+
+function classEnrollmentForBranch(branchId: string) {
+  return {
+    ...classEnrollmentListInclude,
+    where: {
+      ...classEnrollmentListInclude.where,
+      branchId,
+    },
+  };
+}
+
 const studentListInclude = {
   branchMember: {
     include: {
@@ -403,14 +477,7 @@ const studentListInclude = {
       },
     },
   },
-  classEnrollment: {
-    where: {
-      statusEnrollment: true,
-      schoolYear: { isCurrentYear: true },
-    },
-    take: 1,
-    include: { classe: true },
-  },
+  classEnrollment: classEnrollmentListInclude,
 } as const;
 
 export const getStudentsAction = action.handler(
@@ -434,15 +501,7 @@ export const getStudentsAction = action.handler(
           student: {
             include: {
               ...studentListInclude,
-              classEnrollment: {
-                where: {
-                  branchId,
-                  statusEnrollment: true,
-                  schoolYear: { isCurrentYear: true },
-                },
-                take: 1,
-                include: { classe: true },
-              },
+              classEnrollment: classEnrollmentForBranch(branchId),
             },
           },
         },
@@ -466,15 +525,7 @@ export const getStudentsAction = action.handler(
             : { id: "__no_student_access__" },
           include: {
             ...studentListInclude,
-            classEnrollment: {
-              where: {
-                branchId,
-                statusEnrollment: true,
-                schoolYear: { isCurrentYear: true },
-              },
-              take: 1,
-              include: { classe: true },
-            },
+            classEnrollment: classEnrollmentForBranch(branchId),
           },
         }),
         prisma.studentBranchLink.findMany({
@@ -484,15 +535,7 @@ export const getStudentsAction = action.handler(
             student: {
               include: {
                 ...studentListInclude,
-                classEnrollment: {
-                  where: {
-                    branchId,
-                    statusEnrollment: true,
-                    schoolYear: { isCurrentYear: true },
-                  },
-                  take: 1,
-                  include: { classe: true },
-                },
+                classEnrollment: classEnrollmentForBranch(branchId),
               },
             },
           },
@@ -561,15 +604,7 @@ export const getStudentsAction = action.handler(
                 },
       include: {
         ...studentListInclude,
-        classEnrollment: {
-          where: {
-            branchId,
-            statusEnrollment: true,
-            schoolYear: { isCurrentYear: true },
-          },
-          take: 1,
-          include: { classe: true },
-        },
+        classEnrollment: classEnrollmentForBranch(branchId),
       },
     });
 

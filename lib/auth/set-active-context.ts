@@ -35,6 +35,29 @@ export async function setActiveOrganizationAndBranch(params: {
     isPlatformOwnerRole(appRole) || isAppAdminRole(appRole);
 
   if (!canBypassMembership) {
+    const membership = await prisma.member.findUnique({
+      where: {
+        organizationId_userId: {
+          organizationId,
+          userId: params.userId,
+        },
+      },
+      select: {
+        isArchived: true,
+        organization: { select: { isArchived: true } },
+      },
+    });
+
+    if (
+      !membership ||
+      membership.isArchived ||
+      membership.organization.isArchived
+    ) {
+      throw new Error(
+        "Organisation inaccessible (archivée ou membre désactivé).",
+      );
+    }
+
     try {
       await auth.api.setActiveOrganization({
         body: { organizationId },

@@ -84,7 +84,17 @@ async function getMembershipForOrganization(
     select: {
       organizationId: true,
       role: true,
+      isArchived: true,
+      organization: { select: { isArchived: true } },
     },
+  }).then((member) => {
+    if (!member || member.isArchived || member.organization.isArchived) {
+      return null;
+    }
+    return {
+      organizationId: member.organizationId,
+      role: member.role,
+    };
   });
 }
 

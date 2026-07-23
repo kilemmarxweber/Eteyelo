@@ -27,6 +27,7 @@ import {
   type UnpaidReportRow,
 } from "../paiement.action";
 import { exportUnpaidReportPdf } from "./export-unpaid-pdf";
+import { formatReportAmount } from "@/lib/reports/format-amount";
 
 type ClassOption = { id: string; name: string };
 type YearOption = { id: string; name: string };
@@ -34,12 +35,6 @@ type YearOption = { id: string; name: string };
 type UnpaidReportProps = {
   refreshKey?: number;
 };
-
-const formatAmount = (value: number, currency = "USD") =>
-  `${value.toLocaleString("fr-FR", {
-    minimumFractionDigits: currency === "USD" ? 2 : 0,
-    maximumFractionDigits: currency === "USD" ? 2 : 0,
-  })} ${currency}`;
 
 export default function UnpaidReport({ refreshKey = 0 }: UnpaidReportProps) {
   const pathname = usePathname();
@@ -288,12 +283,12 @@ export default function UnpaidReport({ refreshKey = 0 }: UnpaidReportProps) {
                 <div className="text-sm font-medium text-foreground">
                   Reste total
                 </div>
-                <div className="mt-2 text-2xl font-black text-primary">
-                  {formatAmount(totals.totalReste, baseCurrency)}
+                <div className="mt-2 text-xl font-black tabular-nums tracking-normal text-primary sm:text-2xl">
+                  {formatReportAmount(totals.totalReste, baseCurrency)}
                 </div>
-                <div className="mt-1 text-xs text-muted-foreground">
-                  Dû {formatAmount(totals.totalDu, baseCurrency)} · Payé{" "}
-                  {formatAmount(totals.totalPaye, baseCurrency)}
+                <div className="mt-1 text-xs tabular-nums text-muted-foreground">
+                  Dû {formatReportAmount(totals.totalDu, baseCurrency)} · Payé{" "}
+                  {formatReportAmount(totals.totalPaye, baseCurrency)}
                 </div>
               </div>
             </div>

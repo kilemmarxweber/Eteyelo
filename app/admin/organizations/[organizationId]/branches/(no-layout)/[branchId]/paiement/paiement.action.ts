@@ -130,8 +130,8 @@ type ReceiptPayload = {
   };
   recipient: {
     name: string;
-    class: string;
-    sexe: string;
+    class?: string;
+    sexe?: string;
   };
   items: {
     description: string;
@@ -139,6 +139,8 @@ type ReceiptPayload = {
     mode: string;
     montant: number;
     receivedAmount?: number;
+    classe?: string;
+    codeClasse?: string;
   }[];
   logoUrl: string;
   exchangeRateUsdCdf: number;
@@ -636,7 +638,12 @@ export const createPaiementAction = action
               classEnrollment: {
                 include: {
                   student: {
-                    include: linkedUserInclude,
+                    include: {
+                      ...linkedUserInclude,
+                      parent: {
+                        include: linkedUserInclude,
+                      },
+                    },
                   },
                   classe: true,
                   schoolYear: true,
@@ -646,43 +653,17 @@ export const createPaiementAction = action
           })
         : [];
 
-      const studentNames = Array.from(
-        new Set(
-          receiptPayments
-            .map((payment) => {
-              const user = getLinkedUser(payment.classEnrollment?.student);
-              return [user?.prenom, user?.name, user?.postnom]
-                .filter(Boolean)
-                .join(" ")
-                .trim();
-            })
-            .filter(Boolean),
-        ),
+      const parentUser = getLinkedUser(
+        receiptPayments[0]?.classEnrollment?.student?.parent,
       );
-
-      const classNames = Array.from(
-        new Set(
-          receiptPayments
-            .map(
-              (payment) =>
-                payment.classEnrollment?.classe?.nameClasse ??
-                payment.frais?.classe?.nameClasse ??
-                "",
-            )
-            .filter(Boolean),
-        ),
-      );
-
-      const sexes = Array.from(
-        new Set(
-          receiptPayments
-            .map((payment) => {
-              const user = getLinkedUser(payment.classEnrollment?.student);
-              return user?.sexe ?? "";
-            })
-            .filter(Boolean),
-        ),
-      );
+      const parentFullName = [
+        parentUser?.prenom,
+        parentUser?.name,
+        parentUser?.postnom,
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .trim();
 
       const branchRecord = await tx.branch.findUnique({
         where: { id: branchId },
@@ -714,9 +695,7 @@ export const createPaiementAction = action
           address: branding.address ?? "",
         },
         recipient: {
-          name: studentNames.join(", ") || "Eleve",
-          class: classNames.join(", ") || "-",
-          sexe: sexes.join(", ") || "-",
+          name: parentFullName || "Parent",
         },
         items: receiptPayments.map((payment) => ({
           description: payment.frais?.nameFrais ?? "Frais scolaire",
@@ -727,6 +706,14 @@ export const createPaiementAction = action
             payment.receivedAmount != null
               ? Number(payment.receivedAmount)
               : Number(payment.amount),
+          classe:
+            payment.classEnrollment?.classe?.nameClasse ??
+            payment.frais?.classe?.nameClasse ??
+            "",
+          codeClasse:
+            payment.classEnrollment?.classe?.codeClasse ??
+            payment.frais?.classe?.codeClasse ??
+            "",
         })),
         logoUrl: branding.logoUrl,
         exchangeRateUsdCdf:
@@ -1090,12 +1077,15 @@ export const getAllPaiementAction = action.handler(async () => {
           prenom: getLinkedUser(p.classEnrollment.student)?.prenom ?? "",
           sexe: getLinkedUser(p.classEnrollment.student)?.sexe ?? "",
           nameClasse: p.classEnrollment.classe?.nameClasse ?? "",
+          codeClasse: p.classEnrollment.classe?.codeClasse ?? "",
           nameYear: p.classEnrollment.schoolYear?.nameYear ?? "",
           // ✅ PARENT
           parentId: p.classEnrollment.student?.parent?.id ?? "",
           parentNom: getLinkedUser(p.classEnrollment.student?.parent)?.name ?? "",
           parentPrenom:
             getLinkedUser(p.classEnrollment.student?.parent)?.prenom ?? "",
+          parentPostnom:
+            getLinkedUser(p.classEnrollment.student?.parent)?.postnom ?? "",
         }
       : null,
   }));

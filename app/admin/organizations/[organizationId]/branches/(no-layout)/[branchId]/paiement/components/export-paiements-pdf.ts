@@ -14,6 +14,10 @@ import {
   DEFAULT_EXCHANGE_RATE_USD_CDF,
   type SchoolReportContext,
 } from "@/lib/reports/types";
+import {
+  formatReportAmount,
+  formatReportNumber,
+} from "@/lib/reports/format-amount";
 
 export type PaiementReportRow = {
   reference: string;
@@ -51,20 +55,6 @@ function formatDate(value: Date): string {
     month: "2-digit",
     year: "numeric",
   }).format(value);
-}
-
-function formatUsd(value: number): string {
-  return value.toLocaleString("en-US", {
-    style: "currency",
-    currency: "USD",
-  });
-}
-
-function formatCdf(value: number): string {
-  return value.toLocaleString("fr-FR", {
-    style: "currency",
-    currency: "CDF",
-  });
 }
 
 function modeLabel(mode: ModePaiement): string {
@@ -191,15 +181,18 @@ export async function buildPaiementsReportPdf(
   const body = rows.map((row) => {
     const quoteValue =
       baseCurrency === "USD" && quoteLabel === "CDF"
-        ? formatCdf(row.total * exchangeRate)
+        ? formatReportAmount(row.total * exchangeRate, "CDF")
         : quoteLabel === "USD"
-          ? formatUsd(exchangeRate > 0 ? row.total / exchangeRate : 0)
-          : `${row.total.toLocaleString("fr-FR")} ${quoteLabel}`;
+          ? formatReportAmount(
+              exchangeRate > 0 ? row.total / exchangeRate : 0,
+              "USD",
+            )
+          : formatReportAmount(row.total, quoteLabel);
     return [
       formatDate(row.date),
       row.students.join(", ") || "-",
       modeLabel(row.mode),
-      `${row.total.toLocaleString("fr-FR")} ${baseCurrency}`,
+      formatReportAmount(row.total, baseCurrency),
       quoteValue,
       row.reference,
     ];
@@ -246,11 +239,11 @@ export async function buildPaiementsReportPdf(
         details: [
           ...filterLabels,
           `${rows.length} paiement(s)`,
-          `Total : ${totalBase.toLocaleString("fr-FR")} ${baseCurrency}`,
+          `Total : ${formatReportAmount(totalBase, baseCurrency)}`,
           baseCurrency === "USD" && quoteLabel === "CDF"
-            ? `Taux : 1 USD = ${exchangeRate.toLocaleString("fr-FR")} CDF`
+            ? `Taux : 1 USD = ${formatReportNumber(exchangeRate, "CDF")} CDF`
             : context.selectedRate != null
-              ? `Taux : 1 ${baseCurrency} = ${context.selectedRate.toLocaleString("fr-FR")} ${quoteLabel}`
+              ? `Taux : 1 ${baseCurrency} = ${formatReportNumber(context.selectedRate, quoteLabel)} ${quoteLabel}`
               : `Devise de base : ${baseCurrency}`,
         ],
         logoDataUrl: logo,

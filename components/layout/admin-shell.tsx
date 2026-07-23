@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 import { usePathname } from "next/navigation";
 
+import { SessionLock } from "@/components/auth/session-lock";
 import { HomeNavbar } from "@/components/home-navbar";
 
 /** Routes métier d'une branche (hors new / edit / enter). */
@@ -16,6 +17,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
   if (isBranchWorkspaceRoute) {
     return (
       <div className="h-dvh overflow-hidden bg-background text-foreground">
+        <SessionLock />
         {children}
       </div>
     );
@@ -23,6 +25,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="flex min-h-screen flex-col bg-slate-50 text-slate-900">
+      <SessionLock />
       <div className="bg-blue-950 text-white">
         <div className="mx-auto grid max-w-7xl grid-cols-3 items-center gap-2 px-3 py-2 text-[10px] sm:px-6 sm:text-xs">
           <span className="text-left">🇨🇩 Marketing scolaire</span>

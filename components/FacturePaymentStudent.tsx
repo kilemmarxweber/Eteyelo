@@ -14,7 +14,8 @@ import {
 export type FacturePaymentStudentData = {
   invoiceNumber: string;
   sender: { name: string; address: string };
-  recipient: { name: string; class: string; sexe: string };
+  /** Parent / tuteur qui paie (nom complet). */
+  recipient: { name: string; class?: string; sexe?: string };
   items: {
     description: string;
     price: number;
@@ -26,6 +27,10 @@ export type FacturePaymentStudentData = {
     montant: number;
     /** Montant réellement perçu (devise reçue). */
     receivedAmount?: number;
+    /** Classe de l’élève concerné par la ligne. */
+    classe?: string;
+    /** Code classe. */
+    codeClasse?: string;
   }[];
   /** Data URL (ou URL déjà convertie côté client) pour jsPDF. */
   logoUrl?: string;
@@ -42,14 +47,21 @@ export type FacturePaymentStudentData = {
   selectedRate?: number | null;
 };
 
+export function formatReceiptClasseCode(
+  codeClasse?: string | null,
+): string {
+  return codeClasse?.trim() || "-";
+}
+
 function formatBaseCell(amount: number, currency: ReceiptCurrency): string {
   if (currency === "USD") {
     return Number(amount).toFixed(2);
   }
-  return Number(amount).toLocaleString("fr-FR", {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 2,
-  });
+  const rounded = Math.round(Number(amount) || 0);
+  return `${rounded < 0 ? "-" : ""}${String(Math.abs(rounded)).replace(
+    /\B(?=(\d{3})+(?!\d))/g,
+    ".",
+  )}`;
 }
 
 export function generateFacturePaymentStudentPDF({
@@ -86,46 +98,45 @@ export function generateFacturePaymentStudentPDF({
     selectedRate,
   };
 
-  // --- LOGO EN HAUT À DROITE ---
+  // --- LOGO À GAUCHE + NOM AU MÊME NIVEAU ---
+  const logoSize = 20;
+  const logoX = 14;
+  const logoY = 12;
+  let textX = logoX;
+
   if (logoUrl) {
     try {
-      doc.addImage(logoUrl, pageWidth - 38, 14, 20, 20);
+      doc.addImage(logoUrl, logoX, logoY, logoSize, logoSize);
+      textX = logoX + logoSize + 6;
     } catch {
       // Un logo invalide ne doit pas empêcher le téléchargement du reçu.
     }
   }
 
-  // --- TITRE CENTRÉ + SOULIGNÉ ---
   doc.setFont("helvetica", "bold");
   doc.setFontSize(13);
   doc.setTextColor(primaryColor);
-  doc.text(schoolName, pageWidth / 2, 25, { align: "center" });
+  const nameY = logoY + logoSize / 2 + 1.5;
+  doc.text(schoolName, textX, nameY);
   const textWidth = doc.getTextWidth(schoolName);
   doc.setLineWidth(0.3);
-  doc.line((pageWidth - textWidth) / 2, 27, (pageWidth + textWidth) / 2, 27);
+  doc.line(textX, nameY + 1.5, textX + textWidth, nameY + 1.5);
 
-  // --- INFOS FACTURE ---
+  // --- INFOS FACTURE + PARENT ---
   doc.setFontSize(9);
   doc.setFont("helvetica", "normal");
   doc.setTextColor(primaryColor);
   doc.text(`Facture N°: ${invoiceNumber}`, 14, 40);
-
-  // --- CLIENT OR STUDENT ---
-  doc.text(sender.name, 14, 48);
-  if (sender.address) {
-    doc.text(sender.address, 14, 53);
-  }
-  doc.text("Noms  : " + recipient.name, 105, 48);
-  doc.text("Classe: " + recipient.class, 105, 53);
-  doc.text("Sexe  : " + recipient.sexe, 105, 58);
+  doc.text(`Parent : ${recipient.name || "-"}`, 14, 46);
 
   // --- TABLEAU DES ARTICLES ---
-  const startY = 60;
+  const startY = 52;
   const head = showSecondaryColumn
     ? [
         [
           "Description",
           "Mode",
+          "Classe",
           `Mnt a payer ${base}`,
           `Mnt payer ${base}`,
           `Mnt ${secondary}`,
@@ -135,6 +146,7 @@ export function generateFacturePaymentStudentPDF({
         [
           "Description",
           "Mode",
+          "Classe",
           `Mnt a payer ${base}`,
           `Mnt payer ${base}`,
         ],
@@ -152,23 +164,26 @@ export function generateFacturePaymentStudentPDF({
     },
     columnStyles: showSecondaryColumn
       ? {
-          0: { cellWidth: 70 },
-          1: { halign: "right", cellWidth: 25 },
-          2: { halign: "right", cellWidth: 25 },
-          3: { halign: "right", cellWidth: 25 },
-          4: { halign: "right", cellWidth: 30 },
+          0: { cellWidth: 52 },
+          1: { halign: "right", cellWidth: 22 },
+          2: { cellWidth: 32 },
+          3: { halign: "right", cellWidth: 24 },
+          4: { halign: "right", cellWidth: 24 },
+          5: { halign: "right", cellWidth: 22 },
         }
       : {
-          0: { cellWidth: 85 },
-          1: { halign: "right", cellWidth: 30 },
-          2: { halign: "right", cellWidth: 30 },
-          3: { halign: "right", cellWidth: 30 },
+          0: { cellWidth: 65 },
+          1: { halign: "right", cellWidth: 28 },
+          2: { cellWidth: 35 },
+          3: { halign: "right", cellWidth: 28 },
+          4: { halign: "right", cellWidth: 28 },
         },
     head,
     body: items.map((item) => {
       const row = [
         item.description,
         formatModePaiementLabel(item.mode ?? item.statut),
+        formatReceiptClasseCode(item.codeClasse),
         formatBaseCell(item.price, base),
         formatBaseCell(item.montant, base),
       ];
@@ -205,8 +220,8 @@ export function generateFacturePaymentStudentPDF({
       ? sumReceiptSecondary(items, secondary, secondaryOpts)
       : 0;
   const tableRightX = showSecondaryColumn
-    ? 14 + 70 + 25 + 25 + 25 + 30
-    : 14 + 85 + 30 + 30 + 30;
+    ? 14 + 52 + 22 + 32 + 24 + 24 + 22
+    : 14 + 65 + 28 + 35 + 28 + 28;
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(9);

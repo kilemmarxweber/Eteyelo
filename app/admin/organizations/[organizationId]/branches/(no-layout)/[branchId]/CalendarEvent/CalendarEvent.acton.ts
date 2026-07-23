@@ -141,7 +141,7 @@ function mapEvent(event: {
   eventType?: { id: string; name: string } | null;
   schoolYear?: ICalendarEvent["schoolYear"] | null;
   teaching?: unknown;
-  classe?: unknown;
+  classe?: { id: string; nameClasse: string; codeClasse: string } | null;
 }): ICalendarEvent {
   return {
     id: event.id,
@@ -165,6 +165,7 @@ function mapEvent(event: {
     eventType: event.eventType ?? null,
     schoolYear: event.schoolYear ?? undefined,
     teaching: event.teaching as ICalendarEvent["teaching"],
+    classe: event.classe ?? null,
   };
 }
 
@@ -221,7 +222,13 @@ export const getCalendarEvents = action.handler(
             cours: true,
           },
         },
-        classe: true,
+        classe: {
+          select: {
+            id: true,
+            nameClasse: true,
+            codeClasse: true,
+          },
+        },
       },
       orderBy: { dateStart: "desc" },
     });

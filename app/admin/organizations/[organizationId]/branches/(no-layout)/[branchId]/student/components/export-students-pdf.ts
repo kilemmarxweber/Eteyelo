@@ -145,23 +145,26 @@ export async function buildStudentsReportPdf(
   });
 
   // Largeurs proportionnelles sur toute la largeur utile A4.
-  const columnStyles = isClassReport
+  const columnStyles: Record<
+    number,
+    { cellWidth: number; halign: "center" | "left" }
+  > = isClassReport
     ? {
-        0: { cellWidth: usableWidth * 0.06, halign: "center" as const },
-        1: { cellWidth: usableWidth * 0.28, halign: "left" as const },
-        2: { cellWidth: usableWidth * 0.18, halign: "left" as const },
-        3: { cellWidth: usableWidth * 0.18, halign: "left" as const },
-        4: { cellWidth: usableWidth * 0.18, halign: "left" as const },
-        5: { cellWidth: usableWidth * 0.12, halign: "center" as const },
+        0: { cellWidth: usableWidth * 0.06, halign: "center" },
+        1: { cellWidth: usableWidth * 0.28, halign: "left" },
+        2: { cellWidth: usableWidth * 0.18, halign: "left" },
+        3: { cellWidth: usableWidth * 0.18, halign: "left" },
+        4: { cellWidth: usableWidth * 0.18, halign: "left" },
+        5: { cellWidth: usableWidth * 0.12, halign: "center" },
       }
     : {
-        0: { cellWidth: usableWidth * 0.05, halign: "center" as const },
-        1: { cellWidth: usableWidth * 0.22, halign: "left" as const },
-        2: { cellWidth: usableWidth * 0.14, halign: "left" as const },
-        3: { cellWidth: usableWidth * 0.14, halign: "left" as const },
-        4: { cellWidth: usableWidth * 0.14, halign: "left" as const },
-        5: { cellWidth: usableWidth * 0.08, halign: "center" as const },
-        6: { cellWidth: usableWidth * 0.23, halign: "left" as const },
+        0: { cellWidth: usableWidth * 0.05, halign: "center" },
+        1: { cellWidth: usableWidth * 0.22, halign: "left" },
+        2: { cellWidth: usableWidth * 0.14, halign: "left" },
+        3: { cellWidth: usableWidth * 0.14, halign: "left" },
+        4: { cellWidth: usableWidth * 0.14, halign: "left" },
+        5: { cellWidth: usableWidth * 0.08, halign: "center" },
+        6: { cellWidth: usableWidth * 0.23, halign: "left" },
       };
 
   autoTable(doc, {

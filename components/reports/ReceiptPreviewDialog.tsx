@@ -104,7 +104,6 @@ function ReceiptSheet({
           address: data.sender.address || undefined,
           logoUrl: data.logoUrl ?? "",
         }}
-        title="Reçu de paiement"
       />
       <ReceiptPreviewBody data={data} issuedAt={issuedAt} />
     </div>

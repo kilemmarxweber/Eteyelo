@@ -1,4 +1,8 @@
-import { getUserOrganizationMembership } from "@/lib/auth/org-membership";
+import {
+  getUserOrganizationMembership,
+  listAccessibleOrganizationMemberships,
+} from "@/lib/auth/org-membership";
+import { ORGANIZATION_PICKER_PATH } from "@/lib/auth/post-login-redirect";
 import {
   buildBranchPickerPath,
   getUserBranchMembershipsForLogin,
@@ -46,7 +50,17 @@ export async function resolveUserOrganizationFallbackPath(
     return "/admin/platform-support";
   }
 
-  const membership = await getUserOrganizationMembership(userId);
+  const accessible = await listAccessibleOrganizationMemberships(userId);
+  if (accessible.length === 0) {
+    return "/admin/no-organization";
+  }
+
+  if (accessible.length > 1) {
+    return ORGANIZATION_PICKER_PATH;
+  }
+
+  const membership =
+    accessible[0] ?? (await getUserOrganizationMembership(userId));
   if (!membership) {
     return "/admin/no-organization";
   }

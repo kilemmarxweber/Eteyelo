@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/dialog";
 import { RequireBranchOrgSettingsAccess } from "../components/require-branch-org-settings-access";
 import {
+  getCalendarClassesAction,
   getCalendarSettingsAction,
   saveEventTypeAction,
 } from "../settings.action";
@@ -38,6 +39,7 @@ import { normalizeImageSrc, cn } from "@/lib/utils";
 import { canAccessBranchOrgSettings } from "@/lib/auth/session-roles";
 
 type EventTypeItem = Awaited<ReturnType<typeof getCalendarSettingsAction>>[number];
+type ClasseItem = Awaited<ReturnType<typeof getCalendarClassesAction>>[number];
 type CalendarTab = "events" | "types";
 
 function formatRange(start: Date | string, end?: Date | string | null) {
@@ -63,6 +65,7 @@ export default function CalendarSettingsPage() {
   const { data: session } = useSession();
   const [tab, setTab] = useState<CalendarTab>("events");
   const [eventTypes, setEventTypes] = useState<EventTypeItem[]>([]);
+  const [classes, setClasses] = useState<ClasseItem[]>([]);
   const [events, setEvents] = useState<ICalendarEvent[]>([]);
   const [editingType, setEditingType] = useState<EventTypeItem | null>(null);
   const [typeOpen, setTypeOpen] = useState(false);
@@ -85,6 +88,16 @@ export default function CalendarSettingsPage() {
     }
   }, []);
 
+  const loadClasses = useCallback(async () => {
+    try {
+      setClasses(await getCalendarClassesAction());
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Chargement des classes impossible.",
+      );
+    }
+  }, []);
+
   const loadEvents = useCallback(async () => {
     try {
       const [data, error] = await getCalendarEvents();
@@ -101,13 +114,13 @@ export default function CalendarSettingsPage() {
     let cancelled = false;
     (async () => {
       setLoading(true);
-      await Promise.all([loadTypes(), loadEvents()]);
+      await Promise.all([loadTypes(), loadClasses(), loadEvents()]);
       if (!cancelled) setLoading(false);
     })();
     return () => {
       cancelled = true;
     };
-  }, [loadEvents, loadTypes]);
+  }, [loadClasses, loadEvents, loadTypes]);
 
   function openTypeForm(item?: EventTypeItem) {
     setEditingType(item ?? null);
@@ -273,6 +286,13 @@ export default function CalendarSettingsPage() {
                         {event.eventType?.name ? (
                           <Badge variant="secondary">{event.eventType.name}</Badge>
                         ) : null}
+                        {event.classe ? (
+                          <Badge variant="outline">
+                            {event.classe.nameClasse || event.classe.codeClasse}
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline">Global</Badge>
+                        )}
                         {event.titleI18n &&
                         Object.values(event.titleI18n).filter(Boolean).length >
                           1 ? (
@@ -448,7 +468,8 @@ export default function CalendarSettingsPage() {
                 {editingEvent ? "Modifier l'evenement" : "Creer un evenement"}
               </DialogTitle>
               <DialogDescription>
-                Ajoutez une image et activez les traductions si besoin.
+                Evenement global ou lie a une classe. Ajoutez une image et
+                activez les traductions si besoin.
               </DialogDescription>
             </DialogHeader>
             {session?.user?.id ? (
@@ -456,6 +477,7 @@ export default function CalendarSettingsPage() {
                 userId={session.user.id}
                 mode={editingEvent ? "update" : "create"}
                 eventTypes={eventTypes}
+                classes={classes}
                 initialEvent={editingEvent}
                 onSuccess={handleEventSuccess}
               />

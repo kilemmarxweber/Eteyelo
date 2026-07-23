@@ -1,11 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Cross2Icon } from "@radix-ui/react-icons";
 import { Table } from "@tanstack/react-table";
 import {
   IconEye,
-  IconFilter,
   IconFileTypePdf,
   IconSearch,
   IconUpload,
@@ -106,33 +105,86 @@ export function DataTableToolbar<TData>({
   const [previewStudents, setPreviewStudents] = useState<IStudent[]>([]);
   const [previewOptions, setPreviewOptions] = useState<StudentReportOptions>({});
   const isFiltered = table.getState().columnFilters.length > 0;
-  const classOptions = Array.from(
-    new Map(
-      table
-        .getPreFilteredRowModel()
-        .rows.map((row) => {
-          const original = row.original as {
-            classCode?: string | null;
-            className?: string | null;
-          };
-          return original.classCode
-            ? ([
-                original.classCode,
-                {
-                  value: original.classCode,
-                  label: original.className
-                    ? `${original.classCode} — ${original.className}`
-                    : original.classCode,
-                },
-              ] as const)
-            : null;
+  const preFilteredRows = table.getPreFilteredRowModel().rows;
+  const selectedYearIds = readFilterValues(
+    table.getColumn("schoolYearId")?.getFilterValue(),
+  );
+
+  const classOptions = useMemo(() => {
+    const entries = preFilteredRows.flatMap((row) => {
+      const student = row.original as IStudent;
+      const enrollments = student.enrollments?.length
+        ? student.enrollments
+        : student.classCode
+          ? [
+              {
+                schoolYearId: student.schoolYearId ?? "",
+                schoolYearName: student.schoolYearName ?? "",
+                classCode: student.classCode,
+                className: student.className ?? null,
+              },
+            ]
+          : [];
+
+      return enrollments
+        .filter((enrollment) => {
+          if (!enrollment.classCode) return false;
+          if (!selectedYearIds.length) return true;
+          return selectedYearIds.includes(enrollment.schoolYearId);
         })
-        .filter(
-          (item): item is readonly [string, { value: string; label: string }] =>
-            Boolean(item),
-        ),
-    ).values(),
-  ).sort((left, right) => left.label.localeCompare(right.label, "fr"));
+        .map(
+          (enrollment) =>
+            [
+              enrollment.classCode as string,
+              {
+                value: enrollment.classCode as string,
+                label: enrollment.className
+                  ? `${enrollment.classCode} — ${enrollment.className}`
+                  : (enrollment.classCode as string),
+              },
+            ] as const,
+        );
+    });
+
+    return Array.from(new Map(entries).values()).sort((left, right) =>
+      left.label.localeCompare(right.label, "fr"),
+    );
+  }, [preFilteredRows, selectedYearIds]);
+
+  const yearOptions = useMemo(
+    () =>
+      Array.from(
+        new Map(
+          preFilteredRows.flatMap((row) => {
+            const student = row.original as IStudent;
+            const fromEnrollments = (student.enrollments ?? []).map(
+              (enrollment) =>
+                [
+                  enrollment.schoolYearId,
+                  {
+                    value: enrollment.schoolYearId,
+                    label: enrollment.schoolYearName,
+                  },
+                ] as const,
+            );
+            if (fromEnrollments.length) return fromEnrollments;
+            if (student.schoolYearId && student.schoolYearName) {
+              return [
+                [
+                  student.schoolYearId,
+                  {
+                    value: student.schoolYearId,
+                    label: student.schoolYearName,
+                  },
+                ] as const,
+              ];
+            }
+            return [];
+          }),
+        ).values(),
+      ).sort((left, right) => right.label.localeCompare(left.label, "fr")),
+    [preFilteredRows],
+  );
 
   const loadReportPayload = async () => {
     const filteredStudents = table
@@ -207,6 +259,16 @@ export function DataTableToolbar<TData>({
         </div>
 
         <div className="flex flex-wrap items-center justify-end gap-2">
+          {table.getColumn("schoolYearId") && yearOptions.length ? (
+            <DataTableFacetedFilter
+              column={table.getColumn("schoolYearId")}
+              title="Annee"
+              options={yearOptions}
+              value="all"
+              onValueChange={() => undefined}
+            />
+          ) : null}
+
           {table.getColumn("classCode") && classOptions.length ? (
             <DataTableFacetedFilter
               column={table.getColumn("classCode")}
@@ -232,10 +294,6 @@ export function DataTableToolbar<TData>({
               }
             />
           ) : null}
-
-          <Button variant="outline" leftSection={<IconFilter size={16} />}>
-            Filtres
-          </Button>
 
           <Button
             variant="outline"

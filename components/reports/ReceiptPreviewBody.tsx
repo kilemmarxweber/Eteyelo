@@ -1,5 +1,8 @@
 import { Separator } from "@/components/ui/separator";
-import type { FacturePaymentStudentData } from "@/components/FacturePaymentStudent";
+import {
+  formatReceiptClasseCode,
+  type FacturePaymentStudentData,
+} from "@/components/FacturePaymentStudent";
 import { DEFAULT_EXCHANGE_RATE_USD_CDF } from "@/lib/reports/types";
 import { cn } from "@/lib/utils";
 import {
@@ -25,10 +28,11 @@ function formatBaseCell(
   if (currency === "USD") {
     return Number(amount).toFixed(2);
   }
-  return Number(amount).toLocaleString("fr-FR", {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 2,
-  });
+  const rounded = Math.round(Number(amount) || 0);
+  return `${rounded < 0 ? "-" : ""}${String(Math.abs(rounded)).replace(
+    /\B(?=(\d{3})+(?!\d))/g,
+    ".",
+  )}`;
 }
 
 /**
@@ -64,37 +68,21 @@ export function ReceiptPreviewBody({
 
   return (
     <div className={cn("flex flex-col gap-4 text-sm text-foreground", className)}>
-      <p className="font-medium">Facture N°: {data.invoiceNumber}</p>
-
-      <div className="grid gap-3 sm:grid-cols-2">
-        <div className="flex flex-col gap-1">
-          <p className="font-medium">{data.sender.name}</p>
-          {data.sender.address ? (
-            <p className="text-xs text-muted-foreground">{data.sender.address}</p>
-          ) : null}
-        </div>
-        <div className="flex flex-col gap-1 sm:text-right">
-          <p>
-            <span className="text-muted-foreground">Noms : </span>
-            {data.recipient.name}
-          </p>
-          <p>
-            <span className="text-muted-foreground">Classe : </span>
-            {data.recipient.class}
-          </p>
-          <p>
-            <span className="text-muted-foreground">Sexe : </span>
-            {data.recipient.sexe}
-          </p>
-        </div>
+      <div className="flex flex-col gap-1">
+        <p className="font-medium">Facture N°: {data.invoiceNumber}</p>
+        <p>
+          <span className="text-muted-foreground">Parent : </span>
+          {data.recipient.name || "-"}
+        </p>
       </div>
 
       <div className="overflow-x-auto rounded-md border">
-        <table className="w-full min-w-[28rem] text-left text-xs">
+        <table className="w-full min-w-[32rem] text-left text-xs">
           <thead className="bg-foreground text-background">
             <tr>
               <th className="px-2 py-2 font-semibold">Description</th>
               <th className="px-2 py-2 text-right font-semibold">Mode</th>
+              <th className="px-2 py-2 font-semibold">Classe</th>
               <th className="px-2 py-2 text-right font-semibold">
                 Mnt a payer {baseCurrency}
               </th>
@@ -114,6 +102,9 @@ export function ReceiptPreviewBody({
                 <td className="px-2 py-2">{item.description}</td>
                 <td className="px-2 py-2 text-right">
                   {formatModePaiementLabel(item.mode ?? item.statut)}
+                </td>
+                <td className="px-2 py-2">
+                  {formatReceiptClasseCode(item.codeClasse)}
                 </td>
                 <td className="px-2 py-2 text-right">
                   {formatBaseCell(Number(item.price), baseCurrency)}

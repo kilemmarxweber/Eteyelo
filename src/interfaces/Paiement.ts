@@ -30,10 +30,12 @@ export interface IPaiement {
     prenom: string;
     sexe?: string;
     nameClasse: string;
+    codeClasse?: string;
     nameYear: string;
-    parentId?: string; // 👈 AJOUT
-    parentName?: string; // 👈 AJOUT
-    parentPrenom?: string; // 👈 AJOUT
+    parentId?: string;
+    parentName?: string;
+    parentPrenom?: string;
+    parentPostnom?: string;
   };
 
   createdAt: Date;

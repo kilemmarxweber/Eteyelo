@@ -53,7 +53,7 @@ export default async function EventsPage() {
           <h1 className="mt-4 text-3xl font-bold tracking-tight md:text-4xl">
             Tous les evenements
           </h1>
-          <p className="mt-3 max-w-xl text-sm leading-relaxed text-primary-foreground/90 md:text-base">
+          <p className="mt-3 max-w-7xl text-sm leading-relaxed text-primary-foreground/90 md:text-base">
             Decouvrez les activites, ceremonies et annonces des etablissements
             partenaires.
           </p>

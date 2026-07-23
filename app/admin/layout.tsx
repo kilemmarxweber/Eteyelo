@@ -24,6 +24,10 @@ export default async function AdminLayout({
   const pathname = requestHeaders.get("x-pathname") ?? "/admin";
   await enforceAdminRouteAccess(pathname);
 
+  const isChangePasswordRoute =
+    pathname === "/admin/account/change-password" ||
+    pathname.startsWith("/admin/account/change-password/");
+
   return (
     <ThemeProvider
       attribute="class"
@@ -31,7 +35,11 @@ export default async function AdminLayout({
       enableSystem
       disableTransitionOnChange
     >
-      <AdminShell>{children}</AdminShell>
+      {isChangePasswordRoute ? (
+        children
+      ) : (
+        <AdminShell>{children}</AdminShell>
+      )}
     </ThemeProvider>
   );
 }

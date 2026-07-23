@@ -19,7 +19,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { signInSchema, type SignInValues } from "@/app/auth/schema";
 
-export function SignInForm() {
+export function SignInForm({ callbackUrl }: { callbackUrl?: string }) {
   const router = useRouter();
   const { withLoading } = useAppLoading();
 
@@ -55,13 +55,29 @@ export function SignInForm() {
       toast.success("Bienvenue !");
 
       const destination = await withLoading(async () => {
+        const safeCallback =
+          callbackUrl?.startsWith("/") && !callbackUrl.startsWith("//")
+            ? callbackUrl
+            : null;
+
         const redirectRes = await fetch("/api/auth/post-login-redirect", {
           credentials: "include",
         });
         const redirectBody = (await redirectRes.json()) as { path?: string };
-        return redirectRes.ok && redirectBody.path
-          ? redirectBody.path
-          : "/admin/";
+        const postPath =
+          redirectRes.ok && redirectBody.path ? redirectBody.path : "/admin/";
+
+        // MDP temporaire obligatoire avant d’accepter une invitation (callback).
+        if (
+          postPath.includes("/auth/change-password") ||
+          postPath.includes("/admin/account/change-password")
+        ) {
+          return safeCallback
+            ? `/auth/change-password?callbackUrl=${encodeURIComponent(safeCallback)}`
+            : "/auth/change-password";
+        }
+
+        return safeCallback ?? postPath;
       });
 
       router.push(destination);

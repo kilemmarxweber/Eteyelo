@@ -22,6 +22,15 @@ export interface IStudent extends Omit<
   placeOfBirth?: string | null;
   classCode?: string | null;
   className?: string | null;
+  schoolYearId?: string | null;
+  schoolYearName?: string | null;
+  enrollmentYearIds?: string[];
+  enrollments?: Array<{
+    schoolYearId: string;
+    schoolYearName: string;
+    classCode: string | null;
+    className: string | null;
+  }>;
   sourceBranchName?: string | null;
   sourceBranchId?: string | null;
   isLinkedStudent?: boolean;

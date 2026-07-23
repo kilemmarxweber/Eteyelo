@@ -103,7 +103,7 @@ export default async function AdminPage() {
                 Bienvenue, {name.split(" ")[0]}
               </h1>
 
-              <p className="mt-4 max-w-lg text-sm leading-7 text-primary-foreground/90 sm:text-base">
+              <p className="mt-4 max-w-7xl text-sm leading-7 text-primary-foreground/90 sm:text-base">
                 Connecté en tant que{" "}
                 <span className="font-semibold text-primary-foreground">
                   {name}

@@ -48,6 +48,12 @@ export const removeOrgMemberSchema = z.object({
   memberId: z.string().min(1),
 });
 
+export const archiveOrgMemberSchema = z.object({
+  organizationId: z.string().min(1),
+  memberId: z.string().min(1),
+  archive: z.boolean(),
+});
+
 export const resetOrgMemberPasswordSchema = z.object({
   organizationId: z.string().min(1),
   email: z
@@ -72,6 +78,7 @@ export const updateUserSchema = z.object({
 export type CreateOrgMemberInput = z.infer<typeof createOrgMemberSchema>;
 export type UpdateOrgMemberInput = z.infer<typeof updateOrgMemberSchema>;
 export type RemoveOrgMemberInput = z.infer<typeof removeOrgMemberSchema>;
+export type ArchiveOrgMemberInput = z.infer<typeof archiveOrgMemberSchema>;
 export type ResetOrgMemberPasswordInput = z.infer<
   typeof resetOrgMemberPasswordSchema
 >;

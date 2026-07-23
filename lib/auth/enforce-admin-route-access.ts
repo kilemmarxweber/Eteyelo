@@ -1,6 +1,10 @@
 import { headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
-import { getUserOrganizationMembership } from "@/lib/auth/org-membership";
+import {
+  getOrganizationMembership,
+  listAccessibleOrganizationMemberships,
+} from "@/lib/auth/org-membership";
+import { ORGANIZATION_PICKER_PATH } from "@/lib/auth/post-login-redirect";
 import { resolveUserOrganizationFallbackPath } from "@/lib/auth/resolve-user-organization-path";
 import { getOrganizationAuthContext } from "@/lib/auth/require-organization-permission";
 import {
@@ -11,13 +15,15 @@ import {
 } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 
-const CHANGE_PASSWORD_PATH = "/admin/account/change-password";
+const CHANGE_PASSWORD_PATH = "/auth/change-password";
+const LEGACY_CHANGE_PASSWORD_PATH = "/admin/account/change-password";
 
 const UNIVERSAL_ADMIN_PREFIXES = [
   "/admin/account",
   "/admin/settings",
   "/admin/help",
   "/admin/no-organization",
+  "/admin/organization-picker",
 ] as const;
 
 const USER_ORG_PREFIXES = ["/ecodim", "/support", "/branch-picker"] as const;
@@ -56,7 +62,9 @@ function isUserAllowedOrgSubpath(pathname: string, organizationId: string) {
 function isChangePasswordPath(pathname: string) {
   return (
     pathname === CHANGE_PASSWORD_PATH ||
-    pathname.startsWith(`${CHANGE_PASSWORD_PATH}/`)
+    pathname.startsWith(`${CHANGE_PASSWORD_PATH}/`) ||
+    pathname === LEGACY_CHANGE_PASSWORD_PATH ||
+    pathname.startsWith(`${LEGACY_CHANGE_PASSWORD_PATH}/`)
   );
 }
 
@@ -84,7 +92,6 @@ export async function enforceAdminRouteAccess(pathname: string) {
     return context;
   }
 
-
   if (isPlatformOwnerRole(appRole)) {
     return context;
   }
@@ -96,14 +103,18 @@ export async function enforceAdminRouteAccess(pathname: string) {
     redirect("/admin/platform-support");
   }
 
-  const membership = await getUserOrganizationMembership(userId);
+  const accessible = await listAccessibleOrganizationMemberships(userId);
   const fallback = await resolveUserOrganizationFallbackPath(userId, appRole);
 
-  if (!membership) {
+  if (accessible.length === 0) {
     if (pathname === "/admin/no-organization") {
       return context;
     }
     redirect("/admin/no-organization");
+  }
+
+  if (accessible.length > 1 && pathname === "/admin") {
+    redirect(ORGANIZATION_PICKER_PATH);
   }
 
   if (isAppAdminRole(appRole)) {
@@ -116,13 +127,14 @@ export async function enforceAdminRouteAccess(pathname: string) {
     }
 
     const organizationId = extractOrganizationId(pathname);
-    if (
-      organizationId &&
-      organizationId !== "new" &&
-      membership &&
-      organizationId !== membership.organizationId
-    ) {
-      notFound();
+    if (organizationId && organizationId !== "new") {
+      const orgMembership = await getOrganizationMembership(
+        userId,
+        organizationId,
+      );
+      if (!orgMembership) {
+        notFound();
+      }
     }
 
     return context;
@@ -143,7 +155,11 @@ export async function enforceAdminRouteAccess(pathname: string) {
       notFound();
     }
 
-    if (membership?.organizationId !== organizationId) {
+    const orgMembership = await getOrganizationMembership(
+      userId,
+      organizationId,
+    );
+    if (!orgMembership) {
       notFound();
     }
 
@@ -151,7 +167,7 @@ export async function enforceAdminRouteAccess(pathname: string) {
       return context;
     }
 
-    const memberRoles = splitRoles(membership?.role);
+    const memberRoles = splitRoles(orgMembership.role);
     if (
       memberRoles.includes(ORG_ROLE.OWNER) ||
       memberRoles.includes(ORG_ROLE.GESTIONNAIRE) ||

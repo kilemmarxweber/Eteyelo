@@ -5,6 +5,7 @@ import {
   ArrowRight,
   ChartBar,
   Headphones,
+  MailPlus,
   School,
   Users,
 } from "lucide-react";
@@ -31,6 +32,7 @@ const sections = [
       label: "text-sky-700/85 dark:text-sky-400",
       hover: "hover:border-sky-400/40 hover:shadow-sky-500/10",
     },
+    ownerOnly: false,
   },
   {
     title: "Membres",
@@ -46,6 +48,24 @@ const sections = [
       label: "text-amber-800/85 dark:text-amber-400",
       hover: "hover:border-amber-400/40 hover:shadow-amber-500/10",
     },
+    ownerOnly: false,
+  },
+  {
+    title: "Invitations",
+    description:
+      "Activer et configurer les invitations (super administrateur).",
+    path: "invitations",
+    icon: MailPlus,
+    countKey: null,
+    countLabel: null,
+    tone: {
+      border: "border-teal-200/80 dark:border-teal-900/40",
+      gradient: "bg-gradient-to-b from-teal-500/[0.08] via-card to-card",
+      iconBox: "bg-teal-500/15 text-teal-700 dark:text-teal-300",
+      label: "text-teal-800/85 dark:text-teal-400",
+      hover: "hover:border-teal-400/40 hover:shadow-teal-500/10",
+    },
+    ownerOnly: true,
   },
   {
     title: "Support établissement",
@@ -61,6 +81,7 @@ const sections = [
       label: "text-emerald-800/85 dark:text-emerald-400",
       hover: "hover:border-emerald-400/40 hover:shadow-emerald-500/10",
     },
+    ownerOnly: false,
   },
   {
     title: "Rapports et statistiques",
@@ -76,6 +97,7 @@ const sections = [
       label: "text-indigo-700/85 dark:text-indigo-400",
       hover: "hover:border-indigo-400/40 hover:shadow-indigo-500/10",
     },
+    ownerOnly: false,
   },
 ];
 
@@ -154,7 +176,7 @@ export function OrganizationHomeView({
                 {org.name}
               </h1>
 
-              <p className="mt-1.5 max-w-2xl text-sm leading-6 text-muted-foreground">
+              <p className="mt-1.5 max-w-7xl text-sm leading-6 text-muted-foreground">
                 Administrez les établissements, les membres et le support depuis
                 cet espace.
               </p>
@@ -184,7 +206,9 @@ export function OrganizationHomeView({
       </section>
 
       <section className="grid gap-3 sm:grid-cols-2">
-        {sections.map(({ icon: Icon, ...section }) => {
+        {sections
+          .filter((section) => !section.ownerOnly || canListAll)
+          .map(({ icon: Icon, ...section }) => {
           const count =
             section.countKey != null ? counts[section.countKey] : null;
 
