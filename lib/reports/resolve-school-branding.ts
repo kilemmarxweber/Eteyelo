@@ -1,5 +1,7 @@
-import { extractBulletinBranchLogo } from "@/lib/bulletin-context";
 import type { SchoolReportContext } from "@/lib/reports/types";
+
+/** Même image que la sidebar quand branche / org n'ont pas de logo. */
+export const REPORT_DEFAULT_LOGO_PATH = "/cmj.jpg";
 
 export type SchoolBrandingBranchRecord = {
   id: string;
@@ -20,37 +22,107 @@ export type SchoolBrandingBranchRecord = {
   schoolYear?: Array<{ nameYear: string | null }>;
 };
 
-function normalizeOptionalImageUrl(value: unknown): string {
+/**
+ * Normalise un chemin image comme l'UI (sidebar / galerie),
+ * sans fallback Klambocore.
+ */
+export function normalizeOptionalImageUrl(value: unknown): string {
   if (typeof value !== "string") return "";
 
-  const image = value.trim();
+  let image = value.trim();
   if (!image) return "";
+
+  // Corrige un double préfixe éventuel
+  image = image.replace(/^\/uploads\/uploads\//, "/uploads/");
 
   if (
     image.startsWith("http://") ||
     image.startsWith("https://") ||
     image.startsWith("data:") ||
+    image.startsWith("blob:") ||
     image.startsWith("/")
   ) {
     return image;
   }
 
+  // Même convention que l'app : /uploads/… (rewrite → /api/uploads/…)
   return `/uploads/${image}`;
 }
 
+function readRawBranchLogo(branchImage: unknown): string {
+  if (!branchImage) return "";
+
+  let parsed: unknown = branchImage;
+  if (typeof branchImage === "string") {
+    const trimmed = branchImage.trim();
+    if (!trimmed) return "";
+    try {
+      parsed = JSON.parse(trimmed);
+    } catch {
+      return trimmed;
+    }
+  }
+
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+    return "";
+  }
+
+  const logo = (parsed as Record<string, unknown>).logo;
+  return typeof logo === "string" ? logo.trim() : "";
+}
+
+function readRawFirstListImage(
+  branchImage: unknown,
+  key: "ecole" | "event" | "gallery",
+): string {
+  if (!branchImage) return "";
+
+  let parsed: unknown = branchImage;
+  if (typeof branchImage === "string") {
+    try {
+      parsed = JSON.parse(branchImage);
+    } catch {
+      return "";
+    }
+  }
+
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+    return "";
+  }
+
+  const list = (parsed as Record<string, unknown>)[key];
+  if (!Array.isArray(list) || list.length === 0) return "";
+  const first = list[0];
+  return typeof first === "string" ? first.trim() : "";
+}
+
 /**
- * Logo rapport : branche (`image.logo`) → organisation → chaîne vide
- * (pas de fallback Klambocore, contrairement aux bulletins).
+ * Logo rapport — aligné sur la sidebar :
+ * 1. `branch.image.logo`
+ * 2. première image `ecole`
+ * 3. `organization.logo`
+ * 4. `/cmj.jpg` (même fallback que la sidebar)
  */
 export function resolveReportLogoUrl(
   branchImage: unknown,
   organizationLogo: unknown,
 ): string {
-  return (
-    extractBulletinBranchLogo(branchImage) ||
-    normalizeOptionalImageUrl(organizationLogo) ||
-    ""
-  );
+  const rawLogo = readRawBranchLogo(branchImage);
+  if (rawLogo) {
+    return normalizeOptionalImageUrl(rawLogo);
+  }
+
+  const ecole = readRawFirstListImage(branchImage, "ecole");
+  if (ecole) {
+    return normalizeOptionalImageUrl(ecole);
+  }
+
+  const orgLogo = normalizeOptionalImageUrl(organizationLogo);
+  if (orgLogo) {
+    return orgLogo;
+  }
+
+  return REPORT_DEFAULT_LOGO_PATH;
 }
 
 export function formatSchoolAddress(

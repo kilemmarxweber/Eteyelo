@@ -1,12 +1,12 @@
-import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
-import { imageUrlToDataUrl } from "@/lib/reports/image-to-data-url";
 import {
-  drawReportFooterOnAllPages,
-  drawReportHeader,
-  REPORT_HEADER_CONTENT_TOP_MM,
-} from "@/lib/reports/pdf-header-footer";
+  createBrandedReportDoc,
+  finishBrandedReport,
+  reportHeaderOnLaterPages,
+  reportTableMargin,
+  REPORT_TABLE_BASE,
+} from "@/lib/reports/report-pdf-kit";
 import type { SchoolReportContext } from "@/lib/reports/types";
 import type { StudentType } from "@/lib/types";
 
@@ -158,8 +158,12 @@ export async function buildResultsClassementReportPdf(
 
   const title = buildResultsClassementReportTitle(options);
   const filterLabels = buildResultsClassementFilterLabels(options);
-  const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
-  const logo = await imageUrlToDataUrl(context.logoUrl);
+
+  const { doc, contentTop, marginX, usableWidth, headerOptions, context: ctx } =
+    await createBrandedReportDoc(context, {
+      title,
+      details: [...filterLabels, `${rows.length} élève(s)`],
+    });
 
   const head = ["Rang", "Élève", "Sexe", "Moyenne (%)", "Points"];
   const body = rows.map((row) => [
@@ -171,52 +175,28 @@ export async function buildResultsClassementReportPdf(
   ]);
 
   autoTable(doc, {
-    startY: REPORT_HEADER_CONTENT_TOP_MM,
-    margin: {
-      top: REPORT_HEADER_CONTENT_TOP_MM,
-      right: 12,
-      bottom: 14,
-      left: 12,
-    },
+    startY: contentTop,
+    margin: reportTableMargin(contentTop, marginX),
+    tableWidth: usableWidth,
     head: [head],
     body,
-    theme: "grid",
-    showHead: "everyPage",
+    ...REPORT_TABLE_BASE,
     styles: {
-      font: "helvetica",
+      ...REPORT_TABLE_BASE.styles,
       fontSize: 9,
-      cellPadding: 2.5,
-      overflow: "linebreak",
-      valign: "middle",
+      cellPadding: { top: 2.5, right: 2, bottom: 2.5, left: 2 },
     },
-    headStyles: {
-      fillColor: [30, 64, 175],
-      textColor: 255,
-      fontStyle: "bold",
-      halign: "center",
-    },
-    alternateRowStyles: { fillColor: [239, 246, 255] },
     columnStyles: {
-      0: { cellWidth: 18, halign: "center" },
-      1: { cellWidth: 80 },
-      2: { cellWidth: 16, halign: "center" },
-      3: { cellWidth: 28, halign: "center" },
-      4: { cellWidth: 32, halign: "center" },
+      0: { cellWidth: usableWidth * 0.1,halign: "center" },
+      1: { cellWidth: usableWidth * 0.42 },
+      2: { cellWidth: usableWidth * 0.1,halign: "center" },
+      3: { cellWidth: usableWidth * 0.18,halign: "center" },
+      4: { cellWidth: usableWidth * 0.2,halign: "center" },
     },
-    didDrawPage: () => {
-      drawReportHeader(doc, context, {
-        title,
-        subtitle: context.branchName,
-        details: [...filterLabels, `${rows.length} élève(s)`],
-        logoDataUrl: logo,
-      });
-    },
+    didDrawPage: reportHeaderOnLaterPages(doc, ctx, headerOptions),
   });
 
-  drawReportFooterOnAllPages(doc, context, {
-    leftText: context.branchName || context.schoolName,
-  });
-
+  finishBrandedReport(doc, ctx);
   return doc;
 }
 

@@ -1,12 +1,11 @@
-import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
-import { imageUrlToDataUrl } from "@/lib/reports/image-to-data-url";
 import {
-  drawReportFooterOnAllPages,
-  drawReportHeader,
-  REPORT_HEADER_CONTENT_TOP_MM,
-} from "@/lib/reports/pdf-header-footer";
+  createBrandedReportDoc,
+  finishBrandedReport,
+  reportHeaderOnLaterPages,
+  reportTableMargin,
+} from "@/lib/reports/report-pdf-kit";
 import type { SchoolReportContext } from "@/lib/reports/types";
 
 export type ScheduleReportContext = SchoolReportContext & {
@@ -56,13 +55,18 @@ export function findScheduleConflicts(entries: ScheduleReportEntry[]) {
 
 export async function exportSchedulePdf(input: SchedulePdfInput) {
   const { context, days, timeSlots, recreationHour, endTime, entries } = input;
-  const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
-  const logo = await imageUrlToDataUrl(context.logoUrl);
   const title = `Horaire de la classe ${context.classeName}`;
   const details = [
     context.creneauName ? `Vacation : ${context.creneauName}` : "",
     context.classeCode ? `Code : ${context.classeCode}` : "",
   ].filter(Boolean);
+
+  const { doc, contentTop, marginX, usableWidth, headerOptions, context: ctx } =
+    await createBrandedReportDoc(context, {
+      title,
+      details,
+      orientation: "landscape",
+    });
 
   const body = timeSlots.map((hour, index) => {
     const nextTime = timeSlots[index + 1] || endTime;
@@ -86,23 +90,43 @@ export async function exportSchedulePdf(input: SchedulePdfInput) {
     ];
   });
 
+  const hourColWidth = usableWidth * 0.12;
+  const dayColWidth =
+    days.length > 0 ? (usableWidth - hourColWidth) / days.length : usableWidth;
+
   autoTable(doc, {
-    startY: REPORT_HEADER_CONTENT_TOP_MM,
+    startY: contentTop,
+    margin: reportTableMargin(contentTop, marginX),
+    tableWidth: usableWidth,
     head: [["Heures", ...days]],
     body,
     theme: "grid",
-    margin: {
-      top: REPORT_HEADER_CONTENT_TOP_MM,
-      left: 10,
-      right: 10,
-      bottom: 14,
+    styles: {
+      font: "helvetica",
+      fontSize: 7.5,
+      cellPadding: 2,
+      halign: "center",
+      valign: "middle",
     },
-    styles: { font: "helvetica", fontSize: 7.5, cellPadding: 2, halign: "center", valign: "middle" },
-    headStyles: { fillColor: [30, 64, 175], textColor: 255, fontStyle: "bold" },
-    columnStyles: { 0: { cellWidth: 27, fontStyle: "bold" } },
+    headStyles: {
+      fillColor: [30, 64, 175],
+      textColor: 255,
+      fontStyle: "bold",
+    },
+    columnStyles: {
+      0: { cellWidth: hourColWidth, fontStyle: "bold" },
+      ...Object.fromEntries(
+        days.map((_, index) => [
+          index + 1,
+          { cellWidth: dayColWidth },
+        ]),
+      ),
+    },
     didParseCell: (data) => {
       if (data.section !== "body") return;
-      const text = Array.isArray(data.cell.text) ? data.cell.text.join(" ") : String(data.cell.text);
+      const text = Array.isArray(data.cell.text)
+        ? data.cell.text.join(" ")
+        : String(data.cell.text);
       if (text.includes("RECREATION")) {
         data.cell.styles.fillColor = [254, 243, 199];
         data.cell.styles.textColor = [146, 64, 14];
@@ -113,19 +137,9 @@ export async function exportSchedulePdf(input: SchedulePdfInput) {
         data.cell.styles.fontStyle = "bold";
       }
     },
-    didDrawPage: () => {
-      drawReportHeader(doc, context, {
-        title,
-        subtitle: context.branchName,
-        details,
-        logoDataUrl: logo,
-      });
-    },
+    didDrawPage: reportHeaderOnLaterPages(doc, ctx, headerOptions),
   });
 
-  drawReportFooterOnAllPages(doc, context, {
-    leftText: context.branchName || context.schoolName,
-  });
-
+  finishBrandedReport(doc, ctx);
   doc.save(`horaire-${safeFilePart(context.classeName || "classe")}.pdf`);
 }

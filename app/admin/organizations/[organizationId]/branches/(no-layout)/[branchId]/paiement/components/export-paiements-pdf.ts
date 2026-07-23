@@ -1,15 +1,15 @@
-import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import {
   ModePaiement,
   StatusPaiement,
 } from "@/src/interfaces/Paiement";
-import { imageUrlToDataUrl } from "@/lib/reports/image-to-data-url";
 import {
-  drawReportFooterOnAllPages,
-  drawReportHeader,
-  REPORT_HEADER_CONTENT_TOP_MM,
-} from "@/lib/reports/pdf-header-footer";
+  createBrandedReportDoc,
+  finishBrandedReport,
+  reportHeaderOnLaterPages,
+  reportTableMargin,
+  REPORT_TABLE_BASE,
+} from "@/lib/reports/report-pdf-kit";
 import {
   DEFAULT_EXCHANGE_RATE_USD_CDF,
   type SchoolReportContext,
@@ -180,8 +180,16 @@ export async function buildPaiementsReportPdf(
   const exchangeRate = resolveExchangeRate(context);
   const totalUsd = rows.reduce((sum, row) => sum + row.total, 0);
 
-  const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
-  const logo = await imageUrlToDataUrl(context.logoUrl);
+  const { doc, contentTop, marginX, usableWidth, headerOptions, context: ctx } =
+    await createBrandedReportDoc(context, {
+      title,
+      details: [
+        ...filterLabels,
+        `${rows.length} paiement(s)`,
+        `Total : ${formatUsd(totalUsd)}`,
+        `Taux : 1 USD = ${exchangeRate.toLocaleString("fr-FR")} CDF`,
+      ],
+    });
 
   const head = ["Date", "Élève", "Mode", "USD", "CDF", "Référence"];
   const body = rows.map((row) => [
@@ -194,58 +202,24 @@ export async function buildPaiementsReportPdf(
   ]);
 
   autoTable(doc, {
-    startY: REPORT_HEADER_CONTENT_TOP_MM,
-    margin: {
-      top: REPORT_HEADER_CONTENT_TOP_MM,
-      right: 10,
-      bottom: 14,
-      left: 10,
-    },
+    startY: contentTop,
+    margin: reportTableMargin(contentTop, marginX),
+    tableWidth: usableWidth,
     head: [head],
     body,
-    theme: "grid",
-    showHead: "everyPage",
-    styles: {
-      font: "helvetica",
-      fontSize: 8,
-      cellPadding: 2,
-      overflow: "linebreak",
-      valign: "middle",
-    },
-    headStyles: {
-      fillColor: [30, 64, 175],
-      textColor: 255,
-      fontStyle: "bold",
-      halign: "center",
-    },
-    alternateRowStyles: { fillColor: [239, 246, 255] },
+    ...REPORT_TABLE_BASE,
     columnStyles: {
-      0: { cellWidth: 28, halign: "center" },
-      1: { cellWidth: 70 },
-      2: { cellWidth: 32, halign: "center" },
-      3: { cellWidth: 32, halign: "right" },
-      4: { cellWidth: 40, halign: "right" },
-      5: { cellWidth: 55 },
+      0: { cellWidth: usableWidth * 0.12,halign: "center" },
+      1: { cellWidth: usableWidth * 0.28 },
+      2: { cellWidth: usableWidth * 0.14,halign: "center" },
+      3: { cellWidth: usableWidth * 0.12,halign: "right" },
+      4: { cellWidth: usableWidth * 0.14,halign: "right" },
+      5: { cellWidth: usableWidth * 0.2 },
     },
-    didDrawPage: () => {
-      drawReportHeader(doc, context, {
-        title,
-        subtitle: context.branchName,
-        details: [
-          ...filterLabels,
-          `${rows.length} paiement(s)`,
-          `Total : ${formatUsd(totalUsd)}`,
-          `Taux : 1 USD = ${exchangeRate.toLocaleString("fr-FR")} CDF`,
-        ],
-        logoDataUrl: logo,
-      });
-    },
+    didDrawPage: reportHeaderOnLaterPages(doc, ctx, headerOptions),
   });
 
-  drawReportFooterOnAllPages(doc, context, {
-    leftText: context.branchName || context.schoolName,
-  });
-
+  finishBrandedReport(doc, ctx);
   return doc;
 }
 

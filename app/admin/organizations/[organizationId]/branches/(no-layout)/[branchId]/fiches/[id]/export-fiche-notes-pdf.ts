@@ -1,12 +1,12 @@
-import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
-import { imageUrlToDataUrl } from "@/lib/reports/image-to-data-url";
 import {
-  drawReportFooterOnAllPages,
-  drawReportHeader,
-  REPORT_HEADER_CONTENT_TOP_MM,
-} from "@/lib/reports/pdf-header-footer";
+  createBrandedReportDoc,
+  finishBrandedReport,
+  reportHeaderOnLaterPages,
+  reportTableMargin,
+  REPORT_TABLE_BASE,
+} from "@/lib/reports/report-pdf-kit";
 import type { SchoolReportContext } from "@/lib/reports/types";
 
 export type FicheNotesReportInfo = {
@@ -58,17 +58,17 @@ export async function buildFicheNotesReportPdf(
 ) {
   const title = buildFicheNotesTitle(ficheInfo);
   const details = buildFicheNotesDetails(ficheInfo);
-  const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
-  const logo = await imageUrlToDataUrl(context.logoUrl);
+
+  const { doc, contentTop, marginX, usableWidth, headerOptions, context: ctx } =
+    await createBrandedReportDoc(context, {
+      title,
+      details,
+    });
 
   autoTable(doc, {
-    startY: REPORT_HEADER_CONTENT_TOP_MM,
-    margin: {
-      top: REPORT_HEADER_CONTENT_TOP_MM,
-      right: 10,
-      bottom: 14,
-      left: 10,
-    },
+    startY: contentTop,
+    margin: reportTableMargin(contentTop, marginX),
+    tableWidth: usableWidth,
     head: [["#", "Nom", "Prénom", "Username", "Sexe", "Score", "Max"]],
     body: notes.map((n, index) => [
       index + 1,
@@ -79,41 +79,24 @@ export async function buildFicheNotesReportPdf(
       n.score,
       n.maxScore,
     ]),
-    theme: "grid",
-    showHead: "everyPage",
+    ...REPORT_TABLE_BASE,
     styles: {
-      font: "helvetica",
+      ...REPORT_TABLE_BASE.styles,
       fontSize: 9,
-      cellPadding: 2,
-      overflow: "linebreak",
-      valign: "middle",
     },
-    headStyles: {
-      fillColor: [30, 64, 175],
-      textColor: 255,
-      fontStyle: "bold",
-      halign: "center",
-    },
-    alternateRowStyles: { fillColor: [239, 246, 255] },
     columnStyles: {
-      0: { cellWidth: 10, halign: "center" },
-      5: { halign: "center" },
-      6: { halign: "center" },
+      0: { cellWidth: usableWidth * 0.06,halign: "center" },
+      1: { cellWidth: usableWidth * 0.2 },
+      2: { cellWidth: usableWidth * 0.18 },
+      3: { cellWidth: usableWidth * 0.22 },
+      4: { cellWidth: usableWidth * 0.1,halign: "center" },
+      5: { cellWidth: usableWidth * 0.12,halign: "center" },
+      6: { cellWidth: usableWidth * 0.12,halign: "center" },
     },
-    didDrawPage: () => {
-      drawReportHeader(doc, context, {
-        title,
-        subtitle: context.branchName,
-        details,
-        logoDataUrl: logo,
-      });
-    },
+    didDrawPage: reportHeaderOnLaterPages(doc, ctx, headerOptions),
   });
 
-  drawReportFooterOnAllPages(doc, context, {
-    leftText: context.branchName || context.schoolName,
-  });
-
+  finishBrandedReport(doc, ctx);
   return doc;
 }
 

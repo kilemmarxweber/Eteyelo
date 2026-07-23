@@ -46,9 +46,17 @@ async function main() {
 
   for (const org of orgs) {
     for (const branch of org.branches) {
-      const logo = resolveReportLogoUrl(branch.image, branch.organization.logo);
-      if (logo && !branchWithLogo) branchWithLogo = branch;
-      if (!logo && !branchWithoutLogo) branchWithoutLogo = branch;
+      const hasDedicatedLogo =
+        Boolean(
+          branch.image &&
+            typeof branch.image === "object" &&
+            !Array.isArray(branch.image) &&
+            typeof (branch.image as { logo?: unknown }).logo === "string" &&
+            String((branch.image as { logo: string }).logo).trim(),
+        ) || Boolean(branch.organization.logo?.trim());
+
+      if (hasDedicatedLogo && !branchWithLogo) branchWithLogo = branch;
+      if (!hasDedicatedLogo && !branchWithoutLogo) branchWithoutLogo = branch;
     }
   }
 
@@ -85,15 +93,20 @@ async function main() {
     console.log("⚠ Aucune branche avec logo — skip check logo A");
   }
 
-  // --- Branche B sans logo ---
+  // --- Branche B sans logo dédié → fallback UI `/cmj.jpg` ---
   if (branchWithoutLogo) {
     const ctx = buildSchoolReportContext(branchWithoutLogo);
-    assert.equal(ctx.logoUrl, "", "Branche B: pas de logoUrl");
+    assert.equal(
+      ctx.logoUrl,
+      "/cmj.jpg",
+      "Branche B: logoUrl = fallback sidebar /cmj.jpg",
+    );
     assert.ok(ctx.schoolName.trim(), "Branche B: schoolName correct");
     assert.doesNotMatch(ctx.schoolName, /MARGUERITE/i);
 
     const dataUrl = await imageUrlToDataUrl(ctx.logoUrl);
-    assert.equal(dataUrl, null);
+    // En Node le fetch absolu peut échouer ; null accepté hors navigateur.
+    // En client, /cmj.jpg doit résoudre.
 
     const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
     drawReportHeader(doc, ctx, {
@@ -107,11 +120,12 @@ async function main() {
 
     console.log("\n✓ Branche B (sans logo)");
     console.log(`  id=${ctx.branchId} name=${ctx.branchName ?? ctx.schoolName}`);
+    console.log(`  logoUrl=${ctx.logoUrl}`);
     console.log(`  schoolName=${ctx.schoolName}`);
     console.log(`  address=${ctx.address ?? "(vide)"}`);
   } else {
-    console.log("\n⚠ Aucune branche sans logo — skip check B");
-    // Fallback: forcer logo vide sur une branche existante
+    console.log("\n⚠ Aucune branche sans logo dédié — skip check B");
+    // Fallback: forcer absence de logo dédié → fallback /cmj.jpg
     const any = orgs.flatMap((o) => o.branches)[0];
     if (any) {
       const ctx = buildSchoolReportContext({
@@ -119,10 +133,10 @@ async function main() {
         image: null,
         organization: { ...any.organization, logo: null },
       });
-      assert.equal(ctx.logoUrl, "");
+      assert.equal(ctx.logoUrl, "/cmj.jpg");
       const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
-      drawReportHeader(doc, ctx, { title: "QA forcé sans logo" });
-      console.log("✓ Fallback B simulé (logo forcé vide) — pas d'erreur");
+      drawReportHeader(doc, ctx, { title: "QA forcé sans logo dédié" });
+      console.log("✓ Fallback B simulé (logoUrl=/cmj.jpg) — pas d'erreur");
     }
   }
 

@@ -1,11 +1,11 @@
-import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-import { imageUrlToDataUrl } from "@/lib/reports/image-to-data-url";
 import {
-  drawReportFooterOnAllPages,
-  drawReportHeader,
-  REPORT_HEADER_CONTENT_TOP_MM,
-} from "@/lib/reports/pdf-header-footer";
+  createBrandedReportDoc,
+  finishBrandedReport,
+  reportHeaderOnLaterPages,
+  reportTableMargin,
+  REPORT_TABLE_BASE,
+} from "@/lib/reports/report-pdf-kit";
 import type { SchoolReportContext } from "@/lib/reports/types";
 import type { UnpaidFinancialStatus, UnpaidReportRow } from "../paiement.action";
 
@@ -100,8 +100,23 @@ export async function buildUnpaidReportPdf(
     enRetard: rows.filter((r) => r.status === "EN_RETARD").length,
   };
 
-  const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
-  const logo = await imageUrlToDataUrl(context.logoUrl);
+  const { doc, contentTop, marginX, usableWidth, headerOptions, context: ctx } =
+    await createBrandedReportDoc(context, {
+      title,
+      details: [
+        ...filterLabels,
+        rows.length > 0
+          ? `${rows.length} élève(s) — À jour ${counts.aJour} · Partiel ${counts.partiel} · En retard ${counts.enRetard}`
+          : emptyMessage,
+        ...(rows.length > 0
+          ? [
+              `Total dû : ${formatUsd(totalDu)}`,
+              `Total payé : ${formatUsd(totalPaye)}`,
+              `Total reste : ${formatUsd(totalReste)}`,
+            ]
+          : []),
+      ],
+    });
 
   const head = ["Élève", "Classe", "Dû", "Payé", "Reste", "Statut"];
   const body =
@@ -117,38 +132,19 @@ export async function buildUnpaidReportPdf(
       : [[emptyMessage, "", "", "", "", ""]];
 
   autoTable(doc, {
-    startY: REPORT_HEADER_CONTENT_TOP_MM,
-    margin: {
-      top: REPORT_HEADER_CONTENT_TOP_MM,
-      right: 10,
-      bottom: 14,
-      left: 10,
-    },
+    startY: contentTop,
+    margin: reportTableMargin(contentTop, marginX),
+    tableWidth: usableWidth,
     head: [head],
     body,
-    theme: "grid",
-    showHead: "everyPage",
-    styles: {
-      font: "helvetica",
-      fontSize: 8,
-      cellPadding: 2,
-      overflow: "linebreak",
-      valign: "middle",
-    },
-    headStyles: {
-      fillColor: [30, 64, 175],
-      textColor: 255,
-      fontStyle: "bold",
-      halign: "center",
-    },
-    alternateRowStyles: { fillColor: [239, 246, 255] },
+    ...REPORT_TABLE_BASE,
     columnStyles: {
-      0: { cellWidth: 70 },
-      1: { cellWidth: 40 },
-      2: { cellWidth: 32, halign: "right" },
-      3: { cellWidth: 32, halign: "right" },
-      4: { cellWidth: 32, halign: "right" },
-      5: { cellWidth: 28, halign: "center" },
+      0: { cellWidth: usableWidth * 0.28 },
+      1: { cellWidth: usableWidth * 0.18 },
+      2: { cellWidth: usableWidth * 0.14,halign: "right" },
+      3: { cellWidth: usableWidth * 0.14,halign: "right" },
+      4: { cellWidth: usableWidth * 0.14,halign: "right" },
+      5: { cellWidth: usableWidth * 0.12,halign: "center" },
     },
     didParseCell: (data) => {
       if (rows.length === 0 && data.section === "body") {
@@ -163,32 +159,10 @@ export async function buildUnpaidReportPdf(
         }
       }
     },
-    didDrawPage: () => {
-      drawReportHeader(doc, context, {
-        title,
-        subtitle: context.branchName,
-        details: [
-          ...filterLabels,
-          rows.length > 0
-            ? `${rows.length} élève(s) — À jour ${counts.aJour} · Partiel ${counts.partiel} · En retard ${counts.enRetard}`
-            : emptyMessage,
-          ...(rows.length > 0
-            ? [
-                `Total dû : ${formatUsd(totalDu)}`,
-                `Total payé : ${formatUsd(totalPaye)}`,
-                `Total reste : ${formatUsd(totalReste)}`,
-              ]
-            : []),
-        ],
-        logoDataUrl: logo,
-      });
-    },
+    didDrawPage: reportHeaderOnLaterPages(doc, ctx, headerOptions),
   });
 
-  drawReportFooterOnAllPages(doc, context, {
-    leftText: context.branchName || context.schoolName,
-  });
-
+  finishBrandedReport(doc, ctx);
   return doc;
 }
 

@@ -1,13 +1,13 @@
-import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
 import { orgRoleLabel } from "@/lib/org-role-labels";
-import { imageUrlToDataUrl } from "@/lib/reports/image-to-data-url";
 import {
-  drawReportFooterOnAllPages,
-  drawReportHeader,
-  REPORT_HEADER_CONTENT_TOP_MM,
-} from "@/lib/reports/pdf-header-footer";
+  createBrandedReportDoc,
+  finishBrandedReport,
+  reportHeaderOnLaterPages,
+  reportTableMargin,
+  REPORT_TABLE_BASE,
+} from "@/lib/reports/report-pdf-kit";
 import type { SchoolReportContext } from "@/lib/reports/types";
 import type { IPersonnel } from "@/src/interfaces/Personnel";
 
@@ -101,8 +101,12 @@ export async function buildPersonnelReportPdf(
 ) {
   const title = buildPersonnelReportTitle(options);
   const filterLabels = buildPersonnelReportFilterLabels(options);
-  const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
-  const logo = await imageUrlToDataUrl(context.logoUrl);
+
+  const { doc, contentTop, marginX, usableWidth, headerOptions, context: ctx } =
+    await createBrandedReportDoc(context, {
+      title,
+      details: [...filterLabels, `${personnels.length} personnel(s)`],
+    });
 
   const head = ["#", "Identité", "Fonction", "Statut", "Contact"];
   const body = personnels.map((personnel, index) => [
@@ -114,52 +118,23 @@ export async function buildPersonnelReportPdf(
   ]);
 
   autoTable(doc, {
-    startY: REPORT_HEADER_CONTENT_TOP_MM,
-    margin: {
-      top: REPORT_HEADER_CONTENT_TOP_MM,
-      right: 10,
-      bottom: 14,
-      left: 10,
-    },
+    startY: contentTop,
+    margin: reportTableMargin(contentTop, marginX),
+    tableWidth: usableWidth,
     head: [head],
     body,
-    theme: "grid",
-    showHead: "everyPage",
-    styles: {
-      font: "helvetica",
-      fontSize: 8,
-      cellPadding: 2,
-      overflow: "linebreak",
-      valign: "middle",
-    },
-    headStyles: {
-      fillColor: [30, 64, 175],
-      textColor: 255,
-      fontStyle: "bold",
-      halign: "center",
-    },
-    alternateRowStyles: { fillColor: [239, 246, 255] },
+    ...REPORT_TABLE_BASE,
     columnStyles: {
-      0: { cellWidth: 10, halign: "center" },
-      1: { cellWidth: 70 },
-      2: { cellWidth: 45 },
-      3: { cellWidth: 28, halign: "center" },
-      4: { cellWidth: 80 },
+      0: { cellWidth: usableWidth * 0.06,halign: "center" },
+      1: { cellWidth: usableWidth * 0.28 },
+      2: { cellWidth: usableWidth * 0.22 },
+      3: { cellWidth: usableWidth * 0.12,halign: "center" },
+      4: { cellWidth: usableWidth * 0.32 },
     },
-    didDrawPage: () => {
-      drawReportHeader(doc, context, {
-        title,
-        subtitle: context.branchName,
-        details: [...filterLabels, `${personnels.length} personnel(s)`],
-        logoDataUrl: logo,
-      });
-    },
+    didDrawPage: reportHeaderOnLaterPages(doc, ctx, headerOptions),
   });
 
-  drawReportFooterOnAllPages(doc, context, {
-    leftText: context.branchName || context.schoolName,
-  });
-
+  finishBrandedReport(doc, ctx);
   return doc;
 }
 

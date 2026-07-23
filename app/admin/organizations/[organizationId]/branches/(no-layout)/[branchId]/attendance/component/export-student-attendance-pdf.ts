@@ -1,12 +1,12 @@
-import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
-import { imageUrlToDataUrl } from "@/lib/reports/image-to-data-url";
 import {
-  drawReportFooterOnAllPages,
-  drawReportHeader,
-  REPORT_HEADER_CONTENT_TOP_MM,
-} from "@/lib/reports/pdf-header-footer";
+  createBrandedReportDoc,
+  finishBrandedReport,
+  reportHeaderOnLaterPages,
+  reportTableMargin,
+  REPORT_TABLE_BASE,
+} from "@/lib/reports/report-pdf-kit";
 import type { SchoolReportContext } from "@/lib/reports/types";
 import type {
   StudentAttendanceDetailRow,
@@ -97,8 +97,17 @@ export async function buildStudentAttendanceReportPdf(
   const details = report.details;
   const isEmpty = details.length === 0 || report.summary.total === 0;
 
-  const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
-  const logo = await imageUrlToDataUrl(context.logoUrl);
+  const { doc, contentTop, marginX, usableWidth, headerOptions, context: ctx } =
+    await createBrandedReportDoc(context, {
+      title,
+      details: [
+        ...filterLabels,
+        isEmpty ? emptyMessage : formatSummaryLine(report.summary),
+      ],
+    });
+
+  const onLaterPages = reportHeaderOnLaterPages(doc, ctx, headerOptions);
+  const tableMargin = reportTableMargin(contentTop, marginX);
 
   const summaryHead = ["Présents", "Absents", "Retards", "Excusés", "Total"];
   const summaryBody = [
@@ -112,45 +121,25 @@ export async function buildStudentAttendanceReportPdf(
   ];
 
   autoTable(doc, {
-    startY: REPORT_HEADER_CONTENT_TOP_MM,
-    margin: {
-      top: REPORT_HEADER_CONTENT_TOP_MM,
-      right: 10,
-      bottom: 14,
-      left: 10,
-    },
+    startY: contentTop,
+    margin: tableMargin,
+    tableWidth: usableWidth,
     head: [summaryHead],
     body: summaryBody,
-    theme: "grid",
+    ...REPORT_TABLE_BASE,
     styles: {
-      font: "helvetica",
+      ...REPORT_TABLE_BASE.styles,
       fontSize: 9,
-      cellPadding: 2.5,
+      cellPadding: { top: 2.5, right: 2, bottom: 2.5, left: 2 },
       halign: "center",
-      valign: "middle",
     },
-    headStyles: {
-      fillColor: [30, 64, 175],
-      textColor: 255,
-      fontStyle: "bold",
-    },
-    didDrawPage: () => {
-      drawReportHeader(doc, context, {
-        title,
-        subtitle: context.branchName,
-        details: [
-          ...filterLabels,
-          isEmpty ? emptyMessage : formatSummaryLine(report.summary),
-        ],
-        logoDataUrl: logo,
-      });
-    },
+    didDrawPage: onLaterPages,
   });
 
   if (includeDetail) {
     const detailStartY =
-      (doc as jsPDF & { lastAutoTable?: { finalY?: number } }).lastAutoTable
-        ?.finalY ?? REPORT_HEADER_CONTENT_TOP_MM;
+      (doc as { lastAutoTable?: { finalY?: number } }).lastAutoTable?.finalY ??
+      contentTop;
 
     const head = [
       "#",
@@ -177,40 +166,21 @@ export async function buildStudentAttendanceReportPdf(
         ]);
 
     autoTable(doc, {
-      startY: detailStartY + 6,
-      margin: {
-        top: REPORT_HEADER_CONTENT_TOP_MM,
-        right: 10,
-        bottom: 14,
-        left: 10,
-      },
+      startY: detailStartY + 8,
+      margin: tableMargin,
+      tableWidth: usableWidth,
       head: [head],
       body,
-      theme: "grid",
-      showHead: "everyPage",
-      styles: {
-        font: "helvetica",
-        fontSize: 8,
-        cellPadding: 2,
-        overflow: "linebreak",
-        valign: "middle",
-      },
-      headStyles: {
-        fillColor: [30, 64, 175],
-        textColor: 255,
-        fontStyle: "bold",
-        halign: "center",
-      },
-      alternateRowStyles: { fillColor: [239, 246, 255] },
+      ...REPORT_TABLE_BASE,
       columnStyles: {
-        0: { cellWidth: 12, halign: "center" },
-        1: { cellWidth: 70 },
-        2: { cellWidth: 40 },
-        3: { cellWidth: 24, halign: "center" },
-        4: { cellWidth: 24, halign: "center" },
-        5: { cellWidth: 24, halign: "center" },
-        6: { cellWidth: 24, halign: "center" },
-        7: { cellWidth: 24, halign: "center" },
+        0: { cellWidth: usableWidth * 0.05,halign: "center" },
+        1: { cellWidth: usableWidth * 0.28 },
+        2: { cellWidth: usableWidth * 0.17 },
+        3: { cellWidth: usableWidth * 0.1, halign: "center" },
+        4: { cellWidth: usableWidth * 0.1,halign: "center" },
+        5: { cellWidth: usableWidth * 0.1,halign: "center" },
+        6: { cellWidth: usableWidth * 0.1,halign: "center" },
+        7: { cellWidth: usableWidth * 0.1,halign: "center" },
       },
       didParseCell: (data) => {
         if (isEmpty && data.section === "body") {
@@ -225,24 +195,11 @@ export async function buildStudentAttendanceReportPdf(
           }
         }
       },
-      didDrawPage: () => {
-        drawReportHeader(doc, context, {
-          title,
-          subtitle: context.branchName,
-          details: [
-            ...filterLabels,
-            isEmpty ? emptyMessage : formatSummaryLine(report.summary),
-          ],
-          logoDataUrl: logo,
-        });
-      },
+      didDrawPage: onLaterPages,
     });
   }
 
-  drawReportFooterOnAllPages(doc, context, {
-    leftText: context.branchName || context.schoolName,
-  });
-
+  finishBrandedReport(doc, ctx);
   return doc;
 }
 

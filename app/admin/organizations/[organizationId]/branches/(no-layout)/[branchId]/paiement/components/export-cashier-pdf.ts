@@ -1,11 +1,12 @@
-import jsPDF from "jspdf";
+import type jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-import { imageUrlToDataUrl } from "@/lib/reports/image-to-data-url";
 import {
-  drawReportFooterOnAllPages,
-  drawReportHeader,
-  REPORT_HEADER_CONTENT_TOP_MM,
-} from "@/lib/reports/pdf-header-footer";
+  createBrandedReportDoc,
+  finishBrandedReport,
+  reportHeaderOnLaterPages,
+  reportTableMargin,
+  REPORT_TABLE_BASE,
+} from "@/lib/reports/report-pdf-kit";
 import type { SchoolReportContext } from "@/lib/reports/types";
 
 export type CashierReportPdfOptions = {
@@ -62,25 +63,28 @@ function buildPeriodDetail(dateStart: string, dateEnd?: string): string {
     : `Date : ${formattedStart}`;
 }
 
+function lastTableY(doc: jsPDF, fallback: number): number {
+  return (
+    (doc as jsPDF & { lastAutoTable?: { finalY?: number } }).lastAutoTable
+      ?.finalY ?? fallback
+  );
+}
+
 export async function buildCashierReportPdf(
   data: ReportData,
   context: SchoolReportContext,
   options: CashierReportPdfOptions,
 ) {
-  const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
-  const logo = await imageUrlToDataUrl(context.logoUrl);
   const title = "Rapport de Caisse";
   const periodDetail = buildPeriodDetail(options.dateStart, options.dateEnd);
-  const branchLabel = context.branchName || context.schoolName;
 
-  const drawHeader = () => {
-    drawReportHeader(doc, context, {
+  const { doc, contentTop, marginX, usableWidth, headerOptions, context: ctx } =
+    await createBrandedReportDoc(context, {
       title,
-      subtitle: context.branchName,
       details: [periodDetail],
-      logoDataUrl: logo,
     });
-  };
+
+  const onLaterPages = reportHeaderOnLaterPages(doc, ctx, headerOptions);
 
   // 1. Table des encaissements
   const incomeHead = ["Heure", "Référence", "Élève", "Motif", "Mode", "Montant"];
@@ -96,47 +100,35 @@ export async function buildCashierReportPdf(
     formatAmount(p.amount),
   ]);
 
-  const incomeFirstPageTop = REPORT_HEADER_CONTENT_TOP_MM + 5;
+  doc.setFontSize(10);
+  doc.setTextColor(15, 23, 42);
+  doc.setFont("helvetica", "bold");
+  doc.text("Détail des Encaissements", marginX, contentTop + 4);
 
   autoTable(doc, {
-    startY: incomeFirstPageTop,
-    margin: {
-      top: REPORT_HEADER_CONTENT_TOP_MM,
-      right: 10,
-      bottom: 14,
-      left: 10,
-    },
+    startY: contentTop + 8,
+    margin: reportTableMargin(contentTop, marginX),
+    tableWidth: usableWidth,
     head: [incomeHead],
     body: incomeBody,
-    theme: "grid",
-    showHead: "everyPage",
-    styles: {
-      font: "helvetica",
-      fontSize: 8,
-      cellPadding: 2,
-      valign: "middle",
-    },
+    ...REPORT_TABLE_BASE,
     headStyles: {
-      fillColor: [16, 185, 129],
-      textColor: 255,
-      fontStyle: "bold",
+      ...REPORT_TABLE_BASE.headStyles,
+      fillColor: [16, 185, 129] as [number, number, number],
     },
-    columnStyles: { 5: { halign: "right" } },
-    didDrawPage: (hookData) => {
-      drawHeader();
-      if (hookData.pageNumber === 1) {
-        doc.setFontSize(10);
-        doc.setTextColor(15, 23, 42);
-        doc.setFont("helvetica", "bold");
-        doc.text("Détail des Encaissements", 10, REPORT_HEADER_CONTENT_TOP_MM - 2);
-      }
+    columnStyles: {
+      0: { cellWidth: usableWidth * 0.1,halign: "center" },
+      1: { cellWidth: usableWidth * 0.18 },
+      2: { cellWidth: usableWidth * 0.24 },
+      3: { cellWidth: usableWidth * 0.2 },
+      4: { cellWidth: usableWidth * 0.14,halign: "center" },
+      5: { cellWidth: usableWidth * 0.14,halign: "right" },
     },
+    didDrawPage: onLaterPages,
   });
 
   // 2. Table des dépenses
-  let finalY =
-    (doc as jsPDF & { lastAutoTable?: { finalY?: number } }).lastAutoTable
-      ?.finalY ?? REPORT_HEADER_CONTENT_TOP_MM;
+  let finalY = lastTableY(doc, contentTop);
 
   if (data.expenses.length > 0) {
     const expenseHead = [
@@ -160,79 +152,80 @@ export async function buildCashierReportPdf(
     doc.setFontSize(10);
     doc.setTextColor(15, 23, 42);
     doc.setFont("helvetica", "bold");
-    doc.text("Détail des Dépenses", 10, finalY + 10);
+    doc.text("Détail des Dépenses", marginX, finalY + 10);
 
     autoTable(doc, {
       startY: finalY + 14,
-      margin: { right: 10, left: 10, bottom: 14 },
+      margin: reportTableMargin(contentTop, marginX),
+      tableWidth: usableWidth,
       head: [expenseHead],
       body: expenseBody,
-      theme: "grid",
-      styles: {
-        font: "helvetica",
-        fontSize: 8,
-        cellPadding: 2,
-        valign: "middle",
-      },
+      ...REPORT_TABLE_BASE,
       headStyles: {
-        fillColor: [225, 29, 72],
-        textColor: 255,
-        fontStyle: "bold",
+        ...REPORT_TABLE_BASE.headStyles,
+        fillColor: [225, 29, 72] as [number, number, number],
       },
-      columnStyles: { 4: { halign: "right" } },
+      columnStyles: {
+        0: { cellWidth: usableWidth * 0.12,halign: "center" },
+        1: { cellWidth: usableWidth * 0.2 },
+        2: { cellWidth: usableWidth * 0.2 },
+        3: { cellWidth: usableWidth * 0.32 },
+        4: { cellWidth: usableWidth * 0.16,halign: "right" },
+      },
+      didDrawPage: onLaterPages,
     });
 
-    finalY =
-      (doc as jsPDF & { lastAutoTable?: { finalY?: number } }).lastAutoTable
-        ?.finalY ?? finalY;
+    finalY = lastTableY(doc, finalY);
   }
 
   // 3. Totaux (Summary box)
   if (finalY + 40 > doc.internal.pageSize.getHeight()) {
     doc.addPage();
-    drawHeader();
-    finalY = REPORT_HEADER_CONTENT_TOP_MM;
+    onLaterPages({ pageNumber: doc.getNumberOfPages() });
+    finalY = contentTop;
   } else {
     finalY += 15;
   }
 
+  const boxWidth = Math.min(90, usableWidth);
   doc.setFillColor(248, 250, 252);
   doc.setDrawColor(203, 213, 225);
-  doc.roundedRect(10, finalY, 90, 35, 2, 2, "FD");
+  doc.roundedRect(marginX, finalY, boxWidth, 35, 2, 2, "FD");
 
   doc.setFontSize(10);
   doc.setTextColor(15, 23, 42);
   doc.setFont("helvetica", "bold");
-  doc.text("Récapitulatif", 14, finalY + 6);
+  doc.text("Récapitulatif", marginX + 4, finalY + 6);
 
   doc.setFontSize(9);
   doc.setFont("helvetica", "normal");
 
-  doc.text("Total Encaissements :", 14, finalY + 14);
+  const amountRight = marginX + boxWidth - 4;
+
+  doc.text("Total Encaissements :", marginX + 4, finalY + 14);
   doc.setTextColor(16, 185, 129);
-  doc.text(formatAmount(data.incomeTotal), 95, finalY + 14, {
+  doc.text(formatAmount(data.incomeTotal), amountRight, finalY + 14, {
     align: "right",
   });
 
   doc.setTextColor(15, 23, 42);
-  doc.text("Total Dépenses :", 14, finalY + 20);
+  doc.text("Total Dépenses :", marginX + 4, finalY + 20);
   doc.setTextColor(225, 29, 72);
-  doc.text(formatAmount(data.outflowTotal), 95, finalY + 20, {
+  doc.text(formatAmount(data.outflowTotal), amountRight, finalY + 20, {
     align: "right",
   });
 
   doc.setDrawColor(203, 213, 225);
-  doc.line(14, finalY + 24, 96, finalY + 24);
+  doc.line(marginX + 4, finalY + 24, marginX + boxWidth - 4, finalY + 24);
 
   doc.setTextColor(15, 23, 42);
   doc.setFont("helvetica", "bold");
-  doc.text("Solde Net :", 14, finalY + 30);
-  doc.text(formatAmount(data.balance), 95, finalY + 30, { align: "right" });
-
-  drawReportFooterOnAllPages(doc, context, {
-    leftText: branchLabel,
+  doc.text("Solde Net :", marginX + 4, finalY + 30);
+  doc.text(formatAmount(data.balance), amountRight, finalY + 30, {
+    align: "right",
   });
 
+  finishBrandedReport(doc, ctx);
   return doc;
 }
 

@@ -1,11 +1,12 @@
-import jsPDF from "jspdf";
+import type jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-import { imageUrlToDataUrl } from "@/lib/reports/image-to-data-url";
 import {
-  drawReportFooterOnAllPages,
-  drawReportHeader,
-  REPORT_HEADER_CONTENT_TOP_MM,
-} from "@/lib/reports/pdf-header-footer";
+  createBrandedReportDoc,
+  finishBrandedReport,
+  reportHeaderOnLaterPages,
+  reportTableMargin,
+  REPORT_TABLE_BASE,
+} from "@/lib/reports/report-pdf-kit";
 import type { SchoolReportContext } from "@/lib/reports/types";
 
 export type RapportEffectifsSummary = {
@@ -40,30 +41,12 @@ function formatMoney(value: number) {
   }).format(value);
 }
 
-function lastTableY(doc: jsPDF): number {
+function lastTableY(doc: jsPDF, fallback: number): number {
   return (
     (doc as jsPDF & { lastAutoTable?: { finalY?: number } }).lastAutoTable
-      ?.finalY ?? REPORT_HEADER_CONTENT_TOP_MM
+      ?.finalY ?? fallback
   );
 }
-
-const TABLE_THEME = {
-  theme: "grid" as const,
-  styles: {
-    font: "helvetica" as const,
-    fontSize: 9,
-    cellPadding: 2.5,
-    overflow: "linebreak" as const,
-    valign: "middle" as const,
-  },
-  headStyles: {
-    fillColor: [30, 64, 175] as [number, number, number],
-    textColor: 255,
-    fontStyle: "bold" as const,
-    halign: "left" as const,
-  },
-  alternateRowStyles: { fillColor: [239, 246, 255] as [number, number, number] },
-};
 
 export async function buildRapportEffectifsPdf(
   data: RapportEffectifsPdfData,
@@ -71,32 +54,37 @@ export async function buildRapportEffectifsPdf(
 ) {
   const { summary, studentsByClass, genderStats, statusStats, attendanceStats, financeByMonth } =
     data;
-  const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
-  const logo = await imageUrlToDataUrl(context.logoUrl);
   const title = "Synthèse des effectifs";
 
-  const drawHeader = () => {
-    drawReportHeader(doc, context, {
+  const { doc, contentTop, marginX, usableWidth, headerOptions, context: ctx } =
+    await createBrandedReportDoc(context, {
       title,
-      subtitle: context.branchName,
       details: [
         `${summary.activeStudents} élève(s) actif(s)`,
         `${summary.teachers} enseignant(s)`,
       ],
-      logoDataUrl: logo,
     });
-  };
 
-  const margin = {
-    top: REPORT_HEADER_CONTENT_TOP_MM,
-    right: 14,
-    bottom: 14,
-    left: 14,
+  const onLaterPages = reportHeaderOnLaterPages(doc, ctx, headerOptions);
+  const tableMargin = reportTableMargin(contentTop, marginX);
+
+  const tableBase = {
+    ...REPORT_TABLE_BASE,
+    styles: {
+      ...REPORT_TABLE_BASE.styles,
+      fontSize: 9,
+      cellPadding: { top: 2.5, right: 2, bottom: 2.5, left: 2 },
+    },
+    headStyles: {
+      ...REPORT_TABLE_BASE.headStyles,
+      halign: "left" as const,
+    },
   };
 
   autoTable(doc, {
-    startY: REPORT_HEADER_CONTENT_TOP_MM,
-    margin,
+    startY: contentTop,
+    margin: tableMargin,
+    tableWidth: usableWidth,
     head: [["Indicateur", "Valeur"]],
     body: [
       ["Élèves actifs", summary.activeStudents],
@@ -110,70 +98,97 @@ export async function buildRapportEffectifsPdf(
       ["Dépenses", `${formatMoney(summary.totalExpenses)} FC`],
       ["Balance", `${formatMoney(summary.balance)} FC`],
     ],
-    ...TABLE_THEME,
-    didDrawPage: drawHeader,
+    ...tableBase,
+    columnStyles: {
+      0: { cellWidth: usableWidth * 0.55 },
+      1: { cellWidth: usableWidth * 0.45 },
+    },
+    didDrawPage: onLaterPages,
   });
 
   autoTable(doc, {
-    startY: lastTableY(doc) + 8,
-    margin,
+    startY: lastTableY(doc, contentTop) + 8,
+    margin: tableMargin,
+    tableWidth: usableWidth,
     head: [["Classe", "Total élèves"]],
     body:
       studentsByClass.length > 0
         ? studentsByClass.map((item) => [item.name, item.total])
         : [["Aucune classe", "—"]],
-    ...TABLE_THEME,
-    didDrawPage: drawHeader,
+    ...tableBase,
+    columnStyles: {
+      0: { cellWidth: usableWidth * 0.7 },
+      1: { cellWidth: usableWidth * 0.3 },
+    },
+    didDrawPage: onLaterPages,
   });
 
   autoTable(doc, {
-    startY: lastTableY(doc) + 8,
-    margin,
+    startY: lastTableY(doc, contentTop) + 8,
+    margin: tableMargin,
+    tableWidth: usableWidth,
     head: [["Sexe", "Total"]],
     body: genderStats.map((item) => [item.name, item.value]),
-    ...TABLE_THEME,
-    didDrawPage: drawHeader,
+    ...tableBase,
+    columnStyles: {
+      0: { cellWidth: usableWidth * 0.55 },
+      1: { cellWidth: usableWidth * 0.45 },
+    },
+    didDrawPage: onLaterPages,
   });
 
   autoTable(doc, {
-    startY: lastTableY(doc) + 8,
-    margin,
+    startY: lastTableY(doc, contentTop) + 8,
+    margin: tableMargin,
+    tableWidth: usableWidth,
     head: [["Statut élèves", "Total"]],
     body: statusStats.map((item) => [item.name, item.value]),
-    ...TABLE_THEME,
-    didDrawPage: drawHeader,
+    ...tableBase,
+    columnStyles: {
+      0: { cellWidth: usableWidth * 0.55 },
+      1: { cellWidth: usableWidth * 0.45 },
+    },
+    didDrawPage: onLaterPages,
   });
 
   if (financeByMonth.length > 0) {
     autoTable(doc, {
-      startY: lastTableY(doc) + 8,
-      margin,
+      startY: lastTableY(doc, contentTop) + 8,
+      margin: tableMargin,
+      tableWidth: usableWidth,
       head: [["Mois", "Paiements", "Dépenses"]],
       body: financeByMonth.map((item) => [
         item.month,
         `${formatMoney(item.paiements)} FC`,
         `${formatMoney(item.depenses)} FC`,
       ]),
-      ...TABLE_THEME,
-      didDrawPage: drawHeader,
+      ...tableBase,
+      columnStyles: {
+        0: { cellWidth: usableWidth * 0.34 },
+        1: { cellWidth: usableWidth * 0.33 },
+        2: { cellWidth: usableWidth * 0.33 },
+      },
+      didDrawPage: onLaterPages,
     });
   }
 
   if (attendanceStats.length > 0) {
     autoTable(doc, {
-      startY: lastTableY(doc) + 8,
-      margin,
+      startY: lastTableY(doc, contentTop) + 8,
+      margin: tableMargin,
+      tableWidth: usableWidth,
       head: [["Présence", "Total"]],
       body: attendanceStats.map((item) => [item.name, item.value]),
-      ...TABLE_THEME,
-      didDrawPage: drawHeader,
+      ...tableBase,
+      columnStyles: {
+        0: { cellWidth: usableWidth * 0.55 },
+        1: { cellWidth: usableWidth * 0.45 },
+      },
+      didDrawPage: onLaterPages,
     });
   }
 
-  drawReportFooterOnAllPages(doc, context, {
-    leftText: context.branchName || context.schoolName,
-  });
-
+  finishBrandedReport(doc, ctx);
   return doc;
 }
 
