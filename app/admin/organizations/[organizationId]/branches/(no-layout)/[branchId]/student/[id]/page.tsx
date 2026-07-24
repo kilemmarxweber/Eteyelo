@@ -22,6 +22,7 @@ import { buildReleveNotesData } from "@/lib/releve-notes-builder";
 import { buildStudentDocumentsData } from "@/lib/student-documents";
 import { buildStudentScheduleData } from "@/lib/student-schedule";
 import { buildStudentAnnouncementsData } from "@/lib/student-announcements";
+import { getBaseCurrency } from "@/lib/exchange-rate";
 import { getPeopleLabels } from "@/lib/people-labels";
 import { getBranchImage } from "@/lib/utils";
 import { StudentProfileClient } from "./components/student-profile-client";
@@ -337,9 +338,9 @@ const SingleStudentPage = async ({
     );
   }
 
-  const classFrais =
+  const [classFrais, exchangeRates] = await Promise.all([
     classe?.id && currentYear?.id
-      ? await prisma.frais.findMany({
+      ? prisma.frais.findMany({
           where: {
             branchId,
             classeId: classe.id,
@@ -351,7 +352,20 @@ const SingleStudentPage = async ({
           },
           orderBy: [{ priority: "asc" }, { nameFrais: "asc" }],
         })
-      : [];
+      : Promise.resolve([]),
+    prisma.exchangeRate.findMany({
+      where: { organizationId, isActive: true },
+      select: {
+        fromCurrency: true,
+        toCurrency: true,
+        rate: true,
+        isActive: true,
+        isSelected: true,
+      },
+    }),
+  ]);
+
+  const baseCurrency = getBaseCurrency(exchangeRates);
 
   if (classFrais.length > 0) {
     for (const frais of classFrais) {
@@ -591,6 +605,7 @@ const SingleStudentPage = async ({
     badge,
     fees: formattedFees,
     financeSummary,
+    baseCurrency,
     documents,
     semesters,
     classeId: classe?.id ?? null,

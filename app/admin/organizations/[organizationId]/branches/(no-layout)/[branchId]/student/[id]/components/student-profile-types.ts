@@ -63,6 +63,8 @@ export type StudentProfileData = {
   badge: StudentBadgeData;
   fees: StudentProfileFee[];
   financeSummary: StudentProfileFinanceSummary;
+  /** Devise de base du taux sélectionné (fromCurrency), comme au paiement. */
+  baseCurrency: string;
   documents: StudentDocumentsData;
   semesters: StudentProfileSemester[];
   classeId: string | null;

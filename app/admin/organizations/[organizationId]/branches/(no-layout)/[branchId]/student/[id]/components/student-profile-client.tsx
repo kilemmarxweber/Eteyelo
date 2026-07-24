@@ -29,6 +29,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
+import { formatReportAmount } from "@/lib/reports/format-amount";
 import { useBranchPeopleLabels } from "@/hooks/use-branch-people-labels";
 import Performance from "../../components/Performance";
 import type { StudentProfileData } from "./student-profile-types";
@@ -226,8 +227,8 @@ function InfoCard({
   );
 }
 
-function formatMoney(amount: number) {
-  return `${amount.toLocaleString("fr-FR")} $`;
+function formatMoney(amount: number, currency: string) {
+  return formatReportAmount(amount, currency);
 }
 
 function StudentIdentificationPanel({
@@ -641,7 +642,10 @@ export function StudentProfileClient({ profile }: { profile: StudentProfileData 
                     Montant du
                   </p>
                   <p className="mt-2 text-2xl font-bold text-foreground">
-                    {formatMoney(profile.financeSummary.totalDue)}
+                    {formatMoney(
+                      profile.financeSummary.totalDue,
+                      profile.baseCurrency,
+                    )}
                   </p>
                 </Card>
                 <Card className="rounded-xl border bg-card p-4 shadow-sm">
@@ -649,7 +653,10 @@ export function StudentProfileClient({ profile }: { profile: StudentProfileData 
                     Total paye
                   </p>
                   <p className="mt-2 text-2xl font-bold text-emerald-600">
-                    {formatMoney(profile.financeSummary.totalPaid)}
+                    {formatMoney(
+                      profile.financeSummary.totalPaid,
+                      profile.baseCurrency,
+                    )}
                   </p>
                 </Card>
                 <Card className="rounded-xl border bg-card p-4 shadow-sm">
@@ -664,7 +671,10 @@ export function StudentProfileClient({ profile }: { profile: StudentProfileData 
                         : "text-emerald-600",
                     )}
                   >
-                    {formatMoney(profile.financeSummary.totalRemaining)}
+                    {formatMoney(
+                      profile.financeSummary.totalRemaining,
+                      profile.baseCurrency,
+                    )}
                   </p>
                 </Card>
               </div>
@@ -706,8 +716,14 @@ export function StudentProfileClient({ profile }: { profile: StudentProfileData 
                         </div>
 
                         <div className="mt-3 grid gap-3 sm:grid-cols-3">
-                          <InfoField label="Montant du" value={formatMoney(fee.amountDue)} />
-                          <InfoField label="Paye" value={formatMoney(fee.amountPaid)} />
+                          <InfoField
+                            label="Montant du"
+                            value={formatMoney(fee.amountDue, profile.baseCurrency)}
+                          />
+                          <InfoField
+                            label="Paye"
+                            value={formatMoney(fee.amountPaid, profile.baseCurrency)}
+                          />
                           <InfoField
                             label="Reste a payer"
                             value={
@@ -718,7 +734,7 @@ export function StudentProfileClient({ profile }: { profile: StudentProfileData 
                                     : "text-emerald-600",
                                 )}
                               >
-                                {formatMoney(fee.remaining)}
+                                {formatMoney(fee.remaining, profile.baseCurrency)}
                               </span>
                             }
                           />
