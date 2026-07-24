@@ -1,9 +1,7 @@
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
+import { getCachedSession } from "@/lib/auth/get-session-cached";
 
 export async function getAuthContext() {
-  const requestHeaders = await headers();
-  const session = await auth.api.getSession({ headers: requestHeaders });
+  const session = await getCachedSession();
 
   if (!session) return null;
 

@@ -1,11 +1,8 @@
-import { headers } from "next/headers";
-import { auth } from "@/lib/auth";
+import { getCachedSession } from "@/lib/auth/get-session-cached";
 import { prisma } from "@/lib/prisma";
 
 export async function requireBranchContext() {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
+  const session = await getCachedSession();
 
   const userId = session?.user?.id;
   const organizationId =
@@ -14,6 +11,20 @@ export async function requireBranchContext() {
 
   if (!userId || !organizationId || !branchId) {
     throw new Error("Aucune branche active");
+  }
+
+  // Si customSession a déjà chargé la branche courante, éviter un findFirst.
+  if (
+    session.branch?.id === branchId &&
+    session.branch.typebranch != null
+  ) {
+    return {
+      userId,
+      organizationId,
+      branchId,
+      typebranch: session.branch.typebranch,
+      session,
+    };
   }
 
   const branch = await prisma.branch.findFirst({

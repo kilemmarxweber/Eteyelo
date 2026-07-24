@@ -1,6 +1,12 @@
 import { z } from "zod";
 
-export const libraryCycleSchema = z.enum(["PRIMAIRE", "SECONDAIRE", "HUMANITES"]);
+export const libraryCycleSchema = z.enum([
+  "PRIMAIRE",
+  "SECONDAIRE",
+  "HUMANITES",
+  "FORMATION",
+  "UNIVERSITE",
+]);
 export const libraryFileTypeSchema = z.enum(["PDF", "EPUB"]);
 
 export const libraryBookMetaSchema = z.object({
@@ -30,49 +36,9 @@ export const libraryBookIdSchema = z.object({
 
 export type LibraryBookMetaInput = z.infer<typeof libraryBookMetaSchema>;
 
-export const LIBRARY_SUBJECTS = [
-  "Français",
-  "Mathématiques",
-  "Sciences",
-  "Histoire",
-  "Géographie",
-  "Éducation civique",
-  "Anglais",
-  "Latin",
-  "Physique",
-  "Chimie",
-  "Biologie",
-  "Économie",
-  "Informatique",
-  "Religion",
-  "Arts",
-  "Philosophie",
-  "Pédagogie",
-  "Commerce",
-  "Autre",
-] as const;
-
-export const LIBRARY_LEVELS = [
-  "1ère primaire",
-  "2ème primaire",
-  "3ème primaire",
-  "4ème primaire",
-  "5ème primaire",
-  "6ème primaire",
-  "7ème / 1ère secondaire",
-  "8ème / 2ème secondaire",
-  "3ème secondaire",
-  "4ème secondaire",
-  "5ème secondaire",
-  "6ème secondaire / Humanités",
-] as const;
-
-export const LIBRARY_SECTIONS = [
-  "GENERALE",
-  "LITTERAIRE",
-  "SCIENTIFIQUE",
-  "PEDAGOGIQUE",
-  "COMMERCIALE",
-  "TECHNIQUE",
-  "CUT",
-] as const;
+/** @deprecated Prefer `getLibraryTaxonomy(typebranch)` */
+export {
+  LIBRARY_SUBJECTS,
+  LIBRARY_LEVELS,
+  LIBRARY_SECTIONS,
+} from "@/lib/library/taxonomy";

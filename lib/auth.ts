@@ -242,26 +242,28 @@ export const auth = betterAuth({
     ...(authOptions.plugins ?? []),
 
     customSession(async ({ user, session }) => {
-      const organization = await getSessionOrganizationContext(
-        user.id,
-        session.activeOrganizationId,
-        user.role,
-      );
-      // Récupère les champs additionnels de l'utilisateur
-      const userWithFields = await prisma.user.findUnique({
-        where: { id: user.id },
-        select: {
-          username: true,
-          prenom: true,
-          postnom: true,
-          sexe: true,
-          telephone: true,
-          address: true,
-          dateOfBirth: true,
-          statusUser: true,
-          mustChangePassword: true,
-        },
-      });
+      const [organization, userWithFields] = await Promise.all([
+        getSessionOrganizationContext(
+          user.id,
+          session.activeOrganizationId,
+          user.role,
+        ),
+        prisma.user.findUnique({
+          where: { id: user.id },
+          select: {
+            username: true,
+            prenom: true,
+            postnom: true,
+            sexe: true,
+            telephone: true,
+            address: true,
+            dateOfBirth: true,
+            statusUser: true,
+            mustChangePassword: true,
+          },
+        }),
+      ]);
+
       let branch = null;
 
       if (session.activeBranchId && organization) {
@@ -269,6 +271,14 @@ export const auth = betterAuth({
           where: {
             id: session.activeBranchId,
             organizationId: organization.id,
+          },
+          select: {
+            id: true,
+            name: true,
+            typebranch: true,
+            isActive: true,
+            organizationId: true,
+            image: true,
           },
         });
       }
@@ -280,40 +290,48 @@ export const auth = betterAuth({
             isActive: true,
           },
           orderBy: { createdAt: "asc" },
+          select: {
+            id: true,
+            name: true,
+            typebranch: true,
+            isActive: true,
+            organizationId: true,
+            image: true,
+          },
         });
       }
 
-      const teacher = branch && organization
-        ? await prisma.teacher.findFirst({
-            where: {
-              branchMember: {
-                branchId: branch.id,
-                member: {
-                  userId: user.id,
-                  organizationId: organization.id,
+      const teacher =
+        branch && organization
+          ? await prisma.teacher.findFirst({
+              where: {
+                branchMember: {
+                  branchId: branch.id,
+                  member: {
+                    userId: user.id,
+                    organizationId: organization.id,
+                  },
                 },
               },
-            },
-            select: {
-              id: true,
-              teaching: {
-                where: {
-                  OR: [{ branchId: branch.id }, { branchId: null }],
-                  titulaire: true,
+              select: {
+                id: true,
+                teaching: {
+                  where: {
+                    OR: [{ branchId: branch.id }, { branchId: null }],
+                    titulaire: true,
+                  },
+                  select: {
+                    id: true,
+                  },
+                  take: 1,
                 },
-                select: {
-                  id: true,
-                },
-                take: 1,
               },
-            },
-          })
-        : null;
+            })
+          : null;
 
       return {
         user: {
           ...user,
-          // Fusionne les champs additionnels
           ...userWithFields,
         },
         session: {

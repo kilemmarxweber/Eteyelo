@@ -236,7 +236,13 @@ export function toPublicLibraryBook<
     coverImage: string | null;
     fileType: "PDF" | "EPUB";
     language: string;
-    cycle: "PRIMAIRE" | "SECONDAIRE" | "HUMANITES" | null;
+    cycle:
+      | "PRIMAIRE"
+      | "SECONDAIRE"
+      | "HUMANITES"
+      | "FORMATION"
+      | "UNIVERSITE"
+      | null;
     level: string | null;
     section: string | null;
     subject: string | null;

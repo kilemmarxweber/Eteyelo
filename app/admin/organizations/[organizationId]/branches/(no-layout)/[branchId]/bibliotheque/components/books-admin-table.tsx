@@ -33,18 +33,13 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
+import { LIBRARY_CYCLE_LABELS } from "@/lib/library/taxonomy";
 import {
   deleteLibraryBookAction,
   setLibraryBookActiveAction,
 } from "../bibliotheque.action";
 import type { LibraryBookListItem } from "../bibliotheque-client";
 import { BookFormDialog } from "./book-form-dialog";
-
-const cycleLabel: Record<string, string> = {
-  PRIMAIRE: "Primaire",
-  SECONDAIRE: "Secondaire",
-  HUMANITES: "Humanités",
-};
 
 function formatSize(bytes?: number | null) {
   if (!bytes) return "—";
@@ -57,12 +52,14 @@ type BooksAdminTableProps = {
   basePath: string;
   onChanged: () => void;
   pending?: boolean;
+  typebranch: string;
 };
 
 export function BooksAdminTable({
   books,
   basePath,
   onChanged,
+  typebranch,
 }: BooksAdminTableProps) {
   const [editBook, setEditBook] = useState<LibraryBookListItem | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -150,7 +147,11 @@ export function BooksAdminTable({
                   </div>
                 </TableCell>
                 <TableCell className="hidden md:table-cell">
-                  {book.cycle ? cycleLabel[book.cycle] : "—"}
+                  {book.cycle
+                    ? (LIBRARY_CYCLE_LABELS[
+                        book.cycle as keyof typeof LIBRARY_CYCLE_LABELS
+                      ] ?? book.cycle)
+                    : "—"}
                 </TableCell>
                 <TableCell className="hidden lg:table-cell">
                   {book.subject || "—"}
@@ -215,6 +216,7 @@ export function BooksAdminTable({
           if (!open) setEditBook(null);
         }}
         mode="edit"
+        typebranch={typebranch}
         initialData={editBook ?? undefined}
         onSuccess={onChanged}
       />

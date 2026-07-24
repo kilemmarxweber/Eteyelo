@@ -35,12 +35,11 @@ import {
   ResponsiveDialogTitle,
 } from "@/components/ui/responsive-dialog";
 import { uploadFile } from "@/lib/upload-file";
+import { libraryBookMetaSchema } from "@/lib/library/schemas";
 import {
-  LIBRARY_LEVELS,
-  LIBRARY_SECTIONS,
-  LIBRARY_SUBJECTS,
-  libraryBookMetaSchema,
-} from "@/lib/library/schemas";
+  getLibraryTaxonomy,
+  type LibraryCycleCode,
+} from "@/lib/library/taxonomy";
 import type { LibraryBookListItem } from "../bibliotheque-client";
 
 const formSchema = libraryBookMetaSchema;
@@ -51,6 +50,7 @@ type BookFormDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   mode: "create" | "edit";
+  typebranch: string;
   initialData?: LibraryBookListItem;
   onSuccess?: () => void;
 };
@@ -59,12 +59,14 @@ export function BookFormDialog({
   open,
   onOpenChange,
   mode,
+  typebranch,
   initialData,
   onSuccess,
 }: BookFormDialogProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [bookFile, setBookFile] = useState<File | null>(null);
   const [coverFile, setCoverFile] = useState<File | null>(null);
+  const taxonomy = getLibraryTaxonomy(typebranch);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -74,7 +76,7 @@ export function BookFormDialog({
       publisher: "",
       description: "",
       coverImage: null,
-      cycle: null,
+      cycle: taxonomy.defaultCycle,
       level: "",
       section: "",
       subject: "",
@@ -114,7 +116,7 @@ export function BookFormDialog({
         publisher: "",
         description: "",
         coverImage: null,
-        cycle: null,
+        cycle: taxonomy.defaultCycle,
         level: "",
         section: "",
         subject: "",
@@ -125,7 +127,7 @@ export function BookFormDialog({
         isActive: true,
       });
     }
-  }, [open, mode, initialData, form]);
+  }, [open, mode, initialData, form, taxonomy.defaultCycle]);
 
   async function onSubmit(values: FormValues) {
     setIsLoading(true);
@@ -238,7 +240,8 @@ export function BookFormDialog({
             {mode === "create" ? "Ajouter un livre" : "Modifier le livre"}
           </ResponsiveDialogTitle>
           <ResponsiveDialogDescription>
-            Lecture seule réservée aux élèves. Aucun téléchargement.
+            Lecture seule réservée aux {taxonomy.readerPluralLower}. Aucun
+            téléchargement.
           </ResponsiveDialogDescription>
         </ResponsiveDialogHeader>
 
@@ -329,9 +332,7 @@ export function BookFormDialog({
                       <Select
                         value={field.value ?? undefined}
                         onValueChange={(value) =>
-                          field.onChange(
-                            value as "PRIMAIRE" | "SECONDAIRE" | "HUMANITES",
-                          )
+                          field.onChange(value as LibraryCycleCode)
                         }
                       >
                         <FormControl>
@@ -340,9 +341,11 @@ export function BookFormDialog({
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="PRIMAIRE">Primaire</SelectItem>
-                          <SelectItem value="SECONDAIRE">Secondaire</SelectItem>
-                          <SelectItem value="HUMANITES">Humanités</SelectItem>
+                          {taxonomy.cycles.map((item) => (
+                            <SelectItem key={item.value} value={item.value}>
+                              {item.label}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -365,7 +368,7 @@ export function BookFormDialog({
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {LIBRARY_LEVELS.map((level) => (
+                          {taxonomy.levels.map((level) => (
                             <SelectItem key={level} value={level}>
                               {level}
                             </SelectItem>
@@ -395,7 +398,7 @@ export function BookFormDialog({
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {LIBRARY_SUBJECTS.map((subject) => (
+                          {taxonomy.subjects.map((subject) => (
                             <SelectItem key={subject} value={subject}>
                               {subject}
                             </SelectItem>
@@ -422,9 +425,9 @@ export function BookFormDialog({
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {LIBRARY_SECTIONS.map((section) => (
-                            <SelectItem key={section} value={section}>
-                              {section}
+                          {taxonomy.sections.map((section) => (
+                            <SelectItem key={section.value} value={section.value}>
+                              {section.label}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -482,7 +485,9 @@ export function BookFormDialog({
                 name="isActive"
                 render={({ field }) => (
                   <FormItem className="flex items-center justify-between rounded-lg border border-border px-3 py-2">
-                    <FormLabel className="m-0">Actif pour les élèves</FormLabel>
+                    <FormLabel className="m-0">
+                      Actif pour les {taxonomy.readerPluralLower}
+                    </FormLabel>
                     <FormControl>
                       <Switch
                         checked={field.value ?? true}

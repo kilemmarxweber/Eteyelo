@@ -199,72 +199,15 @@ export async function getAdminStats({
     }
 
     // =========================
-    // HELPERS (GROUPBY WRAPPER)
-    // =========================
-    const uniqueStudentsCurrent = await prisma.classEnrollment.groupBy({
-      by: ["studentId"],
-      where: {
-        schoolYearId: currentYear.id,
-        branchId: branch.id,
-        statusEnrollment: true,
-        createdAt: { lte: endCurrent },
-      },
-    });
-
-    const uniqueStudentsPrev = await prisma.classEnrollment.groupBy({
-      by: ["studentId"],
-      where: {
-        schoolYearId: currentYear.id,
-        branchId: branch.id,
-        statusEnrollment: true,
-        createdAt: { lte: endPrev },
-      },
-    });
-
-    const uniqueClassesCurrent = await prisma.classEnrollment.groupBy({
-      by: ["classeId"],
-      where: {
-        schoolYearId: currentYear.id,
-        branchId: branch.id,
-        statusEnrollment: true,
-        createdAt: { lte: endCurrent },
-      },
-    });
-
-    const uniqueClassesPrev = await prisma.classEnrollment.groupBy({
-      by: ["classeId"],
-      where: {
-        schoolYearId: currentYear.id,
-        branchId: branch.id,
-        statusEnrollment: true,
-        createdAt: { lte: endPrev },
-      },
-    });
-
-    const uniqueTeachersCurrent = await prisma.teaching.groupBy({
-      by: ["teacherId"],
-      where: {
-        schoolYearId: currentYear.id,
-        branchId: branch.id,
-        statusTeaching: true,
-        createdAt: { lte: endCurrent },
-      },
-    });
-
-    const uniqueTeachersPrev = await prisma.teaching.groupBy({
-      by: ["teacherId"],
-      where: {
-        schoolYearId: currentYear.id,
-        branchId: branch.id,
-        statusTeaching: true,
-        createdAt: { lte: endPrev },
-      },
-    });
-
-    // =========================
-    // PARALLEL SIMPLE COUNTS
+    // COUNTS + GROUPBYS + DEVISE (parallèle)
     // =========================
     const [
+      uniqueStudentsCurrent,
+      uniqueStudentsPrev,
+      uniqueClassesCurrent,
+      uniqueClassesPrev,
+      uniqueTeachersCurrent,
+      uniqueTeachersPrev,
       totalStudentsCurrent,
       totalStudentsPrev,
       classesTotal,
@@ -272,31 +215,82 @@ export async function getAdminStats({
       coursesTotal,
       revenueCurrentAgg,
       revenuePrevAgg,
+      selectedExchangeRate,
+      exchangeRates,
     ] = await Promise.all([
+      prisma.classEnrollment.groupBy({
+        by: ["studentId"],
+        where: {
+          schoolYearId: currentYear.id,
+          branchId: branch.id,
+          statusEnrollment: true,
+          createdAt: { lte: endCurrent },
+        },
+      }),
+      prisma.classEnrollment.groupBy({
+        by: ["studentId"],
+        where: {
+          schoolYearId: currentYear.id,
+          branchId: branch.id,
+          statusEnrollment: true,
+          createdAt: { lte: endPrev },
+        },
+      }),
+      prisma.classEnrollment.groupBy({
+        by: ["classeId"],
+        where: {
+          schoolYearId: currentYear.id,
+          branchId: branch.id,
+          statusEnrollment: true,
+          createdAt: { lte: endCurrent },
+        },
+      }),
+      prisma.classEnrollment.groupBy({
+        by: ["classeId"],
+        where: {
+          schoolYearId: currentYear.id,
+          branchId: branch.id,
+          statusEnrollment: true,
+          createdAt: { lte: endPrev },
+        },
+      }),
+      prisma.teaching.groupBy({
+        by: ["teacherId"],
+        where: {
+          schoolYearId: currentYear.id,
+          branchId: branch.id,
+          statusTeaching: true,
+          createdAt: { lte: endCurrent },
+        },
+      }),
+      prisma.teaching.groupBy({
+        by: ["teacherId"],
+        where: {
+          schoolYearId: currentYear.id,
+          branchId: branch.id,
+          statusTeaching: true,
+          createdAt: { lte: endPrev },
+        },
+      }),
       countBranchStudents({
         branchId: branch.id,
         createdBefore: endCurrent,
       }),
-
       countBranchStudents({
         branchId: branch.id,
         createdBefore: endPrev,
       }),
-
       prisma.classe.count({
         where: { branchId: branch.id },
       }),
-
       prisma.teacher.count({
         where: {
           branchMember: { branchId: branch.id },
         },
       }),
-
       prisma.cours.count({
         where: { branchId: branch.id },
       }),
-
       prisma.familyPayment.aggregate({
         _sum: { amount: true },
         where: {
@@ -305,13 +299,31 @@ export async function getAdminStats({
           createdAt: { lte: endCurrent },
         },
       }),
-
       prisma.familyPayment.aggregate({
         _sum: { amount: true },
         where: {
           branchId: branch.id,
           status: "VALIDE",
           createdAt: { lte: endPrev },
+        },
+      }),
+      prisma.exchangeRate.findFirst({
+        where: { organizationId, isSelected: true },
+        select: {
+          fromCurrency: true,
+          toCurrency: true,
+          isActive: true,
+          isSelected: true,
+        },
+      }),
+      prisma.exchangeRate.findMany({
+        where: { organizationId, isActive: true },
+        select: {
+          fromCurrency: true,
+          toCurrency: true,
+          rate: true,
+          isActive: true,
+          isSelected: true,
         },
       }),
     ]);
@@ -355,27 +367,6 @@ export async function getAdminStats({
     // =========================
     const revenueCurrent = revenueCurrentAgg._sum.amount ?? 0;
     const revenuePrev = revenuePrevAgg._sum.amount ?? 0;
-
-    const selectedExchangeRate = await prisma.exchangeRate.findFirst({
-      where: { organizationId, isSelected: true },
-      select: {
-        fromCurrency: true,
-        toCurrency: true,
-        isActive: true,
-        isSelected: true,
-      },
-    });
-
-    const exchangeRates = await prisma.exchangeRate.findMany({
-      where: { organizationId, isActive: true },
-      select: {
-        fromCurrency: true,
-        toCurrency: true,
-        rate: true,
-        isActive: true,
-        isSelected: true,
-      },
-    });
 
     const baseCurrency =
       selectedExchangeRate?.fromCurrency ?? getBaseCurrency(exchangeRates);
@@ -519,120 +510,172 @@ export const getDashboardMetrics = action.handler(async () => {
 
   const currentYear = await prisma.schoolYear.findFirst({
     where: { isCurrentYear: true, branchId },
+    select: { id: true },
   });
 
   const currentMonth = new Date().getMonth() + 1;
 
-  let attendance = 0;
-  let attendanceCount = 0;
-  let successRate = 0;
-  let averageScore = 0;
-  let studentsCount = 0;
-  let passedCount = 0;
-  let satisfaction = 0;
-  let feedbackCount = 0;
-  let parentsCount = 0;
-  let responseRate = 0;
+  const emptyMetrics = {
+    attendance: 0,
+    attendanceCount: 0,
+    successRate: 0,
+    averageScore: 0,
+    studentsCount: 0,
+    passedCount: 0,
+    satisfaction: 0,
+    feedbackCount: 0,
+    parentsCount: 0,
+    responseRate: 0,
+  };
 
-  try {
-    // Présents + retards comptent comme présence effective.
-    const [totalAttendance, presentOrLate] = await Promise.all([
-      prisma.studentAttendance.count({ where: { branchId } }),
-      prisma.studentAttendance.count({
-        where: {
+  const [attendanceResult, averagesResult, feedbackResult] =
+    await Promise.allSettled([
+      (async () => {
+        const [totalAttendance, presentOrLate] = await Promise.all([
+          prisma.studentAttendance.count({ where: { branchId } }),
+          prisma.studentAttendance.count({
+            where: {
+              branchId,
+              status: { in: ["PRESENT", "LATE"] },
+            },
+          }),
+        ]);
+        return {
+          attendanceCount: totalAttendance,
+          attendance:
+            totalAttendance > 0
+              ? Math.round((presentOrLate / totalAttendance) * 100)
+              : 0,
+        };
+      })(),
+      (async () => {
+        let averages = await getBranchStudentAverages({
           branchId,
-          status: { in: ["PRESENT", "LATE"] },
-        },
-      }),
+          yearId: currentYear?.id,
+        });
+        if (averages.length === 0 && currentYear?.id) {
+          averages = await getBranchStudentAverages({ branchId });
+        }
+        const studentsCount = averages.length;
+        const passedCount = averages.filter(
+          (avg) => avg >= SUCCESS_THRESHOLD_PERCENT,
+        ).length;
+        return {
+          studentsCount,
+          passedCount,
+          averageScore:
+            studentsCount > 0
+              ? Math.round(
+                  (averages.reduce((sum, avg) => sum + avg, 0) / studentsCount) *
+                    10,
+                ) / 10
+              : 0,
+          successRate:
+            studentsCount > 0
+              ? Math.round((passedCount / studentsCount) * 100)
+              : 0,
+        };
+      })(),
+      (async () => {
+        const [totalParents, yearFeedbacks, monthFeedbacks] = await Promise.all([
+          prisma.parent.count({
+            where: { branchMember: { branchId } },
+          }),
+          prisma.parentFeedback.findMany({
+            where: {
+              branchId,
+              ...(currentYear?.id ? { schoolYearId: currentYear.id } : {}),
+            },
+            select: { rating: true },
+          }),
+          prisma.parentFeedback.count({
+            where: {
+              branchId,
+              month: currentMonth,
+              ...(currentYear?.id ? { schoolYearId: currentYear.id } : {}),
+            },
+          }),
+        ]);
+        const feedbackCount = yearFeedbacks.length;
+        const satisfiedCount = yearFeedbacks.filter((f) => f.rating >= 4).length;
+        return {
+          parentsCount: totalParents,
+          feedbackCount,
+          satisfaction:
+            feedbackCount > 0
+              ? Math.round((satisfiedCount / feedbackCount) * 100)
+              : 0,
+          responseRate:
+            totalParents > 0
+              ? Math.round((monthFeedbacks / totalParents) * 100)
+              : 0,
+        };
+      })(),
     ]);
-    attendanceCount = totalAttendance;
-    attendance =
-      totalAttendance > 0
-        ? Math.round((presentOrLate / totalAttendance) * 100)
-        : 0;
-  } catch (error) {
-    console.error("getDashboardMetrics attendance:", error);
-  }
-
-  try {
-    let averages = await getBranchStudentAverages({
-      branchId,
-      yearId: currentYear?.id,
-    });
-    if (averages.length === 0) {
-      averages = await getBranchStudentAverages({ branchId });
-    }
-
-    studentsCount = averages.length;
-    passedCount = averages.filter(
-      (avg) => avg >= SUCCESS_THRESHOLD_PERCENT,
-    ).length;
-    // Barre principale = moyenne générale (tous cours / maxima période).
-    averageScore =
-      studentsCount > 0
-        ? Math.round(
-            (averages.reduce((sum, avg) => sum + avg, 0) / studentsCount) * 10,
-          ) / 10
-        : 0;
-    successRate =
-      studentsCount > 0 ? Math.round((passedCount / studentsCount) * 100) : 0;
-  } catch (error) {
-    console.error("getDashboardMetrics successRate:", error);
-  }
-
-  try {
-    // Avis mensuels : satisfaction = % d'avis positifs (≥4) parmi les avis reçus.
-    // Taux de réponse = parents ayant donné leur avis ce mois / total parents.
-    const [totalParents, yearFeedbacks, monthFeedbacks] = await Promise.all([
-      prisma.parent.count({
-        where: { branchMember: { branchId } },
-      }),
-      prisma.parentFeedback.findMany({
-        where: {
-          branchId,
-          ...(currentYear?.id ? { schoolYearId: currentYear.id } : {}),
-        },
-        select: { rating: true, month: true },
-      }),
-      prisma.parentFeedback.count({
-        where: {
-          branchId,
-          month: currentMonth,
-          ...(currentYear?.id ? { schoolYearId: currentYear.id } : {}),
-        },
-      }),
-    ]);
-
-    parentsCount = totalParents;
-    feedbackCount = yearFeedbacks.length;
-    const satisfiedCount = yearFeedbacks.filter((f) => f.rating >= 4).length;
-
-    satisfaction =
-      feedbackCount > 0
-        ? Math.round((satisfiedCount / feedbackCount) * 100)
-        : 0;
-
-    responseRate =
-      totalParents > 0
-        ? Math.round((monthFeedbacks / totalParents) * 100)
-        : 0;
-  } catch (error) {
-    console.error("getDashboardMetrics satisfaction:", error);
-  }
 
   return {
-    attendance,
-    attendanceCount,
-    successRate,
-    averageScore,
-    studentsCount,
-    passedCount,
-    satisfaction,
-    feedbackCount,
-    parentsCount,
-    responseRate,
+    ...emptyMetrics,
+    ...(attendanceResult.status === "fulfilled" ? attendanceResult.value : {}),
+    ...(averagesResult.status === "fulfilled" ? averagesResult.value : {}),
+    ...(feedbackResult.status === "fulfilled" ? feedbackResult.value : {}),
   };
 });
+
+/** Bundle dashboard : 1 round-trip au lieu de 4 actions. */
+export async function getBranchDashboardData(params: {
+  branchId: string;
+  organizationId: string;
+}) {
+  const now = Date.now();
+
+  const [stats, metricsResult, events, feedbackTuple] = await Promise.all([
+    getAdminStats(params),
+    getDashboardMetrics(),
+    prisma.calendarEvent.findMany({
+      where: {
+        branchId: params.branchId,
+        isArchived: false,
+        dateStart: { gte: new Date(now - 1000 * 60 * 60 * 24) },
+      },
+      select: {
+        id: true,
+        title: true,
+        dateStart: true,
+      },
+      orderBy: { dateStart: "asc" },
+      take: 8,
+    }),
+    getParentFeedbackStatus(params),
+  ]);
+
+  const metrics = Array.isArray(metricsResult)
+    ? (metricsResult[0] ?? null)
+    : metricsResult;
+  const feedbackStatus = Array.isArray(feedbackTuple)
+    ? (feedbackTuple[0] ?? null)
+    : feedbackTuple;
+
+  return {
+    stats,
+    metrics:
+      metrics && typeof metrics === "object" && !("error" in (metrics as object))
+        ? metrics
+        : {
+            attendance: 0,
+            attendanceCount: 0,
+            successRate: 0,
+            averageScore: 0,
+            studentsCount: 0,
+            passedCount: 0,
+            satisfaction: 0,
+            feedbackCount: 0,
+            parentsCount: 0,
+            responseRate: 0,
+          },
+    events,
+    feedbackStatus,
+  };
+}
 
 export async function getParentFeedbackStatus({
   branchId,

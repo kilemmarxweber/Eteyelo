@@ -1,6 +1,7 @@
-import { headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
+import { cache } from "react";
 import { auth } from "@/lib/auth";
+import { getCachedSession } from "@/lib/auth/get-session-cached";
 import { canAccessOrganization } from "@/lib/auth/organization-access";
 import { getUserOrganizationMembership } from "@/lib/auth/org-membership";
 import { BRANCH_LOGIN_ORG_ROLES } from "@/lib/auth/user-branch-access";
@@ -54,21 +55,23 @@ export function isOrganizationManagerMember(role: string | null | undefined) {
   );
 }
 
-export async function getOrganizationAuthContext(): Promise<OrganizationAuthContext | null> {
-  const session = await auth.api.getSession({ headers: await headers() });
-  if (!session?.user?.id) {
-    return null;
-  }
+export const getOrganizationAuthContext = cache(
+  async (): Promise<OrganizationAuthContext | null> => {
+    const session = await getCachedSession();
+    if (!session?.user?.id) {
+      return null;
+    }
 
-  const membership = await getUserOrganizationMembership(session.user.id);
+    const membership = await getUserOrganizationMembership(session.user.id);
 
-  return {
-    session,
-    userId: session.user.id,
-    appRole: session.user.role ?? APP_ROLE.USER,
-    membership,
-  };
-}
+    return {
+      session,
+      userId: session.user.id,
+      appRole: session.user.role ?? APP_ROLE.USER,
+      membership,
+    };
+  },
+);
 
 async function getMembershipForOrganization(
   userId: string,

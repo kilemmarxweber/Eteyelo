@@ -16,17 +16,11 @@ import { cn } from "@/lib/utils";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const { data: session, isPending } = authClient.useSession();
-
   const { resetLoading } = useAppLoading();
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [isHydrated, setIsHydrated] = useState(false);
 
   useEffect(() => {
-    setIsHydrated(true);
-  }, []);
-
-  useEffect(() => {
-    if (!isHydrated || isPending) return;
+    if (isPending) return;
     if (session) return;
 
     const timeout = window.setTimeout(() => {
@@ -35,18 +29,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     }, 1200);
 
     return () => window.clearTimeout(timeout);
-  }, [session, isPending, resetLoading, isHydrated]);
+  }, [session, isPending, resetLoading]);
 
-  if (!isHydrated || isPending) {
-    return (
-      <BranchLoadingFallback
-        label="Chargement de l'établissement..."
-        className="min-h-screen"
-      />
-    );
-  }
-
-  if (!session) {
+  // Ne bloque plus tout le shell sur l'hydratation session :
+  // le serveur a déjà authentifié ; on affiche la chrome tout de suite.
+  if (!isPending && !session) {
     return (
       <BranchLoadingFallback
         label="Redirection..."

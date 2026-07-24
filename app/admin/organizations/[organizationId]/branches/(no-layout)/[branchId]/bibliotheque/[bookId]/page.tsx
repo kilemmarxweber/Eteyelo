@@ -8,6 +8,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { EpubReader } from "@/components/library/epub-reader";
 import { PdfReader } from "@/components/library/pdf-reader";
 import { enforceLibraryAccess } from "@/lib/library/access";
+import { LIBRARY_CYCLE_LABELS } from "@/lib/library/taxonomy";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
@@ -18,12 +19,6 @@ type PageProps = {
     branchId: string;
     bookId: string;
   }>;
-};
-
-const cycleLabel: Record<string, string> = {
-  PRIMAIRE: "Primaire",
-  SECONDAIRE: "Secondaire",
-  HUMANITES: "Humanités",
 };
 
 export default async function LibraryBookReaderPage({ params }: PageProps) {
@@ -91,7 +86,11 @@ export default async function LibraryBookReaderPage({ params }: PageProps) {
           <div className="flex flex-wrap gap-1.5">
             <Badge variant="secondary">{book.fileType}</Badge>
             {book.cycle ? (
-              <Badge variant="outline">{cycleLabel[book.cycle]}</Badge>
+              <Badge variant="outline">
+                {LIBRARY_CYCLE_LABELS[
+                  book.cycle as keyof typeof LIBRARY_CYCLE_LABELS
+                ] ?? book.cycle}
+              </Badge>
             ) : null}
             {book.section ? (
               <Badge variant="outline">{book.section}</Badge>

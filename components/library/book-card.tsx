@@ -13,6 +13,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { LIBRARY_CYCLE_LABELS } from "@/lib/library/taxonomy";
 import { cn } from "@/lib/utils";
 
 export type LibraryBookCardData = {
@@ -24,7 +25,13 @@ export type LibraryBookCardData = {
   coverImage: string | null;
   fileType: "PDF" | "EPUB";
   language: string;
-  cycle: "PRIMAIRE" | "SECONDAIRE" | "HUMANITES" | null;
+  cycle:
+    | "PRIMAIRE"
+    | "SECONDAIRE"
+    | "HUMANITES"
+    | "FORMATION"
+    | "UNIVERSITE"
+    | null;
   level: string | null;
   section: string | null;
   subject: string | null;
@@ -32,12 +39,6 @@ export type LibraryBookCardData = {
   tags: string[];
   viewCount: number;
   createdAt: string;
-};
-
-const cycleLabel: Record<string, string> = {
-  PRIMAIRE: "Primaire",
-  SECONDAIRE: "Secondaire",
-  HUMANITES: "Humanités",
 };
 
 type BookCardProps = {
@@ -91,7 +92,11 @@ export function BookCard({ book, href, className }: BookCardProps) {
 
       <CardContent className="flex flex-wrap gap-1.5 pb-3">
         {book.cycle ? (
-          <Badge variant="outline">{cycleLabel[book.cycle] ?? book.cycle}</Badge>
+          <Badge variant="outline">
+            {LIBRARY_CYCLE_LABELS[
+              book.cycle as keyof typeof LIBRARY_CYCLE_LABELS
+            ] ?? book.cycle}
+          </Badge>
         ) : null}
         {book.level ? <Badge variant="outline">{book.level}</Badge> : null}
         {book.subject ? (

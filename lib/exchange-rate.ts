@@ -158,24 +158,24 @@ export function getRateUsed(
 
 /**
  * Devises disponibles dans le basculeur :
- * devise de base + devises couvertes par une paire active liée à la base.
+ * devise de base en premier, puis devises couvertes par une paire active liée à la base.
  */
 export function listSelectableCurrencies(
   rates: ExchangeRatePair[],
   baseCurrency: CurrencyCode = getBaseCurrency(rates),
 ): CurrencyCode[] {
-  const set = new Set<CurrencyCode>([baseCurrency]);
+  const rest = new Set<CurrencyCode>();
   for (const rate of rates) {
     if (!rate.isActive) continue;
     if (
       rate.fromCurrency === baseCurrency ||
       rate.toCurrency === baseCurrency
     ) {
-      set.add(rate.fromCurrency);
-      set.add(rate.toCurrency);
+      if (rate.fromCurrency !== baseCurrency) rest.add(rate.fromCurrency);
+      if (rate.toCurrency !== baseCurrency) rest.add(rate.toCurrency);
     }
   }
-  return Array.from(set);
+  return [baseCurrency, ...Array.from(rest)];
 }
 
 export function formatCurrencyAmount(

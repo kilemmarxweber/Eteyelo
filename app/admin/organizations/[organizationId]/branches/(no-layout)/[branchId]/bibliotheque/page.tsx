@@ -15,6 +15,13 @@ export default async function BibliothequePage() {
     notFound();
   }
 
+  const branch = await prisma.branch.findUnique({
+    where: { id: access.branchId },
+    select: { typebranch: true },
+  });
+
+  if (!branch) notFound();
+
   const books = await prisma.libraryBook.findMany({
     where: {
       branchId: access.branchId,
@@ -75,6 +82,7 @@ export default async function BibliothequePage() {
       mode={access.mode}
       organizationId={access.organizationId}
       branchId={access.branchId}
+      typebranch={branch.typebranch}
       initialBooks={safeBooks}
     />
   );

@@ -16,8 +16,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { LIBRARY_SUBJECTS } from "@/lib/library/schemas";
 import type { LibraryAccessMode } from "@/lib/library/access";
+import { getLibraryTaxonomy } from "@/lib/library/taxonomy";
 
 import { BookCard, type LibraryBookCardData } from "@/components/library/book-card";
 import { BookFormDialog } from "./components/book-form-dialog";
@@ -33,6 +33,7 @@ type BibliothequeClientProps = {
   mode: LibraryAccessMode;
   organizationId: string;
   branchId: string;
+  typebranch: string;
   initialBooks: LibraryBookListItem[];
 };
 
@@ -40,6 +41,7 @@ export function BibliothequeClient({
   mode,
   organizationId,
   branchId,
+  typebranch,
   initialBooks,
 }: BibliothequeClientProps) {
   const router = useRouter();
@@ -47,13 +49,17 @@ export function BibliothequeClient({
   const [query, setQuery] = useState("");
   const [cycle, setCycle] = useState<string>("all");
   const [subject, setSubject] = useState<string>("all");
+  const [level, setLevel] = useState<string>("all");
   const [createOpen, setCreateOpen] = useState(false);
+
+  const taxonomy = useMemo(() => getLibraryTaxonomy(typebranch), [typebranch]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     return initialBooks.filter((book) => {
       if (cycle !== "all" && book.cycle !== cycle) return false;
       if (subject !== "all" && book.subject !== subject) return false;
+      if (level !== "all" && book.level !== level) return false;
       if (!q) return true;
       return (
         book.title.toLowerCase().includes(q) ||
@@ -61,7 +67,7 @@ export function BibliothequeClient({
         (book.subject?.toLowerCase().includes(q) ?? false)
       );
     });
-  }, [initialBooks, query, cycle, subject]);
+  }, [initialBooks, query, cycle, subject, level]);
 
   const basePath = `/admin/organizations/${organizationId}/branches/${branchId}/bibliotheque`;
 
@@ -77,8 +83,8 @@ export function BibliothequeClient({
         title="Bibliothèque"
         description={
           mode === "manage"
-            ? "Gérez les manuels PDF et EPUB réservés aux élèves (lecture seule)."
-            : "Consultez vos manuels scolaires en lecture seule."
+            ? taxonomy.pageDescriptionManage
+            : taxonomy.pageDescriptionRead
         }
         badge={
           <Badge variant="secondary" className="gap-1">
@@ -96,7 +102,7 @@ export function BibliothequeClient({
         }
       />
 
-      <div className="flex flex-col gap-3 rounded-xl border border-border bg-card p-3 shadow-sm sm:flex-row sm:items-center">
+      <div className="flex flex-col gap-3 rounded-xl border border-border bg-card p-3 shadow-sm lg:flex-row lg:items-center">
         <div className="relative flex-1">
           <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
@@ -106,15 +112,32 @@ export function BibliothequeClient({
             className="pl-9"
           />
         </div>
-        <Select value={cycle} onValueChange={setCycle}>
-          <SelectTrigger className="w-full sm:w-[180px]">
-            <SelectValue placeholder="Cycle" />
+        {taxonomy.cycles.length > 1 ? (
+          <Select value={cycle} onValueChange={setCycle}>
+            <SelectTrigger className="w-full sm:w-[200px]">
+              <SelectValue placeholder="Cycle" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tous les cycles</SelectItem>
+              {taxonomy.cycles.map((item) => (
+                <SelectItem key={item.value} value={item.value}>
+                  {item.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        ) : null}
+        <Select value={level} onValueChange={setLevel}>
+          <SelectTrigger className="w-full sm:w-[200px]">
+            <SelectValue placeholder="Niveau" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Tous les cycles</SelectItem>
-            <SelectItem value="PRIMAIRE">Primaire</SelectItem>
-            <SelectItem value="SECONDAIRE">Secondaire</SelectItem>
-            <SelectItem value="HUMANITES">Humanités</SelectItem>
+            <SelectItem value="all">Tous les niveaux</SelectItem>
+            {taxonomy.levels.map((item) => (
+              <SelectItem key={item} value={item}>
+                {item}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
         <Select value={subject} onValueChange={setSubject}>
@@ -123,7 +146,7 @@ export function BibliothequeClient({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Toutes les matières</SelectItem>
-            {LIBRARY_SUBJECTS.map((item) => (
+            {taxonomy.subjects.map((item) => (
               <SelectItem key={item} value={item}>
                 {item}
               </SelectItem>
@@ -142,7 +165,7 @@ export function BibliothequeClient({
           }
           description={
             mode === "manage"
-              ? "Ajoutez un manuel PDF ou EPUB pour le rendre disponible aux élèves."
+              ? `Ajoutez un manuel PDF ou EPUB pour les ${taxonomy.readerPluralLower}.`
               : "Aucun manuel ne correspond à vos filtres."
           }
           action={
@@ -160,6 +183,7 @@ export function BibliothequeClient({
           basePath={basePath}
           onChanged={refresh}
           pending={pending}
+          typebranch={typebranch}
         />
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -178,6 +202,7 @@ export function BibliothequeClient({
           open={createOpen}
           onOpenChange={setCreateOpen}
           mode="create"
+          typebranch={typebranch}
           onSuccess={refresh}
         />
       ) : null}

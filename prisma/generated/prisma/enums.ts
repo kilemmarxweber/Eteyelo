@@ -223,7 +223,9 @@ export type PrimaryDomain = (typeof PrimaryDomain)[keyof typeof PrimaryDomain]
 export const LibraryCycle = {
   PRIMAIRE: 'PRIMAIRE',
   SECONDAIRE: 'SECONDAIRE',
-  HUMANITES: 'HUMANITES'
+  HUMANITES: 'HUMANITES',
+  FORMATION: 'FORMATION',
+  UNIVERSITE: 'UNIVERSITE'
 } as const
 
 export type LibraryCycle = (typeof LibraryCycle)[keyof typeof LibraryCycle]

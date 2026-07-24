@@ -11,10 +11,13 @@ export default async function Layout({
   params: Promise<{ organizationId: string; branchId: string }>;
 }) {
   const { organizationId, branchId } = await params;
-  await enforceOrganizationBranchPage(organizationId, branchId);
+  const context = await enforceOrganizationBranchPage(organizationId, branchId);
 
-  // Active la branche sur la session (owner plateforme sans membership inclus).
-  const switched = await switchActiveBranch(organizationId, branchId);
+  // Un seul guard ; skip DB write si déjà sur cette branche.
+  const switched = await switchActiveBranch(organizationId, branchId, {
+    alreadyGuarded: true,
+    appRole: context.appRole,
+  });
   if (!switched.ok) {
     console.error("[BranchLayout] switchActiveBranch:", switched.message);
   }

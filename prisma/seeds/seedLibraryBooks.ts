@@ -4,6 +4,7 @@ import path from "path";
 
 import { KLAMBOCORE_DEFAULT_IMAGE_PATH } from "@/lib/brand/klambocore-image";
 import { uploadLibraryBuffer } from "@/lib/library/storage";
+import { getLibrarySeedCyclesForBranch } from "@/lib/library/taxonomy";
 import { prisma } from "@/lib/prisma";
 import {
   LibraryCycle,
@@ -18,7 +19,7 @@ type CatalogEntry = {
   author: string;
   publisher: string;
   description: string;
-  cycle: "PRIMAIRE" | "SECONDAIRE" | "HUMANITES";
+  cycle: "PRIMAIRE" | "SECONDAIRE" | "HUMANITES" | "FORMATION" | "UNIVERSITE";
   level: string;
   subject: string;
   section: string;
@@ -114,7 +115,7 @@ export async function seedLibraryBooks() {
       isActive: true,
       ...(branchFilterId ? { id: branchFilterId } : {}),
     },
-    select: { id: true, name: true },
+    select: { id: true, name: true, typebranch: true },
     orderBy: { createdAt: "asc" },
     take: branchFilterId ? 1 : maxBranches,
   });
@@ -130,9 +131,16 @@ export async function seedLibraryBooks() {
   let skipped = 0;
 
   for (const branch of branches) {
-    console.log(`  Branche : ${branch.name}`);
+    const allowedCycles = new Set(getLibrarySeedCyclesForBranch(branch.typebranch));
+    const branchCatalog = catalog.filter((entry) =>
+      allowedCycles.has(entry.cycle),
+    );
 
-    for (const [index, entry] of catalog.entries()) {
+    console.log(
+      `  Branche : ${branch.name} (${branch.typebranch}) — ${branchCatalog.length} titre(s)`,
+    );
+
+    for (const [index, entry] of branchCatalog.entries()) {
       const existing = await prisma.libraryBook.findFirst({
         where: {
           branchId: branch.id,
@@ -151,6 +159,10 @@ export async function seedLibraryBooks() {
             publisher: entry.publisher,
             description: entry.description,
             license: entry.license,
+            cycle: entry.cycle as LibraryCycle,
+            level: entry.level,
+            section: entry.section,
+            subject: entry.subject,
           },
         });
         skipped += 1;
@@ -196,7 +208,7 @@ export async function seedLibraryBooks() {
     }
 
     console.log(
-      `    → ${catalog.length} titres catalogue (créés cumulés: ${created}, ignorés: ${skipped})`,
+      `    → créés cumulés: ${created}, ignorés/mis à jour: ${skipped}`,
     );
   }
 

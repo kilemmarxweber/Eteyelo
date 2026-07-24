@@ -23,13 +23,11 @@ import {
 } from "@tabler/icons-react";
 import {
   createParentFeedback,
-  getAdminStats,
+  getBranchDashboardData,
   getDashboardMetrics,
-  getParentFeedbackStatus,
 } from "./admin-stats";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { getCalendarEvents } from "./CalendarEvent/CalendarEvent.acton";
 import {
   DEFAULT_PEOPLE_LABELS,
   getPeopleLabels,
@@ -126,73 +124,45 @@ export default function AdminDashboard() {
   const showParents = !hidesParentManagement(typebranch);
 
   useEffect(() => {
-    const fetchStats = async () => {
+    let cancelled = false;
+
+    const load = async () => {
+      setLoading(true);
       try {
-        const data = await getAdminStats({ branchId, organizationId });
-        setStats(data);
+        const data = await getBranchDashboardData({ branchId, organizationId });
+        if (cancelled) return;
+
+        setStats(data.stats as AdminStats);
+        if (data.metrics && typeof data.metrics === "object") {
+          setMetrics((prev) => ({ ...prev, ...data.metrics }));
+        }
+        setEvents(Array.isArray(data.events) ? data.events : []);
+
+        const type = (data.stats as AdminStats | null)?.typebranch;
+        const feedback = data.feedbackStatus as
+          | { showFeedbackPopup?: boolean }
+          | null
+          | undefined;
+        if (
+          !hidesParentManagement(type) &&
+          feedback?.showFeedbackPopup
+        ) {
+          setShowFeedback(true);
+        } else {
+          setShowFeedback(false);
+        }
       } catch (err) {
         console.error(err);
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     };
 
-    void fetchStats();
+    void load();
+    return () => {
+      cancelled = true;
+    };
   }, [branchId, organizationId]);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [eventsData, err] = await getCalendarEvents();
-        if (!err) setEvents(eventsData || []);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    void fetchData();
-  }, []);
-
-  useEffect(() => {
-    const loadMetrics = async () => {
-      try {
-        const result = await getDashboardMetrics();
-        const data = Array.isArray(result) ? result[0] : result;
-        const err = Array.isArray(result) ? result[1] : null;
-        if (err) {
-          console.error("getDashboardMetrics:", err);
-          return;
-        }
-        if (data && typeof data === "object") {
-          setMetrics((prev) => ({ ...prev, ...data }));
-        }
-      } catch (err) {
-        console.error("getDashboardMetrics:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    void loadMetrics();
-  }, []);
-
-  useEffect(() => {
-    if (!showParents) {
-      setShowFeedback(false);
-      return;
-    }
-
-    const check = async () => {
-      const [data, err] = await getParentFeedbackStatus({
-        branchId,
-        organizationId,
-      });
-      if (err) return;
-      setShowFeedback(Boolean(data?.showFeedbackPopup));
-    };
-
-    void check();
-  }, [branchId, organizationId, showParents]);
 
   const quickActions = useMemo(() => {
     const actions = [

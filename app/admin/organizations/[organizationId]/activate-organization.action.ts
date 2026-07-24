@@ -2,7 +2,7 @@
 
 import { headers } from "next/headers";
 
-import { auth } from "@/lib/auth";
+import { getCachedSession } from "@/lib/auth/get-session-cached";
 import { setActiveOrganizationAndBranch } from "@/lib/auth/set-active-context";
 import { guardOrganizationAccess } from "@/lib/auth/require-organization-permission";
 
@@ -13,10 +13,14 @@ export async function activateOrganizationSessionAction(organizationId: string) 
     return { ok: false as const, message: guard.message };
   }
 
-  const requestHeaders = await headers();
-  const session = await auth.api.getSession({ headers: requestHeaders });
+  const session = await getCachedSession();
   if (!session?.session?.id || !session.user?.id) {
     return { ok: false as const, message: "Session introuvable." };
+  }
+
+  // Déjà sur cette org : rien à écrire (évite un UPDATE session à chaque navigation).
+  if (session.session.activeOrganizationId === organizationId) {
+    return { ok: true as const, skipped: true as const };
   }
 
   await setActiveOrganizationAndBranch({
@@ -25,7 +29,7 @@ export async function activateOrganizationSessionAction(organizationId: string) 
     userId: session.user.id,
     appRole: guard.context.appRole,
     sessionId: session.session.id,
-    requestHeaders,
+    requestHeaders: await headers(),
   });
 
   return { ok: true as const };

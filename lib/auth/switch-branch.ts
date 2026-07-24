@@ -1,51 +1,47 @@
-import { headers } from "next/headers";
-
-import { auth } from "@/lib/auth";
+import { getCachedSession } from "@/lib/auth/get-session-cached";
 import { guardOrganizationBranchAccess } from "@/lib/auth/require-organization-permission";
 import { setActiveOrganizationAndBranch } from "@/lib/auth/set-active-context";
-import { prisma } from "@/lib/prisma";
+import { headers } from "next/headers";
 
 /**
  * Active une branche sur la session courante.
- * Fonction serveur normale (pas une Server Action) — appelable depuis un RSC.
+ * Skip l'écriture DB si la branche/org est déjà active.
  */
 export async function switchActiveBranch(
   organizationId: string,
   branchId: string,
+  options?: {
+    /** Si true, saute le guard (déjà fait par le layout). */
+    alreadyGuarded?: boolean;
+    appRole?: string | null;
+  },
 ): Promise<{ ok: true } | { ok: false; message: string; notFound?: boolean }> {
-  const guard = await guardOrganizationBranchAccess(organizationId, branchId);
-  if (!guard.ok) {
-    return {
-      ok: false,
-      message: guard.message,
-      // Seule une branche absente doit être traitée comme 404 côté pages.
-      notFound: guard.message === "Etablissement introuvable.",
-    };
+  let appRole = options?.appRole ?? null;
+
+  if (!options?.alreadyGuarded) {
+    const guard = await guardOrganizationBranchAccess(organizationId, branchId);
+    if (!guard.ok) {
+      return {
+        ok: false,
+        message: guard.message,
+        notFound: guard.message === "Etablissement introuvable.",
+      };
+    }
+    appRole = guard.context.appRole;
   }
 
-  const requestHeaders = await headers();
-  const session = await auth.api.getSession({
-    headers: requestHeaders,
-  });
+  const session = await getCachedSession();
 
   if (!session?.session?.id || !session.user?.id) {
     return { ok: false, message: "Session introuvable" };
   }
 
-  const branch = await prisma.branch.findFirst({
-    where: {
-      id: branchId,
-      organizationId,
-    },
-    select: { id: true },
-  });
+  const alreadyActive =
+    session.session.activeOrganizationId === organizationId &&
+    session.session.activeBranchId === branchId;
 
-  if (!branch) {
-    return {
-      ok: false,
-      message: "Branche introuvable dans cette organisation",
-      notFound: true,
-    };
+  if (alreadyActive) {
+    return { ok: true };
   }
 
   try {
@@ -53,9 +49,9 @@ export async function switchActiveBranch(
       organizationId,
       branchId,
       userId: session.user.id,
-      appRole: guard.context.appRole,
+      appRole,
       sessionId: session.session.id,
-      requestHeaders,
+      requestHeaders: await headers(),
     });
   } catch (error) {
     const message =

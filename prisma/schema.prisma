@@ -1491,6 +1491,8 @@ enum LibraryCycle {
   PRIMAIRE
   SECONDAIRE
   HUMANITES
+  FORMATION
+  UNIVERSITE
 }
 
 enum LibraryFileType {

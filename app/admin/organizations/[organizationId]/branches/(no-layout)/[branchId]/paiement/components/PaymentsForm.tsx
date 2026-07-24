@@ -137,11 +137,8 @@ export default function PaymentsForm({
       const [data, err] = await getActiveExchangeRatesAction();
       if (cancelled || err || !data) return;
       setExchangeRates(data);
-      const base = getBaseCurrency(data);
-      setReceivedCurrency((current) => {
-        const selectable = listSelectableCurrencies(data, base);
-        return selectable.includes(current) ? current : base;
-      });
+      // Toujours la devise de base du taux sélectionné (ex. AOA→USD → AOA).
+      setReceivedCurrency(getBaseCurrency(data));
     })();
     return () => {
       cancelled = true;
