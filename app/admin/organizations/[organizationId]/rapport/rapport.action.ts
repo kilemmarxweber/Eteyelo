@@ -1,269 +1,125 @@
 "use server";
 
-import { prisma } from "@/lib/prisma";
 import { guardOrganizationAccess } from "@/lib/auth/require-organization-permission";
+import {
+  buildOverviewReport,
+  getAttendanceReport,
+  getEffectifsReport,
+  getFinanceReport,
+  getHiringReport,
+  getRegistrationReport,
+  getReportMeta,
+  getResultsReport,
+  getSatisfactionReport,
+  isReportTab,
+  type ReportTab,
+} from "@/lib/reports/org";
 import {
   buildSchoolReportContext,
   schoolReportBranchSelect,
 } from "@/lib/reports/resolve-school-branding";
+import { prisma } from "@/lib/prisma";
 
-type ReportParams = {
+type LoadParams = {
   organizationId: string;
+  scope?: string;
   branchId?: string;
+  schoolYearKey?: string;
+  tab?: string;
 };
 
-type ReportContextParams = {
-  organizationId: string;
-  branchId: string;
-};
-
-function monthLabel(date: Date) {
-  return new Intl.DateTimeFormat("fr-FR", {
-    month: "short",
-  }).format(date);
-}
-
-export async function getOrganizationReportData({
-  organizationId,
-  branchId,
-}: ReportParams) {
-  const guard = await guardOrganizationAccess(organizationId);
+export async function loadOrganizationReports(params: LoadParams) {
+  const guard = await guardOrganizationAccess(params.organizationId);
   if (!guard.ok) {
     throw new Error(guard.message);
   }
 
-  const branchWhere = branchId
-    ? { id: branchId, organizationId }
-    : { organizationId };
-
-  const branches = await prisma.branch.findMany({
-    where: {
-      organizationId,
-    },
-    orderBy: {
-      name: "asc",
-    },
-    select: {
-      id: true,
-      name: true,
-    },
+  const meta = await getReportMeta({
+    organizationId: params.organizationId,
+    scope: params.scope,
+    branchId: params.branchId,
+    schoolYearKey: params.schoolYearKey,
   });
 
-  const selectedBranchId = branchId || branches[0]?.id || "";
-
-  const branchFilter = selectedBranchId
-    ? { branchId: selectedBranchId }
-    : { branch: { organizationId } };
+  const tab: ReportTab = isReportTab(params.tab) ? params.tab : "overview";
+  const scopeInput = {
+    organizationId: params.organizationId,
+    scope: meta.scope,
+    branchId: meta.selectedBranchId ?? undefined,
+  };
+  const schoolYearIds =
+    meta.schoolYearKey === "all"
+      ? meta.schoolYears.flatMap((y) => y.ids)
+      : meta.schoolYearIds;
 
   const [
-    students,
-    payments,
-    expenses,
-    attendances,
-    classes,
-    teachers,
-    parents,
+    effectifs,
+    attendance,
+    finance,
+    satisfaction,
+    results,
+    hiring,
+    registrations,
   ] = await Promise.all([
-    prisma.student.findMany({
-      where: {
-        branchMember: branchFilter,
-      },
-      include: {
-        branchMember: {
-          include: {
-            member: {
-              include: {
-                user: true,
-              },
-            },
-          },
-        },
-        classEnrollment: {
-          include: {
-            classe: true,
-            schoolYear: true,
-          },
-        },
-      },
-    }),
-
-    prisma.familyPayment.findMany({
-      where: branchFilter,
-      select: {
-        amount: true,
-        status: true,
-        createdAt: true,
-      },
-    }),
-
-    prisma.cashierExpense.findMany({
-      where: branchFilter,
-      select: {
-        amount: true,
-        category: true,
-        createdAt: true,
-      },
-    }),
-
-    prisma.studentAttendance.findMany({
-      where: branchFilter,
-      select: {
-        status: true,
-        recordedAt: true,
-      },
-    }),
-
-    prisma.classe.findMany({
-      where: selectedBranchId
-        ? { branchId: selectedBranchId }
-        : { branch: { organizationId } },
-      select: {
-        id: true,
-        nameClasse: true,
-        classEnrollment: true,
-      },
-      orderBy: {
-        nameClasse: "asc",
-      },
-    }),
-
-    prisma.branchMember.count({
-      where: {
-        ...branchFilter,
-        role: "TEACHER",
-      },
-    }),
-
-    prisma.branchMember.count({
-      where: {
-        ...branchFilter,
-        role: "PARENT",
-      },
-    }),
+    getEffectifsReport({ scope: scopeInput, schoolYearIds }),
+    getAttendanceReport({ scope: scopeInput, schoolYearIds }),
+    getFinanceReport({ scope: scopeInput, schoolYearIds }),
+    getSatisfactionReport({ scope: scopeInput, schoolYearIds }),
+    getResultsReport({ scope: scopeInput, schoolYearIds }),
+    getHiringReport({ scope: scopeInput }),
+    getRegistrationReport({ scope: scopeInput, schoolYearIds }),
   ]);
 
-  const totalPayments = payments.reduce(
-    (sum, payment) => sum + Number(payment.amount),
-    0,
-  );
-
-  const totalExpenses = expenses.reduce(
-    (sum, expense) => sum + Number(expense.amount),
-    0,
-  );
-
-  const boys = students.filter(
-    (student) => student.branchMember.member.user.sexe === "M",
-  ).length;
-
-  const girls = students.filter(
-    (student) => student.branchMember.member.user.sexe === "F",
-  ).length;
-
-  const activeStudents = students.filter(
-    (student) => student.statusStudent === true,
-  ).length;
-
-  const inactiveStudents = students.length - activeStudents;
-
-  const studentsByClass = classes.map((classe) => ({
-    name: classe.nameClasse,
-    total: classe.classEnrollment.length,
-  }));
-
-  const attendanceStats = [
-    {
-      name: "Présents",
-      value: attendances.filter((item) => item.status === "PRESENT").length,
-    },
-    {
-      name: "Absents",
-      value: attendances.filter((item) => item.status === "ABSENT").length,
-    },
-    {
-      name: "Retards",
-      value: attendances.filter((item) => item.status === "LATE").length,
-    },
-    {
-      name: "Excusés",
-      value: attendances.filter((item) => item.status === "EXCUSED").length,
-    },
-  ];
-
-  const paymentByMonth = new Map<
-    string,
-    {
-      month: string;
-      paiements: number;
-      depenses: number;
-    }
-  >();
-
-  payments.forEach((payment) => {
-    const month = monthLabel(payment.createdAt);
-    const current = paymentByMonth.get(month) ?? {
-      month,
-      paiements: 0,
-      depenses: 0,
-    };
-
-    current.paiements += Number(payment.amount);
-    paymentByMonth.set(month, current);
-  });
-
-  expenses.forEach((expense) => {
-    const month = monthLabel(expense.createdAt);
-    const current = paymentByMonth.get(month) ?? {
-      month,
-      paiements: 0,
-      depenses: 0,
-    };
-
-    current.depenses += Number(expense.amount);
-    paymentByMonth.set(month, current);
+  const overview = buildOverviewReport({
+    effectifs,
+    attendance,
+    finance,
+    satisfaction,
+    results,
+    hiring,
+    registrations,
   });
 
   return {
-    branches,
-    selectedBranchId,
-    summary: {
-      totalStudents: students.length,
-      activeStudents,
-      inactiveStudents,
-      boys,
-      girls,
-      teachers,
-      parents,
-      totalPayments,
-      totalExpenses,
-      balance: totalPayments - totalExpenses,
-    },
-    studentsByClass,
-    attendanceStats,
-    genderStats: [
-      { name: "Garçons", value: boys },
-      { name: "Filles", value: girls },
-    ],
-    statusStats: [
-      { name: "Actifs", value: activeStudents },
-      { name: "Inactifs", value: inactiveStudents },
-    ],
-    financeByMonth: Array.from(paymentByMonth.values()),
+    meta,
+    tab,
+    overview,
+    effectifs,
+    attendance,
+    finance,
+    satisfaction,
+    results,
+    hiring,
+    registrations,
   };
 }
 
-/** Contexte branding pour l'export PDF synthèse effectifs (`/rapport`). */
+/** @deprecated Prefer loadOrganizationReports — kept for PDF branding context. */
+export async function getOrganizationReportData(params: {
+  organizationId: string;
+  branchId?: string;
+}) {
+  return loadOrganizationReports({
+    organizationId: params.organizationId,
+    branchId: params.branchId,
+    tab: "overview",
+  });
+}
+
 export async function getRapportReportContextAction({
   organizationId,
   branchId,
-}: ReportContextParams) {
+}: {
+  organizationId: string;
+  branchId: string;
+}) {
   const guard = await guardOrganizationAccess(organizationId);
   if (!guard.ok) {
     throw new Error(guard.message);
   }
 
-  if (!branchId?.trim()) {
-    throw new Error("Établissement non sélectionné");
+  if (!branchId?.trim() || branchId === "all") {
+    throw new Error("Sélectionnez un établissement pour l'export PDF.");
   }
 
   const branch = await prisma.branch.findFirst({

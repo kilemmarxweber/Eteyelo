@@ -1,139 +1,229 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useAppRouter as useRouter } from "@/hooks/use-app-router";
 import {
   Banknote,
   BarChart3,
+  Briefcase,
+  ClipboardList,
   FileSpreadsheet,
   FileText,
   GraduationCap,
   Loader2,
-  PieChart,
+  Smile,
   TrendingDown,
   TrendingUp,
   UserCheck,
-  UserRound,
   Users,
+  UserRound,
 } from "lucide-react";
-import {
-  Area,
-  AreaChart,
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Cell,
-  Pie,
-  PieChart as RePieChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
 import { toast } from "sonner";
 import * as XLSX from "xlsx";
 
 import { BackLink } from "@/components/ui/back-link";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  ReportAreaChart,
+  ReportBarChart,
+  ReportDonutChart,
+  ReportFunnelChart,
+  ReportRadialChart,
+} from "@/components/reports/charts/report-charts";
+import { ReportFilters } from "@/components/reports/report-filters";
+import { ReportKpiCard } from "@/components/reports/report-kpi-card";
+import {
+  ReportDataTable,
+  ReportSection,
+} from "@/components/reports/report-section";
+import { formatReportAmount } from "@/lib/reports/format-amount";
+import type { ReportTab } from "@/lib/reports/org/definitions";
 import { exportRapportEffectifsPdf } from "./export-rapport-effectifs-pdf";
 import { getRapportReportContextAction } from "./rapport.action";
 
-type ReportData = Awaited<
-  ReturnType<typeof import("./rapport.action").getOrganizationReportData>
+type ReportPayload = Awaited<
+  ReturnType<typeof import("./rapport.action").loadOrganizationReports>
 >;
 
 type Props = {
   organizationId: string;
-  data: ReportData;
+  data: ReportPayload;
 };
 
-const COLORS = ["#2563eb", "#06b6d4", "#22c55e", "#f97316", "#8b5cf6"];
+const TAB_ITEMS: Array<{ value: ReportTab; label: string }> = [
+  { value: "overview", label: "Vue d'ensemble" },
+  { value: "effectifs", label: "Effectifs" },
+  { value: "presences", label: "Présences" },
+  { value: "finance", label: "Finance" },
+  { value: "satisfaction", label: "Satisfaction" },
+  { value: "resultats", label: "Résultats" },
+  { value: "rh", label: "RH / Candidatures" },
+  { value: "inscriptions", label: "Inscriptions" },
+];
 
-function formatMoney(value: number) {
-  return new Intl.NumberFormat("fr-FR", {
-    maximumFractionDigits: 0,
-  }).format(value);
+function buildTabHref(
+  organizationId: string,
+  data: ReportPayload,
+  tab: ReportTab,
+) {
+  const params = new URLSearchParams();
+  params.set("tab", tab);
+  params.set("scope", data.meta.scope);
+  params.set(
+    "branchId",
+    data.meta.scope === "all" ? "all" : (data.meta.selectedBranchId ?? "all"),
+  );
+  params.set("schoolYearKey", data.meta.schoolYearKey);
+  return `/admin/organizations/${organizationId}/rapport?${params.toString()}`;
 }
 
 export function RapportDashboard({ organizationId, data }: Props) {
   const router = useRouter();
   const [exportingPdf, setExportingPdf] = useState(false);
+  const [presenceTrack, setPresenceTrack] = useState<
+    "students" | "teachers" | "personnel"
+  >("students");
 
-  const {
-    branches,
-    selectedBranchId,
-    summary,
-    studentsByClass,
-    attendanceStats,
-    genderStats,
-    statusStats,
-    financeByMonth,
-  } = data;
+  const { meta, tab } = data;
+  const currency = meta.currency.baseCurrency;
+  const money = (value: number) => formatReportAmount(value, currency);
 
-  function onBranchChange(branchId: string) {
-    router.push(
-      `/admin/organizations/${organizationId}/rapport?branchId=${branchId}`,
-    );
+  const genderConfig = useMemo(
+    () => ({
+      Garçons: { label: "Garçons", color: "hsl(221 83% 53%)" },
+      Filles: { label: "Filles", color: "hsl(340 75% 55%)" },
+      Hommes: { label: "Hommes", color: "hsl(221 83% 53%)" },
+      Femmes: { label: "Femmes", color: "hsl(340 75% 55%)" },
+    }),
+    [],
+  );
+
+  function onTabChange(next: string) {
+    router.push(buildTabHref(organizationId, data, next as ReportTab));
   }
 
   function exportExcel() {
     const workbook = XLSX.utils.book_new();
+    const overview = data.overview;
+    const effectifs = data.effectifs;
+    const finance = data.finance;
+    const attendance = data.attendance;
+    const satisfaction = data.satisfaction;
+    const results = data.results;
+    const hiring = data.hiring;
+    const registrations = data.registrations;
 
-    XLSX.utils.book_append_sheet(
-      workbook,
-      XLSX.utils.json_to_sheet([
-        {
-          "Total élèves": summary.totalStudents,
-          "Élèves actifs": summary.activeStudents,
-          "Élèves inactifs": summary.inactiveStudents,
-          Garçons: summary.boys,
-          Filles: summary.girls,
-          Enseignants: summary.teachers,
-          Parents: summary.parents,
-          Paiements: summary.totalPayments,
-          Dépenses: summary.totalExpenses,
-          Balance: summary.balance,
-        },
-      ]),
-      "Résumé",
-    );
+    if (overview) {
+      XLSX.utils.book_append_sheet(
+        workbook,
+        XLSX.utils.json_to_sheet([
+          {
+            Devise: currency,
+            Taux: meta.currency.rateLabel ?? "",
+            Élèves: overview.students,
+            Parents: overview.parents,
+            Enseignants: overview.teachers,
+            Personnel: overview.personnel,
+            "Taux présence %": overview.attendanceRate,
+            Budget: money(overview.budget),
+            Récolté: money(overview.recoltes),
+            Reste: money(overview.reste),
+            Satisfaction: overview.satisfaction,
+            "Réussite %": overview.successRate,
+            Embauches: overview.hired,
+            Inscriptions: overview.registrations,
+          },
+        ]),
+        "Vue ensemble",
+      );
+    }
 
-    XLSX.utils.book_append_sheet(
-      workbook,
-      XLSX.utils.json_to_sheet(financeByMonth),
-      "Paiements Dépenses",
-    );
+    if (effectifs) {
+      XLSX.utils.book_append_sheet(
+        workbook,
+        XLSX.utils.json_to_sheet(effectifs.students.byClass),
+        "Élèves par classe",
+      );
+      XLSX.utils.book_append_sheet(
+        workbook,
+        XLSX.utils.json_to_sheet(effectifs.byBranch),
+        "Effectifs branches",
+      );
+    }
+    if (finance) {
+      XLSX.utils.book_append_sheet(
+        workbook,
+        XLSX.utils.json_to_sheet(
+          finance.byMonth.map((m) => ({
+            Mois: m.label,
+            Récoltes: money(m.recoltes),
+            Dépenses: money(m.depenses),
+          })),
+        ),
+        "Finance mois",
+      );
+      XLSX.utils.book_append_sheet(
+        workbook,
+        XLSX.utils.json_to_sheet(
+          finance.byBranch.map((b) => ({
+            Branche: b.branchName,
+            Budget: money(b.budget),
+            Récolté: money(b.recoltes),
+            Reste: money(b.reste),
+            Dépenses: money(b.depenses),
+          })),
+        ),
+        "Finance branches",
+      );
+    }
+    if (attendance) {
+      XLSX.utils.book_append_sheet(
+        workbook,
+        XLSX.utils.json_to_sheet(attendance.students.byStatus),
+        "Présences élèves",
+      );
+    }
+    if (satisfaction) {
+      XLSX.utils.book_append_sheet(
+        workbook,
+        XLSX.utils.json_to_sheet(satisfaction.byMonth),
+        "Satisfaction",
+      );
+    }
+    if (results) {
+      XLSX.utils.book_append_sheet(
+        workbook,
+        XLSX.utils.json_to_sheet(results.byClass),
+        "Résultats classes",
+      );
+    }
+    if (hiring) {
+      XLSX.utils.book_append_sheet(
+        workbook,
+        XLSX.utils.json_to_sheet(hiring.byStatus),
+        "Candidatures",
+      );
+    }
+    if (registrations) {
+      XLSX.utils.book_append_sheet(
+        workbook,
+        XLSX.utils.json_to_sheet(registrations.byStatus),
+        "Inscriptions",
+      );
+    }
 
-    XLSX.utils.book_append_sheet(
-      workbook,
-      XLSX.utils.json_to_sheet(studentsByClass),
-      "Élèves par classe",
-    );
-
-    XLSX.utils.book_append_sheet(
-      workbook,
-      XLSX.utils.json_to_sheet(genderStats),
-      "Élèves par sexe",
-    );
-
-    XLSX.utils.book_append_sheet(
-      workbook,
-      XLSX.utils.json_to_sheet(statusStats),
-      "Statuts élèves",
-    );
-
-    XLSX.utils.book_append_sheet(
-      workbook,
-      XLSX.utils.json_to_sheet(attendanceStats),
-      "Présences",
-    );
-
-    XLSX.writeFile(workbook, "rapport-etablissement.xlsx");
+    XLSX.writeFile(workbook, "rapport-organisation.xlsx");
+    toast.success("Export Excel généré.");
   }
 
   async function exportPdf() {
-    if (!selectedBranchId) {
-      toast.error("Sélectionnez un établissement pour exporter le PDF.");
+    if (!meta.selectedBranchId || meta.scope === "all") {
+      toast.error("Sélectionnez une branche pour l'export PDF.");
+      return;
+    }
+    if (!data.effectifs || !data.attendance || !data.finance) {
+      toast.error("Données insuffisantes pour le PDF.");
       return;
     }
 
@@ -141,20 +231,43 @@ export function RapportDashboard({ organizationId, data }: Props) {
     try {
       const context = await getRapportReportContextAction({
         organizationId,
-        branchId: selectedBranchId,
+        branchId: meta.selectedBranchId,
       });
       await exportRapportEffectifsPdf(
         {
-          summary,
-          studentsByClass,
-          genderStats,
-          statusStats,
-          attendanceStats,
-          financeByMonth,
+          summary: {
+            totalStudents: data.effectifs.students.total,
+            activeStudents: data.effectifs.students.active,
+            inactiveStudents: data.effectifs.students.inactive,
+            boys: data.effectifs.students.boys,
+            girls: data.effectifs.students.girls,
+            teachers: data.effectifs.teachers.total,
+            parents: data.effectifs.parents.total,
+            totalPayments: data.finance.recoltes,
+            totalExpenses: data.finance.depenses,
+            balance: data.finance.solde,
+          },
+          studentsByClass: data.effectifs.students.byClass.map((c) => ({
+            name: c.name,
+            total: c.total,
+          })),
+          genderStats: data.effectifs.students.byGender,
+          statusStats: data.effectifs.students.byStatus,
+          attendanceStats: data.attendance.students.byStatus.map((s) => ({
+            name: s.name,
+            value: s.value,
+          })),
+          financeByMonth: data.finance.byMonth.map((m) => ({
+            month: m.label,
+            paiements: m.recoltes,
+            depenses: m.depenses,
+          })),
+          currency,
+          rateLabel: meta.currency.rateLabel,
         },
         context,
       );
-      toast.success("Le rapport PDF des effectifs a été généré.");
+      toast.success("Le rapport PDF a été généré.");
     } catch (error) {
       console.error(error);
       toast.error(
@@ -167,6 +280,9 @@ export function RapportDashboard({ organizationId, data }: Props) {
     }
   }
 
+  const presence =
+    data.attendance?.[presenceTrack] ?? data.attendance?.students;
+
   return (
     <div className="mx-auto flex w-full max-w-7xl flex-col gap-5 px-4 py-6 sm:px-6 lg:px-8">
       <BackLink
@@ -174,441 +290,757 @@ export function RapportDashboard({ organizationId, data }: Props) {
         label="Retour organisation"
       />
 
-      <section className="overflow-hidden rounded-2xl bg-blue-950 p-5 text-white shadow-lg shadow-blue-950/10 sm:p-6">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-card/15 px-3 py-1 text-xs font-semibold text-blue-50">
-              <BarChart3 className="size-3.5" />
-              Rapports & statistiques
-            </div>
-
-            <h1 className="mt-3 text-2xl font-bold tracking-tight sm:text-3xl">
-              Tableau de bord analytique
-            </h1>
-
-            <p className="mt-2 max-w-3xl text-sm leading-6 text-blue-50">
-              Suivez les paiements, dépenses, élèves, présences, enseignants et
-              parents selon chaque établissement.
-            </p>
-          </div>
-
-          <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-            <select
-              value={selectedBranchId}
-              onChange={(e) => onBranchChange(e.target.value)}
-              className="h-8 rounded-full border border-white/20 bg-card px-3 text-sm font-medium text-foreground outline-none"
-            >
-              {branches.map((branch) => (
-                <option key={branch.id} value={branch.id}>
-                  {branch.name}
-                </option>
-              ))}
-            </select>
-
-            <Button
-              size="sm"
-              type="button"
-              onClick={exportPdf}
-              disabled={exportingPdf || !selectedBranchId}
-              variant="outline"
-              className="rounded-full border-white/30 bg-card/10 text-white hover:bg-card hover:text-foreground"
-            >
-              {exportingPdf ? (
-                <Loader2 className="mr-1.5 size-3.5 animate-spin" />
-              ) : (
-                <FileText className="mr-1.5 size-3.5" />
-              )}
-              {exportingPdf ? "Export…" : "Export PDF"}
-            </Button>
-
-            <Button
-              size="sm"
-              type="button"
-              onClick={exportExcel}
-              variant="outline"
-              className="rounded-full border-white/30 bg-card/10 text-white hover:bg-card hover:text-foreground"
-            >
-              <FileSpreadsheet className="mr-1.5 size-3.5" />
-              Export Excel
-            </Button>
-          </div>
+      <section className="overflow-hidden rounded-2xl border border-primary/10 bg-primary p-5 text-primary-foreground shadow-lg shadow-primary/10 sm:p-6">
+        <div className="inline-flex items-center gap-2 rounded-full bg-primary-foreground/15 px-3 py-1 text-xs font-semibold text-primary-foreground/90">
+          <BarChart3 className="size-3.5" />
+          Rapports & statistiques
         </div>
+        <h1 className="mt-3 text-2xl font-bold tracking-tight sm:text-3xl">
+          Hub analytique organisation
+        </h1>
+        <p className="mt-2 max-w-3xl text-sm leading-6 text-primary-foreground/90">
+          Effectifs, présences, finance, satisfaction, résultats, RH et
+          inscriptions — une branche ou toutes les branches.
+        </p>
+        <p className="mt-2 text-xs font-medium text-primary-foreground/80">
+          Devise : {meta.currency.baseCurrency}
+          {meta.currency.rateLabel ? ` · ${meta.currency.rateLabel}` : ""}
+        </p>
       </section>
 
-      <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-        <StatCard
-          title="Paiements"
-          value={`${formatMoney(summary.totalPayments)} FC`}
-          description="Total encaissé"
-          icon={Banknote}
-          tone="blue"
+      <div className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-3 shadow-sm sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+        <ReportFilters
+          organizationId={organizationId}
+          branches={meta.branches}
+          schoolYears={meta.schoolYears}
+          scope={meta.scope}
+          selectedBranchId={meta.selectedBranchId}
+          schoolYearKey={meta.schoolYearKey}
+          tab={tab}
         />
-
-        <StatCard
-          title="Dépenses"
-          value={`${formatMoney(summary.totalExpenses)} FC`}
-          description="Total sorti"
-          icon={TrendingDown}
-          tone="orange"
-        />
-
-        <StatCard
-          title="Balance"
-          value={`${formatMoney(summary.balance)} FC`}
-          description="Paiements - dépenses"
-          icon={TrendingUp}
-          tone="green"
-        />
-
-        <StatCard
-          title="Élèves"
-          value={summary.totalStudents.toString()}
-          description={`${summary.activeStudents} actifs / ${summary.inactiveStudents} inactifs`}
-          icon={Users}
-          tone="cyan"
-        />
-      </section>
-
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <MiniCard title="Garçons" value={summary.boys} icon={UserRound} />
-        <MiniCard title="Filles" value={summary.girls} icon={UserRound} />
-        <MiniCard
-          title="Enseignants"
-          value={summary.teachers}
-          icon={GraduationCap}
-        />
-        <MiniCard title="Parents" value={summary.parents} icon={UserCheck} />
-      </section>
-
-      <section className="grid gap-6 xl:grid-cols-[1.4fr_0.8fr]">
-        <ChartCard
-          title="Paiements & dépenses"
-          description="Comparaison mensuelle des entrées et sorties."
-        >
-          <ResponsiveContainer width="100%" height={310}>
-            <AreaChart data={financeByMonth}>
-              <defs>
-                <linearGradient id="paiements" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#2563eb" stopOpacity={0.35} />
-                  <stop offset="95%" stopColor="#2563eb" stopOpacity={0} />
-                </linearGradient>
-
-                <linearGradient id="depenses" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#f97316" stopOpacity={0.35} />
-                  <stop offset="95%" stopColor="#f97316" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-
-              <CartesianGrid strokeDasharray="3 3" vertical={false} />
-              <XAxis dataKey="month" />
-              <YAxis />
-              <Tooltip />
-
-              <Area
-                type="monotone"
-                dataKey="paiements"
-                stroke="#2563eb"
-                fill="url(#paiements)"
-                strokeWidth={3}
-              />
-
-              <Area
-                type="monotone"
-                dataKey="depenses"
-                stroke="#f97316"
-                fill="url(#depenses)"
-                strokeWidth={3}
-              />
-            </AreaChart>
-          </ResponsiveContainer>
-        </ChartCard>
-
-        <ChartCard
-          title="Élèves par sexe"
-          description="Répartition garçons / filles."
-        >
-          <ResponsiveContainer width="100%" height={310}>
-            <RePieChart>
-              <Pie
-                data={genderStats}
-                dataKey="value"
-                nameKey="name"
-                innerRadius={70}
-                outerRadius={105}
-                paddingAngle={4}
-              >
-                {genderStats.map((_, index) => (
-                  <Cell key={index} fill={COLORS[index % COLORS.length]} />
-                ))}
-              </Pie>
-
-              <Tooltip />
-            </RePieChart>
-          </ResponsiveContainer>
-        </ChartCard>
-      </section>
-
-      <section className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
-        <ChartCard
-          title="Élèves par classe"
-          description="Nombre d’élèves inscrits dans chaque classe."
-        >
-          <ResponsiveContainer width="100%" height={330}>
-            <BarChart data={studentsByClass}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} />
-              <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip />
-              <Bar dataKey="total" radius={[12, 12, 0, 0]} fill="#2563eb" />
-            </BarChart>
-          </ResponsiveContainer>
-        </ChartCard>
-
-        <ChartCard title="Statut des élèves" description="Actifs et inactifs.">
-          <ResponsiveContainer width="100%" height={330}>
-            <RePieChart>
-              <Pie
-                data={statusStats}
-                dataKey="value"
-                nameKey="name"
-                innerRadius={65}
-                outerRadius={105}
-                paddingAngle={4}
-              >
-                {statusStats.map((_, index) => (
-                  <Cell
-                    key={index}
-                    fill={COLORS[(index + 2) % COLORS.length]}
-                  />
-                ))}
-              </Pie>
-
-              <Tooltip />
-            </RePieChart>
-          </ResponsiveContainer>
-        </ChartCard>
-      </section>
-
-      <section className="overflow-hidden rounded-2xl border bg-card shadow-sm">
-        <div className="border-b p-5">
-          <h2 className="text-lg font-black text-foreground">
-            Rapport de présence
-          </h2>
-
-          <p className="text-sm text-slate-500">
-            Présents, absents, retards et excusés.
-          </p>
+        <div className="flex flex-wrap gap-2">
+          <Button
+            size="sm"
+            type="button"
+            onClick={exportPdf}
+            disabled={exportingPdf || meta.scope === "all"}
+            variant="outline"
+            className="rounded-full"
+          >
+            {exportingPdf ? (
+              <Loader2 className="mr-1.5 size-3.5 animate-spin" />
+            ) : (
+              <FileText className="mr-1.5 size-3.5" />
+            )}
+            {exportingPdf ? "Export…" : "Export PDF"}
+          </Button>
+          <Button
+            size="sm"
+            type="button"
+            onClick={exportExcel}
+            variant="outline"
+            className="rounded-full"
+          >
+            <FileSpreadsheet className="mr-1.5 size-3.5" />
+            Export Excel
+          </Button>
         </div>
+      </div>
 
-        <div className="grid gap-0 divide-y md:grid-cols-4 md:divide-x md:divide-y-0">
-          {attendanceStats.map((item, index) => (
-            <div key={item.name} className="p-5">
-              <p className="text-sm font-semibold text-slate-500">
-                {item.name}
-              </p>
+      <Tabs value={tab} onValueChange={onTabChange} className="w-full">
+        <TabsList className="flex h-auto w-full flex-wrap justify-start gap-1 rounded-xl border border-primary/20 bg-primary/10 p-1.5 text-primary">
+          {TAB_ITEMS.map((item) => (
+            <TabsTrigger
+              key={item.value}
+              value={item.value}
+              className="rounded-lg px-3 py-2 text-xs font-medium text-primary/80 sm:text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm data-[state=inactive]:hover:bg-primary/15 data-[state=inactive]:hover:text-primary"
+            >
+              {item.label}
+            </TabsTrigger>
+          ))}
+        </TabsList>
 
-              <p className="mt-2 text-3xl font-black text-foreground">
-                {item.value}
-              </p>
-
-              <div className="mt-4 h-2 rounded-full bg-slate-100">
-                <div
-                  className="h-2 rounded-full"
-                  style={{
-                    width: `${Math.min(item.value * 5, 100)}%`,
-                    backgroundColor: COLORS[index % COLORS.length],
-                  }}
+        <TabsContent value="overview" className="mt-4 space-y-4">
+          {data.overview ? (
+            <>
+              <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+                <ReportKpiCard
+                  title="Élèves"
+                  value={String(data.overview.students)}
+                  description={`${data.overview.teachers} ens. · ${data.overview.parents} parents`}
+                  icon={Users}
+                  tone="cyan"
+                />
+                <ReportKpiCard
+                  title="Présence élèves"
+                  value={`${data.overview.attendanceRate}%`}
+                  icon={UserCheck}
+                  tone="green"
+                />
+                <ReportKpiCard
+                  title="Budget / Récolté"
+                  value={money(data.overview.recoltes)}
+                  description={`Budget ${money(data.overview.budget)} · reste ${money(data.overview.reste)}`}
+                  icon={Banknote}
+                  tone="blue"
+                />
+                <ReportKpiCard
+                  title="Réussite"
+                  value={`${data.overview.successRate}%`}
+                  description={`Satisfaction ${data.overview.satisfaction}/5`}
+                  icon={GraduationCap}
+                  tone="orange"
                 />
               </div>
-            </div>
-          ))}
-        </div>
-      </section>
 
-      <section className="grid gap-6 xl:grid-cols-2">
-        <DataTable
-          title="Données paiements & dépenses"
-          columns={["Mois", "Paiements", "Dépenses"]}
-          rows={financeByMonth.map((item) => [
-            item.month,
-            `${formatMoney(item.paiements)} FC`,
-            `${formatMoney(item.depenses)} FC`,
-          ])}
-        />
-
-        <DataTable
-          title="Données élèves par classe"
-          columns={["Classe", "Total élèves"]}
-          rows={studentsByClass.map((item) => [item.name, item.total])}
-        />
-
-        <DataTable
-          title="Données élèves par sexe"
-          columns={["Sexe", "Total"]}
-          rows={genderStats.map((item) => [item.name, item.value])}
-        />
-
-        <DataTable
-          title="Données statuts élèves"
-          columns={["Statut", "Total"]}
-          rows={statusStats.map((item) => [item.name, item.value])}
-        />
-
-        <DataTable
-          title="Données présences"
-          columns={["Statut", "Total"]}
-          rows={attendanceStats.map((item) => [item.name, item.value])}
-        />
-      </section>
-    </div>
-  );
-}
-
-function StatCard({
-  title,
-  value,
-  description,
-  icon: Icon,
-  tone,
-}: {
-  title: string;
-  value: string;
-  description: string;
-  icon: React.ElementType;
-  tone: "blue" | "orange" | "green" | "cyan";
-}) {
-  const tones = {
-    blue: "bg-blue-50 text-primary",
-    orange: "bg-orange-50 text-orange-600",
-    green: "bg-emerald-50 text-emerald-600",
-    cyan: "bg-cyan-50 text-cyan-600",
-  };
-
-  return (
-    <div className="rounded-2xl border bg-card p-4 shadow-sm">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <p className="text-xs font-semibold text-slate-500">{title}</p>
-          <p className="mt-1.5 text-xl font-bold text-foreground">{value}</p>
-          <p className="mt-0.5 text-xs text-slate-500">{description}</p>
-        </div>
-
-        <span
-          className={`flex size-9 items-center justify-center rounded-xl ${tones[tone]}`}
-        >
-          <Icon className="size-4" />
-        </span>
-      </div>
-    </div>
-  );
-}
-
-function MiniCard({
-  title,
-  value,
-  icon: Icon,
-}: {
-  title: string;
-  value: number;
-  icon: React.ElementType;
-}) {
-  return (
-    <div className="rounded-2xl border bg-card p-4 shadow-sm">
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-xs font-semibold text-slate-500">{title}</p>
-          <p className="mt-1 text-2xl font-bold text-foreground">{value}</p>
-        </div>
-
-        <span className="flex size-9 items-center justify-center rounded-xl bg-blue-50 text-primary">
-          <Icon className="size-4" />
-        </span>
-      </div>
-    </div>
-  );
-}
-
-function ChartCard({
-  title,
-  description,
-  children,
-}: {
-  title: string;
-  description: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <section className="rounded-2xl border bg-card p-4 shadow-sm">
-      <div className="mb-4 flex items-start justify-between gap-3">
-        <div>
-          <h2 className="text-base font-semibold text-foreground">{title}</h2>
-          <p className="mt-0.5 text-sm text-slate-500">{description}</p>
-        </div>
-
-        <span className="flex size-9 items-center justify-center rounded-xl bg-blue-50 text-primary">
-          <PieChart className="size-4" />
-        </span>
-      </div>
-
-      {children}
-    </section>
-  );
-}
-
-function DataTable({
-  title,
-  columns,
-  rows,
-}: {
-  title: string;
-  columns: string[];
-  rows: Array<Array<string | number>>;
-}) {
-  return (
-    <section className="overflow-hidden rounded-2xl border bg-card shadow-sm">
-      <div className="border-b p-5">
-        <h2 className="text-lg font-black text-foreground">{title}</h2>
-      </div>
-
-      <div className="overflow-x-auto">
-        <table className="w-full min-w-[420px] text-left text-sm">
-          <thead className="bg-blue-50 text-xs uppercase text-foreground">
-            <tr>
-              {columns.map((column) => (
-                <th key={column} className="px-5 py-4">
-                  {column}
-                </th>
-              ))}
-            </tr>
-          </thead>
-
-          <tbody>
-            {rows.length ? (
-              rows.map((row, rowIndex) => (
-                <tr
-                  key={rowIndex}
-                  className="border-t border-slate-100 transition hover:bg-blue-50/50"
+              <div className="grid gap-4 xl:grid-cols-2">
+                <ReportSection
+                  title="Comparaison inter-branches"
+                  description="Effectifs et encaissements par établissement."
                 >
-                  {row.map((cell, cellIndex) => (
-                    <td key={cellIndex} className="px-5 py-4">
-                      {cell}
-                    </td>
-                  ))}
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td
-                  colSpan={columns.length}
-                  className="px-5 py-10 text-center text-slate-500"
+                  <ReportBarChart
+                    data={data.overview.comparison.map((c) => ({
+                      name: c.branchName,
+                      élèves: c.students,
+                      récoltes: c.recoltes,
+                    }))}
+                    config={{
+                      élèves: { label: "Élèves", color: "hsl(221 83% 53%)" },
+                      récoltes: {
+                        label: "Récoltes",
+                        color: "hsl(142 71% 45%)",
+                      },
+                    }}
+                  />
+                </ReportSection>
+                <ReportSection
+                  title="Synthèse RH & inscriptions"
+                  description="Embauches et inscriptions validées."
                 >
-                  Aucune donnée disponible.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-    </section>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <ReportKpiCard
+                      title="Embauches"
+                      value={String(data.overview.hired)}
+                      icon={Briefcase}
+                      tone="slate"
+                    />
+                    <ReportKpiCard
+                      title="Inscriptions"
+                      value={String(data.overview.registrations)}
+                      icon={ClipboardList}
+                      tone="rose"
+                    />
+                    <ReportKpiCard
+                      title="Personnel"
+                      value={String(data.overview.personnel)}
+                      icon={UserRound}
+                    />
+                    <ReportKpiCard
+                      title="Satisfaction"
+                      value={`${data.overview.satisfaction}/5`}
+                      icon={Smile}
+                      tone="green"
+                    />
+                  </div>
+                </ReportSection>
+              </div>
+            </>
+          ) : null}
+        </TabsContent>
+
+        <TabsContent value="effectifs" className="mt-4 space-y-4">
+          {data.effectifs ? (
+            <>
+              <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+                <ReportKpiCard
+                  title="Élèves"
+                  value={String(data.effectifs.students.total)}
+                  description={`${data.effectifs.students.active} actifs / ${data.effectifs.students.inactive} inactifs`}
+                  icon={Users}
+                />
+                <ReportKpiCard
+                  title="Parents"
+                  value={String(data.effectifs.parents.total)}
+                  description={`${data.effectifs.parents.active} actifs`}
+                  icon={UserCheck}
+                  tone="cyan"
+                />
+                <ReportKpiCard
+                  title="Enseignants"
+                  value={String(data.effectifs.teachers.total)}
+                  description={`${data.effectifs.teachers.active} actifs`}
+                  icon={GraduationCap}
+                  tone="green"
+                />
+                <ReportKpiCard
+                  title="Personnel"
+                  value={String(data.effectifs.personnel.total)}
+                  description={`${data.effectifs.personnel.active} actifs`}
+                  icon={UserRound}
+                  tone="orange"
+                />
+              </div>
+
+              <div className="grid gap-4 xl:grid-cols-2">
+                <ReportSection title="Élèves par sexe">
+                  <ReportDonutChart
+                    data={data.effectifs.students.byGender}
+                    config={genderConfig}
+                  />
+                </ReportSection>
+                <ReportSection title="Élèves actifs / inactifs">
+                  <ReportDonutChart
+                    data={data.effectifs.students.byStatus}
+                    config={{
+                      Actifs: { label: "Actifs", color: "hsl(142 71% 45%)" },
+                      Inactifs: {
+                        label: "Inactifs",
+                        color: "hsl(25 95% 53%)",
+                      },
+                    }}
+                  />
+                </ReportSection>
+                <ReportSection title="Élèves par classe">
+                  <ReportBarChart
+                    data={data.effectifs.students.byClass.map((c) => ({
+                      name: c.name,
+                      total: c.total,
+                      garçons: c.boys,
+                      filles: c.girls,
+                    }))}
+                    config={{
+                      total: { label: "Total", color: "hsl(221 83% 53%)" },
+                      garçons: { label: "Garçons", color: "hsl(189 94% 43%)" },
+                      filles: { label: "Filles", color: "hsl(340 75% 55%)" },
+                    }}
+                    stacked
+                  />
+                </ReportSection>
+                <ReportSection title="Effectifs par branche">
+                  <ReportBarChart
+                    data={data.effectifs.byBranch.map((b) => ({
+                      name: b.branchName,
+                      élèves: b.students,
+                      enseignants: b.teachers,
+                      personnel: b.personnel,
+                      parents: b.parents,
+                    }))}
+                    config={{
+                      élèves: { label: "Élèves", color: "hsl(221 83% 53%)" },
+                      enseignants: {
+                        label: "Enseignants",
+                        color: "hsl(142 71% 45%)",
+                      },
+                      personnel: {
+                        label: "Personnel",
+                        color: "hsl(25 95% 53%)",
+                      },
+                      parents: { label: "Parents", color: "hsl(189 94% 43%)" },
+                    }}
+                  />
+                </ReportSection>
+              </div>
+
+              <ReportDataTable
+                title="Détail par classe"
+                columns={["Classe", "Total", "Garçons", "Filles"]}
+                rows={data.effectifs.students.byClass.map((c) => [
+                  c.name,
+                  c.total,
+                  c.boys,
+                  c.girls,
+                ])}
+              />
+            </>
+          ) : null}
+        </TabsContent>
+
+        <TabsContent value="presences" className="mt-4 space-y-4">
+          {data.attendance && presence ? (
+            <>
+              <div className="flex flex-wrap gap-2">
+                {(
+                  [
+                    ["students", "Élèves"],
+                    ["teachers", "Enseignants"],
+                    ["personnel", "Personnel"],
+                  ] as const
+                ).map(([key, label]) => (
+                  <Button
+                    key={key}
+                    size="sm"
+                    variant={presenceTrack === key ? "default" : "outline"}
+                    className="rounded-full"
+                    onClick={() => setPresenceTrack(key)}
+                  >
+                    {label}
+                  </Button>
+                ))}
+              </div>
+
+              <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+                <ReportKpiCard
+                  title="Pointages"
+                  value={String(presence.total)}
+                  icon={ClipboardList}
+                />
+                <ReportKpiCard
+                  title="Taux de présence"
+                  value={`${presence.presentRate}%`}
+                  icon={TrendingUp}
+                  tone="green"
+                />
+                {presence.byStatus.slice(0, 2).map((s) => (
+                  <ReportKpiCard
+                    key={s.key}
+                    title={s.name}
+                    value={String(s.value)}
+                    icon={UserCheck}
+                    tone="cyan"
+                  />
+                ))}
+              </div>
+
+              <div className="grid gap-4 xl:grid-cols-2">
+                <ReportSection title="Répartition des statuts">
+                  <ReportDonutChart
+                    data={presence.byStatus}
+                    config={Object.fromEntries(
+                      presence.byStatus.map((s, i) => [
+                        s.name,
+                        {
+                          label: s.name,
+                          color: [
+                            "hsl(142 71% 45%)",
+                            "hsl(0 72% 51%)",
+                            "hsl(25 95% 53%)",
+                            "hsl(221 83% 53%)",
+                          ][i],
+                        },
+                      ]),
+                    )}
+                  />
+                </ReportSection>
+                <ReportSection title="Évolution mensuelle">
+                  <ReportBarChart
+                    data={presence.byMonth.map((m) => ({
+                      name: m.label,
+                      présents: m.present,
+                      absents: m.absent,
+                      retards: m.late,
+                      excusés: m.excused,
+                    }))}
+                    stacked
+                    config={{
+                      présents: {
+                        label: "Présents",
+                        color: "hsl(142 71% 45%)",
+                      },
+                      absents: { label: "Absents", color: "hsl(0 72% 51%)" },
+                      retards: { label: "Retards", color: "hsl(25 95% 53%)" },
+                      excusés: { label: "Excusés", color: "hsl(221 83% 53%)" },
+                    }}
+                  />
+                </ReportSection>
+              </div>
+            </>
+          ) : null}
+        </TabsContent>
+
+        <TabsContent value="finance" className="mt-4 space-y-4">
+          {data.finance ? (
+            <>
+              <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+                <ReportKpiCard
+                  title="Budget annuel"
+                  value={money(data.finance.budgetAnnuel)}
+                  description={
+                    data.finance.budgetSource === "invoices"
+                      ? `Factures · ${meta.currency.baseCurrency}`
+                      : `Frais × inscriptions · ${meta.currency.baseCurrency}`
+                  }
+                  icon={Banknote}
+                />
+                <ReportKpiCard
+                  title="Récolté"
+                  value={money(data.finance.recoltes)}
+                  description="Paiements validés"
+                  icon={TrendingUp}
+                  tone="green"
+                />
+                <ReportKpiCard
+                  title="Reste (impayés)"
+                  value={money(data.finance.reste)}
+                  description={`Budget − encaissé · recouvrement ${data.finance.tauxRecouvrement}%`}
+                  icon={TrendingDown}
+                  tone="orange"
+                />
+                <ReportKpiCard
+                  title="Dépenses / Solde"
+                  value={money(data.finance.solde)}
+                  description={`Dépenses ${money(data.finance.depenses)}`}
+                  icon={Banknote}
+                  tone="cyan"
+                />
+              </div>
+
+              {meta.currency.rateLabel ? (
+                <p className="rounded-xl border border-primary/20 bg-primary/5 px-4 py-2 text-sm text-foreground">
+                  Taux sélectionné de l&apos;organisation :{" "}
+                  <span className="font-semibold">{meta.currency.rateLabel}</span>
+                  {" · "}Montants affichés en{" "}
+                  <span className="font-semibold">{currency}</span>
+                </p>
+              ) : (
+                <p className="rounded-xl border border-primary/20 bg-primary/5 px-4 py-2 text-sm text-foreground">
+                  Devise de base :{" "}
+                  <span className="font-semibold">{currency}</span>
+                </p>
+              )}
+
+              <div className="grid gap-4 xl:grid-cols-[1.2fr_0.8fr]">
+                <ReportSection title="Encaissements & dépenses">
+                  <ReportAreaChart
+                    data={data.finance.byMonth}
+                    xKey="label"
+                    config={{
+                      recoltes: {
+                        label: "Récoltes",
+                        color: "hsl(221 83% 53%)",
+                      },
+                      depenses: {
+                        label: "Dépenses",
+                        color: "hsl(25 95% 53%)",
+                      },
+                    }}
+                  />
+                </ReportSection>
+                <ReportSection title="Taux de recouvrement">
+                  <ReportRadialChart
+                    value={data.finance.tauxRecouvrement}
+                    label="Recouvrement"
+                  />
+                </ReportSection>
+                <ReportSection title="Budget / récolté / reste par branche">
+                  <ReportBarChart
+                    data={data.finance.byBranch.map((b) => ({
+                      name: b.branchName,
+                      budget: b.budget,
+                      récolté: b.recoltes,
+                      reste: b.reste,
+                    }))}
+                    config={{
+                      budget: { label: "Budget", color: "hsl(221 83% 53%)" },
+                      récolté: { label: "Récolté", color: "hsl(142 71% 45%)" },
+                      reste: { label: "Reste", color: "hsl(25 95% 53%)" },
+                    }}
+                  />
+                </ReportSection>
+                <ReportSection title="Méthodes de paiement">
+                  <ReportDonutChart
+                    data={data.finance.byMethod}
+                    config={Object.fromEntries(
+                      data.finance.byMethod.map((m, i) => [
+                        m.name,
+                        {
+                          label: m.name,
+                          color: [
+                            "hsl(221 83% 53%)",
+                            "hsl(142 71% 45%)",
+                            "hsl(25 95% 53%)",
+                            "hsl(189 94% 43%)",
+                          ][i % 4],
+                        },
+                      ]),
+                    )}
+                  />
+                </ReportSection>
+              </div>
+            </>
+          ) : null}
+        </TabsContent>
+
+        <TabsContent value="satisfaction" className="mt-4 space-y-4">
+          {data.satisfaction ? (
+            <>
+              <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+                <ReportKpiCard
+                  title="Note moyenne"
+                  value={`${data.satisfaction.averageRating}/5`}
+                  icon={Smile}
+                  tone="green"
+                />
+                <ReportKpiCard
+                  title="% positifs (≥4)"
+                  value={`${data.satisfaction.positiveRate}%`}
+                  icon={TrendingUp}
+                />
+                <ReportKpiCard
+                  title="Avis reçus"
+                  value={String(data.satisfaction.totalFeedbacks)}
+                  icon={ClipboardList}
+                  tone="cyan"
+                />
+                <ReportKpiCard
+                  title="Taux de réponse"
+                  value={`${data.satisfaction.responseRate}%`}
+                  description={`${data.satisfaction.parentsCount} parents`}
+                  icon={Users}
+                  tone="orange"
+                />
+              </div>
+              <div className="grid gap-4 xl:grid-cols-2">
+                <ReportSection title="Évolution mensuelle de la note">
+                  <ReportAreaChart
+                    data={data.satisfaction.byMonth.map((m) => ({
+                      label: m.label,
+                      moyenne: m.average,
+                    }))}
+                    config={{
+                      moyenne: {
+                        label: "Moyenne",
+                        color: "hsl(142 71% 45%)",
+                      },
+                    }}
+                  />
+                </ReportSection>
+                <ReportSection title="Distribution des notes">
+                  <ReportBarChart
+                    data={data.satisfaction.byRating}
+                    config={{
+                      value: { label: "Avis", color: "hsl(221 83% 53%)" },
+                    }}
+                  />
+                </ReportSection>
+                <ReportSection title="Par branche">
+                  <ReportBarChart
+                    data={data.satisfaction.byBranch.map((b) => ({
+                      name: b.branchName,
+                      moyenne: b.average,
+                      positifs: b.positiveRate,
+                    }))}
+                    config={{
+                      moyenne: {
+                        label: "Moyenne",
+                        color: "hsl(142 71% 45%)",
+                      },
+                      positifs: {
+                        label: "% positifs",
+                        color: "hsl(221 83% 53%)",
+                      },
+                    }}
+                  />
+                </ReportSection>
+              </div>
+            </>
+          ) : null}
+        </TabsContent>
+
+        <TabsContent value="resultats" className="mt-4 space-y-4">
+          {data.results ? (
+            <>
+              <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+                <ReportKpiCard
+                  title="Moyenne générale"
+                  value={`${data.results.averageScore}%`}
+                  icon={GraduationCap}
+                />
+                <ReportKpiCard
+                  title="Taux de réussite"
+                  value={`${data.results.successRate}%`}
+                  icon={TrendingUp}
+                  tone="green"
+                />
+                <ReportKpiCard
+                  title="Élèves notés"
+                  value={String(data.results.studentsCount)}
+                  icon={Users}
+                  tone="cyan"
+                />
+                <ReportKpiCard
+                  title="Admis (≥50%)"
+                  value={String(data.results.passedCount)}
+                  icon={UserCheck}
+                  tone="orange"
+                />
+              </div>
+              <div className="grid gap-4 xl:grid-cols-2">
+                <ReportSection title="Moyennes par classe">
+                  <ReportBarChart
+                    data={data.results.byClass.map((c) => ({
+                      name: c.name,
+                      moyenne: c.average,
+                      réussite: c.successRate,
+                    }))}
+                    config={{
+                      moyenne: {
+                        label: "Moyenne %",
+                        color: "hsl(221 83% 53%)",
+                      },
+                      réussite: {
+                        label: "Réussite %",
+                        color: "hsl(142 71% 45%)",
+                      },
+                    }}
+                  />
+                </ReportSection>
+                <ReportSection title="Par sexe">
+                  <ReportBarChart
+                    data={data.results.byGender.map((g) => ({
+                      name: g.name,
+                      moyenne: g.average,
+                      réussite: g.successRate,
+                    }))}
+                    config={{
+                      moyenne: {
+                        label: "Moyenne %",
+                        color: "hsl(221 83% 53%)",
+                      },
+                      réussite: {
+                        label: "Réussite %",
+                        color: "hsl(340 75% 55%)",
+                      },
+                    }}
+                  />
+                </ReportSection>
+              </div>
+              <ReportDataTable
+                title="Détail par classe"
+                columns={["Classe", "Moyenne %", "Réussite %", "Effectif"]}
+                rows={data.results.byClass.map((c) => [
+                  c.name,
+                  c.average,
+                  c.successRate,
+                  c.count,
+                ])}
+              />
+            </>
+          ) : null}
+        </TabsContent>
+
+        <TabsContent value="rh" className="mt-4 space-y-4">
+          {data.hiring ? (
+            <>
+              <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+                <ReportKpiCard
+                  title="Candidatures"
+                  value={String(data.hiring.total)}
+                  icon={Briefcase}
+                />
+                <ReportKpiCard
+                  title="Acceptées"
+                  value={String(data.hiring.accepted)}
+                  icon={TrendingUp}
+                  tone="green"
+                />
+                <ReportKpiCard
+                  title="Refusées"
+                  value={String(data.hiring.rejected)}
+                  icon={TrendingDown}
+                  tone="orange"
+                />
+                <ReportKpiCard
+                  title="Embauchées"
+                  value={String(data.hiring.hired)}
+                  description={`Taux embauche ${data.hiring.hireRate}%`}
+                  icon={UserCheck}
+                  tone="cyan"
+                />
+              </div>
+              <div className="grid gap-4 xl:grid-cols-2">
+                <ReportSection title="Pipeline des candidatures">
+                  <ReportFunnelChart data={data.hiring.byStatus} />
+                </ReportSection>
+                <ReportSection title="Type de poste">
+                  <ReportDonutChart
+                    data={data.hiring.byType}
+                    config={{
+                      Enseignant: {
+                        label: "Enseignant",
+                        color: "hsl(221 83% 53%)",
+                      },
+                      Personnel: {
+                        label: "Personnel",
+                        color: "hsl(142 71% 45%)",
+                      },
+                    }}
+                  />
+                </ReportSection>
+                <ReportSection title="Volume mensuel">
+                  <ReportBarChart
+                    data={data.hiring.byMonth.map((m) => ({
+                      name: m.label,
+                      total: m.total,
+                      embauches: m.hired,
+                    }))}
+                    config={{
+                      total: { label: "Candidatures", color: "hsl(221 83% 53%)" },
+                      embauches: {
+                        label: "Embauches",
+                        color: "hsl(142 71% 45%)",
+                      },
+                    }}
+                  />
+                </ReportSection>
+              </div>
+            </>
+          ) : null}
+        </TabsContent>
+
+        <TabsContent value="inscriptions" className="mt-4 space-y-4">
+          {data.registrations ? (
+            <>
+              <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+                <ReportKpiCard
+                  title="Demandes"
+                  value={String(data.registrations.total)}
+                  icon={ClipboardList}
+                />
+                <ReportKpiCard
+                  title="Inscrites"
+                  value={String(data.registrations.registered)}
+                  icon={UserCheck}
+                  tone="green"
+                />
+                <ReportKpiCard
+                  title="Refusées"
+                  value={String(data.registrations.rejected)}
+                  icon={TrendingDown}
+                  tone="orange"
+                />
+                <ReportKpiCard
+                  title="Conversion"
+                  value={`${data.registrations.conversionRate}%`}
+                  description={`${data.registrations.pending} en cours`}
+                  icon={TrendingUp}
+                  tone="cyan"
+                />
+              </div>
+              <div className="grid gap-4 xl:grid-cols-2">
+                <ReportSection title="Funnel inscriptions">
+                  <ReportFunnelChart data={data.registrations.byStatus} />
+                </ReportSection>
+                <ReportSection title="Volume mensuel">
+                  <ReportBarChart
+                    data={data.registrations.byMonth.map((m) => ({
+                      name: m.label,
+                      total: m.total,
+                      inscrites: m.registered,
+                    }))}
+                    config={{
+                      total: { label: "Demandes", color: "hsl(221 83% 53%)" },
+                      inscrites: {
+                        label: "Inscrites",
+                        color: "hsl(142 71% 45%)",
+                      },
+                    }}
+                  />
+                </ReportSection>
+              </div>
+            </>
+          ) : null}
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 }

@@ -1,4 +1,4 @@
-import { getOrganizationReportData } from "./rapport.action";
+import { loadOrganizationReports } from "./rapport.action";
 import { RapportDashboard } from "./rapport-dashboard";
 
 type PageProps = {
@@ -7,6 +7,9 @@ type PageProps = {
   }>;
   searchParams: Promise<{
     branchId?: string;
+    scope?: string;
+    schoolYearKey?: string;
+    tab?: string;
   }>;
 };
 
@@ -15,11 +18,14 @@ export default async function OrganizationRapportPage({
   searchParams,
 }: PageProps) {
   const { organizationId } = await params;
-  const { branchId } = await searchParams;
+  const { branchId, scope, schoolYearKey, tab } = await searchParams;
 
-  const data = await getOrganizationReportData({
+  const data = await loadOrganizationReports({
     organizationId,
     branchId,
+    scope,
+    schoolYearKey,
+    tab,
   });
 
   return <RapportDashboard organizationId={organizationId} data={data} />;

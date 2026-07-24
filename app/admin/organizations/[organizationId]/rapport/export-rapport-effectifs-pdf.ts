@@ -1,5 +1,6 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { formatReportAmount } from "@/lib/reports/format-amount";
 import { imageUrlToDataUrl } from "@/lib/reports/image-to-data-url";
 import {
   drawReportFooterOnAllPages,
@@ -7,6 +8,7 @@ import {
   REPORT_HEADER_CONTENT_TOP_MM,
 } from "@/lib/reports/pdf-header-footer";
 import type { SchoolReportContext } from "@/lib/reports/types";
+import type { CurrencyCode } from "@/prisma/generated/prisma/enums";
 
 export type RapportEffectifsSummary = {
   totalStudents: number;
@@ -32,13 +34,9 @@ export type RapportEffectifsPdfData = {
     paiements: number;
     depenses: number;
   }>;
+  currency?: CurrencyCode;
+  rateLabel?: string | null;
 };
-
-function formatMoney(value: number) {
-  return new Intl.NumberFormat("fr-FR", {
-    maximumFractionDigits: 0,
-  }).format(value);
-}
 
 function lastTableY(doc: jsPDF): number {
   return (
@@ -69,8 +67,17 @@ export async function buildRapportEffectifsPdf(
   data: RapportEffectifsPdfData,
   context: SchoolReportContext,
 ) {
-  const { summary, studentsByClass, genderStats, statusStats, attendanceStats, financeByMonth } =
-    data;
+  const {
+    summary,
+    studentsByClass,
+    genderStats,
+    statusStats,
+    attendanceStats,
+    financeByMonth,
+    currency = "USD",
+    rateLabel,
+  } = data;
+  const money = (value: number) => formatReportAmount(value, currency);
   const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
   const logo = await imageUrlToDataUrl(context.logoUrl);
   const title = "Synthèse des effectifs";
@@ -106,9 +113,11 @@ export async function buildRapportEffectifsPdf(
       ["Filles", summary.girls],
       ["Enseignants", summary.teachers],
       ["Parents", summary.parents],
-      ["Paiements", `${formatMoney(summary.totalPayments)} FC`],
-      ["Dépenses", `${formatMoney(summary.totalExpenses)} FC`],
-      ["Balance", `${formatMoney(summary.balance)} FC`],
+      ["Devise", currency],
+      ...(rateLabel ? [["Taux", rateLabel]] : []),
+      ["Paiements", money(summary.totalPayments)],
+      ["Dépenses", money(summary.totalExpenses)],
+      ["Balance", money(summary.balance)],
     ],
     ...TABLE_THEME,
     didDrawPage: drawHeader,
@@ -148,11 +157,11 @@ export async function buildRapportEffectifsPdf(
     autoTable(doc, {
       startY: lastTableY(doc) + 8,
       margin,
-      head: [["Mois", "Paiements", "Dépenses"]],
+      head: [["Mois", `Paiements (${currency})`, `Dépenses (${currency})`]],
       body: financeByMonth.map((item) => [
         item.month,
-        `${formatMoney(item.paiements)} FC`,
-        `${formatMoney(item.depenses)} FC`,
+        money(item.paiements),
+        money(item.depenses),
       ]),
       ...TABLE_THEME,
       didDrawPage: drawHeader,
