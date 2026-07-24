@@ -7,7 +7,7 @@ const adapter = new PrismaPg({
 });
 
 /** Bump when Prisma schema fields change so the cached client is rebuilt in dev. */
-const PRISMA_CLIENT_VERSION = "phase19-exchange-rate-is-selected-1";
+const PRISMA_CLIENT_VERSION = "library-books-1";
 
 const globalForPrisma = globalThis as unknown as {
   prisma?: PrismaClient;
@@ -22,14 +22,14 @@ function createPrismaClient() {
 
 function getPrismaClient() {
   const existing = globalForPrisma.prisma;
-  const hasExchangeRateDelegate =
-    typeof (existing as { exchangeRate?: { findFirst?: unknown } })
-      ?.exchangeRate?.findFirst === "function";
+  const hasLibraryBookDelegate =
+    typeof (existing as { libraryBook?: { findFirst?: unknown } })?.libraryBook
+      ?.findFirst === "function";
 
   if (
     existing &&
     globalForPrisma.prismaClientVersion === PRISMA_CLIENT_VERSION &&
-    hasExchangeRateDelegate
+    hasLibraryBookDelegate
   ) {
     return existing;
   }

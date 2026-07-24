@@ -107,6 +107,7 @@ export const ModelName = {
   StudentBranchLink: 'StudentBranchLink',
   IssuedDocument: 'IssuedDocument',
   BranchInvitation: 'BranchInvitation',
+  LibraryBook: 'LibraryBook',
   PlatformSupportAgent: 'PlatformSupportAgent',
   OrganizationSupportAgent: 'OrganizationSupportAgent',
   OrganizationSupportBranchScope: 'OrganizationSupportBranchScope',
@@ -1050,6 +1051,41 @@ export const BranchInvitationScalarFieldEnum = {
 } as const
 
 export type BranchInvitationScalarFieldEnum = (typeof BranchInvitationScalarFieldEnum)[keyof typeof BranchInvitationScalarFieldEnum]
+
+
+export const LibraryBookScalarFieldEnum = {
+  id: 'id',
+  title: 'title',
+  author: 'author',
+  publisher: 'publisher',
+  description: 'description',
+  coverImage: 'coverImage',
+  fileUrl: 'fileUrl',
+  fileType: 'fileType',
+  fileSize: 'fileSize',
+  pageCount: 'pageCount',
+  language: 'language',
+  license: 'license',
+  isbn: 'isbn',
+  cycle: 'cycle',
+  level: 'level',
+  section: 'section',
+  subject: 'subject',
+  category: 'category',
+  tags: 'tags',
+  visibility: 'visibility',
+  allowDownload: 'allowDownload',
+  isActive: 'isActive',
+  source: 'source',
+  sortOrder: 'sortOrder',
+  viewCount: 'viewCount',
+  branchId: 'branchId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  createdById: 'createdById'
+} as const
+
+export type LibraryBookScalarFieldEnum = (typeof LibraryBookScalarFieldEnum)[keyof typeof LibraryBookScalarFieldEnum]
 
 
 export const PlatformSupportAgentScalarFieldEnum = {

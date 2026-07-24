@@ -14,16 +14,15 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAppRouter as useRouter } from "@/hooks/use-app-router";
 import { authClient } from "@/lib/auth-client";
-import { KLAMBOCORE_DEFAULT_IMAGE_PATH } from "@/lib/brand/klambocore-image";
 import { useAppLoading } from "@/hooks/use-app-loading";
 import { getPrimaryRoleLabel } from "@/lib/sidebar-menu";
-import { normalizeImageSrc } from "@/lib/utils";
+import { cn, normalizeImageSrc } from "@/lib/utils";
 import {
   getUserInitials,
   resolveUserDisplayName,
   type SessionUserDisplay,
 } from "@/lib/user-display";
-import { LogOut, Settings, UserRound } from "lucide-react";
+import { ChevronDown, LogOut, Settings, UserRound } from "lucide-react";
 
 export function UserNav() {
   const router = useRouter();
@@ -39,77 +38,109 @@ export function UserNav() {
       <DropdownMenuTrigger asChild>
         <Button
           variant="ghost"
-          className="relative flex h-auto items-center gap-2 rounded-full px-1.5 py-1"
+          className={cn(
+            "relative h-auto gap-2 rounded-full border border-transparent px-1.5 py-1",
+            "hover:border-border hover:bg-muted/60",
+            "data-[state=open]:border-border data-[state=open]:bg-muted/60",
+          )}
         >
-          <Avatar className="h-8 w-8">
+          <Avatar className="size-8 ring-2 ring-background">
             <AvatarImage
               src={normalizeImageSrc(user?.image)}
               alt={displayName}
             />
-            <AvatarFallback>{initials}</AvatarFallback>
+            <AvatarFallback className="bg-primary/10 text-xs font-semibold text-primary">
+              {initials}
+            </AvatarFallback>
           </Avatar>
           {session ? (
             <span className="hidden min-w-0 flex-col items-start text-left sm:flex">
-              <span className="max-w-[10rem] truncate text-sm font-medium leading-tight text-primary">
+              <span className="max-w-[9.5rem] truncate text-sm font-semibold leading-tight text-foreground">
                 {displayName}
               </span>
-              <span className="max-w-[10rem] truncate text-xs leading-tight text-muted-foreground capitalize">
+              <span className="max-w-[9.5rem] truncate text-[11px] leading-tight text-muted-foreground capitalize">
                 {roleLabel}
               </span>
             </span>
           ) : null}
+          <ChevronDown className="hidden size-3.5 text-muted-foreground sm:block" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-56" align="end" forceMount>
-        {session ? (
-          <DropdownMenuLabel className="">
-            <div className="flex flex-col space-y-1">
-              <p className="text-sm text-primary">{displayName}</p>
-              <p className="leading-none text-muted-foreground capitalize">
-                {roleLabel}
-              </p>
+
+      <DropdownMenuContent className="w-64 p-0" align="end" forceMount>
+        <DropdownMenuLabel className="p-0 font-normal">
+          <div className="flex items-center gap-3 border-b border-border bg-muted/40 px-3 py-3">
+            <Avatar className="size-10">
+              <AvatarImage
+                src={normalizeImageSrc(user?.image)}
+                alt={displayName}
+              />
+              <AvatarFallback className="bg-primary/10 text-sm font-semibold text-primary">
+                {initials}
+              </AvatarFallback>
+            </Avatar>
+            <div className="min-w-0 flex-1 space-y-0.5">
+              {session ? (
+                <>
+                  <p className="truncate text-sm font-semibold text-foreground">
+                    {displayName}
+                  </p>
+                  <p className="truncate text-xs text-muted-foreground capitalize">
+                    {roleLabel}
+                  </p>
+                  {user?.email ? (
+                    <p className="truncate text-[11px] text-muted-foreground">
+                      {user.email}
+                    </p>
+                  ) : null}
+                </>
+              ) : (
+                <p className="text-sm text-muted-foreground">Chargement…</p>
+              )}
             </div>
-          </DropdownMenuLabel>
-        ) : (
-          <DropdownMenuLabel className="font-normal">
-            Loading...
-          </DropdownMenuLabel>
-        )}
-        <DropdownMenuSeparator />
-        <DropdownMenuGroup>
-          <DropdownMenuItem onClick={() => router.push("/admin/settings")}>
-            <UserRound className="mr-2 size-4" />
+          </div>
+        </DropdownMenuLabel>
+
+        <DropdownMenuGroup className="p-1">
+          <DropdownMenuItem
+            className="gap-2 rounded-md"
+            onClick={() => router.push("/admin/settings")}
+          >
+            <UserRound className="size-4 text-muted-foreground" />
             Profil
             <DropdownMenuShortcut>⇧⌘P</DropdownMenuShortcut>
           </DropdownMenuItem>
-
           <DropdownMenuItem
-            onClick={() => {
-              router.push("/admin/settings");
-            }}
+            className="gap-2 rounded-md"
+            onClick={() => router.push("/admin/settings")}
           >
-            <Settings className="mr-2 size-4" />
+            <Settings className="size-4 text-muted-foreground" />
             Paramètres
             <DropdownMenuShortcut>⌘S</DropdownMenuShortcut>
           </DropdownMenuItem>
         </DropdownMenuGroup>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem
-          onClick={() => {
-            void (async () => {
-              try {
-                await authClient.signOut();
-                window.location.assign("/auth/sign-in");
-              } finally {
-                resetLoading();
-              }
-            })();
-          }}
-        >
-          <LogOut className="mr-2 size-4" />
-          Se déconnecter
-          <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>
-        </DropdownMenuItem>
+
+        <DropdownMenuSeparator className="my-0" />
+
+        <div className="p-1">
+          <DropdownMenuItem
+            className="gap-2 rounded-md text-destructive focus:bg-destructive/10 focus:text-destructive"
+            onClick={() => {
+              void (async () => {
+                try {
+                  await authClient.signOut();
+                  window.location.assign("/auth/sign-in");
+                } finally {
+                  resetLoading();
+                }
+              })();
+            }}
+          >
+            <LogOut className="size-4" />
+            Se déconnecter
+            <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>
+          </DropdownMenuItem>
+        </div>
       </DropdownMenuContent>
     </DropdownMenu>
   );

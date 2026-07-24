@@ -58,6 +58,11 @@ export function ResponsiveDialog({
 }: ResponsiveDialogProps) {
   const isMobile = useIsMobile();
 
+  // Attendre le media query pour ne pas monter Dialog puis Drawer à l’ouverture.
+  if (isMobile === undefined) {
+    return null;
+  }
+
   if (isMobile) {
     return (
       <ResponsiveDialogContextProvider isMobile>

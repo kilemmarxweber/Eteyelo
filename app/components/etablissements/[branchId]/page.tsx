@@ -100,11 +100,20 @@ export default async function EtablissementDetailPage({ params }: PageProps) {
           },
         },
       },
+      _count: {
+        select: {
+          libraryBooks: {
+            where: { isActive: true },
+          },
+        },
+      },
     },
   });
 
   if (!branch) notFound();
 
+  const libraryBooksCount = branch._count.libraryBooks;
+  const hasLibrary = libraryBooksCount > 0;
   const images = getBranchImage(branch.image);
   const cover =
     images.ecole[0] ||
@@ -360,8 +369,15 @@ export default async function EtablissementDetailPage({ params }: PageProps) {
               <FeatureItem
                 icon={LibraryBig}
                 title="Bibliothèque"
-                enabled={false}
-                description="À connecter avec un champ hasLibrary dans Branch."
+                enabled={hasLibrary}
+                statusLabel={
+                  hasLibrary ? "Réservé aux élèves" : "Non renseigné"
+                }
+                description={
+                  hasLibrary
+                    ? `${libraryBooksCount} livre${libraryBooksCount > 1 ? "s" : ""} — lecture seule réservée aux élèves connectés.`
+                    : "Aucun livre publié pour le moment. Les élèves y accéderont après connexion."
+                }
               />
 
               <FeatureItem
@@ -453,11 +469,13 @@ function FeatureItem({
   title,
   description,
   enabled,
+  statusLabel,
 }: {
   icon: React.ElementType;
   title: string;
   description: string;
   enabled: boolean;
+  statusLabel?: string;
 }) {
   return (
     <div className="flex items-start gap-3 rounded-2xl border border-border bg-primary/5 p-4">
@@ -474,7 +492,7 @@ function FeatureItem({
               : "mt-3 bg-muted text-muted-foreground"
           }
         >
-          {enabled ? "Disponible" : "Non renseigné"}
+          {statusLabel ?? (enabled ? "Disponible" : "Non renseigné")}
         </Badge>
       </div>
     </div>

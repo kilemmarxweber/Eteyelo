@@ -76,6 +76,14 @@ const STUDENT_ROLES = [
   "student",
 ];
 
+/** Bibliothèque : managers + élèves uniquement (pas parents / enseignants). */
+const LIBRARY_ROLES = [
+  ...ADMIN_ROLES,
+  ORG_ROLE.STUDENT,
+  "STUDENT",
+  "student",
+];
+
 const CURSUS_ROLES = Array.from(new Set([...STUDENT_ROLES, ...TEACHER_ROLES]));
 
 const TITULAIRE_CURSUS_ROLES = [...STUDENT_ROLES, TEACHER_TITULAIRE_ROLE];
@@ -252,6 +260,12 @@ const staticSidebarMenu: StaticMenuItem[] = [
         href: "/admin/results",
         icon: "results",
         roles: CURSUS_ROLES,
+      },
+      {
+        title: "Bibliothèque",
+        href: "/admin/bibliotheque",
+        icon: "bibliotheque",
+        roles: LIBRARY_ROLES,
       },
       {
         title: "Notes",

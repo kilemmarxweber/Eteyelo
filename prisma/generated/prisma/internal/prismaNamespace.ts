@@ -440,6 +440,7 @@ export const ModelName = {
   StudentBranchLink: 'StudentBranchLink',
   IssuedDocument: 'IssuedDocument',
   BranchInvitation: 'BranchInvitation',
+  LibraryBook: 'LibraryBook',
   PlatformSupportAgent: 'PlatformSupportAgent',
   OrganizationSupportAgent: 'OrganizationSupportAgent',
   OrganizationSupportBranchScope: 'OrganizationSupportBranchScope',
@@ -459,7 +460,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "parent" | "student" | "attendanceSession" | "studentAttendance" | "teacherAttendance" | "personnelAttendance" | "parentFeedback" | "studentGrade" | "personnel" | "frais" | "typeFrais" | "classe" | "creneau" | "option" | "section" | "schoolYear" | "classEnrollment" | "teacher" | "teaching" | "cours" | "coursOptionPonderation" | "schedule" | "calendarEvent" | "eventType" | "semester" | "period" | "periodResultLock" | "fiche" | "invoice" | "paymentBatch" | "familyPayment" | "cashierExpense" | "cashierOpeningBalance" | "exchangeRate" | "paymentAllocation" | "mobileMoneyTransaction" | "paymentEvent" | "discountRule" | "transaction" | "session" | "account" | "verification" | "organization" | "organizationRole" | "member" | "invitation" | "branch" | "branchRegistrationInfo" | "registrationRequest" | "jobApplication" | "partnaire" | "branchMember" | "studentBranchLink" | "issuedDocument" | "branchInvitation" | "platformSupportAgent" | "organizationSupportAgent" | "organizationSupportBranchScope" | "platformSupportEscalation"
+    modelProps: "user" | "parent" | "student" | "attendanceSession" | "studentAttendance" | "teacherAttendance" | "personnelAttendance" | "parentFeedback" | "studentGrade" | "personnel" | "frais" | "typeFrais" | "classe" | "creneau" | "option" | "section" | "schoolYear" | "classEnrollment" | "teacher" | "teaching" | "cours" | "coursOptionPonderation" | "schedule" | "calendarEvent" | "eventType" | "semester" | "period" | "periodResultLock" | "fiche" | "invoice" | "paymentBatch" | "familyPayment" | "cashierExpense" | "cashierOpeningBalance" | "exchangeRate" | "paymentAllocation" | "mobileMoneyTransaction" | "paymentEvent" | "discountRule" | "transaction" | "session" | "account" | "verification" | "organization" | "organizationRole" | "member" | "invitation" | "branch" | "branchRegistrationInfo" | "registrationRequest" | "jobApplication" | "partnaire" | "branchMember" | "studentBranchLink" | "issuedDocument" | "branchInvitation" | "libraryBook" | "platformSupportAgent" | "organizationSupportAgent" | "organizationSupportBranchScope" | "platformSupportEscalation"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -4607,6 +4608,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    LibraryBook: {
+      payload: Prisma.$LibraryBookPayload<ExtArgs>
+      fields: Prisma.LibraryBookFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.LibraryBookFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LibraryBookPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.LibraryBookFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LibraryBookPayload>
+        }
+        findFirst: {
+          args: Prisma.LibraryBookFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LibraryBookPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.LibraryBookFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LibraryBookPayload>
+        }
+        findMany: {
+          args: Prisma.LibraryBookFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LibraryBookPayload>[]
+        }
+        create: {
+          args: Prisma.LibraryBookCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LibraryBookPayload>
+        }
+        createMany: {
+          args: Prisma.LibraryBookCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.LibraryBookCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LibraryBookPayload>[]
+        }
+        delete: {
+          args: Prisma.LibraryBookDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LibraryBookPayload>
+        }
+        update: {
+          args: Prisma.LibraryBookUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LibraryBookPayload>
+        }
+        deleteMany: {
+          args: Prisma.LibraryBookDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.LibraryBookUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.LibraryBookUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LibraryBookPayload>[]
+        }
+        upsert: {
+          args: Prisma.LibraryBookUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LibraryBookPayload>
+        }
+        aggregate: {
+          args: Prisma.LibraryBookAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateLibraryBook>
+        }
+        groupBy: {
+          args: Prisma.LibraryBookGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.LibraryBookGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.LibraryBookCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.LibraryBookCountAggregateOutputType> | number
+        }
+      }
+    }
     PlatformSupportAgent: {
       payload: Prisma.$PlatformSupportAgentPayload<ExtArgs>
       fields: Prisma.PlatformSupportAgentFieldRefs
@@ -5865,6 +5940,41 @@ export const BranchInvitationScalarFieldEnum = {
 export type BranchInvitationScalarFieldEnum = (typeof BranchInvitationScalarFieldEnum)[keyof typeof BranchInvitationScalarFieldEnum]
 
 
+export const LibraryBookScalarFieldEnum = {
+  id: 'id',
+  title: 'title',
+  author: 'author',
+  publisher: 'publisher',
+  description: 'description',
+  coverImage: 'coverImage',
+  fileUrl: 'fileUrl',
+  fileType: 'fileType',
+  fileSize: 'fileSize',
+  pageCount: 'pageCount',
+  language: 'language',
+  license: 'license',
+  isbn: 'isbn',
+  cycle: 'cycle',
+  level: 'level',
+  section: 'section',
+  subject: 'subject',
+  category: 'category',
+  tags: 'tags',
+  visibility: 'visibility',
+  allowDownload: 'allowDownload',
+  isActive: 'isActive',
+  source: 'source',
+  sortOrder: 'sortOrder',
+  viewCount: 'viewCount',
+  branchId: 'branchId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  createdById: 'createdById'
+} as const
+
+export type LibraryBookScalarFieldEnum = (typeof LibraryBookScalarFieldEnum)[keyof typeof LibraryBookScalarFieldEnum]
+
+
 export const PlatformSupportAgentScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
@@ -6309,6 +6419,62 @@ export type ListEnumIssuedDocumentTypeFieldRefInput<$PrismaModel> = FieldRefInpu
 
 
 /**
+ * Reference to a field of type 'LibraryFileType'
+ */
+export type EnumLibraryFileTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'LibraryFileType'>
+    
+
+
+/**
+ * Reference to a field of type 'LibraryFileType[]'
+ */
+export type ListEnumLibraryFileTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'LibraryFileType[]'>
+    
+
+
+/**
+ * Reference to a field of type 'LibraryCycle'
+ */
+export type EnumLibraryCycleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'LibraryCycle'>
+    
+
+
+/**
+ * Reference to a field of type 'LibraryCycle[]'
+ */
+export type ListEnumLibraryCycleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'LibraryCycle[]'>
+    
+
+
+/**
+ * Reference to a field of type 'LibraryVisibility'
+ */
+export type EnumLibraryVisibilityFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'LibraryVisibility'>
+    
+
+
+/**
+ * Reference to a field of type 'LibraryVisibility[]'
+ */
+export type ListEnumLibraryVisibilityFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'LibraryVisibility[]'>
+    
+
+
+/**
+ * Reference to a field of type 'LibrarySource'
+ */
+export type EnumLibrarySourceFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'LibrarySource'>
+    
+
+
+/**
+ * Reference to a field of type 'LibrarySource[]'
+ */
+export type ListEnumLibrarySourceFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'LibrarySource[]'>
+    
+
+
+/**
  * Reference to a field of type 'PlatformSupportEscalationStatus'
  */
 export type EnumPlatformSupportEscalationStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PlatformSupportEscalationStatus'>
@@ -6487,6 +6653,7 @@ export type GlobalOmitConfig = {
   studentBranchLink?: Prisma.StudentBranchLinkOmit
   issuedDocument?: Prisma.IssuedDocumentOmit
   branchInvitation?: Prisma.BranchInvitationOmit
+  libraryBook?: Prisma.LibraryBookOmit
   platformSupportAgent?: Prisma.PlatformSupportAgentOmit
   organizationSupportAgent?: Prisma.OrganizationSupportAgentOmit
   organizationSupportBranchScope?: Prisma.OrganizationSupportBranchScopeOmit

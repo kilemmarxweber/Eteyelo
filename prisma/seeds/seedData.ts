@@ -9,6 +9,10 @@ import {
   seedKlambocoreSupport,
   clearKlambocoreSupport,
 } from "./seedKlambocoreSupport";
+import {
+  seedLibraryBooks,
+  clearLibraryBooksSeed,
+} from "./seedLibraryBooks";
 
 const INIT_ORDER = [
   { name: "superAdmin", init: seedSuperAdmin, clear: clearSuperAdmin },
@@ -22,12 +26,17 @@ const INIT_ORDER = [
     init: seedExchangeRates,
     clear: clearExchangeRates,
   },
+  {
+    name: "libraryBooks",
+    init: seedLibraryBooks,
+    clear: clearLibraryBooksSeed,
+  },
 ] as const;
 
 const CLEAR_ORDER = [...INIT_ORDER].reverse();
 
 async function seedAll() {
-  console.log("Seed Eteyelo — owner + support Klambocore + taux\n");
+  console.log("Seed Kalasa — owner + support + taux + bibliothèque RDC\n");
   const start = Date.now();
 
   for (const script of INIT_ORDER) {
@@ -39,10 +48,11 @@ async function seedAll() {
   console.log("  - superAdmin (owner, email = SMTP_USER)");
   console.log("  - klambocoreSupport (même user, PlatformSupportAgent lead)");
   console.log("  - exchangeRates (4 paires / organisation)");
+  console.log("  - libraryBooks (catalogue RDC open-license CC0)");
 }
 
 async function clearAll() {
-  console.log("Clear seed Eteyelo\n");
+  console.log("Clear seed Kalasa\n");
   for (const script of CLEAR_ORDER) {
     await script.clear();
   }
@@ -55,10 +65,15 @@ async function main() {
   if (args.includes("--help") || args.includes("-h")) {
     console.log(`
 Usage:
-  pnpm seed              Seed owner + support Klambocore + taux
-  pnpm seed -- --all     Idem
-  pnpm seed -- --clear   Supprime taux, support, puis super admin
-  pnpm seed -- --list    Liste les seeds disponibles
+  pnpm seed                 Seed owner + support + taux + bibliothèque
+  pnpm seed:library         Seed catalogue RDC uniquement
+  pnpm seed -- --clear      Supprime seeds (bibliothèque → … → admin)
+  pnpm seed -- --list       Liste les seeds disponibles
+
+Env bibliothèque :
+  LIBRARY_SEED_BRANCH_ID     Une seule branche
+  LIBRARY_SEED_MAX_BRANCHES  Limite (défaut 10)
+  LIBRARY_STORAGE_DRIVER     local | s3
 `);
     return;
   }
@@ -67,6 +82,11 @@ Usage:
     for (const script of INIT_ORDER) {
       console.log(`  - ${script.name}`);
     }
+    return;
+  }
+
+  if (args.includes("--library-only")) {
+    await seedLibraryBooks();
     return;
   }
 

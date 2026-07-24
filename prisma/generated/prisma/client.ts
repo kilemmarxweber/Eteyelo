@@ -322,6 +322,11 @@ export type IssuedDocument = Prisma.IssuedDocumentModel
  */
 export type BranchInvitation = Prisma.BranchInvitationModel
 /**
+ * Model LibraryBook
+ * 
+ */
+export type LibraryBook = Prisma.LibraryBookModel
+/**
  * Model PlatformSupportAgent
  * 
  */

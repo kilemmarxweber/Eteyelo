@@ -1169,6 +1169,7 @@ model Branch {
   targetStudentLinks   StudentBranchLink[] @relation("TargetBranchLinks")
   sourceStudentLinks   StudentBranchLink[] @relation("SourceBranchLinks")
   issuedDocuments      IssuedDocument[]
+  libraryBooks         LibraryBook[]
 
   @@index([organizationId])
   @@index([organizationId, isActive])
@@ -1482,6 +1483,77 @@ model BranchInvitation {
   @@index([branchId])
   @@index([email])
   @@unique([branchId, email])
+}
+
+// ─── Bibliothèque scolaire (PDF/EPUB, lecture seule élèves) ───────────────────
+
+enum LibraryCycle {
+  PRIMAIRE
+  SECONDAIRE
+  HUMANITES
+}
+
+enum LibraryFileType {
+  PDF
+  EPUB
+}
+
+enum LibraryVisibility {
+  STUDENTS
+}
+
+enum LibrarySource {
+  SCHOOL_UPLOAD
+  OPEN_LICENSE
+  PLATFORM_CATALOG
+}
+
+model LibraryBook {
+  id          String   @id @default(cuid())
+  title       String
+  author      String?
+  publisher   String?
+  description String?  @db.Text
+  coverImage  String?
+
+  /// Chemin stockage privé côté serveur (jamais exposé au client)
+  fileUrl     String
+  fileType    LibraryFileType
+  fileSize    Int?
+  pageCount   Int?
+  language    String   @default("fr")
+  license     String?
+  isbn        String?
+
+  cycle       LibraryCycle?
+  level       String?
+  section     String?
+  subject     String?
+  category    String?
+  tags        String[] @default([])
+
+  visibility    LibraryVisibility @default(STUDENTS)
+  allowDownload Boolean           @default(false)
+  isActive      Boolean           @default(true)
+  source        LibrarySource     @default(SCHOOL_UPLOAD)
+  sortOrder     Int               @default(0)
+  viewCount     Int               @default(0)
+
+  branchId    String
+  branch      Branch   @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  createdById String?
+
+  @@index([branchId])
+  @@index([branchId, isActive])
+  @@index([cycle])
+  @@index([level])
+  @@index([subject])
+  @@index([category])
+  @@index([visibility])
+  @@index([fileType])
 }
 
 // ─── Support plateforme (équipe Klambocore) ───────────────────────────────────

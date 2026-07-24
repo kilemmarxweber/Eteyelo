@@ -240,3 +240,31 @@ export function canAccessResultsArea(
     )
   );
 }
+
+/** Bibliothèque : managers org + élèves. */
+export function canAccessLibraryArea(
+  session: any,
+  ...extraRoles: unknown[]
+): boolean {
+  return (
+    isPlatformOwnerSession(session, ...extraRoles) ||
+    hasSessionRole(
+      session,
+      [
+        APP_ROLE.OWNER,
+        APP_ROLE.ADMIN,
+        ORG_ROLE.OWNER,
+        ORG_ROLE.GESTIONNAIRE,
+        ORG_ROLE.PREFET,
+        ORG_ROLE.DIRECTEUR,
+        ORG_ROLE.SUPERVISEUR,
+        ORG_ROLE.STUDENT,
+        "ADMIN",
+        "DIRECTOR",
+        "STUDENT",
+        "student",
+      ],
+      ...extraRoles,
+    )
+  );
+}

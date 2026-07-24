@@ -220,6 +220,39 @@ export const PrimaryDomain = {
 export type PrimaryDomain = (typeof PrimaryDomain)[keyof typeof PrimaryDomain]
 
 
+export const LibraryCycle = {
+  PRIMAIRE: 'PRIMAIRE',
+  SECONDAIRE: 'SECONDAIRE',
+  HUMANITES: 'HUMANITES'
+} as const
+
+export type LibraryCycle = (typeof LibraryCycle)[keyof typeof LibraryCycle]
+
+
+export const LibraryFileType = {
+  PDF: 'PDF',
+  EPUB: 'EPUB'
+} as const
+
+export type LibraryFileType = (typeof LibraryFileType)[keyof typeof LibraryFileType]
+
+
+export const LibraryVisibility = {
+  STUDENTS: 'STUDENTS'
+} as const
+
+export type LibraryVisibility = (typeof LibraryVisibility)[keyof typeof LibraryVisibility]
+
+
+export const LibrarySource = {
+  SCHOOL_UPLOAD: 'SCHOOL_UPLOAD',
+  OPEN_LICENSE: 'OPEN_LICENSE',
+  PLATFORM_CATALOG: 'PLATFORM_CATALOG'
+} as const
+
+export type LibrarySource = (typeof LibrarySource)[keyof typeof LibrarySource]
+
+
 export const PlatformSupportEscalationStatus = {
   OPEN: 'OPEN',
   IN_PROGRESS: 'IN_PROGRESS',

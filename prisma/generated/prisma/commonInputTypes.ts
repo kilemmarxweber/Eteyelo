@@ -731,6 +731,74 @@ export type EnumIssuedDocumentTypeWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedEnumIssuedDocumentTypeFilter<$PrismaModel>
 }
 
+export type EnumLibraryFileTypeFilter<$PrismaModel = never> = {
+  equals?: $Enums.LibraryFileType | Prisma.EnumLibraryFileTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.LibraryFileType[] | Prisma.ListEnumLibraryFileTypeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.LibraryFileType[] | Prisma.ListEnumLibraryFileTypeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumLibraryFileTypeFilter<$PrismaModel> | $Enums.LibraryFileType
+}
+
+export type EnumLibraryCycleNullableFilter<$PrismaModel = never> = {
+  equals?: $Enums.LibraryCycle | Prisma.EnumLibraryCycleFieldRefInput<$PrismaModel> | null
+  in?: $Enums.LibraryCycle[] | Prisma.ListEnumLibraryCycleFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.LibraryCycle[] | Prisma.ListEnumLibraryCycleFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumLibraryCycleNullableFilter<$PrismaModel> | $Enums.LibraryCycle | null
+}
+
+export type EnumLibraryVisibilityFilter<$PrismaModel = never> = {
+  equals?: $Enums.LibraryVisibility | Prisma.EnumLibraryVisibilityFieldRefInput<$PrismaModel>
+  in?: $Enums.LibraryVisibility[] | Prisma.ListEnumLibraryVisibilityFieldRefInput<$PrismaModel>
+  notIn?: $Enums.LibraryVisibility[] | Prisma.ListEnumLibraryVisibilityFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumLibraryVisibilityFilter<$PrismaModel> | $Enums.LibraryVisibility
+}
+
+export type EnumLibrarySourceFilter<$PrismaModel = never> = {
+  equals?: $Enums.LibrarySource | Prisma.EnumLibrarySourceFieldRefInput<$PrismaModel>
+  in?: $Enums.LibrarySource[] | Prisma.ListEnumLibrarySourceFieldRefInput<$PrismaModel>
+  notIn?: $Enums.LibrarySource[] | Prisma.ListEnumLibrarySourceFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumLibrarySourceFilter<$PrismaModel> | $Enums.LibrarySource
+}
+
+export type EnumLibraryFileTypeWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.LibraryFileType | Prisma.EnumLibraryFileTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.LibraryFileType[] | Prisma.ListEnumLibraryFileTypeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.LibraryFileType[] | Prisma.ListEnumLibraryFileTypeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumLibraryFileTypeWithAggregatesFilter<$PrismaModel> | $Enums.LibraryFileType
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumLibraryFileTypeFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumLibraryFileTypeFilter<$PrismaModel>
+}
+
+export type EnumLibraryCycleNullableWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.LibraryCycle | Prisma.EnumLibraryCycleFieldRefInput<$PrismaModel> | null
+  in?: $Enums.LibraryCycle[] | Prisma.ListEnumLibraryCycleFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.LibraryCycle[] | Prisma.ListEnumLibraryCycleFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumLibraryCycleNullableWithAggregatesFilter<$PrismaModel> | $Enums.LibraryCycle | null
+  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumLibraryCycleNullableFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumLibraryCycleNullableFilter<$PrismaModel>
+}
+
+export type EnumLibraryVisibilityWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.LibraryVisibility | Prisma.EnumLibraryVisibilityFieldRefInput<$PrismaModel>
+  in?: $Enums.LibraryVisibility[] | Prisma.ListEnumLibraryVisibilityFieldRefInput<$PrismaModel>
+  notIn?: $Enums.LibraryVisibility[] | Prisma.ListEnumLibraryVisibilityFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumLibraryVisibilityWithAggregatesFilter<$PrismaModel> | $Enums.LibraryVisibility
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumLibraryVisibilityFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumLibraryVisibilityFilter<$PrismaModel>
+}
+
+export type EnumLibrarySourceWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.LibrarySource | Prisma.EnumLibrarySourceFieldRefInput<$PrismaModel>
+  in?: $Enums.LibrarySource[] | Prisma.ListEnumLibrarySourceFieldRefInput<$PrismaModel>
+  notIn?: $Enums.LibrarySource[] | Prisma.ListEnumLibrarySourceFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumLibrarySourceWithAggregatesFilter<$PrismaModel> | $Enums.LibrarySource
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumLibrarySourceFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumLibrarySourceFilter<$PrismaModel>
+}
+
 export type EnumPlatformSupportEscalationStatusFilter<$PrismaModel = never> = {
   equals?: $Enums.PlatformSupportEscalationStatus | Prisma.EnumPlatformSupportEscalationStatusFieldRefInput<$PrismaModel>
   in?: $Enums.PlatformSupportEscalationStatus[] | Prisma.ListEnumPlatformSupportEscalationStatusFieldRefInput<$PrismaModel>
@@ -1400,6 +1468,74 @@ export type NestedEnumIssuedDocumentTypeWithAggregatesFilter<$PrismaModel = neve
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumIssuedDocumentTypeFilter<$PrismaModel>
   _max?: Prisma.NestedEnumIssuedDocumentTypeFilter<$PrismaModel>
+}
+
+export type NestedEnumLibraryFileTypeFilter<$PrismaModel = never> = {
+  equals?: $Enums.LibraryFileType | Prisma.EnumLibraryFileTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.LibraryFileType[] | Prisma.ListEnumLibraryFileTypeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.LibraryFileType[] | Prisma.ListEnumLibraryFileTypeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumLibraryFileTypeFilter<$PrismaModel> | $Enums.LibraryFileType
+}
+
+export type NestedEnumLibraryCycleNullableFilter<$PrismaModel = never> = {
+  equals?: $Enums.LibraryCycle | Prisma.EnumLibraryCycleFieldRefInput<$PrismaModel> | null
+  in?: $Enums.LibraryCycle[] | Prisma.ListEnumLibraryCycleFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.LibraryCycle[] | Prisma.ListEnumLibraryCycleFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumLibraryCycleNullableFilter<$PrismaModel> | $Enums.LibraryCycle | null
+}
+
+export type NestedEnumLibraryVisibilityFilter<$PrismaModel = never> = {
+  equals?: $Enums.LibraryVisibility | Prisma.EnumLibraryVisibilityFieldRefInput<$PrismaModel>
+  in?: $Enums.LibraryVisibility[] | Prisma.ListEnumLibraryVisibilityFieldRefInput<$PrismaModel>
+  notIn?: $Enums.LibraryVisibility[] | Prisma.ListEnumLibraryVisibilityFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumLibraryVisibilityFilter<$PrismaModel> | $Enums.LibraryVisibility
+}
+
+export type NestedEnumLibrarySourceFilter<$PrismaModel = never> = {
+  equals?: $Enums.LibrarySource | Prisma.EnumLibrarySourceFieldRefInput<$PrismaModel>
+  in?: $Enums.LibrarySource[] | Prisma.ListEnumLibrarySourceFieldRefInput<$PrismaModel>
+  notIn?: $Enums.LibrarySource[] | Prisma.ListEnumLibrarySourceFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumLibrarySourceFilter<$PrismaModel> | $Enums.LibrarySource
+}
+
+export type NestedEnumLibraryFileTypeWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.LibraryFileType | Prisma.EnumLibraryFileTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.LibraryFileType[] | Prisma.ListEnumLibraryFileTypeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.LibraryFileType[] | Prisma.ListEnumLibraryFileTypeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumLibraryFileTypeWithAggregatesFilter<$PrismaModel> | $Enums.LibraryFileType
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumLibraryFileTypeFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumLibraryFileTypeFilter<$PrismaModel>
+}
+
+export type NestedEnumLibraryCycleNullableWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.LibraryCycle | Prisma.EnumLibraryCycleFieldRefInput<$PrismaModel> | null
+  in?: $Enums.LibraryCycle[] | Prisma.ListEnumLibraryCycleFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.LibraryCycle[] | Prisma.ListEnumLibraryCycleFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumLibraryCycleNullableWithAggregatesFilter<$PrismaModel> | $Enums.LibraryCycle | null
+  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumLibraryCycleNullableFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumLibraryCycleNullableFilter<$PrismaModel>
+}
+
+export type NestedEnumLibraryVisibilityWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.LibraryVisibility | Prisma.EnumLibraryVisibilityFieldRefInput<$PrismaModel>
+  in?: $Enums.LibraryVisibility[] | Prisma.ListEnumLibraryVisibilityFieldRefInput<$PrismaModel>
+  notIn?: $Enums.LibraryVisibility[] | Prisma.ListEnumLibraryVisibilityFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumLibraryVisibilityWithAggregatesFilter<$PrismaModel> | $Enums.LibraryVisibility
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumLibraryVisibilityFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumLibraryVisibilityFilter<$PrismaModel>
+}
+
+export type NestedEnumLibrarySourceWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.LibrarySource | Prisma.EnumLibrarySourceFieldRefInput<$PrismaModel>
+  in?: $Enums.LibrarySource[] | Prisma.ListEnumLibrarySourceFieldRefInput<$PrismaModel>
+  notIn?: $Enums.LibrarySource[] | Prisma.ListEnumLibrarySourceFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumLibrarySourceWithAggregatesFilter<$PrismaModel> | $Enums.LibrarySource
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumLibrarySourceFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumLibrarySourceFilter<$PrismaModel>
 }
 
 export type NestedEnumPlatformSupportEscalationStatusFilter<$PrismaModel = never> = {

@@ -1,6 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import {
+  useEffect,
+  useState,
+  type ComponentType,
+  type ReactNode,
+} from "react";
 import { NotFoundView } from "@/components/not-found-view";
 import {
   IconGenderBigender,
@@ -17,6 +22,7 @@ import { Card } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
 import { useSession } from "@/lib/auth-client";
 import { canManageOrganization } from "@/lib/auth/session-roles";
+import { cn } from "@/lib/utils";
 
 import Loading from "../loading";
 import { getStudentsAction } from "./student.action";
@@ -52,6 +58,53 @@ function getCurrentQuarterRange() {
   return { start, end };
 }
 
+function StatCard({
+  label,
+  value,
+  description,
+  icon: Icon,
+  footer,
+  className,
+}: {
+  label: string;
+  value: ReactNode;
+  description?: string;
+  icon: ComponentType<{ size?: number; className?: string }>;
+  footer?: ReactNode;
+  className?: string;
+}) {
+  return (
+    <Card
+      variant="stat"
+      padding="sm"
+      className={cn(
+        "h-full border-border/80 transition hover:-translate-y-0.5 hover:shadow-md",
+        className,
+      )}
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="truncate text-xs font-semibold text-muted-foreground">
+            {label}
+          </p>
+          <p className="mt-2 text-2xl font-black tabular-nums text-foreground">
+            {value}
+          </p>
+          {description ? (
+            <p className="mt-1 text-[11px] text-muted-foreground">
+              {description}
+            </p>
+          ) : null}
+          {footer}
+        </div>
+        <div className="shrink-0 rounded-xl bg-muted p-2 text-primary">
+          <Icon size={18} />
+        </div>
+      </div>
+    </Card>
+  );
+}
+
 export default function Students() {
   const [refreshKey, setRefreshKey] = useState(0);
   const [stats, setStats] = useState<StudentStats>(emptyStats);
@@ -74,10 +127,8 @@ export default function Students() {
       }
 
       const students = data;
-
       const { start, end } = getCurrentQuarterRange();
 
-      // Actif = inscrit à une classe de l'année en cours ; inactif = non inscrit
       const isEnrolledCurrentYear = (student: (typeof students)[number]) =>
         Boolean(student.classCode);
 
@@ -85,20 +136,15 @@ export default function Students() {
 
       setStats({
         total: assignedStudents.length,
-
         actifs: assignedStudents.length,
-
         inactifs: students.filter((student) => !isEnrolledCurrentYear(student))
           .length,
-
         nouveauxTrimestre: assignedStudents.filter((student) => {
           const createdAt = new Date(student.createdAt);
           return createdAt >= start && createdAt < end;
         }).length,
-
         masculin: assignedStudents.filter((student) => student.sexe === "M")
           .length,
-
         feminin: assignedStudents.filter((student) => student.sexe === "F")
           .length,
       });
@@ -106,38 +152,42 @@ export default function Students() {
 
     loadStats();
   }, [refreshKey]);
+
   if (isPending) return <Loading />;
 
   if (!session) {
     return <NotFoundView />;
   }
 
+  const studentWord = pluralizeStudentLabelLower(peopleLabels, stats.total);
+  const nouveauxWord = pluralizeStudentLabelLower(
+    peopleLabels,
+    stats.nouveauxTrimestre,
+  );
+
   const statCards = [
     {
-      label: `Total ${pluralizeStudentLabelLower(peopleLabels, stats.total)}`,
+      label: `Total ${studentWord}`,
       value: stats.total,
-      description: pluralizeStudentLabelLower(peopleLabels, stats.total),
+      description: "inscrits année en cours",
       icon: IconUsersGroup,
     },
     {
       label: "Actifs",
       value: stats.actifs,
-      description: "inscrits année en cours",
+      description: "avec classe assignée",
       icon: IconUserCheck,
     },
     {
       label: "Inactifs",
       value: stats.inactifs,
-      description: "non inscrits année en cours",
+      description: "sans inscription année en cours",
       icon: IconUserOff,
     },
     {
-      label: `Nouveaux ${pluralizeStudentLabelLower(peopleLabels, stats.nouveauxTrimestre)}`,
+      label: `Nouveaux ${nouveauxWord}`,
       value: stats.nouveauxTrimestre,
-      description: pluralizeStudentLabelLower(
-        peopleLabels,
-        stats.nouveauxTrimestre,
-      ),
+      description: "ce trimestre",
       icon: IconUserPlus,
     },
   ];
@@ -146,7 +196,7 @@ export default function Students() {
   const masculinPercent = totalGenre
     ? Math.round((stats.masculin / totalGenre) * 100)
     : 0;
-  const femininPercent = 100 - masculinPercent;
+  const femininPercent = totalGenre ? 100 - masculinPercent : 0;
 
   return (
     <Layout>
@@ -161,68 +211,62 @@ export default function Students() {
           }
         />
 
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
-          {statCards.map((item) => {
-            const Icon = item.icon;
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+          {statCards.map((item) => (
+            <StatCard
+              key={item.label}
+              label={item.label}
+              value={item.value}
+              description={item.description}
+              icon={item.icon}
+            />
+          ))}
 
-            return (
-              <Card key={item.label} variant="stat">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <p className="text-sm font-semibold text-muted-foreground">
-                      {item.label}
-                    </p>
-                    <h3 className="mt-3 text-3xl font-black text-foreground">
-                      {item.value}
-                    </h3>
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      {item.description}
-                    </p>
-                  </div>
-
-                  <div className="rounded-full bg-muted p-2 text-primary">
-                    <Icon size={20} />
-                  </div>
+          <StatCard
+            label="Sexe / genre"
+            value={
+              <span>
+                <span className="text-blue-700">{stats.masculin}M</span>
+                <span className="mx-1.5 text-muted-foreground">/</span>
+                <span className="text-sky-800">{stats.feminin}F</span>
+              </span>
+            }
+            icon={IconGenderBigender}
+            footer={
+              <div className="mt-2 space-y-1">
+                <div className="flex justify-between text-[10px] font-medium text-muted-foreground">
+                  <span>{masculinPercent}% M</span>
+                  <span>{femininPercent}% F</span>
                 </div>
-              </Card>
-            );
-          })}
-
-          <Card variant="stat">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-sm font-semibold text-muted-foreground">
-                  Sexe | genre
-                </p>
-                <h3 className="mt-3 text-3xl font-black text-foreground">
-                  {stats.masculin}M / {stats.feminin}F
-                </h3>
-
-                <div className="mt-4 h-2 overflow-hidden rounded-full bg-muted">
+                <div className="h-1.5 overflow-hidden rounded-full bg-muted">
                   <div className="flex h-full">
                     <div
-                      className="bg-blue-700"
+                      className="bg-blue-700 transition-all"
                       style={{ width: `${masculinPercent}%` }}
                     />
                     <div
-                      className="bg-blue-950"
+                      className="bg-sky-800 transition-all"
                       style={{ width: `${femininPercent}%` }}
                     />
                   </div>
                 </div>
               </div>
-
-              <div className="rounded-full bg-muted p-2 text-primary">
-                <IconGenderBigender size={20} />
-              </div>
-            </div>
-          </Card>
+            }
+          />
         </div>
 
         <Card
           variant="elevated"
-          className="overflow-hidden rounded-2xl border border-border"
+          className="overflow-hidden rounded-2xl border border-border shadow-sm"
         >
+          <div className="border-b border-border bg-muted/30 px-4 py-3 sm:px-5">
+            <h2 className="text-sm font-semibold text-foreground">
+              Liste des {peopleLabels.studentPluralLower}
+            </h2>
+            <p className="text-xs text-muted-foreground">
+              Recherche, filtres et actions sur les dossiers.
+            </p>
+          </div>
           <UserList
             key={refreshKey}
             refreshKey={refreshKey}

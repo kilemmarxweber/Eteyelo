@@ -282,7 +282,9 @@ export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
   const establishmentLabel = getEstablishmentPickerLabel(
     branchTypeFilter || selectedBranch?.typebranch,
   );
-  const branchType = (selectedBranch?.typebranch ??
+  /** Priorité : branche choisie, sinon filtre type (élève / apprenant / étudiant). */
+  const branchType = (selectedBranch?.typebranch ||
+    branchTypeFilter ||
     "SECONDAIRE") as ManagedBranchType;
   const peopleLabels = useMemo(
     () => getPeopleLabels(branchType),
@@ -290,6 +292,19 @@ export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
   );
   const isPrimary = isPrimaryBranch(branchType);
   const skipsGuardian = isCentreFormationBranch(branchType);
+  const formIntro = useMemo(() => {
+    if (!branchTypeFilter && !selectedBranch) {
+      return "Choisissez d'abord le type d'établissement, puis remplissez les informations.";
+    }
+    return skipsGuardian
+      ? `Remplissez les informations de ${peopleLabels.studentDefinite}.`
+      : `Remplissez les informations de ${peopleLabels.studentDefinite} et du responsable.`;
+  }, [
+    branchTypeFilter,
+    selectedBranch,
+    skipsGuardian,
+    peopleLabels.studentDefinite,
+  ]);
   const hidesProvenance = hidesProvenanceEcole(branchType);
   const usesBranchTree = usesBranchAcademicTree(branchType);
   const branchAcademicTree = academicChoices?.sections.map((section) => ({
@@ -641,10 +656,7 @@ export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
             <CardTitle className="text-lg text-foreground">
               Formulaire d&apos;inscription
             </CardTitle>
-            <p className="text-sm text-muted-foreground">
-              Remplissez les informations de {peopleLabels.studentDefinite}
-              {skipsGuardian ? "" : " et du responsable"}.
-            </p>
+            <p className="text-sm text-muted-foreground">{formIntro}</p>
           </CardHeader>
           <CardContent className="space-y-6">
             {stepKind === "student" && (
