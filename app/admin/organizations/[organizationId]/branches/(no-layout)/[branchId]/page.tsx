@@ -10,6 +10,7 @@ import {
 import { Layout, LayoutBody } from "@/components/custom/layout";
 import { PageHeader } from "@/components/ui/page-header";
 import { Badge } from "@/components/ui/badge";
+import { BranchStatCard } from "@/components/ui/branch-stat-card";
 import { useParams } from "next/navigation";
 import {
   IconUsers,
@@ -17,8 +18,8 @@ import {
   IconBook,
   IconCurrencyDollar,
   IconChartBar,
-  IconTrendingUp,
   IconCalendar,
+  IconChalkboardTeacher,
 } from "@tabler/icons-react";
 import {
   createParentFeedback,
@@ -29,24 +30,78 @@ import {
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { getCalendarEvents } from "./CalendarEvent/CalendarEvent.acton";
-import { useBranchPeopleLabels } from "@/hooks/use-branch-people-labels";
-import { pluralizeStudentLabel, pluralizeStudentLabelLower } from "@/lib/people-labels";
+import {
+  DEFAULT_PEOPLE_LABELS,
+  getPeopleLabels,
+  pluralizeStudentLabel,
+  pluralizeStudentLabelLower,
+} from "@/lib/people-labels";
+import {
+  getBranchCapabilities,
+  getBranchTypeLabel,
+  getClassDisplayLabelPlural,
+  hidesParentManagement,
+  usesFinanceForBranch,
+} from "@/lib/branch-capabilities";
+import { formatReportAmountCurrencyFirst } from "@/lib/reports/format-amount";
+import { cn } from "@/lib/utils";
+
+type AdminStats = {
+  typebranch?: string | null;
+  baseCurrency?: string | null;
+  quoteCurrency?: string | null;
+  selectedRatePair?: string | null;
+  error?: string;
+  students?: {
+    total: number;
+    enrolled: number;
+    enrollmentRate: number;
+    change: { percentage: number };
+  };
+  teachers?: {
+    total: number;
+    active: number;
+    activityRate: number;
+    change: { percentage: number };
+  };
+  classes?: {
+    total: number;
+    active: number;
+    occupancyRate: number;
+    change: { percentage: number };
+  };
+  revenue?: {
+    current: number;
+    percentageChange: number;
+    currency?: string;
+  };
+};
+
+function formatSignedPercent(value: number | undefined | null) {
+  const n = Number(value ?? 0);
+  if (!Number.isFinite(n) || n === 0) return "0%";
+  return n > 0 ? `+${n}%` : `${n}%`;
+}
+
+function rateTone(value: number) {
+  if (value >= 75) return "bg-emerald-600";
+  if (value >= 50) return "bg-blue-600";
+  if (value >= 25) return "bg-amber-500";
+  return "bg-rose-500";
+}
 
 export default function AdminDashboard() {
-  const peopleLabels = useBranchPeopleLabels();
-  // ✅ params (Promise style support indirect via useParams)
   const params = useParams();
-
   const organizationId = params.organizationId as string;
   const branchId = params.branchId as string;
-  const [stats, setStats] = useState<any>(null);
+
+  const [stats, setStats] = useState<AdminStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [events, setEvents] = useState<any[]>([]);
   const [showFeedback, setShowFeedback] = useState(false);
   const [selectedRating, setSelectedRating] = useState<number | null>(null);
   const [comment, setComment] = useState("");
   const [error, setError] = useState("");
-  // Fonction pour récupérer les statistiques
   const [metrics, setMetrics] = useState({
     attendance: 0,
     attendanceCount: 0,
@@ -59,36 +114,44 @@ export default function AdminDashboard() {
     parentsCount: 0,
     responseRate: 0,
   });
+
+  const typebranch = stats?.typebranch ?? null;
+  const peopleLabels = typebranch
+    ? getPeopleLabels(typebranch)
+    : DEFAULT_PEOPLE_LABELS;
+  const capabilities = getBranchCapabilities(typebranch);
+  const classLabelPlural = getClassDisplayLabelPlural(typebranch);
+  const branchTypeLabel = getBranchTypeLabel(typebranch);
+  const showFinance = usesFinanceForBranch(typebranch);
+  const showParents = !hidesParentManagement(typebranch);
+
   useEffect(() => {
     const fetchStats = async () => {
       try {
         const data = await getAdminStats({ branchId, organizationId });
         setStats(data);
-      } catch (error) {
-        console.error(error);
+      } catch (err) {
+        console.error(err);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchStats();
-  }, []);
+    void fetchStats();
+  }, [branchId, organizationId]);
+
   useEffect(() => {
     const fetchData = async () => {
       try {
         const [eventsData, err] = await getCalendarEvents();
-
-        if (!err) {
-          setEvents(eventsData || []);
-        }
-      } catch (error) {
-        console.error(error);
+        if (!err) setEvents(eventsData || []);
+      } catch (err) {
+        console.error(err);
       } finally {
         setLoading(false);
       }
     };
-
-    fetchData();
+    void fetchData();
   }, []);
 
   useEffect(() => {
@@ -97,48 +160,42 @@ export default function AdminDashboard() {
         const result = await getDashboardMetrics();
         const data = Array.isArray(result) ? result[0] : result;
         const err = Array.isArray(result) ? result[1] : null;
-
         if (err) {
           console.error("getDashboardMetrics:", err);
           return;
         }
-
         if (data && typeof data === "object") {
-          setMetrics((prev) => ({
-            ...prev,
-            ...data,
-          }));
+          setMetrics((prev) => ({ ...prev, ...data }));
         }
-      } catch (error) {
-        console.error("getDashboardMetrics:", error);
+      } catch (err) {
+        console.error("getDashboardMetrics:", err);
       } finally {
         setLoading(false);
       }
     };
-
-    loadMetrics();
+    void loadMetrics();
   }, []);
 
   useEffect(() => {
+    if (!showParents) {
+      setShowFeedback(false);
+      return;
+    }
+
     const check = async () => {
       const [data, err] = await getParentFeedbackStatus({
         branchId,
         organizationId,
       });
-
       if (err) return;
-
-      if (data?.showFeedbackPopup) {
-        setShowFeedback(true);
-      } else {
-        setShowFeedback(false);
-      }
+      setShowFeedback(Boolean(data?.showFeedbackPopup));
     };
 
-    check();
-  }, []);
-  const quickActions = useMemo(
-    () => [
+    void check();
+  }, [branchId, organizationId, showParents]);
+
+  const quickActions = useMemo(() => {
+    const actions = [
       {
         title: `Gérer les ${peopleLabels.studentPluralLower}`,
         description: `Ajouter, modifier ou archiver des ${peopleLabels.studentPluralLower}`,
@@ -147,8 +204,8 @@ export default function AdminDashboard() {
         color: "bg-blue-500",
       },
       {
-        title: "Gérer les classes",
-        description: "Créer et organiser les classes",
+        title: `Gérer les ${classLabelPlural.toLowerCase()}`,
+        description: `Créer et organiser les ${classLabelPlural.toLowerCase()}`,
         icon: <IconSchool className="h-6 w-6" />,
         href: "/admin/classe",
         color: "bg-green-500",
@@ -160,16 +217,35 @@ export default function AdminDashboard() {
         href: "/admin/cours",
         color: "bg-purple-500",
       },
-      {
+    ];
+
+    if (showFinance) {
+      actions.push({
         title: "Gérer les frais",
-        description: "Configurer les frais scolaires",
+        description: capabilities.isSchoolBranch
+          ? "Configurer les frais scolaires"
+          : "Configurer les frais et paiements",
         icon: <IconCurrencyDollar className="h-6 w-6" />,
         href: "/admin/frais",
         color: "bg-orange-500",
-      },
-    ],
-    [peopleLabels.studentPluralLower],
-  );
+      });
+    }
+
+    return actions;
+  }, [
+    peopleLabels.studentPluralLower,
+    classLabelPlural,
+    showFinance,
+    capabilities.isSchoolBranch,
+  ]);
+
+  const studentTotal = stats?.students?.total ?? 0;
+  const teacherTotal = stats?.teachers?.total ?? 0;
+  const classTotal = stats?.classes?.total ?? 0;
+  const enrollmentRate = stats?.students?.enrollmentRate ?? 0;
+  const teacherActivityRate = stats?.teachers?.activityRate ?? 0;
+  const classOccupancyRate = stats?.classes?.occupancyRate ?? 0;
+
   const upcomingEvents = events
     .filter((event) => new Date(event.dateStart).getTime() >= Date.now())
     .sort(
@@ -177,17 +253,21 @@ export default function AdminDashboard() {
         new Date(a.dateStart).getTime() - new Date(b.dateStart).getTime(),
     )
     .slice(0, 5);
+
+  const overviewDescription = capabilities.isSchoolBranch
+    ? `Vue d'ensemble de votre établissement (${branchTypeLabel})`
+    : `Vue d'ensemble de votre ${branchTypeLabel.toLowerCase()}`;
+
   return (
     <>
-      {showFeedback && (
-        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
-          <div className="w-full max-w-md min-w-[320px] flex-shrink-0 bg-white rounded-2xl shadow-xl p-6 text-center">
-            <h2 className="text-lg font-bold mb-5">
+      {showFeedback && showParents ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+          <div className="w-full max-w-md min-w-[320px] flex-shrink-0 rounded-2xl bg-white p-6 text-center shadow-xl">
+            <h2 className="mb-5 text-lg font-bold">
               Comment trouvez-vous l’établissement ?
             </h2>
 
-            {/* emojis */}
-            <div className="flex items-center justify-between gap-2 mb-6">
+            <div className="mb-6 flex items-center justify-between gap-2">
               {[
                 { value: 1, icon: "😡" },
                 { value: 2, icon: "😕" },
@@ -197,173 +277,148 @@ export default function AdminDashboard() {
               ].map((e) => (
                 <button
                   key={e.value}
+                  type="button"
                   onClick={() => setSelectedRating(e.value)}
-                  className={`text-4xl transition-transform hover:scale-110 active:scale-95 ${
-                    selectedRating === e.value ? "scale-110" : ""
-                  }`}
+                  className={cn(
+                    "text-4xl transition-transform hover:scale-110 active:scale-95",
+                    selectedRating === e.value && "scale-110",
+                  )}
                 >
                   {e.icon}
                 </button>
               ))}
             </div>
-            {selectedRating === 1 && (
+
+            {selectedRating === 1 ? (
               <div className="mb-4 text-left">
                 <label className="text-sm font-medium text-red-600">
                   Expliquez pourquoi vous êtes insatisfait *
                 </label>
-
                 <textarea
                   value={comment}
                   onChange={(e) => setComment(e.target.value)}
-                  className="w-full mt-2 p-3 border rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-red-400"
+                  className="mt-2 w-full resize-none rounded-lg border p-3 text-sm focus:outline-none focus:ring-2 focus:ring-red-400"
                   rows={3}
                   placeholder="Décrivez le problème..."
                 />
-
-                {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
+                {error ? (
+                  <p className="mt-1 text-xs text-red-500">{error}</p>
+                ) : null}
               </div>
-            )}
+            ) : null}
+
             <button
+              type="button"
               disabled={!selectedRating}
               onClick={async () => {
                 if (!selectedRating) return;
-
                 if (selectedRating === 1 && comment.trim().length < 5) {
                   setError("Veuillez expliquer votre insatisfaction");
                   return;
                 }
-
                 setError("");
-
                 const res = await createParentFeedback(
                   selectedRating,
                   selectedRating === 1 ? comment : null,
                 );
-
                 if (res?.error) {
                   setError(res.error);
                   return;
                 }
-
                 setShowFeedback(false);
                 setSelectedRating(null);
                 setComment("");
                 setError("");
-
-                // 🔄 refresh metrics
                 const [data, err] = await getDashboardMetrics();
-
-                if (!err) {
-                  setMetrics(data);
-                }
+                if (!err) setMetrics(data);
               }}
-              className="w-full py-3 rounded-xl bg-blue-600 text-white font-medium disabled:opacity-50"
+              className="w-full rounded-xl bg-blue-600 py-3 font-medium text-white disabled:opacity-50"
             >
               Envoyer
             </button>
           </div>
         </div>
-      )}
+      ) : null}
 
       <Layout>
         <LayoutBody className="space-y-4">
           <PageHeader
             title="Tableau de bord"
-            description="Vue d'ensemble de votre établissement scolaire"
+            description={overviewDescription}
             badge={
               <Badge
                 variant="outline-primary"
                 icon={<IconChartBar size={14} />}
               >
-                Dashboard
+                {branchTypeLabel}
               </Badge>
             }
             className="mb-0 space-y-1"
           />
-          {/* Statistiques principales */}
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  {pluralizeStudentLabel(
-                    peopleLabels,
-                    stats?.students?.total ?? 0,
-                  )}
-                </CardTitle>
-                <IconUsers className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {stats?.students?.total}
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  <IconTrendingUp className="inline h-3 w-3 mr-1" />+
-                  {stats?.students?.enrollmentRate}% par rapport au mois dernier
-                </p>
-              </CardContent>
-            </Card>
 
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  {peopleLabels.teacherPlural}
-                </CardTitle>
-                <IconUsers className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {stats?.teachers?.total}
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  <IconTrendingUp className="inline h-3 w-3 mr-1" />+
-                  {stats?.teachers?.active}% par rapport au mois dernier
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Classes</CardTitle>
-                <IconSchool className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {stats?.classes?.total}
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  <IconTrendingUp className="inline h-3 w-3 mr-1" />+
-                  {stats?.classes?.occupancyRate}% par rapport au mois dernier
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Revenus</CardTitle>
-                <IconCurrencyDollar className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {stats?.revenue?.current} $
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  <IconTrendingUp className="inline h-3 w-3 mr-1" />+ z dernier
-                </p>
-              </CardContent>
-            </Card>
+          <div
+            className={cn(
+              "grid gap-4 sm:grid-cols-2",
+              showFinance ? "xl:grid-cols-4" : "xl:grid-cols-3",
+            )}
+          >
+            <BranchStatCard
+              label={pluralizeStudentLabel(peopleLabels, studentTotal)}
+              value={loading ? "—" : studentTotal}
+              description={`${enrollmentRate}% inscrits · ${formatSignedPercent(stats?.students?.change?.percentage)} vs mois dernier`}
+              icon={IconUsers}
+            />
+            <BranchStatCard
+              label={peopleLabels.teacherPlural}
+              value={loading ? "—" : teacherTotal}
+              description={`${teacherActivityRate}% actifs · ${formatSignedPercent(stats?.teachers?.change?.percentage)} vs mois dernier`}
+              icon={IconChalkboardTeacher}
+            />
+            <BranchStatCard
+              label={classLabelPlural}
+              value={loading ? "—" : classTotal}
+              description={`${classOccupancyRate}% occupés · ${formatSignedPercent(stats?.classes?.change?.percentage)} vs mois dernier`}
+              icon={IconSchool}
+            />
+            {showFinance ? (
+              <BranchStatCard
+                label={`Revenus (${stats?.revenue?.currency ?? stats?.baseCurrency ?? "…"})`}
+                value={
+                  loading
+                    ? "—"
+                    : formatReportAmountCurrencyFirst(
+                        Number(stats?.revenue?.current ?? 0),
+                        stats?.revenue?.currency ??
+                          stats?.baseCurrency ??
+                          "USD",
+                      )
+                }
+                description={
+                  stats?.selectedRatePair
+                    ? `Base ${stats.selectedRatePair} · ${formatSignedPercent(stats?.revenue?.percentageChange)} vs mois dernier`
+                    : `${formatSignedPercent(stats?.revenue?.percentageChange)} vs mois dernier`
+                }
+                icon={IconCurrencyDollar}
+              />
+            ) : null}
           </div>
-          {/* Actions rapides */}
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            {quickActions.map((action, index) => (
-              <Link key={index} href={action.href}>
-                <Card className="hover:shadow-md transition-shadow cursor-pointer">
+
+          <div
+            className={cn(
+              "grid gap-4 md:grid-cols-2",
+              quickActions.length >= 4 ? "lg:grid-cols-4" : "lg:grid-cols-3",
+            )}
+          >
+            {quickActions.map((action) => (
+              <Link key={action.href} href={action.href}>
+                <Card className="cursor-pointer transition-shadow hover:shadow-md">
                   <CardHeader className="flex flex-row items-center space-y-0 pb-2">
                     <div
-                      className={`p-2 rounded-lg ${action.color} text-white`}
+                      className={`rounded-lg p-2 text-white ${action.color}`}
                     >
                       {action.icon}
                     </div>
-                    <CardTitle className="text-sm font-medium ml-3">
+                    <CardTitle className="ml-3 text-sm font-medium">
                       {action.title}
                     </CardTitle>
                   </CardHeader>
@@ -376,7 +431,7 @@ export default function AdminDashboard() {
               </Link>
             ))}
           </div>
-          {/* Graphiques et métriques supplémentaires */}
+
           <div className="grid gap-4 md:grid-cols-2">
             <Card>
               <CardHeader>
@@ -385,7 +440,7 @@ export default function AdminDashboard() {
                   Prochains événements
                 </CardTitle>
                 <CardDescription>
-                  Événements à venir dans votre établissement
+                  Événements à venir dans votre {branchTypeLabel.toLowerCase()}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -393,7 +448,6 @@ export default function AdminDashboard() {
                   {upcomingEvents.length > 0 ? (
                     upcomingEvents.map((event) => {
                       const eventDate = new Date(event.dateStart);
-
                       const diffDays = Math.ceil(
                         (eventDate.getTime() - Date.now()) /
                           (1000 * 60 * 60 * 24),
@@ -406,7 +460,6 @@ export default function AdminDashboard() {
                         >
                           <div>
                             <p className="text-sm font-medium">{event.title}</p>
-
                             <p className="text-xs text-muted-foreground">
                               {eventDate.toLocaleDateString("fr-FR", {
                                 day: "numeric",
@@ -415,7 +468,6 @@ export default function AdminDashboard() {
                               })}
                             </p>
                           </div>
-
                           <Badge variant="outline">
                             {diffDays === 0
                               ? "Aujourd'hui"
@@ -440,7 +492,7 @@ export default function AdminDashboard() {
                   Métriques de performance
                 </CardTitle>
                 <CardDescription>
-                  Indicateurs clés de votre établissement
+                  Indicateurs clés — {branchTypeLabel}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -456,9 +508,12 @@ export default function AdminDashboard() {
                           : "—"}
                       </span>
                     </div>
-                    <div className="h-2 w-full rounded-full bg-gray-200">
+                    <div className="h-2 w-full rounded-full bg-muted">
                       <div
-                        className="h-2 rounded-full bg-green-600"
+                        className={cn(
+                          "h-2 rounded-full transition-all",
+                          rateTone(metrics.attendance),
+                        )}
                         style={{
                           width: `${Math.min(100, Math.max(0, metrics.attendance))}%`,
                         }}
@@ -482,9 +537,12 @@ export default function AdminDashboard() {
                           : "—"}
                       </span>
                     </div>
-                    <div className="h-2 w-full rounded-full bg-gray-200">
+                    <div className="h-2 w-full rounded-full bg-muted">
                       <div
-                        className="h-2 rounded-full bg-blue-600"
+                        className={cn(
+                          "h-2 rounded-full transition-all",
+                          rateTone(metrics.averageScore),
+                        )}
                         style={{
                           width: `${Math.min(100, Math.max(0, metrics.averageScore))}%`,
                         }}
@@ -497,31 +555,36 @@ export default function AdminDashboard() {
                     </p>
                   </div>
 
-                  <div>
-                    <div className="mb-2 flex items-center justify-between">
-                      <span className="text-sm font-medium">
-                        Satisfaction parents
-                      </span>
-                      <span className="text-sm text-muted-foreground">
+                  {showParents ? (
+                    <div>
+                      <div className="mb-2 flex items-center justify-between">
+                        <span className="text-sm font-medium">
+                          Satisfaction parents
+                        </span>
+                        <span className="text-sm text-muted-foreground">
+                          {metrics.feedbackCount > 0
+                            ? `${metrics.satisfaction}%`
+                            : "—"}
+                        </span>
+                      </div>
+                      <div className="h-2 w-full rounded-full bg-muted">
+                        <div
+                          className={cn(
+                            "h-2 rounded-full transition-all",
+                            rateTone(metrics.satisfaction),
+                          )}
+                          style={{
+                            width: `${Math.min(100, Math.max(0, metrics.satisfaction))}%`,
+                          }}
+                        />
+                      </div>
+                      <p className="mt-1 text-xs text-muted-foreground">
                         {metrics.feedbackCount > 0
-                          ? `${metrics.satisfaction}%`
-                          : "—"}
-                      </span>
+                          ? `${metrics.feedbackCount} avis · réponse du mois ${metrics.responseRate}% (${metrics.parentsCount} parents)`
+                          : "Aucun avis parent ce mois — popup à la 1ʳᵉ connexion"}
+                      </p>
                     </div>
-                    <div className="h-2 w-full rounded-full bg-gray-200">
-                      <div
-                        className="h-2 rounded-full bg-purple-600"
-                        style={{
-                          width: `${Math.min(100, Math.max(0, metrics.satisfaction))}%`,
-                        }}
-                      />
-                    </div>
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      {metrics.feedbackCount > 0
-                        ? `${metrics.feedbackCount} avis · réponse du mois ${metrics.responseRate}% (${metrics.parentsCount} parents)`
-                        : "Aucun avis parent ce mois — popup à la 1ʳᵉ connexion"}
-                    </p>
-                  </div>
+                  ) : null}
                 </div>
               </CardContent>
             </Card>

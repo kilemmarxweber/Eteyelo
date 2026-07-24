@@ -13,6 +13,7 @@ import {
 import { Button } from "@/components/custom/button";
 import { Layout, LayoutBody } from "@/components/custom/layout";
 import { Badge } from "@/components/ui/badge";
+import { BranchStatCard } from "@/components/ui/branch-stat-card";
 import { Card } from "@/components/ui/card";
 import {
   Dialog,
@@ -179,7 +180,6 @@ export default function Teachers() {
               description: `Par ${peopleLabels.teacherLower} affecte`,
             },
           ].map((item) => {
-            const Icon = item.icon;
             const isActive = assignmentFilter === item.filter;
             return (
               <button
@@ -191,32 +191,17 @@ export default function Teachers() {
                 className="text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                 aria-pressed={isActive}
               >
-                <Card
-                  variant="stat"
-                  padding="sm"
-                  className={`h-full transition hover:-translate-y-0.5 hover:shadow-md ${
+                <BranchStatCard
+                  label={item.label}
+                  value={item.value ?? "—"}
+                  description={item.description}
+                  icon={item.icon}
+                  className={
                     isActive
                       ? "border-primary bg-primary/10 ring-2 ring-primary/20"
-                      : ""
-                  }`}
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <p className="truncate text-xs font-semibold text-muted-foreground">
-                        {item.label}
-                      </p>
-                      <p className="mt-2 text-2xl font-black text-foreground">
-                        {item.value ?? "—"}
-                      </p>
-                      <p className="mt-1 text-[11px] text-muted-foreground">
-                        {item.description}
-                      </p>
-                    </div>
-                    <div className="rounded-xl bg-muted p-2 text-primary">
-                      <Icon size={18} />
-                    </div>
-                  </div>
-                </Card>
+                      : undefined
+                  }
+                />
               </button>
             );
           })}

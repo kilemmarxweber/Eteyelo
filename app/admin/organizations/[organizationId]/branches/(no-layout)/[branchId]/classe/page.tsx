@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/custom/button";
 import { Layout, LayoutBody } from "@/components/custom/layout";
 import { Badge } from "@/components/ui/badge";
+import { BranchStatCard } from "@/components/ui/branch-stat-card";
 import { Card } from "@/components/ui/card";
 import {
   Dialog,
@@ -154,21 +155,21 @@ export default function Page() {
           </DialogContent>
         </Dialog>
 
-        <div className="grid gap-3 sm:grid-cols-3">
-          <ClassStat
+        <div className="grid gap-4 sm:grid-cols-3">
+          <BranchStatCard
             label={`Total des ${classLabelPlural.toLowerCase()}`}
             value={stats.total}
-            icon={<IconUsers className="size-5" />}
+            icon={IconUsers}
           />
-          <ClassStat
+          <BranchStatCard
             label={`${classLabelPlural} actifs`}
             value={stats.active}
-            icon={<IconSchool className="size-5 text-emerald-600" />}
+            icon={IconSchool}
           />
-          <ClassStat
+          <BranchStatCard
             label={`${classLabelPlural} inactifs`}
             value={stats.inactive}
-            icon={<IconSchoolOff className="size-5 text-slate-500" />}
+            icon={IconSchoolOff}
           />
         </div>
 
@@ -177,25 +178,5 @@ export default function Page() {
         </Card>
       </LayoutBody>
     </Layout>
-  );
-}
-
-function ClassStat({
-  label,
-  value,
-  icon,
-}: {
-  label: string;
-  value: number;
-  icon: React.ReactNode;
-}) {
-  return (
-    <Card variant="stat" padding="sm" className="flex items-center justify-between">
-      <div>
-        <p className="text-sm text-muted-foreground">{label}</p>
-        <p className="mt-1 text-2xl font-bold text-foreground">{value}</p>
-      </div>
-      <div className="rounded-lg bg-muted p-2 text-muted-foreground">{icon}</div>
-    </Card>
   );
 }

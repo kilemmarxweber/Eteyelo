@@ -6,6 +6,7 @@ import {
   sumBulletinMaxima,
 } from "@/lib/bulletin-maxima";
 import { countBranchStudents } from "@/lib/branch-student-count";
+import { getBaseCurrency } from "@/lib/exchange-rate";
 import { prisma } from "@/lib/prisma";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
 import { action } from "@/lib/zsa";
@@ -146,7 +147,7 @@ export async function getAdminStats({
         id: branchId,
         organizationId,
       },
-      select: { id: true },
+      select: { id: true, typebranch: true },
     });
 
     if (!branch) {
@@ -165,7 +166,34 @@ export async function getAdminStats({
     });
 
     if (!currentYear) {
+      const selectedExchangeRate = await prisma.exchangeRate.findFirst({
+        where: { organizationId, isSelected: true },
+        select: {
+          fromCurrency: true,
+          toCurrency: true,
+          isActive: true,
+          isSelected: true,
+        },
+      });
+      const exchangeRates = await prisma.exchangeRate.findMany({
+        where: { organizationId, isActive: true },
+        select: {
+          fromCurrency: true,
+          toCurrency: true,
+          rate: true,
+          isActive: true,
+          isSelected: true,
+        },
+      });
+
       return {
+        typebranch: branch.typebranch,
+        baseCurrency:
+          selectedExchangeRate?.fromCurrency ?? getBaseCurrency(exchangeRates),
+        quoteCurrency: selectedExchangeRate?.toCurrency ?? null,
+        selectedRatePair: selectedExchangeRate
+          ? `${selectedExchangeRate.fromCurrency}→${selectedExchangeRate.toCurrency}`
+          : null,
         error: "NO_CURRENT_SCHOOL_YEAR",
       };
     }
@@ -322,15 +350,50 @@ export async function getAdminStats({
     const teacherActivityRatePrev = calcRate(activeTeachersPrev, teachersTotal);
 
     // =========================
-    // REVENUE
+    // REVENUE + DEVISE DE BASE (taux sélectionné : fromCurrency)
+    // Ex. AOA → USD sélectionné ⇒ base = AOA
     // =========================
     const revenueCurrent = revenueCurrentAgg._sum.amount ?? 0;
     const revenuePrev = revenuePrevAgg._sum.amount ?? 0;
+
+    const selectedExchangeRate = await prisma.exchangeRate.findFirst({
+      where: { organizationId, isSelected: true },
+      select: {
+        fromCurrency: true,
+        toCurrency: true,
+        isActive: true,
+        isSelected: true,
+      },
+    });
+
+    const exchangeRates = await prisma.exchangeRate.findMany({
+      where: { organizationId, isActive: true },
+      select: {
+        fromCurrency: true,
+        toCurrency: true,
+        rate: true,
+        isActive: true,
+        isSelected: true,
+      },
+    });
+
+    const baseCurrency =
+      selectedExchangeRate?.fromCurrency ?? getBaseCurrency(exchangeRates);
+    const quoteCurrency =
+      selectedExchangeRate?.toCurrency ??
+      exchangeRates.find((r) => r.isSelected)?.toCurrency ??
+      null;
 
     // =========================
     // RETURN
     // =========================
     return {
+      typebranch: branch.typebranch,
+      baseCurrency,
+      quoteCurrency,
+      selectedRatePair: selectedExchangeRate
+        ? `${selectedExchangeRate.fromCurrency}→${selectedExchangeRate.toCurrency}`
+        : null,
       students: {
         total: totalStudentsCurrent,
         enrolled: enrolledCurrent,
@@ -391,6 +454,7 @@ export async function getAdminStats({
         current: revenueCurrent,
         previous: revenuePrev,
         percentageChange: calcPercentage(revenueCurrent, revenuePrev),
+        currency: baseCurrency,
       },
 
       attendance: 0,
@@ -399,6 +463,10 @@ export async function getAdminStats({
     console.error("getAdminStats error:", error);
 
     return {
+      typebranch: null,
+      baseCurrency: "USD",
+      quoteCurrency: null,
+      selectedRatePair: null,
       students: {
         total: 0,
         enrolled: 0,
@@ -438,6 +506,7 @@ export async function getAdminStats({
         current: 0,
         previous: 0,
         percentageChange: 0,
+        currency: "USD",
       },
 
       attendance: 0,

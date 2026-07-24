@@ -25,6 +25,18 @@ export function formatReportAmount(
   return `${rounded < 0 ? "-" : ""}${withDots} ${code}`;
 }
 
+/**
+ * Même montant, code devise en premier (ex. AOA→USD sélectionné → `AOA 52.500`).
+ */
+export function formatReportAmountCurrencyFirst(
+  value: number,
+  currency: string = "USD",
+): string {
+  const code = (currency || "USD").trim().toUpperCase() || "USD";
+  const numberOnly = formatReportNumber(value, code);
+  return `${code} ${numberOnly}`;
+}
+
 /** Nombre seul (sans code devise), même règles de séparateurs. */
 export function formatReportNumber(
   value: number,

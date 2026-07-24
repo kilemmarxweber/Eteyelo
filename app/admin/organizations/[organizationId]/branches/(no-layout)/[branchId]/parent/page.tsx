@@ -11,6 +11,7 @@ import {
 import { Layout, LayoutBody } from "@/components/custom/layout";
 import { NotFoundView } from "@/components/not-found-view";
 import { Badge } from "@/components/ui/badge";
+import { BranchStatCard } from "@/components/ui/branch-stat-card";
 import { Card } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
 import { useSession } from "@/lib/auth-client";
@@ -106,64 +107,30 @@ export default function Parents() {
         />
 
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          {statCards.map((item) => {
-            const Icon = item.icon;
+          {statCards.map((item) => (
+            <BranchStatCard
+              key={item.label}
+              label={item.label}
+              value={item.value}
+              description={item.description}
+              icon={item.icon}
+            />
+          ))}
 
-            return (
-              <Card
-                key={item.label}
-                variant="stat"
-                padding="sm"
-                className="h-full transition hover:-translate-y-0.5 hover:shadow-md"
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="truncate text-xs font-semibold text-muted-foreground">
-                      {item.label}
-                    </p>
-                    <p className="mt-2 text-2xl font-black tabular-nums text-foreground">
-                      {item.value}
-                    </p>
-                    <p className="mt-1 text-[11px] text-muted-foreground">
-                      {item.description}
-                    </p>
-                  </div>
-                  <div className="shrink-0 rounded-xl bg-muted p-2 text-primary">
-                    <Icon size={18} />
-                  </div>
-                </div>
-              </Card>
-            );
-          })}
-
-          <Card
-            variant="stat"
-            padding="sm"
-            className="h-full transition hover:-translate-y-0.5 hover:shadow-md"
-          >
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                <p className="truncate text-xs font-semibold text-muted-foreground">
-                  Couverture {yearLabel}
-                </p>
-                <p className="mt-2 text-2xl font-black tabular-nums text-foreground">
-                  {stats.parentsCurrentYear} / {stats.totalParents}
-                </p>
-                <p className="mt-1 text-[11px] text-muted-foreground">
-                  tuteurs avec inscription / total
-                </p>
-                <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">
-                  <div
-                    className="h-full bg-emerald-600 transition-all"
-                    style={{ width: `${yearRatio}%` }}
-                  />
-                </div>
+          <BranchStatCard
+            label={`Couverture ${yearLabel}`}
+            value={`${stats.parentsCurrentYear} / ${stats.totalParents}`}
+            description="tuteurs avec inscription / total"
+            icon={IconCalendarStats}
+            footer={
+              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">
+                <div
+                  className="h-full bg-emerald-600 transition-all"
+                  style={{ width: `${yearRatio}%` }}
+                />
               </div>
-              <div className="shrink-0 rounded-xl bg-muted p-2 text-primary">
-                <IconCalendarStats size={18} />
-              </div>
-            </div>
-          </Card>
+            }
+          />
         </div>
 
         {stats.byYear.length > 0 ? (
