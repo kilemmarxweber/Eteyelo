@@ -1,6 +1,7 @@
 import { headers } from "next/headers";
 
 import { auth } from "@/lib/auth";
+import { invalidateCachedSession } from "@/lib/auth/get-session-cached";
 import {
   isAppAdminRole,
   isPlatformOwnerRole,
@@ -78,4 +79,7 @@ export async function setActiveOrganizationAndBranch(params: {
       activeBranchId: branchId,
     },
   });
+
+  // Les loaders RSC de la même requête ne doivent plus lire l'ancienne session.
+  invalidateCachedSession();
 }
