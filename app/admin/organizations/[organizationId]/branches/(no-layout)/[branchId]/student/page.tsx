@@ -98,8 +98,8 @@ export default function Students() {
       });
     }
 
-    loadStats();
-  }, [refreshKey]);
+    if (session) void loadStats();
+  }, [refreshKey, session]);
 
   if (isPending) return <Loading />;
 

@@ -9,14 +9,12 @@ import {
   deleteStudentSchema,
 } from "@/src/interfaces/Student";
 import { StudentCategory } from "@/prisma/generated/prisma/client";
-import { auth } from "@/lib/auth";
 import {
   canManageOrganization,
   getSessionRoles,
   hasSessionRole,
 } from "@/lib/auth/session-roles";
 import { ORG_ROLE } from "@/lib/permissions";
-import { headers } from "next/headers";
 import {
   consumeAdminCreatedUserPlainPassword,
   stashAdminCreatedUserPlainPassword,
@@ -36,38 +34,18 @@ import {
   buildSchoolReportContext,
   schoolReportBranchSelect,
 } from "@/lib/reports/resolve-school-branding";
+import { requireBranchContext } from "@/lib/auth/require-branch-context";
 import { z } from "zod";
 
 export async function getCurrentBranch() {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
-
-  const branchId = session?.session?.activeBranchId;
-  const organizationId =
-    session?.organization?.id ?? session?.session?.activeOrganizationId;
-
-  if (!session?.user?.id || !branchId || !organizationId) {
-    throw new Error("Aucune branche active");
-  }
-
-  const branch = await prisma.branch.findFirst({
-    where: {
-      id: branchId,
-      organizationId,
-    },
-    select: { typebranch: true },
-  });
-
-  if (!branch) {
-    throw new Error("Branche introuvable");
-  }
+  const { branchId, organizationId, userId, typebranch, session } =
+    await requireBranchContext();
 
   const branchMember = await prisma.branchMember.findFirst({
     where: {
       branchId,
       member: {
-        userId: session.user.id,
+        userId,
         organizationId,
       },
     },
@@ -81,8 +59,8 @@ export async function getCurrentBranch() {
   return {
     branchId,
     organizationId,
-    userId: session.user.id,
-    typebranch: branch.typebranch,
+    userId,
+    typebranch,
     branchMemberId: branchMember?.id ?? null,
     branchMemberRole: branchMember?.role ?? null,
     roles,

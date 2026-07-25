@@ -18,6 +18,7 @@ import { useRefresh } from "@/src/hooks/RefreshContext";
 import { UpdateStudentDialog } from "./edit-student-dialog";
 import { useBranchPeopleLabels } from "@/hooks/use-branch-people-labels";
 import { getClassDisplayLabel, isSchoolBranch } from "@/lib/branch-capabilities";
+import { useSession } from "@/lib/auth-client";
 
 const StudentsList = ({
   refreshKey,
@@ -48,6 +49,12 @@ const StudentsList = ({
   const { refreshKey: contextRefreshKey } = useRefresh();
   const router = useRouter();
   const params = useParams<{ organizationId: string; branchId: string }>();
+  const { data: session } = useSession();
+  const branchId =
+    params.branchId ||
+    session?.branch?.id ||
+    session?.session?.activeBranchId ||
+    null;
 
   const handleStudentRowClick = useCallback(
     (student: IStudent) => {
@@ -113,10 +120,12 @@ const StudentsList = ({
   }, []);
 
   useEffect(() => {
+    if (!branchId || !session) return;
     void fetchStudents();
-  }, [fetchStudents, refreshKey, contextRefreshKey]);
+  }, [fetchStudents, refreshKey, contextRefreshKey, branchId, session]);
 
   useEffect(() => {
+    if (!branchId || !session) return;
     void getStudentPageContextAction().then((context) => {
       setRequiresImport(Boolean(context.requiresImport));
       setSupportsImport(Boolean(context.supportsImport));
@@ -126,7 +135,7 @@ const StudentsList = ({
         setClassLabel(getClassDisplayLabel(context.typebranch));
       }
     });
-  }, [refreshKey, contextRefreshKey]);
+  }, [refreshKey, contextRefreshKey, branchId, session]);
 
   const dialogs = (
     <>

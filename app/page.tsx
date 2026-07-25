@@ -416,11 +416,14 @@ export default async function HomePage() {
                       : { opacity: 1 }
                   }
                 >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
+                  <Image
                     src={sliderImage}
                     alt=""
-                    className="h-full w-full object-cover"
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 1024px) 100vw, 40vw"
+                    unoptimized
+                    priority={index === 0}
                   />
                 </div>
               );
