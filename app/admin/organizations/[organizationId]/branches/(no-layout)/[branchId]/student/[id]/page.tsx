@@ -598,7 +598,7 @@ const SingleStudentPage = async ({
     parentFullName,
     parentPhone: parentUser?.telephone ?? "-",
     parentEmail: parentUser?.email ?? "-",
-    parentProfession: "-",
+    parentProfession: student.parent.profession?.trim() || "-",
     parentAddress: parentUser?.address ?? "-",
     parentEmergencyContact: "-",
     displayId: badge.displayId,

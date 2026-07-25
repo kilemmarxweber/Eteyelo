@@ -100,11 +100,11 @@ export async function createOrganizationMemberAction(
     prenom,
     sexe,
     postnom,
-    telephone,
     dateOfBirth,
-    address,
     statusUser,
   } = parsed.data;
+  const telephone = parsed.data.telephone?.trim() || undefined;
+  const address = parsed.data.address?.trim() || undefined;
   const h = await headers();
   const emailLower = email.toLowerCase();
   const password = generateSecurePassword(16);

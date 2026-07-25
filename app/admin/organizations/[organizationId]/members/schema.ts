@@ -29,11 +29,13 @@ export const createOrgMemberSchema = z.object({
     .optional(),
   dateOfBirth: z.date().optional(),
   sexe: z.string().min(4, { message: "Veuillez saisir le sexe" }).optional(),
-  telephone: z.string().regex(phoneRegex, "Invalid Number!").optional(),
-  address: z
-    .string()
-    .min(10, { message: "Veuillez saisir l'adresse" })
+  telephone: z
+    .union([
+      z.literal(""),
+      z.string().trim().regex(phoneRegex, "Invalid Number!"),
+    ])
     .optional(),
+  address: z.string().trim().max(500).optional().or(z.literal("")),
   statusUser: z.union([z.boolean(), z.string()]).optional(),
 });
 

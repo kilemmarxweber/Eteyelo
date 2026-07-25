@@ -4,9 +4,7 @@ import {
   GraduationCap,
   Users,
   Trophy,
-  CalendarDays,
   BarChart3,
-  Camera,
   ChevronDown,
   MapPin,
   Facebook,
@@ -25,6 +23,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { HeroRotatingContent } from "@/components/home/hero-rotating-content";
+import { HomeBranchesMapSection } from "@/components/home/home-branches-map-section";
+import { HomeGallerySection } from "@/components/home/home-gallery-section";
+import { HomeSpotlightSection } from "@/components/home/home-spotlight-section";
 import { HomeFooter } from "@/components/home-footer";
 import { HomeNavbar } from "@/components/home-navbar";
 import { galleryImages, getHomeData } from "@/lib/home/home-data";
@@ -66,8 +67,15 @@ const serviceMenuItems = [
 ];
 
 export default async function HomePage() {
-  const { schools, events, partners, newSchools, resultSlides, stats } =
-    await getHomeData();
+  const {
+    schools,
+    events,
+    partners,
+    newSchools,
+    mapLocations,
+    resultSlides,
+    stats,
+  } = await getHomeData();
 
   const defaultSchoolImage = KLAMBOCORE_DEFAULT_IMAGE_PATH;
 
@@ -82,16 +90,6 @@ export default async function HomePage() {
     }))
     .filter((school) => Boolean(school.slideImage));
 
-  const galleryFromBranches = schools.flatMap((school) =>
-    school.gallery.filter(Boolean),
-  );
-
-  const galleryToShow = Array.from(
-    new Set([...galleryFromBranches, ...galleryImages]),
-  ).filter(
-    (image): image is string =>
-      typeof image === "string" && image.trim().length > 0,
-  );
   return (
     <main className="min-h-screen bg-slate-50 text-slate-900">
       {/* TOP BAR */}
@@ -451,6 +449,8 @@ export default async function HomePage() {
         </div>
       </section>
 
+      <HomeSpotlightSection schools={schools} events={events} />
+
       {/* SERVICES */}
       <section id="services" className="bg-white py-20">
         <div className="mx-auto max-w-7xl px-6">
@@ -526,98 +526,10 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* EVENTS + GALERIE */}
-      <section className="mx-auto max-w-7xl px-6 py-5">
-        <div className="mb-4">
-          <h2 className="text-2xl font-black text-blue-950">
-            Événements récents
-          </h2>
-        </div>
-
-        <div className="grid items-start gap-6 lg:grid-cols-[1.7fr_0.9fr]">
-          {/* EVENTS À GAUCHE */}
-          <div>
-            <div className="mb-4 flex items-center justify-between">
-              <h3 className="text-lg font-bold text-blue-950">
-                Derniers événements
-              </h3>
-
-              <a
-                href="/evenements"
-                className="rounded-full bg-blue-100 px-4 py-2 text-sm font-bold text-blue-700 hover:bg-blue-200"
-              >
-                Voir tous →
-              </a>
-            </div>
-            {/* Evenement events*/}
-            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              {events.slice(0, 3).map((event, index) => {
-                const eventImage = event.image?.trim() || defaultSchoolImage;
-
-                return (
-                  <article
-                    key={`${event.title}-${event.school}-${index}`}
-                    className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-blue-100"
-                  >
-                    <div
-                      className="h-32 bg-slate-100 bg-cover bg-center"
-                      style={{
-                        backgroundImage: `url("${eventImage}")`,
-                      }}
-                    />
-
-                    <div className="p-4">
-                      <Badge className="bg-blue-100 text-blue-700">
-                        <CalendarDays className="mr-1 h-3 w-3" />
-                        {event.date}
-                      </Badge>
-
-                      <h3 className="mt-3 line-clamp-2 text-sm font-black text-blue-950">
-                        {event.title}
-                      </h3>
-
-                      <p className="mt-1 text-xs text-slate-500">
-                        {event.school}
-                      </p>
-                    </div>
-                  </article>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* GALERIE À DROITE gallery*/}
-          <div className="self-start rounded-3xl border border-blue-100 bg-white p-4 shadow-sm">
-            <div className="mb-4 flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2">
-                <Camera className="h-4 w-4 text-blue-950" />
-                <h3 className="text-lg font-black text-blue-950">
-                  Galerie photos
-                </h3>
-              </div>
-
-              <a
-                href="/galerie"
-                className="rounded-full bg-blue-100 px-3 py-1.5 text-xs font-bold text-blue-700 hover:bg-blue-200"
-              >
-                Voir plus <ArrowRight className="inline h-3 w-3" />
-              </a>
-            </div>
-
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-              {galleryToShow.slice(0, 6).map((image, index) => (
-                <div
-                  key={`${image}-${index}`}
-                  className="aspect-square rounded-xl bg-cover bg-center"
-                  style={{
-                    backgroundImage: `url('${image}')`,
-                  }}
-                />
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
+      <HomeGallerySection
+        schools={schools}
+        fallbackImages={galleryImages}
+      />
 
       {/* INSCRIPTION */}
       <section className="bg-gradient-to-br from-blue-700 to-cyan-500 py-10 text-white sm:py-14">
@@ -919,6 +831,8 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+
+      <HomeBranchesMapSection locations={mapLocations} />
 
       {/* PARTENAIRES */}
       <section className="bg-white py-12">

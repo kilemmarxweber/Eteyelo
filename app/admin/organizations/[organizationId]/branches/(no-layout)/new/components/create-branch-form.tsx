@@ -26,6 +26,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { BranchTypeSelect } from "@/components/branch/branch-type-select";
 import type { ManagedBranchType } from "@/lib/academic-structure";
@@ -129,6 +130,7 @@ export function CreateBranchForm({
         ecole: [],
       },
       adresse: defaultValues?.adresse ?? "",
+      note: defaultValues?.note ?? "",
       province: defaultValues?.province ?? "",
       ville: defaultValues?.ville ?? "",
       commune: defaultValues?.commune ?? "",
@@ -587,6 +589,29 @@ export function CreateBranchForm({
                             disabled={isSubmitting}
                           />
                         </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="note"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Note à la une (facultatif)</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            {...field}
+                            placeholder="Court texte affiché avec l'image de l'établissement sur la page d'accueil…"
+                            className="min-h-20 rounded-xl"
+                            disabled={isSubmitting}
+                            maxLength={500}
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          Visible sur la page d'accueil dans la section actualités / événements.
+                        </FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}

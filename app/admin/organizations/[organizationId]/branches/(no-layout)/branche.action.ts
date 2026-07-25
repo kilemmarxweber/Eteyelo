@@ -81,6 +81,7 @@ export async function createBranchAction(
         name: parsed.data.name,
         code,
         adresse: parsed.data.adresse?.trim() || null,
+        note: parsed.data.note?.trim() || null,
         tel: parsed.data.tel?.trim() || null,
         province: parsed.data.province?.trim() || null,
         ville: parsed.data.ville?.trim() || null,
@@ -166,6 +167,7 @@ export async function getBranchByIdAction(branchId: string) {
       name: true,
       code: true,
       adresse: true,
+      note: true,
       tel: true,
       province: true,
       ville: true,
@@ -237,6 +239,7 @@ export async function updateBranchAction(
       name: parsed.data.name,
       code,
       adresse: parsed.data.adresse?.trim() || null,
+      note: parsed.data.note?.trim() || null,
       tel: parsed.data.tel?.trim() || null,
       province: parsed.data.province?.trim() || null,
       ville: parsed.data.ville?.trim() || null,
@@ -277,6 +280,7 @@ export async function updateBranchAction(
   revalidatePath(
     `/admin/organizations/${existingBranch.organizationId}/branches/${branchId}/edit`,
   );
+  revalidatePath("/");
 
   return {
     data: branch,

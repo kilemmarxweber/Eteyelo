@@ -21,6 +21,13 @@ export const createBranchFormSchema = z.object({
     .optional()
     .or(z.literal("")),
   adresse: z.string().optional(),
+  /** Texte optionnel « à la une » sur la page d'accueil */
+  note: z
+    .string()
+    .trim()
+    .max(500, "La note ne doit pas dépasser 500 caractères.")
+    .optional()
+    .or(z.literal("")),
   province: z.string().optional(),
   ville: z.string().optional(),
   commune: z.string().optional(),

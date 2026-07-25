@@ -5046,6 +5046,7 @@ export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof User
 export const ParentScalarFieldEnum = {
   id: 'id',
   branchMemberId: 'branchMemberId',
+  profession: 'profession',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -5734,6 +5735,7 @@ export const BranchScalarFieldEnum = {
   name: 'name',
   code: 'code',
   image: 'image',
+  note: 'note',
   adresse: 'adresse',
   province: 'province',
   ville: 'ville',

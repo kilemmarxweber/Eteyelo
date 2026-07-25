@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { useAppRouter as useRouter } from "@/hooks/use-app-router";
 import { toast } from "sonner";
@@ -100,7 +100,10 @@ type StudentForm = Person & {
   observation: string;
   placeOfBirth: string;
 };
-type ParentForm = Person & { discountPercentage: number };
+type ParentForm = Person & {
+  discountPercentage: number;
+  profession: string;
+};
 
 const emptyPerson: Person = {
   username: "",
@@ -108,7 +111,7 @@ const emptyPerson: Person = {
   postnom: "",
   prenom: "",
   email: "",
-  telephone: "+243",
+  telephone: "",
   sexe: "masculin",
   address: "",
   dateOfBirth: "",
@@ -120,7 +123,11 @@ const emptyStudent: StudentForm = {
   observation: "",
   placeOfBirth: "",
 };
-const emptyParent: ParentForm = { ...emptyPerson, discountPercentage: 0 };
+const emptyParent: ParentForm = {
+  ...emptyPerson,
+  discountPercentage: 0,
+  profession: "",
+};
 
 function userOf(item: any) {
   return item.branchMember?.member?.user;
@@ -153,8 +160,7 @@ function isStudentStepReady(
     student.name &&
     student.postnom &&
     student.prenom &&
-    student.dateOfBirth &&
-    student.address,
+    student.dateOfBirth,
   );
 }
 
@@ -168,9 +174,12 @@ function isParentStepReady(
     parent.name &&
     parent.postnom &&
     parent.prenom &&
-    parent.email &&
     parent.address,
   );
+}
+
+function previewParentEmail(prenom: string, name: string) {
+  return `${generateSlug(`${prenom}.${name}`, "parent")}@klambocore.com`;
 }
 
 function previewStudentCode(
@@ -516,6 +525,11 @@ export function RegistrationForm({
     () => previewParentUsername(parent.prenom, parent.name),
     [parent.prenom, parent.name],
   );
+  const generatedParentEmail = useMemo(
+    () => previewParentEmail(parent.prenom, parent.name),
+    [parent.prenom, parent.name],
+  );
+  const resolvedParentEmail = parent.email.trim() || generatedParentEmail;
   const classStats = useMemo(
     () =>
       selectedClasses.map((classe: any) => {
@@ -603,20 +617,29 @@ export function RegistrationForm({
     setRequestReference("");
   }
 
-  async function searchStudents() {
-    const [data, error] = await findStudentHistoryAction({
-      query: studentQuery,
-    });
+  const searchStudents = useCallback(async (query: string) => {
+    const trimmed = query.trim();
+    if (trimmed.length < 2) {
+      setStudentResults([]);
+      return;
+    }
+    const [data, error] = await findStudentHistoryAction({ query: trimmed });
     if (error) toast.error(error.message);
-    else setStudentResults(data);
-  }
-  async function searchParents() {
+    else setStudentResults(data ?? []);
+  }, []);
+
+  const searchParents = useCallback(async (query: string) => {
+    const trimmed = query.trim();
+    if (trimmed.length < 2) {
+      setParentResults([]);
+      return;
+    }
     const [data, error] = await findParentForRegistrationAction({
-      query: parentQuery,
+      query: trimmed,
     });
     if (error) toast.error(error.message);
-    else setParentResults(data);
-  }
+    else setParentResults(data ?? []);
+  }, []);
   function chooseStudent(item: any) {
     setStudentId(item.id);
     const last = item.classEnrollment?.[0];
@@ -1069,22 +1092,30 @@ export function RegistrationForm({
                   }
                 />
               </Field>
-              <Field label="Téléphone *">
+              <Field label="Téléphone (facultatif)">
                 <Input
+                  placeholder="+243…"
                   value={value.telephone}
                   onChange={(event) =>
                     updatePerson(value, setter, "telephone", event.target.value)
                   }
                 />
               </Field>
-              <Field label="Email *">
+              <Field label="Email (facultatif)">
                 <Input
                   type="email"
+                  placeholder={generatedParentEmail}
                   value={value.email}
                   onChange={(event) =>
                     updatePerson(value, setter, "email", event.target.value)
                   }
                 />
+                {!value.email.trim() ? (
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Si vide, un email sera généré :{" "}
+                    <span className="font-mono">{generatedParentEmail}</span>
+                  </p>
+                ) : null}
               </Field>
             </>
           )}
@@ -1105,7 +1136,7 @@ export function RegistrationForm({
             </Select>
           </Field>
           {studentFields ? (
-            <Field label="Adresse complète *" className="xl:col-span-1">
+            <Field label="Adresse complète (facultatif)" className="xl:col-span-1">
               <Input
                 value={value.address}
                 onChange={(event) =>
@@ -1236,31 +1267,47 @@ export function RegistrationForm({
         {!studentFields && (
           <>
             <Separator />
-            <Field label="Remise familiale en % (facultatif)">
-              <Input
-                className="max-w-[20%]"
-                type="number"
-                min={0}
-                max={100}
-                value={(value as ParentForm).discountPercentage}
-                onChange={(event) =>
-                  updatePerson(
-                    value,
-                    setter,
-                    "discountPercentage",
-                    Number(event.target.value),
-                  )
-                }
-                onBlur={() =>
-                  parentStepIndex >= 0
-                    ? advanceAfterLastOptional(
-                        parentStepIndex,
-                        isParentStepReady(parentMode, parentId, parent),
-                      )
-                    : undefined
-                }
-              />
-            </Field>
+            <div className="grid gap-5 md:grid-cols-2">
+              <Field label="Fonction / lieu de travail (facultatif)">
+                <Input
+                  placeholder="Ex. Enseignant, commerçant, entreprise…"
+                  value={(value as ParentForm).profession}
+                  onChange={(event) =>
+                    updatePerson(
+                      value,
+                      setter,
+                      "profession",
+                      event.target.value,
+                    )
+                  }
+                />
+              </Field>
+              <Field label="Remise familiale en % (facultatif)">
+                <Input
+                  className="max-w-[40%]"
+                  type="number"
+                  min={0}
+                  max={100}
+                  value={(value as ParentForm).discountPercentage}
+                  onChange={(event) =>
+                    updatePerson(
+                      value,
+                      setter,
+                      "discountPercentage",
+                      Number(event.target.value),
+                    )
+                  }
+                  onBlur={() =>
+                    parentStepIndex >= 0
+                      ? advanceAfterLastOptional(
+                          parentStepIndex,
+                          isParentStepReady(parentMode, parentId, parent),
+                        )
+                      : undefined
+                  }
+                />
+              </Field>
+            </div>
           </>
         )}
       </div>
@@ -1356,7 +1403,7 @@ export function RegistrationForm({
                   query={studentQuery}
                   setQuery={setStudentQuery}
                   onSearch={searchStudents}
-                  placeholder={`Nom, email ou téléphone de l'${peopleLabels.studentLower}`}
+                  placeholder={`Nom, email ou téléphone de l'${peopleLabels.studentLower}…`}
                 >
                   {studentResults.map((item) => {
                     const user = userOf(item);
@@ -1442,7 +1489,7 @@ export function RegistrationForm({
                   query={parentQuery}
                   setQuery={setParentQuery}
                   onSearch={searchParents}
-                  placeholder="Nom, email ou téléphone du parent"
+                  placeholder="Nom, email ou téléphone du parent…"
                 >
                   {parentResults.map((item) => {
                     const user = userOf(item);
@@ -1813,8 +1860,15 @@ export function RegistrationForm({
                         ? [
                             `${parent.name} ${parent.postnom} ${parent.prenom}`,
                             `Code d'accès : ${generatedParentUsername}`,
-                            `Téléphone : ${parent.telephone}`,
-                            `Email : ${parent.email}`,
+                            parent.telephone.trim()
+                              ? `Téléphone : ${parent.telephone}`
+                              : "Sans téléphone",
+                            `Email : ${resolvedParentEmail}${
+                              parent.email.trim() ? "" : " (auto)"
+                            }`,
+                            ...(parent.profession.trim()
+                              ? [`Fonction : ${parent.profession.trim()}`]
+                              : []),
                             parent.discountPercentage
                               ? `Remise : ${parent.discountPercentage}%`
                               : "Sans remise",
@@ -1828,6 +1882,9 @@ export function RegistrationForm({
                             userOf(selectedParent)?.email
                               ? `Email : ${userOf(selectedParent)?.email}`
                               : "Sans email",
+                            ...(selectedParent?.profession
+                              ? [`Fonction : ${selectedParent.profession}`]
+                              : []),
                           ]
                     }
                   />
@@ -1965,26 +2022,58 @@ function SearchPanel({
 }: {
   query: string;
   setQuery: (value: string) => void;
-  onSearch: () => void;
+  onSearch: (query: string) => void | Promise<void>;
   placeholder: string;
   children: React.ReactNode;
 }) {
+  const [searching, setSearching] = useState(false);
+  const requestIdRef = useRef(0);
+
+  useEffect(() => {
+    const trimmed = query.trim();
+    if (trimmed.length < 2) {
+      requestIdRef.current += 1;
+      setSearching(false);
+      void onSearch(trimmed);
+      return;
+    }
+
+    const requestId = ++requestIdRef.current;
+    setSearching(true);
+    const timer = window.setTimeout(() => {
+      void (async () => {
+        try {
+          await onSearch(trimmed);
+        } finally {
+          if (requestId === requestIdRef.current) {
+            setSearching(false);
+          }
+        }
+      })();
+    }, 300);
+
+    return () => window.clearTimeout(timer);
+  }, [query, onSearch]);
+
   return (
     <div className="space-y-4">
-      <div className="flex gap-2">
+      <div className="relative">
+        <IconSearch className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
         <Input
           value={query}
           onChange={(event) => setQuery(event.target.value)}
-          onKeyDown={(event) => {
-            if (event.key === "Enter") onSearch();
-          }}
           placeholder={placeholder}
+          className="pl-9"
+          autoComplete="off"
         />
-        <Button onClick={onSearch}>
-          <IconSearch className="mr-2 h-4 w-4" />
-          Rechercher
-        </Button>
       </div>
+      {searching ? (
+        <p className="text-sm text-muted-foreground">Recherche…</p>
+      ) : query.trim().length > 0 && query.trim().length < 2 ? (
+        <p className="text-sm text-muted-foreground">
+          Saisissez au moins 2 caractères.
+        </p>
+      ) : null}
       <div className="grid gap-2">{children}</div>
     </div>
   );

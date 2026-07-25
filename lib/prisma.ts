@@ -7,7 +7,7 @@ const adapter = new PrismaPg({
 });
 
 /** Bump when Prisma schema fields change so the cached client is rebuilt in dev. */
-const PRISMA_CLIENT_VERSION = "library-books-1";
+const PRISMA_CLIENT_VERSION = "branch-note-1";
 
 const globalForPrisma = globalThis as unknown as {
   prisma?: PrismaClient;

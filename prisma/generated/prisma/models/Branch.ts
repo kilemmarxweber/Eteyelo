@@ -42,6 +42,7 @@ export type BranchMinAggregateOutputType = {
   id: string | null
   name: string | null
   code: string | null
+  note: string | null
   adresse: string | null
   province: string | null
   ville: string | null
@@ -63,6 +64,7 @@ export type BranchMaxAggregateOutputType = {
   id: string | null
   name: string | null
   code: string | null
+  note: string | null
   adresse: string | null
   province: string | null
   ville: string | null
@@ -85,6 +87,7 @@ export type BranchCountAggregateOutputType = {
   name: number
   code: number
   image: number
+  note: number
   adresse: number
   province: number
   ville: number
@@ -120,6 +123,7 @@ export type BranchMinAggregateInputType = {
   id?: true
   name?: true
   code?: true
+  note?: true
   adresse?: true
   province?: true
   ville?: true
@@ -141,6 +145,7 @@ export type BranchMaxAggregateInputType = {
   id?: true
   name?: true
   code?: true
+  note?: true
   adresse?: true
   province?: true
   ville?: true
@@ -163,6 +168,7 @@ export type BranchCountAggregateInputType = {
   name?: true
   code?: true
   image?: true
+  note?: true
   adresse?: true
   province?: true
   ville?: true
@@ -272,6 +278,7 @@ export type BranchGroupByOutputType = {
   name: string
   code: string | null
   image: runtime.JsonValue | null
+  note: string | null
   adresse: string | null
   province: string | null
   ville: string | null
@@ -317,6 +324,7 @@ export type BranchWhereInput = {
   name?: Prisma.StringFilter<"Branch"> | string
   code?: Prisma.StringNullableFilter<"Branch"> | string | null
   image?: Prisma.JsonNullableFilter<"Branch">
+  note?: Prisma.StringNullableFilter<"Branch"> | string | null
   adresse?: Prisma.StringNullableFilter<"Branch"> | string | null
   province?: Prisma.StringNullableFilter<"Branch"> | string | null
   ville?: Prisma.StringNullableFilter<"Branch"> | string | null
@@ -384,6 +392,7 @@ export type BranchOrderByWithRelationInput = {
   name?: Prisma.SortOrder
   code?: Prisma.SortOrderInput | Prisma.SortOrder
   image?: Prisma.SortOrderInput | Prisma.SortOrder
+  note?: Prisma.SortOrderInput | Prisma.SortOrder
   adresse?: Prisma.SortOrderInput | Prisma.SortOrder
   province?: Prisma.SortOrderInput | Prisma.SortOrder
   ville?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -455,6 +464,7 @@ export type BranchWhereUniqueInput = Prisma.AtLeast<{
   name?: Prisma.StringFilter<"Branch"> | string
   code?: Prisma.StringNullableFilter<"Branch"> | string | null
   image?: Prisma.JsonNullableFilter<"Branch">
+  note?: Prisma.StringNullableFilter<"Branch"> | string | null
   adresse?: Prisma.StringNullableFilter<"Branch"> | string | null
   province?: Prisma.StringNullableFilter<"Branch"> | string | null
   ville?: Prisma.StringNullableFilter<"Branch"> | string | null
@@ -522,6 +532,7 @@ export type BranchOrderByWithAggregationInput = {
   name?: Prisma.SortOrder
   code?: Prisma.SortOrderInput | Prisma.SortOrder
   image?: Prisma.SortOrderInput | Prisma.SortOrder
+  note?: Prisma.SortOrderInput | Prisma.SortOrder
   adresse?: Prisma.SortOrderInput | Prisma.SortOrder
   province?: Prisma.SortOrderInput | Prisma.SortOrder
   ville?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -552,6 +563,7 @@ export type BranchScalarWhereWithAggregatesInput = {
   name?: Prisma.StringWithAggregatesFilter<"Branch"> | string
   code?: Prisma.StringNullableWithAggregatesFilter<"Branch"> | string | null
   image?: Prisma.JsonNullableWithAggregatesFilter<"Branch">
+  note?: Prisma.StringNullableWithAggregatesFilter<"Branch"> | string | null
   adresse?: Prisma.StringNullableWithAggregatesFilter<"Branch"> | string | null
   province?: Prisma.StringNullableWithAggregatesFilter<"Branch"> | string | null
   ville?: Prisma.StringNullableWithAggregatesFilter<"Branch"> | string | null
@@ -574,6 +586,7 @@ export type BranchCreateInput = {
   name: string
   code?: string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: string | null
   adresse?: string | null
   province?: string | null
   ville?: string | null
@@ -640,6 +653,7 @@ export type BranchUncheckedCreateInput = {
   name: string
   code?: string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: string | null
   adresse?: string | null
   province?: string | null
   ville?: string | null
@@ -706,6 +720,7 @@ export type BranchUpdateInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -772,6 +787,7 @@ export type BranchUncheckedUpdateInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -838,6 +854,7 @@ export type BranchCreateManyInput = {
   name: string
   code?: string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: string | null
   adresse?: string | null
   province?: string | null
   ville?: string | null
@@ -860,6 +877,7 @@ export type BranchUpdateManyMutationInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -881,6 +899,7 @@ export type BranchUncheckedUpdateManyInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -928,6 +947,7 @@ export type BranchCountOrderByAggregateInput = {
   name?: Prisma.SortOrder
   code?: Prisma.SortOrder
   image?: Prisma.SortOrder
+  note?: Prisma.SortOrder
   adresse?: Prisma.SortOrder
   province?: Prisma.SortOrder
   ville?: Prisma.SortOrder
@@ -955,6 +975,7 @@ export type BranchMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
   code?: Prisma.SortOrder
+  note?: Prisma.SortOrder
   adresse?: Prisma.SortOrder
   province?: Prisma.SortOrder
   ville?: Prisma.SortOrder
@@ -976,6 +997,7 @@ export type BranchMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
   code?: Prisma.SortOrder
+  note?: Prisma.SortOrder
   adresse?: Prisma.SortOrder
   province?: Prisma.SortOrder
   ville?: Prisma.SortOrder
@@ -1674,6 +1696,7 @@ export type BranchCreateWithoutAttendanceSessionsInput = {
   name: string
   code?: string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: string | null
   adresse?: string | null
   province?: string | null
   ville?: string | null
@@ -1739,6 +1762,7 @@ export type BranchUncheckedCreateWithoutAttendanceSessionsInput = {
   name: string
   code?: string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: string | null
   adresse?: string | null
   province?: string | null
   ville?: string | null
@@ -1820,6 +1844,7 @@ export type BranchUpdateWithoutAttendanceSessionsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1885,6 +1910,7 @@ export type BranchUncheckedUpdateWithoutAttendanceSessionsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1950,6 +1976,7 @@ export type BranchCreateWithoutStudentAttendanceInput = {
   name: string
   code?: string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: string | null
   adresse?: string | null
   province?: string | null
   ville?: string | null
@@ -2015,6 +2042,7 @@ export type BranchUncheckedCreateWithoutStudentAttendanceInput = {
   name: string
   code?: string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: string | null
   adresse?: string | null
   province?: string | null
   ville?: string | null
@@ -2096,6 +2124,7 @@ export type BranchUpdateWithoutStudentAttendanceInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2161,6 +2190,7 @@ export type BranchUncheckedUpdateWithoutStudentAttendanceInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2226,6 +2256,7 @@ export type BranchCreateWithoutTeacherAttendanceInput = {
   name: string
   code?: string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: string | null
   adresse?: string | null
   province?: string | null
   ville?: string | null
@@ -2291,6 +2322,7 @@ export type BranchUncheckedCreateWithoutTeacherAttendanceInput = {
   name: string
   code?: string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: string | null
   adresse?: string | null
   province?: string | null
   ville?: string | null
@@ -2372,6 +2404,7 @@ export type BranchUpdateWithoutTeacherAttendanceInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2437,6 +2470,7 @@ export type BranchUncheckedUpdateWithoutTeacherAttendanceInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2502,6 +2536,7 @@ export type BranchCreateWithoutPersonnelAttendanceInput = {
   name: string
   code?: string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: string | null
   adresse?: string | null
   province?: string | null
   ville?: string | null
@@ -2567,6 +2602,7 @@ export type BranchUncheckedCreateWithoutPersonnelAttendanceInput = {
   name: string
   code?: string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: string | null
   adresse?: string | null
   province?: string | null
   ville?: string | null
@@ -2648,6 +2684,7 @@ export type BranchUpdateWithoutPersonnelAttendanceInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2713,6 +2750,7 @@ export type BranchUncheckedUpdateWithoutPersonnelAttendanceInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2778,6 +2816,7 @@ export type BranchCreateWithoutParentFeedbackInput = {
   name: string
   code?: string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: string | null
   adresse?: string | null
   province?: string | null
   ville?: string | null
@@ -2843,6 +2882,7 @@ export type BranchUncheckedCreateWithoutParentFeedbackInput = {
   name: string
   code?: string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: string | null
   adresse?: string | null
   province?: string | null
   ville?: string | null
@@ -2924,6 +2964,7 @@ export type BranchUpdateWithoutParentFeedbackInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2989,6 +3030,7 @@ export type BranchUncheckedUpdateWithoutParentFeedbackInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3054,6 +3096,7 @@ export type BranchCreateWithoutStudentGradeInput = {
   name: string
   code?: string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: string | null
   adresse?: string | null
   province?: string | null
   ville?: string | null
@@ -3119,6 +3162,7 @@ export type BranchUncheckedCreateWithoutStudentGradeInput = {
   name: string
   code?: string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: string | null
   adresse?: string | null
   province?: string | null
   ville?: string | null
@@ -3200,6 +3244,7 @@ export type BranchUpdateWithoutStudentGradeInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3265,6 +3310,7 @@ export type BranchUncheckedUpdateWithoutStudentGradeInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3330,6 +3376,7 @@ export type BranchCreateWithoutFraisInput = {
   name: string
   code?: string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: string | null
   adresse?: string | null
   province?: string | null
   ville?: string | null
@@ -3395,6 +3442,7 @@ export type BranchUncheckedCreateWithoutFraisInput = {
   name: string
   code?: string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: string | null
   adresse?: string | null
   province?: string | null
   ville?: string | null
@@ -3476,6 +3524,7 @@ export type BranchUpdateWithoutFraisInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3541,6 +3590,7 @@ export type BranchUncheckedUpdateWithoutFraisInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3606,6 +3656,7 @@ export type BranchCreateWithoutTypeFraisInput = {
   name: string
   code?: string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: string | null
   adresse?: string | null
   province?: string | null
   ville?: string | null
@@ -3671,6 +3722,7 @@ export type BranchUncheckedCreateWithoutTypeFraisInput = {
   name: string
   code?: string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: string | null
   adresse?: string | null
   province?: string | null
   ville?: string | null
@@ -3752,6 +3804,7 @@ export type BranchUpdateWithoutTypeFraisInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3817,6 +3870,7 @@ export type BranchUncheckedUpdateWithoutTypeFraisInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3882,6 +3936,7 @@ export type BranchCreateWithoutClassesInput = {
   name: string
   code?: string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: string | null
   adresse?: string | null
   province?: string | null
   ville?: string | null
@@ -3947,6 +4002,7 @@ export type BranchUncheckedCreateWithoutClassesInput = {
   name: string
   code?: string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: string | null
   adresse?: string | null
   province?: string | null
   ville?: string | null
@@ -4028,6 +4084,7 @@ export type BranchUpdateWithoutClassesInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4093,6 +4150,7 @@ export type BranchUncheckedUpdateWithoutClassesInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4158,6 +4216,7 @@ export type BranchCreateWithoutCreneauInput = {
   name: string
   code?: string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: string | null
   adresse?: string | null
   province?: string | null
   ville?: string | null
@@ -4223,6 +4282,7 @@ export type BranchUncheckedCreateWithoutCreneauInput = {
   name: string
   code?: string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: string | null
   adresse?: string | null
   province?: string | null
   ville?: string | null
@@ -4304,6 +4364,7 @@ export type BranchUpdateWithoutCreneauInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4369,6 +4430,7 @@ export type BranchUncheckedUpdateWithoutCreneauInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4434,6 +4496,7 @@ export type BranchCreateWithoutOptionInput = {
   name: string
   code?: string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: string | null
   adresse?: string | null
   province?: string | null
   ville?: string | null
@@ -4499,6 +4562,7 @@ export type BranchUncheckedCreateWithoutOptionInput = {
   name: string
   code?: string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: string | null
   adresse?: string | null
   province?: string | null
   ville?: string | null
@@ -4580,6 +4644,7 @@ export type BranchUpdateWithoutOptionInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4645,6 +4710,7 @@ export type BranchUncheckedUpdateWithoutOptionInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4710,6 +4776,7 @@ export type BranchCreateWithoutSectionInput = {
   name: string
   code?: string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: string | null
   adresse?: string | null
   province?: string | null
   ville?: string | null
@@ -4775,6 +4842,7 @@ export type BranchUncheckedCreateWithoutSectionInput = {
   name: string
   code?: string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: string | null
   adresse?: string | null
   province?: string | null
   ville?: string | null
@@ -4856,6 +4924,7 @@ export type BranchUpdateWithoutSectionInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4921,6 +4990,7 @@ export type BranchUncheckedUpdateWithoutSectionInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4986,6 +5056,7 @@ export type BranchCreateWithoutSchoolYearInput = {
   name: string
   code?: string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: string | null
   adresse?: string | null
   province?: string | null
   ville?: string | null
@@ -5051,6 +5122,7 @@ export type BranchUncheckedCreateWithoutSchoolYearInput = {
   name: string
   code?: string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: string | null
   adresse?: string | null
   province?: string | null
   ville?: string | null
@@ -5132,6 +5204,7 @@ export type BranchUpdateWithoutSchoolYearInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -5197,6 +5270,7 @@ export type BranchUncheckedUpdateWithoutSchoolYearInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -5262,6 +5336,7 @@ export type BranchCreateWithoutClassEnrollmentInput = {
   name: string
   code?: string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: string | null
   adresse?: string | null
   province?: string | null
   ville?: string | null
@@ -5327,6 +5402,7 @@ export type BranchUncheckedCreateWithoutClassEnrollmentInput = {
   name: string
   code?: string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: string | null
   adresse?: string | null
   province?: string | null
   ville?: string | null
@@ -5408,6 +5484,7 @@ export type BranchUpdateWithoutClassEnrollmentInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -5473,6 +5550,7 @@ export type BranchUncheckedUpdateWithoutClassEnrollmentInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -5538,6 +5616,7 @@ export type BranchCreateWithoutTeachingInput = {
   name: string
   code?: string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: string | null
   adresse?: string | null
   province?: string | null
   ville?: string | null
@@ -5603,6 +5682,7 @@ export type BranchUncheckedCreateWithoutTeachingInput = {
   name: string
   code?: string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: string | null
   adresse?: string | null
   province?: string | null
   ville?: string | null
@@ -5684,6 +5764,7 @@ export type BranchUpdateWithoutTeachingInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -5749,6 +5830,7 @@ export type BranchUncheckedUpdateWithoutTeachingInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -5814,6 +5896,7 @@ export type BranchCreateWithoutCoursInput = {
   name: string
   code?: string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: string | null
   adresse?: string | null
   province?: string | null
   ville?: string | null
@@ -5879,6 +5962,7 @@ export type BranchUncheckedCreateWithoutCoursInput = {
   name: string
   code?: string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: string | null
   adresse?: string | null
   province?: string | null
   ville?: string | null
@@ -5960,6 +6044,7 @@ export type BranchUpdateWithoutCoursInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -6025,6 +6110,7 @@ export type BranchUncheckedUpdateWithoutCoursInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -6090,6 +6176,7 @@ export type BranchCreateWithoutCoursPonderationsInput = {
   name: string
   code?: string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: string | null
   adresse?: string | null
   province?: string | null
   ville?: string | null
@@ -6155,6 +6242,7 @@ export type BranchUncheckedCreateWithoutCoursPonderationsInput = {
   name: string
   code?: string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: string | null
   adresse?: string | null
   province?: string | null
   ville?: string | null
@@ -6236,6 +6324,7 @@ export type BranchUpdateWithoutCoursPonderationsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -6301,6 +6390,7 @@ export type BranchUncheckedUpdateWithoutCoursPonderationsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -6366,6 +6456,7 @@ export type BranchCreateWithoutCalendarEventInput = {
   name: string
   code?: string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: string | null
   adresse?: string | null
   province?: string | null
   ville?: string | null
@@ -6431,6 +6522,7 @@ export type BranchUncheckedCreateWithoutCalendarEventInput = {
   name: string
   code?: string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: string | null
   adresse?: string | null
   province?: string | null
   ville?: string | null
@@ -6512,6 +6604,7 @@ export type BranchUpdateWithoutCalendarEventInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -6577,6 +6670,7 @@ export type BranchUncheckedUpdateWithoutCalendarEventInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -6642,6 +6736,7 @@ export type BranchCreateWithoutEventTypeInput = {
   name: string
   code?: string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: string | null
   adresse?: string | null
   province?: string | null
   ville?: string | null
@@ -6707,6 +6802,7 @@ export type BranchUncheckedCreateWithoutEventTypeInput = {
   name: string
   code?: string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: string | null
   adresse?: string | null
   province?: string | null
   ville?: string | null
@@ -6788,6 +6884,7 @@ export type BranchUpdateWithoutEventTypeInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -6853,6 +6950,7 @@ export type BranchUncheckedUpdateWithoutEventTypeInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -6918,6 +7016,7 @@ export type BranchCreateWithoutSemesterInput = {
   name: string
   code?: string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: string | null
   adresse?: string | null
   province?: string | null
   ville?: string | null
@@ -6983,6 +7082,7 @@ export type BranchUncheckedCreateWithoutSemesterInput = {
   name: string
   code?: string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: string | null
   adresse?: string | null
   province?: string | null
   ville?: string | null
@@ -7064,6 +7164,7 @@ export type BranchUpdateWithoutSemesterInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -7129,6 +7230,7 @@ export type BranchUncheckedUpdateWithoutSemesterInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -7194,6 +7296,7 @@ export type BranchCreateWithoutPeriodInput = {
   name: string
   code?: string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: string | null
   adresse?: string | null
   province?: string | null
   ville?: string | null
@@ -7259,6 +7362,7 @@ export type BranchUncheckedCreateWithoutPeriodInput = {
   name: string
   code?: string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: string | null
   adresse?: string | null
   province?: string | null
   ville?: string | null
@@ -7340,6 +7444,7 @@ export type BranchUpdateWithoutPeriodInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -7405,6 +7510,7 @@ export type BranchUncheckedUpdateWithoutPeriodInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -7470,6 +7576,7 @@ export type BranchCreateWithoutPeriodResultLockInput = {
   name: string
   code?: string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: string | null
   adresse?: string | null
   province?: string | null
   ville?: string | null
@@ -7535,6 +7642,7 @@ export type BranchUncheckedCreateWithoutPeriodResultLockInput = {
   name: string
   code?: string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: string | null
   adresse?: string | null
   province?: string | null
   ville?: string | null
@@ -7616,6 +7724,7 @@ export type BranchUpdateWithoutPeriodResultLockInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -7681,6 +7790,7 @@ export type BranchUncheckedUpdateWithoutPeriodResultLockInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -7746,6 +7856,7 @@ export type BranchCreateWithoutFicheInput = {
   name: string
   code?: string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: string | null
   adresse?: string | null
   province?: string | null
   ville?: string | null
@@ -7811,6 +7922,7 @@ export type BranchUncheckedCreateWithoutFicheInput = {
   name: string
   code?: string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: string | null
   adresse?: string | null
   province?: string | null
   ville?: string | null
@@ -7892,6 +8004,7 @@ export type BranchUpdateWithoutFicheInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -7957,6 +8070,7 @@ export type BranchUncheckedUpdateWithoutFicheInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -8022,6 +8136,7 @@ export type BranchCreateWithoutInvoiceInput = {
   name: string
   code?: string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: string | null
   adresse?: string | null
   province?: string | null
   ville?: string | null
@@ -8087,6 +8202,7 @@ export type BranchUncheckedCreateWithoutInvoiceInput = {
   name: string
   code?: string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: string | null
   adresse?: string | null
   province?: string | null
   ville?: string | null
@@ -8168,6 +8284,7 @@ export type BranchUpdateWithoutInvoiceInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -8233,6 +8350,7 @@ export type BranchUncheckedUpdateWithoutInvoiceInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -8298,6 +8416,7 @@ export type BranchCreateWithoutPaymentBatchInput = {
   name: string
   code?: string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: string | null
   adresse?: string | null
   province?: string | null
   ville?: string | null
@@ -8363,6 +8482,7 @@ export type BranchUncheckedCreateWithoutPaymentBatchInput = {
   name: string
   code?: string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: string | null
   adresse?: string | null
   province?: string | null
   ville?: string | null
@@ -8444,6 +8564,7 @@ export type BranchUpdateWithoutPaymentBatchInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -8509,6 +8630,7 @@ export type BranchUncheckedUpdateWithoutPaymentBatchInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -8574,6 +8696,7 @@ export type BranchCreateWithoutFamilyPaymentInput = {
   name: string
   code?: string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: string | null
   adresse?: string | null
   province?: string | null
   ville?: string | null
@@ -8639,6 +8762,7 @@ export type BranchUncheckedCreateWithoutFamilyPaymentInput = {
   name: string
   code?: string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: string | null
   adresse?: string | null
   province?: string | null
   ville?: string | null
@@ -8720,6 +8844,7 @@ export type BranchUpdateWithoutFamilyPaymentInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -8785,6 +8910,7 @@ export type BranchUncheckedUpdateWithoutFamilyPaymentInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -8850,6 +8976,7 @@ export type BranchCreateWithoutCashierExpenseInput = {
   name: string
   code?: string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: string | null
   adresse?: string | null
   province?: string | null
   ville?: string | null
@@ -8915,6 +9042,7 @@ export type BranchUncheckedCreateWithoutCashierExpenseInput = {
   name: string
   code?: string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: string | null
   adresse?: string | null
   province?: string | null
   ville?: string | null
@@ -8996,6 +9124,7 @@ export type BranchUpdateWithoutCashierExpenseInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -9061,6 +9190,7 @@ export type BranchUncheckedUpdateWithoutCashierExpenseInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -9126,6 +9256,7 @@ export type BranchCreateWithoutCashierOpeningBalanceInput = {
   name: string
   code?: string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: string | null
   adresse?: string | null
   province?: string | null
   ville?: string | null
@@ -9191,6 +9322,7 @@ export type BranchUncheckedCreateWithoutCashierOpeningBalanceInput = {
   name: string
   code?: string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: string | null
   adresse?: string | null
   province?: string | null
   ville?: string | null
@@ -9272,6 +9404,7 @@ export type BranchUpdateWithoutCashierOpeningBalanceInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -9337,6 +9470,7 @@ export type BranchUncheckedUpdateWithoutCashierOpeningBalanceInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -9402,6 +9536,7 @@ export type BranchCreateWithoutPaymentAllocationInput = {
   name: string
   code?: string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: string | null
   adresse?: string | null
   province?: string | null
   ville?: string | null
@@ -9467,6 +9602,7 @@ export type BranchUncheckedCreateWithoutPaymentAllocationInput = {
   name: string
   code?: string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: string | null
   adresse?: string | null
   province?: string | null
   ville?: string | null
@@ -9548,6 +9684,7 @@ export type BranchUpdateWithoutPaymentAllocationInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -9613,6 +9750,7 @@ export type BranchUncheckedUpdateWithoutPaymentAllocationInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -9678,6 +9816,7 @@ export type BranchCreateWithoutMobileMoneyTransactionInput = {
   name: string
   code?: string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: string | null
   adresse?: string | null
   province?: string | null
   ville?: string | null
@@ -9743,6 +9882,7 @@ export type BranchUncheckedCreateWithoutMobileMoneyTransactionInput = {
   name: string
   code?: string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: string | null
   adresse?: string | null
   province?: string | null
   ville?: string | null
@@ -9824,6 +9964,7 @@ export type BranchUpdateWithoutMobileMoneyTransactionInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -9889,6 +10030,7 @@ export type BranchUncheckedUpdateWithoutMobileMoneyTransactionInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -9954,6 +10096,7 @@ export type BranchCreateWithoutPaymentEventInput = {
   name: string
   code?: string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: string | null
   adresse?: string | null
   province?: string | null
   ville?: string | null
@@ -10019,6 +10162,7 @@ export type BranchUncheckedCreateWithoutPaymentEventInput = {
   name: string
   code?: string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: string | null
   adresse?: string | null
   province?: string | null
   ville?: string | null
@@ -10100,6 +10244,7 @@ export type BranchUpdateWithoutPaymentEventInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -10165,6 +10310,7 @@ export type BranchUncheckedUpdateWithoutPaymentEventInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -10230,6 +10376,7 @@ export type BranchCreateWithoutDiscountRuleInput = {
   name: string
   code?: string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: string | null
   adresse?: string | null
   province?: string | null
   ville?: string | null
@@ -10295,6 +10442,7 @@ export type BranchUncheckedCreateWithoutDiscountRuleInput = {
   name: string
   code?: string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: string | null
   adresse?: string | null
   province?: string | null
   ville?: string | null
@@ -10376,6 +10524,7 @@ export type BranchUpdateWithoutDiscountRuleInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -10441,6 +10590,7 @@ export type BranchUncheckedUpdateWithoutDiscountRuleInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -10506,6 +10656,7 @@ export type BranchCreateWithoutTransactionInput = {
   name: string
   code?: string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: string | null
   adresse?: string | null
   province?: string | null
   ville?: string | null
@@ -10571,6 +10722,7 @@ export type BranchUncheckedCreateWithoutTransactionInput = {
   name: string
   code?: string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: string | null
   adresse?: string | null
   province?: string | null
   ville?: string | null
@@ -10652,6 +10804,7 @@ export type BranchUpdateWithoutTransactionInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -10717,6 +10870,7 @@ export type BranchUncheckedUpdateWithoutTransactionInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -10782,6 +10936,7 @@ export type BranchCreateWithoutOrganizationInput = {
   name: string
   code?: string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: string | null
   adresse?: string | null
   province?: string | null
   ville?: string | null
@@ -10847,6 +11002,7 @@ export type BranchUncheckedCreateWithoutOrganizationInput = {
   name: string
   code?: string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: string | null
   adresse?: string | null
   province?: string | null
   ville?: string | null
@@ -10941,6 +11097,7 @@ export type BranchScalarWhereInput = {
   name?: Prisma.StringFilter<"Branch"> | string
   code?: Prisma.StringNullableFilter<"Branch"> | string | null
   image?: Prisma.JsonNullableFilter<"Branch">
+  note?: Prisma.StringNullableFilter<"Branch"> | string | null
   adresse?: Prisma.StringNullableFilter<"Branch"> | string | null
   province?: Prisma.StringNullableFilter<"Branch"> | string | null
   ville?: Prisma.StringNullableFilter<"Branch"> | string | null
@@ -10963,6 +11120,7 @@ export type BranchCreateWithoutRegistrationInfosInput = {
   name: string
   code?: string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: string | null
   adresse?: string | null
   province?: string | null
   ville?: string | null
@@ -11028,6 +11186,7 @@ export type BranchUncheckedCreateWithoutRegistrationInfosInput = {
   name: string
   code?: string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: string | null
   adresse?: string | null
   province?: string | null
   ville?: string | null
@@ -11109,6 +11268,7 @@ export type BranchUpdateWithoutRegistrationInfosInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -11174,6 +11334,7 @@ export type BranchUncheckedUpdateWithoutRegistrationInfosInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -11239,6 +11400,7 @@ export type BranchCreateWithoutRegistrationRequestsInput = {
   name: string
   code?: string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: string | null
   adresse?: string | null
   province?: string | null
   ville?: string | null
@@ -11304,6 +11466,7 @@ export type BranchUncheckedCreateWithoutRegistrationRequestsInput = {
   name: string
   code?: string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: string | null
   adresse?: string | null
   province?: string | null
   ville?: string | null
@@ -11385,6 +11548,7 @@ export type BranchUpdateWithoutRegistrationRequestsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -11450,6 +11614,7 @@ export type BranchUncheckedUpdateWithoutRegistrationRequestsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -11515,6 +11680,7 @@ export type BranchCreateWithoutJobApplicationsInput = {
   name: string
   code?: string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: string | null
   adresse?: string | null
   province?: string | null
   ville?: string | null
@@ -11580,6 +11746,7 @@ export type BranchUncheckedCreateWithoutJobApplicationsInput = {
   name: string
   code?: string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: string | null
   adresse?: string | null
   province?: string | null
   ville?: string | null
@@ -11661,6 +11828,7 @@ export type BranchUpdateWithoutJobApplicationsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -11726,6 +11894,7 @@ export type BranchUncheckedUpdateWithoutJobApplicationsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -11791,6 +11960,7 @@ export type BranchCreateWithoutPartnairesInput = {
   name: string
   code?: string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: string | null
   adresse?: string | null
   province?: string | null
   ville?: string | null
@@ -11856,6 +12026,7 @@ export type BranchUncheckedCreateWithoutPartnairesInput = {
   name: string
   code?: string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: string | null
   adresse?: string | null
   province?: string | null
   ville?: string | null
@@ -11937,6 +12108,7 @@ export type BranchUpdateWithoutPartnairesInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -12002,6 +12174,7 @@ export type BranchUncheckedUpdateWithoutPartnairesInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -12067,6 +12240,7 @@ export type BranchCreateWithoutBranchemembersInput = {
   name: string
   code?: string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: string | null
   adresse?: string | null
   province?: string | null
   ville?: string | null
@@ -12132,6 +12306,7 @@ export type BranchUncheckedCreateWithoutBranchemembersInput = {
   name: string
   code?: string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: string | null
   adresse?: string | null
   province?: string | null
   ville?: string | null
@@ -12213,6 +12388,7 @@ export type BranchUpdateWithoutBranchemembersInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -12278,6 +12454,7 @@ export type BranchUncheckedUpdateWithoutBranchemembersInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -12343,6 +12520,7 @@ export type BranchCreateWithoutTargetStudentLinksInput = {
   name: string
   code?: string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: string | null
   adresse?: string | null
   province?: string | null
   ville?: string | null
@@ -12408,6 +12586,7 @@ export type BranchUncheckedCreateWithoutTargetStudentLinksInput = {
   name: string
   code?: string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: string | null
   adresse?: string | null
   province?: string | null
   ville?: string | null
@@ -12478,6 +12657,7 @@ export type BranchCreateWithoutSourceStudentLinksInput = {
   name: string
   code?: string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: string | null
   adresse?: string | null
   province?: string | null
   ville?: string | null
@@ -12543,6 +12723,7 @@ export type BranchUncheckedCreateWithoutSourceStudentLinksInput = {
   name: string
   code?: string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: string | null
   adresse?: string | null
   province?: string | null
   ville?: string | null
@@ -12624,6 +12805,7 @@ export type BranchUpdateWithoutTargetStudentLinksInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -12689,6 +12871,7 @@ export type BranchUncheckedUpdateWithoutTargetStudentLinksInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -12765,6 +12948,7 @@ export type BranchUpdateWithoutSourceStudentLinksInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -12830,6 +13014,7 @@ export type BranchUncheckedUpdateWithoutSourceStudentLinksInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -12895,6 +13080,7 @@ export type BranchCreateWithoutIssuedDocumentsInput = {
   name: string
   code?: string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: string | null
   adresse?: string | null
   province?: string | null
   ville?: string | null
@@ -12960,6 +13146,7 @@ export type BranchUncheckedCreateWithoutIssuedDocumentsInput = {
   name: string
   code?: string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: string | null
   adresse?: string | null
   province?: string | null
   ville?: string | null
@@ -13041,6 +13228,7 @@ export type BranchUpdateWithoutIssuedDocumentsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -13106,6 +13294,7 @@ export type BranchUncheckedUpdateWithoutIssuedDocumentsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -13171,6 +13360,7 @@ export type BranchCreateWithoutBranchInvitationInput = {
   name: string
   code?: string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: string | null
   adresse?: string | null
   province?: string | null
   ville?: string | null
@@ -13236,6 +13426,7 @@ export type BranchUncheckedCreateWithoutBranchInvitationInput = {
   name: string
   code?: string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: string | null
   adresse?: string | null
   province?: string | null
   ville?: string | null
@@ -13317,6 +13508,7 @@ export type BranchUpdateWithoutBranchInvitationInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -13382,6 +13574,7 @@ export type BranchUncheckedUpdateWithoutBranchInvitationInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -13447,6 +13640,7 @@ export type BranchCreateWithoutLibraryBooksInput = {
   name: string
   code?: string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: string | null
   adresse?: string | null
   province?: string | null
   ville?: string | null
@@ -13512,6 +13706,7 @@ export type BranchUncheckedCreateWithoutLibraryBooksInput = {
   name: string
   code?: string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: string | null
   adresse?: string | null
   province?: string | null
   ville?: string | null
@@ -13593,6 +13788,7 @@ export type BranchUpdateWithoutLibraryBooksInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -13658,6 +13854,7 @@ export type BranchUncheckedUpdateWithoutLibraryBooksInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -13723,6 +13920,7 @@ export type BranchCreateWithoutOrganizationSupportBranchScopesInput = {
   name: string
   code?: string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: string | null
   adresse?: string | null
   province?: string | null
   ville?: string | null
@@ -13788,6 +13986,7 @@ export type BranchUncheckedCreateWithoutOrganizationSupportBranchScopesInput = {
   name: string
   code?: string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: string | null
   adresse?: string | null
   province?: string | null
   ville?: string | null
@@ -13869,6 +14068,7 @@ export type BranchUpdateWithoutOrganizationSupportBranchScopesInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -13934,6 +14134,7 @@ export type BranchUncheckedUpdateWithoutOrganizationSupportBranchScopesInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -13999,6 +14200,7 @@ export type BranchCreateManyOrganizationInput = {
   name: string
   code?: string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: string | null
   adresse?: string | null
   province?: string | null
   ville?: string | null
@@ -14020,6 +14222,7 @@ export type BranchUpdateWithoutOrganizationInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -14085,6 +14288,7 @@ export type BranchUncheckedUpdateWithoutOrganizationInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -14150,6 +14354,7 @@ export type BranchUncheckedUpdateManyWithoutOrganizationInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ville?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -14589,6 +14794,7 @@ export type BranchSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   name?: boolean
   code?: boolean
   image?: boolean
+  note?: boolean
   adresse?: boolean
   province?: boolean
   ville?: boolean
@@ -14657,6 +14863,7 @@ export type BranchSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extens
   name?: boolean
   code?: boolean
   image?: boolean
+  note?: boolean
   adresse?: boolean
   province?: boolean
   ville?: boolean
@@ -14680,6 +14887,7 @@ export type BranchSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extens
   name?: boolean
   code?: boolean
   image?: boolean
+  note?: boolean
   adresse?: boolean
   province?: boolean
   ville?: boolean
@@ -14703,6 +14911,7 @@ export type BranchSelectScalar = {
   name?: boolean
   code?: boolean
   image?: boolean
+  note?: boolean
   adresse?: boolean
   province?: boolean
   ville?: boolean
@@ -14720,7 +14929,7 @@ export type BranchSelectScalar = {
   updatedAt?: boolean
 }
 
-export type BranchOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "code" | "image" | "adresse" | "province" | "ville" | "commune" | "pays" | "idnat" | "tel" | "latitude" | "longitude" | "attendanceRadius" | "organizationId" | "typebranch" | "isActive" | "createdAt" | "updatedAt", ExtArgs["result"]["branch"]>
+export type BranchOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "code" | "image" | "note" | "adresse" | "province" | "ville" | "commune" | "pays" | "idnat" | "tel" | "latitude" | "longitude" | "attendanceRadius" | "organizationId" | "typebranch" | "isActive" | "createdAt" | "updatedAt", ExtArgs["result"]["branch"]>
 export type BranchInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   studentAttendance?: boolean | Prisma.Branch$studentAttendanceArgs<ExtArgs>
@@ -14830,6 +15039,10 @@ export type $BranchPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     name: string
     code: string | null
     image: runtime.JsonValue | null
+    /**
+     * Texte optionnel affiché à la une sur la page d'accueil (spotlight)
+     */
+    note: string | null
     adresse: string | null
     province: string | null
     ville: string | null
@@ -15317,6 +15530,7 @@ export interface BranchFieldRefs {
   readonly name: Prisma.FieldRef<"Branch", 'String'>
   readonly code: Prisma.FieldRef<"Branch", 'String'>
   readonly image: Prisma.FieldRef<"Branch", 'Json'>
+  readonly note: Prisma.FieldRef<"Branch", 'String'>
   readonly adresse: Prisma.FieldRef<"Branch", 'String'>
   readonly province: Prisma.FieldRef<"Branch", 'String'>
   readonly ville: Prisma.FieldRef<"Branch", 'String'>

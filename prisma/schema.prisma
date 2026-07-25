@@ -53,6 +53,8 @@ model Parent {
   id             String           @id @default(cuid())
   branchMemberId         String
   branchMember           BranchMember?            @relation(fields: [branchMemberId], references: [id], onDelete: Cascade)
+  /// Fonction / lieu de travail (optionnel, saisi à l'inscription)
+  profession     String?
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @updatedAt
   paymentBatches PaymentBatch[]
@@ -1108,6 +1110,8 @@ model Branch {
   name             String
   code             String?
   image            Json?
+  /// Texte optionnel affiché à la une sur la page d'accueil (spotlight)
+  note             String?      @db.Text
   adresse          String?
   province         String?
   ville            String?

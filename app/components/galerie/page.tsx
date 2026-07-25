@@ -43,7 +43,7 @@ export default async function GalleryPage() {
           <h1 className="mt-4 text-3xl font-bold tracking-tight md:text-4xl">
             Galerie photos
           </h1>
-          <p className="mt-3 max-w-xl text-sm leading-relaxed text-primary-foreground/90 md:text-base">
+          <p className="mt-3 max-w-4xl text-sm leading-relaxed text-primary-foreground/90 md:text-base">
             Photos des ecoles, evenements et activites partenaires.
           </p>
         </div>

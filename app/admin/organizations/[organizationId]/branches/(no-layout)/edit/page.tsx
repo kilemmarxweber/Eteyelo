@@ -69,6 +69,7 @@ export default async function EditBranchPage({
           code: branch.code ?? "",
           image: normalizeBranchImages(branch.image),
           adresse: branch.adresse ?? "",
+          note: branch.note ?? "",
           province: branch.province ?? "",
           ville: branch.ville ?? "",
           commune: branch.commune ?? "",

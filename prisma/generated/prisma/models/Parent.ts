@@ -27,6 +27,7 @@ export type AggregateParent = {
 export type ParentMinAggregateOutputType = {
   id: string | null
   branchMemberId: string | null
+  profession: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -34,6 +35,7 @@ export type ParentMinAggregateOutputType = {
 export type ParentMaxAggregateOutputType = {
   id: string | null
   branchMemberId: string | null
+  profession: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -41,6 +43,7 @@ export type ParentMaxAggregateOutputType = {
 export type ParentCountAggregateOutputType = {
   id: number
   branchMemberId: number
+  profession: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -50,6 +53,7 @@ export type ParentCountAggregateOutputType = {
 export type ParentMinAggregateInputType = {
   id?: true
   branchMemberId?: true
+  profession?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -57,6 +61,7 @@ export type ParentMinAggregateInputType = {
 export type ParentMaxAggregateInputType = {
   id?: true
   branchMemberId?: true
+  profession?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -64,6 +69,7 @@ export type ParentMaxAggregateInputType = {
 export type ParentCountAggregateInputType = {
   id?: true
   branchMemberId?: true
+  profession?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -144,6 +150,7 @@ export type ParentGroupByArgs<ExtArgs extends runtime.Types.Extensions.InternalA
 export type ParentGroupByOutputType = {
   id: string
   branchMemberId: string
+  profession: string | null
   createdAt: Date
   updatedAt: Date
   _count: ParentCountAggregateOutputType | null
@@ -172,6 +179,7 @@ export type ParentWhereInput = {
   NOT?: Prisma.ParentWhereInput | Prisma.ParentWhereInput[]
   id?: Prisma.StringFilter<"Parent"> | string
   branchMemberId?: Prisma.StringFilter<"Parent"> | string
+  profession?: Prisma.StringNullableFilter<"Parent"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Parent"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Parent"> | Date | string
   branchMember?: Prisma.XOR<Prisma.BranchMemberNullableScalarRelationFilter, Prisma.BranchMemberWhereInput> | null
@@ -185,6 +193,7 @@ export type ParentWhereInput = {
 export type ParentOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   branchMemberId?: Prisma.SortOrder
+  profession?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   branchMember?: Prisma.BranchMemberOrderByWithRelationInput
@@ -201,6 +210,7 @@ export type ParentWhereUniqueInput = Prisma.AtLeast<{
   AND?: Prisma.ParentWhereInput | Prisma.ParentWhereInput[]
   OR?: Prisma.ParentWhereInput[]
   NOT?: Prisma.ParentWhereInput | Prisma.ParentWhereInput[]
+  profession?: Prisma.StringNullableFilter<"Parent"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Parent"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Parent"> | Date | string
   branchMember?: Prisma.XOR<Prisma.BranchMemberNullableScalarRelationFilter, Prisma.BranchMemberWhereInput> | null
@@ -214,6 +224,7 @@ export type ParentWhereUniqueInput = Prisma.AtLeast<{
 export type ParentOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   branchMemberId?: Prisma.SortOrder
+  profession?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.ParentCountOrderByAggregateInput
@@ -227,12 +238,14 @@ export type ParentScalarWhereWithAggregatesInput = {
   NOT?: Prisma.ParentScalarWhereWithAggregatesInput | Prisma.ParentScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"Parent"> | string
   branchMemberId?: Prisma.StringWithAggregatesFilter<"Parent"> | string
+  profession?: Prisma.StringNullableWithAggregatesFilter<"Parent"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Parent"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Parent"> | Date | string
 }
 
 export type ParentCreateInput = {
   id?: string
+  profession?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   branchMember?: Prisma.BranchMemberCreateNestedOneWithoutParentInput
@@ -246,6 +259,7 @@ export type ParentCreateInput = {
 export type ParentUncheckedCreateInput = {
   id?: string
   branchMemberId: string
+  profession?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   paymentBatches?: Prisma.PaymentBatchUncheckedCreateNestedManyWithoutParentInput
@@ -257,6 +271,7 @@ export type ParentUncheckedCreateInput = {
 
 export type ParentUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  profession?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branchMember?: Prisma.BranchMemberUpdateOneWithoutParentNestedInput
@@ -270,6 +285,7 @@ export type ParentUpdateInput = {
 export type ParentUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   branchMemberId?: Prisma.StringFieldUpdateOperationsInput | string
+  profession?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   paymentBatches?: Prisma.PaymentBatchUncheckedUpdateManyWithoutParentNestedInput
@@ -282,12 +298,14 @@ export type ParentUncheckedUpdateInput = {
 export type ParentCreateManyInput = {
   id?: string
   branchMemberId: string
+  profession?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
 
 export type ParentUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  profession?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -295,6 +313,7 @@ export type ParentUpdateManyMutationInput = {
 export type ParentUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   branchMemberId?: Prisma.StringFieldUpdateOperationsInput | string
+  profession?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -302,6 +321,7 @@ export type ParentUncheckedUpdateManyInput = {
 export type ParentCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   branchMemberId?: Prisma.SortOrder
+  profession?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -309,6 +329,7 @@ export type ParentCountOrderByAggregateInput = {
 export type ParentMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   branchMemberId?: Prisma.SortOrder
+  profession?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -316,6 +337,7 @@ export type ParentMaxOrderByAggregateInput = {
 export type ParentMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   branchMemberId?: Prisma.SortOrder
+  profession?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -456,6 +478,7 @@ export type ParentUncheckedUpdateManyWithoutBranchMemberNestedInput = {
 
 export type ParentCreateWithoutStudentsInput = {
   id?: string
+  profession?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   branchMember?: Prisma.BranchMemberCreateNestedOneWithoutParentInput
@@ -468,6 +491,7 @@ export type ParentCreateWithoutStudentsInput = {
 export type ParentUncheckedCreateWithoutStudentsInput = {
   id?: string
   branchMemberId: string
+  profession?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   paymentBatches?: Prisma.PaymentBatchUncheckedCreateNestedManyWithoutParentInput
@@ -494,6 +518,7 @@ export type ParentUpdateToOneWithWhereWithoutStudentsInput = {
 
 export type ParentUpdateWithoutStudentsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  profession?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branchMember?: Prisma.BranchMemberUpdateOneWithoutParentNestedInput
@@ -506,6 +531,7 @@ export type ParentUpdateWithoutStudentsInput = {
 export type ParentUncheckedUpdateWithoutStudentsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   branchMemberId?: Prisma.StringFieldUpdateOperationsInput | string
+  profession?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   paymentBatches?: Prisma.PaymentBatchUncheckedUpdateManyWithoutParentNestedInput
@@ -516,6 +542,7 @@ export type ParentUncheckedUpdateWithoutStudentsInput = {
 
 export type ParentCreateWithoutFeedbacksInput = {
   id?: string
+  profession?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   branchMember?: Prisma.BranchMemberCreateNestedOneWithoutParentInput
@@ -528,6 +555,7 @@ export type ParentCreateWithoutFeedbacksInput = {
 export type ParentUncheckedCreateWithoutFeedbacksInput = {
   id?: string
   branchMemberId: string
+  profession?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   paymentBatches?: Prisma.PaymentBatchUncheckedCreateNestedManyWithoutParentInput
@@ -554,6 +582,7 @@ export type ParentUpdateToOneWithWhereWithoutFeedbacksInput = {
 
 export type ParentUpdateWithoutFeedbacksInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  profession?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branchMember?: Prisma.BranchMemberUpdateOneWithoutParentNestedInput
@@ -566,6 +595,7 @@ export type ParentUpdateWithoutFeedbacksInput = {
 export type ParentUncheckedUpdateWithoutFeedbacksInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   branchMemberId?: Prisma.StringFieldUpdateOperationsInput | string
+  profession?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   paymentBatches?: Prisma.PaymentBatchUncheckedUpdateManyWithoutParentNestedInput
@@ -576,6 +606,7 @@ export type ParentUncheckedUpdateWithoutFeedbacksInput = {
 
 export type ParentCreateWithoutPaymentBatchesInput = {
   id?: string
+  profession?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   branchMember?: Prisma.BranchMemberCreateNestedOneWithoutParentInput
@@ -588,6 +619,7 @@ export type ParentCreateWithoutPaymentBatchesInput = {
 export type ParentUncheckedCreateWithoutPaymentBatchesInput = {
   id?: string
   branchMemberId: string
+  profession?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   familyPayments?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutParentInput
@@ -614,6 +646,7 @@ export type ParentUpdateToOneWithWhereWithoutPaymentBatchesInput = {
 
 export type ParentUpdateWithoutPaymentBatchesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  profession?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branchMember?: Prisma.BranchMemberUpdateOneWithoutParentNestedInput
@@ -626,6 +659,7 @@ export type ParentUpdateWithoutPaymentBatchesInput = {
 export type ParentUncheckedUpdateWithoutPaymentBatchesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   branchMemberId?: Prisma.StringFieldUpdateOperationsInput | string
+  profession?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   familyPayments?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutParentNestedInput
@@ -636,6 +670,7 @@ export type ParentUncheckedUpdateWithoutPaymentBatchesInput = {
 
 export type ParentCreateWithoutFamilyPaymentsInput = {
   id?: string
+  profession?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   branchMember?: Prisma.BranchMemberCreateNestedOneWithoutParentInput
@@ -648,6 +683,7 @@ export type ParentCreateWithoutFamilyPaymentsInput = {
 export type ParentUncheckedCreateWithoutFamilyPaymentsInput = {
   id?: string
   branchMemberId: string
+  profession?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   paymentBatches?: Prisma.PaymentBatchUncheckedCreateNestedManyWithoutParentInput
@@ -674,6 +710,7 @@ export type ParentUpdateToOneWithWhereWithoutFamilyPaymentsInput = {
 
 export type ParentUpdateWithoutFamilyPaymentsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  profession?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branchMember?: Prisma.BranchMemberUpdateOneWithoutParentNestedInput
@@ -686,6 +723,7 @@ export type ParentUpdateWithoutFamilyPaymentsInput = {
 export type ParentUncheckedUpdateWithoutFamilyPaymentsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   branchMemberId?: Prisma.StringFieldUpdateOperationsInput | string
+  profession?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   paymentBatches?: Prisma.PaymentBatchUncheckedUpdateManyWithoutParentNestedInput
@@ -696,6 +734,7 @@ export type ParentUncheckedUpdateWithoutFamilyPaymentsInput = {
 
 export type ParentCreateWithoutDiscountRulesInput = {
   id?: string
+  profession?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   branchMember?: Prisma.BranchMemberCreateNestedOneWithoutParentInput
@@ -708,6 +747,7 @@ export type ParentCreateWithoutDiscountRulesInput = {
 export type ParentUncheckedCreateWithoutDiscountRulesInput = {
   id?: string
   branchMemberId: string
+  profession?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   paymentBatches?: Prisma.PaymentBatchUncheckedCreateNestedManyWithoutParentInput
@@ -734,6 +774,7 @@ export type ParentUpdateToOneWithWhereWithoutDiscountRulesInput = {
 
 export type ParentUpdateWithoutDiscountRulesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  profession?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branchMember?: Prisma.BranchMemberUpdateOneWithoutParentNestedInput
@@ -746,6 +787,7 @@ export type ParentUpdateWithoutDiscountRulesInput = {
 export type ParentUncheckedUpdateWithoutDiscountRulesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   branchMemberId?: Prisma.StringFieldUpdateOperationsInput | string
+  profession?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   paymentBatches?: Prisma.PaymentBatchUncheckedUpdateManyWithoutParentNestedInput
@@ -756,6 +798,7 @@ export type ParentUncheckedUpdateWithoutDiscountRulesInput = {
 
 export type ParentCreateWithoutBranchMemberInput = {
   id?: string
+  profession?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   paymentBatches?: Prisma.PaymentBatchCreateNestedManyWithoutParentInput
@@ -767,6 +810,7 @@ export type ParentCreateWithoutBranchMemberInput = {
 
 export type ParentUncheckedCreateWithoutBranchMemberInput = {
   id?: string
+  profession?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   paymentBatches?: Prisma.PaymentBatchUncheckedCreateNestedManyWithoutParentInput
@@ -808,18 +852,21 @@ export type ParentScalarWhereInput = {
   NOT?: Prisma.ParentScalarWhereInput | Prisma.ParentScalarWhereInput[]
   id?: Prisma.StringFilter<"Parent"> | string
   branchMemberId?: Prisma.StringFilter<"Parent"> | string
+  profession?: Prisma.StringNullableFilter<"Parent"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Parent"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Parent"> | Date | string
 }
 
 export type ParentCreateManyBranchMemberInput = {
   id?: string
+  profession?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
 
 export type ParentUpdateWithoutBranchMemberInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  profession?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   paymentBatches?: Prisma.PaymentBatchUpdateManyWithoutParentNestedInput
@@ -831,6 +878,7 @@ export type ParentUpdateWithoutBranchMemberInput = {
 
 export type ParentUncheckedUpdateWithoutBranchMemberInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  profession?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   paymentBatches?: Prisma.PaymentBatchUncheckedUpdateManyWithoutParentNestedInput
@@ -842,6 +890,7 @@ export type ParentUncheckedUpdateWithoutBranchMemberInput = {
 
 export type ParentUncheckedUpdateManyWithoutBranchMemberInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  profession?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -916,6 +965,7 @@ export type ParentCountOutputTypeCountFeedbacksArgs<ExtArgs extends runtime.Type
 export type ParentSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   branchMemberId?: boolean
+  profession?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   branchMember?: boolean | Prisma.Parent$branchMemberArgs<ExtArgs>
@@ -930,6 +980,7 @@ export type ParentSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
 export type ParentSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   branchMemberId?: boolean
+  profession?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   branchMember?: boolean | Prisma.Parent$branchMemberArgs<ExtArgs>
@@ -938,6 +989,7 @@ export type ParentSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extens
 export type ParentSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   branchMemberId?: boolean
+  profession?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   branchMember?: boolean | Prisma.Parent$branchMemberArgs<ExtArgs>
@@ -946,11 +998,12 @@ export type ParentSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extens
 export type ParentSelectScalar = {
   id?: boolean
   branchMemberId?: boolean
+  profession?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type ParentOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "branchMemberId" | "createdAt" | "updatedAt", ExtArgs["result"]["parent"]>
+export type ParentOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "branchMemberId" | "profession" | "createdAt" | "updatedAt", ExtArgs["result"]["parent"]>
 export type ParentInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   branchMember?: boolean | Prisma.Parent$branchMemberArgs<ExtArgs>
   paymentBatches?: boolean | Prisma.Parent$paymentBatchesArgs<ExtArgs>
@@ -980,6 +1033,10 @@ export type $ParentPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     branchMemberId: string
+    /**
+     * Fonction / lieu de travail (optionnel, saisi à l'inscription)
+     */
+    profession: string | null
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["parent"]>
@@ -1413,6 +1470,7 @@ export interface Prisma__ParentClient<T, Null = never, ExtArgs extends runtime.T
 export interface ParentFieldRefs {
   readonly id: Prisma.FieldRef<"Parent", 'String'>
   readonly branchMemberId: Prisma.FieldRef<"Parent", 'String'>
+  readonly profession: Prisma.FieldRef<"Parent", 'String'>
   readonly createdAt: Prisma.FieldRef<"Parent", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Parent", 'DateTime'>
 }

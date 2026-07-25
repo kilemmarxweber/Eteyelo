@@ -148,6 +148,23 @@ async function buildStudentEmail(name: string, prenom: string) {
   return `${localPart}@${STUDENT_EMAIL_DOMAIN}`;
 }
 
+/** Email parent généré (même logique que l'élève) si aucun email saisi. */
+async function buildParentEmail(name: string, prenom: string) {
+  const localBase = generateSlug(`${prenom}.${name}`, "parent");
+  const localPart = await ensureUniqueIdentifier({
+    base: localBase,
+    separator: "",
+    exists: async (value) =>
+      Boolean(
+        await prisma.user.findFirst({
+          where: { email: `${value}@${STUDENT_EMAIL_DOMAIN}` },
+          select: { id: true },
+        }),
+      ),
+  });
+  return `${localPart}@${STUDENT_EMAIL_DOMAIN}`;
+}
+
 async function buildParentUsername(name: string, prenom: string) {
   const localBase = `parent.${generateSlug(`${prenom}.${name}`, "parent")}`;
   return ensureUniqueIdentifier({
@@ -161,6 +178,17 @@ async function buildParentUsername(name: string, prenom: string) {
         }),
       ),
   });
+}
+
+function optionalTrimmed(value?: string | null) {
+  const trimmed = value?.trim();
+  return trimmed ? trimmed : undefined;
+}
+
+function optionalPhone(value?: string | null) {
+  const trimmed = value?.trim();
+  if (!trimmed || trimmed === "+" || trimmed === "+243") return undefined;
+  return trimmed;
 }
 
 const personSelect = {
@@ -181,7 +209,7 @@ export const findParentForRegistrationAction = action
           { branchMember: { member: { user: { telephone: { contains: input.query } } } } },
         ],
       },
-      select: personSelect,
+      select: { ...personSelect, profession: true },
       take: 10,
     });
   });
@@ -624,14 +652,18 @@ export const createRegistrationFlowAction = action
       if (input.parentMode === "existing" && !existingParent && !usesDefaultParent) throw new Error("Parent introuvable dans cette branche.");
 
       let newParentMemberId: string | null = null;
+      let generatedParentEmail: string | null = null;
       if (!usesDefaultParent && input.parentMode === "new" && input.parent) {
+        const parentPhone = optionalPhone(input.parent.telephone);
+        generatedParentEmail =
+          optionalTrimmed(input.parent.email) ??
+          (await buildParentEmail(input.parent.name, input.parent.prenom));
+
         const duplicate = await prisma.user.findFirst({
           where: {
             OR: [
-              { email: input.parent.email.toLowerCase() },
-              ...(input.parent.telephone
-                ? [{ telephone: input.parent.telephone }]
-                : []),
+              { email: generatedParentEmail.toLowerCase() },
+              ...(parentPhone ? [{ telephone: parentPhone }] : []),
             ],
           },
           select: { id: true },
@@ -639,7 +671,14 @@ export const createRegistrationFlowAction = action
         if (duplicate) throw new Error("Un compte parent existe déjà avec cet email ou téléphone. Recherchez-le avant de continuer.");
         const parentUsername = await buildParentUsername(input.parent.name, input.parent.prenom);
         const created = await createOrganizationMemberAction({
-          ...input.parent,
+          name: input.parent.name,
+          postnom: input.parent.postnom,
+          prenom: input.parent.prenom,
+          sexe: input.parent.sexe,
+          dateOfBirth: input.parent.dateOfBirth,
+          email: generatedParentEmail,
+          telephone: parentPhone,
+          address: optionalTrimmed(input.parent.address),
           organizationId,
           branchId,
           orgRole: "parent",
@@ -661,9 +700,14 @@ export const createRegistrationFlowAction = action
         });
         if (duplicate) throw new Error(`Un compte ${peopleLabels.studentLower} existe déjà avec cet email. Recherchez-le avant de continuer.`);
         const created = await createOrganizationMemberAction({
-          ...input.student,
+          name: input.student.name,
+          postnom: input.student.postnom,
+          prenom: input.student.prenom,
+          sexe: input.student.sexe,
+          dateOfBirth: input.student.dateOfBirth,
           email: generatedStudentEmail,
           telephone: undefined,
+          address: optionalTrimmed(input.student.address),
           organizationId,
           branchId,
           orgRole: "student",
@@ -679,7 +723,13 @@ export const createRegistrationFlowAction = action
           centreDefaultParentId ?? existingParent?.id ?? existingStudent?.parentId;
         if (newParentMemberId) {
           const branchMember = await tx.branchMember.create({ data: { branchId, memberId: newParentMemberId, role: "PARENT" } });
-          const parent = await tx.parent.create({ data: { branchMemberId: branchMember.id } });
+          const profession = input.parent?.profession?.trim() || null;
+          const parent = await tx.parent.create({
+            data: {
+              branchMemberId: branchMember.id,
+              profession,
+            },
+          });
           if (input.parent && input.parent.discountPercentage > 0) {
             await tx.discountRule.create({
               data: { parentId: parent.id, branchId, scope: "PARENT", percentage: input.parent.discountPercentage },

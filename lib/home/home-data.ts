@@ -13,6 +13,8 @@ export type HomeSchool = {
   students: number;
   heroLabel: string;
   heroTitle: string;
+  /** Texte optionnel « à la une » (Branch.note) */
+  note: string | null;
   logo: string;
   ecole: string[];
   event: string[];
@@ -23,6 +25,9 @@ export type HomeEvent = {
   title: string;
   school: string;
   date: string;
+  /** Date longue pour badges (ex. 23 juillet 2026) */
+  dateLabel: string;
+  category: string;
   image: string;
 };
 
@@ -41,6 +46,18 @@ export type NewSchool = {
   name: string;
   city: string;
   date: string;
+};
+
+/** Branche active avec coordonnées pour la carte d'accueil */
+export type HomeMapLocation = {
+  id: string;
+  name: string;
+  adresse: string | null;
+  province: string | null;
+  ville: string | null;
+  commune: string | null;
+  latitude: number;
+  longitude: number;
 };
 
 export type ResultSlide = {
@@ -111,6 +128,7 @@ export type HomeData = {
   events: HomeEvent[];
   partners: HomePartner[];
   newSchools: NewSchool[];
+  mapLocations: HomeMapLocation[];
   resultSlides: ResultSlide[];
   stats: {
     verified: number;
@@ -126,6 +144,7 @@ export const fallbackSchools: HomeSchool[] = [
     students: 1200,
     heroLabel: "Ecole partenaire verifiee",
     heroTitle: "CS La Fortune accompagne 1 200 eleves a Lubumbashi",
+    note: "Une école engagée pour l'excellence scolaire à Lubumbashi.",
     logo: "",
     ecole: [],
     event: [],
@@ -138,6 +157,7 @@ export const fallbackSchools: HomeSchool[] = [
     students: 850,
     heroLabel: "Institut actif a Cabinda",
     heroTitle: "Bakhita valorise ses filieres, evenements et resultats",
+    note: "Formation, innovation et accompagnement des familles.",
     logo: "",
     ecole: [],
     event: [],
@@ -150,6 +170,7 @@ export const fallbackSchools: HomeSchool[] = [
     students: 970,
     heroLabel: "Complexe scolaire partenaire",
     heroTitle: "Padre Pitra gagne en visibilite aupres des familles",
+    note: null,
     logo: "",
     ecole: [],
     event: [],
@@ -162,6 +183,8 @@ export const fallbackEvents: HomeEvent[] = [
     title: "Journee portes ouvertes",
     school: "CS La Fortune",
     date: "12 Juin",
+    dateLabel: "12 juin 2026",
+    category: "Événements",
     image:
       "https://images.unsplash.com/photo-1523580846011-d3a5bc25702b?q=80&w=1200&auto=format&fit=crop",
   },
@@ -169,6 +192,8 @@ export const fallbackEvents: HomeEvent[] = [
     title: "Remise des diplomes",
     school: "Bakhita",
     date: "18 Juin",
+    dateLabel: "18 juin 2026",
+    category: "Événements",
     image:
       "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?q=80&w=1200&auto=format&fit=crop",
   },
@@ -176,6 +201,8 @@ export const fallbackEvents: HomeEvent[] = [
     title: "Concours scientifique",
     school: "Padre Pitra",
     date: "25 Juin",
+    dateLabel: "25 juin 2026",
+    category: "Événements",
     image:
       "https://images.unsplash.com/photo-1509062522246-3755977927d7?q=80&w=1200&auto=format&fit=crop",
   },
@@ -280,6 +307,14 @@ function formatShortDate(date: Date) {
   }).format(date);
 }
 
+function formatLongDate(date: Date) {
+  return new Intl.DateTimeFormat("fr-FR", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).format(date);
+}
+
 function formatRegistrationDate(date: Date) {
   return `Inscrite le ${new Intl.DateTimeFormat("fr-FR").format(date)}`;
 }
@@ -290,9 +325,20 @@ function getFallbackHomeData(): HomeData {
     events: fallbackEvents,
     partners: fallbackPartners,
     newSchools: fallbackNewSchools,
+    mapLocations: [],
     resultSlides: [],
     stats: fallbackStats,
   };
+}
+
+function isValidMapCoordinate(latitude: number, longitude: number) {
+  return (
+    Number.isFinite(latitude) &&
+    Number.isFinite(longitude) &&
+    Math.abs(latitude) <= 90 &&
+    Math.abs(longitude) <= 180 &&
+    !(latitude === 0 && longitude === 0)
+  );
 }
 
 function sumBranchPeople(
@@ -377,6 +423,7 @@ export async function getHomeData(): Promise<HomeData> {
             id: true,
             name: true,
             image: true,
+            note: true,
             ville: true,
             pays: true,
             typebranch: true,
@@ -405,11 +452,14 @@ export async function getHomeData(): Promise<HomeData> {
             },
           },
           orderBy: { dateStart: "desc" },
-          take: 6,
+          take: 12,
           select: {
             title: true,
             image: true,
             dateStart: true,
+            eventType: {
+              select: { name: true },
+            },
             branch: {
               select: {
                 name: true,
@@ -424,12 +474,34 @@ export async function getHomeData(): Promise<HomeData> {
       where: { isActive: true },
       select: {
         id: true,
+        name: true,
         typebranch: true,
+        adresse: true,
+        province: true,
+        ville: true,
+        commune: true,
+        latitude: true,
+        longitude: true,
       },
     });
 
     const studentCountsByBranchId =
       await getStudentCountsByBranchId(allBranches);
+
+    const mapLocations: HomeMapLocation[] = allBranches
+      .filter((branch) =>
+        isValidMapCoordinate(branch.latitude, branch.longitude),
+      )
+      .map((branch) => ({
+        id: branch.id,
+        name: branch.name,
+        adresse: branch.adresse?.trim() || null,
+        province: branch.province?.trim() || null,
+        ville: branch.ville?.trim() || null,
+        commune: branch.commune?.trim() || null,
+        latitude: branch.latitude,
+        longitude: branch.longitude,
+      }));
 
     const dynamicSchools: HomeSchool[] = branches.slice(0, 6).map((branch) => {
       const studentsCount = studentCountsByBranchId.get(branch.id) ?? 0;
@@ -454,6 +526,7 @@ export async function getHomeData(): Promise<HomeData> {
         heroTitle: `${branch.name} accueille ${
           studentsCount > 0 ? studentsCount : "plusieurs"
         } élèves à ${city}`,
+        note: branch.note?.trim() || null,
         logo,
         ecole:
           schoolImages.length > 0
@@ -477,6 +550,8 @@ export async function getHomeData(): Promise<HomeData> {
         title: event.title || "Événement scolaire",
         school: event.branch.name,
         date: formatShortDate(event.dateStart),
+        dateLabel: formatLongDate(event.dateStart),
+        category: event.eventType?.name?.trim() || "Événements",
         image: event.image
           ? normalizeImageSrc(event.image)
           : fallbackEvent?.image || DEFAULT_EVENT_IMAGE,
@@ -509,6 +584,7 @@ export async function getHomeData(): Promise<HomeData> {
       newSchools: dynamicNewSchools.length
         ? dynamicNewSchools
         : fallbackNewSchools,
+      mapLocations,
       resultSlides,
       stats: {
         verified: allBranches.length ? 100 : fallbackStats.verified,
