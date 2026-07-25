@@ -14,7 +14,7 @@ import {
   stashAdminCreatedUserPlainPassword,
 } from "@/lib/admin-created-user-password";
 import { generateSecurePassword } from "@/lib/generate-password";
-import { requireBranchContext } from "@/lib/auth/require-branch-context";
+import { requireBranchContext, requireHrWriteBranchContext } from "@/lib/auth/require-branch-context";
 import {
   buildSchoolReportContext,
   schoolReportBranchSelect,
@@ -109,7 +109,7 @@ async function requirePersonnelInBranch(
 export const createPersonnelAction = action
   .input(userSchema)
   .handler(async ({ input }) => {
-    const { branchId, organizationId } = await getCurrentBranch();
+    const { branchId, organizationId } = await requireHrWriteBranchContext();
     const { ...data } = input;
     const count = await prisma.personnel.count();
     const emailLower = isValidEmail(data.email)
@@ -187,7 +187,7 @@ export const createPersonnelAction = action
 export const archivePersonalAction = action
   .input(z.object({ ids: z.array(z.string()) }))
   .handler(async ({ input }) => {
-    const { branchId, organizationId } = await getCurrentBranch();
+    const { branchId, organizationId } = await requireHrWriteBranchContext();
 
     const personnels = await prisma.personnel.findMany({
       where: {
@@ -240,7 +240,7 @@ export const updatePersonnelFullAction = action
     }),
   )
   .handler(async ({ input }) => {
-    const { branchId, organizationId } = await requireBranchContext();
+    const { branchId, organizationId } = await requireHrWriteBranchContext();
     const { personnelId, memberId, userId, orgRole, ...userData } = input;
 
     const personnel = await requirePersonnelInBranch(
@@ -384,7 +384,7 @@ export const getPersonnelsAction = action.handler(
 export const updatePersonnelAction = action
   .input(updatePersonnelSchema)
   .handler(async ({ input }) => {
-    const { branchId, organizationId } = await requireBranchContext();
+    const { branchId, organizationId } = await requireHrWriteBranchContext();
     const { orgRole, ...data } = input;
 
     if (!input.personnelId) {

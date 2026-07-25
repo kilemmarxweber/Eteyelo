@@ -4,7 +4,11 @@ import { prisma } from "@/lib/prisma";
 
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
 import { revalidatePath } from "next/cache";
-import { canManageOrganization } from "@/lib/auth/session-roles";
+import {
+  canAccessTitulaireFichesArea,
+  canManageOrganization,
+} from "@/lib/auth/session-roles";
+import { assertTitulaireClassAccess } from "@/lib/auth/data-scope";
 
 export async function deleteFicheCentrale(params: {
   lessonId: string;
@@ -43,9 +47,9 @@ export async function deleteFicheCentrale(params: {
 }
 
 export async function deleteFicheIntervention(params: { ficheId: string }) {
-  const { organizationId, branchId, session } = await requireBranchContext();
-  const isTitulaire = Boolean(session?.teacherContext?.isTitulaire);
-  if (!canManageOrganization(session) && !isTitulaire) {
+  const { organizationId, branchId, session, userId } =
+    await requireBranchContext();
+  if (!canAccessTitulaireFichesArea(session)) {
     return { success: false as const, message: "Action non autorisée." };
   }
 
@@ -71,6 +75,13 @@ export async function deleteFicheIntervention(params: { ficheId: string }) {
       message: "Cette intervention n'existe plus.",
     };
   }
+
+  await assertTitulaireClassAccess({
+    session,
+    userId,
+    branchId,
+    classId: fiche.classSectionId,
+  });
 
   if (fiche.typeFiche === "ficheCote") {
     return {
@@ -151,7 +162,14 @@ export async function validateFicheCentrale(params: {
   periodId: number;
   anneeId: string;
 }) {
-  const { organizationId, branchId } = await requireBranchContext();
+  const { organizationId, branchId, session, userId } =
+    await requireBranchContext();
+  await assertTitulaireClassAccess({
+    session,
+    userId,
+    branchId,
+    classId: params.classId,
+  });
   const baseHref = `/admin/organizations/${organizationId}/branches/${branchId}`;
   const summary = await getFicheCentraleSummary(params);
 
@@ -263,7 +281,13 @@ export async function getFicheCentraleSummary(params: {
   periodId: number;
   anneeId: string;
 }): Promise<FicheCentraleSummary | null> {
-  const { branchId } = await requireBranchContext();
+  const { branchId, session, userId } = await requireBranchContext();
+  await assertTitulaireClassAccess({
+    session,
+    userId,
+    branchId,
+    classId: params.classId,
+  });
   const fiches = await prisma.fiche.findMany({
     where: {
       branchId,

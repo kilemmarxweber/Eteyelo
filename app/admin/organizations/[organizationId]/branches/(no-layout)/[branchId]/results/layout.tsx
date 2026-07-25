@@ -1,14 +1,10 @@
-"use client"; /* 
-import { useState } from "react";
-import Sidebar from "@/components/sidebar";
-import { ThemeToggle } from "@/src/theme/ThemeToggle";
-import { UserNav } from "@/components/user-nav";
-import { Search } from "@/components/search"; */
+import { assertBranchAreaAccess } from "@/lib/auth/assert-branch-area-access";
 
-export default function Layout({
+export default async function ResultsLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
-  return <div>{children}</div>;
+}) {
+  await assertBranchAreaAccess("results");
+  return children;
 }

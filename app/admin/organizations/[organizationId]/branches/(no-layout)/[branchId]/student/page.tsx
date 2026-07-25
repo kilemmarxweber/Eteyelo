@@ -17,6 +17,7 @@ import { BranchStatCard } from "@/components/ui/branch-stat-card";
 import { Card } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
 import { useSession } from "@/lib/auth-client";
+import { canAccessBranchArea } from "@/lib/auth/assert-branch-area-access";
 import { canManageOrganization } from "@/lib/auth/session-roles";
 
 import Loading from "../loading";
@@ -103,7 +104,7 @@ export default function Students() {
 
   if (isPending) return <Loading />;
 
-  if (!session) {
+  if (!session || !canAccessBranchArea("school_admin", session)) {
     return <NotFoundView />;
   }
 

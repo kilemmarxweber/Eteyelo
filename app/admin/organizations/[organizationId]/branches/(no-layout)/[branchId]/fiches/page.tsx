@@ -3,9 +3,17 @@
 import { prisma } from "@/lib/prisma";
 import ClassFicheClient from "./components/ClassFicheClient";
 import type { Prisma } from "@/prisma/generated/prisma/client";
-import { redirect } from "next/navigation";
+import { redirect, notFound } from "next/navigation";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
-import { canManageOrganization } from "@/lib/auth/session-roles";
+import {
+  canAccessTitulaireFichesArea,
+  canManageOrganization,
+} from "@/lib/auth/session-roles";
+import {
+  enforceResultsAreaAccess,
+  isCursusSelfScopedRole,
+  resolveScopedCursusStudent,
+} from "@/lib/auth/cursus-scope";
 import { usesBulletinForBranch } from "@/lib/branch-capabilities";
 import {
   buildBulletinBranchContext,
@@ -47,7 +55,7 @@ type ClassEnrollmentWithRelations = Prisma.ClassEnrollmentGetPayload<{
 }>;
 
 export default async function ClassFichePage() {
-  const { session, branchId, organizationId, typebranch } =
+  const { session, userId, branchId, organizationId, typebranch } =
     await requireBranchContext();
 
   if (!usesBulletinForBranch(typebranch)) {
@@ -56,7 +64,26 @@ export default async function ClassFichePage() {
     );
   }
 
+  const role = enforceResultsAreaAccess(session);
+
+  // Élève / parent : fiches personnelles via profil (pas la vue classe admin).
+  if (isCursusSelfScopedRole(role)) {
+    const scoped = await resolveScopedCursusStudent({
+      role,
+      userId,
+      branchId,
+    });
+    redirect(
+      `/admin/organizations/${organizationId}/branches/${branchId}/student/${scoped.id}`,
+    );
+  }
+
   const canManage = canManageOrganization(session);
+
+  // Fiches classe : school admin ou enseignant titulaire uniquement (unit-06).
+  if (!canAccessTitulaireFichesArea(session)) {
+    notFound();
+  }
 
   // 🔹 Fetch data
   const [classesFromDB, branch] = await Promise.all([
@@ -134,12 +161,21 @@ export default async function ClassFichePage() {
   const branchContext: BulletinBranchContext =
     buildBulletinBranchContext(branch);
 
-  // 🔹 Group by class ID
+  // 🔹 Group by class ID — titulaire : uniquement ses classes (unit-10)
   const groupedMap = new Map<string, ClassEnrollmentWithRelations["classe"]>();
 
   classesFromDB.forEach((item) => {
     const classe = item.classe;
     if (!classe) return;
+
+    if (!canManage) {
+      const isTitulaireOfClass = (classe.teaching ?? []).some(
+        (t) =>
+          t.titulaire &&
+          t.teacher?.branchMember?.member?.userId === userId,
+      );
+      if (!isTitulaireOfClass) return;
+    }
 
     if (!groupedMap.has(classe.id)) {
       groupedMap.set(classe.id, {

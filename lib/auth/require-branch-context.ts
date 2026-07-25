@@ -1,4 +1,8 @@
 import { getCachedSession } from "@/lib/auth/get-session-cached";
+import {
+  canAccessFinanceArea,
+  canManageHrDirectory,
+} from "@/lib/auth/session-roles";
 import { prisma } from "@/lib/prisma";
 
 export async function requireBranchContext() {
@@ -49,4 +53,22 @@ export async function requireBranchContext() {
     typebranch: branch.typebranch,
     session,
   };
+}
+
+/** Branche active + droit finance (frais / paiement / caisse). */
+export async function requireFinanceBranchContext() {
+  const ctx = await requireBranchContext();
+  if (!canAccessFinanceArea(ctx.session)) {
+    throw new Error("Action non autorisée");
+  }
+  return ctx;
+}
+
+/** Branche active + droit CRUD personnel / parents (préfet exclu). */
+export async function requireHrWriteBranchContext() {
+  const ctx = await requireBranchContext();
+  if (!canManageHrDirectory(ctx.session)) {
+    throw new Error("Action non autorisée");
+  }
+  return ctx;
 }

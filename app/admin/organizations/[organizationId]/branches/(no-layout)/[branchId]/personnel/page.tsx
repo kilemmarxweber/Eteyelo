@@ -26,7 +26,8 @@ import {
 } from "@/components/ui/dialog";
 import { PageHeader } from "@/components/ui/page-header";
 import { useSession } from "@/lib/auth-client";
-import { canManageOrganization } from "@/lib/auth/session-roles";
+import { canAccessBranchArea } from "@/lib/auth/assert-branch-area-access";
+import { canManagePersonnelRecords } from "@/lib/auth/session-roles";
 
 import Loading from "../loading";
 import { PersonnelUpForm } from "./components/personnel-form";
@@ -63,7 +64,7 @@ export default function Personnels() {
   const [stats, setStats] = useState<PersonnelStats>(emptyStats);
 
   const { data: session, isPending } = useSession();
-  const canManage = canManageOrganization(session);
+  const canManage = canManagePersonnelRecords(session);
 
   const handleUserAction = () => {
     setRefreshKey((prev) => prev + 1);
@@ -102,7 +103,9 @@ export default function Personnels() {
   }, [refreshKey]);
 
   if (isPending) return <Loading />;
-  if (!session) return <NotFoundView />;
+  if (!session || !canAccessBranchArea("hr_directory", session)) {
+    return <NotFoundView />;
+  }
 
   const presencePercent = stats.totalExpected
     ? Math.round((stats.present / stats.totalExpected) * 100)

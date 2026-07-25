@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import {
   IconClipboardList,
   IconHeadphones,
+  IconKey,
   IconPalette,
   IconReportMoney,
   IconCalendarCog,
@@ -18,7 +19,11 @@ import {
 import { Layout, LayoutBody } from "@/components/custom/layout";
 import { authClient } from "@/lib/auth-client";
 import { isPrimaryBranch } from "@/lib/branch-capabilities";
-import { canAccessBranchOrgSettings } from "@/lib/auth/session-roles";
+import {
+  canAccessBranchOrgSettings,
+  hasSessionRole,
+} from "@/lib/auth/session-roles";
+import { ORG_ROLE } from "@/lib/permissions";
 import SidebarNav from "./components/sidebar-nav";
 
 export default function Settings({ children }: { children: React.ReactNode }) {
@@ -26,6 +31,14 @@ export default function Settings({ children }: { children: React.ReactNode }) {
   const { data: session } = authClient.useSession();
   const canSeeOrgSettings = canAccessBranchOrgSettings(session);
   const showPrimaryDomains = isPrimaryBranch(session?.branch?.typebranch);
+  const isCursusSelfUser = hasSessionRole(session, [
+    ORG_ROLE.STUDENT,
+    "STUDENT",
+    "student",
+    ORG_ROLE.PARENT,
+    "PARENT",
+    "parent",
+  ]);
 
   const branchBasePath =
     pathname?.match(/^\/admin\/organizations\/[^/]+\/branches\/[^/]+/)?.[0] ??
@@ -33,6 +46,22 @@ export default function Settings({ children }: { children: React.ReactNode }) {
   const settingsBasePath = `${branchBasePath}/settings`;
 
   const sidebarNavItems = useMemo(() => {
+    // Élève / parent : profil + mot de passe uniquement (unit-05).
+    if (isCursusSelfUser && !canSeeOrgSettings) {
+      return [
+        {
+          title: "Profil",
+          icon: <IconUser size={18} />,
+          href: settingsBasePath,
+        },
+        {
+          title: "Mot de passe",
+          icon: <IconKey size={18} />,
+          href: "/auth/change-password",
+        },
+      ];
+    }
+
     const items = [
       {
         title: "Profil",
@@ -44,6 +73,12 @@ export default function Settings({ children }: { children: React.ReactNode }) {
         title: "Apparence",
         icon: <IconPalette size={18} />,
         href: `${settingsBasePath}/appearance`,
+        orgSettingsOnly: false,
+      },
+      {
+        title: "Mot de passe",
+        icon: <IconKey size={18} />,
+        href: "/auth/change-password",
         orgSettingsOnly: false,
       },
       {
@@ -104,12 +139,17 @@ export default function Settings({ children }: { children: React.ReactNode }) {
           (!("primaryOnly" in item && item.primaryOnly) || showPrimaryDomains),
       )
       .map(({ orgSettingsOnly: _, primaryOnly: __, ...item }) => item);
-  }, [settingsBasePath, canSeeOrgSettings, showPrimaryDomains]);
+  }, [
+    settingsBasePath,
+    canSeeOrgSettings,
+    showPrimaryDomains,
+    isCursusSelfUser,
+  ]);
 
   return (
     <Layout fadedBelow fixedHeight>
       <LayoutBody className="flex flex-col" fixedHeight>
-        <div className="space-y-0.5">
+        <div className="flex flex-col gap-0.5">
           <h1 className="text-2xl font-bold tracking-tight md:text-3xl">
             Parametres
           </h1>
@@ -118,13 +158,13 @@ export default function Settings({ children }: { children: React.ReactNode }) {
           </p>
         </div>
 
-        <div className="flex flex-1 flex-col space-y-8 lg:flex-row lg:space-x-12 lg:space-y-0 min-h-0">
+        <div className="flex min-h-0 flex-1 flex-col gap-8 lg:flex-row lg:gap-12">
           <aside className="lg:w-1/5">
             <SidebarNav items={sidebarNavItems} />
           </aside>
 
-          <div className="flex-1 space-y-6 overflow-hidden min-h-0">
-            <div className="rounded-lg border bg-card p-6 h-full overflow-y-auto">
+          <div className="min-h-0 flex-1 overflow-hidden">
+            <div className="h-full overflow-y-auto rounded-lg border bg-card p-6">
               {children}
             </div>
           </div>

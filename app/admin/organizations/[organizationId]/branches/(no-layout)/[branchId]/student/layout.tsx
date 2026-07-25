@@ -1,14 +1,8 @@
-"use client"; /* 
-import { useState } from "react";
-import Sidebar from "@/components/sidebar";
-import { ThemeToggle } from "@/src/theme/ThemeToggle";
-import { UserNav } from "@/components/user-nav";
-import { Search } from "@/components/search"; */
-
-export default function Layout({
+/** Accès liste = page ; profil `/student/[id]` = scoping cursus (unit-05 / unit-09). */
+export default function StudentLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
-  return <div>{children}</div>;
+}) {
+  return children;
 }

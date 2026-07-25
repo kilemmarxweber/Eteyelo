@@ -1,5 +1,7 @@
+import { Suspense } from "react";
 import { prisma } from "@/lib/prisma";
 import FicheSaisieClient from "./FicheSaisieClient";
+import NotesReadClient from "./NotesReadClient";
 import { notFound } from "next/navigation";
 import { ORG_ROLE } from "@/lib/permissions";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
@@ -7,12 +9,20 @@ import {
   canManageOrganization,
   hasSessionRole,
 } from "@/lib/auth/session-roles";
+import {
+  enforceNotesAreaAccess,
+  isCursusSelfScopedRole,
+  listAccessibleCursusStudents,
+  resolveScopedCursusStudent,
+} from "@/lib/auth/cursus-scope";
 import { isUniversiteBranch } from "@/lib/branch-capabilities";
 import {
   getCoursePonderationMap,
   resolveCoursePonderation,
 } from "@/lib/course-ponderation";
 import { UNIVERSITY_NOTES_LABELS } from "@/lib/university-lmd-labels";
+import { getPeopleLabels } from "@/lib/people-labels";
+import { buildStudentNotesReadData } from "@/lib/student-notes-read";
 
 export const dynamic = "force-dynamic";
 
@@ -40,8 +50,55 @@ type TeacherType = {
   lessons: LessonType[];
 };
 
-export default async function NotesPage() {
-  const { session, userId, branchId, typebranch } = await requireBranchContext();
+export default async function NotesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ studentId?: string }>;
+}) {
+  const { session, userId, branchId, organizationId, typebranch } =
+    await requireBranchContext();
+  const role = enforceNotesAreaAccess(session);
+  const sp = await searchParams;
+
+  if (isCursusSelfScopedRole(role)) {
+    const children = await listAccessibleCursusStudents({
+      role,
+      userId,
+      branchId,
+    });
+    const scoped = await resolveScopedCursusStudent({
+      role,
+      userId,
+      branchId,
+      requestedStudentId: sp.studentId,
+    });
+    const peopleLabels = getPeopleLabels(typebranch);
+    const classLabel = [scoped.className, scoped.classCode]
+      .filter(Boolean)
+      .join(" · ");
+
+    const data = await buildStudentNotesReadData({
+      studentId: scoped.id,
+      studentName: scoped.fullName,
+      classId: scoped.classId,
+      classLabel: classLabel || null,
+      branchId,
+      schoolYearId: scoped.schoolYearId,
+    });
+
+    return (
+      <Suspense fallback={null}>
+        <NotesReadClient
+          role={role}
+          studentLabel={peopleLabels.student}
+          childrenOptions={children}
+          data={data}
+          resultsHref={`/admin/organizations/${organizationId}/branches/${branchId}/results`}
+        />
+      </Suspense>
+    );
+  }
+
   const canManage = canManageOrganization(session);
   const isTeacher = hasSessionRole(session, [ORG_ROLE.TEACHER, "TEACHER"]);
 
@@ -76,15 +133,15 @@ export default async function NotesPage() {
   const teachersFromDB = await prisma.teacher.findMany({
     where: teacherWhere,
     include: {
-          branchMember: {
+      branchMember: {
+        include: {
+          member: {
             include: {
-              member: {
-                include: {
-                  user: true,
-                },
-              },
+              user: true,
             },
           },
+        },
+      },
 
       teaching: {
         where: {

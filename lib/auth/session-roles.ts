@@ -64,25 +64,126 @@ export function hasSessionRole(
   );
 }
 
+const APP_MANAGER_ROLES = [APP_ROLE.OWNER, APP_ROLE.ADMIN] as const;
+
+/** Rôles managers org/école — sans caissier (unit-00 §4 / unit-01). */
+const ORG_MANAGER_ROLES = [
+  ORG_ROLE.OWNER,
+  ORG_ROLE.GESTIONNAIRE,
+  ORG_ROLE.PREFET,
+  ORG_ROLE.DIRECTEUR,
+  ORG_ROLE.DIRECTEUR_ETUDES,
+  ORG_ROLE.SUPERVISEUR,
+] as const;
+
 export function canManageOrganization(
   session: any,
   ...extraRoles: unknown[]
 ): boolean {
   return hasSessionRole(
     session,
+    [...APP_MANAGER_ROLES, ...ORG_MANAGER_ROLES],
+    ...extraRoles,
+  );
+}
+
+/**
+ * Chef d’établissement (`prefet` ↔ `directeur`) + superviseur.
+ * Pas le directeur des études.
+ */
+export function isSchoolLeadershipRole(
+  session: any,
+  ...extraRoles: unknown[]
+): boolean {
+  return hasSessionRole(
+    session,
+    [ORG_ROLE.PREFET, ORG_ROLE.DIRECTEUR, ORG_ROLE.SUPERVISEUR],
+    ...extraRoles,
+  );
+}
+
+/** Directeur des études (pilotage pédagogique, sans finance). */
+export function isDirecteurEtudesRole(
+  session: any,
+  ...extraRoles: unknown[]
+): boolean {
+  return hasSessionRole(session, [ORG_ROLE.DIRECTEUR_ETUDES], ...extraRoles);
+}
+
+/**
+ * Finance (frais, paiement, rapports caisse).
+ * Chef d’établissement (préfet/directeur) + caissier + gestion org.
+ * Directeur des études exclu.
+ */
+export function canAccessFinanceArea(
+  session: any,
+  ...extraRoles: unknown[]
+): boolean {
+  return hasSessionRole(
+    session,
     [
-      APP_ROLE.OWNER,
-      APP_ROLE.ADMIN,
+      ...APP_MANAGER_ROLES,
       ORG_ROLE.OWNER,
       ORG_ROLE.GESTIONNAIRE,
       ORG_ROLE.PREFET,
       ORG_ROLE.DIRECTEUR,
-      ORG_ROLE.SUPERVISEUR,
       ORG_ROLE.CAISSIER,
     ],
     ...extraRoles,
   );
 }
+
+/**
+ * Inscription, classes, utilisateurs (hors finance) — leadership + études + gestionnaire.
+ * Nom canonique unit-00 : `canAccessPedagogyArea`.
+ */
+export function canAccessPedagogyArea(
+  session: any,
+  ...extraRoles: unknown[]
+): boolean {
+  return hasSessionRole(
+    session,
+    [
+      ...APP_MANAGER_ROLES,
+      ORG_ROLE.OWNER,
+      ORG_ROLE.GESTIONNAIRE,
+      ORG_ROLE.PREFET,
+      ORG_ROLE.DIRECTEUR,
+      ORG_ROLE.DIRECTEUR_ETUDES,
+      ORG_ROLE.SUPERVISEUR,
+    ],
+    ...extraRoles,
+  );
+}
+
+/** @deprecated Alias — préférer `canAccessPedagogyArea`. */
+export const canAccessPedagogyAdminArea = canAccessPedagogyArea;
+
+/**
+ * CRUD personnel / parents (RH).
+ * Directeur des études exclu — AC `personnel`/`parent`: read only.
+ * Accès liste / lecture : `canAccessPedagogyArea` ou `canManageOrganization`.
+ */
+export function canManageHrDirectory(
+  session: any,
+  ...extraRoles: unknown[]
+): boolean {
+  return hasSessionRole(
+    session,
+    [
+      ...APP_MANAGER_ROLES,
+      ORG_ROLE.OWNER,
+      ORG_ROLE.GESTIONNAIRE,
+      ORG_ROLE.PREFET,
+      ORG_ROLE.DIRECTEUR,
+      ORG_ROLE.SUPERVISEUR,
+    ],
+    ...extraRoles,
+  );
+}
+
+export const canManagePersonnelRecords = canManageHrDirectory;
+export const canManageParentRecords = canManageHrDirectory;
 
 /** Suppression physique d'organisation : owner plateforme uniquement. */
 export function canDeleteOrganizationResource(
@@ -125,7 +226,7 @@ export function canAccessBranchOrgSettings(
   );
 }
 
-/** Notifications dépôt-candidature : owner, propriétaire, gestionnaire, préfet, directeur. */
+/** Notifications dépôt-candidature : owner, propriétaire, gestionnaire, chef école, études. */
 export function canSeeCandidatureNotifications(
   session: any,
   ...extraRoles: unknown[]
@@ -139,12 +240,13 @@ export function canSeeCandidatureNotifications(
       ORG_ROLE.GESTIONNAIRE,
       ORG_ROLE.PREFET,
       ORG_ROLE.DIRECTEUR,
+      ORG_ROLE.DIRECTEUR_ETUDES,
     ],
     ...extraRoles,
   );
 }
 
-/** Notifications inscription-élève : owner, propriétaire, gestionnaire, caissier, directeur. */
+/** Notifications inscription-élève : owner, propriétaire, gestionnaire, caissier, chef école. */
 export function canSeeInscriptionNotifications(
   session: any,
   ...extraRoles: unknown[]
@@ -157,6 +259,7 @@ export function canSeeInscriptionNotifications(
       ORG_ROLE.OWNER,
       ORG_ROLE.GESTIONNAIRE,
       ORG_ROLE.CAISSIER,
+      ORG_ROLE.PREFET,
       ORG_ROLE.DIRECTEUR,
     ],
     ...extraRoles,
@@ -187,6 +290,10 @@ export function isOrganizationSupportRole(
   return hasSessionRole(session, [ORG_ROLE.SUPPORT, "support"], ...extraRoles);
 }
 
+/** Enseignement (horaire, notes saisie, présences) : managers (sans caissier) + teacher.
+ * Ne pas utiliser pour Finance, Classes setup, Cours, Inscription, Affectations
+ * → préférer `canAccessFinanceArea` / `canAccessPedagogyArea` (unit-06).
+ */
 export function canAccessTeachingArea(
   session: any,
   ...extraRoles: unknown[]
@@ -197,6 +304,22 @@ export function canAccessTeachingArea(
   );
 }
 
+/**
+ * Fiche centrale / Fiches classe : managers + enseignant titulaire
+ * (`teacherContext.isTitulaire` — unit-06 / TEACHER_TITULAIRE_ROLE).
+ */
+export function canAccessTitulaireFichesArea(
+  session: any,
+  ...extraRoles: unknown[]
+): boolean {
+  if (canManageOrganization(session, ...extraRoles)) return true;
+  return Boolean(session?.teacherContext?.isTitulaire);
+}
+
+/**
+ * Horaire : managers + teacher (gestion) ; student / parent en lecture année (unit-00 §3ter).
+ * Alias historique de `canAccessScheduleReadArea`.
+ */
 export function canReadScheduleArea(
   session: any,
   ...extraRoles: unknown[]
@@ -207,19 +330,44 @@ export function canReadScheduleArea(
       session,
       [
         ORG_ROLE.TEACHER,
-        ORG_ROLE.PREFET,
-        ORG_ROLE.DIRECTEUR,
-        ORG_ROLE.SUPERVISEUR,
+        ORG_ROLE.STUDENT,
+        ORG_ROLE.PARENT,
         "TEACHER",
-        "PREFET",
-        "DIRECTEUR",
-        "SUPERVISEUR",
+        "STUDENT",
+        "PARENT",
       ],
       ...extraRoles,
     )
   );
 }
 
+export const canAccessScheduleReadArea = canReadScheduleArea;
+
+/**
+ * Notes : managers + teacher (saisie via teaching) ; student / parent lecture scopée (§3ter).
+ */
+export function canAccessNotesReadArea(
+  session: any,
+  ...extraRoles: unknown[]
+): boolean {
+  return (
+    canManageOrganization(session, ...extraRoles) ||
+    hasSessionRole(
+      session,
+      [
+        ORG_ROLE.TEACHER,
+        ORG_ROLE.STUDENT,
+        ORG_ROLE.PARENT,
+        "TEACHER",
+        "STUDENT",
+        "PARENT",
+      ],
+      ...extraRoles,
+    )
+  );
+}
+
+/** Résultats / cursus : managers (sans caissier) + teacher + parent + student. */
 export function canAccessResultsArea(
   session: any,
   ...extraRoles: unknown[]
@@ -241,7 +389,7 @@ export function canAccessResultsArea(
   );
 }
 
-/** Bibliothèque : managers org + élèves. */
+/** Bibliothèque : managers org (sans caissier) + élèves. */
 export function canAccessLibraryArea(
   session: any,
   ...extraRoles: unknown[]
@@ -257,6 +405,7 @@ export function canAccessLibraryArea(
         ORG_ROLE.GESTIONNAIRE,
         ORG_ROLE.PREFET,
         ORG_ROLE.DIRECTEUR,
+        ORG_ROLE.DIRECTEUR_ETUDES,
         ORG_ROLE.SUPERVISEUR,
         ORG_ROLE.STUDENT,
         "ADMIN",

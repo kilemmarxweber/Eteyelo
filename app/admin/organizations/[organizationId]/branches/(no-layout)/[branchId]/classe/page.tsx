@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/dialog";
 import { PageHeader } from "@/components/ui/page-header";
 import { useSession } from "@/lib/auth-client";
-import { canAccessTeachingArea } from "@/lib/auth/session-roles";
+import { canAccessBranchArea } from "@/lib/auth/assert-branch-area-access";
 
 import Loading from "../loading";
 import Classes from "./components/ClassesClient";
@@ -73,7 +73,8 @@ export default function Page() {
     return <Loading />;
   }
 
-  if (!session || !canAccessTeachingArea(session)) {
+  // Setup Classes : pédagogie admin uniquement (pas enseignant — unit-06).
+  if (!session || !canAccessBranchArea("school_admin", session)) {
     return <NotFoundView />;
   }
 

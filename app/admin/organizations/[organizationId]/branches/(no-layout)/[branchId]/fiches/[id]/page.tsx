@@ -12,6 +12,12 @@ import {
 } from "@/lib/reports/resolve-school-branding";
 import FicheExportActions from "./FicheExportActions";
 import CancelInterventionButton from "./CancelInterventionButton";
+import { requireBranchContext } from "@/lib/auth/require-branch-context";
+import {
+  enforceResultsAreaAccess,
+  isCursusSelfScopedRole,
+  listAccessibleCursusStudents,
+} from "@/lib/auth/cursus-scope";
 
 export const dynamic = "force-dynamic";
 
@@ -35,6 +41,8 @@ export default async function FichePage({
   }>;
 }) {
   const { organizationId, branchId, id } = await params;
+  const { session, userId } = await requireBranchContext();
+  const role = enforceResultsAreaAccess(session);
 
   const [fiche, branch] = await Promise.all([
     prisma.fiche.findFirst({
@@ -67,6 +75,7 @@ export default async function FichePage({
     academicYearLabel: fiche.anneeName,
   });
 
+  const listHref = `/admin/organizations/${organizationId}/branches/${branchId}/fiches`;
   const validationHref = `/admin/organizations/${organizationId}/branches/${branchId}/ficheCentrales/${fiche.lessonId}?classId=${fiche.classSectionId}&periodId=${fiche.periodId}&anneeId=${fiche.anneeId}`;
 
   let notes: Note[] = [];
@@ -76,6 +85,20 @@ export default async function FichePage({
       typeof fiche.notes === "string" ? JSON.parse(fiche.notes) : fiche.notes;
   } catch (error) {
     console.error("Erreur parsing notes JSON", error);
+  }
+
+  const isSelfScoped = isCursusSelfScopedRole(role);
+  if (isSelfScoped) {
+    const accessible = await listAccessibleCursusStudents({
+      role,
+      userId,
+      branchId,
+    });
+    const allowed = new Set(accessible.map((s) => s.id));
+    notes = notes.filter((n) => allowed.has(n.studentId));
+    if (!notes.length) {
+      notFound();
+    }
   }
 
   const meta = [
@@ -93,7 +116,7 @@ export default async function FichePage({
 
   return (
     <Layout>
-      <LayoutBody className="space-y-4">
+      <LayoutBody className="flex flex-col gap-4">
         <PageHeader
           variant="compact"
           title="Fiche de cotation"
@@ -107,31 +130,36 @@ export default async function FichePage({
             </Badge>
           }
           breadcrumbs={
-            <BackLink href={validationHref} label="Validation de fiche" />
+            <BackLink
+              href={isSelfScoped ? listHref : validationHref}
+              label={isSelfScoped ? "Retour" : "Validation de fiche"}
+            />
           }
           actions={
-            <div className="flex flex-wrap items-center gap-2">
-              <FicheExportActions
-                ficheInfo={{
-                  coursName: fiche.coursName,
-                  teacher: teacherUser?.name || "N/A",
-                  anneeName: fiche.anneeName,
-                  typeFiche: fiche.typeFiche,
-                  periodeName: fiche.periodeName,
-                  classeName: fiche.classeName,
-                  dateCreated: new Date(fiche.dateCreated).toLocaleDateString(
-                    "fr-FR",
-                  ),
-                }}
-                notes={notes}
-                reportContext={reportContext}
-              />
-              <CancelInterventionButton
-                ficheId={fiche.id}
-                typeFiche={fiche.typeFiche}
-                coursName={fiche.coursName}
-              />
-            </div>
+            isSelfScoped ? undefined : (
+              <div className="flex flex-wrap items-center gap-2">
+                <FicheExportActions
+                  ficheInfo={{
+                    coursName: fiche.coursName,
+                    teacher: teacherUser?.name || "N/A",
+                    anneeName: fiche.anneeName,
+                    typeFiche: fiche.typeFiche,
+                    periodeName: fiche.periodeName,
+                    classeName: fiche.classeName,
+                    dateCreated: new Date(fiche.dateCreated).toLocaleDateString(
+                      "fr-FR",
+                    ),
+                  }}
+                  notes={notes}
+                  reportContext={reportContext}
+                />
+                <CancelInterventionButton
+                  ficheId={fiche.id}
+                  typeFiche={fiche.typeFiche}
+                  coursName={fiche.coursName}
+                />
+              </div>
+            )
           }
         />
 
@@ -159,7 +187,9 @@ export default async function FichePage({
           <CardHeader className="space-y-0 border-b bg-muted/10 px-4 py-3 lg:px-5">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
               <div className="min-w-0">
-                <CardTitle className="text-base">Notes des élèves</CardTitle>
+                <CardTitle className="text-base">
+                  {isSelfScoped ? "Ma note" : "Notes des élèves"}
+                </CardTitle>
                 <p className="mt-0.5 text-sm text-muted-foreground">
                   Cotation pour {fiche.coursName}
                 </p>

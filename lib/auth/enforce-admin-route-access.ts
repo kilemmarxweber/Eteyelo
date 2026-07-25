@@ -4,11 +4,11 @@ import {
   getOrganizationMembership,
   listAccessibleOrganizationMemberships,
 } from "@/lib/auth/org-membership";
+import { canAccessOrganizationAdminHome } from "@/lib/auth/organization-admin-home";
 import { ORGANIZATION_PICKER_PATH } from "@/lib/auth/post-login-redirect";
 import { resolveUserOrganizationFallbackPath } from "@/lib/auth/resolve-user-organization-path";
 import { getOrganizationAuthContext } from "@/lib/auth/require-organization-permission";
 import {
-  ORG_ROLE,
   isAppAdminRole,
   isPlatformOwnerRole,
   isPlatformSupportAppRole,
@@ -27,13 +27,6 @@ const UNIVERSAL_ADMIN_PREFIXES = [
 ] as const;
 
 const USER_ORG_PREFIXES = ["/ecodim", "/support", "/branch-picker"] as const;
-
-function splitRoles(value: string | null | undefined) {
-  return (value ?? "")
-    .split(",")
-    .map((role) => role.trim().toLowerCase())
-    .filter(Boolean);
-}
 
 function isUniversalAdminPath(pathname: string) {
   return UNIVERSAL_ADMIN_PREFIXES.some(
@@ -167,19 +160,13 @@ export async function enforceAdminRouteAccess(pathname: string) {
       return context;
     }
 
-    const memberRoles = splitRoles(orgMembership.role);
-    if (
-      memberRoles.includes(ORG_ROLE.OWNER) ||
-      memberRoles.includes(ORG_ROLE.GESTIONNAIRE) ||
-      memberRoles.includes(ORG_ROLE.PREFET) ||
-      memberRoles.includes(ORG_ROLE.DIRECTEUR) ||
-      memberRoles.includes(ORG_ROLE.SUPERVISEUR) ||
-      memberRoles.includes(ORG_ROLE.CAISSIER)
-    ) {
+    // Chef établissement + études + gestion : hub org OK (unit-08 / unit-09).
+    if (canAccessOrganizationAdminHome(orgMembership.role)) {
       return context;
     }
 
-    notFound();
+    // Caissier / teacher / student / parent : pas le hub org — renvoyer vers la branche.
+    redirect(fallback);
   }
 
   if (pathname.startsWith("/admin")) {

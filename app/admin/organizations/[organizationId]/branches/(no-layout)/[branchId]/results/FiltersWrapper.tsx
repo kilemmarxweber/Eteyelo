@@ -70,9 +70,12 @@ export default function FiltersWrapper({
     return data.filter((item: any) => {
       const matchClass = selectedClassIds.includes(item.classId.toString());
 
+      // Self-scoped : jamais « tous les élèves » si studentId vide (unit-10 / PDF).
       const matchStudent = selectedStudentId
         ? item.studentId === selectedStudentId
-        : true;
+        : role === "student" || role === "parent"
+          ? false
+          : true;
 
       const matchYear =
         !selectedYear || String(item.yearName) === String(selectedYear); // 🔥 FIX ICI
@@ -81,7 +84,7 @@ export default function FiltersWrapper({
         allowedPeriods.length === 0 || allowedPeriods.includes(item.periodName);
       return matchClass && matchStudent && matchYear && matchPeriod;
     });
-  }, [data, selectedClassIds, selectedStudentId, selectedYear, selectedPeriod]);
+  }, [data, selectedClassIds, selectedStudentId, selectedYear, selectedPeriod, role, allowedPeriods]);
   // ================= GROUPING (TABLE) =================
   const groupedData = useMemo(() => {
     if (!filteredData?.length) return [];

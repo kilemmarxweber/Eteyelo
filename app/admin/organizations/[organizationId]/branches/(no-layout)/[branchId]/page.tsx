@@ -1,32 +1,14 @@
 "use client";
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Layout, LayoutBody } from "@/components/custom/layout";
 import { PageHeader } from "@/components/ui/page-header";
 import { Badge } from "@/components/ui/badge";
-import { BranchStatCard } from "@/components/ui/branch-stat-card";
 import { useParams } from "next/navigation";
-import {
-  IconUsers,
-  IconSchool,
-  IconBook,
-  IconCurrencyDollar,
-  IconChartBar,
-  IconCalendar,
-  IconChalkboardTeacher,
-} from "@tabler/icons-react";
+import { IconChartBar } from "@tabler/icons-react";
 import {
   createParentFeedback,
   getBranchDashboardData,
-  getDashboardMetrics,
 } from "./admin-stats";
-import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import {
   DEFAULT_PEOPLE_LABELS,
@@ -41,8 +23,22 @@ import {
   hidesParentManagement,
   usesFinanceForBranch,
 } from "@/lib/branch-capabilities";
-import { formatReportAmountCurrencyFirst } from "@/lib/reports/format-amount";
 import { cn } from "@/lib/utils";
+import type { DashboardVariant } from "@/lib/auth/dashboard-variant";
+import {
+  getDashboardShortcuts,
+  overviewDescriptionForVariant,
+} from "./dashboard-shortcuts";
+import {
+  CashierStatsSection,
+  EventsSection,
+  ParentChildrenSection,
+  PedagogyMetricsSection,
+  SchoolStatsSection,
+  ShortcutsSection,
+  StudentIdentitySection,
+  TeacherSpaceSection,
+} from "./dashboard-sections";
 
 type AdminStats = {
   typebranch?: string | null;
@@ -72,27 +68,41 @@ type AdminStats = {
     current: number;
     percentageChange: number;
     currency?: string;
-  };
+  } | null;
 };
 
-function formatSignedPercent(value: number | undefined | null) {
-  const n = Number(value ?? 0);
-  if (!Number.isFinite(n) || n === 0) return "0%";
-  return n > 0 ? `+${n}%` : `${n}%`;
-}
+type DashboardMetrics = {
+  attendance: number;
+  attendanceCount: number;
+  successRate: number;
+  averageScore: number;
+  studentsCount: number;
+  passedCount: number;
+  satisfaction: number;
+  feedbackCount: number;
+  parentsCount: number;
+  responseRate: number;
+};
 
-function rateTone(value: number) {
-  if (value >= 75) return "bg-emerald-600";
-  if (value >= 50) return "bg-blue-600";
-  if (value >= 25) return "bg-amber-500";
-  return "bg-rose-500";
-}
+const EMPTY_METRICS: DashboardMetrics = {
+  attendance: 0,
+  attendanceCount: 0,
+  successRate: 0,
+  averageScore: 0,
+  studentsCount: 0,
+  passedCount: 0,
+  satisfaction: 0,
+  feedbackCount: 0,
+  parentsCount: 0,
+  responseRate: 0,
+};
 
 export default function AdminDashboard() {
   const params = useParams();
   const organizationId = params.organizationId as string;
   const branchId = params.branchId as string;
 
+  const [variant, setVariant] = useState<DashboardVariant>("minimal");
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [events, setEvents] = useState<any[]>([]);
@@ -100,28 +110,46 @@ export default function AdminDashboard() {
   const [selectedRating, setSelectedRating] = useState<number | null>(null);
   const [comment, setComment] = useState("");
   const [error, setError] = useState("");
-  const [metrics, setMetrics] = useState({
-    attendance: 0,
-    attendanceCount: 0,
-    successRate: 0,
-    averageScore: 0,
-    studentsCount: 0,
-    passedCount: 0,
-    satisfaction: 0,
-    feedbackCount: 0,
-    parentsCount: 0,
-    responseRate: 0,
-  });
+  const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
+  const [cashier, setCashier] = useState<{
+    todayIncome: number;
+    todayCount: number;
+    unpaidInvoices: number;
+    currency: string;
+  } | null>(null);
+  const [teacher, setTeacher] = useState<{
+    classes: { id: string; name: string }[];
+    todayCourses: {
+      id: string;
+      courseName: string;
+      className: string;
+      hour: string;
+    }[];
+    assignmentCount: number;
+  } | null>(null);
+  const [student, setStudent] = useState<{
+    name: string;
+    className: string | null;
+    schoolYear: string | null;
+  } | null>(null);
+  const [parent, setParent] = useState<{
+    children: { id: string; name: string; className: string | null }[];
+  } | null>(null);
+  const [typebranchState, setTypebranchState] = useState<string | null>(null);
 
-  const typebranch = stats?.typebranch ?? null;
+  const typebranch = stats?.typebranch ?? typebranchState ?? null;
   const peopleLabels = typebranch
     ? getPeopleLabels(typebranch)
     : DEFAULT_PEOPLE_LABELS;
   const capabilities = getBranchCapabilities(typebranch);
   const classLabelPlural = getClassDisplayLabelPlural(typebranch);
   const branchTypeLabel = getBranchTypeLabel(typebranch);
-  const showFinance = usesFinanceForBranch(typebranch);
+  const showFinanceCapability = usesFinanceForBranch(typebranch);
   const showParents = !hidesParentManagement(typebranch);
+  const showRevenue =
+    variant === "directeur" &&
+    showFinanceCapability &&
+    Boolean(stats?.revenue);
 
   useEffect(() => {
     let cancelled = false;
@@ -132,18 +160,31 @@ export default function AdminDashboard() {
         const data = await getBranchDashboardData({ branchId, organizationId });
         if (cancelled) return;
 
-        setStats(data.stats as AdminStats);
-        if (data.metrics && typeof data.metrics === "object") {
-          setMetrics((prev) => ({ ...prev, ...data.metrics }));
-        }
+        setVariant(data.variant);
+        setTypebranchState(data.typebranch ?? null);
+        setStats(
+          data.stats && typeof data.stats === "object"
+            ? (data.stats as AdminStats)
+            : null,
+        );
+        setMetrics(
+          data.metrics && typeof data.metrics === "object"
+            ? (data.metrics as DashboardMetrics)
+            : null,
+        );
         setEvents(Array.isArray(data.events) ? data.events : []);
+        setCashier(data.cashier ?? null);
+        setTeacher(data.teacher ?? null);
+        setStudent(data.student ?? null);
+        setParent(data.parent ?? null);
 
-        const type = (data.stats as AdminStats | null)?.typebranch;
+        const type = data.typebranch ?? (data.stats as AdminStats | null)?.typebranch;
         const feedback = data.feedbackStatus as
           | { showFeedbackPopup?: boolean }
           | null
           | undefined;
         if (
+          data.variant === "parent" &&
           !hidesParentManagement(type) &&
           feedback?.showFeedbackPopup
         ) {
@@ -164,50 +205,26 @@ export default function AdminDashboard() {
     };
   }, [branchId, organizationId]);
 
-  const quickActions = useMemo(() => {
-    const actions = [
-      {
-        title: `Gérer les ${peopleLabels.studentPluralLower}`,
-        description: `Ajouter, modifier ou archiver des ${peopleLabels.studentPluralLower}`,
-        icon: <IconUsers className="h-6 w-6" />,
-        href: "/admin/student",
-        color: "bg-blue-500",
-      },
-      {
-        title: `Gérer les ${classLabelPlural.toLowerCase()}`,
-        description: `Créer et organiser les ${classLabelPlural.toLowerCase()}`,
-        icon: <IconSchool className="h-6 w-6" />,
-        href: "/admin/classe",
-        color: "bg-green-500",
-      },
-      {
-        title: "Gérer les cours",
-        description: "Configurer les cours et matières",
-        icon: <IconBook className="h-6 w-6" />,
-        href: "/admin/cours",
-        color: "bg-purple-500",
-      },
-    ];
-
-    if (showFinance) {
-      actions.push({
-        title: "Gérer les frais",
-        description: capabilities.isSchoolBranch
-          ? "Configurer les frais scolaires"
-          : "Configurer les frais et paiements",
-        icon: <IconCurrencyDollar className="h-6 w-6" />,
-        href: "/admin/frais",
-        color: "bg-orange-500",
-      });
-    }
-
-    return actions;
-  }, [
-    peopleLabels.studentPluralLower,
-    classLabelPlural,
-    showFinance,
-    capabilities.isSchoolBranch,
-  ]);
+  const quickActions = useMemo(
+    () =>
+      getDashboardShortcuts(variant, {
+        organizationId,
+        branchId,
+        studentLabel: peopleLabels.student,
+        studentPluralLower: peopleLabels.studentPluralLower,
+        classLabelPlural,
+        showFinance: showFinanceCapability && variant === "directeur",
+      }),
+    [
+      variant,
+      organizationId,
+      branchId,
+      peopleLabels.student,
+      peopleLabels.studentPluralLower,
+      classLabelPlural,
+      showFinanceCapability,
+    ],
+  );
 
   const studentTotal = stats?.students?.total ?? 0;
   const teacherTotal = stats?.teachers?.total ?? 0;
@@ -216,21 +233,22 @@ export default function AdminDashboard() {
   const teacherActivityRate = stats?.teachers?.activityRate ?? 0;
   const classOccupancyRate = stats?.classes?.occupancyRate ?? 0;
 
-  const upcomingEvents = events
-    .filter((event) => new Date(event.dateStart).getTime() >= Date.now())
-    .sort(
-      (a, b) =>
-        new Date(a.dateStart).getTime() - new Date(b.dateStart).getTime(),
-    )
-    .slice(0, 5);
+  const overviewDescription = overviewDescriptionForVariant(
+    variant,
+    branchTypeLabel,
+    capabilities.isSchoolBranch,
+  );
 
-  const overviewDescription = capabilities.isSchoolBranch
-    ? `Vue d'ensemble de votre établissement (${branchTypeLabel})`
-    : `Vue d'ensemble de votre ${branchTypeLabel.toLowerCase()}`;
+  const showSchoolStats =
+    variant === "directeur" ||
+    variant === "prefet" ||
+    variant === "directeur_etudes";
+  const showPedagogyMetrics = showSchoolStats && metrics != null;
+  const showEvents = true;
 
   return (
     <>
-      {showFeedback && showParents ? (
+      {showFeedback && showParents && variant === "parent" ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
           <div className="w-full max-w-md min-w-[320px] flex-shrink-0 rounded-2xl bg-white p-6 text-center shadow-xl">
             <h2 className="mb-5 text-lg font-bold">
@@ -299,8 +317,6 @@ export default function AdminDashboard() {
                 setSelectedRating(null);
                 setComment("");
                 setError("");
-                const [data, err] = await getDashboardMetrics();
-                if (!err) setMetrics(data);
               }}
               className="w-full rounded-xl bg-blue-600 py-3 font-medium text-white disabled:opacity-50"
             >
@@ -326,238 +342,92 @@ export default function AdminDashboard() {
             className="mb-0 space-y-1"
           />
 
+          {showSchoolStats ? (
+            <SchoolStatsSection
+              loading={loading}
+              studentLabel={pluralizeStudentLabel(peopleLabels, studentTotal)}
+              teacherLabel={peopleLabels.teacherPlural}
+              classLabelPlural={classLabelPlural}
+              studentTotal={studentTotal}
+              teacherTotal={teacherTotal}
+              classTotal={classTotal}
+              enrollmentRate={enrollmentRate}
+              teacherActivityRate={teacherActivityRate}
+              classOccupancyRate={classOccupancyRate}
+              studentChange={stats?.students?.change?.percentage}
+              teacherChange={stats?.teachers?.change?.percentage}
+              classChange={stats?.classes?.change?.percentage}
+              showRevenue={showRevenue}
+              revenueCurrent={stats?.revenue?.current}
+              revenueCurrency={stats?.revenue?.currency}
+              revenueChange={stats?.revenue?.percentageChange}
+              selectedRatePair={stats?.selectedRatePair}
+              baseCurrency={stats?.baseCurrency}
+            />
+          ) : null}
+
+          {variant === "caissier" && cashier ? (
+            <CashierStatsSection
+              loading={loading}
+              todayIncome={cashier.todayIncome}
+              todayCount={cashier.todayCount}
+              unpaidInvoices={cashier.unpaidInvoices}
+              currency={cashier.currency}
+            />
+          ) : null}
+
+          {variant === "teacher" ? (
+            <TeacherSpaceSection
+              loading={loading}
+              classes={teacher?.classes ?? []}
+              todayCourses={teacher?.todayCourses ?? []}
+              assignmentCount={teacher?.assignmentCount ?? 0}
+            />
+          ) : null}
+
+          {variant === "student" ? (
+            <StudentIdentitySection
+              loading={loading}
+              name={student?.name ?? null}
+              className={student?.className ?? null}
+              schoolYear={student?.schoolYear ?? null}
+              studentLabel={peopleLabels.student}
+            />
+          ) : null}
+
+          {variant === "parent" ? (
+            <ParentChildrenSection
+              loading={loading}
+              children={parent?.children ?? []}
+            />
+          ) : null}
+
+          <ShortcutsSection actions={quickActions} />
+
           <div
             className={cn(
-              "grid gap-4 sm:grid-cols-2",
-              showFinance ? "xl:grid-cols-4" : "xl:grid-cols-3",
+              "grid gap-4",
+              showPedagogyMetrics ? "md:grid-cols-2" : "md:grid-cols-1",
             )}
           >
-            <BranchStatCard
-              label={pluralizeStudentLabel(peopleLabels, studentTotal)}
-              value={loading ? "—" : studentTotal}
-              description={`${enrollmentRate}% inscrits · ${formatSignedPercent(stats?.students?.change?.percentage)} vs mois dernier`}
-              icon={IconUsers}
-            />
-            <BranchStatCard
-              label={peopleLabels.teacherPlural}
-              value={loading ? "—" : teacherTotal}
-              description={`${teacherActivityRate}% actifs · ${formatSignedPercent(stats?.teachers?.change?.percentage)} vs mois dernier`}
-              icon={IconChalkboardTeacher}
-            />
-            <BranchStatCard
-              label={classLabelPlural}
-              value={loading ? "—" : classTotal}
-              description={`${classOccupancyRate}% occupés · ${formatSignedPercent(stats?.classes?.change?.percentage)} vs mois dernier`}
-              icon={IconSchool}
-            />
-            {showFinance ? (
-              <BranchStatCard
-                label={`Revenus (${stats?.revenue?.currency ?? stats?.baseCurrency ?? "…"})`}
-                value={
-                  loading
-                    ? "—"
-                    : formatReportAmountCurrencyFirst(
-                        Number(stats?.revenue?.current ?? 0),
-                        stats?.revenue?.currency ??
-                          stats?.baseCurrency ??
-                          "USD",
-                      )
-                }
-                description={
-                  stats?.selectedRatePair
-                    ? `Base ${stats.selectedRatePair} · ${formatSignedPercent(stats?.revenue?.percentageChange)} vs mois dernier`
-                    : `${formatSignedPercent(stats?.revenue?.percentageChange)} vs mois dernier`
-                }
-                icon={IconCurrencyDollar}
+            {showEvents ? (
+              <EventsSection
+                branchTypeLabel={branchTypeLabel}
+                events={events}
               />
             ) : null}
-          </div>
 
-          <div
-            className={cn(
-              "grid gap-4 md:grid-cols-2",
-              quickActions.length >= 4 ? "lg:grid-cols-4" : "lg:grid-cols-3",
-            )}
-          >
-            {quickActions.map((action) => (
-              <Link key={action.href} href={action.href}>
-                <Card className="cursor-pointer transition-shadow hover:shadow-md">
-                  <CardHeader className="flex flex-row items-center space-y-0 pb-2">
-                    <div
-                      className={`rounded-lg p-2 text-white ${action.color}`}
-                    >
-                      {action.icon}
-                    </div>
-                    <CardTitle className="ml-3 text-sm font-medium">
-                      {action.title}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-xs text-muted-foreground">
-                      {action.description}
-                    </p>
-                  </CardContent>
-                </Card>
-              </Link>
-            ))}
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-2">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <IconCalendar className="h-5 w-5" />
-                  Prochains événements
-                </CardTitle>
-                <CardDescription>
-                  Événements à venir dans votre {branchTypeLabel.toLowerCase()}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {upcomingEvents.length > 0 ? (
-                    upcomingEvents.map((event) => {
-                      const eventDate = new Date(event.dateStart);
-                      const diffDays = Math.ceil(
-                        (eventDate.getTime() - Date.now()) /
-                          (1000 * 60 * 60 * 24),
-                      );
-
-                      return (
-                        <div
-                          key={event.id}
-                          className="flex items-center justify-between"
-                        >
-                          <div>
-                            <p className="text-sm font-medium">{event.title}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {eventDate.toLocaleDateString("fr-FR", {
-                                day: "numeric",
-                                month: "long",
-                                year: "numeric",
-                              })}
-                            </p>
-                          </div>
-                          <Badge variant="outline">
-                            {diffDays === 0
-                              ? "Aujourd'hui"
-                              : `Dans ${diffDays} jour${diffDays > 1 ? "s" : ""}`}
-                          </Badge>
-                        </div>
-                      );
-                    })
-                  ) : (
-                    <p className="text-sm text-muted-foreground">
-                      Aucun événement à venir
-                    </p>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <IconChartBar className="h-5 w-5" />
-                  Métriques de performance
-                </CardTitle>
-                <CardDescription>
-                  Indicateurs clés — {branchTypeLabel}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div>
-                    <div className="mb-2 flex items-center justify-between">
-                      <span className="text-sm font-medium">
-                        Taux de présence
-                      </span>
-                      <span className="text-sm text-muted-foreground">
-                        {metrics.attendanceCount > 0
-                          ? `${metrics.attendance}%`
-                          : "—"}
-                      </span>
-                    </div>
-                    <div className="h-2 w-full rounded-full bg-muted">
-                      <div
-                        className={cn(
-                          "h-2 rounded-full transition-all",
-                          rateTone(metrics.attendance),
-                        )}
-                        style={{
-                          width: `${Math.min(100, Math.max(0, metrics.attendance))}%`,
-                        }}
-                      />
-                    </div>
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      {metrics.attendanceCount > 0
-                        ? `${metrics.attendanceCount} pointages (présent + retard)`
-                        : "Aucune présence enregistrée pour le moment"}
-                    </p>
-                  </div>
-
-                  <div>
-                    <div className="mb-2 flex items-center justify-between">
-                      <span className="text-sm font-medium">
-                        Moyenne générale
-                      </span>
-                      <span className="text-sm text-muted-foreground">
-                        {metrics.studentsCount > 0
-                          ? `${metrics.averageScore}%`
-                          : "—"}
-                      </span>
-                    </div>
-                    <div className="h-2 w-full rounded-full bg-muted">
-                      <div
-                        className={cn(
-                          "h-2 rounded-full transition-all",
-                          rateTone(metrics.averageScore),
-                        )}
-                        style={{
-                          width: `${Math.min(100, Math.max(0, metrics.averageScore))}%`,
-                        }}
-                      />
-                    </div>
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      {metrics.studentsCount > 0
-                        ? `Réussite ${metrics.successRate}% · ${metrics.passedCount}/${metrics.studentsCount} ${pluralizeStudentLabelLower(peopleLabels, metrics.studentsCount)} ≥ 50%`
-                        : "Aucune cote enregistrée pour le moment"}
-                    </p>
-                  </div>
-
-                  {showParents ? (
-                    <div>
-                      <div className="mb-2 flex items-center justify-between">
-                        <span className="text-sm font-medium">
-                          Satisfaction parents
-                        </span>
-                        <span className="text-sm text-muted-foreground">
-                          {metrics.feedbackCount > 0
-                            ? `${metrics.satisfaction}%`
-                            : "—"}
-                        </span>
-                      </div>
-                      <div className="h-2 w-full rounded-full bg-muted">
-                        <div
-                          className={cn(
-                            "h-2 rounded-full transition-all",
-                            rateTone(metrics.satisfaction),
-                          )}
-                          style={{
-                            width: `${Math.min(100, Math.max(0, metrics.satisfaction))}%`,
-                          }}
-                        />
-                      </div>
-                      <p className="mt-1 text-xs text-muted-foreground">
-                        {metrics.feedbackCount > 0
-                          ? `${metrics.feedbackCount} avis · réponse du mois ${metrics.responseRate}% (${metrics.parentsCount} parents)`
-                          : "Aucun avis parent ce mois — popup à la 1ʳᵉ connexion"}
-                      </p>
-                    </div>
-                  ) : null}
-                </div>
-              </CardContent>
-            </Card>
+            {showPedagogyMetrics ? (
+              <PedagogyMetricsSection
+                branchTypeLabel={branchTypeLabel}
+                showParents={showParents}
+                metrics={metrics ?? EMPTY_METRICS}
+                studentsLabelLower={pluralizeStudentLabelLower(
+                  peopleLabels,
+                  metrics?.studentsCount ?? 0,
+                )}
+              />
+            ) : null}
           </div>
         </LayoutBody>
       </Layout>

@@ -8,9 +8,9 @@ import { Card } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
 import { IconChartBar } from "@tabler/icons-react";
 import { ORG_ROLE } from "@/lib/permissions";
+import { assertBranchAreaAccess } from "@/lib/auth/assert-branch-area-access";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
 import {
-  canAccessResultsArea,
   canManageOrganization,
   hasSessionRole,
 } from "@/lib/auth/session-roles";
@@ -20,9 +20,7 @@ export const dynamic = "force-dynamic";
 const ResultListPage = async () => {
   const { session, userId: currentUserId, branchId } =
     await requireBranchContext();
-  if (!canAccessResultsArea(session)) {
-    notFound();
-  }
+  await assertBranchAreaAccess("results", session);
 
   const canManage = canManageOrganization(session);
   const role = canManage
@@ -61,6 +59,7 @@ const ResultListPage = async () => {
   let classData: any[] = [];
 
   // ================= STUDENT =================
+  // Unit-10 : uniquement soi — pas le listing camarades (ni PDF classement).
   if (role === "student") {
     const studentAffectation = await prisma.classEnrollment.findFirst({
       where: {
@@ -74,6 +73,7 @@ const ResultListPage = async () => {
             classEnrollment: {
               where: {
                 branchId,
+                studentId: selectedStudentId,
                 schoolYear: { isCurrentYear: true, branchId },
               },
               include: {
@@ -203,9 +203,18 @@ const ResultListPage = async () => {
           include: {
             classe: {
               include: {
+                // Unit-10 : pas de listing camarades — enfants liés seulement.
                 classEnrollment: {
                   where: {
                     branchId,
+                    student: {
+                      parent: {
+                        branchMember: {
+                          branchId,
+                          member: { userId: currentUserId },
+                        },
+                      },
+                    },
                     schoolYear: { isCurrentYear: true, branchId },
                   },
                   include: {
@@ -254,8 +263,10 @@ const ResultListPage = async () => {
   }
 
   if (role === "teacher") {
+    // Classes concernées via affectations actives (unit-06 ; scoping fin unit-10).
     const teachings = await prisma.teaching.findMany({
       where: {
+        OR: [{ statusTeaching: true }, { statusTeaching: null }],
         teacher: {
           branchMember: {
             branchId,
@@ -264,13 +275,17 @@ const ResultListPage = async () => {
             },
           },
         },
-        OR: [
-          { branchId },
+        AND: [
           {
-            branchId: null,
-            classe: {
-              branchId,
-            },
+            OR: [
+              { branchId },
+              {
+                branchId: null,
+                classe: {
+                  branchId,
+                },
+              },
+            ],
           },
         ],
       },
@@ -300,13 +315,22 @@ const ResultListPage = async () => {
             },
             teaching: {
               where: {
-                OR: [
-                  { branchId },
+                OR: [{ statusTeaching: true }, { statusTeaching: null }],
+                teacher: {
+                  branchMember: {
+                    branchId,
+                    member: { userId: currentUserId },
+                  },
+                },
+                AND: [
                   {
-                    branchId: null,
-                    classe: {
-                      branchId,
-                    },
+                    OR: [
+                      { branchId },
+                      {
+                        branchId: null,
+                        classe: { branchId },
+                      },
+                    ],
                   },
                 ],
               },
@@ -346,9 +370,11 @@ const ResultListPage = async () => {
   const parentStudentIds = new Set(parentStudents.map((ps) => ps.id));
   const students = classData.flatMap((c) =>
     (c.classEnrollment ?? [])
-      .filter((sa: any) =>
-        role === "parent" ? parentStudentIds.has(sa.student.id) : true,
-      )
+      .filter((sa: any) => {
+        if (role === "student") return sa.student.id === selectedStudentId;
+        if (role === "parent") return parentStudentIds.has(sa.student.id);
+        return true;
+      })
       .map((sa: any) => ({
         studentUser: sa.student.branchMember?.member?.user,
         studentid: sa.student.id,

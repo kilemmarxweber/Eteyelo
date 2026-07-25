@@ -5,13 +5,13 @@ import FraissList from "../[classeId]/components/fraisTable";
 import { useRefresh } from "@/src/hooks/RefreshContext";
 import { IconList } from "@tabler/icons-react";
 import { useSession } from "@/lib/auth-client";
-import { canAccessTeachingArea } from "@/lib/auth/session-roles";
+import { canAccessFinanceArea } from "@/lib/auth/session-roles";
 
 export default function FraisClient({ classeId }: { classeId: string }) {
   const { refreshKey } = useRefresh();
   const { data: session } = useSession();
 
-  if (!canAccessTeachingArea(session)) {
+  if (!canAccessFinanceArea(session)) {
     return null;
   }
 

@@ -1,17 +1,12 @@
-import { notFound } from "next/navigation";
-
+import { assertBranchAreaAccess } from "@/lib/auth/assert-branch-area-access";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
-import { canAccessTeachingArea } from "@/lib/auth/session-roles";
 import { isUniversiteBranch } from "@/lib/branch-capabilities";
 
 import Cours from "./components/coursClient";
 
 export default async function Page() {
   const { session, typebranch } = await requireBranchContext();
-
-  if (!canAccessTeachingArea(session)) {
-    notFound();
-  }
+  await assertBranchAreaAccess("school_admin", session);
 
   return (
     <Cours

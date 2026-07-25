@@ -2,7 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
-import { requireBranchContext } from "@/lib/auth/require-branch-context";
+import { requireFinanceBranchContext } from "@/lib/auth/require-branch-context";
 import type { Prisma } from "@/prisma/generated/prisma/client";
 import { action } from "@/lib/zsa";
 import {
@@ -123,7 +123,7 @@ function revalidateFraisPages(organizationId: string, branchId: string) {
 export const createTypeFraisAction = action
   .input(typeFraisSchema)
   .handler(async ({ input }) => {
-    const { branchId, organizationId } = await requireBranchContext();
+    const { branchId, organizationId } = await requireFinanceBranchContext();
     const { nameType, description, statusType } = input;
     const codeType = await ensureUniqueIdentifier({
       base: generateCode(nameType, "TYPE", 16),
@@ -163,7 +163,7 @@ export const createTypeFraisAction = action
 export const updateTypeFraisAction = action
   .input(typeFraisSchema)
   .handler(async ({ input }) => {
-    const { branchId, organizationId } = await requireBranchContext();
+    const { branchId, organizationId } = await requireFinanceBranchContext();
     const { id, nameType, description, statusType } = input;
 
     if (!id) {
@@ -206,7 +206,7 @@ export const updateTypeFraisAction = action
 
 export const getTypeFraisAction = action.handler(
   async (): Promise<ITypeFrais[]> => {
-    const { branchId } = await requireBranchContext();
+    const { branchId } = await requireFinanceBranchContext();
     const typeFrais = await prisma.typeFrais.findMany({
       where: {
         statusType: true,
@@ -229,7 +229,7 @@ export const getTypeFraisAction = action.handler(
 
 export const getTypeFraisSettingsAction = action.handler(
   async (): Promise<ITypeFrais[]> => {
-    const { branchId } = await requireBranchContext();
+    const { branchId } = await requireFinanceBranchContext();
     const typeFrais = await prisma.typeFrais.findMany({
       where: {
         branchId,
@@ -252,7 +252,7 @@ export const getTypeFraisSettingsAction = action.handler(
 export const createFraisAction = action
   .input(fraisSchema)
   .handler(async ({ input }) => {
-    const { branchId, organizationId } = await requireBranchContext();
+    const { branchId, organizationId } = await requireFinanceBranchContext();
     const {
       nameFrais,
       montantFrais,
@@ -316,7 +316,7 @@ export const createFraisAction = action
 export const archiveFrais = action
   .input(deleteFraisSchema)
   .handler(async ({ input }) => {
-    const { branchId, organizationId } = await requireBranchContext();
+    const { branchId, organizationId } = await requireFinanceBranchContext();
 
     const frais = await prisma.frais.findFirst({
       where: {
@@ -347,7 +347,7 @@ export const deleteFrais = archiveFrais;
 export const updateFraisAction = action
   .input(fraisSchema)
   .handler(async ({ input }) => {
-    const { branchId, organizationId } = await requireBranchContext();
+    const { branchId, organizationId } = await requireFinanceBranchContext();
     const {
       id,
       nameFrais,
@@ -420,7 +420,7 @@ export const getFraisAction = action
       .optional(),
   )
   .handler(async ({ input }): Promise<IFrais[]> => {
-    const { branchId } = await requireBranchContext();
+    const { branchId } = await requireFinanceBranchContext();
     const schoolYear = input?.schoolYearId
       ? await prisma.schoolYear.findFirst({
           where: {
@@ -454,7 +454,7 @@ export const getFraisAction = action
 export const getFraisByClassAction = action
   .input(z.object({ classeId: z.string() }))
   .handler(async ({ input }): Promise<IFrais[]> => {
-    const { branchId } = await requireBranchContext();
+    const { branchId } = await requireFinanceBranchContext();
     const currentYear = await getCurrentBranchSchoolYear(branchId);
     const classe = await requireClasseInBranch(input.classeId, branchId);
 
@@ -478,7 +478,7 @@ export const getFraisByClassAction = action
 export const statusFraisAction = action
   .input(fraisSchema)
   .handler(async ({ input }) => {
-    const { branchId, organizationId } = await requireBranchContext();
+    const { branchId, organizationId } = await requireFinanceBranchContext();
     const { id, statusFrais } = input;
 
     if (!id) {
@@ -507,7 +507,7 @@ export const statusFraisAction = action
 export const getFraisByStudent = action
   .input(z.object({ studentId: z.string() }))
   .handler(async ({ input }): Promise<IFrais[]> => {
-    const { branchId } = await requireBranchContext();
+    const { branchId } = await requireFinanceBranchContext();
     const currentYear = await getCurrentBranchSchoolYear(branchId);
 
     const classEnrollments = await prisma.classEnrollment.findMany({
@@ -544,7 +544,7 @@ export const getFraisByStudent = action
 export const calculateFraisBalanceAction = action
   .input(z.object({ fraisId: z.string(), studentId: z.string() }))
   .handler(async ({ input }) => {
-    const { branchId } = await requireBranchContext();
+    const { branchId } = await requireFinanceBranchContext();
     const { fraisId, studentId } = input;
 
     const frais = await prisma.frais.findFirst({
@@ -593,7 +593,7 @@ export const calculateFraisBalanceAction = action
   });
 
 export const getFraisClassSidebarAction = action.handler(async () => {
-  const { branchId, organizationId } = await requireBranchContext();
+  const { branchId, organizationId } = await requireFinanceBranchContext();
   const currentYear = await getSchoolYearForBranch(branchId);
 
   const [classes, counts] = await Promise.all([

@@ -8,12 +8,13 @@ import { Card } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
 import { IconChartBar } from "@tabler/icons-react";
 import { getSchoolYear } from "@/lib/school-year";
-import { ORG_ROLE } from "@/lib/permissions";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
 import {
-  canManageOrganization,
-  hasSessionRole,
-} from "@/lib/auth/session-roles";
+  enforceResultsAreaAccess,
+  isCursusSelfScopedRole,
+  listAccessibleCursusStudents,
+  resolveScopedCursusStudent,
+} from "@/lib/auth/cursus-scope";
 
 export const dynamic = "force-dynamic";
 
@@ -26,7 +27,7 @@ const StudentResultPage = async ({
     branchId: string;
     id: string;
   }>;
-  searchParams: Promise<{ studentId: string; period: string }>;
+  searchParams: Promise<{ studentId?: string; period?: string }>;
 }) => {
   const { organizationId, branchId: branchIdParam, id } = await params;
 
@@ -36,29 +37,32 @@ const StudentResultPage = async ({
   const subjectName = decodeURIComponent(id);
   const { session, userId, branchId, typebranch } = await requireBranchContext();
   const listHref = `/admin/organizations/${organizationId}/branches/${branchIdParam}/results`;
-  const canManage = canManageOrganization(session);
-  const role = canManage
-    ? "admin"
-    : hasSessionRole(session, [ORG_ROLE.PARENT, "PARENT"])
-      ? "parent"
-      : hasSessionRole(session, [ORG_ROLE.STUDENT, "STUDENT"])
-        ? "student"
-        : "guest";
-  const currentUserId = userId;
+  const role = enforceResultsAreaAccess(session);
 
-  if (role === "guest") {
-    notFound();
-  }
-
-  // ✅ déterminer les studentIds selon rôle
+  // studentIds scopés (unit-05) — jamais un autre élève via ?studentId=
   let targetStudentIds: string[] = [];
 
-  if (role === "admin") {
+  if (role === "admin" || role === "teacher") {
     targetStudentIds = [];
-  } else if (role === "parent") {
-    if (studentId) targetStudentIds = [studentId];
+  } else if (isCursusSelfScopedRole(role)) {
+    const accessible = await listAccessibleCursusStudents({
+      role,
+      userId,
+      branchId,
+    });
+    if (studentId) {
+      const scoped = await resolveScopedCursusStudent({
+        role,
+        userId,
+        branchId,
+        requestedStudentId: studentId,
+      });
+      targetStudentIds = [scoped.id];
+    } else {
+      targetStudentIds = accessible.map((s) => s.id);
+    }
   } else {
-    if (currentUserId) targetStudentIds = [currentUserId];
+    notFound();
   }
 
   // ✅ récupérer les fiches (sans filtre period ici)
@@ -104,12 +108,11 @@ const StudentResultPage = async ({
       notesParsed = [];
     }
 
-    // ✅ filtre par student
     const notesToShow =
-      role === "admin"
+      role === "admin" || role === "teacher"
         ? studentId
           ? notesParsed.filter((n) => n.studentId === studentId)
-          : notesParsed // 🔥 admin voit tout si pas de studentId
+          : notesParsed
         : notesParsed.filter((n) => targetStudentIds.includes(n.studentId));
     if (!notesToShow.length) return [];
 

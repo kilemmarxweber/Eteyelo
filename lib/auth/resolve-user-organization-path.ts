@@ -13,6 +13,7 @@ import { APP_ROLE, ORG_ROLE } from "@/lib/permissions";
 const ECODIM_ORG_ROLES = new Set<string>([
   ORG_ROLE.DIRECTEUR,
   ORG_ROLE.PREFET,
+  ORG_ROLE.DIRECTEUR_ETUDES,
   ORG_ROLE.SUPERVISEUR,
 ]);
 

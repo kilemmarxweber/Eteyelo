@@ -1,7 +1,7 @@
 import { randomUUID } from "crypto";
 import { hashPassword } from "better-auth/crypto";
 import { prisma } from "@/lib/prisma";
-import { APP_ROLE, ORG_ROLE } from "@/lib/permissions";
+import { ALL_ORG_ROLE_SLUGS, APP_ROLE, ORG_ROLE } from "@/lib/permissions";
 
 const DEFAULT_OWNER_EMAIL = "owner@eteyelo.cd";
 const DEFAULT_OWNER_PASSWORD = "Owner123!";
@@ -52,6 +52,17 @@ export type MigrateOrganizationRolesReport = {
     toRole: string;
   }>;
   obsoleteOrganizationRolesRemoved: number;
+  /**
+   * Lignes OrganizationRole pour des slugs presets (caissier, prefet, …).
+   * Better Auth Dynamic AC **fusionne** ces permissions avec les presets code :
+   * un override stale peut ré-élargir le caissier après correctif unit-02.
+   * On les retire pour que `organizationRoleStatements` soit la source de vérité.
+   */
+  presetOrganizationRoleOverridesCleared: Array<{
+    id: string;
+    organizationId: string;
+    role: string;
+  }>;
   superAdminPromotions: SuperAdminPromotion[];
   duplicateMembershipsRemoved: DuplicateMembershipCleanup[];
   platformOwnerCreated: boolean;
@@ -255,6 +266,8 @@ export async function migrateOrganizationRoles(
   const organizationRoleSlugRenames: MigrateOrganizationRolesReport["organizationRoleSlugRenames"] =
     [];
   let obsoleteOrganizationRolesRemoved = 0;
+  const presetOrganizationRoleOverridesCleared: MigrateOrganizationRolesReport["presetOrganizationRoleOverridesCleared"] =
+    [];
   const superAdminPromotions: SuperAdminPromotion[] = [];
   const duplicateMembershipsRemoved: DuplicateMembershipCleanup[] = [];
   let ownerMembershipsRemoved = 0;
@@ -397,6 +410,39 @@ export async function migrateOrganizationRoles(
         data: { role: nextSlug },
       });
     }
+  }
+
+  // Dynamic AC : overrides DB des presets → merge union avec le code.
+  // Retirer les lignes pour les slugs connus afin d’appliquer unit-02 (caissier restreint, etc.).
+  const presetRoleOverrides = await prisma.organizationRole.findMany({
+    where: {
+      role: {
+        in: [...ALL_ORG_ROLE_SLUGS],
+      },
+    },
+    select: {
+      id: true,
+      organizationId: true,
+      role: true,
+    },
+  });
+
+  for (const override of presetRoleOverrides) {
+    presetOrganizationRoleOverridesCleared.push({
+      id: override.id,
+      organizationId: override.organizationId,
+      role: override.role,
+    });
+  }
+
+  if (presetOrganizationRoleOverridesCleared.length > 0 && !dryRun) {
+    await prisma.organizationRole.deleteMany({
+      where: {
+        id: {
+          in: presetOrganizationRoleOverridesCleared.map((row) => row.id),
+        },
+      },
+    });
   }
 
   const legacySuperAdmins = await prisma.user.findMany({
@@ -549,6 +595,7 @@ export async function migrateOrganizationRoles(
     legacySlugConversions,
     organizationRoleSlugRenames,
     obsoleteOrganizationRolesRemoved,
+    presetOrganizationRoleOverridesCleared,
     superAdminPromotions,
     duplicateMembershipsRemoved,
     platformOwnerCreated,
@@ -599,6 +646,14 @@ export function formatMigrationReport(report: MigrateOrganizationRolesReport) {
   lines.push(
     `OrganizationRole obsolete supprimes: ${report.obsoleteOrganizationRolesRemoved}`,
   );
+  lines.push(
+    `Overrides Dynamic AC presets retires: ${report.presetOrganizationRoleOverridesCleared.length}`,
+  );
+  for (const item of report.presetOrganizationRoleOverridesCleared) {
+    lines.push(
+      `  - org ${item.organizationId}: role preset "${item.role}" (id ${item.id})`,
+    );
+  }
   lines.push("");
   lines.push(
     `Promotions super admin -> owner: ${report.superAdminPromotions.length}`,

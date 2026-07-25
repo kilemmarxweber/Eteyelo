@@ -4,9 +4,11 @@ import {
   buildBranchPickerPath,
 } from "@/lib/auth/user-branch-access";
 
+/** Leadership école + études : post-login `/ecodim` (pas forcé branche comme caissier). */
 const ECODIM_ORG_ROLES = new Set<string>([
   ORG_ROLE.DIRECTEUR,
   ORG_ROLE.PREFET,
+  ORG_ROLE.DIRECTEUR_ETUDES,
   ORG_ROLE.SUPERVISEUR,
 ]);
 

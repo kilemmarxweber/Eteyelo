@@ -19,12 +19,14 @@ import { buildOrganizationsApiPayload } from "../lib/auth/post-login-routing";
 import {
   APP_ROLE,
   ORG_ROLE,
+  ORGANIZATION_ROLE_GROUPS,
   applicationRoleStatements,
   isAppAdminRole,
   isOrganizationManagerAppRole,
   isPlatformOwnerRole,
   isPlatformSupportAppRole,
   organizationRoleStatements,
+  organizationRoles,
 } from "../lib/permissions";
 import { isOrganizationOwnerSession } from "../lib/auth/session-roles";
 import { OWNER_ONLY_MENU_ROLES } from "../lib/sidebar-menu";
@@ -291,22 +293,73 @@ test("owner/gestionnaire org ont member:create sans user:create admin", () => {
   );
 });
 
-test("nouveaux roles org exposes avec actions 1A", () => {
+test("nouveaux roles org exposes avec actions 1A / unit-02", () => {
   assert.deepEqual(
     organizationRoleStatements[ORG_ROLE.PREFET].member,
     ["create", "read", "update"],
+  );
+  assert.deepEqual(
+    organizationRoleStatements[ORG_ROLE.PREFET].personnel,
+    ["create", "read", "update"],
+  );
+  assert.deepEqual(organizationRoleStatements[ORG_ROLE.PREFET].parent, [
+    "create",
+    "read",
+    "update",
+  ]);
+  assert.equal(
+    organizationRoleStatements[ORG_ROLE.PREFET].organization?.includes(
+      "update",
+    ) ?? false,
+    false,
   );
   assert.deepEqual(
     organizationRoleStatements[ORG_ROLE.DIRECTEUR].member,
     ["create", "read", "update"],
   );
   assert.deepEqual(
+    organizationRoleStatements[ORG_ROLE.DIRECTEUR].personnel,
+    ["create", "read", "update"],
+  );
+  assert.equal(
+    organizationRoleStatements[ORG_ROLE.DIRECTEUR].organization?.includes(
+      "update",
+    ) ?? false,
+    false,
+  );
+  assert.deepEqual(
+    organizationRoleStatements[ORG_ROLE.DIRECTEUR_ETUDES].personnel,
+    ["read"],
+  );
+  assert.deepEqual(organizationRoleStatements[ORG_ROLE.DIRECTEUR_ETUDES].parent, [
+    "read",
+  ]);
+  assert.ok(
+    organizationRoleStatements[ORG_ROLE.DIRECTEUR_ETUDES].teacher?.includes(
+      "create",
+    ),
+  );
+  assert.deepEqual(
     organizationRoleStatements[ORG_ROLE.SUPERVISEUR].member,
     ["create", "read", "update", "delete"],
   );
-  assert.deepEqual(
-    organizationRoleStatements[ORG_ROLE.CAISSIER].member,
-    ["create", "read", "update"],
+  assert.deepEqual(organizationRoleStatements[ORG_ROLE.CAISSIER].member, [
+    "read",
+  ]);
+  assert.deepEqual(organizationRoleStatements[ORG_ROLE.CAISSIER].inscription, [
+    "share",
+  ]);
+  assert.equal(
+    organizationRoleStatements[ORG_ROLE.CAISSIER].schedule,
+    undefined,
+  );
+  assert.equal(
+    organizationRoleStatements[ORG_ROLE.CAISSIER].personnel,
+    undefined,
+  );
+  assert.equal(
+    organizationRoleStatements[ORG_ROLE.CAISSIER].teacher,
+    undefined,
   );
   assert.equal(
     organizationRoleStatements[ORG_ROLE.CAISSIER].member?.includes("delete"),
@@ -326,18 +379,92 @@ test("nouveaux roles org exposes avec actions 1A", () => {
   );
 });
 
-test("caissier a member create+update comme owner/gestionnaire (sans delete)", () => {
-  for (const role of [
-    ORG_ROLE.OWNER,
-    ORG_ROLE.GESTIONNAIRE,
-    ORG_ROLE.CAISSIER,
-  ]) {
+test("caissier n'a plus CRU pedagogique (unit-02)", () => {
+  const caissier = organizationRoles[ORG_ROLE.CAISSIER];
+  assert.equal(
+    caissier.authorize({ schedule: ["create"] }).success,
+    false,
+  );
+  assert.equal(
+    caissier.authorize({ personnel: ["update"] }).success,
+    false,
+  );
+  assert.equal(caissier.authorize({ teacher: ["create"] }).success, false);
+  assert.equal(caissier.authorize({ branch: ["update"] }).success, false);
+  assert.equal(caissier.authorize({ member: ["read"] }).success, true);
+  assert.equal(
+    caissier.authorize({ inscription: ["share"] }).success,
+    true,
+  );
+});
+
+test("prefet / directeur restent operationnels inscription / classes", () => {
+  for (const role of [ORG_ROLE.PREFET, ORG_ROLE.DIRECTEUR] as const) {
+    const statements = organizationRoleStatements[role];
+    assert.ok(statements.inscription?.includes("create"), `${role} inscription:create`);
+    assert.ok(statements.inscription?.includes("update"), `${role} inscription:update`);
+    assert.ok(statements.schedule?.includes("create"), `${role} schedule:create`);
+    assert.ok(statements.teacher?.includes("update"), `${role} teacher:update`);
+    assert.ok(statements.member?.includes("create"), `${role} member:create`);
+    assert.ok(
+      statements.personnel?.includes("create"),
+      `${role} personnel:create (chef établissement)`,
+    );
+  }
+  assert.equal(
+    organizationRoleStatements[ORG_ROLE.DIRECTEUR_ETUDES].personnel?.includes(
+      "create",
+    ) ?? false,
+    false,
+  );
+});
+
+test("groupe Acces branche coherent avec statements caissier/teacher/student/parent", () => {
+  const branchGroup = ORGANIZATION_ROLE_GROUPS.find((g) => g.id === "branch");
+  assert.ok(branchGroup);
+  assert.deepEqual(
+    [...branchGroup!.slugs],
+    [
+      ORG_ROLE.TEACHER,
+      ORG_ROLE.CAISSIER,
+      ORG_ROLE.PARENT,
+      ORG_ROLE.STUDENT,
+    ],
+  );
+  assert.equal(
+    organizationRoleStatements[ORG_ROLE.CAISSIER].organization?.includes(
+      "update",
+    ) ?? false,
+    false,
+  );
+  assert.ok(
+    organizationRoleStatements[ORG_ROLE.TEACHER].teacher?.includes("create"),
+  );
+  assert.ok(
+    organizationRoleStatements[ORG_ROLE.STUDENT].member?.includes("read"),
+  );
+  assert.ok(
+    organizationRoleStatements[ORG_ROLE.PARENT].member?.includes("read"),
+  );
+  assert.equal(
+    organizationRoleStatements[ORG_ROLE.TEACHER].teacher?.includes("delete") ??
+      false,
+    false,
+  );
+});
+
+test("owner/gestionnaire gardent member create+update ; caissier lecture seule", () => {
+  for (const role of [ORG_ROLE.OWNER, ORG_ROLE.GESTIONNAIRE]) {
     const member = organizationRoleStatements[role].member;
     assert.ok(member?.includes("create"), `${role} member:create`);
     assert.ok(member?.includes("update"), `${role} member:update`);
   }
+  assert.deepEqual(organizationRoleStatements[ORG_ROLE.CAISSIER].member, [
+    "read",
+  ]);
   assert.equal(
-    organizationRoleStatements[ORG_ROLE.CAISSIER].member?.includes("delete"),
+    organizationRoleStatements[ORG_ROLE.CAISSIER].member?.includes("create") ??
+      false,
     false,
   );
   assert.equal(

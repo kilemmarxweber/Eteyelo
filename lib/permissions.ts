@@ -65,8 +65,21 @@ export function hasPlatformSupportPrivileges(
 export const ORG_ROLE = {
   OWNER: "owner",
   GESTIONNAIRE: "gestionnaire",
+  /**
+   * Chef d’établissement — alias secondaire/humanités de `directeur`.
+   * Mêmes permissions (pédagogie + finance + RH).
+   */
   PREFET: "prefet",
+  /**
+   * Chef d’établissement — alias primaire de `prefet`.
+   * Mêmes permissions (pédagogie + finance + RH).
+   */
   DIRECTEUR: "directeur",
+  /**
+   * Directeur des études : pilotage pédagogique (enseignants / enseignement),
+   * sans finance ni CRUD RH personnel/parents.
+   */
+  DIRECTEUR_ETUDES: "directeur_etudes",
   TEACHER: "teacher",
   SUPERVISEUR: "superviseur",
   CAISSIER: "caissier",
@@ -75,11 +88,18 @@ export const ORG_ROLE = {
   SUPPORT: "support",
 } as const;
 
+/** Chef d’établissement : `prefet` ↔ `directeur` (libellé selon type d’école). */
+export const SCHOOL_HEAD_ORG_ROLES = [
+  ORG_ROLE.PREFET,
+  ORG_ROLE.DIRECTEUR,
+] as const;
+
 export const ALL_ORG_ROLE_SLUGS = [
   ORG_ROLE.OWNER,
   ORG_ROLE.GESTIONNAIRE,
   ORG_ROLE.PREFET,
   ORG_ROLE.DIRECTEUR,
+  ORG_ROLE.DIRECTEUR_ETUDES,
   ORG_ROLE.TEACHER,
   ORG_ROLE.SUPERVISEUR,
   ORG_ROLE.CAISSIER,
@@ -121,10 +141,10 @@ const ORG_BUSINESS_RESOURCES = [
 ] as const;
 
 /**
- * Applique le même jeu d’actions CRUD sur les ressources métier org
- * et, quand applicable, sur les ressources Better Auth.
+ * Actions métier (membres, branches, pédagogie, inscription) sans droits
+ * d’administration org Better Auth (organization / invitation / team / ac).
  */
-function withActions(actions: readonly CrudAction[]): StatementShape {
+function withBusinessActions(actions: readonly CrudAction[]): StatementShape {
   const actionSet = new Set(actions);
   const shape: Record<string, readonly string[]> = {};
 
@@ -141,6 +161,19 @@ function withActions(actions: readonly CrudAction[]): StatementShape {
   if (inscriptionActions.length > 0) {
     shape.inscription = inscriptionActions;
   }
+
+  return shape as StatementShape;
+}
+
+/**
+ * Applique le même jeu d’actions CRUD sur les ressources métier org
+ * et, quand applicable, sur les ressources Better Auth.
+ */
+function withActions(actions: readonly CrudAction[]): StatementShape {
+  const actionSet = new Set(actions);
+  const shape: Record<string, readonly string[]> = {
+    ...withBusinessActions(actions),
+  };
 
   // Hard-delete d'organisation = APP_ROLE.OWNER uniquement (hors withActions).
   // Les rôles org peuvent update (ex. archiver via l'app) mais jamais organization:delete.
@@ -234,11 +267,25 @@ export const organizationRoleStatements: Record<string, StatementShape> = {
     organizationSupport: ["create", "read", "update"],
     platformEscalation: ["read"],
   },
+  /**
+   * Préfet / Directeur (chef d’établissement) : CRU métier branche + RH.
+   * Sans droits d’admin org (archive / invitations / AC dynamique).
+   * Finance gated par helpers session (pas de ressource AC dédiée).
+   */
   [ORG_ROLE.PREFET]: {
-    ...withActions(CRU_ACTIONS),
+    ...withBusinessActions(CRU_ACTIONS),
   },
   [ORG_ROLE.DIRECTEUR]: {
-    ...withActions(CRU_ACTIONS),
+    ...withBusinessActions(CRU_ACTIONS),
+  },
+  /**
+   * Directeur des études : CRU pédagogique (teacher / schedule / inscription).
+   * `personnel` / `parent` en lecture seule — pas finance.
+   */
+  [ORG_ROLE.DIRECTEUR_ETUDES]: {
+    ...withBusinessActions(CRU_ACTIONS),
+    personnel: ["read"],
+    parent: ["read"],
   },
   [ORG_ROLE.TEACHER]: {
     ...organizationPluginMemberAc.statements,
@@ -247,9 +294,18 @@ export const organizationRoleStatements: Record<string, StatementShape> = {
   [ORG_ROLE.SUPERVISEUR]: {
     ...withActions(CRUD_ACTIONS),
   },
+  /**
+   * Caissier : accès branche minimal (member:read + inscription:share).
+   * Pas de CRU sur schedule / personnel / teacher / parent / branch.
+   *
+   * Finance : aucune ressource `finance` / `paiement` dans
+   * `accessControlStatements` — reportée. Encaissements gated par helpers
+   * session + pages (unit-01 / unit-04 / unit-09), pas par un statement AC.
+   */
   [ORG_ROLE.CAISSIER]: {
     ...organizationPluginMemberAc.statements,
-    ...withActions(CRU_ACTIONS),
+    member: ["read"],
+    inscription: ["share"],
   },
   [ORG_ROLE.STUDENT]: {
     ...organizationPluginMemberAc.statements,
@@ -318,6 +374,7 @@ export const ORGANIZATION_ROLE_GROUPS = [
       ORG_ROLE.GESTIONNAIRE,
       ORG_ROLE.PREFET,
       ORG_ROLE.DIRECTEUR,
+      ORG_ROLE.DIRECTEUR_ETUDES,
       ORG_ROLE.SUPERVISEUR,
     ],
   },

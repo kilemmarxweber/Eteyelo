@@ -7,6 +7,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { Badge } from "@/components/ui/badge";
 import { auth } from "@/lib/auth";
 import {
+  canAccessFinanceArea,
   canManageOrganization,
   hasSessionRole,
 } from "@/lib/auth/session-roles";
@@ -94,6 +95,10 @@ const SingleStudentPage = async ({
   });
 
   const canReadAll = canManageOrganization(session, currentBranchMember?.role);
+  const canViewFinance = canAccessFinanceArea(
+    session,
+    currentBranchMember?.role,
+  );
 
   const branch = await prisma.branch.findFirst({
     where: { id: branchId, organizationId },
@@ -328,95 +333,98 @@ const SingleStudentPage = async ({
 
   const formattedFees: StudentProfileFee[] = [];
   const paymentsByFrais = new Map<string, number>();
+  let baseCurrency = "USD";
 
-  for (const payment of enrollment?.paiement ?? []) {
-    if (payment.status !== "VALIDE") continue;
-    const fraisId = payment.fraisId;
-    paymentsByFrais.set(
-      fraisId,
-      (paymentsByFrais.get(fraisId) ?? 0) + safeNumber(payment.amount),
-    );
-  }
-
-  const [classFrais, exchangeRates] = await Promise.all([
-    classe?.id && currentYear?.id
-      ? prisma.frais.findMany({
-          where: {
-            branchId,
-            classeId: classe.id,
-            statusFrais: true,
-            schoolYearId: currentYear.id,
-          },
-          include: {
-            typeFrais: true,
-          },
-          orderBy: [{ priority: "asc" }, { nameFrais: "asc" }],
-        })
-      : Promise.resolve([]),
-    prisma.exchangeRate.findMany({
-      where: { organizationId, isActive: true },
-      select: {
-        fromCurrency: true,
-        toCurrency: true,
-        rate: true,
-        isActive: true,
-        isSelected: true,
-      },
-    }),
-  ]);
-
-  const baseCurrency = getBaseCurrency(exchangeRates);
-
-  if (classFrais.length > 0) {
-    for (const frais of classFrais) {
-      const amountDue = safeNumber(frais.montantFrais);
-      const amountPaid = paymentsByFrais.get(frais.id) ?? 0;
-      const remaining = Math.max(amountDue - amountPaid, 0);
-
-      formattedFees.push({
-        id: frais.id,
-        label: frais.nameFrais,
-        typeFrais: frais.typeFrais?.nameType ?? "",
-        amountDue,
-        amountPaid,
-        remaining,
-        isPaid: remaining <= 0,
-      });
-    }
-  } else {
-    const fraisFromPayments = new Map<
-      string,
-      {
-        label: string;
-        typeFrais: string;
-        amountDue: number;
-      }
-    >();
-
+  if (canViewFinance) {
     for (const payment of enrollment?.paiement ?? []) {
-      if (!payment.frais) continue;
-
-      fraisFromPayments.set(payment.fraisId, {
-        label: payment.frais.nameFrais ?? "Frais",
-        typeFrais: payment.frais.typeFrais?.nameType ?? "",
-        amountDue: safeNumber(payment.frais.montantFrais),
-      });
+      if (payment.status !== "VALIDE") continue;
+      const fraisId = payment.fraisId;
+      paymentsByFrais.set(
+        fraisId,
+        (paymentsByFrais.get(fraisId) ?? 0) + safeNumber(payment.amount),
+      );
     }
 
-    for (const [fraisId, frais] of fraisFromPayments) {
-      const amountDue = frais.amountDue;
-      const amountPaid = paymentsByFrais.get(fraisId) ?? 0;
-      const remaining = Math.max(amountDue - amountPaid, 0);
+    const [classFrais, exchangeRates] = await Promise.all([
+      classe?.id && currentYear?.id
+        ? prisma.frais.findMany({
+            where: {
+              branchId,
+              classeId: classe.id,
+              statusFrais: true,
+              schoolYearId: currentYear.id,
+            },
+            include: {
+              typeFrais: true,
+            },
+            orderBy: [{ priority: "asc" }, { nameFrais: "asc" }],
+          })
+        : Promise.resolve([]),
+      prisma.exchangeRate.findMany({
+        where: { organizationId, isActive: true },
+        select: {
+          fromCurrency: true,
+          toCurrency: true,
+          rate: true,
+          isActive: true,
+          isSelected: true,
+        },
+      }),
+    ]);
 
-      formattedFees.push({
-        id: fraisId,
-        label: frais.label,
-        typeFrais: frais.typeFrais,
-        amountDue,
-        amountPaid,
-        remaining,
-        isPaid: remaining <= 0,
-      });
+    baseCurrency = getBaseCurrency(exchangeRates);
+
+    if (classFrais.length > 0) {
+      for (const frais of classFrais) {
+        const amountDue = safeNumber(frais.montantFrais);
+        const amountPaid = paymentsByFrais.get(frais.id) ?? 0;
+        const remaining = Math.max(amountDue - amountPaid, 0);
+
+        formattedFees.push({
+          id: frais.id,
+          label: frais.nameFrais,
+          typeFrais: frais.typeFrais?.nameType ?? "",
+          amountDue,
+          amountPaid,
+          remaining,
+          isPaid: remaining <= 0,
+        });
+      }
+    } else {
+      const fraisFromPayments = new Map<
+        string,
+        {
+          label: string;
+          typeFrais: string;
+          amountDue: number;
+        }
+      >();
+
+      for (const payment of enrollment?.paiement ?? []) {
+        if (!payment.frais) continue;
+
+        fraisFromPayments.set(payment.fraisId, {
+          label: payment.frais.nameFrais ?? "Frais",
+          typeFrais: payment.frais.typeFrais?.nameType ?? "",
+          amountDue: safeNumber(payment.frais.montantFrais),
+        });
+      }
+
+      for (const [fraisId, frais] of fraisFromPayments) {
+        const amountDue = frais.amountDue;
+        const amountPaid = paymentsByFrais.get(fraisId) ?? 0;
+        const remaining = Math.max(amountDue - amountPaid, 0);
+
+        formattedFees.push({
+          id: fraisId,
+          label: frais.label,
+          typeFrais: frais.typeFrais,
+          amountDue,
+          amountPaid,
+          remaining,
+          isPaid: remaining <= 0,
+        });
+      }
     }
   }
 
@@ -595,6 +603,7 @@ const SingleStudentPage = async ({
     enrollmentDateLabel: formatStudentBadgeDate(enrollment?.createdAt),
     image: user.image,
     canManageStudents: canReadAll,
+    canViewFinance,
     parentFullName,
     parentPhone: parentUser?.telephone ?? "-",
     parentEmail: parentUser?.email ?? "-",

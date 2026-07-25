@@ -4,8 +4,7 @@ import { revalidatePath } from "next/cache";
 import { action } from "@/lib/zsa";
 import z from "zod";
 import { paiementSchema, StatusPaiement } from "@/src/interfaces/Paiement";
-import { requireBranchContext } from "@/lib/auth/require-branch-context";
-import { canManageOrganization } from "@/lib/auth/session-roles";
+import { requireFinanceBranchContext } from "@/lib/auth/require-branch-context";
 import { randomUUID } from "node:crypto";
 import { Prisma, CurrencyCode } from "@/prisma/generated/prisma/client";
 import {
@@ -200,7 +199,7 @@ export async function getFraisWithBalance(
   fraisIds: string[],
   parentId?: string,
 ) {
-  const { branchId: activeBranchId } = await requireBranchContext();
+  const { branchId: activeBranchId } = await requireFinanceBranchContext();
   const discount = parentId
     ? await getBestDiscountInfo(prisma, parentId, activeBranchId)
     : EMPTY_DISCOUNT;
@@ -277,7 +276,7 @@ export const createPaiementAction = action
       throw new Error("❌ Montant invalide");
     }
 
-    const { branchId, organizationId } = await requireBranchContext();
+    const { branchId, organizationId } = await requireFinanceBranchContext();
     const {
       rates: exchangeRates,
       baseCurrency,
@@ -871,7 +870,7 @@ export const createCashierExpenseAction = action
   )
   .handler(async ({ input }) => {
     const { amount, description, category } = input;
-    const { branchId, organizationId } = await requireBranchContext();
+    const { branchId, organizationId } = await requireFinanceBranchContext();
 
     const result = await prisma.$transaction(async (tx) => {
       const reference = buildUniqueReference("EXP");
@@ -920,7 +919,7 @@ export const getCashierReportAction = action
     }),
   )
   .handler(async ({ input }) => {
-    const { branchId } = await requireBranchContext();
+    const { branchId } = await requireFinanceBranchContext();
     
     const start = input.startDate ? new Date(input.startDate) : new Date();
     start.setHours(0, 0, 0, 0);
@@ -1033,11 +1032,7 @@ export const getCashierReportAction = action
   });
 
 export const getCashierReportContextAction = action.handler(async () => {
-  const { branchId, organizationId, session } = await requireBranchContext();
-
-  if (!canManageOrganization(session)) {
-    throw new Error("Action non autorisée");
-  }
+  const { branchId, organizationId } = await requireFinanceBranchContext();
 
   const [branch, { rates, baseCurrency, quoteCurrency, selectedRate }] =
     await Promise.all([
@@ -1064,11 +1059,7 @@ export const getCashierReportContextAction = action.handler(async () => {
 
 /** Branding reçu / aperçu HTML — même source que le PDF post-paiement. */
 export const getPaymentReportContextAction = action.handler(async () => {
-  const { branchId, organizationId, session } = await requireBranchContext();
-
-  if (!canManageOrganization(session)) {
-    throw new Error("Action non autorisée");
-  }
+  const { branchId, organizationId } = await requireFinanceBranchContext();
 
   const [branch, { rates, baseCurrency, quoteCurrency, selectedRate }] =
     await Promise.all([
@@ -1097,7 +1088,7 @@ export const getPaymentReportContextAction = action.handler(async () => {
    GET ALL PAYMENTS
 ====================================================== */
 export const getAllPaiementAction = action.handler(async () => {
-  const { branchId } = await requireBranchContext();
+  const { branchId } = await requireFinanceBranchContext();
   const paiements = await prisma.familyPayment.findMany({
     where: { branchId },
     include: {
@@ -1176,7 +1167,7 @@ export const statusPaiementAction = action
     }),
   )
   .handler(async ({ input }) => {
-    const { branchId, organizationId } = await requireBranchContext();
+    const { branchId, organizationId } = await requireFinanceBranchContext();
     const existing = await prisma.familyPayment.findFirst({
       where: { id: input.id, branchId },
       select: { id: true },
@@ -1202,7 +1193,7 @@ export const updatePaiementAction = action
     }),
   )
   .handler(async ({ input }) => {
-    const { branchId, organizationId } = await requireBranchContext();
+    const { branchId, organizationId } = await requireFinanceBranchContext();
     const { id, amount, modePaiement, status } = input;
 
     const existing = await prisma.familyPayment.findFirst({
@@ -1243,7 +1234,7 @@ export const updatePaiementAction = action
 export const deletePaiementAction = action
   .input(z.object({ id: z.string() }))
   .handler(async ({ input }) => {
-    const { branchId, organizationId } = await requireBranchContext();
+    const { branchId, organizationId } = await requireFinanceBranchContext();
     const existing = await prisma.familyPayment.findFirst({
       where: { id: input.id, branchId },
       select: { id: true },
@@ -1265,7 +1256,7 @@ export const deletePaiementAction = action
 export const getPaiementsByStudentAction = action
   .input(z.object({ studentId: z.string() }))
   .handler(async ({ input }) => {
-    const { branchId } = await requireBranchContext();
+    const { branchId } = await requireFinanceBranchContext();
     const paiements = await prisma.familyPayment.findMany({
       where: {
         branchId,
@@ -1298,7 +1289,7 @@ export const getPaiementsByStudentAction = action
 export const getUnpaidFraisAction = action
   .input(z.object({ studentId: z.string() }))
   .handler(async ({ input }) => {
-    const { branchId } = await requireBranchContext();
+    const { branchId } = await requireFinanceBranchContext();
     const enrollments = await prisma.classEnrollment.findMany({
       where: { studentId: input.studentId, branchId },
       include: {
@@ -1346,7 +1337,7 @@ export const getUnpaidFraisAction = action
 export const calculateStudentBalanceAction = action
   .input(z.object({ studentId: z.string() }))
   .handler(async ({ input }) => {
-    const { branchId } = await requireBranchContext();
+    const { branchId } = await requireFinanceBranchContext();
     const enrollments = await prisma.classEnrollment.findMany({
       where: { studentId: input.studentId, branchId },
       include: {
@@ -1383,7 +1374,7 @@ export const calculateStudentBalanceAction = action
 export const generatePaymentReceiptAction = action
   .input(z.object({ paiementId: z.string() }))
   .handler(async ({ input }) => {
-    const { branchId } = await requireBranchContext();
+    const { branchId } = await requireFinanceBranchContext();
     const paiement = await prisma.familyPayment.findFirst({
       where: { id: input.paiementId, branchId },
       include: {
@@ -1453,7 +1444,7 @@ export type Family = {
 export async function searchFamilyAction(query: string): Promise<Family[]> {
   if (!query || query.length < 2) return [];
 
-  const { branchId } = await requireBranchContext();
+  const { branchId } = await requireFinanceBranchContext();
 
   const matched = await prisma.student.findMany({
     where: {
@@ -1678,11 +1669,7 @@ function resolveUnpaidFinancialStatus(
 }
 
 export const getUnpaidReportContextAction = action.handler(async () => {
-  const { branchId, organizationId, session } = await requireBranchContext();
-
-  if (!canManageOrganization(session)) {
-    throw new Error("Action non autorisée");
-  }
+  const { branchId, organizationId } = await requireFinanceBranchContext();
 
   const [branch, { rates, baseCurrency, quoteCurrency }] = await Promise.all([
     prisma.branch.findFirst({
@@ -1711,7 +1698,7 @@ export const getUnpaidReportAction = action
     }),
   )
   .handler(async ({ input }) => {
-    const { branchId, organizationId } = await requireBranchContext();
+    const { branchId, organizationId } = await requireFinanceBranchContext();
 
     const classeId = input.classeId?.trim() || null;
     let schoolYearId = input.schoolYearId?.trim() || null;

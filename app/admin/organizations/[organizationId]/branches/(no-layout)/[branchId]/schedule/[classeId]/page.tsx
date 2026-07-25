@@ -1,20 +1,38 @@
-"use client";
-
-import { useRefresh } from "@/src/hooks/RefreshContext";
-import Schedule from "./components/schedule";
-import { use } from "react";
+import { notFound } from "next/navigation";
 import { IconCalendarTime } from "@tabler/icons-react";
 
-export default function Teaching({
+import { requireBranchContext } from "@/lib/auth/require-branch-context";
+import {
+  enforceScheduleAreaAccess,
+  isCursusSelfScopedRole,
+} from "@/lib/auth/cursus-scope";
+import {
+  canAccessTeachingArea,
+  canManageOrganization,
+} from "@/lib/auth/session-roles";
+import ScheduleEditorClient from "./schedule-editor-client";
+
+export const dynamic = "force-dynamic";
+
+export default async function ScheduleClassePage({
   params,
 }: {
   params: Promise<{ classeId: string }>;
 }) {
-  const { classeId } = use(params);
-  const { refreshKey } = useRefresh();
+  const { classeId } = await params;
+  const { session } = await requireBranchContext();
+  const role = enforceScheduleAreaAccess(session);
+
+  // Élève / parent : pas d'horaire d'une autre classe via URL (unit-05).
+  if (
+    isCursusSelfScopedRole(role) ||
+    (!canManageOrganization(session) && !canAccessTeachingArea(session))
+  ) {
+    notFound();
+  }
 
   return (
-    <div className="flex h-full min-h-0 flex-col space-y-4">
+    <div className="flex h-full min-h-0 flex-col gap-4">
       <div className="flex items-center gap-2 text-muted-foreground">
         <IconCalendarTime size={18} />
         <span className="text-sm">
@@ -23,7 +41,7 @@ export default function Teaching({
         </span>
       </div>
       <div className="min-h-0 flex-1">
-        <Schedule classeId={classeId} mode="create" key={refreshKey} />
+        <ScheduleEditorClient classeId={classeId} />
       </div>
     </div>
   );

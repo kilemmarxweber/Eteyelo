@@ -15,6 +15,7 @@ import { BranchStatCard } from "@/components/ui/branch-stat-card";
 import { Card } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
 import { useSession } from "@/lib/auth-client";
+import { canAccessBranchArea } from "@/lib/auth/assert-branch-area-access";
 
 import Loading from "../loading";
 import UserList from "./components/ParentsTable";
@@ -64,7 +65,9 @@ export default function Parents() {
   }, []);
 
   if (isPending) return <Loading />;
-  if (!session) return <NotFoundView />;
+  if (!session || !canAccessBranchArea("hr_directory", session)) {
+    return <NotFoundView />;
+  }
 
   const yearRatio = stats.totalParents
     ? Math.round((stats.parentsCurrentYear / stats.totalParents) * 100)

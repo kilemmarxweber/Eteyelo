@@ -1,13 +1,11 @@
-"use client";
+import { assertBranchAreaAccess } from "@/lib/auth/assert-branch-area-access";
+import TeachingSectionLayout from "./teaching-section-layout";
 
-import { NotFoundView } from "@/components/not-found-view";
-import { useSession } from "@/lib/auth-client";
-import { canAccessTeachingArea } from "@/lib/auth/session-roles";
-import Loading from "../loading";
-
-export default function TeachingLayout({ children }: { children: React.ReactNode }) {
-  const { data: session, isPending } = useSession();
-  if (isPending) return <Loading />;
-  if (!canAccessTeachingArea(session)) return <NotFoundView />;
-  return children;
+export default async function TeachingLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  await assertBranchAreaAccess("pedagogy");
+  return <TeachingSectionLayout>{children}</TeachingSectionLayout>;
 }

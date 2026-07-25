@@ -92,6 +92,17 @@ const authOptions = {
   },
   baseURL: process.env.BETTER_AUTH_URL ?? "http://localhost:3000",
   secret: process.env.BETTER_AUTH_SECRET,
+  // Autorise :3001 quand Next bascule de port (Origin ≠ BETTER_AUTH_URL).
+  trustedOrigins: [
+    process.env.BETTER_AUTH_URL,
+    process.env.NEXT_PUBLIC_BETTER_AUTH_URL,
+    "http://localhost:3000",
+    "http://localhost:3001",
+    "http://127.0.0.1:3000",
+    "http://127.0.0.1:3001",
+  ].filter((origin, index, all): origin is string => {
+    return Boolean(origin) && all.indexOf(origin) === index;
+  }),
   emailAndPassword: {
     enabled: true,
     autoSignIn: false,

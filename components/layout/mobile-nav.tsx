@@ -65,6 +65,7 @@ const ecodimNavItems: NavItem[] = [
 const ECODIM_ORG_ROLES = new Set([
   ORG_ROLE.DIRECTEUR,
   ORG_ROLE.PREFET,
+  ORG_ROLE.DIRECTEUR_ETUDES,
   ORG_ROLE.SUPERVISEUR,
 ]);
 

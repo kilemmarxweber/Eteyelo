@@ -1,12 +1,10 @@
-"use client";
+import { assertBranchAreaAccess } from "@/lib/auth/assert-branch-area-access";
 
-
-export default function Layout({ children, }: Readonly<{
-    children: React.ReactNode;
-}>) {
-    return (
-        <div>
-            {children}
-        </div>
-    )
+export default async function PersonnelLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  await assertBranchAreaAccess("hr_directory");
+  return children;
 }

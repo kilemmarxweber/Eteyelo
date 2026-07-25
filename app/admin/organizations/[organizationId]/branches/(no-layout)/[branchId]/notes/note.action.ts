@@ -10,6 +10,7 @@ import {
   canManageOrganization,
   hasSessionRole,
 } from "@/lib/auth/session-roles";
+import { assertClassRosterAccess } from "@/lib/auth/data-scope";
 import {
   CreateFicheParams,
   CreateFicheResult,
@@ -122,7 +123,13 @@ export async function checkExistingFiche(params: {
   typeFiche: FicheTypes;
 }) {
   try {
-    const { branchId } = await requireBranchContext();
+    const { session, userId, branchId } = await requireBranchContext();
+    await assertClassRosterAccess({
+      session,
+      userId,
+      branchId,
+      classId: params.classId,
+    });
 
     const existing = await prisma.fiche.findFirst({
       where: {
@@ -162,6 +169,15 @@ export async function createFiche(
       await requireBranchContext();
     const canManage = canManageOrganization(session);
     const isTeacher = hasSessionRole(session, [ORG_ROLE.TEACHER, "TEACHER"]);
+
+    if (!canManage && !isTeacher) {
+      return {
+        success: false,
+        error: true,
+        message:
+          "Vous n'êtes pas autorisé à créer ou modifier une fiche pour cette classe.",
+      };
+    }
 
     const periodRecord = await listBranchPeriodOptions({ branchId, typebranch });
     const selectedPeriod = periodRecord.find((p) => p.id === data.periodId);

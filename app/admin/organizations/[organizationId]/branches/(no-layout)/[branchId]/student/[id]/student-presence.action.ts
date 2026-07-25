@@ -2,6 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
+import { assertStudentReadableInBranch } from "@/lib/auth/data-scope";
 import { AttendanceStatus } from "@/prisma/generated/prisma/client";
 import {
   ATTENDANCE_STATUS_LABELS,
@@ -160,7 +161,13 @@ export async function getStudentPresenceReportAction(
   studentId: string,
   filters: AttendanceReportFilters = {},
 ): Promise<StudentPresenceReport> {
-  const { branchId } = await requireBranchContext();
+  const { branchId, session, userId } = await requireBranchContext();
+  await assertStudentReadableInBranch({
+    session,
+    userId,
+    branchId,
+    studentId,
+  });
   const { start, end } = getDateRange(filters);
   const statusFilter =
     filters.status && filters.status !== "ALL" ? filters.status : undefined;

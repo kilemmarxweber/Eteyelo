@@ -13,7 +13,7 @@ import {
   stashAdminCreatedUserPlainPassword,
 } from "@/lib/admin-created-user-password";
 import { generateSecurePassword } from "@/lib/generate-password";
-import { canManageOrganization } from "@/lib/auth/session-roles";
+import { canManageParentRecords } from "@/lib/auth/session-roles";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
 import {
   buildSchoolReportContext,
@@ -39,7 +39,7 @@ export async function getCurrentBranch() {
     branchId,
     organizationId,
     userId,
-    canManageParents: canManageOrganization(session, branchMember?.role),
+    canManageParents: canManageParentRecords(session, branchMember?.role),
   };
 }
 

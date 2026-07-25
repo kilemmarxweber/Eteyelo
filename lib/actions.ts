@@ -17,6 +17,10 @@ import { auth } from "@/lib/auth";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
 import { listBranchPeriodOptions } from "@/lib/academic-periods";
 import { canManageOrganization } from "@/lib/auth/session-roles";
+import {
+  assertClassRosterAccess,
+  assertTitulaireClassAccess,
+} from "@/lib/auth/data-scope";
 import { getSchoolYear as getCurrentSchoolYear } from "@/lib/school-year";
 import {
   getCoursePonderationMap,
@@ -205,7 +209,8 @@ export async function getStudentsByClass(
   classId: string,
   schoolYearId?: string,
 ) {
-  const { branchId } = await requireBranchContext();
+  const { session, userId, branchId } = await requireBranchContext();
+  await assertClassRosterAccess({ session, userId, branchId, classId });
   const classe = await prisma.classe.findFirst({
     where: {
       id: classId,
@@ -566,7 +571,8 @@ type FicheResult = {
 export async function getLessonsWithFichesByClass(
   classId: string,
 ): Promise<FicheResult[]> {
-  const { branchId } = await requireBranchContext();
+  const { session, userId, branchId } = await requireBranchContext();
+  await assertClassRosterAccess({ session, userId, branchId, classId });
   const currentYear = await prisma.schoolYear.findFirst({
     where: {
       isCurrentYear: true,
@@ -645,8 +651,17 @@ export async function checkExistingFiche(params: {
   typeFiche: FicheTypes;
 }) {
   try {
+    const { session, userId, branchId } = await requireBranchContext();
+    await assertClassRosterAccess({
+      session,
+      userId,
+      branchId,
+      classId: params.classId,
+    });
+
     const existing = await prisma.fiche.findFirst({
       where: {
+        branchId,
         teacherId: params.teacherId,
         classSectionId: params.classId,
         lessonId: params.lessonId,
@@ -705,8 +720,17 @@ export async function getFicheCentraleSummary(params: {
   periodId: number;
   anneeId: string;
 }): Promise<FicheCentraleSummary | null> {
+  const { session, userId, branchId } = await requireBranchContext();
+  await assertTitulaireClassAccess({
+    session,
+    userId,
+    branchId,
+    classId: params.classId,
+  });
+
   const fiches = await prisma.fiche.findMany({
     where: {
+      branchId,
       lessonId: params.lessonId,
       classSectionId: params.classId,
       periodId: params.periodId,
@@ -735,6 +759,7 @@ export async function getFicheCentraleSummary(params: {
 
   const ficheCote = await prisma.fiche.findFirst({
     where: {
+      branchId,
       lessonId: params.lessonId,
       classSectionId: params.classId,
       periodId: params.periodId,
@@ -861,6 +886,14 @@ export async function validateFicheCentrale(params: {
   periodId: number;
   anneeId: string;
 }) {
+  const { session, userId, branchId } = await requireBranchContext();
+  await assertTitulaireClassAccess({
+    session,
+    userId,
+    branchId,
+    classId: params.classId,
+  });
+
   const summary = await getFicheCentraleSummary(params);
 
   if (!summary) {
@@ -926,6 +959,7 @@ export async function validateFicheCentrale(params: {
 
   await prisma.fiche.updateMany({
     where: {
+      branchId,
       lessonId: params.lessonId,
       classSectionId: params.classId,
       periodId: params.periodId,

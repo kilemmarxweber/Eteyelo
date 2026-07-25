@@ -53,6 +53,8 @@ export type StudentProfileData = {
   enrollmentDateLabel: string;
   image: string | null;
   canManageStudents: boolean;
+  /** Unit-10 : onglet finances seulement si `canAccessFinanceArea`. */
+  canViewFinance: boolean;
   parentFullName: string;
   parentPhone: string;
   parentEmail: string;

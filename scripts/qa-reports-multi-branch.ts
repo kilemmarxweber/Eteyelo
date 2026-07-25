@@ -204,7 +204,7 @@ async function main() {
 
   // --- Auth côté code (refus serveur documenté) ---
   // getRapportReportContextAction → guardOrganizationAccess
-  // getCashier/Unpaid/PaymentReportContext → canManageOrganization
+  // getCashier/Unpaid/PaymentReportContext → canAccessFinanceArea
   // getResultsReportContextAction → canAccessResultsArea
   // getTeacherReportContextAction → canManageTeachers || isTeacher
   console.log(

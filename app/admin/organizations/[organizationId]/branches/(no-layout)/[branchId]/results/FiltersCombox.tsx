@@ -127,16 +127,23 @@ export default function FiltersCombox({
     }
   }, [selectedClassIds]);
 
-  // 🔥 Parent → auto select premier enfant
+  // 🔥 Parent / élève → forcer un studentId (jamais « tous » — unit-10)
   useEffect(() => {
-    if (role === "parent" && uniqueStudents.length > 0 && !selectedStudentId) {
+    if (
+      (role === "parent" || role === "student") &&
+      uniqueStudents.length > 0 &&
+      !selectedStudentId
+    ) {
       setSelectedStudentId(uniqueStudents[0].studentid);
     }
   }, [role, uniqueStudents, selectedStudentId]);
 
-  // 🔥 Parent → auto définir classe depuis student
+  // 🔥 Parent / élève → auto définir classe depuis student
   useEffect(() => {
-    if (role === "parent" && selectedStudentId) {
+    if (
+      (role === "parent" || role === "student") &&
+      selectedStudentId
+    ) {
       const student = uniqueStudents.find(
         (s) => s.studentid === selectedStudentId,
       );
@@ -145,17 +152,6 @@ export default function FiltersCombox({
       }
     }
   }, [selectedStudentId, role, uniqueStudents, setSelectedClassIds]);
-
-  // 🔥 Student → auto définir classe
-  useEffect(() => {
-    if (
-      role === "student" &&
-      uniqueClasses.length > 0 &&
-      selectedClassIds.length === 0
-    ) {
-      setSelectedClassIds([uniqueClasses[0].id.toString()]);
-    }
-  }, [role, uniqueClasses, selectedClassIds, setSelectedClassIds]);
 
   // 🔥 Période auto
   useEffect(() => {

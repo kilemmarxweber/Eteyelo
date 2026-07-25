@@ -6,12 +6,54 @@ import {
   sumBulletinMaxima,
 } from "@/lib/bulletin-maxima";
 import { countBranchStudents } from "@/lib/branch-student-count";
+import {
+  getDashboardDataBlocks,
+  resolveDashboardVariant,
+  type DashboardVariant,
+} from "@/lib/auth/dashboard-variant";
 import { getBaseCurrency } from "@/lib/exchange-rate";
 import { prisma } from "@/lib/prisma";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
+import { canAccessFinanceArea } from "@/lib/auth/session-roles";
 import { action } from "@/lib/zsa";
+import { Day } from "@/prisma/generated/prisma/client";
 import { headers } from "next/headers";
 import { z } from "zod";
+
+const EMPTY_METRICS = {
+  attendance: 0,
+  attendanceCount: 0,
+  successRate: 0,
+  averageScore: 0,
+  studentsCount: 0,
+  passedCount: 0,
+  satisfaction: 0,
+  feedbackCount: 0,
+  parentsCount: 0,
+  responseRate: 0,
+};
+
+const JS_DAY_TO_PRISMA: Day[] = [
+  Day.Dimanche,
+  Day.Lundi,
+  Day.Mardi,
+  Day.Mercredi,
+  Day.Jeudi,
+  Day.Vendredi,
+  Day.Samedi,
+];
+
+function formatPersonName(user: {
+  prenom?: string | null;
+  name?: string | null;
+  postnom?: string | null;
+} | null | undefined) {
+  if (!user) return "";
+  return [user.prenom, user.name, user.postnom]
+    .filter(Boolean)
+    .join(" ")
+    .trim();
+}
 
 const SUCCESS_THRESHOLD_PERCENT = 50;
 
@@ -132,6 +174,14 @@ export async function getAdminStats({
   organizationId,
 }: z.infer<typeof adminStatsSchema>) {
   try {
+    const { session, branchId: activeBranchId } = await requireBranchContext();
+    const blocks = getDashboardDataBlocks(resolveDashboardVariant(session));
+
+    if (!blocks.schoolStats || activeBranchId !== branchId) {
+      return { error: "UNAUTHORIZED" as const };
+    }
+
+    const includeRevenue = blocks.revenue;
     const now = new Date();
 
     const { end: endCurrent } = getMonthRange(now);
@@ -291,22 +341,26 @@ export async function getAdminStats({
       prisma.cours.count({
         where: { branchId: branch.id },
       }),
-      prisma.familyPayment.aggregate({
-        _sum: { amount: true },
-        where: {
-          branchId: branch.id,
-          status: "VALIDE",
-          createdAt: { lte: endCurrent },
-        },
-      }),
-      prisma.familyPayment.aggregate({
-        _sum: { amount: true },
-        where: {
-          branchId: branch.id,
-          status: "VALIDE",
-          createdAt: { lte: endPrev },
-        },
-      }),
+      includeRevenue
+        ? prisma.familyPayment.aggregate({
+            _sum: { amount: true },
+            where: {
+              branchId: branch.id,
+              status: "VALIDE",
+              createdAt: { lte: endCurrent },
+            },
+          })
+        : Promise.resolve({ _sum: { amount: null } }),
+      includeRevenue
+        ? prisma.familyPayment.aggregate({
+            _sum: { amount: true },
+            where: {
+              branchId: branch.id,
+              status: "VALIDE",
+              createdAt: { lte: endPrev },
+            },
+          })
+        : Promise.resolve({ _sum: { amount: null } }),
       prisma.exchangeRate.findFirst({
         where: { organizationId, isSelected: true },
         select: {
@@ -365,8 +419,12 @@ export async function getAdminStats({
     // REVENUE + DEVISE DE BASE (taux sélectionné : fromCurrency)
     // Ex. AOA → USD sélectionné ⇒ base = AOA
     // =========================
-    const revenueCurrent = revenueCurrentAgg._sum.amount ?? 0;
-    const revenuePrev = revenuePrevAgg._sum.amount ?? 0;
+    const revenueCurrent = includeRevenue
+      ? (revenueCurrentAgg._sum.amount ?? 0)
+      : 0;
+    const revenuePrev = includeRevenue
+      ? (revenuePrevAgg._sum.amount ?? 0)
+      : 0;
 
     const baseCurrency =
       selectedExchangeRate?.fromCurrency ?? getBaseCurrency(exchangeRates);
@@ -441,12 +499,14 @@ export async function getAdminStats({
 
       courses: coursesTotal,
 
-      revenue: {
-        current: revenueCurrent,
-        previous: revenuePrev,
-        percentageChange: calcPercentage(revenueCurrent, revenuePrev),
-        currency: baseCurrency,
-      },
+      revenue: includeRevenue
+        ? {
+            current: revenueCurrent,
+            previous: revenuePrev,
+            percentageChange: calcPercentage(revenueCurrent, revenuePrev),
+            currency: baseCurrency,
+          }
+        : null,
 
       attendance: 0,
     };
@@ -506,7 +566,12 @@ export async function getAdminStats({
 }
 
 export const getDashboardMetrics = action.handler(async () => {
-  const { branchId } = await requireBranchContext();
+  const { branchId, session } = await requireBranchContext();
+  const blocks = getDashboardDataBlocks(resolveDashboardVariant(session));
+
+  if (!blocks.pedagogyMetrics) {
+    throw new Error("Action non autorisée");
+  }
 
   const currentYear = await prisma.schoolYear.findFirst({
     where: { isCurrentYear: true, branchId },
@@ -514,19 +579,6 @@ export const getDashboardMetrics = action.handler(async () => {
   });
 
   const currentMonth = new Date().getMonth() + 1;
-
-  const emptyMetrics = {
-    attendance: 0,
-    attendanceCount: 0,
-    successRate: 0,
-    averageScore: 0,
-    studentsCount: 0,
-    passedCount: 0,
-    satisfaction: 0,
-    feedbackCount: 0,
-    parentsCount: 0,
-    responseRate: 0,
-  };
 
   const [attendanceResult, averagesResult, feedbackResult] =
     await Promise.allSettled([
@@ -614,38 +666,334 @@ export const getDashboardMetrics = action.handler(async () => {
     ]);
 
   return {
-    ...emptyMetrics,
+    ...EMPTY_METRICS,
     ...(attendanceResult.status === "fulfilled" ? attendanceResult.value : {}),
     ...(averagesResult.status === "fulfilled" ? averagesResult.value : {}),
     ...(feedbackResult.status === "fulfilled" ? feedbackResult.value : {}),
   };
 });
 
-/** Bundle dashboard : 1 round-trip au lieu de 4 actions. */
+async function getBranchEvents(branchId: string) {
+  const now = Date.now();
+  return prisma.calendarEvent.findMany({
+    where: {
+      branchId,
+      isArchived: false,
+      dateStart: { gte: new Date(now - 1000 * 60 * 60 * 24) },
+    },
+    select: {
+      id: true,
+      title: true,
+      dateStart: true,
+    },
+    orderBy: { dateStart: "asc" },
+    take: 8,
+  });
+}
+
+async function getCashierDashboardData(branchId: string, organizationId: string) {
+  const { session } = await requireBranchContext();
+  if (!canAccessFinanceArea(session)) {
+    throw new Error("Action non autorisée");
+  }
+
+  const start = new Date();
+  start.setHours(0, 0, 0, 0);
+  const end = new Date(start);
+  end.setDate(end.getDate() + 1);
+
+  const currentYear = await prisma.schoolYear.findFirst({
+    where: { isCurrentYear: true, branchId },
+    select: { id: true },
+  });
+
+  const [todayAgg, todayCount, unpaidCount, selectedExchangeRate, exchangeRates] =
+    await Promise.all([
+      prisma.familyPayment.aggregate({
+        _sum: { amount: true },
+        where: {
+          branchId,
+          status: "VALIDE",
+          createdAt: { gte: start, lt: end },
+        },
+      }),
+      prisma.familyPayment.count({
+        where: {
+          branchId,
+          status: "VALIDE",
+          createdAt: { gte: start, lt: end },
+        },
+      }),
+      currentYear
+        ? prisma.invoice.count({
+            where: {
+              branchId,
+              YearId: currentYear.id,
+              status: { in: ["UNPAID", "PARTIAL"] },
+            },
+          })
+        : Promise.resolve(0),
+      prisma.exchangeRate.findFirst({
+        where: { organizationId, isSelected: true },
+        select: { fromCurrency: true },
+      }),
+      prisma.exchangeRate.findMany({
+        where: { organizationId, isActive: true },
+        select: {
+          fromCurrency: true,
+          toCurrency: true,
+          rate: true,
+          isActive: true,
+          isSelected: true,
+        },
+      }),
+    ]);
+
+  return {
+    todayIncome: todayAgg._sum.amount ?? 0,
+    todayCount,
+    unpaidInvoices: unpaidCount,
+    currency:
+      selectedExchangeRate?.fromCurrency ?? getBaseCurrency(exchangeRates),
+  };
+}
+
+async function getTeacherDashboardData(branchId: string, userId: string) {
+  const teacher = await prisma.teacher.findFirst({
+    where: {
+      branchMember: {
+        branchId,
+        member: { userId },
+      },
+    },
+    select: { id: true },
+  });
+
+  if (!teacher) {
+    return {
+      classes: [] as { id: string; name: string }[],
+      todayCourses: [] as {
+        id: string;
+        courseName: string;
+        className: string;
+        hour: string;
+      }[],
+      assignmentCount: 0,
+    };
+  }
+
+  const today = JS_DAY_TO_PRISMA[new Date().getDay()]!;
+
+  const [teachings, todaySchedules] = await Promise.all([
+    prisma.teaching.findMany({
+      where: {
+        teacherId: teacher.id,
+        schoolYear: { isCurrentYear: true, branchId, isArchived: false },
+        OR: [{ statusTeaching: true }, { statusTeaching: null }],
+      },
+      select: {
+        id: true,
+        classe: { select: { id: true, nameClasse: true } },
+        cours: { select: { id: true, nameCours: true } },
+      },
+    }),
+    prisma.schedule.findMany({
+      where: {
+        day: today,
+        isArchived: false,
+        teaching: {
+          teacherId: teacher.id,
+          schoolYear: { isCurrentYear: true, branchId, isArchived: false },
+        },
+      },
+      select: {
+        id: true,
+        hour: true,
+        teaching: {
+          select: {
+            cours: { select: { nameCours: true } },
+            classe: { select: { nameClasse: true } },
+          },
+        },
+      },
+      orderBy: { hour: "asc" },
+    }),
+  ]);
+
+  const classMap = new Map<string, string>();
+  for (const teaching of teachings) {
+    if (teaching.classe?.id) {
+      classMap.set(teaching.classe.id, teaching.classe.nameClasse);
+    }
+  }
+
+  return {
+    classes: Array.from(classMap.entries()).map(([id, name]) => ({ id, name })),
+    todayCourses: todaySchedules.map((slot) => ({
+      id: slot.id,
+      courseName: slot.teaching?.cours?.nameCours ?? "Cours",
+      className: slot.teaching?.classe?.nameClasse ?? "—",
+      hour: slot.hour
+        ? new Date(slot.hour).toLocaleTimeString("fr-FR", {
+            hour: "2-digit",
+            minute: "2-digit",
+          })
+        : "—",
+    })),
+    assignmentCount: teachings.length,
+  };
+}
+
+async function getStudentDashboardData(branchId: string, userId: string) {
+  const student = await prisma.student.findFirst({
+    where: {
+      branchMember: {
+        branchId,
+        member: { userId },
+      },
+    },
+    select: {
+      id: true,
+      branchMember: {
+        select: {
+          member: {
+            select: {
+              user: {
+                select: { prenom: true, name: true, postnom: true },
+              },
+            },
+          },
+        },
+      },
+      classEnrollment: {
+        where: {
+          branchId,
+          statusEnrollment: true,
+          schoolYear: { isCurrentYear: true, branchId },
+        },
+        take: 1,
+        select: {
+          classe: { select: { nameClasse: true } },
+          schoolYear: { select: { nameYear: true } },
+        },
+      },
+    },
+  });
+
+  if (!student) return null;
+
+  const enrollment = student.classEnrollment[0];
+  return {
+    studentId: student.id,
+    name: formatPersonName(student.branchMember?.member?.user),
+    className: enrollment?.classe?.nameClasse ?? null,
+    schoolYear: enrollment?.schoolYear?.nameYear ?? null,
+  };
+}
+
+async function getParentDashboardData(branchId: string, userId: string) {
+  const children = await prisma.student.findMany({
+    where: {
+      branchMember: { branchId },
+      parent: {
+        branchMember: {
+          branchId,
+          member: { userId },
+        },
+      },
+    },
+    select: {
+      id: true,
+      branchMember: {
+        select: {
+          member: {
+            select: {
+              user: {
+                select: { prenom: true, name: true, postnom: true },
+              },
+            },
+          },
+        },
+      },
+      classEnrollment: {
+        where: {
+          branchId,
+          statusEnrollment: true,
+          schoolYear: { isCurrentYear: true, branchId },
+        },
+        take: 1,
+        select: {
+          classe: { select: { nameClasse: true } },
+        },
+      },
+    },
+  });
+
+  return {
+    children: children.map((child) => ({
+      id: child.id,
+      name: formatPersonName(child.branchMember?.member?.user),
+      className: child.classEnrollment[0]?.classe?.nameClasse ?? null,
+    })),
+  };
+}
+
+/** Bundle dashboard : blocs chargés selon la variante de rôle (unit-03b). */
 export async function getBranchDashboardData(params: {
   branchId: string;
   organizationId: string;
 }) {
-  const now = Date.now();
+  const { session, branchId, organizationId, userId, typebranch } =
+    await requireBranchContext();
 
-  const [stats, metricsResult, events, feedbackTuple] = await Promise.all([
-    getAdminStats(params),
-    getDashboardMetrics(),
-    prisma.calendarEvent.findMany({
-      where: {
-        branchId: params.branchId,
-        isArchived: false,
-        dateStart: { gte: new Date(now - 1000 * 60 * 60 * 24) },
-      },
-      select: {
-        id: true,
-        title: true,
-        dateStart: true,
-      },
-      orderBy: { dateStart: "asc" },
-      take: 8,
-    }),
-    getParentFeedbackStatus(params),
+  if (
+    branchId !== params.branchId ||
+    organizationId !== params.organizationId
+  ) {
+    throw new Error("Contexte branche invalide");
+  }
+
+  const variant: DashboardVariant = resolveDashboardVariant(session);
+  const blocks = getDashboardDataBlocks(variant);
+
+  const [
+    stats,
+    metricsResult,
+    events,
+    feedbackTuple,
+    cashier,
+    teacher,
+    student,
+    parent,
+  ] = await Promise.all([
+    blocks.schoolStats
+      ? getAdminStats(params)
+      : Promise.resolve({
+          typebranch,
+          error: null,
+        }),
+    blocks.pedagogyMetrics
+      ? getDashboardMetrics()
+      : Promise.resolve([EMPTY_METRICS, null] as const),
+    blocks.events ? getBranchEvents(branchId) : Promise.resolve([]),
+    blocks.parentFeedback
+      ? getParentFeedbackStatus(params)
+      : Promise.resolve([
+          { showFeedbackPopup: false, alreadySubmitted: false },
+          null,
+        ] as const),
+    blocks.cashier
+      ? getCashierDashboardData(branchId, organizationId)
+      : Promise.resolve(null),
+    blocks.teacher
+      ? getTeacherDashboardData(branchId, userId)
+      : Promise.resolve(null),
+    blocks.student
+      ? getStudentDashboardData(branchId, userId)
+      : Promise.resolve(null),
+    blocks.parent
+      ? getParentDashboardData(branchId, userId)
+      : Promise.resolve(null),
   ]);
 
   const metrics = Array.isArray(metricsResult)
@@ -655,25 +1003,29 @@ export async function getBranchDashboardData(params: {
     ? (feedbackTuple[0] ?? null)
     : feedbackTuple;
 
+  const statsRecord =
+    stats && typeof stats === "object" ? (stats as Record<string, unknown>) : {};
+
   return {
-    stats,
+    variant,
+    typebranch:
+      (statsRecord.typebranch as string | null | undefined) ?? typebranch,
+    stats: blocks.schoolStats ? stats : null,
     metrics:
-      metrics && typeof metrics === "object" && !("error" in (metrics as object))
+      blocks.pedagogyMetrics &&
+      metrics &&
+      typeof metrics === "object" &&
+      !("error" in (metrics as object))
         ? metrics
-        : {
-            attendance: 0,
-            attendanceCount: 0,
-            successRate: 0,
-            averageScore: 0,
-            studentsCount: 0,
-            passedCount: 0,
-            satisfaction: 0,
-            feedbackCount: 0,
-            parentsCount: 0,
-            responseRate: 0,
-          },
+        : blocks.pedagogyMetrics
+          ? EMPTY_METRICS
+          : null,
     events,
     feedbackStatus,
+    cashier,
+    teacher,
+    student,
+    parent,
   };
 }
 

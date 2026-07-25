@@ -395,7 +395,7 @@ export function StudentProfileClient({ profile }: { profile: StudentProfileData 
       <Tabs value={tab} onValueChange={setTab} className="space-y-4">
         <div className="sticky top-0 z-10 flex flex-col gap-3 rounded-xl border border-primary/15 bg-card/95 p-3 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-card/80 lg:flex-row lg:items-center lg:justify-between">
           <div className="hidden min-h-9 w-full lg:block lg:max-w-md" aria-hidden />
-          <TabsList className="grid h-auto w-full shrink-0 grid-cols-2 gap-1 rounded-lg border border-primary/20 bg-primary/10 p-1 sm:grid-cols-3 xl:grid-cols-6 lg:w-auto">
+          <TabsList className={`grid h-auto w-full shrink-0 grid-cols-2 gap-1 rounded-lg border border-primary/20 bg-primary/10 p-1 sm:grid-cols-3 ${profile.canViewFinance ? "xl:grid-cols-6" : "xl:grid-cols-5"} lg:w-auto`}>
             <TabsTrigger
               value="infos"
               className="gap-1.5 rounded-md px-2 py-2 text-xs text-primary/80 sm:text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm"
@@ -403,13 +403,15 @@ export function StudentProfileClient({ profile }: { profile: StudentProfileData 
               <UserRound className="size-4" />
               Infos
             </TabsTrigger>
-            <TabsTrigger
-              value="finances"
-              className="gap-1.5 rounded-md px-2 py-2 text-xs text-primary/80 sm:text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm"
-            >
-              <CreditCard className="size-4" />
-              Finances
-            </TabsTrigger>
+            {profile.canViewFinance ? (
+              <TabsTrigger
+                value="finances"
+                className="gap-1.5 rounded-md px-2 py-2 text-xs text-primary/80 sm:text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm"
+              >
+                <CreditCard className="size-4" />
+                Finances
+              </TabsTrigger>
+            ) : null}
             <TabsTrigger
               value="schedule"
               className="gap-1.5 rounded-md px-2 py-2 text-xs text-primary/80 sm:text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm"
@@ -635,6 +637,7 @@ export function StudentProfileClient({ profile }: { profile: StudentProfileData 
               </div>
             </TabsContent>
 
+            {profile.canViewFinance ? (
             <TabsContent value="finances" className="mt-0 space-y-4">
               <div className="grid gap-4 sm:grid-cols-3">
                 <Card className="rounded-xl border bg-card p-4 shadow-sm">
@@ -749,6 +752,7 @@ export function StudentProfileClient({ profile }: { profile: StudentProfileData 
                 )}
               </Card>
             </TabsContent>
+            ) : null}
 
             <TabsContent value="schedule" className="mt-0">
               <StudentScheduleSection schedule={profile.schedule} />

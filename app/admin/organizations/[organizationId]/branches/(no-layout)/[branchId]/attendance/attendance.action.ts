@@ -19,6 +19,10 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
 import {
+  assertAttendanceSessionWriteAccess,
+  assertClassRosterAccess,
+} from "@/lib/auth/data-scope";
+import {
   getBranchCourseDurationMinutes,
   getOrCreateTeacherAttendanceSession,
   listTeacherScheduleCandidates,
@@ -417,8 +421,15 @@ export const markStudentAttendance = action
     }),
   )
   .handler(async ({ input }) => {
-    const { branchId } = await getCurrentBranch();
-    const [session, student] = await Promise.all([
+    const { branchId, session, userId } = await requireBranchContext();
+    await assertAttendanceSessionWriteAccess({
+      session,
+      userId,
+      branchId,
+      sessionId: input.sessionId,
+    });
+
+    const [attendanceSession, student] = await Promise.all([
       prisma.attendanceSession.findFirst({
         where: { id: input.sessionId, branchId },
         select: { id: true },
@@ -434,7 +445,7 @@ export const markStudentAttendance = action
       }),
     ]);
 
-    if (!session || !student) {
+    if (!attendanceSession || !student) {
       throw new Error("Presence eleve impossible dans cette branche");
     }
 
@@ -1278,7 +1289,8 @@ export const getStudentAttendanceReportAction = action
     }),
   )
   .handler(async ({ input }): Promise<StudentAttendanceReport> => {
-    const { branchId, organizationId } = await requireBranchContext();
+    const { branchId, organizationId, session, userId } =
+      await requireBranchContext();
 
     const start = new Date(input.startDate);
     start.setHours(0, 0, 0, 0);
@@ -1294,6 +1306,13 @@ export const getStudentAttendanceReportAction = action
     let classeName: string | null = null;
 
     if (classeId) {
+      await assertClassRosterAccess({
+        session,
+        userId,
+        branchId,
+        classId: classeId,
+      });
+
       const classe = await prisma.classe.findFirst({
         where: {
           id: classeId,

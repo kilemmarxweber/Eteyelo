@@ -1,7 +1,5 @@
-import { notFound } from "next/navigation";
-
+import { assertBranchAreaAccess } from "@/lib/auth/assert-branch-area-access";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
-import { canAccessTeachingArea } from "@/lib/auth/session-roles";
 
 import FraisClient from "./components/fraisClient";
 
@@ -12,10 +10,7 @@ export default async function Page({
 }) {
   const { classeId } = await params;
   const { session } = await requireBranchContext();
-
-  if (!canAccessTeachingArea(session)) {
-    notFound();
-  }
+  await assertBranchAreaAccess("finance", session);
 
   return <FraisClient classeId={classeId} />;
 }
