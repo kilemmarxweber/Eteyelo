@@ -209,8 +209,6 @@ export const fallbackEvents: HomeEvent[] = [
 ];
 const DEFAULT_SCHOOL_IMAGE = KLAMBOCORE_DEFAULT_IMAGE_PATH;
 
-const DEFAULT_EVENT_IMAGE = KLAMBOCORE_DEFAULT_IMAGE_PATH;
-
 function normalizeImageList(
   images: Array<string | null | undefined>,
 ): string[] {
@@ -543,18 +541,14 @@ export async function getHomeData(): Promise<HomeData> {
       };
     });
 
-    const dynamicEvents: HomeEvent[] = calendarEvents.map((event, index) => {
-      const fallbackEvent = fallbackEvents[index % fallbackEvents.length];
-
+    const dynamicEvents: HomeEvent[] = calendarEvents.map((event) => {
       return {
         title: event.title || "Événement scolaire",
         school: event.branch.name,
         date: formatShortDate(event.dateStart),
         dateLabel: formatLongDate(event.dateStart),
         category: event.eventType?.name?.trim() || "Événements",
-        image: event.image
-          ? normalizeImageSrc(event.image)
-          : fallbackEvent?.image || DEFAULT_EVENT_IMAGE,
+        image: event.image ? normalizeImageSrc(event.image) : "",
       };
     });
 

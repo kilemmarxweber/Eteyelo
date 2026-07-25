@@ -80,6 +80,24 @@ function toJsonValue(
   return compacted ? (compacted as Prisma.InputJsonValue) : Prisma.DbNull;
 }
 
+/** Stocke uniquement le fileName (comme Branch.image), pas /api/uploads/... */
+function toStoredImageFileName(value?: string | null): string | null {
+  if (!value) return null;
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+  if (!trimmed.includes("/")) return trimmed;
+
+  try {
+    const pathname = trimmed.startsWith("http")
+      ? new URL(trimmed).pathname
+      : trimmed;
+    const base = pathname.split("/").filter(Boolean).pop() ?? "";
+    return decodeURIComponent(base) || null;
+  } catch {
+    return trimmed;
+  }
+}
+
 function buildEventData(
   input: z.infer<typeof calendarEventSchema>,
   branchId: string,
@@ -103,7 +121,7 @@ function buildEventData(
     title: input.title,
     description: input.description || null,
     location: input.location || null,
-    image: input.image || null,
+    image: toStoredImageFileName(input.image),
     allDay: input.allDay,
     dateStart: input.dateStart,
     dateEnd: input.dateEnd || null,
@@ -148,7 +166,7 @@ function mapEvent(event: {
     title: event.title || "",
     dateStart: event.dateStart,
     dateEnd: event.dateEnd || undefined,
-    image: event.image,
+    image: toStoredImageFileName(event.image),
     allDay: event.allDay,
     location: event.location || "",
     description: event.description || "",

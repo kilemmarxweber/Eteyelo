@@ -53,17 +53,17 @@ export function HomeBranchesMapSection({
       <div className="mx-auto grid max-w-7xl items-stretch gap-10 px-6 lg:grid-cols-2 lg:gap-12">
         <div className="flex flex-col justify-center">
           <Badge className="w-fit bg-sky-100 text-sky-700 hover:bg-sky-100">
-            Implantation des établissements
+            Réseau partenaire
           </Badge>
 
           <h2 className="mt-4 text-3xl font-black leading-tight text-blue-950 sm:text-4xl">
-            Nos écoles partenaires sur la carte
+            Nos établissements partenaires sur la carte
           </h2>
 
           <p className="mt-4 max-w-7xl text-sm leading-7 text-slate-600 sm:text-base">
-            Retrouvez les adresses enregistrées des établissements actifs sur
-            Klambocore. Cliquez sur un marqueur pour voir le détail et accéder à
-            la fiche de l&apos;école.
+            Écoles, centres de formation et universités : retrouvez les adresses
+            enregistrées des établissements actifs sur Klambocore. Cliquez sur un
+            marqueur pour voir le détail et accéder à la fiche.
           </p>
 
           {provinces.length > 0 ? (

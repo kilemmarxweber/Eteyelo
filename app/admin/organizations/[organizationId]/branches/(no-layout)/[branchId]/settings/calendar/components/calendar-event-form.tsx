@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from "react";
 import { useAppTransition as useTransition } from "@/hooks/use-app-transition";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import Image from "next/image";
 import { toast } from "sonner";
 import {
   IconLanguage,
@@ -57,6 +56,24 @@ type CalendarEventFormProps = {
   onSuccess?: () => void;
 };
 
+/** Normalise une valeur image DB (fileName, /uploads/..., /api/uploads/...) → fileName. */
+function toStoredImageFileName(value?: string | null): string {
+  if (!value) return "";
+  const trimmed = value.trim();
+  if (!trimmed) return "";
+  if (!trimmed.includes("/")) return trimmed;
+
+  try {
+    const pathname = trimmed.startsWith("http")
+      ? new URL(trimmed).pathname
+      : trimmed;
+    const base = pathname.split("/").filter(Boolean).pop() ?? "";
+    return decodeURIComponent(base);
+  } catch {
+    return trimmed;
+  }
+}
+
 function toLocalInputValue(date?: Date | string | null) {
   if (!date) return "";
   const value = new Date(date);
@@ -87,7 +104,7 @@ function buildDefaultValues(
     title: initialEvent?.title ?? "",
     description: initialEvent?.description ?? "",
     location: initialEvent?.location ?? "",
-    image: initialEvent?.image ?? "",
+    image: toStoredImageFileName(initialEvent?.image),
     allDay: initialEvent?.allDay ?? false,
     createdBy: userId,
     recurrence: initialEvent?.recurrence ?? Recurrence.HEBDOMADAIRE,
@@ -123,7 +140,13 @@ export function CalendarEventForm({
   onSuccess,
 }: CalendarEventFormProps) {
   const [pending, startTransition] = useTransition();
-  const [uploading, setUploading] = useState(false);
+  const [pendingImageFile, setPendingImageFile] = useState<File | null>(null);
+  const [pendingPreviewUrl, setPendingPreviewUrl] = useState<string | null>(
+    null,
+  );
+  const [savedImageFileName, setSavedImageFileName] = useState(
+    () => toStoredImageFileName(initialEvent?.image),
+  );
   const [translating, setTranslating] = useState(false);
   const [activeLocale, setActiveLocale] = useState<EventLocaleCode>("fr");
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -134,7 +157,6 @@ export function CalendarEventForm({
   });
 
   const translationsEnabled = form.watch("translationsEnabled");
-  const imageUrl = form.watch("image") ?? "";
   const titleValue = form.watch("title") ?? "";
   const descriptionValue = form.watch("description") ?? "";
   const locationValue = form.watch("location") ?? "";
@@ -143,9 +165,28 @@ export function CalendarEventForm({
   const titleI18n = normalizeLocaleMap(form.watch("titleI18n"));
   const descriptionI18n = normalizeLocaleMap(form.watch("descriptionI18n"));
 
+  const previewSrc = pendingPreviewUrl
+    ? pendingPreviewUrl
+    : savedImageFileName
+      ? normalizeImageSrc(savedImageFileName)
+      : "";
+
   useEffect(() => {
-    form.reset(buildDefaultValues(userId, initialEvent));
+    const defaults = buildDefaultValues(userId, initialEvent);
+    form.reset(defaults);
+    setPendingImageFile(null);
+    setPendingPreviewUrl((current) => {
+      if (current) URL.revokeObjectURL(current);
+      return null;
+    });
+    setSavedImageFileName(toStoredImageFileName(initialEvent?.image));
   }, [form, initialEvent, userId]);
+
+  useEffect(() => {
+    return () => {
+      if (pendingPreviewUrl) URL.revokeObjectURL(pendingPreviewUrl);
+    };
+  }, [pendingPreviewUrl]);
 
   function setLocaleField(
     kind: "titleI18n" | "descriptionI18n",
@@ -204,29 +245,59 @@ export function CalendarEventForm({
     }
   }
 
-  async function handleImageChange(file: File | null) {
+  function handleImageChange(file: File | null) {
     if (!file) return;
-    setUploading(true);
-    try {
-      const uploaded = await uploadFile(file);
-      if (!uploaded.ok) {
-        toast.error(uploaded.message);
-        return;
-      }
-      form.setValue("image", uploaded.url, { shouldDirty: true });
-      toast.success("Image ajoutee.");
-    } finally {
-      setUploading(false);
+
+    if (file.size > MAX_IMAGE_UPLOAD_BYTES) {
+      toast.error(
+        `Le fichier depasse la taille maximale autorisee de ${Math.round(MAX_IMAGE_UPLOAD_BYTES / 1024 / 1024)} Mo.`,
+      );
       if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
     }
+
+    setPendingImageFile(file);
+    setPendingPreviewUrl((current) => {
+      if (current) URL.revokeObjectURL(current);
+      return URL.createObjectURL(file);
+    });
+    form.setValue("image", file.name, { shouldDirty: true, shouldValidate: true });
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  }
+
+  function clearImage() {
+    setPendingImageFile(null);
+    setPendingPreviewUrl((current) => {
+      if (current) URL.revokeObjectURL(current);
+      return null;
+    });
+    setSavedImageFileName("");
+    form.setValue("image", "", { shouldDirty: true, shouldValidate: true });
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  }
+
+  async function resolveImageFileName(): Promise<string> {
+    if (pendingImageFile) {
+      const uploaded = await uploadFile(pendingImageFile);
+      if (!uploaded.ok) {
+        throw new Error(uploaded.message);
+      }
+      return uploaded.fileName;
+    }
+    return toStoredImageFileName(savedImageFileName || form.getValues("image"));
   }
 
   function onSubmit(values: CalendarEventFormInput) {
     startTransition(async () => {
       try {
-        const parsed = calendarEventSchema.parse(values);
+        const imageFileName = await resolveImageFileName();
+        const parsed = calendarEventSchema.parse({
+          ...values,
+          image: imageFileName,
+        });
         const payload: CalendarEventFormData = {
           ...parsed,
+          image: imageFileName,
           title:
             parsed.translationsEnabled
               ? parsed.titleI18n?.fr?.trim() || parsed.title
@@ -244,11 +315,20 @@ export function CalendarEventForm({
           }
           toast.success(result.message);
         } else {
-          const [result, error] = await updateCalendarEvent(payload);
+          const [result, error] = await updateCalendarEvent({
+            ...payload,
+            id: initialEvent?.id ?? payload.id,
+          });
           if (error) throw new Error(error.message);
           toast.success("Evenement mis a jour.");
           void result;
         }
+        setPendingImageFile(null);
+        setPendingPreviewUrl((current) => {
+          if (current) URL.revokeObjectURL(current);
+          return null;
+        });
+        setSavedImageFileName("");
         form.reset(buildDefaultValues(userId, null));
         onSuccess?.();
       } catch (error) {
@@ -264,18 +344,17 @@ export function CalendarEventForm({
       <div className="grid gap-4 sm:grid-cols-[140px_minmax(0,1fr)]">
         <div className="space-y-2">
           <Label>Image</Label>
+          <input type="hidden" {...form.register("image")} />
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
             className="group relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-xl border border-dashed bg-muted/30 transition hover:border-primary/40"
           >
-            {imageUrl ? (
-              <Image
-                src={normalizeImageSrc(imageUrl)}
+            {previewSrc ? (
+              <img
+                src={previewSrc}
                 alt="Illustration evenement"
-                fill
-                unoptimized
-                className="object-cover"
+                className="absolute inset-0 size-full object-cover"
               />
             ) : (
               <div className="flex flex-col items-center gap-1 px-2 text-center text-xs text-muted-foreground">
@@ -290,7 +369,7 @@ export function CalendarEventForm({
             accept="image/jpeg,image/png,image/webp"
             className="hidden"
             onChange={(event) =>
-              void handleImageChange(event.target.files?.[0] ?? null)
+              handleImageChange(event.target.files?.[0] ?? null)
             }
           />
           <div className="flex gap-2">
@@ -299,18 +378,18 @@ export function CalendarEventForm({
               variant="outline"
               size="sm"
               className="flex-1"
-              disabled={uploading || pending}
+              disabled={pending}
               onClick={() => fileInputRef.current?.click()}
             >
-              {uploading ? "..." : "Parcourir"}
+              Parcourir
             </Button>
-            {imageUrl ? (
+            {previewSrc ? (
               <Button
                 type="button"
                 variant="ghost"
                 size="icon"
                 className="size-8"
-                onClick={() => form.setValue("image", "", { shouldDirty: true })}
+                onClick={clearImage}
               >
                 <IconTrash className="size-4" />
               </Button>
@@ -583,7 +662,7 @@ export function CalendarEventForm({
       </div>
 
       <div className="flex justify-end gap-2 border-t pt-4">
-        <Button type="submit" disabled={pending || uploading || translating}>
+        <Button type="submit" disabled={pending || translating}>
           {pending
             ? "Enregistrement..."
             : mode === "create"

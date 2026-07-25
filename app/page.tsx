@@ -24,8 +24,12 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { HeroRotatingContent } from "@/components/home/hero-rotating-content";
 import { HomeBranchesMapSection } from "@/components/home/home-branches-map-section";
+import {
+  HomeFeaturedEventsFooter,
+  HomeFeaturedEventsGrid,
+} from "@/components/home/home-featured-events-grid";
+import { HomeFeaturedSectionHeader } from "@/components/home/home-featured-section-header";
 import { HomeGallerySection } from "@/components/home/home-gallery-section";
-import { HomeSpotlightSection } from "@/components/home/home-spotlight-section";
 import { HomeFooter } from "@/components/home-footer";
 import { HomeNavbar } from "@/components/home-navbar";
 import { galleryImages, getHomeData } from "@/lib/home/home-data";
@@ -89,6 +93,34 @@ export default async function HomePage() {
         defaultSchoolImage,
     }))
     .filter((school) => Boolean(school.slideImage));
+
+  /** Images d'événements réelles uniquement (pas de placeholder). */
+  const eventSliderImages = Array.from(
+    new Set(
+      events
+        .map((event) => event.image?.trim())
+        .filter((src): src is string => Boolean(src)),
+    ),
+  );
+
+  const schoolFallbackImages = Array.from(
+    new Set(
+      schools
+        .flatMap((school) => [
+          school.event.find(Boolean),
+          school.ecole.find(Boolean),
+          school.logo,
+        ])
+        .filter((src): src is string => Boolean(src)),
+    ),
+  );
+
+  const rightSliderImages =
+    eventSliderImages.length > 0
+      ? eventSliderImages
+      : schoolFallbackImages.length > 0
+        ? schoolFallbackImages
+        : [defaultSchoolImage];
 
   return (
     <main className="min-h-screen bg-slate-50 text-slate-900">
@@ -339,21 +371,13 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ETABLISSEMENTS */}
+      {/* À LA UNE + IMAGE DROITE */}
       <section id="etablissements" className="mx-auto max-w-7xl px-6 py-14">
         <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <Badge className="bg-blue-100 text-blue-700">
-              Écoles populaires
-            </Badge>
-
-            <h2 className="mt-3 text-3xl font-black text-blue-950">
-              Établissements partenaires
-            </h2>
-          </div>
+          <HomeFeaturedSectionHeader segments={stats.segments} />
 
           <a
-            href={`/etablissements`}
+            href="/evenements"
             className="rounded-full bg-blue-100 px-4 py-2 text-sm font-bold text-blue-700 hover:bg-blue-200"
           >
             Voir tous <ArrowRight className="inline h-4 w-4" />
@@ -361,95 +385,49 @@ export default async function HomePage() {
         </div>
 
         <div className="grid gap-6 lg:grid-cols-[1.75fr_0.85fr] lg:items-start">
-          {/* CARDS ÉTABLISSEMENTS schoolEvents */}
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {schools.slice(0, 3).map((school) => (
-              <Link href={`/etablissements/${school.id}`} key={school.id}>
-                <article
-                  key={school.id}
-                  className="group overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-blue-100 transition duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-blue-950/10"
-                >
-                  <div className="relative h-48 overflow-hidden">
-                    <div
-                      className="absolute inset-0 bg-cover bg-center transition duration-500 group-hover:scale-105"
-                      style={{
-                        backgroundImage: `url('${school.event[0]}')`,
-                      }}
-                    />
-
-                    <div className="absolute inset-0 bg-gradient-to-t from-blue-950/70 via-blue-950/10 to-transparent" />
-
-                    <Badge className="absolute left-4 top-4 bg-white/90 text-blue-950 backdrop-blur">
-                      {school.city}
-                    </Badge>
-                  </div>
-
-                  <div className="p-5">
-                    <h3 className="line-clamp-2 text-lg font-black text-blue-950">
-                      {school.name}
-                    </h3>
-
-                    <p className="mt-4 inline-flex items-center gap-2 rounded-2xl bg-blue-50 px-3 py-2 text-sm text-blue-950">
-                      <Users className="h-4 w-4 text-blue-700" />
-                      {school.students} élèves inscrits
-                    </p>
-                  </div>
-                </article>
-              </Link>
-            ))}
+          {/* Image école + 4 petites cartes événements */}
+          <div>
+            <HomeFeaturedEventsGrid
+              schools={schools}
+              events={events}
+              pageSize={4}
+            />
+            <HomeFeaturedEventsFooter />
           </div>
 
-          {/* BLOC IMAGE DROITE schoolEvents */}
-          <div className="relative h-[500px] self-start overflow-hidden rounded-3xl shadow-2xl shadow-blue-950/15">
-            {schools.map((school, index) => {
-              const sliderImage =
-                school.event.find(Boolean) ||
-                school.ecole.find(Boolean) ||
-                school.logo ||
-                defaultSchoolImage;
+          {/* BLOC IMAGE DROITE — events avec image, sinon fallback école */}
+          <div className="relative h-[500px] self-start overflow-hidden rounded-3xl bg-slate-100 shadow-2xl shadow-blue-950/15">
+            {rightSliderImages.map((sliderImage, index) => {
+              const shouldRotate = rightSliderImages.length > 1;
 
               return (
                 <div
-                  key={`${school.id}-event-slider`}
-                  className="absolute inset-0 opacity-0 motion-reduce:animate-none"
-                  style={{
-                    animation: `hero-school-slide ${
-                      Math.max(schools.length, 1) * 60
-                    }s infinite`,
-                    animationDelay: `${index * 60}s`,
-                    opacity: index === 0 ? 1 : 0,
-                  }}
+                  key={`event-slider-${sliderImage}-${index}`}
+                  className="absolute inset-0 motion-reduce:animate-none"
+                  style={
+                    shouldRotate
+                      ? {
+                          animation: `hero-school-slide ${
+                            rightSliderImages.length * 60
+                          }s infinite`,
+                          animationDelay: `${index * 60}s`,
+                          opacity: index === 0 ? 1 : 0,
+                        }
+                      : { opacity: 1 }
+                  }
                 >
-                  <div
-                    className="absolute inset-0 bg-cover bg-center"
-                    style={{
-                      backgroundImage: `url("${sliderImage}")`,
-                    }}
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={sliderImage}
+                    alt=""
+                    className="h-full w-full object-cover"
                   />
-
-                  <div className="relative z-10 flex h-full items-end bg-gradient-to-t from-blue-950 via-blue-950/70 to-blue-950/10 p-8">
-                    <div>
-                      <Badge className="mb-4 bg-white/20 text-white backdrop-blur">
-                        {school.city}
-                      </Badge>
-
-                      <h3 className="text-3xl font-black leading-tight text-white">
-                        {school.name}
-                      </h3>
-
-                      <p className="mt-4 text-sm leading-6 text-blue-100">
-                        {school.heroTitle}
-                      </p>
-                    </div>
-                  </div>
                 </div>
               );
             })}
           </div>
         </div>
       </section>
-
-      <HomeSpotlightSection schools={schools} events={events} />
 
       {/* SERVICES */}
       <section id="services" className="bg-white py-20">
