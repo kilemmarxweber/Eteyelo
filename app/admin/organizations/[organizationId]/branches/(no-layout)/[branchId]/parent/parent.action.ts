@@ -148,13 +148,37 @@ export const createParentAction = action
       // 4. CREATE DISCOUNT RULE
       // =========================
 
+      const percentage = discount?.percentage ?? 0;
+      let typeFraisId: string | null = null;
+      if (percentage > 0) {
+        const requestedTypeFraisId = discount?.typeFraisId?.trim() || null;
+        if (!requestedTypeFraisId) {
+          throw new Error("Type de frais requis pour la remise.");
+        }
+        const typeFrais = await prisma.typeFrais.findFirst({
+          where: {
+            id: requestedTypeFraisId,
+            branchId,
+            statusType: true,
+          },
+          select: { id: true },
+        });
+        if (!typeFrais) {
+          throw new Error(
+            "Type de frais de remise introuvable dans cette branche.",
+          );
+        }
+        typeFraisId = typeFrais.id;
+      }
+
       await prisma.discountRule.create({
         data: {
           parentId: parent.id,
           scope: discount?.scope ?? "PARENT",
-          percentage: discount?.percentage ?? 0,
+          percentage,
           minChildren: discount?.minChildren,
           category: discount?.category,
+          typeFraisId,
           branchId,
         },
       });
@@ -362,6 +386,9 @@ export const getParentsAction = action.handler(async (): Promise<IParent[]> => {
         where: {
           branchId,
         },
+        include: {
+          typeFrais: { select: { id: true, nameType: true } },
+        },
       },
     },
   });
@@ -395,6 +422,8 @@ export const getParentsAction = action.handler(async (): Promise<IParent[]> => {
             percentage: discount.percentage,
             minChildren: discount.minChildren ?? 0,
             category: discount.category,
+            typeFraisId: discount.typeFraisId ?? null,
+            typeFraisName: discount.typeFrais?.nameType ?? null,
           }
         : null,
 
@@ -525,15 +554,39 @@ export const updateParentAction = action
       }
 
       if (discount) {
+        const percentage = discount.percentage ?? 0;
+        let typeFraisId: string | null = null;
+        if (percentage > 0) {
+          const requestedTypeFraisId = discount.typeFraisId?.trim() || null;
+          if (!requestedTypeFraisId) {
+            throw new Error("Type de frais requis pour la remise.");
+          }
+          const typeFrais = await prisma.typeFrais.findFirst({
+            where: {
+              id: requestedTypeFraisId,
+              branchId,
+              statusType: true,
+            },
+            select: { id: true },
+          });
+          if (!typeFrais) {
+            throw new Error(
+              "Type de frais de remise introuvable dans cette branche.",
+            );
+          }
+          typeFraisId = typeFrais.id;
+        }
+
         if (existingDiscount) {
           // ✅ UPDATE
           await prisma.discountRule.update({
             where: { id: existingDiscount.id },
             data: {
               scope: discount.scope,
-              percentage: discount.percentage,
+              percentage,
               minChildren: discount.minChildren ?? null,
               category: discount.category ?? null,
+              typeFraisId,
             },
           });
         } else {
@@ -543,9 +596,10 @@ export const updateParentAction = action
               parentId,
               branchId,
               scope: discount.scope,
-              percentage: discount.percentage,
+              percentage,
               minChildren: discount.minChildren ?? null,
               category: discount.category ?? null,
+              typeFraisId,
             },
           });
         }

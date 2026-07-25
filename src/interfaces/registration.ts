@@ -51,6 +51,8 @@ export const registrationSchema = z
       /** Téléphone parent — facultatif */
       telephone: z.string().trim().optional().or(z.literal("")),
       discountPercentage: z.number().min(0).max(100).default(0),
+      /** Type de frais concerné par la remise (requis si remise > 0) */
+      discountTypeFraisId: z.string().optional().or(z.literal("")),
       /** Fonction / lieu de travail — optionnel */
       profession: z.string().trim().max(200).optional().or(z.literal("")),
     }).optional(),
@@ -62,6 +64,18 @@ export const registrationSchema = z
       ctx.addIssue({ code: "custom", path: ["studentId"], message: "Élève requis" });
     if (value.studentMode === "new" && !value.student)
       ctx.addIssue({ code: "custom", path: ["student"], message: "Informations de l'élève requises" });
+    if (
+      value.parentMode === "new" &&
+      value.parent &&
+      value.parent.discountPercentage > 0 &&
+      !value.parent.discountTypeFraisId?.trim()
+    ) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["parent", "discountTypeFraisId"],
+        message: "Choisissez le type de frais concerné par la remise",
+      });
+    }
   });
 
 export function validateRegistrationParentInput(

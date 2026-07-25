@@ -45,6 +45,7 @@ export type DiscountRuleMinAggregateOutputType = {
   parentId: string | null
   minChildren: number | null
   percentage: number | null
+  typeFraisId: string | null
   createdAt: Date | null
   branchId: string | null
 }
@@ -56,6 +57,7 @@ export type DiscountRuleMaxAggregateOutputType = {
   parentId: string | null
   minChildren: number | null
   percentage: number | null
+  typeFraisId: string | null
   createdAt: Date | null
   branchId: string | null
 }
@@ -67,6 +69,7 @@ export type DiscountRuleCountAggregateOutputType = {
   parentId: number
   minChildren: number
   percentage: number
+  typeFraisId: number
   createdAt: number
   branchId: number
   _all: number
@@ -92,6 +95,7 @@ export type DiscountRuleMinAggregateInputType = {
   parentId?: true
   minChildren?: true
   percentage?: true
+  typeFraisId?: true
   createdAt?: true
   branchId?: true
 }
@@ -103,6 +107,7 @@ export type DiscountRuleMaxAggregateInputType = {
   parentId?: true
   minChildren?: true
   percentage?: true
+  typeFraisId?: true
   createdAt?: true
   branchId?: true
 }
@@ -114,6 +119,7 @@ export type DiscountRuleCountAggregateInputType = {
   parentId?: true
   minChildren?: true
   percentage?: true
+  typeFraisId?: true
   createdAt?: true
   branchId?: true
   _all?: true
@@ -212,6 +218,7 @@ export type DiscountRuleGroupByOutputType = {
   parentId: string | null
   minChildren: number | null
   percentage: number
+  typeFraisId: string | null
   createdAt: Date
   branchId: string
   _count: DiscountRuleCountAggregateOutputType | null
@@ -246,9 +253,11 @@ export type DiscountRuleWhereInput = {
   parentId?: Prisma.StringNullableFilter<"DiscountRule"> | string | null
   minChildren?: Prisma.IntNullableFilter<"DiscountRule"> | number | null
   percentage?: Prisma.FloatFilter<"DiscountRule"> | number
+  typeFraisId?: Prisma.StringNullableFilter<"DiscountRule"> | string | null
   createdAt?: Prisma.DateTimeFilter<"DiscountRule"> | Date | string
   branchId?: Prisma.StringFilter<"DiscountRule"> | string
   parent?: Prisma.XOR<Prisma.ParentNullableScalarRelationFilter, Prisma.ParentWhereInput> | null
+  typeFrais?: Prisma.XOR<Prisma.TypeFraisNullableScalarRelationFilter, Prisma.TypeFraisWhereInput> | null
   branch?: Prisma.XOR<Prisma.BranchScalarRelationFilter, Prisma.BranchWhereInput>
 }
 
@@ -259,9 +268,11 @@ export type DiscountRuleOrderByWithRelationInput = {
   parentId?: Prisma.SortOrderInput | Prisma.SortOrder
   minChildren?: Prisma.SortOrderInput | Prisma.SortOrder
   percentage?: Prisma.SortOrder
+  typeFraisId?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   branchId?: Prisma.SortOrder
   parent?: Prisma.ParentOrderByWithRelationInput
+  typeFrais?: Prisma.TypeFraisOrderByWithRelationInput
   branch?: Prisma.BranchOrderByWithRelationInput
 }
 
@@ -275,9 +286,11 @@ export type DiscountRuleWhereUniqueInput = Prisma.AtLeast<{
   parentId?: Prisma.StringNullableFilter<"DiscountRule"> | string | null
   minChildren?: Prisma.IntNullableFilter<"DiscountRule"> | number | null
   percentage?: Prisma.FloatFilter<"DiscountRule"> | number
+  typeFraisId?: Prisma.StringNullableFilter<"DiscountRule"> | string | null
   createdAt?: Prisma.DateTimeFilter<"DiscountRule"> | Date | string
   branchId?: Prisma.StringFilter<"DiscountRule"> | string
   parent?: Prisma.XOR<Prisma.ParentNullableScalarRelationFilter, Prisma.ParentWhereInput> | null
+  typeFrais?: Prisma.XOR<Prisma.TypeFraisNullableScalarRelationFilter, Prisma.TypeFraisWhereInput> | null
   branch?: Prisma.XOR<Prisma.BranchScalarRelationFilter, Prisma.BranchWhereInput>
 }, "id">
 
@@ -288,6 +301,7 @@ export type DiscountRuleOrderByWithAggregationInput = {
   parentId?: Prisma.SortOrderInput | Prisma.SortOrder
   minChildren?: Prisma.SortOrderInput | Prisma.SortOrder
   percentage?: Prisma.SortOrder
+  typeFraisId?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   branchId?: Prisma.SortOrder
   _count?: Prisma.DiscountRuleCountOrderByAggregateInput
@@ -307,6 +321,7 @@ export type DiscountRuleScalarWhereWithAggregatesInput = {
   parentId?: Prisma.StringNullableWithAggregatesFilter<"DiscountRule"> | string | null
   minChildren?: Prisma.IntNullableWithAggregatesFilter<"DiscountRule"> | number | null
   percentage?: Prisma.FloatWithAggregatesFilter<"DiscountRule"> | number
+  typeFraisId?: Prisma.StringNullableWithAggregatesFilter<"DiscountRule"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"DiscountRule"> | Date | string
   branchId?: Prisma.StringWithAggregatesFilter<"DiscountRule"> | string
 }
@@ -318,6 +333,7 @@ export type DiscountRuleCreateInput = {
   percentage: number
   createdAt?: Date | string
   parent?: Prisma.ParentCreateNestedOneWithoutDiscountRulesInput
+  typeFrais?: Prisma.TypeFraisCreateNestedOneWithoutDiscountRulesInput
   branch: Prisma.BranchCreateNestedOneWithoutDiscountRuleInput
 }
 
@@ -328,6 +344,7 @@ export type DiscountRuleUncheckedCreateInput = {
   parentId?: string | null
   minChildren?: number | null
   percentage: number
+  typeFraisId?: string | null
   createdAt?: Date | string
   branchId: string
 }
@@ -339,6 +356,7 @@ export type DiscountRuleUpdateInput = {
   percentage?: Prisma.FloatFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   parent?: Prisma.ParentUpdateOneWithoutDiscountRulesNestedInput
+  typeFrais?: Prisma.TypeFraisUpdateOneWithoutDiscountRulesNestedInput
   branch?: Prisma.BranchUpdateOneRequiredWithoutDiscountRuleNestedInput
 }
 
@@ -349,6 +367,7 @@ export type DiscountRuleUncheckedUpdateInput = {
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   minChildren?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   percentage?: Prisma.FloatFieldUpdateOperationsInput | number
+  typeFraisId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
 }
@@ -360,6 +379,7 @@ export type DiscountRuleCreateManyInput = {
   parentId?: string | null
   minChildren?: number | null
   percentage: number
+  typeFraisId?: string | null
   createdAt?: Date | string
   branchId: string
 }
@@ -379,6 +399,7 @@ export type DiscountRuleUncheckedUpdateManyInput = {
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   minChildren?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   percentage?: Prisma.FloatFieldUpdateOperationsInput | number
+  typeFraisId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
 }
@@ -400,6 +421,7 @@ export type DiscountRuleCountOrderByAggregateInput = {
   parentId?: Prisma.SortOrder
   minChildren?: Prisma.SortOrder
   percentage?: Prisma.SortOrder
+  typeFraisId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   branchId?: Prisma.SortOrder
 }
@@ -417,6 +439,7 @@ export type DiscountRuleMaxOrderByAggregateInput = {
   parentId?: Prisma.SortOrder
   minChildren?: Prisma.SortOrder
   percentage?: Prisma.SortOrder
+  typeFraisId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   branchId?: Prisma.SortOrder
 }
@@ -428,6 +451,7 @@ export type DiscountRuleMinOrderByAggregateInput = {
   parentId?: Prisma.SortOrder
   minChildren?: Prisma.SortOrder
   percentage?: Prisma.SortOrder
+  typeFraisId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   branchId?: Prisma.SortOrder
 }
@@ -477,6 +501,48 @@ export type DiscountRuleUncheckedUpdateManyWithoutParentNestedInput = {
   connect?: Prisma.DiscountRuleWhereUniqueInput | Prisma.DiscountRuleWhereUniqueInput[]
   update?: Prisma.DiscountRuleUpdateWithWhereUniqueWithoutParentInput | Prisma.DiscountRuleUpdateWithWhereUniqueWithoutParentInput[]
   updateMany?: Prisma.DiscountRuleUpdateManyWithWhereWithoutParentInput | Prisma.DiscountRuleUpdateManyWithWhereWithoutParentInput[]
+  deleteMany?: Prisma.DiscountRuleScalarWhereInput | Prisma.DiscountRuleScalarWhereInput[]
+}
+
+export type DiscountRuleCreateNestedManyWithoutTypeFraisInput = {
+  create?: Prisma.XOR<Prisma.DiscountRuleCreateWithoutTypeFraisInput, Prisma.DiscountRuleUncheckedCreateWithoutTypeFraisInput> | Prisma.DiscountRuleCreateWithoutTypeFraisInput[] | Prisma.DiscountRuleUncheckedCreateWithoutTypeFraisInput[]
+  connectOrCreate?: Prisma.DiscountRuleCreateOrConnectWithoutTypeFraisInput | Prisma.DiscountRuleCreateOrConnectWithoutTypeFraisInput[]
+  createMany?: Prisma.DiscountRuleCreateManyTypeFraisInputEnvelope
+  connect?: Prisma.DiscountRuleWhereUniqueInput | Prisma.DiscountRuleWhereUniqueInput[]
+}
+
+export type DiscountRuleUncheckedCreateNestedManyWithoutTypeFraisInput = {
+  create?: Prisma.XOR<Prisma.DiscountRuleCreateWithoutTypeFraisInput, Prisma.DiscountRuleUncheckedCreateWithoutTypeFraisInput> | Prisma.DiscountRuleCreateWithoutTypeFraisInput[] | Prisma.DiscountRuleUncheckedCreateWithoutTypeFraisInput[]
+  connectOrCreate?: Prisma.DiscountRuleCreateOrConnectWithoutTypeFraisInput | Prisma.DiscountRuleCreateOrConnectWithoutTypeFraisInput[]
+  createMany?: Prisma.DiscountRuleCreateManyTypeFraisInputEnvelope
+  connect?: Prisma.DiscountRuleWhereUniqueInput | Prisma.DiscountRuleWhereUniqueInput[]
+}
+
+export type DiscountRuleUpdateManyWithoutTypeFraisNestedInput = {
+  create?: Prisma.XOR<Prisma.DiscountRuleCreateWithoutTypeFraisInput, Prisma.DiscountRuleUncheckedCreateWithoutTypeFraisInput> | Prisma.DiscountRuleCreateWithoutTypeFraisInput[] | Prisma.DiscountRuleUncheckedCreateWithoutTypeFraisInput[]
+  connectOrCreate?: Prisma.DiscountRuleCreateOrConnectWithoutTypeFraisInput | Prisma.DiscountRuleCreateOrConnectWithoutTypeFraisInput[]
+  upsert?: Prisma.DiscountRuleUpsertWithWhereUniqueWithoutTypeFraisInput | Prisma.DiscountRuleUpsertWithWhereUniqueWithoutTypeFraisInput[]
+  createMany?: Prisma.DiscountRuleCreateManyTypeFraisInputEnvelope
+  set?: Prisma.DiscountRuleWhereUniqueInput | Prisma.DiscountRuleWhereUniqueInput[]
+  disconnect?: Prisma.DiscountRuleWhereUniqueInput | Prisma.DiscountRuleWhereUniqueInput[]
+  delete?: Prisma.DiscountRuleWhereUniqueInput | Prisma.DiscountRuleWhereUniqueInput[]
+  connect?: Prisma.DiscountRuleWhereUniqueInput | Prisma.DiscountRuleWhereUniqueInput[]
+  update?: Prisma.DiscountRuleUpdateWithWhereUniqueWithoutTypeFraisInput | Prisma.DiscountRuleUpdateWithWhereUniqueWithoutTypeFraisInput[]
+  updateMany?: Prisma.DiscountRuleUpdateManyWithWhereWithoutTypeFraisInput | Prisma.DiscountRuleUpdateManyWithWhereWithoutTypeFraisInput[]
+  deleteMany?: Prisma.DiscountRuleScalarWhereInput | Prisma.DiscountRuleScalarWhereInput[]
+}
+
+export type DiscountRuleUncheckedUpdateManyWithoutTypeFraisNestedInput = {
+  create?: Prisma.XOR<Prisma.DiscountRuleCreateWithoutTypeFraisInput, Prisma.DiscountRuleUncheckedCreateWithoutTypeFraisInput> | Prisma.DiscountRuleCreateWithoutTypeFraisInput[] | Prisma.DiscountRuleUncheckedCreateWithoutTypeFraisInput[]
+  connectOrCreate?: Prisma.DiscountRuleCreateOrConnectWithoutTypeFraisInput | Prisma.DiscountRuleCreateOrConnectWithoutTypeFraisInput[]
+  upsert?: Prisma.DiscountRuleUpsertWithWhereUniqueWithoutTypeFraisInput | Prisma.DiscountRuleUpsertWithWhereUniqueWithoutTypeFraisInput[]
+  createMany?: Prisma.DiscountRuleCreateManyTypeFraisInputEnvelope
+  set?: Prisma.DiscountRuleWhereUniqueInput | Prisma.DiscountRuleWhereUniqueInput[]
+  disconnect?: Prisma.DiscountRuleWhereUniqueInput | Prisma.DiscountRuleWhereUniqueInput[]
+  delete?: Prisma.DiscountRuleWhereUniqueInput | Prisma.DiscountRuleWhereUniqueInput[]
+  connect?: Prisma.DiscountRuleWhereUniqueInput | Prisma.DiscountRuleWhereUniqueInput[]
+  update?: Prisma.DiscountRuleUpdateWithWhereUniqueWithoutTypeFraisInput | Prisma.DiscountRuleUpdateWithWhereUniqueWithoutTypeFraisInput[]
+  updateMany?: Prisma.DiscountRuleUpdateManyWithWhereWithoutTypeFraisInput | Prisma.DiscountRuleUpdateManyWithWhereWithoutTypeFraisInput[]
   deleteMany?: Prisma.DiscountRuleScalarWhereInput | Prisma.DiscountRuleScalarWhereInput[]
 }
 
@@ -536,6 +602,7 @@ export type DiscountRuleCreateWithoutParentInput = {
   minChildren?: number | null
   percentage: number
   createdAt?: Date | string
+  typeFrais?: Prisma.TypeFraisCreateNestedOneWithoutDiscountRulesInput
   branch: Prisma.BranchCreateNestedOneWithoutDiscountRuleInput
 }
 
@@ -545,6 +612,7 @@ export type DiscountRuleUncheckedCreateWithoutParentInput = {
   category?: $Enums.StudentCategory | null
   minChildren?: number | null
   percentage: number
+  typeFraisId?: string | null
   createdAt?: Date | string
   branchId: string
 }
@@ -585,8 +653,56 @@ export type DiscountRuleScalarWhereInput = {
   parentId?: Prisma.StringNullableFilter<"DiscountRule"> | string | null
   minChildren?: Prisma.IntNullableFilter<"DiscountRule"> | number | null
   percentage?: Prisma.FloatFilter<"DiscountRule"> | number
+  typeFraisId?: Prisma.StringNullableFilter<"DiscountRule"> | string | null
   createdAt?: Prisma.DateTimeFilter<"DiscountRule"> | Date | string
   branchId?: Prisma.StringFilter<"DiscountRule"> | string
+}
+
+export type DiscountRuleCreateWithoutTypeFraisInput = {
+  scope: $Enums.DiscountScope
+  category?: $Enums.StudentCategory | null
+  minChildren?: number | null
+  percentage: number
+  createdAt?: Date | string
+  parent?: Prisma.ParentCreateNestedOneWithoutDiscountRulesInput
+  branch: Prisma.BranchCreateNestedOneWithoutDiscountRuleInput
+}
+
+export type DiscountRuleUncheckedCreateWithoutTypeFraisInput = {
+  id?: number
+  scope: $Enums.DiscountScope
+  category?: $Enums.StudentCategory | null
+  parentId?: string | null
+  minChildren?: number | null
+  percentage: number
+  createdAt?: Date | string
+  branchId: string
+}
+
+export type DiscountRuleCreateOrConnectWithoutTypeFraisInput = {
+  where: Prisma.DiscountRuleWhereUniqueInput
+  create: Prisma.XOR<Prisma.DiscountRuleCreateWithoutTypeFraisInput, Prisma.DiscountRuleUncheckedCreateWithoutTypeFraisInput>
+}
+
+export type DiscountRuleCreateManyTypeFraisInputEnvelope = {
+  data: Prisma.DiscountRuleCreateManyTypeFraisInput | Prisma.DiscountRuleCreateManyTypeFraisInput[]
+  skipDuplicates?: boolean
+}
+
+export type DiscountRuleUpsertWithWhereUniqueWithoutTypeFraisInput = {
+  where: Prisma.DiscountRuleWhereUniqueInput
+  update: Prisma.XOR<Prisma.DiscountRuleUpdateWithoutTypeFraisInput, Prisma.DiscountRuleUncheckedUpdateWithoutTypeFraisInput>
+  create: Prisma.XOR<Prisma.DiscountRuleCreateWithoutTypeFraisInput, Prisma.DiscountRuleUncheckedCreateWithoutTypeFraisInput>
+}
+
+export type DiscountRuleUpdateWithWhereUniqueWithoutTypeFraisInput = {
+  where: Prisma.DiscountRuleWhereUniqueInput
+  data: Prisma.XOR<Prisma.DiscountRuleUpdateWithoutTypeFraisInput, Prisma.DiscountRuleUncheckedUpdateWithoutTypeFraisInput>
+}
+
+export type DiscountRuleUpdateManyWithWhereWithoutTypeFraisInput = {
+  where: Prisma.DiscountRuleScalarWhereInput
+  data: Prisma.XOR<Prisma.DiscountRuleUpdateManyMutationInput, Prisma.DiscountRuleUncheckedUpdateManyWithoutTypeFraisInput>
 }
 
 export type DiscountRuleCreateWithoutBranchInput = {
@@ -596,6 +712,7 @@ export type DiscountRuleCreateWithoutBranchInput = {
   percentage: number
   createdAt?: Date | string
   parent?: Prisma.ParentCreateNestedOneWithoutDiscountRulesInput
+  typeFrais?: Prisma.TypeFraisCreateNestedOneWithoutDiscountRulesInput
 }
 
 export type DiscountRuleUncheckedCreateWithoutBranchInput = {
@@ -605,6 +722,7 @@ export type DiscountRuleUncheckedCreateWithoutBranchInput = {
   parentId?: string | null
   minChildren?: number | null
   percentage: number
+  typeFraisId?: string | null
   createdAt?: Date | string
 }
 
@@ -640,6 +758,7 @@ export type DiscountRuleCreateManyParentInput = {
   category?: $Enums.StudentCategory | null
   minChildren?: number | null
   percentage: number
+  typeFraisId?: string | null
   createdAt?: Date | string
   branchId: string
 }
@@ -650,6 +769,7 @@ export type DiscountRuleUpdateWithoutParentInput = {
   minChildren?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   percentage?: Prisma.FloatFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  typeFrais?: Prisma.TypeFraisUpdateOneWithoutDiscountRulesNestedInput
   branch?: Prisma.BranchUpdateOneRequiredWithoutDiscountRuleNestedInput
 }
 
@@ -659,6 +779,7 @@ export type DiscountRuleUncheckedUpdateWithoutParentInput = {
   category?: Prisma.NullableEnumStudentCategoryFieldUpdateOperationsInput | $Enums.StudentCategory | null
   minChildren?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   percentage?: Prisma.FloatFieldUpdateOperationsInput | number
+  typeFraisId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
 }
@@ -667,6 +788,50 @@ export type DiscountRuleUncheckedUpdateManyWithoutParentInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   scope?: Prisma.EnumDiscountScopeFieldUpdateOperationsInput | $Enums.DiscountScope
   category?: Prisma.NullableEnumStudentCategoryFieldUpdateOperationsInput | $Enums.StudentCategory | null
+  minChildren?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  percentage?: Prisma.FloatFieldUpdateOperationsInput | number
+  typeFraisId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  branchId?: Prisma.StringFieldUpdateOperationsInput | string
+}
+
+export type DiscountRuleCreateManyTypeFraisInput = {
+  id?: number
+  scope: $Enums.DiscountScope
+  category?: $Enums.StudentCategory | null
+  parentId?: string | null
+  minChildren?: number | null
+  percentage: number
+  createdAt?: Date | string
+  branchId: string
+}
+
+export type DiscountRuleUpdateWithoutTypeFraisInput = {
+  scope?: Prisma.EnumDiscountScopeFieldUpdateOperationsInput | $Enums.DiscountScope
+  category?: Prisma.NullableEnumStudentCategoryFieldUpdateOperationsInput | $Enums.StudentCategory | null
+  minChildren?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  percentage?: Prisma.FloatFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  parent?: Prisma.ParentUpdateOneWithoutDiscountRulesNestedInput
+  branch?: Prisma.BranchUpdateOneRequiredWithoutDiscountRuleNestedInput
+}
+
+export type DiscountRuleUncheckedUpdateWithoutTypeFraisInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  scope?: Prisma.EnumDiscountScopeFieldUpdateOperationsInput | $Enums.DiscountScope
+  category?: Prisma.NullableEnumStudentCategoryFieldUpdateOperationsInput | $Enums.StudentCategory | null
+  parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  minChildren?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  percentage?: Prisma.FloatFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  branchId?: Prisma.StringFieldUpdateOperationsInput | string
+}
+
+export type DiscountRuleUncheckedUpdateManyWithoutTypeFraisInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  scope?: Prisma.EnumDiscountScopeFieldUpdateOperationsInput | $Enums.DiscountScope
+  category?: Prisma.NullableEnumStudentCategoryFieldUpdateOperationsInput | $Enums.StudentCategory | null
+  parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   minChildren?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   percentage?: Prisma.FloatFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -680,6 +845,7 @@ export type DiscountRuleCreateManyBranchInput = {
   parentId?: string | null
   minChildren?: number | null
   percentage: number
+  typeFraisId?: string | null
   createdAt?: Date | string
 }
 
@@ -690,6 +856,7 @@ export type DiscountRuleUpdateWithoutBranchInput = {
   percentage?: Prisma.FloatFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   parent?: Prisma.ParentUpdateOneWithoutDiscountRulesNestedInput
+  typeFrais?: Prisma.TypeFraisUpdateOneWithoutDiscountRulesNestedInput
 }
 
 export type DiscountRuleUncheckedUpdateWithoutBranchInput = {
@@ -699,6 +866,7 @@ export type DiscountRuleUncheckedUpdateWithoutBranchInput = {
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   minChildren?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   percentage?: Prisma.FloatFieldUpdateOperationsInput | number
+  typeFraisId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -709,6 +877,7 @@ export type DiscountRuleUncheckedUpdateManyWithoutBranchInput = {
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   minChildren?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   percentage?: Prisma.FloatFieldUpdateOperationsInput | number
+  typeFraisId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -721,9 +890,11 @@ export type DiscountRuleSelect<ExtArgs extends runtime.Types.Extensions.Internal
   parentId?: boolean
   minChildren?: boolean
   percentage?: boolean
+  typeFraisId?: boolean
   createdAt?: boolean
   branchId?: boolean
   parent?: boolean | Prisma.DiscountRule$parentArgs<ExtArgs>
+  typeFrais?: boolean | Prisma.DiscountRule$typeFraisArgs<ExtArgs>
   branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["discountRule"]>
 
@@ -734,9 +905,11 @@ export type DiscountRuleSelectCreateManyAndReturn<ExtArgs extends runtime.Types.
   parentId?: boolean
   minChildren?: boolean
   percentage?: boolean
+  typeFraisId?: boolean
   createdAt?: boolean
   branchId?: boolean
   parent?: boolean | Prisma.DiscountRule$parentArgs<ExtArgs>
+  typeFrais?: boolean | Prisma.DiscountRule$typeFraisArgs<ExtArgs>
   branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["discountRule"]>
 
@@ -747,9 +920,11 @@ export type DiscountRuleSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.
   parentId?: boolean
   minChildren?: boolean
   percentage?: boolean
+  typeFraisId?: boolean
   createdAt?: boolean
   branchId?: boolean
   parent?: boolean | Prisma.DiscountRule$parentArgs<ExtArgs>
+  typeFrais?: boolean | Prisma.DiscountRule$typeFraisArgs<ExtArgs>
   branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["discountRule"]>
 
@@ -760,21 +935,25 @@ export type DiscountRuleSelectScalar = {
   parentId?: boolean
   minChildren?: boolean
   percentage?: boolean
+  typeFraisId?: boolean
   createdAt?: boolean
   branchId?: boolean
 }
 
-export type DiscountRuleOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "scope" | "category" | "parentId" | "minChildren" | "percentage" | "createdAt" | "branchId", ExtArgs["result"]["discountRule"]>
+export type DiscountRuleOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "scope" | "category" | "parentId" | "minChildren" | "percentage" | "typeFraisId" | "createdAt" | "branchId", ExtArgs["result"]["discountRule"]>
 export type DiscountRuleInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   parent?: boolean | Prisma.DiscountRule$parentArgs<ExtArgs>
+  typeFrais?: boolean | Prisma.DiscountRule$typeFraisArgs<ExtArgs>
   branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
 }
 export type DiscountRuleIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   parent?: boolean | Prisma.DiscountRule$parentArgs<ExtArgs>
+  typeFrais?: boolean | Prisma.DiscountRule$typeFraisArgs<ExtArgs>
   branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
 }
 export type DiscountRuleIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   parent?: boolean | Prisma.DiscountRule$parentArgs<ExtArgs>
+  typeFrais?: boolean | Prisma.DiscountRule$typeFraisArgs<ExtArgs>
   branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
 }
 
@@ -782,6 +961,7 @@ export type $DiscountRulePayload<ExtArgs extends runtime.Types.Extensions.Intern
   name: "DiscountRule"
   objects: {
     parent: Prisma.$ParentPayload<ExtArgs> | null
+    typeFrais: Prisma.$TypeFraisPayload<ExtArgs> | null
     branch: Prisma.$BranchPayload<ExtArgs>
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
@@ -791,6 +971,10 @@ export type $DiscountRulePayload<ExtArgs extends runtime.Types.Extensions.Intern
     parentId: string | null
     minChildren: number | null
     percentage: number
+    /**
+     * Type de frais sur lequel la remise s'applique (inscription). Null = tous les frais (legacy).
+     */
+    typeFraisId: string | null
     createdAt: Date
     branchId: string
   }, ExtArgs["result"]["discountRule"]>
@@ -1188,6 +1372,7 @@ readonly fields: DiscountRuleFieldRefs;
 export interface Prisma__DiscountRuleClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   parent<T extends Prisma.DiscountRule$parentArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.DiscountRule$parentArgs<ExtArgs>>): Prisma.Prisma__ParentClient<runtime.Types.Result.GetResult<Prisma.$ParentPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  typeFrais<T extends Prisma.DiscountRule$typeFraisArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.DiscountRule$typeFraisArgs<ExtArgs>>): Prisma.Prisma__TypeFraisClient<runtime.Types.Result.GetResult<Prisma.$TypeFraisPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   branch<T extends Prisma.BranchDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.BranchDefaultArgs<ExtArgs>>): Prisma.Prisma__BranchClient<runtime.Types.Result.GetResult<Prisma.$BranchPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -1224,6 +1409,7 @@ export interface DiscountRuleFieldRefs {
   readonly parentId: Prisma.FieldRef<"DiscountRule", 'String'>
   readonly minChildren: Prisma.FieldRef<"DiscountRule", 'Int'>
   readonly percentage: Prisma.FieldRef<"DiscountRule", 'Float'>
+  readonly typeFraisId: Prisma.FieldRef<"DiscountRule", 'String'>
   readonly createdAt: Prisma.FieldRef<"DiscountRule", 'DateTime'>
   readonly branchId: Prisma.FieldRef<"DiscountRule", 'String'>
 }
@@ -1643,6 +1829,25 @@ export type DiscountRule$parentArgs<ExtArgs extends runtime.Types.Extensions.Int
    */
   include?: Prisma.ParentInclude<ExtArgs> | null
   where?: Prisma.ParentWhereInput
+}
+
+/**
+ * DiscountRule.typeFrais
+ */
+export type DiscountRule$typeFraisArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the TypeFrais
+   */
+  select?: Prisma.TypeFraisSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the TypeFrais
+   */
+  omit?: Prisma.TypeFraisOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TypeFraisInclude<ExtArgs> | null
+  where?: Prisma.TypeFraisWhereInput
 }
 
 /**

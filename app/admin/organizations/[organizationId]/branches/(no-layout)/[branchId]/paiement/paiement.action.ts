@@ -151,6 +151,43 @@ type ReceiptPayload = {
   selectedRate?: number | null;
 };
 
+export type DiscountInfo = {
+  percentage: number;
+  typeFraisId: string | null;
+  typeFraisName: string | null;
+};
+
+const EMPTY_DISCOUNT: DiscountInfo = {
+  percentage: 0,
+  typeFraisId: null,
+  typeFraisName: null,
+};
+
+/**
+ * Remise % sur le montant brut des frais éligibles (pas sur le reste à payer).
+ * Sinon, après un paiement partiel, 10 % de 50 000 devient 500 au lieu de 5 000.
+ */
+function computeScopedDiscountAmount(
+  items: Array<{ base: number; typeFraisId?: string | null }>,
+  discount: DiscountInfo,
+) {
+  const percentage = Math.max(0, Number(discount.percentage) || 0);
+  if (percentage <= 0) return 0;
+
+  const eligibleBase = items.reduce((sum, item) => {
+    const base = Math.max(Number(item.base) || 0, 0);
+    if (!base) return sum;
+    // Remise liée à un type : uniquement ces frais
+    if (discount.typeFraisId) {
+      return item.typeFraisId === discount.typeFraisId ? sum + base : sum;
+    }
+    // Legacy sans type : tous les frais sélectionnés
+    return sum + base;
+  }, 0);
+
+  return (eligibleBase * percentage) / 100;
+}
+
 /* ======================================================
    TYPES SAFE
 ====================================================== */
@@ -165,11 +202,16 @@ export async function getFraisWithBalance(
 ) {
   const { branchId: activeBranchId } = await requireBranchContext();
   const discount = parentId
-    ? await getBestDiscount(prisma, parentId, activeBranchId)
-    : 0;
+    ? await getBestDiscountInfo(prisma, parentId, activeBranchId)
+    : EMPTY_DISCOUNT;
 
   const fraisList = await prisma.frais.findMany({
     where: { id: { in: fraisIds }, branchId: activeBranchId },
+    include: {
+      typeFrais: {
+        select: { id: true, nameType: true },
+      },
+    },
   });
 
   const results = [];
@@ -193,6 +235,8 @@ export async function getFraisWithBalance(
         fraisId: frais.id,
         classEnrollmentId,
         priority: frais.priority ?? 99,
+        typeFraisId: frais.typeFraisId,
+        typeFraisName: frais.typeFrais?.nameType ?? null,
         total,
         alreadyPaid,
         remaining: total - alreadyPaid, // ⚠️ ne PAS clamp ici
@@ -202,7 +246,9 @@ export async function getFraisWithBalance(
 
   return {
     items: results,
-    discount,
+    discount: discount.percentage,
+    discountTypeFraisId: discount.typeFraisId,
+    discountTypeFraisName: discount.typeFraisName,
   };
 }
 
@@ -361,6 +407,7 @@ export const createPaiementAction = action
 
       const parentRule = await tx.discountRule.findFirst({
         where: { branchId, scope: "PARENT", parentId },
+        include: { typeFrais: { select: { id: true, nameType: true } } },
       });
 
       const groupRule = await tx.discountRule.findFirst({
@@ -369,20 +416,37 @@ export const createPaiementAction = action
           scope: "GROUP",
           minChildren: { lte: studentCount },
         },
+        include: { typeFrais: { select: { id: true, nameType: true } } },
         orderBy: { minChildren: "desc" },
       });
 
       const orphanRule = hasOrphan
         ? await tx.discountRule.findFirst({
             where: { branchId, scope: "ORPHAN" },
+            include: { typeFrais: { select: { id: true, nameType: true } } },
           })
         : null;
 
-      const discountPercent = Math.max(
-        parentRule?.percentage ?? 0,
-        groupRule?.percentage ?? 0,
-        orphanRule?.percentage ?? 0,
+      const discountCandidates = [parentRule, groupRule, orphanRule].filter(
+        (rule): rule is NonNullable<typeof parentRule> =>
+          Boolean(rule && (rule.percentage ?? 0) > 0),
       );
+      const bestDiscountRule = discountCandidates.reduce<
+        (typeof discountCandidates)[number] | null
+      >((best, rule) => {
+        if (!best || rule.percentage > best.percentage) return rule;
+        return best;
+      }, null);
+
+      const discountInfo: DiscountInfo = bestDiscountRule
+        ? {
+            percentage: bestDiscountRule.percentage,
+            typeFraisId: bestDiscountRule.typeFraisId ?? null,
+            typeFraisName: bestDiscountRule.typeFrais?.nameType ?? null,
+          }
+        : EMPTY_DISCOUNT;
+
+      const discountPercent = discountInfo.percentage;
 
       /* ======================================================
          BALANCES
@@ -397,7 +461,9 @@ export const createPaiementAction = action
         studentId: string;
         fraisId: string;
         priority: number;
+        total: number;
         remaining: number;
+        typeFraisId: string | null;
       };
 
       const flatItems: FlatItem[] = balances
@@ -405,19 +471,27 @@ export const createPaiementAction = action
           studentId: b.classEnrollmentId,
           fraisId: b.fraisId,
           priority: b.priority,
+          total: Math.max(Number(b.total) || 0, 0),
           remaining: Math.max(b.remaining, 0),
+          typeFraisId: b.typeFraisId ?? null,
         }))
         .filter((b) => b.remaining > 0);
 
       /* ======================================================
-         🔥 GLOBAL DISCOUNT CALCULATION
+         🔥 DISCOUNT SCOPED TO TYPE FRAIS (sur montant brut)
       ====================================================== */
       const totalGlobal = flatItems.reduce(
         (sum, item) => sum + item.remaining,
         0,
       );
 
-      const discountAmount = (totalGlobal * discountPercent) / 100;
+      const discountAmount = computeScopedDiscountAmount(
+        flatItems.map((item) => ({
+          base: item.total,
+          typeFraisId: item.typeFraisId,
+        })),
+        discountInfo,
+      );
 
       const netToPay = Math.max(totalGlobal - discountAmount, 0);
       /* ======================================================
@@ -1479,7 +1553,11 @@ type StudentWithCategory = {
   category: string | null;
 };
 
-async function getBestDiscount(tx: any, parentId: string, branchId: string) {
+async function getBestDiscountInfo(
+  tx: any,
+  parentId: string,
+  branchId: string,
+): Promise<DiscountInfo> {
   const parent = await tx.parent.findFirst({
     where: {
       id: parentId,
@@ -1494,20 +1572,19 @@ async function getBestDiscount(tx: any, parentId: string, branchId: string) {
     },
   });
 
-  if (!parent) return 0;
+  if (!parent) return EMPTY_DISCOUNT;
 
   const studentCount = parent.students.length;
 
-  // 🔥 RULE 1: Parent-specific rule
   const parentRule = await tx.discountRule.findFirst({
     where: {
       branchId,
       scope: "PARENT",
       parentId,
     },
+    include: { typeFrais: { select: { id: true, nameType: true } } },
   });
 
-  // 🔥 RULE 2: Group rule (based on number of children)
   const groupRule = await tx.discountRule.findFirst({
     where: {
       branchId,
@@ -1516,17 +1593,16 @@ async function getBestDiscount(tx: any, parentId: string, branchId: string) {
         lte: studentCount,
       },
     },
+    include: { typeFrais: { select: { id: true, nameType: true } } },
     orderBy: {
-      minChildren: "desc", // prend la règle la plus haute applicable
+      minChildren: "desc",
     },
   });
 
-  // 🔥 CHECK IF ANY STUDENT IS ORPHAN
   const hasOrphan = parent.students.some(
     (student: any) => student.category === "ORPHAN",
   );
 
-  // 🔥 RULE 3: Orphan rule (ONLY if applicable)
   let categoryRule = null;
 
   if (hasOrphan) {
@@ -1535,23 +1611,32 @@ async function getBestDiscount(tx: any, parentId: string, branchId: string) {
         branchId,
         scope: "ORPHAN",
       },
+      include: { typeFrais: { select: { id: true, nameType: true } } },
     });
   }
 
-  // // 📊 DEBUG
-  // console.log("📊 DISCOUNT RULE DEBUG");
-  // console.log("studentCount:", studentCount);
-  // console.log("hasOrphan:", hasOrphan);
-  // console.log("parentRule:", parentRule);
-  // console.log("groupRule:", groupRule);
-  // console.log("categoryRule:", categoryRule);
-
-  // 🔥 FINAL CALCULATION (safe fallback)
-  return Math.max(
-    parentRule?.percentage ?? 0,
-    groupRule?.percentage ?? 0,
-    categoryRule?.percentage ?? 0,
+  const candidates = [parentRule, groupRule, categoryRule].filter(
+    (rule): rule is NonNullable<typeof parentRule> =>
+      Boolean(rule && (rule.percentage ?? 0) > 0),
   );
+
+  if (candidates.length === 0) return EMPTY_DISCOUNT;
+
+  const best = candidates.reduce((current, rule) =>
+    rule.percentage > current.percentage ? rule : current,
+  );
+
+  return {
+    percentage: best.percentage,
+    typeFraisId: best.typeFraisId ?? null,
+    typeFraisName: best.typeFrais?.nameType ?? null,
+  };
+}
+
+/** @deprecated Prefer getBestDiscountInfo */
+async function getBestDiscount(tx: any, parentId: string, branchId: string) {
+  const info = await getBestDiscountInfo(tx, parentId, branchId);
+  return info.percentage;
 }
 
 /* ======================================================
@@ -1566,6 +1651,13 @@ export type UnpaidReportRow = {
   studentName: string;
   classeId: string;
   classeName: string;
+  /** Montant dû brut (somme des frais). */
+  montantDuBrut: number;
+  /** Remise appliquée (scopée au type de frais si défini). */
+  remise: number;
+  remisePercent: number;
+  remiseTypeFraisName: string | null;
+  /** Montant dû net après remise. */
   montantDu: number;
   montantPaye: number;
   reste: number;
@@ -1665,7 +1757,9 @@ export const getUnpaidReportAction = action
         OR: [{ statusEnrollment: true }, { statusEnrollment: null }],
       },
       include: {
-        student: { include: linkedUserInclude },
+        student: {
+          include: linkedUserInclude,
+        },
         classe: { select: { id: true, nameClasse: true } },
       },
       orderBy: [{ classe: { nameClasse: "asc" } }, { createdAt: "asc" }],
@@ -1693,17 +1787,24 @@ export const getUnpaidReportAction = action
               id: true,
               classeId: true,
               montantFrais: true,
+              typeFraisId: true,
             },
           });
 
-    const dueByClasse = new Map<string, number>();
+    const fraisByClasse = new Map<
+      string,
+      Array<{ id: string; montant: number; typeFraisId: string | null }>
+    >();
     const fraisIds: string[] = [];
     for (const frais of fraisList) {
       fraisIds.push(frais.id);
-      dueByClasse.set(
-        frais.classeId,
-        (dueByClasse.get(frais.classeId) ?? 0) + Number(frais.montantFrais),
-      );
+      const list = fraisByClasse.get(frais.classeId) ?? [];
+      list.push({
+        id: frais.id,
+        montant: Number(frais.montantFrais),
+        typeFraisId: frais.typeFraisId,
+      });
+      fraisByClasse.set(frais.classeId, list);
     }
 
     const enrollmentIds = enrollments.map((e) => e.id);
@@ -1729,6 +1830,24 @@ export const getUnpaidReportAction = action
       }
     }
 
+    const parentIds = Array.from(
+      new Set(
+        enrollments
+          .map((e) => e.student?.parentId)
+          .filter((id): id is string => Boolean(id)),
+      ),
+    );
+
+    const discountByParentId = new Map<string, DiscountInfo>();
+    await Promise.all(
+      parentIds.map(async (parentId) => {
+        discountByParentId.set(
+          parentId,
+          await getBestDiscountInfo(prisma, parentId, branchId),
+        );
+      }),
+    );
+
     const rows: UnpaidReportRow[] = enrollments.map((enrollment) => {
       const studentUser = getLinkedUser(enrollment.student);
       const studentName =
@@ -1737,7 +1856,23 @@ export const getUnpaidReportAction = action
           .join(" ")
           .trim() || "Élève";
 
-      const montantDu = dueByClasse.get(enrollment.classeId) ?? 0;
+      const classeFrais = fraisByClasse.get(enrollment.classeId) ?? [];
+      const montantDuBrut = classeFrais.reduce((sum, f) => sum + f.montant, 0);
+
+      const parentId = enrollment.student?.parentId ?? null;
+      const discount = parentId
+        ? (discountByParentId.get(parentId) ?? EMPTY_DISCOUNT)
+        : EMPTY_DISCOUNT;
+
+      const remise = computeScopedDiscountAmount(
+        classeFrais.map((f) => ({
+          base: f.montant,
+          typeFraisId: f.typeFraisId,
+        })),
+        discount,
+      );
+
+      const montantDu = Math.max(0, montantDuBrut - remise);
       const montantPaye = paidByEnrollment.get(enrollment.id) ?? 0;
       const reste = Math.max(0, montantDu - montantPaye);
 
@@ -1746,6 +1881,10 @@ export const getUnpaidReportAction = action
         studentName,
         classeId: enrollment.classeId,
         classeName: enrollment.classe?.nameClasse ?? "-",
+        montantDuBrut,
+        remise,
+        remisePercent: discount.percentage,
+        remiseTypeFraisName: discount.typeFraisName,
         montantDu,
         montantPaye,
         reste,
@@ -1774,5 +1913,6 @@ export const getUnpaidReportAction = action
       totalDu: rows.reduce((sum, r) => sum + r.montantDu, 0),
       totalPaye: rows.reduce((sum, r) => sum + r.montantPaye, 0),
       totalReste: rows.reduce((sum, r) => sum + r.reste, 0),
+      totalRemise: rows.reduce((sum, r) => sum + r.remise, 0),
     };
   });

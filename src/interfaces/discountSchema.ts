@@ -11,6 +11,8 @@ export const discountSchema = z
     minChildren: z.number().optional(),
 
     percentage: z.number().min(0).max(100),
+    /** Type de frais concerné par la remise (requis si percentage > 0). */
+    typeFraisId: z.string().optional().or(z.literal("")),
   })
   .refine(
     (data) => {
@@ -21,5 +23,12 @@ export const discountSchema = z
     },
     {
       message: "Configuration de réduction invalide",
+    },
+  )
+  .refine(
+    (data) => data.percentage <= 0 || Boolean(data.typeFraisId?.trim()),
+    {
+      message: "Choisissez le type de frais concerné par la remise",
+      path: ["typeFraisId"],
     },
   );

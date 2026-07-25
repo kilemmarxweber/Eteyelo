@@ -60,6 +60,7 @@ export default function UnpaidReport({ refreshKey = 0 }: UnpaidReportProps) {
     totalDu: 0,
     totalPaye: 0,
     totalReste: 0,
+    totalRemise: 0,
   });
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
@@ -121,7 +122,7 @@ export default function UnpaidReport({ refreshKey = 0 }: UnpaidReportProps) {
       setLoading(false);
       setRows([]);
       setCounts({ aJour: 0, partiel: 0, enRetard: 0 });
-      setTotals({ totalDu: 0, totalPaye: 0, totalReste: 0 });
+      setTotals({ totalDu: 0, totalPaye: 0, totalReste: 0, totalRemise: 0 });
       setSchoolYearLabel(null);
       setError("Aucune année scolaire disponible.");
       return;
@@ -142,7 +143,7 @@ export default function UnpaidReport({ refreshKey = 0 }: UnpaidReportProps) {
         );
         setRows([]);
         setCounts({ aJour: 0, partiel: 0, enRetard: 0 });
-        setTotals({ totalDu: 0, totalPaye: 0, totalReste: 0 });
+        setTotals({ totalDu: 0, totalPaye: 0, totalReste: 0, totalRemise: 0 });
         setSchoolYearLabel(null);
       } else {
         setRows(data.rows);
@@ -151,6 +152,7 @@ export default function UnpaidReport({ refreshKey = 0 }: UnpaidReportProps) {
           totalDu: data.totalDu,
           totalPaye: data.totalPaye,
           totalReste: data.totalReste,
+          totalRemise: data.totalRemise ?? 0,
         });
         setSchoolYearLabel(data.schoolYearLabel);
       }
@@ -289,6 +291,9 @@ export default function UnpaidReport({ refreshKey = 0 }: UnpaidReportProps) {
                 <div className="mt-1 text-xs tabular-nums text-muted-foreground">
                   Dû {formatReportAmount(totals.totalDu, baseCurrency)} · Payé{" "}
                   {formatReportAmount(totals.totalPaye, baseCurrency)}
+                  {totals.totalRemise > 0
+                    ? ` · Remise ${formatReportAmount(totals.totalRemise, baseCurrency)}`
+                    : ""}
                 </div>
               </div>
             </div>

@@ -26,9 +26,22 @@ interface Props {
     schoolYearId: string;
   }) => void;
   resetKey?: number;
+  /** Masque le sélecteur d'année (affiché ailleurs, ex. panneau gauche). */
+  hideSchoolYearSelect?: boolean;
+  /** Contrôle externe de l'année scolaire. */
+  schoolYearId?: string;
+  onSchoolYearIdChange?: (schoolYearId: string) => void;
+  onSchoolYearsLoaded?: (years: ISchoolYear[]) => void;
 }
 
-export default function FamilySelector({ onChange, resetKey }: Props) {
+export default function FamilySelector({
+  onChange,
+  resetKey,
+  hideSchoolYearSelect = false,
+  schoolYearId: controlledSchoolYearId,
+  onSchoolYearIdChange,
+  onSchoolYearsLoaded,
+}: Props) {
   const [search, setSearch] = useState("");
   const [results, setResults] = useState<Family[]>([]);
   const [selected, setSelected] = useState<string[]>([]);
@@ -38,8 +51,19 @@ export default function FamilySelector({ onChange, resetKey }: Props) {
   const [activeParent, setActiveParent] = useState<string>("");
   const [searching, setSearching] = useState(false);
 
-  const [schoolYear, setSchoolYear] = useState<string>("");
+  const [internalSchoolYear, setInternalSchoolYear] = useState<string>("");
   const [schoolYears, setSchoolYears] = useState<ISchoolYear[]>([]);
+  const isSchoolYearControlled = controlledSchoolYearId !== undefined;
+  const schoolYear = isSchoolYearControlled
+    ? controlledSchoolYearId
+    : internalSchoolYear;
+
+  const setSchoolYear = (next: string) => {
+    if (!isSchoolYearControlled) {
+      setInternalSchoolYear(next);
+    }
+    onSchoolYearIdChange?.(next);
+  };
   const { data: session } = useSession();
   const peopleLabels = useBranchPeopleLabels();
   const pathname = usePathname();
@@ -52,6 +76,8 @@ export default function FamilySelector({ onChange, resetKey }: Props) {
   const searchRequestRef = useRef(0);
   const onChangeRef = useRef(onChange);
   onChangeRef.current = onChange;
+  const onSchoolYearsLoadedRef = useRef(onSchoolYearsLoaded);
+  onSchoolYearsLoadedRef.current = onSchoolYearsLoaded;
 
   const emitChange = (
     next: Partial<{
@@ -190,6 +216,7 @@ export default function FamilySelector({ onChange, resetKey }: Props) {
       if (yearsError || !yearsData) return;
 
       setSchoolYears(yearsData);
+      onSchoolYearsLoadedRef.current?.(yearsData);
 
       const resolvedYear =
         currentYear?.id ??
@@ -262,7 +289,12 @@ export default function FamilySelector({ onChange, resetKey }: Props) {
         </p>
       </div>
 
-      <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+      <div
+        className={cn(
+          "flex flex-col sm:flex-row sm:items-center gap-2",
+          hideSchoolYearSelect && "lg:hidden",
+        )}
+      >
         <span className="text-sm text-muted-foreground shrink-0">
           Année scolaire
         </span>

@@ -208,6 +208,7 @@ export type TypeFraisWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"TypeFrais"> | Date | string
   branch?: Prisma.XOR<Prisma.BranchScalarRelationFilter, Prisma.BranchWhereInput>
   frais?: Prisma.FraisListRelationFilter
+  discountRules?: Prisma.DiscountRuleListRelationFilter
 }
 
 export type TypeFraisOrderByWithRelationInput = {
@@ -221,6 +222,7 @@ export type TypeFraisOrderByWithRelationInput = {
   updatedAt?: Prisma.SortOrder
   branch?: Prisma.BranchOrderByWithRelationInput
   frais?: Prisma.FraisOrderByRelationAggregateInput
+  discountRules?: Prisma.DiscountRuleOrderByRelationAggregateInput
 }
 
 export type TypeFraisWhereUniqueInput = Prisma.AtLeast<{
@@ -237,6 +239,7 @@ export type TypeFraisWhereUniqueInput = Prisma.AtLeast<{
   updatedAt?: Prisma.DateTimeFilter<"TypeFrais"> | Date | string
   branch?: Prisma.XOR<Prisma.BranchScalarRelationFilter, Prisma.BranchWhereInput>
   frais?: Prisma.FraisListRelationFilter
+  discountRules?: Prisma.DiscountRuleListRelationFilter
 }, "id" | "codeType">
 
 export type TypeFraisOrderByWithAggregationInput = {
@@ -277,6 +280,7 @@ export type TypeFraisCreateInput = {
   updatedAt?: Date | string
   branch: Prisma.BranchCreateNestedOneWithoutTypeFraisInput
   frais?: Prisma.FraisCreateNestedManyWithoutTypeFraisInput
+  discountRules?: Prisma.DiscountRuleCreateNestedManyWithoutTypeFraisInput
 }
 
 export type TypeFraisUncheckedCreateInput = {
@@ -289,6 +293,7 @@ export type TypeFraisUncheckedCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   frais?: Prisma.FraisUncheckedCreateNestedManyWithoutTypeFraisInput
+  discountRules?: Prisma.DiscountRuleUncheckedCreateNestedManyWithoutTypeFraisInput
 }
 
 export type TypeFraisUpdateInput = {
@@ -301,6 +306,7 @@ export type TypeFraisUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branch?: Prisma.BranchUpdateOneRequiredWithoutTypeFraisNestedInput
   frais?: Prisma.FraisUpdateManyWithoutTypeFraisNestedInput
+  discountRules?: Prisma.DiscountRuleUpdateManyWithoutTypeFraisNestedInput
 }
 
 export type TypeFraisUncheckedUpdateInput = {
@@ -313,6 +319,7 @@ export type TypeFraisUncheckedUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   frais?: Prisma.FraisUncheckedUpdateManyWithoutTypeFraisNestedInput
+  discountRules?: Prisma.DiscountRuleUncheckedUpdateManyWithoutTypeFraisNestedInput
 }
 
 export type TypeFraisCreateManyInput = {
@@ -385,6 +392,11 @@ export type TypeFraisMinOrderByAggregateInput = {
   updatedAt?: Prisma.SortOrder
 }
 
+export type TypeFraisNullableScalarRelationFilter = {
+  is?: Prisma.TypeFraisWhereInput | null
+  isNot?: Prisma.TypeFraisWhereInput | null
+}
+
 export type TypeFraisListRelationFilter = {
   every?: Prisma.TypeFraisWhereInput
   some?: Prisma.TypeFraisWhereInput
@@ -407,6 +419,22 @@ export type TypeFraisUpdateOneRequiredWithoutFraisNestedInput = {
   upsert?: Prisma.TypeFraisUpsertWithoutFraisInput
   connect?: Prisma.TypeFraisWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.TypeFraisUpdateToOneWithWhereWithoutFraisInput, Prisma.TypeFraisUpdateWithoutFraisInput>, Prisma.TypeFraisUncheckedUpdateWithoutFraisInput>
+}
+
+export type TypeFraisCreateNestedOneWithoutDiscountRulesInput = {
+  create?: Prisma.XOR<Prisma.TypeFraisCreateWithoutDiscountRulesInput, Prisma.TypeFraisUncheckedCreateWithoutDiscountRulesInput>
+  connectOrCreate?: Prisma.TypeFraisCreateOrConnectWithoutDiscountRulesInput
+  connect?: Prisma.TypeFraisWhereUniqueInput
+}
+
+export type TypeFraisUpdateOneWithoutDiscountRulesNestedInput = {
+  create?: Prisma.XOR<Prisma.TypeFraisCreateWithoutDiscountRulesInput, Prisma.TypeFraisUncheckedCreateWithoutDiscountRulesInput>
+  connectOrCreate?: Prisma.TypeFraisCreateOrConnectWithoutDiscountRulesInput
+  upsert?: Prisma.TypeFraisUpsertWithoutDiscountRulesInput
+  disconnect?: Prisma.TypeFraisWhereInput | boolean
+  delete?: Prisma.TypeFraisWhereInput | boolean
+  connect?: Prisma.TypeFraisWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.TypeFraisUpdateToOneWithWhereWithoutDiscountRulesInput, Prisma.TypeFraisUpdateWithoutDiscountRulesInput>, Prisma.TypeFraisUncheckedUpdateWithoutDiscountRulesInput>
 }
 
 export type TypeFraisCreateNestedManyWithoutBranchInput = {
@@ -460,6 +488,7 @@ export type TypeFraisCreateWithoutFraisInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   branch: Prisma.BranchCreateNestedOneWithoutTypeFraisInput
+  discountRules?: Prisma.DiscountRuleCreateNestedManyWithoutTypeFraisInput
 }
 
 export type TypeFraisUncheckedCreateWithoutFraisInput = {
@@ -471,6 +500,7 @@ export type TypeFraisUncheckedCreateWithoutFraisInput = {
   branchId: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  discountRules?: Prisma.DiscountRuleUncheckedCreateNestedManyWithoutTypeFraisInput
 }
 
 export type TypeFraisCreateOrConnectWithoutFraisInput = {
@@ -498,6 +528,7 @@ export type TypeFraisUpdateWithoutFraisInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branch?: Prisma.BranchUpdateOneRequiredWithoutTypeFraisNestedInput
+  discountRules?: Prisma.DiscountRuleUpdateManyWithoutTypeFraisNestedInput
 }
 
 export type TypeFraisUncheckedUpdateWithoutFraisInput = {
@@ -509,6 +540,71 @@ export type TypeFraisUncheckedUpdateWithoutFraisInput = {
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  discountRules?: Prisma.DiscountRuleUncheckedUpdateManyWithoutTypeFraisNestedInput
+}
+
+export type TypeFraisCreateWithoutDiscountRulesInput = {
+  id?: string
+  codeType: string
+  nameType: string
+  description?: string | null
+  statusType?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  branch: Prisma.BranchCreateNestedOneWithoutTypeFraisInput
+  frais?: Prisma.FraisCreateNestedManyWithoutTypeFraisInput
+}
+
+export type TypeFraisUncheckedCreateWithoutDiscountRulesInput = {
+  id?: string
+  codeType: string
+  nameType: string
+  description?: string | null
+  statusType?: boolean
+  branchId: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  frais?: Prisma.FraisUncheckedCreateNestedManyWithoutTypeFraisInput
+}
+
+export type TypeFraisCreateOrConnectWithoutDiscountRulesInput = {
+  where: Prisma.TypeFraisWhereUniqueInput
+  create: Prisma.XOR<Prisma.TypeFraisCreateWithoutDiscountRulesInput, Prisma.TypeFraisUncheckedCreateWithoutDiscountRulesInput>
+}
+
+export type TypeFraisUpsertWithoutDiscountRulesInput = {
+  update: Prisma.XOR<Prisma.TypeFraisUpdateWithoutDiscountRulesInput, Prisma.TypeFraisUncheckedUpdateWithoutDiscountRulesInput>
+  create: Prisma.XOR<Prisma.TypeFraisCreateWithoutDiscountRulesInput, Prisma.TypeFraisUncheckedCreateWithoutDiscountRulesInput>
+  where?: Prisma.TypeFraisWhereInput
+}
+
+export type TypeFraisUpdateToOneWithWhereWithoutDiscountRulesInput = {
+  where?: Prisma.TypeFraisWhereInput
+  data: Prisma.XOR<Prisma.TypeFraisUpdateWithoutDiscountRulesInput, Prisma.TypeFraisUncheckedUpdateWithoutDiscountRulesInput>
+}
+
+export type TypeFraisUpdateWithoutDiscountRulesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  codeType?: Prisma.StringFieldUpdateOperationsInput | string
+  nameType?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  statusType?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  branch?: Prisma.BranchUpdateOneRequiredWithoutTypeFraisNestedInput
+  frais?: Prisma.FraisUpdateManyWithoutTypeFraisNestedInput
+}
+
+export type TypeFraisUncheckedUpdateWithoutDiscountRulesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  codeType?: Prisma.StringFieldUpdateOperationsInput | string
+  nameType?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  statusType?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  branchId?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  frais?: Prisma.FraisUncheckedUpdateManyWithoutTypeFraisNestedInput
 }
 
 export type TypeFraisCreateWithoutBranchInput = {
@@ -520,6 +616,7 @@ export type TypeFraisCreateWithoutBranchInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   frais?: Prisma.FraisCreateNestedManyWithoutTypeFraisInput
+  discountRules?: Prisma.DiscountRuleCreateNestedManyWithoutTypeFraisInput
 }
 
 export type TypeFraisUncheckedCreateWithoutBranchInput = {
@@ -531,6 +628,7 @@ export type TypeFraisUncheckedCreateWithoutBranchInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   frais?: Prisma.FraisUncheckedCreateNestedManyWithoutTypeFraisInput
+  discountRules?: Prisma.DiscountRuleUncheckedCreateNestedManyWithoutTypeFraisInput
 }
 
 export type TypeFraisCreateOrConnectWithoutBranchInput = {
@@ -592,6 +690,7 @@ export type TypeFraisUpdateWithoutBranchInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   frais?: Prisma.FraisUpdateManyWithoutTypeFraisNestedInput
+  discountRules?: Prisma.DiscountRuleUpdateManyWithoutTypeFraisNestedInput
 }
 
 export type TypeFraisUncheckedUpdateWithoutBranchInput = {
@@ -603,6 +702,7 @@ export type TypeFraisUncheckedUpdateWithoutBranchInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   frais?: Prisma.FraisUncheckedUpdateManyWithoutTypeFraisNestedInput
+  discountRules?: Prisma.DiscountRuleUncheckedUpdateManyWithoutTypeFraisNestedInput
 }
 
 export type TypeFraisUncheckedUpdateManyWithoutBranchInput = {
@@ -622,10 +722,12 @@ export type TypeFraisUncheckedUpdateManyWithoutBranchInput = {
 
 export type TypeFraisCountOutputType = {
   frais: number
+  discountRules: number
 }
 
 export type TypeFraisCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   frais?: boolean | TypeFraisCountOutputTypeCountFraisArgs
+  discountRules?: boolean | TypeFraisCountOutputTypeCountDiscountRulesArgs
 }
 
 /**
@@ -645,6 +747,13 @@ export type TypeFraisCountOutputTypeCountFraisArgs<ExtArgs extends runtime.Types
   where?: Prisma.FraisWhereInput
 }
 
+/**
+ * TypeFraisCountOutputType without action
+ */
+export type TypeFraisCountOutputTypeCountDiscountRulesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.DiscountRuleWhereInput
+}
+
 
 export type TypeFraisSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -657,6 +766,7 @@ export type TypeFraisSelect<ExtArgs extends runtime.Types.Extensions.InternalArg
   updatedAt?: boolean
   branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
   frais?: boolean | Prisma.TypeFrais$fraisArgs<ExtArgs>
+  discountRules?: boolean | Prisma.TypeFrais$discountRulesArgs<ExtArgs>
   _count?: boolean | Prisma.TypeFraisCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["typeFrais"]>
 
@@ -699,6 +809,7 @@ export type TypeFraisOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs 
 export type TypeFraisInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
   frais?: boolean | Prisma.TypeFrais$fraisArgs<ExtArgs>
+  discountRules?: boolean | Prisma.TypeFrais$discountRulesArgs<ExtArgs>
   _count?: boolean | Prisma.TypeFraisCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type TypeFraisIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -713,6 +824,7 @@ export type $TypeFraisPayload<ExtArgs extends runtime.Types.Extensions.InternalA
   objects: {
     branch: Prisma.$BranchPayload<ExtArgs>
     frais: Prisma.$FraisPayload<ExtArgs>[]
+    discountRules: Prisma.$DiscountRulePayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1119,6 +1231,7 @@ export interface Prisma__TypeFraisClient<T, Null = never, ExtArgs extends runtim
   readonly [Symbol.toStringTag]: "PrismaPromise"
   branch<T extends Prisma.BranchDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.BranchDefaultArgs<ExtArgs>>): Prisma.Prisma__BranchClient<runtime.Types.Result.GetResult<Prisma.$BranchPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   frais<T extends Prisma.TypeFrais$fraisArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.TypeFrais$fraisArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$FraisPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  discountRules<T extends Prisma.TypeFrais$discountRulesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.TypeFrais$discountRulesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$DiscountRulePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1578,6 +1691,30 @@ export type TypeFrais$fraisArgs<ExtArgs extends runtime.Types.Extensions.Interna
   take?: number
   skip?: number
   distinct?: Prisma.FraisScalarFieldEnum | Prisma.FraisScalarFieldEnum[]
+}
+
+/**
+ * TypeFrais.discountRules
+ */
+export type TypeFrais$discountRulesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the DiscountRule
+   */
+  select?: Prisma.DiscountRuleSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the DiscountRule
+   */
+  omit?: Prisma.DiscountRuleOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.DiscountRuleInclude<ExtArgs> | null
+  where?: Prisma.DiscountRuleWhereInput
+  orderBy?: Prisma.DiscountRuleOrderByWithRelationInput | Prisma.DiscountRuleOrderByWithRelationInput[]
+  cursor?: Prisma.DiscountRuleWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.DiscountRuleScalarFieldEnum | Prisma.DiscountRuleScalarFieldEnum[]
 }
 
 /**

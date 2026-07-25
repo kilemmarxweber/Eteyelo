@@ -44,6 +44,7 @@ import z from "zod";
 import { MultiSelect } from "./MultiSelect";
 import type { FacturePaymentStudentData } from "@/components/FacturePaymentStudent";
 import { ReceiptPreviewDialog } from "@/components/reports/ReceiptPreviewDialog";
+import type { ISchoolYear } from "@/src/interfaces/SchoolYear";
 
 type FormData = z.infer<typeof paiementSchema>;
 
@@ -99,9 +100,16 @@ export default function PaymentsForm({
   });
   const [amountWarning, setAmountWarning] = useState<string | null>(null);
   const [discountValue, setDiscountValue] = useState(0);
+  const [discountTypeFraisId, setDiscountTypeFraisId] = useState<string | null>(
+    null,
+  );
+  const [discountTypeFraisName, setDiscountTypeFraisName] = useState<
+    string | null
+  >(null);
   const [loading, setLoading] = useState(false);
   const [transactionRef, setTransactionRef] = useState(buildTransactionRef);
   const [schoolYearId, setSchoolYearId] = useState<string>("");
+  const [schoolYears, setSchoolYears] = useState<ISchoolYear[]>([]);
   const [availableFrais, setAvailableFrais] = useState<any[]>(fraisList);
   const [familyResetKey, setFamilyResetKey] = useState(0);
   const [receiptDialogOpen, setReceiptDialogOpen] = useState(false);
@@ -229,6 +237,8 @@ export default function PaymentsForm({
       if (!selection.classEnrollIds.length || !fraisIds.length) {
         setBalances([]);
         setDiscountValue(0);
+        setDiscountTypeFraisId(null);
+        setDiscountTypeFraisName(null);
         return;
       }
 
@@ -240,6 +250,8 @@ export default function PaymentsForm({
 
       setBalances(data.items);
       setDiscountValue(data.discount);
+      setDiscountTypeFraisId(data.discountTypeFraisId ?? null);
+      setDiscountTypeFraisName(data.discountTypeFraisName ?? null);
     };
 
     fetch();
@@ -271,19 +283,47 @@ export default function PaymentsForm({
       0,
     );
 
-    const discountAmount = (remainingBeforeDiscount * discountValue) / 100;
+    // Remise % sur le montant brut des frais encore dus (pas sur le reste).
+    // Ex. 50 000 − 45 000 déjà payés : 10 % = 5 000 (pas 500).
+    const eligibleBase = balances.reduce((sum, b) => {
+      const total = Math.max(Number(b.total ?? 0), 0);
+      const lineRemaining = Math.max(
+        total - Number(b.alreadyPaid ?? 0),
+        0,
+      );
+      if (!lineRemaining || discountValue <= 0) return sum;
+      if (discountTypeFraisId) {
+        return b.typeFraisId === discountTypeFraisId ? sum + total : sum;
+      }
+      return sum + total;
+    }, 0);
+
+    const discountAmount = (eligibleBase * discountValue) / 100;
     const remaining = Math.max(remainingBeforeDiscount - discountAmount, 0);
+    const hasEligibleFraisSelected =
+      !discountTypeFraisId ||
+      balances.some((b) => b.typeFraisId === discountTypeFraisId);
 
     return {
       totalDue,
       alreadyPaid,
+      remaining,
       discount: discountValue,
       discountAmount,
-      remaining,
+      discountTypeFraisId,
+      discountTypeFraisName,
+      hasEligibleFraisSelected,
       studentCount: selection.classEnrollIds.length,
       fraisCount: fraisIds.length,
     };
-  }, [balances, discountValue, selection.classEnrollIds.length, fraisIds.length]);
+  }, [
+    balances,
+    discountValue,
+    discountTypeFraisId,
+    discountTypeFraisName,
+    selection.classEnrollIds.length,
+    fraisIds.length,
+  ]);
 
   const selectedFraisDetails = useMemo(() => {
     const studentCount = selection.classEnrollIds.length || 1;
@@ -315,6 +355,17 @@ export default function PaymentsForm({
           alreadyPaid,
           remaining,
           studentCount: fraisBalances.length,
+          typeFraisId:
+            fraisBalances[0]?.typeFraisId ?? frais?.typeFraisId ?? null,
+          typeFraisName:
+            fraisBalances[0]?.typeFraisName ??
+            frais?.typeFrais?.nameType ??
+            null,
+          hasDiscount:
+            discountValue > 0 &&
+            (!discountTypeFraisId ||
+              (fraisBalances[0]?.typeFraisId ?? frais?.typeFraisId) ===
+                discountTypeFraisId),
         };
       }
 
@@ -329,9 +380,22 @@ export default function PaymentsForm({
         alreadyPaid: 0,
         remaining: total,
         studentCount,
+        typeFraisId: frais?.typeFraisId ?? null,
+        typeFraisName: frais?.typeFrais?.nameType ?? null,
+        hasDiscount:
+          discountValue > 0 &&
+          (!discountTypeFraisId ||
+            frais?.typeFraisId === discountTypeFraisId),
       };
     });
-  }, [fraisIds, balances, availableFrais, selection.classEnrollIds.length]);
+  }, [
+    fraisIds,
+    balances,
+    availableFrais,
+    selection.classEnrollIds.length,
+    discountValue,
+    discountTypeFraisId,
+  ]);
 
   // ================= 🏦 BANK SYSTEM: LOCKED STATES =================
   const isSolded = summary.remaining <= 0;
@@ -359,32 +423,18 @@ export default function PaymentsForm({
       return;
     }
 
-    // Ne jamais écraser une saisie manuelle en cours
-    if (amountManuallyEditedRef.current) return;
-
-    // Auto-remplir une seule fois par sélection, une fois les soldes chargés
+    // Nouvelle sélection : ne jamais préremplir — laisser vide jusqu'à saisie manuelle
     if (lastAutoFillKeyRef.current === selectionKey) return;
-    if (balances.length === 0) return;
-
-    const remainingBase = summary.remaining;
-    let nextDisplay = remainingBase;
-    try {
-      nextDisplay = fromBase(remainingBase, receivedCurrency);
-    } catch {
-      nextDisplay = remainingBase;
-    }
-    setValue("amount", remainingBase, { shouldValidate: true });
-    setDisplayAmount(remainingBase > 0 ? nextDisplay : undefined);
     lastAutoFillKeyRef.current = selectionKey;
+    amountManuallyEditedRef.current = false;
+    setAmountManuallyEdited(false);
+    setValue("amount", emptyAmount);
+    setDisplayAmount(undefined);
   }, [
     hasNoSelection,
     isSolded,
     selectionKey,
-    balances.length,
-    summary.remaining,
     setValue,
-    fromBase,
-    receivedCurrency,
   ]);
 
   const handleAmountChange = (value: number | undefined) => {
@@ -560,6 +610,8 @@ export default function PaymentsForm({
       setSelection({ parentId: "", classEnrollIds: [] });
       setBalances([]);
       setDiscountValue(0);
+      setDiscountTypeFraisId(null);
+      setDiscountTypeFraisName(null);
       setAmountWarning(null);
       setAmountManuallyEdited(false);
       amountManuallyEditedRef.current = false;
@@ -683,6 +735,23 @@ export default function PaymentsForm({
       {/* LEFT */}
       <div className="hidden lg:flex lg:flex-col w-60 gap-3 border p-4 rounded-md">
         <Select
+          value={schoolYearId || undefined}
+          onValueChange={setSchoolYearId}
+        >
+          <SelectTrigger className="w-full sm:w-[200px] h-9 text-sm">
+            <SelectValue placeholder="Année scolaire" />
+          </SelectTrigger>
+          <SelectContent>
+            {schoolYears.map((year) => (
+              <SelectItem key={year.id} value={year.id}>
+                {year.nameYear}
+                {year.isCurrentYear ? " (en cours)" : ""}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <Select
           value={watch("modePaiement")}
           onValueChange={(v) => setValue("modePaiement", v as ModePaiement)}
         >
@@ -712,27 +781,11 @@ export default function PaymentsForm({
                   ? baseHint
                   : amountManuallyEdited
                     ? "Montant modifié manuellement"
-                    : "Calculé automatiquement"}
+                    : "Saisissez le montant payé"}
               </p>
             )}
           </>
         )}
-
-        <Select
-          value={watch("status")}
-          onValueChange={(v) => setValue("status", v as StatusPaiement)}
-        >
-          <SelectTrigger className="w-full sm:w-[200px] h-9 text-sm">
-            <SelectValue placeholder="Statut" />
-          </SelectTrigger>
-          <SelectContent>
-            {Object.values(StatusPaiement).map((s) => (
-              <SelectItem key={s} value={s}>
-                {s}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
 
         <Textarea
           {...register("notes")}
@@ -758,6 +811,10 @@ export default function PaymentsForm({
       <div className="flex-1 border p-3 rounded-md">
         <FamilySelector
           resetKey={familyResetKey}
+          hideSchoolYearSelect
+          schoolYearId={schoolYearId}
+          onSchoolYearIdChange={setSchoolYearId}
+          onSchoolYearsLoaded={setSchoolYears}
           onChange={(data) => {
             amountManuallyEditedRef.current = false;
             setAmountManuallyEdited(false);
@@ -803,6 +860,14 @@ export default function PaymentsForm({
                       {frais.studentCount > 1 &&
                         ` × ${frais.studentCount} ${peopleLabels.studentPluralLower}`}
                     </p>
+                    {frais.hasDiscount ? (
+                      <p className="text-[11px] font-medium text-amber-700">
+                        Remise {summary.discount}% applicable
+                        {summary.discountTypeFraisName
+                          ? ` (${summary.discountTypeFraisName})`
+                          : ""}
+                      </p>
+                    ) : null}
                     {frais.alreadyPaid > 0 && (
                       <p className="text-xs text-green-700">
                         Déjà payé : {formatAmount(frais.alreadyPaid)}
@@ -873,10 +938,22 @@ export default function PaymentsForm({
                     <>
                       <span className="text-muted-foreground">
                         Remise ({summary.discount}%)
+                        {summary.discountTypeFraisName
+                          ? ` · ${summary.discountTypeFraisName}`
+                          : ""}
                       </span>
                       <span className="text-right font-medium text-orange-600">
-                        -{formatAmount(summary.discountAmount)}
+                        {summary.discountAmount > 0
+                          ? `-${formatAmount(summary.discountAmount)}`
+                          : "—"}
                       </span>
+                      {summary.discountTypeFraisName &&
+                      !summary.hasEligibleFraisSelected ? (
+                        <p className="col-span-2 text-[11px] text-amber-700">
+                          Sélectionnez un frais « {summary.discountTypeFraisName} »
+                          pour appliquer la remise.
+                        </p>
+                      ) : null}
                     </>
                   )}
                 </div>
@@ -917,7 +994,7 @@ export default function PaymentsForm({
                     ? baseHint
                     : amountManuallyEdited
                       ? "Montant modifié manuellement"
-                      : "Calculé automatiquement"}
+                      : "Saisissez le montant payé"}
                 </p>
                 <Button
                   type="submit"

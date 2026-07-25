@@ -5609,6 +5609,7 @@ export const DiscountRuleScalarFieldEnum = {
   parentId: 'parentId',
   minChildren: 'minChildren',
   percentage: 'percentage',
+  typeFraisId: 'typeFraisId',
   createdAt: 'createdAt',
   branchId: 'branchId'
 } as const

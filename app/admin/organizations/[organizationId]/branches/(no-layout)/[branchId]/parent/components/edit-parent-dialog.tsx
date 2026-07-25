@@ -64,6 +64,7 @@ export function UpdateParentDialog({
                 scope: parent.discount?.scope ?? "PARENT",
                 percentage: parent.discount?.percentage ?? 0,
                 minChildren: parent.discount?.minChildren ?? 0,
+                typeFraisId: parent.discount?.typeFraisId ?? "",
               },
             }}
             onUpdated={handleUpdated}

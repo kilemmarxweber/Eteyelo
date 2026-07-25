@@ -11,6 +11,10 @@ export interface IParent extends Omit<
     scope: "PARENT" | "GROUP" | "ORPHAN";
     percentage: number;
     minChildren: number;
+    /** Type de frais concerné par la remise (requis si percentage > 0). */
+    typeFraisId?: string | null;
+    typeFraisName?: string | null;
+    category?: unknown;
   } | null;
   role?: string; // 👈 nouveau
   memberId: string; // 👈 ajouté
@@ -58,13 +62,26 @@ export const parentSchema = z.object({
   discount: z
     .object({
       scope: z.enum(["PARENT", "GROUP", "ORPHAN"]),
-      percentage: requiredNumber("Veuillez saisir le pourcentage")
-        .pipe(z.number().min(0).max(100)),
+      percentage: requiredNumber("Veuillez saisir le pourcentage").pipe(
+        z.number().min(0).max(100),
+      ),
       minChildren: optionalNumber,
       category: z.any().optional(),
+      /** Type de frais concerné par la remise (requis si percentage > 0). */
+      typeFraisId: z.string().optional().or(z.literal("")),
     })
     .optional(),
-});
+})
+  .superRefine((value, ctx) => {
+    const percentage = value.discount?.percentage ?? 0;
+    if (percentage > 0 && !value.discount?.typeFraisId?.trim()) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["discount", "typeFraisId"],
+        message: "Choisissez le type de frais concerné par la remise",
+      });
+    }
+  });
 export const deleteParentSchema = z.object({
   id: z.string(),
 });

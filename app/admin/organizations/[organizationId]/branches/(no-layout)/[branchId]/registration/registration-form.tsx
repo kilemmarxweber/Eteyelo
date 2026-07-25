@@ -102,6 +102,7 @@ type StudentForm = Person & {
 };
 type ParentForm = Person & {
   discountPercentage: number;
+  discountTypeFraisId: string;
   profession: string;
 };
 
@@ -126,6 +127,7 @@ const emptyStudent: StudentForm = {
 const emptyParent: ParentForm = {
   ...emptyPerson,
   discountPercentage: 0,
+  discountTypeFraisId: "",
   profession: "",
 };
 
@@ -174,7 +176,8 @@ function isParentStepReady(
     parent.name &&
     parent.postnom &&
     parent.prenom &&
-    parent.address,
+    parent.address &&
+    (parent.discountPercentage <= 0 || parent.discountTypeFraisId),
   );
 }
 
@@ -220,6 +223,7 @@ export function RegistrationForm({
     sections: [],
     levels: [],
     creneaux: [],
+    typeFrais: [],
   });
   const [studentMode, setStudentMode] = useState<"existing" | "new">("new");
   const [studentId, setStudentId] = useState("");
@@ -1004,23 +1008,6 @@ export function RegistrationForm({
     return (
       <div className="space-y-6">
         <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-          {studentFields ? (
-            <Field label={peopleLabels.matriculeAutoLabel}>
-              <Input
-                disabled
-                className="bg-muted font-mono text-foreground opacity-100"
-                value={generatedStudentCode}
-              />
-            </Field>
-          ) : (
-            <Field label="Code d'accès (automatique)">
-              <Input
-                disabled
-                className="bg-muted font-mono text-foreground opacity-100"
-                value={generatedParentUsername}
-              />
-            </Field>
-          )}
           <Field label="Nom *">
             <Input
               value={value.name}
@@ -1045,6 +1032,7 @@ export function RegistrationForm({
               }
             />
           </Field>
+
           {studentFields ? (
             <>
               <Field label="Date de naissance *">
@@ -1074,17 +1062,23 @@ export function RegistrationForm({
                   }
                 />
               </Field>
-              <Field label={peopleLabels.emailAutoLabel}>
-                <Input
-                  disabled
-                  className="bg-muted font-mono text-foreground opacity-100"
-                  value={generatedStudentEmail}
-                />
+              <Field label="Sexe *">
+                <Select
+                  value={value.sexe}
+                  onValueChange={(next) =>
+                    updatePerson(value, setter, "sexe", next)
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="masculin">Masculin</SelectItem>
+                    <SelectItem value="feminin">Féminin</SelectItem>
+                  </SelectContent>
+                </Select>
               </Field>
-            </>
-          ) : (
-            <>
-              <Field label="Adresse *">
+              <Field label="Adresse complète (facultatif)">
                 <Input
                   value={value.address}
                   onChange={(event) =>
@@ -1092,64 +1086,21 @@ export function RegistrationForm({
                   }
                 />
               </Field>
-              <Field label="Téléphone (facultatif)">
-                <Input
-                  placeholder="+243…"
-                  value={value.telephone}
-                  onChange={(event) =>
-                    updatePerson(value, setter, "telephone", event.target.value)
-                  }
-                />
-              </Field>
-              <Field label="Email (facultatif)">
-                <Input
-                  type="email"
-                  placeholder={generatedParentEmail}
-                  value={value.email}
-                  onChange={(event) =>
-                    updatePerson(value, setter, "email", event.target.value)
-                  }
-                />
-                {!value.email.trim() ? (
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    Si vide, un email sera généré :{" "}
-                    <span className="font-mono">{generatedParentEmail}</span>
-                  </p>
-                ) : null}
-              </Field>
-            </>
-          )}
-          <Field label="Sexe *">
-            <Select
-              value={value.sexe}
-              onValueChange={(next) =>
-                updatePerson(value, setter, "sexe", next)
-              }
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="masculin">Masculin</SelectItem>
-                <SelectItem value="feminin">Féminin</SelectItem>
-              </SelectContent>
-            </Select>
-          </Field>
-          {studentFields ? (
-            <Field label="Adresse complète (facultatif)" className="xl:col-span-1">
-              <Input
-                value={value.address}
-                onChange={(event) =>
-                  updatePerson(value, setter, "address", event.target.value)
-                }
-              />
-            </Field>
-          ) : null}
-        </div>
-        {studentFields && (
-          <>
-            <Separator />
-            <div className="grid gap-5 md:grid-cols-2">
+              {!hidesProvenance ? (
+                <Field label="École de provenance (facultatif)">
+                  <Input
+                    value={(value as StudentForm).provenanceEcole}
+                    onChange={(event) =>
+                      updatePerson(
+                        value,
+                        setter,
+                        "provenanceEcole",
+                        event.target.value,
+                      )
+                    }
+                  />
+                </Field>
+              ) : null}
               <Field label="Catégorie">
                 <Select
                   value={(value as StudentForm).category}
@@ -1171,23 +1122,10 @@ export function RegistrationForm({
                   </SelectContent>
                 </Select>
               </Field>
-
-              {!hidesProvenance ? (
-                <Field label="École de provenance (facultatif)">
-                  <Input
-                    value={(value as StudentForm).provenanceEcole}
-                    onChange={(event) =>
-                      updatePerson(
-                        value,
-                        setter,
-                        "provenanceEcole",
-                        event.target.value,
-                      )
-                    }
-                  />
-                </Field>
-              ) : null}
-              <Field label="Observation (facultatif)" className="md:col-span-2">
+              <Field
+                label="Observation (facultatif)"
+                className="md:col-span-2 xl:col-span-3"
+              >
                 <Textarea
                   value={(value as StudentForm).observation}
                   onChange={(event) =>
@@ -1204,10 +1142,13 @@ export function RegistrationForm({
                       isStudentStepReady(studentMode, studentId, student),
                     )
                   }
-                  rows={4}
+                  rows={3}
                 />
               </Field>
-              <Field label={peopleLabels.photoOptionalLabel} className="md:col-span-2">
+              <Field
+                label={peopleLabels.photoOptionalLabel}
+                className="md:col-span-2 xl:col-span-3"
+              >
                 <div className="flex flex-wrap items-center gap-3">
                   {photoPreview ? (
                     <Image
@@ -1261,13 +1202,26 @@ export function RegistrationForm({
                   Parcourir un fichier ou capturer directement avec la caméra.
                 </p>
               </Field>
-            </div>
-          </>
-        )}
-        {!studentFields && (
-          <>
-            <Separator />
-            <div className="grid gap-5 md:grid-cols-2">
+            </>
+          ) : (
+            <>
+              <Field label="Adresse *">
+                <Input
+                  value={value.address}
+                  onChange={(event) =>
+                    updatePerson(value, setter, "address", event.target.value)
+                  }
+                />
+              </Field>
+              <Field label="Téléphone (facultatif)">
+                <Input
+                  placeholder="+243…"
+                  value={value.telephone}
+                  onChange={(event) =>
+                    updatePerson(value, setter, "telephone", event.target.value)
+                  }
+                />
+              </Field>
               <Field label="Fonction / lieu de travail (facultatif)">
                 <Input
                   placeholder="Ex. Enseignant, commerçant, entreprise…"
@@ -1282,21 +1236,62 @@ export function RegistrationForm({
                   }
                 />
               </Field>
+              <Field label="Email (facultatif)">
+                <Input
+                  type="email"
+                  placeholder={generatedParentEmail}
+                  value={value.email}
+                  onChange={(event) =>
+                    updatePerson(value, setter, "email", event.target.value)
+                  }
+                />
+                {!value.email.trim() ? (
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Si vide, un email sera généré :{" "}
+                    <span className="font-mono">{generatedParentEmail}</span>
+                  </p>
+                ) : null}
+              </Field>
+              <Field label="Sexe *">
+                <Select
+                  value={value.sexe}
+                  onValueChange={(next) =>
+                    updatePerson(value, setter, "sexe", next)
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="masculin">Masculin</SelectItem>
+                    <SelectItem value="feminin">Féminin</SelectItem>
+                  </SelectContent>
+                </Select>
+              </Field>
+            </>
+          )}
+        </div>
+        {!studentFields && (
+          <>
+            <Separator />
+            <div className="grid gap-5 md:grid-cols-2">
               <Field label="Remise familiale en % (facultatif)">
                 <Input
-                  className="max-w-[40%]"
                   type="number"
                   min={0}
                   max={100}
                   value={(value as ParentForm).discountPercentage}
-                  onChange={(event) =>
-                    updatePerson(
-                      value,
-                      setter,
-                      "discountPercentage",
-                      Number(event.target.value),
-                    )
-                  }
+                  onChange={(event) => {
+                    const next = Number(event.target.value);
+                    setter({
+                      ...(value as ParentForm),
+                      discountPercentage: next,
+                      discountTypeFraisId:
+                        next > 0
+                          ? (value as ParentForm).discountTypeFraisId
+                          : "",
+                    });
+                  }}
                   onBlur={() =>
                     parentStepIndex >= 0
                       ? advanceAfterLastOptional(
@@ -1307,6 +1302,42 @@ export function RegistrationForm({
                   }
                 />
               </Field>
+              {(value as ParentForm).discountPercentage > 0 ? (
+                <Field label="Type de frais concerné par la remise">
+                  <Select
+                    value={
+                      (value as ParentForm).discountTypeFraisId || undefined
+                    }
+                    onValueChange={(next) =>
+                      updatePerson(
+                        value,
+                        setter,
+                        "discountTypeFraisId",
+                        next,
+                      )
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Choisir le type de frais" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {(options.typeFrais ?? []).map(
+                        (type: { id: string; nameType: string }) => (
+                          <SelectItem key={type.id} value={type.id}>
+                            {type.nameType}
+                          </SelectItem>
+                        ),
+                      )}
+                    </SelectContent>
+                  </Select>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    La remise ne s&apos;appliquera qu&apos;aux frais de ce type
+                    lors des paiements.
+                  </p>
+                </Field>
+              ) : (
+                <div className="hidden md:block" aria-hidden />
+              )}
             </div>
           </>
         )}
@@ -1829,8 +1860,6 @@ export function RegistrationForm({
                     studentMode === "new"
                       ? [
                           `${student.name} ${student.postnom} ${student.prenom}`,
-                          `${peopleLabels.matriculeLabel} : ${generatedStudentCode}`,
-                          `Email : ${generatedStudentEmail}`,
                           `Catégorie : ${student.category}`,
                           ...(hidesProvenance
                             ? []
@@ -1859,7 +1888,6 @@ export function RegistrationForm({
                       parentMode === "new"
                         ? [
                             `${parent.name} ${parent.postnom} ${parent.prenom}`,
-                            `Code d'accès : ${generatedParentUsername}`,
                             parent.telephone.trim()
                               ? `Téléphone : ${parent.telephone}`
                               : "Sans téléphone",
@@ -1870,7 +1898,20 @@ export function RegistrationForm({
                               ? [`Fonction : ${parent.profession.trim()}`]
                               : []),
                             parent.discountPercentage
-                              ? `Remise : ${parent.discountPercentage}%`
+                              ? (() => {
+                                  const typeName = (
+                                    options.typeFrais ?? []
+                                  ).find(
+                                    (type: {
+                                      id: string;
+                                      nameType: string;
+                                    }) =>
+                                      type.id === parent.discountTypeFraisId,
+                                  )?.nameType;
+                                  return `Remise : ${parent.discountPercentage}%${
+                                    typeName ? ` sur ${typeName}` : ""
+                                  }`;
+                                })()
                               : "Sans remise",
                           ]
                         : [

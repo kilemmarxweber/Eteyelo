@@ -220,7 +220,7 @@ export const getRegistrationOptionsAction = action.handler(async () => {
     typebranch === "PRIMAIRE"
       ? await ensurePrimaryAcademicStructure(prisma, branchId)
       : null;
-  const [schoolYears, classes, options, sections, branch, annualCounts, creneaux] = await Promise.all([
+  const [schoolYears, classes, options, sections, branch, annualCounts, creneaux, typeFrais] = await Promise.all([
     prisma.schoolYear.findMany({
       where: { branchId, isArchived: false },
       orderBy: { startYear: "desc" },
@@ -278,6 +278,11 @@ export const getRegistrationOptionsAction = action.handler(async () => {
       orderBy: { nameCreneau: "asc" },
       select: { id: true, nameCreneau: true },
     }),
+    prisma.typeFrais.findMany({
+      where: { branchId, statusType: true },
+      orderBy: { nameType: "asc" },
+      select: { id: true, nameType: true, codeType: true },
+    }),
   ]);
   return {
     schoolYears,
@@ -285,6 +290,7 @@ export const getRegistrationOptionsAction = action.handler(async () => {
     options,
     sections,
     creneaux,
+    typeFrais,
     levels: [...getClassLevelsForBranch(typebranch)],
     typebranch,
     allowsOption: allowsOptionForBranch(typebranch),
@@ -731,8 +737,25 @@ export const createRegistrationFlowAction = action
             },
           });
           if (input.parent && input.parent.discountPercentage > 0) {
+            const typeFraisId = input.parent.discountTypeFraisId?.trim() || null;
+            if (!typeFraisId) {
+              throw new Error("Type de frais requis pour la remise.");
+            }
+            const typeFrais = await tx.typeFrais.findFirst({
+              where: { id: typeFraisId, branchId, statusType: true },
+              select: { id: true },
+            });
+            if (!typeFrais) {
+              throw new Error("Type de frais de remise introuvable dans cette branche.");
+            }
             await tx.discountRule.create({
-              data: { parentId: parent.id, branchId, scope: "PARENT", percentage: input.parent.discountPercentage },
+              data: {
+                parentId: parent.id,
+                branchId,
+                scope: "PARENT",
+                percentage: input.parent.discountPercentage,
+                typeFraisId: typeFrais.id,
+              },
             });
           }
           parentId = parent.id;

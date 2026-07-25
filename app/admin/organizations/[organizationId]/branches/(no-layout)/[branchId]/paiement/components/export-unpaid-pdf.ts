@@ -82,12 +82,13 @@ export async function buildUnpaidReportPdf(
   const title = buildUnpaidReportTitle(options);
   const filterLabels = buildUnpaidReportFilterLabels(options);
   const emptyMessage =
-    options.emptyMessage?.trim() ||
-    "Aucun élève pour ces filtres.";
+    options.emptyMessage?.trim() || "Aucun élève pour ces filtres.";
 
   const totalDu = rows.reduce((sum, row) => sum + row.montantDu, 0);
   const totalPaye = rows.reduce((sum, row) => sum + row.montantPaye, 0);
   const totalReste = rows.reduce((sum, row) => sum + row.reste, 0);
+  const totalRemise = rows.reduce((sum, row) => sum + (row.remise ?? 0), 0);
+  const hasRemise = totalRemise > 0;
   const counts = {
     aJour: rows.filter((r) => r.status === "A_JOUR").length,
     partiel: rows.filter((r) => r.status === "PARTIEL").length,
@@ -98,37 +99,83 @@ export async function buildUnpaidReportPdf(
   const logo = await imageUrlToDataUrl(context.logoUrl);
 
   const currency = context.baseCurrency ?? "USD";
-  const head = [
-    "Élève",
-    "Classe",
-    `Dû (${currency})`,
-    `Payé (${currency})`,
-    `Reste (${currency})`,
-    "Statut",
-  ];
+  const head = hasRemise
+    ? [
+        "Élève",
+        "Classe",
+        `Dû (${currency})`,
+        `Remise (${currency})`,
+        `Payé (${currency})`,
+        `Reste (${currency})`,
+        "Statut",
+      ]
+    : [
+        "Élève",
+        "Classe",
+        `Dû (${currency})`,
+        `Payé (${currency})`,
+        `Reste (${currency})`,
+        "Statut",
+      ];
   const body =
     rows.length > 0
-      ? rows.map((row) => [
-          row.studentName,
-          row.classeName,
-          formatReportAmount(row.montantDu, currency),
-          formatReportAmount(row.montantPaye, currency),
-          formatReportAmount(row.reste, currency),
-          unpaidStatusLabel(row.status),
-        ])
-      : [[emptyMessage, "", "", "", "", ""]];
+      ? rows.map((row) =>
+          hasRemise
+            ? [
+                row.studentName,
+                row.classeName,
+                formatReportAmount(row.montantDu, currency),
+                row.remise > 0
+                  ? `${formatReportAmount(row.remise, currency)}${
+                      row.remisePercent
+                        ? ` (${row.remisePercent}%${
+                            row.remiseTypeFraisName
+                              ? ` · ${row.remiseTypeFraisName}`
+                              : ""
+                          })`
+                        : ""
+                    }`
+                  : "—",
+                formatReportAmount(row.montantPaye, currency),
+                formatReportAmount(row.reste, currency),
+                unpaidStatusLabel(row.status),
+              ]
+            : [
+                row.studentName,
+                row.classeName,
+                formatReportAmount(row.montantDu, currency),
+                formatReportAmount(row.montantPaye, currency),
+                formatReportAmount(row.reste, currency),
+                unpaidStatusLabel(row.status),
+              ],
+        )
+      : [
+          hasRemise
+            ? [emptyMessage, "", "", "", "", "", ""]
+            : [emptyMessage, "", "", "", "", ""],
+        ];
 
   const foot =
     rows.length > 0
       ? [
-          [
-            "Total",
-            "",
-            formatReportAmount(totalDu, currency),
-            formatReportAmount(totalPaye, currency),
-            formatReportAmount(totalReste, currency),
-            "",
-          ],
+          hasRemise
+            ? [
+                "Total",
+                "",
+                formatReportAmount(totalDu, currency),
+                formatReportAmount(totalRemise, currency),
+                formatReportAmount(totalPaye, currency),
+                formatReportAmount(totalReste, currency),
+                "",
+              ]
+            : [
+                "Total",
+                "",
+                formatReportAmount(totalDu, currency),
+                formatReportAmount(totalPaye, currency),
+                formatReportAmount(totalReste, currency),
+                "",
+              ],
         ]
       : undefined;
 
@@ -166,18 +213,29 @@ export async function buildUnpaidReportPdf(
       fontSize: 8,
     },
     alternateRowStyles: { fillColor: [239, 246, 255] },
-    columnStyles: {
-      0: { cellWidth: 70 },
-      1: { cellWidth: 40 },
-      2: { cellWidth: 32, halign: "right" },
-      3: { cellWidth: 32, halign: "right" },
-      4: { cellWidth: 32, halign: "right" },
-      5: { cellWidth: 28, halign: "center" },
-    },
+    columnStyles: hasRemise
+      ? {
+          0: { cellWidth: 55 },
+          1: { cellWidth: 32 },
+          2: { cellWidth: 28, halign: "right" },
+          3: { cellWidth: 42,halign: "right" },
+          4: { cellWidth: 28,halign: "right" },
+          5: { cellWidth: 28,halign: "right" },
+          6: { cellWidth: 24,halign: "center" },
+        }
+      : {
+          0: { cellWidth: 70 },
+          1: { cellWidth: 40 },
+          2: { cellWidth: 32,halign: "right" },
+          3: { cellWidth: 32,halign: "right" },
+          4: { cellWidth: 32,halign: "right" },
+          5: { cellWidth: 28,halign: "center" },
+        },
     didParseCell: (data) => {
+      const colCount = hasRemise ? 7 : 6;
       if (rows.length === 0 && data.section === "body") {
         if (data.column.index === 0) {
-          data.cell.colSpan = 6;
+          data.cell.colSpan = colCount;
           data.cell.styles.halign = "center";
           data.cell.styles.fontStyle = "italic";
           data.cell.styles.textColor = [100, 116, 139];
@@ -191,7 +249,8 @@ export async function buildUnpaidReportPdf(
         if (data.column.index === 0) {
           data.cell.styles.halign = "left";
         }
-        if (data.column.index === 2 || data.column.index === 3 || data.column.index === 4) {
+        const amountCols = hasRemise ? [2, 3, 4, 5] : [2, 3, 4];
+        if (amountCols.includes(data.column.index)) {
           data.cell.styles.halign = "right";
         }
       }
@@ -203,7 +262,11 @@ export async function buildUnpaidReportPdf(
         details: [
           ...filterLabels,
           rows.length > 0
-            ? `${rows.length} élève(s) — À jour ${counts.aJour} · Partiel ${counts.partiel} · En retard ${counts.enRetard}`
+            ? `${rows.length} élève(s) — À jour ${counts.aJour} · Partiel ${counts.partiel} · En retard ${counts.enRetard}${
+                hasRemise
+                  ? ` · Remise ${formatReportAmount(totalRemise, currency)}`
+                  : ""
+              }`
             : emptyMessage,
         ],
         logoDataUrl: logo,

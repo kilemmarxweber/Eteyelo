@@ -71,6 +71,14 @@ export function getPublicLevelFieldLabels(typebranch: unknown) {
     };
   }
 
+  if (type === "PRIMAIRE") {
+    return {
+      level: "Classe",
+      section: "Section",
+      option: "Option",
+    };
+  }
+
   if (type === "SECONDAIRE") {
     return {
       level: "Niveau",

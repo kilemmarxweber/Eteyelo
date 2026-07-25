@@ -263,7 +263,8 @@ model TypeFrais {
   branchId             String
   branch               Branch             @relation(fields: [branchId], references: [id], onDelete: Cascade)
 
-  frais     Frais[]
+  frais         Frais[]
+  discountRules DiscountRule[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   @@index([branchId])
@@ -890,12 +891,16 @@ model DiscountRule {
   parentId    String? // si scope = PARENT
   minChildren Int?
   percentage  Float
+  /// Type de frais sur lequel la remise s'applique (inscription). Null = tous les frais (legacy).
+  typeFraisId String?
   createdAt   DateTime         @default(now())
   parent      Parent?          @relation(fields: [parentId], references: [id])
+  typeFrais   TypeFrais?       @relation(fields: [typeFraisId], references: [id], onDelete: SetNull)
   branchId             String
   branch               Branch             @relation(fields: [branchId], references: [id], onDelete: Cascade)
   @@index([branchId])
   @@index([branchId, scope])
+  @@index([typeFraisId])
 }
 
 model Transaction {

@@ -28,10 +28,12 @@ import {
 } from "@/components/ui/select";
 
 import { createParentAction, updateParentAction } from "../parent.action";
+import { getTypeFraisAction } from "../../frais/frais.action";
 
 import { PhoneInput } from "@/components/ui/phone-input";
 import { parentSchema } from "@/src/interfaces/Parent";
 import generateUsername from "@/src/hooks/generateUsername";
+import type { ITypeFrais } from "@/src/interfaces/Frais";
 
 interface ParentUpFormProps extends HTMLAttributes<HTMLDivElement> {
   onSuccess?: () => void;
@@ -56,6 +58,7 @@ export function ParentUpForm({
   const fieldClass = isDialog ? "space-y-0.5" : undefined;
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [typeFraisOptions, setTypeFraisOptions] = useState<ITypeFrais[]>([]);
   const sexeToUi: Record<string, "masculin" | "feminin"> = {
     M: "masculin",
     F: "feminin",
@@ -70,6 +73,12 @@ export function ParentUpForm({
       ? {
           ...initialData,
           sexe: sexeToUi[initialData.sexe], // 👈 conversion DB → UI
+          discount: {
+            scope: initialData.discount?.scope ?? "PARENT",
+            percentage: initialData.discount?.percentage ?? 0,
+            minChildren: initialData.discount?.minChildren ?? 0,
+            typeFraisId: initialData.discount?.typeFraisId ?? "",
+          },
         }
       : {
           username: "",
@@ -84,9 +93,25 @@ export function ParentUpForm({
             scope: "PARENT",
             percentage: 0,
             minChildren: 0,
+            typeFraisId: "",
           },
         },
   });
+
+  const discountPercentage = form.watch("discount.percentage");
+
+  useEffect(() => {
+    let ignore = false;
+    (async () => {
+      const [types, error] = await getTypeFraisAction();
+      if (ignore || error || !types) return;
+      setTypeFraisOptions(types);
+    })();
+    return () => {
+      ignore = true;
+    };
+  }, []);
+
   // Auto-generate username
   useEffect(() => {
     const nom = form.getValues("name");
@@ -132,6 +157,7 @@ export function ParentUpForm({
             scope: "PARENT",
             percentage: 0,
             minChildren: 0,
+            typeFraisId: "",
           },
         });
         onCreated?.();
@@ -334,13 +360,53 @@ export function ParentUpForm({
                         }
                         onChange={(e) => {
                           const value = e.target.value;
-                          field.onChange(value === "" ? "" : Number(value));
+                          const next = value === "" ? "" : Number(value);
+                          field.onChange(next);
+                          if (!(typeof next === "number" && next > 0)) {
+                            form.setValue("discount.typeFraisId", "");
+                          }
                         }}
                       />
                     </FormControl>
+                    <FormMessage />
                   </FormItem>
                 )}
               />
+
+              {typeof discountPercentage === "number" &&
+              discountPercentage > 0 ? (
+                <FormField
+                  control={form.control}
+                  name="discount.typeFraisId"
+                  render={({ field }) => (
+                    <FormItem className={isDialog ? "sm:col-span-2" : undefined}>
+                      <FormLabel>Type de frais concerné par la remise</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value || undefined}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Choisir le type de frais" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent position="popper">
+                          {typeFraisOptions.map((type) => (
+                            <SelectItem key={type.id} value={type.id}>
+                              {type.nameType}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-muted-foreground">
+                        La remise ne s&apos;appliquera qu&apos;aux frais de ce
+                        type lors des paiements.
+                      </p>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              ) : null}
 
               {/* MIN CHILDREN (ONLY GROUP) */}
               {form.watch("discount.scope") === "GROUP" && (
@@ -349,7 +415,7 @@ export function ParentUpForm({
                   name="discount.minChildren"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Nombre minimum d'enfants</FormLabel>
+                      <FormLabel>Nombre minimum d&apos;enfants</FormLabel>
                       <FormControl>
                         <Input
                           type="number"
