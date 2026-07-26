@@ -1,11 +1,12 @@
 /**
- * Smoke tests — unit-04 périmètre caissier (finance only).
+ * Smoke tests — unit-04 périmètre caissier (finance + inscription).
  */
 import assert from "node:assert/strict";
 
 import { canAccessOrganizationAdminHome } from "../lib/auth/organization-admin-home";
 import {
   canAccessFinanceArea,
+  canAccessRegistrationArea,
   canAccessStudentDirectory,
   canAccessTeachingArea,
   canManageOrganization,
@@ -36,8 +37,9 @@ const sessionDirecteur = sessionWithOrgRole(ORG_ROLE.DIRECTEUR);
 const sessionGestionnaire = sessionWithOrgRole(ORG_ROLE.GESTIONNAIRE);
 const sessionTeacher = sessionWithOrgRole(ORG_ROLE.TEACHER);
 
-test("helpers : caissier finance + lecture élèves oui, manage/teaching non", () => {
+test("helpers : caissier finance + inscription + lecture élèves oui, manage/teaching non", () => {
   assert.equal(canAccessFinanceArea(sessionCaissier), true);
+  assert.equal(canAccessRegistrationArea(sessionCaissier), true);
   assert.equal(canAccessStudentDirectory(sessionCaissier), true);
   assert.equal(canManageOrganization(sessionCaissier), false);
   assert.equal(canAccessTeachingArea(sessionCaissier), false);
@@ -62,14 +64,20 @@ test("login caissier → land branche", () => {
   );
 });
 
-test("menu caissier : Dashboard + Finance + Utilisateurs/Élève (+ Aide)", () => {
+test("menu caissier : Dashboard + Inscription + Finance + Utilisateurs/Élève (+ Aide)", () => {
   const links = buildStaticSideLinks(sessionCaissier, BRANCH_PATH, "PRIMAIRE");
   const titles = links.map((item) => item.title);
   const usersSubs = (links.find((item) => item.title === "Utilisateurs")?.sub ?? []).map(
     (item) => item.title,
   );
 
-  for (const title of ["Dashboard", "Finance", "Utilisateurs", "Aide"]) {
+  for (const title of [
+    "Dashboard",
+    "Inscription",
+    "Finance",
+    "Utilisateurs",
+    "Aide",
+  ]) {
     assert.ok(titles.includes(title), `caissier doit voir « ${title} »`);
   }
   assert.ok(usersSubs.includes("Élève"), "caissier doit voir sous-menu Élève");
@@ -77,7 +85,6 @@ test("menu caissier : Dashboard + Finance + Utilisateurs/Élève (+ Aide)", () =
     assert.ok(!usersSubs.includes(title), `caissier ne doit pas voir « ${title} »`);
   }
   for (const title of [
-    "Inscription",
     "Presences",
     "Candidatures",
     "Classes",

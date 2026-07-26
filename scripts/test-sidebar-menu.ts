@@ -52,7 +52,7 @@ function assertExcludes(actual: string[], forbidden: string[], label: string) {
   }
 }
 
-test("caissier : Dashboard, Finance, Utilisateurs/Élève, Aide — pas Classes / Enseignement / Cursus", () => {
+test("caissier : Dashboard, Inscription, Finance, Utilisateurs/Élève, Aide — pas Classes / Enseignement / Cursus", () => {
   const session = sessionWithOrgRole(ORG_ROLE.CAISSIER);
   const titles = menuTitles(session);
   const users = buildStaticSideLinks(session, BRANCH_PATH, "PRIMAIRE").find(
@@ -60,10 +60,14 @@ test("caissier : Dashboard, Finance, Utilisateurs/Élève, Aide — pas Classes 
   );
   const usersSubs = (users?.sub ?? []).map((item) => item.title);
 
-  assertIncludes(titles, ["Dashboard", "Finance", "Utilisateurs", "Aide"], "caissier");
+  assertIncludes(
+    titles,
+    ["Dashboard", "Inscription", "Finance", "Utilisateurs", "Aide"],
+    "caissier",
+  );
   assertExcludes(
     titles,
-    ["Inscription", "Presences", "Candidatures", "Classes", "Enseignement", "Cursus"],
+    ["Presences", "Candidatures", "Classes", "Enseignement", "Cursus"],
     "caissier",
   );
   assertIncludes(usersSubs, ["Élève"], "caissier utilisateurs");

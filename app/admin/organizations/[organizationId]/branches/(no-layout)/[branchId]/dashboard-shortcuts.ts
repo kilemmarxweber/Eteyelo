@@ -163,6 +163,13 @@ export function getDashboardShortcuts(
     case "caissier":
       return [
         {
+          title: "Inscription",
+          description: `Enregistrer des ${ctx.studentPluralLower}`,
+          href: href("/registration"),
+          color: "bg-blue-500",
+          iconKey: "users",
+        },
+        {
           title: "Frais",
           description: "Consulter et gérer les frais",
           href: href("/frais"),

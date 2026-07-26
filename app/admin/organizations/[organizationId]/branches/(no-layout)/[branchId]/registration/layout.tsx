@@ -5,6 +5,6 @@ export default async function RegistrationLayout({
 }: {
   children: React.ReactNode;
 }) {
-  await assertBranchAreaAccess("school_admin");
+  await assertBranchAreaAccess("registration");
   return children;
 }

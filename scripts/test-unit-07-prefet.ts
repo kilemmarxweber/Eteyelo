@@ -112,7 +112,7 @@ test("distinct caissier / enseignant", () => {
     "PRIMAIRE",
   ).map((item) => item.title);
   assert.ok(caissierTitles.includes("Finance"));
-  assert.ok(!caissierTitles.includes("Inscription"));
+  assert.ok(caissierTitles.includes("Inscription"));
   assert.ok(!caissierTitles.includes("Classes"));
   assert.ok(!caissierTitles.includes("Enseignement"));
 

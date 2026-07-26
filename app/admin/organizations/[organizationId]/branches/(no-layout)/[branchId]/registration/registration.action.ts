@@ -5,7 +5,7 @@ import { z } from "zod";
 import { action } from "@/lib/zsa";
 import { prisma } from "@/lib/prisma";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
-import { canManageOrganization } from "@/lib/auth/session-roles";
+import { canAccessRegistrationArea } from "@/lib/auth/session-roles";
 import { Prisma } from "@/prisma/generated/prisma/client";
 import { findAvailableClassForLevel } from "@/lib/class-enrollment/find-available-class";
 import { matchesClassForLevel } from "@/lib/class-enrollment/match-class-for-level";
@@ -30,7 +30,7 @@ async function requireRegistrationContext() {
     },
     select: { role: true },
   });
-  if (!canManageOrganization(context.session, branchMember?.role)) {
+  if (!canAccessRegistrationArea(context.session, branchMember?.role)) {
     throw new Error("Vous n'avez pas la permission de gérer les inscriptions.");
   }
   return context;

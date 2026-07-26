@@ -50,10 +50,10 @@ function assertAreas(
   }
 }
 
-test("Caissier → /notes refusé ; /paiement OK", () => {
+test("Caissier → /notes refusé ; /paiement + /registration OK", () => {
   assertAreas(
     sessionCaissier,
-    ["finance"],
+    ["finance", "registration"],
     ["notes", "schedule", "results", "school_admin", "teaching", "pedagogy"],
   );
 });

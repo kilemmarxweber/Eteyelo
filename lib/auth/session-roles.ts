@@ -156,6 +156,24 @@ export function canAccessPedagogyArea(
   );
 }
 
+/**
+ * Inscription élèves : school admin (pédagogie) + caissier.
+ * Ne donne pas accès aux autres zones school_admin (classes, candidatures…).
+ */
+export function canAccessRegistrationArea(
+  session: any,
+  ...extraRoles: unknown[]
+): boolean {
+  return (
+    canAccessPedagogyArea(session, ...extraRoles) ||
+    hasSessionRole(
+      session,
+      [ORG_ROLE.CAISSIER, "CAISSIER", "ACCOUNTANT", "accountant"],
+      ...extraRoles,
+    )
+  );
+}
+
 /** @deprecated Alias — préférer `canAccessPedagogyArea`. */
 export const canAccessPedagogyAdminArea = canAccessPedagogyArea;
 

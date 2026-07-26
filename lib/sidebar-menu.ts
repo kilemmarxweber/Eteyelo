@@ -141,7 +141,8 @@ const staticSidebarMenu: StaticMenuItem[] = [
     title: "Inscription",
     href: "/admin/registration",
     icon: "inscriptions",
-    roles: SCHOOL_ADMIN_ROLES,
+    // School admin + caissier (enregistrement élèves / encaissement lié).
+    roles: [...SCHOOL_ADMIN_ROLES, ...CAISSIER_ROLES],
   },
   {
     title: "Presences",

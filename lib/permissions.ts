@@ -295,8 +295,9 @@ export const organizationRoleStatements: Record<string, StatementShape> = {
     ...withActions(CRUD_ACTIONS),
   },
   /**
-   * Caissier : accès branche minimal (member:read + inscription:share).
-   * Pas de CRU sur schedule / personnel / teacher / parent / branch.
+   * Caissier : finance + inscription élèves (member:create pour comptes
+   * parent/élève) + lecture annuaire. Pas de CRU sur schedule / personnel /
+   * teacher / parent / branch.
    *
    * Finance : aucune ressource `finance` / `paiement` dans
    * `accessControlStatements` — reportée. Encaissements gated par helpers
@@ -304,8 +305,8 @@ export const organizationRoleStatements: Record<string, StatementShape> = {
    */
   [ORG_ROLE.CAISSIER]: {
     ...organizationPluginMemberAc.statements,
-    member: ["read"],
-    inscription: ["share"],
+    member: ["create", "read"],
+    inscription: ["create", "share", "update"],
   },
   [ORG_ROLE.STUDENT]: {
     ...organizationPluginMemberAc.statements,

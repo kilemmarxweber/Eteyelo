@@ -5,6 +5,7 @@ import {
   canAccessLibraryArea,
   canAccessNotesReadArea,
   canAccessPedagogyArea,
+  canAccessRegistrationArea,
   canAccessResultsArea,
   canAccessScheduleReadArea,
   canAccessTeachingArea,
@@ -77,6 +78,12 @@ test("isSchoolLeadershipRole = prefet + directeur + superviseur", () => {
   );
   assert.equal(isSchoolLeadershipRole(sessionGestionnaire), false);
   assert.equal(isSchoolLeadershipRole(sessionCaissier), false);
+});
+
+test("canAccessRegistrationArea : caissier et school admin oui, teacher non", () => {
+  assert.equal(canAccessRegistrationArea(sessionCaissier), true);
+  assert.equal(canAccessRegistrationArea(sessionDirecteur), true);
+  assert.equal(canAccessRegistrationArea(sessionTeacher), false);
 });
 
 test("canAccessPedagogyArea exclut caissier et teacher", () => {
