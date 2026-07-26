@@ -109,6 +109,8 @@ export default function AdminDashboard() {
   const [canAccessFinance, setCanAccessFinance] = useState(false);
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [reloadToken, setReloadToken] = useState(0);
   const [events, setEvents] = useState<any[]>([]);
   const [showFeedback, setShowFeedback] = useState(false);
   const [selectedRating, setSelectedRating] = useState<number | null>(null);
@@ -176,6 +178,7 @@ export default function AdminDashboard() {
 
     const load = async () => {
       setLoading(true);
+      setLoadError(null);
       try {
         const data = await getBranchDashboardData({ branchId, organizationId });
         if (cancelled) return;
@@ -215,6 +218,14 @@ export default function AdminDashboard() {
         }
       } catch (err) {
         console.error(err);
+        if (!cancelled) {
+          setVariant(null);
+          setLoadError(
+            err instanceof Error
+              ? err.message
+              : "Impossible de charger le tableau de bord.",
+          );
+        }
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -224,7 +235,7 @@ export default function AdminDashboard() {
     return () => {
       cancelled = true;
     };
-  }, [branchId, organizationId]);
+  }, [branchId, organizationId, reloadToken]);
 
   const quickActions = useMemo(
     () =>
@@ -294,6 +305,20 @@ export default function AdminDashboard() {
   const showParentSatisfaction = ready && variant === "parent";
 
   if (!ready) {
+    if (loadError) {
+      return (
+        <div className="flex min-h-[40vh] flex-col items-center justify-center gap-4 px-4 text-center">
+          <p className="text-sm text-muted-foreground">{loadError}</p>
+          <button
+            type="button"
+            className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+            onClick={() => setReloadToken((n) => n + 1)}
+          >
+            Réessayer
+          </button>
+        </div>
+      );
+    }
     return (
       <BranchLoadingFallback label="Chargement du tableau de bord…" />
     );

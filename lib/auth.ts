@@ -301,7 +301,9 @@ export const auth = betterAuth({
         });
       }
 
-      if (!branch && organization) {
+      // Fallback 1ʳᵉ branche uniquement s'il n'y a pas de branche active :
+      // sinon on écrase activeBranchId et le dashboard URL ≠ session.
+      if (!branch && !session.activeBranchId && organization) {
         branch = await prisma.branch.findFirst({
           where: {
             organizationId: organization.id,
@@ -354,7 +356,8 @@ export const auth = betterAuth({
         },
         session: {
           ...session,
-          activeBranchId: branch?.id ?? session.activeBranchId ?? null,
+          // Ne jamais remapper vers une autre branche que celle active en DB.
+          activeBranchId: session.activeBranchId ?? branch?.id ?? null,
         },
         organization,
         branch,

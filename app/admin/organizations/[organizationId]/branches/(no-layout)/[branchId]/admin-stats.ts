@@ -13,8 +13,10 @@ import {
 } from "@/lib/auth/dashboard-variant";
 import { getBaseCurrency } from "@/lib/exchange-rate";
 import { prisma } from "@/lib/prisma";
+import { getCachedSession } from "@/lib/auth/get-session-cached";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
 import { canAccessFinanceArea } from "@/lib/auth/session-roles";
+import { switchActiveBranch } from "@/lib/auth/switch-branch";
 import { action } from "@/lib/zsa";
 import { Day } from "@/prisma/generated/prisma/client";
 import { headers } from "next/headers";
@@ -1294,15 +1296,37 @@ export async function getBranchDashboardData(params: {
   branchId: string;
   organizationId: string;
 }) {
-  const { session, branchId, organizationId, userId, typebranch } =
-    await requireBranchContext();
-
-  if (
-    branchId !== params.branchId ||
-    organizationId !== params.organizationId
-  ) {
-    throw new Error("Contexte branche invalide");
+  // Aligner la session sur l’URL avant lecture (évite « Contexte branche invalide »
+  // quand activeBranchId est encore sur une autre école après navigation).
+  const switched = await switchActiveBranch(
+    params.organizationId,
+    params.branchId,
+  );
+  if (!switched.ok) {
+    throw new Error(switched.message || "Contexte branche invalide");
   }
+
+  const session = await getCachedSession();
+  const userId = session?.user?.id;
+  if (!userId) {
+    throw new Error("Aucune branche active");
+  }
+
+  const branch = await prisma.branch.findFirst({
+    where: {
+      id: params.branchId,
+      organizationId: params.organizationId,
+    },
+    select: { id: true, typebranch: true },
+  });
+  if (!branch) {
+    throw new Error("Branche introuvable dans cette organisation");
+  }
+
+  // Source de vérité = URL (déjà gardée + activée), pas le fallback session.
+  const branchId = params.branchId;
+  const organizationId = params.organizationId;
+  const typebranch = branch.typebranch;
 
   const variant: DashboardVariant = resolveDashboardVariant(session);
   const blocks = getDashboardDataBlocks(variant);
