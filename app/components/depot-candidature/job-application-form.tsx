@@ -41,6 +41,12 @@ import { LevelSectionOptionFields } from "@/components/level-section-option-fiel
 import { CameraCaptureDialog } from "@/components/camera-capture-dialog";
 import type { ManagedBranchType } from "@/lib/academic-structure";
 import { isPrimaryBranch } from "@/lib/class-structure";
+import {
+  getEstablishmentPickerLabel,
+  getEstablishmentTypeFilterLabel,
+  isPublicRegistrationBranchType,
+  PUBLIC_REGISTRATION_BRANCH_TYPES,
+} from "@/lib/public-establishment-labels";
 
 type Branch = {
   id: string;
@@ -66,6 +72,9 @@ export function JobApplicationForm({ branches }: { branches: Branch[] }) {
   const [cameraOpen, setCameraOpen] = useState(false);
   const [cvFile, setCvFile] = useState<File | null>(null);
   const [coverLetterFile, setCoverLetterFile] = useState<File | null>(null);
+  const [branchTypeFilter, setBranchTypeFilter] = useState<
+    ManagedBranchType | ""
+  >("");
   const [form, setForm] = useState({
     branchId: "",
     applicationType: "" as "" | "TEACHER" | "PERSONNEL",
@@ -103,8 +112,28 @@ export function JobApplicationForm({ branches }: { branches: Branch[] }) {
     [preview],
   );
 
+  const availableBranchTypes = useMemo(
+    () =>
+      PUBLIC_REGISTRATION_BRANCH_TYPES.filter((type) =>
+        branches.some((branch) => branch.typebranch === type),
+      ),
+    [branches],
+  );
+
+  const filteredBranches = useMemo(
+    () =>
+      branchTypeFilter
+        ? branches.filter((branch) => branch.typebranch === branchTypeFilter)
+        : [],
+    [branches, branchTypeFilter],
+  );
+
   const selectedBranch = branches.find((b) => b.id === form.branchId);
-  const branchType = (selectedBranch?.typebranch ??
+  const establishmentLabel = getEstablishmentPickerLabel(
+    branchTypeFilter || selectedBranch?.typebranch,
+  );
+  const branchType = (selectedBranch?.typebranch ||
+    branchTypeFilter ||
     "SECONDAIRE") as ManagedBranchType;
 
   const update = (
@@ -112,10 +141,34 @@ export function JobApplicationForm({ branches }: { branches: Branch[] }) {
     value: string | boolean,
   ) => setForm((current) => ({ ...current, [key]: value }));
 
+  function onBranchTypeChange(value: string) {
+    if (!isPublicRegistrationBranchType(value)) return;
+    setBranchTypeFilter(value);
+    setForm((current) => ({
+      ...current,
+      branchId: "",
+      desiredLevels: "",
+      desiredSection: "",
+      desiredOption: "",
+    }));
+  }
+
+  function onBranchChange(value: string) {
+    setForm((current) => ({
+      ...current,
+      branchId: value,
+      desiredLevels: "",
+      desiredSection: "",
+      desiredOption: "",
+    }));
+  }
+
   function validateStep() {
     if (step === 0) {
-      if (!form.branchId || !form.applicationType) {
-        toast.error("Choisissez un établissement et un type de candidature.");
+      if (!branchTypeFilter || !form.branchId || !form.applicationType) {
+        toast.error(
+          "Choisissez le type d'établissement, l'établissement et un type de candidature.",
+        );
         return false;
       }
     }
@@ -315,16 +368,41 @@ export function JobApplicationForm({ branches }: { branches: Branch[] }) {
           <CardContent className="space-y-6">
             {step === 0 && (
               <div className="grid gap-5 md:grid-cols-2">
-                <Field label="Établissement *" wide>
+                <Field label="Type d'établissement *" wide>
                   <Select
-                    value={form.branchId}
-                    onValueChange={(value) => update("branchId", value)}
+                    value={branchTypeFilter || undefined}
+                    onValueChange={onBranchTypeChange}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Choisir une école" />
+                      <SelectValue placeholder="Ecole, centre ou universite" />
                     </SelectTrigger>
                     <SelectContent>
-                      {branches.map((branch) => (
+                      {availableBranchTypes.map((type) => (
+                        <SelectItem key={type} value={type}>
+                          {getEstablishmentTypeFilterLabel(type)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </Field>
+
+                <Field label={`${establishmentLabel} *`} wide>
+                  <Select
+                    value={form.branchId}
+                    onValueChange={onBranchChange}
+                    disabled={!branchTypeFilter}
+                  >
+                    <SelectTrigger>
+                      <SelectValue
+                        placeholder={
+                          branchTypeFilter
+                            ? `Choisir ${establishmentLabel.toLowerCase()}`
+                            : "Choisissez d'abord le type"
+                        }
+                      />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {filteredBranches.map((branch) => (
                         <SelectItem key={branch.id} value={branch.id}>
                           {branch.name}
                           {branch.ville ? ` — ${branch.ville}` : ""}
