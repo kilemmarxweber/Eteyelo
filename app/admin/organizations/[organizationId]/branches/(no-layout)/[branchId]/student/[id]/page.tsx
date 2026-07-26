@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { auth } from "@/lib/auth";
 import {
   canAccessFinanceArea,
+  canAccessStudentDirectory,
   canManageOrganization,
   hasSessionRole,
 } from "@/lib/auth/session-roles";
@@ -96,6 +97,10 @@ const SingleStudentPage = async ({
 
   const canReadAll = canManageOrganization(session, currentBranchMember?.role);
   const canAccessFinanceRole = canAccessFinanceArea(
+    session,
+    currentBranchMember?.role,
+  );
+  const canReadStudentDirectory = canAccessStudentDirectory(
     session,
     currentBranchMember?.role,
   );
@@ -248,6 +253,7 @@ const SingleStudentPage = async ({
 
   let canReadStudent =
     canReadAll ||
+    canReadStudentDirectory ||
     user.id === session.user.id ||
     parentUser?.id === session.user.id;
 

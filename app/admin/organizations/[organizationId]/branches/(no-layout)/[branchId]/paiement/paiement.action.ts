@@ -29,8 +29,6 @@ import {
   type DiscountInfo,
 } from "@/lib/payment-discount";
 
-export type { DiscountInfo };
-
 async function loadOrgExchangeRates(organizationId: string): Promise<{
   rates: ExchangeRatePair[];
   baseCurrency: CurrencyCode;

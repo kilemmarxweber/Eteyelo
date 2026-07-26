@@ -160,6 +160,24 @@ export function canAccessPedagogyArea(
 export const canAccessPedagogyAdminArea = canAccessPedagogyArea;
 
 /**
+ * Liste / fiche élèves (lecture).
+ * School admin + caissier (encaissement / contexte famille) — sans CRUD pour le caissier.
+ */
+export function canAccessStudentDirectory(
+  session: any,
+  ...extraRoles: unknown[]
+): boolean {
+  return (
+    canAccessPedagogyArea(session, ...extraRoles) ||
+    hasSessionRole(
+      session,
+      [ORG_ROLE.CAISSIER, "CAISSIER", "ACCOUNTANT", "accountant"],
+      ...extraRoles,
+    )
+  );
+}
+
+/**
  * CRUD personnel / parents (RH).
  * Directeur des études exclu — AC `personnel`/`parent`: read only.
  * Accès liste / lecture : `canAccessPedagogyArea` ou `canManageOrganization`.

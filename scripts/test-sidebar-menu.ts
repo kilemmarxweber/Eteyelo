@@ -52,16 +52,22 @@ function assertExcludes(actual: string[], forbidden: string[], label: string) {
   }
 }
 
-test("caissier : Dashboard, Finance, Aide — pas Classes / Enseignement / Présences / Candidatures / Cursus notes", () => {
+test("caissier : Dashboard, Finance, Utilisateurs/Élève, Aide — pas Classes / Enseignement / Cursus", () => {
   const session = sessionWithOrgRole(ORG_ROLE.CAISSIER);
   const titles = menuTitles(session);
+  const users = buildStaticSideLinks(session, BRANCH_PATH, "PRIMAIRE").find(
+    (item) => item.title === "Utilisateurs",
+  );
+  const usersSubs = (users?.sub ?? []).map((item) => item.title);
 
-  assertIncludes(titles, ["Dashboard", "Finance", "Aide"], "caissier");
+  assertIncludes(titles, ["Dashboard", "Finance", "Utilisateurs", "Aide"], "caissier");
   assertExcludes(
     titles,
-    ["Inscription", "Presences", "Candidatures", "Classes", "Enseignement", "Utilisateurs", "Cursus"],
+    ["Inscription", "Presences", "Candidatures", "Classes", "Enseignement", "Cursus"],
     "caissier",
   );
+  assertIncludes(usersSubs, ["Élève"], "caissier utilisateurs");
+  assertExcludes(usersSubs, ["Personnel", "Enseignant", "Parent"], "caissier utilisateurs");
   assert.equal(hasMenuTitle(session, "Finance"), true);
 });
 

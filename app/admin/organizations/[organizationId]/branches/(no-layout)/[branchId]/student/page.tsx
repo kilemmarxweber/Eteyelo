@@ -104,7 +104,7 @@ export default function Students() {
 
   if (isPending) return <Loading />;
 
-  if (!session || !canAccessBranchArea("school_admin", session)) {
+  if (!session || !canAccessBranchArea("students", session)) {
     return <NotFoundView />;
   }
 

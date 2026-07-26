@@ -124,23 +124,24 @@ test("libellé UI primaire → Directeur ; secondaire → Préfet", () => {
 
 // --- Caissier ---
 
-test("caissier : menu Dashboard + Finance (+ Aide)", () => {
+test("caissier : menu Dashboard + Finance + Utilisateurs (+ Aide)", () => {
   const titles = menuTitles(ORG_ROLE.CAISSIER);
   assert.ok(titles.includes("Dashboard"));
   assert.ok(titles.includes("Finance"));
+  assert.ok(titles.includes("Utilisateurs"));
   assert.ok(titles.includes("Aide"));
-  for (const forbidden of ["Classes", "Enseignement", "Cursus", "Utilisateurs"]) {
+  for (const forbidden of ["Classes", "Enseignement", "Cursus"]) {
     assert.ok(!titles.includes(forbidden), `caissier ne doit pas voir ${forbidden}`);
   }
 });
 
-test("caissier : dashboard caisse ; /paiement OK ; pédagogie refusée", () => {
+test("caissier : dashboard caisse ; /paiement OK ; pédagogie refusée ; élèves lecture OK", () => {
   assert.equal(resolveDashboardVariant(sessionWithOrgRole(ORG_ROLE.CAISSIER)), "caissier");
   assert.equal(getDashboardDataBlocks("caissier").cashier, true);
   assert.equal(getDashboardDataBlocks("caissier").pedagogyMetrics, false);
   assertAreas(
     ORG_ROLE.CAISSIER,
-    ["finance"],
+    ["finance", "students"],
     ["notes", "schedule", "school_admin", "teaching", "pedagogy"],
   );
 });

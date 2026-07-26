@@ -70,8 +70,18 @@ const FINANCE_ROLES = [
 const TEACHER_ROLES = [ORG_ROLE.TEACHER, "TEACHER", "teacher"];
 const TEACHER_TITULAIRE_ROLE = "TEACHER_TITULAIRE";
 
+const CAISSIER_ROLES = [
+  ORG_ROLE.CAISSIER,
+  "CAISSIER",
+  "ACCOUNTANT",
+  "accountant",
+];
+
 const STUDENT_ROLES = [ORG_ROLE.STUDENT, "STUDENT", "student"];
 const PARENT_ROLES = [ORG_ROLE.PARENT, "PARENT", "parent"];
+
+/** Lecture annuaire élèves : school admin + caissier. */
+const STUDENT_DIRECTORY_ROLES = [...SCHOOL_ADMIN_ROLES, ...CAISSIER_ROLES];
 
 /** Élève + parent — lecture cursus partagée (notes / horaire / résultats). */
 const CURSUS_READ_ROLES = [...STUDENT_ROLES, ...PARENT_ROLES];
@@ -147,13 +157,13 @@ const staticSidebarMenu: StaticMenuItem[] = [
     title: "Utilisateurs",
     href: "/admin/settings",
     icon: "users",
-    roles: [...SCHOOL_ADMIN_ROLES, ...TEACHER_ROLES],
+    roles: [...SCHOOL_ADMIN_ROLES, ...TEACHER_ROLES, ...CAISSIER_ROLES],
     sub: [
       {
         title: "Élève",
         href: "/admin/student",
         icon: "eleves",
-        roles: SCHOOL_ADMIN_ROLES,
+        roles: STUDENT_DIRECTORY_ROLES,
       },
       {
         title: "Personnel",

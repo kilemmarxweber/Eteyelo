@@ -7,6 +7,7 @@ import {
   type CursusViewerRole,
 } from "@/lib/auth/cursus-scope";
 import {
+  canAccessStudentDirectory,
   canAccessTeachingArea,
   canAccessTitulaireFichesArea,
   canManageOrganization,
@@ -112,7 +113,8 @@ export async function assertTitulaireClassAccess(params: {
 }
 
 /**
- * Lecture présence / profil : soi, parent lié, manager, ou enseignant affecté.
+ * Lecture présence / profil : soi, parent lié, annuaire élèves (admin + caissier),
+ * ou enseignant affecté.
  */
 export async function assertStudentReadableInBranch(params: {
   session: unknown;
@@ -122,7 +124,8 @@ export async function assertStudentReadableInBranch(params: {
 }): Promise<void> {
   const { session, userId, branchId, studentId } = params;
 
-  if (canManageOrganization(session)) {
+  // School admin + caissier : lecture fiche / présence (sans CRUD).
+  if (canAccessStudentDirectory(session)) {
     const exists = await prisma.student.findFirst({
       where: { id: studentId, branchMember: { branchId } },
       select: { id: true },

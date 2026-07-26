@@ -6,6 +6,7 @@ import {
   canAccessPedagogyArea,
   canAccessResultsArea,
   canAccessScheduleReadArea,
+  canAccessStudentDirectory,
   canAccessTeachingArea,
   canManageHrDirectory,
 } from "@/lib/auth/session-roles";
@@ -23,6 +24,7 @@ export type BranchArea =
   | "results"
   | "library"
   | "school_admin"
+  | "students"
   | "hr_directory"
   | "hr_write"
   | "branch_org_settings";
@@ -43,6 +45,8 @@ export function canAccessBranchArea(
     case "pedagogy":
     case "school_admin":
       return canAccessPedagogyArea(session);
+    case "students":
+      return canAccessStudentDirectory(session);
     case "results":
       return canAccessResultsArea(session);
     case "library":

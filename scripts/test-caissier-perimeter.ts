@@ -6,6 +6,7 @@ import assert from "node:assert/strict";
 import { canAccessOrganizationAdminHome } from "../lib/auth/organization-admin-home";
 import {
   canAccessFinanceArea,
+  canAccessStudentDirectory,
   canAccessTeachingArea,
   canManageOrganization,
 } from "../lib/auth/session-roles";
@@ -35,8 +36,9 @@ const sessionDirecteur = sessionWithOrgRole(ORG_ROLE.DIRECTEUR);
 const sessionGestionnaire = sessionWithOrgRole(ORG_ROLE.GESTIONNAIRE);
 const sessionTeacher = sessionWithOrgRole(ORG_ROLE.TEACHER);
 
-test("helpers : caissier finance oui, manage/teaching non", () => {
+test("helpers : caissier finance + lecture élèves oui, manage/teaching non", () => {
   assert.equal(canAccessFinanceArea(sessionCaissier), true);
+  assert.equal(canAccessStudentDirectory(sessionCaissier), true);
   assert.equal(canManageOrganization(sessionCaissier), false);
   assert.equal(canAccessTeachingArea(sessionCaissier), false);
 });
@@ -60,15 +62,19 @@ test("login caissier → land branche", () => {
   );
 });
 
-test("menu caissier : Dashboard + Finance (+ Aide) seulement hors profil", () => {
-  const titles = buildStaticSideLinks(
-    sessionCaissier,
-    BRANCH_PATH,
-    "PRIMAIRE",
-  ).map((item) => item.title);
+test("menu caissier : Dashboard + Finance + Utilisateurs/Élève (+ Aide)", () => {
+  const links = buildStaticSideLinks(sessionCaissier, BRANCH_PATH, "PRIMAIRE");
+  const titles = links.map((item) => item.title);
+  const usersSubs = (links.find((item) => item.title === "Utilisateurs")?.sub ?? []).map(
+    (item) => item.title,
+  );
 
-  for (const title of ["Dashboard", "Finance", "Aide"]) {
+  for (const title of ["Dashboard", "Finance", "Utilisateurs", "Aide"]) {
     assert.ok(titles.includes(title), `caissier doit voir « ${title} »`);
+  }
+  assert.ok(usersSubs.includes("Élève"), "caissier doit voir sous-menu Élève");
+  for (const title of ["Personnel", "Enseignant", "Parent"]) {
+    assert.ok(!usersSubs.includes(title), `caissier ne doit pas voir « ${title} »`);
   }
   for (const title of [
     "Inscription",
@@ -76,7 +82,6 @@ test("menu caissier : Dashboard + Finance (+ Aide) seulement hors profil", () =>
     "Candidatures",
     "Classes",
     "Enseignement",
-    "Utilisateurs",
     "Cursus",
   ]) {
     assert.ok(!titles.includes(title), `caissier ne doit pas voir « ${title} »`);

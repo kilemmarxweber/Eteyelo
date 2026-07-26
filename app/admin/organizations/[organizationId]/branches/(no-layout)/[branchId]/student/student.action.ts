@@ -10,6 +10,7 @@ import {
 } from "@/src/interfaces/Student";
 import { StudentCategory } from "@/prisma/generated/prisma/client";
 import {
+  canAccessStudentDirectory,
   canManageOrganization,
   getSessionRoles,
   hasSessionRole,
@@ -65,6 +66,7 @@ export async function getCurrentBranch() {
     branchMemberRole: branchMember?.role ?? null,
     roles,
     canManageStudents: canManageOrganization(session, branchMember?.role),
+    canReadStudents: canAccessStudentDirectory(session, branchMember?.role),
     canIssueDocuments: canIssueBranchDocuments(session, branchMember?.role),
     isParent: hasSessionRole(
       session,
@@ -465,11 +467,14 @@ export const getStudentsAction = action.handler(
       organizationId,
       branchMemberId,
       canManageStudents,
+      canReadStudents,
       isParent,
       isStudent,
       isTeacher,
       typebranch,
     } = await getCurrentBranch();
+
+    const canListAllStudents = canManageStudents || canReadStudents;
 
     if (requiresStudentImport(typebranch)) {
       const links = await prisma.studentBranchLink.findMany({
@@ -498,7 +503,7 @@ export const getStudentsAction = action.handler(
     if (isCentreFormationBranch(typebranch) || isUniversiteBranch(typebranch)) {
       const [nativeStudents, links] = await Promise.all([
         prisma.student.findMany({
-          where: canManageStudents
+          where: canListAllStudents
             ? { branchMember: { branchId, member: { organizationId } } }
             : { id: "__no_student_access__" },
           include: {
@@ -543,7 +548,7 @@ export const getStudentsAction = action.handler(
     const baseWhere = buildStudentAccessWhere(branchId, organizationId);
 
     const students = await prisma.student.findMany({
-      where: canManageStudents
+      where: canListAllStudents
         ? baseWhere
         : isParent && branchMemberId
           ? {
