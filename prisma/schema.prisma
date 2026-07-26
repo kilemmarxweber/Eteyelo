@@ -28,6 +28,8 @@ model User {
   statusUser    Boolean?
   /// Compte créé avec mot de passe temporaire : forcer le changement à la 1ère connexion
   mustChangePassword Boolean @default(false)
+  /// Préférence d'apparence propre à l'utilisateur (light | dark | system)
+  theme       String?      @default("light")
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
   name        String

@@ -22,6 +22,14 @@ import {
 } from "@/lib/exchange-rate";
 import { DEFAULT_EXCHANGE_RATE_USD_CDF } from "@/lib/reports/types";
 import { getSchoolYearForBranch } from "@/lib/school-year";
+import {
+  computeScopedDiscountAmount,
+  EMPTY_DISCOUNT,
+  getBestDiscountInfo,
+  type DiscountInfo,
+} from "@/lib/payment-discount";
+
+export type { DiscountInfo };
 
 async function loadOrgExchangeRates(organizationId: string): Promise<{
   rates: ExchangeRatePair[];
@@ -149,43 +157,6 @@ type ReceiptPayload = {
   quoteCurrency?: "USD" | "CDF" | "AOA" | null;
   selectedRate?: number | null;
 };
-
-export type DiscountInfo = {
-  percentage: number;
-  typeFraisId: string | null;
-  typeFraisName: string | null;
-};
-
-const EMPTY_DISCOUNT: DiscountInfo = {
-  percentage: 0,
-  typeFraisId: null,
-  typeFraisName: null,
-};
-
-/**
- * Remise % sur le montant brut des frais éligibles (pas sur le reste à payer).
- * Sinon, après un paiement partiel, 10 % de 50 000 devient 500 au lieu de 5 000.
- */
-function computeScopedDiscountAmount(
-  items: Array<{ base: number; typeFraisId?: string | null }>,
-  discount: DiscountInfo,
-) {
-  const percentage = Math.max(0, Number(discount.percentage) || 0);
-  if (percentage <= 0) return 0;
-
-  const eligibleBase = items.reduce((sum, item) => {
-    const base = Math.max(Number(item.base) || 0, 0);
-    if (!base) return sum;
-    // Remise liée à un type : uniquement ces frais
-    if (discount.typeFraisId) {
-      return item.typeFraisId === discount.typeFraisId ? sum + base : sum;
-    }
-    // Legacy sans type : tous les frais sélectionnés
-    return sum + base;
-  }, 0);
-
-  return (eligibleBase * percentage) / 100;
-}
 
 /* ======================================================
    TYPES SAFE
@@ -1540,90 +1511,6 @@ export async function searchFamilyAction(query: string): Promise<Family[]> {
 
   return Array.from(map.values());
 }
-type StudentWithCategory = {
-  category: string | null;
-};
-
-async function getBestDiscountInfo(
-  tx: any,
-  parentId: string,
-  branchId: string,
-): Promise<DiscountInfo> {
-  const parent = await tx.parent.findFirst({
-    where: {
-      id: parentId,
-      branchMember: { branchId },
-    },
-    include: {
-      students: {
-        where: {
-          branchMember: { branchId },
-        },
-      },
-    },
-  });
-
-  if (!parent) return EMPTY_DISCOUNT;
-
-  const studentCount = parent.students.length;
-
-  const parentRule = await tx.discountRule.findFirst({
-    where: {
-      branchId,
-      scope: "PARENT",
-      parentId,
-    },
-    include: { typeFrais: { select: { id: true, nameType: true } } },
-  });
-
-  const groupRule = await tx.discountRule.findFirst({
-    where: {
-      branchId,
-      scope: "GROUP",
-      minChildren: {
-        lte: studentCount,
-      },
-    },
-    include: { typeFrais: { select: { id: true, nameType: true } } },
-    orderBy: {
-      minChildren: "desc",
-    },
-  });
-
-  const hasOrphan = parent.students.some(
-    (student: any) => student.category === "ORPHAN",
-  );
-
-  let categoryRule = null;
-
-  if (hasOrphan) {
-    categoryRule = await tx.discountRule.findFirst({
-      where: {
-        branchId,
-        scope: "ORPHAN",
-      },
-      include: { typeFrais: { select: { id: true, nameType: true } } },
-    });
-  }
-
-  const candidates = [parentRule, groupRule, categoryRule].filter(
-    (rule): rule is NonNullable<typeof parentRule> =>
-      Boolean(rule && (rule.percentage ?? 0) > 0),
-  );
-
-  if (candidates.length === 0) return EMPTY_DISCOUNT;
-
-  const best = candidates.reduce((current, rule) =>
-    rule.percentage > current.percentage ? rule : current,
-  );
-
-  return {
-    percentage: best.percentage,
-    typeFraisId: best.typeFraisId ?? null,
-    typeFraisName: best.typeFrais?.nameType ?? null,
-  };
-}
-
 /** @deprecated Prefer getBestDiscountInfo */
 async function getBestDiscount(tx: any, parentId: string, branchId: string) {
   const info = await getBestDiscountInfo(tx, parentId, branchId);

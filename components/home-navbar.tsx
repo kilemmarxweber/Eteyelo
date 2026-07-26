@@ -179,7 +179,9 @@ export function HomeNavbar() {
 
   useEffect(() => {
     form.setValue("mode", authMode);
-  }, [authMode, form]);
+    // Ne pas dépendre de `form` (nouvelle ref à chaque render → boucle).
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- setValue est stable
+  }, [authMode]);
 
   const switchMode = () => {
     const next = authMode === "login" ? "signup" : "login";

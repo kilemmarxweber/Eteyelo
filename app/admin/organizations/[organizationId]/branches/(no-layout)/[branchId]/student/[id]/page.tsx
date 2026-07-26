@@ -95,7 +95,7 @@ const SingleStudentPage = async ({
   });
 
   const canReadAll = canManageOrganization(session, currentBranchMember?.role);
-  const canViewFinance = canAccessFinanceArea(
+  const canAccessFinanceRole = canAccessFinanceArea(
     session,
     currentBranchMember?.role,
   );
@@ -239,6 +239,12 @@ const SingleStudentPage = async ({
   const studentClassIds = student.classEnrollment.map(
     (classEnrollment) => classEnrollment.classeId,
   );
+
+  // Finance fiche : rôles caisse/admin, ou parent de l'élève, ou élève lui-même
+  const canViewFinance =
+    canAccessFinanceRole ||
+    parentUser?.id === session.user.id ||
+    user.id === session.user.id;
 
   let canReadStudent =
     canReadAll ||
@@ -575,9 +581,21 @@ const SingleStudentPage = async ({
     currentYear?.id ?? enrollment?.schoolYearId ?? null,
   );
 
+  const isParentViewer =
+    hasSessionRole(
+      session,
+      [ORG_ROLE.PARENT, "PARENT", "parent"],
+      currentBranchMember?.role,
+    ) ||
+    (!canReadAll && parentUser?.id === session.user.id);
+
   const profile: StudentProfileData = {
     baseHref,
-    studentListHref: `${baseHref}/student`,
+    // Parent : retour tableau de bord ; admin/autres : liste élèves
+    studentListHref: isParentViewer ? baseHref : `${baseHref}/student`,
+    backLabel: isParentViewer
+      ? "Retour au tableau de bord"
+      : `Retour aux ${peopleLabels.studentPluralLower}`,
     studentId: student.id,
     fullName,
     nom,

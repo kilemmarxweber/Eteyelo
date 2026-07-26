@@ -1,13 +1,19 @@
 "use client";
 
 import { useState, useRef, useCallback } from "react";
-import FiltersWrapper from "./FiltersWrapper";
+import { IconFileTypePdf } from "@tabler/icons-react";
+import { toast } from "sonner";
+
+import { Button } from "@/components/custom/button";
 import { StudentType } from "@/lib/types";
-import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
-import { Layout, LayoutBody } from "@/components/custom/layout";
-import { PageHeader } from "@/components/ui/page-header";
-import { IconChartBar, IconUsers } from "@tabler/icons-react";
+
+import FiltersWrapper from "./FiltersWrapper";
+import {
+  exportResultsClassementReportPdf,
+  type ClassementRow,
+  type ResultsClassementReportOptions,
+} from "./components/export-results-classement-pdf";
+import { getResultsReportContextAction } from "./results.action";
 
 export default function SidebarWithFilters({
   classOptions,
@@ -18,6 +24,10 @@ export default function SidebarWithFilters({
   const tableRef = useRef<HTMLDivElement>(null);
   const [totalPercentage, setTotalPercentage] = useState("0.0");
   const [stats, setStats] = useState<any>(null);
+  const [exportingPdf, setExportingPdf] = useState(false);
+  const [classementRows, setClassementRows] = useState<ClassementRow[]>([]);
+  const [reportOptions, setReportOptions] =
+    useState<ResultsClassementReportOptions>({ classLabels: [] });
 
   // ✅ STATE GLOBAL DU STUDENT
   const [selectedStudentId, setSelectedStudentId] = useState("");
@@ -28,52 +38,86 @@ export default function SidebarWithFilters({
   );
 
   const displayStudent = selectedStudent ?? null;
-  const studentClassName = displayStudent
-    ? classOptions.find((c: any) => c.id === displayStudent.classid)?.name
-    : "";
+  const hasClassement = classementRows.length > 0;
 
   const sendResults = async () => {
-    // try {
-    //   //if (!displayStudent) return;
-
-    //   const classId = displayStudent.classid;
-
-    //   const res = await fetch("/apis/send-results", {
-    //     method: "POST",
-    //     headers: {
-    //       "Content-Type": "application/json",
-    //     },
-    //     body: JSON.stringify({
-    //       classId, // ✅ juste l'id
-    //     }),
-    //   });
-
-    //   const data = await res.json();
-
-    //   if (!res.ok) {
-    //     console.error("API ERROR:", data);
-    //     return;
-    //   }
-
-    //   console.log("SUCCESS:", data);
-    // } catch (error) {
-    //   console.error("FETCH ERROR:", error);
-    // }
-
     try {
       const res = await fetch("/apis/send-whatsapp", {
         method: "POST",
       });
 
-      const data = await res.json();
+      await res.json();
     } catch (err) {
       console.error(err);
     }
   };
 
+  const exportClassementPdf = async () => {
+    if (!hasClassement) {
+      toast.error(
+        "Aucun résultat à exporter pour cette sélection. Choisissez une classe avec des notes.",
+      );
+      return;
+    }
+
+    setExportingPdf(true);
+    try {
+      const [context, error] = await getResultsReportContextAction();
+      if (error || !context) {
+        throw new Error(
+          error?.message ||
+            "Impossible de charger les informations du rapport.",
+        );
+      }
+      await exportResultsClassementReportPdf(
+        classementRows,
+        context,
+        reportOptions,
+      );
+      toast.success("Le classement PDF a été généré.");
+    } catch (error) {
+      console.error(error);
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Impossible de générer le classement PDF.",
+      );
+    } finally {
+      setExportingPdf(false);
+    }
+  };
+
   const handleStatsUpdate = useCallback((newStats: any) => {
-    setStats(newStats);
+    setStats((prev: any) => {
+      if (
+        prev &&
+        prev.sexeStats?.M?.count === newStats?.sexeStats?.M?.count &&
+        prev.sexeStats?.F?.count === newStats?.sexeStats?.F?.count &&
+        prev.sexeStats?.M?.percent === newStats?.sexeStats?.M?.percent &&
+        prev.sexeStats?.F?.percent === newStats?.sexeStats?.F?.percent &&
+        prev.sexeStats?.M?.successRate ===
+          newStats?.sexeStats?.M?.successRate &&
+        prev.sexeStats?.F?.successRate ===
+          newStats?.sexeStats?.F?.successRate &&
+        prev.globalStats?.avg === newStats?.globalStats?.avg &&
+        prev.globalStats?.count === newStats?.globalStats?.count
+      ) {
+        return prev;
+      }
+      return newStats;
+    });
   }, []);
+
+  const handleClassementUpdate = useCallback(
+    (payload: {
+      classementRows: ClassementRow[];
+      reportOptions: ResultsClassementReportOptions;
+    }) => {
+      setClassementRows(payload.classementRows);
+      setReportOptions(payload.reportOptions);
+    },
+    [],
+  );
 
   return (
     <>
@@ -107,6 +151,7 @@ export default function SidebarWithFilters({
             selectedStudentId={selectedStudentId}
             setSelectedStudentId={setSelectedStudentId}
             onStatsUpdate={handleStatsUpdate}
+            onClassementUpdate={handleClassementUpdate}
           />
         </div>
       </div>
@@ -121,12 +166,29 @@ export default function SidebarWithFilters({
           ☑️ Afficher les notes hypothétiques sauvegardées
         </button>
 
-        <button
-          className="w-full border p-2 rounded-md hover:bg-gray-100 transition"
-          onClick={sendResults}
-        >
-          Montrer tous les détails
-        </button>
+        <div className="flex flex-col gap-2">
+          <button
+            className="w-full border p-2 rounded-md hover:bg-gray-100 transition"
+            onClick={sendResults}
+          >
+            Montrer tous les détails
+          </button>
+          <Button
+            variant="outline"
+            className="w-full"
+            leftSection={<IconFileTypePdf size={16} />}
+            onClick={exportClassementPdf}
+            loading={exportingPdf}
+            disabled={!hasClassement || exportingPdf}
+            title={
+              hasClassement
+                ? "Exporter le classement PDF"
+                : "Aucun résultat pour cette sélection"
+            }
+          >
+            {exportingPdf ? "Génération..." : "Classement PDF"}
+          </Button>
+        </div>
 
         <div className="border-t pt-3">
           <p className="font-medium mb-2">
@@ -140,9 +202,7 @@ export default function SidebarWithFilters({
               </h3>
 
               <div className="flex justify-between items-center">
-                <span className="text-muted-foreground">
-                  Sexe (M)
-                </span>
+                <span className="text-muted-foreground">Sexe (M)</span>
                 <div className="text-right">
                   <div className="font-semibold text-foreground">
                     {stats.sexeStats.M.count} élèves
@@ -155,9 +215,7 @@ export default function SidebarWithFilters({
               </div>
 
               <div className="flex justify-between items-center">
-                <span className="text-muted-foreground">
-                  Sexe (F)
-                </span>
+                <span className="text-muted-foreground">Sexe (F)</span>
                 <div className="text-right">
                   <div className="font-semibold text-foreground">
                     {stats.sexeStats.F.count} élèves

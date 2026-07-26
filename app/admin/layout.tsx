@@ -3,9 +3,14 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { ThemeProvider } from "@/components/theme-provider";
+import { UserThemeSync } from "@/components/user-theme-sync";
 import { AdminShell } from "@/components/layout/admin-shell";
 import { auth } from "@/lib/auth";
 import { enforceAdminRouteAccess } from "@/lib/auth/enforce-admin-route-access";
+import {
+  normalizeUserTheme,
+  userThemeStorageKey,
+} from "@/lib/user-theme";
 
 export default async function AdminLayout({
   children,
@@ -28,13 +33,21 @@ export default async function AdminLayout({
     pathname === "/admin/account/change-password" ||
     pathname.startsWith("/admin/account/change-password/");
 
+  const userId = session.user.id;
+  const preferredTheme = normalizeUserTheme(
+    (session.user as { theme?: string | null }).theme,
+  );
+
   return (
     <ThemeProvider
+      key={userId}
       attribute="class"
-      defaultTheme="light"
+      defaultTheme={preferredTheme}
       enableSystem
+      storageKey={userThemeStorageKey(userId)}
       disableTransitionOnChange
     >
+      <UserThemeSync userId={userId} preferredTheme={preferredTheme} />
       {isChangePasswordRoute ? (
         children
       ) : (

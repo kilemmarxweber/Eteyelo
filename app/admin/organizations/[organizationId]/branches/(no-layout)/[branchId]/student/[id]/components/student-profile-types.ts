@@ -27,7 +27,10 @@ export type StudentProfileSemester = {
 
 export type StudentProfileData = {
   baseHref: string;
+  /** Retour liste élèves (admin) ou tableau de bord (parent). */
   studentListHref: string;
+  /** Libellé accessibilité du bouton retour. */
+  backLabel: string;
   studentId: string;
   fullName: string;
   nom: string;
@@ -53,7 +56,7 @@ export type StudentProfileData = {
   enrollmentDateLabel: string;
   image: string | null;
   canManageStudents: boolean;
-  /** Unit-10 : onglet finances seulement si `canAccessFinanceArea`. */
+  /** Onglet finances : rôles finance, parent de l'élève, ou élève lui-même. */
   canViewFinance: boolean;
   parentFullName: string;
   parentPhone: string;

@@ -1,21 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { IconFileTypePdf } from "@tabler/icons-react";
-import { toast } from "sonner";
+import { useEffect, useMemo } from "react";
 
-import { Button } from "@/components/custom/button";
 import { Combobox } from "@/components/ui/combox";
 import { getAcademicPeriodOrder } from "@/lib/academic-structure";
 import { StudentType } from "@/lib/types";
 
 import { MultiSelect } from "../paiement/components/MultiSelect";
-import {
-  exportResultsClassementReportPdf,
-  type ClassementRow,
-  type ResultsClassementReportOptions,
-} from "./components/export-results-classement-pdf";
-import { getResultsReportContextAction } from "./results.action";
 
 type ClassType = {
   id: string;
@@ -38,8 +29,6 @@ type FiltersComboxProps = {
   periods: string[];
   years: string[];
   role?: string;
-  classementRows: ClassementRow[];
-  reportOptions: ResultsClassementReportOptions;
 };
 
 export default function FiltersCombox({
@@ -56,76 +45,45 @@ export default function FiltersCombox({
   periods,
   years,
   role,
-  classementRows,
-  reportOptions,
 }: FiltersComboxProps) {
-  const [exportingPdf, setExportingPdf] = useState(false);
-  const hasClassement = classementRows.length > 0;
-
   // ✅ Classes uniques
-  const uniqueClasses = Array.from(
-    new Map(classOptions.map((c) => [c.id, c])).values(),
+  const uniqueClasses = useMemo(
+    () => Array.from(new Map(classOptions.map((c) => [c.id, c])).values()),
+    [classOptions],
   );
 
-  const exportClassementPdf = async () => {
-    if (!hasClassement) {
-      toast.error(
-        "Aucun résultat à exporter pour cette sélection. Choisissez une classe avec des notes.",
-      );
-      return;
-    }
-
-    setExportingPdf(true);
-    try {
-      const [context, error] = await getResultsReportContextAction();
-      if (error || !context) {
-        throw new Error(
-          error?.message ||
-            "Impossible de charger les informations du rapport.",
-        );
-      }
-      await exportResultsClassementReportPdf(
-        classementRows,
-        context,
-        reportOptions,
-      );
-      toast.success("Le classement PDF a été généré.");
-    } catch (error) {
-      console.error(error);
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "Impossible de générer le classement PDF.",
-      );
-    } finally {
-      setExportingPdf(false);
-    }
-  };
-
-  // ✅ Students uniques (évite bug React key)
-  const uniqueStudents = Array.from(
-    new Map(students.map((s) => [s.studentid, s])).values(),
+  // ✅ Students uniques (évite bug React key + boucle useEffect)
+  const uniqueStudents = useMemo(
+    () => Array.from(new Map(students.map((s) => [s.studentid, s])).values()),
+    [students],
   );
 
   // ✅ Ordre des périodes
-  const sortedPeriods = [...periods].sort(
-    (a, b) => getAcademicPeriodOrder(a) - getAcademicPeriodOrder(b),
+  const sortedPeriods = useMemo(
+    () =>
+      [...periods].sort(
+        (a, b) => getAcademicPeriodOrder(a) - getAcademicPeriodOrder(b),
+      ),
+    [periods],
   );
 
   // ✅ Admin seulement → filtre par classe
-  const filteredStudents =
-    role === "admin"
-      ? uniqueStudents.filter((s) =>
-          selectedClassIds.includes(s.classid.toString()),
-        )
-      : uniqueStudents;
+  const filteredStudents = useMemo(
+    () =>
+      role === "admin"
+        ? uniqueStudents.filter((s) =>
+            selectedClassIds.includes(s.classid.toString()),
+          )
+        : uniqueStudents,
+    [role, uniqueStudents, selectedClassIds],
+  );
 
   // 🔥 Reset student quand classe change (admin only)
   useEffect(() => {
     if (role === "admin") {
       setSelectedStudentId("");
     }
-  }, [selectedClassIds]);
+  }, [role, selectedClassIds, setSelectedStudentId]);
 
   // 🔥 Parent / élève → forcer un studentId (jamais « tous » — unit-10)
   useEffect(() => {
@@ -134,23 +92,28 @@ export default function FiltersCombox({
       uniqueStudents.length > 0 &&
       !selectedStudentId
     ) {
-      setSelectedStudentId(uniqueStudents[0].studentid);
+      setSelectedStudentId(String(uniqueStudents[0].studentid));
     }
-  }, [role, uniqueStudents, selectedStudentId]);
+  }, [role, uniqueStudents, selectedStudentId, setSelectedStudentId]);
 
   // 🔥 Parent / élève → auto définir classe depuis student
   useEffect(() => {
-    if (
-      (role === "parent" || role === "student") &&
-      selectedStudentId
-    ) {
-      const student = uniqueStudents.find(
-        (s) => s.studentid === selectedStudentId,
-      );
-      if (student) {
-        setSelectedClassIds([student.classid.toString()]);
-      }
+    if (!(role === "parent" || role === "student") || !selectedStudentId) {
+      return;
     }
+
+    const student = uniqueStudents.find(
+      (s) => String(s.studentid) === String(selectedStudentId),
+    );
+    if (!student) return;
+
+    const nextClassId = String(student.classid);
+    setSelectedClassIds((current) => {
+      if (current.length === 1 && current[0] === nextClassId) {
+        return current;
+      }
+      return [nextClassId];
+    });
   }, [selectedStudentId, role, uniqueStudents, setSelectedClassIds]);
 
   // 🔥 Période auto
@@ -192,10 +155,10 @@ export default function FiltersCombox({
             <Combobox
               label="Élève"
               items={filteredStudents.map((s) => ({
-                value: s.studentid.toString(),
+                value: String(s.studentid),
                 label: `${s.username} ${s.nom}`,
               }))}
-              value={selectedStudentId}
+              value={selectedStudentId ? String(selectedStudentId) : ""}
               onChange={setSelectedStudentId}
               placeholder="Sélectionnez un élève"
             />
@@ -231,28 +194,6 @@ export default function FiltersCombox({
               onChange={setSelectedYear}
               placeholder="Année scolaire"
             />
-          </div>
-        )}
-
-        {selectedClassIds.length > 0 && (
-          <div className="flex flex-col gap-1 w-full sm:w-auto self-end">
-            <span className="text-xs font-medium text-transparent ml-1 select-none">
-              Export
-            </span>
-            <Button
-              variant="outline"
-              leftSection={<IconFileTypePdf size={16} />}
-              onClick={exportClassementPdf}
-              loading={exportingPdf}
-              disabled={!hasClassement || exportingPdf}
-              title={
-                hasClassement
-                  ? "Exporter le classement PDF"
-                  : "Aucun résultat pour cette sélection"
-              }
-            >
-              {exportingPdf ? "Génération..." : "Classement PDF"}
-            </Button>
           </div>
         )}
       </div>

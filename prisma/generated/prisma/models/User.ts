@@ -38,6 +38,7 @@ export type UserMinAggregateOutputType = {
   address: string | null
   statusUser: boolean | null
   mustChangePassword: boolean | null
+  theme: string | null
   createdAt: Date | null
   updatedAt: Date | null
   name: string | null
@@ -61,6 +62,7 @@ export type UserMaxAggregateOutputType = {
   address: string | null
   statusUser: boolean | null
   mustChangePassword: boolean | null
+  theme: string | null
   createdAt: Date | null
   updatedAt: Date | null
   name: string | null
@@ -84,6 +86,7 @@ export type UserCountAggregateOutputType = {
   address: number
   statusUser: number
   mustChangePassword: number
+  theme: number
   createdAt: number
   updatedAt: number
   name: number
@@ -109,6 +112,7 @@ export type UserMinAggregateInputType = {
   address?: true
   statusUser?: true
   mustChangePassword?: true
+  theme?: true
   createdAt?: true
   updatedAt?: true
   name?: true
@@ -132,6 +136,7 @@ export type UserMaxAggregateInputType = {
   address?: true
   statusUser?: true
   mustChangePassword?: true
+  theme?: true
   createdAt?: true
   updatedAt?: true
   name?: true
@@ -155,6 +160,7 @@ export type UserCountAggregateInputType = {
   address?: true
   statusUser?: true
   mustChangePassword?: true
+  theme?: true
   createdAt?: true
   updatedAt?: true
   name?: true
@@ -251,6 +257,7 @@ export type UserGroupByOutputType = {
   address: string | null
   statusUser: boolean | null
   mustChangePassword: boolean
+  theme: string | null
   createdAt: Date
   updatedAt: Date
   name: string
@@ -295,6 +302,7 @@ export type UserWhereInput = {
   address?: Prisma.StringNullableFilter<"User"> | string | null
   statusUser?: Prisma.BoolNullableFilter<"User"> | boolean | null
   mustChangePassword?: Prisma.BoolFilter<"User"> | boolean
+  theme?: Prisma.StringNullableFilter<"User"> | string | null
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
   name?: Prisma.StringFilter<"User"> | string
@@ -324,6 +332,7 @@ export type UserOrderByWithRelationInput = {
   address?: Prisma.SortOrderInput | Prisma.SortOrder
   statusUser?: Prisma.SortOrderInput | Prisma.SortOrder
   mustChangePassword?: Prisma.SortOrder
+  theme?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   name?: Prisma.SortOrder
@@ -356,6 +365,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   address?: Prisma.StringNullableFilter<"User"> | string | null
   statusUser?: Prisma.BoolNullableFilter<"User"> | boolean | null
   mustChangePassword?: Prisma.BoolFilter<"User"> | boolean
+  theme?: Prisma.StringNullableFilter<"User"> | string | null
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
   name?: Prisma.StringFilter<"User"> | string
@@ -385,6 +395,7 @@ export type UserOrderByWithAggregationInput = {
   address?: Prisma.SortOrderInput | Prisma.SortOrder
   statusUser?: Prisma.SortOrderInput | Prisma.SortOrder
   mustChangePassword?: Prisma.SortOrder
+  theme?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   name?: Prisma.SortOrder
@@ -414,6 +425,7 @@ export type UserScalarWhereWithAggregatesInput = {
   address?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   statusUser?: Prisma.BoolNullableWithAggregatesFilter<"User"> | boolean | null
   mustChangePassword?: Prisma.BoolWithAggregatesFilter<"User"> | boolean
+  theme?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
   name?: Prisma.StringWithAggregatesFilter<"User"> | string
@@ -437,6 +449,7 @@ export type UserCreateInput = {
   address?: string | null
   statusUser?: boolean | null
   mustChangePassword?: boolean
+  theme?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   name: string
@@ -466,6 +479,7 @@ export type UserUncheckedCreateInput = {
   address?: string | null
   statusUser?: boolean | null
   mustChangePassword?: boolean
+  theme?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   name: string
@@ -495,6 +509,7 @@ export type UserUpdateInput = {
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusUser?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  theme?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
@@ -524,6 +539,7 @@ export type UserUncheckedUpdateInput = {
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusUser?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  theme?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
@@ -553,6 +569,7 @@ export type UserCreateManyInput = {
   address?: string | null
   statusUser?: boolean | null
   mustChangePassword?: boolean
+  theme?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   name: string
@@ -576,6 +593,7 @@ export type UserUpdateManyMutationInput = {
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusUser?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  theme?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
@@ -599,6 +617,7 @@ export type UserUncheckedUpdateManyInput = {
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusUser?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  theme?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
@@ -622,6 +641,7 @@ export type UserCountOrderByAggregateInput = {
   address?: Prisma.SortOrder
   statusUser?: Prisma.SortOrder
   mustChangePassword?: Prisma.SortOrder
+  theme?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   name?: Prisma.SortOrder
@@ -645,6 +665,7 @@ export type UserMaxOrderByAggregateInput = {
   address?: Prisma.SortOrder
   statusUser?: Prisma.SortOrder
   mustChangePassword?: Prisma.SortOrder
+  theme?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   name?: Prisma.SortOrder
@@ -668,6 +689,7 @@ export type UserMinOrderByAggregateInput = {
   address?: Prisma.SortOrder
   statusUser?: Prisma.SortOrder
   mustChangePassword?: Prisma.SortOrder
+  theme?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   name?: Prisma.SortOrder
@@ -804,6 +826,7 @@ export type UserCreateWithoutSessionsInput = {
   address?: string | null
   statusUser?: boolean | null
   mustChangePassword?: boolean
+  theme?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   name: string
@@ -832,6 +855,7 @@ export type UserUncheckedCreateWithoutSessionsInput = {
   address?: string | null
   statusUser?: boolean | null
   mustChangePassword?: boolean
+  theme?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   name: string
@@ -876,6 +900,7 @@ export type UserUpdateWithoutSessionsInput = {
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusUser?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  theme?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
@@ -904,6 +929,7 @@ export type UserUncheckedUpdateWithoutSessionsInput = {
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusUser?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  theme?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
@@ -932,6 +958,7 @@ export type UserCreateWithoutAccountsInput = {
   address?: string | null
   statusUser?: boolean | null
   mustChangePassword?: boolean
+  theme?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   name: string
@@ -960,6 +987,7 @@ export type UserUncheckedCreateWithoutAccountsInput = {
   address?: string | null
   statusUser?: boolean | null
   mustChangePassword?: boolean
+  theme?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   name: string
@@ -1004,6 +1032,7 @@ export type UserUpdateWithoutAccountsInput = {
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusUser?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  theme?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1032,6 +1061,7 @@ export type UserUncheckedUpdateWithoutAccountsInput = {
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusUser?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  theme?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1060,6 +1090,7 @@ export type UserCreateWithoutMembersInput = {
   address?: string | null
   statusUser?: boolean | null
   mustChangePassword?: boolean
+  theme?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   name: string
@@ -1088,6 +1119,7 @@ export type UserUncheckedCreateWithoutMembersInput = {
   address?: string | null
   statusUser?: boolean | null
   mustChangePassword?: boolean
+  theme?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   name: string
@@ -1132,6 +1164,7 @@ export type UserUpdateWithoutMembersInput = {
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusUser?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  theme?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1160,6 +1193,7 @@ export type UserUncheckedUpdateWithoutMembersInput = {
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusUser?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  theme?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1188,6 +1222,7 @@ export type UserCreateWithoutInvitationsInput = {
   address?: string | null
   statusUser?: boolean | null
   mustChangePassword?: boolean
+  theme?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   name: string
@@ -1216,6 +1251,7 @@ export type UserUncheckedCreateWithoutInvitationsInput = {
   address?: string | null
   statusUser?: boolean | null
   mustChangePassword?: boolean
+  theme?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   name: string
@@ -1260,6 +1296,7 @@ export type UserUpdateWithoutInvitationsInput = {
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusUser?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  theme?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1288,6 +1325,7 @@ export type UserUncheckedUpdateWithoutInvitationsInput = {
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusUser?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  theme?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1316,6 +1354,7 @@ export type UserCreateWithoutPlatformSupportAgentInput = {
   address?: string | null
   statusUser?: boolean | null
   mustChangePassword?: boolean
+  theme?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   name: string
@@ -1344,6 +1383,7 @@ export type UserUncheckedCreateWithoutPlatformSupportAgentInput = {
   address?: string | null
   statusUser?: boolean | null
   mustChangePassword?: boolean
+  theme?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   name: string
@@ -1388,6 +1428,7 @@ export type UserUpdateWithoutPlatformSupportAgentInput = {
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusUser?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  theme?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1416,6 +1457,7 @@ export type UserUncheckedUpdateWithoutPlatformSupportAgentInput = {
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusUser?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  theme?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1444,6 +1486,7 @@ export type UserCreateWithoutPlatformEscalationsRequestedInput = {
   address?: string | null
   statusUser?: boolean | null
   mustChangePassword?: boolean
+  theme?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   name: string
@@ -1472,6 +1515,7 @@ export type UserUncheckedCreateWithoutPlatformEscalationsRequestedInput = {
   address?: string | null
   statusUser?: boolean | null
   mustChangePassword?: boolean
+  theme?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   name: string
@@ -1516,6 +1560,7 @@ export type UserUpdateWithoutPlatformEscalationsRequestedInput = {
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusUser?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  theme?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1544,6 +1589,7 @@ export type UserUncheckedUpdateWithoutPlatformEscalationsRequestedInput = {
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusUser?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  theme?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1639,6 +1685,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   address?: boolean
   statusUser?: boolean
   mustChangePassword?: boolean
+  theme?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   name?: boolean
@@ -1669,6 +1716,7 @@ export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   address?: boolean
   statusUser?: boolean
   mustChangePassword?: boolean
+  theme?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   name?: boolean
@@ -1692,6 +1740,7 @@ export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   address?: boolean
   statusUser?: boolean
   mustChangePassword?: boolean
+  theme?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   name?: boolean
@@ -1715,6 +1764,7 @@ export type UserSelectScalar = {
   address?: boolean
   statusUser?: boolean
   mustChangePassword?: boolean
+  theme?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   name?: boolean
@@ -1724,7 +1774,7 @@ export type UserSelectScalar = {
   banExpires?: boolean
 }
 
-export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "username" | "email" | "telephone" | "postnom" | "prenom" | "dateOfBirth" | "sexe" | "emailVerified" | "image" | "address" | "statusUser" | "mustChangePassword" | "createdAt" | "updatedAt" | "name" | "role" | "banned" | "banReason" | "banExpires", ExtArgs["result"]["user"]>
+export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "username" | "email" | "telephone" | "postnom" | "prenom" | "dateOfBirth" | "sexe" | "emailVerified" | "image" | "address" | "statusUser" | "mustChangePassword" | "theme" | "createdAt" | "updatedAt" | "name" | "role" | "banned" | "banReason" | "banExpires", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   sessions?: boolean | Prisma.User$sessionsArgs<ExtArgs>
   accounts?: boolean | Prisma.User$accountsArgs<ExtArgs>
@@ -1764,6 +1814,10 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
      * Compte créé avec mot de passe temporaire : forcer le changement à la 1ère connexion
      */
     mustChangePassword: boolean
+    /**
+     * Préférence d'apparence propre à l'utilisateur (light | dark | system)
+     */
+    theme: string | null
     createdAt: Date
     updatedAt: Date
     name: string
@@ -2213,6 +2267,7 @@ export interface UserFieldRefs {
   readonly address: Prisma.FieldRef<"User", 'String'>
   readonly statusUser: Prisma.FieldRef<"User", 'Boolean'>
   readonly mustChangePassword: Prisma.FieldRef<"User", 'Boolean'>
+  readonly theme: Prisma.FieldRef<"User", 'String'>
   readonly createdAt: Prisma.FieldRef<"User", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"User", 'DateTime'>
   readonly name: Prisma.FieldRef<"User", 'String'>

@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/dialog";
 import { PageHeader } from "@/components/ui/page-header";
 import { useSession } from "@/lib/auth-client";
-import { canAccessBranchArea } from "@/lib/auth/assert-branch-area-access";
+import { canAccessBranchArea } from "@/lib/auth/branch-area-access";
 
 import Loading from "../loading";
 import Classes from "./components/ClassesClient";

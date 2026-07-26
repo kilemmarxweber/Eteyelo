@@ -1,0 +1,61 @@
+import {
+  canAccessBranchOrgSettings,
+  canAccessFinanceArea,
+  canAccessLibraryArea,
+  canAccessNotesReadArea,
+  canAccessPedagogyArea,
+  canAccessResultsArea,
+  canAccessScheduleReadArea,
+  canAccessTeachingArea,
+  canManageHrDirectory,
+} from "@/lib/auth/session-roles";
+
+/**
+ * Zones sensibles sous `.../branches/[branchId]/` (unit-09).
+ * Module client-safe (pas de next/headers).
+ */
+export type BranchArea =
+  | "finance"
+  | "notes"
+  | "schedule"
+  | "teaching"
+  | "pedagogy"
+  | "results"
+  | "library"
+  | "school_admin"
+  | "hr_directory"
+  | "hr_write"
+  | "branch_org_settings";
+
+export function canAccessBranchArea(
+  area: BranchArea,
+  session: unknown,
+): boolean {
+  switch (area) {
+    case "finance":
+      return canAccessFinanceArea(session);
+    case "notes":
+      return canAccessNotesReadArea(session);
+    case "schedule":
+      return canAccessScheduleReadArea(session);
+    case "teaching":
+      return canAccessTeachingArea(session);
+    case "pedagogy":
+    case "school_admin":
+      return canAccessPedagogyArea(session);
+    case "results":
+      return canAccessResultsArea(session);
+    case "library":
+      return canAccessLibraryArea(session);
+    case "hr_directory":
+      return canAccessPedagogyArea(session);
+    case "hr_write":
+      return canManageHrDirectory(session);
+    case "branch_org_settings":
+      return canAccessBranchOrgSettings(session);
+    default: {
+      const _exhaustive: never = area;
+      return _exhaustive;
+    }
+  }
+}

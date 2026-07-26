@@ -16,6 +16,12 @@ export type DashboardShortcut = {
     | "notes"
     | "library"
     | "results";
+  /** Totaux affichés sous la description (ex. carte Finance parent). */
+  amounts?: {
+    totalDue: number;
+    totalRemaining: number;
+    currency: string;
+  };
 };
 
 function branchHref(
@@ -35,6 +41,13 @@ type ShortcutContext = {
   studentPluralLower: string;
   classLabelPlural: string;
   showFinance: boolean;
+  /** Finance agrégée des enfants (dashboard parent). */
+  parentFinance?: {
+    totalDue: number;
+    totalRemaining: number;
+    currency: string;
+    firstChildId?: string | null;
+  } | null;
 };
 
 /** CTA dashboard alignés sur la matrice menus (unit-00 §3 / unit-03b). */
@@ -204,7 +217,25 @@ export function getDashboardShortcuts(
         },
       ];
 
-    case "parent":
+    case "parent": {
+      const financeHref = ctx.parentFinance?.firstChildId
+        ? href(`/student/${ctx.parentFinance.firstChildId}`)
+        : href("/");
+      const financeCard: DashboardShortcut | null = ctx.showFinance
+        ? {
+            title: "Finance",
+            description: "Totaux des enfants (année en cours)",
+            href: financeHref,
+            color: "bg-emerald-500",
+            iconKey: "currency",
+            amounts: {
+              totalDue: ctx.parentFinance?.totalDue ?? 0,
+              totalRemaining: ctx.parentFinance?.totalRemaining ?? 0,
+              currency: ctx.parentFinance?.currency ?? "USD",
+            },
+          }
+        : null;
+
       return [
         {
           title: "Résultats",
@@ -227,14 +258,9 @@ export function getDashboardShortcuts(
           color: "bg-blue-500",
           iconKey: "calendar",
         },
-        {
-          title: "Fiches",
-          description: "Fiches des enfants",
-          href: href("/fiches"),
-          color: "bg-teal-500",
-          iconKey: "book",
-        },
+        ...(financeCard ? [financeCard] : []),
       ];
+    }
 
     case "minimal":
     default:

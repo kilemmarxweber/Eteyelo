@@ -7,7 +7,7 @@ import assert from "node:assert/strict";
 import {
   canAccessBranchArea,
   type BranchArea,
-} from "../lib/auth/assert-branch-area-access";
+} from "../lib/auth/branch-area-access";
 import {
   getDashboardDataBlocks,
   resolveDashboardVariant,

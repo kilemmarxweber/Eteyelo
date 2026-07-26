@@ -70,6 +70,12 @@ const authOptions = {
         defaultValue: false,
         input: false,
       },
+      theme: {
+        type: "string",
+        required: false,
+        defaultValue: "light",
+        input: false,
+      },
     },
     // Configuration changeEmail
     changeEmail: {
@@ -271,6 +277,7 @@ export const auth = betterAuth({
             dateOfBirth: true,
             statusUser: true,
             mustChangePassword: true,
+            theme: true,
           },
         }),
       ]);

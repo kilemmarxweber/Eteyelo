@@ -3,6 +3,7 @@
 import { Layout, LayoutBody } from "@/components/custom/layout";
 import { PageHeader } from "@/components/ui/page-header";
 import { Badge } from "@/components/ui/badge";
+import { BranchLoadingFallback } from "@/components/branch-loading-fallback";
 import { useParams } from "next/navigation";
 import { IconChartBar } from "@tabler/icons-react";
 import {
@@ -33,6 +34,7 @@ import {
   CashierStatsSection,
   EventsSection,
   ParentChildrenSection,
+  ParentSatisfactionSection,
   PedagogyMetricsSection,
   SchoolStatsSection,
   ShortcutsSection,
@@ -102,7 +104,8 @@ export default function AdminDashboard() {
   const organizationId = params.organizationId as string;
   const branchId = params.branchId as string;
 
-  const [variant, setVariant] = useState<DashboardVariant>("minimal");
+  /** null tant que la session n'a pas résolu le rôle — évite le flash « minimal ». */
+  const [variant, setVariant] = useState<DashboardVariant | null>(null);
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [events, setEvents] = useState<any[]>([]);
@@ -134,6 +137,19 @@ export default function AdminDashboard() {
   } | null>(null);
   const [parent, setParent] = useState<{
     children: { id: string; name: string; className: string | null }[];
+    finance?: {
+      totalDue: number;
+      totalPaid: number;
+      totalRemaining: number;
+      currency: string;
+    } | null;
+    satisfaction?: {
+      percentage: number;
+      feedbackCount: number;
+      schoolYearLabel: string | null;
+      myAverageRating: number | null;
+      myFeedbackCount: number;
+    } | null;
   } | null>(null);
   const [typebranchState, setTypebranchState] = useState<string | null>(null);
 
@@ -150,6 +166,8 @@ export default function AdminDashboard() {
     variant === "directeur" &&
     showFinanceCapability &&
     Boolean(stats?.revenue);
+
+  const ready = !loading && variant != null;
 
   useEffect(() => {
     let cancelled = false;
@@ -207,14 +225,34 @@ export default function AdminDashboard() {
 
   const quickActions = useMemo(
     () =>
-      getDashboardShortcuts(variant, {
-        organizationId,
-        branchId,
-        studentLabel: peopleLabels.student,
-        studentPluralLower: peopleLabels.studentPluralLower,
-        classLabelPlural,
-        showFinance: showFinanceCapability && variant === "directeur",
-      }),
+      variant
+        ? getDashboardShortcuts(variant, {
+            organizationId,
+            branchId,
+            studentLabel: peopleLabels.student,
+            studentPluralLower: peopleLabels.studentPluralLower,
+            classLabelPlural,
+            showFinance:
+              showFinanceCapability &&
+              (variant === "directeur" || variant === "parent"),
+            parentFinance:
+              variant === "parent" && parent?.finance
+                ? {
+                    totalDue: parent.finance.totalDue,
+                    totalRemaining: parent.finance.totalRemaining,
+                    currency: parent.finance.currency,
+                    firstChildId: parent.children[0]?.id ?? null,
+                  }
+                : variant === "parent"
+                  ? {
+                      totalDue: 0,
+                      totalRemaining: 0,
+                      currency: "USD",
+                      firstChildId: parent?.children[0]?.id ?? null,
+                    }
+                  : null,
+          })
+        : [],
     [
       variant,
       organizationId,
@@ -223,6 +261,7 @@ export default function AdminDashboard() {
       peopleLabels.studentPluralLower,
       classLabelPlural,
       showFinanceCapability,
+      parent,
     ],
   );
 
@@ -233,18 +272,27 @@ export default function AdminDashboard() {
   const teacherActivityRate = stats?.teachers?.activityRate ?? 0;
   const classOccupancyRate = stats?.classes?.occupancyRate ?? 0;
 
-  const overviewDescription = overviewDescriptionForVariant(
-    variant,
-    branchTypeLabel,
-    capabilities.isSchoolBranch,
-  );
+  const overviewDescription = variant
+    ? overviewDescriptionForVariant(
+        variant,
+        branchTypeLabel,
+        capabilities.isSchoolBranch,
+      )
+    : "Chargement du tableau de bord…";
 
   const showSchoolStats =
     variant === "directeur" ||
     variant === "prefet" ||
     variant === "directeur_etudes";
   const showPedagogyMetrics = showSchoolStats && metrics != null;
-  const showEvents = true;
+  const showEvents = ready && variant !== "parent";
+  const showParentSatisfaction = ready && variant === "parent";
+
+  if (!ready) {
+    return (
+      <BranchLoadingFallback label="Chargement du tableau de bord…" />
+    );
+  }
 
   return (
     <>
@@ -312,6 +360,26 @@ export default function AdminDashboard() {
                 if (res?.error) {
                   setError(res.error);
                   return;
+                }
+                if (res?.satisfaction) {
+                  setParent((prev) =>
+                    prev
+                      ? { ...prev, satisfaction: res.satisfaction }
+                      : {
+                          children: [],
+                          satisfaction: res.satisfaction,
+                        },
+                  );
+                } else {
+                  try {
+                    const data = await getBranchDashboardData({
+                      branchId,
+                      organizationId,
+                    });
+                    if (data.parent) setParent(data.parent);
+                  } catch {
+                    // ignore refresh errors — avis déjà enregistré
+                  }
                 }
                 setShowFeedback(false);
                 setSelectedRating(null);
@@ -410,6 +478,13 @@ export default function AdminDashboard() {
               showPedagogyMetrics ? "md:grid-cols-2" : "md:grid-cols-1",
             )}
           >
+            {showParentSatisfaction ? (
+              <ParentSatisfactionSection
+                loading={loading}
+                satisfaction={parent?.satisfaction ?? null}
+              />
+            ) : null}
+
             {showEvents ? (
               <EventsSection
                 branchTypeLabel={branchTypeLabel}

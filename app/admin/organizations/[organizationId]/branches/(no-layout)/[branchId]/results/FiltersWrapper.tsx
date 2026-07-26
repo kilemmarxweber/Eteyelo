@@ -25,6 +25,7 @@ export default function FiltersWrapper({
   selectedStudentId,
   setSelectedStudentId,
   onStatsUpdate,
+  onClassementUpdate,
 }: any) {
   const [selectedClassIds, setSelectedClassIds] = useState<string[]>([]);
   const [selectedPeriod, setSelectedPeriod] = useState("");
@@ -161,7 +162,7 @@ export default function FiltersWrapper({
     totalMax > 0 ? ((totalScore / totalMax) * 100).toFixed(1) : "0.0";
   useEffect(() => {
     onTotalChange?.(totalPercentage);
-  }, [totalPercentage]);
+  }, [totalPercentage, onTotalChange]);
 
   // ================= RANKING BASE (IMPORTANT FIX) =================
   const studentsBase = useMemo(() => {
@@ -341,6 +342,10 @@ export default function FiltersWrapper({
     };
   }, [selectedClassIds, classOptions, selectedPeriod, selectedYear]);
 
+  useEffect(() => {
+    onClassementUpdate?.({ classementRows, reportOptions });
+  }, [classementRows, reportOptions, onClassementUpdate]);
+
   return (
     <>
       <FiltersCombox
@@ -357,8 +362,6 @@ export default function FiltersWrapper({
         periods={uniquePeriods}
         years={years}
         role={role}
-        classementRows={classementRows}
-        reportOptions={reportOptions}
       />
 
       <ResultTable

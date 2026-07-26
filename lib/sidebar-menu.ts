@@ -73,7 +73,7 @@ const TEACHER_TITULAIRE_ROLE = "TEACHER_TITULAIRE";
 const STUDENT_ROLES = [ORG_ROLE.STUDENT, "STUDENT", "student"];
 const PARENT_ROLES = [ORG_ROLE.PARENT, "PARENT", "parent"];
 
-/** Élève + parent — lecture cursus partagée (notes / horaire / résultats / fiches). */
+/** Élève + parent — lecture cursus partagée (notes / horaire / résultats). */
 const CURSUS_READ_ROLES = [...STUDENT_ROLES, ...PARENT_ROLES];
 
 /** Bibliothèque : school admin + élève (sans caissier, teacher, parent). */
@@ -100,9 +100,10 @@ const RESULTS_ROLES = [
   ...CURSUS_READ_ROLES,
 ];
 
+/** Fiches classe / perso : school admin, élève, titulaire — parent via profil enfant. */
 const FICHES_ROLES = [
   ...SCHOOL_ADMIN_ROLES,
-  ...CURSUS_READ_ROLES,
+  ...STUDENT_ROLES,
   TEACHER_TITULAIRE_ROLE,
 ];
 

@@ -57,13 +57,16 @@ export function AppearanceForm() {
     defaultValues,
   });
 
+  const { setTheme, theme } = useTheme();
+
   function onSubmit(data: AppearanceFormValues) {
+    setTheme(data.theme);
     toast({
       title: "Préférences mises à jour",
-      description: "Vos préférences d'apparence ont été sauvegardées.",
+      description:
+        "Votre thème a été enregistré pour ce compte uniquement.",
     });
   }
-  const { setTheme, theme } = useTheme();
 
   return (
     <div className="space-y-6 px-2 sm:px-4 md:px-6">

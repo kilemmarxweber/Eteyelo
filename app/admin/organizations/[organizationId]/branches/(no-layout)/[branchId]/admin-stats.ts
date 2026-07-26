@@ -19,6 +19,10 @@ import { action } from "@/lib/zsa";
 import { Day } from "@/prisma/generated/prisma/client";
 import { headers } from "next/headers";
 import { z } from "zod";
+import {
+  computeScopedDiscountAmount,
+  getBestDiscountInfo,
+} from "@/lib/payment-discount";
 
 const EMPTY_METRICS = {
   attendance: 0,
@@ -891,7 +895,74 @@ async function getStudentDashboardData(branchId: string, userId: string) {
   };
 }
 
-async function getParentDashboardData(branchId: string, userId: string) {
+async function getParentAnnualSatisfaction(
+  branchId: string,
+  userId: string,
+) {
+  const [currentYear, parent] = await Promise.all([
+    prisma.schoolYear.findFirst({
+      where: { isCurrentYear: true, branchId },
+      select: { id: true, nameYear: true },
+    }),
+    prisma.parent.findFirst({
+      where: {
+        branchMember: {
+          branchId,
+          member: { userId },
+        },
+      },
+      select: { id: true },
+    }),
+  ]);
+
+  if (!currentYear) {
+    return {
+      percentage: 0,
+      feedbackCount: 0,
+      schoolYearLabel: null as string | null,
+      myAverageRating: null as number | null,
+      myFeedbackCount: 0,
+    };
+  }
+
+  const yearFeedbacks = await prisma.parentFeedback.findMany({
+    where: {
+      branchId,
+      schoolYearId: currentYear.id,
+    },
+    select: { rating: true, parentId: true },
+  });
+
+  const feedbackCount = yearFeedbacks.length;
+  const satisfiedCount = yearFeedbacks.filter((f) => f.rating >= 4).length;
+  const mine = parent
+    ? yearFeedbacks.filter((f) => f.parentId === parent.id)
+    : [];
+  const myFeedbackCount = mine.length;
+  const myAverageRating =
+    myFeedbackCount > 0
+      ? Math.round(
+          (mine.reduce((sum, f) => sum + f.rating, 0) / myFeedbackCount) * 10,
+        ) / 10
+      : null;
+
+  return {
+    percentage:
+      feedbackCount > 0
+        ? Math.round((satisfiedCount / feedbackCount) * 100)
+        : 0,
+    feedbackCount,
+    schoolYearLabel: currentYear.nameYear,
+    myAverageRating,
+    myFeedbackCount,
+  };
+}
+
+async function getParentDashboardData(
+  branchId: string,
+  userId: string,
+  organizationId: string,
+) {
   const children = await prisma.student.findMany({
     where: {
       branchMember: { branchId },
@@ -904,6 +975,7 @@ async function getParentDashboardData(branchId: string, userId: string) {
     },
     select: {
       id: true,
+      parentId: true,
       branchMember: {
         select: {
           member: {
@@ -923,18 +995,177 @@ async function getParentDashboardData(branchId: string, userId: string) {
         },
         take: 1,
         select: {
+          id: true,
+          classeId: true,
           classe: { select: { nameClasse: true } },
         },
       },
     },
   });
 
+  const mappedChildren = children.map((child) => ({
+    id: child.id,
+    name: formatPersonName(child.branchMember?.member?.user),
+    className: child.classEnrollment[0]?.classe?.nameClasse ?? null,
+  }));
+
+  const enrollments = children
+    .map((child) => {
+      const enrollment = child.classEnrollment[0];
+      if (!enrollment) return null;
+      return {
+        id: enrollment.id,
+        classeId: enrollment.classeId,
+        parentId: child.parentId,
+      };
+    })
+    .filter((row): row is NonNullable<typeof row> => Boolean(row));
+
+  const parentId = enrollments[0]?.parentId ?? children[0]?.parentId ?? null;
+
+  const emptyFinance = {
+    totalDue: 0,
+    totalPaid: 0,
+    totalRemaining: 0,
+    currency: "USD",
+  };
+
+  const satisfaction = await getParentAnnualSatisfaction(branchId, userId);
+
+  if (enrollments.length === 0) {
+    return {
+      children: mappedChildren,
+      finance: emptyFinance,
+      satisfaction,
+    };
+  }
+
+  const currentYear = await prisma.schoolYear.findFirst({
+    where: { isCurrentYear: true, branchId },
+    select: { id: true },
+  });
+
+  if (!currentYear) {
+    return {
+      children: mappedChildren,
+      finance: emptyFinance,
+      satisfaction,
+    };
+  }
+
+  const classeIds = Array.from(new Set(enrollments.map((e) => e.classeId)));
+
+  const [fraisList, selectedExchangeRate, exchangeRates, discount] =
+    await Promise.all([
+      prisma.frais.findMany({
+        where: {
+          branchId,
+          statusFrais: true,
+          schoolYearId: currentYear.id,
+          classeId: { in: classeIds },
+        },
+        select: {
+          id: true,
+          classeId: true,
+          montantFrais: true,
+          typeFraisId: true,
+        },
+      }),
+      prisma.exchangeRate.findFirst({
+        where: { organizationId, isSelected: true },
+        select: { fromCurrency: true },
+      }),
+      prisma.exchangeRate.findMany({
+        where: { organizationId, isActive: true },
+        select: {
+          fromCurrency: true,
+          toCurrency: true,
+          rate: true,
+          isActive: true,
+          isSelected: true,
+        },
+      }),
+      parentId
+        ? getBestDiscountInfo(prisma, parentId, branchId)
+        : Promise.resolve({
+            percentage: 0,
+            typeFraisId: null,
+            typeFraisName: null,
+          }),
+    ]);
+
+  const fraisByClasse = new Map<
+    string,
+    Array<{ id: string; montant: number; typeFraisId: string | null }>
+  >();
+  const fraisIds: string[] = [];
+  for (const frais of fraisList) {
+    fraisIds.push(frais.id);
+    const list = fraisByClasse.get(frais.classeId) ?? [];
+    list.push({
+      id: frais.id,
+      montant: Number(frais.montantFrais),
+      typeFraisId: frais.typeFraisId,
+    });
+    fraisByClasse.set(frais.classeId, list);
+  }
+
+  const enrollmentIds = enrollments.map((e) => e.id);
+  const paidByEnrollment = new Map<string, number>();
+
+  if (enrollmentIds.length > 0 && fraisIds.length > 0) {
+    const aggregates = await prisma.familyPayment.groupBy({
+      by: ["classEnrollmentId"],
+      where: {
+        branchId,
+        classEnrollmentId: { in: enrollmentIds },
+        fraisId: { in: fraisIds },
+        status: "VALIDE",
+      },
+      _sum: { amount: true },
+    });
+
+    for (const row of aggregates) {
+      paidByEnrollment.set(
+        row.classEnrollmentId,
+        Number(row._sum.amount ?? 0),
+      );
+    }
+  }
+
+  let totalDue = 0;
+  let totalPaid = 0;
+  let totalRemaining = 0;
+
+  for (const enrollment of enrollments) {
+    const classeFrais = fraisByClasse.get(enrollment.classeId) ?? [];
+    const montantDuBrut = classeFrais.reduce((sum, f) => sum + f.montant, 0);
+    const remise = computeScopedDiscountAmount(
+      classeFrais.map((f) => ({
+        base: f.montant,
+        typeFraisId: f.typeFraisId,
+      })),
+      discount,
+    );
+    const montantDu = Math.max(0, montantDuBrut - remise);
+    const montantPaye = paidByEnrollment.get(enrollment.id) ?? 0;
+    const reste = Math.max(0, montantDu - montantPaye);
+
+    totalDue += montantDu;
+    totalPaid += montantPaye;
+    totalRemaining += reste;
+  }
+
   return {
-    children: children.map((child) => ({
-      id: child.id,
-      name: formatPersonName(child.branchMember?.member?.user),
-      className: child.classEnrollment[0]?.classe?.nameClasse ?? null,
-    })),
+    children: mappedChildren,
+    finance: {
+      totalDue,
+      totalPaid,
+      totalRemaining,
+      currency:
+        selectedExchangeRate?.fromCurrency ?? getBaseCurrency(exchangeRates),
+    },
+    satisfaction,
   };
 }
 
@@ -992,7 +1223,7 @@ export async function getBranchDashboardData(params: {
       ? getStudentDashboardData(branchId, userId)
       : Promise.resolve(null),
     blocks.parent
-      ? getParentDashboardData(branchId, userId)
+      ? getParentDashboardData(branchId, userId, organizationId)
       : Promise.resolve(null),
   ]);
 
@@ -1147,10 +1378,19 @@ export async function createParentFeedback(
     const now = new Date();
     const month = now.getMonth() + 1;
 
-    // Parent lié à l'utilisateur (rôle plateforme peut être "user").
+    // Préférer la branche active de session (évite un parent d'une autre école).
+    let activeBranchId: string | null = null;
+    try {
+      const ctx = await requireBranchContext();
+      activeBranchId = ctx.branchId;
+    } catch {
+      activeBranchId = null;
+    }
+
     const parent = await prisma.parent.findFirst({
       where: {
         branchMember: {
+          ...(activeBranchId ? { branchId: activeBranchId } : {}),
           member: {
             userId: currentUserId,
           },
@@ -1211,7 +1451,12 @@ export async function createParentFeedback(
       },
     });
 
-    return { data: feedback };
+    const satisfaction = await getParentAnnualSatisfaction(
+      branchId,
+      currentUserId,
+    );
+
+    return { data: feedback, satisfaction };
   } catch (error) {
     console.error("createParentFeedback error:", error);
     return { error: "SERVER_ERROR" };

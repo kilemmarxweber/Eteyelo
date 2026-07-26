@@ -1,34 +1,15 @@
+import "server-only";
+
 import { notFound, redirect } from "next/navigation";
 
-import { getCachedSession } from "@/lib/auth/get-session-cached";
 import {
-  canAccessBranchOrgSettings,
-  canAccessFinanceArea,
-  canAccessLibraryArea,
-  canAccessNotesReadArea,
-  canAccessPedagogyArea,
-  canAccessResultsArea,
-  canAccessScheduleReadArea,
-  canAccessTeachingArea,
-  canManageHrDirectory,
-} from "@/lib/auth/session-roles";
+  canAccessBranchArea,
+  type BranchArea,
+} from "@/lib/auth/branch-area-access";
+import { getCachedSession } from "@/lib/auth/get-session-cached";
 
-/**
- * Zones sensibles sous `.../branches/[branchId]/` (unit-09).
- * Un seul point pour éviter la dérive des gates pages/layouts.
- */
-export type BranchArea =
-  | "finance"
-  | "notes"
-  | "schedule"
-  | "teaching"
-  | "pedagogy"
-  | "results"
-  | "library"
-  | "school_admin"
-  | "hr_directory"
-  | "hr_write"
-  | "branch_org_settings";
+export type { BranchArea };
+export { canAccessBranchArea };
 
 export type AssertBranchAreaOptions = {
   /**
@@ -39,39 +20,6 @@ export type AssertBranchAreaOptions = {
   organizationId?: string | null;
   branchId?: string | null;
 };
-
-export function canAccessBranchArea(
-  area: BranchArea,
-  session: unknown,
-): boolean {
-  switch (area) {
-    case "finance":
-      return canAccessFinanceArea(session);
-    case "notes":
-      return canAccessNotesReadArea(session);
-    case "schedule":
-      return canAccessScheduleReadArea(session);
-    case "teaching":
-      return canAccessTeachingArea(session);
-    case "pedagogy":
-    case "school_admin":
-      return canAccessPedagogyArea(session);
-    case "results":
-      return canAccessResultsArea(session);
-    case "library":
-      return canAccessLibraryArea(session);
-    case "hr_directory":
-      return canAccessPedagogyArea(session);
-    case "hr_write":
-      return canManageHrDirectory(session);
-    case "branch_org_settings":
-      return canAccessBranchOrgSettings(session);
-    default: {
-      const _exhaustive: never = area;
-      return _exhaustive;
-    }
-  }
-}
 
 function resolveBranchHome(
   session: any,

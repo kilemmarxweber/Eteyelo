@@ -2,7 +2,6 @@
 
 import * as React from "react";
 import Link from "next/link";
-import Image from "next/image";
 import {
   ArrowLeft,
   CalendarDays,
@@ -17,12 +16,9 @@ import {
   Megaphone,
   Phone,
   Printer,
-  QrCode,
-  ScanLine,
   UserRound,
   Users,
 } from "lucide-react";
-import QRCode from "qrcode";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -231,103 +227,10 @@ function formatMoney(amount: number, currency: string) {
   return formatReportAmount(amount, currency);
 }
 
-function StudentIdentificationPanel({
-  matriculeLabel,
-  matricule,
-  displayId,
-  qrDataUrl,
-}: {
-  matriculeLabel: string;
-  matricule: string;
-  displayId: string;
-  qrDataUrl: string | null;
-}) {
-  return (
-    <Card className="overflow-hidden rounded-xl border border-primary/20 bg-gradient-to-b from-primary/[0.07] via-card to-card shadow-sm">
-      <div className="border-b border-primary/10 bg-primary/[0.06] px-4 py-3">
-        <div className="flex items-center gap-2.5">
-          <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-primary shadow-sm">
-            <QrCode className="size-4" />
-          </div>
-          <div className="min-w-0">
-            <h3 className="text-sm font-semibold text-foreground">Identification</h3>
-            <p className="truncate text-xs text-foreground/70">
-              Badge numerique — {matriculeLabel.toLowerCase()}
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <div className="flex flex-col items-center gap-4 p-4">
-        {qrDataUrl ? (
-          <div className="rounded-2xl bg-white p-3 shadow-md ring-2 ring-primary/20">
-            <Image
-              src={qrDataUrl}
-              alt="QR identification"
-              width={128}
-              height={128}
-              unoptimized
-              className="size-32"
-            />
-          </div>
-        ) : (
-          <div className="size-32 animate-pulse rounded-2xl bg-primary/10 ring-2 ring-primary/10" />
-        )}
-
-        <div className="w-full space-y-3 text-center">
-          <p className="inline-flex items-center justify-center gap-1.5 text-xs font-medium text-foreground/80">
-            <ScanLine className="size-3.5 text-primary" />
-            Scanner pour verifier
-          </p>
-
-          <div className="rounded-xl border border-primary/20 bg-primary/[0.08] px-3 py-3 shadow-sm">
-            <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-primary">
-              {matriculeLabel}
-            </p>
-            <p className="mt-1 font-mono text-lg font-bold tracking-wider text-foreground">
-              {matricule}
-            </p>
-          </div>
-
-          <p className="text-[11px] text-foreground/65">
-            Ref. interne{" "}
-            <span className="rounded-md bg-muted/80 px-1.5 py-0.5 font-mono text-xs font-semibold text-foreground">
-              #{displayId}
-            </span>
-          </p>
-        </div>
-      </div>
-    </Card>
-  );
-}
-
 export function StudentProfileClient({ profile }: { profile: StudentProfileData }) {
   const peopleLabels = useBranchPeopleLabels();
   const badgeSectionRef = React.useRef<StudentBadgeSectionHandle>(null);
   const [tab, setTab] = React.useState("infos");
-  const [identificationQr, setIdentificationQr] = React.useState<string | null>(
-    null,
-  );
-
-  React.useEffect(() => {
-    let active = true;
-
-    void QRCode.toDataURL(
-      JSON.stringify({
-        v: 1,
-        type: "student-id",
-        studentId: profile.studentId,
-        matricule: profile.matricule,
-      }),
-      { margin: 1, width: 180 },
-    ).then((url) => {
-      if (active) setIdentificationQr(url);
-    });
-
-    return () => {
-      active = false;
-    };
-  }, [profile.matricule, profile.studentId]);
 
   const initials =
     `${profile.nom?.[0] ?? ""}${profile.prenom?.[0] ?? ""}`.toUpperCase() || "EL";
@@ -341,61 +244,77 @@ export function StudentProfileClient({ profile }: { profile: StudentProfileData 
   return (
     <div className="space-y-4">
       <StudentPhotoUploadInput upload={photoUpload} />
-      <div className="flex flex-col gap-4 rounded-xl border bg-card p-4 shadow-sm lg:flex-row lg:items-center lg:justify-between">
-        <div className="flex min-w-0 items-start gap-3">
-          <Button asChild variant="ghost" size="icon" className="mt-1 shrink-0">
-            <Link href={profile.studentListHref} aria-label={`Retour aux ${peopleLabels.studentPluralLower}`}>
-              <ArrowLeft className="size-4" />
-            </Link>
-          </Button>
+      <div className="overflow-hidden rounded-xl border border-primary/20 bg-gradient-to-br from-primary/[0.08] via-card to-card shadow-sm">
+        <div className="flex flex-col gap-4 p-4 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex min-w-0 items-start gap-3">
+            <Button
+              asChild
+              variant="outline"
+              size="icon"
+              className="mt-0.5 size-9 shrink-0 border-primary/25 bg-background/70 text-primary hover:bg-primary/10 hover:text-primary"
+            >
+              <Link href={profile.studentListHref} aria-label={profile.backLabel}>
+                <ArrowLeft className="size-4" />
+              </Link>
+            </Button>
 
-          <div className="flex min-w-0 items-center gap-3">
-            <StudentPhotoAvatar
-              fullName={profile.fullName}
-              initials={initials}
-              upload={photoUpload}
-            />
+            <div className="flex min-w-0 items-center gap-3">
+              <StudentPhotoAvatar
+                fullName={profile.fullName}
+                initials={initials}
+                upload={photoUpload}
+              />
 
-            <div className="min-w-0">
-              <h1 className="truncate text-lg font-bold uppercase tracking-wide md:text-xl">
-                {profile.fullName}
-              </h1>
-              <div className="mt-1.5 flex flex-wrap items-center gap-2">
-                <span className="text-sm font-medium text-foreground/85">
-                  {profile.classLabel}
-                </span>
-                <span className="inline-flex items-center rounded-md border border-primary/25 bg-primary/10 px-2.5 py-0.5 font-mono text-xs font-bold tracking-wide text-primary shadow-sm">
-                  {profile.matricule}
-                </span>
-                <Badge
-                  variant={profile.statusActive ? "default" : "secondary"}
-                  className={cn(
-                    "rounded-full px-2 py-0 text-[11px]",
-                    profile.statusActive && "bg-emerald-100 text-emerald-700",
-                  )}
-                >
-                  {profile.statusLabel}
-                </Badge>
+              <div className="min-w-0">
+                <p className="text-[11px] font-medium uppercase tracking-wide text-primary/80">
+                  Fiche {peopleLabels.studentLower}
+                </p>
+                <h1 className="truncate text-lg font-bold uppercase tracking-wide text-foreground md:text-xl">
+                  {profile.fullName}
+                </h1>
+                <div className="mt-1.5 flex flex-wrap items-center gap-2">
+                  <span className="rounded-md border border-border/70 bg-background/60 px-2 py-0.5 text-xs font-medium text-muted-foreground">
+                    {profile.classLabel}
+                  </span>
+                  <span className="inline-flex items-center rounded-md border border-primary/25 bg-primary/10 px-2.5 py-0.5 font-mono text-xs font-bold tracking-wide text-primary shadow-sm">
+                    {profile.matricule}
+                  </span>
+                  <Badge
+                    variant={profile.statusActive ? "default" : "secondary"}
+                    className={cn(
+                      "rounded-full px-2 py-0 text-[11px]",
+                      profile.statusActive &&
+                        "border-emerald-500/20 bg-emerald-500/15 text-emerald-700 dark:text-emerald-300",
+                    )}
+                  >
+                    {profile.statusLabel}
+                  </Badge>
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        <Button
-          type="button"
-          variant="default"
-          className="gap-2 self-start lg:self-auto"
-          onClick={() => void badgeSectionRef.current?.print()}
-        >
-          <Printer className="size-4" />
-          Imprimer la carte
-        </Button>
+          <Button
+            type="button"
+            variant="default"
+            className="gap-2 self-start shadow-sm lg:self-auto"
+            onClick={() => void badgeSectionRef.current?.print()}
+          >
+            <Printer className="size-4" />
+            Imprimer la carte
+          </Button>
+        </div>
       </div>
 
+      <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(260px,320px)]">
+      <div className="min-w-0 space-y-4">
       <Tabs value={tab} onValueChange={setTab} className="space-y-4">
-        <div className="sticky top-0 z-10 flex flex-col gap-3 rounded-xl border border-primary/15 bg-card/95 p-3 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-card/80 lg:flex-row lg:items-center lg:justify-between">
-          <div className="hidden min-h-9 w-full lg:block lg:max-w-md" aria-hidden />
-          <TabsList className={`grid h-auto w-full shrink-0 grid-cols-2 gap-1 rounded-lg border border-primary/20 bg-primary/10 p-1 sm:grid-cols-3 ${profile.canViewFinance ? "xl:grid-cols-6" : "xl:grid-cols-5"} lg:w-auto`}>
+        <TabsList
+          className={cn(
+            "sticky top-0 z-10 grid h-auto w-full grid-cols-2 gap-1 rounded-lg border border-primary/20 bg-primary/10 p-1 sm:grid-cols-3",
+            profile.canViewFinance ? "xl:grid-cols-6" : "xl:grid-cols-5",
+          )}
+        >
             <TabsTrigger
               value="infos"
               className="gap-1.5 rounded-md px-2 py-2 text-xs text-primary/80 sm:text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm"
@@ -440,134 +359,136 @@ export function StudentProfileClient({ profile }: { profile: StudentProfileData 
               <FileText className="size-4" />
               Documents
             </TabsTrigger>
-          </TabsList>
-        </div>
+        </TabsList>
 
         <TabsContent value="infos" forceMount className="mt-0 space-y-4 data-[state=inactive]:hidden">
-              <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(260px,320px)]">
                 <div className="flex min-w-0 flex-col gap-4">
-                  <ProfileSectionCard
-                    variant="personal"
-                    title="Informations personnelles"
-                    subtitle="Identite et etat civil"
-                    icon={<UserRound className="size-4" />}
-                  >
-                    <div className="grid gap-3 sm:grid-cols-2">
-                      <InfoField variant="personal" label="Nom" value={profile.nom || "-"} />
-                      <InfoField variant="personal" label="Post-nom" value={profile.postnom || "-"} />
-                      <InfoField variant="personal" label="Prenom" value={profile.prenom || "-"} />
-                      <InfoField variant="personal" label="Sexe" value={profile.sexe || "-"} />
-                      <InfoField
-                        variant="personal"
-                        label="Date naissance"
-                        value={profile.dateOfBirthLabel}
-                      />
-                      <InfoField variant="personal" label="Age" value={profile.ageLabel} />
-                      <InfoField
-                        variant="personal"
-                        label="Lieu naissance"
-                        value={profile.placeOfBirth}
-                      />
-                      <InfoField
-                        variant="personal"
-                        label="Nationalite"
-                        value={profile.nationality}
-                      />
-                    </div>
-
-                    <div className={cn("mt-4 border-t pt-4", SECTION_VARIANTS.personal.divider)}>
-                      <p
-                        className={cn(
-                          "mb-3 text-[10px] font-bold uppercase tracking-[0.12em]",
-                          SECTION_VARIANTS.personal.accentText,
-                        )}
-                      >
-                        Sante
-                      </p>
+                  <div className="grid items-stretch gap-4 md:grid-cols-2">
+                    <ProfileSectionCard
+                      variant="personal"
+                      title="Informations personnelles"
+                      subtitle="Identite et etat civil"
+                      icon={<UserRound className="size-4" />}
+                      className="h-full"
+                    >
                       <div className="grid gap-3 sm:grid-cols-2">
+                        <InfoField variant="personal" label="Nom" value={profile.nom || "-"} />
+                        <InfoField variant="personal" label="Post-nom" value={profile.postnom || "-"} />
+                        <InfoField variant="personal" label="Prenom" value={profile.prenom || "-"} />
+                        <InfoField variant="personal" label="Sexe" value={profile.sexe || "-"} />
                         <InfoField
                           variant="personal"
-                          label="Groupe sanguin"
-                          value={profile.bloodGroup}
+                          label="Date naissance"
+                          value={profile.dateOfBirthLabel}
                         />
-                        <InfoField variant="personal" label="Allergies" value={profile.allergies} />
+                        <InfoField variant="personal" label="Age" value={profile.ageLabel} />
                         <InfoField
                           variant="personal"
-                          label="Vulnerabilite"
-                          value={profile.vulnerability}
-                          className="sm:col-span-2"
-                          highlight
+                          label="Lieu naissance"
+                          value={profile.placeOfBirth}
+                        />
+                        <InfoField
+                          variant="personal"
+                          label="Nationalite"
+                          value={profile.nationality}
                         />
                       </div>
-                    </div>
-                  </ProfileSectionCard>
 
-                  <ProfileSectionCard
-                    variant="school"
-                    title="Scolarite"
-                    subtitle={profile.schoolName}
-                    icon={<GraduationCap className="size-4" />}
-                  >
-                    <div className={cn("mb-4", SECTION_VARIANTS.school.highlightBox)}>
-                      <p
-                        className={cn(
-                          "text-[10px] font-bold uppercase tracking-[0.12em]",
-                          SECTION_VARIANTS.school.accentText,
-                        )}
-                      >
-                        Classe actuelle
-                      </p>
-                      <p className="mt-1 text-base font-semibold text-foreground">
-                        {profile.classLabel}
-                      </p>
-                      <p className="mt-2 text-xs text-foreground/70">
-                        {profile.sectionLabel}
-                      </p>
-                    </div>
+                      <div className={cn("mt-4 border-t pt-4", SECTION_VARIANTS.personal.divider)}>
+                        <p
+                          className={cn(
+                            "mb-3 text-[10px] font-bold uppercase tracking-[0.12em]",
+                            SECTION_VARIANTS.personal.accentText,
+                          )}
+                        >
+                          Sante
+                        </p>
+                        <div className="grid gap-3 sm:grid-cols-2">
+                          <InfoField
+                            variant="personal"
+                            label="Groupe sanguin"
+                            value={profile.bloodGroup}
+                          />
+                          <InfoField variant="personal" label="Allergies" value={profile.allergies} />
+                          <InfoField
+                            variant="personal"
+                            label="Vulnerabilite"
+                            value={profile.vulnerability}
+                            className="sm:col-span-2"
+                            highlight
+                          />
+                        </div>
+                      </div>
+                    </ProfileSectionCard>
 
-                    <div className="grid gap-3 sm:grid-cols-2">
-                      <InfoField
-                        variant="school"
-                        label={peopleLabels.matriculeLabel}
-                        value={
-                          <span className="font-mono text-base font-bold tracking-wide">
-                            {profile.matricule}
-                          </span>
-                        }
-                        highlight
-                      />
-                      <InfoField
-                        variant="school"
-                        label="Annee scolaire"
-                        value={profile.schoolYearLabel}
-                      />
-                      <InfoField
-                        variant="school"
-                        label="Titulaire"
-                        value={profile.titulaireName}
-                      />
-                      <InfoField
-                        variant="school"
-                        label="Statut"
-                        value={
-                          <Badge
-                            variant={profile.statusActive ? "default" : "secondary"}
-                            className={cn(
-                              profile.statusActive && "bg-emerald-100 text-emerald-700",
-                            )}
-                          >
-                            {profile.statusLabel}
-                          </Badge>
-                        }
-                      />
-                      <InfoField
-                        variant="school"
-                        label="Inscription"
-                        value={profile.enrollmentDateLabel}
-                        className="sm:col-span-2"
-                      />
-                    </div>
-                  </ProfileSectionCard>
+                    <ProfileSectionCard
+                      variant="school"
+                      title="Scolarite"
+                      subtitle={profile.schoolName}
+                      icon={<GraduationCap className="size-4" />}
+                      className="h-full"
+                    >
+                      <div className={cn("mb-4", SECTION_VARIANTS.school.highlightBox)}>
+                        <p
+                          className={cn(
+                            "text-[10px] font-bold uppercase tracking-[0.12em]",
+                            SECTION_VARIANTS.school.accentText,
+                          )}
+                        >
+                          Classe actuelle
+                        </p>
+                        <p className="mt-1 text-base font-semibold text-foreground">
+                          {profile.classLabel}
+                        </p>
+                        <p className="mt-2 text-xs text-foreground/70">
+                          {profile.sectionLabel}
+                        </p>
+                      </div>
+
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        <InfoField
+                          variant="school"
+                          label={peopleLabels.matriculeLabel}
+                          value={
+                            <span className="font-mono text-base font-bold tracking-wide">
+                              {profile.matricule}
+                            </span>
+                          }
+                          highlight
+                        />
+                        <InfoField
+                          variant="school"
+                          label="Annee scolaire"
+                          value={profile.schoolYearLabel}
+                        />
+                        <InfoField
+                          variant="school"
+                          label="Titulaire"
+                          value={profile.titulaireName}
+                        />
+                        <InfoField
+                          variant="school"
+                          label="Statut"
+                          value={
+                            <Badge
+                              variant={profile.statusActive ? "default" : "secondary"}
+                              className={cn(
+                                profile.statusActive && "bg-emerald-100 text-emerald-700",
+                              )}
+                            >
+                              {profile.statusLabel}
+                            </Badge>
+                          }
+                        />
+                        <InfoField
+                          variant="school"
+                          label="Inscription"
+                          value={profile.enrollmentDateLabel}
+                          className="sm:col-span-2"
+                        />
+                      </div>
+                    </ProfileSectionCard>
+                  </div>
 
                   <ProfileSectionCard
                     variant="guardian"
@@ -623,18 +544,6 @@ export function StudentProfileClient({ profile }: { profile: StudentProfileData 
                     </div>
                   </ProfileSectionCard>
                 </div>
-
-                <div className="flex min-w-0 flex-col gap-4 xl:sticky xl:top-4">
-                  <StudentBadgeSection ref={badgeSectionRef} badge={profile.badge} upload={photoUpload} />
-
-                  <StudentIdentificationPanel
-                    matriculeLabel={peopleLabels.matriculeLabel}
-                    matricule={profile.matricule}
-                    displayId={profile.displayId}
-                    qrDataUrl={identificationQr}
-                  />
-                </div>
-              </div>
             </TabsContent>
 
             {profile.canViewFinance ? (
@@ -772,6 +681,16 @@ export function StudentProfileClient({ profile }: { profile: StudentProfileData 
       </Tabs>
 
       <Performance semesters={profile.semesters} />
+      </div>
+
+      <div className="min-w-0 xl:sticky xl:top-4">
+        <StudentBadgeSection
+          ref={badgeSectionRef}
+          badge={profile.badge}
+          upload={photoUpload}
+        />
+      </div>
+      </div>
     </div>
   );
 }
