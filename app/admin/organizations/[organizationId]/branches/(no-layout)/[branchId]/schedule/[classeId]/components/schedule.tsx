@@ -32,7 +32,7 @@ import {
 } from "@/components/ui/dialog";
 import {
   createScheduleAction,
-  archiveScheduleAction,
+  deleteScheduleAction,
   getScheduleCoursByClasseAction,
   getScheduleCreneauByClasseAction,
   getScheduleReportContextAction,
@@ -316,17 +316,17 @@ export default function Schedule({
     }
     if (
       !window.confirm(
-        "Retirer ce cours de l'horaire ? L'historique sera conserve.",
+        "Supprimer ce cours de l'horaire ? Vous pourrez en placer un autre à la place.",
       )
     ) {
       return;
     }
 
     try {
-      const [, err] = await archiveScheduleAction({ id });
+      const [, err] = await deleteScheduleAction({ id });
       if (err) throw err;
       setHoraires((prev) => prev.filter((horaire) => horaire.id !== id));
-      toast.success("Cours retire de l'horaire");
+      toast.success("Cours supprimé de l'horaire");
     } catch {
       toast.error("Erreur lors de la suppression");
     }

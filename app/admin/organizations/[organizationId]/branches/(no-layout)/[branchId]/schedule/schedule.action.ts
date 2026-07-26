@@ -12,7 +12,6 @@ import { ICours } from "@/src/interfaces/Cours";
 import { ICreneau } from "@/src/interfaces/creneau";
 import { IClasse } from "@/src/interfaces/Classe";
 import { z } from "zod";
-import { buildIsArchivedUpdate } from "@/lib/archive";
 import {
   buildSchoolReportContext,
   schoolReportBranchSelect,
@@ -224,10 +223,22 @@ export const createScheduleAction = action
     }
 
     const scheduleHour = parseScheduleHour(hour);
+
+    // Nettoyer d'éventuelles lignes archivées (ancien soft-delete) qui bloquent l'unique.
+    await prisma.schedule.deleteMany({
+      where: {
+        day,
+        hour: scheduleHour,
+        teachingId: teaching.id,
+        isArchived: true,
+      },
+    });
+
     const conflictExists = await prisma.schedule.findFirst({
       where: {
         day,
         hour: scheduleHour,
+        isArchived: false,
         teaching: scopedTeachingWhere(ctx, { teacherId: teaching.teacherId }),
       },
       select: { id: true },
@@ -302,6 +313,7 @@ export const updateScheduleAction = action
         id: { not: id },
         day,
         hour: scheduleHour,
+        isArchived: false,
         teaching: scopedTeachingWhere(ctx, { teacherId: teaching.teacherId }),
       },
       select: { id: true },
@@ -504,8 +516,8 @@ export const getSchedulesByTeacherAction = action
     });
   });
 
-// ARCHIVE SCHEDULE
-export const archiveScheduleAction = action
+/** Suppression définitive d'un créneau (pas d'archivage). */
+export const deleteScheduleAction = action
   .input(
     z.object({
       id: z.string(),
@@ -527,16 +539,15 @@ export const archiveScheduleAction = action
       throw new Error("Horaire introuvable dans cette branche");
     }
 
-    const archivedSchedule = await prisma.schedule.update({
+    const deleted = await prisma.schedule.delete({
       where: { id: input.id },
-      data: buildIsArchivedUpdate(ctx.userId),
     });
     revalidateSchedulePages(ctx);
-    return archivedSchedule;
+    return deleted;
   });
 
-/** @deprecated Utiliser archiveScheduleAction */
-export const deleteScheduleAction = archiveScheduleAction;
+/** @deprecated Utiliser deleteScheduleAction (hard delete). */
+export const archiveScheduleAction = deleteScheduleAction;
 
 export const getScheduleCoursByClasseAction = action
   .input(
