@@ -52,7 +52,7 @@ function BranchShell({ children }: { children: React.ReactNode }) {
       <LayoutHeader
         className={cn(
           "fixed top-0 right-0 z-30 hidden h-14 border-b bg-background md:flex md:px-8",
-          isCollapsed ? "left-14" : "left-44",
+          isCollapsed ? "left-14" : "left-52",
         )}
       >
         <div className="ml-auto flex w-auto min-w-0 items-center gap-4 px-4 py-2 md:px-0">
@@ -67,7 +67,7 @@ function BranchShell({ children }: { children: React.ReactNode }) {
         className={cn(
           "h-dvh overflow-y-auto overflow-x-hidden transition-[margin]",
           "pt-16 pb-[76px] md:pt-14 md:pb-0",
-          isCollapsed ? "md:ml-14" : "md:ml-44",
+          isCollapsed ? "md:ml-14" : "md:ml-52",
         )}
       >
         <div

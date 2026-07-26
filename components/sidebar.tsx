@@ -149,7 +149,7 @@ export default function Sidebar({
           className="fixed inset-x-0 top-16 bottom-[76px] z-40 overflow-y-auto border-b bg-background md:hidden"
         >
           <Nav
-            className="min-h-0 flex-1 overflow-y-auto border-b"
+            className="min-h-0 flex-1 border-b"
             closeNav={() => setNavOpened(false)}
             isCollapsed={isCollapsed}
             links={links}
@@ -161,7 +161,7 @@ export default function Sidebar({
       <aside
         className={cn(
           "fixed bottom-0 left-0 top-0 z-40 hidden border-r-2 border-r-muted bg-background md:block md:h-svh",
-          isCollapsed ? "md:w-14" : "md:w-44",
+          isCollapsed ? "md:w-14" : "md:w-52",
           className,
         )}
       >

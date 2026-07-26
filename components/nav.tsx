@@ -87,7 +87,7 @@ export default function Nav({
       <TooltipProvider delayDuration={0}>
         <nav
           className={cn(
-            "grid gap-1 overflow-y-auto pr-1 md:max-h-[calc(100vh-4rem)]",
+            "grid gap-1",
             isCollapsed && "items-center justify-center",
           )}
         >
