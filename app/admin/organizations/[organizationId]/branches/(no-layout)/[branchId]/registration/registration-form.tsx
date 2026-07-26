@@ -1387,7 +1387,7 @@ export function RegistrationForm({
       </Card>
 
       <Card className="flex min-h-[650px] flex-col">
-        <CardHeader className="border-b">
+        <CardHeader className="shrink-0 border-b">
           <div className="flex items-start justify-between gap-4">
             <div>
               <CardTitle className="text-2xl">{registrationSteps[step].label}</CardTitle>
@@ -1402,7 +1402,7 @@ export function RegistrationForm({
             </Badge>
           </div>
         </CardHeader>
-        <CardContent className="flex-1 space-y-6 p-6 lg:p-8">
+        <CardContent className="flex-1 space-y-6 p-6 pb-28 lg:p-8 lg:pb-28">
           {currentStepKey === "student" && (
             <>
               <RadioGroup
@@ -1979,7 +1979,7 @@ export function RegistrationForm({
             </div>
           )}
         </CardContent>
-        <div className="flex items-center justify-between border-t p-6">
+        <div className="sticky bottom-0 z-20 mt-auto flex items-center justify-between gap-3 border-t bg-card/95 p-4 shadow-[0_-8px_24px_-12px_rgba(0,0,0,0.18)] backdrop-blur supports-[backdrop-filter]:bg-card/80 sm:p-6">
           <Button
             variant="outline"
             disabled={step === 0 || loading}
