@@ -2,13 +2,11 @@
 
 import { HTMLAttributes, useEffect, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { IconCalendar } from "@tabler/icons-react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 
 import { Button } from "@/components/custom/button";
-import { Calendar } from "@/components/ui/calendar";
 import {
   Form,
   FormControl,
@@ -19,11 +17,6 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { PhoneInput } from "@/components/ui/phone-input";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -87,7 +80,6 @@ export function PersonnelUpForm({
   const isDialog = layout === "dialog";
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const [mounted, setMounted] = useState(false);
 
   const sexeToUi: Record<string, "masculin" | "feminin"> = {
     M: "masculin",
@@ -113,8 +105,6 @@ export function PersonnelUpForm({
       : emptyValues,
   });
 
-  useEffect(() => setMounted(true), []);
-
   useEffect(() => {
     const nom = form.getValues("name");
     const prenom = form.getValues("prenom");
@@ -133,23 +123,31 @@ export function PersonnelUpForm({
     setIsLoading(true);
     setErrorMessage("");
 
+    const payload = {
+      ...data,
+      dateOfBirth:
+        mode === "create"
+          ? new Date()
+          : data.dateOfBirth
+            ? new Date(data.dateOfBirth)
+            : new Date(),
+    };
+
     try {
       if (mode === "create") {
-        const [result, err] = await createPersonnelAction({
-          ...data,
-        });
+        const [result, err] = await createPersonnelAction(payload);
         if (err) throw new Error(err.message);
         if (!result?.ok) {
           throw new Error(result?.message || "Création impossible");
         }
 
         toast.success("Personnel créé avec succès");
-        form.reset(emptyValues);
+        form.reset({ ...emptyValues, dateOfBirth: new Date() });
         onCreated?.();
         onPersonnelCreated?.();
       } else {
         const [, err] = await updatePersonnelAction({
-          ...data,
+          ...payload,
           personnelId: data.personnelId,
         });
         if (err) throw new Error(err.message);
@@ -264,59 +262,6 @@ export function PersonnelUpForm({
                       <SelectItem value="feminin">Féminin</SelectItem>
                     </SelectContent>
                   </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="dateOfBirth"
-              render={({ field }) => (
-                <FormItem className={fieldClass}>
-                  <FormLabel className={labelClass}>
-                    Date d&apos;affectation
-                  </FormLabel>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          type="button"
-                          size="sm"
-                          variant="outline"
-                          className={cn(
-                            "h-8 w-full justify-between px-3 text-left text-sm font-normal",
-                            !field.value && "text-muted-foreground",
-                          )}
-                        >
-                          {field.value ? (
-                            new Date(field.value).toLocaleDateString("fr-FR", {
-                              year: "numeric",
-                              month: "2-digit",
-                              day: "2-digit",
-                            })
-                          ) : (
-                            <span>Choisir une date</span>
-                          )}
-                          <IconCalendar className="ml-auto size-3.5 opacity-50" />
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      {mounted ? (
-                        <Calendar
-                          mode="single"
-                          captionLayout="dropdown"
-                          fromYear={1900}
-                          toYear={new Date().getFullYear()}
-                          selected={
-                            field.value ? new Date(field.value) : undefined
-                          }
-                          onSelect={(date) => field.onChange(date)}
-                        />
-                      ) : null}
-                    </PopoverContent>
-                  </Popover>
                   <FormMessage />
                 </FormItem>
               )}

@@ -89,9 +89,7 @@ const CURSUS_READ_ROLES = [...STUDENT_ROLES, ...PARENT_ROLES];
 /** Bibliothèque : school admin + élève (sans caissier, teacher, parent). */
 const LIBRARY_ROLES = [...SCHOOL_ADMIN_ROLES, ...STUDENT_ROLES];
 
-const TEACHING_ROLES = [...SCHOOL_ADMIN_ROLES, ...TEACHER_ROLES];
-
-/** Setup cours / pondérations — school admin uniquement (enseignant = horaire / notes). */
+/** Setup cours / pondérations — school admin uniquement (enseignant = horaire dashboard). */
 const COURSE_ROLES = [...SCHOOL_ADMIN_ROLES];
 
 /** Présences : school admin + enseignant (ses classes — unit-06/10). */
@@ -157,7 +155,8 @@ const staticSidebarMenu: StaticMenuItem[] = [
     title: "Utilisateurs",
     href: "/admin/settings",
     icon: "users",
-    roles: [...SCHOOL_ADMIN_ROLES, ...TEACHER_ROLES, ...CAISSIER_ROLES],
+    // Enseignant : pas d’annuaire (accès via dashboard Horaire / Cursus).
+    roles: [...SCHOOL_ADMIN_ROLES, ...CAISSIER_ROLES],
     sub: [
       {
         title: "Élève",
@@ -175,7 +174,7 @@ const staticSidebarMenu: StaticMenuItem[] = [
         title: "Enseignant",
         href: "/admin/teacher",
         icon: "enseignants",
-        roles: [...SCHOOL_ADMIN_ROLES, ...TEACHER_ROLES],
+        roles: SCHOOL_ADMIN_ROLES,
       },
       {
         title: "Parent",
@@ -186,10 +185,11 @@ const staticSidebarMenu: StaticMenuItem[] = [
     ],
   },
   {
+    // Setup enseignement (admin) — enseignant : Horaire via tableau de bord uniquement.
     title: "Enseignement",
     href: "#",
     icon: "enseignants",
-    roles: TEACHING_ROLES,
+    roles: SCHOOL_ADMIN_ROLES,
     sub: [
       {
         title: "Cours",
@@ -216,11 +216,11 @@ const staticSidebarMenu: StaticMenuItem[] = [
         roles: SCHOOL_ADMIN_ROLES,
       },
       {
-        // Gestion horaire (admin / enseignant) — lecture élève/parent sous Cursus.
+        // Gestion horaire admin — lecture élève/parent sous Cursus ; enseignant via dashboard.
         title: "Horaire",
         href: "/admin/schedule",
         icon: "horaire",
-        roles: TEACHING_ROLES,
+        roles: SCHOOL_ADMIN_ROLES,
       },
     ],
   },

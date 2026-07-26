@@ -25,9 +25,11 @@ import {
 } from "@/components/ui/dialog";
 import { PageHeader } from "@/components/ui/page-header";
 import { useSession } from "@/lib/auth-client";
-import { canManageOrganization } from "@/lib/auth/session-roles";
+import {
+  canAccessPedagogyArea,
+  canManageOrganization,
+} from "@/lib/auth/session-roles";
 
-import Loading from "../loading";
 import UserList from "./components/TeachersTable";
 import { TeacherUpForm } from "./components/teacher-form";
 import { getTeacherDashboardStatsAction } from "./teacher.action";
@@ -62,19 +64,25 @@ export default function Teachers() {
   const [assignmentFilter, setAssignmentFilter] =
     useState<TeacherAssignmentFilter>("all");
   const { data: session, isPending } = useSession();
-  const canManage = canManageOrganization(session);
+  const [hasMounted, setHasMounted] = useState(false);
+  const sessionReady = hasMounted && !isPending;
+  const canManage = sessionReady && canManageOrganization(session);
 
   const handleUserAction = () => {
     setRefreshKey((prev) => prev + 1);
   };
 
   useEffect(() => {
+    setHasMounted(true);
+  }, []);
+
+  useEffect(() => {
     async function loadStats() {
       const [data, error] = await getTeacherDashboardStatsAction();
       if (!error && data) setStats(data);
     }
-    if (session) void loadStats();
-  }, [refreshKey, session]);
+    if (sessionReady && session) void loadStats();
+  }, [refreshKey, session, sessionReady]);
 
   useEffect(() => {
     void getStaffPageContextAction().then((context) => {
@@ -82,11 +90,10 @@ export default function Teachers() {
     });
   }, [refreshKey]);
 
-  if (isPending) {
-    return <Loading />;
-  }
-
-  if (!session) {
+  if (
+    sessionReady &&
+    (!session || !canAccessPedagogyArea(session))
+  ) {
     return <NotFoundView />;
   }
 
@@ -106,6 +113,7 @@ export default function Teachers() {
               <div className="flex flex-wrap items-center gap-2">
                 {supportsStaffImport ? (
                   <Button
+                    size="sm"
                     variant="outline"
                     leftSection={<IconUpload size={16} />}
                     onClick={() => setImportOpen(true)}
@@ -116,21 +124,23 @@ export default function Teachers() {
                 <Dialog open={open} onOpenChange={setOpen}>
                   <DialogTrigger asChild>
                     <Button
+                      size="sm"
                       variant="default"
                       leftSection={<IconUserPlus size={16} />}
                     >
                       Ajouter un {peopleLabels.teacher}
                     </Button>
                   </DialogTrigger>
-                  <DialogContent size="lg">
+                  <DialogContent size="xl">
                     <DialogHeader>
-                      <DialogTitle>Creer un {peopleLabels.teacher}</DialogTitle>
+                      <DialogTitle>Créer un {peopleLabels.teacher}</DialogTitle>
                       <DialogDescription>
-                        Remplir les informations du {peopleLabels.teacherLower}.
+                        Ajoutez un nouveau {peopleLabels.teacherLower}.
                       </DialogDescription>
                     </DialogHeader>
                     <TeacherUpForm
                       mode="create"
+                      layout="dialog"
                       onTeacherCreated={() => {
                         handleUserAction();
                         setOpen(false);

@@ -29,7 +29,6 @@ import { useSession } from "@/lib/auth-client";
 import { canAccessBranchArea } from "@/lib/auth/branch-area-access";
 import { canManagePersonnelRecords } from "@/lib/auth/session-roles";
 
-import Loading from "../loading";
 import { PersonnelUpForm } from "./components/personnel-form";
 import UserList from "./components/PersonnelsTable";
 import {
@@ -64,12 +63,18 @@ export default function Personnels() {
   const [stats, setStats] = useState<PersonnelStats>(emptyStats);
 
   const { data: session, isPending } = useSession();
-  const canManage = canManagePersonnelRecords(session);
+  const [hasMounted, setHasMounted] = useState(false);
+  const sessionReady = hasMounted && !isPending;
+  const canManage = sessionReady && canManagePersonnelRecords(session);
 
   const handleUserAction = () => {
     setRefreshKey((prev) => prev + 1);
     setOpen(false);
   };
+
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
 
   useEffect(() => {
     async function loadStats() {
@@ -93,8 +98,8 @@ export default function Personnels() {
       });
     }
 
-    void loadStats();
-  }, [refreshKey]);
+    if (sessionReady) void loadStats();
+  }, [refreshKey, sessionReady]);
 
   useEffect(() => {
     void getStaffPageContextAction().then((context) => {
@@ -102,8 +107,10 @@ export default function Personnels() {
     });
   }, [refreshKey]);
 
-  if (isPending) return <Loading />;
-  if (!session || !canAccessBranchArea("hr_directory", session)) {
+  if (
+    sessionReady &&
+    (!session || !canAccessBranchArea("hr_directory", session))
+  ) {
     return <NotFoundView />;
   }
 
@@ -187,7 +194,7 @@ export default function Personnels() {
           }
         />
 
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
           {statCards.map((item) => (
             <BranchStatCard
               key={item.label}
@@ -216,7 +223,7 @@ export default function Personnels() {
 
         <Card
           variant="elevated"
-          className="overflow-hidden rounded-2xl border border-border"
+          className="mt-0 rounded-md border p-1 shadow-sm md:p-4"
         >
           <ImportStaffDialog
             kind="personnel"

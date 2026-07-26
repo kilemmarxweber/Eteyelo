@@ -26,7 +26,7 @@ export default async function ScheduleIndexPage({
     return (
       <div className="flex flex-col gap-2 text-muted-foreground">
         <p className="text-sm">
-          Sélectionnez une classe dans le panneau de gauche pour planifier
+          Sélectionnez une classe dans le panneau de gauche pour consulter
           l&apos;horaire.
         </p>
       </div>

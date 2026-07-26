@@ -2,6 +2,18 @@
 
 import { prisma } from "@/lib/prisma";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
+import {
+  assertStudentAttendanceWriteAccess,
+  assertTeacherAttendanceWriteAccess,
+  getTeacherAttendanceReadScope,
+  getTeacherIdForUser,
+} from "@/lib/auth/data-scope";
+import {
+  canManageOrganization,
+  hasSessionRole,
+} from "@/lib/auth/session-roles";
+import type { AttendanceGeoCoords } from "@/lib/attendance-geo";
+import { assertWithinBranchAttendanceRadius } from "@/lib/attendance-geo.server";
 import { formatExpectedSessionLabel } from "@/lib/attendance-schedule-label";
 import {
   findStudentCheckInSession,
@@ -10,7 +22,9 @@ import {
 import {
   findTeacherCheckInSession,
   getExpectedTeacherSessionLabel,
+  listTeacherScheduleCandidates,
 } from "@/lib/attendance-teacher-session";
+import { ORG_ROLE } from "@/lib/permissions";
 import { orgRoleLabel } from "@/lib/org-role-labels";
 import type { AttendanceStatus, Prisma } from "@/prisma/generated/prisma/client";
 import {
@@ -31,6 +45,11 @@ const scanSchema = z.object({
 
 const searchSchema = z.object({
   query: z.string().trim().min(2, "Saisissez au moins 2 caracteres."),
+});
+
+const geoCoordsSchema = z.object({
+  latitude: z.number().min(-90).max(90),
+  longitude: z.number().min(-180).max(180),
 });
 
 type ScanTarget = AttendancePersonType | "any";
@@ -489,14 +508,84 @@ function buildSuccessResult(
   };
 }
 
+async function authorizeScanActor(params: {
+  personType: AttendancePersonType;
+  personId: string;
+  sessionId?: string;
+}): Promise<void> {
+  const { branchId, session, userId } = await requireBranchContext();
+
+  if (canManageOrganization(session)) {
+    return;
+  }
+
+  if (params.personType === "personnel") {
+    throw new Error(
+      "Seuls les responsables peuvent pointer le personnel.",
+    );
+  }
+
+  if (hasSessionRole(session, [ORG_ROLE.TEACHER, "TEACHER"])) {
+    const teacherId = await getTeacherIdForUser(userId, branchId);
+    if (!teacherId) {
+      throw new Error("Profil enseignant introuvable.");
+    }
+
+    if (params.personType === "teacher") {
+      if (params.personId !== teacherId) {
+        throw new Error("Vous ne pouvez pointer que votre propre presence.");
+      }
+      if (!params.sessionId) {
+        throw new Error(
+          "Pointage possible uniquement autour de l'heure de votre cours.",
+        );
+      }
+      await assertTeacherAttendanceWriteAccess({
+        session,
+        userId,
+        branchId,
+        sessionId: params.sessionId,
+        teacherId,
+      });
+      return;
+    }
+
+    if (params.personType === "student") {
+      if (!params.sessionId) {
+        throw new Error(
+          "Pointage possible uniquement autour de l'heure de votre cours.",
+        );
+      }
+      await assertStudentAttendanceWriteAccess({
+        session,
+        userId,
+        branchId,
+        sessionId: params.sessionId,
+        studentId: params.personId,
+      });
+      return;
+    }
+  }
+
+  throw new Error("Acces non autorise pour ce pointage.");
+}
+
 async function performStudentCheckIn(
   student: NonNullable<Awaited<ReturnType<typeof findStudentByScan>>>,
+  coords: AttendanceGeoCoords,
 ): Promise<AttendanceCheckInResult> {
-  const { branchId } = await requireBranchContext();
-  const lookup = mapStudentLookup(student);
-  const session = await findSessionForStudent(student.id, branchId);
+  const { branchId, session, userId } = await requireBranchContext();
 
-  if (!session) {
+  await assertWithinBranchAttendanceRadius({
+    branchId,
+    latitude: coords.latitude,
+    longitude: coords.longitude,
+  });
+
+  const lookup = mapStudentLookup(student);
+  const attendanceSession = await findSessionForStudent(student.id, branchId);
+
+  if (!attendanceSession) {
     return {
       ok: false,
       message: "Aucune session de cours disponible pour cet eleve aujourd'hui.",
@@ -505,15 +594,38 @@ async function performStudentCheckIn(
     };
   }
 
-  const status = resolveStatusFromTime(session.startTime);
+  try {
+    await authorizeScanActor({
+      personType: "student",
+      personId: student.id,
+      sessionId: attendanceSession.id,
+    });
+    await assertStudentAttendanceWriteAccess({
+      session,
+      userId,
+      branchId,
+      sessionId: attendanceSession.id,
+      studentId: student.id,
+    });
+  } catch (error) {
+    return {
+      ok: false,
+      message:
+        error instanceof Error ? error.message : "Pointage eleve non autorise.",
+      personType: "student",
+      person: lookup,
+    };
+  }
+
+  const status = resolveStatusFromTime(attendanceSession.startTime);
   const now = nowLocal();
-  const sessionLabel = formatSessionLabel(session);
+  const sessionLabel = formatSessionLabel(attendanceSession);
 
   const existingAttendance = await prisma.studentAttendance.findUnique({
     where: {
       branchId_sessionId_studentId: {
         branchId,
-        sessionId: session.id,
+        sessionId: attendanceSession.id,
         studentId: student.id,
       },
     },
@@ -532,7 +644,7 @@ async function performStudentCheckIn(
     where: {
       branchId_sessionId_studentId: {
         branchId,
-        sessionId: session.id,
+        sessionId: attendanceSession.id,
         studentId: student.id,
       },
     },
@@ -542,7 +654,7 @@ async function performStudentCheckIn(
     },
     create: {
       branchId,
-      sessionId: session.id,
+      sessionId: attendanceSession.id,
       studentId: student.id,
       status,
       recordedAt: now,
@@ -554,12 +666,20 @@ async function performStudentCheckIn(
 
 async function performTeacherCheckIn(
   teacher: NonNullable<Awaited<ReturnType<typeof findTeacherByScan>>>,
+  coords: AttendanceGeoCoords,
 ): Promise<AttendanceCheckInResult> {
-  const { branchId } = await requireBranchContext();
-  const lookup = mapTeacherLookup(teacher);
-  const session = await findSessionForTeacher(teacher.id, branchId);
+  const { branchId, session, userId } = await requireBranchContext();
 
-  if (!session) {
+  await assertWithinBranchAttendanceRadius({
+    branchId,
+    latitude: coords.latitude,
+    longitude: coords.longitude,
+  });
+
+  const lookup = mapTeacherLookup(teacher);
+  const attendanceSession = await findSessionForTeacher(teacher.id, branchId);
+
+  if (!attendanceSession) {
     return {
       ok: false,
       message:
@@ -570,7 +690,7 @@ async function performTeacherCheckIn(
   }
 
   const hydratedSession = await prisma.attendanceSession.findFirst({
-    where: { id: session.id, branchId },
+    where: { id: attendanceSession.id, branchId },
     include: sessionInclude(),
   });
 
@@ -578,6 +698,31 @@ async function performTeacherCheckIn(
     return {
       ok: false,
       message: "Session de cours introuvable pour cet enseignant.",
+      personType: "teacher",
+      person: lookup,
+    };
+  }
+
+  try {
+    await authorizeScanActor({
+      personType: "teacher",
+      personId: teacher.id,
+      sessionId: hydratedSession.id,
+    });
+    await assertTeacherAttendanceWriteAccess({
+      session,
+      userId,
+      branchId,
+      sessionId: hydratedSession.id,
+      teacherId: teacher.id,
+    });
+  } catch (error) {
+    return {
+      ok: false,
+      message:
+        error instanceof Error
+          ? error.message
+          : "Pointage enseignant non autorise.",
       personType: "teacher",
       person: lookup,
     };
@@ -632,8 +777,25 @@ async function performTeacherCheckIn(
 
 async function performPersonnelCheckIn(
   personnel: NonNullable<Awaited<ReturnType<typeof findPersonnelByScan>>>,
+  coords: AttendanceGeoCoords,
 ): Promise<AttendanceCheckInResult> {
-  const { branchId } = await requireBranchContext();
+  const { branchId, session } = await requireBranchContext();
+
+  if (!canManageOrganization(session)) {
+    return {
+      ok: false,
+      message: "Seuls les responsables peuvent pointer le personnel.",
+      personType: "personnel",
+      person: mapPersonnelLookup(personnel),
+    };
+  }
+
+  await assertWithinBranchAttendanceRadius({
+    branchId,
+    latitude: coords.latitude,
+    longitude: coords.longitude,
+  });
+
   const lookup = mapPersonnelLookup(personnel);
   const now = nowLocal();
   const today = new Date(now);
@@ -686,8 +848,14 @@ async function performPersonnelCheckIn(
 export async function searchPeopleForCheckInAction(
   query: string,
 ): Promise<AttendancePersonLookup[]> {
-  const { branchId, organizationId } = await requireBranchContext();
+  const { branchId, organizationId, session, userId } =
+    await requireBranchContext();
   const { query: search } = searchSchema.parse({ query });
+  const teacherScope = await getTeacherAttendanceReadScope({
+    session,
+    userId,
+    branchId,
+  });
 
   const userFilter = {
     OR: [
@@ -704,25 +872,73 @@ export async function searchPeopleForCheckInAction(
     member: { user: userFilter },
   };
 
+  let activeClassIds: string[] | null = null;
+  if (teacherScope) {
+    const candidates = await listTeacherScheduleCandidates(
+      teacherScope.teacherId,
+      branchId,
+    );
+    if (!candidates.length) {
+      const selfTeacher = await prisma.teacher.findFirst({
+        where: { id: teacherScope.teacherId, branchMember: branchFilter },
+        include: userInclude(),
+      });
+      if (!selfTeacher) return [];
+      return [
+        {
+          ...mapTeacherLookup(selfTeacher),
+          expectedSessionLabel: await getExpectedTeacherSessionLabel(
+            selfTeacher.id,
+            branchId,
+          ),
+        },
+      ];
+    }
+
+    const teachings = await prisma.teaching.findMany({
+      where: { id: { in: candidates.map((c) => c.teachingId) } },
+      select: { classeId: true },
+    });
+    activeClassIds = [...new Set(teachings.map((t) => t.classeId))];
+  }
+
   const [students, teachers, personnels] = await Promise.all([
     prisma.student.findMany({
-      where: { branchMember: branchFilter },
+      where: {
+        branchMember: branchFilter,
+        ...(activeClassIds
+          ? {
+              classEnrollment: {
+                some: {
+                  branchId,
+                  classeId: { in: activeClassIds },
+                  schoolYear: { isCurrentYear: true, branchId },
+                },
+              },
+            }
+          : {}),
+      },
       include: studentInclude(),
       take: 4,
       orderBy: { createdAt: "desc" },
     }),
     prisma.teacher.findMany({
-      where: { branchMember: branchFilter },
+      where: {
+        branchMember: branchFilter,
+        ...(teacherScope ? { id: teacherScope.teacherId } : {}),
+      },
       include: userInclude(),
       take: 4,
       orderBy: { createdAt: "desc" },
     }),
-    prisma.personnel.findMany({
-      where: { branchMember: branchFilter },
-      include: userInclude(),
-      take: 4,
-      orderBy: { createdAt: "desc" },
-    }),
+    teacherScope
+      ? Promise.resolve([])
+      : prisma.personnel.findMany({
+          where: { branchMember: branchFilter },
+          include: userInclude(),
+          take: 4,
+          orderBy: { createdAt: "desc" },
+        }),
   ]);
 
   const studentLookups = await Promise.all(
@@ -759,9 +975,11 @@ export async function searchStudentsForCheckInAction(query: string) {
 
 export async function checkInByScanAction(
   code: string,
+  coords: AttendanceGeoCoords,
 ): Promise<AttendanceCheckInResult | null> {
   const { branchId, organizationId } = await requireBranchContext();
   const { code: rawCode } = scanSchema.parse({ code });
+  const parsedCoords = geoCoordsSchema.parse(coords);
   const parsed = parseScanCode(rawCode);
 
   if (!parsed) {
@@ -774,26 +992,31 @@ export async function checkInByScanAction(
   }
 
   if (resolved.type === "student") {
-    return performStudentCheckIn(resolved.record);
+    return performStudentCheckIn(resolved.record, parsedCoords);
   }
 
   if (resolved.type === "teacher") {
-    return performTeacherCheckIn(resolved.record);
+    return performTeacherCheckIn(resolved.record, parsedCoords);
   }
 
-  return performPersonnelCheckIn(resolved.record);
+  return performPersonnelCheckIn(resolved.record, parsedCoords);
 }
 
 /** @deprecated Use checkInByScanAction */
-export async function checkInStudentByScanAction(code: string) {
-  return checkInByScanAction(code);
+export async function checkInStudentByScanAction(
+  code: string,
+  coords: AttendanceGeoCoords,
+) {
+  return checkInByScanAction(code, coords);
 }
 
 export async function checkInPersonByIdAction(
   personType: AttendancePersonType,
   personId: string,
+  coords: AttendanceGeoCoords,
 ): Promise<AttendanceCheckInResult> {
   const { branchId, organizationId } = await requireBranchContext();
+  const parsedCoords = geoCoordsSchema.parse(coords);
 
   if (personType === "student") {
     const student = await prisma.student.findFirst({
@@ -808,7 +1031,7 @@ export async function checkInPersonByIdAction(
       return { ok: false, message: "Eleve introuvable dans cette branche." };
     }
 
-    return performStudentCheckIn(student);
+    return performStudentCheckIn(student, parsedCoords);
   }
 
   if (personType === "teacher") {
@@ -824,7 +1047,7 @@ export async function checkInPersonByIdAction(
       return { ok: false, message: "Enseignant introuvable dans cette branche." };
     }
 
-    return performTeacherCheckIn(teacher);
+    return performTeacherCheckIn(teacher, parsedCoords);
   }
 
   const personnel = await prisma.personnel.findFirst({
@@ -839,10 +1062,13 @@ export async function checkInPersonByIdAction(
     return { ok: false, message: "Personnel introuvable dans cette branche." };
   }
 
-  return performPersonnelCheckIn(personnel);
+  return performPersonnelCheckIn(personnel, parsedCoords);
 }
 
 /** @deprecated Use checkInPersonByIdAction */
-export async function checkInStudentByIdAction(studentId: string) {
-  return checkInPersonByIdAction("student", studentId);
+export async function checkInStudentByIdAction(
+  studentId: string,
+  coords: AttendanceGeoCoords,
+) {
+  return checkInPersonByIdAction("student", studentId, coords);
 }

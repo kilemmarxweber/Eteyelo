@@ -17,7 +17,6 @@ import { PageHeader } from "@/components/ui/page-header";
 import { useSession } from "@/lib/auth-client";
 import { canAccessBranchArea } from "@/lib/auth/branch-area-access";
 
-import Loading from "../loading";
 import UserList from "./components/ParentsTable";
 import { getParentEnrollmentStatsAction } from "./parent.action";
 import { useBranchPeopleLabels } from "@/hooks/use-branch-people-labels";
@@ -46,8 +45,14 @@ const emptyStats: ParentStats = {
 
 export default function Parents() {
   const [stats, setStats] = useState<ParentStats>(emptyStats);
+  const [hasMounted, setHasMounted] = useState(false);
   const peopleLabels = useBranchPeopleLabels();
   const { data: session, isPending } = useSession();
+  const sessionReady = hasMounted && !isPending;
+
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
 
   useEffect(() => {
     async function loadStats() {
@@ -61,11 +66,13 @@ export default function Parents() {
       setStats(data);
     }
 
-    void loadStats();
-  }, []);
+    if (sessionReady) void loadStats();
+  }, [sessionReady]);
 
-  if (isPending) return <Loading />;
-  if (!session || !canAccessBranchArea("hr_directory", session)) {
+  if (
+    sessionReady &&
+    (!session || !canAccessBranchArea("hr_directory", session))
+  ) {
     return <NotFoundView />;
   }
 

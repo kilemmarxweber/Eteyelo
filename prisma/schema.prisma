@@ -1128,7 +1128,7 @@ model Branch {
   tel              String?
   latitude         Float
   longitude        Float
-  attendanceRadius Int          @default(100)
+  attendanceRadius Int          @default(10)
   organizationId   String
   typebranch      TypeBrache
   organization     Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)

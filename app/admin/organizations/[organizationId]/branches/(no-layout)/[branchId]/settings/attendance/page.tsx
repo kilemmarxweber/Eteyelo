@@ -20,7 +20,7 @@ import {
 } from "../settings.action";
 
 export default function AttendanceSettingsPage() {
-  const [radius, setRadius] = useState(100);
+  const [radius, setRadius] = useState(10);
   const [coordinates, setCoordinates] = useState({ latitude: 0, longitude: 0 });
   const [pending, startTransition] = useTransition();
 

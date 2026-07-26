@@ -125,19 +125,7 @@ export default function AttendanceList() {
 
             {/* STEP 2 - FORMS */}
             {type === "teacher" && (
-              <TeacherAttendanceForm
-                onSuccess={closeModal}
-                sessionData={{
-                  teacherId: "",
-                  teachingId: "",
-                  cours: "",
-                  classe: "",
-                  branch: {
-                    id: "",
-                    name: "",
-                  },
-                }}
-              />
+              <TeacherAttendanceForm onSuccess={closeModal} />
             )}
 
             {type === "personnel" && (

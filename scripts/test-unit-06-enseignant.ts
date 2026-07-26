@@ -65,24 +65,20 @@ test("setup Classes / Cours / Inscription / Affectations : pedagogy, pas teachin
   assert.equal(canAccessTeachingArea(sessionTeacher), true);
 });
 
-test("menu enseignant : pas Finance ; Enseignement = Horaire seulement", () => {
+test("menu enseignant : pas Finance / Enseignement / Utilisateurs ; Horaire via dashboard", () => {
   const links = buildStaticSideLinks(sessionTeacher, BRANCH_PATH, "PRIMAIRE");
   const titles = links.map((item) => item.title);
-  const enseignement = links.find((item) => item.title === "Enseignement");
-  const enseignementSubs = (enseignement?.sub ?? []).map((item) => item.title);
   const cursus = links.find((item) => item.title === "Cursus");
   const cursusSubs = (cursus?.sub ?? []).map((item) => item.title);
 
   assert.ok(titles.includes("Dashboard"));
-  assert.ok(titles.includes("Enseignement"));
   assert.ok(titles.includes("Cursus"));
   assert.ok(titles.includes("Presences"));
   assert.ok(!titles.includes("Finance"), "enseignant ne doit pas voir Finance");
   assert.ok(!titles.includes("Classes"), "enseignant ne doit pas voir Classes");
   assert.ok(!titles.includes("Inscription"));
-  assert.ok(enseignementSubs.includes("Horaire"));
-  assert.ok(!enseignementSubs.includes("Cours"));
-  assert.ok(!enseignementSubs.includes("Affectations"));
+  assert.ok(!titles.includes("Enseignement"), "enseignant : Enseignement retiré");
+  assert.ok(!titles.includes("Utilisateurs"), "enseignant : Utilisateurs retiré");
   assert.ok(cursusSubs.includes("Notes"));
   assert.ok(cursusSubs.includes("Résultats"));
   assert.ok(!cursusSubs.includes("Fiche Centrale"));

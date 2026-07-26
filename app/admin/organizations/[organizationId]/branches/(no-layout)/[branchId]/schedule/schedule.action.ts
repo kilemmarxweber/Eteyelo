@@ -23,6 +23,9 @@ type ScheduleContext = {
   organizationId: string;
   userId: string;
   branchMemberId: string | null;
+  teacherId: string | null;
+  /** Admin : toutes les classes. Enseignant : uniquement ses affectations. */
+  canManageSchedules: boolean;
   canCreateSchedules: boolean;
   canUpdateSchedules: boolean;
   canDeleteSchedules: boolean;
@@ -87,11 +90,25 @@ async function getScheduleContext(): Promise<ScheduleContext> {
   });
   const canManageSchedules = canManageOrganization(session, branchMember?.role);
 
+  const teacher = !canManageSchedules
+    ? await prisma.teacher.findFirst({
+        where: {
+          branchMember: {
+            branchId,
+            member: { userId, organizationId },
+          },
+        },
+        select: { id: true },
+      })
+    : null;
+
   return {
     branchId,
     organizationId,
     userId,
     branchMemberId: branchMember?.id ?? null,
+    teacherId: teacher?.id ?? null,
+    canManageSchedules,
     canCreateSchedules: canManageSchedules,
     canUpdateSchedules: canManageSchedules,
     canDeleteSchedules: canManageSchedules,
@@ -144,12 +161,30 @@ function scopedTeachingWhere(
   };
 }
 
+function teacherAssignmentFilter(ctx: ScheduleContext) {
+  if (ctx.canManageSchedules || !ctx.teacherId) return {};
+  return {
+    teaching: {
+      some: {
+        teacherId: ctx.teacherId,
+        OR: [{ statusTeaching: true }, { statusTeaching: null }],
+        AND: [{ OR: [{ branchId: ctx.branchId }, { branchId: null }] }],
+      },
+    },
+  };
+}
+
 async function assertClasseInBranch(ctx: ScheduleContext, classeId: string) {
+  if (!ctx.canManageSchedules && !ctx.teacherId) {
+    throw new Error("Classe introuvable dans cette branche");
+  }
+
   const classe = await prisma.classe.findFirst({
     where: {
       id: classeId,
       branchId: ctx.branchId,
       branch: { organizationId: ctx.organizationId },
+      ...teacherAssignmentFilter(ctx),
     },
     select: { id: true },
   });
@@ -309,7 +344,13 @@ export const getSchedulesByClasseAction = action
     const schedules = await prisma.schedule.findMany({
       where: {
         isArchived: false,
-        teaching: scopedTeachingWhere(ctx, { classeId }),
+        teaching: scopedTeachingWhere(ctx, {
+          classeId,
+          // Enseignant : uniquement ses créneaux dans la classe.
+          ...(ctx.canManageSchedules || !ctx.teacherId
+            ? {}
+            : { teacherId: ctx.teacherId }),
+        }),
       },
       include: {
         teaching: {
@@ -583,6 +624,12 @@ export const getScheduleCreneauByClasseAction = action
 export const getScheduleOptionsAction = action.handler(
   async (): Promise<IOption[]> => {
     const ctx = await getScheduleContext();
+
+    // Enseignant non-manager : pas de teacherId → aucune classe (pas tout le catalogue).
+    if (!ctx.canManageSchedules && !ctx.teacherId) {
+      return [];
+    }
+
     const options = await prisma.option.findMany({
       where: {
         branchId: ctx.branchId,
@@ -594,6 +641,7 @@ export const getScheduleOptionsAction = action.handler(
           where: {
             branchId: ctx.branchId,
             branch: { organizationId: ctx.organizationId },
+            ...teacherAssignmentFilter(ctx),
           },
           orderBy: { nameClasse: "asc" },
         },
@@ -601,29 +649,31 @@ export const getScheduleOptionsAction = action.handler(
       orderBy: { nameOption: "asc" },
     });
 
-    return options.map((option) => ({
-      id: option.id,
-      nameOption: option.nameOption,
-      codeOption: option.codeOption ?? "",
-      sectionId: option.sectionId ?? "",
-      statusOption: option.statusOption ?? true,
-      module: option.section?.codeSection ?? "",
-      createdAt: option.createdAt,
-      updatedAt: option.updatedAt,
-      codeSection: option.section?.codeSection ?? "",
-      nameSection: option.section?.nameSection ?? "",
-      statuSection: option.section?.statusSection ?? true,
-      classes: option.classe.map((classe) => ({
-        ...classe,
-        optionId: classe.optionId ?? "",
-        creneauId: classe.creneauId ?? "",
-        statusClasse: classe.statusClasse ?? true,
+    return options
+      .map((option) => ({
+        id: option.id,
         nameOption: option.nameOption,
         codeOption: option.codeOption ?? "",
+        sectionId: option.sectionId ?? "",
+        statusOption: option.statusOption ?? true,
+        module: option.section?.codeSection ?? "",
+        createdAt: option.createdAt,
+        updatedAt: option.updatedAt,
         codeSection: option.section?.codeSection ?? "",
         nameSection: option.section?.nameSection ?? "",
-      })),
-    }));
+        statuSection: option.section?.statusSection ?? true,
+        classes: option.classe.map((classe) => ({
+          ...classe,
+          optionId: classe.optionId ?? "",
+          creneauId: classe.creneauId ?? "",
+          statusClasse: classe.statusClasse ?? true,
+          nameOption: option.nameOption,
+          codeOption: option.codeOption ?? "",
+          codeSection: option.section?.codeSection ?? "",
+          nameSection: option.section?.nameSection ?? "",
+        })),
+      }))
+      .filter((option) => option.classes.length > 0);
   },
 );
 

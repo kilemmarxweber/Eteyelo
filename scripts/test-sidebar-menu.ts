@@ -105,21 +105,23 @@ test("parent : Dashboard, Notes/Horaire/Résultats — pas Finance / admin / bib
   assertExcludes(cursus, ["Bibliothèque", "Fiches"], "parent cursus");
 });
 
-test("enseignant : Enseignement restreint (Horaire), Notes, Résultats — pas Finance / Classes setup", () => {
+test("enseignant : pas Enseignement / Utilisateurs ; Cursus Notes/Résultats ; Horaire via dashboard", () => {
   const session = sessionWithOrgRole(ORG_ROLE.TEACHER);
   const titles = menuTitles(session);
-  const links = buildStaticSideLinks(session, BRANCH_PATH, "PRIMAIRE");
-  const enseignement = links.find((item) => item.title === "Enseignement");
-  const enseignementSubs = (enseignement?.sub ?? []).map((item) => item.title);
   const cursus = cursusSubTitles(session);
 
-  assertIncludes(titles, ["Dashboard", "Enseignement", "Cursus", "Presences", "Aide"], "enseignant");
-  assertExcludes(titles, ["Finance", "Classes", "Inscription", "Candidatures"], "enseignant");
-  assertIncludes(enseignementSubs, ["Horaire"], "enseignant enseignement");
+  assertIncludes(titles, ["Dashboard", "Cursus", "Presences", "Aide"], "enseignant");
   assertExcludes(
-    enseignementSubs,
-    ["Cours", "Ponderations", "Affectations", "Vacation"],
-    "enseignant enseignement",
+    titles,
+    [
+      "Finance",
+      "Classes",
+      "Inscription",
+      "Candidatures",
+      "Enseignement",
+      "Utilisateurs",
+    ],
+    "enseignant",
   );
   assertIncludes(cursus, ["Notes", "Résultats"], "enseignant cursus");
   assertExcludes(cursus, ["Horaire"], "enseignant cursus");

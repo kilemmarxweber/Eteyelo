@@ -20,7 +20,6 @@ import { useSession } from "@/lib/auth-client";
 import { canAccessBranchArea } from "@/lib/auth/branch-area-access";
 import { canManageOrganization } from "@/lib/auth/session-roles";
 
-import Loading from "../loading";
 import { getStudentsAction } from "./student.action";
 import { useBranchPeopleLabels } from "@/hooks/use-branch-people-labels";
 import { pluralizeStudentLabelLower } from "@/lib/people-labels";
@@ -60,11 +59,17 @@ export default function Students() {
   const peopleLabels = useBranchPeopleLabels();
 
   const { data: session, isPending } = useSession();
-  const canManage = canManageOrganization(session);
+  const [hasMounted, setHasMounted] = useState(false);
+  const sessionReady = hasMounted && !isPending;
+  const canManage = sessionReady && canManageOrganization(session);
 
   const handleUserAction = () => {
     setRefreshKey((prev) => prev + 1);
   };
+
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
 
   useEffect(() => {
     async function loadStats() {
@@ -99,12 +104,13 @@ export default function Students() {
       });
     }
 
-    if (session) void loadStats();
-  }, [refreshKey, session]);
+    if (sessionReady && session) void loadStats();
+  }, [refreshKey, session, sessionReady]);
 
-  if (isPending) return <Loading />;
-
-  if (!session || !canAccessBranchArea("students", session)) {
+  if (
+    sessionReady &&
+    (!session || !canAccessBranchArea("students", session))
+  ) {
     return <NotFoundView />;
   }
 

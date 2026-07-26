@@ -23,7 +23,16 @@ import type {
   AttendancePersonLookup,
   AttendancePersonType,
 } from "../attendance-scan-types";
+import { getCurrentPosition } from "../component/attendance.client";
 import { AttendanceScanner } from "./attendance-scanner";
+
+async function resolveCheckInCoords() {
+  const position = await getCurrentPosition();
+  return {
+    latitude: position.coords.latitude,
+    longitude: position.coords.longitude,
+  };
+}
 
 type RecentCheckIn = AttendanceCheckInResult & { id: string };
 type PointageMode = "scan" | "manual";
@@ -152,14 +161,19 @@ export function AttendanceCheckInClient() {
 
       startTransition(async () => {
         try {
-          const result = await checkInByScanAction(value);
+          const coords = await resolveCheckInCoords();
+          const result = await checkInByScanAction(value, coords);
           if (!result) {
             toast.error("Aucune information trouvee.");
             return;
           }
           handleCheckInResult(result);
         } catch (error) {
-          toast.error(error instanceof Error ? error.message : "Pointage impossible.");
+          toast.error(
+            error instanceof Error
+              ? error.message
+              : "Pointage impossible. Activez la geolocalisation.",
+          );
         }
       });
     },
@@ -171,13 +185,19 @@ export function AttendanceCheckInClient() {
 
     startTransition(async () => {
       try {
+        const coords = await resolveCheckInCoords();
         const result = await checkInPersonByIdAction(
           selected.personType,
           selected.id,
+          coords,
         );
         handleCheckInResult(result);
       } catch (error) {
-        toast.error(error instanceof Error ? error.message : "Pointage impossible.");
+        toast.error(
+          error instanceof Error
+            ? error.message
+            : "Pointage impossible. Activez la geolocalisation.",
+        );
       }
     });
   }

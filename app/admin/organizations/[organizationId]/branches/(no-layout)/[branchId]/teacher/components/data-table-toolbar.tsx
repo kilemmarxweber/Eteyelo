@@ -11,7 +11,6 @@ import { DataTableViewOptions } from "@/components/data-table-view-options";
 import { DataTableFacetedFilter } from "@/components/data-table-faceted-filter";
 import type { ITeacher } from "@/src/interfaces/Teacher";
 import type { PeopleLabels } from "@/lib/people-labels";
-import { DEFAULT_PEOPLE_LABELS } from "@/lib/people-labels";
 import {
   exportTeachersReportPdf,
   type TeacherAssignmentStatus,
@@ -24,6 +23,7 @@ interface DataTableToolbarProps<TData> {
   canManageTeachers?: boolean;
   supportsStaffImport?: boolean;
   onOpenImport?: () => void;
+  /** Conservé pour compatibilité avec l’appelant. */
   peopleLabels?: PeopleLabels;
 }
 
@@ -72,7 +72,6 @@ export function DataTableToolbar<TData>({
   canManageTeachers = false,
   supportsStaffImport = false,
   onOpenImport,
-  peopleLabels = DEFAULT_PEOPLE_LABELS,
 }: DataTableToolbarProps<TData>) {
   const [exportingPdf, setExportingPdf] = useState(false);
   const isFiltered = table.getState().columnFilters.length > 0;
@@ -115,20 +114,20 @@ export function DataTableToolbar<TData>({
   };
 
   return (
-    <div className="flex flex-col gap-3 border-b pb-4 xl:flex-row xl:items-center xl:justify-between">
-      <div className="relative max-w-3xl">
-        <IconSearch className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+    <div className="flex flex-col gap-3 border-b border bg-card p-4 lg:flex-row lg:items-center lg:justify-between">
+      <div className="relative w-full lg:max-w-[300px]">
+        <IconSearch className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-foreground/40" />
         <Input
-          placeholder={`Rechercher un ${peopleLabels.teacherLower}...`}
+          placeholder="Rechercher par nom, prénom ou postnom..."
           value={(table.getColumn("nom")?.getFilterValue() as string) ?? ""}
           onChange={(event) =>
             table.getColumn("nom")?.setFilterValue(event.target.value)
           }
-          className="h-10 pl-9"
+          className="h-11 rounded-xl border bg-card pl-9 text-foreground placeholder:text-foreground/40 focus-visible:ring-blue-200"
         />
       </div>
 
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="flex flex-wrap items-center justify-end gap-2">
         {table.getColumn("assignmentStatus") ? (
           <DataTableFacetedFilter
             column={table.getColumn("assignmentStatus")}

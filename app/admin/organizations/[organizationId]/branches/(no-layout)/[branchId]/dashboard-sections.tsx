@@ -792,6 +792,12 @@ export function TeacherSpaceSection({
   }[];
   assignmentCount: number;
 }) {
+  const params = useParams<{ organizationId: string; branchId: string }>();
+  const scheduleBase =
+    params.organizationId && params.branchId
+      ? `/admin/organizations/${params.organizationId}/branches/${params.branchId}/schedule`
+      : null;
+
   return (
     <div className="grid gap-4 md:grid-cols-2">
       <Card>
@@ -812,8 +818,18 @@ export function TeacherSpaceSection({
           ) : classes.length > 0 ? (
             <ul className="space-y-2">
               {classes.map((classe) => (
-                <li key={classe.id} className="text-sm font-medium">
-                  {classe.name}
+                <li key={classe.id}>
+                  {scheduleBase ? (
+                    <Link
+                      href={`${scheduleBase}/${classe.id}`}
+                      className="group flex items-center justify-between gap-2 text-sm font-medium hover:text-primary"
+                    >
+                      <span>{classe.name}</span>
+                      <IconChevronRight className="h-4 w-4 opacity-0 transition-opacity group-hover:opacity-100" />
+                    </Link>
+                  ) : (
+                    <span className="text-sm font-medium">{classe.name}</span>
+                  )}
                 </li>
               ))}
             </ul>

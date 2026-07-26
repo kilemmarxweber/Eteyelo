@@ -6,6 +6,7 @@ import {
   enforceScheduleAreaAccess,
   isCursusSelfScopedRole,
 } from "@/lib/auth/cursus-scope";
+import { assertClassRosterAccess } from "@/lib/auth/data-scope";
 import {
   canAccessTeachingArea,
   canManageOrganization,
@@ -20,7 +21,7 @@ export default async function ScheduleClassePage({
   params: Promise<{ classeId: string }>;
 }) {
   const { classeId } = await params;
-  const { session } = await requireBranchContext();
+  const { session, userId, branchId } = await requireBranchContext();
   const role = enforceScheduleAreaAccess(session);
 
   // Élève / parent : pas d'horaire d'une autre classe via URL (unit-05).
@@ -31,13 +32,24 @@ export default async function ScheduleClassePage({
     notFound();
   }
 
+  // Enseignant : uniquement les classes où il donne cours.
+  await assertClassRosterAccess({
+    session,
+    userId,
+    branchId,
+    classId: classeId,
+  });
+
+  const isTeacherViewer = !canManageOrganization(session);
+
   return (
     <div className="flex h-full min-h-0 flex-col gap-4">
       <div className="flex items-center gap-2 text-muted-foreground">
         <IconCalendarTime size={18} />
         <span className="text-sm">
-          Planifiez l&apos;horaire de la semaine (lundi à samedi) dans une seule
-          grille
+          {isTeacherViewer
+            ? "Consultez vos créneaux dans cette classe (lundi à samedi)."
+            : "Planifiez l'horaire de la semaine (lundi à samedi) dans une seule grille"}
         </span>
       </div>
       <div className="min-h-0 flex-1">

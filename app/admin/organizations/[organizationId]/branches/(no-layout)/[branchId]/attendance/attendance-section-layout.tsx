@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import { IconScan, IconUserCheck } from "@tabler/icons-react";
@@ -11,7 +12,6 @@ import { PageHeader } from "@/components/ui/page-header";
 import { NotFoundView } from "@/components/not-found-view";
 import { useSession } from "@/lib/auth-client";
 import { canAccessTeachingArea } from "@/lib/auth/session-roles";
-import Loading from "../loading";
 import { AttendanceSidebarNav } from "./components/attendance-sidebar-nav";
 
 export default function AttendanceLayout({
@@ -20,14 +20,23 @@ export default function AttendanceLayout({
   children: React.ReactNode;
 }) {
   const { data: session, isPending } = useSession();
+  const [hasMounted, setHasMounted] = useState(false);
+  const sessionReady = hasMounted && !isPending;
   const params = useParams<{ organizationId: string; branchId: string }>();
   const pathname = usePathname();
   const basePath = `/admin/organizations/${params.organizationId}/branches/${params.branchId}/attendance`;
   const pointagePath = `${basePath}/pointage`;
   const onPointagePage = pathname.startsWith(pointagePath);
 
-  if (isPending) return <Loading />;
-  if (!canAccessTeachingArea(session)) return <NotFoundView />;
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
+
+  // Server layout already asserted teaching access. Avoid swapping to a
+  // Loading tree on isPending — that mismatches SSR vs hydrated client.
+  if (sessionReady && !canAccessTeachingArea(session)) {
+    return <NotFoundView />;
+  }
 
   return (
     <Layout fadedBelow fixedHeight>

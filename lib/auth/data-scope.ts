@@ -6,6 +6,7 @@ import {
   resolveCursusViewerRole,
   type CursusViewerRole,
 } from "@/lib/auth/cursus-scope";
+import { listTeacherScheduleCandidates } from "@/lib/attendance-teacher-session";
 import {
   canAccessStudentDirectory,
   canAccessTeachingArea,
@@ -17,6 +18,97 @@ import { ORG_ROLE } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 
 export { assertStudentIdInScope };
+
+function teachingBranchFilter(branchId: string) {
+  return {
+    OR: [
+      { branchId },
+      { branchId: null, classe: { branchId } },
+    ],
+  };
+}
+
+export async function getTeacherIdForUser(
+  userId: string,
+  branchId: string,
+): Promise<string | null> {
+  const teacher = await prisma.teacher.findFirst({
+    where: {
+      branchMember: {
+        branchId,
+        member: { userId },
+      },
+    },
+    select: { id: true },
+  });
+  return teacher?.id ?? null;
+}
+
+export async function getTeacherAssignedTeachingIds(
+  userId: string,
+  branchId: string,
+): Promise<string[]> {
+  const rows = await prisma.teaching.findMany({
+    where: {
+      OR: [{ statusTeaching: true }, { statusTeaching: null }],
+      AND: [teachingBranchFilter(branchId)],
+      teacher: {
+        branchMember: {
+          branchId,
+          member: { userId },
+        },
+      },
+    },
+    select: { id: true },
+  });
+  return rows.map((row) => row.id);
+}
+
+export async function getTeacherAssignedClassIds(
+  userId: string,
+  branchId: string,
+): Promise<string[]> {
+  const rows = await prisma.teaching.findMany({
+    where: {
+      OR: [{ statusTeaching: true }, { statusTeaching: null }],
+      AND: [teachingBranchFilter(branchId)],
+      teacher: {
+        branchMember: {
+          branchId,
+          member: { userId },
+        },
+      },
+    },
+    select: { classeId: true },
+    distinct: ["classeId"],
+  });
+  return rows.map((row) => row.classeId);
+}
+
+/** Scope lecture présence pour un enseignant (non-manager). */
+export async function getTeacherAttendanceReadScope(params: {
+  session: unknown;
+  userId: string;
+  branchId: string;
+}): Promise<{ teacherId: string; teachingIds: string[]; classIds: string[] } | null> {
+  if (canManageOrganization(params.session)) {
+    return null;
+  }
+
+  if (!hasSessionRole(params.session, [ORG_ROLE.TEACHER, "TEACHER"])) {
+    return null;
+  }
+
+  const teacherId = await getTeacherIdForUser(params.userId, params.branchId);
+  if (!teacherId) return null;
+
+  const [teachingIds, classIds] = await Promise.all([
+    getTeacherAssignedTeachingIds(params.userId, params.branchId),
+    getTeacherAssignedClassIds(params.userId, params.branchId),
+  ]);
+
+  return { teacherId, teachingIds, classIds };
+}
 
 /**
  * Accès liste élèves / fiches d’une classe (unit-10).
@@ -184,7 +276,8 @@ export async function assertStudentReadableInBranch(params: {
 }
 
 /**
- * Marquage présence : manager, ou enseignant propriétaire de la session.
+ * Marquage présence session (legacy UI) : manager, ou enseignant propriétaire.
+ * Préférer `assertStudentAttendanceWriteAccess` pour les writes élèves.
  */
 export async function assertAttendanceSessionWriteAccess(params: {
   session: unknown;
@@ -221,6 +314,138 @@ export async function assertAttendanceSessionWriteAccess(params: {
 
   if (!attendanceSession) {
     notFound();
+  }
+}
+
+/**
+ * Pointage élève multi-acteurs (pas de self élève) :
+ * - manager / préfet / directeur : session de la branche
+ * - enseignant : teaching à lui + fenêtre horaire + élève de la classe
+ */
+export async function assertStudentAttendanceWriteAccess(params: {
+  session: unknown;
+  userId: string;
+  branchId: string;
+  sessionId: string;
+  studentId: string;
+}): Promise<void> {
+  const { session, userId, branchId, sessionId, studentId } = params;
+
+  const attendanceSession = await prisma.attendanceSession.findFirst({
+    where: { id: sessionId, branchId },
+    select: {
+      id: true,
+      teachingId: true,
+      teaching: {
+        select: {
+          teacherId: true,
+          classeId: true,
+        },
+      },
+    },
+  });
+
+  if (!attendanceSession?.teaching) {
+    throw new Error("Session de presence introuvable.");
+  }
+
+  if (canManageOrganization(session)) {
+    return;
+  }
+
+  if (hasSessionRole(session, [ORG_ROLE.TEACHER, "TEACHER"])) {
+    const teacherId = await getTeacherIdForUser(userId, branchId);
+    if (!teacherId || attendanceSession.teaching.teacherId !== teacherId) {
+      throw new Error(
+        "Vous ne pouvez pointer que les eleves de vos cours assignes.",
+      );
+    }
+
+    const candidates = await listTeacherScheduleCandidates(teacherId, branchId);
+    if (
+      !candidates.some(
+        (candidate) => candidate.teachingId === attendanceSession.teachingId,
+      )
+    ) {
+      throw new Error(
+        "Pointage possible uniquement autour de l'heure de votre cours.",
+      );
+    }
+
+    const enrollment = await prisma.classEnrollment.findFirst({
+      where: {
+        studentId,
+        classeId: attendanceSession.teaching.classeId,
+        branchId,
+        schoolYear: { isCurrentYear: true, branchId },
+      },
+      select: { id: true },
+    });
+
+    if (!enrollment) {
+      throw new Error("Cet eleve n'appartient pas a la classe de ce cours.");
+    }
+    return;
+  }
+
+  throw new Error("Acces non autorise pour ce pointage eleve.");
+}
+
+/**
+ * Self-pointage enseignant (ou manager qui marque un enseignant).
+ * Enseignant : soi uniquement + session de son teaching dans la fenêtre.
+ */
+export async function assertTeacherAttendanceWriteAccess(params: {
+  session: unknown;
+  userId: string;
+  branchId: string;
+  sessionId: string;
+  teacherId: string;
+}): Promise<void> {
+  const { session, userId, branchId, sessionId, teacherId } = params;
+
+  const attendanceSession = await prisma.attendanceSession.findFirst({
+    where: { id: sessionId, branchId },
+    select: {
+      id: true,
+      teachingId: true,
+      teaching: { select: { teacherId: true } },
+    },
+  });
+
+  if (!attendanceSession?.teaching) {
+    throw new Error("Session de presence introuvable.");
+  }
+
+  if (canManageOrganization(session)) {
+    return;
+  }
+
+  if (!hasSessionRole(session, [ORG_ROLE.TEACHER, "TEACHER"])) {
+    throw new Error("Acces non autorise pour ce pointage enseignant.");
+  }
+
+  const selfTeacherId = await getTeacherIdForUser(userId, branchId);
+  if (!selfTeacherId || selfTeacherId !== teacherId) {
+    throw new Error("Vous ne pouvez pointer que votre propre presence.");
+  }
+
+  if (attendanceSession.teaching.teacherId !== selfTeacherId) {
+    throw new Error("Cette session ne vous appartient pas.");
+  }
+
+  const candidates = await listTeacherScheduleCandidates(
+    selfTeacherId,
+    branchId,
+  );
+  if (
+    !candidates.some(
+      (candidate) => candidate.teachingId === attendanceSession.teachingId,
+    )
+  ) {
+    throw new Error(
+      "Pointage possible uniquement autour de l'heure de votre cours.",
+    );
   }
 }
 

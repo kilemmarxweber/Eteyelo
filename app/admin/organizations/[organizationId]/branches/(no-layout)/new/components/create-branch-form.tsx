@@ -139,7 +139,7 @@ export function CreateBranchForm({
       tel: defaultValues?.tel ?? "",
       latitude: defaultValues?.latitude ?? -4.4419,
       longitude: defaultValues?.longitude ?? 15.2663,
-      attendanceRadius: defaultValues?.attendanceRadius ?? 100,
+      attendanceRadius: defaultValues?.attendanceRadius ?? 10,
       typebranch: defaultValues?.typebranch ?? "SECONDAIRE",
     },
     mode: "onSubmit",

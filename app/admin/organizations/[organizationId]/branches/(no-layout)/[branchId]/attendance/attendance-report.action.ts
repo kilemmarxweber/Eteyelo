@@ -2,6 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
+import { getTeacherAttendanceReadScope } from "@/lib/auth/data-scope";
 import { orgRoleLabel } from "@/lib/org-role-labels";
 import { AttendanceStatus } from "@/prisma/generated/prisma/client";
 import {
@@ -309,7 +310,12 @@ function mapPersonnelRecords(
 export async function getAttendanceReportAction(
   filters: AttendanceReportFilters = {},
 ): Promise<AttendanceReportData> {
-  const { branchId } = await requireBranchContext();
+  const { branchId, session, userId } = await requireBranchContext();
+  const teacherScope = await getTeacherAttendanceReadScope({
+    session,
+    userId,
+    branchId,
+  });
   const { start, end } = getDateRange(filters);
   const statusFilter =
     filters.status && filters.status !== "ALL" ? filters.status : undefined;
@@ -323,6 +329,9 @@ export async function getAttendanceReportAction(
           branchId,
           recordedAt: { gte: start, lte: end },
           ...(statusFilter ? { status: statusFilter } : {}),
+          ...(teacherScope
+            ? { session: { teachingId: { in: teacherScope.teachingIds } } }
+            : {}),
           ...(userSearch
             ? {
                 student: {
@@ -353,6 +362,7 @@ export async function getAttendanceReportAction(
           branchId,
           date: { gte: start, lte: end },
           ...(statusFilter ? { status: statusFilter } : {}),
+          ...(teacherScope ? { teacherId: teacherScope.teacherId } : {}),
           ...(userSearch
             ? {
                 teacher: {
@@ -374,34 +384,51 @@ export async function getAttendanceReportAction(
           session: true,
         },
       }),
-      prisma.personnelAttendance.findMany({
-        where: {
-          branchId,
-          date: { gte: start, lte: end },
-          ...(statusFilter ? { status: statusFilter } : {}),
-          ...(userSearch
-            ? {
-                personnel: {
-                  branchMember: { member: { user: userSearch } },
-                },
-              }
-            : {}),
-        },
-        include: {
-          personnel: {
+      teacherScope
+        ? Promise.resolve([])
+        : prisma.personnelAttendance.findMany({
+            where: {
+              branchId,
+              date: { gte: start, lte: end },
+              ...(statusFilter ? { status: statusFilter } : {}),
+              ...(userSearch
+                ? {
+                    personnel: {
+                      branchMember: { member: { user: userSearch } },
+                    },
+                  }
+                : {}),
+            },
             include: {
-              branchMember: {
+              personnel: {
                 include: {
-                  member: { include: { user: true } },
+                  branchMember: {
+                    include: {
+                      member: { include: { user: true } },
+                    },
+                  },
                 },
               },
             },
-          },
-        },
-      }),
-      prisma.student.count({ where: { branchMember: { branchId } } }),
-      prisma.teacher.count({ where: { branchMember: { branchId } } }),
-      prisma.personnel.count({ where: { branchMember: { branchId } } }),
+          }),
+      teacherScope
+        ? prisma.student.count({
+            where: {
+              branchMember: { branchId },
+              classEnrollment: {
+                some: {
+                  branchId,
+                  classeId: { in: teacherScope.classIds },
+                  schoolYear: { isCurrentYear: true, branchId },
+                },
+              },
+            },
+          })
+        : prisma.student.count({ where: { branchMember: { branchId } } }),
+      teacherScope ? Promise.resolve(1) : prisma.teacher.count({ where: { branchMember: { branchId } } }),
+      teacherScope
+        ? Promise.resolve(0)
+        : prisma.personnel.count({ where: { branchMember: { branchId } } }),
     ]);
 
   const records = [

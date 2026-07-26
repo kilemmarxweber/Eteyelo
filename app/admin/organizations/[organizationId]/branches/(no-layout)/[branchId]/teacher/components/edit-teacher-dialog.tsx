@@ -38,11 +38,12 @@ export function UpdateTeacherDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange} {...dialogProps}>
-      <DialogContent size="lg">
+      <DialogContent size="xl">
         <DialogHeader>
           <DialogTitle>Modifier le {peopleLabels.teacherLower}</DialogTitle>
           <DialogDescription>
-            Ajustez les informations du {peopleLabels.teacherLower}, puis enregistrez.
+            Ajustez les informations du {peopleLabels.teacherLower}, puis
+            enregistrez.
           </DialogDescription>
         </DialogHeader>
 

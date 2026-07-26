@@ -175,9 +175,11 @@ test("parent : cursus enfants ; self-scoped ; pas Finance", () => {
 
 // --- Enseignant ---
 
-test("enseignant : notes OK ; pas Finance ; dashboard mes classes", () => {
+test("enseignant : notes OK ; pas Finance / Enseignement ; dashboard mes classes", () => {
   const titles = menuTitles(ORG_ROLE.TEACHER);
-  assert.ok(titles.includes("Cursus") || titles.includes("Enseignement"));
+  assert.ok(titles.includes("Cursus"));
+  assert.ok(!titles.includes("Enseignement"));
+  assert.ok(!titles.includes("Utilisateurs"));
   assert.ok(!titles.includes("Finance"));
   assert.equal(resolveDashboardVariant(sessionWithOrgRole(ORG_ROLE.TEACHER)), "teacher");
   assert.equal(getDashboardDataBlocks("teacher").revenue, false);

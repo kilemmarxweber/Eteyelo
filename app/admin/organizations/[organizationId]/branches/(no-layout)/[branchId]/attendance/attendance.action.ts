@@ -19,9 +19,12 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
 import {
-  assertAttendanceSessionWriteAccess,
   assertClassRosterAccess,
+  assertStudentAttendanceWriteAccess,
+  assertTeacherAttendanceWriteAccess,
+  getTeacherAttendanceReadScope,
 } from "@/lib/auth/data-scope";
+import { assertWithinBranchAttendanceRadius } from "@/lib/attendance-geo.server";
 import {
   getBranchCourseDurationMinutes,
   getOrCreateTeacherAttendanceSession,
@@ -31,6 +34,11 @@ import {
   buildSchoolReportContext,
   schoolReportBranchSelect,
 } from "@/lib/reports/resolve-school-branding";
+
+const geoCoordsSchema = z.object({
+  latitude: z.number().min(-90).max(90),
+  longitude: z.number().min(-180).max(180),
+});
 
 /* =========================
    SESSIONS
@@ -46,12 +54,21 @@ export async function getCurrentBranch() {
   };
 }
 export const getAttendanceSessions = action.handler(async () => {
-  const { branchId } = await getCurrentBranch();
+  const { branchId, session, userId } = await requireBranchContext();
   await autoCloseSessions(branchId);
+
+  const teacherScope = await getTeacherAttendanceReadScope({
+    session,
+    userId,
+    branchId,
+  });
 
   const sessions = await prisma.attendanceSession.findMany({
     where: {
       branchId,
+      ...(teacherScope
+        ? { teachingId: { in: teacherScope.teachingIds } }
+        : {}),
     },
     include: {
       teaching: {
@@ -107,10 +124,17 @@ export const getAttendanceSessions = action.handler(async () => {
 });
 
 export const getAttendanceHistory = action.handler(async () => {
-  const { branchId } = await getCurrentBranch();
+  const { branchId, session, userId } = await requireBranchContext();
+  const teacherScope = await getTeacherAttendanceReadScope({
+    session,
+    userId,
+    branchId,
+  });
+
   const teachers = await prisma.teacherAttendance.findMany({
     where: {
       branchId,
+      ...(teacherScope ? { teacherId: teacherScope.teacherId } : {}),
     },
     include: {
       teacher: {
@@ -142,6 +166,9 @@ export const getAttendanceHistory = action.handler(async () => {
   const students = await prisma.studentAttendance.findMany({
     where: {
       branchId,
+      ...(teacherScope
+        ? { session: { teachingId: { in: teacherScope.teachingIds } } }
+        : {}),
     },
     include: {
       student: {
@@ -170,26 +197,28 @@ export const getAttendanceHistory = action.handler(async () => {
     },
   });
 
-  const personnels = await prisma.personnelAttendance.findMany({
-    where: {
-      branchId,
-    },
-    include: {
-      personnel: {
+  const personnels = teacherScope
+    ? []
+    : await prisma.personnelAttendance.findMany({
+        where: {
+          branchId,
+        },
         include: {
-          branchMember: {
+          personnel: {
             include: {
-              member: {
+              branchMember: {
                 include: {
-                  user: true,
+                  member: {
+                    include: {
+                      user: true,
+                    },
+                  },
                 },
               },
             },
           },
         },
-      },
-    },
-  });
+      });
 
   return [
     ...teachers.map((t) => {
@@ -335,12 +364,20 @@ export async function generateTodaySessions(branchId: string) {
 export const getAttendanceSessionById = action
   .input(z.object({ id: z.string() }))
   .handler(async ({ input }) => {
-    const { branchId } = await getCurrentBranch();
+    const { branchId, session, userId } = await requireBranchContext();
+    const teacherScope = await getTeacherAttendanceReadScope({
+      session,
+      userId,
+      branchId,
+    });
 
     return prisma.attendanceSession.findFirst({
       where: {
         id: input.id,
-        branchId, // 🔥 important multi-tenant
+        branchId,
+        ...(teacherScope
+          ? { teachingId: { in: teacherScope.teachingIds } }
+          : {}),
       },
       include: {
         teaching: {
@@ -418,15 +455,25 @@ export const markStudentAttendance = action
       sessionId: z.string(),
       status: z.enum(["PRESENT", "ABSENT", "LATE", "EXCUSED"]),
       remark: z.string().optional(),
+      latitude: geoCoordsSchema.shape.latitude,
+      longitude: geoCoordsSchema.shape.longitude,
     }),
   )
   .handler(async ({ input }) => {
     const { branchId, session, userId } = await requireBranchContext();
-    await assertAttendanceSessionWriteAccess({
+
+    await assertWithinBranchAttendanceRadius({
+      branchId,
+      latitude: input.latitude,
+      longitude: input.longitude,
+    });
+
+    await assertStudentAttendanceWriteAccess({
       session,
       userId,
       branchId,
       sessionId: input.sessionId,
+      studentId: input.studentId,
     });
 
     const [attendanceSession, student] = await Promise.all([
@@ -466,7 +513,7 @@ export const markStudentAttendance = action
         sessionId: input.sessionId,
         status: input.status,
         remark: input.remark,
-        branchId, // 🔥 IMPORTANT
+        branchId,
       },
     });
   });
@@ -585,11 +632,28 @@ export const markTeacherAttendance = action
       teacherId: z.string(),
       sessionId: z.string(),
       status: z.enum(["PRESENT", "ABSENT", "LATE"]),
+      latitude: geoCoordsSchema.shape.latitude,
+      longitude: geoCoordsSchema.shape.longitude,
     }),
   )
   .handler(async ({ input }) => {
-    const { branchId } = await getCurrentBranch();
-    const [session, teacher] = await Promise.all([
+    const { branchId, session, userId } = await requireBranchContext();
+
+    await assertWithinBranchAttendanceRadius({
+      branchId,
+      latitude: input.latitude,
+      longitude: input.longitude,
+    });
+
+    await assertTeacherAttendanceWriteAccess({
+      session,
+      userId,
+      branchId,
+      sessionId: input.sessionId,
+      teacherId: input.teacherId,
+    });
+
+    const [attendanceSession, teacher] = await Promise.all([
       prisma.attendanceSession.findFirst({
         where: { id: input.sessionId, branchId },
         select: { id: true },
@@ -605,7 +669,7 @@ export const markTeacherAttendance = action
       }),
     ]);
 
-    if (!session || !teacher) {
+    if (!attendanceSession || !teacher) {
       throw new Error("Presence enseignant impossible dans cette branche");
     }
 
@@ -625,7 +689,7 @@ export const markTeacherAttendance = action
         sessionId: input.sessionId,
         status: input.status,
         date: nowLocal(),
-        branchId, // 🔥 IMPORTANT
+        branchId,
       },
     });
   });
@@ -1091,21 +1155,22 @@ export async function checkTeacherAttendanceNeeded({
     const userId = session?.user?.id;
     if (!userId) return null;
 
-    // =========================
-    // 1. VERIFY BRANCH
-    // =========================
     const branch = await prisma.branch.findFirst({
       where: {
         id: branchId,
         organizationId,
       },
+      select: {
+        id: true,
+        name: true,
+        latitude: true,
+        longitude: true,
+        attendanceRadius: true,
+      },
     });
 
     if (!branch) return null;
 
-    // =========================
-    // 2. GET TEACHER IN BRANCH
-    // =========================
     const teacher = await prisma.teacher.findFirst({
       where: {
         branchMember: {
@@ -1122,70 +1187,58 @@ export async function checkTeacherAttendanceNeeded({
 
     if (!teacher) return null;
 
-    // =========================
-    // 3. TODAY
-    // =========================
-    const days = [
-      "Dimanche",
-      "Lundi",
-      "Mardi",
-      "Mercredi",
-      "Jeudi",
-      "Vendredi",
-      "Samedi",
-    ] as const;
+    const courseDurationMinutes =
+      await getBranchCourseDurationMinutes(branchId);
+    const candidates = await listTeacherScheduleCandidates(
+      teacher.id,
+      branchId,
+    );
 
-    const today = days[new Date().getDay()];
+    for (const candidate of candidates) {
+      const attendanceSession = await getOrCreateTeacherAttendanceSession(
+        candidate.teachingId,
+        candidate.scheduleId,
+        branchId,
+        courseDurationMinutes,
+      );
 
-    // =========================
-    // 4. SCHEDULE
-    // =========================
-    const schedule = await prisma.schedule.findFirst({
-      where: {
-        day: today,
+      if (!attendanceSession) continue;
 
-        teaching: {
-          teacherId: teacher.id,
-          branchId, // 🔥 important multi-tenant safety
-        },
-      },
-
-      include: {
-        teaching: {
-          include: {
-            cours: true,
-            classe: true,
+      const alreadyMarked = await prisma.teacherAttendance.findUnique({
+        where: {
+          teacherId_sessionId_branchId: {
+            teacherId: teacher.id,
+            sessionId: attendanceSession.id,
+            branchId,
           },
         },
-      },
-    });
+        select: { id: true },
+      });
 
-    if (!schedule?.teachingId) return null;
+      if (alreadyMarked) continue;
 
-    // =========================
-    // 5. CHECK SESSION (NORMALIZED DATE)
-    // =========================
-    const todayDate = new Date();
-    todayDate.setHours(0, 0, 0, 0);
+      const teaching = await prisma.teaching.findFirst({
+        where: { id: candidate.teachingId },
+        include: {
+          cours: { select: { nameCours: true } },
+          classe: { select: { nameClasse: true, codeClasse: true } },
+        },
+      });
 
-    const existingSession = await prisma.attendanceSession.findFirst({
-      where: {
-        teachingId: schedule.teachingId,
-        branchId,
-        date: todayDate,
-      },
-      select: { id: true },
-    });
+      return {
+        teacherId: teacher.id,
+        teachingId: candidate.teachingId,
+        sessionId: attendanceSession.id,
+        cours: teaching?.cours?.nameCours ?? null,
+        classe:
+          teaching?.classe?.nameClasse ??
+          teaching?.classe?.codeClasse ??
+          null,
+        branch,
+      };
+    }
 
-    if (existingSession) return null;
-
-    return {
-      teacherId: teacher.id,
-      teachingId: schedule.teachingId,
-      cours: schedule.teaching?.cours?.nameCours ?? null,
-      classe: schedule.teaching?.classe?.nameClasse ?? null,
-      branch,
-    };
+    return null;
   } catch (error) {
     console.error("checkTeacherAttendanceNeeded error:", error);
     return null;
@@ -1304,6 +1357,11 @@ export const getStudentAttendanceReportAction = action
 
     const classeId = input.classeId?.trim() || null;
     let classeName: string | null = null;
+    const teacherScope = await getTeacherAttendanceReadScope({
+      session,
+      userId,
+      branchId,
+    });
 
     if (classeId) {
       await assertClassRosterAccess({
@@ -1335,7 +1393,9 @@ export const getStudentAttendanceReportAction = action
           date: { gte: start, lte: end },
           ...(classeId
             ? { teaching: { classeId } }
-            : {}),
+            : teacherScope
+              ? { teachingId: { in: teacherScope.teachingIds } }
+              : {}),
         },
       },
       include: {
@@ -1465,7 +1525,12 @@ export const getTeacherAttendanceReportAction = action
     }),
   )
   .handler(async ({ input }): Promise<TeacherAttendanceReport> => {
-    const { branchId } = await requireBranchContext();
+    const { branchId, session, userId } = await requireBranchContext();
+    const teacherScope = await getTeacherAttendanceReadScope({
+      session,
+      userId,
+      branchId,
+    });
 
     const start = new Date(input.startDate);
     start.setHours(0, 0, 0, 0);
@@ -1481,6 +1546,7 @@ export const getTeacherAttendanceReportAction = action
       where: {
         branchId,
         date: { gte: start, lte: end },
+        ...(teacherScope ? { teacherId: teacherScope.teacherId } : {}),
       },
       include: {
         teacher: {

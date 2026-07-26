@@ -2,13 +2,11 @@
 
 import { HTMLAttributes, useEffect, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { IconCalendar } from "@tabler/icons-react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 
 import { Button } from "@/components/custom/button";
-import { Calendar } from "@/components/ui/calendar";
 import {
   Form,
   FormControl,
@@ -19,11 +17,6 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { PhoneInput } from "@/components/ui/phone-input";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -56,7 +49,6 @@ export function TeacherUpForm({
   ...props
 }: TeacherUpFormProps) {
   const isDialog = layout === "dialog";
-  const fieldClass = isDialog ? "space-y-0.5" : "space-y-1";
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const peopleLabels = useBranchPeopleLabels();
@@ -71,6 +63,9 @@ export function TeacherUpForm({
       ? {
           ...initialData,
           sexe: sexeToUi[initialData.sexe] ?? initialData.sexe,
+          dateOfBirth: initialData.dateOfBirth
+            ? new Date(initialData.dateOfBirth)
+            : new Date(),
         }
       : {
           username: "",
@@ -81,6 +76,7 @@ export function TeacherUpForm({
           telephone: "",
           email: "",
           address: "",
+          dateOfBirth: new Date(),
         },
   });
 
@@ -100,28 +96,34 @@ export function TeacherUpForm({
     setIsLoading(true);
     setErrorMessage("");
 
+    const payload = {
+      ...data,
+      dateOfBirth:
+        mode === "create"
+          ? new Date()
+          : data.dateOfBirth
+            ? new Date(data.dateOfBirth)
+            : new Date(),
+    };
+
     try {
       if (mode === "create") {
-        const [result, err] = await createTeacherAction({ ...data });
+        const [result, err] = await createTeacherAction(payload);
         if (err) throw new Error(err.message);
         if (!result?.ok) {
           throw new Error(result?.message || "Creation impossible");
         }
 
         toast.success(`${peopleLabels.teacher} cree avec succes`);
+        onTeacherCreated?.();
       } else {
-        const [result, err] = await updateTeacherAction({ ...data });
+        const [result, err] = await updateTeacherAction(payload);
         if (err) throw new Error(err.message);
         if (!result?.ok) {
           throw new Error(result?.message || "Mise a jour impossible");
         }
 
         toast.success(`${peopleLabels.teacher} mis a jour avec succes`);
-      }
-
-      if (mode === "create") {
-        onTeacherCreated?.();
-      } else {
         onTeacherUpdate?.();
       }
     } catch (error: any) {
@@ -133,24 +135,30 @@ export function TeacherUpForm({
     }
   }
 
+  const fieldClass = "space-y-0.5";
+  const labelClass = "text-xs font-medium text-muted-foreground";
+  const controlClass = isDialog
+    ? "h-9 rounded-md px-3 text-sm font-normal"
+    : "h-8 rounded-md px-3 text-sm font-normal";
+
   return (
-    <div className={cn("grid gap-4", className)} {...props}>
+    <div className={cn("grid gap-3", className)} {...props}>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
-          <div
-            className={cn(
-              "grid gap-2.5",
-              isDialog ? "sm:grid-cols-2" : "grid-cols-1 gap-2",
-            )}
-          >
+          <div className="grid gap-2.5 sm:grid-cols-2">
             <FormField
               control={form.control}
               name="nom"
               render={({ field }) => (
                 <FormItem className={fieldClass}>
-                  <FormLabel>Nom</FormLabel>
+                  <FormLabel className={labelClass}>Nom</FormLabel>
                   <FormControl>
-                    <Input placeholder={`Le nom du ${peopleLabels.teacherLower}`} {...field} />
+                    <Input
+                      inputSize="sm"
+                      placeholder="Nom"
+                      className={controlClass}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -162,9 +170,14 @@ export function TeacherUpForm({
               name="postnom"
               render={({ field }) => (
                 <FormItem className={fieldClass}>
-                  <FormLabel>Postnom</FormLabel>
+                  <FormLabel className={labelClass}>Postnom</FormLabel>
                   <FormControl>
-                    <Input placeholder={`Le postnom du ${peopleLabels.teacherLower}`} {...field} />
+                    <Input
+                      inputSize="sm"
+                      placeholder="Postnom"
+                      className={controlClass}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -176,74 +189,12 @@ export function TeacherUpForm({
               name="prenom"
               render={({ field }) => (
                 <FormItem className={fieldClass}>
-                  <FormLabel>Prénom</FormLabel>
+                  <FormLabel className={labelClass}>Prénom</FormLabel>
                   <FormControl>
-                    <Input placeholder={`Le prénom du ${peopleLabels.teacherLower}`} {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="dateOfBirth"
-              render={({ field }) => (
-                <FormItem className={fieldClass}>
-                  <FormLabel>Date d&apos;affectation</FormLabel>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          className={cn(
-                            "w-full justify-between text-left font-normal",
-                            !field.value && "text-muted-foreground",
-                          )}
-                        >
-                          {field.value ? (
-                            new Date(field.value).toLocaleDateString("fr-FR", {
-                              year: "numeric",
-                              month: "2-digit",
-                              day: "2-digit",
-                            })
-                          ) : (
-                            <span>Choisir une date</span>
-                          )}
-                          <IconCalendar className="ml-auto h-4 w-4 opacity-50" />
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        captionLayout="dropdown"
-                        fromYear={1900}
-                        toYear={new Date().getFullYear()}
-                        selected={
-                          field.value ? new Date(field.value) : undefined
-                        }
-                        onSelect={(date) => field.onChange(date)}
-                      />
-                    </PopoverContent>
-                  </Popover>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="telephone"
-              render={({ field }) => (
-                <FormItem className={fieldClass}>
-                  <FormLabel>Téléphone</FormLabel>
-                  <FormControl>
-                    <PhoneInput
-                      defaultCountry="CD"
-                      placeholder="Téléphone"
-                      maxLength={14}
+                    <Input
+                      inputSize="sm"
+                      placeholder="Prénom"
+                      className={controlClass}
                       {...field}
                     />
                   </FormControl>
@@ -257,11 +208,11 @@ export function TeacherUpForm({
               name="sexe"
               render={({ field }) => (
                 <FormItem className={fieldClass}>
-                  <FormLabel>Sexe</FormLabel>
+                  <FormLabel className={labelClass}>Sexe</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Sélectionnez le sexe" />
+                      <SelectTrigger className={controlClass}>
+                        <SelectValue placeholder="Sexe" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent position="popper">
@@ -276,12 +227,37 @@ export function TeacherUpForm({
 
             <FormField
               control={form.control}
+              name="telephone"
+              render={({ field }) => (
+                <FormItem className={fieldClass}>
+                  <FormLabel className={labelClass}>Téléphone</FormLabel>
+                  <FormControl>
+                    <PhoneInput
+                      defaultCountry="CD"
+                      placeholder="Téléphone"
+                      maxLength={14}
+                      className="h-8 [&_button]:h-8 [&_input]:h-8 [&_input]:text-sm"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
               name="email"
               render={({ field }) => (
                 <FormItem className={fieldClass}>
-                  <FormLabel>E-mail</FormLabel>
+                  <FormLabel className={labelClass}>E-mail</FormLabel>
                   <FormControl>
-                    <Input placeholder={`Email du ${peopleLabels.teacherLower}`} {...field} />
+                    <Input
+                      inputSize="sm"
+                      placeholder="Email"
+                      className={controlClass}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -292,10 +268,15 @@ export function TeacherUpForm({
               control={form.control}
               name="address"
               render={({ field }) => (
-                <FormItem className={fieldClass}>
-                  <FormLabel>Adresse</FormLabel>
+                <FormItem className={cn(fieldClass, "sm:col-span-2")}>
+                  <FormLabel className={labelClass}>Adresse</FormLabel>
                   <FormControl>
-                    <Input placeholder={`Adresse du ${peopleLabels.teacherLower}`} {...field} />
+                    <Input
+                      inputSize="sm"
+                      placeholder="Adresse"
+                      className={controlClass}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -307,33 +288,33 @@ export function TeacherUpForm({
                 control={form.control}
                 name="username"
                 render={({ field }) => (
-                  <FormItem className="space-y-1">
-                    <FormLabel>Code d'acces</FormLabel>
+                  <FormItem>
                     <FormControl>
-                      <Input
-                        placeholder="Votre code sera genere automatiquement"
-                        {...field}
-                        disabled
-                      />
+                      <Input {...field} disabled />
                     </FormControl>
-                    <FormMessage />
                   </FormItem>
                 )}
               />
             </div>
 
-            <div className={cn(isDialog && "sm:col-span-2")}>
-              <Button type="submit" className="mt-1 w-full sm:w-auto" loading={isLoading}>
+            <div className="sm:col-span-2">
+              <Button
+                type="submit"
+                size="sm"
+                className="mt-1 w-full font-medium sm:w-auto"
+                loading={isLoading}
+              >
                 {mode === "create"
                   ? `Enregistrer le ${peopleLabels.teacherLower}`
                   : `Mettre à jour le ${peopleLabels.teacherLower}`}
               </Button>
-              {errorMessage ? (
-                <p className="mt-2 text-center text-sm text-red-500">
-                  {errorMessage}
-                </p>
-              ) : null}
             </div>
+
+            {errorMessage ? (
+              <p className="text-center text-xs text-red-500 sm:col-span-2">
+                {errorMessage}
+              </p>
+            ) : null}
           </div>
         </form>
       </Form>

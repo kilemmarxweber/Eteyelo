@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "sonner";
 import { useAppTransition as useTransition } from "@/hooks/use-app-transition";
 import { markStudentAttendance } from "../attendance.action";
 import { useAppRouter as useRouter } from "@/hooks/use-app-router";
+import { getCurrentPosition } from "./attendance.client";
 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -42,14 +44,24 @@ export default function StudentAttendanceTable({ session }: { session?: any }) {
 
   function mark(studentId: string, status: AttendanceStatus) {
     startTransition(async () => {
-      await markStudentAttendance({
-        sessionId: session.id,
-        studentId,
-        status,
-        remark: remarks[studentId] ?? "",
-      });
-
-      router.refresh();
+      try {
+        const position = await getCurrentPosition();
+        await markStudentAttendance({
+          sessionId: session.id,
+          studentId,
+          status,
+          remark: remarks[studentId] ?? "",
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+        });
+        router.refresh();
+      } catch (error) {
+        toast.error(
+          error instanceof Error
+            ? error.message
+            : "Pointage impossible. Activez la geolocalisation.",
+        );
+      }
     });
   }
 
