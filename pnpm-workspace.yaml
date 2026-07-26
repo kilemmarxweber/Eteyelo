@@ -2,6 +2,7 @@ allowBuilds:
   '@prisma/engines': true
   bcrypt: false
   core-js: false
+  es5-ext: false
   esbuild: false
   msgpackr-extract: false
   prisma: true
