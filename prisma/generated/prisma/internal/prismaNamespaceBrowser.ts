@@ -1140,6 +1140,8 @@ export const PlatformSupportEscalationScalarFieldEnum = {
   organizationSupportId: 'organizationSupportId',
   requesterUserId: 'requesterUserId',
   assignedPlatformAgentId: 'assignedPlatformAgentId',
+  branchId: 'branchId',
+  channel: 'channel',
   subject: 'subject',
   message: 'message',
   status: 'status',

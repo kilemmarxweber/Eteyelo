@@ -1181,6 +1181,7 @@ model Branch {
   sourceStudentLinks   StudentBranchLink[] @relation("SourceBranchLinks")
   issuedDocuments      IssuedDocument[]
   libraryBooks         LibraryBook[]
+  supportTickets       PlatformSupportEscalation[]
 
   @@index([organizationId])
   @@index([organizationId, isActive])
@@ -1634,7 +1635,12 @@ enum PlatformSupportEscalationStatus {
   CLOSED
 }
 
-// Demande d'escalade : un support organisation contacte l'équipe Klambocore
+enum SupportTicketChannel {
+  ESTABLISHMENT
+  PLATFORM
+}
+
+// Demande support : établissement (agents locaux) ou escalade Klambocore
 model PlatformSupportEscalation {
   id                      String   @id @default(cuid())
   organizationId          String
@@ -1645,6 +1651,9 @@ model PlatformSupportEscalation {
   requesterUser           User @relation("EscalationRequester", fields: [requesterUserId], references: [id], onDelete: Cascade)
   assignedPlatformAgentId String?
   assignedPlatformAgent   PlatformSupportAgent? @relation(fields: [assignedPlatformAgentId], references: [id], onDelete: SetNull)
+  branchId                String?
+  branch                  Branch? @relation(fields: [branchId], references: [id], onDelete: SetNull)
+  channel                 SupportTicketChannel @default(PLATFORM)
   subject                 String
   message                 String   @db.Text
   status                  PlatformSupportEscalationStatus @default(OPEN)
@@ -1656,6 +1665,8 @@ model PlatformSupportEscalation {
   @@index([organizationId])
   @@index([requesterUserId])
   @@index([status])
+  @@index([channel])
+  @@index([branchId])
   @@index([assignedPlatformAgentId])
   @@map("platformSupportEscalation")
 }

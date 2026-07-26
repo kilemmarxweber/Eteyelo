@@ -21,6 +21,9 @@ const ORG_HOME_ROLES = new Set<string>([
   ORG_ROLE.GESTIONNAIRE,
 ]);
 
+/** Agents support établissement → espace tickets / escalades. */
+const SUPPORT_ORG_ROLES = new Set<string>([ORG_ROLE.SUPPORT]);
+
 function splitRoles(value: string | null | undefined) {
   return (value ?? "")
     .split(",")
@@ -87,6 +90,10 @@ export function resolveMembershipPostLoginPath(input: {
 
   if (roles.some((role) => ECODIM_ORG_ROLES.has(role))) {
     return `${base}/ecodim`;
+  }
+
+  if (roles.some((role) => SUPPORT_ORG_ROLES.has(role))) {
+    return `${base}/support`;
   }
 
   if (roles.some((role) => ORG_HOME_ROLES.has(role))) {

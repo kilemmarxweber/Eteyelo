@@ -30,6 +30,8 @@ export type PlatformSupportEscalationMinAggregateOutputType = {
   organizationSupportId: string | null
   requesterUserId: string | null
   assignedPlatformAgentId: string | null
+  branchId: string | null
+  channel: $Enums.SupportTicketChannel | null
   subject: string | null
   message: string | null
   status: $Enums.PlatformSupportEscalationStatus | null
@@ -45,6 +47,8 @@ export type PlatformSupportEscalationMaxAggregateOutputType = {
   organizationSupportId: string | null
   requesterUserId: string | null
   assignedPlatformAgentId: string | null
+  branchId: string | null
+  channel: $Enums.SupportTicketChannel | null
   subject: string | null
   message: string | null
   status: $Enums.PlatformSupportEscalationStatus | null
@@ -60,6 +64,8 @@ export type PlatformSupportEscalationCountAggregateOutputType = {
   organizationSupportId: number
   requesterUserId: number
   assignedPlatformAgentId: number
+  branchId: number
+  channel: number
   subject: number
   message: number
   status: number
@@ -77,6 +83,8 @@ export type PlatformSupportEscalationMinAggregateInputType = {
   organizationSupportId?: true
   requesterUserId?: true
   assignedPlatformAgentId?: true
+  branchId?: true
+  channel?: true
   subject?: true
   message?: true
   status?: true
@@ -92,6 +100,8 @@ export type PlatformSupportEscalationMaxAggregateInputType = {
   organizationSupportId?: true
   requesterUserId?: true
   assignedPlatformAgentId?: true
+  branchId?: true
+  channel?: true
   subject?: true
   message?: true
   status?: true
@@ -107,6 +117,8 @@ export type PlatformSupportEscalationCountAggregateInputType = {
   organizationSupportId?: true
   requesterUserId?: true
   assignedPlatformAgentId?: true
+  branchId?: true
+  channel?: true
   subject?: true
   message?: true
   status?: true
@@ -195,6 +207,8 @@ export type PlatformSupportEscalationGroupByOutputType = {
   organizationSupportId: string | null
   requesterUserId: string
   assignedPlatformAgentId: string | null
+  branchId: string | null
+  channel: $Enums.SupportTicketChannel
   subject: string
   message: string
   status: $Enums.PlatformSupportEscalationStatus
@@ -231,6 +245,8 @@ export type PlatformSupportEscalationWhereInput = {
   organizationSupportId?: Prisma.StringNullableFilter<"PlatformSupportEscalation"> | string | null
   requesterUserId?: Prisma.StringFilter<"PlatformSupportEscalation"> | string
   assignedPlatformAgentId?: Prisma.StringNullableFilter<"PlatformSupportEscalation"> | string | null
+  branchId?: Prisma.StringNullableFilter<"PlatformSupportEscalation"> | string | null
+  channel?: Prisma.EnumSupportTicketChannelFilter<"PlatformSupportEscalation"> | $Enums.SupportTicketChannel
   subject?: Prisma.StringFilter<"PlatformSupportEscalation"> | string
   message?: Prisma.StringFilter<"PlatformSupportEscalation"> | string
   status?: Prisma.EnumPlatformSupportEscalationStatusFilter<"PlatformSupportEscalation"> | $Enums.PlatformSupportEscalationStatus
@@ -242,6 +258,7 @@ export type PlatformSupportEscalationWhereInput = {
   organizationSupport?: Prisma.XOR<Prisma.OrganizationSupportAgentNullableScalarRelationFilter, Prisma.OrganizationSupportAgentWhereInput> | null
   requesterUser?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   assignedPlatformAgent?: Prisma.XOR<Prisma.PlatformSupportAgentNullableScalarRelationFilter, Prisma.PlatformSupportAgentWhereInput> | null
+  branch?: Prisma.XOR<Prisma.BranchNullableScalarRelationFilter, Prisma.BranchWhereInput> | null
 }
 
 export type PlatformSupportEscalationOrderByWithRelationInput = {
@@ -250,6 +267,8 @@ export type PlatformSupportEscalationOrderByWithRelationInput = {
   organizationSupportId?: Prisma.SortOrderInput | Prisma.SortOrder
   requesterUserId?: Prisma.SortOrder
   assignedPlatformAgentId?: Prisma.SortOrderInput | Prisma.SortOrder
+  branchId?: Prisma.SortOrderInput | Prisma.SortOrder
+  channel?: Prisma.SortOrder
   subject?: Prisma.SortOrder
   message?: Prisma.SortOrder
   status?: Prisma.SortOrder
@@ -261,6 +280,7 @@ export type PlatformSupportEscalationOrderByWithRelationInput = {
   organizationSupport?: Prisma.OrganizationSupportAgentOrderByWithRelationInput
   requesterUser?: Prisma.UserOrderByWithRelationInput
   assignedPlatformAgent?: Prisma.PlatformSupportAgentOrderByWithRelationInput
+  branch?: Prisma.BranchOrderByWithRelationInput
 }
 
 export type PlatformSupportEscalationWhereUniqueInput = Prisma.AtLeast<{
@@ -272,6 +292,8 @@ export type PlatformSupportEscalationWhereUniqueInput = Prisma.AtLeast<{
   organizationSupportId?: Prisma.StringNullableFilter<"PlatformSupportEscalation"> | string | null
   requesterUserId?: Prisma.StringFilter<"PlatformSupportEscalation"> | string
   assignedPlatformAgentId?: Prisma.StringNullableFilter<"PlatformSupportEscalation"> | string | null
+  branchId?: Prisma.StringNullableFilter<"PlatformSupportEscalation"> | string | null
+  channel?: Prisma.EnumSupportTicketChannelFilter<"PlatformSupportEscalation"> | $Enums.SupportTicketChannel
   subject?: Prisma.StringFilter<"PlatformSupportEscalation"> | string
   message?: Prisma.StringFilter<"PlatformSupportEscalation"> | string
   status?: Prisma.EnumPlatformSupportEscalationStatusFilter<"PlatformSupportEscalation"> | $Enums.PlatformSupportEscalationStatus
@@ -283,6 +305,7 @@ export type PlatformSupportEscalationWhereUniqueInput = Prisma.AtLeast<{
   organizationSupport?: Prisma.XOR<Prisma.OrganizationSupportAgentNullableScalarRelationFilter, Prisma.OrganizationSupportAgentWhereInput> | null
   requesterUser?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   assignedPlatformAgent?: Prisma.XOR<Prisma.PlatformSupportAgentNullableScalarRelationFilter, Prisma.PlatformSupportAgentWhereInput> | null
+  branch?: Prisma.XOR<Prisma.BranchNullableScalarRelationFilter, Prisma.BranchWhereInput> | null
 }, "id">
 
 export type PlatformSupportEscalationOrderByWithAggregationInput = {
@@ -291,6 +314,8 @@ export type PlatformSupportEscalationOrderByWithAggregationInput = {
   organizationSupportId?: Prisma.SortOrderInput | Prisma.SortOrder
   requesterUserId?: Prisma.SortOrder
   assignedPlatformAgentId?: Prisma.SortOrderInput | Prisma.SortOrder
+  branchId?: Prisma.SortOrderInput | Prisma.SortOrder
+  channel?: Prisma.SortOrder
   subject?: Prisma.SortOrder
   message?: Prisma.SortOrder
   status?: Prisma.SortOrder
@@ -312,6 +337,8 @@ export type PlatformSupportEscalationScalarWhereWithAggregatesInput = {
   organizationSupportId?: Prisma.StringNullableWithAggregatesFilter<"PlatformSupportEscalation"> | string | null
   requesterUserId?: Prisma.StringWithAggregatesFilter<"PlatformSupportEscalation"> | string
   assignedPlatformAgentId?: Prisma.StringNullableWithAggregatesFilter<"PlatformSupportEscalation"> | string | null
+  branchId?: Prisma.StringNullableWithAggregatesFilter<"PlatformSupportEscalation"> | string | null
+  channel?: Prisma.EnumSupportTicketChannelWithAggregatesFilter<"PlatformSupportEscalation"> | $Enums.SupportTicketChannel
   subject?: Prisma.StringWithAggregatesFilter<"PlatformSupportEscalation"> | string
   message?: Prisma.StringWithAggregatesFilter<"PlatformSupportEscalation"> | string
   status?: Prisma.EnumPlatformSupportEscalationStatusWithAggregatesFilter<"PlatformSupportEscalation"> | $Enums.PlatformSupportEscalationStatus
@@ -323,6 +350,7 @@ export type PlatformSupportEscalationScalarWhereWithAggregatesInput = {
 
 export type PlatformSupportEscalationCreateInput = {
   id?: string
+  channel?: $Enums.SupportTicketChannel
   subject: string
   message: string
   status?: $Enums.PlatformSupportEscalationStatus
@@ -334,6 +362,7 @@ export type PlatformSupportEscalationCreateInput = {
   organizationSupport?: Prisma.OrganizationSupportAgentCreateNestedOneWithoutEscalationsInput
   requesterUser: Prisma.UserCreateNestedOneWithoutPlatformEscalationsRequestedInput
   assignedPlatformAgent?: Prisma.PlatformSupportAgentCreateNestedOneWithoutAssignedEscalationsInput
+  branch?: Prisma.BranchCreateNestedOneWithoutSupportTicketsInput
 }
 
 export type PlatformSupportEscalationUncheckedCreateInput = {
@@ -342,6 +371,8 @@ export type PlatformSupportEscalationUncheckedCreateInput = {
   organizationSupportId?: string | null
   requesterUserId: string
   assignedPlatformAgentId?: string | null
+  branchId?: string | null
+  channel?: $Enums.SupportTicketChannel
   subject: string
   message: string
   status?: $Enums.PlatformSupportEscalationStatus
@@ -353,6 +384,7 @@ export type PlatformSupportEscalationUncheckedCreateInput = {
 
 export type PlatformSupportEscalationUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  channel?: Prisma.EnumSupportTicketChannelFieldUpdateOperationsInput | $Enums.SupportTicketChannel
   subject?: Prisma.StringFieldUpdateOperationsInput | string
   message?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumPlatformSupportEscalationStatusFieldUpdateOperationsInput | $Enums.PlatformSupportEscalationStatus
@@ -364,6 +396,7 @@ export type PlatformSupportEscalationUpdateInput = {
   organizationSupport?: Prisma.OrganizationSupportAgentUpdateOneWithoutEscalationsNestedInput
   requesterUser?: Prisma.UserUpdateOneRequiredWithoutPlatformEscalationsRequestedNestedInput
   assignedPlatformAgent?: Prisma.PlatformSupportAgentUpdateOneWithoutAssignedEscalationsNestedInput
+  branch?: Prisma.BranchUpdateOneWithoutSupportTicketsNestedInput
 }
 
 export type PlatformSupportEscalationUncheckedUpdateInput = {
@@ -372,6 +405,8 @@ export type PlatformSupportEscalationUncheckedUpdateInput = {
   organizationSupportId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   requesterUserId?: Prisma.StringFieldUpdateOperationsInput | string
   assignedPlatformAgentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  branchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  channel?: Prisma.EnumSupportTicketChannelFieldUpdateOperationsInput | $Enums.SupportTicketChannel
   subject?: Prisma.StringFieldUpdateOperationsInput | string
   message?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumPlatformSupportEscalationStatusFieldUpdateOperationsInput | $Enums.PlatformSupportEscalationStatus
@@ -387,6 +422,8 @@ export type PlatformSupportEscalationCreateManyInput = {
   organizationSupportId?: string | null
   requesterUserId: string
   assignedPlatformAgentId?: string | null
+  branchId?: string | null
+  channel?: $Enums.SupportTicketChannel
   subject: string
   message: string
   status?: $Enums.PlatformSupportEscalationStatus
@@ -398,6 +435,7 @@ export type PlatformSupportEscalationCreateManyInput = {
 
 export type PlatformSupportEscalationUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  channel?: Prisma.EnumSupportTicketChannelFieldUpdateOperationsInput | $Enums.SupportTicketChannel
   subject?: Prisma.StringFieldUpdateOperationsInput | string
   message?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumPlatformSupportEscalationStatusFieldUpdateOperationsInput | $Enums.PlatformSupportEscalationStatus
@@ -413,6 +451,8 @@ export type PlatformSupportEscalationUncheckedUpdateManyInput = {
   organizationSupportId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   requesterUserId?: Prisma.StringFieldUpdateOperationsInput | string
   assignedPlatformAgentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  branchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  channel?: Prisma.EnumSupportTicketChannelFieldUpdateOperationsInput | $Enums.SupportTicketChannel
   subject?: Prisma.StringFieldUpdateOperationsInput | string
   message?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumPlatformSupportEscalationStatusFieldUpdateOperationsInput | $Enums.PlatformSupportEscalationStatus
@@ -438,6 +478,8 @@ export type PlatformSupportEscalationCountOrderByAggregateInput = {
   organizationSupportId?: Prisma.SortOrder
   requesterUserId?: Prisma.SortOrder
   assignedPlatformAgentId?: Prisma.SortOrder
+  branchId?: Prisma.SortOrder
+  channel?: Prisma.SortOrder
   subject?: Prisma.SortOrder
   message?: Prisma.SortOrder
   status?: Prisma.SortOrder
@@ -453,6 +495,8 @@ export type PlatformSupportEscalationMaxOrderByAggregateInput = {
   organizationSupportId?: Prisma.SortOrder
   requesterUserId?: Prisma.SortOrder
   assignedPlatformAgentId?: Prisma.SortOrder
+  branchId?: Prisma.SortOrder
+  channel?: Prisma.SortOrder
   subject?: Prisma.SortOrder
   message?: Prisma.SortOrder
   status?: Prisma.SortOrder
@@ -468,6 +512,8 @@ export type PlatformSupportEscalationMinOrderByAggregateInput = {
   organizationSupportId?: Prisma.SortOrder
   requesterUserId?: Prisma.SortOrder
   assignedPlatformAgentId?: Prisma.SortOrder
+  branchId?: Prisma.SortOrder
+  channel?: Prisma.SortOrder
   subject?: Prisma.SortOrder
   message?: Prisma.SortOrder
   status?: Prisma.SortOrder
@@ -561,6 +607,48 @@ export type PlatformSupportEscalationUncheckedUpdateManyWithoutOrganizationNeste
   deleteMany?: Prisma.PlatformSupportEscalationScalarWhereInput | Prisma.PlatformSupportEscalationScalarWhereInput[]
 }
 
+export type PlatformSupportEscalationCreateNestedManyWithoutBranchInput = {
+  create?: Prisma.XOR<Prisma.PlatformSupportEscalationCreateWithoutBranchInput, Prisma.PlatformSupportEscalationUncheckedCreateWithoutBranchInput> | Prisma.PlatformSupportEscalationCreateWithoutBranchInput[] | Prisma.PlatformSupportEscalationUncheckedCreateWithoutBranchInput[]
+  connectOrCreate?: Prisma.PlatformSupportEscalationCreateOrConnectWithoutBranchInput | Prisma.PlatformSupportEscalationCreateOrConnectWithoutBranchInput[]
+  createMany?: Prisma.PlatformSupportEscalationCreateManyBranchInputEnvelope
+  connect?: Prisma.PlatformSupportEscalationWhereUniqueInput | Prisma.PlatformSupportEscalationWhereUniqueInput[]
+}
+
+export type PlatformSupportEscalationUncheckedCreateNestedManyWithoutBranchInput = {
+  create?: Prisma.XOR<Prisma.PlatformSupportEscalationCreateWithoutBranchInput, Prisma.PlatformSupportEscalationUncheckedCreateWithoutBranchInput> | Prisma.PlatformSupportEscalationCreateWithoutBranchInput[] | Prisma.PlatformSupportEscalationUncheckedCreateWithoutBranchInput[]
+  connectOrCreate?: Prisma.PlatformSupportEscalationCreateOrConnectWithoutBranchInput | Prisma.PlatformSupportEscalationCreateOrConnectWithoutBranchInput[]
+  createMany?: Prisma.PlatformSupportEscalationCreateManyBranchInputEnvelope
+  connect?: Prisma.PlatformSupportEscalationWhereUniqueInput | Prisma.PlatformSupportEscalationWhereUniqueInput[]
+}
+
+export type PlatformSupportEscalationUpdateManyWithoutBranchNestedInput = {
+  create?: Prisma.XOR<Prisma.PlatformSupportEscalationCreateWithoutBranchInput, Prisma.PlatformSupportEscalationUncheckedCreateWithoutBranchInput> | Prisma.PlatformSupportEscalationCreateWithoutBranchInput[] | Prisma.PlatformSupportEscalationUncheckedCreateWithoutBranchInput[]
+  connectOrCreate?: Prisma.PlatformSupportEscalationCreateOrConnectWithoutBranchInput | Prisma.PlatformSupportEscalationCreateOrConnectWithoutBranchInput[]
+  upsert?: Prisma.PlatformSupportEscalationUpsertWithWhereUniqueWithoutBranchInput | Prisma.PlatformSupportEscalationUpsertWithWhereUniqueWithoutBranchInput[]
+  createMany?: Prisma.PlatformSupportEscalationCreateManyBranchInputEnvelope
+  set?: Prisma.PlatformSupportEscalationWhereUniqueInput | Prisma.PlatformSupportEscalationWhereUniqueInput[]
+  disconnect?: Prisma.PlatformSupportEscalationWhereUniqueInput | Prisma.PlatformSupportEscalationWhereUniqueInput[]
+  delete?: Prisma.PlatformSupportEscalationWhereUniqueInput | Prisma.PlatformSupportEscalationWhereUniqueInput[]
+  connect?: Prisma.PlatformSupportEscalationWhereUniqueInput | Prisma.PlatformSupportEscalationWhereUniqueInput[]
+  update?: Prisma.PlatformSupportEscalationUpdateWithWhereUniqueWithoutBranchInput | Prisma.PlatformSupportEscalationUpdateWithWhereUniqueWithoutBranchInput[]
+  updateMany?: Prisma.PlatformSupportEscalationUpdateManyWithWhereWithoutBranchInput | Prisma.PlatformSupportEscalationUpdateManyWithWhereWithoutBranchInput[]
+  deleteMany?: Prisma.PlatformSupportEscalationScalarWhereInput | Prisma.PlatformSupportEscalationScalarWhereInput[]
+}
+
+export type PlatformSupportEscalationUncheckedUpdateManyWithoutBranchNestedInput = {
+  create?: Prisma.XOR<Prisma.PlatformSupportEscalationCreateWithoutBranchInput, Prisma.PlatformSupportEscalationUncheckedCreateWithoutBranchInput> | Prisma.PlatformSupportEscalationCreateWithoutBranchInput[] | Prisma.PlatformSupportEscalationUncheckedCreateWithoutBranchInput[]
+  connectOrCreate?: Prisma.PlatformSupportEscalationCreateOrConnectWithoutBranchInput | Prisma.PlatformSupportEscalationCreateOrConnectWithoutBranchInput[]
+  upsert?: Prisma.PlatformSupportEscalationUpsertWithWhereUniqueWithoutBranchInput | Prisma.PlatformSupportEscalationUpsertWithWhereUniqueWithoutBranchInput[]
+  createMany?: Prisma.PlatformSupportEscalationCreateManyBranchInputEnvelope
+  set?: Prisma.PlatformSupportEscalationWhereUniqueInput | Prisma.PlatformSupportEscalationWhereUniqueInput[]
+  disconnect?: Prisma.PlatformSupportEscalationWhereUniqueInput | Prisma.PlatformSupportEscalationWhereUniqueInput[]
+  delete?: Prisma.PlatformSupportEscalationWhereUniqueInput | Prisma.PlatformSupportEscalationWhereUniqueInput[]
+  connect?: Prisma.PlatformSupportEscalationWhereUniqueInput | Prisma.PlatformSupportEscalationWhereUniqueInput[]
+  update?: Prisma.PlatformSupportEscalationUpdateWithWhereUniqueWithoutBranchInput | Prisma.PlatformSupportEscalationUpdateWithWhereUniqueWithoutBranchInput[]
+  updateMany?: Prisma.PlatformSupportEscalationUpdateManyWithWhereWithoutBranchInput | Prisma.PlatformSupportEscalationUpdateManyWithWhereWithoutBranchInput[]
+  deleteMany?: Prisma.PlatformSupportEscalationScalarWhereInput | Prisma.PlatformSupportEscalationScalarWhereInput[]
+}
+
 export type PlatformSupportEscalationCreateNestedManyWithoutAssignedPlatformAgentInput = {
   create?: Prisma.XOR<Prisma.PlatformSupportEscalationCreateWithoutAssignedPlatformAgentInput, Prisma.PlatformSupportEscalationUncheckedCreateWithoutAssignedPlatformAgentInput> | Prisma.PlatformSupportEscalationCreateWithoutAssignedPlatformAgentInput[] | Prisma.PlatformSupportEscalationUncheckedCreateWithoutAssignedPlatformAgentInput[]
   connectOrCreate?: Prisma.PlatformSupportEscalationCreateOrConnectWithoutAssignedPlatformAgentInput | Prisma.PlatformSupportEscalationCreateOrConnectWithoutAssignedPlatformAgentInput[]
@@ -645,12 +733,17 @@ export type PlatformSupportEscalationUncheckedUpdateManyWithoutOrganizationSuppo
   deleteMany?: Prisma.PlatformSupportEscalationScalarWhereInput | Prisma.PlatformSupportEscalationScalarWhereInput[]
 }
 
+export type EnumSupportTicketChannelFieldUpdateOperationsInput = {
+  set?: $Enums.SupportTicketChannel
+}
+
 export type EnumPlatformSupportEscalationStatusFieldUpdateOperationsInput = {
   set?: $Enums.PlatformSupportEscalationStatus
 }
 
 export type PlatformSupportEscalationCreateWithoutRequesterUserInput = {
   id?: string
+  channel?: $Enums.SupportTicketChannel
   subject: string
   message: string
   status?: $Enums.PlatformSupportEscalationStatus
@@ -661,6 +754,7 @@ export type PlatformSupportEscalationCreateWithoutRequesterUserInput = {
   organization: Prisma.OrganizationCreateNestedOneWithoutPlatformSupportEscalationsInput
   organizationSupport?: Prisma.OrganizationSupportAgentCreateNestedOneWithoutEscalationsInput
   assignedPlatformAgent?: Prisma.PlatformSupportAgentCreateNestedOneWithoutAssignedEscalationsInput
+  branch?: Prisma.BranchCreateNestedOneWithoutSupportTicketsInput
 }
 
 export type PlatformSupportEscalationUncheckedCreateWithoutRequesterUserInput = {
@@ -668,6 +762,8 @@ export type PlatformSupportEscalationUncheckedCreateWithoutRequesterUserInput = 
   organizationId: string
   organizationSupportId?: string | null
   assignedPlatformAgentId?: string | null
+  branchId?: string | null
+  channel?: $Enums.SupportTicketChannel
   subject: string
   message: string
   status?: $Enums.PlatformSupportEscalationStatus
@@ -712,6 +808,8 @@ export type PlatformSupportEscalationScalarWhereInput = {
   organizationSupportId?: Prisma.StringNullableFilter<"PlatformSupportEscalation"> | string | null
   requesterUserId?: Prisma.StringFilter<"PlatformSupportEscalation"> | string
   assignedPlatformAgentId?: Prisma.StringNullableFilter<"PlatformSupportEscalation"> | string | null
+  branchId?: Prisma.StringNullableFilter<"PlatformSupportEscalation"> | string | null
+  channel?: Prisma.EnumSupportTicketChannelFilter<"PlatformSupportEscalation"> | $Enums.SupportTicketChannel
   subject?: Prisma.StringFilter<"PlatformSupportEscalation"> | string
   message?: Prisma.StringFilter<"PlatformSupportEscalation"> | string
   status?: Prisma.EnumPlatformSupportEscalationStatusFilter<"PlatformSupportEscalation"> | $Enums.PlatformSupportEscalationStatus
@@ -723,6 +821,7 @@ export type PlatformSupportEscalationScalarWhereInput = {
 
 export type PlatformSupportEscalationCreateWithoutOrganizationInput = {
   id?: string
+  channel?: $Enums.SupportTicketChannel
   subject: string
   message: string
   status?: $Enums.PlatformSupportEscalationStatus
@@ -733,6 +832,7 @@ export type PlatformSupportEscalationCreateWithoutOrganizationInput = {
   organizationSupport?: Prisma.OrganizationSupportAgentCreateNestedOneWithoutEscalationsInput
   requesterUser: Prisma.UserCreateNestedOneWithoutPlatformEscalationsRequestedInput
   assignedPlatformAgent?: Prisma.PlatformSupportAgentCreateNestedOneWithoutAssignedEscalationsInput
+  branch?: Prisma.BranchCreateNestedOneWithoutSupportTicketsInput
 }
 
 export type PlatformSupportEscalationUncheckedCreateWithoutOrganizationInput = {
@@ -740,6 +840,8 @@ export type PlatformSupportEscalationUncheckedCreateWithoutOrganizationInput = {
   organizationSupportId?: string | null
   requesterUserId: string
   assignedPlatformAgentId?: string | null
+  branchId?: string | null
+  channel?: $Enums.SupportTicketChannel
   subject: string
   message: string
   status?: $Enums.PlatformSupportEscalationStatus
@@ -775,8 +877,9 @@ export type PlatformSupportEscalationUpdateManyWithWhereWithoutOrganizationInput
   data: Prisma.XOR<Prisma.PlatformSupportEscalationUpdateManyMutationInput, Prisma.PlatformSupportEscalationUncheckedUpdateManyWithoutOrganizationInput>
 }
 
-export type PlatformSupportEscalationCreateWithoutAssignedPlatformAgentInput = {
+export type PlatformSupportEscalationCreateWithoutBranchInput = {
   id?: string
+  channel?: $Enums.SupportTicketChannel
   subject: string
   message: string
   status?: $Enums.PlatformSupportEscalationStatus
@@ -787,6 +890,65 @@ export type PlatformSupportEscalationCreateWithoutAssignedPlatformAgentInput = {
   organization: Prisma.OrganizationCreateNestedOneWithoutPlatformSupportEscalationsInput
   organizationSupport?: Prisma.OrganizationSupportAgentCreateNestedOneWithoutEscalationsInput
   requesterUser: Prisma.UserCreateNestedOneWithoutPlatformEscalationsRequestedInput
+  assignedPlatformAgent?: Prisma.PlatformSupportAgentCreateNestedOneWithoutAssignedEscalationsInput
+}
+
+export type PlatformSupportEscalationUncheckedCreateWithoutBranchInput = {
+  id?: string
+  organizationId: string
+  organizationSupportId?: string | null
+  requesterUserId: string
+  assignedPlatformAgentId?: string | null
+  channel?: $Enums.SupportTicketChannel
+  subject: string
+  message: string
+  status?: $Enums.PlatformSupportEscalationStatus
+  priority?: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  resolvedAt?: Date | string | null
+}
+
+export type PlatformSupportEscalationCreateOrConnectWithoutBranchInput = {
+  where: Prisma.PlatformSupportEscalationWhereUniqueInput
+  create: Prisma.XOR<Prisma.PlatformSupportEscalationCreateWithoutBranchInput, Prisma.PlatformSupportEscalationUncheckedCreateWithoutBranchInput>
+}
+
+export type PlatformSupportEscalationCreateManyBranchInputEnvelope = {
+  data: Prisma.PlatformSupportEscalationCreateManyBranchInput | Prisma.PlatformSupportEscalationCreateManyBranchInput[]
+  skipDuplicates?: boolean
+}
+
+export type PlatformSupportEscalationUpsertWithWhereUniqueWithoutBranchInput = {
+  where: Prisma.PlatformSupportEscalationWhereUniqueInput
+  update: Prisma.XOR<Prisma.PlatformSupportEscalationUpdateWithoutBranchInput, Prisma.PlatformSupportEscalationUncheckedUpdateWithoutBranchInput>
+  create: Prisma.XOR<Prisma.PlatformSupportEscalationCreateWithoutBranchInput, Prisma.PlatformSupportEscalationUncheckedCreateWithoutBranchInput>
+}
+
+export type PlatformSupportEscalationUpdateWithWhereUniqueWithoutBranchInput = {
+  where: Prisma.PlatformSupportEscalationWhereUniqueInput
+  data: Prisma.XOR<Prisma.PlatformSupportEscalationUpdateWithoutBranchInput, Prisma.PlatformSupportEscalationUncheckedUpdateWithoutBranchInput>
+}
+
+export type PlatformSupportEscalationUpdateManyWithWhereWithoutBranchInput = {
+  where: Prisma.PlatformSupportEscalationScalarWhereInput
+  data: Prisma.XOR<Prisma.PlatformSupportEscalationUpdateManyMutationInput, Prisma.PlatformSupportEscalationUncheckedUpdateManyWithoutBranchInput>
+}
+
+export type PlatformSupportEscalationCreateWithoutAssignedPlatformAgentInput = {
+  id?: string
+  channel?: $Enums.SupportTicketChannel
+  subject: string
+  message: string
+  status?: $Enums.PlatformSupportEscalationStatus
+  priority?: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  resolvedAt?: Date | string | null
+  organization: Prisma.OrganizationCreateNestedOneWithoutPlatformSupportEscalationsInput
+  organizationSupport?: Prisma.OrganizationSupportAgentCreateNestedOneWithoutEscalationsInput
+  requesterUser: Prisma.UserCreateNestedOneWithoutPlatformEscalationsRequestedInput
+  branch?: Prisma.BranchCreateNestedOneWithoutSupportTicketsInput
 }
 
 export type PlatformSupportEscalationUncheckedCreateWithoutAssignedPlatformAgentInput = {
@@ -794,6 +956,8 @@ export type PlatformSupportEscalationUncheckedCreateWithoutAssignedPlatformAgent
   organizationId: string
   organizationSupportId?: string | null
   requesterUserId: string
+  branchId?: string | null
+  channel?: $Enums.SupportTicketChannel
   subject: string
   message: string
   status?: $Enums.PlatformSupportEscalationStatus
@@ -831,6 +995,7 @@ export type PlatformSupportEscalationUpdateManyWithWhereWithoutAssignedPlatformA
 
 export type PlatformSupportEscalationCreateWithoutOrganizationSupportInput = {
   id?: string
+  channel?: $Enums.SupportTicketChannel
   subject: string
   message: string
   status?: $Enums.PlatformSupportEscalationStatus
@@ -841,6 +1006,7 @@ export type PlatformSupportEscalationCreateWithoutOrganizationSupportInput = {
   organization: Prisma.OrganizationCreateNestedOneWithoutPlatformSupportEscalationsInput
   requesterUser: Prisma.UserCreateNestedOneWithoutPlatformEscalationsRequestedInput
   assignedPlatformAgent?: Prisma.PlatformSupportAgentCreateNestedOneWithoutAssignedEscalationsInput
+  branch?: Prisma.BranchCreateNestedOneWithoutSupportTicketsInput
 }
 
 export type PlatformSupportEscalationUncheckedCreateWithoutOrganizationSupportInput = {
@@ -848,6 +1014,8 @@ export type PlatformSupportEscalationUncheckedCreateWithoutOrganizationSupportIn
   organizationId: string
   requesterUserId: string
   assignedPlatformAgentId?: string | null
+  branchId?: string | null
+  channel?: $Enums.SupportTicketChannel
   subject: string
   message: string
   status?: $Enums.PlatformSupportEscalationStatus
@@ -888,6 +1056,8 @@ export type PlatformSupportEscalationCreateManyRequesterUserInput = {
   organizationId: string
   organizationSupportId?: string | null
   assignedPlatformAgentId?: string | null
+  branchId?: string | null
+  channel?: $Enums.SupportTicketChannel
   subject: string
   message: string
   status?: $Enums.PlatformSupportEscalationStatus
@@ -899,6 +1069,7 @@ export type PlatformSupportEscalationCreateManyRequesterUserInput = {
 
 export type PlatformSupportEscalationUpdateWithoutRequesterUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  channel?: Prisma.EnumSupportTicketChannelFieldUpdateOperationsInput | $Enums.SupportTicketChannel
   subject?: Prisma.StringFieldUpdateOperationsInput | string
   message?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumPlatformSupportEscalationStatusFieldUpdateOperationsInput | $Enums.PlatformSupportEscalationStatus
@@ -909,6 +1080,7 @@ export type PlatformSupportEscalationUpdateWithoutRequesterUserInput = {
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutPlatformSupportEscalationsNestedInput
   organizationSupport?: Prisma.OrganizationSupportAgentUpdateOneWithoutEscalationsNestedInput
   assignedPlatformAgent?: Prisma.PlatformSupportAgentUpdateOneWithoutAssignedEscalationsNestedInput
+  branch?: Prisma.BranchUpdateOneWithoutSupportTicketsNestedInput
 }
 
 export type PlatformSupportEscalationUncheckedUpdateWithoutRequesterUserInput = {
@@ -916,6 +1088,8 @@ export type PlatformSupportEscalationUncheckedUpdateWithoutRequesterUserInput = 
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   organizationSupportId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   assignedPlatformAgentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  branchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  channel?: Prisma.EnumSupportTicketChannelFieldUpdateOperationsInput | $Enums.SupportTicketChannel
   subject?: Prisma.StringFieldUpdateOperationsInput | string
   message?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumPlatformSupportEscalationStatusFieldUpdateOperationsInput | $Enums.PlatformSupportEscalationStatus
@@ -930,6 +1104,8 @@ export type PlatformSupportEscalationUncheckedUpdateManyWithoutRequesterUserInpu
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   organizationSupportId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   assignedPlatformAgentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  branchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  channel?: Prisma.EnumSupportTicketChannelFieldUpdateOperationsInput | $Enums.SupportTicketChannel
   subject?: Prisma.StringFieldUpdateOperationsInput | string
   message?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumPlatformSupportEscalationStatusFieldUpdateOperationsInput | $Enums.PlatformSupportEscalationStatus
@@ -944,6 +1120,8 @@ export type PlatformSupportEscalationCreateManyOrganizationInput = {
   organizationSupportId?: string | null
   requesterUserId: string
   assignedPlatformAgentId?: string | null
+  branchId?: string | null
+  channel?: $Enums.SupportTicketChannel
   subject: string
   message: string
   status?: $Enums.PlatformSupportEscalationStatus
@@ -955,6 +1133,7 @@ export type PlatformSupportEscalationCreateManyOrganizationInput = {
 
 export type PlatformSupportEscalationUpdateWithoutOrganizationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  channel?: Prisma.EnumSupportTicketChannelFieldUpdateOperationsInput | $Enums.SupportTicketChannel
   subject?: Prisma.StringFieldUpdateOperationsInput | string
   message?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumPlatformSupportEscalationStatusFieldUpdateOperationsInput | $Enums.PlatformSupportEscalationStatus
@@ -965,6 +1144,7 @@ export type PlatformSupportEscalationUpdateWithoutOrganizationInput = {
   organizationSupport?: Prisma.OrganizationSupportAgentUpdateOneWithoutEscalationsNestedInput
   requesterUser?: Prisma.UserUpdateOneRequiredWithoutPlatformEscalationsRequestedNestedInput
   assignedPlatformAgent?: Prisma.PlatformSupportAgentUpdateOneWithoutAssignedEscalationsNestedInput
+  branch?: Prisma.BranchUpdateOneWithoutSupportTicketsNestedInput
 }
 
 export type PlatformSupportEscalationUncheckedUpdateWithoutOrganizationInput = {
@@ -972,6 +1152,8 @@ export type PlatformSupportEscalationUncheckedUpdateWithoutOrganizationInput = {
   organizationSupportId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   requesterUserId?: Prisma.StringFieldUpdateOperationsInput | string
   assignedPlatformAgentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  branchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  channel?: Prisma.EnumSupportTicketChannelFieldUpdateOperationsInput | $Enums.SupportTicketChannel
   subject?: Prisma.StringFieldUpdateOperationsInput | string
   message?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumPlatformSupportEscalationStatusFieldUpdateOperationsInput | $Enums.PlatformSupportEscalationStatus
@@ -986,6 +1168,72 @@ export type PlatformSupportEscalationUncheckedUpdateManyWithoutOrganizationInput
   organizationSupportId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   requesterUserId?: Prisma.StringFieldUpdateOperationsInput | string
   assignedPlatformAgentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  branchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  channel?: Prisma.EnumSupportTicketChannelFieldUpdateOperationsInput | $Enums.SupportTicketChannel
+  subject?: Prisma.StringFieldUpdateOperationsInput | string
+  message?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumPlatformSupportEscalationStatusFieldUpdateOperationsInput | $Enums.PlatformSupportEscalationStatus
+  priority?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  resolvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+}
+
+export type PlatformSupportEscalationCreateManyBranchInput = {
+  id?: string
+  organizationId: string
+  organizationSupportId?: string | null
+  requesterUserId: string
+  assignedPlatformAgentId?: string | null
+  channel?: $Enums.SupportTicketChannel
+  subject: string
+  message: string
+  status?: $Enums.PlatformSupportEscalationStatus
+  priority?: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  resolvedAt?: Date | string | null
+}
+
+export type PlatformSupportEscalationUpdateWithoutBranchInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  channel?: Prisma.EnumSupportTicketChannelFieldUpdateOperationsInput | $Enums.SupportTicketChannel
+  subject?: Prisma.StringFieldUpdateOperationsInput | string
+  message?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumPlatformSupportEscalationStatusFieldUpdateOperationsInput | $Enums.PlatformSupportEscalationStatus
+  priority?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  resolvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  organization?: Prisma.OrganizationUpdateOneRequiredWithoutPlatformSupportEscalationsNestedInput
+  organizationSupport?: Prisma.OrganizationSupportAgentUpdateOneWithoutEscalationsNestedInput
+  requesterUser?: Prisma.UserUpdateOneRequiredWithoutPlatformEscalationsRequestedNestedInput
+  assignedPlatformAgent?: Prisma.PlatformSupportAgentUpdateOneWithoutAssignedEscalationsNestedInput
+}
+
+export type PlatformSupportEscalationUncheckedUpdateWithoutBranchInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  organizationId?: Prisma.StringFieldUpdateOperationsInput | string
+  organizationSupportId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  requesterUserId?: Prisma.StringFieldUpdateOperationsInput | string
+  assignedPlatformAgentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  channel?: Prisma.EnumSupportTicketChannelFieldUpdateOperationsInput | $Enums.SupportTicketChannel
+  subject?: Prisma.StringFieldUpdateOperationsInput | string
+  message?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumPlatformSupportEscalationStatusFieldUpdateOperationsInput | $Enums.PlatformSupportEscalationStatus
+  priority?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  resolvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+}
+
+export type PlatformSupportEscalationUncheckedUpdateManyWithoutBranchInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  organizationId?: Prisma.StringFieldUpdateOperationsInput | string
+  organizationSupportId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  requesterUserId?: Prisma.StringFieldUpdateOperationsInput | string
+  assignedPlatformAgentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  channel?: Prisma.EnumSupportTicketChannelFieldUpdateOperationsInput | $Enums.SupportTicketChannel
   subject?: Prisma.StringFieldUpdateOperationsInput | string
   message?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumPlatformSupportEscalationStatusFieldUpdateOperationsInput | $Enums.PlatformSupportEscalationStatus
@@ -1000,6 +1248,8 @@ export type PlatformSupportEscalationCreateManyAssignedPlatformAgentInput = {
   organizationId: string
   organizationSupportId?: string | null
   requesterUserId: string
+  branchId?: string | null
+  channel?: $Enums.SupportTicketChannel
   subject: string
   message: string
   status?: $Enums.PlatformSupportEscalationStatus
@@ -1011,6 +1261,7 @@ export type PlatformSupportEscalationCreateManyAssignedPlatformAgentInput = {
 
 export type PlatformSupportEscalationUpdateWithoutAssignedPlatformAgentInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  channel?: Prisma.EnumSupportTicketChannelFieldUpdateOperationsInput | $Enums.SupportTicketChannel
   subject?: Prisma.StringFieldUpdateOperationsInput | string
   message?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumPlatformSupportEscalationStatusFieldUpdateOperationsInput | $Enums.PlatformSupportEscalationStatus
@@ -1021,6 +1272,7 @@ export type PlatformSupportEscalationUpdateWithoutAssignedPlatformAgentInput = {
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutPlatformSupportEscalationsNestedInput
   organizationSupport?: Prisma.OrganizationSupportAgentUpdateOneWithoutEscalationsNestedInput
   requesterUser?: Prisma.UserUpdateOneRequiredWithoutPlatformEscalationsRequestedNestedInput
+  branch?: Prisma.BranchUpdateOneWithoutSupportTicketsNestedInput
 }
 
 export type PlatformSupportEscalationUncheckedUpdateWithoutAssignedPlatformAgentInput = {
@@ -1028,6 +1280,8 @@ export type PlatformSupportEscalationUncheckedUpdateWithoutAssignedPlatformAgent
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   organizationSupportId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   requesterUserId?: Prisma.StringFieldUpdateOperationsInput | string
+  branchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  channel?: Prisma.EnumSupportTicketChannelFieldUpdateOperationsInput | $Enums.SupportTicketChannel
   subject?: Prisma.StringFieldUpdateOperationsInput | string
   message?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumPlatformSupportEscalationStatusFieldUpdateOperationsInput | $Enums.PlatformSupportEscalationStatus
@@ -1042,6 +1296,8 @@ export type PlatformSupportEscalationUncheckedUpdateManyWithoutAssignedPlatformA
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   organizationSupportId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   requesterUserId?: Prisma.StringFieldUpdateOperationsInput | string
+  branchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  channel?: Prisma.EnumSupportTicketChannelFieldUpdateOperationsInput | $Enums.SupportTicketChannel
   subject?: Prisma.StringFieldUpdateOperationsInput | string
   message?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumPlatformSupportEscalationStatusFieldUpdateOperationsInput | $Enums.PlatformSupportEscalationStatus
@@ -1056,6 +1312,8 @@ export type PlatformSupportEscalationCreateManyOrganizationSupportInput = {
   organizationId: string
   requesterUserId: string
   assignedPlatformAgentId?: string | null
+  branchId?: string | null
+  channel?: $Enums.SupportTicketChannel
   subject: string
   message: string
   status?: $Enums.PlatformSupportEscalationStatus
@@ -1067,6 +1325,7 @@ export type PlatformSupportEscalationCreateManyOrganizationSupportInput = {
 
 export type PlatformSupportEscalationUpdateWithoutOrganizationSupportInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  channel?: Prisma.EnumSupportTicketChannelFieldUpdateOperationsInput | $Enums.SupportTicketChannel
   subject?: Prisma.StringFieldUpdateOperationsInput | string
   message?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumPlatformSupportEscalationStatusFieldUpdateOperationsInput | $Enums.PlatformSupportEscalationStatus
@@ -1077,6 +1336,7 @@ export type PlatformSupportEscalationUpdateWithoutOrganizationSupportInput = {
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutPlatformSupportEscalationsNestedInput
   requesterUser?: Prisma.UserUpdateOneRequiredWithoutPlatformEscalationsRequestedNestedInput
   assignedPlatformAgent?: Prisma.PlatformSupportAgentUpdateOneWithoutAssignedEscalationsNestedInput
+  branch?: Prisma.BranchUpdateOneWithoutSupportTicketsNestedInput
 }
 
 export type PlatformSupportEscalationUncheckedUpdateWithoutOrganizationSupportInput = {
@@ -1084,6 +1344,8 @@ export type PlatformSupportEscalationUncheckedUpdateWithoutOrganizationSupportIn
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   requesterUserId?: Prisma.StringFieldUpdateOperationsInput | string
   assignedPlatformAgentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  branchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  channel?: Prisma.EnumSupportTicketChannelFieldUpdateOperationsInput | $Enums.SupportTicketChannel
   subject?: Prisma.StringFieldUpdateOperationsInput | string
   message?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumPlatformSupportEscalationStatusFieldUpdateOperationsInput | $Enums.PlatformSupportEscalationStatus
@@ -1098,6 +1360,8 @@ export type PlatformSupportEscalationUncheckedUpdateManyWithoutOrganizationSuppo
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   requesterUserId?: Prisma.StringFieldUpdateOperationsInput | string
   assignedPlatformAgentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  branchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  channel?: Prisma.EnumSupportTicketChannelFieldUpdateOperationsInput | $Enums.SupportTicketChannel
   subject?: Prisma.StringFieldUpdateOperationsInput | string
   message?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumPlatformSupportEscalationStatusFieldUpdateOperationsInput | $Enums.PlatformSupportEscalationStatus
@@ -1115,6 +1379,8 @@ export type PlatformSupportEscalationSelect<ExtArgs extends runtime.Types.Extens
   organizationSupportId?: boolean
   requesterUserId?: boolean
   assignedPlatformAgentId?: boolean
+  branchId?: boolean
+  channel?: boolean
   subject?: boolean
   message?: boolean
   status?: boolean
@@ -1126,6 +1392,7 @@ export type PlatformSupportEscalationSelect<ExtArgs extends runtime.Types.Extens
   organizationSupport?: boolean | Prisma.PlatformSupportEscalation$organizationSupportArgs<ExtArgs>
   requesterUser?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   assignedPlatformAgent?: boolean | Prisma.PlatformSupportEscalation$assignedPlatformAgentArgs<ExtArgs>
+  branch?: boolean | Prisma.PlatformSupportEscalation$branchArgs<ExtArgs>
 }, ExtArgs["result"]["platformSupportEscalation"]>
 
 export type PlatformSupportEscalationSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -1134,6 +1401,8 @@ export type PlatformSupportEscalationSelectCreateManyAndReturn<ExtArgs extends r
   organizationSupportId?: boolean
   requesterUserId?: boolean
   assignedPlatformAgentId?: boolean
+  branchId?: boolean
+  channel?: boolean
   subject?: boolean
   message?: boolean
   status?: boolean
@@ -1145,6 +1414,7 @@ export type PlatformSupportEscalationSelectCreateManyAndReturn<ExtArgs extends r
   organizationSupport?: boolean | Prisma.PlatformSupportEscalation$organizationSupportArgs<ExtArgs>
   requesterUser?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   assignedPlatformAgent?: boolean | Prisma.PlatformSupportEscalation$assignedPlatformAgentArgs<ExtArgs>
+  branch?: boolean | Prisma.PlatformSupportEscalation$branchArgs<ExtArgs>
 }, ExtArgs["result"]["platformSupportEscalation"]>
 
 export type PlatformSupportEscalationSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -1153,6 +1423,8 @@ export type PlatformSupportEscalationSelectUpdateManyAndReturn<ExtArgs extends r
   organizationSupportId?: boolean
   requesterUserId?: boolean
   assignedPlatformAgentId?: boolean
+  branchId?: boolean
+  channel?: boolean
   subject?: boolean
   message?: boolean
   status?: boolean
@@ -1164,6 +1436,7 @@ export type PlatformSupportEscalationSelectUpdateManyAndReturn<ExtArgs extends r
   organizationSupport?: boolean | Prisma.PlatformSupportEscalation$organizationSupportArgs<ExtArgs>
   requesterUser?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   assignedPlatformAgent?: boolean | Prisma.PlatformSupportEscalation$assignedPlatformAgentArgs<ExtArgs>
+  branch?: boolean | Prisma.PlatformSupportEscalation$branchArgs<ExtArgs>
 }, ExtArgs["result"]["platformSupportEscalation"]>
 
 export type PlatformSupportEscalationSelectScalar = {
@@ -1172,6 +1445,8 @@ export type PlatformSupportEscalationSelectScalar = {
   organizationSupportId?: boolean
   requesterUserId?: boolean
   assignedPlatformAgentId?: boolean
+  branchId?: boolean
+  channel?: boolean
   subject?: boolean
   message?: boolean
   status?: boolean
@@ -1181,24 +1456,27 @@ export type PlatformSupportEscalationSelectScalar = {
   resolvedAt?: boolean
 }
 
-export type PlatformSupportEscalationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "organizationSupportId" | "requesterUserId" | "assignedPlatformAgentId" | "subject" | "message" | "status" | "priority" | "createdAt" | "updatedAt" | "resolvedAt", ExtArgs["result"]["platformSupportEscalation"]>
+export type PlatformSupportEscalationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "organizationSupportId" | "requesterUserId" | "assignedPlatformAgentId" | "branchId" | "channel" | "subject" | "message" | "status" | "priority" | "createdAt" | "updatedAt" | "resolvedAt", ExtArgs["result"]["platformSupportEscalation"]>
 export type PlatformSupportEscalationInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   organizationSupport?: boolean | Prisma.PlatformSupportEscalation$organizationSupportArgs<ExtArgs>
   requesterUser?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   assignedPlatformAgent?: boolean | Prisma.PlatformSupportEscalation$assignedPlatformAgentArgs<ExtArgs>
+  branch?: boolean | Prisma.PlatformSupportEscalation$branchArgs<ExtArgs>
 }
 export type PlatformSupportEscalationIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   organizationSupport?: boolean | Prisma.PlatformSupportEscalation$organizationSupportArgs<ExtArgs>
   requesterUser?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   assignedPlatformAgent?: boolean | Prisma.PlatformSupportEscalation$assignedPlatformAgentArgs<ExtArgs>
+  branch?: boolean | Prisma.PlatformSupportEscalation$branchArgs<ExtArgs>
 }
 export type PlatformSupportEscalationIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   organizationSupport?: boolean | Prisma.PlatformSupportEscalation$organizationSupportArgs<ExtArgs>
   requesterUser?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   assignedPlatformAgent?: boolean | Prisma.PlatformSupportEscalation$assignedPlatformAgentArgs<ExtArgs>
+  branch?: boolean | Prisma.PlatformSupportEscalation$branchArgs<ExtArgs>
 }
 
 export type $PlatformSupportEscalationPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1208,6 +1486,7 @@ export type $PlatformSupportEscalationPayload<ExtArgs extends runtime.Types.Exte
     organizationSupport: Prisma.$OrganizationSupportAgentPayload<ExtArgs> | null
     requesterUser: Prisma.$UserPayload<ExtArgs>
     assignedPlatformAgent: Prisma.$PlatformSupportAgentPayload<ExtArgs> | null
+    branch: Prisma.$BranchPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1215,6 +1494,8 @@ export type $PlatformSupportEscalationPayload<ExtArgs extends runtime.Types.Exte
     organizationSupportId: string | null
     requesterUserId: string
     assignedPlatformAgentId: string | null
+    branchId: string | null
+    channel: $Enums.SupportTicketChannel
     subject: string
     message: string
     status: $Enums.PlatformSupportEscalationStatus
@@ -1620,6 +1901,7 @@ export interface Prisma__PlatformSupportEscalationClient<T, Null = never, ExtArg
   organizationSupport<T extends Prisma.PlatformSupportEscalation$organizationSupportArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.PlatformSupportEscalation$organizationSupportArgs<ExtArgs>>): Prisma.Prisma__OrganizationSupportAgentClient<runtime.Types.Result.GetResult<Prisma.$OrganizationSupportAgentPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   requesterUser<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   assignedPlatformAgent<T extends Prisma.PlatformSupportEscalation$assignedPlatformAgentArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.PlatformSupportEscalation$assignedPlatformAgentArgs<ExtArgs>>): Prisma.Prisma__PlatformSupportAgentClient<runtime.Types.Result.GetResult<Prisma.$PlatformSupportAgentPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  branch<T extends Prisma.PlatformSupportEscalation$branchArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.PlatformSupportEscalation$branchArgs<ExtArgs>>): Prisma.Prisma__BranchClient<runtime.Types.Result.GetResult<Prisma.$BranchPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1654,6 +1936,8 @@ export interface PlatformSupportEscalationFieldRefs {
   readonly organizationSupportId: Prisma.FieldRef<"PlatformSupportEscalation", 'String'>
   readonly requesterUserId: Prisma.FieldRef<"PlatformSupportEscalation", 'String'>
   readonly assignedPlatformAgentId: Prisma.FieldRef<"PlatformSupportEscalation", 'String'>
+  readonly branchId: Prisma.FieldRef<"PlatformSupportEscalation", 'String'>
+  readonly channel: Prisma.FieldRef<"PlatformSupportEscalation", 'SupportTicketChannel'>
   readonly subject: Prisma.FieldRef<"PlatformSupportEscalation", 'String'>
   readonly message: Prisma.FieldRef<"PlatformSupportEscalation", 'String'>
   readonly status: Prisma.FieldRef<"PlatformSupportEscalation", 'PlatformSupportEscalationStatus'>
@@ -2097,6 +2381,25 @@ export type PlatformSupportEscalation$assignedPlatformAgentArgs<ExtArgs extends 
    */
   include?: Prisma.PlatformSupportAgentInclude<ExtArgs> | null
   where?: Prisma.PlatformSupportAgentWhereInput
+}
+
+/**
+ * PlatformSupportEscalation.branch
+ */
+export type PlatformSupportEscalation$branchArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Branch
+   */
+  select?: Prisma.BranchSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Branch
+   */
+  omit?: Prisma.BranchOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.BranchInclude<ExtArgs> | null
+  where?: Prisma.BranchWhereInput
 }
 
 /**

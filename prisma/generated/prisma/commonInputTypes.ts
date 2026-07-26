@@ -799,11 +799,28 @@ export type EnumLibrarySourceWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedEnumLibrarySourceFilter<$PrismaModel>
 }
 
+export type EnumSupportTicketChannelFilter<$PrismaModel = never> = {
+  equals?: $Enums.SupportTicketChannel | Prisma.EnumSupportTicketChannelFieldRefInput<$PrismaModel>
+  in?: $Enums.SupportTicketChannel[] | Prisma.ListEnumSupportTicketChannelFieldRefInput<$PrismaModel>
+  notIn?: $Enums.SupportTicketChannel[] | Prisma.ListEnumSupportTicketChannelFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumSupportTicketChannelFilter<$PrismaModel> | $Enums.SupportTicketChannel
+}
+
 export type EnumPlatformSupportEscalationStatusFilter<$PrismaModel = never> = {
   equals?: $Enums.PlatformSupportEscalationStatus | Prisma.EnumPlatformSupportEscalationStatusFieldRefInput<$PrismaModel>
   in?: $Enums.PlatformSupportEscalationStatus[] | Prisma.ListEnumPlatformSupportEscalationStatusFieldRefInput<$PrismaModel>
   notIn?: $Enums.PlatformSupportEscalationStatus[] | Prisma.ListEnumPlatformSupportEscalationStatusFieldRefInput<$PrismaModel>
   not?: Prisma.NestedEnumPlatformSupportEscalationStatusFilter<$PrismaModel> | $Enums.PlatformSupportEscalationStatus
+}
+
+export type EnumSupportTicketChannelWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.SupportTicketChannel | Prisma.EnumSupportTicketChannelFieldRefInput<$PrismaModel>
+  in?: $Enums.SupportTicketChannel[] | Prisma.ListEnumSupportTicketChannelFieldRefInput<$PrismaModel>
+  notIn?: $Enums.SupportTicketChannel[] | Prisma.ListEnumSupportTicketChannelFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumSupportTicketChannelWithAggregatesFilter<$PrismaModel> | $Enums.SupportTicketChannel
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumSupportTicketChannelFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumSupportTicketChannelFilter<$PrismaModel>
 }
 
 export type EnumPlatformSupportEscalationStatusWithAggregatesFilter<$PrismaModel = never> = {
@@ -1538,11 +1555,28 @@ export type NestedEnumLibrarySourceWithAggregatesFilter<$PrismaModel = never> = 
   _max?: Prisma.NestedEnumLibrarySourceFilter<$PrismaModel>
 }
 
+export type NestedEnumSupportTicketChannelFilter<$PrismaModel = never> = {
+  equals?: $Enums.SupportTicketChannel | Prisma.EnumSupportTicketChannelFieldRefInput<$PrismaModel>
+  in?: $Enums.SupportTicketChannel[] | Prisma.ListEnumSupportTicketChannelFieldRefInput<$PrismaModel>
+  notIn?: $Enums.SupportTicketChannel[] | Prisma.ListEnumSupportTicketChannelFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumSupportTicketChannelFilter<$PrismaModel> | $Enums.SupportTicketChannel
+}
+
 export type NestedEnumPlatformSupportEscalationStatusFilter<$PrismaModel = never> = {
   equals?: $Enums.PlatformSupportEscalationStatus | Prisma.EnumPlatformSupportEscalationStatusFieldRefInput<$PrismaModel>
   in?: $Enums.PlatformSupportEscalationStatus[] | Prisma.ListEnumPlatformSupportEscalationStatusFieldRefInput<$PrismaModel>
   notIn?: $Enums.PlatformSupportEscalationStatus[] | Prisma.ListEnumPlatformSupportEscalationStatusFieldRefInput<$PrismaModel>
   not?: Prisma.NestedEnumPlatformSupportEscalationStatusFilter<$PrismaModel> | $Enums.PlatformSupportEscalationStatus
+}
+
+export type NestedEnumSupportTicketChannelWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.SupportTicketChannel | Prisma.EnumSupportTicketChannelFieldRefInput<$PrismaModel>
+  in?: $Enums.SupportTicketChannel[] | Prisma.ListEnumSupportTicketChannelFieldRefInput<$PrismaModel>
+  notIn?: $Enums.SupportTicketChannel[] | Prisma.ListEnumSupportTicketChannelFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumSupportTicketChannelWithAggregatesFilter<$PrismaModel> | $Enums.SupportTicketChannel
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumSupportTicketChannelFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumSupportTicketChannelFilter<$PrismaModel>
 }
 
 export type NestedEnumPlatformSupportEscalationStatusWithAggregatesFilter<$PrismaModel = never> = {

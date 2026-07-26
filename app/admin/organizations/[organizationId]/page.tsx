@@ -10,6 +10,7 @@ import {
   BRANCH_LOGIN_ORG_ROLES,
   resolveActiveBranchId,
 } from "@/lib/auth/user-branch-access";
+import { ORG_ROLE } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 
 function splitRoles(value: string | null | undefined) {
@@ -32,7 +33,14 @@ export default async function AdminOrganizationHomePage({
       ? await getUserOrganizationMembership(session.user.id)
       : null;
 
-  const isBranchLoginRole = splitRoles(membership?.role).some((role) =>
+  const membershipRoles = splitRoles(membership?.role);
+
+  // Support établissement : workspace tickets / escalades (pas le hub manager).
+  if (membershipRoles.includes(ORG_ROLE.SUPPORT)) {
+    redirect(`/admin/organizations/${organizationId}/support`);
+  }
+
+  const isBranchLoginRole = membershipRoles.some((role) =>
     BRANCH_LOGIN_ORG_ROLES.has(role),
   );
 

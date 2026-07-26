@@ -119,6 +119,17 @@ test("directeur / prefet / etudes avec branche route vers cette branche", () => 
   }
 });
 
+test("support etablissement route vers /support", () => {
+  assert.equal(
+    resolveMembershipPostLoginPath({
+      organizationId: ORG_ID,
+      membershipRole: ORG_ROLE.SUPPORT,
+      branchCount: 0,
+    }),
+    `/admin/organizations/${ORG_ID}/support`,
+  );
+});
+
 test("roles ecodim sans branche route vers /ecodim", () => {
   for (const membershipRole of [
     ORG_ROLE.DIRECTEUR,

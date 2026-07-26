@@ -22,6 +22,8 @@ const ORG_HOME_ROLES = new Set<string>([
   ORG_ROLE.GESTIONNAIRE,
 ]);
 
+const SUPPORT_ORG_ROLES = new Set<string>([ORG_ROLE.SUPPORT]);
+
 function normalizeRole(value: string | null | undefined) {
   return (value ?? "").trim().toLowerCase();
 }
@@ -95,6 +97,10 @@ export async function resolveUserOrganizationFallbackPath(
 
   if (roles.some((memberRole) => ECODIM_ORG_ROLES.has(memberRole))) {
     return `${base}/ecodim`;
+  }
+
+  if (roles.some((memberRole) => SUPPORT_ORG_ROLES.has(memberRole))) {
+    return `${base}/support`;
   }
 
   if (roles.some((memberRole) => ORG_HOME_ROLES.has(memberRole))) {

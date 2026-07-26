@@ -204,6 +204,24 @@ export function getDashboardShortcuts(
         },
       ];
 
+    case "support":
+      return [
+        {
+          title: "Support établissement",
+          description: "Escalades et suivi des signalements",
+          href: `/admin/organizations/${ctx.organizationId}/support`,
+          color: "bg-blue-600",
+          iconKey: "users",
+        },
+        {
+          title: "Contact local",
+          description: "Page support de la branche",
+          href: href("/settings/support"),
+          color: "bg-sky-500",
+          iconKey: "book",
+        },
+      ];
+
     case "parent": {
       const financeHref = ctx.parentFinance?.firstChildId
         ? href(`/student/${ctx.parentFinance.firstChildId}`)
@@ -284,6 +302,8 @@ export function overviewDescriptionForVariant(
       return "Mon espace personnel";
     case "parent":
       return "Espace foyer — suivi des enfants";
+    case "support":
+      return "Espace support — signalements et escalades";
     default:
       return `Tableau de bord — ${branchTypeLabel}`;
   }

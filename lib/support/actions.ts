@@ -184,6 +184,7 @@ export async function listPlatformEscalationsAction() {
   }
 
   const items = await prisma.platformSupportEscalation.findMany({
+    where: { channel: "PLATFORM" },
     orderBy: { createdAt: "desc" },
     include: {
       organization: { select: { id: true, name: true, slug: true } },
@@ -198,6 +199,7 @@ export async function listPlatformEscalationsAction() {
       assignedPlatformAgent: {
         include: { user: { select: { name: true, email: true } } },
       },
+      branch: { select: { id: true, name: true } },
     },
   });
 
@@ -294,6 +296,7 @@ export async function createPlatformEscalationAction(
         organizationId,
         organizationSupportId: orgAgent?.id ?? null,
         requesterUserId: session.user.id,
+        channel: "PLATFORM",
         subject,
         message,
         priority,
@@ -324,6 +327,237 @@ export async function createPlatformEscalationAction(
   }
 }
 
+const createBranchSupportTicketSchema = z.object({
+  organizationId: z.string().min(1),
+  branchId: z.string().min(1),
+  channel: z.enum(["ESTABLISHMENT", "PLATFORM"]),
+  subject: z.string().trim().min(3).max(160),
+  message: z.string().trim().min(10).max(5000),
+  priority: z.enum(["low", "normal", "high"]).default("normal"),
+  organizationSupportId: z.string().min(1).optional().nullable(),
+});
+
+/**
+ * Personnel (paramètres support branche) : ouvrir un ticket
+ * vers le support établissement ou Klambocore.
+ */
+export async function createBranchSupportTicketAction(
+  input: z.infer<typeof createBranchSupportTicketSchema>,
+) {
+  const { getAuthSession } = await import("@/lib/support/permissions");
+  const { canAccessSupportSettings } = await import("@/lib/auth/session-roles");
+  const { listOrganizationSupportEmails } = await import(
+    "@/lib/support/organization-support"
+  );
+
+  const parsed = createBranchSupportTicketSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false as const, message: "Données invalides." };
+  }
+
+  const {
+    organizationId,
+    branchId,
+    channel,
+    subject,
+    message,
+    priority,
+    organizationSupportId,
+  } = parsed.data;
+
+  const session = await getAuthSession();
+  if (!session?.user?.id) {
+    return { ok: false as const, message: "Session requise." };
+  }
+
+  if (!canAccessSupportSettings(session)) {
+    return { ok: false as const, message: "Action non autorisée." };
+  }
+
+  const [membership, branch] = await Promise.all([
+    prisma.member.findUnique({
+      where: {
+        organizationId_userId: {
+          organizationId,
+          userId: session.user.id,
+        },
+      },
+      select: { id: true },
+    }),
+    prisma.branch.findFirst({
+      where: { id: branchId, organizationId },
+      select: { id: true, name: true },
+    }),
+  ]);
+
+  if (!membership) {
+    return {
+      ok: false as const,
+      message: "Vous n'êtes pas membre de cette organisation.",
+    };
+  }
+
+  if (!branch) {
+    return { ok: false as const, message: "École introuvable." };
+  }
+
+  let resolvedOrgSupportId: string | null = null;
+  if (channel === "ESTABLISHMENT" && organizationSupportId) {
+    const agent = await prisma.organizationSupportAgent.findFirst({
+      where: {
+        id: organizationSupportId,
+        organizationId,
+        isActive: true,
+      },
+      select: { id: true },
+    });
+    resolvedOrgSupportId = agent?.id ?? null;
+  }
+
+  try {
+    const org = await prisma.organization.findUnique({
+      where: { id: organizationId },
+      select: { name: true },
+    });
+
+    const ticket = await prisma.platformSupportEscalation.create({
+      data: {
+        organizationId,
+        branchId,
+        channel,
+        organizationSupportId: resolvedOrgSupportId,
+        requesterUserId: session.user.id,
+        subject,
+        message,
+        priority,
+      },
+    });
+
+    if (isSmtpConfigured()) {
+      if (channel === "PLATFORM") {
+        const recipients = (await listPlatformSupportEmails()).join(", ");
+        if (recipients) {
+          await sendMail({
+            to: recipients,
+            subject: `[Kalasa Escalade] ${subject}`,
+            text: [
+              `Organisation: ${org?.name ?? organizationId}`,
+              `École: ${branch.name}`,
+              `Demandeur: ${session.user.name} (${session.user.email})`,
+              `Canal: Klambocore`,
+              `Priorité: ${priority}`,
+              "",
+              message,
+            ].join("\n"),
+          });
+        }
+      } else {
+        let recipients: string[] = [];
+        if (resolvedOrgSupportId) {
+          const agent = await prisma.organizationSupportAgent.findUnique({
+            where: { id: resolvedOrgSupportId },
+            include: {
+              member: { include: { user: { select: { email: true } } } },
+            },
+          });
+          const email = agent?.member.user.email;
+          if (email) recipients = [email];
+        }
+        if (recipients.length === 0) {
+          recipients = await listOrganizationSupportEmails(organizationId);
+        }
+        if (recipients.length > 0) {
+          await sendMail({
+            to: recipients.join(", "),
+            subject: `[Support établissement] ${subject}`,
+            text: [
+              `Organisation: ${org?.name ?? organizationId}`,
+              `École: ${branch.name}`,
+              `Demandeur: ${session.user.name} (${session.user.email})`,
+              `Canal: Support établissement`,
+              `Priorité: ${priority}`,
+              "",
+              message,
+            ].join("\n"),
+          });
+        }
+      }
+    }
+
+    revalidatePath(
+      `/admin/organizations/${organizationId}/branches/${branchId}/settings/support`,
+    );
+    revalidatePath(`/admin/organizations/${organizationId}/support`);
+    if (channel === "PLATFORM") {
+      revalidatePath("/admin/platform-support");
+    }
+
+    return { ok: true as const, id: ticket.id };
+  } catch (e) {
+    return { ok: false as const, message: errMessage(e) };
+  }
+}
+
+/** Tickets ouverts par l’utilisateur connecté (périmètre « mes demandes »). */
+export async function listMySupportTicketsAction(input: {
+  organizationId: string;
+  branchId?: string | null;
+}) {
+  const { getAuthSession } = await import("@/lib/support/permissions");
+  const { canAccessSupportSettings } = await import("@/lib/auth/session-roles");
+
+  const organizationId = input.organizationId?.trim();
+  if (!organizationId) {
+    return { ok: false as const, message: "Organisation requise.", items: [] };
+  }
+
+  const session = await getAuthSession();
+  if (!session?.user?.id) {
+    return { ok: false as const, message: "Session requise.", items: [] };
+  }
+
+  if (!canAccessSupportSettings(session)) {
+    return { ok: false as const, message: "Action non autorisée.", items: [] };
+  }
+
+  const membership = await prisma.member.findUnique({
+    where: {
+      organizationId_userId: {
+        organizationId,
+        userId: session.user.id,
+      },
+    },
+    select: { id: true },
+  });
+
+  if (!membership) {
+    return { ok: false as const, message: "Action non autorisée.", items: [] };
+  }
+
+  const items = await prisma.platformSupportEscalation.findMany({
+    where: {
+      organizationId,
+      requesterUserId: session.user.id,
+      ...(input.branchId ? { branchId: input.branchId } : {}),
+    },
+    orderBy: { createdAt: "desc" },
+    select: {
+      id: true,
+      subject: true,
+      message: true,
+      status: true,
+      priority: true,
+      channel: true,
+      createdAt: true,
+      updatedAt: true,
+      resolvedAt: true,
+      branch: { select: { id: true, name: true } },
+    },
+  });
+
+  return { ok: true as const, items };
+}
+
 export async function listOrganizationEscalationsAction(organizationId: string) {
   const { canManageOrganizationSupport } = await import(
     "@/lib/support/permissions"
@@ -347,8 +581,70 @@ export async function listOrganizationEscalationsAction(organizationId: string) 
       assignedPlatformAgent: {
         include: { user: { select: { name: true } } },
       },
+      branch: { select: { id: true, name: true } },
     },
   });
 
   return { ok: true as const, items };
+}
+
+const updateEstablishmentTicketSchema = z.object({
+  id: z.string().min(1),
+  organizationId: z.string().min(1),
+  status: z.enum(["OPEN", "IN_PROGRESS", "RESOLVED", "CLOSED"]),
+});
+
+/** Agents support établissement : mettre à jour le statut d’un ticket local. */
+export async function updateEstablishmentSupportTicketAction(
+  input: z.infer<typeof updateEstablishmentTicketSchema>,
+) {
+  const { canAccessOrganizationSupportArea } = await import(
+    "@/lib/support/permissions"
+  );
+
+  const parsed = updateEstablishmentTicketSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false as const, message: "Données invalides." };
+  }
+
+  const { id, organizationId, status } = parsed.data;
+
+  if (!(await canAccessOrganizationSupportArea(organizationId))) {
+    return { ok: false as const, message: "Action non autorisée." };
+  }
+
+  try {
+    const ticket = await prisma.platformSupportEscalation.findFirst({
+      where: {
+        id,
+        organizationId,
+        channel: "ESTABLISHMENT",
+      },
+      select: { id: true, branchId: true },
+    });
+
+    if (!ticket) {
+      return { ok: false as const, message: "Demande introuvable." };
+    }
+
+    await prisma.platformSupportEscalation.update({
+      where: { id },
+      data: {
+        status,
+        resolvedAt:
+          status === "RESOLVED" || status === "CLOSED" ? new Date() : null,
+      },
+    });
+
+    revalidatePath(`/admin/organizations/${organizationId}/support`);
+    if (ticket.branchId) {
+      revalidatePath(
+        `/admin/organizations/${organizationId}/branches/${ticket.branchId}/settings/support`,
+      );
+    }
+
+    return { ok: true as const };
+  } catch (e) {
+    return { ok: false as const, message: errMessage(e) };
+  }
 }

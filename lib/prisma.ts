@@ -10,7 +10,7 @@ const adapter = new PrismaPg({
  * Bump when Prisma schema fields change so the cached client is rebuilt in dev.
  * Also used to bust Turbopack module cache after `prisma generate`.
  */
-const PRISMA_CLIENT_VERSION = "user-theme-2";
+const PRISMA_CLIENT_VERSION = "support-ticket-channel-1";
 
 const globalForPrisma = globalThis as unknown as {
   prisma?: PrismaClient;
@@ -23,8 +23,11 @@ function createPrismaClient() {
   });
 }
 
-/** True when the loaded PrismaClient DMMF includes User.theme. */
-function clientKnowsUserTheme(client: PrismaClient | undefined) {
+function modelHasField(
+  client: PrismaClient | undefined,
+  modelName: string,
+  fieldName: string,
+) {
   if (!client) return false;
   try {
     const models = (
@@ -34,8 +37,11 @@ function clientKnowsUserTheme(client: PrismaClient | undefined) {
         };
       }
     )._runtimeDataModel?.models;
-    const userFields = models?.User?.fields ?? models?.user?.fields;
-    return Boolean(userFields?.some((field) => field.name === "theme"));
+    const fields =
+      models?.[modelName]?.fields ??
+      models?.[modelName.toLowerCase()]?.fields ??
+      [];
+    return fields.some((field) => field.name === fieldName);
   } catch {
     return false;
   }
@@ -51,7 +57,9 @@ function getPrismaClient() {
     existing &&
     globalForPrisma.prismaClientVersion === PRISMA_CLIENT_VERSION &&
     hasLibraryBookDelegate &&
-    clientKnowsUserTheme(existing)
+    modelHasField(existing, "User", "theme") &&
+    modelHasField(existing, "PlatformSupportEscalation", "branch") &&
+    modelHasField(existing, "PlatformSupportEscalation", "channel")
   ) {
     return existing;
   }

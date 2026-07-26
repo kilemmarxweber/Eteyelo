@@ -11,5 +11,11 @@ export const ESCALATION_PRIORITY_LABELS = {
   high: "Haute",
 } as const;
 
+export const SUPPORT_TICKET_CHANNEL_LABELS = {
+  ESTABLISHMENT: "Support établissement",
+  PLATFORM: "Klambocore",
+} as const;
+
 export type EscalationStatus = keyof typeof ESCALATION_STATUS_LABELS;
 export type EscalationPriority = keyof typeof ESCALATION_PRIORITY_LABELS;
+export type SupportTicketChannel = keyof typeof SUPPORT_TICKET_CHANNEL_LABELS;

@@ -15,6 +15,8 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { createBranchSupportTicketAction } from "@/lib/support/actions";
+import { SUPPORT_TICKET_CHANNEL_LABELS } from "@/lib/support/constants";
 
 type SupportAgentOption = {
   id: string;
@@ -24,23 +26,27 @@ type SupportAgentOption = {
 
 type EstablishmentSupportFormProps = {
   organizationId: string;
+  branchId: string;
   supportAgents: SupportAgentOption[];
   selectedAgentId?: string;
-  defaultName?: string;
-  defaultEmail?: string;
   onAgentChange?: (agentId: string) => void;
+  onCreated?: () => void;
 };
 
 export function EstablishmentSupportForm({
   organizationId,
+  branchId,
   supportAgents,
   selectedAgentId = "",
-  defaultName = "",
-  defaultEmail = "",
   onAgentChange,
+  onCreated,
 }: EstablishmentSupportFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [agentId, setAgentId] = useState(selectedAgentId);
+  const [channel, setChannel] = useState<"ESTABLISHMENT" | "PLATFORM">(
+    "ESTABLISHMENT",
+  );
+  const [priority, setPriority] = useState<"low" | "normal" | "high">("normal");
 
   useEffect(() => {
     setAgentId(selectedAgentId);
@@ -58,34 +64,33 @@ export function EstablishmentSupportForm({
     event.preventDefault();
     setIsSubmitting(true);
 
-    const formData = new FormData(event.currentTarget);
-    const body = {
-      name: String(formData.get("name") || ""),
-      email: String(formData.get("email") || ""),
-      phone: String(formData.get("phone") || ""),
-      subject: String(formData.get("subject") || ""),
-      message: String(formData.get("message") || ""),
-      organizationId,
-      supportAgent: selectedAgent?.name || undefined,
-      recipientEmail: selectedAgent?.email || undefined,
-    };
+    const form = event.currentTarget;
+    const formData = new FormData(form);
 
     try {
-      const response = await fetch("/api/contact", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
+      const result = await createBranchSupportTicketAction({
+        organizationId,
+        branchId,
+        channel,
+        subject: String(formData.get("subject") || ""),
+        message: String(formData.get("message") || ""),
+        priority,
+        organizationSupportId:
+          channel === "ESTABLISHMENT" && agentId ? agentId : null,
       });
 
-      if (!response.ok) {
-        const data = (await response.json().catch(() => null)) as {
-          error?: string;
-        } | null;
-        throw new Error(data?.error || "Impossible d'envoyer le message.");
+      if (!result.ok) {
+        throw new Error(result.message);
       }
 
-      event.currentTarget.reset();
-      toast.success("Message envoyé. L'équipe support vous répondra rapidement.");
+      form.reset();
+      setPriority("normal");
+      toast.success(
+        channel === "PLATFORM"
+          ? "Demande escaladée vers Klambocore."
+          : "Demande envoyée au support établissement.",
+      );
+      onCreated?.();
     } catch (error) {
       toast.error(
         error instanceof Error
@@ -99,9 +104,31 @@ export function EstablishmentSupportForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      {supportAgents.length > 0 && (
+      <div className="space-y-2">
+        <Label htmlFor="support-channel">Escalader vers</Label>
+        <Select
+          value={channel}
+          onValueChange={(value) =>
+            setChannel(value as "ESTABLISHMENT" | "PLATFORM")
+          }
+        >
+          <SelectTrigger id="support-channel" className="w-full sm:w-[320px]">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="ESTABLISHMENT">
+              {SUPPORT_TICKET_CHANNEL_LABELS.ESTABLISHMENT}
+            </SelectItem>
+            <SelectItem value="PLATFORM">
+              {SUPPORT_TICKET_CHANNEL_LABELS.PLATFORM}
+            </SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {channel === "ESTABLISHMENT" && supportAgents.length > 0 && (
         <div className="space-y-2">
-          <Label htmlFor="support-agent">Destinataire</Label>
+          <Label htmlFor="support-agent">Destinataire (optionnel)</Label>
           <Select
             value={agentId || "all"}
             onValueChange={handleAgentChange}
@@ -121,10 +148,10 @@ export function EstablishmentSupportForm({
         </div>
       )}
 
-      {selectedAgent && (
+      {channel === "ESTABLISHMENT" && selectedAgent && (
         <Alert>
           <AlertDescription>
-            Votre message sera adressé à{" "}
+            Votre demande sera adressée à{" "}
             <span className="font-medium text-foreground">
               {selectedAgent.name}
             </span>
@@ -133,40 +160,16 @@ export function EstablishmentSupportForm({
         </Alert>
       )}
 
+      {channel === "PLATFORM" && (
+        <Alert>
+          <AlertDescription>
+            Votre demande sera escaladée directement à l&apos;équipe Klambocore.
+            Vous pourrez suivre son statut ci-dessous.
+          </AlertDescription>
+        </Alert>
+      )}
+
       <div className="grid gap-4 sm:grid-cols-2">
-        <div className="space-y-2">
-          <Label htmlFor="support-name">Nom complet</Label>
-          <Input
-            id="support-name"
-            name="name"
-            required
-            minLength={2}
-            defaultValue={defaultName}
-            placeholder="Votre nom"
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="support-email">Email</Label>
-          <Input
-            id="support-email"
-            name="email"
-            type="email"
-            required
-            defaultValue={defaultEmail}
-            placeholder="vous@example.com"
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="support-phone">Téléphone</Label>
-          <Input
-            id="support-phone"
-            name="phone"
-            placeholder="+243..."
-          />
-        </div>
-
         <div className="space-y-2">
           <Label htmlFor="support-subject">Sujet</Label>
           <Input
@@ -176,6 +179,25 @@ export function EstablishmentSupportForm({
             minLength={3}
             placeholder="Objet de votre demande"
           />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="support-priority">Priorité</Label>
+          <Select
+            value={priority}
+            onValueChange={(value) =>
+              setPriority(value as "low" | "normal" | "high")
+            }
+          >
+            <SelectTrigger id="support-priority" className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="low">Basse</SelectItem>
+              <SelectItem value="normal">Normale</SelectItem>
+              <SelectItem value="high">Haute</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
@@ -199,7 +221,7 @@ export function EstablishmentSupportForm({
           loading={isSubmitting}
           leftSection={<Send className="size-4" />}
         >
-          Envoyer le message
+          Escalader la demande
         </Button>
       </div>
     </form>

@@ -6027,6 +6027,8 @@ export const PlatformSupportEscalationScalarFieldEnum = {
   organizationSupportId: 'organizationSupportId',
   requesterUserId: 'requesterUserId',
   assignedPlatformAgentId: 'assignedPlatformAgentId',
+  branchId: 'branchId',
+  channel: 'channel',
   subject: 'subject',
   message: 'message',
   status: 'status',
@@ -6475,6 +6477,20 @@ export type EnumLibrarySourceFieldRefInput<$PrismaModel> = FieldRefInputType<$Pr
  * Reference to a field of type 'LibrarySource[]'
  */
 export type ListEnumLibrarySourceFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'LibrarySource[]'>
+    
+
+
+/**
+ * Reference to a field of type 'SupportTicketChannel'
+ */
+export type EnumSupportTicketChannelFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'SupportTicketChannel'>
+    
+
+
+/**
+ * Reference to a field of type 'SupportTicketChannel[]'
+ */
+export type ListEnumSupportTicketChannelFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'SupportTicketChannel[]'>
     
 
 

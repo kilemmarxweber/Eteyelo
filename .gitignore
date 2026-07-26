@@ -48,3 +48,6 @@ next-env.d.ts
 /context/
 /.cursor/
 /.vscode/
+/build-log.txt
+/docs/
+/tmp/

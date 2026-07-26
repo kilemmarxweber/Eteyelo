@@ -93,4 +93,14 @@ test("parent → foyer + feedback", () => {
   assert.equal(blocks.pedagogyMetrics, false);
 });
 
+test("support établissement → variante support sans KPI métier", () => {
+  const variant = resolveDashboardVariant(sessionWithOrgRole(ORG_ROLE.SUPPORT));
+  assert.equal(variant, "support");
+  const blocks = getDashboardDataBlocks(variant);
+  assert.equal(blocks.events, true);
+  assert.equal(blocks.revenue, false);
+  assert.equal(blocks.schoolStats, false);
+  assert.equal(blocks.cashier, false);
+});
+
 console.log("\nAll dashboard-variant smoke tests passed.");

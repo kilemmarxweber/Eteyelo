@@ -3,6 +3,7 @@ import {
   canManageOrganization,
   hasSessionRole,
   isDirecteurEtudesRole,
+  isOrganizationSupportRole,
   isSchoolLeadershipRole,
 } from "@/lib/auth/session-roles";
 import { ORG_ROLE } from "@/lib/permissions";
@@ -22,6 +23,7 @@ export type DashboardVariant =
   | "caissier"
   | "student"
   | "parent"
+  | "support"
   | "minimal";
 
 /**
@@ -57,6 +59,10 @@ export function resolveDashboardVariant(session: any): DashboardVariant {
 
   if (hasSessionRole(session, [ORG_ROLE.PARENT, "PARENT", "parent"])) {
     return "parent";
+  }
+
+  if (isOrganizationSupportRole(session)) {
+    return "support";
   }
 
   return "minimal";
@@ -154,6 +160,7 @@ export function getDashboardDataBlocks(
         parent: true,
         parentFeedback: true,
       };
+    case "support":
     case "minimal":
     default:
       return {
@@ -175,4 +182,4 @@ export function canAccessSchoolAdminMetrics(session: any): boolean {
   const blocks = getDashboardDataBlocks(variant);
   return blocks.schoolStats || blocks.pedagogyMetrics;
 }
-
+

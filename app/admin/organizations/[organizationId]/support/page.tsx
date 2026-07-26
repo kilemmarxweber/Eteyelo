@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { prisma } from "@/lib/prisma";
 import {
   canEscalateToPlatformSupport,
+  canAccessOrganizationSupportArea,
   canManageOrganizationSupport,
 } from "@/lib/support/permissions";
 import { listOrganizationSupportAgents } from "@/lib/support/organization-support";
@@ -18,8 +19,11 @@ import { OrganizationSupportClient } from "./organization-support-client";
 import {
   ESCALATION_PRIORITY_LABELS,
   ESCALATION_STATUS_LABELS,
+  SUPPORT_TICKET_CHANNEL_LABELS,
   type EscalationStatus,
+  type SupportTicketChannel,
 } from "@/lib/support/constants";
+import { EstablishmentTicketStatusSelect } from "./establishment-ticket-status-select";
 
 export const dynamic = "force-dynamic";
 
@@ -37,12 +41,13 @@ export default async function OrganizationSupportPage({ params }: PageProps) {
 
   if (!organization) notFound();
 
-  const [canManage, canEscalate] = await Promise.all([
+  const [canManage, canEscalate, canAccess] = await Promise.all([
     canManageOrganizationSupport(organizationId),
     canEscalateToPlatformSupport(organizationId),
+    canAccessOrganizationSupportArea(organizationId),
   ]);
 
-  if (!canManage && !canEscalate) {
+  if (!canAccess) {
     redirect(`/admin/organizations/${organizationId}`);
   }
 
@@ -78,8 +83,9 @@ export default async function OrganizationSupportPage({ params }: PageProps) {
             </h1>
 
             <p className="mt-2 text-sm leading-6 text-blue-50">
-              Gérez les agents internes qui assistent les utilisateurs de votre
-              organisation et escaladez vers Klambocore si nécessaire.
+              {canManage
+                ? "Gérez les agents internes qui assistent les utilisateurs de votre organisation et escaladez vers Klambocore si nécessaire."
+                : "Recevez les signalements de votre établissement et escaladez vers Klambocore lorsque l’intervention plateforme est nécessaire."}
             </p>
           </div>
 
@@ -141,12 +147,12 @@ export default async function OrganizationSupportPage({ params }: PageProps) {
 
       <section className="space-y-3">
         <h2 className="text-base font-semibold text-foreground">
-          Historique des escalades
+          Demandes &amp; escalades
         </h2>
 
         {escalations.length === 0 ? (
           <div className="rounded-2xl border border-dashed bg-card p-5 text-sm text-muted-foreground shadow-sm">
-            Aucune escalade.
+            Aucune demande pour le moment.
           </div>
         ) : (
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
@@ -159,6 +165,11 @@ export default async function OrganizationSupportPage({ params }: PageProps) {
               const statusLabel =
                 ESCALATION_STATUS_LABELS[item.status as EscalationStatus] ??
                 item.status;
+
+              const channelLabel =
+                SUPPORT_TICKET_CHANNEL_LABELS[
+                  item.channel as SupportTicketChannel
+                ] ?? item.channel;
 
               return (
                 <article
@@ -180,8 +191,20 @@ export default async function OrganizationSupportPage({ params }: PageProps) {
                   </p>
 
                   <p className="mt-1 text-xs text-slate-500">
+                    {channelLabel}
+                    {item.branch?.name ? ` · ${item.branch.name}` : ""} ·{" "}
                     {new Date(item.createdAt).toLocaleDateString("fr-FR")}
                   </p>
+
+                  {item.channel === "ESTABLISHMENT" && (
+                    <div className="mt-3">
+                      <EstablishmentTicketStatusSelect
+                        ticketId={item.id}
+                        organizationId={organizationId}
+                        status={item.status as EscalationStatus}
+                      />
+                    </div>
+                  )}
                 </article>
               );
             })}

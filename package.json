@@ -32,6 +32,7 @@
     "test:sidebar-menu": "tsx scripts/test-sidebar-menu.ts",
     "test:caissier-perimeter": "tsx scripts/test-caissier-perimeter.ts",
     "test:post-login-routing": "tsx scripts/test-post-login-routing.ts",
+    "test:support-etablissement": "tsx scripts/test-support-etablissement.ts",
     "test:organizations": "pnpm test:organizations-permissions && pnpm test:post-login-routing",
     "test": "pnpm test:organizations && pnpm test:bulletin",
     "migrate:org-roles": "tsx scripts/migrate-organization-roles.ts",

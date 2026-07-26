@@ -277,7 +277,7 @@ export function canAccessSchoolOpsSettings(
 }
 
 /**
- * Support établissement : ops école + caissier + enseignant.
+ * Support établissement : ops école + caissier + enseignant + agents support.
  */
 export function canAccessSupportSettings(
   session: any,
@@ -295,6 +295,8 @@ export function canAccessSupportSettings(
         ORG_ROLE.TEACHER,
         "TEACHER",
         "teacher",
+        ORG_ROLE.SUPPORT,
+        "support",
       ],
       ...extraRoles,
     )

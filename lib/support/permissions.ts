@@ -86,6 +86,13 @@ export async function canManageOrganizationSupport(
   return role === ORG_ROLE.OWNER || role === ORG_ROLE.GESTIONNAIRE;
 }
 
+function hasSupportOrgRole(role: string | null | undefined) {
+  return (role ?? "")
+    .split(",")
+    .map((value) => value.trim().toLowerCase())
+    .includes(ORG_ROLE.SUPPORT);
+}
+
 /** Est un agent support actif dans l'organisation (peut escalader vers Klambocore). */
 export async function canEscalateToPlatformSupport(
   organizationId: string,
@@ -98,5 +105,44 @@ export async function canEscalateToPlatformSupport(
     session.user.id,
     organizationId,
   );
-  return agent != null;
+  if (agent != null) return true;
+
+  // Rôle org `support` : peut escalader même sans fiche agent encore liée.
+  const member = await prisma.member.findUnique({
+    where: {
+      organizationId_userId: {
+        organizationId,
+        userId: session.user.id,
+      },
+    },
+    select: { role: true },
+  });
+
+  return hasSupportOrgRole(member?.role);
+}
+
+/**
+ * Espace Support établissement : gestionnaires d’agents, agents actifs,
+ * ou membre au rôle `support` (tickets / escalades).
+ */
+export async function canAccessOrganizationSupportArea(
+  organizationId: string,
+): Promise<boolean> {
+  if (await canManageOrganizationSupport(organizationId)) return true;
+  if (await canEscalateToPlatformSupport(organizationId)) return true;
+
+  const session = await getAuthSession();
+  if (!session?.user?.id) return false;
+
+  const member = await prisma.member.findUnique({
+    where: {
+      organizationId_userId: {
+        organizationId,
+        userId: session.user.id,
+      },
+    },
+    select: { role: true },
+  });
+
+  return hasSupportOrgRole(member?.role);
 }

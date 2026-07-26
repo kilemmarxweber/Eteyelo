@@ -263,3 +263,11 @@ export const PlatformSupportEscalationStatus = {
 } as const
 
 export type PlatformSupportEscalationStatus = (typeof PlatformSupportEscalationStatus)[keyof typeof PlatformSupportEscalationStatus]
+
+
+export const SupportTicketChannel = {
+  ESTABLISHMENT: 'ESTABLISHMENT',
+  PLATFORM: 'PLATFORM'
+} as const
+
+export type SupportTicketChannel = (typeof SupportTicketChannel)[keyof typeof SupportTicketChannel]
