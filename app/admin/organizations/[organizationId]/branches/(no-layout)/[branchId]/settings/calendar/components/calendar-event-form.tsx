@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import { useAppTransition as useTransition } from "@/hooks/use-app-transition";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -351,10 +352,13 @@ export function CalendarEventForm({
             className="group relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-xl border border-dashed bg-muted/30 transition hover:border-primary/40"
           >
             {previewSrc ? (
-              <img
+              <Image
                 src={previewSrc}
                 alt="Illustration evenement"
-                className="absolute inset-0 size-full object-cover"
+                fill
+                unoptimized
+                sizes="140px"
+                className="object-cover"
               />
             ) : (
               <div className="flex flex-col items-center gap-1 px-2 text-center text-xs text-muted-foreground">

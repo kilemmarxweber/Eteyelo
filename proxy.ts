@@ -33,7 +33,3 @@ export function proxy(req: NextRequest) {
   req.nextUrl.searchParams.set("userAgent", userAgent);
   return NextResponse.next();
 }
-
-export const config = {
-  matcher: ["/api/auth/:path*", "/admin", "/admin/:path*"],
-};
