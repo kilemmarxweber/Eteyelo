@@ -98,27 +98,40 @@ test("Directeur des études → /paiement refusé ; /classe /teaching OK", () =>
   );
 });
 
-test("Chef établissement (directeur ou préfet) → /paiement OK ; /classe OK", () => {
+test("Chef établissement (directeur ou préfet) → pédagogie OK ; /paiement refusé", () => {
   for (const session of [sessionDirecteur, sessionPrefet]) {
     assertAreas(
       session,
       [
-        "finance",
         "school_admin",
         "pedagogy",
         "notes",
         "hr_directory",
         "hr_write",
+        "school_ops_settings",
+        "support_settings",
       ],
-      ["branch_org_settings"],
+      ["finance", "branch_org_settings"],
     );
   }
 });
 
-test("Settings org avancés → refusés pour chef école / études", () => {
+test("Settings org avancés → refusés pour chef école / études ; ops/support OK chef", () => {
   assert.equal(
     canAccessBranchArea("branch_org_settings", sessionDirecteur),
     false,
+  );
+  assert.equal(
+    canAccessBranchArea("school_ops_settings", sessionDirecteur),
+    true,
+  );
+  assert.equal(
+    canAccessBranchArea("support_settings", sessionCaissier),
+    true,
+  );
+  assert.equal(
+    canAccessBranchArea("support_settings", sessionTeacher),
+    true,
   );
   assert.equal(
     canAccessBranchArea("branch_org_settings", sessionEtudes),

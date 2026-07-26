@@ -54,7 +54,7 @@ test("enseignant : teaching oui, finance / pedagogy / manage non", () => {
 
 test("URL /paiement refusée via canAccessFinanceArea", () => {
   assert.equal(canAccessFinanceArea(sessionTeacher), false);
-  assert.equal(canAccessFinanceArea(sessionDirecteur), true);
+  assert.equal(canAccessFinanceArea(sessionDirecteur), false);
 });
 
 test("setup Classes / Cours / Inscription / Affectations : pedagogy, pas teaching", () => {

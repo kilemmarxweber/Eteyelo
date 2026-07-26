@@ -18,6 +18,7 @@ import {
   buildSchoolReportContext,
   schoolReportBranchSelect,
 } from "@/lib/reports/resolve-school-branding";
+import { requireCurrentSchoolYear } from "@/lib/school-year";
 import { action } from "@/lib/zsa";
 import { createOrganizationMemberAction } from "../../../../members/actions";
 import {
@@ -25,6 +26,94 @@ import {
   ITeacher,
   teacherSchema,
 } from "@/src/interfaces/Teacher";
+
+async function syncTeacherTitulaire(input: {
+  branchId: string;
+  teacherId: string;
+  estTitulaire?: boolean;
+  classeId?: string;
+  coursId?: string;
+}) {
+  const schoolYear = await requireCurrentSchoolYear(input.branchId);
+
+  // Retire le statut titulaire de cet enseignant pour l'année en cours.
+  await prisma.teaching.updateMany({
+    where: {
+      branchId: input.branchId,
+      teacherId: input.teacherId,
+      schoolYearId: schoolYear.id,
+      titulaire: true,
+    },
+    data: { titulaire: false },
+  });
+
+  if (!input.estTitulaire || !input.classeId || !input.coursId) {
+    return;
+  }
+
+  const [classe, cours] = await Promise.all([
+    prisma.classe.findFirst({
+      where: { id: input.classeId, branchId: input.branchId },
+      select: { id: true },
+    }),
+    prisma.cours.findFirst({
+      where: { id: input.coursId, branchId: input.branchId },
+      select: { id: true },
+    }),
+  ]);
+
+  if (!classe) {
+    throw new Error("Classe introuvable dans cette branche");
+  }
+  if (!cours) {
+    throw new Error("Cours introuvable dans cette branche");
+  }
+
+  // Un seul titulaire par classe / année.
+  await prisma.teaching.updateMany({
+    where: {
+      branchId: input.branchId,
+      classeId: input.classeId,
+      schoolYearId: schoolYear.id,
+      titulaire: true,
+    },
+    data: { titulaire: false },
+  });
+
+  const existing = await prisma.teaching.findFirst({
+    where: {
+      classeId: input.classeId,
+      schoolYearId: schoolYear.id,
+      coursId: input.coursId,
+    },
+    select: { id: true },
+  });
+
+  if (existing) {
+    await prisma.teaching.update({
+      where: { id: existing.id },
+      data: {
+        teacherId: input.teacherId,
+        statusTeaching: true,
+        titulaire: true,
+        branchId: input.branchId,
+      },
+    });
+    return;
+  }
+
+  await prisma.teaching.create({
+    data: {
+      branchId: input.branchId,
+      teacherId: input.teacherId,
+      classeId: input.classeId,
+      schoolYearId: schoolYear.id,
+      coursId: input.coursId,
+      statusTeaching: true,
+      titulaire: true,
+    },
+  });
+}
 
 export async function getCurrentBranch() {
   const session = await auth.api.getSession({
@@ -165,6 +254,16 @@ export const createTeacherAction = action
         },
       });
 
+      if (input.estTitulaire && input.classeId && input.coursId) {
+        await syncTeacherTitulaire({
+          branchId,
+          teacherId: teacher.id,
+          estTitulaire: true,
+          classeId: input.classeId,
+          coursId: input.coursId,
+        });
+      }
+
       return {
         ok: true,
         teacher,
@@ -296,6 +395,9 @@ export const getTeachersAction = action.handler(
           },
           select: {
             id: true,
+            titulaire: true,
+            classeId: true,
+            coursId: true,
             classe: { select: { id: true, nameClasse: true } },
             cours: { select: { id: true, nameCours: true } },
           },
@@ -305,6 +407,9 @@ export const getTeachersAction = action.handler(
 
     return teachers.map((teacher) => {
       const user = teacher.branchMember?.member?.user;
+      const titulaireTeaching = teacher.teaching.find(
+        (item) => item.titulaire === true,
+      );
       const classNames = Array.from(
         new Set(
           teacher.teaching
@@ -346,6 +451,9 @@ export const getTeachersAction = action.handler(
         courseCount: courseNames.length,
         classNames,
         courseNames,
+        estTitulaire: Boolean(titulaireTeaching),
+        classeId: titulaireTeaching?.classeId ?? "",
+        coursId: titulaireTeaching?.coursId ?? "",
       };
     });
   },
@@ -512,6 +620,16 @@ export const updateTeacherAction = action
         address: userData.address,
       },
     });
+
+    if (canManageTeachers) {
+      await syncTeacherTitulaire({
+        branchId,
+        teacherId: teacher.id,
+        estTitulaire: Boolean(input.estTitulaire),
+        classeId: input.classeId,
+        coursId: input.coursId,
+      });
+    }
 
     return {
       ok: true,

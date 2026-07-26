@@ -15,13 +15,12 @@ function sessionWithOrgRole(role: string) {
   return { organization: { role } };
 }
 
-test("préfet / directeur → pilotage + finance (même variante)", () => {
+test("préfet / directeur → pilotage pédagogique (même variante)", () => {
   for (const role of [ORG_ROLE.PREFET, ORG_ROLE.DIRECTEUR] as const) {
     const variant = resolveDashboardVariant(sessionWithOrgRole(role));
     assert.equal(variant, "directeur");
     const blocks = getDashboardDataBlocks(variant);
     assert.equal(blocks.schoolStats, true);
-    assert.equal(blocks.revenue, true);
     assert.equal(blocks.pedagogyMetrics, true);
     assert.equal(blocks.cashier, false);
   }

@@ -5,22 +5,33 @@ import {
   resolveCursusViewerRole,
 } from "../lib/auth/cursus-scope";
 import {
+  getDashboardDataBlocks,
+  resolveDashboardVariant,
+} from "../lib/auth/dashboard-variant";
+import {
   canAccessLibraryArea,
   canAccessNotesReadArea,
   canAccessScheduleReadArea,
   canManageOrganization,
 } from "../lib/auth/session-roles";
+import { resolveMembershipPostLoginPath } from "../lib/auth/post-login-routing";
+import { orgRoleLabel } from "../lib/org-role-labels";
 import { ORG_ROLE } from "../lib/permissions";
 import { getPeopleLabels } from "../lib/people-labels";
+import { getPrimaryRoleLabel } from "../lib/sidebar-menu";
 import { TypeBrache } from "../prisma/generated/prisma/enums";
+import { getDashboardShortcuts } from "../app/admin/organizations/[organizationId]/branches/(no-layout)/[branchId]/dashboard-shortcuts";
 
 function test(name: string, assertion: () => void) {
   assertion();
   console.log(`✓ ${name}`);
 }
 
-function sessionWithOrgRole(role: string) {
-  return { organization: { role } };
+function sessionWithOrgRole(
+  role: string,
+  extras: Record<string, unknown> = {},
+) {
+  return { organization: { role }, ...extras };
 }
 
 const sessionStudent = sessionWithOrgRole(ORG_ROLE.STUDENT);
@@ -59,10 +70,64 @@ test("bibliothèque : élève, parent et enseignant oui", () => {
   assert.equal(canAccessLibraryArea(sessionTeacher), true);
 });
 
-test("libellés primaire = Élève via getPeopleLabels", () => {
-  const labels = getPeopleLabels(TypeBrache.PRIMAIRE);
-  assert.equal(labels.student, "Élève");
-  assert.equal(labels.teacher, "Enseignant");
+test("libellés typebranche : Élève / Apprenant / Étudiant", () => {
+  assert.equal(getPeopleLabels(TypeBrache.PRIMAIRE).student, "Élève");
+  assert.equal(getPeopleLabels(TypeBrache.SECONDAIRE).student, "Élève");
+  assert.equal(getPeopleLabels(TypeBrache.CENTRE_FORMATION).student, "Apprenant");
+  assert.equal(getPeopleLabels(TypeBrache.UNIVERSITE).student, "Étudiant");
+  assert.equal(
+    orgRoleLabel(ORG_ROLE.STUDENT, { typebranch: TypeBrache.CENTRE_FORMATION }),
+    "Apprenant",
+  );
+  assert.equal(
+    orgRoleLabel(ORG_ROLE.STUDENT, { typebranch: TypeBrache.UNIVERSITE }),
+    "Étudiant",
+  );
+  assert.equal(
+    orgRoleLabel(ORG_ROLE.TEACHER, { typebranch: TypeBrache.UNIVERSITE }),
+    "Professeur",
+  );
+  assert.equal(
+    getPrimaryRoleLabel(
+      sessionWithOrgRole(ORG_ROLE.STUDENT, {
+        branch: { typebranch: TypeBrache.UNIVERSITE },
+      }),
+    ),
+    "Étudiant",
+  );
+});
+
+test("dashboard élève : variante student ; raccourcis Résultats + Bibliothèque", () => {
+  assert.equal(resolveDashboardVariant(sessionStudent), "student");
+  const blocks = getDashboardDataBlocks("student");
+  assert.equal(blocks.student, true);
+  assert.equal(blocks.revenue, false);
+  assert.equal(blocks.cashier, false);
+
+  const shortcuts = getDashboardShortcuts("student", {
+    organizationId: "org-test",
+    branchId: "branch-test",
+    studentLabel: "Élève",
+    studentPluralLower: "élèves",
+    classLabelPlural: "Classes",
+    showFinance: false,
+  });
+  const titles = shortcuts.map((item) => item.title);
+  assert.deepEqual(titles, ["Résultats", "Bibliothèque"]);
+  assert.ok(!titles.includes("Notes"));
+  assert.ok(!titles.includes("Fiches"));
+});
+
+test("post-login élève → branche", () => {
+  assert.equal(
+    resolveMembershipPostLoginPath({
+      organizationId: "org-test",
+      membershipRole: ORG_ROLE.STUDENT,
+      branchId: "branch-primaire",
+      branchCount: 1,
+    }),
+    "/admin/organizations/org-test/branches/branch-primaire",
+  );
 });
 
 console.log("\nAll unit-05 eleve/parent smoke tests passed.");

@@ -1,3 +1,3 @@
-﻿import AssertBranchOrgSettingsLayout from "../components/assert-branch-org-settings-layout";
+﻿import AssertSupportSettingsLayout from "../components/assert-support-settings-layout";
 
-export default AssertBranchOrgSettingsLayout;
+export default AssertSupportSettingsLayout;

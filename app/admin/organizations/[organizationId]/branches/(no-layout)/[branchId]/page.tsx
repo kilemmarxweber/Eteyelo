@@ -106,6 +106,7 @@ export default function AdminDashboard() {
 
   /** null tant que la session n'a pas résolu le rôle — évite le flash « minimal ». */
   const [variant, setVariant] = useState<DashboardVariant | null>(null);
+  const [canAccessFinance, setCanAccessFinance] = useState(false);
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [events, setEvents] = useState<any[]>([]);
@@ -163,6 +164,7 @@ export default function AdminDashboard() {
   const showFinanceCapability = usesFinanceForBranch(typebranch);
   const showParents = !hidesParentManagement(typebranch);
   const showRevenue =
+    canAccessFinance &&
     variant === "directeur" &&
     showFinanceCapability &&
     Boolean(stats?.revenue);
@@ -179,6 +181,7 @@ export default function AdminDashboard() {
         if (cancelled) return;
 
         setVariant(data.variant);
+        setCanAccessFinance(Boolean(data.canAccessFinance));
         setTypebranchState(data.typebranch ?? null);
         setStats(
           data.stats && typeof data.stats === "object"
@@ -234,7 +237,8 @@ export default function AdminDashboard() {
             classLabelPlural,
             showFinance:
               showFinanceCapability &&
-              (variant === "directeur" || variant === "parent"),
+              ((variant === "directeur" && canAccessFinance) ||
+                variant === "parent"),
             parentFinance:
               variant === "parent" && parent?.finance
                 ? {
@@ -261,6 +265,7 @@ export default function AdminDashboard() {
       peopleLabels.studentPluralLower,
       classLabelPlural,
       showFinanceCapability,
+      canAccessFinance,
       parent,
     ],
   );
@@ -467,7 +472,7 @@ export default function AdminDashboard() {
             <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(260px,0.9fr)]">
               <ParentChildrenSection
                 loading={loading}
-                children={parent?.children ?? []}
+                childProfiles={parent?.children ?? []}
               />
               {showParentSatisfaction ? (
                 <ParentSatisfactionSection

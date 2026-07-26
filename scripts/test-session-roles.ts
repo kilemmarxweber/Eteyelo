@@ -8,6 +8,8 @@ import {
   canAccessRegistrationArea,
   canAccessResultsArea,
   canAccessScheduleReadArea,
+  canAccessSchoolOpsSettings,
+  canAccessSupportSettings,
   canAccessTeachingArea,
   canManageHrDirectory,
   canManageOrganization,
@@ -47,12 +49,12 @@ test("canAccessTeachingArea(sessionCaissier) === false", () => {
   assert.equal(canAccessTeachingArea(sessionCaissier), false);
 });
 
-test("canAccessFinanceArea(sessionDirecteur) === true", () => {
-  assert.equal(canAccessFinanceArea(sessionDirecteur), true);
+test("canAccessFinanceArea(sessionDirecteur) === false (chef école sans finance)", () => {
+  assert.equal(canAccessFinanceArea(sessionDirecteur), false);
 });
 
-test("canAccessFinanceArea(sessionPrefet) === true (alias chef établissement)", () => {
-  assert.equal(canAccessFinanceArea(sessionPrefet), true);
+test("canAccessFinanceArea(sessionPrefet) === false (alias chef établissement)", () => {
+  assert.equal(canAccessFinanceArea(sessionPrefet), false);
 });
 
 test("canAccessFinanceArea(directeur_etudes) === false", () => {
@@ -136,6 +138,17 @@ test("canManageHrDirectory : chef école CRUD ; directeur des études lecture se
   );
   assert.equal(canManageHrDirectory(sessionGestionnaire), true);
   assert.equal(canManageHrDirectory(sessionTeacher), false);
+});
+
+test("settings : chef école ops + support ; caissier/enseignant support seulement", () => {
+  assert.equal(canAccessSchoolOpsSettings(sessionDirecteur), true);
+  assert.equal(canAccessSchoolOpsSettings(sessionPrefet), true);
+  assert.equal(canAccessSchoolOpsSettings(sessionCaissier), false);
+  assert.equal(canAccessSchoolOpsSettings(sessionTeacher), false);
+  assert.equal(canAccessSupportSettings(sessionDirecteur), true);
+  assert.equal(canAccessSupportSettings(sessionCaissier), true);
+  assert.equal(canAccessSupportSettings(sessionTeacher), true);
+  assert.equal(canAccessSupportSettings(sessionStudent), false);
 });
 
 test("notifications : caissier inscription oui, candidature non", () => {

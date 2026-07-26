@@ -186,6 +186,7 @@ export function getDashboardShortcuts(
       ];
 
     case "student":
+      // Aligné menu + guards : Résultats + Bibliothèque uniquement (pas Notes/Fiches).
       return [
         {
           title: "Résultats",
@@ -193,20 +194,6 @@ export function getDashboardShortcuts(
           href: href("/results"),
           color: "bg-indigo-500",
           iconKey: "results",
-        },
-        {
-          title: "Notes",
-          description: "Cours déjà notés",
-          href: href("/notes"),
-          color: "bg-purple-500",
-          iconKey: "notes",
-        },
-        {
-          title: "Fiches",
-          description: "Mes fiches",
-          href: href("/fiches"),
-          color: "bg-teal-500",
-          iconKey: "book",
         },
         {
           title: "Bibliothèque",
@@ -284,7 +271,7 @@ export function overviewDescriptionForVariant(
   switch (variant) {
     case "directeur":
       return isSchoolBranch
-        ? `Pilotage de votre établissement (${branchTypeLabel})`
+        ? `Pilotage pédagogique de votre établissement (${branchTypeLabel})`
         : `Pilotage de votre ${branchTypeLabel.toLowerCase()}`;
     case "directeur_etudes":
     case "prefet":

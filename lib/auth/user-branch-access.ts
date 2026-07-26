@@ -18,6 +18,16 @@ export const BRANCH_LOGIN_ORG_ROLES = new Set<string>([
   ORG_ROLE.CAISSIER,
 ]);
 
+/**
+ * Leadership école / études : atterrissent sur la branche de leur BranchMember
+ * (DIRECTOR / ADMIN), sans fallback vers la 1ʳᵉ branche de l’org.
+ */
+export const SCHOOL_LEADERSHIP_LOGIN_ORG_ROLES = new Set<string>([
+  ORG_ROLE.DIRECTEUR,
+  ORG_ROLE.PREFET,
+  ORG_ROLE.DIRECTEUR_ETUDES,
+]);
+
 export type UserBranchMembership = {
   branchId: string;
   branchName: string;
@@ -112,9 +122,9 @@ export async function getAnyUserBranchMemberships(
 }
 
 /**
- * Pour login : caissier / enseignant / parent / élève.
- * Prefère les rôles BranchUser, sinon n'importe quel BranchMember,
- * sinon première branche active de l'organisation (évite le 404 org).
+ * Pour login : caissier / enseignant / parent / élève / leadership école.
+ * Prefère les rôles BranchUser, sinon n'importe quel BranchMember.
+ * Fallback 1ʳᵉ branche org : uniquement pour BRANCH_LOGIN (évite le 404 org).
  */
 export async function getUserBranchMembershipsForLogin(
   userId: string,
@@ -126,10 +136,15 @@ export async function getUserBranchMembershipsForLogin(
     return scoped;
   }
 
-  const needsBranch = splitRoles(membershipRole).some((role) =>
+  const roles = splitRoles(membershipRole);
+  const isBranchLoginRole = roles.some((role) =>
     BRANCH_LOGIN_ORG_ROLES.has(role),
   );
-  if (!needsBranch) {
+  const isSchoolLeadershipRole = roles.some((role) =>
+    SCHOOL_LEADERSHIP_LOGIN_ORG_ROLES.has(role),
+  );
+
+  if (!isBranchLoginRole && !isSchoolLeadershipRole) {
     return [];
   }
 
@@ -139,6 +154,11 @@ export async function getUserBranchMembershipsForLogin(
   );
   if (anyMembership.length > 0) {
     return anyMembership;
+  }
+
+  // Leadership : uniquement la branche d’affectation BranchMember — pas de fallback org.
+  if (!isBranchLoginRole) {
+    return [];
   }
 
   const fallbackBranch = await prisma.branch.findFirst({

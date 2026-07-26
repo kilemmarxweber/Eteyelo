@@ -1,5 +1,6 @@
-import { ALL_ORG_ROLE_SLUGS, ORG_ROLE, SCHOOL_HEAD_ORG_ROLES } from "@/lib/permissions";
 import { normalizeBranchType } from "@/lib/academic-structure";
+import { ALL_ORG_ROLE_SLUGS, ORG_ROLE, SCHOOL_HEAD_ORG_ROLES } from "@/lib/permissions";
+import { getPeopleLabels } from "@/lib/people-labels";
 
 /** Libellés UI pour les slugs de rôle d’organisation. */
 export const ORG_ROLE_LABEL: Record<
@@ -20,13 +21,13 @@ export const ORG_ROLE_LABEL: Record<
 };
 
 /**
- * Libellé chef d’établissement selon le type d’école :
- * primaire → Directeur ; secondaire / humanités → Préfet.
+ * Libellé chef d’établissement selon le type de branche :
+ * secondaire → Préfet ; primaire / centre / atelier / université → Directeur.
  */
 export function schoolHeadRoleLabel(typebranch?: unknown): string {
   const type = normalizeBranchType(typebranch);
-  if (type === "PRIMAIRE") return "Directeur";
-  return "Préfet";
+  if (type === "SECONDAIRE") return "Préfet";
+  return "Directeur";
 }
 
 export function isSchoolHeadOrgRole(slug: string | null | undefined): boolean {
@@ -42,6 +43,14 @@ export function orgRoleLabel(
 
   if (options?.typebranch != null && isSchoolHeadOrgRole(normalized)) {
     return schoolHeadRoleLabel(options.typebranch);
+  }
+
+  if (options?.typebranch != null && normalized === ORG_ROLE.STUDENT) {
+    return getPeopleLabels(options.typebranch).student;
+  }
+
+  if (options?.typebranch != null && normalized === ORG_ROLE.TEACHER) {
+    return getPeopleLabels(options.typebranch).teacher;
   }
 
   return ORG_ROLE_LABEL[normalized as keyof typeof ORG_ROLE_LABEL] ?? slug;

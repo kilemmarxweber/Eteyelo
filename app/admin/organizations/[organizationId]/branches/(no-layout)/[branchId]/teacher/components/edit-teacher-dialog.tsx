@@ -63,6 +63,9 @@ export function UpdateTeacherDialog({
               email: teacher.email ?? "",
               dateOfBirth: teacher.dateOfBirth,
               address: teacher.address ?? "",
+              estTitulaire: teacher.estTitulaire ?? false,
+              classeId: teacher.classeId ?? "",
+              coursId: teacher.coursId ?? "",
             }}
             onTeacherUpdate={handleUpdated}
           />

@@ -3,6 +3,7 @@ import {
   canManageOrganization,
   hasSessionRole,
   isDirecteurEtudesRole,
+  isSchoolLeadershipRole,
 } from "@/lib/auth/session-roles";
 import { ORG_ROLE } from "@/lib/permissions";
 
@@ -10,7 +11,7 @@ import { ORG_ROLE } from "@/lib/permissions";
  * Variantes du dashboard branche (unit-00 §3bis / unit-03b).
  * Une seule route `/[branchId]` ; le contenu dépend du rôle session.
  *
- * `directeur` = chef d’établissement (préfet/directeur) — pilotage + finance.
+ * `directeur` = chef d’établissement / gestion org — pilotage (finance selon rôle).
  * `prefet` = alias historique de la variante pédagogique (directeur des études).
  */
 export type DashboardVariant =
@@ -25,12 +26,13 @@ export type DashboardVariant =
 
 /**
  * Résout la variante dashboard depuis la session.
- * Priorité : chef école (finance) → directeur des études → métier branche.
+ * Priorité : études → chef école → gestion org (finance) → métier branche.
  */
 export function resolveDashboardVariant(session: any): DashboardVariant {
   if (canManageOrganization(session)) {
-    if (canAccessFinanceArea(session)) return "directeur";
     if (isDirecteurEtudesRole(session)) return "directeur_etudes";
+    if (isSchoolLeadershipRole(session)) return "directeur";
+    if (canAccessFinanceArea(session)) return "directeur";
     return "prefet";
   }
 

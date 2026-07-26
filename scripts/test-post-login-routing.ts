@@ -101,10 +101,29 @@ test("multi-branches sans preference route vers branch-picker", () => {
   );
 });
 
-test("roles ecodim (directeur / prefet / superviseur) route vers /ecodim", () => {
+test("directeur / prefet / etudes avec branche route vers cette branche", () => {
   for (const membershipRole of [
     ORG_ROLE.DIRECTEUR,
     ORG_ROLE.PREFET,
+    ORG_ROLE.DIRECTEUR_ETUDES,
+  ]) {
+    assert.equal(
+      resolveMembershipPostLoginPath({
+        organizationId: ORG_ID,
+        membershipRole,
+        branchId: BRANCH_ID,
+        branchCount: 1,
+      }),
+      `/admin/organizations/${ORG_ID}/branches/${BRANCH_ID}`,
+    );
+  }
+});
+
+test("roles ecodim sans branche route vers /ecodim", () => {
+  for (const membershipRole of [
+    ORG_ROLE.DIRECTEUR,
+    ORG_ROLE.PREFET,
+    ORG_ROLE.DIRECTEUR_ETUDES,
     ORG_ROLE.SUPERVISEUR,
   ]) {
     assert.equal(

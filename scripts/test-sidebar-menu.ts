@@ -147,7 +147,7 @@ test("enseignant : pas Enseignement / Utilisateurs ; Cursus Notes/Résultats/Bib
   assertExcludes(cursus, ["Horaire"], "enseignant cursus");
 });
 
-test("préfet / directeur : pédagogie + Finance (chef établissement unifié)", () => {
+test("préfet / directeur : pédagogie complète — pas Finance", () => {
   for (const role of [ORG_ROLE.PREFET, ORG_ROLE.DIRECTEUR] as const) {
     const titles = menuTitles(sessionWithOrgRole(role));
     assertIncludes(
@@ -158,12 +158,12 @@ test("préfet / directeur : pédagogie + Finance (chef établissement unifié)",
         "Utilisateurs",
         "Enseignement",
         "Classes",
-        "Finance",
         "Cursus",
         "Aide",
       ],
       role,
     );
+    assertExcludes(titles, ["Finance"], role);
   }
 });
 

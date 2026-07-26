@@ -45,8 +45,8 @@ test("helpers : caissier finance + inscription + lecture élèves oui, manage/te
   assert.equal(canAccessTeachingArea(sessionCaissier), false);
 });
 
-test("directeur / gestionnaire gardent la finance (pas de régression caisse)", () => {
-  assert.equal(canAccessFinanceArea(sessionDirecteur), true);
+test("gestionnaire garde la finance ; directeur (chef école) non", () => {
+  assert.equal(canAccessFinanceArea(sessionDirecteur), false);
   assert.equal(canAccessFinanceArea(sessionGestionnaire), true);
   assert.equal(canManageOrganization(sessionDirecteur), true);
   assert.equal(canManageOrganization(sessionGestionnaire), true);

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, type ReactElement } from "react";
 import { usePathname } from "next/navigation";
 import {
   IconClipboardList,
@@ -21,15 +21,21 @@ import { authClient } from "@/lib/auth-client";
 import { isPrimaryBranch } from "@/lib/branch-capabilities";
 import {
   canAccessBranchOrgSettings,
+  canAccessSchoolOpsSettings,
+  canAccessSupportSettings,
   hasSessionRole,
 } from "@/lib/auth/session-roles";
 import { ORG_ROLE } from "@/lib/permissions";
 import SidebarNav from "./components/sidebar-nav";
 
+type SettingsNavAccess = "always" | "org" | "school_ops" | "support";
+
 export default function Settings({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { data: session } = authClient.useSession();
   const canSeeOrgSettings = canAccessBranchOrgSettings(session);
+  const canSeeSchoolOps = canAccessSchoolOpsSettings(session);
+  const canSeeSupport = canAccessSupportSettings(session);
   const showPrimaryDomains = isPrimaryBranch(session?.branch?.typebranch);
   const isCursusSelfUser = hasSessionRole(session, [
     ORG_ROLE.STUDENT,
@@ -47,7 +53,7 @@ export default function Settings({ children }: { children: React.ReactNode }) {
 
   const sidebarNavItems = useMemo(() => {
     // Élève / parent : profil + mot de passe uniquement (unit-05).
-    if (isCursusSelfUser && !canSeeOrgSettings) {
+    if (isCursusSelfUser && !canSeeOrgSettings && !canSeeSchoolOps) {
       return [
         {
           title: "Profil",
@@ -62,86 +68,109 @@ export default function Settings({ children }: { children: React.ReactNode }) {
       ];
     }
 
-    const items = [
+    const items: Array<{
+      title: string;
+      icon: ReactElement;
+      href: string;
+      access: SettingsNavAccess;
+      primaryOnly?: boolean;
+    }> = [
       {
         title: "Profil",
         icon: <IconUser size={18} />,
         href: settingsBasePath,
-        orgSettingsOnly: false,
+        access: "always",
       },
       {
         title: "Apparence",
         icon: <IconPalette size={18} />,
         href: `${settingsBasePath}/appearance`,
-        orgSettingsOnly: false,
+        access: "always",
       },
       {
         title: "Mot de passe",
         icon: <IconKey size={18} />,
         href: "/auth/change-password",
-        orgSettingsOnly: false,
+        access: "always",
       },
       {
         title: "Types de frais",
         icon: <IconReportMoney size={18} />,
         href: `${settingsBasePath}/typeFrais`,
-        orgSettingsOnly: true,
+        access: "org",
       },
       {
         title: "Taux de change",
         icon: <IconCurrencyDollar size={18} />,
         href: `${settingsBasePath}/exchange-rates`,
-        orgSettingsOnly: true,
+        access: "org",
       },
       {
         title: "Communication publique",
         icon: <IconClipboardList size={18} />,
         href: `${settingsBasePath}/inscription-publique`,
-        orgSettingsOnly: true,
+        access: "school_ops",
       },
       {
         title: "Calendrier scolaire",
         icon: <IconCalendarCog size={18} />,
         href: `${settingsBasePath}/calendar`,
-        orgSettingsOnly: true,
+        access: "school_ops",
       },
       {
         title: "Horaires",
         icon: <IconClockHour4 size={18} />,
         href: `${settingsBasePath}/horaires`,
-        orgSettingsOnly: true,
+        access: "org",
       },
       {
         title: "Présences",
         icon: <IconUserCheck size={18} />,
         href: `${settingsBasePath}/attendance`,
-        orgSettingsOnly: true,
+        access: "org",
       },
       {
         title: "Domaines primaire",
         icon: <IconBooks size={18} />,
         href: `${settingsBasePath}/primary-domains`,
-        orgSettingsOnly: true,
+        access: "org",
         primaryOnly: true,
       },
       {
         title: "Support",
         icon: <IconHeadphones size={18} />,
         href: `${settingsBasePath}/support`,
-        orgSettingsOnly: true,
+        access: "support",
       },
     ];
+
+    const canAccess = (access: SettingsNavAccess) => {
+      switch (access) {
+        case "always":
+          return true;
+        case "org":
+          return canSeeOrgSettings;
+        case "school_ops":
+          return canSeeSchoolOps;
+        case "support":
+          return canSeeSupport;
+        default:
+          return false;
+      }
+    };
 
     return items
       .filter(
         (item) =>
-          (!item.orgSettingsOnly || canSeeOrgSettings) &&
-          (!("primaryOnly" in item && item.primaryOnly) || showPrimaryDomains),
+          canAccess(item.access) &&
+          (!item.primaryOnly || showPrimaryDomains),
       )
-      .map(({ orgSettingsOnly: _, primaryOnly: __, ...item }) => item);
+      .map(({ access: _, primaryOnly: __, ...item }) => item);
   }, [
     settingsBasePath,
     canSeeOrgSettings,
+    canSeeSchoolOps,
+    canSeeSupport,
     showPrimaryDomains,
     isCursusSelfUser,
   ]);

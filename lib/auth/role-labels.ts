@@ -18,6 +18,7 @@ export function getApplicationRoleLabel(
 export function getOrganizationAccessRoleLabel(
   appRole: string | null | undefined,
   memberRole?: string | null,
+  typebranch?: unknown,
 ): string {
   const normalizedAppRole = (appRole ?? "").trim().toLowerCase();
 
@@ -35,7 +36,7 @@ export function getOrganizationAccessRoleLabel(
     .filter(Boolean)[0];
 
   if (primaryMemberRole) {
-    return orgRoleLabel(primaryMemberRole);
+    return orgRoleLabel(primaryMemberRole, { typebranch });
   }
 
   return getApplicationRoleLabel(appRole);

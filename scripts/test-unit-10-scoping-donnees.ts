@@ -62,9 +62,9 @@ test("caissier : finance oui, manage org non (pas maj dossier scolaire)", () => 
   assert.equal(canManageOrganization(sessionCaissier), false);
 });
 
-test("chef établissement (directeur/prefet) : finance + manage", () => {
-  assert.equal(canAccessFinanceArea(sessionDirecteur), true);
-  assert.equal(canAccessFinanceArea(sessionPrefet), true);
+test("chef établissement (directeur/prefet) : manage sans finance", () => {
+  assert.equal(canAccessFinanceArea(sessionDirecteur), false);
+  assert.equal(canAccessFinanceArea(sessionPrefet), false);
   assert.equal(canManageOrganization(sessionDirecteur), true);
   assert.equal(canManageOrganization(sessionPrefet), true);
 });

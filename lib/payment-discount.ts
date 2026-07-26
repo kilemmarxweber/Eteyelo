@@ -35,9 +35,9 @@ export function computeScopedDiscountAmount(
 
 export async function getBestDiscountInfo(
   tx: {
-    parent: { findFirst: (args: unknown) => Promise<any> };
+    parent: { findFirst: (args?: any) => Promise<any> };
     discountRule: {
-      findFirst: (args: unknown) => Promise<any>;
+      findFirst: (args?: any) => Promise<any>;
     };
   },
   parentId: string,

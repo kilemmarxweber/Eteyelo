@@ -946,10 +946,10 @@ const CHILD_CARD_TONES = [
 
 export function ParentChildrenSection({
   loading,
-  children,
+  childProfiles,
 }: {
   loading: boolean;
-  children: { id: string; name: string; className: string | null }[];
+  childProfiles: { id: string; name: string; className: string | null }[];
 }) {
   const params = useParams<{ organizationId: string; branchId: string }>();
   const organizationId = params.organizationId;
@@ -974,12 +974,12 @@ export function ParentChildrenSection({
               </CardDescription>
             </div>
           </div>
-          {!loading && children.length > 0 ? (
+          {!loading && childProfiles.length > 0 ? (
             <Badge
               variant="outline"
               className="shrink-0 border-violet-500/30 bg-violet-500/10 text-[10px] text-violet-700 dark:text-violet-300"
             >
-              {children.length}
+              {childProfiles.length}
             </Badge>
           ) : null}
         </div>
@@ -989,9 +989,9 @@ export function ParentChildrenSection({
           <div className="rounded-md border border-violet-500/25 bg-violet-500/10 px-2.5 py-2 text-xs font-medium text-violet-700 dark:text-violet-300">
             Chargement…
           </div>
-        ) : children.length > 0 ? (
+        ) : childProfiles.length > 0 ? (
           <div className="flex flex-wrap gap-2.5">
-            {children.map((child, index) => {
+            {childProfiles.map((child, index) => {
               const href = `/admin/organizations/${organizationId}/branches/${branchId}/student/${child.id}`;
               const tone = CHILD_CARD_TONES[index % CHILD_CARD_TONES.length];
               const initials = (child.name || "?")

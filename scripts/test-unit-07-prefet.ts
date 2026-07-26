@@ -1,6 +1,6 @@
 /**
  * Smoke tests — unit-07 périmètre directeur des études (pédagogie, pas finance).
- * Note : `prefet` / `directeur` sont unifiés (chef établissement + finance).
+ * Note : `prefet` / `directeur` sont unifiés (chef établissement, sans finance).
  * L’ancien périmètre « préfet sans finance » est porté par `directeur_etudes`.
  */
 import assert from "node:assert/strict";
@@ -60,10 +60,10 @@ test("directeur des études : pedagogy / manage oui ; finance non", () => {
   assert.equal(canAccessFinanceArea(sessionEtudes), false);
 });
 
-test("URL finance refusée via canAccessFinanceArea (études)", () => {
+test("URL finance refusée via canAccessFinanceArea (études + chef école)", () => {
   assert.equal(canAccessFinanceArea(sessionEtudes), false);
-  assert.equal(canAccessFinanceArea(sessionDirecteur), true);
-  assert.equal(canAccessFinanceArea(sessionPrefet), true);
+  assert.equal(canAccessFinanceArea(sessionDirecteur), false);
+  assert.equal(canAccessFinanceArea(sessionPrefet), false);
   assert.equal(canAccessFinanceArea(sessionCaissier), true);
 });
 
@@ -143,18 +143,19 @@ test("dashboard = variante études (pas revenus)", () => {
   assert.equal(blocks.cashier, false);
 });
 
-test("chef établissement distinct : finance + dashboard revenus", () => {
+test("chef établissement distinct : pédagogie sans finance", () => {
   assert.equal(resolveDashboardVariant(sessionDirecteur), "directeur");
   assert.equal(resolveDashboardVariant(sessionPrefet), "directeur");
-  assert.equal(canAccessFinanceArea(sessionDirecteur), true);
-  assert.equal(canAccessFinanceArea(sessionPrefet), true);
+  assert.equal(canAccessFinanceArea(sessionDirecteur), false);
+  assert.equal(canAccessFinanceArea(sessionPrefet), false);
   for (const session of [sessionDirecteur, sessionPrefet]) {
     const titles = buildStaticSideLinks(
       session,
       BRANCH_PATH,
       "PRIMAIRE",
     ).map((item) => item.title);
-    assert.ok(titles.includes("Finance"));
+    assert.ok(!titles.includes("Finance"));
+    assert.ok(titles.includes("Classes"));
   }
 });
 
@@ -186,13 +187,24 @@ test("AC Better Auth : études personnel/parent read ; pas invitation org", () =
   );
 });
 
-test("post-login études → /ecodim", () => {
-  const path = resolveMembershipPostLoginPath({
+test("post-login études → branche d’affectation (sinon /ecodim)", () => {
+  const withBranch = resolveMembershipPostLoginPath({
+    organizationId: "org-test",
+    membershipRole: ORG_ROLE.DIRECTEUR_ETUDES,
+    branchId: "branch-primaire",
+    branchCount: 1,
+  });
+  assert.equal(
+    withBranch,
+    "/admin/organizations/org-test/branches/branch-primaire",
+  );
+
+  const withoutBranch = resolveMembershipPostLoginPath({
     organizationId: "org-test",
     membershipRole: ORG_ROLE.DIRECTEUR_ETUDES,
   });
-  assert.equal(path, "/admin/organizations/org-test/ecodim");
+  assert.equal(withoutBranch, "/admin/organizations/org-test/ecodim");
 });
 
 console.log("\nAll unit-07 directeur des études smoke tests passed.");
-
+

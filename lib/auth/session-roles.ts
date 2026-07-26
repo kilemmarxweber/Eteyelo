@@ -112,8 +112,7 @@ export function isDirecteurEtudesRole(
 
 /**
  * Finance (frais, paiement, rapports caisse).
- * Chef d’établissement (préfet/directeur) + caissier + gestion org.
- * Directeur des études exclu.
+ * Gestion org + caissier. Chef d’établissement (préfet/directeur) exclu.
  */
 export function canAccessFinanceArea(
   session: any,
@@ -125,8 +124,6 @@ export function canAccessFinanceArea(
       ...APP_MANAGER_ROLES,
       ORG_ROLE.OWNER,
       ORG_ROLE.GESTIONNAIRE,
-      ORG_ROLE.PREFET,
-      ORG_ROLE.DIRECTEUR,
       ORG_ROLE.CAISSIER,
     ],
     ...extraRoles,
@@ -242,9 +239,8 @@ export function isOrganizationOwnerSession(
 }
 
 /**
- * Paramètres branche avancés (types de frais, calendrier, présences,
- * domaines primaire, support) : owner plateforme, admin app,
- * propriétaire org ou gestionnaire org.
+ * Paramètres branche avancés (types de frais, taux, horaires, présences,
+ * domaines primaire) : owner plateforme, admin app, propriétaire ou gestionnaire.
  */
 export function canAccessBranchOrgSettings(
   session: any,
@@ -259,6 +255,49 @@ export function canAccessBranchOrgSettings(
       ORG_ROLE.GESTIONNAIRE,
     ],
     ...extraRoles,
+  );
+}
+
+/**
+ * Communication publique + calendrier scolaire :
+ * org managers + chef d’établissement (préfet/directeur).
+ */
+export function canAccessSchoolOpsSettings(
+  session: any,
+  ...extraRoles: unknown[]
+): boolean {
+  return (
+    canAccessBranchOrgSettings(session, ...extraRoles) ||
+    hasSessionRole(
+      session,
+      [ORG_ROLE.PREFET, ORG_ROLE.DIRECTEUR, "DIRECTOR", "director"],
+      ...extraRoles,
+    )
+  );
+}
+
+/**
+ * Support établissement : ops école + caissier + enseignant.
+ */
+export function canAccessSupportSettings(
+  session: any,
+  ...extraRoles: unknown[]
+): boolean {
+  return (
+    canAccessSchoolOpsSettings(session, ...extraRoles) ||
+    hasSessionRole(
+      session,
+      [
+        ORG_ROLE.CAISSIER,
+        "CAISSIER",
+        "ACCOUNTANT",
+        "accountant",
+        ORG_ROLE.TEACHER,
+        "TEACHER",
+        "teacher",
+      ],
+      ...extraRoles,
+    )
   );
 }
 

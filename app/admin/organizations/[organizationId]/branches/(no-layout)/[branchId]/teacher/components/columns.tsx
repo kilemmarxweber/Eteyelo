@@ -195,16 +195,6 @@ export const createTeacherColumns = (
     ),
   },
   {
-    accessorKey: "createdAt",
-    cell: (row) =>
-      row.getValue()
-        ? new Date(row.getValue() as string).toLocaleDateString()
-        : "N/A",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Created at" />
-    ),
-  },
-  {
     id: "actions",
     cell: function Cell({ row }) {
       const [showDeleteTaskDialog, setShowDeleteTaskDialog] =

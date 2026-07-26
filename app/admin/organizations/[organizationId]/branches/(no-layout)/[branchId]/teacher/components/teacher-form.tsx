@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 
 import { Button } from "@/components/custom/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Form,
   FormControl,
@@ -24,12 +25,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useBranchPeopleLabels } from "@/hooks/use-branch-people-labels";
+import { useSession } from "@/lib/auth-client";
+import { getClassDisplayLabel } from "@/lib/branch-capabilities";
 import { cn } from "@/lib/utils";
 import generateUsername from "@/src/hooks/generateUsername";
+import { IClasse } from "@/src/interfaces/Classe";
+import { ICours } from "@/src/interfaces/Cours";
 import { teacherSchema } from "@/src/interfaces/Teacher";
 
+import { getClassesAction } from "../../classe/classe.action";
+import { getCoursAction } from "../../cours/cours.action";
 import { createTeacherAction, updateTeacherAction } from "../teacher.action";
-import { useBranchPeopleLabels } from "@/hooks/use-branch-people-labels";
 
 interface TeacherUpFormProps extends HTMLAttributes<HTMLDivElement> {
   onTeacherCreated?: () => void;
@@ -51,7 +58,24 @@ export function TeacherUpForm({
   const isDialog = layout === "dialog";
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [classes, setClasses] = useState<IClasse[]>([]);
+  const [courses, setCourses] = useState<ICours[]>([]);
   const peopleLabels = useBranchPeopleLabels();
+  const { data: session } = useSession();
+  const classLabel = getClassDisplayLabel(session?.branch?.typebranch);
+  const classLabelLower = classLabel.toLowerCase();
+  const classOfLabel =
+    classLabelLower === "auditoire"
+      ? "de l'auditoire"
+      : classLabelLower === "groupe"
+        ? "du groupe"
+        : `de la ${classLabelLower}`;
+  const classSelectLabel =
+    classLabelLower === "auditoire"
+      ? "l'auditoire"
+      : classLabelLower === "groupe"
+        ? "le groupe"
+        : `la ${classLabelLower}`;
   const sexeToUi: Record<string, "masculin" | "feminin"> = {
     M: "masculin",
     F: "feminin",
@@ -66,6 +90,9 @@ export function TeacherUpForm({
           dateOfBirth: initialData.dateOfBirth
             ? new Date(initialData.dateOfBirth)
             : new Date(),
+          estTitulaire: initialData.estTitulaire ?? false,
+          classeId: initialData.classeId ?? "",
+          coursId: initialData.coursId ?? "",
         }
       : {
           username: "",
@@ -77,11 +104,15 @@ export function TeacherUpForm({
           email: "",
           address: "",
           dateOfBirth: new Date(),
+          estTitulaire: false,
+          classeId: "",
+          coursId: "",
         },
   });
 
   const nom = form.watch("nom");
   const prenom = form.watch("prenom");
+  const estTitulaire = form.watch("estTitulaire");
 
   useEffect(() => {
     if (!nom || !prenom) return;
@@ -92,10 +123,37 @@ export function TeacherUpForm({
     }
   }, [form, mode, nom, prenom]);
 
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadOptions() {
+      const [[rawClasses, classErr], [rawCourses, courseErr]] =
+        await Promise.all([getClassesAction(), getCoursAction({})]);
+
+      if (cancelled) return;
+
+      if (!classErr && rawClasses) {
+        setClasses(
+          rawClasses.filter((classe) => classe.statusClasse !== false),
+        );
+      }
+      if (!courseErr && rawCourses) {
+        setCourses(rawCourses);
+      }
+    }
+
+    void loadOptions();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   async function onSubmit(data: z.infer<typeof teacherSchema>) {
     setIsLoading(true);
     setErrorMessage("");
 
+    const estTitulaire = Boolean(data.estTitulaire);
     const payload = {
       ...data,
       dateOfBirth:
@@ -104,6 +162,9 @@ export function TeacherUpForm({
           : data.dateOfBirth
             ? new Date(data.dateOfBirth)
             : new Date(),
+      estTitulaire,
+      classeId: estTitulaire ? data.classeId : undefined,
+      coursId: estTitulaire ? data.coursId : undefined,
     };
 
     try {
@@ -114,7 +175,11 @@ export function TeacherUpForm({
           throw new Error(result?.message || "Creation impossible");
         }
 
-        toast.success(`${peopleLabels.teacher} cree avec succes`);
+        toast.success(
+          estTitulaire
+            ? `${peopleLabels.teacher} titulaire créé avec succès`
+            : `${peopleLabels.teacher} cree avec succes`,
+        );
         onTeacherCreated?.();
       } else {
         const [result, err] = await updateTeacherAction(payload);
@@ -123,7 +188,11 @@ export function TeacherUpForm({
           throw new Error(result?.message || "Mise a jour impossible");
         }
 
-        toast.success(`${peopleLabels.teacher} mis a jour avec succes`);
+        toast.success(
+          estTitulaire
+            ? `${peopleLabels.teacher} titulaire mis à jour avec succès`
+            : `${peopleLabels.teacher} mis a jour avec succes`,
+        );
         onTeacherUpdate?.();
       }
     } catch (error: any) {
@@ -282,6 +351,102 @@ export function TeacherUpForm({
                 </FormItem>
               )}
             />
+
+            <FormField
+              control={form.control}
+              name="estTitulaire"
+              render={({ field }) => (
+                <FormItem className="flex items-start gap-2 space-y-0 rounded-md border p-3 sm:col-span-2">
+                  <FormControl>
+                    <Checkbox
+                      checked={Boolean(field.value)}
+                      onCheckedChange={(checked) => {
+                        const next = Boolean(checked);
+                        field.onChange(next);
+                        if (!next) {
+                          form.setValue("classeId", "");
+                          form.setValue("coursId", "");
+                        }
+                      }}
+                    />
+                  </FormControl>
+                  <div className="space-y-0.5">
+                    <FormLabel className="font-normal leading-snug">
+                      Titulaire (superviseur) {classOfLabel}
+                    </FormLabel>
+                    <p className="text-xs text-muted-foreground">
+                      Cochez si ce {peopleLabels.teacherLower} est le titulaire{" "}
+                      {classOfLabel} pour l&apos;année en cours.
+                    </p>
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {estTitulaire ? (
+              <>
+                <FormField
+                  control={form.control}
+                  name="classeId"
+                  render={({ field }) => (
+                    <FormItem className={fieldClass}>
+                      <FormLabel className={labelClass}>{classLabel}</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value || undefined}
+                      >
+                        <FormControl>
+                          <SelectTrigger className={controlClass}>
+                            <SelectValue
+                              placeholder={`Sélectionner ${classSelectLabel}`}
+                            />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent position="popper">
+                          {classes.map((classe) => (
+                            <SelectItem key={classe.id} value={classe.id}>
+                              {classe.nameClasse}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="coursId"
+                  render={({ field }) => (
+                    <FormItem className={fieldClass}>
+                      <FormLabel className={labelClass}>
+                        Cours principal
+                      </FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value || undefined}
+                      >
+                        <FormControl>
+                          <SelectTrigger className={controlClass}>
+                            <SelectValue placeholder="Sélectionner le cours" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent position="popper">
+                          {courses.map((cours) => (
+                            <SelectItem key={cours.id} value={cours.id}>
+                              {cours.nameCours}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </>
+            ) : null}
 
             <div className="hidden">
               <FormField

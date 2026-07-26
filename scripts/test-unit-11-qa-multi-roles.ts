@@ -86,16 +86,15 @@ function assertAreas(
 
 // --- Comptes / unification ---
 
-test("unification préfet ≡ directeur (helpers + finance)", () => {
+test("unification préfet ≡ directeur (helpers, sans finance)", () => {
   for (const role of [ORG_ROLE.DIRECTEUR, ORG_ROLE.PREFET]) {
     const session = sessionWithOrgRole(role);
     assert.equal(isSchoolLeadershipRole(session), true);
     assert.equal(canManageOrganization(session), true);
-    assert.equal(canAccessFinanceArea(session), true);
+    assert.equal(canAccessFinanceArea(session), false);
     assert.equal(canManageHrDirectory(session), true);
     assert.equal(resolveDashboardVariant(session), "directeur");
     const blocks = getDashboardDataBlocks("directeur");
-    assert.equal(blocks.revenue, true);
     assert.equal(blocks.pedagogyMetrics, true);
   }
 });
@@ -218,12 +217,16 @@ test("directeur_etudes : pédagogie OK ; /paiement refusé ; HR lecture seule", 
 
 // --- Chef établissement ---
 
-test("directeur/préfet : pédagogie + finance ; pas owner org", () => {
+test("directeur/préfet : pédagogie sans finance ; pas owner org", () => {
   for (const role of [ORG_ROLE.DIRECTEUR, ORG_ROLE.PREFET]) {
     const titles = menuTitles(role);
-    assert.ok(titles.includes("Finance"));
+    assert.ok(!titles.includes("Finance"));
     assert.ok(titles.includes("Classes"));
-    assertAreas(role, ["finance", "school_admin", "hr_write"], ["branch_org_settings"]);
+    assertAreas(
+      role,
+      ["school_admin", "hr_write", "school_ops_settings", "support_settings"],
+      ["finance", "branch_org_settings"],
+    );
 
     const session = sessionWithOrgRole(role);
     assert.equal(canDeleteOrganizationResource(session), false);

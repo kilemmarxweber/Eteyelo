@@ -187,7 +187,8 @@ export async function getAdminStats({
       return { error: "UNAUTHORIZED" as const };
     }
 
-    const includeRevenue = blocks.revenue;
+    // Chef école (préfet/directeur) : stats sans revenus ; gestionnaire conserve la finance.
+    const includeRevenue = blocks.revenue && canAccessFinanceArea(session);
     const now = new Date();
 
     const { end: endCurrent } = getMonthRange(now);
@@ -1358,6 +1359,7 @@ export async function getBranchDashboardData(params: {
 
   return {
     variant,
+    canAccessFinance: canAccessFinanceArea(session),
     typebranch:
       (statsRecord.typebranch as string | null | undefined) ?? typebranch,
     stats: blocks.schoolStats ? stats : null,

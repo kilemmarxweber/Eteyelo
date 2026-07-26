@@ -10,10 +10,10 @@ function splitRoles(value: string | null | undefined) {
 /**
  * Accueil org admin — sans caissier (unit-00 / unit-04 : reste en login branche).
  * unit-08 : directeur (et préfet) peuvent rester sur le hub org en lecture/pilotage ;
- * post-login primaire → `/ecodim` puis branche. Pas de settings org sensibles
- * (`canAccessBranchOrgSettings` / owner-only).
+ * post-login → branche d’affectation BranchMember, sinon `/ecodim`.
+ * Pas de settings org sensibles (`canAccessBranchOrgSettings` / owner-only).
  */
-const ORG_ADMIN_HOME_ROLES = new Set([
+const ORG_ADMIN_HOME_ROLES = new Set<string>([
   ORG_ROLE.OWNER,
   ORG_ROLE.GESTIONNAIRE,
   ORG_ROLE.PREFET,

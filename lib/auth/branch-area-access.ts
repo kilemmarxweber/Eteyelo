@@ -7,7 +7,9 @@ import {
   canAccessRegistrationArea,
   canAccessResultsArea,
   canAccessScheduleReadArea,
+  canAccessSchoolOpsSettings,
   canAccessStudentDirectory,
+  canAccessSupportSettings,
   canAccessTeachingArea,
   canAccessTitulaireFichesArea,
   canManageHrDirectory,
@@ -31,6 +33,8 @@ export type BranchArea =
   | "hr_directory"
   | "hr_write"
   | "branch_org_settings"
+  | "school_ops_settings"
+  | "support_settings"
   | "fiches";
 
 export function canAccessBranchArea(
@@ -63,6 +67,10 @@ export function canAccessBranchArea(
       return canManageHrDirectory(session);
     case "branch_org_settings":
       return canAccessBranchOrgSettings(session);
+    case "school_ops_settings":
+      return canAccessSchoolOpsSettings(session);
+    case "support_settings":
+      return canAccessSupportSettings(session);
     case "fiches":
       return canAccessTitulaireFichesArea(session);
     default: {

@@ -51,16 +51,12 @@ const SCHOOL_ADMIN_ROLES = [
 ];
 
 /**
- * Finance : managers + chef d’établissement (préfet/directeur) + caissier.
- * Directeur des études / superviseur exclus.
+ * Finance : managers org + caissier.
+ * Chef d’établissement (préfet/directeur) et directeur des études exclus.
  */
 const FINANCE_ROLES = [
   ...PLATFORM_MENU_ROLES,
   ...ORG_MANAGER_ROLES,
-  ORG_ROLE.PREFET,
-  ORG_ROLE.DIRECTEUR,
-  "DIRECTOR",
-  "director",
   ORG_ROLE.CAISSIER,
   "CAISSIER",
   "ACCOUNTANT",
@@ -514,11 +510,12 @@ export function getPrimaryRoleLabel(session: any) {
   const orgRole = session?.organization?.role;
   const appRole = session?.user?.role;
   const legacyRole = session?.user?.roles?.[0]?.nameRole;
+  const typebranch = session?.branch?.typebranch;
 
   // APP_ROLE.OWNER et ORG_ROLE.OWNER partagent le slug "owner" :
   // on délègue aux helpers plutôt qu'à un Record avec clés en double.
   if (appRole || orgRole) {
-    return getOrganizationAccessRoleLabel(appRole, orgRole);
+    return getOrganizationAccessRoleLabel(appRole, orgRole, typebranch);
   }
 
   const legacyLabels: Record<string, string> = {
@@ -531,11 +528,17 @@ export function getPrimaryRoleLabel(session: any) {
   };
 
   if (legacyRole && legacyLabels[legacyRole]) {
+    if (legacyRole === "STUDENT" && typebranch != null) {
+      return orgRoleLabel(ORG_ROLE.STUDENT, { typebranch });
+    }
+    if (legacyRole === "TEACHER" && typebranch != null) {
+      return orgRoleLabel(ORG_ROLE.TEACHER, { typebranch });
+    }
     return legacyLabels[legacyRole];
   }
 
   if (typeof legacyRole === "string" && legacyRole.trim()) {
-    return orgRoleLabel(legacyRole.trim().toLowerCase());
+    return orgRoleLabel(legacyRole.trim().toLowerCase(), { typebranch });
   }
 
   return "Aucun rôle";
