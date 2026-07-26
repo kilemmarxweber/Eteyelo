@@ -132,6 +132,8 @@ export default function Schedule({
   const [exporting, setExporting] = useState(false);
   const [cellTarget, setCellTarget] = useState<CellTarget | null>(null);
   const [selectedCours, setSelectedCours] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState<Horaire | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const { data: session } = useSession();
   const canManageSchedules = canManageOrganization(session);
@@ -309,26 +311,39 @@ export default function Schedule({
     }
   }
 
-  async function desactiverHoraire(id: string) {
+  function openDeleteDialog(horaire: Horaire) {
     if (!canDeleteSchedule) {
       toast.error("Action non autorisee");
       return;
     }
-    if (
-      !window.confirm(
-        "Supprimer ce cours de l'horaire ? Vous pourrez en placer un autre à la place.",
-      )
-    ) {
+    setDeleteTarget(horaire);
+  }
+
+  function closeDeleteDialog() {
+    if (deleting) return;
+    setDeleteTarget(null);
+  }
+
+  async function confirmDeleteHoraire() {
+    if (!canDeleteSchedule || !deleteTarget) {
+      toast.error("Action non autorisee");
       return;
     }
 
+    setDeleting(true);
     try {
-      const [, err] = await deleteScheduleAction({ id });
+      const [, err] = await deleteScheduleAction({ id: deleteTarget.id });
       if (err) throw err;
-      setHoraires((prev) => prev.filter((horaire) => horaire.id !== id));
+      setHoraires((prev) =>
+        prev.filter((horaire) => horaire.id !== deleteTarget.id),
+      );
       toast.success("Cours supprimé de l'horaire");
+      setDeleteTarget(null);
+      onScheduleAction?.();
     } catch {
       toast.error("Erreur lors de la suppression");
+    } finally {
+      setDeleting(false);
     }
   }
 
@@ -498,9 +513,7 @@ export default function Schedule({
                                       variant="ghost"
                                       size="icon"
                                       className="size-7 shrink-0"
-                                      onClick={() =>
-                                        desactiverHoraire(horaire.id)
-                                      }
+                                      onClick={() => openDeleteDialog(horaire)}
                                     >
                                       <Trash2 className="h-4 w-4" />
                                       <span className="sr-only">Retirer</span>
@@ -601,6 +614,46 @@ export default function Schedule({
               onClick={assignCourse}
             >
               {saving ? "Enregistrement..." : "Placer"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={Boolean(deleteTarget)}
+        onOpenChange={(open) => {
+          if (!open) closeDeleteDialog();
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Supprimer ce cours</DialogTitle>
+            <DialogDescription>
+              {deleteTarget
+                ? `${deleteTarget.cours.nameCours} · ${deleteTarget.jour} · ${deleteTarget.heureDebut} – ${deleteTarget.heureFin}`
+                : ""}
+            </DialogDescription>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Cette action est définitive. Vous pourrez ensuite placer un autre
+            cours sur cette case.
+          </p>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              disabled={deleting}
+              onClick={closeDeleteDialog}
+            >
+              Annuler
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              disabled={deleting}
+              onClick={confirmDeleteHoraire}
+            >
+              {deleting ? "Suppression..." : "Supprimer"}
             </Button>
           </DialogFooter>
         </DialogContent>
