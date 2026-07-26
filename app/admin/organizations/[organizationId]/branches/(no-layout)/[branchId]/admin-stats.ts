@@ -21,7 +21,9 @@ import { headers } from "next/headers";
 import { z } from "zod";
 import {
   computeScopedDiscountAmount,
+  EMPTY_DISCOUNT,
   getBestDiscountInfo,
+  type DiscountInfo,
 } from "@/lib/payment-discount";
 
 const EMPTY_METRICS = {
@@ -695,6 +697,129 @@ async function getBranchEvents(branchId: string) {
   });
 }
 
+/**
+ * Nombre d'inscriptions avec solde > 0 (frais − paiements − remise).
+ * Aligné sur le rapport impayés — pas la table Invoice (souvent vide).
+ */
+async function countUnpaidEnrollments(
+  branchId: string,
+  schoolYearId: string,
+): Promise<number> {
+  const enrollments = await prisma.classEnrollment.findMany({
+    where: {
+      branchId,
+      schoolYearId,
+      OR: [{ statusEnrollment: true }, { statusEnrollment: null }],
+    },
+    select: {
+      id: true,
+      classeId: true,
+      student: { select: { parentId: true } },
+    },
+  });
+
+  if (enrollments.length === 0) return 0;
+
+  const classeIds = Array.from(
+    new Set(enrollments.map((e) => e.classeId).filter(Boolean)),
+  );
+
+  const fraisList = await prisma.frais.findMany({
+    where: {
+      branchId,
+      statusFrais: true,
+      classeId: { in: classeIds },
+      OR: [{ schoolYearId }, { schoolYearId: null }],
+    },
+    select: {
+      id: true,
+      classeId: true,
+      montantFrais: true,
+      typeFraisId: true,
+    },
+  });
+
+  const fraisByClasse = new Map<
+    string,
+    Array<{ id: string; montant: number; typeFraisId: string | null }>
+  >();
+  const fraisIds: string[] = [];
+  for (const frais of fraisList) {
+    fraisIds.push(frais.id);
+    const list = fraisByClasse.get(frais.classeId) ?? [];
+    list.push({
+      id: frais.id,
+      montant: Number(frais.montantFrais),
+      typeFraisId: frais.typeFraisId,
+    });
+    fraisByClasse.set(frais.classeId, list);
+  }
+
+  if (fraisIds.length === 0) return 0;
+
+  const enrollmentIds = enrollments.map((e) => e.id);
+  const paidByEnrollment = new Map<string, number>();
+  const aggregates = await prisma.familyPayment.groupBy({
+    by: ["classEnrollmentId"],
+    where: {
+      branchId,
+      classEnrollmentId: { in: enrollmentIds },
+      fraisId: { in: fraisIds },
+      status: "VALIDE",
+    },
+    _sum: { amount: true },
+  });
+  for (const row of aggregates) {
+    paidByEnrollment.set(
+      row.classEnrollmentId,
+      Number(row._sum.amount ?? 0),
+    );
+  }
+
+  const parentIds = Array.from(
+    new Set(
+      enrollments
+        .map((e) => e.student?.parentId)
+        .filter((id): id is string => Boolean(id)),
+    ),
+  );
+  const discountByParentId = new Map<string, DiscountInfo>();
+  await Promise.all(
+    parentIds.map(async (parentId) => {
+      discountByParentId.set(
+        parentId,
+        await getBestDiscountInfo(prisma, parentId, branchId),
+      );
+    }),
+  );
+
+  let unpaidCount = 0;
+  for (const enrollment of enrollments) {
+    const classeFrais = fraisByClasse.get(enrollment.classeId) ?? [];
+    if (classeFrais.length === 0) continue;
+
+    const montantDuBrut = classeFrais.reduce((sum, f) => sum + f.montant, 0);
+    const parentId = enrollment.student?.parentId ?? null;
+    const discount = parentId
+      ? (discountByParentId.get(parentId) ?? EMPTY_DISCOUNT)
+      : EMPTY_DISCOUNT;
+    const remise = computeScopedDiscountAmount(
+      classeFrais.map((f) => ({
+        base: f.montant,
+        typeFraisId: f.typeFraisId,
+      })),
+      discount,
+    );
+    const montantDu = Math.max(0, montantDuBrut - remise);
+    const montantPaye = paidByEnrollment.get(enrollment.id) ?? 0;
+    if (montantDu > 0 && montantPaye < montantDu) {
+      unpaidCount += 1;
+    }
+  }
+
+  return unpaidCount;
+}
+
 async function getCashierDashboardData(branchId: string, organizationId: string) {
   const { session } = await requireBranchContext();
   if (!canAccessFinanceArea(session)) {
@@ -729,13 +854,7 @@ async function getCashierDashboardData(branchId: string, organizationId: string)
         },
       }),
       currentYear
-        ? prisma.invoice.count({
-            where: {
-              branchId,
-              YearId: currentYear.id,
-              status: { in: ["UNPAID", "PARTIAL"] },
-            },
-          })
+        ? countUnpaidEnrollments(branchId, currentYear.id)
         : Promise.resolve(0),
       prisma.exchangeRate.findFirst({
         where: { organizationId, isSelected: true },

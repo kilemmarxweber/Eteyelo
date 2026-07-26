@@ -763,7 +763,7 @@ export function CashierStatsSection({
       <BranchStatCard
         label="Impayés"
         value={loading ? "—" : unpaidInvoices}
-        description="Factures non soldées (année en cours)"
+        description="Inscriptions avec solde (année en cours)"
         icon={IconClipboardList}
       />
       <BranchStatCard
