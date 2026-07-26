@@ -3,7 +3,6 @@
 import { v4 as uuidv4 } from "uuid";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@/prisma/generated/prisma/client";
-import { gradeQueue } from "@/src/redis/queues/grade.queue";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 // src/lib/actions.ts
@@ -974,6 +973,7 @@ export async function validateFicheCentrale(params: {
     },
   });
 
+  const { gradeQueue } = await import("@/src/redis/queues/grade.queue");
   await gradeQueue.add(
     "generate-grades",
     { periodId: fiche.periodId },

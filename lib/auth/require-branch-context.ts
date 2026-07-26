@@ -1,3 +1,5 @@
+import { redirect } from "next/navigation";
+
 import { getCachedSession } from "@/lib/auth/get-session-cached";
 import {
   canAccessFinanceArea,
@@ -5,7 +7,18 @@ import {
 } from "@/lib/auth/session-roles";
 import { prisma } from "@/lib/prisma";
 
-export async function requireBranchContext() {
+type RequireBranchContextOptions = {
+  /**
+   * En RSC, préférer redirect plutôt qu'un throw brut
+   * (message générique « Server Components » en production).
+   */
+  onMissing?: "throw" | "redirect";
+};
+
+export async function requireBranchContext(
+  options?: RequireBranchContextOptions,
+) {
+  const onMissing = options?.onMissing ?? "throw";
   const session = await getCachedSession();
 
   const userId = session?.user?.id;
@@ -13,7 +26,13 @@ export async function requireBranchContext() {
     session?.organization?.id ?? session?.session?.activeOrganizationId;
   const branchId = session?.branch?.id ?? session?.session?.activeBranchId;
 
-  if (!userId || !organizationId || !branchId) {
+  if (!userId) {
+    if (onMissing === "redirect") redirect("/auth/sign-in");
+    throw new Error("Aucune branche active");
+  }
+
+  if (!organizationId || !branchId) {
+    if (onMissing === "redirect") redirect("/admin/organizations");
     throw new Error("Aucune branche active");
   }
 
@@ -43,6 +62,7 @@ export async function requireBranchContext() {
   });
 
   if (!branch) {
+    if (onMissing === "redirect") redirect("/admin/organizations");
     throw new Error("Branche introuvable dans cette organisation");
   }
 

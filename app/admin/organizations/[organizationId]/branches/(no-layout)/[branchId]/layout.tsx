@@ -1,5 +1,5 @@
 import ClientLayout from "./client-layout";
-import AttendanceGuard from "./attendance/component/AttendanceGuard ";
+import AttendanceGuard from "./attendance/component/AttendanceGuard";
 import { enforceOrganizationBranchPage } from "@/lib/auth/require-organization-permission";
 import { switchActiveBranch } from "@/lib/auth/switch-branch";
 

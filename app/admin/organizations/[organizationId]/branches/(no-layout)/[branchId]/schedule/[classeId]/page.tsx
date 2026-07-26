@@ -21,7 +21,9 @@ export default async function ScheduleClassePage({
   params: Promise<{ classeId: string }>;
 }) {
   const { classeId } = await params;
-  const { session, userId, branchId } = await requireBranchContext();
+  const { session, userId, branchId } = await requireBranchContext({
+    onMissing: "redirect",
+  });
   const role = enforceScheduleAreaAccess(session);
 
   // Élève / parent : pas d'horaire d'une autre classe via URL (unit-05).

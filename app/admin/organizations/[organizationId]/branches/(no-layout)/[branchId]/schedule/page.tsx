@@ -18,7 +18,7 @@ export default async function ScheduleIndexPage({
   searchParams: Promise<{ studentId?: string }>;
 }) {
   const { session, userId, branchId, organizationId, typebranch } =
-    await requireBranchContext();
+    await requireBranchContext({ onMissing: "redirect" });
   const role = enforceScheduleAreaAccess(session);
   const sp = await searchParams;
 
