@@ -195,13 +195,6 @@ export function getDashboardShortcuts(
           iconKey: "notes",
         },
         {
-          title: "Horaire",
-          description: "Mon horaire de l'année",
-          href: href("/schedule"),
-          color: "bg-blue-500",
-          iconKey: "calendar",
-        },
-        {
           title: "Fiches",
           description: "Mes fiches",
           href: href("/fiches"),

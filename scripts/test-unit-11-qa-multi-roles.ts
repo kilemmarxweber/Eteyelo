@@ -148,18 +148,21 @@ test("caissier : dashboard caisse ; /paiement OK ; pédagogie refusée ; élève
 
 // --- Élève ---
 
-test("élève : cursus notes/horaire/résultats/biblio ; pas Finance", () => {
+test("élève : cursus résultats/biblio ; pas Notes/Horaire/Fiches / Finance", () => {
   const titles = menuTitles(ORG_ROLE.STUDENT);
   const cursus = cursusSubs(ORG_ROLE.STUDENT);
   assert.ok(titles.includes("Cursus"));
   assert.ok(!titles.includes("Finance"));
   assert.ok(!titles.includes("Utilisateurs"));
-  for (const title of ["Notes", "Horaire", "Résultats", "Fiches", "Bibliothèque"]) {
+  for (const title of ["Résultats", "Bibliothèque"]) {
     assert.ok(cursus.includes(title), `élève cursus ${title}`);
+  }
+  for (const title of ["Notes", "Horaire", "Fiches"]) {
+    assert.ok(!cursus.includes(title), `élève sans ${title}`);
   }
   assert.equal(resolveDashboardVariant(sessionWithOrgRole(ORG_ROLE.STUDENT)), "student");
   assert.equal(isCursusSelfScopedRole(resolveCursusViewerRole(sessionWithOrgRole(ORG_ROLE.STUDENT))!), true);
-  assertAreas(ORG_ROLE.STUDENT, ["notes", "schedule", "results", "library"], ["finance"]);
+  assertAreas(ORG_ROLE.STUDENT, ["results", "library"], ["finance", "notes", "schedule"]);
 });
 
 // --- Parent ---

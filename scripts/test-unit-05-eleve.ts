@@ -44,10 +44,10 @@ test("isCursusSelfScopedRole pour élève et parent uniquement", () => {
   assert.equal(isCursusSelfScopedRole("admin"), false);
 });
 
-test("élève / parent : notes + horaire lecture, pas manage org", () => {
-  assert.equal(canAccessNotesReadArea(sessionStudent), true);
+test("parent : notes + horaire lecture ; élève non ; pas manage org", () => {
+  assert.equal(canAccessNotesReadArea(sessionStudent), false);
   assert.equal(canAccessNotesReadArea(sessionParent), true);
-  assert.equal(canAccessScheduleReadArea(sessionStudent), true);
+  assert.equal(canAccessScheduleReadArea(sessionStudent), false);
   assert.equal(canAccessScheduleReadArea(sessionParent), true);
   assert.equal(canManageOrganization(sessionStudent), false);
   assert.equal(canManageOrganization(sessionParent), false);

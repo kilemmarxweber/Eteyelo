@@ -98,15 +98,15 @@ test("canAccessResultsArea sans caissier, avec student/parent", () => {
   assert.equal(canAccessResultsArea(sessionParent), true);
 });
 
-test("canAccessNotesReadArea : student/parent lecture, pas caissier", () => {
-  assert.equal(canAccessNotesReadArea(sessionStudent), true);
+test("canAccessNotesReadArea : parent/teacher oui, élève et caissier non", () => {
+  assert.equal(canAccessNotesReadArea(sessionStudent), false);
   assert.equal(canAccessNotesReadArea(sessionParent), true);
   assert.equal(canAccessNotesReadArea(sessionTeacher), true);
   assert.equal(canAccessNotesReadArea(sessionCaissier), false);
 });
 
-test("canReadScheduleArea / canAccessScheduleReadArea incluent student + parent", () => {
-  assert.equal(canReadScheduleArea(sessionStudent), true);
+test("canReadScheduleArea : parent/teacher oui, élève et caissier non", () => {
+  assert.equal(canReadScheduleArea(sessionStudent), false);
   assert.equal(canReadScheduleArea(sessionParent), true);
   assert.equal(canAccessScheduleReadArea(sessionTeacher), true);
   assert.equal(canReadScheduleArea(sessionCaissier), false);

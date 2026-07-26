@@ -58,11 +58,19 @@ test("Caissier → /notes refusé ; /paiement OK", () => {
   );
 });
 
-test("Élève → /frais refusé ; /results /notes /schedule lecture OK", () => {
+test("Élève → /frais /notes /schedule refusés ; /results /library OK", () => {
   assertAreas(
     sessionStudent,
-    ["notes", "schedule", "results", "library"],
-    ["finance", "school_admin", "teaching", "pedagogy", "hr_directory"],
+    ["results", "library"],
+    [
+      "finance",
+      "notes",
+      "schedule",
+      "school_admin",
+      "teaching",
+      "pedagogy",
+      "hr_directory",
+    ],
   );
 });
 
