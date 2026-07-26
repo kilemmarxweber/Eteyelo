@@ -8,6 +8,7 @@ import {
   canAccessScheduleReadArea,
   canAccessStudentDirectory,
   canAccessTeachingArea,
+  canAccessTitulaireFichesArea,
   canManageHrDirectory,
 } from "@/lib/auth/session-roles";
 
@@ -27,7 +28,8 @@ export type BranchArea =
   | "students"
   | "hr_directory"
   | "hr_write"
-  | "branch_org_settings";
+  | "branch_org_settings"
+  | "fiches";
 
 export function canAccessBranchArea(
   area: BranchArea,
@@ -57,6 +59,8 @@ export function canAccessBranchArea(
       return canManageHrDirectory(session);
     case "branch_org_settings":
       return canAccessBranchOrgSettings(session);
+    case "fiches":
+      return canAccessTitulaireFichesArea(session);
     default: {
       const _exhaustive: never = area;
       return _exhaustive;

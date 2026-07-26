@@ -46,7 +46,7 @@ const CoursList = ({
 
   if (loading) {
     return (
-      <div className="p-6">
+      <div className="p-4">
         <TableSkeleton rows={5} columns={isPrimary ? 6 : 5} />
       </div>
     );
@@ -54,7 +54,7 @@ const CoursList = ({
 
   if (error) {
     return (
-      <div className="p-6">
+      <div className="p-4">
         <Alert variant="destructive">
           <IconAlertCircle className="h-4 w-4" />
           <AlertDescription>
@@ -67,7 +67,7 @@ const CoursList = ({
 
   if (!cours.length) {
     return (
-      <div className="p-6">
+      <div className="p-4">
         <EmptyTableState
           title="Aucun cours enregistré"
           description="Créez votre premier cours pour commencer la gestion académique."
@@ -78,7 +78,7 @@ const CoursList = ({
   }
 
   return (
-    <div className="p-6">
+    <div className="relative p-4">
       <ResponsiveDataTable
         ToolbarComponent={DataTableToolbar}
         columns={columns}

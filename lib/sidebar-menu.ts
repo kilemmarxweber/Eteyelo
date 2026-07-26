@@ -83,11 +83,19 @@ const PARENT_ROLES = [ORG_ROLE.PARENT, "PARENT", "parent"];
 /** Lecture annuaire élèves : school admin + caissier. */
 const STUDENT_DIRECTORY_ROLES = [...SCHOOL_ADMIN_ROLES, ...CAISSIER_ROLES];
 
-/** Élève + parent — lecture cursus partagée (notes / horaire / résultats). */
+/** Élève + parent — résultats (et autres lectures cursus partagées). */
 const CURSUS_READ_ROLES = [...STUDENT_ROLES, ...PARENT_ROLES];
 
-/** Bibliothèque : school admin + élève (sans caissier, teacher, parent). */
-const LIBRARY_ROLES = [...SCHOOL_ADMIN_ROLES, ...STUDENT_ROLES];
+/** Horaire menu : parent uniquement (élève n’a plus ce lien Cursus). */
+const SCHEDULE_MENU_ROLES = [...PARENT_ROLES];
+
+/** Bibliothèque : school admin + enseignant + élève + parent (sans caissier). */
+const LIBRARY_ROLES = [
+  ...SCHOOL_ADMIN_ROLES,
+  ...TEACHER_ROLES,
+  ...STUDENT_ROLES,
+  ...PARENT_ROLES,
+];
 
 /** Setup cours / pondérations — school admin uniquement (enseignant = horaire dashboard). */
 const COURSE_ROLES = [...SCHOOL_ADMIN_ROLES];
@@ -95,11 +103,11 @@ const COURSE_ROLES = [...SCHOOL_ADMIN_ROLES];
 /** Présences : school admin + enseignant (ses classes — unit-06/10). */
 const PRESENCE_ROLES = [...SCHOOL_ADMIN_ROLES, ...TEACHER_ROLES];
 
-/** Notes : saisie (admin/teacher) + lecture élève/parent (unit-00 §3ter). */
+/** Notes : saisie (admin/teacher) + lecture parent (pas élève dans le menu Cursus). */
 const NOTES_ROLES = [
   ...SCHOOL_ADMIN_ROLES,
   ...TEACHER_ROLES,
-  ...CURSUS_READ_ROLES,
+  ...PARENT_ROLES,
 ];
 
 const RESULTS_ROLES = [
@@ -108,12 +116,8 @@ const RESULTS_ROLES = [
   ...CURSUS_READ_ROLES,
 ];
 
-/** Fiches classe / perso : school admin, élève, titulaire — parent via profil enfant. */
-const FICHES_ROLES = [
-  ...SCHOOL_ADMIN_ROLES,
-  ...STUDENT_ROLES,
-  TEACHER_TITULAIRE_ROLE,
-];
+/** Fiches classe : school admin + titulaire (pas élève). */
+const FICHES_ROLES = [...SCHOOL_ADMIN_ROLES, TEACHER_TITULAIRE_ROLE];
 
 const FICHE_CENTRALE_ROLES = [...SCHOOL_ADMIN_ROLES, TEACHER_TITULAIRE_ROLE];
 
@@ -313,11 +317,11 @@ const staticSidebarMenu: StaticMenuItem[] = [
         roles: NOTES_ROLES,
       },
       {
-        // Lecture horaire année (élève / parent) — unit-00 §3ter.
+        // Lecture horaire année (parent) — élève n’a plus ce lien Cursus.
         title: "Horaire",
         href: "/admin/schedule",
         icon: "horaire",
-        roles: CURSUS_READ_ROLES,
+        roles: SCHEDULE_MENU_ROLES,
       },
       {
         title: "Fiche Centrale",

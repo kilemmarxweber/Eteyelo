@@ -39,6 +39,12 @@ export const LIBRARY_MANAGE_ROLES = [
 
 const STUDENT_ROLE_SLUGS = [ORG_ROLE.STUDENT, "STUDENT", "student"] as const;
 
+const LIBRARY_READER_BRANCH_ROLES = [
+  BranchRole.STUDENT,
+  BranchRole.TEACHER,
+  BranchRole.PARENT,
+] as const;
+
 const ORG_LIBRARY_MANAGE_DB_ROLES = [
   ORG_ROLE.OWNER,
   ORG_ROLE.GESTIONNAIRE,
@@ -47,6 +53,17 @@ const ORG_LIBRARY_MANAGE_DB_ROLES = [
   ORG_ROLE.DIRECTEUR_ETUDES,
   ORG_ROLE.SUPERVISEUR,
 ] as const;
+
+async function findLibraryReaderMembership(userId: string, branchId: string) {
+  return prisma.branchMember.findFirst({
+    where: {
+      branchId,
+      role: { in: [...LIBRARY_READER_BRANCH_ROLES] },
+      member: { userId },
+    },
+    select: { id: true },
+  });
+}
 
 /**
  * Owner plateforme, propriétaire org, gestionnaire (+ cadres école).
@@ -101,7 +118,7 @@ export function isStudentSessionRole(session: unknown): boolean {
 /**
  * Accès catalogue / lecteur :
  * - owner / propriétaire / gestionnaire (+ cadres) → mode manage (lecture + upload)
- * - BranchMember STUDENT → mode student (lecture seule)
+ * - BranchMember STUDENT | TEACHER | PARENT → mode student (lecture seule)
  */
 export async function enforceLibraryAccess(): Promise<LibraryAccessContext> {
   const ctx = await requireBranchContext();
@@ -111,15 +128,7 @@ export async function enforceLibraryAccess(): Promise<LibraryAccessContext> {
     return { mode: "manage", userId, organizationId, branchId, session };
   }
 
-  const membership = await prisma.branchMember.findFirst({
-    where: {
-      branchId,
-      role: BranchRole.STUDENT,
-      member: { userId },
-    },
-    select: { id: true },
-  });
-
+  const membership = await findLibraryReaderMembership(userId, branchId);
   if (!membership) {
     notFound();
   }
@@ -152,7 +161,7 @@ export async function enforceLibraryManageAccess(): Promise<LibraryAccessContext
 /**
  * Gate API fichier livre (proxy).
  * Managers : même livres inactifs (aperçu admin).
- * Élèves : livres actifs uniquement.
+ * Élèves / enseignants / parents : livres actifs uniquement.
  */
 export async function resolveLibraryFileAccess(bookId: string): Promise<
   | {
@@ -211,14 +220,7 @@ export async function resolveLibraryFileAccess(bookId: string): Promise<
     return { ok: false, status: 404 };
   }
 
-  const membership = await prisma.branchMember.findFirst({
-    where: {
-      branchId,
-      role: BranchRole.STUDENT,
-      member: { userId },
-    },
-    select: { id: true },
-  });
+  const membership = await findLibraryReaderMembership(userId, branchId);
 
   if (!membership) {
     return { ok: false, status: 403 };

@@ -170,7 +170,7 @@ test("parent : cursus enfants ; self-scoped ; pas Finance", () => {
   assert.ok(!titles.includes("Finance"));
   assert.equal(resolveCursusViewerRole(sessionWithOrgRole(ORG_ROLE.PARENT)), "parent");
   assert.equal(isCursusSelfScopedRole("parent"), true);
-  assertAreas(ORG_ROLE.PARENT, ["notes", "schedule", "results"], ["finance", "library"]);
+  assertAreas(ORG_ROLE.PARENT, ["notes", "schedule", "results", "library"], ["finance"]);
 });
 
 // --- Enseignant ---
@@ -183,7 +183,7 @@ test("enseignant : notes OK ; pas Finance / Enseignement ; dashboard mes classes
   assert.ok(!titles.includes("Finance"));
   assert.equal(resolveDashboardVariant(sessionWithOrgRole(ORG_ROLE.TEACHER)), "teacher");
   assert.equal(getDashboardDataBlocks("teacher").revenue, false);
-  assertAreas(ORG_ROLE.TEACHER, ["notes", "schedule", "teaching"], ["finance", "school_admin"]);
+  assertAreas(ORG_ROLE.TEACHER, ["notes", "schedule", "teaching", "library"], ["finance", "school_admin"]);
 });
 
 test("enseignant titulaire : fiches ; non-titulaire : pas Fiche Centrale", () => {

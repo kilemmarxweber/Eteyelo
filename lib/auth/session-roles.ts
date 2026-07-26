@@ -335,8 +335,8 @@ export function canAccessTitulaireFichesArea(
 }
 
 /**
- * Horaire : managers + teacher (gestion) ; student / parent en lecture année (unit-00 §3ter).
- * Alias historique de `canAccessScheduleReadArea`.
+ * Horaire : managers + teacher (gestion) ; parent en lecture année.
+ * L’élève n’accède plus à /schedule via le menu Cursus.
  */
 export function canReadScheduleArea(
   session: any,
@@ -346,14 +346,7 @@ export function canReadScheduleArea(
     canManageOrganization(session, ...extraRoles) ||
     hasSessionRole(
       session,
-      [
-        ORG_ROLE.TEACHER,
-        ORG_ROLE.STUDENT,
-        ORG_ROLE.PARENT,
-        "TEACHER",
-        "STUDENT",
-        "PARENT",
-      ],
+      [ORG_ROLE.TEACHER, ORG_ROLE.PARENT, "TEACHER", "PARENT"],
       ...extraRoles,
     )
   );
@@ -362,7 +355,8 @@ export function canReadScheduleArea(
 export const canAccessScheduleReadArea = canReadScheduleArea;
 
 /**
- * Notes : managers + teacher (saisie via teaching) ; student / parent lecture scopée (§3ter).
+ * Notes : managers + teacher (saisie) ; parent lecture scopée.
+ * L’élève n’accède plus à /notes via le menu Cursus.
  */
 export function canAccessNotesReadArea(
   session: any,
@@ -372,14 +366,7 @@ export function canAccessNotesReadArea(
     canManageOrganization(session, ...extraRoles) ||
     hasSessionRole(
       session,
-      [
-        ORG_ROLE.TEACHER,
-        ORG_ROLE.STUDENT,
-        ORG_ROLE.PARENT,
-        "TEACHER",
-        "STUDENT",
-        "PARENT",
-      ],
+      [ORG_ROLE.TEACHER, ORG_ROLE.PARENT, "TEACHER", "PARENT"],
       ...extraRoles,
     )
   );
@@ -407,7 +394,7 @@ export function canAccessResultsArea(
   );
 }
 
-/** Bibliothèque : managers org (sans caissier) + élèves. */
+/** Bibliothèque : managers org (sans caissier) + enseignant + élève + parent. */
 export function canAccessLibraryArea(
   session: any,
   ...extraRoles: unknown[]
@@ -425,11 +412,17 @@ export function canAccessLibraryArea(
         ORG_ROLE.DIRECTEUR,
         ORG_ROLE.DIRECTEUR_ETUDES,
         ORG_ROLE.SUPERVISEUR,
+        ORG_ROLE.TEACHER,
         ORG_ROLE.STUDENT,
+        ORG_ROLE.PARENT,
         "ADMIN",
         "DIRECTOR",
+        "TEACHER",
         "STUDENT",
+        "PARENT",
+        "teacher",
         "student",
+        "parent",
       ],
       ...extraRoles,
     )

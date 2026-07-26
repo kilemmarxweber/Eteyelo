@@ -45,7 +45,7 @@ function Card({
       className={cn(
         "flex flex-col rounded-xl border bg-card text-card-foreground shadow-sm",
         // Compact par défaut (aligné pages enseignant / élèves / tous types branche)
-        isStat ? "h-full gap-0 p-3" : "gap-6 py-6",
+        isStat ? "h-full gap-0 p-2.5 sm:p-3" : "gap-6 py-6",
         !isStat && cardVariantClass[variant],
         cardPaddingClass[padding],
         className,

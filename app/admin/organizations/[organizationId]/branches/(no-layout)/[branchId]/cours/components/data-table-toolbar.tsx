@@ -1,49 +1,41 @@
 "use client";
 
-import { Table } from "@tanstack/react-table";
+import { Cross2Icon } from "@radix-ui/react-icons";
+import { IconSearch } from "@tabler/icons-react";
+import type { Table } from "@tanstack/react-table";
 
-import { IconX } from "@tabler/icons-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { DataTableViewOptions } from "@/components/data-table-view-options"
-
+import { Button } from "@/components/custom/button";
 import { DataTableFacetedFilter } from "@/components/data-table-faceted-filter";
+import { DataTableViewOptions } from "@/components/data-table-view-options";
+import { Input } from "@/components/ui/input";
 
 interface DataTableToolbarProps<TData> {
   table: Table<TData>;
 }
 
-/* const sexe = [
-  {
-    value: "masculin",
-    label: "masculin",
-  },
-  {
-    value: "feminin",
-    label: "Feminin",
-  },
-]; */
 export function DataTableToolbar<TData>({
   table,
 }: DataTableToolbarProps<TData>) {
   const isFiltered = table.getState().columnFilters.length > 0;
 
-  // Fonction de transformation
-
   return (
-    <div className="flex items-center justify-between">
-      <div className="flex flex-1 items-center space-x-2">
+    <div className="flex flex-col gap-3 border-b border bg-card p-4 lg:flex-row lg:items-center lg:justify-between">
+      <div className="relative w-full lg:max-w-[300px]">
+        <IconSearch className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-foreground/40" />
         <Input
-          placeholder="chercher un cours..."
+          placeholder="Rechercher un cours..."
           value={
             (table.getColumn("nameCours")?.getFilterValue() as string) ?? ""
           }
           onChange={(event) =>
             table.getColumn("nameCours")?.setFilterValue(event.target.value)
           }
-          className="h-8 w-[150px] lg:w-[250px]"
+          className="h-11 rounded-xl border bg-card pl-9 text-foreground placeholder:text-foreground/40 focus-visible:ring-blue-200"
         />
-        {table.getColumn("statusCours") && (
+      </div>
+
+      <div className="flex flex-wrap items-center justify-end gap-2">
+        {table.getColumn("statusCours") ? (
           <DataTableFacetedFilter
             column={table.getColumn("statusCours")}
             title="Statut"
@@ -61,53 +53,21 @@ export function DataTableToolbar<TData>({
                 ?.setFilterValue(value === "all" ? "" : value)
             }
           />
-        )}
-        {/* {table.getColumn("nameYear") && (
-          <DataTableFacetedFilter
-            column={table.getColumn("nameYear")}
-            title="Année scolaire"
-            options={schoolYears.map((year) => ({
-              label: year.nameYear,
-              value: year.nameYear,
-            }))}
-            value={
-              (table.getColumn("nameYear")?.getFilterValue() as string) ?? "all"
-            }
-            onValueChange={(value) =>
-              table
-                .getColumn("nameYear")
-                ?.setFilterValue(value === "all" ? "" : value)
-            }
-          />
-        )}
-        {table.getColumn("sexe") && (
-          <DataTableFacetedFilter
-            column={table.getColumn("sexe")}
-            title="Sexe"
-            options={sexe}
-            value={
-              (table.getColumn("sexe")?.getFilterValue() as string) ?? "all"
-            }
-            onValueChange={(value) =>
-              table
-                .getColumn("sexe")
-                ?.setFilterValue(value === "all" ? "" : value)
-            }
-          />
-        )} */}
-        
-        {isFiltered && (
+        ) : null}
+
+        {isFiltered ? (
           <Button
-            variant="ghost"
+            variant="outline"
             onClick={() => table.resetColumnFilters()}
-            className="h-8 px-2 lg:px-3"
+            className="h-10 border-border text-primary hover:bg-blue-50 hover:text-blue-800"
           >
-            Reset
-            <IconX className="ml-2 h-4 w-4" />
+            Réinitialiser
+            <Cross2Icon className="ml-2 size-4" />
           </Button>
-        )}
+        ) : null}
+
+        <DataTableViewOptions table={table} />
       </div>
-      <DataTableViewOptions table={table} />
     </div>
   );
 }

@@ -66,19 +66,19 @@ test("Élève → /frais refusé ; /results /notes /schedule lecture OK", () => 
   );
 });
 
-test("Parent → notes/horaire/results OK ; finance / school_admin refusés", () => {
+test("Parent → notes/horaire/results/library OK ; finance / school_admin refusés", () => {
   assertAreas(
     sessionParent,
-    ["notes", "schedule", "results"],
-    ["finance", "school_admin", "library", "hr_directory"],
+    ["notes", "schedule", "results", "library"],
+    ["finance", "school_admin", "hr_directory"],
   );
 });
 
-test("Enseignant → /paiement refusé ; /notes OK", () => {
+test("Enseignant → /paiement refusé ; /notes /library OK", () => {
   assertAreas(
     sessionTeacher,
-    ["notes", "schedule", "results", "teaching"],
-    ["finance", "school_admin", "pedagogy", "library"],
+    ["notes", "schedule", "results", "teaching", "library"],
+    ["finance", "school_admin", "pedagogy"],
   );
 });
 

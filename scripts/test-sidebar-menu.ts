@@ -71,7 +71,7 @@ test("caissier : Dashboard, Finance, Utilisateurs/Élève, Aide — pas Classes 
   assert.equal(hasMenuTitle(session, "Finance"), true);
 });
 
-test("élève : Dashboard, Notes, Horaire, Résultats/Fiches, Bibliothèque — pas Finance / admin", () => {
+test("élève : Dashboard, Résultats, Bibliothèque — pas Notes/Horaire/Fiches / Finance", () => {
   const session = sessionWithOrgRole(ORG_ROLE.STUDENT);
   const titles = menuTitles(session);
   const cursus = cursusSubTitles(session);
@@ -82,15 +82,23 @@ test("élève : Dashboard, Notes, Horaire, Résultats/Fiches, Bibliothèque — 
     ["Finance", "Utilisateurs", "Classes", "Inscription", "Enseignement", "Candidatures"],
     "élève",
   );
-  assertIncludes(
+  assertIncludes(cursus, ["Résultats", "Bibliothèque"], "élève cursus");
+  assertExcludes(
     cursus,
-    ["Notes", "Horaire", "Résultats", "Fiches", "Bibliothèque"],
+    [
+      "Notes",
+      "Horaire",
+      "Fiches",
+      "Attestations",
+      "Brevets",
+      "Relevés de notes",
+      "Fiche Centrale",
+    ],
     "élève cursus",
   );
-  assertExcludes(cursus, ["Attestations", "Brevets", "Relevés de notes", "Fiche Centrale"], "élève cursus");
 });
 
-test("parent : Dashboard, Notes/Horaire/Résultats — pas Finance / admin / biblio / Fiches", () => {
+test("parent : Dashboard, Notes/Horaire/Résultats/Bibliothèque — pas Finance / admin / Fiches", () => {
   const session = sessionWithOrgRole(ORG_ROLE.PARENT);
   const titles = menuTitles(session);
   const cursus = cursusSubTitles(session);
@@ -101,11 +109,15 @@ test("parent : Dashboard, Notes/Horaire/Résultats — pas Finance / admin / bib
     ["Finance", "Utilisateurs", "Classes", "Inscription", "Enseignement"],
     "parent",
   );
-  assertIncludes(cursus, ["Notes", "Horaire", "Résultats"], "parent cursus");
-  assertExcludes(cursus, ["Bibliothèque", "Fiches"], "parent cursus");
+  assertIncludes(
+    cursus,
+    ["Notes", "Horaire", "Résultats", "Bibliothèque"],
+    "parent cursus",
+  );
+  assertExcludes(cursus, ["Fiches"], "parent cursus");
 });
 
-test("enseignant : pas Enseignement / Utilisateurs ; Cursus Notes/Résultats ; Horaire via dashboard", () => {
+test("enseignant : pas Enseignement / Utilisateurs ; Cursus Notes/Résultats/Bibliothèque ; Horaire via dashboard", () => {
   const session = sessionWithOrgRole(ORG_ROLE.TEACHER);
   const titles = menuTitles(session);
   const cursus = cursusSubTitles(session);
@@ -123,7 +135,11 @@ test("enseignant : pas Enseignement / Utilisateurs ; Cursus Notes/Résultats ; H
     ],
     "enseignant",
   );
-  assertIncludes(cursus, ["Notes", "Résultats"], "enseignant cursus");
+  assertIncludes(
+    cursus,
+    ["Notes", "Résultats", "Bibliothèque"],
+    "enseignant cursus",
+  );
   assertExcludes(cursus, ["Horaire"], "enseignant cursus");
 });
 

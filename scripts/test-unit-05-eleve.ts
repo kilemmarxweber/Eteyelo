@@ -53,10 +53,10 @@ test("élève / parent : notes + horaire lecture, pas manage org", () => {
   assert.equal(canManageOrganization(sessionParent), false);
 });
 
-test("bibliothèque : élève oui, parent non", () => {
+test("bibliothèque : élève, parent et enseignant oui", () => {
   assert.equal(canAccessLibraryArea(sessionStudent), true);
-  assert.equal(canAccessLibraryArea(sessionParent), false);
-  assert.equal(canAccessLibraryArea(sessionTeacher), false);
+  assert.equal(canAccessLibraryArea(sessionParent), true);
+  assert.equal(canAccessLibraryArea(sessionTeacher), true);
 });
 
 test("libellés primaire = Élève via getPeopleLabels", () => {

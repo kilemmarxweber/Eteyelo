@@ -5,6 +5,6 @@ export default async function FichesLayout({
 }: {
   children: React.ReactNode;
 }) {
-  await assertBranchAreaAccess("results");
+  await assertBranchAreaAccess("fiches");
   return children;
 }
