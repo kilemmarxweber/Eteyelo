@@ -1,8 +1,17 @@
+import type { Metadata } from "next";
 import { ArrowRight, Code2, Database, ShieldCheck, Wrench } from "lucide-react";
 import Link from "next/link";
 
 import { HomeNavbar } from "@/components/home-navbar";
 import { Button } from "@/components/ui/button";
+import { publicPageMetadata } from "@/lib/seo/page-metadata";
+
+export const metadata: Metadata = publicPageMetadata({
+  path: "/services/informatique",
+  title: "Services informatique",
+  description:
+    "Applications web, automatisation, maintenance et sécurité pour établissements scolaires — KlamboCore.",
+});
 
 const items = [
   {

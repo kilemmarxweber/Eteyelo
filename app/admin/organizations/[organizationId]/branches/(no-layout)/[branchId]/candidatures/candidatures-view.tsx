@@ -1,17 +1,21 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAppTransition as useTransition } from "@/hooks/use-app-transition";
 import {
   Briefcase,
   CheckCircle2,
   Clock3,
+  Download,
   Eye,
+  FileDown,
   FileText,
+  Loader2,
   UserCheck,
   XCircle,
 } from "lucide-react";
 import { toast } from "sonner";
+import Image from "next/image";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -26,6 +30,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
 import { orgRoleLabel } from "@/lib/org-role-labels";
 import {
   CANDIDATURE_PREFILL_EVENT,
@@ -35,26 +40,93 @@ import type { JobApplicationListItem } from "@/src/interfaces/JobApplication";
 import {
   acceptJobApplicationAction,
   getJobApplicationDetailAction,
+  getJobApplicationReportContextAction,
   getJobApplicationsAction,
   hireJobApplicationAction,
   rejectJobApplicationAction,
   reviewJobApplicationAction,
 } from "@/app/components/depot-candidature/job-application.actions";
-import Image from "next/image";
+import {
+  CANDIDATURE_STATUS_LABEL,
+  downloadCandidatureDossierPdf,
+  exportCandidaturesReportPdf,
+  type CandidatureStatusFilter,
+} from "./export-candidatures-pdf";
 
-const STATUS_LABEL: Record<string, string> = {
-  PENDING: "En attente",
-  REVIEWED: "Examinée",
-  ACCEPTED: "Acceptée",
-  REJECTED: "Refusée",
-  HIRED: "Embauchée",
-  CANCELLED: "Annulée",
-};
+const STATUS_FILTERS: Array<{
+  value: CandidatureStatusFilter;
+  label: string;
+}> = [
+  { value: "ALL", label: "Toutes" },
+  { value: "PENDING", label: "En attente" },
+  { value: "REVIEWED", label: "Examination" },
+  { value: "ACCEPTED", label: "Acceptées" },
+  { value: "HIRED", label: "Embauchées" },
+  { value: "REJECTED", label: "Refusées" },
+];
 
-function statusVariant(status: string) {
-  if (status === "ACCEPTED" || status === "HIRED") return "default";
-  if (status === "REJECTED") return "destructive";
-  return "secondary";
+function statusTone(status: string) {
+  switch (status) {
+    case "PENDING":
+      return {
+        badge:
+          "border-amber-400/60 bg-amber-50 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300",
+        icon: Clock3,
+        card: "border-l-amber-400",
+      };
+    case "REVIEWED":
+      return {
+        badge:
+          "border-sky-400/60 bg-sky-50 text-sky-800 dark:bg-sky-950/40 dark:text-sky-300",
+        icon: Eye,
+        card: "border-l-sky-400",
+      };
+    case "ACCEPTED":
+      return {
+        badge:
+          "border-emerald-400/60 bg-emerald-50 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300",
+        icon: CheckCircle2,
+        card: "border-l-emerald-400",
+      };
+    case "HIRED":
+      return {
+        badge:
+          "border-teal-500/60 bg-teal-50 text-teal-900 dark:bg-teal-950/40 dark:text-teal-300",
+        icon: UserCheck,
+        card: "border-l-teal-500",
+      };
+    case "REJECTED":
+      return {
+        badge:
+          "border-red-400/60 bg-red-50 text-red-800 dark:bg-red-950/40 dark:text-red-300",
+        icon: XCircle,
+        card: "border-l-red-400",
+      };
+    default:
+      return {
+        badge:
+          "border-slate-300 bg-slate-50 text-slate-700 dark:bg-slate-900/40 dark:text-slate-300",
+        icon: Briefcase,
+        card: "border-l-slate-300",
+      };
+  }
+}
+
+function StatusBadge({ status }: { status: string }) {
+  const tone = statusTone(status);
+  const Icon = tone.icon;
+  return (
+    <Badge
+      variant="outline"
+      className={cn(
+        "h-6 gap-1 px-2 text-[11px] font-semibold",
+        tone.badge,
+      )}
+    >
+      <Icon className="size-3" />
+      {CANDIDATURE_STATUS_LABEL[status] ?? status}
+    </Badge>
+  );
 }
 
 export function CandidaturesView({
@@ -68,12 +140,37 @@ export function CandidaturesView({
   );
   const [loading, setLoading] = useState(true);
   const [actionId, setActionId] = useState("");
+  const [statusFilter, setStatusFilter] =
+    useState<CandidatureStatusFilter>("ALL");
+  const [exportingPdf, setExportingPdf] = useState(false);
+  const [exportingDossier, setExportingDossier] = useState(false);
   const [rejectOpen, setRejectOpen] = useState(false);
   const [rejectReason, setRejectReason] = useState("");
   const [rejectTargetId, setRejectTargetId] = useState("");
   const [detailOpen, setDetailOpen] = useState(false);
   const [detail, setDetail] = useState<any>(null);
   const [isPending, startTransition] = useTransition();
+
+  const counts = useMemo(() => {
+    const base: Record<CandidatureStatusFilter, number> = {
+      ALL: applications.length,
+      PENDING: 0,
+      REVIEWED: 0,
+      ACCEPTED: 0,
+      HIRED: 0,
+      REJECTED: 0,
+    };
+    for (const application of applications) {
+      const key = application.status as CandidatureStatusFilter;
+      if (key in base && key !== "ALL") base[key] += 1;
+    }
+    return base;
+  }, [applications]);
+
+  const filteredApplications = useMemo(() => {
+    if (statusFilter === "ALL") return applications;
+    return applications.filter((item) => item.status === statusFilter);
+  }, [applications, statusFilter]);
 
   const loadApplications = useCallback(async () => {
     setLoading(true);
@@ -146,7 +243,9 @@ export function CandidaturesView({
             `Embauche OK — affecté à ${assignment.classNames.join(", ")} (${assignment.assigned} cours).`,
           );
         } else if (assignment?.reason) {
-          toast.success(`Embauche OK. Affectation non faite : ${assignment.reason}.`);
+          toast.success(
+            `Embauche OK. Affectation non faite : ${assignment.reason}.`,
+          );
         } else {
           toast.success(successMessage);
         }
@@ -161,146 +260,268 @@ export function CandidaturesView({
     });
   }
 
+  async function handleExportListPdf() {
+    setExportingPdf(true);
+    try {
+      const [context, error] = await getJobApplicationReportContextAction();
+      if (error || !context) {
+        toast.error(error?.message ?? "Impossible de préparer le PDF.");
+        return;
+      }
+      await exportCandidaturesReportPdf(filteredApplications, context, {
+        status: statusFilter,
+      });
+      toast.success("Rapport PDF généré.");
+    } catch {
+      toast.error("Impossible de générer le rapport PDF.");
+    } finally {
+      setExportingPdf(false);
+    }
+  }
+
+  async function handleExportDossierPdf() {
+    if (!detail) return;
+    setExportingDossier(true);
+    try {
+      const [context, error] = await getJobApplicationReportContextAction();
+      if (error || !context) {
+        toast.error(error?.message ?? "Impossible de préparer le PDF.");
+        return;
+      }
+      await downloadCandidatureDossierPdf(detail, context);
+      toast.success("Dossier PDF téléchargé.");
+    } catch {
+      toast.error("Impossible de générer le dossier PDF.");
+    } finally {
+      setExportingDossier(false);
+    }
+  }
+
   return (
     <div className="space-y-6">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+        {(
+          [
+            ["PENDING", "En attente"],
+            ["REVIEWED", "Examination"],
+            ["ACCEPTED", "Acceptées"],
+            ["HIRED", "Embauchées"],
+            ["REJECTED", "Refusées"],
+          ] as const
+        ).map(([status, label]) => {
+          const tone = statusTone(status);
+          const Icon = tone.icon;
+          const active = statusFilter === status;
+          return (
+            <button
+              key={status}
+              type="button"
+              onClick={() =>
+                setStatusFilter((current) =>
+                  current === status ? "ALL" : status,
+                )
+              }
+              className={cn(
+                "rounded-xl border border-l-4 bg-card px-4 py-3 text-left transition-colors",
+                tone.card,
+                active
+                  ? "ring-2 ring-primary/30"
+                  : "hover:bg-accent/40",
+              )}
+            >
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-xs font-medium text-muted-foreground">
+                  {label}
+                </p>
+                <Icon className="size-3.5 text-muted-foreground" />
+              </div>
+              <p className="mt-1 text-2xl font-bold tracking-tight">
+                {counts[status]}
+              </p>
+            </button>
+          );
+        })}
+      </div>
+
       <Card>
-        <CardHeader>
+        <CardHeader className="gap-3 space-y-0 sm:flex-row sm:items-center sm:justify-between">
           <CardTitle className="flex items-center gap-2">
             <Briefcase className="size-5" />
             Candidatures reçues
-            <Badge variant="outline">{applications.length}</Badge>
+            <Badge variant="outline">{filteredApplications.length}</Badge>
           </CardTitle>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={
+              loading || exportingPdf || filteredApplications.length === 0
+            }
+            onClick={() => void handleExportListPdf()}
+          >
+            {exportingPdf ? (
+              <Loader2 className="mr-2 size-4 animate-spin" />
+            ) : (
+              <FileDown className="mr-2 size-4" />
+            )}
+            Rapport PDF
+          </Button>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
+          <div className="flex flex-wrap gap-2">
+            {STATUS_FILTERS.map((filter) => (
+              <Button
+                key={filter.value}
+                type="button"
+                size="sm"
+                variant={statusFilter === filter.value ? "default" : "outline"}
+                className="h-8"
+                onClick={() => setStatusFilter(filter.value)}
+              >
+                {filter.label}
+                <span className="ml-1.5 text-[10px] opacity-70">
+                  {counts[filter.value]}
+                </span>
+              </Button>
+            ))}
+          </div>
+
           {loading ? (
             <p className="text-sm text-muted-foreground">Chargement...</p>
-          ) : applications.length === 0 ? (
+          ) : filteredApplications.length === 0 ? (
             <p className="text-sm text-muted-foreground">
-              Aucune candidature pour le moment.
+              Aucune candidature pour ce filtre.
             </p>
           ) : (
             <div className="grid gap-3">
-              {applications.map((application) => (
-                <div
-                  key={application.id}
-                  className="flex flex-col gap-3 rounded-xl border p-4 lg:flex-row lg:items-center lg:justify-between"
-                >
-                  <div className="min-w-0 space-y-1">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <p className="font-semibold">
-                        {application.prenom} {application.nom}{" "}
-                        {application.postnom}
+              {filteredApplications.map((application) => {
+                const tone = statusTone(application.status);
+                return (
+                  <div
+                    key={application.id}
+                    className={cn(
+                      "flex flex-col gap-3 rounded-xl border border-l-4 bg-background p-4 lg:flex-row lg:items-center lg:justify-between",
+                      tone.card,
+                    )}
+                  >
+                    <div className="min-w-0 space-y-1.5">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <p className="font-semibold">
+                          {application.prenom} {application.nom}{" "}
+                          {application.postnom}
+                        </p>
+                        <StatusBadge status={application.status} />
+                        <Badge variant="outline">
+                          {application.applicationType === "TEACHER"
+                            ? "Enseignant"
+                            : "Personnel"}
+                        </Badge>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        {application.reference} · {application.email} ·{" "}
+                        {new Date(application.createdAt).toLocaleDateString(
+                          "fr-FR",
+                        )}
                       </p>
-                      <Badge variant={statusVariant(application.status)}>
-                        {STATUS_LABEL[application.status] ?? application.status}
-                      </Badge>
-                      <Badge variant="outline">
+                      <p className="text-xs text-muted-foreground">
                         {application.applicationType === "TEACHER"
-                          ? "Enseignant"
-                          : "Personnel"}
-                      </Badge>
+                          ? `${application.desiredSubjects || "-"} · ${application.desiredLevels || "-"}`
+                          : orgRoleLabel(application.desiredOrgRole || "-")}
+                      </p>
                     </div>
-                    <p className="text-xs text-muted-foreground">
-                      {application.reference} · {application.email} ·{" "}
-                      {new Date(application.createdAt).toLocaleDateString(
-                        "fr-FR",
-                      )}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {application.applicationType === "TEACHER"
-                        ? `${application.desiredSubjects || "-"} · ${application.desiredLevels || "-"}`
-                        : orgRoleLabel(application.desiredOrgRole || "-")}
-                    </p>
-                  </div>
 
-                  <div className="flex flex-wrap gap-2">
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="outline"
-                      disabled={actionId === application.id || isPending}
-                      onClick={() => openDetail(application.id)}
-                    >
-                      <Eye className="mr-2 size-4" />
-                      Détails
-                    </Button>
-
-                    {application.status === "PENDING" ? (
+                    <div className="flex flex-wrap gap-2">
                       <Button
                         type="button"
                         size="sm"
                         variant="outline"
                         disabled={actionId === application.id || isPending}
-                        onClick={() =>
-                          runAction(application.id, () =>
-                            reviewJobApplicationAction({
-                              applicationId: application.id,
-                            }),
-                          )
-                        }
+                        onClick={() => openDetail(application.id)}
                       >
-                        <Clock3 className="mr-2 size-4" />
-                        Examiner
+                        <Eye className="mr-2 size-4" />
+                        Détails
                       </Button>
-                    ) : null}
 
-                    {["PENDING", "REVIEWED"].includes(application.status) ? (
-                      <Button
-                        type="button"
-                        size="sm"
-                        disabled={actionId === application.id || isPending}
-                        onClick={() =>
-                          runAction(application.id, () =>
-                            acceptJobApplicationAction({
-                              applicationId: application.id,
-                            }),
-                          )
-                        }
-                      >
-                        <CheckCircle2 className="mr-2 size-4" />
-                        Accepter
-                      </Button>
-                    ) : null}
+                      {application.status === "PENDING" ? (
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          disabled={actionId === application.id || isPending}
+                          onClick={() =>
+                            runAction(application.id, () =>
+                              reviewJobApplicationAction({
+                                applicationId: application.id,
+                              }),
+                            )
+                          }
+                        >
+                          <Clock3 className="mr-2 size-4" />
+                          Examiner
+                        </Button>
+                      ) : null}
 
-                    {application.status === "ACCEPTED" ? (
-                      <Button
-                        type="button"
-                        size="sm"
-                        disabled={actionId === application.id || isPending}
-                        onClick={() =>
-                          runAction(application.id, () =>
-                            hireJobApplicationAction({
-                              applicationId: application.id,
-                            }),
-                          )
-                        }
-                      >
-                        <UserCheck className="mr-2 size-4" />
-                        Embaucher
-                      </Button>
-                    ) : null}
+                      {["PENDING", "REVIEWED"].includes(application.status) ? (
+                        <Button
+                          type="button"
+                          size="sm"
+                          disabled={actionId === application.id || isPending}
+                          onClick={() =>
+                            runAction(
+                              application.id,
+                              () =>
+                                acceptJobApplicationAction({
+                                  applicationId: application.id,
+                                }),
+                              "Candidature acceptée.",
+                            )
+                          }
+                        >
+                          <CheckCircle2 className="mr-2 size-4" />
+                          Accepter
+                        </Button>
+                      ) : null}
 
-                    {["PENDING", "REVIEWED", "ACCEPTED"].includes(
-                      application.status,
-                    ) ? (
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="destructive"
-                        disabled={actionId === application.id || isPending}
-                        onClick={() => {
-                          setRejectTargetId(application.id);
-                          setRejectReason("");
-                          setRejectOpen(true);
-                        }}
-                      >
-                        <XCircle className="mr-2 size-4" />
-                        Refuser
-                      </Button>
-                    ) : null}
+                      {application.status === "ACCEPTED" ? (
+                        <Button
+                          type="button"
+                          size="sm"
+                          disabled={actionId === application.id || isPending}
+                          onClick={() =>
+                            runAction(application.id, () =>
+                              hireJobApplicationAction({
+                                applicationId: application.id,
+                              }),
+                            )
+                          }
+                        >
+                          <UserCheck className="mr-2 size-4" />
+                          Embaucher
+                        </Button>
+                      ) : null}
+
+                      {["PENDING", "REVIEWED", "ACCEPTED"].includes(
+                        application.status,
+                      ) ? (
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="destructive"
+                          disabled={actionId === application.id || isPending}
+                          onClick={() => {
+                            setRejectTargetId(application.id);
+                            setRejectReason("");
+                            setRejectOpen(true);
+                          }}
+                        >
+                          <XCircle className="mr-2 size-4" />
+                          Refuser
+                        </Button>
+                      ) : null}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </CardContent>
@@ -311,11 +532,14 @@ export function CandidaturesView({
           size="lg"
           className="flex max-h-[min(92dvh,42rem)] w-[min(calc(100vw-1rem),36rem)] flex-col gap-0 overflow-hidden p-0 sm:w-[min(calc(100vw-2rem),40rem)]"
         >
-          <DialogHeader className="shrink-0 space-y-1 border-b px-4 py-3 text-left sm:px-5">
-            <DialogTitle>Dossier candidature</DialogTitle>
+          <DialogHeader className="shrink-0 space-y-2 border-b px-4 py-3 text-left sm:px-5">
+            <DialogTitle className="flex flex-wrap items-center gap-2">
+              Dossier candidature
+              {detail ? <StatusBadge status={detail.status} /> : null}
+            </DialogTitle>
             <DialogDescription>
               {detail
-                ? `${detail.reference} · ${STATUS_LABEL[detail.status] ?? detail.status}`
+                ? `${detail.reference} · déposée le ${new Date(detail.createdAt).toLocaleDateString("fr-FR")}`
                 : "Chargement du dossier…"}
             </DialogDescription>
           </DialogHeader>
@@ -324,7 +548,6 @@ export function CandidaturesView({
             <div className="min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain px-4 py-3 sm:px-5">
               {detail.photoUrl ? (
                 <div className="overflow-hidden rounded-xl border bg-muted/20 shadow-inner">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <Image
                     width={100}
                     height={100}
@@ -332,6 +555,17 @@ export function CandidaturesView({
                     alt={`${detail.prenom} ${detail.nom}`}
                     className="mx-auto max-h-[min(28dvh,12rem)] w-full object-contain"
                   />
+                </div>
+              ) : null}
+
+              {detail.status === "REJECTED" && detail.rejectedReason ? (
+                <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 dark:border-red-900 dark:bg-red-950/30 dark:text-red-300">
+                  <p className="text-xs font-semibold uppercase tracking-wide">
+                    Motif du refus
+                  </p>
+                  <p className="mt-1 whitespace-pre-wrap">
+                    {detail.rejectedReason}
+                  </p>
                 </div>
               ) : null}
 
@@ -405,6 +639,20 @@ export function CandidaturesView({
           ) : null}
 
           <DialogFooter className="shrink-0 gap-2 border-t px-4 py-3 sm:flex-row sm:justify-end sm:space-x-0 sm:px-5">
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full sm:w-auto"
+              disabled={!detail || exportingDossier}
+              onClick={() => void handleExportDossierPdf()}
+            >
+              {exportingDossier ? (
+                <Loader2 className="mr-2 size-4 animate-spin" />
+              ) : (
+                <Download className="mr-2 size-4" />
+              )}
+              PDF dossier
+            </Button>
             {detail?.cvUrl ? (
               <Button asChild variant="outline" className="w-full sm:w-auto">
                 <a href={detail.cvUrl} target="_blank" rel="noopener noreferrer">
@@ -470,11 +718,14 @@ export function CandidaturesView({
               className="w-full sm:w-auto"
               disabled={!rejectReason.trim() || isPending}
               onClick={() => {
-                runAction(rejectTargetId, () =>
-                  rejectJobApplicationAction({
-                    applicationId: rejectTargetId,
-                    reason: rejectReason.trim(),
-                  }),
+                runAction(
+                  rejectTargetId,
+                  () =>
+                    rejectJobApplicationAction({
+                      applicationId: rejectTargetId,
+                      reason: rejectReason.trim(),
+                    }),
+                  "Candidature refusée.",
                 );
                 setRejectOpen(false);
               }}

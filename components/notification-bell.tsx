@@ -10,12 +10,11 @@ import {
   UserPlus,
   Briefcase,
   RefreshCw,
-  CheckCircle,
   Clock,
   AlertCircle,
-  FileInput,
+  Eye,
+  XCircle,
 } from "lucide-react";
-import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
 
@@ -42,8 +41,9 @@ import {
 import {
   confirmNotificationRequestAction,
   getNotificationRequestsAction,
+  rejectNotificationRequestAction,
 } from "@/lib/actions/notification.actions";
-import { acceptJobApplicationAction } from "@/app/components/depot-candidature/job-application.actions";
+import { reviewJobApplicationAction } from "@/app/components/depot-candidature/job-application.actions";
 
 type RegistrationRow = {
   id: string;
@@ -147,14 +147,14 @@ function PersonAvatar({
 
 function NotificationRow({
   item,
-  onConfirm,
-  onPrefill,
-  confirming,
+  onView,
+  onReject,
+  busyId,
 }: {
   item: NotificationItem;
-  onConfirm: (item: NotificationItem) => void;
-  onPrefill: (item: NotificationItem) => void;
-  confirming: string | null;
+  onView: (item: NotificationItem) => void;
+  onReject: (item: RegistrationRow) => void;
+  busyId: string | null;
 }) {
   const fullName =
     item.kind === "registration"
@@ -174,14 +174,13 @@ function NotificationRow({
   const createdAt =
     item.createdAt instanceof Date ? item.createdAt : new Date(item.createdAt);
 
-  const isPending =
-    item.kind === "registration"
-      ? item.status === "PENDING"
-      : item.status === "PENDING" || item.status === "REVIEWED";
-  const isReady =
-    item.kind === "registration"
-      ? item.status === "CONFIRMED"
-      : item.status === "ACCEPTED";
+  const isBusy = busyId === item.id;
+  const statusLabel =
+    item.kind === "job" && item.status === "REVIEWED"
+      ? "Examination en cours…"
+      : item.status === "CONFIRMED"
+        ? "En cours"
+        : "En attente";
 
   return (
     <div
@@ -222,57 +221,40 @@ function NotificationRow({
       </div>
 
       <div className="flex shrink-0 flex-col items-end gap-1.5">
-        {isPending ? (
-          <Badge
-            variant="outline"
-            className="h-5 border-amber-400/60 bg-amber-50 px-1.5 text-[10px] font-semibold text-amber-700 dark:bg-amber-950/30 dark:text-amber-400"
-          >
-            En attente
-          </Badge>
-        ) : null}
-        {isReady ? (
-          <Badge
-            variant="outline"
-            className="h-5 border-blue-400/60 bg-blue-50 px-1.5 text-[10px] font-semibold text-blue-700 dark:bg-blue-950/30 dark:text-blue-400"
-          >
-            Confirmé
-          </Badge>
-        ) : null}
+        <Badge
+          variant="outline"
+          className="h-5 border-amber-400/60 bg-amber-50 px-1.5 text-[10px] font-semibold text-amber-700 dark:bg-amber-950/30 dark:text-amber-400"
+        >
+          {statusLabel}
+        </Badge>
 
-        {isPending ? (
+        <Button
+          size="sm"
+          variant="ghost"
+          className="h-7 gap-1 px-2 text-[10px] text-primary hover:bg-primary/10 hover:text-primary"
+          onClick={() => onView(item)}
+          disabled={isBusy}
+          title="Voir la demande"
+        >
+          {isBusy ? (
+            <RefreshCw className="size-3 animate-spin" />
+          ) : (
+            <Eye className="size-3" />
+          )}
+          Voir la demande
+        </Button>
+
+        {item.kind === "registration" ? (
           <Button
             size="sm"
             variant="ghost"
-            className="h-7 gap-1 px-2 text-[10px] text-primary hover:bg-primary/10 hover:text-primary"
-            onClick={() => onConfirm(item)}
-            disabled={confirming === item.id}
-            title={
-              item.kind === "registration"
-                ? "Examiner la demande"
-                : "Voir la demande"
-            }
+            className="h-7 gap-1 px-2 text-[10px] text-destructive hover:bg-destructive/10 hover:text-destructive"
+            onClick={() => onReject(item)}
+            disabled={isBusy}
+            title="Rejeter"
           >
-            {confirming === item.id ? (
-              <RefreshCw className="size-3 animate-spin" />
-            ) : (
-              <CheckCircle className="size-3" />
-            )}
-            {item.kind === "registration"
-              ? "Examiner la demande"
-              : "Voir la demande"}
-          </Button>
-        ) : null}
-
-        {isReady ? (
-          <Button
-            size="sm"
-            variant="ghost"
-            className="h-7 gap-1 px-2 text-[10px] text-primary hover:bg-primary/10 hover:text-primary"
-            onClick={() => onPrefill(item)}
-            title="Pré-remplir"
-          >
-            <FileInput className="size-3" />
-            Pré-remplir
+            <XCircle className="size-3" />
+            Rejeter
           </Button>
         ) : null}
       </div>
@@ -290,7 +272,7 @@ export function NotificationBell() {
   const [items, setItems] = useState<NotificationItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [confirming, setConfirming] = useState<string | null>(null);
+  const [busyId, setBusyId] = useState<string | null>(null);
   const [, startTransition] = useTransition();
 
   const canSeeInscriptions = canSeeInscriptionNotifications(session);
@@ -303,9 +285,10 @@ export function NotificationBell() {
       : item.status === "PENDING" || item.status === "REVIEWED",
   ).length;
 
-  const branchBase = params.organizationId && params.branchId
-    ? `/admin/organizations/${params.organizationId}/branches/${params.branchId}`
-    : "";
+  const branchBase =
+    params.organizationId && params.branchId
+      ? `/admin/organizations/${params.organizationId}/branches/${params.branchId}`
+      : "";
 
   const loadRequests = useCallback(async () => {
     if (!canSeeNotifications) {
@@ -338,7 +321,7 @@ export function NotificationBell() {
       const jobItems: JobRow[] = canSeeCandidatures
         ? (data.jobApplications ?? [])
             .filter((row) =>
-              ["PENDING", "REVIEWED", "ACCEPTED"].includes(row.status),
+              ["PENDING", "REVIEWED"].includes(row.status),
             )
             .map((row) => ({ ...row, kind: "job" as const }))
         : [];
@@ -372,72 +355,18 @@ export function NotificationBell() {
     return () => clearInterval(interval);
   }, [open, params.branchId, loadRequests, canSeeNotifications]);
 
-  const handleConfirm = useCallback(
-    (item: NotificationItem) => {
-      setConfirming(item.id);
-      startTransition(async () => {
-        try {
-          if (item.kind === "registration") {
-            const [, err] = await confirmNotificationRequestAction({
-              requestId: item.id,
-            });
-            if (err) {
-              toast.error(err.message ?? "Erreur lors de la confirmation.");
-              return;
-            }
-            toast.success("Demande d'inscription examinée.");
-          } else {
-            const [, err] = await acceptJobApplicationAction({
-              applicationId: item.id,
-            });
-            if (err) {
-              toast.error(err.message ?? "Erreur lors de la confirmation.");
-              return;
-            }
-            toast.success("Candidature ouverte — vous pouvez la pré-remplir.");
-          }
-          void loadRequests();
-        } catch {
-          toast.error("Erreur inattendue.");
-        } finally {
-          setConfirming(null);
-        }
-      });
-    },
-    [loadRequests],
-  );
-
-  const handlePrefill = useCallback(
-    (item: NotificationItem) => {
-      setOpen(false);
+  const openRegistration = useCallback(
+    (requestId: string) => {
       if (!branchBase) return;
-
-      if (item.kind === "registration") {
-        const targetPath = `${branchBase}/registration`;
-        const url = `${targetPath}?requestId=${item.id}`;
-        const onPage = pathname.includes("/registration");
-        const currentId = readClientSearchParam("requestId");
-
-        if (onPage) {
-          if (currentId === item.id) {
-            dispatchRegistrationPrefill(item.id);
-          } else {
-            router.replace(url);
-          }
-          return;
-        }
-        router.push(url);
-        return;
-      }
-
-      const targetPath = `${branchBase}/candidatures`;
-      const url = `${targetPath}?applicationId=${item.id}`;
-      const onPage = pathname.includes("/candidatures");
-      const currentId = readClientSearchParam("applicationId");
+      setOpen(false);
+      const targetPath = `${branchBase}/registration`;
+      const url = `${targetPath}?requestId=${requestId}`;
+      const onPage = pathname.includes("/registration");
+      const currentId = readClientSearchParam("requestId");
 
       if (onPage) {
-        if (currentId === item.id) {
-          dispatchCandidaturePrefill(item.id);
+        if (currentId === requestId) {
+          dispatchRegistrationPrefill(requestId);
         } else {
           router.replace(url);
         }
@@ -446,6 +375,81 @@ export function NotificationBell() {
       router.push(url);
     },
     [branchBase, pathname, router],
+  );
+
+  const openCandidature = useCallback(
+    (applicationId: string) => {
+      if (!branchBase) return;
+      setOpen(false);
+      const targetPath = `${branchBase}/candidatures`;
+      const url = `${targetPath}?applicationId=${applicationId}`;
+      const onPage = pathname.includes("/candidatures");
+      const currentId = readClientSearchParam("applicationId");
+
+      if (onPage) {
+        if (currentId === applicationId) {
+          dispatchCandidaturePrefill(applicationId);
+        } else {
+          router.replace(url);
+        }
+        return;
+      }
+      router.push(url);
+    },
+    [branchBase, pathname, router],
+  );
+
+  const handleView = useCallback(
+    (item: NotificationItem) => {
+      setBusyId(item.id);
+      startTransition(async () => {
+        try {
+          if (item.kind === "registration") {
+            if (item.status === "PENDING") {
+              const [, err] = await confirmNotificationRequestAction({
+                requestId: item.id,
+              });
+              if (err) return;
+            }
+            openRegistration(item.id);
+            return;
+          }
+
+          if (item.status === "PENDING") {
+            const [, err] = await reviewJobApplicationAction({
+              applicationId: item.id,
+            });
+            if (err) return;
+          }
+          openCandidature(item.id);
+        } finally {
+          setBusyId(null);
+        }
+      });
+    },
+    [openCandidature, openRegistration],
+  );
+
+  const handleReject = useCallback(
+    (item: RegistrationRow) => {
+      setBusyId(item.id);
+      startTransition(async () => {
+        try {
+          const [, err] = await rejectNotificationRequestAction({
+            requestId: item.id,
+          });
+          if (err) return;
+          setItems((current) =>
+            current.filter(
+              (row) => !(row.kind === "registration" && row.id === item.id),
+            ),
+          );
+        } finally {
+          setBusyId(null);
+        }
+      });
+    },
+    [],
   );
 
   if (!params.branchId || !canSeeNotifications) return null;
@@ -575,9 +579,9 @@ export function NotificationBell() {
                   <NotificationRow
                     key={`${item.kind}-${item.id}`}
                     item={item}
-                    onConfirm={handleConfirm}
-                    onPrefill={handlePrefill}
-                    confirming={confirming}
+                    onView={handleView}
+                    onReject={handleReject}
+                    busyId={busyId}
                   />
                 ))}
               </div>

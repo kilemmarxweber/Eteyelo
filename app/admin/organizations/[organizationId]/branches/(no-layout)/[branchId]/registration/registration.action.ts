@@ -100,6 +100,34 @@ export const confirmRegistrationRequestAction = action
     return { requestId: input.requestId };
   });
 
+export const rejectRegistrationRequestAction = action
+  .input(
+    z.object({
+      requestId: z.string().min(1),
+      reason: z.string().trim().optional(),
+    }),
+  )
+  .handler(async ({ input }) => {
+    const { branchId, organizationId } = await requireRegistrationContext();
+    const reason = input.reason?.trim() || null;
+    const updated = await prisma.$executeRaw(Prisma.sql`
+      UPDATE "RegistrationRequest"
+      SET "status" = 'REJECTED'::"RegistrationRequestStatus",
+          "rejectedReason" = ${reason},
+          "updatedAt" = NOW()
+      WHERE "id" = ${input.requestId} AND "branchId" = ${branchId}
+        AND "organizationId" = ${organizationId}
+        AND "status" IN (
+          'PENDING'::"RegistrationRequestStatus",
+          'CONFIRMED'::"RegistrationRequestStatus"
+        )
+    `);
+    if (updated !== 1) {
+      throw new Error("Cette demande n'est plus disponible.");
+    }
+    return { requestId: input.requestId };
+  });
+
 export const getRegistrationRequestForPrefillAction = action
   .input(z.object({ requestId: z.string().min(1) }))
   .handler(async ({ input }) => {

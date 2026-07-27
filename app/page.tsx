@@ -34,6 +34,11 @@ import { HomeFooter } from "@/components/home-footer";
 import { HomeNavbar } from "@/components/home-navbar";
 import { galleryImages, getHomeData } from "@/lib/home/home-data";
 import { KLAMBOCORE_DEFAULT_IMAGE_PATH } from "@/lib/brand/klambocore-image";
+import {
+  JsonLd,
+  organizationJsonLd,
+  websiteJsonLd,
+} from "@/lib/seo/json-ld";
 
 export const dynamic = "force-dynamic";
 const socialLinks = [
@@ -124,6 +129,7 @@ export default async function HomePage() {
 
   return (
     <main className="min-h-screen bg-slate-50 text-slate-900">
+      <JsonLd data={[organizationJsonLd(), websiteJsonLd()]} />
       {/* TOP BAR */}
       <div className="bg-blue-950 text-white">
         <div className="mx-auto grid max-w-7xl grid-cols-3 items-center gap-2 px-3 py-2 text-[10px] sm:px-6 sm:text-xs">

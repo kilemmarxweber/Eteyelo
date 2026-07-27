@@ -92,7 +92,7 @@ export const getNotificationRequestsAction = action.handler(async () => {
           where: {
             branchId,
             organizationId,
-            status: { in: ["PENDING", "REVIEWED", "ACCEPTED"] },
+            status: { in: ["PENDING", "REVIEWED"] },
           },
           orderBy: { createdAt: "desc" },
           take: 20,
@@ -180,6 +180,39 @@ export const confirmNotificationRequestAction = action
           AND "status" = 'CONFIRMED'::"RegistrationRequestStatus" LIMIT 1
       `);
       if (!existing[0]) throw new Error("Cette demande n'est plus disponible.");
+    }
+    return { requestId: input.requestId };
+  });
+
+// ─── action : rejeter une demande d'inscription (retire la notif) ──────────────
+export const rejectNotificationRequestAction = action
+  .input(
+    z.object({
+      requestId: z.string().min(1),
+      reason: z.string().trim().optional(),
+    }),
+  )
+  .handler(async ({ input }) => {
+    const { branchId, organizationId, canSeeInscriptions } =
+      await requireNotificationContext();
+    if (!canSeeInscriptions) {
+      throw new Error("Accès non autorisé aux demandes d'inscription.");
+    }
+    const reason = input.reason?.trim() || null;
+    const updated = await prisma.$executeRaw(Prisma.sql`
+      UPDATE "RegistrationRequest"
+      SET "status" = 'REJECTED'::"RegistrationRequestStatus",
+          "rejectedReason" = ${reason},
+          "updatedAt" = NOW()
+      WHERE "id" = ${input.requestId} AND "branchId" = ${branchId}
+        AND "organizationId" = ${organizationId}
+        AND "status" IN (
+          'PENDING'::"RegistrationRequestStatus",
+          'CONFIRMED'::"RegistrationRequestStatus"
+        )
+    `);
+    if (updated !== 1) {
+      throw new Error("Cette demande n'est plus disponible.");
     }
     return { requestId: input.requestId };
   });

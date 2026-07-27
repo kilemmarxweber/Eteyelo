@@ -5,6 +5,9 @@ import { prisma } from "@/lib/prisma";
 import { isPrimaryBranch } from "@/lib/class-structure";
 import { isAtelierBranch, isCentreFormationBranch } from "@/lib/branch-capabilities";
 import { fetchPublishedBranchRegistrationInfo } from "@/lib/fetch-published-branch-registration-info";
+import { getBranchManagerEmails } from "@/lib/email/get-branch-manager-emails";
+import { sendBranchSubmissionNotificationEmail } from "@/lib/email/send-branch-submission-notification-email";
+import { sendStudentRegistrationConfirmationEmail } from "@/lib/email/send-student-registration-confirmation-email";
 
 const PRIMARY_MIN_AGE = 5;
 
@@ -160,6 +163,7 @@ export async function registerStudentOnline(raw: OnlineRegistrationInput) {
     where: { id: data.branchId, isActive: true },
     select: {
       id: true,
+      name: true,
       organizationId: true,
       typebranch: true,
       schoolYear: {
@@ -232,9 +236,59 @@ export async function registerStudentOnline(raw: OnlineRegistrationInput) {
     },
   });
 
+  const studentName =
+    `${data.student.prenom} ${data.student.name}`.trim() || "Élève";
+  const primaryGuardian =
+    data.guardians.find((guardian) => guardian.isPrimary) ?? data.guardians[0];
+  const confirmationEmail =
+    primaryGuardian?.email?.trim() || data.student.email?.trim() || "";
+  const recipientName =
+    primaryGuardian != null
+      ? `${primaryGuardian.prenom} ${primaryGuardian.name}`.trim()
+      : studentName;
+
+  if (confirmationEmail) {
+    try {
+      await sendStudentRegistrationConfirmationEmail({
+        to: confirmationEmail.toLowerCase(),
+        recipientName: recipientName || "Responsable",
+        studentName,
+        reference,
+        branchName: branch.name,
+        requestedLevel: data.requestedLevel,
+      });
+    } catch (error) {
+      console.error("STUDENT_REGISTRATION_CONFIRMATION_EMAIL_ERROR:", error);
+    }
+  }
+
+  try {
+    const managerEmails = await getBranchManagerEmails({
+      branchId: branch.id,
+      organizationId: branch.organizationId,
+      kind: "inscription",
+    });
+    if (managerEmails.length > 0) {
+      await sendBranchSubmissionNotificationEmail({
+        to: managerEmails,
+        kind: "inscription",
+        reference,
+        branchName: branch.name,
+        submitterName: recipientName || "Responsable",
+        subjectName: studentName,
+        detailLabel: "Classe / niveau souhaité",
+        detailValue: data.requestedLevel,
+      });
+    }
+  } catch (error) {
+    console.error("STUDENT_REGISTRATION_BRANCH_NOTIFY_EMAIL_ERROR:", error);
+  }
+
   return {
     success: true as const,
-    message: "Votre demande a ete envoyee et doit etre confirmee par l'ecole.",
+    message: confirmationEmail
+      ? "Votre demande a ete envoyee. Un email de confirmation vous a ete adresse."
+      : "Votre demande a ete envoyee et doit etre confirmee par l'ecole.",
     reference,
   };
 }

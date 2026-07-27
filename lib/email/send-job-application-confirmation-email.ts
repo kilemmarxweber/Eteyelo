@@ -18,7 +18,7 @@ export async function sendJobApplicationConfirmationEmail(input: {
   const roleLabel =
     input.applicationType === "TEACHER" ? "Enseignant" : "Personnel";
   const subject = `${APP_NAME} — Candidature reçue (${input.reference})`;
-  const introText = `Bonjour ${input.candidateName}, nous avons bien reçu votre candidature ${roleLabel.toLowerCase()} pour « ${input.branchName} ». Votre dossier est enregistré sous la référence ${input.reference} et sera examiné par l’établissement.`;
+  const introText = `Bonjour ${input.candidateName}, votre candidature ${roleLabel.toLowerCase()} a bien été envoyée à l'établissement « ${input.branchName} ». Votre dossier est enregistré sous la référence ${input.reference} et sera examiné par l'établissement.`;
 
   const text = [
     `Bonjour ${input.candidateName},`,
@@ -29,7 +29,7 @@ export async function sendJobApplicationConfirmationEmail(input: {
     `Type de poste : ${roleLabel}`,
     `Établissement : ${input.branchName}`,
     "",
-    "Votre dossier sera examiné par l'établissement. Vous serez contacté par email en cas de suite favorable.",
+    "Votre dossier a été transmis à l'établissement. Vous serez contacté par email en cas de suite favorable.",
     "",
     `— L'équipe ${APP_NAME}`,
   ].join("\n");
@@ -41,7 +41,7 @@ export async function sendJobApplicationConfirmationEmail(input: {
       { label: "Établissement", valueHtml: escapeHtml(input.branchName) },
     ])}
     <p style="margin:0;font-size:14px;line-height:1.7;color:#64748b;">
-      Votre dossier sera examiné par l’établissement. Vous serez contacté par email en cas de suite favorable.
+      Votre dossier a été transmis à l'établissement. Vous serez contacté par email en cas de suite favorable.
     </p>
   `;
 

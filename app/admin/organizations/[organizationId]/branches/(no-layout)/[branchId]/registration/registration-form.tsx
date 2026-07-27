@@ -368,12 +368,6 @@ export function RegistrationForm({
     setPhotoFile(null);
     setPhotoUrl(request.photoUrl ?? "");
     setStep(0);
-    toast.success(`Demande ${request.reference} chargée pour examen.`);
-    if (request.guardians.length > 1) {
-      toast.info(
-        "Le second responsable reste conserve dans la demande pour verification.",
-      );
-    }
   }
 
   useEffect(() => {

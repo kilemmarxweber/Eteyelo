@@ -1,0 +1,455 @@
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+
+import { orgRoleLabel } from "@/lib/org-role-labels";
+import {
+  finalizePdfDocument,
+  formatFrenchDate,
+  safePdfFilePart,
+  downloadPdfOutput,
+  type PdfOutput,
+} from "@/lib/pdf/pdf-engine";
+import { imageUrlToDataUrl } from "@/lib/reports/image-to-data-url";
+import {
+  drawReportFooterOnAllPages,
+  drawReportHeader,
+  REPORT_HEADER_CONTENT_TOP_MM,
+} from "@/lib/reports/pdf-header-footer";
+import type { SchoolReportContext } from "@/lib/reports/types";
+import type { JobApplicationListItem } from "@/src/interfaces/JobApplication";
+
+export const CANDIDATURE_STATUS_LABEL: Record<string, string> = {
+  PENDING: "En attente",
+  REVIEWED: "Examination en cours",
+  ACCEPTED: "Acceptée",
+  REJECTED: "Refusée",
+  HIRED: "Embauchée",
+  CANCELLED: "Annulée",
+};
+
+export type CandidatureStatusFilter =
+  | "ALL"
+  | "PENDING"
+  | "REVIEWED"
+  | "ACCEPTED"
+  | "HIRED"
+  | "REJECTED";
+
+export type CandidatureReportOptions = {
+  status?: CandidatureStatusFilter | null;
+};
+
+export type CandidatureDossierInput = {
+  reference: string;
+  status: string;
+  applicationType: string;
+  nom: string;
+  postnom: string;
+  prenom: string;
+  sexe?: string | null;
+  dateOfBirth?: Date | string | null;
+  telephone: string;
+  email: string;
+  address?: string | null;
+  desiredSubjects?: string | null;
+  desiredLevels?: string | null;
+  desiredOrgRole?: string | null;
+  yearsOfExperience?: number | null;
+  experienceSummary?: string | null;
+  educationSummary?: string | null;
+  skills?: string | null;
+  availability?: string | null;
+  motivation?: string | null;
+  rejectedReason?: string | null;
+  createdAt: Date | string;
+  reviewedAt?: Date | string | null;
+  acceptedAt?: Date | string | null;
+  hiredAt?: Date | string | null;
+};
+
+function formatFullName(item: {
+  nom: string;
+  postnom: string;
+  prenom: string;
+}): string {
+  return (
+    [item.prenom, item.nom, item.postnom].filter(Boolean).join(" ") || "-"
+  );
+}
+
+function formatType(applicationType: string): string {
+  return applicationType === "TEACHER" ? "Enseignant" : "Personnel";
+}
+
+function formatPoste(item: {
+  applicationType: string;
+  desiredSubjects?: string | null;
+  desiredLevels?: string | null;
+  desiredOrgRole?: string | null;
+}): string {
+  if (item.applicationType === "TEACHER") {
+    const parts = [item.desiredSubjects, item.desiredLevels]
+      .map((part) => part?.trim())
+      .filter(Boolean);
+    return parts.length > 0 ? parts.join(" · ") : "-";
+  }
+  return item.desiredOrgRole
+    ? orgRoleLabel(item.desiredOrgRole)
+    : "-";
+}
+
+function formatDate(value: Date | string | null | undefined): string {
+  if (!value) return "-";
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return "-";
+  return formatFrenchDate(date);
+}
+
+function statusFilterLabel(status: CandidatureStatusFilter): string {
+  if (status === "ALL") return "Tous les statuts";
+  return CANDIDATURE_STATUS_LABEL[status] ?? status;
+}
+
+export function buildCandidaturesReportTitle(
+  options: CandidatureReportOptions = {},
+): string {
+  const status = options.status ?? "ALL";
+  if (!status || status === "ALL") return "Liste des candidatures";
+  return `Liste des candidatures — ${statusFilterLabel(status)}`;
+}
+
+export function buildCandidaturesReportFilterLabels(
+  options: CandidatureReportOptions = {},
+): string[] {
+  const status = options.status ?? "ALL";
+  if (!status || status === "ALL") return [];
+  return [`Statut : ${statusFilterLabel(status)}`];
+}
+
+function buildListFileName(options: CandidatureReportOptions = {}): string {
+  const parts = ["candidatures"];
+  const status = options.status ?? "ALL";
+  if (status && status !== "ALL") {
+    parts.push(safePdfFilePart(statusFilterLabel(status)));
+  }
+  return parts.join("-");
+}
+
+export async function buildCandidaturesReportPdf(
+  applications: JobApplicationListItem[],
+  context: SchoolReportContext,
+  options: CandidatureReportOptions = {},
+) {
+  const title = buildCandidaturesReportTitle(options);
+  const filterLabels = buildCandidaturesReportFilterLabels(options);
+  const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+  const logo = await imageUrlToDataUrl(context.logoUrl);
+
+  const head = ["#", "Référence", "Identité", "Type", "Poste / profil", "Statut", "Date"];
+  const body = applications.map((application, index) => [
+    index + 1,
+    application.reference,
+    formatFullName(application),
+    formatType(application.applicationType),
+    formatPoste(application),
+    CANDIDATURE_STATUS_LABEL[application.status] ?? application.status,
+    formatDate(application.createdAt),
+  ]);
+
+  autoTable(doc, {
+    startY: REPORT_HEADER_CONTENT_TOP_MM,
+    margin: {
+      top: REPORT_HEADER_CONTENT_TOP_MM,
+      right: 10,
+      bottom: 18,
+      left: 10,
+    },
+    head: [head],
+    body,
+    styles: {
+      fontSize: 8,
+      cellPadding: 2,
+      overflow: "linebreak",
+      valign: "middle",
+    },
+    headStyles: {
+      fillColor: [30, 64, 175],
+      textColor: 255,
+      fontStyle: "bold",
+      fontSize: 8,
+    },
+    alternateRowStyles: { fillColor: [248, 250, 252] },
+    columnStyles: {
+      0: { cellWidth: 10 },
+      1: { cellWidth: 28 },
+      2: { cellWidth: 45 },
+      3: { cellWidth: 24 },
+      4: { cellWidth: 55 },
+      5: { cellWidth: 36 },
+      6: { cellWidth: 32 },
+    },
+    didDrawPage: () => {
+      drawReportHeader(doc, context, {
+        title,
+        subtitle: context.branchName,
+        details: [...filterLabels, `${applications.length} candidature(s)`],
+        logoDataUrl: logo,
+      });
+    },
+  });
+
+  drawReportFooterOnAllPages(doc, context, {
+    leftText: context.branchName || context.schoolName,
+  });
+
+  return doc;
+}
+
+export async function exportCandidaturesReportPdf(
+  applications: JobApplicationListItem[],
+  context: SchoolReportContext,
+  options: CandidatureReportOptions = {},
+) {
+  const date = new Date().toISOString().slice(0, 10);
+  const reportName = buildListFileName(options);
+  const doc = await buildCandidaturesReportPdf(applications, context, options);
+  doc.save(`${reportName}-${date}.pdf`);
+}
+
+function drawSectionTitle(doc: jsPDF, title: string, y: number): number {
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(11);
+  doc.setTextColor(30, 64, 175);
+  doc.text(title, 14, y);
+  doc.setDrawColor(226, 232, 240);
+  doc.setLineWidth(0.3);
+  doc.line(14, y + 2, doc.internal.pageSize.getWidth() - 14, y + 2);
+  return y + 8;
+}
+
+function drawField(
+  doc: jsPDF,
+  label: string,
+  value: string,
+  x: number,
+  y: number,
+  maxWidth: number,
+): number {
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(8);
+  doc.setTextColor(100, 116, 139);
+  doc.text(label.toUpperCase(), x, y);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(10);
+  doc.setTextColor(15, 23, 42);
+  const lines = doc.splitTextToSize(value || "-", maxWidth);
+  doc.text(lines, x, y + 5);
+  return y + 5 + lines.length * 4.5 + 3;
+}
+
+function drawParagraph(
+  doc: jsPDF,
+  label: string,
+  value: string,
+  y: number,
+  pageHeight: number,
+): number {
+  if (!value?.trim()) return y;
+  let cursor = y;
+  if (cursor > pageHeight - 40) {
+    doc.addPage();
+    cursor = 20;
+  }
+  cursor = drawSectionTitle(doc, label, cursor);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(10);
+  doc.setTextColor(15, 23, 42);
+  const lines = doc.splitTextToSize(value.trim(), 182);
+  for (const line of lines) {
+    if (cursor > pageHeight - 20) {
+      doc.addPage();
+      cursor = 20;
+    }
+    doc.text(line, 14, cursor);
+    cursor += 5;
+  }
+  return cursor + 4;
+}
+
+export async function buildCandidatureDossierPdf(
+  application: CandidatureDossierInput,
+  context: SchoolReportContext,
+): Promise<PdfOutput> {
+  const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+  const logo = await imageUrlToDataUrl(context.logoUrl);
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const fullName = formatFullName(application);
+  const statusLabel =
+    CANDIDATURE_STATUS_LABEL[application.status] ?? application.status;
+
+  const contentTop = drawReportHeader(doc, context, {
+    title: "Dossier de candidature",
+    subtitle: context.branchName,
+    details: [
+      `Référence : ${application.reference}`,
+      `Statut : ${statusLabel}`,
+      `Déposée le ${formatDate(application.createdAt)}`,
+    ],
+    logoDataUrl: logo,
+  });
+
+  let y = contentTop + 4;
+
+  // Status banner
+  const bannerColors: Record<string, [number, number, number]> = {
+    PENDING: [245, 158, 11],
+    REVIEWED: [59, 130, 246],
+    ACCEPTED: [16, 185, 129],
+    HIRED: [5, 150, 105],
+    REJECTED: [239, 68, 68],
+    CANCELLED: [100, 116, 139],
+  };
+  const [r, g, b] = bannerColors[application.status] ?? [100, 116, 139];
+  doc.setFillColor(r, g, b);
+  doc.roundedRect(14, y, pageWidth - 28, 12, 2, 2, "F");
+  doc.setTextColor(255, 255, 255);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(11);
+  doc.text(`STATUT : ${statusLabel.toUpperCase()}`, pageWidth / 2, y + 7.5, {
+    align: "center",
+  });
+  y += 18;
+
+  y = drawSectionTitle(doc, "Identité du candidat", y);
+  const colWidth = (pageWidth - 28 - 8) / 2;
+  const leftY = drawField(doc, "Nom complet", fullName, 14, y, colWidth);
+  const rightY = drawField(
+    doc,
+    "Type",
+    formatType(application.applicationType),
+    14 + colWidth + 8,
+    y,
+    colWidth,
+  );
+  y = Math.max(leftY, rightY);
+
+  const leftY2 = drawField(doc, "Email", application.email, 14, y, colWidth);
+  const rightY2 = drawField(
+    doc,
+    "Téléphone",
+    application.telephone,
+    14 + colWidth + 8,
+    y,
+    colWidth,
+  );
+  y = Math.max(leftY2, rightY2);
+
+  if (application.sexe) {
+    const leftY3 = drawField(
+      doc,
+      "Sexe",
+      application.sexe === "feminin" ? "Féminin" : "Masculin",
+      14,
+      y,
+      colWidth,
+    );
+    const rightY3 = drawField(
+      doc,
+      "Date de naissance",
+      formatDate(application.dateOfBirth),
+      14 + colWidth + 8,
+      y,
+      colWidth,
+    );
+    y = Math.max(leftY3, rightY3);
+  }
+
+  if (application.address) {
+    y = drawField(doc, "Adresse", application.address, 14, y, pageWidth - 28);
+  }
+
+  y = drawSectionTitle(doc, "Profil recherché", y + 2);
+  y = drawField(doc, "Poste / profil", formatPoste(application), 14, y, pageWidth - 28);
+  if (application.yearsOfExperience != null) {
+    y = drawField(
+      doc,
+      "Années d'expérience",
+      String(application.yearsOfExperience),
+      14,
+      y,
+      colWidth,
+    );
+  }
+  if (application.availability) {
+    y = drawField(
+      doc,
+      "Disponibilité",
+      application.availability,
+      14,
+      y,
+      pageWidth - 28,
+    );
+  }
+
+  y = drawParagraph(doc, "Expérience", application.experienceSummary ?? "", y, pageHeight);
+  y = drawParagraph(doc, "Formation", application.educationSummary ?? "", y, pageHeight);
+  y = drawParagraph(doc, "Compétences", application.skills ?? "", y, pageHeight);
+  y = drawParagraph(doc, "Motivation", application.motivation ?? "", y, pageHeight);
+
+  if (application.status === "REJECTED" && application.rejectedReason) {
+    y = drawParagraph(
+      doc,
+      "Motif du refus",
+      application.rejectedReason,
+      y,
+      pageHeight,
+    );
+  }
+
+  // Decision timeline
+  const timeline: string[] = [
+    `Dépôt : ${formatDate(application.createdAt)}`,
+  ];
+  if (application.reviewedAt) {
+    timeline.push(`Examination : ${formatDate(application.reviewedAt)}`);
+  }
+  if (application.acceptedAt) {
+    timeline.push(`Acceptation : ${formatDate(application.acceptedAt)}`);
+  }
+  if (application.hiredAt) {
+    timeline.push(`Embauche : ${formatDate(application.hiredAt)}`);
+  }
+  if (application.status === "REJECTED") {
+    timeline.push(`Refus : ${formatDate(application.reviewedAt ?? application.createdAt)}`);
+  }
+
+  if (y > pageHeight - 40) {
+    doc.addPage();
+    y = 20;
+  }
+  y = drawSectionTitle(doc, "Suivi de la demande", y + 2);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(10);
+  doc.setTextColor(15, 23, 42);
+  for (const line of timeline) {
+    doc.text(`•  ${line}`, 16, y);
+    y += 6;
+  }
+
+  drawReportFooterOnAllPages(doc, context, {
+    leftText: context.branchName || context.schoolName,
+  });
+
+  const fileName = `candidature-${safePdfFilePart(application.reference)}-${safePdfFilePart(fullName)}.pdf`;
+  return finalizePdfDocument(doc, fileName);
+}
+
+export async function downloadCandidatureDossierPdf(
+  application: CandidatureDossierInput,
+  context: SchoolReportContext,
+) {
+  const output = await buildCandidatureDossierPdf(application, context);
+  downloadPdfOutput(output);
+  return output;
+}

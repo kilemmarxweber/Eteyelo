@@ -159,6 +159,41 @@ type ReceiptPayload = {
 /* ======================================================
    TYPES SAFE
 ====================================================== */
+
+export type SelectableFraisItem = {
+  fraisId: string;
+  classEnrollmentId: string;
+  priority: number;
+  typeFraisId: string | null;
+  typeFraisName: string | null;
+  nameFrais: string;
+  classeId: string;
+  montantFrais: number;
+  total: number;
+  alreadyPaid: number;
+  remainingBrut: number;
+  remaining: number;
+  netRemaining: number;
+  isSolded: boolean;
+};
+
+export type SelectableFraisAggregate = {
+  id: string;
+  nameFrais: string;
+  montantFrais: number;
+  classeId: string;
+  typeFraisId: string | null;
+  typeFraisName: string | null;
+  priority: number;
+  schoolYearId: string | null;
+  resteAffiche: number;
+  discountAmount: number;
+  dueEnrollmentCount: number;
+  selectedEnrollmentCount: number;
+  alreadyPaid: number;
+  totalDue: number;
+};
+
 /* ======================================================
    GET FRAIS WITH BALANCE (SAFE)
 ====================================================== */
@@ -173,6 +208,32 @@ export async function getFraisWithBalance(
     ? await getBestDiscountInfo(prisma, parentId, activeBranchId)
     : EMPTY_DISCOUNT;
 
+  if (!classEnrollIds.length || !fraisIds.length) {
+    return {
+      items: [] as Array<{
+        fraisId: string;
+        classEnrollmentId: string;
+        priority: number;
+        typeFraisId: string | null;
+        typeFraisName: string | null;
+        total: number;
+        alreadyPaid: number;
+        remaining: number;
+      }>,
+      discount: discount.percentage,
+      discountTypeFraisId: discount.typeFraisId,
+      discountTypeFraisName: discount.typeFraisName,
+    };
+  }
+
+  const enrollments = await prisma.classEnrollment.findMany({
+    where: {
+      id: { in: classEnrollIds },
+      branchId: activeBranchId,
+    },
+    select: { id: true, classeId: true },
+  });
+
   const fraisList = await prisma.frais.findMany({
     where: { id: { in: fraisIds }, branchId: activeBranchId },
     include: {
@@ -184,12 +245,15 @@ export async function getFraisWithBalance(
 
   const results = [];
 
-  for (const classEnrollmentId of classEnrollIds) {
+  for (const enrollment of enrollments) {
     for (const frais of fraisList) {
+      // Uniquement les frais de la classe de l'inscription
+      if (frais.classeId !== enrollment.classeId) continue;
+
       const paid = await prisma.familyPayment.aggregate({
         where: {
           branchId: activeBranchId,
-          classEnrollmentId,
+          classEnrollmentId: enrollment.id,
           fraisId: frais.id,
           status: StatusPaiement.VALIDE,
         },
@@ -201,7 +265,7 @@ export async function getFraisWithBalance(
 
       results.push({
         fraisId: frais.id,
-        classEnrollmentId,
+        classEnrollmentId: enrollment.id,
         priority: frais.priority ?? 99,
         typeFraisId: frais.typeFraisId,
         typeFraisName: frais.typeFrais?.nameType ?? null,
@@ -214,6 +278,199 @@ export async function getFraisWithBalance(
 
   return {
     items: results,
+    discount: discount.percentage,
+    discountTypeFraisId: discount.typeFraisId,
+    discountTypeFraisName: discount.typeFraisName,
+  };
+}
+
+/* ======================================================
+   GET SELECTABLE FRAIS FOR ENROLLMENTS
+   (non soldés, priorité, remise, épargner soldés du groupe)
+====================================================== */
+
+export async function getSelectableFraisForEnrollments(input: {
+  classEnrollIds: string[];
+  parentId?: string;
+  schoolYearId?: string;
+}): Promise<{
+  frais: SelectableFraisAggregate[];
+  items: SelectableFraisItem[];
+  discount: number;
+  discountTypeFraisId: string | null;
+  discountTypeFraisName: string | null;
+}> {
+  const { classEnrollIds, parentId, schoolYearId } = input;
+  const { branchId: activeBranchId } = await requireFinanceBranchContext();
+
+  const discount = parentId
+    ? await getBestDiscountInfo(prisma, parentId, activeBranchId)
+    : EMPTY_DISCOUNT;
+
+  const empty = {
+    frais: [] as SelectableFraisAggregate[],
+    items: [] as SelectableFraisItem[],
+    discount: discount.percentage,
+    discountTypeFraisId: discount.typeFraisId,
+    discountTypeFraisName: discount.typeFraisName,
+  };
+
+  if (!classEnrollIds.length) return empty;
+
+  const enrollments = await prisma.classEnrollment.findMany({
+    where: {
+      id: { in: Array.from(new Set(classEnrollIds)) },
+      branchId: activeBranchId,
+    },
+    select: { id: true, classeId: true },
+  });
+
+  if (!enrollments.length) return empty;
+
+  const classeIds = Array.from(
+    new Set(enrollments.map((e) => e.classeId).filter(Boolean)),
+  );
+
+  const normalizedYear = schoolYearId?.trim() || "";
+
+  const fraisList = await prisma.frais.findMany({
+    where: {
+      branchId: activeBranchId,
+      statusFrais: true,
+      classeId: { in: classeIds },
+      ...(normalizedYear ? { schoolYearId: normalizedYear } : {}),
+    },
+    include: {
+      typeFrais: {
+        select: { id: true, nameType: true },
+      },
+    },
+    orderBy: [{ priority: "asc" }, { nameFrais: "asc" }],
+  });
+
+  if (!fraisList.length) return empty;
+
+  const paidGroups = await prisma.familyPayment.groupBy({
+    by: ["classEnrollmentId", "fraisId"],
+    where: {
+      branchId: activeBranchId,
+      status: StatusPaiement.VALIDE,
+      classEnrollmentId: { in: enrollments.map((e) => e.id) },
+      fraisId: { in: fraisList.map((f) => f.id) },
+    },
+    _sum: { amount: true },
+  });
+
+  const paidMap = new Map(
+    paidGroups.map((row) => [
+      `${row.classEnrollmentId}:${row.fraisId}`,
+      Number(row._sum.amount ?? 0),
+    ]),
+  );
+
+  const items: SelectableFraisItem[] = [];
+
+  for (const enrollment of enrollments) {
+    for (const frais of fraisList) {
+      if (frais.classeId !== enrollment.classeId) continue;
+
+      const total = Number(frais.montantFrais);
+      const alreadyPaid =
+        paidMap.get(`${enrollment.id}:${frais.id}`) ?? 0;
+      const remainingBrut = Math.max(total - alreadyPaid, 0);
+      const isSolded = remainingBrut <= 0;
+
+      items.push({
+        fraisId: frais.id,
+        classEnrollmentId: enrollment.id,
+        priority: frais.priority ?? 99,
+        typeFraisId: frais.typeFraisId,
+        typeFraisName: frais.typeFrais?.nameType ?? null,
+        nameFrais: frais.nameFrais,
+        classeId: frais.classeId,
+        montantFrais: total,
+        total,
+        alreadyPaid,
+        remainingBrut,
+        remaining: remainingBrut,
+        netRemaining: remainingBrut,
+        isSolded,
+      });
+    }
+  }
+
+  const byFraisId = new Map<string, SelectableFraisItem[]>();
+  for (const item of items) {
+    const list = byFraisId.get(item.fraisId) ?? [];
+    list.push(item);
+    byFraisId.set(item.fraisId, list);
+  }
+
+  const frais: SelectableFraisAggregate[] = [];
+
+  for (const fraisDef of fraisList) {
+    const lines = byFraisId.get(fraisDef.id) ?? [];
+    if (!lines.length) continue;
+
+    // Épargner les élèves déjà soldés : seules les lignes actives comptent
+    const activeLines = lines.filter((line) => line.remainingBrut > 0);
+    const discountAmount = computeScopedDiscountAmount(
+      activeLines.map((line) => ({
+        base: line.total,
+        typeFraisId: line.typeFraisId,
+      })),
+      discount,
+    );
+    const remainingBrutSum = activeLines.reduce(
+      (sum, line) => sum + line.remainingBrut,
+      0,
+    );
+    const resteAffiche = Math.max(remainingBrutSum - discountAmount, 0);
+
+    // Soldé pour tous (après remise) → ne pas proposer
+    if (resteAffiche <= 0) continue;
+
+    // Répartir la remise sur les lignes actives pour netRemaining
+    if (discountAmount > 0 && remainingBrutSum > 0) {
+      let allocated = 0;
+      activeLines.forEach((line, index) => {
+        const share =
+          index === activeLines.length - 1
+            ? discountAmount - allocated
+            : Math.floor(
+                (line.remainingBrut / remainingBrutSum) * discountAmount,
+              );
+        allocated += share;
+        line.netRemaining = Math.max(line.remainingBrut - share, 0);
+      });
+    }
+
+    frais.push({
+      id: fraisDef.id,
+      nameFrais: fraisDef.nameFrais,
+      montantFrais: Number(fraisDef.montantFrais),
+      classeId: fraisDef.classeId,
+      typeFraisId: fraisDef.typeFraisId,
+      typeFraisName: fraisDef.typeFrais?.nameType ?? null,
+      priority: fraisDef.priority ?? 99,
+      schoolYearId: fraisDef.schoolYearId ?? null,
+      resteAffiche,
+      discountAmount,
+      dueEnrollmentCount: activeLines.length,
+      selectedEnrollmentCount: lines.length,
+      alreadyPaid: lines.reduce((sum, line) => sum + line.alreadyPaid, 0),
+      totalDue: lines.reduce((sum, line) => sum + line.total, 0),
+    });
+  }
+
+  frais.sort(
+    (a, b) =>
+      a.priority - b.priority || a.nameFrais.localeCompare(b.nameFrais, "fr"),
+  );
+
+  return {
+    frais,
+    items,
     discount: discount.percentage,
     discountTypeFraisId: discount.typeFraisId,
     discountTypeFraisName: discount.typeFraisName,
@@ -367,53 +624,8 @@ export const createPaiementAction = action
 
       if (!parent) throw new Error("Parent introuvable");
 
-      const studentCount = uniqueClassEnrollIds.length;
-
-      const hasOrphan = parent.students.some(
-        (s: any) => s.category === "ORPHAN",
-      );
-
-      const parentRule = await tx.discountRule.findFirst({
-        where: { branchId, scope: "PARENT", parentId },
-        include: { typeFrais: { select: { id: true, nameType: true } } },
-      });
-
-      const groupRule = await tx.discountRule.findFirst({
-        where: {
-          branchId,
-          scope: "GROUP",
-          minChildren: { lte: studentCount },
-        },
-        include: { typeFrais: { select: { id: true, nameType: true } } },
-        orderBy: { minChildren: "desc" },
-      });
-
-      const orphanRule = hasOrphan
-        ? await tx.discountRule.findFirst({
-            where: { branchId, scope: "ORPHAN" },
-            include: { typeFrais: { select: { id: true, nameType: true } } },
-          })
-        : null;
-
-      const discountCandidates = [parentRule, groupRule, orphanRule].filter(
-        (rule): rule is NonNullable<typeof parentRule> =>
-          Boolean(rule && (rule.percentage ?? 0) > 0),
-      );
-      const bestDiscountRule = discountCandidates.reduce<
-        (typeof discountCandidates)[number] | null
-      >((best, rule) => {
-        if (!best || rule.percentage > best.percentage) return rule;
-        return best;
-      }, null);
-
-      const discountInfo: DiscountInfo = bestDiscountRule
-        ? {
-            percentage: bestDiscountRule.percentage,
-            typeFraisId: bestDiscountRule.typeFraisId ?? null,
-            typeFraisName: bestDiscountRule.typeFrais?.nameType ?? null,
-          }
-        : EMPTY_DISCOUNT;
-
+      // Aligné sur getBestDiscountInfo (GROUP = tous les enfants du parent)
+      const discountInfo = await getBestDiscountInfo(tx, parentId, branchId);
       const discountPercent = discountInfo.percentage;
 
       /* ======================================================
@@ -434,6 +646,7 @@ export const createPaiementAction = action
         typeFraisId: string | null;
       };
 
+      // Épargner les élèves déjà soldés pour un frais (remaining <= 0)
       const flatItems: FlatItem[] = balances
         .map((b) => ({
           studentId: b.classEnrollmentId,

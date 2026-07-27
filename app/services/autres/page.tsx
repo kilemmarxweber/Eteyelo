@@ -1,8 +1,17 @@
+import type { Metadata } from "next";
 import { ArrowRight, Handshake, Layers3, MessageCircle, Sparkles } from "lucide-react";
 import Link from "next/link";
 
 import { HomeNavbar } from "@/components/home-navbar";
 import { Button } from "@/components/ui/button";
+import { publicPageMetadata } from "@/lib/seo/page-metadata";
+
+export const metadata: Metadata = publicPageMetadata({
+  path: "/services/autres",
+  title: "Autres services",
+  description:
+    "Projets sur mesure, partenariats et accompagnement pour vos besoins scolaires avec KlamboCore.",
+});
 
 const items = [
   {

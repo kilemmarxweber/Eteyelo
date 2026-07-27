@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 import {
   BookOpen,
   BriefcaseBusiness,
@@ -21,6 +22,15 @@ import { HomeFooter } from "@/components/home-footer";
 import { HomeNavbar } from "@/components/home-navbar";
 import { prisma } from "@/lib/prisma";
 import { KLAMBOCORE_DEFAULT_IMAGE_PATH } from "@/lib/brand/klambocore-image";
+import {
+  buildEstablishmentMetadata,
+  getEstablishmentSeoBranch,
+} from "@/lib/seo/establishment-metadata";
+import {
+  JsonLd,
+  educationalOrganizationJsonLd,
+} from "@/lib/seo/json-ld";
+import { SITE_NAME } from "@/lib/seo/site";
 import { getBranchImage } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -30,6 +40,23 @@ type PageProps = {
     branchId: string;
   }>;
 };
+
+export async function generateMetadata({
+  params,
+}: PageProps): Promise<Metadata> {
+  const { branchId } = await params;
+  const branch = await getEstablishmentSeoBranch(branchId);
+
+  if (!branch) {
+    return {
+      title: "Établissement introuvable",
+      description: `Cet établissement n’existe pas ou n’est plus disponible sur ${SITE_NAME}.`,
+      robots: { index: false, follow: false },
+    };
+  }
+
+  return buildEstablishmentMetadata(branch);
+}
 
 export default async function EtablissementDetailPage({ params }: PageProps) {
   const { branchId } = await params;
@@ -48,6 +75,7 @@ export default async function EtablissementDetailPage({ params }: PageProps) {
       pays: true,
       idnat: true,
       image: true,
+      note: true,
       createdAt: true,
       organization: {
         select: {
@@ -185,6 +213,18 @@ export default async function EtablissementDetailPage({ params }: PageProps) {
 
   return (
     <main className="min-h-screen bg-background text-foreground">
+      <JsonLd
+        data={educationalOrganizationJsonLd({
+          id: branch.id,
+          name: branch.name,
+          description: branch.note ?? undefined,
+          ville: branch.ville,
+          pays: branch.pays,
+          adresse: branch.adresse,
+          tel: branch.tel,
+          image: cover,
+        })}
+      />
       <HomeNavbar />
 
       <section className="relative overflow-hidden bg-primary text-primary-foreground">

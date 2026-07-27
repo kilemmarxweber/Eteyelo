@@ -6,6 +6,8 @@ import { prisma } from "@/lib/prisma";
 import { action } from "@/lib/zsa";
 import { jobApplicationInputSchema } from "@/src/interfaces/JobApplication";
 import { sendJobApplicationConfirmationEmail } from "@/lib/email/send-job-application-confirmation-email";
+import { getBranchManagerEmails } from "@/lib/email/get-branch-manager-emails";
+import { sendBranchSubmissionNotificationEmail } from "@/lib/email/send-branch-submission-notification-email";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
 import { canManageOrganization } from "@/lib/auth/session-roles";
 import { createOrganizationMemberAction } from "@/app/admin/organizations/[organizationId]/members/actions";
@@ -16,6 +18,10 @@ import {
 import { generateSecurePassword } from "@/lib/generate-password";
 import { generateSlug } from "@/lib/generated-identifiers";
 import { matchesClassForLevel } from "@/lib/class-enrollment/match-class-for-level";
+import {
+  buildSchoolReportContext,
+  schoolReportBranchSelect,
+} from "@/lib/reports/resolve-school-branding";
 
 function parseDesiredClassTarget(desiredLevels: string | null | undefined) {
   if (!desiredLevels?.trim()) return null;
@@ -319,6 +325,30 @@ export async function submitJobApplication(raw: unknown) {
     console.error("JOB_APPLICATION_CONFIRMATION_EMAIL_ERROR:", error);
   }
 
+  try {
+    const managerEmails = await getBranchManagerEmails({
+      branchId: branch.id,
+      organizationId: branch.organizationId,
+      kind: "candidature",
+    });
+    if (managerEmails.length > 0) {
+      const roleLabel =
+        data.applicationType === "TEACHER" ? "Enseignant" : "Personnel";
+      await sendBranchSubmissionNotificationEmail({
+        to: managerEmails,
+        kind: "candidature",
+        reference,
+        branchName: branch.name,
+        submitterName: `${data.prenom} ${data.nom}`.trim(),
+        subjectName: roleLabel,
+        detailLabel: "Email candidat",
+        detailValue: data.email.toLowerCase(),
+      });
+    }
+  } catch (error) {
+    console.error("JOB_APPLICATION_BRANCH_NOTIFY_EMAIL_ERROR:", error);
+  }
+
   return {
     success: true as const,
     message:
@@ -394,6 +424,16 @@ export const getJobApplicationsAction = action.handler(async () => {
   });
 });
 
+export const getJobApplicationReportContextAction = action.handler(async () => {
+  const { branchId, organizationId } = await requireJobApplicationContext();
+  const branch = await prisma.branch.findFirst({
+    where: { id: branchId, organizationId },
+    select: schoolReportBranchSelect,
+  });
+  if (!branch) throw new Error("Branche active introuvable");
+  return buildSchoolReportContext(branch);
+});
+
 export const getJobApplicationDetailAction = action
   .input(z.object({ applicationId: z.string().min(1) }))
   .handler(async ({ input }) => {
@@ -435,7 +475,18 @@ export const reviewJobApplicationAction = action
     });
 
     if (updated.count !== 1) {
-      throw new Error("Cette candidature n'est plus disponible.");
+      const existing = await prisma.jobApplication.findFirst({
+        where: {
+          id: input.applicationId,
+          branchId,
+          organizationId,
+          status: { in: ["REVIEWED", "ACCEPTED"] },
+        },
+        select: { id: true },
+      });
+      if (!existing) {
+        throw new Error("Cette candidature n'est plus disponible.");
+      }
     }
 
     return { applicationId: input.applicationId };

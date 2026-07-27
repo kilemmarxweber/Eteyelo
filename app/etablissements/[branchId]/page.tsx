@@ -1,2 +1,5 @@
 export const dynamic = "force-dynamic";
-export { default } from "@/app/components/etablissements/[branchId]/page";
+export {
+  default,
+  generateMetadata,
+} from "@/app/components/etablissements/[branchId]/page";

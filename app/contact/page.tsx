@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { Clock3, Mail, MapPin, MessageCircle, Phone } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -6,6 +7,14 @@ import ContactForm from "./contact-form";
 import { HomeFooter } from "@/components/home-footer";
 import { HomeNavbar } from "@/components/home-navbar";
 import { KLAMBOCORE_DEFAULT_IMAGE_PATH } from "@/lib/brand/klambocore-image";
+import { publicPageMetadata } from "@/lib/seo/page-metadata";
+
+export const metadata: Metadata = publicPageMetadata({
+  path: "/contact",
+  title: "Contact",
+  description:
+    "Contactez KlamboCore Sarl — support, partenariats et demandes d’information (Kinshasa, RDC).",
+});
 
 type ContactPageProps = {
   searchParams: Promise<{ user?: string }>;

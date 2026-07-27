@@ -1,8 +1,17 @@
+import type { Metadata } from "next";
 import { ArrowRight, Brush, Camera, Megaphone, Palette } from "lucide-react";
 import Link from "next/link";
 
 import { HomeNavbar } from "@/components/home-navbar";
 import { Button } from "@/components/ui/button";
+import { publicPageMetadata } from "@/lib/seo/page-metadata";
+
+export const metadata: Metadata = publicPageMetadata({
+  path: "/services/design-marketing",
+  title: "Design & marketing",
+  description:
+    "Identité visuelle, supports de communication et campagnes marketing scolaire avec KlamboCore.",
+});
 
 const items = [
   {

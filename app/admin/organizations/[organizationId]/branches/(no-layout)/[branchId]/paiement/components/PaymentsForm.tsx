@@ -24,7 +24,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { CheckCircle2, Receipt, X } from "lucide-react";
 
-import { createPaiementAction, getFraisWithBalance } from "../paiement.action";
+import {
+  createPaiementAction,
+  getFraisWithBalance,
+  getSelectableFraisForEnrollments,
+  type SelectableFraisAggregate,
+} from "../paiement.action";
 import { useBranchPeopleLabels } from "@/hooks/use-branch-people-labels";
 import { pluralizeStudentLabelLower } from "@/lib/people-labels";
 import { getFraisAction } from "../../frais/frais.action";
@@ -37,6 +42,7 @@ import {
   roundCurrency,
   type ExchangeRatePair,
 } from "@/lib/exchange-rate";
+import { computeScopedDiscountAmount } from "@/lib/payment-discount";
 import { CurrencyCode } from "@/prisma/generated/prisma/enums";
 
 import FamilySelector from "./FamilySelector";
@@ -75,7 +81,7 @@ function formatAmount(value: number) {
 
 export default function PaymentsForm({
   fraisList,
-  classEnrollList,
+  classEnrollList: _classEnrollList,
   onCreated,
   onSuccess,
 }: Props) {
@@ -111,6 +117,11 @@ export default function PaymentsForm({
   const [schoolYearId, setSchoolYearId] = useState<string>("");
   const [schoolYears, setSchoolYears] = useState<ISchoolYear[]>([]);
   const [availableFrais, setAvailableFrais] = useState<any[]>(fraisList);
+  /** Frais non soldés proposés pour la sélection courante (tri priorité). */
+  const [selectableFrais, setSelectableFrais] = useState<
+    SelectableFraisAggregate[]
+  >([]);
+  const [loadingSelectableFrais, setLoadingSelectableFrais] = useState(false);
   const [familyResetKey, setFamilyResetKey] = useState(0);
   const [receiptDialogOpen, setReceiptDialogOpen] = useState(false);
   const [receiptData, setReceiptData] =
@@ -120,6 +131,10 @@ export default function PaymentsForm({
   const [displayAmount, setDisplayAmount] = useState<number | undefined>();
   const amountManuallyEditedRef = useRef(false);
   const lastAutoFillKeyRef = useRef("");
+  /** Frais désélectionnés manuellement dans la session courante. */
+  const userDeselectedFraisIdsRef = useRef<Set<string>>(new Set());
+  const selectionParentIdRef = useRef("");
+  const lastSelectableKeyRef = useRef("");
   const [isLargeScreen, setIsLargeScreen] = useState(false);
   const [exchangeRates, setExchangeRates] = useState<ExchangeRatePair[]>([]);
   const [receivedCurrency, setReceivedCurrency] = useState<CurrencyCode>(
@@ -189,21 +204,6 @@ export default function PaymentsForm({
   const amount = Number.isFinite(Number(rawAmount)) ? Number(rawAmount) : 0;
   const fraisIds = watch("fraisIds") || [];
 
-  const selectedClasseIds = useMemo(() => {
-    if (!selection.classEnrollIds.length) return [];
-
-    return Array.from(
-      new Set(
-        classEnrollList
-          .filter((enrollment: any) =>
-            selection.classEnrollIds.includes(enrollment.id),
-          )
-          .map((enrollment: any) => enrollment.classeId)
-          .filter(Boolean),
-      ),
-    );
-  }, [classEnrollList, selection.classEnrollIds]);
-
   // ================= TRANSACTION REF =================
   useEffect(() => {
     setTransactionRef(buildTransactionRef());
@@ -231,14 +231,112 @@ export default function PaymentsForm({
     };
   }, [schoolYearId]);
 
+  // ================= SELECTABLE FRAIS (non soldés) =================
+  const applySelectableResult = useCallback(
+    (
+      data: Awaited<ReturnType<typeof getSelectableFraisForEnrollments>>,
+      options?: { autoSelect?: boolean },
+    ) => {
+      const autoSelect = options?.autoSelect ?? true;
+      setSelectableFrais(data.frais);
+      setDiscountValue(data.discount);
+      setDiscountTypeFraisId(data.discountTypeFraisId ?? null);
+      setDiscountTypeFraisName(data.discountTypeFraisName ?? null);
+
+      const eligibleIds = data.frais.map((f) => f.id);
+      const eligibleSet = new Set(eligibleIds);
+
+      // Nettoyer les désélections qui ne sont plus éligibles
+      for (const id of Array.from(userDeselectedFraisIdsRef.current)) {
+        if (!eligibleSet.has(id)) {
+          userDeselectedFraisIdsRef.current.delete(id);
+        }
+      }
+
+      if (!autoSelect) {
+        // Garder uniquement les frais encore éligibles
+        const current = watch("fraisIds") || [];
+        const pruned = current.filter((id) => eligibleSet.has(id));
+        if (pruned.length !== current.length) {
+          setValue("fraisIds", pruned, { shouldValidate: true });
+        }
+        return;
+      }
+
+      const nextIds = eligibleIds.filter(
+        (id) => !userDeselectedFraisIdsRef.current.has(id),
+      );
+      setValue("fraisIds", nextIds, { shouldValidate: true });
+    },
+    [setValue, watch],
+  );
+
+  const reloadSelectableFrais = useCallback(
+    async (
+      classEnrollIds: string[],
+      parentId: string,
+      yearId: string,
+      options?: { autoSelect?: boolean; force?: boolean },
+    ) => {
+      const key = `${classEnrollIds.join(",")}|${parentId}|${yearId?.trim() || ""}`;
+      if (
+        !options?.force &&
+        key === lastSelectableKeyRef.current &&
+        classEnrollIds.length > 0
+      ) {
+        return;
+      }
+
+      if (!classEnrollIds.length) {
+        lastSelectableKeyRef.current = "";
+        setSelectableFrais([]);
+        setBalances([]);
+        setDiscountValue(0);
+        setDiscountTypeFraisId(null);
+        setDiscountTypeFraisName(null);
+        setValue("fraisIds", [], { shouldValidate: true });
+        userDeselectedFraisIdsRef.current.clear();
+        return;
+      }
+
+      lastSelectableKeyRef.current = key;
+      setLoadingSelectableFrais(true);
+      try {
+        const data = await getSelectableFraisForEnrollments({
+          classEnrollIds,
+          parentId: parentId || undefined,
+          schoolYearId: yearId || undefined,
+        });
+        applySelectableResult(data, options);
+      } catch (error) {
+        console.error(error);
+        lastSelectableKeyRef.current = "";
+        toast.error("Impossible de charger les frais disponibles.");
+        setSelectableFrais([]);
+      } finally {
+        setLoadingSelectableFrais(false);
+      }
+    },
+    [applySelectableResult, setValue],
+  );
+
+  // Recharger les frais éligibles si l'année change alors que des élèves sont sélectionnés
+  useEffect(() => {
+    if (!selection.classEnrollIds.length) return;
+    void reloadSelectableFrais(
+      selection.classEnrollIds,
+      selection.parentId,
+      schoolYearId,
+      { autoSelect: true },
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- volontairement lié à schoolYearId
+  }, [schoolYearId]);
+
   // ================= BALANCES =================
   useEffect(() => {
     const fetch = async () => {
       if (!selection.classEnrollIds.length || !fraisIds.length) {
         setBalances([]);
-        setDiscountValue(0);
-        setDiscountTypeFraisId(null);
-        setDiscountTypeFraisName(null);
         return;
       }
 
@@ -248,14 +346,38 @@ export default function PaymentsForm({
         selection.parentId,
       );
 
-      setBalances(data.items);
+      // Épargner les soldés : ne garder que les lignes encore dues pour le récap
+      const activeItems = data.items.filter(
+        (item) => Math.max(Number(item.total) - Number(item.alreadyPaid), 0) > 0,
+      );
+      setBalances(activeItems);
       setDiscountValue(data.discount);
       setDiscountTypeFraisId(data.discountTypeFraisId ?? null);
       setDiscountTypeFraisName(data.discountTypeFraisName ?? null);
     };
 
-    fetch();
+    void fetch();
   }, [selection.classEnrollIds, fraisIds, selection.parentId]);
+
+  // Prune fraisIds qui ne sont plus dans selectable (soldés)
+  useEffect(() => {
+    if (loadingSelectableFrais) return;
+    if (!selection.classEnrollIds.length) return;
+
+    const eligibleSet = new Set(selectableFrais.map((f) => f.id));
+    const current = fraisIds;
+    const pruned = current.filter((id) => eligibleSet.has(id));
+    if (pruned.length !== current.length) {
+      setValue("fraisIds", pruned, { shouldValidate: true });
+    }
+  }, [
+    selectableFrais,
+    fraisIds,
+    selection.classEnrollIds.length,
+    loadingSelectableFrais,
+    setValue,
+  ]);
+
   // 🔥 AUTO HIDE WARNING (30s)
   useEffect(() => {
     if (!amountWarning) return;
@@ -269,6 +391,7 @@ export default function PaymentsForm({
 
   // ================= SUMMARY (aligné sur le moteur backend) =================
   const summary = useMemo(() => {
+    // Lignes actives uniquement (élèves soldés déjà exclus)
     const totalDue = balances.reduce(
       (sum, b) => sum + Number(b.total ?? 0),
       0,
@@ -283,22 +406,18 @@ export default function PaymentsForm({
       0,
     );
 
-    // Remise % sur le montant brut des frais encore dus (pas sur le reste).
-    // Ex. 50 000 − 45 000 déjà payés : 10 % = 5 000 (pas 500).
-    const eligibleBase = balances.reduce((sum, b) => {
-      const total = Math.max(Number(b.total ?? 0), 0);
-      const lineRemaining = Math.max(
-        total - Number(b.alreadyPaid ?? 0),
-        0,
-      );
-      if (!lineRemaining || discountValue <= 0) return sum;
-      if (discountTypeFraisId) {
-        return b.typeFraisId === discountTypeFraisId ? sum + total : sum;
-      }
-      return sum + total;
-    }, 0);
-
-    const discountAmount = (eligibleBase * discountValue) / 100;
+    const discountInfo = {
+      percentage: discountValue,
+      typeFraisId: discountTypeFraisId,
+      typeFraisName: discountTypeFraisName,
+    };
+    const discountAmount = computeScopedDiscountAmount(
+      balances.map((b) => ({
+        base: Math.max(Number(b.total ?? 0), 0),
+        typeFraisId: b.typeFraisId ?? null,
+      })),
+      discountInfo,
+    );
     const remaining = Math.max(remainingBeforeDiscount - discountAmount, 0);
     const hasEligibleFraisSelected =
       !discountTypeFraisId ||
@@ -326,60 +445,94 @@ export default function PaymentsForm({
   ]);
 
   const selectedFraisDetails = useMemo(() => {
-    const studentCount = selection.classEnrollIds.length || 1;
-
     return fraisIds.map((fraisId) => {
+      const selectable = selectableFrais.find((f) => f.id === fraisId);
       const frais = availableFrais.find((f: any) => f.id === fraisId);
       const fraisBalances = balances.filter((b: any) => b.fraisId === fraisId);
+      // Élèves encore dus uniquement
+      const activeBalances = fraisBalances.filter(
+        (b) => Math.max(Number(b.total ?? 0) - Number(b.alreadyPaid ?? 0), 0) > 0,
+      );
 
-      if (fraisBalances.length > 0) {
-        const total = fraisBalances.reduce(
-          (sum, b) => sum + Number(b.total ?? 0),
-          0,
-        );
-        const alreadyPaid = fraisBalances.reduce(
-          (sum, b) => sum + Number(b.alreadyPaid ?? 0),
-          0,
-        );
-        const remaining = fraisBalances.reduce(
+      if (activeBalances.length > 0 || selectable) {
+        const total =
+          selectable?.totalDue ??
+          activeBalances.reduce((sum, b) => sum + Number(b.total ?? 0), 0);
+        const alreadyPaid =
+          selectable?.alreadyPaid ??
+          fraisBalances.reduce(
+            (sum, b) => sum + Number(b.alreadyPaid ?? 0),
+            0,
+          );
+        const remainingBrut = activeBalances.reduce(
           (sum, b) =>
             sum + Math.max(Number(b.total ?? 0) - Number(b.alreadyPaid ?? 0), 0),
           0,
         );
+        const typeFraisId =
+          selectable?.typeFraisId ??
+          activeBalances[0]?.typeFraisId ??
+          frais?.typeFraisId ??
+          null;
+        const feeDiscount = computeScopedDiscountAmount(
+          activeBalances.map((b) => ({
+            base: Math.max(Number(b.total ?? 0), 0),
+            typeFraisId: b.typeFraisId ?? null,
+          })),
+          {
+            percentage: discountValue,
+            typeFraisId: discountTypeFraisId,
+            typeFraisName: discountTypeFraisName,
+          },
+        );
+        const remaining =
+          selectable?.resteAffiche ??
+          Math.max(remainingBrut - feeDiscount, 0);
+        const dueEnrollmentCount =
+          selectable?.dueEnrollmentCount ?? activeBalances.length;
+        const selectedEnrollmentCount =
+          selectable?.selectedEnrollmentCount ??
+          selection.classEnrollIds.length;
 
         return {
           id: fraisId,
-          name: frais?.nameFrais ?? "Frais",
-          unitAmount: Number(frais?.montantFrais ?? fraisBalances[0]?.total ?? 0),
+          name: selectable?.nameFrais ?? frais?.nameFrais ?? "Frais",
+          unitAmount: Number(
+            selectable?.montantFrais ??
+              frais?.montantFrais ??
+              activeBalances[0]?.total ??
+              0,
+          ),
           total,
           alreadyPaid,
           remaining,
-          studentCount: fraisBalances.length,
-          typeFraisId:
-            fraisBalances[0]?.typeFraisId ?? frais?.typeFraisId ?? null,
+          studentCount: dueEnrollmentCount,
+          dueEnrollmentCount,
+          selectedEnrollmentCount,
+          typeFraisId,
           typeFraisName:
-            fraisBalances[0]?.typeFraisName ??
+            selectable?.typeFraisName ??
+            activeBalances[0]?.typeFraisName ??
             frais?.typeFrais?.nameType ??
             null,
           hasDiscount:
             discountValue > 0 &&
-            (!discountTypeFraisId ||
-              (fraisBalances[0]?.typeFraisId ?? frais?.typeFraisId) ===
-                discountTypeFraisId),
+            (!discountTypeFraisId || typeFraisId === discountTypeFraisId),
         };
       }
 
       const unitAmount = Number(frais?.montantFrais ?? 0);
-      const total = unitAmount * studentCount;
 
       return {
         id: fraisId,
         name: frais?.nameFrais ?? "Frais",
         unitAmount,
-        total,
+        total: unitAmount,
         alreadyPaid: 0,
-        remaining: total,
-        studentCount,
+        remaining: unitAmount,
+        studentCount: 0,
+        dueEnrollmentCount: 0,
+        selectedEnrollmentCount: selection.classEnrollIds.length,
         typeFraisId: frais?.typeFraisId ?? null,
         typeFraisName: frais?.typeFrais?.nameType ?? null,
         hasDiscount:
@@ -392,9 +545,11 @@ export default function PaymentsForm({
     fraisIds,
     balances,
     availableFrais,
+    selectableFrais,
     selection.classEnrollIds.length,
     discountValue,
     discountTypeFraisId,
+    discountTypeFraisName,
   ]);
 
   // ================= 🏦 BANK SYSTEM: LOCKED STATES =================
@@ -617,6 +772,10 @@ export default function PaymentsForm({
       amountManuallyEditedRef.current = false;
       setDisplayAmount(undefined);
       lastAutoFillKeyRef.current = "";
+      userDeselectedFraisIdsRef.current.clear();
+      selectionParentIdRef.current = "";
+      lastSelectableKeyRef.current = "";
+      setSelectableFrais([]);
       // Conserver l'année scolaire (réémise par FamilySelector au reset)
       setTransactionRef(buildTransactionRef());
       setFamilyResetKey((key) => key + 1);
@@ -630,51 +789,38 @@ export default function PaymentsForm({
     }
   };
   // ================= CURRENT YEAR FILTER SAFE =================
-  const normalizedSchoolYearId = useMemo(() => {
-    return schoolYearId?.trim() || "";
-  }, [schoolYearId]);
+  // (année gérée via schoolYearId + getSelectableFraisForEnrollments)
 
-  // ================= FILTER FRAIS BY SCHOOL YEAR =================
-  const filteredFraisList = useMemo(() => {
-    if (!normalizedSchoolYearId) return availableFrais;
-
-    return availableFrais.filter((f: any) => {
-      const fYear = f?.schoolYearId?.trim?.() || "";
-
-      return fYear === normalizedSchoolYearId;
-    });
-  }, [availableFrais, normalizedSchoolYearId]);
-
-  // ================= FILTER + CLASS + MAP OPTIONS =================
+  // ================= FILTER FRAIS OPTIONS (non soldés uniquement) =================
   const fraisOptions = useMemo(() => {
-    const source = normalizedSchoolYearId ? filteredFraisList : availableFrais;
-    if (!source.length) return [];
+    if (!selection.classEnrollIds.length) return [];
 
-    return source
-      .filter((f: any) => {
-        // sécurité classe : on compare aux classeId des inscriptions sélectionnées
-        if (!selection.classEnrollIds.length) return true;
-        if (!selectedClasseIds.length) return false;
-
-        return selectedClasseIds.includes(f.classeId);
-      })
-      .map((f: any) => ({
-        label: `${f.nameFrais} (${formatAmount(Number(f.montantFrais))} ${baseCurrency})`,
-        value: f.id,
-      }));
-  }, [
-    availableFrais,
-    filteredFraisList,
-    selectedClasseIds,
-    selection.classEnrollIds,
-    normalizedSchoolYearId,
-    baseCurrency,
-  ]);
+    return selectableFrais.map((f) => ({
+      label: `${f.nameFrais} (${formatAmount(Number(f.montantFrais))} ${baseCurrency})`,
+      value: f.id,
+    }));
+  }, [selectableFrais, selection.classEnrollIds.length, baseCurrency]);
 
   const handleFraisChange = (values: string[]) => {
     amountManuallyEditedRef.current = false;
     setAmountManuallyEdited(false);
     lastAutoFillKeyRef.current = "";
+
+    const previous = new Set(fraisIds);
+    const next = new Set(values);
+
+    // Tracker les désélections / resélections manuelles
+    for (const id of previous) {
+      if (!next.has(id)) {
+        userDeselectedFraisIdsRef.current.add(id);
+      }
+    }
+    for (const id of next) {
+      if (!previous.has(id)) {
+        userDeselectedFraisIdsRef.current.delete(id);
+      }
+    }
+
     setValue("fraisIds", values, { shouldValidate: true });
   };
 
@@ -682,6 +828,7 @@ export default function PaymentsForm({
     amountManuallyEditedRef.current = false;
     setAmountManuallyEdited(false);
     lastAutoFillKeyRef.current = "";
+    userDeselectedFraisIdsRef.current.add(fraisId);
     setValue(
       "fraisIds",
       fraisIds.filter((id) => id !== fraisId),
@@ -819,10 +966,28 @@ export default function PaymentsForm({
             amountManuallyEditedRef.current = false;
             setAmountManuallyEdited(false);
             lastAutoFillKeyRef.current = "";
-            setSelection(data);
+
+            const parentChanged =
+              data.parentId !== selectionParentIdRef.current;
+            if (parentChanged) {
+              userDeselectedFraisIdsRef.current.clear();
+              selectionParentIdRef.current = data.parentId;
+            }
+
+            setSelection({
+              parentId: data.parentId,
+              classEnrollIds: data.classEnrollIds,
+            });
             setSchoolYearId(data.schoolYearId);
             setValue("parentId", data.parentId);
             setValue("classEnrollIds", data.classEnrollIds);
+
+            void reloadSelectableFrais(
+              data.classEnrollIds,
+              data.parentId,
+              data.schoolYearId || schoolYearId,
+              { autoSelect: true },
+            );
           }}
         />
       </div>
@@ -833,10 +998,17 @@ export default function PaymentsForm({
           options={fraisOptions}
           value={watch("fraisIds") || []}
           onValueChange={handleFraisChange}
-          placeholder="Sélectionner les frais"
+          placeholder={
+            loadingSelectableFrais
+              ? "Chargement des frais…"
+              : selection.classEnrollIds.length
+                ? "Sélectionner les frais"
+                : `Sélectionnez ${peopleLabels.studentIndefinite} d'abord`
+          }
           searchable
           closeOnSelect={false}
           hideSelected
+          disabled={!selection.classEnrollIds.length || loadingSelectableFrais}
         />
 
         {selectedFraisDetails.length > 0 && (
@@ -857,8 +1029,12 @@ export default function PaymentsForm({
                     <p className="font-medium truncate">{frais.name}</p>
                     <p className="text-xs text-muted-foreground">
                       {formatAmount(frais.unitAmount)}
-                      {frais.studentCount > 1 &&
-                        ` × ${frais.studentCount} ${peopleLabels.studentPluralLower}`}
+                      {frais.dueEnrollmentCount > 0 &&
+                        frais.selectedEnrollmentCount > 1 &&
+                        ` · ${frais.dueEnrollmentCount}/${frais.selectedEnrollmentCount} ${peopleLabels.studentPluralLower}`}
+                      {frais.dueEnrollmentCount > 1 &&
+                        frais.selectedEnrollmentCount <= 1 &&
+                        ` × ${frais.dueEnrollmentCount} ${peopleLabels.studentPluralLower}`}
                     </p>
                     {frais.hasDiscount ? (
                       <p className="text-[11px] font-medium text-amber-700">

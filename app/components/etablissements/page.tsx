@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { ArrowRight, MapPin, School, Users } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -6,9 +7,24 @@ import { HomeFooter } from "@/components/home-footer";
 import { HomeNavbar } from "@/components/home-navbar";
 import { prisma } from "@/lib/prisma";
 import { KLAMBOCORE_DEFAULT_IMAGE_PATH } from "@/lib/brand/klambocore-image";
+import { SITE_NAME, SITE_OG_IMAGE } from "@/lib/seo/site";
 import { getBranchImage } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Établissements partenaires",
+  description: `Découvrez les écoles et établissements scolaires présents sur ${SITE_NAME} — fiches, contacts et informations locales.`,
+  alternates: {
+    canonical: "/etablissements",
+  },
+  openGraph: {
+    title: `Établissements partenaires | ${SITE_NAME}`,
+    description: `Liste des établissements scolaires sur ${SITE_NAME}.`,
+    url: "/etablissements",
+    images: [{ url: SITE_OG_IMAGE, alt: SITE_NAME }],
+  },
+};
 
 export default async function EtablissementsPage() {
   const branches = await prisma.branch.findMany({

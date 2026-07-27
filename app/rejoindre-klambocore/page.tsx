@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import {
   ArrowUpRight,
   BadgeCheck,
@@ -15,7 +16,15 @@ import { HomeFooter } from "@/components/home-footer";
 import { HomeNavbar } from "@/components/home-navbar";
 import { Button } from "@/components/ui/button";
 import { KLAMBOCORE_DEFAULT_IMAGE_PATH } from "@/lib/brand/klambocore-image";
+import { publicPageMetadata } from "@/lib/seo/page-metadata";
 import { cn } from "@/lib/utils";
+
+export const metadata: Metadata = publicPageMetadata({
+  path: "/rejoindre-klambocore",
+  title: "Rejoindre KlamboCore",
+  description:
+    "Rejoignez KlamboCore : référencez votre établissement, services digitaux et accompagnement scolaire.",
+});
 
 const solutions = [
   {

@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
+import { sendMail } from "@/lib/email/mailer";
 import { NextResponse } from "next/server";
-import nodemailer from "nodemailer";
 
 const linkedUserInclude = {
   branchMember: {
@@ -40,20 +40,7 @@ export async function POST(req: Request) {
     });
 
     // ===============================
-    // 2. Transporter EMAIL
-    // ===============================
-    const transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: Number(process.env.SMTP_PORT ?? 465),
-      secure: process.env.SMTP_SECURE === "true",
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
-      },
-    });
-
-    // ===============================
-    // 3. Loop étudiants
+    // 2. Loop étudiants → mise en file email
     // ===============================
     for (const student of students) {
       const studentUser = getLinkedUser(student);
@@ -166,17 +153,14 @@ export async function POST(req: Request) {
       </div>
       `;
 
-      // ===============================
-      // ENVOI EMAIL
-      // ===============================
-      await transporter.sendMail({
-        from: process.env.SMTP_USER,
+      await sendMail({
         to: email,
         subject: `Résultats de ${studentUser?.name ?? ""}`,
+        text: `Bulletin scolaire de ${studentUser?.name ?? ""} — moyenne ${percent}%`,
         html,
       });
 
-      console.log("EMAIL SENT TO:", email);
+      console.log("EMAIL QUEUED TO:", email);
     }
 
     return NextResponse.json({ success: true });

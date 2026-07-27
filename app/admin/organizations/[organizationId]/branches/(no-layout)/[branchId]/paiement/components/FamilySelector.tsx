@@ -49,6 +49,8 @@ export default function FamilySelector({
     Record<string, StudentItem & { parentLabel: string }>
   >({});
   const [activeParent, setActiveParent] = useState<string>("");
+  /** Famille épinglée : une fois un élève coché, seuls ce parent reste visible. */
+  const [pinnedFamily, setPinnedFamily] = useState<Family | null>(null);
   const [searching, setSearching] = useState(false);
 
   const [internalSchoolYear, setInternalSchoolYear] = useState<string>("");
@@ -133,17 +135,24 @@ export default function FamilySelector({
     if (selected.includes(id)) {
       updated = selected.filter((s) => s !== id);
       delete nextDetails[id];
+    } else if (activeParent && activeParent !== parentId) {
+      // Changement de parent : ne garder que le nouvel élève
+      updated = [id];
+      nextDetails = { [id]: { ...child, parentLabel } };
     } else {
       updated = [...selected, id];
       nextDetails[id] = { ...child, parentLabel };
     }
 
+    const nextParentId = updated.length === 0 ? "" : parentId;
+
     setSelected(updated);
     setSelectedDetails(nextDetails);
-    setActiveParent(parentId);
+    setActiveParent(nextParentId);
+    setPinnedFamily(updated.length === 0 ? null : family);
 
     emitChange({
-      parentId,
+      parentId: nextParentId,
       classEnrollIds: updated,
     });
   };
@@ -154,7 +163,8 @@ export default function FamilySelector({
     );
     const ids = studentsForYear.map((s) => s.classEnrollId);
     const parentLabel = `${family.parent.prenom} ${family.parent.nom}`.trim();
-    const nextDetails = { ...selectedDetails };
+    const nextDetails: Record<string, StudentItem & { parentLabel: string }> =
+      {};
 
     for (const student of studentsForYear) {
       nextDetails[student.classEnrollId] = { ...student, parentLabel };
@@ -163,6 +173,7 @@ export default function FamilySelector({
     setSelected(ids);
     setSelectedDetails(nextDetails);
     setActiveParent(family.parent.id);
+    setPinnedFamily(family);
 
     emitChange({
       parentId: family.parent.id,
@@ -174,6 +185,7 @@ export default function FamilySelector({
     setSelected([]);
     setSelectedDetails({});
     setActiveParent("");
+    setPinnedFamily(null);
 
     emitChange({
       parentId: "",
@@ -191,6 +203,7 @@ export default function FamilySelector({
 
     if (updated.length === 0) {
       setActiveParent("");
+      setPinnedFamily(null);
     }
 
     emitChange({
@@ -203,6 +216,15 @@ export default function FamilySelector({
     () => Object.values(selectedDetails),
     [selectedDetails],
   );
+
+  /** Avec une sélection active : n'afficher que le parent sélectionné. */
+  const displayedResults = useMemo(() => {
+    if (!activeParent || selected.length === 0) return results;
+
+    const fromSearch = results.find((family) => family.parent.id === activeParent);
+    const family = fromSearch ?? pinnedFamily;
+    return family && family.parent.id === activeParent ? [family] : [];
+  }, [results, activeParent, selected.length, pinnedFamily]);
 
   useEffect(() => {
     const loadYears = async () => {
@@ -256,6 +278,7 @@ export default function FamilySelector({
     setSelected([]);
     setSelectedDetails({});
     setActiveParent("");
+    setPinnedFamily(null);
     setSearching(false);
 
     emitChange({
@@ -359,13 +382,16 @@ export default function FamilySelector({
           </p>
         )}
 
-        {search.trim().length >= 2 && !searching && results.length === 0 && (
+        {search.trim().length >= 2 &&
+          !searching &&
+          displayedResults.length === 0 &&
+          results.length === 0 && (
           <p className="text-sm text-muted-foreground">
             Aucun {peopleLabels.studentLower} ou parent trouvé pour « {search.trim()} ».
           </p>
         )}
 
-        {results.map((family) => {
+        {displayedResults.map((family) => {
           const studentsForYear = family.students.filter(
             (child) => child.schoolYearId === schoolYear,
           );
