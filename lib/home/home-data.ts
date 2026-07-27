@@ -411,12 +411,11 @@ function buildStatsSegments(
 
 export async function getHomeData(): Promise<HomeData> {
   try {
-    const [branches, partnaires, calendarEvents, resultSlides] =
+    const [allBranches, partnaires, calendarEvents, resultSlides] =
       await Promise.all([
         prisma.branch.findMany({
           where: { isActive: true },
           orderBy: { createdAt: "desc" },
-          take: 12,
           select: {
             id: true,
             name: true,
@@ -426,6 +425,11 @@ export async function getHomeData(): Promise<HomeData> {
             pays: true,
             typebranch: true,
             createdAt: true,
+            adresse: true,
+            province: true,
+            commune: true,
+            latitude: true,
+            longitude: true,
           },
         }),
         prisma.partnaire.findMany({
@@ -468,21 +472,6 @@ export async function getHomeData(): Promise<HomeData> {
         getHomeResultSlides(3),
       ]);
 
-    const allBranches = await prisma.branch.findMany({
-      where: { isActive: true },
-      select: {
-        id: true,
-        name: true,
-        typebranch: true,
-        adresse: true,
-        province: true,
-        ville: true,
-        commune: true,
-        latitude: true,
-        longitude: true,
-      },
-    });
-
     const studentCountsByBranchId =
       await getStudentCountsByBranchId(allBranches);
 
@@ -501,7 +490,7 @@ export async function getHomeData(): Promise<HomeData> {
         longitude: branch.longitude,
       }));
 
-    const dynamicSchools: HomeSchool[] = branches.slice(0, 6).map((branch) => {
+    const dynamicSchools: HomeSchool[] = allBranches.map((branch) => {
       const studentsCount = studentCountsByBranchId.get(branch.id) ?? 0;
 
       const city = branch.ville || branch.pays || "RDC";
@@ -552,7 +541,7 @@ export async function getHomeData(): Promise<HomeData> {
       };
     });
 
-    const dynamicNewSchools: NewSchool[] = branches
+    const dynamicNewSchools: NewSchool[] = allBranches
       .slice(0, 4)
       .map((branch) => ({
         id: branch.id,

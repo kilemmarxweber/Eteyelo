@@ -376,12 +376,13 @@ export default async function HomePage() {
         <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
           <HomeFeaturedSectionHeader segments={stats.segments} />
 
-          <a
-            href="/evenements"
+          <Link
+            href="/etablissements"
             className="rounded-full bg-blue-100 px-4 py-2 text-sm font-bold text-blue-700 hover:bg-blue-200"
           >
-            Voir tous <ArrowRight className="inline h-4 w-4" />
-          </a>
+            Voir tous les établissements{" "}
+            <ArrowRight className="inline h-4 w-4" />
+          </Link>
         </div>
 
         <div className="grid gap-6 lg:grid-cols-[1.75fr_0.85fr] lg:items-start">
@@ -553,10 +554,11 @@ export default async function HomePage() {
               </h3>
 
               <Button
+                asChild
                 variant="ghost"
                 className="h-auto justify-start p-0 text-sm text-blue-600 hover:bg-transparent hover:text-blue-700 sm:justify-center"
               >
-                Voir toutes →
+                <Link href="/etablissements">Voir tous les établissements →</Link>
               </Button>
             </div>
 

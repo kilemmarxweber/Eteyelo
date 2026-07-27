@@ -115,22 +115,55 @@ export function HomeFeaturedEventsGrid({
             </div>
           </Link>
           {slides.length > 1 ? (
-            <div className="flex gap-1.5 px-4 pb-4">
-              {slides.map((slide, index) => (
-                <button
-                  key={slide.id}
-                  type="button"
-                  aria-label={`Voir ${slide.name}`}
-                  onClick={() => setSchoolIndex(index)}
-                  className={cn(
-                    "h-1.5 rounded-full transition-all",
-                    index === schoolIndex
-                      ? "w-5 bg-blue-700"
-                      : "w-1.5 bg-slate-300 hover:bg-slate-400",
-                  )}
-                />
-              ))}
-            </div>
+            slides.length <= 12 ? (
+              <div className="flex gap-1.5 px-4 pb-4">
+                {slides.map((slide, index) => (
+                  <button
+                    key={slide.id}
+                    type="button"
+                    aria-label={`Voir ${slide.name}`}
+                    onClick={() => setSchoolIndex(index)}
+                    className={cn(
+                      "h-1.5 rounded-full transition-all",
+                      index === schoolIndex
+                        ? "w-5 bg-blue-700"
+                        : "w-1.5 bg-slate-300 hover:bg-slate-400",
+                    )}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="flex items-center justify-between gap-3 px-4 pb-4">
+                <p className="text-[11px] font-semibold text-slate-500">
+                  {schoolIndex + 1} / {slides.length} établissements
+                </p>
+                <div className="flex gap-1.5">
+                  <button
+                    type="button"
+                    aria-label="Établissement précédent"
+                    onClick={() =>
+                      setSchoolIndex(
+                        (current) =>
+                          (current - 1 + slides.length) % slides.length,
+                      )
+                    }
+                    className="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-bold text-slate-700 hover:bg-slate-200"
+                  >
+                    ←
+                  </button>
+                  <button
+                    type="button"
+                    aria-label="Établissement suivant"
+                    onClick={() =>
+                      setSchoolIndex((current) => (current + 1) % slides.length)
+                    }
+                    className="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-bold text-slate-700 hover:bg-slate-200"
+                  >
+                    →
+                  </button>
+                </div>
+              </div>
+            )
           ) : null}
         </div>
       ) : (
@@ -138,48 +171,59 @@ export function HomeFeaturedEventsGrid({
       )}
 
       {/* 4 petites cartes événements */}
-      {visibleEvents.length > 0 ? (
-        <div className="grid grid-cols-2 gap-3 content-start">
-          {visibleEvents.map((event, index) => (
-            <article
-              key={`${event.title}-${event.school}-${eventOffset}-${index}`}
-              className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-blue-100 transition hover:-translate-y-0.5 hover:shadow-md"
-            >
-              <div className="relative aspect-[16/10] overflow-hidden bg-slate-100">
-                <Image
-                  src={event.image || KLAMBOCORE_DEFAULT_IMAGE_PATH}
-                  alt={event.title}
-                  fill
-                  className="object-cover"
-                  sizes="(max-width: 1024px) 40vw, 200px"
-                  unoptimized
-                />
-              </div>
-              <div className="space-y-1.5 p-2.5">
-                <div className="flex flex-wrap items-center gap-1">
-                  <Badge className="rounded-full bg-rose-100 px-1.5 py-0 text-[9px] font-semibold text-rose-700 hover:bg-rose-100">
-                    {event.category}
-                  </Badge>
-                  <Badge className="inline-flex items-center gap-0.5 rounded-full bg-sky-100 px-1.5 py-0 text-[9px] font-semibold text-sky-700 hover:bg-sky-100">
-                    <Clock className="size-2.5" />
-                    {event.dateLabel || event.date}
-                  </Badge>
+      <div className="flex min-h-0 flex-col gap-3">
+        {visibleEvents.length > 0 ? (
+          <div className="grid flex-1 grid-cols-2 content-start gap-3">
+            {visibleEvents.map((event, index) => (
+              <article
+                key={`${event.title}-${event.school}-${eventOffset}-${index}`}
+                className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-blue-100 transition hover:-translate-y-0.5 hover:shadow-md"
+              >
+                <div className="relative aspect-[16/10] overflow-hidden bg-slate-100">
+                  <Image
+                    src={event.image || KLAMBOCORE_DEFAULT_IMAGE_PATH}
+                    alt={event.title}
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 1024px) 40vw, 200px"
+                    unoptimized
+                  />
                 </div>
-                <h3 className="line-clamp-2 text-xs font-bold leading-snug text-blue-950">
-                  {event.title}
-                </h3>
-                <p className="truncate text-[10px] text-slate-500">
-                  {event.school}
-                </p>
-              </div>
-            </article>
-          ))}
+                <div className="space-y-1.5 p-2.5">
+                  <div className="flex flex-wrap items-center gap-1">
+                    <Badge className="rounded-full bg-rose-100 px-1.5 py-0 text-[9px] font-semibold text-rose-700 hover:bg-rose-100">
+                      {event.category}
+                    </Badge>
+                    <Badge className="inline-flex items-center gap-0.5 rounded-full bg-sky-100 px-1.5 py-0 text-[9px] font-semibold text-sky-700 hover:bg-sky-100">
+                      <Clock className="size-2.5" />
+                      {event.dateLabel || event.date}
+                    </Badge>
+                  </div>
+                  <h3 className="line-clamp-2 text-xs font-bold leading-snug text-blue-950">
+                    {event.title}
+                  </h3>
+                  <p className="truncate text-[10px] text-slate-500">
+                    {event.school}
+                  </p>
+                </div>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <div className="flex min-h-[280px] flex-1 items-center justify-center rounded-2xl border border-dashed border-blue-100 bg-white p-6 text-center text-sm text-slate-500">
+            Aucun événement publié pour le moment.
+          </div>
+        )}
+
+        <div className="flex justify-end">
+          <Link
+            href="/evenements"
+            className="inline-flex rounded-full bg-blue-100 px-3 py-1.5 text-xs font-bold text-blue-700 hover:bg-blue-200"
+          >
+            Voir tous les événements →
+          </Link>
         </div>
-      ) : (
-        <div className="flex min-h-[280px] items-center justify-center rounded-2xl border border-dashed border-blue-100 bg-white p-6 text-center text-sm text-slate-500">
-          Aucun événement publié pour le moment.
-        </div>
-      )}
+      </div>
     </div>
   );
 }
@@ -188,10 +232,10 @@ export function HomeFeaturedEventsFooter() {
   return (
     <div className="mt-4">
       <Link
-        href="/evenements"
+        href="/etablissements"
         className="inline-flex rounded-full bg-blue-100 px-3 py-1.5 text-xs font-bold text-blue-700 hover:bg-blue-200"
       >
-        Voir tous les événements →
+        Voir tous les établissements →
       </Link>
     </div>
   );

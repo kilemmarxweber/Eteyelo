@@ -570,19 +570,47 @@ async function authorizeScanActor(params: {
   throw new Error("Acces non autorise pour ce pointage.");
 }
 
+async function ensureCheckInWithinRadius(params: {
+  branchId: string;
+  coords: AttendanceGeoCoords;
+  personType: AttendancePersonType;
+  person: AttendancePersonLookup;
+}): Promise<AttendanceCheckInResult | null> {
+  try {
+    await assertWithinBranchAttendanceRadius({
+      branchId: params.branchId,
+      latitude: params.coords.latitude,
+      longitude: params.coords.longitude,
+    });
+    return null;
+  } catch (error) {
+    return {
+      ok: false,
+      message:
+        error instanceof Error
+          ? error.message
+          : "Hors zone de pointage.",
+      personType: params.personType,
+      person: params.person,
+    };
+  }
+}
+
 async function performStudentCheckIn(
   student: NonNullable<Awaited<ReturnType<typeof findStudentByScan>>>,
   coords: AttendanceGeoCoords,
 ): Promise<AttendanceCheckInResult> {
   const { branchId, session, userId } = await requireBranchContext();
-
-  await assertWithinBranchAttendanceRadius({
-    branchId,
-    latitude: coords.latitude,
-    longitude: coords.longitude,
-  });
-
   const lookup = mapStudentLookup(student);
+
+  const geoError = await ensureCheckInWithinRadius({
+    branchId,
+    coords,
+    personType: "student",
+    person: lookup,
+  });
+  if (geoError) return geoError;
+
   const attendanceSession = await findSessionForStudent(student.id, branchId);
 
   if (!attendanceSession) {
@@ -669,14 +697,16 @@ async function performTeacherCheckIn(
   coords: AttendanceGeoCoords,
 ): Promise<AttendanceCheckInResult> {
   const { branchId, session, userId } = await requireBranchContext();
-
-  await assertWithinBranchAttendanceRadius({
-    branchId,
-    latitude: coords.latitude,
-    longitude: coords.longitude,
-  });
-
   const lookup = mapTeacherLookup(teacher);
+
+  const geoError = await ensureCheckInWithinRadius({
+    branchId,
+    coords,
+    personType: "teacher",
+    person: lookup,
+  });
+  if (geoError) return geoError;
+
   const attendanceSession = await findSessionForTeacher(teacher.id, branchId);
 
   if (!attendanceSession) {
@@ -781,22 +811,25 @@ async function performPersonnelCheckIn(
 ): Promise<AttendanceCheckInResult> {
   const { branchId, session } = await requireBranchContext();
 
+  const lookup = mapPersonnelLookup(personnel);
+
   if (!canManageOrganization(session)) {
     return {
       ok: false,
       message: "Seuls les responsables peuvent pointer le personnel.",
       personType: "personnel",
-      person: mapPersonnelLookup(personnel),
+      person: lookup,
     };
   }
 
-  await assertWithinBranchAttendanceRadius({
+  const geoError = await ensureCheckInWithinRadius({
     branchId,
-    latitude: coords.latitude,
-    longitude: coords.longitude,
+    coords,
+    personType: "personnel",
+    person: lookup,
   });
+  if (geoError) return geoError;
 
-  const lookup = mapPersonnelLookup(personnel);
   const now = nowLocal();
   const today = new Date(now);
   today.setHours(0, 0, 0, 0);
