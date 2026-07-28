@@ -19,7 +19,6 @@ import {
   UserRound,
 } from "lucide-react";
 import { toast } from "sonner";
-import * as XLSX from "xlsx";
 
 import { BackLink } from "@/components/ui/back-link";
 import { Button } from "@/components/ui/button";
@@ -39,7 +38,9 @@ import {
 } from "@/components/reports/report-section";
 import { formatReportAmount } from "@/lib/reports/format-amount";
 import type { ReportTab } from "@/lib/reports/org/definitions";
-import { exportRapportEffectifsPdf } from "./export-rapport-effectifs-pdf";
+import { exportRapportCompletPdf } from "./export-rapport-effectifs-pdf";
+import { exportRapportOrganisationExcel } from "./export-rapport-excel";
+import { FinanceStudentDetailsTable } from "./finance-student-details-table";
 import { getRapportReportContextAction } from "./rapport.action";
 
 type ReportPayload = Awaited<
@@ -75,12 +76,14 @@ function buildTabHref(
     data.meta.scope === "all" ? "all" : (data.meta.selectedBranchId ?? "all"),
   );
   params.set("schoolYearKey", data.meta.schoolYearKey);
+  params.set("classeKey", data.meta.classeKey || "all");
   return `/admin/organizations/${organizationId}/rapport?${params.toString()}`;
 }
 
 export function RapportDashboard({ organizationId, data }: Props) {
   const router = useRouter();
   const [exportingPdf, setExportingPdf] = useState(false);
+  const [exportingExcel, setExportingExcel] = useState(false);
   const [presenceTrack, setPresenceTrack] = useState<
     "students" | "teachers" | "personnel"
   >("students");
@@ -100,174 +103,70 @@ export function RapportDashboard({ organizationId, data }: Props) {
   );
 
   function onTabChange(next: string) {
-    router.push(buildTabHref(organizationId, data, next as ReportTab));
+    router.push(buildTabHref(organizationId, data, next as ReportTab), {
+      scroll: false,
+    });
   }
 
-  function exportExcel() {
-    const workbook = XLSX.utils.book_new();
-    const overview = data.overview;
-    const effectifs = data.effectifs;
-    const finance = data.finance;
-    const attendance = data.attendance;
-    const satisfaction = data.satisfaction;
-    const results = data.results;
-    const hiring = data.hiring;
-    const registrations = data.registrations;
-
-    if (overview) {
-      XLSX.utils.book_append_sheet(
-        workbook,
-        XLSX.utils.json_to_sheet([
-          {
-            Devise: currency,
-            Taux: meta.currency.rateLabel ?? "",
-            Élèves: overview.students,
-            Parents: overview.parents,
-            Enseignants: overview.teachers,
-            Personnel: overview.personnel,
-            "Taux présence %": overview.attendanceRate,
-            Budget: money(overview.budget),
-            Récolté: money(overview.recoltes),
-            Reste: money(overview.reste),
-            Satisfaction: overview.satisfaction,
-            "Réussite %": overview.successRate,
-            Embauches: overview.hired,
-            Inscriptions: overview.registrations,
-          },
-        ]),
-        "Vue ensemble",
+  async function exportExcel() {
+    setExportingExcel(true);
+    try {
+      await exportRapportOrganisationExcel({
+        meta: data.meta,
+        tab,
+        overview: data.overview,
+        effectifs: data.effectifs,
+        attendance: data.attendance,
+        finance: data.finance,
+        satisfaction: data.satisfaction,
+        results: data.results,
+        hiring: data.hiring,
+        registrations: data.registrations,
+      });
+      toast.success(
+        tab === "overview"
+          ? "Export Excel complet généré."
+          : `Export Excel — onglet « ${TAB_ITEMS.find((t) => t.value === tab)?.label ?? tab} » généré.`,
       );
+    } catch (error) {
+      console.error(error);
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Impossible de générer l'export Excel.",
+      );
+    } finally {
+      setExportingExcel(false);
     }
-
-    if (effectifs) {
-      XLSX.utils.book_append_sheet(
-        workbook,
-        XLSX.utils.json_to_sheet(effectifs.students.byClass),
-        "Élèves par classe",
-      );
-      XLSX.utils.book_append_sheet(
-        workbook,
-        XLSX.utils.json_to_sheet(effectifs.byBranch),
-        "Effectifs branches",
-      );
-    }
-    if (finance) {
-      XLSX.utils.book_append_sheet(
-        workbook,
-        XLSX.utils.json_to_sheet(
-          finance.byMonth.map((m) => ({
-            Mois: m.label,
-            Récoltes: money(m.recoltes),
-            Dépenses: money(m.depenses),
-          })),
-        ),
-        "Finance mois",
-      );
-      XLSX.utils.book_append_sheet(
-        workbook,
-        XLSX.utils.json_to_sheet(
-          finance.byBranch.map((b) => ({
-            Branche: b.branchName,
-            Budget: money(b.budget),
-            Récolté: money(b.recoltes),
-            Reste: money(b.reste),
-            Dépenses: money(b.depenses),
-          })),
-        ),
-        "Finance branches",
-      );
-    }
-    if (attendance) {
-      XLSX.utils.book_append_sheet(
-        workbook,
-        XLSX.utils.json_to_sheet(attendance.students.byStatus),
-        "Présences élèves",
-      );
-    }
-    if (satisfaction) {
-      XLSX.utils.book_append_sheet(
-        workbook,
-        XLSX.utils.json_to_sheet(satisfaction.byMonth),
-        "Satisfaction",
-      );
-    }
-    if (results) {
-      XLSX.utils.book_append_sheet(
-        workbook,
-        XLSX.utils.json_to_sheet(results.byClass),
-        "Résultats classes",
-      );
-    }
-    if (hiring) {
-      XLSX.utils.book_append_sheet(
-        workbook,
-        XLSX.utils.json_to_sheet(hiring.byStatus),
-        "Candidatures",
-      );
-    }
-    if (registrations) {
-      XLSX.utils.book_append_sheet(
-        workbook,
-        XLSX.utils.json_to_sheet(registrations.byStatus),
-        "Inscriptions",
-      );
-    }
-
-    XLSX.writeFile(workbook, "rapport-organisation.xlsx");
-    toast.success("Export Excel généré.");
   }
 
   async function exportPdf() {
-    if (!meta.selectedBranchId || meta.scope === "all") {
-      toast.error("Sélectionnez une branche pour l'export PDF.");
-      return;
-    }
-    if (!data.effectifs || !data.attendance || !data.finance) {
-      toast.error("Données insuffisantes pour le PDF.");
-      return;
-    }
-
     setExportingPdf(true);
     try {
       const context = await getRapportReportContextAction({
         organizationId,
         branchId: meta.selectedBranchId,
       });
-      await exportRapportEffectifsPdf(
+      await exportRapportCompletPdf(
         {
-          summary: {
-            totalStudents: data.effectifs.students.total,
-            activeStudents: data.effectifs.students.active,
-            inactiveStudents: data.effectifs.students.inactive,
-            boys: data.effectifs.students.boys,
-            girls: data.effectifs.students.girls,
-            teachers: data.effectifs.teachers.total,
-            parents: data.effectifs.parents.total,
-            totalPayments: data.finance.recoltes,
-            totalExpenses: data.finance.depenses,
-            balance: data.finance.solde,
-          },
-          studentsByClass: data.effectifs.students.byClass.map((c) => ({
-            name: c.name,
-            total: c.total,
-          })),
-          genderStats: data.effectifs.students.byGender,
-          statusStats: data.effectifs.students.byStatus,
-          attendanceStats: data.attendance.students.byStatus.map((s) => ({
-            name: s.name,
-            value: s.value,
-          })),
-          financeByMonth: data.finance.byMonth.map((m) => ({
-            month: m.label,
-            paiements: m.recoltes,
-            depenses: m.depenses,
-          })),
-          currency,
-          rateLabel: meta.currency.rateLabel,
+          meta: data.meta,
+          tab,
+          overview: data.overview,
+          effectifs: data.effectifs,
+          attendance: data.attendance,
+          finance: data.finance,
+          satisfaction: data.satisfaction,
+          results: data.results,
+          hiring: data.hiring,
+          registrations: data.registrations,
         },
         context,
       );
-      toast.success("Le rapport PDF a été généré.");
+      toast.success(
+        tab === "overview"
+          ? "Rapport PDF complet généré."
+          : `Rapport PDF — onglet « ${TAB_ITEMS.find((t) => t.value === tab)?.label ?? tab} » généré.`,
+      );
     } catch (error) {
       console.error(error);
       toast.error(
@@ -300,7 +199,8 @@ export function RapportDashboard({ organizationId, data }: Props) {
         </h1>
         <p className="mt-2 max-w-3xl text-sm leading-6 text-primary-foreground/90">
           Effectifs, présences, finance, satisfaction, résultats, RH et
-          inscriptions — une branche ou toutes les branches.
+          inscriptions. L&apos;export PDF / Excel reprend l&apos;onglet actif
+          (détails + totaux) — la vue d&apos;ensemble exporte tout.
         </p>
         <p className="mt-2 text-xs font-medium text-primary-foreground/80">
           Devise : {meta.currency.baseCurrency}
@@ -313,9 +213,11 @@ export function RapportDashboard({ organizationId, data }: Props) {
           organizationId={organizationId}
           branches={meta.branches}
           schoolYears={meta.schoolYears}
+          classes={meta.classes}
           scope={meta.scope}
           selectedBranchId={meta.selectedBranchId}
           schoolYearKey={meta.schoolYearKey}
+          classeKey={meta.classeKey}
           tab={tab}
         />
         <div className="flex flex-wrap gap-2">
@@ -323,7 +225,7 @@ export function RapportDashboard({ organizationId, data }: Props) {
             size="sm"
             type="button"
             onClick={exportPdf}
-            disabled={exportingPdf || meta.scope === "all"}
+            disabled={exportingPdf || exportingExcel}
             variant="outline"
             className="rounded-full"
           >
@@ -338,11 +240,16 @@ export function RapportDashboard({ organizationId, data }: Props) {
             size="sm"
             type="button"
             onClick={exportExcel}
+            disabled={exportingPdf || exportingExcel}
             variant="outline"
             className="rounded-full"
           >
-            <FileSpreadsheet className="mr-1.5 size-3.5" />
-            Export Excel
+            {exportingExcel ? (
+              <Loader2 className="mr-1.5 size-3.5 animate-spin" />
+            ) : (
+              <FileSpreadsheet className="mr-1.5 size-3.5" />
+            )}
+            {exportingExcel ? "Export…" : "Export Excel"}
           </Button>
         </div>
       </div>
@@ -444,6 +351,24 @@ export function RapportDashboard({ organizationId, data }: Props) {
                   </div>
                 </ReportSection>
               </div>
+
+              <ReportDataTable
+                title="Détails — Comparaison inter-branches"
+                columns={[
+                  "Branche",
+                  "Élèves",
+                  "Récoltes",
+                  "Satisfaction",
+                  "Réussite %",
+                ]}
+                rows={data.overview.comparison.map((c) => [
+                  c.branchName,
+                  c.students,
+                  money(c.recoltes),
+                  c.satisfaction,
+                  c.successRate,
+                ])}
+              />
             </>
           ) : null}
         </TabsContent>
@@ -542,13 +467,108 @@ export function RapportDashboard({ organizationId, data }: Props) {
               </div>
 
               <ReportDataTable
-                title="Détail par classe"
+                title="Totaux — Par classe"
                 columns={["Classe", "Total", "Garçons", "Filles"]}
                 rows={data.effectifs.students.byClass.map((c) => [
                   c.name,
                   c.total,
                   c.boys,
                   c.girls,
+                ])}
+              />
+
+              <ReportDataTable
+                title="Détail — Liste des élèves"
+                columns={[
+                  "#",
+                  "Matricule",
+                  "Nom",
+                  "Postnom",
+                  "Prénom",
+                  "Sexe",
+                  "Statut",
+                  "Branche",
+                  "Classe",
+                ]}
+                rows={data.effectifs.students.list.map((p, i) => [
+                  i + 1,
+                  p.matricule,
+                  p.nom,
+                  p.postnom,
+                  p.prenom,
+                  p.sexe,
+                  p.statut,
+                  p.branche,
+                  p.classe ?? "—",
+                ])}
+              />
+              <ReportDataTable
+                title="Détail — Liste des parents"
+                columns={[
+                  "#",
+                  "Matricule",
+                  "Nom",
+                  "Postnom",
+                  "Prénom",
+                  "Sexe",
+                  "Statut",
+                  "Branche",
+                ]}
+                rows={data.effectifs.parents.list.map((p, i) => [
+                  i + 1,
+                  p.matricule,
+                  p.nom,
+                  p.postnom,
+                  p.prenom,
+                  p.sexe,
+                  p.statut,
+                  p.branche,
+                ])}
+              />
+              <ReportDataTable
+                title="Détail — Liste des enseignants"
+                columns={[
+                  "#",
+                  "Matricule",
+                  "Nom",
+                  "Postnom",
+                  "Prénom",
+                  "Sexe",
+                  "Statut",
+                  "Branche",
+                ]}
+                rows={data.effectifs.teachers.list.map((p, i) => [
+                  i + 1,
+                  p.matricule,
+                  p.nom,
+                  p.postnom,
+                  p.prenom,
+                  p.sexe,
+                  p.statut,
+                  p.branche,
+                ])}
+              />
+              <ReportDataTable
+                title="Détail — Liste du personnel"
+                columns={[
+                  "#",
+                  "Matricule",
+                  "Nom",
+                  "Postnom",
+                  "Prénom",
+                  "Sexe",
+                  "Statut",
+                  "Branche",
+                ]}
+                rows={data.effectifs.personnel.list.map((p, i) => [
+                  i + 1,
+                  p.matricule,
+                  p.nom,
+                  p.postnom,
+                  p.prenom,
+                  p.sexe,
+                  p.statut,
+                  p.branche,
                 ])}
               />
             </>
@@ -643,6 +663,74 @@ export function RapportDashboard({ organizationId, data }: Props) {
                   />
                 </ReportSection>
               </div>
+
+              <ReportDataTable
+                title="Mensuels"
+                columns={[
+                  "Mois",
+                  "Présents",
+                  "Absents",
+                  "Retards",
+                  "Excusés",
+                  "Total",
+                ]}
+                rows={presence.byMonth.map((m) => [
+                  m.label,
+                  m.present,
+                  m.absent,
+                  m.late,
+                  m.excused,
+                  m.total,
+                ])}
+              />
+              <ReportDataTable
+                title="Synthèse — Personnes absentes ou en retard"
+                columns={[
+                  "#",
+                  "Matricule",
+                  "Nom",
+                  "Classe / Rôle",
+                  "Branche",
+                  "Absents",
+                  "Retards",
+                  "Total abs./ret.",
+                ]}
+                rows={presence.details.map((p, i) => [
+                  i + 1,
+                  p.matricule,
+                  p.name,
+                  p.role,
+                  p.branch,
+                  p.absent,
+                  p.late,
+                  p.absent + p.late,
+                ])}
+              />
+              <ReportDataTable
+                title="Détails — Absents et retards (par date)"
+                columns={[
+                  "#",
+                  "Date",
+                  "Heure",
+                  "Matricule",
+                  "Nom",
+                  "Classe / Rôle",
+                  "Branche",
+                  "Statut",
+                  "Remarque",
+                ]}
+                rows={presence.incidents.map((p, i) => [
+                  i + 1,
+                  p.date,
+                  p.time,
+                  p.matricule,
+                  p.name,
+                  p.role,
+                  p.branch,
+                  p.status,
+                  p.remark,
+                ])}
+              />
             </>
           ) : null}
         </TabsContent>
@@ -650,53 +738,54 @@ export function RapportDashboard({ organizationId, data }: Props) {
         <TabsContent value="finance" className="mt-4 space-y-4">
           {data.finance ? (
             <>
+              <p className="rounded-xl border border-primary/20 bg-primary/5 px-4 py-2 text-sm text-foreground">
+                Filtre : année{" "}
+                <span className="font-semibold">
+                  {meta.schoolYearKey === "all"
+                    ? "toutes"
+                    : meta.schoolYearKey}
+                </span>
+                {" · "}classe{" "}
+                <span className="font-semibold">
+                  {meta.classeKey === "all"
+                    ? "toutes"
+                    : (meta.classes.find((c) => c.key === meta.classeKey)
+                        ?.label ?? meta.classeKey)}
+                </span>
+                {meta.currency.rateLabel
+                  ? ` · ${meta.currency.rateLabel}`
+                  : ` · ${currency}`}
+              </p>
+
               <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
                 <ReportKpiCard
-                  title="Budget annuel"
-                  value={money(data.finance.budgetAnnuel)}
-                  description={
-                    data.finance.budgetSource === "invoices"
-                      ? `Factures · ${meta.currency.baseCurrency}`
-                      : `Frais × inscriptions · ${meta.currency.baseCurrency}`
-                  }
+                  title="Total dû (élèves)"
+                  value={money(data.finance.totalsStudents.due)}
+                  description={`${data.finance.totalsStudents.count} élève(s)`}
                   icon={Banknote}
                 />
                 <ReportKpiCard
-                  title="Récolté"
-                  value={money(data.finance.recoltes)}
+                  title="Total payé"
+                  value={money(data.finance.totalsStudents.paid)}
                   description="Paiements validés"
                   icon={TrendingUp}
                   tone="green"
                 />
                 <ReportKpiCard
-                  title="Reste (impayés)"
-                  value={money(data.finance.reste)}
-                  description={`Budget − encaissé · recouvrement ${data.finance.tauxRecouvrement}%`}
+                  title="Total reste"
+                  value={money(data.finance.totalsStudents.reste)}
+                  description={`Recouvrement ${data.finance.tauxRecouvrement}%`}
                   icon={TrendingDown}
                   tone="orange"
                 />
                 <ReportKpiCard
-                  title="Dépenses / Solde"
-                  value={money(data.finance.solde)}
-                  description={`Dépenses ${money(data.finance.depenses)}`}
+                  title="Budget / Récolté"
+                  value={money(data.finance.recoltes)}
+                  description={`Budget ${money(data.finance.budgetAnnuel)}`}
                   icon={Banknote}
                   tone="cyan"
                 />
               </div>
-
-              {meta.currency.rateLabel ? (
-                <p className="rounded-xl border border-primary/20 bg-primary/5 px-4 py-2 text-sm text-foreground">
-                  Taux sélectionné de l&apos;organisation :{" "}
-                  <span className="font-semibold">{meta.currency.rateLabel}</span>
-                  {" · "}Montants affichés en{" "}
-                  <span className="font-semibold">{currency}</span>
-                </p>
-              ) : (
-                <p className="rounded-xl border border-primary/20 bg-primary/5 px-4 py-2 text-sm text-foreground">
-                  Devise de base :{" "}
-                  <span className="font-semibold">{currency}</span>
-                </p>
-              )}
 
               <div className="grid gap-4 xl:grid-cols-[1.2fr_0.8fr]">
                 <ReportSection title="Encaissements & dépenses">
@@ -756,6 +845,36 @@ export function RapportDashboard({ organizationId, data }: Props) {
                   />
                 </ReportSection>
               </div>
+
+              <ReportDataTable
+                title="Totaux — Par mois"
+                columns={[
+                  "Mois",
+                  `Récoltes (${currency})`,
+                  `Dépenses (${currency})`,
+                ]}
+                rows={data.finance.byMonth.map((m) => [
+                  m.label,
+                  money(m.recoltes),
+                  money(m.depenses),
+                ])}
+              />
+              <ReportDataTable
+                title="Totaux — Par branche"
+                columns={["Branche", "Budget", "Récolté", "Reste", "Dépenses"]}
+                rows={data.finance.byBranch.map((b) => [
+                  b.branchName,
+                  money(b.budget),
+                  money(b.recoltes),
+                  money(b.reste),
+                  money(b.depenses),
+                ])}
+              />
+
+              <FinanceStudentDetailsTable
+                studentDetails={data.finance.studentDetails}
+                money={money}
+              />
             </>
           ) : null}
         </TabsContent>
@@ -832,6 +951,16 @@ export function RapportDashboard({ organizationId, data }: Props) {
                   />
                 </ReportSection>
               </div>
+              <ReportDataTable
+                title="Détails — Par branche"
+                columns={["Branche", "Moyenne", "% positifs", "Avis"]}
+                rows={data.satisfaction.byBranch.map((b) => [
+                  b.branchName,
+                  b.average,
+                  b.positiveRate,
+                  b.count,
+                ])}
+              />
             </>
           ) : null}
         </TabsContent>
@@ -983,6 +1112,21 @@ export function RapportDashboard({ organizationId, data }: Props) {
                   />
                 </ReportSection>
               </div>
+              <ReportDataTable
+                title="Détails — Par statut"
+                columns={["Statut", "Volume"]}
+                rows={data.hiring.byStatus.map((s) => [s.name, s.value])}
+              />
+              <ReportDataTable
+                title="Détails — Par branche"
+                columns={["Branche", "Total", "Embauchés", "Refusés"]}
+                rows={data.hiring.byBranch.map((b) => [
+                  b.branchName,
+                  b.total,
+                  b.hired,
+                  b.rejected,
+                ])}
+              />
             </>
           ) : null}
         </TabsContent>
@@ -1037,6 +1181,21 @@ export function RapportDashboard({ organizationId, data }: Props) {
                   />
                 </ReportSection>
               </div>
+              <ReportDataTable
+                title="Détails — Par statut"
+                columns={["Statut", "Volume"]}
+                rows={data.registrations.byStatus.map((s) => [s.name, s.value])}
+              />
+              <ReportDataTable
+                title="Détails — Par branche"
+                columns={["Branche", "Demandes", "Inscrites", "Refusées"]}
+                rows={data.registrations.byBranch.map((b) => [
+                  b.branchName,
+                  b.total,
+                  b.registered,
+                  b.rejected,
+                ])}
+              />
             </>
           ) : null}
         </TabsContent>

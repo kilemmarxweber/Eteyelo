@@ -16,6 +16,7 @@ import {
 } from "@/lib/reports/org";
 import {
   buildSchoolReportContext,
+  resolveReportLogoUrl,
   schoolReportBranchSelect,
 } from "@/lib/reports/resolve-school-branding";
 import { prisma } from "@/lib/prisma";
@@ -25,6 +26,7 @@ type LoadParams = {
   scope?: string;
   branchId?: string;
   schoolYearKey?: string;
+  classeKey?: string;
   tab?: string;
 };
 
@@ -39,6 +41,7 @@ export async function loadOrganizationReports(params: LoadParams) {
     scope: params.scope,
     branchId: params.branchId,
     schoolYearKey: params.schoolYearKey,
+    classeKey: params.classeKey,
   });
 
   const tab: ReportTab = isReportTab(params.tab) ? params.tab : "overview";
@@ -63,7 +66,11 @@ export async function loadOrganizationReports(params: LoadParams) {
   ] = await Promise.all([
     getEffectifsReport({ scope: scopeInput, schoolYearIds }),
     getAttendanceReport({ scope: scopeInput, schoolYearIds }),
-    getFinanceReport({ scope: scopeInput, schoolYearIds }),
+    getFinanceReport({
+      scope: scopeInput,
+      schoolYearIds,
+      classeKey: meta.classeKey,
+    }),
     getSatisfactionReport({ scope: scopeInput, schoolYearIds }),
     getResultsReport({ scope: scopeInput, schoolYearIds }),
     getHiringReport({ scope: scopeInput }),
@@ -111,25 +118,62 @@ export async function getRapportReportContextAction({
   branchId,
 }: {
   organizationId: string;
-  branchId: string;
+  branchId?: string | null;
 }) {
   const guard = await guardOrganizationAccess(organizationId);
   if (!guard.ok) {
     throw new Error(guard.message);
   }
 
-  if (!branchId?.trim() || branchId === "all") {
-    throw new Error("Sélectionnez un établissement pour l'export PDF.");
+  const selectedBranchId =
+    branchId && branchId.trim() && branchId !== "all" ? branchId.trim() : null;
+
+  if (selectedBranchId) {
+    const branch = await prisma.branch.findFirst({
+      where: { id: selectedBranchId, organizationId },
+      select: schoolReportBranchSelect,
+    });
+
+    if (!branch) {
+      throw new Error("Établissement introuvable");
+    }
+
+    return buildSchoolReportContext(branch);
   }
 
-  const branch = await prisma.branch.findFirst({
-    where: { id: branchId, organizationId },
-    select: schoolReportBranchSelect,
+  const organization = await prisma.organization.findFirst({
+    where: { id: organizationId },
+    select: {
+      id: true,
+      name: true,
+      logo: true,
+      branches: {
+        take: 1,
+        orderBy: { name: "asc" },
+        select: schoolReportBranchSelect,
+      },
+    },
   });
 
-  if (!branch) {
-    throw new Error("Établissement introuvable");
+  if (!organization) {
+    throw new Error("Organisation introuvable");
   }
 
-  return buildSchoolReportContext(branch);
+  const fallbackBranch = organization.branches[0];
+  if (fallbackBranch) {
+    return {
+      ...buildSchoolReportContext(fallbackBranch),
+      branchName: "Toutes les branches",
+      branchId: "",
+    };
+  }
+
+  return {
+    organizationId: organization.id,
+    branchId: "",
+    schoolName: organization.name,
+    branchName: "Toutes les branches",
+    logoUrl: resolveReportLogoUrl(null, organization.logo),
+    generatedAt: new Date().toISOString(),
+  };
 }

@@ -31,11 +31,23 @@ export type ReportCurrencyMeta = {
   baseLabel: string;
 };
 
+export type ReportClassOption = {
+  /** Clé = codeClasse (filtre URL). */
+  key: string;
+  /** Affichage : code — nom. */
+  label: string;
+  codeClasse: string;
+  nameClasse: string;
+};
+
 export type ReportMeta = {
   branches: ReportBranchOption[];
   schoolYears: ReportSchoolYearOption[];
+  classes: ReportClassOption[];
   scope: ReportScope;
   selectedBranchId: string | null;
+  /** `all` ou codeClasse. */
+  classeKey: string;
   schoolYearKey: string;
   schoolYearIds: string[];
   currency: ReportCurrencyMeta;
@@ -72,6 +84,7 @@ export async function getReportMeta(params: {
   scope?: string;
   branchId?: string;
   schoolYearKey?: string;
+  classeKey?: string;
 }): Promise<ReportMeta> {
   const [branches, exchangeRows] = await Promise.all([
     prisma.branch.findMany({
@@ -121,19 +134,32 @@ export async function getReportMeta(params: {
     branchId: selectedBranchId ?? undefined,
   };
 
-  const years = await prisma.schoolYear.findMany({
-    where: {
-      ...buildBranchIdFilter(scopeInput),
-      isArchived: false,
-    },
-    select: {
-      id: true,
-      nameYear: true,
-      isCurrentYear: true,
-      startYear: true,
-    },
-    orderBy: { startYear: "desc" },
-  });
+  const [years, classeRows] = await Promise.all([
+    prisma.schoolYear.findMany({
+      where: {
+        ...buildBranchIdFilter(scopeInput),
+        isArchived: false,
+      },
+      select: {
+        id: true,
+        nameYear: true,
+        isCurrentYear: true,
+        startYear: true,
+      },
+      orderBy: { startYear: "desc" },
+    }),
+    prisma.classe.findMany({
+      where: {
+        ...buildBranchIdFilter(scopeInput),
+        OR: [{ statusClasse: true }, { statusClasse: null }],
+      },
+      select: {
+        codeClasse: true,
+        nameClasse: true,
+      },
+      orderBy: [{ codeClasse: "asc" }, { nameClasse: "asc" }],
+    }),
+  ]);
 
   const byName = new Map<string, ReportSchoolYearOption>();
   for (const y of years) {
@@ -186,11 +212,37 @@ export async function getReportMeta(params: {
     }
   }
 
+  const classByCode = new Map<string, ReportClassOption>();
+  for (const c of classeRows) {
+    const code = c.codeClasse.trim();
+    if (!code || classByCode.has(code)) continue;
+    classByCode.set(code, {
+      key: code,
+      label: `${code} — ${c.nameClasse}`,
+      codeClasse: code,
+      nameClasse: c.nameClasse,
+    });
+  }
+  const classes = Array.from(classByCode.values()).sort((a, b) =>
+    a.codeClasse.localeCompare(b.codeClasse, "fr"),
+  );
+
+  const requestedClasse = params.classeKey?.trim() || "all";
+  const classeKey =
+    requestedClasse === "all" ||
+    classes.some((c) => c.key === requestedClasse)
+      ? requestedClasse === ""
+        ? "all"
+        : requestedClasse
+      : "all";
+
   return {
     branches: branches.map((b) => ({ id: b.id, name: b.name })),
     schoolYears,
+    classes,
     scope,
     selectedBranchId,
+    classeKey,
     schoolYearKey,
     schoolYearIds,
     currency,

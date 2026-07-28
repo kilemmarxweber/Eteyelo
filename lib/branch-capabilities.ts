@@ -50,7 +50,7 @@ const BRANCH_CAPABILITIES: Record<ManagedBranchType, BranchCapability> = {
     usesReleve: false,
     usesBrevet: false,
     usesAttestation: false,
-    usesPonderation: false,
+    usesPonderation: true,
     usesFinance: true,
     academicStructureKey: "primary",
     isSchoolBranch: true,

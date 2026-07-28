@@ -210,7 +210,7 @@ export function getBranchTypeDescription(typebranch: unknown): string {
 
   switch (caps.typebranch) {
     case "PRIMAIRE":
-      return "Ecole primaire avec bulletins trimestriels et domaines RDC.";
+      return "Ecole primaire avec bulletins trimestriels, domaines RDC et ponderations des cours.";
     case "SECONDAIRE":
       return "Ecole secondaire avec sections, options, classes et bulletins semestriels.";
     case "ATELIER":

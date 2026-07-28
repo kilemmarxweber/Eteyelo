@@ -486,7 +486,8 @@ model CoursOptionPonderation {
   cours       Cours    @relation(fields: [coursId], references: [id], onDelete: Cascade)
   optionId    String
   option      Option   @relation(fields: [optionId], references: [id], onDelete: Cascade)
-  ponderation Int
+  /** Unités de max période : max = ponderation × 10 (ex. 1 → 10, 0.5 → 5). */
+  ponderation Float
   branchId    String
   branch      Branch   @relation(fields: [branchId], references: [id], onDelete: Cascade)
   createdAt   DateTime @default(now())

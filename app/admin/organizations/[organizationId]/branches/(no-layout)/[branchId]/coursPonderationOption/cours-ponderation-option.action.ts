@@ -53,7 +53,13 @@ export const getCoursPonderationOptionPageDataAction = action.handler(
 
     const [options, cours, ponderations, schoolYear] = await Promise.all([
       prisma.option.findMany({
-        where: { branchId },
+        where: {
+          branchId,
+          statusOption: true,
+          ...(primaryStructure
+            ? { id: { in: primaryStructure.options.map((o) => o.id) } }
+            : {}),
+        },
         orderBy: { nameOption: "asc" },
         select: {
           id: true,
@@ -61,7 +67,10 @@ export const getCoursPonderationOptionPageDataAction = action.handler(
           codeOption: true,
           statusOption: true,
           section: { select: { id: true, nameSection: true } },
-          classe: { where: { statusClasse: true }, select: { id: true, nameClasse: true } },
+          classe: {
+            where: { statusClasse: true },
+            select: { id: true, nameClasse: true, level: true },
+          },
         },
       }),
       prisma.cours.findMany({
@@ -85,12 +94,20 @@ export const getCoursPonderationOptionPageDataAction = action.handler(
       }),
     ]);
 
+    const orderedOptions = primaryStructure
+      ? primaryStructure.options
+          .map((levelOption) =>
+            options.find((option) => option.id === levelOption.id),
+          )
+          .filter((option): option is (typeof options)[number] => Boolean(option))
+      : options;
+
     return {
-      options,
+      options: orderedOptions,
       cours,
       ponderations,
       isPrimary: typebranch === "PRIMAIRE",
-      primaryOptionId: primaryStructure?.option.id ?? null,
+      primaryOptionId: orderedOptions[0]?.id ?? null,
       schoolYear,
     };
   },

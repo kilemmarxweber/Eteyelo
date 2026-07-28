@@ -1,5 +1,6 @@
 import {
   aggregateBulletinPeriodMaxima,
+  isValidBulletinMaxScore,
   type BulletinPeriodMaxima,
 } from "@/lib/bulletin-maxima";
 import {
@@ -23,7 +24,7 @@ export type PrimaryCatalogEntry = {
   section?: string;
   aliases?: string[];
   sortOrder: number;
-  /** Maxima période (bulletin RDC) — optionnel, pour pondération future */
+  /** Maxima période (bulletin RDC) → pondération = maxPer / 10 */
   maxPer?: number;
   maxExam?: number;
 };
@@ -452,6 +453,37 @@ export function resolveSubjectPlacement(
   return getCatalogPrimaryPlacement(subject.name);
 }
 
+/** Max période utilisé pour le tri ASC dans un domaine (pas l'ordre catalogue). */
+function getSubjectPeriodMax(subject: SubjectWithMaxima): number {
+  if (isValidBulletinMaxScore(subject.baseMaxScore)) {
+    return subject.baseMaxScore;
+  }
+
+  const periodMax =
+    subject.maxima?.p1 ??
+    subject.maxima?.p2 ??
+    subject.maxima?.p3 ??
+    subject.maxima?.p4 ??
+    subject.maxima?.p5 ??
+    subject.maxima?.p6;
+  if (isValidBulletinMaxScore(periodMax)) {
+    return periodMax;
+  }
+
+  const examMax =
+    subject.maxima?.exam1 ?? subject.maxima?.exam2 ?? subject.maxima?.exam3;
+  if (isValidBulletinMaxScore(examMax)) {
+    return examMax / 2;
+  }
+
+  const catalogMax = resolveCatalogEntry(subject.name)?.maxPer;
+  if (isValidBulletinMaxScore(catalogMax)) {
+    return catalogMax;
+  }
+
+  return Number.POSITIVE_INFINITY;
+}
+
 export function buildPrimaryBulletinRows(
   subjects: SubjectWithPrimaryPlacement[],
 ): PrimaryBulletinRow[] {
@@ -484,11 +516,14 @@ export function buildPrimaryBulletinRows(
     };
   });
 
+  // Dans chaque domaine : tri uniquement par maxima ASC (10, 20, 40…), pas par ordre matière.
   placed.sort((a, b) => {
     const domainDiff =
       PRIMARY_DOMAIN_ORDER.indexOf(a.domain) - PRIMARY_DOMAIN_ORDER.indexOf(b.domain);
     if (domainDiff !== 0) return domainDiff;
-    return a.sortOrder - b.sortOrder || a.subject.name.localeCompare(b.subject.name, "fr");
+    const maxDiff = getSubjectPeriodMax(a.subject) - getSubjectPeriodMax(b.subject);
+    if (maxDiff !== 0) return maxDiff;
+    return a.subject.name.localeCompare(b.subject.name, "fr");
   });
 
   let currentDomain: PrimaryDomainCode | null = null;

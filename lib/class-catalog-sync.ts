@@ -175,8 +175,12 @@ export async function upsertClassCatalogForBranch(
   let optionsCreated = 0;
 
   if (typebranch === "PRIMAIRE") {
-    const { option } = await ensurePrimaryAcademicStructure(Prisma, branchId);
+    const { optionsByLevel } = await ensurePrimaryAcademicStructure(
+      Prisma,
+      branchId,
+    );
     for (const level of PRIMARY_CLASS_LEVELS) {
+      const option = optionsByLevel[level];
       const result = await upsertClasseRow({
         branchId,
         typebranch: "PRIMAIRE",

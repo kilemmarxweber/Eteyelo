@@ -164,19 +164,15 @@ export default function BulletinPDF({
       .then((base64) => setImageData2(base64))
       .catch(console.error);
   }, []);
-  // Filigrane = logo branche/organisation (dynamique), repli armoirie RDC
+  // Filigrane fixe : armoiries RDC (UPLOAD_DIR / public/uploads)
   useEffect(() => {
     let cancelled = false;
 
     const loadWatermark = async () => {
-      const schoolLogo = await loadImageDataUrl(branchContext.logoUrl);
-      if (!cancelled && schoolLogo) {
-        setWatermarkData(schoolLogo);
-        return;
-      }
-
-      const fallback = await loadImageDataUrl("/uploads/Armoiri_de_la_RDC.png");
-      if (!cancelled) setWatermarkData(fallback);
+      const armoirie = await loadImageDataUrl(
+        "/uploads/Armoiri_de_la_RDC.png",
+      );
+      if (!cancelled) setWatermarkData(armoirie);
     };
 
     void loadWatermark();
@@ -184,7 +180,7 @@ export default function BulletinPDF({
     return () => {
       cancelled = true;
     };
-  }, [branchContext.logoUrl]);
+  }, []);
 
   const generatePDF = useCallback(() => {
     if (!imageData1 || !imageData2) {
@@ -1528,13 +1524,13 @@ export default function BulletinPDF({
         );
       }
 
-      // Filigrane logo établissement — centré, léger, par-dessus le contenu
+      // Filigrane armoiries RDC — centré, léger, par-dessus le contenu
       if (watermarkData) {
         const pageHeight = doc.internal.pageSize.getHeight();
         const wmSize = 130;
         const wmX = (pageWidth - wmSize) / 2;
         const wmY = (pageHeight - wmSize) / 2 - 5;
-        doc.setGState(new GState({ opacity: 0.1 }));
+        doc.setGState(new GState({ opacity: 0.12 }));
         try {
           doc.addImage(
             watermarkData,
@@ -1545,7 +1541,7 @@ export default function BulletinPDF({
             wmSize,
           );
         } catch {
-          // Un logo invalide ne doit pas bloquer le bulletin.
+          // Une image invalide ne doit pas bloquer le bulletin.
         }
         doc.setGState(new GState({ opacity: 1 }));
       }

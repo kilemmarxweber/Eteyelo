@@ -2,7 +2,12 @@ import { prisma } from "@/lib/prisma";
 import { buildBranchIdFilter, type BranchScopeInput } from "./scope";
 
 export type NamedCount = { name: string; value: number };
-export type ClassCount = { name: string; total: number; boys: number; girls: number };
+export type ClassCount = {
+  name: string;
+  total: number;
+  boys: number;
+  girls: number;
+};
 export type BranchCount = {
   branchId: string;
   branchName: string;
@@ -10,6 +15,18 @@ export type BranchCount = {
   parents: number;
   teachers: number;
   personnel: number;
+};
+
+export type EffectifsPersonRow = {
+  matricule: string;
+  nom: string;
+  postnom: string;
+  prenom: string;
+  sexe: string;
+  statut: string;
+  branche: string;
+  telephone: string;
+  classe?: string;
 };
 
 export type EffectifsReport = {
@@ -23,31 +40,63 @@ export type EffectifsReport = {
     byClass: ClassCount[];
     byStatus: NamedCount[];
     byGender: NamedCount[];
+    list: EffectifsPersonRow[];
   };
   parents: {
     total: number;
     active: number;
     inactive: number;
     byGender: NamedCount[];
+    list: EffectifsPersonRow[];
   };
   teachers: {
     total: number;
     active: number;
     inactive: number;
     byGender: NamedCount[];
+    list: EffectifsPersonRow[];
   };
   personnel: {
     total: number;
     active: number;
     inactive: number;
     byGender: NamedCount[];
+    list: EffectifsPersonRow[];
   };
   byBranch: BranchCount[];
 };
 
+const userSelect = {
+  username: true,
+  name: true,
+  postnom: true,
+  prenom: true,
+  sexe: true,
+  telephone: true,
+} as const;
+
 function genderBucket(sexe: string | null | undefined): "M" | "F" | "?" {
   if (sexe === "M" || sexe === "F") return sexe;
   return "?";
+}
+
+function sexeLabel(sexe: string | null | undefined) {
+  if (sexe === "M") return "M";
+  if (sexe === "F") return "F";
+  return "—";
+}
+
+function sortPeople(rows: EffectifsPersonRow[]) {
+  return rows.sort((a, b) => {
+    const byBranch = a.branche.localeCompare(b.branche, "fr");
+    if (byBranch !== 0) return byBranch;
+    const byClass = (a.classe ?? "").localeCompare(b.classe ?? "", "fr");
+    if (byClass !== 0) return byClass;
+    return `${a.nom} ${a.postnom} ${a.prenom}`.localeCompare(
+      `${b.nom} ${b.postnom} ${b.prenom}`,
+      "fr",
+    );
+  });
 }
 
 export async function getEffectifsReport(params: {
@@ -70,10 +119,11 @@ export async function getEffectifsReport(params: {
           branchMember: {
             select: {
               branchId: true,
+              branch: { select: { name: true } },
               member: {
                 select: {
                   isArchived: true,
-                  user: { select: { sexe: true } },
+                  user: { select: userSelect },
                 },
               },
             },
@@ -85,6 +135,7 @@ export async function getEffectifsReport(params: {
             },
           },
         },
+        orderBy: { createdAt: "asc" },
       }),
       prisma.parent.findMany({
         where: { branchMember: branchFilter },
@@ -93,10 +144,11 @@ export async function getEffectifsReport(params: {
           branchMember: {
             select: {
               branchId: true,
+              branch: { select: { name: true } },
               member: {
                 select: {
                   isArchived: true,
-                  user: { select: { sexe: true } },
+                  user: { select: userSelect },
                 },
               },
             },
@@ -110,10 +162,11 @@ export async function getEffectifsReport(params: {
           branchMember: {
             select: {
               branchId: true,
+              branch: { select: { name: true } },
               member: {
                 select: {
                   isArchived: true,
-                  user: { select: { sexe: true } },
+                  user: { select: userSelect },
                 },
               },
             },
@@ -127,10 +180,11 @@ export async function getEffectifsReport(params: {
           branchMember: {
             select: {
               branchId: true,
+              branch: { select: { name: true } },
               member: {
                 select: {
                   isArchived: true,
-                  user: { select: { sexe: true } },
+                  user: { select: userSelect },
                 },
               },
             },
@@ -152,6 +206,7 @@ export async function getEffectifsReport(params: {
       }),
     ]);
 
+  const branchNameById = new Map(branches.map((b) => [b.id, b.name]));
   const classMap = new Map<string, ClassCount>();
   for (const c of classes) {
     classMap.set(c.id, {
@@ -167,16 +222,22 @@ export async function getEffectifsReport(params: {
   let unknownSex = 0;
   let active = 0;
   let inactive = 0;
+  const studentList: EffectifsPersonRow[] = [];
 
   for (const s of students) {
     const isActive = s.statusStudent === true;
     if (isActive) active += 1;
     else inactive += 1;
 
-    const g = genderBucket(s.branchMember.member.user.sexe);
+    const user = s.branchMember.member.user;
+    const g = genderBucket(user.sexe);
     if (g === "M") boys += 1;
     else if (g === "F") girls += 1;
     else unknownSex += 1;
+
+    const classNames = s.classEnrollment
+      .map((enr) => enr.classe?.nameClasse)
+      .filter((name): name is string => Boolean(name));
 
     for (const enr of s.classEnrollment) {
       if (!enr.classe) continue;
@@ -186,13 +247,39 @@ export async function getEffectifsReport(params: {
       if (g === "M") row.boys += 1;
       if (g === "F") row.girls += 1;
     }
+
+    studentList.push({
+      matricule: user.username?.trim() || "—",
+      nom: user.name?.trim() || "—",
+      postnom: user.postnom?.trim() || "—",
+      prenom: user.prenom?.trim() || "—",
+      sexe: sexeLabel(user.sexe),
+      statut: isActive ? "Actif" : "Inactif",
+      branche:
+        s.branchMember.branch.name ||
+        branchNameById.get(s.branchMember.branchId) ||
+        "—",
+      telephone: user.telephone?.trim() || "—",
+      classe: classNames.join(", ") || "Non affecté",
+    });
   }
 
-  function peopleStats(
+  function peopleBlock(
     rows: Array<{
       branchMember: {
         branchId: string;
-        member: { isArchived: boolean; user: { sexe: string | null } };
+        branch: { name: string };
+        member: {
+          isArchived: boolean;
+          user: {
+            username: string | null;
+            name: string;
+            postnom: string | null;
+            prenom: string | null;
+            sexe: string | null;
+            telephone: string | null;
+          };
+        };
       } | null;
     }>,
   ) {
@@ -201,15 +288,34 @@ export async function getEffectifsReport(params: {
     let inact = 0;
     let m = 0;
     let f = 0;
+    const list: EffectifsPersonRow[] = [];
+
     for (const row of rows) {
       if (!row.branchMember) continue;
       total += 1;
-      if (row.branchMember.member.isArchived) inact += 1;
+      const archived = row.branchMember.member.isArchived;
+      if (archived) inact += 1;
       else act += 1;
-      const g = genderBucket(row.branchMember.member.user.sexe);
+      const user = row.branchMember.member.user;
+      const g = genderBucket(user.sexe);
       if (g === "M") m += 1;
       else if (g === "F") f += 1;
+
+      list.push({
+        matricule: user.username?.trim() || "—",
+        nom: user.name?.trim() || "—",
+        postnom: user.postnom?.trim() || "—",
+        prenom: user.prenom?.trim() || "—",
+        sexe: sexeLabel(user.sexe),
+        statut: archived ? "Inactif" : "Actif",
+        branche:
+          row.branchMember.branch.name ||
+          branchNameById.get(row.branchMember.branchId) ||
+          "—",
+        telephone: user.telephone?.trim() || "—",
+      });
     }
+
     return {
       total,
       active: act,
@@ -218,12 +324,13 @@ export async function getEffectifsReport(params: {
         { name: "Hommes", value: m },
         { name: "Femmes", value: f },
       ] satisfies NamedCount[],
+      list: sortPeople(list),
     };
   }
 
-  const parentStats = peopleStats(parents);
-  const teacherStats = peopleStats(teachers);
-  const personnelStats = peopleStats(personnel);
+  const parentStats = peopleBlock(parents);
+  const teacherStats = peopleBlock(teachers);
+  const personnelStats = peopleBlock(personnel);
 
   const byBranch: BranchCount[] = branches.map((b) => {
     const studentCount = students.filter(
@@ -265,6 +372,7 @@ export async function getEffectifsReport(params: {
         { name: "Garçons", value: boys },
         { name: "Filles", value: girls },
       ],
+      list: sortPeople(studentList),
     },
     parents: parentStats,
     teachers: teacherStats,

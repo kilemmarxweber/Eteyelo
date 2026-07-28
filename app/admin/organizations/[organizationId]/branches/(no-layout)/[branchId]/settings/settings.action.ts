@@ -195,10 +195,13 @@ export async function importPrimaryCatalogCoursesAction() {
   revalidatePath(
     `/admin/organizations/${context.organizationId}/branches/${context.branchId}/cours`,
   );
+  revalidatePath(
+    `/admin/organizations/${context.organizationId}/branches/${context.branchId}/coursPonderationOption`,
+  );
 
   return {
     ok: true,
-    message: `Catalogue RDC importé : ${result.created} créé(s), ${result.updated} mis à jour, ${result.skipped} déjà à jour.`,
+    message: `Catalogue RDC importé : ${result.created} cours créé(s), ${result.updated} mis à jour, ${result.skipped} déjà à jour. Pondérations : ${result.ponderationsCreated} créée(s), ${result.ponderationsUpdated} mise(s) à jour.`,
     ...result,
   };
 }

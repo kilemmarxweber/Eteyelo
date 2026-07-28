@@ -15,7 +15,10 @@ import { ensureUniqueIdentifier, generateSlug } from "@/lib/generated-identifier
 import { registrationSchema } from "@/src/interfaces/registration";
 import { creneauSchema } from "@/src/interfaces/creneau";
 import { createOrganizationMemberAction } from "../../../../members/actions";
-import { ensurePrimaryAcademicStructure } from "@/lib/primary-academic-structure";
+import {
+  ensurePrimaryAcademicStructure,
+  getPrimaryOptionForLevel,
+} from "@/lib/primary-academic-structure";
 import { getPeopleLabels } from "@/lib/people-labels";
 import { isCentreFormationBranch } from "@/lib/branch-capabilities";
 import { ensureCentreDefaultParent } from "@/lib/centre-default-parent";
@@ -387,19 +390,28 @@ export const createNextParallelForRegistrationAction = action
     const validated = validateClassInput({
       typebranch,
       level: input.level,
-      optionId: input.optionId || undefined,
+      optionId:
+        typebranch === "PRIMAIRE" ? undefined : input.optionId || undefined,
     });
     const option =
       typebranch === "PRIMAIRE"
-        ? (await ensurePrimaryAcademicStructure(prisma, branchId)).option
+        ? getPrimaryOptionForLevel(
+            await ensurePrimaryAcademicStructure(prisma, branchId),
+            validated.level ?? input.level,
+          )
         : validated.optionId
           ? await prisma.option.findFirst({
               where: { id: validated.optionId, branchId, statusOption: true },
               select: { id: true, nameOption: true },
             })
           : null;
-    if (validated.optionId && !option)
-      throw new Error("Option introuvable dans cette branche.");
+    if (!option) {
+      throw new Error(
+        typebranch === "PRIMAIRE"
+          ? "Niveau primaire invalide pour la pondération."
+          : "Option introuvable dans cette branche.",
+      );
+    }
 
     const creneau = await prisma.creneau.findFirst({
       where: { id: input.creneauId, branchId, isArchived: false },
@@ -666,13 +678,19 @@ export const createRegistrationFlowAction = action
 
     const selectedOption =
       typebranch === "PRIMAIRE"
-        ? (await ensurePrimaryAcademicStructure(prisma, branchId)).option
+        ? getPrimaryOptionForLevel(
+            await ensurePrimaryAcademicStructure(prisma, branchId),
+            input.level,
+          )
         : input.optionId
           ? await prisma.option.findFirst({
           where: { id: input.optionId, branchId, statusOption: true },
           select: { id: true, nameOption: true },
             })
           : null;
+    if (typebranch === "PRIMAIRE" && !selectedOption) {
+      throw new Error("Niveau primaire invalide pour la pondération.");
+    }
 
     const createdUserIds: string[] = [];
     try {

@@ -9,6 +9,7 @@ type PageProps = {
     branchId?: string;
     scope?: string;
     schoolYearKey?: string;
+    classeKey?: string;
     tab?: string;
   }>;
 };
@@ -18,13 +19,14 @@ export default async function OrganizationRapportPage({
   searchParams,
 }: PageProps) {
   const { organizationId } = await params;
-  const { branchId, scope, schoolYearKey, tab } = await searchParams;
+  const { branchId, scope, schoolYearKey, classeKey, tab } = await searchParams;
 
   const data = await loadOrganizationReports({
     organizationId,
     branchId,
     scope,
     schoolYearKey,
+    classeKey,
     tab,
   });
 

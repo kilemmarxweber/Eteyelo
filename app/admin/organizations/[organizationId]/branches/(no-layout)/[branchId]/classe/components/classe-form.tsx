@@ -34,6 +34,7 @@ import {
   isCtebLevel,
   isHumanitesLevel,
 } from "@/lib/class-structure";
+import { primaryLevelOptionCode, isPrimaryClassLevel } from "@/lib/primary-academic-structure";
 import { CTEB_OPTION_CODE, CTEB_SECTION_CODE } from "@/lib/class-catalog";
 import { ManagedBranchType } from "@/lib/academic-structure";
 import { IOption } from "@/src/interfaces/Option";
@@ -195,7 +196,16 @@ export function ClasseUpForm({
   }, [branchType, sections, watchedLevel]);
 
   const optionsForSection = useMemo(() => {
-    if (branchType === "PRIMAIRE") return options;
+    if (branchType === "PRIMAIRE") {
+      if (!isPrimaryClassLevel(watchedLevel)) return options;
+      const code = primaryLevelOptionCode(watchedLevel);
+      const match = options.filter(
+        (o) =>
+          o.codeOption === code ||
+          o.nameOption === watchedLevel,
+      );
+      return match.length ? match : options;
+    }
     if (!selectedSectionId) return [];
     const inSection = options.filter((o) => o.sectionId === selectedSectionId);
     if (isCtebLevel(watchedLevel ?? "")) {
@@ -209,14 +219,16 @@ export function ClasseUpForm({
   }, [branchType, options, selectedSectionId, watchedLevel]);
 
   useEffect(() => {
-    if (branchType !== "PRIMAIRE") return;
-    const primaryOption = options.find(
-      (option) => option.nameOption.toUpperCase() === "PRIMAIRE",
+    if (branchType !== "PRIMAIRE" || !isPrimaryClassLevel(watchedLevel)) return;
+    const code = primaryLevelOptionCode(watchedLevel);
+    const levelOption = options.find(
+      (option) =>
+        option.codeOption === code || option.nameOption === watchedLevel,
     );
-    if (primaryOption && form.getValues("optionId") !== primaryOption.id) {
-      form.setValue("optionId", primaryOption.id);
+    if (levelOption && form.getValues("optionId") !== levelOption.id) {
+      form.setValue("optionId", levelOption.id);
     }
-  }, [branchType, form, options]);
+  }, [branchType, form, options, watchedLevel]);
 
   // 7è / 8è : section CTEB + option Tronc commun obligatoires
   useEffect(() => {
@@ -487,7 +499,11 @@ export function ClasseUpForm({
                 name="optionId"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Option</FormLabel>
+                    <FormLabel>
+                      {branchType === "PRIMAIRE"
+                        ? "Niveau de pondération"
+                        : "Option"}
+                    </FormLabel>
                     <FormControl>
                       <SearchableSelect
                         searchable="auto"
@@ -504,7 +520,9 @@ export function ClasseUpForm({
                         }
                         placeholder={
                           branchType === "PRIMAIRE"
-                            ? "PRIMAIRE"
+                            ? watchedLevel
+                              ? `${watchedLevel} année`
+                              : "Selon le niveau"
                             : isCtebLevel(watchedLevel ?? "")
                               ? "Tronc commun"
                               : !selectedSectionId &&

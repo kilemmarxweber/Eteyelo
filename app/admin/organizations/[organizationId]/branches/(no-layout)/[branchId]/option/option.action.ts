@@ -8,6 +8,7 @@ import { requireBranchContext } from "@/lib/auth/require-branch-context";
 import { assertSectionOptionBranchFeatures } from "@/lib/branch-capabilities";
 import { normalizeBranchType } from "@/lib/academic-structure";
 import { ensureSecondaryCtebStructure } from "@/lib/secondary-cteb-structure";
+import { ensurePrimaryAcademicStructure } from "@/lib/primary-academic-structure";
 import { z } from "zod";
 import {
   ensureUniqueIdentifier,
@@ -178,11 +179,18 @@ export const deleteOptionAction = archiveOptionAction;
 export const getOptionsAction = action.handler(async (): Promise<IOption[]> => {
   try {
     const { branchId, typebranch } = await requireBranchContext();
-    if (normalizeBranchType(typebranch) === "SECONDAIRE") {
+    const normalized = normalizeBranchType(typebranch);
+    if (normalized === "SECONDAIRE") {
       await ensureSecondaryCtebStructure(prisma, branchId);
     }
+    if (normalized === "PRIMAIRE") {
+      await ensurePrimaryAcademicStructure(prisma, branchId);
+    }
     const options = await prisma.option.findMany({
-      where: { branchId },
+      where: {
+        branchId,
+        ...(normalized === "PRIMAIRE" ? { statusOption: true } : {}),
+      },
       include: {
         section: true,
         classe: {

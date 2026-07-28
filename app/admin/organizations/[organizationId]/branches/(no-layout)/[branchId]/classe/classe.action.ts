@@ -21,7 +21,10 @@ import {
 import {
   getCatalogAbbrevForOptionName,
 } from "@/lib/class-catalog";
-import { ensurePrimaryAcademicStructure } from "@/lib/primary-academic-structure";
+import {
+  ensurePrimaryAcademicStructure,
+  getPrimaryOptionForLevel,
+} from "@/lib/primary-academic-structure";
 import { ensureSecondaryCtebStructure } from "@/lib/secondary-cteb-structure";
 import {
   ensureUniqueIdentifier,
@@ -71,16 +74,30 @@ async function resolveClassIdentity(params: {
     };
   }
 
-  const option = primary
-    ? (await ensurePrimaryAcademicStructure(prisma, params.branchId)).option
-    : isCtebLevel(validated.level ?? "")
-      ? (await ensureSecondaryCtebStructure(prisma, params.branchId)).option
-      : validated.optionId
-        ? await prisma.option.findFirst({
-            where: { id: validated.optionId, branchId: params.branchId },
-            select: { id: true, nameOption: true, codeOption: true },
-          })
-        : null;
+  const primaryStructure = primary
+    ? await ensurePrimaryAcademicStructure(prisma, params.branchId)
+    : null;
+
+  let option: {
+    id: string;
+    nameOption: string;
+    codeOption?: string | null;
+  } | null = null;
+
+  if (primary) {
+    option = getPrimaryOptionForLevel(primaryStructure!, validated.level);
+    if (!option) {
+      throw new Error("Niveau primaire invalide pour la pondération");
+    }
+  } else if (isCtebLevel(validated.level ?? "")) {
+    option = (await ensureSecondaryCtebStructure(prisma, params.branchId))
+      .option;
+  } else if (validated.optionId) {
+    option = await prisma.option.findFirst({
+      where: { id: validated.optionId, branchId: params.branchId },
+      select: { id: true, nameOption: true, codeOption: true },
+    });
+  }
 
   if (validated.optionId && !option) {
     throw new Error("Option introuvable dans cette branche");

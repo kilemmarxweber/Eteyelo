@@ -135,13 +135,23 @@ export function getBranchTypeHelpContent(typebranch: unknown): BranchTypeHelpCon
             title: "Fonctionnalites principales",
             items: [
               "Classes primaires avec bulletins trimestriels.",
-              "Domaines RDC et fiches centrales.",
+              "Domaines RDC, fiches centrales et ponderations des cours.",
               "Inscription, finance et paiements disponibles.",
+            ],
+          },
+          {
+            title: "Bon a savoir",
+            items: [
+              "Les ponderations sont definies par niveau (1è–6è).",
+              "La ponderation definit le maximum periode (ponderation x 10).",
+              "Les demi-unites sont autorisees (ex. 0,5 → max 5) pour le catalogue RDC.",
             ],
           },
         ],
         quickLinks: [
           { label: "Classes", href: "/admin/classe" },
+          { label: "Cours", href: "/admin/cours" },
+          { label: "Ponderations", href: "/admin/coursPonderationOption" },
           { label: "Fiches", href: "/admin/fiches" },
           { label: "Inscription", href: "/admin/registration" },
         ],

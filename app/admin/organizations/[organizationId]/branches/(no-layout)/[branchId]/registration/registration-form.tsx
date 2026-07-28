@@ -1709,13 +1709,17 @@ export function RegistrationForm({
                             }
                           />
                         </Field>
-                        <Field label="Option de pondération">
+                        <Field label="Niveau de pondération">
                           <Input
                             disabled
                             className="bg-muted text-foreground opacity-100"
                             value={
-                              options.primaryStructure?.option?.nameOption ??
-                              "Primaire"
+                              options.primaryStructure?.optionsByLevel?.[level]
+                                ?.nameOption
+                                ? `${options.primaryStructure.optionsByLevel[level].nameOption} année`
+                                : level
+                                  ? `${level} année`
+                                  : "Selon le niveau choisi"
                             }
                           />
                         </Field>
