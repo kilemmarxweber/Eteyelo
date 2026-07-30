@@ -11,6 +11,9 @@ type BranchPageShellProps = {
   actions?: ReactNode;
   backHref?: string;
   backLabel?: string;
+  /** Compat PageHeader — ignoré (sticky compact unique). */
+  variant?: string;
+  breadcrumbs?: ReactNode;
   children: ReactNode;
   className?: string;
   contentClassName?: string;
@@ -30,6 +33,8 @@ export function BranchPageShell({
   actions,
   backHref,
   backLabel,
+  variant: _variant,
+  breadcrumbs,
   children,
   className,
   contentClassName,
@@ -42,6 +47,11 @@ export function BranchPageShell({
         className={cn("flex flex-col gap-0 pt-0 md:pt-0", className)}
         fixedHeight={fixedHeight}
       >
+        {breadcrumbs ? (
+          <div className="-mx-4 bg-background/95 px-4 pt-2 text-sm backdrop-blur md:-mx-8 md:px-8">
+            {breadcrumbs}
+          </div>
+        ) : null}
         <BranchStickyHeader
           title={title}
           description={description}

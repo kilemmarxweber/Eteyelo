@@ -67,7 +67,6 @@ export async function enforceOnlineAssignmentAccess(): Promise<OnlineAssignmentA
 
   let mode: OnlineAssignmentMode = "manage";
   if (role === "student") mode = "student";
-  else if (role === "parent") mode = "parent";
   else mode = "manage";
 
   const teacherId =

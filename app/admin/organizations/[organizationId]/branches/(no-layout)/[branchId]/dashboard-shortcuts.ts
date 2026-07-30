@@ -43,6 +43,13 @@ type ShortcutContext = {
   showFinance: boolean;
   /** Lien « Ma fiche » (profil élève). */
   studentProfileId?: string | null;
+  /** Totaux finance foyer (dashboard parent). */
+  parentFinance?: {
+    totalDue: number;
+    totalRemaining: number;
+    currency: string;
+    firstChildId: string | null;
+  } | null;
 };
 
 /** CTA dashboard alignés sur la matrice menus (unit-00 §3 / unit-03b). */
