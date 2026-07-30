@@ -42,7 +42,6 @@ const STUDENT_ROLE_SLUGS = [ORG_ROLE.STUDENT, "STUDENT", "student"] as const;
 const LIBRARY_READER_BRANCH_ROLES = [
   BranchRole.STUDENT,
   BranchRole.TEACHER,
-  BranchRole.PARENT,
 ] as const;
 
 const ORG_LIBRARY_MANAGE_DB_ROLES = [
@@ -118,7 +117,7 @@ export function isStudentSessionRole(session: unknown): boolean {
 /**
  * Accès catalogue / lecteur :
  * - owner / propriétaire / gestionnaire (+ cadres) → mode manage (lecture + upload)
- * - BranchMember STUDENT | TEACHER | PARENT → mode student (lecture seule)
+ * - BranchMember STUDENT | TEACHER → mode student (lecture seule)
  */
 export async function enforceLibraryAccess(): Promise<LibraryAccessContext> {
   const ctx = await requireBranchContext();
@@ -161,7 +160,7 @@ export async function enforceLibraryManageAccess(): Promise<LibraryAccessContext
 /**
  * Gate API fichier livre (proxy).
  * Managers : même livres inactifs (aperçu admin).
- * Élèves / enseignants / parents : livres actifs uniquement.
+ * Élèves / enseignants : livres actifs uniquement.
  */
 export async function resolveLibraryFileAccess(bookId: string): Promise<
   | {

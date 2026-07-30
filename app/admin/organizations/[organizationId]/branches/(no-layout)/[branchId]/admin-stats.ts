@@ -27,6 +27,7 @@ import {
   getBestDiscountInfo,
   type DiscountInfo,
 } from "@/lib/payment-discount";
+import { buildStudentAnnouncementsData } from "@/lib/student-announcements";
 
 const EMPTY_METRICS = {
   attendance: 0,
@@ -1152,30 +1153,43 @@ async function getParentDashboardData(
     currency: "USD",
   };
 
-  const satisfaction = await getParentAnnualSatisfaction(branchId, userId);
+  const classeIds = Array.from(
+    new Set(enrollments.map((e) => e.classeId).filter(Boolean)),
+  );
 
-  if (enrollments.length === 0) {
+  const [satisfaction, currentYear] = await Promise.all([
+    getParentAnnualSatisfaction(branchId, userId),
+    prisma.schoolYear.findFirst({
+      where: { isCurrentYear: true, branchId },
+      select: { id: true },
+    }),
+  ]);
+
+  const announcementsData = await buildStudentAnnouncementsData(
+    branchId,
+    organizationId,
+    classeIds,
+    currentYear?.id ?? null,
+  );
+
+  const announcements = announcementsData.items.slice(0, 8).map((item) => ({
+    id: item.id,
+    title: item.title,
+    description: item.description,
+    dateStartLabel: item.dateStartLabel,
+    audienceLabel: item.audienceLabel,
+    audienceScope: item.audienceScope,
+    eventTypeName: item.eventTypeName,
+  }));
+
+  if (enrollments.length === 0 || !currentYear) {
     return {
       children: mappedChildren,
       finance: emptyFinance,
       satisfaction,
+      announcements,
     };
   }
-
-  const currentYear = await prisma.schoolYear.findFirst({
-    where: { isCurrentYear: true, branchId },
-    select: { id: true },
-  });
-
-  if (!currentYear) {
-    return {
-      children: mappedChildren,
-      finance: emptyFinance,
-      satisfaction,
-    };
-  }
-
-  const classeIds = Array.from(new Set(enrollments.map((e) => e.classeId)));
 
   const [fraisList, selectedExchangeRate, exchangeRates, discount] =
     await Promise.all([
@@ -1288,6 +1302,7 @@ async function getParentDashboardData(
         selectedExchangeRate?.fromCurrency ?? getBaseCurrency(exchangeRates),
     },
     satisfaction,
+    announcements,
   };
 }
 

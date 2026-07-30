@@ -27,7 +27,7 @@ export type StudentProfileSemester = {
 
 export type StudentProfileData = {
   baseHref: string;
-  /** Retour liste élèves (admin) ou tableau de bord (parent). */
+  /** Retour liste élèves (admin) ou tableau de bord (parent / élève sur sa fiche). */
   studentListHref: string;
   /** Libellé accessibilité du bouton retour. */
   backLabel: string;

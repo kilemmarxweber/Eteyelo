@@ -394,8 +394,8 @@ export function canAccessTitulaireFichesArea(
 }
 
 /**
- * Horaire : managers + teacher (gestion) ; parent en lecture année.
- * L’élève n’accède plus à /schedule via le menu Cursus.
+ * Horaire : managers + teacher (gestion).
+ * Parent / élève n’accèdent plus à /schedule.
  */
 export function canReadScheduleArea(
   session: any,
@@ -403,19 +403,15 @@ export function canReadScheduleArea(
 ): boolean {
   return (
     canManageOrganization(session, ...extraRoles) ||
-    hasSessionRole(
-      session,
-      [ORG_ROLE.TEACHER, ORG_ROLE.PARENT, "TEACHER", "PARENT"],
-      ...extraRoles,
-    )
+    hasSessionRole(session, [ORG_ROLE.TEACHER, "TEACHER"], ...extraRoles)
   );
 }
 
 export const canAccessScheduleReadArea = canReadScheduleArea;
 
 /**
- * Notes : managers + teacher (saisie) ; parent lecture scopée.
- * L’élève n’accède plus à /notes via le menu Cursus.
+ * Notes : managers + teacher (saisie).
+ * Parent / élève n’accèdent plus à /notes via le menu Cursus.
  */
 export function canAccessNotesReadArea(
   session: any,
@@ -423,11 +419,7 @@ export function canAccessNotesReadArea(
 ): boolean {
   return (
     canManageOrganization(session, ...extraRoles) ||
-    hasSessionRole(
-      session,
-      [ORG_ROLE.TEACHER, ORG_ROLE.PARENT, "TEACHER", "PARENT"],
-      ...extraRoles,
-    )
+    hasSessionRole(session, [ORG_ROLE.TEACHER, "TEACHER"], ...extraRoles)
   );
 }
 
@@ -453,15 +445,22 @@ export function canAccessResultsArea(
   );
 }
 
-/** Devoirs en ligne : mêmes rôles que résultats (enseignant + élève + parent). */
+/** Devoirs en ligne : enseignant + élève (pas parent). */
 export function canAccessDevoirsArea(
   session: any,
   ...extraRoles: unknown[]
 ): boolean {
-  return canAccessResultsArea(session, ...extraRoles);
+  return (
+    canManageOrganization(session, ...extraRoles) ||
+    hasSessionRole(
+      session,
+      [ORG_ROLE.TEACHER, ORG_ROLE.STUDENT, "TEACHER", "STUDENT", "teacher", "student"],
+      ...extraRoles,
+    )
+  );
 }
 
-/** Bibliothèque : managers org (sans caissier) + enseignant + élève + parent. */
+/** Bibliothèque : managers org (sans caissier) + enseignant + élève (pas parent). */
 export function canAccessLibraryArea(
   session: any,
   ...extraRoles: unknown[]
@@ -481,15 +480,12 @@ export function canAccessLibraryArea(
         ORG_ROLE.SUPERVISEUR,
         ORG_ROLE.TEACHER,
         ORG_ROLE.STUDENT,
-        ORG_ROLE.PARENT,
         "ADMIN",
         "DIRECTOR",
         "TEACHER",
         "STUDENT",
-        "PARENT",
         "teacher",
         "student",
-        "parent",
       ],
       ...extraRoles,
     )

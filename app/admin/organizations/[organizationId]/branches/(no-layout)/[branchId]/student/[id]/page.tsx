@@ -595,11 +595,13 @@ const SingleStudentPage = async ({
     ) ||
     (!canReadAll && parentUser?.id === session.user.id);
 
+  // Élève (sa fiche) ou parent : retour tableau de bord ; admin/autres : liste élèves
+  const backToDashboard = isParentViewer || user.id === session.user.id;
+
   const profile: StudentProfileData = {
     baseHref,
-    // Parent : retour tableau de bord ; admin/autres : liste élèves
-    studentListHref: isParentViewer ? baseHref : `${baseHref}/student`,
-    backLabel: isParentViewer
+    studentListHref: backToDashboard ? baseHref : `${baseHref}/student`,
+    backLabel: backToDashboard
       ? "Retour au tableau de bord"
       : `Retour aux ${peopleLabels.studentPluralLower}`,
     studentId: student.id,

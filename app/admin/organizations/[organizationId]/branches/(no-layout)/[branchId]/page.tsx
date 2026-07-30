@@ -1,7 +1,6 @@
 "use client";
 
 import { Layout, LayoutBody } from "@/components/custom/layout";
-import { PageHeader } from "@/components/ui/page-header";
 import { Badge } from "@/components/ui/badge";
 import { BranchLoadingFallback } from "@/components/branch-loading-fallback";
 import { useParams } from "next/navigation";
@@ -35,10 +34,10 @@ import {
   EventsSection,
   ParentChildrenSection,
   ParentSatisfactionSection,
+  ParentAnnouncementsSection,
   PedagogyMetricsSection,
   SchoolStatsSection,
   ShortcutsSection,
-  StudentFicheSection,
   StudentIdentitySection,
   TeacherSpaceSection,
 } from "./dashboard-sections";
@@ -155,6 +154,15 @@ export default function AdminDashboard() {
       myAverageRating: number | null;
       myFeedbackCount: number;
     } | null;
+    announcements?: {
+      id: string;
+      title: string;
+      description: string | null;
+      dateStartLabel: string;
+      audienceLabel: string;
+      audienceScope: "all" | "class";
+      eventTypeName: string | null;
+    }[];
   } | null>(null);
   const [typebranchState, setTypebranchState] = useState<string | null>(null);
 
@@ -308,6 +316,7 @@ export default function AdminDashboard() {
   const showPedagogyMetrics = showSchoolStats && metrics != null;
   const showEvents = ready && variant !== "parent";
   const showParentSatisfaction = ready && variant === "parent";
+  const showParentAnnouncements = ready && variant === "parent";
 
   if (!ready) {
     if (loadError) {
@@ -430,21 +439,34 @@ export default function AdminDashboard() {
       ) : null}
 
       <Layout>
-        <LayoutBody className="space-y-4">
-          <PageHeader
-            title="Tableau de bord"
-            description={overviewDescription}
-            badge={
-              <Badge
-                variant="outline-primary"
-                icon={<IconChartBar size={14} />}
-              >
-                {branchTypeLabel}
-              </Badge>
-            }
-            className="mb-0 space-y-1"
-          />
+        <LayoutBody className="flex flex-col gap-0 pt-0 md:pt-0">
+          <div
+            className={cn(
+              "sticky top-0 z-20 -mx-4 bg-background/95 backdrop-blur",
+              "supports-[backdrop-filter]:bg-background/80",
+              "md:-mx-8",
+            )}
+          >
+            <header className="px-4 py-2 md:px-8">
+              <div className="flex min-w-0 flex-wrap items-center gap-1.5">
+                <h1 className="truncate text-base font-bold tracking-tight text-foreground md:text-lg">
+                  Tableau de bord
+                </h1>
+                <Badge
+                  variant="outline-primary"
+                  icon={<IconChartBar size={14} />}
+                >
+                  {branchTypeLabel}
+                </Badge>
+              </div>
+              <p className="mt-0.5 truncate text-xs leading-snug text-muted-foreground md:text-sm">
+                {overviewDescription}
+              </p>
+            </header>
+            <div className="h-3 bg-background" aria-hidden />
+          </div>
 
+          <div className="min-w-0 space-y-4 pb-4 pt-1">
           {showSchoolStats ? (
             <SchoolStatsSection
               loading={loading}
@@ -489,22 +511,13 @@ export default function AdminDashboard() {
           ) : null}
 
           {variant === "student" ? (
-            <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(260px,0.9fr)]">
-              <StudentIdentitySection
-                loading={loading}
-                name={student?.name ?? null}
-                className={student?.className ?? null}
-                schoolYear={student?.schoolYear ?? null}
-                studentLabel={peopleLabels.student}
-              />
-              <StudentFicheSection
-                loading={loading}
-                studentId={student?.studentId ?? null}
-                name={student?.name ?? null}
-                className={student?.className ?? null}
-                studentLabel={peopleLabels.student}
-              />
-            </div>
+            <StudentIdentitySection
+              loading={loading}
+              name={student?.name ?? null}
+              className={student?.className ?? null}
+              schoolYear={student?.schoolYear ?? null}
+              studentLabel={peopleLabels.student}
+            />
           ) : null}
 
           {variant === "parent" ? (
@@ -548,6 +561,14 @@ export default function AdminDashboard() {
                 )}
               />
             ) : null}
+          </div>
+
+          {showParentAnnouncements ? (
+            <ParentAnnouncementsSection
+              loading={loading}
+              announcements={parent?.announcements ?? []}
+            />
+          ) : null}
           </div>
         </LayoutBody>
       </Layout>

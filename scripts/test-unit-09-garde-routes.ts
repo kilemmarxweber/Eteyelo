@@ -74,11 +74,11 @@ test("Élève → /frais /notes /schedule refusés ; /results /library OK", () =
   );
 });
 
-test("Parent → notes/horaire/results/library OK ; finance / school_admin refusés", () => {
+test("Parent → results OK ; notes/horaire/library/devoirs / finance / school_admin refusés", () => {
   assertAreas(
     sessionParent,
-    ["notes", "schedule", "results", "library"],
-    ["finance", "school_admin", "hr_directory"],
+    ["results"],
+    ["notes", "schedule", "library", "devoirs", "finance", "school_admin", "hr_directory"],
   );
 });
 

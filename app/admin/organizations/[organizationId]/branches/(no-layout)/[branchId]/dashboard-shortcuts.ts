@@ -261,20 +261,6 @@ export function getDashboardShortcuts(
           color: "bg-indigo-500",
           iconKey: "results",
         },
-        {
-          title: "Notes",
-          description: "Notes (cours déjà notés)",
-          href: href("/notes"),
-          color: "bg-purple-500",
-          iconKey: "notes",
-        },
-        {
-          title: "Horaire",
-          description: "Horaire annuel des enfants",
-          href: href("/schedule"),
-          color: "bg-blue-500",
-          iconKey: "calendar",
-        },
         ...(financeCard ? [financeCard] : []),
       ];
     }

@@ -107,25 +107,25 @@ test("canAccessResultsArea sans caissier, avec student/parent", () => {
   assert.equal(canAccessResultsArea(sessionParent), true);
 });
 
-test("canAccessNotesReadArea : parent/teacher oui, élève et caissier non", () => {
+test("canAccessNotesReadArea : teacher oui, parent/élève/caissier non", () => {
   assert.equal(canAccessNotesReadArea(sessionStudent), false);
-  assert.equal(canAccessNotesReadArea(sessionParent), true);
+  assert.equal(canAccessNotesReadArea(sessionParent), false);
   assert.equal(canAccessNotesReadArea(sessionTeacher), true);
   assert.equal(canAccessNotesReadArea(sessionCaissier), false);
 });
 
-test("canReadScheduleArea : parent/teacher oui, élève et caissier non", () => {
+test("canReadScheduleArea : teacher oui, parent/élève/caissier non", () => {
   assert.equal(canReadScheduleArea(sessionStudent), false);
-  assert.equal(canReadScheduleArea(sessionParent), true);
+  assert.equal(canReadScheduleArea(sessionParent), false);
   assert.equal(canAccessScheduleReadArea(sessionTeacher), true);
   assert.equal(canReadScheduleArea(sessionCaissier), false);
 });
 
-test("canAccessLibraryArea sans caissier ; student/teacher/parent oui", () => {
+test("canAccessLibraryArea sans caissier ni parent ; student/teacher oui", () => {
   assert.equal(canAccessLibraryArea(sessionCaissier), false);
   assert.equal(canAccessLibraryArea(sessionStudent), true);
   assert.equal(canAccessLibraryArea(sessionTeacher), true);
-  assert.equal(canAccessLibraryArea(sessionParent), true);
+  assert.equal(canAccessLibraryArea(sessionParent), false);
   assert.equal(canAccessLibraryArea(sessionDirecteur), true);
 });
 

@@ -6,6 +6,7 @@ import { assignmentBranchWhere } from "@/lib/online-assignments/scope";
 import { prisma } from "@/lib/prisma";
 
 import { DevoirDetailClient } from "./devoir-detail-client";
+import { StudentTakeWorkspace } from "./student-take-workspace";
 
 export const dynamic = "force-dynamic";
 
@@ -135,8 +136,7 @@ export default async function DevoirDetailPage({
     const mySub = visibleSubs.find((s) => s.studentId === selfId) ?? null;
 
     return (
-      <DevoirDetailClient
-        mode="student"
+      <StudentTakeWorkspace
         organizationId={organizationId}
         branchId={branchId}
         assignment={baseAssignment}

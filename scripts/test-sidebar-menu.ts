@@ -102,7 +102,7 @@ test("élève : Dashboard, Résultats, Bibliothèque — pas Notes/Horaire/Fiche
   );
 });
 
-test("parent : Dashboard, Notes/Horaire/Résultats/Bibliothèque — pas Finance / admin / Fiches", () => {
+test("parent : Dashboard + Résultats — pas Notes/Horaire/Devoirs/Bibliothèque / Finance / admin", () => {
   const session = sessionWithOrgRole(ORG_ROLE.PARENT);
   const titles = menuTitles(session);
   const cursus = cursusSubTitles(session);
@@ -113,12 +113,12 @@ test("parent : Dashboard, Notes/Horaire/Résultats/Bibliothèque — pas Finance
     ["Finance", "Utilisateurs", "Classes", "Inscription", "Enseignement"],
     "parent",
   );
-  assertIncludes(
+  assertIncludes(cursus, ["Résultats"], "parent cursus");
+  assertExcludes(
     cursus,
-    ["Notes", "Horaire", "Résultats", "Bibliothèque"],
+    ["Notes", "Horaire", "Devoirs", "Bibliothèque", "Fiches"],
     "parent cursus",
   );
-  assertExcludes(cursus, ["Fiches"], "parent cursus");
 });
 
 test("enseignant : pas Enseignement / Utilisateurs ; Cursus Notes/Résultats/Bibliothèque ; Horaire via dashboard", () => {

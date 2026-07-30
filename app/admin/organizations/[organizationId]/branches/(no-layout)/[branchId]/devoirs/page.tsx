@@ -7,6 +7,7 @@ import { assignmentBranchWhere } from "@/lib/online-assignments/scope";
 import { prisma } from "@/lib/prisma";
 
 import { DevoirsClient } from "./devoirs-client";
+import { StudentDevoirsHome } from "./student-devoirs-home";
 
 export const dynamic = "force-dynamic";
 
@@ -184,55 +185,56 @@ export default async function DevoirsPage({
 
   const now = new Date();
 
+  const studentAssignments = rows.map((a) => {
+    // Élève : uniquement sa copie. Parent : enfants de cette classe.
+    const relevantSubs = a.submissions.filter((sub) => {
+      const st = studentById.get(sub.studentId);
+      return st?.classId === a.classId || studentById.has(sub.studentId);
+    });
+    const selfSub =
+      access.mode === "student"
+        ? relevantSubs.find((s) => s.studentId === students[0]?.id)
+        : relevantSubs[0];
+    const open =
+      now >= a.startAt && now <= a.dueAt && a.status === "PUBLISHED";
+    const upcoming = now < a.startAt && a.status === "PUBLISHED";
+
+    return {
+      ...mapRow(a, {
+        myStatus:
+          selfSub?.status ??
+          (upcoming ? "UPCOMING" : open ? "TODO" : "TODO"),
+        myScore: a.resultsPublished
+          ? (selfSub?.finalScore ?? selfSub?.provisionalScore ?? null)
+          : null,
+      }),
+      isOpen: open,
+      isUpcoming: upcoming,
+      learnerStatuses:
+        access.mode === "parent"
+          ? students
+              .filter((s) => s.classId === a.classId)
+              .map((s) => {
+                const sub = relevantSubs.find((x) => x.studentId === s.id);
+                return {
+                  studentId: s.id,
+                  fullName: s.fullName,
+                  status: sub?.status ?? (upcoming ? "UPCOMING" : "TODO"),
+                  score: a.resultsPublished
+                    ? (sub?.finalScore ?? sub?.provisionalScore ?? null)
+                    : null,
+                };
+              })
+          : undefined,
+    };
+  });
+
   return (
-    <DevoirsClient
-      mode={access.mode}
+    <StudentDevoirsHome
+      mode={access.mode === "parent" ? "parent" : "student"}
       organizationId={organizationId}
       branchId={branchId}
-      filterOptions={filterOptions}
-      students={students.map((s) => ({ id: s.id, fullName: s.fullName }))}
-      assignments={rows.map((a) => {
-        // Élève : uniquement sa copie. Parent : enfants de cette classe.
-        const relevantSubs = a.submissions.filter((sub) => {
-          const st = studentById.get(sub.studentId);
-          return st?.classId === a.classId || studentById.has(sub.studentId);
-        });
-        const selfSub =
-          access.mode === "student"
-            ? relevantSubs.find((s) => s.studentId === students[0]?.id)
-            : relevantSubs[0];
-        const open = now >= a.startAt && now <= a.dueAt && a.status === "PUBLISHED";
-        const upcoming = now < a.startAt && a.status === "PUBLISHED";
-
-        return {
-          ...mapRow(a, {
-            myStatus:
-              selfSub?.status ??
-              (upcoming ? "UPCOMING" : open ? "TODO" : "TODO"),
-            myScore: a.resultsPublished
-              ? (selfSub?.finalScore ?? selfSub?.provisionalScore ?? null)
-              : null,
-          }),
-          isOpen: open,
-          isUpcoming: upcoming,
-          learnerStatuses:
-            access.mode === "parent"
-              ? students
-                  .filter((s) => s.classId === a.classId)
-                  .map((s) => {
-                    const sub = relevantSubs.find((x) => x.studentId === s.id);
-                    return {
-                      studentId: s.id,
-                      fullName: s.fullName,
-                      status: sub?.status ?? (upcoming ? "UPCOMING" : "TODO"),
-                      score: a.resultsPublished
-                        ? (sub?.finalScore ?? sub?.provisionalScore ?? null)
-                        : null,
-                    };
-                  })
-              : undefined,
-        };
-      })}
+      assignments={studentAssignments}
     />
   );
 }

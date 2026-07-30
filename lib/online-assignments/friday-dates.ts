@@ -2,6 +2,12 @@
 
 const KINSHASA_OFFSET_HOURS = 1; // UTC+1 (pas de DST)
 
+/**
+ * TEMP TEST — ouvre le devoir immédiatement (ce soir).
+ * Remettre à `false` après les essais pour retrouver ven. 16h → dim. 23:59.
+ */
+const FORCE_OPEN_NOW_FOR_TEST = true;
+
 function toKinshasaParts(date = new Date()) {
   const utc = date.getTime() + date.getTimezoneOffset() * 60_000;
   const kin = new Date(utc + KINSHASA_OFFSET_HOURS * 3_600_000);
@@ -30,6 +36,25 @@ function kinshasaLocalToUtc(
 
 /** Prochain vendredi (ou aujourd'hui si vendredi), 16:00 → dimanche 23:59:59. */
 export function getFridayWeekendWindow(from = new Date()) {
+  // Mode test : startAt = maintenant, échéance dans ~2 jours (comme un weekend).
+  if (FORCE_OPEN_NOW_FOR_TEST) {
+    const startAt = new Date(from.getTime() - 60_000); // déjà ouvert
+    const parts = toKinshasaParts(from);
+    const dueAt = kinshasaLocalToUtc(
+      parts.year,
+      parts.month,
+      parts.day + 2,
+      23,
+      59,
+      59,
+      999,
+    );
+    const activityDateOnly = new Date(
+      Date.UTC(parts.year, parts.month, parts.day),
+    );
+    return { startAt, dueAt, activityDate: activityDateOnly };
+  }
+
   const parts = toKinshasaParts(from);
   const daysUntilFriday = (5 - parts.weekday + 7) % 7;
   const fridayDay = parts.day + daysUntilFriday;

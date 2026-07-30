@@ -79,18 +79,14 @@ const PARENT_ROLES = [ORG_ROLE.PARENT, "PARENT", "parent"];
 /** Lecture annuaire élèves : school admin + caissier. */
 const STUDENT_DIRECTORY_ROLES = [...SCHOOL_ADMIN_ROLES, ...CAISSIER_ROLES];
 
-/** Élève + parent — résultats (et autres lectures cursus partagées). */
+/** Élève + parent — résultats (parent : fiches enfants + résultats uniquement). */
 const CURSUS_READ_ROLES = [...STUDENT_ROLES, ...PARENT_ROLES];
 
-/** Horaire menu : parent uniquement (élève n’a plus ce lien Cursus). */
-const SCHEDULE_MENU_ROLES = [...PARENT_ROLES];
-
-/** Bibliothèque : school admin + enseignant + élève + parent (sans caissier). */
+/** Bibliothèque : school admin + enseignant + élève (sans caissier ni parent). */
 const LIBRARY_ROLES = [
   ...SCHOOL_ADMIN_ROLES,
   ...TEACHER_ROLES,
   ...STUDENT_ROLES,
-  ...PARENT_ROLES,
 ];
 
 /** Setup cours / pondérations — school admin uniquement (enseignant = horaire dashboard). */
@@ -99,12 +95,8 @@ const COURSE_ROLES = [...SCHOOL_ADMIN_ROLES];
 /** Présences : school admin + enseignant (ses classes — unit-06/10). */
 const PRESENCE_ROLES = [...SCHOOL_ADMIN_ROLES, ...TEACHER_ROLES];
 
-/** Notes : saisie (admin/teacher) + lecture parent (pas élève dans le menu Cursus). */
-const NOTES_ROLES = [
-  ...SCHOOL_ADMIN_ROLES,
-  ...TEACHER_ROLES,
-  ...PARENT_ROLES,
-];
+/** Notes : saisie admin/teacher (pas parent ni élève dans le menu Cursus). */
+const NOTES_ROLES = [...SCHOOL_ADMIN_ROLES, ...TEACHER_ROLES];
 
 const RESULTS_ROLES = [
   ...SCHOOL_ADMIN_ROLES,
@@ -112,12 +104,11 @@ const RESULTS_ROLES = [
   ...CURSUS_READ_ROLES,
 ];
 
-/** Devoirs en ligne : admin école + enseignant + élève + parent. */
+/** Devoirs en ligne : admin école + enseignant + élève (pas parent). */
 const DEVOIRS_ROLES = [
   ...SCHOOL_ADMIN_ROLES,
   ...TEACHER_ROLES,
   ...STUDENT_ROLES,
-  ...PARENT_ROLES,
 ];
 
 /** Fiches classe : school admin + titulaire (pas élève). */
@@ -326,13 +317,6 @@ const staticSidebarMenu: StaticMenuItem[] = [
         href: "/admin/notes",
         icon: "notes",
         roles: NOTES_ROLES,
-      },
-      {
-        // Lecture horaire année (parent) — élève n’a plus ce lien Cursus.
-        title: "Horaire",
-        href: "/admin/schedule",
-        icon: "horaire",
-        roles: SCHEDULE_MENU_ROLES,
       },
       {
         title: "Fiche Centrale",

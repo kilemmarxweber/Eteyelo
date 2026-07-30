@@ -55,18 +55,18 @@ test("isCursusSelfScopedRole pour élève et parent uniquement", () => {
   assert.equal(isCursusSelfScopedRole("admin"), false);
 });
 
-test("parent : notes + horaire lecture ; élève non ; pas manage org", () => {
+test("parent : pas notes / horaire / bibliothèque ; pas manage org", () => {
   assert.equal(canAccessNotesReadArea(sessionStudent), false);
-  assert.equal(canAccessNotesReadArea(sessionParent), true);
+  assert.equal(canAccessNotesReadArea(sessionParent), false);
   assert.equal(canAccessScheduleReadArea(sessionStudent), false);
-  assert.equal(canAccessScheduleReadArea(sessionParent), true);
+  assert.equal(canAccessScheduleReadArea(sessionParent), false);
   assert.equal(canManageOrganization(sessionStudent), false);
   assert.equal(canManageOrganization(sessionParent), false);
 });
 
-test("bibliothèque : élève, parent et enseignant oui", () => {
+test("bibliothèque : élève et enseignant oui ; parent non", () => {
   assert.equal(canAccessLibraryArea(sessionStudent), true);
-  assert.equal(canAccessLibraryArea(sessionParent), true);
+  assert.equal(canAccessLibraryArea(sessionParent), false);
   assert.equal(canAccessLibraryArea(sessionTeacher), true);
 });
 
@@ -97,7 +97,7 @@ test("libellés typebranche : Élève / Apprenant / Étudiant", () => {
   );
 });
 
-test("dashboard élève : variante student ; raccourcis Résultats + Bibliothèque", () => {
+test("dashboard élève : variante student ; raccourcis Ma fiche + Résultats + Devoirs + Bibliothèque", () => {
   assert.equal(resolveDashboardVariant(sessionStudent), "student");
   const blocks = getDashboardDataBlocks("student");
   assert.equal(blocks.student, true);
@@ -113,7 +113,7 @@ test("dashboard élève : variante student ; raccourcis Résultats + Bibliothèq
     showFinance: false,
   });
   const titles = shortcuts.map((item) => item.title);
-  assert.deepEqual(titles, ["Résultats", "Bibliothèque"]);
+  assert.deepEqual(titles, ["Ma fiche", "Résultats", "Devoirs", "Bibliothèque"]);
   assert.ok(!titles.includes("Notes"));
   assert.ok(!titles.includes("Fiches"));
 });

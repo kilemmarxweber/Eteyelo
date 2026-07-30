@@ -44,11 +44,8 @@ export function canAccessOnlineAssignments(session: unknown): boolean {
     canManageOnlineAssignments(session) ||
     hasSessionRole(session, [
       ORG_ROLE.STUDENT,
-      ORG_ROLE.PARENT,
       "STUDENT",
-      "PARENT",
       "student",
-      "parent",
     ])
   );
 }
@@ -64,7 +61,7 @@ export async function enforceOnlineAssignmentAccess(): Promise<OnlineAssignmentA
   }
 
   const role = resolveCursusViewerRole(ctx.session);
-  if (!role || !canAccessOnlineAssignments(ctx.session)) {
+  if (!role || role === "parent" || !canAccessOnlineAssignments(ctx.session)) {
     notFound();
   }
 
