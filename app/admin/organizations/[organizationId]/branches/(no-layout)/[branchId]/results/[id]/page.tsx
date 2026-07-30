@@ -1,11 +1,10 @@
+import { BranchPageShell } from "@/components/layout/branch-page-shell";
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import ResultTable from "./ResultTable";
-import { Layout, LayoutBody } from "@/components/custom/layout";
 import { Badge } from "@/components/ui/badge";
 import { BackLink } from "@/components/ui/back-link";
 import { Card } from "@/components/ui/card";
-import { PageHeader } from "@/components/ui/page-header";
 import { IconChartBar } from "@tabler/icons-react";
 import { getSchoolYear } from "@/lib/school-year";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
@@ -162,10 +161,8 @@ const StudentResultPage = async ({
   });
 
   return (
-    <Layout>
-      <LayoutBody className="space-y-4">
-        <PageHeader
-          variant="compact"
+    <BranchPageShell
+      variant="compact"
           title="Détail des interventions"
           description={`Évaluations · ${subjectName}${period ? ` · ${period}` : ""}`}
           badge={
@@ -176,8 +173,8 @@ const StudentResultPage = async ({
           breadcrumbs={
             <BackLink href={listHref} label="Gestion des résultats" />
           }
-        />
-        <Card
+    >
+      <Card
           variant="default"
           className="mt-0 border flex flex-col xl:flex-row gap-2 rounded-md shadow-sm"
         >
@@ -197,8 +194,7 @@ const StudentResultPage = async ({
             </div>
           </div>
         </Card>
-      </LayoutBody>
-    </Layout>
+    </BranchPageShell>
   );
 };
 

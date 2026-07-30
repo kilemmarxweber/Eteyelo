@@ -1,5 +1,7 @@
 "use client";
 
+import { BranchPageShell } from "@/components/layout/branch-page-shell";
+
 import { useEffect, useState } from "react";
 import { NotFoundView } from "@/components/not-found-view";
 import {
@@ -11,11 +13,9 @@ import {
   IconUsersGroup,
 } from "@tabler/icons-react";
 
-import { Layout, LayoutBody } from "@/components/custom/layout";
 import { Badge } from "@/components/ui/badge";
 import { BranchStatCard } from "@/components/ui/branch-stat-card";
 import { Card } from "@/components/ui/card";
-import { PageHeader } from "@/components/ui/page-header";
 import { useSession } from "@/lib/auth-client";
 import { canAccessBranchArea } from "@/lib/auth/branch-area-access";
 import { canManageOrganization } from "@/lib/auth/session-roles";
@@ -154,19 +154,16 @@ export default function Students() {
   const femininPercent = totalGenre ? 100 - masculinPercent : 0;
 
   return (
-    <Layout>
-      <LayoutBody className="space-y-6">
-        <PageHeader
-          title={`Gestion des ${peopleLabels.studentPluralLower}`}
+    <BranchPageShell
+      title={`Gestion des ${peopleLabels.studentPluralLower}`}
           description={`Dossiers ${peopleLabels.studentPluralLower} et suivi académique en temps réel.`}
           badge={
             <Badge variant="outline-primary" icon={<IconUsers size={14} />}>
               {peopleLabels.studentPlural}
             </Badge>
           }
-        />
-
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+    >
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
           {statCards.map((item) => (
             <BranchStatCard
               key={item.label}
@@ -229,7 +226,6 @@ export default function Students() {
             canManageStudents={canManage}
           />
         </Card>
-      </LayoutBody>
-    </Layout>
+    </BranchPageShell>
   );
 }

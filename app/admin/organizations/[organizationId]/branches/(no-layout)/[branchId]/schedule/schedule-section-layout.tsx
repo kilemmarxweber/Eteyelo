@@ -2,9 +2,8 @@
 
 import { IconReportMoney, IconSchool } from "@tabler/icons-react";
 import { OptionSidebar } from "./components/CourseSidebar";
-import { Layout, LayoutBody } from "@/components/custom/layout";
+import { BranchPageShell } from "@/components/layout/branch-page-shell";
 import { Badge } from "@/components/ui/badge";
-import { PageHeader } from "@/components/ui/page-header";
 import { useParams } from "next/navigation";
 import { NotFoundView } from "@/components/not-found-view";
 import { useEffect, useState } from "react";
@@ -72,40 +71,37 @@ export default function RootLayout({
   }
 
   return (
-    <Layout fadedBelow fixedHeight>
-      <LayoutBody className="flex flex-col gap-6" fixedHeight>
-        <PageHeader
-          title={
-            hasClasse
-              ? ` Horaire des cours - ${classes?.codeClasse || ""}`
-              : "Planifier horaire des cours"
-          }
-          badge={
-            <Badge
-              variant="outline-primary"
-              icon={<IconReportMoney size={14} />}
-            >
-              Horaires
-            </Badge>
-          }
-        />
-        <div className="grid min-h-0 flex-1 gap-4 lg:grid-cols-[300px_minmax(0,1fr)]">
-          <aside className="flex min-h-0 flex-col">
-            <Card className="flex min-h-0 flex-1 flex-col overflow-hidden">
-              <div className="flex items-center gap-2 border-b px-3 py-3">
-                <IconSchool size={18} className="text-primary" />
-                <h3 className="font-semibold text-foreground">Classes</h3>
-              </div>
-              <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-                <OptionSidebar />
-              </div>
-            </Card>
-          </aside>
-          <main className="min-h-0 min-w-0 overflow-hidden">
-            <div className="h-full animate-fade-in">{children}</div>
-          </main>
-        </div>
-      </LayoutBody>
-    </Layout>
+    <BranchPageShell
+      fixedHeight
+      fadedBelow
+      title={
+        hasClasse
+          ? ` Horaire des cours - ${classes?.codeClasse || ""}`
+          : "Planifier horaire des cours"
+      }
+      badge={
+        <Badge variant="outline-primary" icon={<IconReportMoney size={14} />}>
+          Horaires
+        </Badge>
+      }
+      contentClassName="flex min-h-0 flex-col"
+    >
+      <div className="grid min-h-0 flex-1 gap-4 lg:grid-cols-[300px_minmax(0,1fr)]">
+        <aside className="flex min-h-0 flex-col">
+          <Card className="flex min-h-0 flex-1 flex-col overflow-hidden">
+            <div className="flex items-center gap-2 border-b px-3 py-3">
+              <IconSchool size={18} className="text-primary" />
+              <h3 className="font-semibold text-foreground">Classes</h3>
+            </div>
+            <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+              <OptionSidebar />
+            </div>
+          </Card>
+        </aside>
+        <main className="min-h-0 min-w-0 overflow-hidden">
+          <div className="h-full animate-fade-in">{children}</div>
+        </main>
+      </div>
+    </BranchPageShell>
   );
 }

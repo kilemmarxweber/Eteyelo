@@ -1,5 +1,7 @@
 "use client";
 
+import { BranchPageShell } from "@/components/layout/branch-page-shell";
+
 import React, { useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -9,10 +11,8 @@ import { FaFileExcel } from "react-icons/fa";
 import { Input } from "@/components/ui/input";
 import { Combobox } from "@/components/ui/combox";
 import { ExcelRow, FicheTypes, Period, Teacher } from "./components/types";
-import { Layout, LayoutBody } from "@/components/custom/layout";
 import { Button } from "@/components/custom/button";
 import { IconNotes, IconSearch } from "@tabler/icons-react";
-import { PageHeader } from "@/components/ui/page-header";
 import { toast } from "sonner";
 import { StudentRow } from "./components/types";
 import { BookOpen, CalendarDays, CircleFadingArrowUpIcon, ClipboardCheck, Users } from "lucide-react";
@@ -516,11 +516,8 @@ export default function FicheSaisieClient({
   );
   /* ===== RENDER ===== */
   return (
-    <Layout>
-      <LayoutBody className="space-y-6">
-        {/* ===== HEADER ===== */}
-        <PageHeader
-          title="Saisie des notes"
+    <BranchPageShell
+      title="Saisie des notes"
           description={
             notesLabels.isUniversite
               ? `Sélectionnez le contexte pédagogique, puis saisissez ou importez les notes des ${notesLabels.studentPlural}.`
@@ -531,8 +528,8 @@ export default function FicheSaisieClient({
               Notes
             </Badge>
           }
-        />
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+    >
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           <ContextCard icon={<Users className="size-5" />} label={notesLabels.teacher} value={selectedTeacher?.name ?? "Non sélectionné"} active={Boolean(selectedTeacherId)} />
           <ContextCard icon={<BookOpen className="size-5" />} label={notesLabels.courseContextLabel} value={selectedTeacher?.lessons.find(item => item.id === selectedLessonId) ? `${selectedTeacher.lessons.find(item => item.id === selectedLessonId)?.subjectName} · ${selectedTeacher.lessons.find(item => item.id === selectedLessonId)?.codeclasse}` : "Non sélectionné"} active={Boolean(selectedLessonId)} />
           <ContextCard icon={<CalendarDays className="size-5" />} label={notesLabels.sessionLabel} value={period?.label ?? "Non sélectionnée"} active={Boolean(selectedPeriodId)} />
@@ -783,8 +780,7 @@ export default function FicheSaisieClient({
             </Card>
           </div>
         </Card>
-      </LayoutBody>
-    </Layout>
+    </BranchPageShell>
   );
 }
 

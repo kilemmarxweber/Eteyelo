@@ -1,11 +1,10 @@
+import { BranchPageShell } from "@/components/layout/branch-page-shell";
 import { prisma } from "@/lib/prisma";
 import { RecapRow, TypeFiche } from "@/lib/types";
 import SidebarWithFilters from "./SidebarTotal";
 import { notFound } from "next/navigation";
-import { Layout, LayoutBody } from "@/components/custom/layout";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { PageHeader } from "@/components/ui/page-header";
 import { IconChartBar } from "@tabler/icons-react";
 import { ORG_ROLE } from "@/lib/permissions";
 import { assertBranchAreaAccess } from "@/lib/auth/assert-branch-area-access";
@@ -476,19 +475,16 @@ const ResultListPage = async () => {
   }));
 
   return (
-    <Layout>
-      <LayoutBody className="space-y-4">
-        <PageHeader
-          title="Gestion des Resultats"
+    <BranchPageShell
+      title="Gestion des Resultats"
           description="Gérer les informations des Resultats des élèves"
           badge={
             <Badge variant="outline-primary" icon={<IconChartBar size={14} />}>
               Resultats
             </Badge>
           }
-        />
-
-        <Card
+    >
+      <Card
           variant="default"
           className="mt-0 border flex flex-col xl:flex-row gap-2 rounded-md shadow-sm"
         >
@@ -501,8 +497,7 @@ const ResultListPage = async () => {
             />
           </div>
         </Card>
-      </LayoutBody>
-    </Layout>
+    </BranchPageShell>
   );
 };
 

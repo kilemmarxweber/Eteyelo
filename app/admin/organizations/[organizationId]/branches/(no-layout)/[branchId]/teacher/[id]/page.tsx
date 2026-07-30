@@ -1,3 +1,4 @@
+import { BranchPageShell } from "@/components/layout/branch-page-shell";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { notFound, redirect } from "next/navigation";
@@ -8,8 +9,6 @@ import { requireBranchContext } from "@/lib/auth/require-branch-context";
 import { getPeopleLabels } from "@/lib/people-labels";
 
 import { Card } from "@/components/ui/card";
-import { Layout, LayoutBody } from "@/components/custom/layout";
-import { PageHeader } from "@/components/ui/page-header";
 import { Badge } from "@/components/ui/badge";
 import { IconUser } from "@tabler/icons-react";
 
@@ -122,20 +121,16 @@ const SingleTeacherPage = async ({
 
   /* ================= UI ================= */
   return (
-    <Layout>
-      <LayoutBody className="space-y-4">
-        {/* HEADER */}
-        <PageHeader
-          title={peopleLabels.teacher}
+    <BranchPageShell
+      title={peopleLabels.teacher}
           description={`Vue d'ensemble des informations et activités du ${peopleLabels.teacherLower}.`}
           badge={
             <Badge variant="outline-primary" icon={<IconUser size={14} />}>
               {peopleLabels.teacher}
             </Badge>
           }
-        />
-
-        <Card className="flex-1 p-8 flex flex-col xl:flex-row gap-6 rounded-2xl">
+    >
+      <Card className="flex-1 p-8 flex flex-col xl:flex-row gap-6 rounded-2xl">
           {/* ================= LEFT ================= */}
           <div className="flex-1 min-w-0 flex flex-col gap-6">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
@@ -313,8 +308,7 @@ const SingleTeacherPage = async ({
             </Card>
           </div>
         </Card>
-      </LayoutBody>
-    </Layout>
+    </BranchPageShell>
   );
 };
 

@@ -1,5 +1,7 @@
 "use client";
 
+import { BranchPageShell } from "@/components/layout/branch-page-shell";
+
 import { useEffect, useState } from "react";
 import {
   IconUserCheck,
@@ -11,7 +13,6 @@ import {
 } from "@tabler/icons-react";
 
 import { Button } from "@/components/custom/button";
-import { Layout, LayoutBody } from "@/components/custom/layout";
 import { NotFoundView } from "@/components/not-found-view";
 import { Badge } from "@/components/ui/badge";
 import { BranchStatCard } from "@/components/ui/branch-stat-card";
@@ -24,7 +25,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { PageHeader } from "@/components/ui/page-header";
 import { useSession } from "@/lib/auth-client";
 import { canAccessBranchArea } from "@/lib/auth/branch-area-access";
 import { canManagePersonnelRecords } from "@/lib/auth/session-roles";
@@ -140,10 +140,8 @@ export default function Personnels() {
   ];
 
   return (
-    <Layout>
-      <LayoutBody className="space-y-6">
-        <PageHeader
-          title="Gestion des personnels"
+    <BranchPageShell
+      title="Gestion des personnels"
           description="Gérer les informations des personnels administratifs et leurs contrats dans l'établissement."
           badge={
             <Badge variant="outline-primary" icon={<IconUsers size={14} />}>
@@ -192,9 +190,8 @@ export default function Personnels() {
               </div>
             ) : null
           }
-        />
-
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+    >
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
           {statCards.map((item) => (
             <BranchStatCard
               key={item.label}
@@ -240,7 +237,6 @@ export default function Personnels() {
             onOpenImport={() => setImportOpen(true)}
           />
         </Card>
-      </LayoutBody>
-    </Layout>
+    </BranchPageShell>
   );
 }

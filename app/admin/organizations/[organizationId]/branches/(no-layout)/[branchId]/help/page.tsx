@@ -1,5 +1,4 @@
-import { Layout, LayoutBody } from "@/components/custom/layout";
-import { PageHeader } from "@/components/ui/page-header";
+import { BranchPageShell } from "@/components/layout/branch-page-shell";
 import { Badge } from "@/components/ui/badge";
 import { IconBook } from "@tabler/icons-react";
 
@@ -15,19 +14,16 @@ export default async function BranchHelpPage() {
   const branchBasePath = `/admin/organizations/${organizationId}/branches/${branchId}`;
 
   return (
-    <Layout>
-      <LayoutBody className="space-y-6">
-        <PageHeader
-          title="Aide contextuelle"
+    <BranchPageShell
+      title="Aide contextuelle"
           description="Guide d'utilisation adapte au type de branche active."
           badge={
             <Badge variant="outline-primary" icon={<IconBook size={14} />}>
               {content.typeLabel}
             </Badge>
           }
-        />
-        <BranchTypeHelpPanel content={content} branchBasePath={branchBasePath} />
-      </LayoutBody>
-    </Layout>
+    >
+      <BranchTypeHelpPanel content={content} branchBasePath={branchBasePath} />
+    </BranchPageShell>
   );
 }

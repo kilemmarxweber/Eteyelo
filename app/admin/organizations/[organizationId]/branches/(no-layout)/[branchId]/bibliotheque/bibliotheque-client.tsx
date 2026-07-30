@@ -4,7 +4,7 @@ import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { BookOpen, LibraryBig, Plus, Search } from "lucide-react";
 
-import { Layout, LayoutBody } from "@/components/custom/layout";
+import { BranchPageShell } from "@/components/layout/branch-page-shell";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -78,47 +78,35 @@ export function BibliothequeClient({
   };
 
   return (
-    <Layout>
-      <LayoutBody className="flex flex-col gap-0 pt-0 md:pt-0">
-        <div className="sticky top-0 z-20 -mx-4 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 md:-mx-8">
-          <header className="px-4 py-2 md:px-8">
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-              <div className="min-w-0 flex-1 space-y-0.5">
-                <div className="flex min-w-0 flex-wrap items-center gap-1.5">
-                  <h1 className="truncate text-base font-bold tracking-tight text-foreground md:text-lg">
-                    Bibliothèque
-                  </h1>
-                  <Badge variant="secondary" className="h-5 gap-1 px-1.5 text-[10px]">
-                    <LibraryBig className="size-3" />
-                    {initialBooks.length} livre
-                    {initialBooks.length === 1 ? "" : "s"}
-                  </Badge>
-                </div>
-                <p className="truncate text-xs leading-snug text-muted-foreground md:text-sm">
-                  {mode === "manage"
-                    ? taxonomy.pageDescriptionManage
-                    : taxonomy.pageDescriptionRead}
-                </p>
-              </div>
-              {mode === "manage" ? (
-                <div className="flex shrink-0">
-                  <Button
-                    size="sm"
-                    onClick={() => setCreateOpen(true)}
-                    className="gap-1.5"
-                    disabled={pending}
-                  >
-                    <Plus className="size-3.5" />
-                    Ajouter un livre
-                  </Button>
-                </div>
-              ) : null}
-            </div>
-          </header>
-          <div className="h-3 bg-background" aria-hidden />
-        </div>
-
-        <div className="min-w-0 space-y-5 pb-4 pt-1">
+    <BranchPageShell
+      title="Bibliothèque"
+      description={
+        mode === "manage"
+          ? taxonomy.pageDescriptionManage
+          : taxonomy.pageDescriptionRead
+      }
+      badge={
+        <Badge variant="secondary" className="h-5 gap-1 px-1.5 text-[10px]">
+          <LibraryBig className="size-3" />
+          {initialBooks.length} livre
+          {initialBooks.length === 1 ? "" : "s"}
+        </Badge>
+      }
+      actions={
+        mode === "manage" ? (
+          <Button
+            size="sm"
+            onClick={() => setCreateOpen(true)}
+            className="gap-1.5"
+            disabled={pending}
+          >
+            <Plus className="size-3.5" />
+            Ajouter un livre
+          </Button>
+        ) : null
+      }
+      contentClassName="space-y-5"
+    >
         <div className="flex flex-col gap-3 rounded-xl border border-border bg-card p-3 shadow-sm lg:flex-row lg:items-center">
           <div className="relative flex-1">
             <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
@@ -213,8 +201,6 @@ export function BibliothequeClient({
             onSuccess={refresh}
           />
         ) : null}
-        </div>
-      </LayoutBody>
-    </Layout>
+    </BranchPageShell>
   );
 }

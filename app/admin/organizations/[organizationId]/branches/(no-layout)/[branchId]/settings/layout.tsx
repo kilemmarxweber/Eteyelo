@@ -17,6 +17,7 @@ import {
 } from "@tabler/icons-react";
 
 import { Layout, LayoutBody } from "@/components/custom/layout";
+import { BranchStickyHeader } from "@/components/layout/branch-sticky-header";
 import { authClient } from "@/lib/auth-client";
 import { isPrimaryBranch } from "@/lib/branch-capabilities";
 import {
@@ -177,17 +178,13 @@ export default function Settings({ children }: { children: React.ReactNode }) {
 
   return (
     <Layout fadedBelow fixedHeight>
-      <LayoutBody className="flex flex-col" fixedHeight>
-        <div className="flex flex-col gap-0.5">
-          <h1 className="text-2xl font-bold tracking-tight md:text-3xl">
-            Parametres
-          </h1>
-          <p className="text-muted-foreground">
-            Gerer les preferences de votre compte
-          </p>
-        </div>
+      <LayoutBody className="flex flex-col gap-0 pt-0 md:pt-0" fixedHeight>
+        <BranchStickyHeader
+          title="Parametres"
+          description="Gerer les preferences de votre compte"
+        />
 
-        <div className="flex min-h-0 flex-1 flex-col gap-8 lg:flex-row lg:gap-12">
+        <div className="flex min-h-0 flex-1 flex-col gap-8 pt-1 lg:flex-row lg:gap-12">
           <aside className="lg:w-1/5">
             <SidebarNav items={sidebarNavItems} />
           </aside>

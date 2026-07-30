@@ -1,5 +1,7 @@
 "use client";
 
+import { BranchPageShell } from "@/components/layout/branch-page-shell";
+
 import { useEffect, useState, useTransition } from "react";
 import { NotFoundView } from "@/components/not-found-view";
 import {
@@ -12,7 +14,6 @@ import {
 import { toast } from "sonner";
 
 import { Button } from "@/components/custom/button";
-import { Layout, LayoutBody } from "@/components/custom/layout";
 import { Badge } from "@/components/ui/badge";
 import { BranchStatCard } from "@/components/ui/branch-stat-card";
 import { Card } from "@/components/ui/card";
@@ -23,7 +24,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { PageHeader } from "@/components/ui/page-header";
 import { useSession } from "@/lib/auth-client";
 import { canAccessBranchArea } from "@/lib/auth/branch-area-access";
 
@@ -96,10 +96,8 @@ export default function Page() {
   }
 
   return (
-    <Layout>
-      <LayoutBody className="space-y-5">
-        <PageHeader
-          title={`Gestion des ${classLabelPlural.toLowerCase()}`}
+    <BranchPageShell
+      title={`Gestion des ${classLabelPlural.toLowerCase()}`}
           description={`Créez les ${classLabelPlural.toLowerCase()} et organisez leur capacité, option et créneau.`}
           badge={
             <Badge variant="outline-primary" icon={<IconUsers size={14} />}>
@@ -127,9 +125,8 @@ export default function Page() {
               </Button>
             </div>
           }
-        />
-
-        <Dialog open={open} onOpenChange={setOpen}>
+    >
+      <Dialog open={open} onOpenChange={setOpen}>
           <DialogContent
             size="lg"
             className="gap-3"
@@ -177,7 +174,6 @@ export default function Page() {
         <Card variant="elevated" padding="none">
           <Classes refreshKey={refreshKey} />
         </Card>
-      </LayoutBody>
-    </Layout>
+    </BranchPageShell>
   );
 }

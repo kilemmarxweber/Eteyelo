@@ -1,6 +1,6 @@
 "use client";
 
-import { Layout, LayoutBody } from "@/components/custom/layout";
+import { BranchPageShell } from "@/components/layout/branch-page-shell";
 import { Badge } from "@/components/ui/badge";
 import { BranchLoadingFallback } from "@/components/branch-loading-fallback";
 import { useParams } from "next/navigation";
@@ -438,35 +438,16 @@ export default function AdminDashboard() {
         </div>
       ) : null}
 
-      <Layout>
-        <LayoutBody className="flex flex-col gap-0 pt-0 md:pt-0">
-          <div
-            className={cn(
-              "sticky top-0 z-20 -mx-4 bg-background/95 backdrop-blur",
-              "supports-[backdrop-filter]:bg-background/80",
-              "md:-mx-8",
-            )}
-          >
-            <header className="px-4 py-2 md:px-8">
-              <div className="flex min-w-0 flex-wrap items-center gap-1.5">
-                <h1 className="truncate text-base font-bold tracking-tight text-foreground md:text-lg">
-                  Tableau de bord
-                </h1>
-                <Badge
-                  variant="outline-primary"
-                  icon={<IconChartBar size={14} />}
-                >
-                  {branchTypeLabel}
-                </Badge>
-              </div>
-              <p className="mt-0.5 truncate text-xs leading-snug text-muted-foreground md:text-sm">
-                {overviewDescription}
-              </p>
-            </header>
-            <div className="h-3 bg-background" aria-hidden />
-          </div>
-
-          <div className="min-w-0 space-y-4 pb-4 pt-1">
+      <BranchPageShell
+        title="Tableau de bord"
+        description={overviewDescription}
+        badge={
+          <Badge variant="outline-primary" icon={<IconChartBar size={14} />}>
+            {branchTypeLabel}
+          </Badge>
+        }
+        contentClassName="space-y-4"
+      >
           {showSchoolStats ? (
             <SchoolStatsSection
               loading={loading}
@@ -569,9 +550,7 @@ export default function AdminDashboard() {
               announcements={parent?.announcements ?? []}
             />
           ) : null}
-          </div>
-        </LayoutBody>
-      </Layout>
+      </BranchPageShell>
     </>
   );
 }

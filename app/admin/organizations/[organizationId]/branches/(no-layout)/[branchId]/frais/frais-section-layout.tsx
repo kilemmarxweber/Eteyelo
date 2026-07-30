@@ -79,7 +79,7 @@ function FraisLayoutContent({ children }: { children: React.ReactNode }) {
   const canCreateFrais = canAccessFinanceArea(session);
   return (
     <Layout fadedBelow fixedHeight>
-      <LayoutBody className="flex flex-col space-y-6" fixedHeight>
+      <LayoutBody className="flex flex-col gap-0 pt-0 md:pt-0" fixedHeight>
         <PageHeader
           title={
             hasClasse
@@ -128,7 +128,7 @@ function FraisLayoutContent({ children }: { children: React.ReactNode }) {
           }
         />
 
-        <div className="grid min-h-0 flex-1 gap-4 lg:grid-cols-[300px_minmax(0,1fr)]">
+        <div className="grid min-h-0 flex-1 gap-4 pt-1 lg:grid-cols-[300px_minmax(0,1fr)]">
           <aside className="flex min-h-0 flex-col">
             <Card className="flex min-h-0 flex-1 flex-col overflow-hidden">
               <div className="flex items-center gap-2 border-b px-3 py-3">

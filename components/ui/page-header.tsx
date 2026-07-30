@@ -1,14 +1,15 @@
 import * as React from "react";
 import { cva, type VariantProps } from "class-variance-authority";
 
+import { BranchStickyHeader } from "@/components/layout/branch-sticky-header";
 import { cn } from "@/lib/utils";
 
-const pageHeaderVariants = cva("flex flex-col space-y-2 pb-3", {
+const pageHeaderVariants = cva("", {
   variants: {
     variant: {
       default: "",
-      centered: "text-center items-center",
-      compact: "space-y-1.5 pb-2",
+      centered: "",
+      compact: "",
     },
   },
   defaultVariants: {
@@ -18,63 +19,45 @@ const pageHeaderVariants = cva("flex flex-col space-y-2 pb-3", {
 
 export interface PageHeaderProps
   extends
-    React.HTMLAttributes<HTMLDivElement>,
+    Omit<React.HTMLAttributes<HTMLDivElement>, "title">,
     VariantProps<typeof pageHeaderVariants> {
-  title: string;
-  description?: string;
+  title: React.ReactNode;
+  description?: React.ReactNode;
   actions?: React.ReactNode;
   breadcrumbs?: React.ReactNode;
   badge?: React.ReactNode;
+  backHref?: string;
+  backLabel?: string;
 }
 
+/**
+ * En-tête page branche — sticky compact (identique Devoirs / BranchStickyHeader).
+ */
 const PageHeader = React.forwardRef<HTMLDivElement, PageHeaderProps>(
   (
     {
       className,
-      variant,
+      variant: _variant,
       title,
       description,
       actions,
-      breadcrumbs,
+      breadcrumbs: _breadcrumbs,
       badge,
-      ...props
+      backHref,
+      backLabel,
     },
-    ref,
+    _ref,
   ) => {
     return (
-      <div
-        ref={ref}
-        className={cn(pageHeaderVariants({ variant }), className)}
-        {...props}
-      >
-        {breadcrumbs && (
-          <div className="flex items-center text-sm text-muted-foreground">
-            {breadcrumbs}
-          </div>
-        )}
-
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-          <div className="flex-1 space-y-1">
-            <div className="flex items-center gap-3">
-              <h1 className="text-xl font-bold tracking-tight text-foreground md:text-2xl lg:text-3xl">
-                {title}
-              </h1>
-              {badge && badge}
-            </div>
-            {description && (
-              <p className="text-sm text-muted-foreground leading-relaxed md:text-base">
-                {description}
-              </p>
-            )}
-          </div>
-
-          {actions && (
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-              {actions}
-            </div>
-          )}
-        </div>
-      </div>
+      <BranchStickyHeader
+        title={title}
+        description={description}
+        badge={badge}
+        actions={actions}
+        backHref={backHref}
+        backLabel={backLabel}
+        className={cn(pageHeaderVariants(), className)}
+      />
     );
   },
 );
@@ -87,7 +70,7 @@ const PageHeaderTitle = React.forwardRef<
   <h1
     ref={ref}
     className={cn(
-      "text-2xl font-bold tracking-tight text-foreground md:text-3xl lg:text-4xl",
+      "text-base font-bold tracking-tight text-foreground md:text-lg",
       className,
     )}
     {...props}
@@ -102,7 +85,7 @@ const PageHeaderDescription = React.forwardRef<
   <p
     ref={ref}
     className={cn(
-      "text-base text-muted-foreground leading-relaxed max-w-2xl",
+      "text-xs leading-snug text-muted-foreground md:text-sm",
       className,
     )}
     {...props}

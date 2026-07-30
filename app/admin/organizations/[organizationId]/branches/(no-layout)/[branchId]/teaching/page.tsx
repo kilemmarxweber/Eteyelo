@@ -1,5 +1,8 @@
 "use client";
 
+import { BranchPageShell } from "@/components/layout/branch-page-shell";
+import { Layout, LayoutBody } from "@/components/custom/layout";
+
 import { useEffect, useMemo, useState } from "react";
 import { useAppTransition as useTransition } from "@/hooks/use-app-transition";
 import {
@@ -14,8 +17,6 @@ import {
   IconX,
 } from "@tabler/icons-react";
 import { toast } from "sonner";
-import { Layout, LayoutBody } from "@/components/custom/layout";
-import { PageHeader } from "@/components/ui/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -276,10 +277,8 @@ export default function TeachingWorkspacePage() {
   );
 
   return (
-    <Layout fadedBelow fixedHeight>
-      <LayoutBody className="flex min-h-0 flex-col space-y-5" fixedHeight>
-        <PageHeader
-          title="Affectation des cours"
+    <BranchPageShell
+      title="Affectation des cours"
           description={`Année scolaire : ${data.schoolYear?.nameYear ?? "non configurée"}`}
           badge={
             <Badge variant="outline-primary" icon={<IconUsers size={14} />}>
@@ -295,8 +294,10 @@ export default function TeachingWorkspacePage() {
               Sans enseignant ({totalUnassigned})
             </Button>
           }
-        />
-        <div className="grid min-h-0 flex-1 gap-4 lg:grid-cols-[300px_minmax(0,1fr)]">
+      fixedHeight
+      fadedBelow
+    >
+      <div className="grid min-h-0 flex-1 gap-4 lg:grid-cols-[300px_minmax(0,1fr)]">
           <Card className="flex min-h-0 flex-col overflow-hidden">
             <div className="border-b p-3">
               <h2 className="font-semibold">Classes</h2>
@@ -573,8 +574,7 @@ export default function TeachingWorkspacePage() {
             </div>
           </Card>
         </div>
-      </LayoutBody>
-    </Layout>
+    </BranchPageShell>
   );
 }
 

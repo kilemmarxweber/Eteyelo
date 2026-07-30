@@ -1,5 +1,7 @@
 "use client";
 
+import { BranchPageShell } from "@/components/layout/branch-page-shell";
+
 import { useEffect, useState, useTransition } from "react";
 import {
   IconBook,
@@ -9,7 +11,6 @@ import {
   IconPlus,
 } from "@tabler/icons-react";
 import { toast } from "sonner";
-import { Layout, LayoutBody } from "@/components/custom/layout";
 import { Button } from "@/components/custom/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -22,7 +23,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { PageHeader } from "@/components/ui/page-header";
 import { useSession } from "@/lib/auth-client";
 import { canManageOrganization } from "@/lib/auth/session-roles";
 import { useRefresh } from "@/src/hooks/RefreshContext";
@@ -138,10 +138,8 @@ export default function Cours({
   ) : null;
 
   return (
-    <Layout>
-      <LayoutBody className="space-y-6">
-        <PageHeader
-          title="Gestion des cours"
+    <BranchPageShell
+      title="Gestion des cours"
           description={
             isPrimary
               ? "Créez et organisez les matières enseignées dans cet établissement."
@@ -155,9 +153,8 @@ export default function Cours({
             </Badge>
           }
           actions={headerActions}
-        />
-
-        <div className="grid gap-4 sm:grid-cols-3">
+    >
+      <div className="grid gap-4 sm:grid-cols-3">
           <BranchStatCard
             label="Total des cours"
             value={stats.total}
@@ -192,7 +189,6 @@ export default function Cours({
             onSuccess={refresh}
           />
         ) : null}
-      </LayoutBody>
-    </Layout>
+    </BranchPageShell>
   );
 }

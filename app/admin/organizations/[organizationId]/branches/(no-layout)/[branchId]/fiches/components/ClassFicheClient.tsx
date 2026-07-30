@@ -1,5 +1,7 @@
 "use client";
 
+import { BranchPageShell } from "@/components/layout/branch-page-shell";
+
 import { useState, useEffect, useMemo, useCallback, type ReactNode } from "react";
 import {
   ColumnDef,
@@ -11,7 +13,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "react-toastify";
 import { getLessonsWithFichesByClass, getPeriods } from "@/lib/actions";
 import { Badge } from "@/components/ui/badge";
-import { Layout, LayoutBody } from "@/components/custom/layout";
 import { DataTable } from "@/components/ui/data-table";
 import { Button } from "@/components/ui/button";
 import { Combobox } from "@/components/ui/combox";
@@ -26,7 +27,6 @@ import {
   RecapRow,
   TypeFiche,
 } from "@/lib/types";
-import { PageHeader } from "@/components/ui/page-header";
 import { IconClipboardText } from "@tabler/icons-react";
 import {
   CalendarDays,
@@ -1040,10 +1040,8 @@ export default function ClassFicheClient({
   const studentCount = ficheRecapSorted.length;
 
   return (
-    <Layout>
-      <LayoutBody className="space-y-6">
-        <PageHeader
-          title="Fiches & bulletins"
+    <BranchPageShell
+      title="Fiches & bulletins"
           description={
             hasClasse
               ? `Notes et export des bulletins — ${selectedClass?.name ?? ""}`
@@ -1057,9 +1055,8 @@ export default function ClassFicheClient({
               Bulletins
             </Badge>
           }
-        />
-
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+    >
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           <ContextCard
             icon={<School className="size-5" />}
             label="Classe"
@@ -1199,8 +1196,7 @@ export default function ClassFicheClient({
             )}
           </CardContent>
         </Card>
-      </LayoutBody>
-    </Layout>
+    </BranchPageShell>
   );
 }
 

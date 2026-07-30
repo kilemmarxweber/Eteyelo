@@ -1,5 +1,7 @@
 "use client";
 
+import { BranchPageShell } from "@/components/layout/branch-page-shell";
+
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { useAppRouter as useRouter } from "@/hooks/use-app-router";
@@ -14,10 +16,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { SectionUpForm } from "./components/section-form";
-import { Layout, LayoutBody } from "@/components/custom/layout";
 import SectionList from "./components/SectionsTable";
 import { useRefresh } from "@/src/hooks/RefreshContext";
-import { PageHeader } from "@/components/ui/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { getBranchTypeAction } from "../classe/classe.action";
@@ -75,10 +75,8 @@ export default function Sections() {
   }
 
   return (
-    <Layout>
-      <LayoutBody className="space-y-4">
-        <PageHeader
-          title={labels.sectionTitle}
+    <BranchPageShell
+      title={labels.sectionTitle}
           description={labels.sectionDescription}
           badge={
             <Badge variant="outline-primary" icon={<IconClipboard size={14} />}>
@@ -91,9 +89,8 @@ export default function Sections() {
               {labels.sectionCreate}
             </Button>
           }
-        />
-
-        <Dialog open={open} onOpenChange={setOpen}>
+    >
+      <Dialog open={open} onOpenChange={setOpen}>
           <DialogContent size="lg">
             <DialogHeader>
               <DialogTitle>{labels.sectionCreate}</DialogTitle>
@@ -109,7 +106,6 @@ export default function Sections() {
         <Card variant="elevated" padding="none" className="border p-1 md:p-6">
           <SectionList refreshKey={String(refreshKey)} />
         </Card>
-      </LayoutBody>
-    </Layout>
+    </BranchPageShell>
   );
 }

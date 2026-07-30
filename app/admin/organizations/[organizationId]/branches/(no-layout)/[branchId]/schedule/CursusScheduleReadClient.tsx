@@ -1,12 +1,12 @@
 "use client";
 
+import { BranchPageShell } from "@/components/layout/branch-page-shell";
+
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { IconCalendarTime } from "@tabler/icons-react";
 
-import { Layout, LayoutBody } from "@/components/custom/layout";
 import { Badge } from "@/components/ui/badge";
-import { PageHeader } from "@/components/ui/page-header";
 import {
   Select,
   SelectContent,
@@ -46,10 +46,8 @@ export default function CursusScheduleReadClient({
   };
 
   return (
-    <Layout fadedBelow fixedHeight>
-      <LayoutBody className="flex flex-col gap-6" fixedHeight>
-        <PageHeader
-          title="Horaire de l'année"
+    <BranchPageShell
+      title="Horaire de l'année"
           description={
             role === "parent"
               ? `Emploi du temps annuel de chaque ${studentLabel.toLowerCase()} lié — lecture seule.`
@@ -63,9 +61,10 @@ export default function CursusScheduleReadClient({
               Cursus
             </Badge>
           }
-        />
-
-        {role === "parent" && childrenOptions.length > 1 ? (
+      fixedHeight
+      fadedBelow
+    >
+      {role === "parent" && childrenOptions.length > 1 ? (
           <div className="flex max-w-sm flex-col gap-1.5">
             <span className="text-xs font-medium text-muted-foreground">
               {studentLabel}
@@ -108,7 +107,6 @@ export default function CursusScheduleReadClient({
             Voir les notes
           </Link>
         </p>
-      </LayoutBody>
-    </Layout>
+    </BranchPageShell>
   );
 }

@@ -1,6 +1,5 @@
+import { BranchPageShell } from "@/components/layout/branch-page-shell";
 import { Badge } from "@/components/ui/badge";
-import { Layout, LayoutBody } from "@/components/custom/layout";
-import { PageHeader } from "@/components/ui/page-header";
 import { IconCertificate } from "@tabler/icons-react";
 import { redirect } from "next/navigation";
 
@@ -20,19 +19,16 @@ export default async function BrevetsPage() {
   }
 
   return (
-    <Layout>
-      <LayoutBody className="space-y-6">
-        <PageHeader
-          title="Brevets de formation"
+    <BranchPageShell
+      title="Brevets de formation"
           description="Emission des brevets par programme et session pour les apprenants inscrits."
           badge={
             <Badge variant="outline-primary" icon={<IconCertificate size={14} />}>
               Centre de formation
             </Badge>
           }
-        />
-        <BrevetsClient />
-      </LayoutBody>
-    </Layout>
+    >
+      <BrevetsClient />
+    </BranchPageShell>
   );
 }

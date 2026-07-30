@@ -1,5 +1,7 @@
 "use client";
 
+import { BranchPageShell } from "@/components/layout/branch-page-shell";
+
 import { useEffect, useState } from "react";
 import {
   IconCalendarStats,
@@ -8,12 +10,10 @@ import {
   IconUsersGroup,
 } from "@tabler/icons-react";
 
-import { Layout, LayoutBody } from "@/components/custom/layout";
 import { NotFoundView } from "@/components/not-found-view";
 import { Badge } from "@/components/ui/badge";
 import { BranchStatCard } from "@/components/ui/branch-stat-card";
 import { Card } from "@/components/ui/card";
-import { PageHeader } from "@/components/ui/page-header";
 import { useSession } from "@/lib/auth-client";
 import { canAccessBranchArea } from "@/lib/auth/branch-area-access";
 
@@ -104,19 +104,16 @@ export default function Parents() {
   ];
 
   return (
-    <Layout>
-      <LayoutBody className="space-y-6">
-        <PageHeader
-          title="Gestion des Tuteurs"
+    <BranchPageShell
+      title="Gestion des Tuteurs"
           description="Gérer les informations des tuteurs et le suivi des inscriptions de leurs enfants."
           badge={
             <Badge variant="outline-primary" icon={<IconUsers size={14} />}>
               Tuteurs
             </Badge>
           }
-        />
-
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+    >
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {statCards.map((item) => (
             <BranchStatCard
               key={item.label}
@@ -192,7 +189,6 @@ export default function Parents() {
         >
           <UserList refreshKey={0} />
         </Card>
-      </LayoutBody>
-    </Layout>
+    </BranchPageShell>
   );
 }

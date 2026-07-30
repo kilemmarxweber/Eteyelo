@@ -1,6 +1,5 @@
+import { BranchPageShell } from "@/components/layout/branch-page-shell";
 import { Badge } from "@/components/ui/badge";
-import { Layout, LayoutBody } from "@/components/custom/layout";
-import { PageHeader } from "@/components/ui/page-header";
 import { IconReportAnalytics } from "@tabler/icons-react";
 import { redirect } from "next/navigation";
 
@@ -20,10 +19,8 @@ export default async function RelevesPage() {
   }
 
   return (
-    <Layout>
-      <LayoutBody className="space-y-6">
-        <PageHeader
-          title="Releves de notes"
+    <BranchPageShell
+      title="Releves de notes"
           description="Generation des releves semestriels ou annuels a partir des fiches de cotes."
           badge={
             <Badge
@@ -33,9 +30,8 @@ export default async function RelevesPage() {
               Universite
             </Badge>
           }
-        />
-        <RelevesClient />
-      </LayoutBody>
-    </Layout>
+    >
+      <RelevesClient />
+    </BranchPageShell>
   );
 }

@@ -1,5 +1,8 @@
 "use client";
 
+import { BranchPageShell } from "@/components/layout/branch-page-shell";
+import { Layout, LayoutBody } from "@/components/custom/layout";
+
 import { useEffect, useMemo, useState } from "react";
 import { useAppTransition as useTransition } from "@/hooks/use-app-transition";
 import {
@@ -10,8 +13,6 @@ import {
   IconAlertTriangle,
 } from "@tabler/icons-react";
 import { toast } from "sonner";
-import { Layout, LayoutBody } from "@/components/custom/layout";
-import { PageHeader } from "@/components/ui/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -208,10 +209,8 @@ export default function CoursPonderationOptionPage() {
   }
 
   return (
-    <Layout>
-      <LayoutBody className="space-y-5">
-        <PageHeader
-          title="Pondération des cours"
+    <BranchPageShell
+      title="Pondération des cours"
           description={`Année scolaire : ${data.schoolYear?.nameYear ?? "non configurée"}`}
           badge={
             <Badge variant="outline-primary" icon={<IconAdjustments size={14} />}>
@@ -224,9 +223,8 @@ export default function CoursPonderationOptionPage() {
               Configurer les manquants
             </Button>
           }
-        />
-
-        <Card className="space-y-4 p-4">
+    >
+      <Card className="space-y-4 p-4">
           <div className="grid gap-4 lg:grid-cols-[1fr_1fr]">
             <div>
               <label className="text-sm font-medium">
@@ -390,8 +388,7 @@ export default function CoursPonderationOptionPage() {
             </div>
           )}
         </Card>
-      </LayoutBody>
-    </Layout>
+    </BranchPageShell>
   );
 }
 

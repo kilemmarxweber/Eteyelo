@@ -470,8 +470,8 @@ export function TeacherUpForm({
                 loading={isLoading}
               >
                 {mode === "create"
-                  ? `Enregistrer le ${peopleLabels.teacherLower}`
-                  : `Mettre à jour le ${peopleLabels.teacherLower}`}
+                  ? `Enregistrer l'${peopleLabels.teacherLower}`
+                  : `Mettre à jour l'${peopleLabels.teacherLower}`}
               </Button>
             </div>
 

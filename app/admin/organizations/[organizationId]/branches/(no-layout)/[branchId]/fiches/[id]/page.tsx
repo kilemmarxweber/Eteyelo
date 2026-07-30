@@ -1,10 +1,9 @@
+import { BranchPageShell } from "@/components/layout/branch-page-shell";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { BackLink } from "@/components/ui/back-link";
-import { Layout, LayoutBody } from "@/components/custom/layout";
-import { PageHeader } from "@/components/ui/page-header";
 import { IconClipboardText } from "@tabler/icons-react";
 import {
   buildSchoolReportContext,
@@ -115,10 +114,8 @@ export default async function FichePage({
   ];
 
   return (
-    <Layout>
-      <LayoutBody className="flex flex-col gap-4">
-        <PageHeader
-          variant="compact"
+    <BranchPageShell
+      variant="compact"
           title="Fiche de cotation"
           description={`${fiche.coursName} · ${fiche.periodeName}`}
           badge={
@@ -161,9 +158,8 @@ export default async function FichePage({
               </div>
             )
           }
-        />
-
-        <Card
+    >
+      <Card
           variant="elevated"
           padding="none"
           className="animate-fade-in overflow-hidden rounded-lg border"
@@ -254,7 +250,6 @@ export default async function FichePage({
             )}
           </CardContent>
         </Card>
-      </LayoutBody>
-    </Layout>
+    </BranchPageShell>
   );
 }

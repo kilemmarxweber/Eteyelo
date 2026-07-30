@@ -1,5 +1,7 @@
 "use client";
 
+import { BranchPageShell } from "@/components/layout/branch-page-shell";
+
 import { useEffect, useState } from "react";
 import { NotFoundView } from "@/components/not-found-view";
 import {
@@ -11,7 +13,6 @@ import {
 } from "@tabler/icons-react";
 
 import { Button } from "@/components/custom/button";
-import { Layout, LayoutBody } from "@/components/custom/layout";
 import { Badge } from "@/components/ui/badge";
 import { BranchStatCard } from "@/components/ui/branch-stat-card";
 import { Card } from "@/components/ui/card";
@@ -23,7 +24,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { PageHeader } from "@/components/ui/page-header";
 import { useSession } from "@/lib/auth-client";
 import {
   canAccessPedagogyArea,
@@ -98,10 +98,8 @@ export default function Teachers() {
   }
 
   return (
-    <Layout>
-      <LayoutBody className="space-y-6">
-        <PageHeader
-          title={`Gestion des ${peopleLabels.teacherPlural}`}
+    <BranchPageShell
+      title={`Gestion des ${peopleLabels.teacherPlural}`}
           description={`Gerer les informations des ${peopleLabels.teacherPluralLower} et leurs contrats dans l'etablissement`}
           badge={
             <Badge variant="outline-primary" icon={<IconUsers size={14} />}>
@@ -151,8 +149,8 @@ export default function Teachers() {
               </div>
             ) : null
           }
-        />
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+    >
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
           {[
             {
               label: `${peopleLabels.teacherPlural} actifs`,
@@ -237,7 +235,6 @@ export default function Teachers() {
             onOpenImport={() => setImportOpen(true)}
           />
         </Card>
-      </LayoutBody>
-    </Layout>
+    </BranchPageShell>
   );
 }

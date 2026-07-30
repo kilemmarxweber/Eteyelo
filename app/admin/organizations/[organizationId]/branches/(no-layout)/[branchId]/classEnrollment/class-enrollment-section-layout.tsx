@@ -1,7 +1,6 @@
 "use client";
 import { OptionSidebar } from "./components/CourseSidebar";
-import { Layout, LayoutBody } from "@/components/custom/layout";
-import { PageHeader } from "@/components/ui/page-header";
+import { BranchPageShell } from "@/components/layout/branch-page-shell";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { IconReportMoney, IconSchool } from "@tabler/icons-react";
@@ -11,12 +10,12 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
-import { DialogTrigger } from "@/components/ui/dialog";
 import { EnrollmentUpForm } from "./[classeId]/components/Enrollment-form";
 import { Button } from "@/components/ui/button";
 import { getClassesByIdAction } from "../classe/classe.action";
-import { use, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { IClasse } from "@/src/interfaces/Classe";
 import { useRefresh } from "@/src/hooks/RefreshContext";
 import { useParams } from "next/navigation";
@@ -35,14 +34,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   const { refresh } = useRefresh();
-  const handleFraisAction = () => {
-    refresh();
-  };
-
   const { data: session, isPending } = useSession();
   const [open, setOpen] = useState(false);
   const [classes, setClasses] = useState<IClasse | null>(null);
-  const [loading, setLoading] = useState(true);
   const params = useParams();
   const classeId = params?.classeId as string;
   const handleEnrollmentAction = () => {
@@ -63,8 +57,6 @@ export default function RootLayout({
         setClasses(rawClasses[0]);
       } catch (error) {
         console.error(error);
-      } finally {
-        setLoading(false);
       }
     };
 
@@ -77,81 +69,69 @@ export default function RootLayout({
     return <Loading />;
   }
 
-  // Inscriptions : pédagogie admin uniquement (pas enseignant — unit-06).
   if (!canAccessPedagogyArea(session)) {
     return <NotFoundView />;
   }
   const canCreateEnrollment = canManageOrganization(session);
   return (
-    <Layout fadedBelow fixedHeight>
-      <LayoutBody className="flex flex-col space-y-6" fixedHeight>
-        <PageHeader
-          title={
-            hasClasse
-              ? `Inscriptions - ${classes?.codeClasse || ""}`
-              : peopleLabels.enrollmentsPageTitle
-          }
-          badge={
-            <Badge
-              variant="outline-primary"
-              icon={<IconReportMoney size={14} />}
-            >
-              Inscription
-            </Badge>
-          }
-          actions={
-            hasClasse && canCreateEnrollment && (
-              <Dialog open={open} onOpenChange={setOpen}>
-                <DialogTrigger asChild>
-                  <Button variant="default">S'inscrire</Button>
-                </DialogTrigger>
-                <DialogContent size="lg">
-                  <DialogHeader>
-                    <DialogTitle>S'inscrire à une classe</DialogTitle>
-                    <DialogDescription>
-                      Apporter des modifications à votre profil ici. Cliquez sur
-                      Enregistrer lorsque vous êtes fait.
-                    </DialogDescription>
-                  </DialogHeader>
-
-                  <div>
-                    {/* Formulaire de création d'élève */}
-                    <EnrollmentUpForm
-                      mode="create"
-                      onCreated={handleEnrollmentAction}
-                      classeId={classeId}
-                    />
-                  </div>
-                  <div className="grid gap-4 py-4">
-                    {/* Formulaire de création d'élève */}
-                  </div>
-                </DialogContent>
-              </Dialog>
-            )
-          }
-        />
-
-        <div className="flex flex-1 flex-col gap-6 lg:flex-row lg:gap-8">
-          <aside className="lg:w-70 lg:flex-shrink-0">
-            <Card
-              variant="outline"
-              padding="sm"
-              className="sticky top-4 overflow-hidden rounded-md border"
-            >
-              <div className="flex items-center gap-2 mb-4 pb-3 border-b border-border/50">
-                <IconSchool size={18} className="text-primary" />
-                <h3 className="font-semibold text-foreground">
-                  Options - Classes
-                </h3>
-              </div>
-              <OptionSidebar />
-            </Card>
-          </aside>
-          <main className="flex-1 min-w-0">
-            <div className="animate-fade-in">{children}</div>
-          </main>
-        </div>
-      </LayoutBody>
-    </Layout>
+    <BranchPageShell
+      fixedHeight
+      fadedBelow
+      title={
+        hasClasse
+          ? `Inscriptions - ${classes?.codeClasse || ""}`
+          : peopleLabels.enrollmentsPageTitle
+      }
+      badge={
+        <Badge variant="outline-primary" icon={<IconReportMoney size={14} />}>
+          Inscription
+        </Badge>
+      }
+      actions={
+        hasClasse && canCreateEnrollment ? (
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+              <Button variant="default">S'inscrire</Button>
+            </DialogTrigger>
+            <DialogContent size="lg">
+              <DialogHeader>
+                <DialogTitle>S'inscrire à une classe</DialogTitle>
+                <DialogDescription>
+                  Apporter des modifications à votre profil ici. Cliquez sur
+                  Enregistrer lorsque vous êtes fait.
+                </DialogDescription>
+              </DialogHeader>
+              <EnrollmentUpForm
+                mode="create"
+                onCreated={handleEnrollmentAction}
+                classeId={classeId}
+              />
+            </DialogContent>
+          </Dialog>
+        ) : null
+      }
+      contentClassName="flex min-h-0 flex-col"
+    >
+      <div className="flex min-h-0 flex-1 flex-col gap-6 lg:flex-row lg:gap-8">
+        <aside className="lg:w-70 lg:flex-shrink-0">
+          <Card
+            variant="outline"
+            padding="sm"
+            className="sticky top-4 overflow-hidden rounded-md border"
+          >
+            <div className="mb-4 flex items-center gap-2 border-b border-border/50 pb-3">
+              <IconSchool size={18} className="text-primary" />
+              <h3 className="font-semibold text-foreground">
+                Options - Classes
+              </h3>
+            </div>
+            <OptionSidebar />
+          </Card>
+        </aside>
+        <main className="min-w-0 flex-1">
+          <div className="animate-fade-in">{children}</div>
+        </main>
+      </div>
+    </BranchPageShell>
   );
 }

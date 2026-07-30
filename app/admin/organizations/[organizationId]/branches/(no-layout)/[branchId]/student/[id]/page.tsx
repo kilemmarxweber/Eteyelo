@@ -2,8 +2,7 @@ import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { IconUser } from "@tabler/icons-react";
 
-import { Layout, LayoutBody } from "@/components/custom/layout";
-import { PageHeader } from "@/components/ui/page-header";
+import { BranchPageShell } from "@/components/layout/branch-page-shell";
 import { Badge } from "@/components/ui/badge";
 import { auth } from "@/lib/auth";
 import {
@@ -649,22 +648,18 @@ const SingleStudentPage = async ({
   };
 
   return (
-    <Layout>
-      <LayoutBody className="space-y-4">
-        <PageHeader
-          title={`Profil ${peopleLabels.studentLower}`}
-          description={`Informations personnelles, scolarite et carte d'identite de ${peopleLabels.studentDefinite}.`}
-          badge={
-            <Badge variant="outline-primary" icon={<IconUser size={14} />}>
-              {peopleLabels.student}
-            </Badge>
-          }
-          className="mb-0 space-y-1"
-        />
-
-        <StudentProfileClient profile={profile} />
-      </LayoutBody>
-    </Layout>
+    <BranchPageShell
+      title={`Profil ${peopleLabels.studentLower}`}
+      description={`Informations personnelles, scolarite et carte d'identite de ${peopleLabels.studentDefinite}.`}
+      badge={
+        <Badge variant="outline-primary" icon={<IconUser size={14} />}>
+          {peopleLabels.student}
+        </Badge>
+      }
+      contentClassName="space-y-4"
+    >
+      <StudentProfileClient profile={profile} />
+    </BranchPageShell>
   );
 };
 

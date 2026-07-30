@@ -1,13 +1,13 @@
 "use client";
 
+import { BranchPageShell } from "@/components/layout/branch-page-shell";
+
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { IconNotes } from "@tabler/icons-react";
 
-import { Layout, LayoutBody } from "@/components/custom/layout";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { PageHeader } from "@/components/ui/page-header";
 import {
   Select,
   SelectContent,
@@ -52,10 +52,8 @@ export default function NotesReadClient({
   };
 
   return (
-    <Layout>
-      <LayoutBody className="flex flex-col gap-6">
-        <PageHeader
-          title="Mes notes"
+    <BranchPageShell
+      title="Mes notes"
           description={
             role === "parent"
               ? `Consultation des notes (${studentLabel.toLowerCase()} lié) — cours déjà notés uniquement.`
@@ -66,9 +64,8 @@ export default function NotesReadClient({
               Lecture seule
             </Badge>
           }
-        />
-
-        {role === "parent" && childrenOptions.length > 1 ? (
+    >
+      {role === "parent" && childrenOptions.length > 1 ? (
           <div className="flex max-w-sm flex-col gap-1.5">
             <span className="text-xs font-medium text-muted-foreground">
               {studentLabel}
@@ -142,7 +139,6 @@ export default function NotesReadClient({
             </Link>
           </p>
         </Card>
-      </LayoutBody>
-    </Layout>
+    </BranchPageShell>
   );
 }

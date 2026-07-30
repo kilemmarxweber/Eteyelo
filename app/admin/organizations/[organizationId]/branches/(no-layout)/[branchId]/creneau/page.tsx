@@ -1,5 +1,7 @@
 "use client";
 
+import { BranchPageShell } from "@/components/layout/branch-page-shell";
+
 import { useState } from "react";
 import { IconBeach, IconPlus } from "@tabler/icons-react";
 
@@ -12,11 +14,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { CreneauUpForm } from "./components/creneau-form";
-import { Layout, LayoutBody } from "@/components/custom/layout";
 import CreneauList from "./components/CreneausTable";
 import { useRefresh } from "@/src/hooks/RefreshContext";
 import { Card } from "@/components/ui/card";
-import { PageHeader } from "@/components/ui/page-header";
 import { Badge } from "@/components/ui/badge";
 
 export default function Creneaus() {
@@ -29,10 +29,8 @@ export default function Creneaus() {
   };
 
   return (
-    <Layout>
-      <LayoutBody className="space-y-4">
-        <PageHeader
-          title="Vacations"
+    <BranchPageShell
+      title="Vacations"
           description="Configurez les périodes et la récréation (ex. 3 cours avant / 3 après au secondaire)."
           badge={
             <Badge variant="outline-primary" icon={<IconBeach size={14} />}>
@@ -45,9 +43,8 @@ export default function Creneaus() {
               Ajouter une vacation
             </Button>
           }
-        />
-
-        <Dialog open={open} onOpenChange={setOpen}>
+    >
+      <Dialog open={open} onOpenChange={setOpen}>
           <DialogContent className="max-h-[90vh]">
             <DialogHeader>
               <DialogTitle>Nouvelle vacation</DialogTitle>
@@ -68,7 +65,6 @@ export default function Creneaus() {
         <Card variant="default" className="border p-1 md:p-6">
           <CreneauList refreshKey={String(refreshKey)} />
         </Card>
-      </LayoutBody>
-    </Layout>
+    </BranchPageShell>
   );
 }

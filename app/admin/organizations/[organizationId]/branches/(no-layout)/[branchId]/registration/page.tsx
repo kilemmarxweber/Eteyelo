@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
-import { Layout, LayoutBody } from "@/components/custom/layout";
-import { PageHeader } from "@/components/ui/page-header";
+import { BranchPageShell } from "@/components/layout/branch-page-shell";
 import { IconUserCheck } from "@tabler/icons-react";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
 import { requiresStudentImport } from "@/lib/branch-capabilities";
@@ -26,15 +25,17 @@ export default async function RegistrationPage({
   }
 
   return (
-    <Layout>
-      <LayoutBody className="w-full space-y-6">
-        <PageHeader
-          title="Nouvelle inscription"
-          description={`Constituez le dossier familial complet et affectez ${peopleLabels.studentDefinite} dans une classe disponible.`}
-          badge={<Badge variant="outline-primary" icon={<IconUserCheck size={14} />}>Inscription unifiee</Badge>}
-        />
-        <RegistrationForm initialRequestId={query.requestId ?? ""} />
-      </LayoutBody>
-    </Layout>
+    <BranchPageShell
+      className="w-full"
+      title="Nouvelle inscription"
+      description={`Constituez le dossier familial complet et affectez ${peopleLabels.studentDefinite} dans une classe disponible.`}
+      badge={
+        <Badge variant="outline-primary" icon={<IconUserCheck size={14} />}>
+          Inscription unifiee
+        </Badge>
+      }
+    >
+      <RegistrationForm initialRequestId={query.requestId ?? ""} />
+    </BranchPageShell>
   );
 }

@@ -1,6 +1,5 @@
+import { BranchPageShell } from "@/components/layout/branch-page-shell";
 import { Badge } from "@/components/ui/badge";
-import { Layout, LayoutBody } from "@/components/custom/layout";
-import { PageHeader } from "@/components/ui/page-header";
 import { IconCertificate } from "@tabler/icons-react";
 import { redirect } from "next/navigation";
 
@@ -50,19 +49,16 @@ export default async function AttestationsPage() {
   const meta = getPageMeta(typebranch);
 
   return (
-    <Layout>
-      <LayoutBody className="space-y-6">
-        <PageHeader
-          title={meta.title}
+    <BranchPageShell
+      title={meta.title}
           description={meta.description}
           badge={
             <Badge variant="outline-primary" icon={<IconCertificate size={14} />}>
               {meta.badge}
             </Badge>
           }
-        />
-        <AttestationsRouter typebranch={typebranch} />
-      </LayoutBody>
-    </Layout>
+    >
+      <AttestationsRouter typebranch={typebranch} />
+    </BranchPageShell>
   );
 }

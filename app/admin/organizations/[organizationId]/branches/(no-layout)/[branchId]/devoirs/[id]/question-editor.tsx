@@ -378,7 +378,7 @@ export function QuestionEditor({
                 Éditeur de questionnaire
               </h2>
             </div>
-            <p className="max-w-2xl text-sm text-muted-foreground">
+            <p className="max-w-7xl text-sm text-muted-foreground">
               Rédigez l’énoncé (maths / chimie avec barre de formules), définissez
               les <strong className="text-foreground">réponses attendues</strong>{" "}
               que l’élève doit trouver, puis enregistrez avant de publier.

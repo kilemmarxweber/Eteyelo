@@ -1,5 +1,7 @@
 "use client";
 
+import { BranchPageShell } from "@/components/layout/branch-page-shell";
+
 import { useState } from "react";
 import { useAppTransition as useTransition } from "@/hooks/use-app-transition";
 import { toast } from "sonner";
@@ -13,13 +15,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Layout, LayoutBody } from "@/components/custom/layout";
 import { SchoolYearUpForm } from "./SchoolYear-form";
 import SchoolYearsList from "./SchoolYearsTable";
 import { useRefresh } from "@/src/hooks/RefreshContext";
 import { prepareNextSchoolYearAction } from "../schoolYear.action";
 import { canPrepareNextAcademicYear } from "@/lib/academic-year";
-import { PageHeader } from "@/components/ui/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 
@@ -61,10 +61,8 @@ export default function SchoolYearsClient({ branchId }: Props) {
   };
 
   return (
-    <Layout>
-      <LayoutBody className="space-y-4">
-        <PageHeader
-          title={`Liste des ${labelPlural.toLowerCase()}`}
+    <BranchPageShell
+      title={`Liste des ${labelPlural.toLowerCase()}`}
           description={`Gérez les ${labelPlural.toLowerCase()} actives et préparez la suivante.`}
           badge={
             <Badge
@@ -108,9 +106,8 @@ export default function SchoolYearsClient({ branchId }: Props) {
               ) : null}
             </div>
           }
-        />
-
-        <Dialog open={open} onOpenChange={setOpen}>
+    >
+      <Dialog open={open} onOpenChange={setOpen}>
           <DialogContent size="lg">
             <DialogHeader>
               <DialogTitle>Ajouter une {labelLower}</DialogTitle>
@@ -130,7 +127,6 @@ export default function SchoolYearsClient({ branchId }: Props) {
         <Card variant="elevated" padding="none" className="border p-1 md:p-6">
           <SchoolYearsList refreshKey={refreshKey} branchId={branchId} />
         </Card>
-      </LayoutBody>
-    </Layout>
+    </BranchPageShell>
   );
 }
