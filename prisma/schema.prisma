@@ -89,6 +89,7 @@ model Student {
   grades            StudentGrade[]
   branchLinks       StudentBranchLink[]
   issuedDocuments   IssuedDocument[]
+  onlineSubmissions OnlineSubmission[]
 
   @@index([parentId])
   @@unique([branchMemberId])
@@ -293,6 +294,7 @@ model Classe {
   updatedAt       DateTime          @updatedAt
   CalendarEvent   CalendarEvent[]
   fiche           fiche[]
+  onlineAssignments OnlineAssignment[]
   @@index([branchId])
   @@index([optionId])
   @@index([branchId, optionId])
@@ -377,6 +379,7 @@ model SchoolYear {
   attendanceSession AttendanceSession[]
   issuedDocuments   IssuedDocument[]
   registrationInfos BranchRegistrationInfo[]
+  onlineAssignments OnlineAssignment[]
   branchId             String
   branch               Branch             @relation(fields: [branchId], references: [id], onDelete: Cascade)
   @@index([branchId, startYear, endYear])
@@ -421,6 +424,7 @@ model Teacher {
   fiche             fiche[]
   teacherAttendance TeacherAttendance[]
   attendanceSession AttendanceSession[]
+  onlineAssignments OnlineAssignment[]
 
   @@unique([branchMemberId])
 }
@@ -475,6 +479,7 @@ model Cours {
   branchId             String
   branch               Branch             @relation(fields: [branchId], references: [id], onDelete: Cascade)
   coursPonderations CoursOptionPonderation[]
+  onlineAssignments OnlineAssignment[]
   @@index([branchId])
   @@index([branchId, primaryDomain])
   @@unique([branchId, codeCours])
@@ -645,6 +650,9 @@ model fiche {
   anneeName      String
   notes          String   @db.Text
   autres         String   @db.Text
+  /// Lien vers le devoir / évaluation en ligne (1 fiche max par activité)
+  onlineAssignmentId String? @unique
+  onlineAssignment   OnlineAssignment? @relation(fields: [onlineAssignmentId], references: [id], onDelete: SetNull)
   ClassSection   Classe   @relation(fields: [classSectionId], references: [id], map: "Fiche_Id_fkey")
   lesson         Teaching @relation(fields: [lessonId], references: [id])
   period         period   @relation(fields: [periodId], references: [id])
@@ -1183,6 +1191,7 @@ model Branch {
   issuedDocuments      IssuedDocument[]
   libraryBooks         LibraryBook[]
   supportTickets       PlatformSupportEscalation[]
+  onlineAssignments    OnlineAssignment[]
 
   @@index([organizationId])
   @@index([organizationId, isActive])
@@ -1670,4 +1679,157 @@ model PlatformSupportEscalation {
   @@index([branchId])
   @@index([assignedPlatformAgentId])
   @@map("platformSupportEscalation")
+}
+
+// ─── Devoirs / évaluations en ligne (weekend) ─────────────────────────────────
+
+enum OnlineAssignmentType {
+  DEVOIR
+  EVALUATION
+}
+
+enum OnlineAssignmentStatus {
+  DRAFT
+  PUBLISHED
+  CLOSED
+}
+
+enum OnlineQuestionType {
+  SHORT_TEXT
+  LONG_TEXT
+  FILE
+  SINGLE_CHOICE
+  MULTIPLE_CHOICE
+  TRUE_FALSE
+}
+
+enum OnlineSubmissionStatus {
+  DRAFT
+  SUBMITTED
+  GRADED
+}
+
+model OnlineAssignment {
+  id                 String                 @id @default(cuid())
+  branchId           String
+  branch             Branch                 @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  schoolYearId       String
+  schoolYear         SchoolYear             @relation(fields: [schoolYearId], references: [id], onDelete: Cascade)
+  classId            String
+  classe             Classe                 @relation(fields: [classId], references: [id], onDelete: Cascade)
+  courseId           String
+  cours              Cours                  @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  teachingId         String
+  teacherId          String
+  teacher            Teacher                @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  periodId           Int
+  type               OnlineAssignmentType   @default(DEVOIR)
+  title              String
+  description        String?                @db.Text
+  status             OnlineAssignmentStatus @default(DRAFT)
+  startAt            DateTime
+  dueAt              DateTime
+  /// Jour calendaire pour l'unicité (classe + cours + type + jour)
+  activityDate       DateTime               @db.Date
+  maxAttempts        Int                    @default(1)
+  totalPoints        Float                  @default(0)
+  resultsPublished   Boolean                @default(false)
+  shuffleOptions     Boolean                @default(false)
+  createdAt          DateTime               @default(now())
+  updatedAt          DateTime               @updatedAt
+  questions          OnlineQuestion[]
+  submissions        OnlineSubmission[]
+  fiche              fiche?
+
+  @@unique([branchId, classId, courseId, type, activityDate])
+  @@index([branchId])
+  @@index([branchId, classId, dueAt])
+  @@index([teacherId])
+  @@index([schoolYearId])
+  @@index([status, startAt, dueAt])
+}
+
+model OnlineQuestion {
+  id                String             @id @default(cuid())
+  assignmentId      String
+  assignment        OnlineAssignment   @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  type              OnlineQuestionType
+  position          Int                @default(0)
+  statementHtml     String             @db.Text
+  points            Float              @default(1)
+  settingsJson      Json?
+  correctAnswerJson Json?
+  options           OnlineQuestionOption[]
+  answers           OnlineAnswer[]
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+
+  @@index([assignmentId, position])
+}
+
+model OnlineQuestionOption {
+  id         String         @id @default(cuid())
+  questionId String
+  question   OnlineQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  label      String
+  position   Int            @default(0)
+  isCorrect  Boolean        @default(false)
+
+  @@index([questionId, position])
+}
+
+model OnlineSubmission {
+  id               String                 @id @default(cuid())
+  assignmentId     String
+  assignment       OnlineAssignment       @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  studentId        String
+  student          Student                @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  attempt          Int                    @default(1)
+  status           OnlineSubmissionStatus @default(DRAFT)
+  provisionalScore Float?
+  finalScore       Float?
+  startedAt        DateTime               @default(now())
+  submittedAt      DateTime?
+  gradedAt         DateTime?
+  createdAt        DateTime               @default(now())
+  updatedAt        DateTime               @updatedAt
+  answers          OnlineAnswer[]
+  files            OnlineSubmissionFile[]
+
+  @@unique([assignmentId, studentId, attempt])
+  @@index([assignmentId, status])
+  @@index([studentId])
+}
+
+model OnlineAnswer {
+  id             String           @id @default(cuid())
+  submissionId   String
+  submission     OnlineSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  questionId     String
+  question       OnlineQuestion   @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  answerText     String?          @db.Text
+  answerJson     Json?
+  awardedPoints  Float?
+  isCorrect      Boolean?
+  needsManual    Boolean          @default(false)
+  teacherFeedback String?         @db.Text
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  @@unique([submissionId, questionId])
+  @@index([questionId])
+}
+
+model OnlineSubmissionFile {
+  id           String           @id @default(cuid())
+  submissionId String
+  submission   OnlineSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  questionId   String?
+  name         String
+  mimeType     String
+  size         Int
+  url          String
+  createdAt    DateTime         @default(now())
+
+  @@index([submissionId])
 }

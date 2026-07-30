@@ -280,6 +280,7 @@ export type ClasseWhereInput = {
   creneau?: Prisma.XOR<Prisma.CreneauNullableScalarRelationFilter, Prisma.CreneauWhereInput> | null
   CalendarEvent?: Prisma.CalendarEventListRelationFilter
   fiche?: Prisma.FicheListRelationFilter
+  onlineAssignments?: Prisma.OnlineAssignmentListRelationFilter
 }
 
 export type ClasseOrderByWithRelationInput = {
@@ -303,6 +304,7 @@ export type ClasseOrderByWithRelationInput = {
   creneau?: Prisma.CreneauOrderByWithRelationInput
   CalendarEvent?: Prisma.CalendarEventOrderByRelationAggregateInput
   fiche?: Prisma.ficheOrderByRelationAggregateInput
+  onlineAssignments?: Prisma.OnlineAssignmentOrderByRelationAggregateInput
 }
 
 export type ClasseWhereUniqueInput = Prisma.AtLeast<{
@@ -331,6 +333,7 @@ export type ClasseWhereUniqueInput = Prisma.AtLeast<{
   creneau?: Prisma.XOR<Prisma.CreneauNullableScalarRelationFilter, Prisma.CreneauWhereInput> | null
   CalendarEvent?: Prisma.CalendarEventListRelationFilter
   fiche?: Prisma.FicheListRelationFilter
+  onlineAssignments?: Prisma.OnlineAssignmentListRelationFilter
 }, "id" | "branchId_codeClasse" | "branchId_nameClasse">
 
 export type ClasseOrderByWithAggregationInput = {
@@ -389,6 +392,7 @@ export type ClasseCreateInput = {
   creneau?: Prisma.CreneauCreateNestedOneWithoutClasseInput
   CalendarEvent?: Prisma.CalendarEventCreateNestedManyWithoutClasseInput
   fiche?: Prisma.ficheCreateNestedManyWithoutClassSectionInput
+  onlineAssignments?: Prisma.OnlineAssignmentCreateNestedManyWithoutClasseInput
 }
 
 export type ClasseUncheckedCreateInput = {
@@ -409,6 +413,7 @@ export type ClasseUncheckedCreateInput = {
   Frais?: Prisma.FraisUncheckedCreateNestedManyWithoutClasseInput
   CalendarEvent?: Prisma.CalendarEventUncheckedCreateNestedManyWithoutClasseInput
   fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutClassSectionInput
+  onlineAssignments?: Prisma.OnlineAssignmentUncheckedCreateNestedManyWithoutClasseInput
 }
 
 export type ClasseUpdateInput = {
@@ -429,6 +434,7 @@ export type ClasseUpdateInput = {
   creneau?: Prisma.CreneauUpdateOneWithoutClasseNestedInput
   CalendarEvent?: Prisma.CalendarEventUpdateManyWithoutClasseNestedInput
   fiche?: Prisma.ficheUpdateManyWithoutClassSectionNestedInput
+  onlineAssignments?: Prisma.OnlineAssignmentUpdateManyWithoutClasseNestedInput
 }
 
 export type ClasseUncheckedUpdateInput = {
@@ -449,6 +455,7 @@ export type ClasseUncheckedUpdateInput = {
   Frais?: Prisma.FraisUncheckedUpdateManyWithoutClasseNestedInput
   CalendarEvent?: Prisma.CalendarEventUncheckedUpdateManyWithoutClasseNestedInput
   fiche?: Prisma.ficheUncheckedUpdateManyWithoutClassSectionNestedInput
+  onlineAssignments?: Prisma.OnlineAssignmentUncheckedUpdateManyWithoutClasseNestedInput
 }
 
 export type ClasseCreateManyInput = {
@@ -786,6 +793,20 @@ export type ClasseUncheckedUpdateManyWithoutBranchNestedInput = {
   deleteMany?: Prisma.ClasseScalarWhereInput | Prisma.ClasseScalarWhereInput[]
 }
 
+export type ClasseCreateNestedOneWithoutOnlineAssignmentsInput = {
+  create?: Prisma.XOR<Prisma.ClasseCreateWithoutOnlineAssignmentsInput, Prisma.ClasseUncheckedCreateWithoutOnlineAssignmentsInput>
+  connectOrCreate?: Prisma.ClasseCreateOrConnectWithoutOnlineAssignmentsInput
+  connect?: Prisma.ClasseWhereUniqueInput
+}
+
+export type ClasseUpdateOneRequiredWithoutOnlineAssignmentsNestedInput = {
+  create?: Prisma.XOR<Prisma.ClasseCreateWithoutOnlineAssignmentsInput, Prisma.ClasseUncheckedCreateWithoutOnlineAssignmentsInput>
+  connectOrCreate?: Prisma.ClasseCreateOrConnectWithoutOnlineAssignmentsInput
+  upsert?: Prisma.ClasseUpsertWithoutOnlineAssignmentsInput
+  connect?: Prisma.ClasseWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ClasseUpdateToOneWithWhereWithoutOnlineAssignmentsInput, Prisma.ClasseUpdateWithoutOnlineAssignmentsInput>, Prisma.ClasseUncheckedUpdateWithoutOnlineAssignmentsInput>
+}
+
 export type ClasseCreateWithoutFraisInput = {
   id?: string
   codeClasse: string
@@ -803,6 +824,7 @@ export type ClasseCreateWithoutFraisInput = {
   creneau?: Prisma.CreneauCreateNestedOneWithoutClasseInput
   CalendarEvent?: Prisma.CalendarEventCreateNestedManyWithoutClasseInput
   fiche?: Prisma.ficheCreateNestedManyWithoutClassSectionInput
+  onlineAssignments?: Prisma.OnlineAssignmentCreateNestedManyWithoutClasseInput
 }
 
 export type ClasseUncheckedCreateWithoutFraisInput = {
@@ -822,6 +844,7 @@ export type ClasseUncheckedCreateWithoutFraisInput = {
   teaching?: Prisma.TeachingUncheckedCreateNestedManyWithoutClasseInput
   CalendarEvent?: Prisma.CalendarEventUncheckedCreateNestedManyWithoutClasseInput
   fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutClassSectionInput
+  onlineAssignments?: Prisma.OnlineAssignmentUncheckedCreateNestedManyWithoutClasseInput
 }
 
 export type ClasseCreateOrConnectWithoutFraisInput = {
@@ -857,6 +880,7 @@ export type ClasseUpdateWithoutFraisInput = {
   creneau?: Prisma.CreneauUpdateOneWithoutClasseNestedInput
   CalendarEvent?: Prisma.CalendarEventUpdateManyWithoutClasseNestedInput
   fiche?: Prisma.ficheUpdateManyWithoutClassSectionNestedInput
+  onlineAssignments?: Prisma.OnlineAssignmentUpdateManyWithoutClasseNestedInput
 }
 
 export type ClasseUncheckedUpdateWithoutFraisInput = {
@@ -876,6 +900,7 @@ export type ClasseUncheckedUpdateWithoutFraisInput = {
   teaching?: Prisma.TeachingUncheckedUpdateManyWithoutClasseNestedInput
   CalendarEvent?: Prisma.CalendarEventUncheckedUpdateManyWithoutClasseNestedInput
   fiche?: Prisma.ficheUncheckedUpdateManyWithoutClassSectionNestedInput
+  onlineAssignments?: Prisma.OnlineAssignmentUncheckedUpdateManyWithoutClasseNestedInput
 }
 
 export type ClasseCreateWithoutCreneauInput = {
@@ -895,6 +920,7 @@ export type ClasseCreateWithoutCreneauInput = {
   option?: Prisma.OptionCreateNestedOneWithoutClasseInput
   CalendarEvent?: Prisma.CalendarEventCreateNestedManyWithoutClasseInput
   fiche?: Prisma.ficheCreateNestedManyWithoutClassSectionInput
+  onlineAssignments?: Prisma.OnlineAssignmentCreateNestedManyWithoutClasseInput
 }
 
 export type ClasseUncheckedCreateWithoutCreneauInput = {
@@ -914,6 +940,7 @@ export type ClasseUncheckedCreateWithoutCreneauInput = {
   Frais?: Prisma.FraisUncheckedCreateNestedManyWithoutClasseInput
   CalendarEvent?: Prisma.CalendarEventUncheckedCreateNestedManyWithoutClasseInput
   fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutClassSectionInput
+  onlineAssignments?: Prisma.OnlineAssignmentUncheckedCreateNestedManyWithoutClasseInput
 }
 
 export type ClasseCreateOrConnectWithoutCreneauInput = {
@@ -977,6 +1004,7 @@ export type ClasseCreateWithoutOptionInput = {
   creneau?: Prisma.CreneauCreateNestedOneWithoutClasseInput
   CalendarEvent?: Prisma.CalendarEventCreateNestedManyWithoutClasseInput
   fiche?: Prisma.ficheCreateNestedManyWithoutClassSectionInput
+  onlineAssignments?: Prisma.OnlineAssignmentCreateNestedManyWithoutClasseInput
 }
 
 export type ClasseUncheckedCreateWithoutOptionInput = {
@@ -996,6 +1024,7 @@ export type ClasseUncheckedCreateWithoutOptionInput = {
   Frais?: Prisma.FraisUncheckedCreateNestedManyWithoutClasseInput
   CalendarEvent?: Prisma.CalendarEventUncheckedCreateNestedManyWithoutClasseInput
   fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutClassSectionInput
+  onlineAssignments?: Prisma.OnlineAssignmentUncheckedCreateNestedManyWithoutClasseInput
 }
 
 export type ClasseCreateOrConnectWithoutOptionInput = {
@@ -1041,6 +1070,7 @@ export type ClasseCreateWithoutClassEnrollmentInput = {
   creneau?: Prisma.CreneauCreateNestedOneWithoutClasseInput
   CalendarEvent?: Prisma.CalendarEventCreateNestedManyWithoutClasseInput
   fiche?: Prisma.ficheCreateNestedManyWithoutClassSectionInput
+  onlineAssignments?: Prisma.OnlineAssignmentCreateNestedManyWithoutClasseInput
 }
 
 export type ClasseUncheckedCreateWithoutClassEnrollmentInput = {
@@ -1060,6 +1090,7 @@ export type ClasseUncheckedCreateWithoutClassEnrollmentInput = {
   Frais?: Prisma.FraisUncheckedCreateNestedManyWithoutClasseInput
   CalendarEvent?: Prisma.CalendarEventUncheckedCreateNestedManyWithoutClasseInput
   fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutClassSectionInput
+  onlineAssignments?: Prisma.OnlineAssignmentUncheckedCreateNestedManyWithoutClasseInput
 }
 
 export type ClasseCreateOrConnectWithoutClassEnrollmentInput = {
@@ -1095,6 +1126,7 @@ export type ClasseUpdateWithoutClassEnrollmentInput = {
   creneau?: Prisma.CreneauUpdateOneWithoutClasseNestedInput
   CalendarEvent?: Prisma.CalendarEventUpdateManyWithoutClasseNestedInput
   fiche?: Prisma.ficheUpdateManyWithoutClassSectionNestedInput
+  onlineAssignments?: Prisma.OnlineAssignmentUpdateManyWithoutClasseNestedInput
 }
 
 export type ClasseUncheckedUpdateWithoutClassEnrollmentInput = {
@@ -1114,6 +1146,7 @@ export type ClasseUncheckedUpdateWithoutClassEnrollmentInput = {
   Frais?: Prisma.FraisUncheckedUpdateManyWithoutClasseNestedInput
   CalendarEvent?: Prisma.CalendarEventUncheckedUpdateManyWithoutClasseNestedInput
   fiche?: Prisma.ficheUncheckedUpdateManyWithoutClassSectionNestedInput
+  onlineAssignments?: Prisma.OnlineAssignmentUncheckedUpdateManyWithoutClasseNestedInput
 }
 
 export type ClasseCreateWithoutTeachingInput = {
@@ -1133,6 +1166,7 @@ export type ClasseCreateWithoutTeachingInput = {
   creneau?: Prisma.CreneauCreateNestedOneWithoutClasseInput
   CalendarEvent?: Prisma.CalendarEventCreateNestedManyWithoutClasseInput
   fiche?: Prisma.ficheCreateNestedManyWithoutClassSectionInput
+  onlineAssignments?: Prisma.OnlineAssignmentCreateNestedManyWithoutClasseInput
 }
 
 export type ClasseUncheckedCreateWithoutTeachingInput = {
@@ -1152,6 +1186,7 @@ export type ClasseUncheckedCreateWithoutTeachingInput = {
   Frais?: Prisma.FraisUncheckedCreateNestedManyWithoutClasseInput
   CalendarEvent?: Prisma.CalendarEventUncheckedCreateNestedManyWithoutClasseInput
   fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutClassSectionInput
+  onlineAssignments?: Prisma.OnlineAssignmentUncheckedCreateNestedManyWithoutClasseInput
 }
 
 export type ClasseCreateOrConnectWithoutTeachingInput = {
@@ -1187,6 +1222,7 @@ export type ClasseUpdateWithoutTeachingInput = {
   creneau?: Prisma.CreneauUpdateOneWithoutClasseNestedInput
   CalendarEvent?: Prisma.CalendarEventUpdateManyWithoutClasseNestedInput
   fiche?: Prisma.ficheUpdateManyWithoutClassSectionNestedInput
+  onlineAssignments?: Prisma.OnlineAssignmentUpdateManyWithoutClasseNestedInput
 }
 
 export type ClasseUncheckedUpdateWithoutTeachingInput = {
@@ -1206,6 +1242,7 @@ export type ClasseUncheckedUpdateWithoutTeachingInput = {
   Frais?: Prisma.FraisUncheckedUpdateManyWithoutClasseNestedInput
   CalendarEvent?: Prisma.CalendarEventUncheckedUpdateManyWithoutClasseNestedInput
   fiche?: Prisma.ficheUncheckedUpdateManyWithoutClassSectionNestedInput
+  onlineAssignments?: Prisma.OnlineAssignmentUncheckedUpdateManyWithoutClasseNestedInput
 }
 
 export type ClasseCreateWithoutCalendarEventInput = {
@@ -1225,6 +1262,7 @@ export type ClasseCreateWithoutCalendarEventInput = {
   option?: Prisma.OptionCreateNestedOneWithoutClasseInput
   creneau?: Prisma.CreneauCreateNestedOneWithoutClasseInput
   fiche?: Prisma.ficheCreateNestedManyWithoutClassSectionInput
+  onlineAssignments?: Prisma.OnlineAssignmentCreateNestedManyWithoutClasseInput
 }
 
 export type ClasseUncheckedCreateWithoutCalendarEventInput = {
@@ -1244,6 +1282,7 @@ export type ClasseUncheckedCreateWithoutCalendarEventInput = {
   teaching?: Prisma.TeachingUncheckedCreateNestedManyWithoutClasseInput
   Frais?: Prisma.FraisUncheckedCreateNestedManyWithoutClasseInput
   fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutClassSectionInput
+  onlineAssignments?: Prisma.OnlineAssignmentUncheckedCreateNestedManyWithoutClasseInput
 }
 
 export type ClasseCreateOrConnectWithoutCalendarEventInput = {
@@ -1279,6 +1318,7 @@ export type ClasseUpdateWithoutCalendarEventInput = {
   option?: Prisma.OptionUpdateOneWithoutClasseNestedInput
   creneau?: Prisma.CreneauUpdateOneWithoutClasseNestedInput
   fiche?: Prisma.ficheUpdateManyWithoutClassSectionNestedInput
+  onlineAssignments?: Prisma.OnlineAssignmentUpdateManyWithoutClasseNestedInput
 }
 
 export type ClasseUncheckedUpdateWithoutCalendarEventInput = {
@@ -1298,6 +1338,7 @@ export type ClasseUncheckedUpdateWithoutCalendarEventInput = {
   teaching?: Prisma.TeachingUncheckedUpdateManyWithoutClasseNestedInput
   Frais?: Prisma.FraisUncheckedUpdateManyWithoutClasseNestedInput
   fiche?: Prisma.ficheUncheckedUpdateManyWithoutClassSectionNestedInput
+  onlineAssignments?: Prisma.OnlineAssignmentUncheckedUpdateManyWithoutClasseNestedInput
 }
 
 export type ClasseCreateWithoutFicheInput = {
@@ -1317,6 +1358,7 @@ export type ClasseCreateWithoutFicheInput = {
   option?: Prisma.OptionCreateNestedOneWithoutClasseInput
   creneau?: Prisma.CreneauCreateNestedOneWithoutClasseInput
   CalendarEvent?: Prisma.CalendarEventCreateNestedManyWithoutClasseInput
+  onlineAssignments?: Prisma.OnlineAssignmentCreateNestedManyWithoutClasseInput
 }
 
 export type ClasseUncheckedCreateWithoutFicheInput = {
@@ -1336,6 +1378,7 @@ export type ClasseUncheckedCreateWithoutFicheInput = {
   teaching?: Prisma.TeachingUncheckedCreateNestedManyWithoutClasseInput
   Frais?: Prisma.FraisUncheckedCreateNestedManyWithoutClasseInput
   CalendarEvent?: Prisma.CalendarEventUncheckedCreateNestedManyWithoutClasseInput
+  onlineAssignments?: Prisma.OnlineAssignmentUncheckedCreateNestedManyWithoutClasseInput
 }
 
 export type ClasseCreateOrConnectWithoutFicheInput = {
@@ -1371,6 +1414,7 @@ export type ClasseUpdateWithoutFicheInput = {
   option?: Prisma.OptionUpdateOneWithoutClasseNestedInput
   creneau?: Prisma.CreneauUpdateOneWithoutClasseNestedInput
   CalendarEvent?: Prisma.CalendarEventUpdateManyWithoutClasseNestedInput
+  onlineAssignments?: Prisma.OnlineAssignmentUpdateManyWithoutClasseNestedInput
 }
 
 export type ClasseUncheckedUpdateWithoutFicheInput = {
@@ -1390,6 +1434,7 @@ export type ClasseUncheckedUpdateWithoutFicheInput = {
   teaching?: Prisma.TeachingUncheckedUpdateManyWithoutClasseNestedInput
   Frais?: Prisma.FraisUncheckedUpdateManyWithoutClasseNestedInput
   CalendarEvent?: Prisma.CalendarEventUncheckedUpdateManyWithoutClasseNestedInput
+  onlineAssignments?: Prisma.OnlineAssignmentUncheckedUpdateManyWithoutClasseNestedInput
 }
 
 export type ClasseCreateWithoutBranchInput = {
@@ -1409,6 +1454,7 @@ export type ClasseCreateWithoutBranchInput = {
   creneau?: Prisma.CreneauCreateNestedOneWithoutClasseInput
   CalendarEvent?: Prisma.CalendarEventCreateNestedManyWithoutClasseInput
   fiche?: Prisma.ficheCreateNestedManyWithoutClassSectionInput
+  onlineAssignments?: Prisma.OnlineAssignmentCreateNestedManyWithoutClasseInput
 }
 
 export type ClasseUncheckedCreateWithoutBranchInput = {
@@ -1428,6 +1474,7 @@ export type ClasseUncheckedCreateWithoutBranchInput = {
   Frais?: Prisma.FraisUncheckedCreateNestedManyWithoutClasseInput
   CalendarEvent?: Prisma.CalendarEventUncheckedCreateNestedManyWithoutClasseInput
   fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutClassSectionInput
+  onlineAssignments?: Prisma.OnlineAssignmentUncheckedCreateNestedManyWithoutClasseInput
 }
 
 export type ClasseCreateOrConnectWithoutBranchInput = {
@@ -1454,6 +1501,102 @@ export type ClasseUpdateWithWhereUniqueWithoutBranchInput = {
 export type ClasseUpdateManyWithWhereWithoutBranchInput = {
   where: Prisma.ClasseScalarWhereInput
   data: Prisma.XOR<Prisma.ClasseUpdateManyMutationInput, Prisma.ClasseUncheckedUpdateManyWithoutBranchInput>
+}
+
+export type ClasseCreateWithoutOnlineAssignmentsInput = {
+  id?: string
+  codeClasse: string
+  nameClasse: string
+  level?: string | null
+  parallel?: string | null
+  capacity?: number | null
+  statusClasse?: boolean | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  branch: Prisma.BranchCreateNestedOneWithoutClassesInput
+  classEnrollment?: Prisma.ClassEnrollmentCreateNestedManyWithoutClasseInput
+  teaching?: Prisma.TeachingCreateNestedManyWithoutClasseInput
+  Frais?: Prisma.FraisCreateNestedManyWithoutClasseInput
+  option?: Prisma.OptionCreateNestedOneWithoutClasseInput
+  creneau?: Prisma.CreneauCreateNestedOneWithoutClasseInput
+  CalendarEvent?: Prisma.CalendarEventCreateNestedManyWithoutClasseInput
+  fiche?: Prisma.ficheCreateNestedManyWithoutClassSectionInput
+}
+
+export type ClasseUncheckedCreateWithoutOnlineAssignmentsInput = {
+  id?: string
+  codeClasse: string
+  nameClasse: string
+  level?: string | null
+  parallel?: string | null
+  capacity?: number | null
+  optionId?: string | null
+  statusClasse?: boolean | null
+  creneauId?: string | null
+  branchId: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  classEnrollment?: Prisma.ClassEnrollmentUncheckedCreateNestedManyWithoutClasseInput
+  teaching?: Prisma.TeachingUncheckedCreateNestedManyWithoutClasseInput
+  Frais?: Prisma.FraisUncheckedCreateNestedManyWithoutClasseInput
+  CalendarEvent?: Prisma.CalendarEventUncheckedCreateNestedManyWithoutClasseInput
+  fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutClassSectionInput
+}
+
+export type ClasseCreateOrConnectWithoutOnlineAssignmentsInput = {
+  where: Prisma.ClasseWhereUniqueInput
+  create: Prisma.XOR<Prisma.ClasseCreateWithoutOnlineAssignmentsInput, Prisma.ClasseUncheckedCreateWithoutOnlineAssignmentsInput>
+}
+
+export type ClasseUpsertWithoutOnlineAssignmentsInput = {
+  update: Prisma.XOR<Prisma.ClasseUpdateWithoutOnlineAssignmentsInput, Prisma.ClasseUncheckedUpdateWithoutOnlineAssignmentsInput>
+  create: Prisma.XOR<Prisma.ClasseCreateWithoutOnlineAssignmentsInput, Prisma.ClasseUncheckedCreateWithoutOnlineAssignmentsInput>
+  where?: Prisma.ClasseWhereInput
+}
+
+export type ClasseUpdateToOneWithWhereWithoutOnlineAssignmentsInput = {
+  where?: Prisma.ClasseWhereInput
+  data: Prisma.XOR<Prisma.ClasseUpdateWithoutOnlineAssignmentsInput, Prisma.ClasseUncheckedUpdateWithoutOnlineAssignmentsInput>
+}
+
+export type ClasseUpdateWithoutOnlineAssignmentsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  codeClasse?: Prisma.StringFieldUpdateOperationsInput | string
+  nameClasse?: Prisma.StringFieldUpdateOperationsInput | string
+  level?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  parallel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  statusClasse?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  branch?: Prisma.BranchUpdateOneRequiredWithoutClassesNestedInput
+  classEnrollment?: Prisma.ClassEnrollmentUpdateManyWithoutClasseNestedInput
+  teaching?: Prisma.TeachingUpdateManyWithoutClasseNestedInput
+  Frais?: Prisma.FraisUpdateManyWithoutClasseNestedInput
+  option?: Prisma.OptionUpdateOneWithoutClasseNestedInput
+  creneau?: Prisma.CreneauUpdateOneWithoutClasseNestedInput
+  CalendarEvent?: Prisma.CalendarEventUpdateManyWithoutClasseNestedInput
+  fiche?: Prisma.ficheUpdateManyWithoutClassSectionNestedInput
+}
+
+export type ClasseUncheckedUpdateWithoutOnlineAssignmentsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  codeClasse?: Prisma.StringFieldUpdateOperationsInput | string
+  nameClasse?: Prisma.StringFieldUpdateOperationsInput | string
+  level?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  parallel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  optionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  statusClasse?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  creneauId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  branchId?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  classEnrollment?: Prisma.ClassEnrollmentUncheckedUpdateManyWithoutClasseNestedInput
+  teaching?: Prisma.TeachingUncheckedUpdateManyWithoutClasseNestedInput
+  Frais?: Prisma.FraisUncheckedUpdateManyWithoutClasseNestedInput
+  CalendarEvent?: Prisma.CalendarEventUncheckedUpdateManyWithoutClasseNestedInput
+  fiche?: Prisma.ficheUncheckedUpdateManyWithoutClassSectionNestedInput
 }
 
 export type ClasseCreateManyCreneauInput = {
@@ -1487,6 +1630,7 @@ export type ClasseUpdateWithoutCreneauInput = {
   option?: Prisma.OptionUpdateOneWithoutClasseNestedInput
   CalendarEvent?: Prisma.CalendarEventUpdateManyWithoutClasseNestedInput
   fiche?: Prisma.ficheUpdateManyWithoutClassSectionNestedInput
+  onlineAssignments?: Prisma.OnlineAssignmentUpdateManyWithoutClasseNestedInput
 }
 
 export type ClasseUncheckedUpdateWithoutCreneauInput = {
@@ -1506,6 +1650,7 @@ export type ClasseUncheckedUpdateWithoutCreneauInput = {
   Frais?: Prisma.FraisUncheckedUpdateManyWithoutClasseNestedInput
   CalendarEvent?: Prisma.CalendarEventUncheckedUpdateManyWithoutClasseNestedInput
   fiche?: Prisma.ficheUncheckedUpdateManyWithoutClassSectionNestedInput
+  onlineAssignments?: Prisma.OnlineAssignmentUncheckedUpdateManyWithoutClasseNestedInput
 }
 
 export type ClasseUncheckedUpdateManyWithoutCreneauInput = {
@@ -1553,6 +1698,7 @@ export type ClasseUpdateWithoutOptionInput = {
   creneau?: Prisma.CreneauUpdateOneWithoutClasseNestedInput
   CalendarEvent?: Prisma.CalendarEventUpdateManyWithoutClasseNestedInput
   fiche?: Prisma.ficheUpdateManyWithoutClassSectionNestedInput
+  onlineAssignments?: Prisma.OnlineAssignmentUpdateManyWithoutClasseNestedInput
 }
 
 export type ClasseUncheckedUpdateWithoutOptionInput = {
@@ -1572,6 +1718,7 @@ export type ClasseUncheckedUpdateWithoutOptionInput = {
   Frais?: Prisma.FraisUncheckedUpdateManyWithoutClasseNestedInput
   CalendarEvent?: Prisma.CalendarEventUncheckedUpdateManyWithoutClasseNestedInput
   fiche?: Prisma.ficheUncheckedUpdateManyWithoutClassSectionNestedInput
+  onlineAssignments?: Prisma.OnlineAssignmentUncheckedUpdateManyWithoutClasseNestedInput
 }
 
 export type ClasseUncheckedUpdateManyWithoutOptionInput = {
@@ -1619,6 +1766,7 @@ export type ClasseUpdateWithoutBranchInput = {
   creneau?: Prisma.CreneauUpdateOneWithoutClasseNestedInput
   CalendarEvent?: Prisma.CalendarEventUpdateManyWithoutClasseNestedInput
   fiche?: Prisma.ficheUpdateManyWithoutClassSectionNestedInput
+  onlineAssignments?: Prisma.OnlineAssignmentUpdateManyWithoutClasseNestedInput
 }
 
 export type ClasseUncheckedUpdateWithoutBranchInput = {
@@ -1638,6 +1786,7 @@ export type ClasseUncheckedUpdateWithoutBranchInput = {
   Frais?: Prisma.FraisUncheckedUpdateManyWithoutClasseNestedInput
   CalendarEvent?: Prisma.CalendarEventUncheckedUpdateManyWithoutClasseNestedInput
   fiche?: Prisma.ficheUncheckedUpdateManyWithoutClassSectionNestedInput
+  onlineAssignments?: Prisma.OnlineAssignmentUncheckedUpdateManyWithoutClasseNestedInput
 }
 
 export type ClasseUncheckedUpdateManyWithoutBranchInput = {
@@ -1665,6 +1814,7 @@ export type ClasseCountOutputType = {
   Frais: number
   CalendarEvent: number
   fiche: number
+  onlineAssignments: number
 }
 
 export type ClasseCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1673,6 +1823,7 @@ export type ClasseCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions
   Frais?: boolean | ClasseCountOutputTypeCountFraisArgs
   CalendarEvent?: boolean | ClasseCountOutputTypeCountCalendarEventArgs
   fiche?: boolean | ClasseCountOutputTypeCountFicheArgs
+  onlineAssignments?: boolean | ClasseCountOutputTypeCountOnlineAssignmentsArgs
 }
 
 /**
@@ -1720,6 +1871,13 @@ export type ClasseCountOutputTypeCountFicheArgs<ExtArgs extends runtime.Types.Ex
   where?: Prisma.ficheWhereInput
 }
 
+/**
+ * ClasseCountOutputType without action
+ */
+export type ClasseCountOutputTypeCountOnlineAssignmentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.OnlineAssignmentWhereInput
+}
+
 
 export type ClasseSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1742,6 +1900,7 @@ export type ClasseSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   creneau?: boolean | Prisma.Classe$creneauArgs<ExtArgs>
   CalendarEvent?: boolean | Prisma.Classe$CalendarEventArgs<ExtArgs>
   fiche?: boolean | Prisma.Classe$ficheArgs<ExtArgs>
+  onlineAssignments?: boolean | Prisma.Classe$onlineAssignmentsArgs<ExtArgs>
   _count?: boolean | Prisma.ClasseCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["classe"]>
 
@@ -1806,6 +1965,7 @@ export type ClasseInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   creneau?: boolean | Prisma.Classe$creneauArgs<ExtArgs>
   CalendarEvent?: boolean | Prisma.Classe$CalendarEventArgs<ExtArgs>
   fiche?: boolean | Prisma.Classe$ficheArgs<ExtArgs>
+  onlineAssignments?: boolean | Prisma.Classe$onlineAssignmentsArgs<ExtArgs>
   _count?: boolean | Prisma.ClasseCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type ClasseIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1830,6 +1990,7 @@ export type $ClassePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     creneau: Prisma.$CreneauPayload<ExtArgs> | null
     CalendarEvent: Prisma.$CalendarEventPayload<ExtArgs>[]
     fiche: Prisma.$fichePayload<ExtArgs>[]
+    onlineAssignments: Prisma.$OnlineAssignmentPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -2246,6 +2407,7 @@ export interface Prisma__ClasseClient<T, Null = never, ExtArgs extends runtime.T
   creneau<T extends Prisma.Classe$creneauArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Classe$creneauArgs<ExtArgs>>): Prisma.Prisma__CreneauClient<runtime.Types.Result.GetResult<Prisma.$CreneauPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   CalendarEvent<T extends Prisma.Classe$CalendarEventArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Classe$CalendarEventArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CalendarEventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   fiche<T extends Prisma.Classe$ficheArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Classe$ficheArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$fichePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  onlineAssignments<T extends Prisma.Classe$onlineAssignmentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Classe$onlineAssignmentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OnlineAssignmentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2843,6 +3005,30 @@ export type Classe$ficheArgs<ExtArgs extends runtime.Types.Extensions.InternalAr
   take?: number
   skip?: number
   distinct?: Prisma.FicheScalarFieldEnum | Prisma.FicheScalarFieldEnum[]
+}
+
+/**
+ * Classe.onlineAssignments
+ */
+export type Classe$onlineAssignmentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the OnlineAssignment
+   */
+  select?: Prisma.OnlineAssignmentSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the OnlineAssignment
+   */
+  omit?: Prisma.OnlineAssignmentOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.OnlineAssignmentInclude<ExtArgs> | null
+  where?: Prisma.OnlineAssignmentWhereInput
+  orderBy?: Prisma.OnlineAssignmentOrderByWithRelationInput | Prisma.OnlineAssignmentOrderByWithRelationInput[]
+  cursor?: Prisma.OnlineAssignmentWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.OnlineAssignmentScalarFieldEnum | Prisma.OnlineAssignmentScalarFieldEnum[]
 }
 
 /**

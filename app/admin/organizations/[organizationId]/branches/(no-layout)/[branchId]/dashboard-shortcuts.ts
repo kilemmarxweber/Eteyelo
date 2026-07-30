@@ -41,13 +41,8 @@ type ShortcutContext = {
   studentPluralLower: string;
   classLabelPlural: string;
   showFinance: boolean;
-  /** Finance agrégée des enfants (dashboard parent). */
-  parentFinance?: {
-    totalDue: number;
-    totalRemaining: number;
-    currency: string;
-    firstChildId?: string | null;
-  } | null;
+  /** Lien « Ma fiche » (profil élève). */
+  studentProfileId?: string | null;
 };
 
 /** CTA dashboard alignés sur la matrice menus (unit-00 §3 / unit-03b). */
@@ -185,15 +180,31 @@ export function getDashboardShortcuts(
         },
       ];
 
-    case "student":
-      // Aligné menu + guards : Résultats + Bibliothèque uniquement (pas Notes/Fiches).
+    case "student": {
+      const ficheHref = ctx.studentProfileId
+        ? href(`/student/${ctx.studentProfileId}`)
+        : href("/");
       return [
+        {
+          title: "Ma fiche",
+          description: "Mon dossier et mes documents scolaires",
+          href: ficheHref,
+          color: "bg-violet-500",
+          iconKey: "notes",
+        },
         {
           title: "Résultats",
           description: "Mes résultats scolaires",
           href: href("/results"),
           color: "bg-indigo-500",
           iconKey: "results",
+        },
+        {
+          title: "Devoirs",
+          description: "Mes devoirs du weekend",
+          href: href("/devoirs"),
+          color: "bg-emerald-500",
+          iconKey: "notes",
         },
         {
           title: "Bibliothèque",
@@ -203,6 +214,7 @@ export function getDashboardShortcuts(
           iconKey: "library",
         },
       ];
+    }
 
     case "support":
       return [

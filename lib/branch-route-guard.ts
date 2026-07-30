@@ -3,6 +3,7 @@ import {
   hidesParentManagement,
   isAtelierBranch,
   isPrimaryBranch,
+  isSchoolBranch,
   requiresStudentImport,
   usesAttestationForBranch,
   usesBrevetForBranch,
@@ -76,6 +77,11 @@ export const BRANCH_ROUTE_RULES: BranchRouteRule[] = [
   {
     suffix: "/releves",
     isAllowed: usesReleveForBranch,
+    redirectTo: "/results",
+  },
+  {
+    suffix: "/devoirs",
+    isAllowed: isSchoolBranch,
     redirectTo: "/results",
   },
 ];
@@ -185,6 +191,10 @@ export function shouldHideSidebarHref(
   }
 
   if (normalizedHref === "/releves" && !usesReleveForBranch(typebranch)) {
+    return true;
+  }
+
+  if (normalizedHref === "/devoirs" && !isSchoolBranch(typebranch)) {
     return true;
   }
 

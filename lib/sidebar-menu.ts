@@ -112,6 +112,14 @@ const RESULTS_ROLES = [
   ...CURSUS_READ_ROLES,
 ];
 
+/** Devoirs en ligne : admin école + enseignant + élève + parent. */
+const DEVOIRS_ROLES = [
+  ...SCHOOL_ADMIN_ROLES,
+  ...TEACHER_ROLES,
+  ...STUDENT_ROLES,
+  ...PARENT_ROLES,
+];
+
 /** Fiches classe : school admin + titulaire (pas élève). */
 const FICHES_ROLES = [...SCHOOL_ADMIN_ROLES, TEACHER_TITULAIRE_ROLE];
 
@@ -300,6 +308,12 @@ const staticSidebarMenu: StaticMenuItem[] = [
         href: "/admin/results",
         icon: "results",
         roles: RESULTS_ROLES,
+      },
+      {
+        title: "Devoirs",
+        href: "/admin/devoirs",
+        icon: "devoirs",
+        roles: DEVOIRS_ROLES,
       },
       {
         title: "Bibliothèque",

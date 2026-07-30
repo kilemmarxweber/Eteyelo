@@ -453,6 +453,14 @@ export function canAccessResultsArea(
   );
 }
 
+/** Devoirs en ligne : mêmes rôles que résultats (enseignant + élève + parent). */
+export function canAccessDevoirsArea(
+  session: any,
+  ...extraRoles: unknown[]
+): boolean {
+  return canAccessResultsArea(session, ...extraRoles);
+}
+
 /** Bibliothèque : managers org (sans caissier) + enseignant + élève + parent. */
 export function canAccessLibraryArea(
   session: any,

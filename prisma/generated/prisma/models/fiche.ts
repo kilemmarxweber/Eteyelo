@@ -51,6 +51,7 @@ export type FicheMinAggregateOutputType = {
   anneeName: string | null
   notes: string | null
   autres: string | null
+  onlineAssignmentId: string | null
   branchId: string | null
 }
 
@@ -71,6 +72,7 @@ export type FicheMaxAggregateOutputType = {
   anneeName: string | null
   notes: string | null
   autres: string | null
+  onlineAssignmentId: string | null
   branchId: string | null
 }
 
@@ -91,6 +93,7 @@ export type FicheCountAggregateOutputType = {
   anneeName: number
   notes: number
   autres: number
+  onlineAssignmentId: number
   branchId: number
   _all: number
 }
@@ -121,6 +124,7 @@ export type FicheMinAggregateInputType = {
   anneeName?: true
   notes?: true
   autres?: true
+  onlineAssignmentId?: true
   branchId?: true
 }
 
@@ -141,6 +145,7 @@ export type FicheMaxAggregateInputType = {
   anneeName?: true
   notes?: true
   autres?: true
+  onlineAssignmentId?: true
   branchId?: true
 }
 
@@ -161,6 +166,7 @@ export type FicheCountAggregateInputType = {
   anneeName?: true
   notes?: true
   autres?: true
+  onlineAssignmentId?: true
   branchId?: true
   _all?: true
 }
@@ -268,6 +274,7 @@ export type FicheGroupByOutputType = {
   anneeName: string
   notes: string
   autres: string
+  onlineAssignmentId: string | null
   branchId: string
   _count: FicheCountAggregateOutputType | null
   _avg: FicheAvgAggregateOutputType | null
@@ -311,7 +318,9 @@ export type ficheWhereInput = {
   anneeName?: Prisma.StringFilter<"fiche"> | string
   notes?: Prisma.StringFilter<"fiche"> | string
   autres?: Prisma.StringFilter<"fiche"> | string
+  onlineAssignmentId?: Prisma.StringNullableFilter<"fiche"> | string | null
   branchId?: Prisma.StringFilter<"fiche"> | string
+  onlineAssignment?: Prisma.XOR<Prisma.OnlineAssignmentNullableScalarRelationFilter, Prisma.OnlineAssignmentWhereInput> | null
   ClassSection?: Prisma.XOR<Prisma.ClasseScalarRelationFilter, Prisma.ClasseWhereInput>
   lesson?: Prisma.XOR<Prisma.TeachingScalarRelationFilter, Prisma.TeachingWhereInput>
   period?: Prisma.XOR<Prisma.PeriodScalarRelationFilter, Prisma.periodWhereInput>
@@ -336,7 +345,9 @@ export type ficheOrderByWithRelationInput = {
   anneeName?: Prisma.SortOrder
   notes?: Prisma.SortOrder
   autres?: Prisma.SortOrder
+  onlineAssignmentId?: Prisma.SortOrderInput | Prisma.SortOrder
   branchId?: Prisma.SortOrder
+  onlineAssignment?: Prisma.OnlineAssignmentOrderByWithRelationInput
   ClassSection?: Prisma.ClasseOrderByWithRelationInput
   lesson?: Prisma.TeachingOrderByWithRelationInput
   period?: Prisma.periodOrderByWithRelationInput
@@ -346,6 +357,7 @@ export type ficheOrderByWithRelationInput = {
 
 export type ficheWhereUniqueInput = Prisma.AtLeast<{
   id?: string
+  onlineAssignmentId?: string
   AND?: Prisma.ficheWhereInput | Prisma.ficheWhereInput[]
   OR?: Prisma.ficheWhereInput[]
   NOT?: Prisma.ficheWhereInput | Prisma.ficheWhereInput[]
@@ -365,12 +377,13 @@ export type ficheWhereUniqueInput = Prisma.AtLeast<{
   notes?: Prisma.StringFilter<"fiche"> | string
   autres?: Prisma.StringFilter<"fiche"> | string
   branchId?: Prisma.StringFilter<"fiche"> | string
+  onlineAssignment?: Prisma.XOR<Prisma.OnlineAssignmentNullableScalarRelationFilter, Prisma.OnlineAssignmentWhereInput> | null
   ClassSection?: Prisma.XOR<Prisma.ClasseScalarRelationFilter, Prisma.ClasseWhereInput>
   lesson?: Prisma.XOR<Prisma.TeachingScalarRelationFilter, Prisma.TeachingWhereInput>
   period?: Prisma.XOR<Prisma.PeriodScalarRelationFilter, Prisma.periodWhereInput>
   teacher?: Prisma.XOR<Prisma.TeacherScalarRelationFilter, Prisma.TeacherWhereInput>
   branch?: Prisma.XOR<Prisma.BranchScalarRelationFilter, Prisma.BranchWhereInput>
-}, "id">
+}, "id" | "onlineAssignmentId">
 
 export type ficheOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
@@ -389,6 +402,7 @@ export type ficheOrderByWithAggregationInput = {
   anneeName?: Prisma.SortOrder
   notes?: Prisma.SortOrder
   autres?: Prisma.SortOrder
+  onlineAssignmentId?: Prisma.SortOrderInput | Prisma.SortOrder
   branchId?: Prisma.SortOrder
   _count?: Prisma.ficheCountOrderByAggregateInput
   _avg?: Prisma.ficheAvgOrderByAggregateInput
@@ -417,6 +431,7 @@ export type ficheScalarWhereWithAggregatesInput = {
   anneeName?: Prisma.StringWithAggregatesFilter<"fiche"> | string
   notes?: Prisma.StringWithAggregatesFilter<"fiche"> | string
   autres?: Prisma.StringWithAggregatesFilter<"fiche"> | string
+  onlineAssignmentId?: Prisma.StringNullableWithAggregatesFilter<"fiche"> | string | null
   branchId?: Prisma.StringWithAggregatesFilter<"fiche"> | string
 }
 
@@ -433,6 +448,7 @@ export type ficheCreateInput = {
   anneeName: string
   notes: string
   autres: string
+  onlineAssignment?: Prisma.OnlineAssignmentCreateNestedOneWithoutFicheInput
   ClassSection: Prisma.ClasseCreateNestedOneWithoutFicheInput
   lesson: Prisma.TeachingCreateNestedOneWithoutFicheInput
   period: Prisma.periodCreateNestedOneWithoutFicheInput
@@ -457,6 +473,7 @@ export type ficheUncheckedCreateInput = {
   anneeName: string
   notes: string
   autres: string
+  onlineAssignmentId?: string | null
   branchId: string
 }
 
@@ -473,6 +490,7 @@ export type ficheUpdateInput = {
   anneeName?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.StringFieldUpdateOperationsInput | string
   autres?: Prisma.StringFieldUpdateOperationsInput | string
+  onlineAssignment?: Prisma.OnlineAssignmentUpdateOneWithoutFicheNestedInput
   ClassSection?: Prisma.ClasseUpdateOneRequiredWithoutFicheNestedInput
   lesson?: Prisma.TeachingUpdateOneRequiredWithoutFicheNestedInput
   period?: Prisma.periodUpdateOneRequiredWithoutFicheNestedInput
@@ -497,6 +515,7 @@ export type ficheUncheckedUpdateInput = {
   anneeName?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.StringFieldUpdateOperationsInput | string
   autres?: Prisma.StringFieldUpdateOperationsInput | string
+  onlineAssignmentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
 }
 
@@ -517,6 +536,7 @@ export type ficheCreateManyInput = {
   anneeName: string
   notes: string
   autres: string
+  onlineAssignmentId?: string | null
   branchId: string
 }
 
@@ -552,6 +572,7 @@ export type ficheUncheckedUpdateManyInput = {
   anneeName?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.StringFieldUpdateOperationsInput | string
   autres?: Prisma.StringFieldUpdateOperationsInput | string
+  onlineAssignmentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
 }
 
@@ -582,6 +603,7 @@ export type ficheCountOrderByAggregateInput = {
   anneeName?: Prisma.SortOrder
   notes?: Prisma.SortOrder
   autres?: Prisma.SortOrder
+  onlineAssignmentId?: Prisma.SortOrder
   branchId?: Prisma.SortOrder
 }
 
@@ -606,6 +628,7 @@ export type ficheMaxOrderByAggregateInput = {
   anneeName?: Prisma.SortOrder
   notes?: Prisma.SortOrder
   autres?: Prisma.SortOrder
+  onlineAssignmentId?: Prisma.SortOrder
   branchId?: Prisma.SortOrder
 }
 
@@ -626,11 +649,17 @@ export type ficheMinOrderByAggregateInput = {
   anneeName?: Prisma.SortOrder
   notes?: Prisma.SortOrder
   autres?: Prisma.SortOrder
+  onlineAssignmentId?: Prisma.SortOrder
   branchId?: Prisma.SortOrder
 }
 
 export type ficheSumOrderByAggregateInput = {
   periodId?: Prisma.SortOrder
+}
+
+export type FicheNullableScalarRelationFilter = {
+  is?: Prisma.ficheWhereInput | null
+  isNot?: Prisma.ficheWhereInput | null
 }
 
 export type ficheCreateNestedManyWithoutClassSectionInput = {
@@ -843,6 +872,38 @@ export type ficheUncheckedUpdateManyWithoutBranchNestedInput = {
   deleteMany?: Prisma.ficheScalarWhereInput | Prisma.ficheScalarWhereInput[]
 }
 
+export type ficheCreateNestedOneWithoutOnlineAssignmentInput = {
+  create?: Prisma.XOR<Prisma.ficheCreateWithoutOnlineAssignmentInput, Prisma.ficheUncheckedCreateWithoutOnlineAssignmentInput>
+  connectOrCreate?: Prisma.ficheCreateOrConnectWithoutOnlineAssignmentInput
+  connect?: Prisma.ficheWhereUniqueInput
+}
+
+export type ficheUncheckedCreateNestedOneWithoutOnlineAssignmentInput = {
+  create?: Prisma.XOR<Prisma.ficheCreateWithoutOnlineAssignmentInput, Prisma.ficheUncheckedCreateWithoutOnlineAssignmentInput>
+  connectOrCreate?: Prisma.ficheCreateOrConnectWithoutOnlineAssignmentInput
+  connect?: Prisma.ficheWhereUniqueInput
+}
+
+export type ficheUpdateOneWithoutOnlineAssignmentNestedInput = {
+  create?: Prisma.XOR<Prisma.ficheCreateWithoutOnlineAssignmentInput, Prisma.ficheUncheckedCreateWithoutOnlineAssignmentInput>
+  connectOrCreate?: Prisma.ficheCreateOrConnectWithoutOnlineAssignmentInput
+  upsert?: Prisma.ficheUpsertWithoutOnlineAssignmentInput
+  disconnect?: Prisma.ficheWhereInput | boolean
+  delete?: Prisma.ficheWhereInput | boolean
+  connect?: Prisma.ficheWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ficheUpdateToOneWithWhereWithoutOnlineAssignmentInput, Prisma.ficheUpdateWithoutOnlineAssignmentInput>, Prisma.ficheUncheckedUpdateWithoutOnlineAssignmentInput>
+}
+
+export type ficheUncheckedUpdateOneWithoutOnlineAssignmentNestedInput = {
+  create?: Prisma.XOR<Prisma.ficheCreateWithoutOnlineAssignmentInput, Prisma.ficheUncheckedCreateWithoutOnlineAssignmentInput>
+  connectOrCreate?: Prisma.ficheCreateOrConnectWithoutOnlineAssignmentInput
+  upsert?: Prisma.ficheUpsertWithoutOnlineAssignmentInput
+  disconnect?: Prisma.ficheWhereInput | boolean
+  delete?: Prisma.ficheWhereInput | boolean
+  connect?: Prisma.ficheWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ficheUpdateToOneWithWhereWithoutOnlineAssignmentInput, Prisma.ficheUpdateWithoutOnlineAssignmentInput>, Prisma.ficheUncheckedUpdateWithoutOnlineAssignmentInput>
+}
+
 export type ficheCreateWithoutClassSectionInput = {
   id: string
   dateCreated?: Date | string
@@ -856,6 +917,7 @@ export type ficheCreateWithoutClassSectionInput = {
   anneeName: string
   notes: string
   autres: string
+  onlineAssignment?: Prisma.OnlineAssignmentCreateNestedOneWithoutFicheInput
   lesson: Prisma.TeachingCreateNestedOneWithoutFicheInput
   period: Prisma.periodCreateNestedOneWithoutFicheInput
   teacher: Prisma.TeacherCreateNestedOneWithoutFicheInput
@@ -878,6 +940,7 @@ export type ficheUncheckedCreateWithoutClassSectionInput = {
   anneeName: string
   notes: string
   autres: string
+  onlineAssignmentId?: string | null
   branchId: string
 }
 
@@ -927,6 +990,7 @@ export type ficheScalarWhereInput = {
   anneeName?: Prisma.StringFilter<"fiche"> | string
   notes?: Prisma.StringFilter<"fiche"> | string
   autres?: Prisma.StringFilter<"fiche"> | string
+  onlineAssignmentId?: Prisma.StringNullableFilter<"fiche"> | string | null
   branchId?: Prisma.StringFilter<"fiche"> | string
 }
 
@@ -943,6 +1007,7 @@ export type ficheCreateWithoutTeacherInput = {
   anneeName: string
   notes: string
   autres: string
+  onlineAssignment?: Prisma.OnlineAssignmentCreateNestedOneWithoutFicheInput
   ClassSection: Prisma.ClasseCreateNestedOneWithoutFicheInput
   lesson: Prisma.TeachingCreateNestedOneWithoutFicheInput
   period: Prisma.periodCreateNestedOneWithoutFicheInput
@@ -965,6 +1030,7 @@ export type ficheUncheckedCreateWithoutTeacherInput = {
   anneeName: string
   notes: string
   autres: string
+  onlineAssignmentId?: string | null
   branchId: string
 }
 
@@ -1007,6 +1073,7 @@ export type ficheCreateWithoutLessonInput = {
   anneeName: string
   notes: string
   autres: string
+  onlineAssignment?: Prisma.OnlineAssignmentCreateNestedOneWithoutFicheInput
   ClassSection: Prisma.ClasseCreateNestedOneWithoutFicheInput
   period: Prisma.periodCreateNestedOneWithoutFicheInput
   teacher: Prisma.TeacherCreateNestedOneWithoutFicheInput
@@ -1029,6 +1096,7 @@ export type ficheUncheckedCreateWithoutLessonInput = {
   anneeName: string
   notes: string
   autres: string
+  onlineAssignmentId?: string | null
   branchId: string
 }
 
@@ -1071,6 +1139,7 @@ export type ficheCreateWithoutPeriodInput = {
   anneeName: string
   notes: string
   autres: string
+  onlineAssignment?: Prisma.OnlineAssignmentCreateNestedOneWithoutFicheInput
   ClassSection: Prisma.ClasseCreateNestedOneWithoutFicheInput
   lesson: Prisma.TeachingCreateNestedOneWithoutFicheInput
   teacher: Prisma.TeacherCreateNestedOneWithoutFicheInput
@@ -1093,6 +1162,7 @@ export type ficheUncheckedCreateWithoutPeriodInput = {
   anneeName: string
   notes: string
   autres: string
+  onlineAssignmentId?: string | null
   branchId: string
 }
 
@@ -1135,6 +1205,7 @@ export type ficheCreateWithoutBranchInput = {
   anneeName: string
   notes: string
   autres: string
+  onlineAssignment?: Prisma.OnlineAssignmentCreateNestedOneWithoutFicheInput
   ClassSection: Prisma.ClasseCreateNestedOneWithoutFicheInput
   lesson: Prisma.TeachingCreateNestedOneWithoutFicheInput
   period: Prisma.periodCreateNestedOneWithoutFicheInput
@@ -1158,6 +1229,7 @@ export type ficheUncheckedCreateWithoutBranchInput = {
   anneeName: string
   notes: string
   autres: string
+  onlineAssignmentId?: string | null
 }
 
 export type ficheCreateOrConnectWithoutBranchInput = {
@@ -1186,6 +1258,102 @@ export type ficheUpdateManyWithWhereWithoutBranchInput = {
   data: Prisma.XOR<Prisma.ficheUpdateManyMutationInput, Prisma.ficheUncheckedUpdateManyWithoutBranchInput>
 }
 
+export type ficheCreateWithoutOnlineAssignmentInput = {
+  id: string
+  dateCreated?: Date | string
+  dateUpdated: Date | string
+  status?: boolean
+  typeFiche: string
+  coursName: string
+  classeName: string
+  periodeName: string
+  anneeId: string
+  anneeName: string
+  notes: string
+  autres: string
+  ClassSection: Prisma.ClasseCreateNestedOneWithoutFicheInput
+  lesson: Prisma.TeachingCreateNestedOneWithoutFicheInput
+  period: Prisma.periodCreateNestedOneWithoutFicheInput
+  teacher: Prisma.TeacherCreateNestedOneWithoutFicheInput
+  branch: Prisma.BranchCreateNestedOneWithoutFicheInput
+}
+
+export type ficheUncheckedCreateWithoutOnlineAssignmentInput = {
+  id: string
+  dateCreated?: Date | string
+  dateUpdated: Date | string
+  status?: boolean
+  teacherId: string
+  typeFiche: string
+  classSectionId: string
+  lessonId: string
+  coursName: string
+  classeName: string
+  periodId: number
+  periodeName: string
+  anneeId: string
+  anneeName: string
+  notes: string
+  autres: string
+  branchId: string
+}
+
+export type ficheCreateOrConnectWithoutOnlineAssignmentInput = {
+  where: Prisma.ficheWhereUniqueInput
+  create: Prisma.XOR<Prisma.ficheCreateWithoutOnlineAssignmentInput, Prisma.ficheUncheckedCreateWithoutOnlineAssignmentInput>
+}
+
+export type ficheUpsertWithoutOnlineAssignmentInput = {
+  update: Prisma.XOR<Prisma.ficheUpdateWithoutOnlineAssignmentInput, Prisma.ficheUncheckedUpdateWithoutOnlineAssignmentInput>
+  create: Prisma.XOR<Prisma.ficheCreateWithoutOnlineAssignmentInput, Prisma.ficheUncheckedCreateWithoutOnlineAssignmentInput>
+  where?: Prisma.ficheWhereInput
+}
+
+export type ficheUpdateToOneWithWhereWithoutOnlineAssignmentInput = {
+  where?: Prisma.ficheWhereInput
+  data: Prisma.XOR<Prisma.ficheUpdateWithoutOnlineAssignmentInput, Prisma.ficheUncheckedUpdateWithoutOnlineAssignmentInput>
+}
+
+export type ficheUpdateWithoutOnlineAssignmentInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  dateCreated?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  dateUpdated?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  status?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  typeFiche?: Prisma.StringFieldUpdateOperationsInput | string
+  coursName?: Prisma.StringFieldUpdateOperationsInput | string
+  classeName?: Prisma.StringFieldUpdateOperationsInput | string
+  periodeName?: Prisma.StringFieldUpdateOperationsInput | string
+  anneeId?: Prisma.StringFieldUpdateOperationsInput | string
+  anneeName?: Prisma.StringFieldUpdateOperationsInput | string
+  notes?: Prisma.StringFieldUpdateOperationsInput | string
+  autres?: Prisma.StringFieldUpdateOperationsInput | string
+  ClassSection?: Prisma.ClasseUpdateOneRequiredWithoutFicheNestedInput
+  lesson?: Prisma.TeachingUpdateOneRequiredWithoutFicheNestedInput
+  period?: Prisma.periodUpdateOneRequiredWithoutFicheNestedInput
+  teacher?: Prisma.TeacherUpdateOneRequiredWithoutFicheNestedInput
+  branch?: Prisma.BranchUpdateOneRequiredWithoutFicheNestedInput
+}
+
+export type ficheUncheckedUpdateWithoutOnlineAssignmentInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  dateCreated?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  dateUpdated?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  status?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  teacherId?: Prisma.StringFieldUpdateOperationsInput | string
+  typeFiche?: Prisma.StringFieldUpdateOperationsInput | string
+  classSectionId?: Prisma.StringFieldUpdateOperationsInput | string
+  lessonId?: Prisma.StringFieldUpdateOperationsInput | string
+  coursName?: Prisma.StringFieldUpdateOperationsInput | string
+  classeName?: Prisma.StringFieldUpdateOperationsInput | string
+  periodId?: Prisma.IntFieldUpdateOperationsInput | number
+  periodeName?: Prisma.StringFieldUpdateOperationsInput | string
+  anneeId?: Prisma.StringFieldUpdateOperationsInput | string
+  anneeName?: Prisma.StringFieldUpdateOperationsInput | string
+  notes?: Prisma.StringFieldUpdateOperationsInput | string
+  autres?: Prisma.StringFieldUpdateOperationsInput | string
+  branchId?: Prisma.StringFieldUpdateOperationsInput | string
+}
+
 export type ficheCreateManyClassSectionInput = {
   id: string
   dateCreated?: Date | string
@@ -1202,6 +1370,7 @@ export type ficheCreateManyClassSectionInput = {
   anneeName: string
   notes: string
   autres: string
+  onlineAssignmentId?: string | null
   branchId: string
 }
 
@@ -1218,6 +1387,7 @@ export type ficheUpdateWithoutClassSectionInput = {
   anneeName?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.StringFieldUpdateOperationsInput | string
   autres?: Prisma.StringFieldUpdateOperationsInput | string
+  onlineAssignment?: Prisma.OnlineAssignmentUpdateOneWithoutFicheNestedInput
   lesson?: Prisma.TeachingUpdateOneRequiredWithoutFicheNestedInput
   period?: Prisma.periodUpdateOneRequiredWithoutFicheNestedInput
   teacher?: Prisma.TeacherUpdateOneRequiredWithoutFicheNestedInput
@@ -1240,6 +1410,7 @@ export type ficheUncheckedUpdateWithoutClassSectionInput = {
   anneeName?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.StringFieldUpdateOperationsInput | string
   autres?: Prisma.StringFieldUpdateOperationsInput | string
+  onlineAssignmentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
 }
 
@@ -1259,6 +1430,7 @@ export type ficheUncheckedUpdateManyWithoutClassSectionInput = {
   anneeName?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.StringFieldUpdateOperationsInput | string
   autres?: Prisma.StringFieldUpdateOperationsInput | string
+  onlineAssignmentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
 }
 
@@ -1278,6 +1450,7 @@ export type ficheCreateManyTeacherInput = {
   anneeName: string
   notes: string
   autres: string
+  onlineAssignmentId?: string | null
   branchId: string
 }
 
@@ -1294,6 +1467,7 @@ export type ficheUpdateWithoutTeacherInput = {
   anneeName?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.StringFieldUpdateOperationsInput | string
   autres?: Prisma.StringFieldUpdateOperationsInput | string
+  onlineAssignment?: Prisma.OnlineAssignmentUpdateOneWithoutFicheNestedInput
   ClassSection?: Prisma.ClasseUpdateOneRequiredWithoutFicheNestedInput
   lesson?: Prisma.TeachingUpdateOneRequiredWithoutFicheNestedInput
   period?: Prisma.periodUpdateOneRequiredWithoutFicheNestedInput
@@ -1316,6 +1490,7 @@ export type ficheUncheckedUpdateWithoutTeacherInput = {
   anneeName?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.StringFieldUpdateOperationsInput | string
   autres?: Prisma.StringFieldUpdateOperationsInput | string
+  onlineAssignmentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
 }
 
@@ -1335,6 +1510,7 @@ export type ficheUncheckedUpdateManyWithoutTeacherInput = {
   anneeName?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.StringFieldUpdateOperationsInput | string
   autres?: Prisma.StringFieldUpdateOperationsInput | string
+  onlineAssignmentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
 }
 
@@ -1354,6 +1530,7 @@ export type ficheCreateManyLessonInput = {
   anneeName: string
   notes: string
   autres: string
+  onlineAssignmentId?: string | null
   branchId: string
 }
 
@@ -1370,6 +1547,7 @@ export type ficheUpdateWithoutLessonInput = {
   anneeName?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.StringFieldUpdateOperationsInput | string
   autres?: Prisma.StringFieldUpdateOperationsInput | string
+  onlineAssignment?: Prisma.OnlineAssignmentUpdateOneWithoutFicheNestedInput
   ClassSection?: Prisma.ClasseUpdateOneRequiredWithoutFicheNestedInput
   period?: Prisma.periodUpdateOneRequiredWithoutFicheNestedInput
   teacher?: Prisma.TeacherUpdateOneRequiredWithoutFicheNestedInput
@@ -1392,6 +1570,7 @@ export type ficheUncheckedUpdateWithoutLessonInput = {
   anneeName?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.StringFieldUpdateOperationsInput | string
   autres?: Prisma.StringFieldUpdateOperationsInput | string
+  onlineAssignmentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
 }
 
@@ -1411,6 +1590,7 @@ export type ficheUncheckedUpdateManyWithoutLessonInput = {
   anneeName?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.StringFieldUpdateOperationsInput | string
   autres?: Prisma.StringFieldUpdateOperationsInput | string
+  onlineAssignmentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
 }
 
@@ -1430,6 +1610,7 @@ export type ficheCreateManyPeriodInput = {
   anneeName: string
   notes: string
   autres: string
+  onlineAssignmentId?: string | null
   branchId: string
 }
 
@@ -1446,6 +1627,7 @@ export type ficheUpdateWithoutPeriodInput = {
   anneeName?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.StringFieldUpdateOperationsInput | string
   autres?: Prisma.StringFieldUpdateOperationsInput | string
+  onlineAssignment?: Prisma.OnlineAssignmentUpdateOneWithoutFicheNestedInput
   ClassSection?: Prisma.ClasseUpdateOneRequiredWithoutFicheNestedInput
   lesson?: Prisma.TeachingUpdateOneRequiredWithoutFicheNestedInput
   teacher?: Prisma.TeacherUpdateOneRequiredWithoutFicheNestedInput
@@ -1468,6 +1650,7 @@ export type ficheUncheckedUpdateWithoutPeriodInput = {
   anneeName?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.StringFieldUpdateOperationsInput | string
   autres?: Prisma.StringFieldUpdateOperationsInput | string
+  onlineAssignmentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
 }
 
@@ -1487,6 +1670,7 @@ export type ficheUncheckedUpdateManyWithoutPeriodInput = {
   anneeName?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.StringFieldUpdateOperationsInput | string
   autres?: Prisma.StringFieldUpdateOperationsInput | string
+  onlineAssignmentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
 }
 
@@ -1507,6 +1691,7 @@ export type ficheCreateManyBranchInput = {
   anneeName: string
   notes: string
   autres: string
+  onlineAssignmentId?: string | null
 }
 
 export type ficheUpdateWithoutBranchInput = {
@@ -1522,6 +1707,7 @@ export type ficheUpdateWithoutBranchInput = {
   anneeName?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.StringFieldUpdateOperationsInput | string
   autres?: Prisma.StringFieldUpdateOperationsInput | string
+  onlineAssignment?: Prisma.OnlineAssignmentUpdateOneWithoutFicheNestedInput
   ClassSection?: Prisma.ClasseUpdateOneRequiredWithoutFicheNestedInput
   lesson?: Prisma.TeachingUpdateOneRequiredWithoutFicheNestedInput
   period?: Prisma.periodUpdateOneRequiredWithoutFicheNestedInput
@@ -1545,6 +1731,7 @@ export type ficheUncheckedUpdateWithoutBranchInput = {
   anneeName?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.StringFieldUpdateOperationsInput | string
   autres?: Prisma.StringFieldUpdateOperationsInput | string
+  onlineAssignmentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type ficheUncheckedUpdateManyWithoutBranchInput = {
@@ -1564,6 +1751,7 @@ export type ficheUncheckedUpdateManyWithoutBranchInput = {
   anneeName?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.StringFieldUpdateOperationsInput | string
   autres?: Prisma.StringFieldUpdateOperationsInput | string
+  onlineAssignmentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 
@@ -1585,7 +1773,9 @@ export type ficheSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   anneeName?: boolean
   notes?: boolean
   autres?: boolean
+  onlineAssignmentId?: boolean
   branchId?: boolean
+  onlineAssignment?: boolean | Prisma.fiche$onlineAssignmentArgs<ExtArgs>
   ClassSection?: boolean | Prisma.ClasseDefaultArgs<ExtArgs>
   lesson?: boolean | Prisma.TeachingDefaultArgs<ExtArgs>
   period?: boolean | Prisma.periodDefaultArgs<ExtArgs>
@@ -1610,7 +1800,9 @@ export type ficheSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   anneeName?: boolean
   notes?: boolean
   autres?: boolean
+  onlineAssignmentId?: boolean
   branchId?: boolean
+  onlineAssignment?: boolean | Prisma.fiche$onlineAssignmentArgs<ExtArgs>
   ClassSection?: boolean | Prisma.ClasseDefaultArgs<ExtArgs>
   lesson?: boolean | Prisma.TeachingDefaultArgs<ExtArgs>
   period?: boolean | Prisma.periodDefaultArgs<ExtArgs>
@@ -1635,7 +1827,9 @@ export type ficheSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   anneeName?: boolean
   notes?: boolean
   autres?: boolean
+  onlineAssignmentId?: boolean
   branchId?: boolean
+  onlineAssignment?: boolean | Prisma.fiche$onlineAssignmentArgs<ExtArgs>
   ClassSection?: boolean | Prisma.ClasseDefaultArgs<ExtArgs>
   lesson?: boolean | Prisma.TeachingDefaultArgs<ExtArgs>
   period?: boolean | Prisma.periodDefaultArgs<ExtArgs>
@@ -1660,11 +1854,13 @@ export type ficheSelectScalar = {
   anneeName?: boolean
   notes?: boolean
   autres?: boolean
+  onlineAssignmentId?: boolean
   branchId?: boolean
 }
 
-export type ficheOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "dateCreated" | "dateUpdated" | "status" | "teacherId" | "typeFiche" | "classSectionId" | "lessonId" | "coursName" | "classeName" | "periodId" | "periodeName" | "anneeId" | "anneeName" | "notes" | "autres" | "branchId", ExtArgs["result"]["fiche"]>
+export type ficheOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "dateCreated" | "dateUpdated" | "status" | "teacherId" | "typeFiche" | "classSectionId" | "lessonId" | "coursName" | "classeName" | "periodId" | "periodeName" | "anneeId" | "anneeName" | "notes" | "autres" | "onlineAssignmentId" | "branchId", ExtArgs["result"]["fiche"]>
 export type ficheInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  onlineAssignment?: boolean | Prisma.fiche$onlineAssignmentArgs<ExtArgs>
   ClassSection?: boolean | Prisma.ClasseDefaultArgs<ExtArgs>
   lesson?: boolean | Prisma.TeachingDefaultArgs<ExtArgs>
   period?: boolean | Prisma.periodDefaultArgs<ExtArgs>
@@ -1672,6 +1868,7 @@ export type ficheInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
 }
 export type ficheIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  onlineAssignment?: boolean | Prisma.fiche$onlineAssignmentArgs<ExtArgs>
   ClassSection?: boolean | Prisma.ClasseDefaultArgs<ExtArgs>
   lesson?: boolean | Prisma.TeachingDefaultArgs<ExtArgs>
   period?: boolean | Prisma.periodDefaultArgs<ExtArgs>
@@ -1679,6 +1876,7 @@ export type ficheIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extens
   branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
 }
 export type ficheIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  onlineAssignment?: boolean | Prisma.fiche$onlineAssignmentArgs<ExtArgs>
   ClassSection?: boolean | Prisma.ClasseDefaultArgs<ExtArgs>
   lesson?: boolean | Prisma.TeachingDefaultArgs<ExtArgs>
   period?: boolean | Prisma.periodDefaultArgs<ExtArgs>
@@ -1689,6 +1887,7 @@ export type ficheIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extens
 export type $fichePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "fiche"
   objects: {
+    onlineAssignment: Prisma.$OnlineAssignmentPayload<ExtArgs> | null
     ClassSection: Prisma.$ClassePayload<ExtArgs>
     lesson: Prisma.$TeachingPayload<ExtArgs>
     period: Prisma.$periodPayload<ExtArgs>
@@ -1712,6 +1911,10 @@ export type $fichePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     anneeName: string
     notes: string
     autres: string
+    /**
+     * Lien vers le devoir / évaluation en ligne (1 fiche max par activité)
+     */
+    onlineAssignmentId: string | null
     branchId: string
   }, ExtArgs["result"]["fiche"]>
   composites: {}
@@ -2107,6 +2310,7 @@ readonly fields: ficheFieldRefs;
  */
 export interface Prisma__ficheClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
+  onlineAssignment<T extends Prisma.fiche$onlineAssignmentArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.fiche$onlineAssignmentArgs<ExtArgs>>): Prisma.Prisma__OnlineAssignmentClient<runtime.Types.Result.GetResult<Prisma.$OnlineAssignmentPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   ClassSection<T extends Prisma.ClasseDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ClasseDefaultArgs<ExtArgs>>): Prisma.Prisma__ClasseClient<runtime.Types.Result.GetResult<Prisma.$ClassePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   lesson<T extends Prisma.TeachingDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.TeachingDefaultArgs<ExtArgs>>): Prisma.Prisma__TeachingClient<runtime.Types.Result.GetResult<Prisma.$TeachingPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   period<T extends Prisma.periodDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.periodDefaultArgs<ExtArgs>>): Prisma.Prisma__periodClient<runtime.Types.Result.GetResult<Prisma.$periodPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
@@ -2157,6 +2361,7 @@ export interface ficheFieldRefs {
   readonly anneeName: Prisma.FieldRef<"fiche", 'String'>
   readonly notes: Prisma.FieldRef<"fiche", 'String'>
   readonly autres: Prisma.FieldRef<"fiche", 'String'>
+  readonly onlineAssignmentId: Prisma.FieldRef<"fiche", 'String'>
   readonly branchId: Prisma.FieldRef<"fiche", 'String'>
 }
     
@@ -2556,6 +2761,25 @@ export type ficheDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Interna
    * Limit how many fiches to delete.
    */
   limit?: number
+}
+
+/**
+ * fiche.onlineAssignment
+ */
+export type fiche$onlineAssignmentArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the OnlineAssignment
+   */
+  select?: Prisma.OnlineAssignmentSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the OnlineAssignment
+   */
+  omit?: Prisma.OnlineAssignmentOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.OnlineAssignmentInclude<ExtArgs> | null
+  where?: Prisma.OnlineAssignmentWhereInput
 }
 
 /**

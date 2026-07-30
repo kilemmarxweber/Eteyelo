@@ -32,6 +32,7 @@ import {
   IconBuildingCommunity,
   IconBriefcase,
   IconBooks,
+  IconNotebook,
 } from "@tabler/icons-react";
 
 import { SideLink } from "@/src/data/sidelinks";
@@ -73,6 +74,7 @@ export const iconMap: Record<string, any> = {
   /* ===== CURSUS ===== */
   cursus: IconBook,
   bibliotheque: IconBooks,
+  devoirs: IconNotebook,
   results: IconChartBar,
   notes: IconPencilCheck,
   fiches: IconFileStack,

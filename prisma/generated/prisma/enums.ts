@@ -271,3 +271,41 @@ export const SupportTicketChannel = {
 } as const
 
 export type SupportTicketChannel = (typeof SupportTicketChannel)[keyof typeof SupportTicketChannel]
+
+
+export const OnlineAssignmentType = {
+  DEVOIR: 'DEVOIR',
+  EVALUATION: 'EVALUATION'
+} as const
+
+export type OnlineAssignmentType = (typeof OnlineAssignmentType)[keyof typeof OnlineAssignmentType]
+
+
+export const OnlineAssignmentStatus = {
+  DRAFT: 'DRAFT',
+  PUBLISHED: 'PUBLISHED',
+  CLOSED: 'CLOSED'
+} as const
+
+export type OnlineAssignmentStatus = (typeof OnlineAssignmentStatus)[keyof typeof OnlineAssignmentStatus]
+
+
+export const OnlineQuestionType = {
+  SHORT_TEXT: 'SHORT_TEXT',
+  LONG_TEXT: 'LONG_TEXT',
+  FILE: 'FILE',
+  SINGLE_CHOICE: 'SINGLE_CHOICE',
+  MULTIPLE_CHOICE: 'MULTIPLE_CHOICE',
+  TRUE_FALSE: 'TRUE_FALSE'
+} as const
+
+export type OnlineQuestionType = (typeof OnlineQuestionType)[keyof typeof OnlineQuestionType]
+
+
+export const OnlineSubmissionStatus = {
+  DRAFT: 'DRAFT',
+  SUBMITTED: 'SUBMITTED',
+  GRADED: 'GRADED'
+} as const
+
+export type OnlineSubmissionStatus = (typeof OnlineSubmissionStatus)[keyof typeof OnlineSubmissionStatus]

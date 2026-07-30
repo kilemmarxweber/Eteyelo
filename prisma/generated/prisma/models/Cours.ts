@@ -268,6 +268,7 @@ export type CoursWhereInput = {
   period?: Prisma.PeriodListRelationFilter
   branch?: Prisma.XOR<Prisma.BranchScalarRelationFilter, Prisma.BranchWhereInput>
   coursPonderations?: Prisma.CoursOptionPonderationListRelationFilter
+  onlineAssignments?: Prisma.OnlineAssignmentListRelationFilter
 }
 
 export type CoursOrderByWithRelationInput = {
@@ -286,6 +287,7 @@ export type CoursOrderByWithRelationInput = {
   period?: Prisma.periodOrderByRelationAggregateInput
   branch?: Prisma.BranchOrderByWithRelationInput
   coursPonderations?: Prisma.CoursOptionPonderationOrderByRelationAggregateInput
+  onlineAssignments?: Prisma.OnlineAssignmentOrderByRelationAggregateInput
 }
 
 export type CoursWhereUniqueInput = Prisma.AtLeast<{
@@ -309,6 +311,7 @@ export type CoursWhereUniqueInput = Prisma.AtLeast<{
   period?: Prisma.PeriodListRelationFilter
   branch?: Prisma.XOR<Prisma.BranchScalarRelationFilter, Prisma.BranchWhereInput>
   coursPonderations?: Prisma.CoursOptionPonderationListRelationFilter
+  onlineAssignments?: Prisma.OnlineAssignmentListRelationFilter
 }, "id" | "branchId_codeCours" | "branchId_nameCours">
 
 export type CoursOrderByWithAggregationInput = {
@@ -362,6 +365,7 @@ export type CoursCreateInput = {
   period?: Prisma.periodCreateNestedManyWithoutSubjectInput
   branch: Prisma.BranchCreateNestedOneWithoutCoursInput
   coursPonderations?: Prisma.CoursOptionPonderationCreateNestedManyWithoutCoursInput
+  onlineAssignments?: Prisma.OnlineAssignmentCreateNestedManyWithoutCoursInput
 }
 
 export type CoursUncheckedCreateInput = {
@@ -379,6 +383,7 @@ export type CoursUncheckedCreateInput = {
   teaching?: Prisma.TeachingUncheckedCreateNestedManyWithoutCoursInput
   period?: Prisma.periodUncheckedCreateNestedManyWithoutSubjectInput
   coursPonderations?: Prisma.CoursOptionPonderationUncheckedCreateNestedManyWithoutCoursInput
+  onlineAssignments?: Prisma.OnlineAssignmentUncheckedCreateNestedManyWithoutCoursInput
 }
 
 export type CoursUpdateInput = {
@@ -396,6 +401,7 @@ export type CoursUpdateInput = {
   period?: Prisma.periodUpdateManyWithoutSubjectNestedInput
   branch?: Prisma.BranchUpdateOneRequiredWithoutCoursNestedInput
   coursPonderations?: Prisma.CoursOptionPonderationUpdateManyWithoutCoursNestedInput
+  onlineAssignments?: Prisma.OnlineAssignmentUpdateManyWithoutCoursNestedInput
 }
 
 export type CoursUncheckedUpdateInput = {
@@ -413,6 +419,7 @@ export type CoursUncheckedUpdateInput = {
   teaching?: Prisma.TeachingUncheckedUpdateManyWithoutCoursNestedInput
   period?: Prisma.periodUncheckedUpdateManyWithoutSubjectNestedInput
   coursPonderations?: Prisma.CoursOptionPonderationUncheckedUpdateManyWithoutCoursNestedInput
+  onlineAssignments?: Prisma.OnlineAssignmentUncheckedUpdateManyWithoutCoursNestedInput
 }
 
 export type CoursCreateManyInput = {
@@ -643,6 +650,20 @@ export type CoursUncheckedUpdateManyWithoutBranchNestedInput = {
   deleteMany?: Prisma.CoursScalarWhereInput | Prisma.CoursScalarWhereInput[]
 }
 
+export type CoursCreateNestedOneWithoutOnlineAssignmentsInput = {
+  create?: Prisma.XOR<Prisma.CoursCreateWithoutOnlineAssignmentsInput, Prisma.CoursUncheckedCreateWithoutOnlineAssignmentsInput>
+  connectOrCreate?: Prisma.CoursCreateOrConnectWithoutOnlineAssignmentsInput
+  connect?: Prisma.CoursWhereUniqueInput
+}
+
+export type CoursUpdateOneRequiredWithoutOnlineAssignmentsNestedInput = {
+  create?: Prisma.XOR<Prisma.CoursCreateWithoutOnlineAssignmentsInput, Prisma.CoursUncheckedCreateWithoutOnlineAssignmentsInput>
+  connectOrCreate?: Prisma.CoursCreateOrConnectWithoutOnlineAssignmentsInput
+  upsert?: Prisma.CoursUpsertWithoutOnlineAssignmentsInput
+  connect?: Prisma.CoursWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.CoursUpdateToOneWithWhereWithoutOnlineAssignmentsInput, Prisma.CoursUpdateWithoutOnlineAssignmentsInput>, Prisma.CoursUncheckedUpdateWithoutOnlineAssignmentsInput>
+}
+
 export type CoursCreateWithoutTeachingInput = {
   id?: string
   codeCours: string
@@ -657,6 +678,7 @@ export type CoursCreateWithoutTeachingInput = {
   period?: Prisma.periodCreateNestedManyWithoutSubjectInput
   branch: Prisma.BranchCreateNestedOneWithoutCoursInput
   coursPonderations?: Prisma.CoursOptionPonderationCreateNestedManyWithoutCoursInput
+  onlineAssignments?: Prisma.OnlineAssignmentCreateNestedManyWithoutCoursInput
 }
 
 export type CoursUncheckedCreateWithoutTeachingInput = {
@@ -673,6 +695,7 @@ export type CoursUncheckedCreateWithoutTeachingInput = {
   branchId: string
   period?: Prisma.periodUncheckedCreateNestedManyWithoutSubjectInput
   coursPonderations?: Prisma.CoursOptionPonderationUncheckedCreateNestedManyWithoutCoursInput
+  onlineAssignments?: Prisma.OnlineAssignmentUncheckedCreateNestedManyWithoutCoursInput
 }
 
 export type CoursCreateOrConnectWithoutTeachingInput = {
@@ -705,6 +728,7 @@ export type CoursUpdateWithoutTeachingInput = {
   period?: Prisma.periodUpdateManyWithoutSubjectNestedInput
   branch?: Prisma.BranchUpdateOneRequiredWithoutCoursNestedInput
   coursPonderations?: Prisma.CoursOptionPonderationUpdateManyWithoutCoursNestedInput
+  onlineAssignments?: Prisma.OnlineAssignmentUpdateManyWithoutCoursNestedInput
 }
 
 export type CoursUncheckedUpdateWithoutTeachingInput = {
@@ -721,6 +745,7 @@ export type CoursUncheckedUpdateWithoutTeachingInput = {
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
   period?: Prisma.periodUncheckedUpdateManyWithoutSubjectNestedInput
   coursPonderations?: Prisma.CoursOptionPonderationUncheckedUpdateManyWithoutCoursNestedInput
+  onlineAssignments?: Prisma.OnlineAssignmentUncheckedUpdateManyWithoutCoursNestedInput
 }
 
 export type CoursCreateWithoutCoursPonderationsInput = {
@@ -737,6 +762,7 @@ export type CoursCreateWithoutCoursPonderationsInput = {
   teaching?: Prisma.TeachingCreateNestedManyWithoutCoursInput
   period?: Prisma.periodCreateNestedManyWithoutSubjectInput
   branch: Prisma.BranchCreateNestedOneWithoutCoursInput
+  onlineAssignments?: Prisma.OnlineAssignmentCreateNestedManyWithoutCoursInput
 }
 
 export type CoursUncheckedCreateWithoutCoursPonderationsInput = {
@@ -753,6 +779,7 @@ export type CoursUncheckedCreateWithoutCoursPonderationsInput = {
   branchId: string
   teaching?: Prisma.TeachingUncheckedCreateNestedManyWithoutCoursInput
   period?: Prisma.periodUncheckedCreateNestedManyWithoutSubjectInput
+  onlineAssignments?: Prisma.OnlineAssignmentUncheckedCreateNestedManyWithoutCoursInput
 }
 
 export type CoursCreateOrConnectWithoutCoursPonderationsInput = {
@@ -785,6 +812,7 @@ export type CoursUpdateWithoutCoursPonderationsInput = {
   teaching?: Prisma.TeachingUpdateManyWithoutCoursNestedInput
   period?: Prisma.periodUpdateManyWithoutSubjectNestedInput
   branch?: Prisma.BranchUpdateOneRequiredWithoutCoursNestedInput
+  onlineAssignments?: Prisma.OnlineAssignmentUpdateManyWithoutCoursNestedInput
 }
 
 export type CoursUncheckedUpdateWithoutCoursPonderationsInput = {
@@ -801,6 +829,7 @@ export type CoursUncheckedUpdateWithoutCoursPonderationsInput = {
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
   teaching?: Prisma.TeachingUncheckedUpdateManyWithoutCoursNestedInput
   period?: Prisma.periodUncheckedUpdateManyWithoutSubjectNestedInput
+  onlineAssignments?: Prisma.OnlineAssignmentUncheckedUpdateManyWithoutCoursNestedInput
 }
 
 export type CoursCreateWithoutPeriodInput = {
@@ -817,6 +846,7 @@ export type CoursCreateWithoutPeriodInput = {
   teaching?: Prisma.TeachingCreateNestedManyWithoutCoursInput
   branch: Prisma.BranchCreateNestedOneWithoutCoursInput
   coursPonderations?: Prisma.CoursOptionPonderationCreateNestedManyWithoutCoursInput
+  onlineAssignments?: Prisma.OnlineAssignmentCreateNestedManyWithoutCoursInput
 }
 
 export type CoursUncheckedCreateWithoutPeriodInput = {
@@ -833,6 +863,7 @@ export type CoursUncheckedCreateWithoutPeriodInput = {
   branchId: string
   teaching?: Prisma.TeachingUncheckedCreateNestedManyWithoutCoursInput
   coursPonderations?: Prisma.CoursOptionPonderationUncheckedCreateNestedManyWithoutCoursInput
+  onlineAssignments?: Prisma.OnlineAssignmentUncheckedCreateNestedManyWithoutCoursInput
 }
 
 export type CoursCreateOrConnectWithoutPeriodInput = {
@@ -887,6 +918,7 @@ export type CoursCreateWithoutBranchInput = {
   teaching?: Prisma.TeachingCreateNestedManyWithoutCoursInput
   period?: Prisma.periodCreateNestedManyWithoutSubjectInput
   coursPonderations?: Prisma.CoursOptionPonderationCreateNestedManyWithoutCoursInput
+  onlineAssignments?: Prisma.OnlineAssignmentCreateNestedManyWithoutCoursInput
 }
 
 export type CoursUncheckedCreateWithoutBranchInput = {
@@ -903,6 +935,7 @@ export type CoursUncheckedCreateWithoutBranchInput = {
   teaching?: Prisma.TeachingUncheckedCreateNestedManyWithoutCoursInput
   period?: Prisma.periodUncheckedCreateNestedManyWithoutSubjectInput
   coursPonderations?: Prisma.CoursOptionPonderationUncheckedCreateNestedManyWithoutCoursInput
+  onlineAssignments?: Prisma.OnlineAssignmentUncheckedCreateNestedManyWithoutCoursInput
 }
 
 export type CoursCreateOrConnectWithoutBranchInput = {
@@ -931,6 +964,90 @@ export type CoursUpdateManyWithWhereWithoutBranchInput = {
   data: Prisma.XOR<Prisma.CoursUpdateManyMutationInput, Prisma.CoursUncheckedUpdateManyWithoutBranchInput>
 }
 
+export type CoursCreateWithoutOnlineAssignmentsInput = {
+  id?: string
+  codeCours: string
+  nameCours: string
+  description?: string | null
+  statusCours?: boolean | null
+  primaryDomain?: $Enums.PrimaryDomain | null
+  primarySection?: string | null
+  domainOrder?: number | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  teaching?: Prisma.TeachingCreateNestedManyWithoutCoursInput
+  period?: Prisma.periodCreateNestedManyWithoutSubjectInput
+  branch: Prisma.BranchCreateNestedOneWithoutCoursInput
+  coursPonderations?: Prisma.CoursOptionPonderationCreateNestedManyWithoutCoursInput
+}
+
+export type CoursUncheckedCreateWithoutOnlineAssignmentsInput = {
+  id?: string
+  codeCours: string
+  nameCours: string
+  description?: string | null
+  statusCours?: boolean | null
+  primaryDomain?: $Enums.PrimaryDomain | null
+  primarySection?: string | null
+  domainOrder?: number | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  branchId: string
+  teaching?: Prisma.TeachingUncheckedCreateNestedManyWithoutCoursInput
+  period?: Prisma.periodUncheckedCreateNestedManyWithoutSubjectInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedCreateNestedManyWithoutCoursInput
+}
+
+export type CoursCreateOrConnectWithoutOnlineAssignmentsInput = {
+  where: Prisma.CoursWhereUniqueInput
+  create: Prisma.XOR<Prisma.CoursCreateWithoutOnlineAssignmentsInput, Prisma.CoursUncheckedCreateWithoutOnlineAssignmentsInput>
+}
+
+export type CoursUpsertWithoutOnlineAssignmentsInput = {
+  update: Prisma.XOR<Prisma.CoursUpdateWithoutOnlineAssignmentsInput, Prisma.CoursUncheckedUpdateWithoutOnlineAssignmentsInput>
+  create: Prisma.XOR<Prisma.CoursCreateWithoutOnlineAssignmentsInput, Prisma.CoursUncheckedCreateWithoutOnlineAssignmentsInput>
+  where?: Prisma.CoursWhereInput
+}
+
+export type CoursUpdateToOneWithWhereWithoutOnlineAssignmentsInput = {
+  where?: Prisma.CoursWhereInput
+  data: Prisma.XOR<Prisma.CoursUpdateWithoutOnlineAssignmentsInput, Prisma.CoursUncheckedUpdateWithoutOnlineAssignmentsInput>
+}
+
+export type CoursUpdateWithoutOnlineAssignmentsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  codeCours?: Prisma.StringFieldUpdateOperationsInput | string
+  nameCours?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  statusCours?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  primaryDomain?: Prisma.NullableEnumPrimaryDomainFieldUpdateOperationsInput | $Enums.PrimaryDomain | null
+  primarySection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  domainOrder?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  teaching?: Prisma.TeachingUpdateManyWithoutCoursNestedInput
+  period?: Prisma.periodUpdateManyWithoutSubjectNestedInput
+  branch?: Prisma.BranchUpdateOneRequiredWithoutCoursNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUpdateManyWithoutCoursNestedInput
+}
+
+export type CoursUncheckedUpdateWithoutOnlineAssignmentsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  codeCours?: Prisma.StringFieldUpdateOperationsInput | string
+  nameCours?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  statusCours?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  primaryDomain?: Prisma.NullableEnumPrimaryDomainFieldUpdateOperationsInput | $Enums.PrimaryDomain | null
+  primarySection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  domainOrder?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  branchId?: Prisma.StringFieldUpdateOperationsInput | string
+  teaching?: Prisma.TeachingUncheckedUpdateManyWithoutCoursNestedInput
+  period?: Prisma.periodUncheckedUpdateManyWithoutSubjectNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedUpdateManyWithoutCoursNestedInput
+}
+
 export type CoursUpdateWithoutPeriodInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   codeCours?: Prisma.StringFieldUpdateOperationsInput | string
@@ -945,6 +1062,7 @@ export type CoursUpdateWithoutPeriodInput = {
   teaching?: Prisma.TeachingUpdateManyWithoutCoursNestedInput
   branch?: Prisma.BranchUpdateOneRequiredWithoutCoursNestedInput
   coursPonderations?: Prisma.CoursOptionPonderationUpdateManyWithoutCoursNestedInput
+  onlineAssignments?: Prisma.OnlineAssignmentUpdateManyWithoutCoursNestedInput
 }
 
 export type CoursUncheckedUpdateWithoutPeriodInput = {
@@ -961,6 +1079,7 @@ export type CoursUncheckedUpdateWithoutPeriodInput = {
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
   teaching?: Prisma.TeachingUncheckedUpdateManyWithoutCoursNestedInput
   coursPonderations?: Prisma.CoursOptionPonderationUncheckedUpdateManyWithoutCoursNestedInput
+  onlineAssignments?: Prisma.OnlineAssignmentUncheckedUpdateManyWithoutCoursNestedInput
 }
 
 export type CoursUncheckedUpdateManyWithoutPeriodInput = {
@@ -1004,6 +1123,7 @@ export type CoursUpdateWithoutBranchInput = {
   teaching?: Prisma.TeachingUpdateManyWithoutCoursNestedInput
   period?: Prisma.periodUpdateManyWithoutSubjectNestedInput
   coursPonderations?: Prisma.CoursOptionPonderationUpdateManyWithoutCoursNestedInput
+  onlineAssignments?: Prisma.OnlineAssignmentUpdateManyWithoutCoursNestedInput
 }
 
 export type CoursUncheckedUpdateWithoutBranchInput = {
@@ -1020,6 +1140,7 @@ export type CoursUncheckedUpdateWithoutBranchInput = {
   teaching?: Prisma.TeachingUncheckedUpdateManyWithoutCoursNestedInput
   period?: Prisma.periodUncheckedUpdateManyWithoutSubjectNestedInput
   coursPonderations?: Prisma.CoursOptionPonderationUncheckedUpdateManyWithoutCoursNestedInput
+  onlineAssignments?: Prisma.OnlineAssignmentUncheckedUpdateManyWithoutCoursNestedInput
 }
 
 export type CoursUncheckedUpdateManyWithoutBranchInput = {
@@ -1044,12 +1165,14 @@ export type CoursCountOutputType = {
   teaching: number
   period: number
   coursPonderations: number
+  onlineAssignments: number
 }
 
 export type CoursCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   teaching?: boolean | CoursCountOutputTypeCountTeachingArgs
   period?: boolean | CoursCountOutputTypeCountPeriodArgs
   coursPonderations?: boolean | CoursCountOutputTypeCountCoursPonderationsArgs
+  onlineAssignments?: boolean | CoursCountOutputTypeCountOnlineAssignmentsArgs
 }
 
 /**
@@ -1083,6 +1206,13 @@ export type CoursCountOutputTypeCountCoursPonderationsArgs<ExtArgs extends runti
   where?: Prisma.CoursOptionPonderationWhereInput
 }
 
+/**
+ * CoursCountOutputType without action
+ */
+export type CoursCountOutputTypeCountOnlineAssignmentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.OnlineAssignmentWhereInput
+}
+
 
 export type CoursSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1100,6 +1230,7 @@ export type CoursSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   period?: boolean | Prisma.Cours$periodArgs<ExtArgs>
   branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
   coursPonderations?: boolean | Prisma.Cours$coursPonderationsArgs<ExtArgs>
+  onlineAssignments?: boolean | Prisma.Cours$onlineAssignmentsArgs<ExtArgs>
   _count?: boolean | Prisma.CoursCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["cours"]>
 
@@ -1153,6 +1284,7 @@ export type CoursInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   period?: boolean | Prisma.Cours$periodArgs<ExtArgs>
   branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
   coursPonderations?: boolean | Prisma.Cours$coursPonderationsArgs<ExtArgs>
+  onlineAssignments?: boolean | Prisma.Cours$onlineAssignmentsArgs<ExtArgs>
   _count?: boolean | Prisma.CoursCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type CoursIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1169,6 +1301,7 @@ export type $CoursPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     period: Prisma.$periodPayload<ExtArgs>[]
     branch: Prisma.$BranchPayload<ExtArgs>
     coursPonderations: Prisma.$CoursOptionPonderationPayload<ExtArgs>[]
+    onlineAssignments: Prisma.$OnlineAssignmentPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1589,6 +1722,7 @@ export interface Prisma__CoursClient<T, Null = never, ExtArgs extends runtime.Ty
   period<T extends Prisma.Cours$periodArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Cours$periodArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$periodPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   branch<T extends Prisma.BranchDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.BranchDefaultArgs<ExtArgs>>): Prisma.Prisma__BranchClient<runtime.Types.Result.GetResult<Prisma.$BranchPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   coursPonderations<T extends Prisma.Cours$coursPonderationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Cours$coursPonderationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CoursOptionPonderationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  onlineAssignments<T extends Prisma.Cours$onlineAssignmentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Cours$onlineAssignmentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OnlineAssignmentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2099,6 +2233,30 @@ export type Cours$coursPonderationsArgs<ExtArgs extends runtime.Types.Extensions
   take?: number
   skip?: number
   distinct?: Prisma.CoursOptionPonderationScalarFieldEnum | Prisma.CoursOptionPonderationScalarFieldEnum[]
+}
+
+/**
+ * Cours.onlineAssignments
+ */
+export type Cours$onlineAssignmentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the OnlineAssignment
+   */
+  select?: Prisma.OnlineAssignmentSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the OnlineAssignment
+   */
+  omit?: Prisma.OnlineAssignmentOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.OnlineAssignmentInclude<ExtArgs> | null
+  where?: Prisma.OnlineAssignmentWhereInput
+  orderBy?: Prisma.OnlineAssignmentOrderByWithRelationInput | Prisma.OnlineAssignmentOrderByWithRelationInput[]
+  cursor?: Prisma.OnlineAssignmentWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.OnlineAssignmentScalarFieldEnum | Prisma.OnlineAssignmentScalarFieldEnum[]
 }
 
 /**

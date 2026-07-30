@@ -253,6 +253,7 @@ export type StudentWhereInput = {
   grades?: Prisma.StudentGradeListRelationFilter
   branchLinks?: Prisma.StudentBranchLinkListRelationFilter
   issuedDocuments?: Prisma.IssuedDocumentListRelationFilter
+  onlineSubmissions?: Prisma.OnlineSubmissionListRelationFilter
 }
 
 export type StudentOrderByWithRelationInput = {
@@ -276,6 +277,7 @@ export type StudentOrderByWithRelationInput = {
   grades?: Prisma.StudentGradeOrderByRelationAggregateInput
   branchLinks?: Prisma.StudentBranchLinkOrderByRelationAggregateInput
   issuedDocuments?: Prisma.IssuedDocumentOrderByRelationAggregateInput
+  onlineSubmissions?: Prisma.OnlineSubmissionOrderByRelationAggregateInput
 }
 
 export type StudentWhereUniqueInput = Prisma.AtLeast<{
@@ -302,6 +304,7 @@ export type StudentWhereUniqueInput = Prisma.AtLeast<{
   grades?: Prisma.StudentGradeListRelationFilter
   branchLinks?: Prisma.StudentBranchLinkListRelationFilter
   issuedDocuments?: Prisma.IssuedDocumentListRelationFilter
+  onlineSubmissions?: Prisma.OnlineSubmissionListRelationFilter
 }, "id" | "branchMemberId">
 
 export type StudentOrderByWithAggregationInput = {
@@ -361,6 +364,7 @@ export type StudentCreateInput = {
   grades?: Prisma.StudentGradeCreateNestedManyWithoutStudentInput
   branchLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutStudentInput
   issuedDocuments?: Prisma.IssuedDocumentCreateNestedManyWithoutStudentInput
+  onlineSubmissions?: Prisma.OnlineSubmissionCreateNestedManyWithoutStudentInput
 }
 
 export type StudentUncheckedCreateInput = {
@@ -382,6 +386,7 @@ export type StudentUncheckedCreateInput = {
   grades?: Prisma.StudentGradeUncheckedCreateNestedManyWithoutStudentInput
   branchLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutStudentInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedCreateNestedManyWithoutStudentInput
+  onlineSubmissions?: Prisma.OnlineSubmissionUncheckedCreateNestedManyWithoutStudentInput
 }
 
 export type StudentUpdateInput = {
@@ -403,6 +408,7 @@ export type StudentUpdateInput = {
   grades?: Prisma.StudentGradeUpdateManyWithoutStudentNestedInput
   branchLinks?: Prisma.StudentBranchLinkUpdateManyWithoutStudentNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUpdateManyWithoutStudentNestedInput
+  onlineSubmissions?: Prisma.OnlineSubmissionUpdateManyWithoutStudentNestedInput
 }
 
 export type StudentUncheckedUpdateInput = {
@@ -424,6 +430,7 @@ export type StudentUncheckedUpdateInput = {
   grades?: Prisma.StudentGradeUncheckedUpdateManyWithoutStudentNestedInput
   branchLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutStudentNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedUpdateManyWithoutStudentNestedInput
+  onlineSubmissions?: Prisma.OnlineSubmissionUncheckedUpdateManyWithoutStudentNestedInput
 }
 
 export type StudentCreateManyInput = {
@@ -700,6 +707,20 @@ export type StudentUpdateOneRequiredWithoutIssuedDocumentsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.StudentUpdateToOneWithWhereWithoutIssuedDocumentsInput, Prisma.StudentUpdateWithoutIssuedDocumentsInput>, Prisma.StudentUncheckedUpdateWithoutIssuedDocumentsInput>
 }
 
+export type StudentCreateNestedOneWithoutOnlineSubmissionsInput = {
+  create?: Prisma.XOR<Prisma.StudentCreateWithoutOnlineSubmissionsInput, Prisma.StudentUncheckedCreateWithoutOnlineSubmissionsInput>
+  connectOrCreate?: Prisma.StudentCreateOrConnectWithoutOnlineSubmissionsInput
+  connect?: Prisma.StudentWhereUniqueInput
+}
+
+export type StudentUpdateOneRequiredWithoutOnlineSubmissionsNestedInput = {
+  create?: Prisma.XOR<Prisma.StudentCreateWithoutOnlineSubmissionsInput, Prisma.StudentUncheckedCreateWithoutOnlineSubmissionsInput>
+  connectOrCreate?: Prisma.StudentCreateOrConnectWithoutOnlineSubmissionsInput
+  upsert?: Prisma.StudentUpsertWithoutOnlineSubmissionsInput
+  connect?: Prisma.StudentWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.StudentUpdateToOneWithWhereWithoutOnlineSubmissionsInput, Prisma.StudentUpdateWithoutOnlineSubmissionsInput>, Prisma.StudentUncheckedUpdateWithoutOnlineSubmissionsInput>
+}
+
 export type StudentCreateWithoutParentInput = {
   id?: string
   statusStudent?: boolean | null
@@ -718,6 +739,7 @@ export type StudentCreateWithoutParentInput = {
   grades?: Prisma.StudentGradeCreateNestedManyWithoutStudentInput
   branchLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutStudentInput
   issuedDocuments?: Prisma.IssuedDocumentCreateNestedManyWithoutStudentInput
+  onlineSubmissions?: Prisma.OnlineSubmissionCreateNestedManyWithoutStudentInput
 }
 
 export type StudentUncheckedCreateWithoutParentInput = {
@@ -738,6 +760,7 @@ export type StudentUncheckedCreateWithoutParentInput = {
   grades?: Prisma.StudentGradeUncheckedCreateNestedManyWithoutStudentInput
   branchLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutStudentInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedCreateNestedManyWithoutStudentInput
+  onlineSubmissions?: Prisma.OnlineSubmissionUncheckedCreateNestedManyWithoutStudentInput
 }
 
 export type StudentCreateOrConnectWithoutParentInput = {
@@ -803,6 +826,7 @@ export type StudentCreateWithoutStudentAttendanceInput = {
   grades?: Prisma.StudentGradeCreateNestedManyWithoutStudentInput
   branchLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutStudentInput
   issuedDocuments?: Prisma.IssuedDocumentCreateNestedManyWithoutStudentInput
+  onlineSubmissions?: Prisma.OnlineSubmissionCreateNestedManyWithoutStudentInput
 }
 
 export type StudentUncheckedCreateWithoutStudentAttendanceInput = {
@@ -823,6 +847,7 @@ export type StudentUncheckedCreateWithoutStudentAttendanceInput = {
   grades?: Prisma.StudentGradeUncheckedCreateNestedManyWithoutStudentInput
   branchLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutStudentInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedCreateNestedManyWithoutStudentInput
+  onlineSubmissions?: Prisma.OnlineSubmissionUncheckedCreateNestedManyWithoutStudentInput
 }
 
 export type StudentCreateOrConnectWithoutStudentAttendanceInput = {
@@ -859,6 +884,7 @@ export type StudentUpdateWithoutStudentAttendanceInput = {
   grades?: Prisma.StudentGradeUpdateManyWithoutStudentNestedInput
   branchLinks?: Prisma.StudentBranchLinkUpdateManyWithoutStudentNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUpdateManyWithoutStudentNestedInput
+  onlineSubmissions?: Prisma.OnlineSubmissionUpdateManyWithoutStudentNestedInput
 }
 
 export type StudentUncheckedUpdateWithoutStudentAttendanceInput = {
@@ -879,6 +905,7 @@ export type StudentUncheckedUpdateWithoutStudentAttendanceInput = {
   grades?: Prisma.StudentGradeUncheckedUpdateManyWithoutStudentNestedInput
   branchLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutStudentNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedUpdateManyWithoutStudentNestedInput
+  onlineSubmissions?: Prisma.OnlineSubmissionUncheckedUpdateManyWithoutStudentNestedInput
 }
 
 export type StudentCreateWithoutGradesInput = {
@@ -899,6 +926,7 @@ export type StudentCreateWithoutGradesInput = {
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutStudentInput
   branchLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutStudentInput
   issuedDocuments?: Prisma.IssuedDocumentCreateNestedManyWithoutStudentInput
+  onlineSubmissions?: Prisma.OnlineSubmissionCreateNestedManyWithoutStudentInput
 }
 
 export type StudentUncheckedCreateWithoutGradesInput = {
@@ -919,6 +947,7 @@ export type StudentUncheckedCreateWithoutGradesInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutStudentInput
   branchLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutStudentInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedCreateNestedManyWithoutStudentInput
+  onlineSubmissions?: Prisma.OnlineSubmissionUncheckedCreateNestedManyWithoutStudentInput
 }
 
 export type StudentCreateOrConnectWithoutGradesInput = {
@@ -955,6 +984,7 @@ export type StudentUpdateWithoutGradesInput = {
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutStudentNestedInput
   branchLinks?: Prisma.StudentBranchLinkUpdateManyWithoutStudentNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUpdateManyWithoutStudentNestedInput
+  onlineSubmissions?: Prisma.OnlineSubmissionUpdateManyWithoutStudentNestedInput
 }
 
 export type StudentUncheckedUpdateWithoutGradesInput = {
@@ -975,6 +1005,7 @@ export type StudentUncheckedUpdateWithoutGradesInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutStudentNestedInput
   branchLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutStudentNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedUpdateManyWithoutStudentNestedInput
+  onlineSubmissions?: Prisma.OnlineSubmissionUncheckedUpdateManyWithoutStudentNestedInput
 }
 
 export type StudentCreateWithoutClassEnrollmentInput = {
@@ -995,6 +1026,7 @@ export type StudentCreateWithoutClassEnrollmentInput = {
   grades?: Prisma.StudentGradeCreateNestedManyWithoutStudentInput
   branchLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutStudentInput
   issuedDocuments?: Prisma.IssuedDocumentCreateNestedManyWithoutStudentInput
+  onlineSubmissions?: Prisma.OnlineSubmissionCreateNestedManyWithoutStudentInput
 }
 
 export type StudentUncheckedCreateWithoutClassEnrollmentInput = {
@@ -1015,6 +1047,7 @@ export type StudentUncheckedCreateWithoutClassEnrollmentInput = {
   grades?: Prisma.StudentGradeUncheckedCreateNestedManyWithoutStudentInput
   branchLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutStudentInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedCreateNestedManyWithoutStudentInput
+  onlineSubmissions?: Prisma.OnlineSubmissionUncheckedCreateNestedManyWithoutStudentInput
 }
 
 export type StudentCreateOrConnectWithoutClassEnrollmentInput = {
@@ -1051,6 +1084,7 @@ export type StudentUpdateWithoutClassEnrollmentInput = {
   grades?: Prisma.StudentGradeUpdateManyWithoutStudentNestedInput
   branchLinks?: Prisma.StudentBranchLinkUpdateManyWithoutStudentNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUpdateManyWithoutStudentNestedInput
+  onlineSubmissions?: Prisma.OnlineSubmissionUpdateManyWithoutStudentNestedInput
 }
 
 export type StudentUncheckedUpdateWithoutClassEnrollmentInput = {
@@ -1071,6 +1105,7 @@ export type StudentUncheckedUpdateWithoutClassEnrollmentInput = {
   grades?: Prisma.StudentGradeUncheckedUpdateManyWithoutStudentNestedInput
   branchLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutStudentNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedUpdateManyWithoutStudentNestedInput
+  onlineSubmissions?: Prisma.OnlineSubmissionUncheckedUpdateManyWithoutStudentNestedInput
 }
 
 export type StudentCreateWithoutBranchMemberInput = {
@@ -1091,6 +1126,7 @@ export type StudentCreateWithoutBranchMemberInput = {
   grades?: Prisma.StudentGradeCreateNestedManyWithoutStudentInput
   branchLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutStudentInput
   issuedDocuments?: Prisma.IssuedDocumentCreateNestedManyWithoutStudentInput
+  onlineSubmissions?: Prisma.OnlineSubmissionCreateNestedManyWithoutStudentInput
 }
 
 export type StudentUncheckedCreateWithoutBranchMemberInput = {
@@ -1111,6 +1147,7 @@ export type StudentUncheckedCreateWithoutBranchMemberInput = {
   grades?: Prisma.StudentGradeUncheckedCreateNestedManyWithoutStudentInput
   branchLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutStudentInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedCreateNestedManyWithoutStudentInput
+  onlineSubmissions?: Prisma.OnlineSubmissionUncheckedCreateNestedManyWithoutStudentInput
 }
 
 export type StudentCreateOrConnectWithoutBranchMemberInput = {
@@ -1157,6 +1194,7 @@ export type StudentCreateWithoutBranchLinksInput = {
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutStudentInput
   grades?: Prisma.StudentGradeCreateNestedManyWithoutStudentInput
   issuedDocuments?: Prisma.IssuedDocumentCreateNestedManyWithoutStudentInput
+  onlineSubmissions?: Prisma.OnlineSubmissionCreateNestedManyWithoutStudentInput
 }
 
 export type StudentUncheckedCreateWithoutBranchLinksInput = {
@@ -1177,6 +1215,7 @@ export type StudentUncheckedCreateWithoutBranchLinksInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutStudentInput
   grades?: Prisma.StudentGradeUncheckedCreateNestedManyWithoutStudentInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedCreateNestedManyWithoutStudentInput
+  onlineSubmissions?: Prisma.OnlineSubmissionUncheckedCreateNestedManyWithoutStudentInput
 }
 
 export type StudentCreateOrConnectWithoutBranchLinksInput = {
@@ -1213,6 +1252,7 @@ export type StudentUpdateWithoutBranchLinksInput = {
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutStudentNestedInput
   grades?: Prisma.StudentGradeUpdateManyWithoutStudentNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUpdateManyWithoutStudentNestedInput
+  onlineSubmissions?: Prisma.OnlineSubmissionUpdateManyWithoutStudentNestedInput
 }
 
 export type StudentUncheckedUpdateWithoutBranchLinksInput = {
@@ -1233,6 +1273,7 @@ export type StudentUncheckedUpdateWithoutBranchLinksInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutStudentNestedInput
   grades?: Prisma.StudentGradeUncheckedUpdateManyWithoutStudentNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedUpdateManyWithoutStudentNestedInput
+  onlineSubmissions?: Prisma.OnlineSubmissionUncheckedUpdateManyWithoutStudentNestedInput
 }
 
 export type StudentCreateWithoutIssuedDocumentsInput = {
@@ -1253,6 +1294,7 @@ export type StudentCreateWithoutIssuedDocumentsInput = {
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutStudentInput
   grades?: Prisma.StudentGradeCreateNestedManyWithoutStudentInput
   branchLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutStudentInput
+  onlineSubmissions?: Prisma.OnlineSubmissionCreateNestedManyWithoutStudentInput
 }
 
 export type StudentUncheckedCreateWithoutIssuedDocumentsInput = {
@@ -1273,6 +1315,7 @@ export type StudentUncheckedCreateWithoutIssuedDocumentsInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutStudentInput
   grades?: Prisma.StudentGradeUncheckedCreateNestedManyWithoutStudentInput
   branchLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutStudentInput
+  onlineSubmissions?: Prisma.OnlineSubmissionUncheckedCreateNestedManyWithoutStudentInput
 }
 
 export type StudentCreateOrConnectWithoutIssuedDocumentsInput = {
@@ -1309,6 +1352,7 @@ export type StudentUpdateWithoutIssuedDocumentsInput = {
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutStudentNestedInput
   grades?: Prisma.StudentGradeUpdateManyWithoutStudentNestedInput
   branchLinks?: Prisma.StudentBranchLinkUpdateManyWithoutStudentNestedInput
+  onlineSubmissions?: Prisma.OnlineSubmissionUpdateManyWithoutStudentNestedInput
 }
 
 export type StudentUncheckedUpdateWithoutIssuedDocumentsInput = {
@@ -1329,6 +1373,107 @@ export type StudentUncheckedUpdateWithoutIssuedDocumentsInput = {
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutStudentNestedInput
   grades?: Prisma.StudentGradeUncheckedUpdateManyWithoutStudentNestedInput
   branchLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutStudentNestedInput
+  onlineSubmissions?: Prisma.OnlineSubmissionUncheckedUpdateManyWithoutStudentNestedInput
+}
+
+export type StudentCreateWithoutOnlineSubmissionsInput = {
+  id?: string
+  statusStudent?: boolean | null
+  observation?: string | null
+  provenanceEcole?: string | null
+  placeOfBirth?: string | null
+  suppositionClasseName?: string | null
+  suppositionSection?: string | null
+  suppositionOption?: string | null
+  category?: $Enums.StudentCategory
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  parent: Prisma.ParentCreateNestedOneWithoutStudentsInput
+  classEnrollment?: Prisma.ClassEnrollmentCreateNestedManyWithoutStudentInput
+  branchMember: Prisma.BranchMemberCreateNestedOneWithoutStudentInput
+  studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutStudentInput
+  grades?: Prisma.StudentGradeCreateNestedManyWithoutStudentInput
+  branchLinks?: Prisma.StudentBranchLinkCreateNestedManyWithoutStudentInput
+  issuedDocuments?: Prisma.IssuedDocumentCreateNestedManyWithoutStudentInput
+}
+
+export type StudentUncheckedCreateWithoutOnlineSubmissionsInput = {
+  id?: string
+  branchMemberId: string
+  parentId: string
+  statusStudent?: boolean | null
+  observation?: string | null
+  provenanceEcole?: string | null
+  placeOfBirth?: string | null
+  suppositionClasseName?: string | null
+  suppositionSection?: string | null
+  suppositionOption?: string | null
+  category?: $Enums.StudentCategory
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  classEnrollment?: Prisma.ClassEnrollmentUncheckedCreateNestedManyWithoutStudentInput
+  studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutStudentInput
+  grades?: Prisma.StudentGradeUncheckedCreateNestedManyWithoutStudentInput
+  branchLinks?: Prisma.StudentBranchLinkUncheckedCreateNestedManyWithoutStudentInput
+  issuedDocuments?: Prisma.IssuedDocumentUncheckedCreateNestedManyWithoutStudentInput
+}
+
+export type StudentCreateOrConnectWithoutOnlineSubmissionsInput = {
+  where: Prisma.StudentWhereUniqueInput
+  create: Prisma.XOR<Prisma.StudentCreateWithoutOnlineSubmissionsInput, Prisma.StudentUncheckedCreateWithoutOnlineSubmissionsInput>
+}
+
+export type StudentUpsertWithoutOnlineSubmissionsInput = {
+  update: Prisma.XOR<Prisma.StudentUpdateWithoutOnlineSubmissionsInput, Prisma.StudentUncheckedUpdateWithoutOnlineSubmissionsInput>
+  create: Prisma.XOR<Prisma.StudentCreateWithoutOnlineSubmissionsInput, Prisma.StudentUncheckedCreateWithoutOnlineSubmissionsInput>
+  where?: Prisma.StudentWhereInput
+}
+
+export type StudentUpdateToOneWithWhereWithoutOnlineSubmissionsInput = {
+  where?: Prisma.StudentWhereInput
+  data: Prisma.XOR<Prisma.StudentUpdateWithoutOnlineSubmissionsInput, Prisma.StudentUncheckedUpdateWithoutOnlineSubmissionsInput>
+}
+
+export type StudentUpdateWithoutOnlineSubmissionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  statusStudent?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  observation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  provenanceEcole?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  placeOfBirth?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  suppositionClasseName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  suppositionSection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  suppositionOption?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  category?: Prisma.EnumStudentCategoryFieldUpdateOperationsInput | $Enums.StudentCategory
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  parent?: Prisma.ParentUpdateOneRequiredWithoutStudentsNestedInput
+  classEnrollment?: Prisma.ClassEnrollmentUpdateManyWithoutStudentNestedInput
+  branchMember?: Prisma.BranchMemberUpdateOneRequiredWithoutStudentNestedInput
+  studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutStudentNestedInput
+  grades?: Prisma.StudentGradeUpdateManyWithoutStudentNestedInput
+  branchLinks?: Prisma.StudentBranchLinkUpdateManyWithoutStudentNestedInput
+  issuedDocuments?: Prisma.IssuedDocumentUpdateManyWithoutStudentNestedInput
+}
+
+export type StudentUncheckedUpdateWithoutOnlineSubmissionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  branchMemberId?: Prisma.StringFieldUpdateOperationsInput | string
+  parentId?: Prisma.StringFieldUpdateOperationsInput | string
+  statusStudent?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  observation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  provenanceEcole?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  placeOfBirth?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  suppositionClasseName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  suppositionSection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  suppositionOption?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  category?: Prisma.EnumStudentCategoryFieldUpdateOperationsInput | $Enums.StudentCategory
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  classEnrollment?: Prisma.ClassEnrollmentUncheckedUpdateManyWithoutStudentNestedInput
+  studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutStudentNestedInput
+  grades?: Prisma.StudentGradeUncheckedUpdateManyWithoutStudentNestedInput
+  branchLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutStudentNestedInput
+  issuedDocuments?: Prisma.IssuedDocumentUncheckedUpdateManyWithoutStudentNestedInput
 }
 
 export type StudentCreateManyParentInput = {
@@ -1364,6 +1509,7 @@ export type StudentUpdateWithoutParentInput = {
   grades?: Prisma.StudentGradeUpdateManyWithoutStudentNestedInput
   branchLinks?: Prisma.StudentBranchLinkUpdateManyWithoutStudentNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUpdateManyWithoutStudentNestedInput
+  onlineSubmissions?: Prisma.OnlineSubmissionUpdateManyWithoutStudentNestedInput
 }
 
 export type StudentUncheckedUpdateWithoutParentInput = {
@@ -1384,6 +1530,7 @@ export type StudentUncheckedUpdateWithoutParentInput = {
   grades?: Prisma.StudentGradeUncheckedUpdateManyWithoutStudentNestedInput
   branchLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutStudentNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedUpdateManyWithoutStudentNestedInput
+  onlineSubmissions?: Prisma.OnlineSubmissionUncheckedUpdateManyWithoutStudentNestedInput
 }
 
 export type StudentUncheckedUpdateManyWithoutParentInput = {
@@ -1434,6 +1581,7 @@ export type StudentUpdateWithoutBranchMemberInput = {
   grades?: Prisma.StudentGradeUpdateManyWithoutStudentNestedInput
   branchLinks?: Prisma.StudentBranchLinkUpdateManyWithoutStudentNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUpdateManyWithoutStudentNestedInput
+  onlineSubmissions?: Prisma.OnlineSubmissionUpdateManyWithoutStudentNestedInput
 }
 
 export type StudentUncheckedUpdateWithoutBranchMemberInput = {
@@ -1454,6 +1602,7 @@ export type StudentUncheckedUpdateWithoutBranchMemberInput = {
   grades?: Prisma.StudentGradeUncheckedUpdateManyWithoutStudentNestedInput
   branchLinks?: Prisma.StudentBranchLinkUncheckedUpdateManyWithoutStudentNestedInput
   issuedDocuments?: Prisma.IssuedDocumentUncheckedUpdateManyWithoutStudentNestedInput
+  onlineSubmissions?: Prisma.OnlineSubmissionUncheckedUpdateManyWithoutStudentNestedInput
 }
 
 export type StudentUncheckedUpdateManyWithoutBranchMemberInput = {
@@ -1482,6 +1631,7 @@ export type StudentCountOutputType = {
   grades: number
   branchLinks: number
   issuedDocuments: number
+  onlineSubmissions: number
 }
 
 export type StudentCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1490,6 +1640,7 @@ export type StudentCountOutputTypeSelect<ExtArgs extends runtime.Types.Extension
   grades?: boolean | StudentCountOutputTypeCountGradesArgs
   branchLinks?: boolean | StudentCountOutputTypeCountBranchLinksArgs
   issuedDocuments?: boolean | StudentCountOutputTypeCountIssuedDocumentsArgs
+  onlineSubmissions?: boolean | StudentCountOutputTypeCountOnlineSubmissionsArgs
 }
 
 /**
@@ -1537,6 +1688,13 @@ export type StudentCountOutputTypeCountIssuedDocumentsArgs<ExtArgs extends runti
   where?: Prisma.IssuedDocumentWhereInput
 }
 
+/**
+ * StudentCountOutputType without action
+ */
+export type StudentCountOutputTypeCountOnlineSubmissionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.OnlineSubmissionWhereInput
+}
+
 
 export type StudentSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1559,6 +1717,7 @@ export type StudentSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   grades?: boolean | Prisma.Student$gradesArgs<ExtArgs>
   branchLinks?: boolean | Prisma.Student$branchLinksArgs<ExtArgs>
   issuedDocuments?: boolean | Prisma.Student$issuedDocumentsArgs<ExtArgs>
+  onlineSubmissions?: boolean | Prisma.Student$onlineSubmissionsArgs<ExtArgs>
   _count?: boolean | Prisma.StudentCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["student"]>
 
@@ -1623,6 +1782,7 @@ export type StudentInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs
   grades?: boolean | Prisma.Student$gradesArgs<ExtArgs>
   branchLinks?: boolean | Prisma.Student$branchLinksArgs<ExtArgs>
   issuedDocuments?: boolean | Prisma.Student$issuedDocumentsArgs<ExtArgs>
+  onlineSubmissions?: boolean | Prisma.Student$onlineSubmissionsArgs<ExtArgs>
   _count?: boolean | Prisma.StudentCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type StudentIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1644,6 +1804,7 @@ export type $StudentPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     grades: Prisma.$StudentGradePayload<ExtArgs>[]
     branchLinks: Prisma.$StudentBranchLinkPayload<ExtArgs>[]
     issuedDocuments: Prisma.$IssuedDocumentPayload<ExtArgs>[]
+    onlineSubmissions: Prisma.$OnlineSubmissionPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -2060,6 +2221,7 @@ export interface Prisma__StudentClient<T, Null = never, ExtArgs extends runtime.
   grades<T extends Prisma.Student$gradesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Student$gradesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$StudentGradePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   branchLinks<T extends Prisma.Student$branchLinksArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Student$branchLinksArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$StudentBranchLinkPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   issuedDocuments<T extends Prisma.Student$issuedDocumentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Student$issuedDocumentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$IssuedDocumentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  onlineSubmissions<T extends Prisma.Student$onlineSubmissionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Student$onlineSubmissionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OnlineSubmissionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2620,6 +2782,30 @@ export type Student$issuedDocumentsArgs<ExtArgs extends runtime.Types.Extensions
   take?: number
   skip?: number
   distinct?: Prisma.IssuedDocumentScalarFieldEnum | Prisma.IssuedDocumentScalarFieldEnum[]
+}
+
+/**
+ * Student.onlineSubmissions
+ */
+export type Student$onlineSubmissionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the OnlineSubmission
+   */
+  select?: Prisma.OnlineSubmissionSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the OnlineSubmission
+   */
+  omit?: Prisma.OnlineSubmissionOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.OnlineSubmissionInclude<ExtArgs> | null
+  where?: Prisma.OnlineSubmissionWhereInput
+  orderBy?: Prisma.OnlineSubmissionOrderByWithRelationInput | Prisma.OnlineSubmissionOrderByWithRelationInput[]
+  cursor?: Prisma.OnlineSubmissionWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.OnlineSubmissionScalarFieldEnum | Prisma.OnlineSubmissionScalarFieldEnum[]
 }
 
 /**

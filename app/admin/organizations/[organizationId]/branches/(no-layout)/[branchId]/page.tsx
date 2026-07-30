@@ -38,6 +38,7 @@ import {
   PedagogyMetricsSection,
   SchoolStatsSection,
   ShortcutsSection,
+  StudentFicheSection,
   StudentIdentitySection,
   TeacherSpaceSection,
 } from "./dashboard-sections";
@@ -134,6 +135,7 @@ export default function AdminDashboard() {
     assignmentCount: number;
   } | null>(null);
   const [student, setStudent] = useState<{
+    studentId: string;
     name: string;
     className: string | null;
     schoolYear: string | null;
@@ -266,6 +268,8 @@ export default function AdminDashboard() {
                       firstChildId: parent?.children[0]?.id ?? null,
                     }
                   : null,
+            studentProfileId:
+              variant === "student" ? (student?.studentId ?? null) : null,
           })
         : [],
     [
@@ -278,6 +282,7 @@ export default function AdminDashboard() {
       showFinanceCapability,
       canAccessFinance,
       parent,
+      student,
     ],
   );
 
@@ -484,13 +489,22 @@ export default function AdminDashboard() {
           ) : null}
 
           {variant === "student" ? (
-            <StudentIdentitySection
-              loading={loading}
-              name={student?.name ?? null}
-              className={student?.className ?? null}
-              schoolYear={student?.schoolYear ?? null}
-              studentLabel={peopleLabels.student}
-            />
+            <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(260px,0.9fr)]">
+              <StudentIdentitySection
+                loading={loading}
+                name={student?.name ?? null}
+                className={student?.className ?? null}
+                schoolYear={student?.schoolYear ?? null}
+                studentLabel={peopleLabels.student}
+              />
+              <StudentFicheSection
+                loading={loading}
+                studentId={student?.studentId ?? null}
+                name={student?.name ?? null}
+                className={student?.className ?? null}
+                studentLabel={peopleLabels.student}
+              />
+            </div>
           ) : null}
 
           {variant === "parent" ? (

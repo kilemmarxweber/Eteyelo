@@ -4,11 +4,11 @@ import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { BookOpen, LibraryBig, Plus, Search } from "lucide-react";
 
+import { Layout, LayoutBody } from "@/components/custom/layout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Input } from "@/components/ui/input";
-import { PageHeader } from "@/components/ui/page-header";
 import {
   Select,
   SelectContent,
@@ -18,10 +18,10 @@ import {
 } from "@/components/ui/select";
 import type { LibraryAccessMode } from "@/lib/library/access";
 import { getLibraryTaxonomy } from "@/lib/library/taxonomy";
+import type { LibraryBookCardData } from "@/components/library/book-card";
 
-import { BookCard, type LibraryBookCardData } from "@/components/library/book-card";
 import { BookFormDialog } from "./components/book-form-dialog";
-import { BooksAdminTable } from "./components/books-admin-table";
+import { BooksShelf } from "./components/books-shelf";
 
 export type LibraryBookListItem = LibraryBookCardData & {
   isActive?: boolean;
@@ -78,134 +78,143 @@ export function BibliothequeClient({
   };
 
   return (
-    <div className="space-y-6 p-4 md:p-6">
-      <PageHeader
-        title="Bibliothèque"
-        description={
-          mode === "manage"
-            ? taxonomy.pageDescriptionManage
-            : taxonomy.pageDescriptionRead
-        }
-        badge={
-          <Badge variant="secondary" className="gap-1">
-            <LibraryBig className="size-3.5" />
-            {initialBooks.length} livre{initialBooks.length === 1 ? "" : "s"}
-          </Badge>
-        }
-        actions={
-          mode === "manage" ? (
-            <Button onClick={() => setCreateOpen(true)} className="gap-2">
-              <Plus className="size-4" />
-              Ajouter un livre
-            </Button>
-          ) : null
-        }
-      />
-
-      <div className="flex flex-col gap-3 rounded-xl border border-border bg-card p-3 shadow-sm lg:flex-row lg:items-center">
-        <div className="relative flex-1">
-          <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Rechercher un titre, auteur, matière…"
-            className="pl-9"
-          />
+    <Layout>
+      <LayoutBody className="flex flex-col gap-0 pt-0 md:pt-0">
+        <div className="sticky top-0 z-20 -mx-4 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 md:-mx-8">
+          <header className="px-4 py-2 md:px-8">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <div className="min-w-0 flex-1 space-y-0.5">
+                <div className="flex min-w-0 flex-wrap items-center gap-1.5">
+                  <h1 className="truncate text-base font-bold tracking-tight text-foreground md:text-lg">
+                    Bibliothèque
+                  </h1>
+                  <Badge variant="secondary" className="h-5 gap-1 px-1.5 text-[10px]">
+                    <LibraryBig className="size-3" />
+                    {initialBooks.length} livre
+                    {initialBooks.length === 1 ? "" : "s"}
+                  </Badge>
+                </div>
+                <p className="truncate text-xs leading-snug text-muted-foreground md:text-sm">
+                  {mode === "manage"
+                    ? taxonomy.pageDescriptionManage
+                    : taxonomy.pageDescriptionRead}
+                </p>
+              </div>
+              {mode === "manage" ? (
+                <div className="flex shrink-0">
+                  <Button
+                    size="sm"
+                    onClick={() => setCreateOpen(true)}
+                    className="gap-1.5"
+                    disabled={pending}
+                  >
+                    <Plus className="size-3.5" />
+                    Ajouter un livre
+                  </Button>
+                </div>
+              ) : null}
+            </div>
+          </header>
+          <div className="h-3 bg-background" aria-hidden />
         </div>
-        {taxonomy.cycles.length > 1 ? (
-          <Select value={cycle} onValueChange={setCycle}>
-            <SelectTrigger className="w-full sm:w-[200px]">
-              <SelectValue placeholder="Cycle" />
+
+        <div className="min-w-0 space-y-5 pb-4 pt-1">
+        <div className="flex flex-col gap-3 rounded-xl border border-border bg-card p-3 shadow-sm lg:flex-row lg:items-center">
+          <div className="relative flex-1">
+            <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Rechercher un titre, auteur, matière…"
+              className="bg-background pl-9"
+            />
+          </div>
+          {taxonomy.cycles.length > 1 ? (
+            <Select value={cycle} onValueChange={setCycle}>
+              <SelectTrigger className="w-full bg-background sm:w-[200px]">
+                <SelectValue placeholder="Cycle" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tous les cycles</SelectItem>
+                {taxonomy.cycles.map((item) => (
+                  <SelectItem key={item.value} value={item.value}>
+                    {item.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          ) : null}
+          <Select value={level} onValueChange={setLevel}>
+            <SelectTrigger className="w-full bg-background sm:w-[200px]">
+              <SelectValue placeholder="Niveau" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Tous les cycles</SelectItem>
-              {taxonomy.cycles.map((item) => (
-                <SelectItem key={item.value} value={item.value}>
-                  {item.label}
+              <SelectItem value="all">Tous les niveaux</SelectItem>
+              {taxonomy.levels.map((item) => (
+                <SelectItem key={item} value={item}>
+                  {item}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
-        ) : null}
-        <Select value={level} onValueChange={setLevel}>
-          <SelectTrigger className="w-full sm:w-[200px]">
-            <SelectValue placeholder="Niveau" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Tous les niveaux</SelectItem>
-            {taxonomy.levels.map((item) => (
-              <SelectItem key={item} value={item}>
-                {item}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Select value={subject} onValueChange={setSubject}>
-          <SelectTrigger className="w-full sm:w-[200px]">
-            <SelectValue placeholder="Matière" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Toutes les matières</SelectItem>
-            {taxonomy.subjects.map((item) => (
-              <SelectItem key={item} value={item}>
-                {item}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      {filtered.length === 0 ? (
-        <EmptyState
-          icon={BookOpen}
-          title={
-            initialBooks.length === 0
-              ? "Aucun livre pour le moment"
-              : "Aucun résultat"
-          }
-          description={
-            mode === "manage"
-              ? `Ajoutez un manuel PDF ou EPUB pour les ${taxonomy.readerPluralLower}.`
-              : "Aucun manuel ne correspond à vos filtres."
-          }
-          action={
-            mode === "manage" ? (
-              <Button onClick={() => setCreateOpen(true)} className="gap-2">
-                <Plus className="size-4" />
-                Ajouter un livre
-              </Button>
-            ) : undefined
-          }
-        />
-      ) : mode === "manage" ? (
-        <BooksAdminTable
-          books={filtered}
-          basePath={basePath}
-          onChanged={refresh}
-          pending={pending}
-          typebranch={typebranch}
-        />
-      ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {filtered.map((book) => (
-            <BookCard
-              key={book.id}
-              book={book}
-              href={`${basePath}/${book.id}`}
-            />
-          ))}
+          <Select value={subject} onValueChange={setSubject}>
+            <SelectTrigger className="w-full bg-background sm:w-[200px]">
+              <SelectValue placeholder="Matière" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Toutes les matières</SelectItem>
+              {taxonomy.subjects.map((item) => (
+                <SelectItem key={item} value={item}>
+                  {item}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
-      )}
 
-      {mode === "manage" ? (
-        <BookFormDialog
-          open={createOpen}
-          onOpenChange={setCreateOpen}
-          mode="create"
-          typebranch={typebranch}
-          onSuccess={refresh}
-        />
-      ) : null}
-    </div>
+        {filtered.length === 0 ? (
+          <EmptyState
+            icon={BookOpen}
+            title={
+              initialBooks.length === 0
+                ? "Aucun livre pour le moment"
+                : "Aucun résultat"
+            }
+            description={
+              mode === "manage"
+                ? `Ajoutez un manuel PDF ou EPUB pour les ${taxonomy.readerPluralLower}.`
+                : "Aucun manuel ne correspond à vos filtres."
+            }
+            action={
+              mode === "manage" ? (
+                <Button onClick={() => setCreateOpen(true)} className="gap-2">
+                  <Plus className="size-4" />
+                  Ajouter un livre
+                </Button>
+              ) : undefined
+            }
+          />
+        ) : (
+          <BooksShelf
+            books={filtered}
+            basePath={basePath}
+            mode={mode}
+            typebranch={typebranch}
+            onChanged={refresh}
+          />
+        )}
+
+        {mode === "manage" ? (
+          <BookFormDialog
+            open={createOpen}
+            onOpenChange={setCreateOpen}
+            mode="create"
+            typebranch={typebranch}
+            onSuccess={refresh}
+          />
+        ) : null}
+        </div>
+      </LayoutBody>
+    </Layout>
   );
 }

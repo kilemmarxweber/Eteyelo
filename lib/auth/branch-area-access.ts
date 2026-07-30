@@ -1,5 +1,6 @@
 import {
   canAccessBranchOrgSettings,
+  canAccessDevoirsArea,
   canAccessFinanceArea,
   canAccessLibraryArea,
   canAccessNotesReadArea,
@@ -26,6 +27,7 @@ export type BranchArea =
   | "teaching"
   | "pedagogy"
   | "results"
+  | "devoirs"
   | "library"
   | "school_admin"
   | "registration"
@@ -59,6 +61,8 @@ export function canAccessBranchArea(
       return canAccessStudentDirectory(session);
     case "results":
       return canAccessResultsArea(session);
+    case "devoirs":
+      return canAccessDevoirsArea(session);
     case "library":
       return canAccessLibraryArea(session);
     case "hr_directory":

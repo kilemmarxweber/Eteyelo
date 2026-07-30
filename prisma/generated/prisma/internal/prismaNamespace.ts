@@ -444,7 +444,13 @@ export const ModelName = {
   PlatformSupportAgent: 'PlatformSupportAgent',
   OrganizationSupportAgent: 'OrganizationSupportAgent',
   OrganizationSupportBranchScope: 'OrganizationSupportBranchScope',
-  PlatformSupportEscalation: 'PlatformSupportEscalation'
+  PlatformSupportEscalation: 'PlatformSupportEscalation',
+  OnlineAssignment: 'OnlineAssignment',
+  OnlineQuestion: 'OnlineQuestion',
+  OnlineQuestionOption: 'OnlineQuestionOption',
+  OnlineSubmission: 'OnlineSubmission',
+  OnlineAnswer: 'OnlineAnswer',
+  OnlineSubmissionFile: 'OnlineSubmissionFile'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -460,7 +466,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "parent" | "student" | "attendanceSession" | "studentAttendance" | "teacherAttendance" | "personnelAttendance" | "parentFeedback" | "studentGrade" | "personnel" | "frais" | "typeFrais" | "classe" | "creneau" | "option" | "section" | "schoolYear" | "classEnrollment" | "teacher" | "teaching" | "cours" | "coursOptionPonderation" | "schedule" | "calendarEvent" | "eventType" | "semester" | "period" | "periodResultLock" | "fiche" | "invoice" | "paymentBatch" | "familyPayment" | "cashierExpense" | "cashierOpeningBalance" | "exchangeRate" | "paymentAllocation" | "mobileMoneyTransaction" | "paymentEvent" | "discountRule" | "transaction" | "session" | "account" | "verification" | "organization" | "organizationRole" | "member" | "invitation" | "branch" | "branchRegistrationInfo" | "registrationRequest" | "jobApplication" | "partnaire" | "branchMember" | "studentBranchLink" | "issuedDocument" | "branchInvitation" | "libraryBook" | "platformSupportAgent" | "organizationSupportAgent" | "organizationSupportBranchScope" | "platformSupportEscalation"
+    modelProps: "user" | "parent" | "student" | "attendanceSession" | "studentAttendance" | "teacherAttendance" | "personnelAttendance" | "parentFeedback" | "studentGrade" | "personnel" | "frais" | "typeFrais" | "classe" | "creneau" | "option" | "section" | "schoolYear" | "classEnrollment" | "teacher" | "teaching" | "cours" | "coursOptionPonderation" | "schedule" | "calendarEvent" | "eventType" | "semester" | "period" | "periodResultLock" | "fiche" | "invoice" | "paymentBatch" | "familyPayment" | "cashierExpense" | "cashierOpeningBalance" | "exchangeRate" | "paymentAllocation" | "mobileMoneyTransaction" | "paymentEvent" | "discountRule" | "transaction" | "session" | "account" | "verification" | "organization" | "organizationRole" | "member" | "invitation" | "branch" | "branchRegistrationInfo" | "registrationRequest" | "jobApplication" | "partnaire" | "branchMember" | "studentBranchLink" | "issuedDocument" | "branchInvitation" | "libraryBook" | "platformSupportAgent" | "organizationSupportAgent" | "organizationSupportBranchScope" | "platformSupportEscalation" | "onlineAssignment" | "onlineQuestion" | "onlineQuestionOption" | "onlineSubmission" | "onlineAnswer" | "onlineSubmissionFile"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -4978,6 +4984,450 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    OnlineAssignment: {
+      payload: Prisma.$OnlineAssignmentPayload<ExtArgs>
+      fields: Prisma.OnlineAssignmentFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.OnlineAssignmentFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OnlineAssignmentPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.OnlineAssignmentFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OnlineAssignmentPayload>
+        }
+        findFirst: {
+          args: Prisma.OnlineAssignmentFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OnlineAssignmentPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.OnlineAssignmentFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OnlineAssignmentPayload>
+        }
+        findMany: {
+          args: Prisma.OnlineAssignmentFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OnlineAssignmentPayload>[]
+        }
+        create: {
+          args: Prisma.OnlineAssignmentCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OnlineAssignmentPayload>
+        }
+        createMany: {
+          args: Prisma.OnlineAssignmentCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.OnlineAssignmentCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OnlineAssignmentPayload>[]
+        }
+        delete: {
+          args: Prisma.OnlineAssignmentDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OnlineAssignmentPayload>
+        }
+        update: {
+          args: Prisma.OnlineAssignmentUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OnlineAssignmentPayload>
+        }
+        deleteMany: {
+          args: Prisma.OnlineAssignmentDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.OnlineAssignmentUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.OnlineAssignmentUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OnlineAssignmentPayload>[]
+        }
+        upsert: {
+          args: Prisma.OnlineAssignmentUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OnlineAssignmentPayload>
+        }
+        aggregate: {
+          args: Prisma.OnlineAssignmentAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateOnlineAssignment>
+        }
+        groupBy: {
+          args: Prisma.OnlineAssignmentGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.OnlineAssignmentGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.OnlineAssignmentCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.OnlineAssignmentCountAggregateOutputType> | number
+        }
+      }
+    }
+    OnlineQuestion: {
+      payload: Prisma.$OnlineQuestionPayload<ExtArgs>
+      fields: Prisma.OnlineQuestionFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.OnlineQuestionFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OnlineQuestionPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.OnlineQuestionFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OnlineQuestionPayload>
+        }
+        findFirst: {
+          args: Prisma.OnlineQuestionFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OnlineQuestionPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.OnlineQuestionFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OnlineQuestionPayload>
+        }
+        findMany: {
+          args: Prisma.OnlineQuestionFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OnlineQuestionPayload>[]
+        }
+        create: {
+          args: Prisma.OnlineQuestionCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OnlineQuestionPayload>
+        }
+        createMany: {
+          args: Prisma.OnlineQuestionCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.OnlineQuestionCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OnlineQuestionPayload>[]
+        }
+        delete: {
+          args: Prisma.OnlineQuestionDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OnlineQuestionPayload>
+        }
+        update: {
+          args: Prisma.OnlineQuestionUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OnlineQuestionPayload>
+        }
+        deleteMany: {
+          args: Prisma.OnlineQuestionDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.OnlineQuestionUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.OnlineQuestionUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OnlineQuestionPayload>[]
+        }
+        upsert: {
+          args: Prisma.OnlineQuestionUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OnlineQuestionPayload>
+        }
+        aggregate: {
+          args: Prisma.OnlineQuestionAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateOnlineQuestion>
+        }
+        groupBy: {
+          args: Prisma.OnlineQuestionGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.OnlineQuestionGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.OnlineQuestionCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.OnlineQuestionCountAggregateOutputType> | number
+        }
+      }
+    }
+    OnlineQuestionOption: {
+      payload: Prisma.$OnlineQuestionOptionPayload<ExtArgs>
+      fields: Prisma.OnlineQuestionOptionFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.OnlineQuestionOptionFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OnlineQuestionOptionPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.OnlineQuestionOptionFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OnlineQuestionOptionPayload>
+        }
+        findFirst: {
+          args: Prisma.OnlineQuestionOptionFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OnlineQuestionOptionPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.OnlineQuestionOptionFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OnlineQuestionOptionPayload>
+        }
+        findMany: {
+          args: Prisma.OnlineQuestionOptionFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OnlineQuestionOptionPayload>[]
+        }
+        create: {
+          args: Prisma.OnlineQuestionOptionCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OnlineQuestionOptionPayload>
+        }
+        createMany: {
+          args: Prisma.OnlineQuestionOptionCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.OnlineQuestionOptionCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OnlineQuestionOptionPayload>[]
+        }
+        delete: {
+          args: Prisma.OnlineQuestionOptionDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OnlineQuestionOptionPayload>
+        }
+        update: {
+          args: Prisma.OnlineQuestionOptionUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OnlineQuestionOptionPayload>
+        }
+        deleteMany: {
+          args: Prisma.OnlineQuestionOptionDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.OnlineQuestionOptionUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.OnlineQuestionOptionUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OnlineQuestionOptionPayload>[]
+        }
+        upsert: {
+          args: Prisma.OnlineQuestionOptionUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OnlineQuestionOptionPayload>
+        }
+        aggregate: {
+          args: Prisma.OnlineQuestionOptionAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateOnlineQuestionOption>
+        }
+        groupBy: {
+          args: Prisma.OnlineQuestionOptionGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.OnlineQuestionOptionGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.OnlineQuestionOptionCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.OnlineQuestionOptionCountAggregateOutputType> | number
+        }
+      }
+    }
+    OnlineSubmission: {
+      payload: Prisma.$OnlineSubmissionPayload<ExtArgs>
+      fields: Prisma.OnlineSubmissionFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.OnlineSubmissionFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OnlineSubmissionPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.OnlineSubmissionFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OnlineSubmissionPayload>
+        }
+        findFirst: {
+          args: Prisma.OnlineSubmissionFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OnlineSubmissionPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.OnlineSubmissionFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OnlineSubmissionPayload>
+        }
+        findMany: {
+          args: Prisma.OnlineSubmissionFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OnlineSubmissionPayload>[]
+        }
+        create: {
+          args: Prisma.OnlineSubmissionCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OnlineSubmissionPayload>
+        }
+        createMany: {
+          args: Prisma.OnlineSubmissionCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.OnlineSubmissionCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OnlineSubmissionPayload>[]
+        }
+        delete: {
+          args: Prisma.OnlineSubmissionDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OnlineSubmissionPayload>
+        }
+        update: {
+          args: Prisma.OnlineSubmissionUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OnlineSubmissionPayload>
+        }
+        deleteMany: {
+          args: Prisma.OnlineSubmissionDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.OnlineSubmissionUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.OnlineSubmissionUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OnlineSubmissionPayload>[]
+        }
+        upsert: {
+          args: Prisma.OnlineSubmissionUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OnlineSubmissionPayload>
+        }
+        aggregate: {
+          args: Prisma.OnlineSubmissionAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateOnlineSubmission>
+        }
+        groupBy: {
+          args: Prisma.OnlineSubmissionGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.OnlineSubmissionGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.OnlineSubmissionCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.OnlineSubmissionCountAggregateOutputType> | number
+        }
+      }
+    }
+    OnlineAnswer: {
+      payload: Prisma.$OnlineAnswerPayload<ExtArgs>
+      fields: Prisma.OnlineAnswerFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.OnlineAnswerFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OnlineAnswerPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.OnlineAnswerFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OnlineAnswerPayload>
+        }
+        findFirst: {
+          args: Prisma.OnlineAnswerFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OnlineAnswerPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.OnlineAnswerFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OnlineAnswerPayload>
+        }
+        findMany: {
+          args: Prisma.OnlineAnswerFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OnlineAnswerPayload>[]
+        }
+        create: {
+          args: Prisma.OnlineAnswerCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OnlineAnswerPayload>
+        }
+        createMany: {
+          args: Prisma.OnlineAnswerCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.OnlineAnswerCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OnlineAnswerPayload>[]
+        }
+        delete: {
+          args: Prisma.OnlineAnswerDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OnlineAnswerPayload>
+        }
+        update: {
+          args: Prisma.OnlineAnswerUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OnlineAnswerPayload>
+        }
+        deleteMany: {
+          args: Prisma.OnlineAnswerDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.OnlineAnswerUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.OnlineAnswerUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OnlineAnswerPayload>[]
+        }
+        upsert: {
+          args: Prisma.OnlineAnswerUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OnlineAnswerPayload>
+        }
+        aggregate: {
+          args: Prisma.OnlineAnswerAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateOnlineAnswer>
+        }
+        groupBy: {
+          args: Prisma.OnlineAnswerGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.OnlineAnswerGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.OnlineAnswerCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.OnlineAnswerCountAggregateOutputType> | number
+        }
+      }
+    }
+    OnlineSubmissionFile: {
+      payload: Prisma.$OnlineSubmissionFilePayload<ExtArgs>
+      fields: Prisma.OnlineSubmissionFileFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.OnlineSubmissionFileFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OnlineSubmissionFilePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.OnlineSubmissionFileFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OnlineSubmissionFilePayload>
+        }
+        findFirst: {
+          args: Prisma.OnlineSubmissionFileFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OnlineSubmissionFilePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.OnlineSubmissionFileFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OnlineSubmissionFilePayload>
+        }
+        findMany: {
+          args: Prisma.OnlineSubmissionFileFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OnlineSubmissionFilePayload>[]
+        }
+        create: {
+          args: Prisma.OnlineSubmissionFileCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OnlineSubmissionFilePayload>
+        }
+        createMany: {
+          args: Prisma.OnlineSubmissionFileCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.OnlineSubmissionFileCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OnlineSubmissionFilePayload>[]
+        }
+        delete: {
+          args: Prisma.OnlineSubmissionFileDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OnlineSubmissionFilePayload>
+        }
+        update: {
+          args: Prisma.OnlineSubmissionFileUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OnlineSubmissionFilePayload>
+        }
+        deleteMany: {
+          args: Prisma.OnlineSubmissionFileDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.OnlineSubmissionFileUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.OnlineSubmissionFileUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OnlineSubmissionFilePayload>[]
+        }
+        upsert: {
+          args: Prisma.OnlineSubmissionFileUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OnlineSubmissionFilePayload>
+        }
+        aggregate: {
+          args: Prisma.OnlineSubmissionFileAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateOnlineSubmissionFile>
+        }
+        groupBy: {
+          args: Prisma.OnlineSubmissionFileGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.OnlineSubmissionFileGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.OnlineSubmissionFileCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.OnlineSubmissionFileCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -5465,6 +5915,7 @@ export const FicheScalarFieldEnum = {
   anneeName: 'anneeName',
   notes: 'notes',
   autres: 'autres',
+  onlineAssignmentId: 'onlineAssignmentId',
   branchId: 'branchId'
 } as const
 
@@ -6041,6 +6492,109 @@ export const PlatformSupportEscalationScalarFieldEnum = {
 export type PlatformSupportEscalationScalarFieldEnum = (typeof PlatformSupportEscalationScalarFieldEnum)[keyof typeof PlatformSupportEscalationScalarFieldEnum]
 
 
+export const OnlineAssignmentScalarFieldEnum = {
+  id: 'id',
+  branchId: 'branchId',
+  schoolYearId: 'schoolYearId',
+  classId: 'classId',
+  courseId: 'courseId',
+  teachingId: 'teachingId',
+  teacherId: 'teacherId',
+  periodId: 'periodId',
+  type: 'type',
+  title: 'title',
+  description: 'description',
+  status: 'status',
+  startAt: 'startAt',
+  dueAt: 'dueAt',
+  activityDate: 'activityDate',
+  maxAttempts: 'maxAttempts',
+  totalPoints: 'totalPoints',
+  resultsPublished: 'resultsPublished',
+  shuffleOptions: 'shuffleOptions',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type OnlineAssignmentScalarFieldEnum = (typeof OnlineAssignmentScalarFieldEnum)[keyof typeof OnlineAssignmentScalarFieldEnum]
+
+
+export const OnlineQuestionScalarFieldEnum = {
+  id: 'id',
+  assignmentId: 'assignmentId',
+  type: 'type',
+  position: 'position',
+  statementHtml: 'statementHtml',
+  points: 'points',
+  settingsJson: 'settingsJson',
+  correctAnswerJson: 'correctAnswerJson',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type OnlineQuestionScalarFieldEnum = (typeof OnlineQuestionScalarFieldEnum)[keyof typeof OnlineQuestionScalarFieldEnum]
+
+
+export const OnlineQuestionOptionScalarFieldEnum = {
+  id: 'id',
+  questionId: 'questionId',
+  label: 'label',
+  position: 'position',
+  isCorrect: 'isCorrect'
+} as const
+
+export type OnlineQuestionOptionScalarFieldEnum = (typeof OnlineQuestionOptionScalarFieldEnum)[keyof typeof OnlineQuestionOptionScalarFieldEnum]
+
+
+export const OnlineSubmissionScalarFieldEnum = {
+  id: 'id',
+  assignmentId: 'assignmentId',
+  studentId: 'studentId',
+  attempt: 'attempt',
+  status: 'status',
+  provisionalScore: 'provisionalScore',
+  finalScore: 'finalScore',
+  startedAt: 'startedAt',
+  submittedAt: 'submittedAt',
+  gradedAt: 'gradedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type OnlineSubmissionScalarFieldEnum = (typeof OnlineSubmissionScalarFieldEnum)[keyof typeof OnlineSubmissionScalarFieldEnum]
+
+
+export const OnlineAnswerScalarFieldEnum = {
+  id: 'id',
+  submissionId: 'submissionId',
+  questionId: 'questionId',
+  answerText: 'answerText',
+  answerJson: 'answerJson',
+  awardedPoints: 'awardedPoints',
+  isCorrect: 'isCorrect',
+  needsManual: 'needsManual',
+  teacherFeedback: 'teacherFeedback',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type OnlineAnswerScalarFieldEnum = (typeof OnlineAnswerScalarFieldEnum)[keyof typeof OnlineAnswerScalarFieldEnum]
+
+
+export const OnlineSubmissionFileScalarFieldEnum = {
+  id: 'id',
+  submissionId: 'submissionId',
+  questionId: 'questionId',
+  name: 'name',
+  mimeType: 'mimeType',
+  size: 'size',
+  url: 'url',
+  createdAt: 'createdAt'
+} as const
+
+export type OnlineSubmissionFileScalarFieldEnum = (typeof OnlineSubmissionFileScalarFieldEnum)[keyof typeof OnlineSubmissionFileScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -6507,6 +7061,62 @@ export type EnumPlatformSupportEscalationStatusFieldRefInput<$PrismaModel> = Fie
 export type ListEnumPlatformSupportEscalationStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PlatformSupportEscalationStatus[]'>
     
 
+
+/**
+ * Reference to a field of type 'OnlineAssignmentType'
+ */
+export type EnumOnlineAssignmentTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'OnlineAssignmentType'>
+    
+
+
+/**
+ * Reference to a field of type 'OnlineAssignmentType[]'
+ */
+export type ListEnumOnlineAssignmentTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'OnlineAssignmentType[]'>
+    
+
+
+/**
+ * Reference to a field of type 'OnlineAssignmentStatus'
+ */
+export type EnumOnlineAssignmentStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'OnlineAssignmentStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'OnlineAssignmentStatus[]'
+ */
+export type ListEnumOnlineAssignmentStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'OnlineAssignmentStatus[]'>
+    
+
+
+/**
+ * Reference to a field of type 'OnlineQuestionType'
+ */
+export type EnumOnlineQuestionTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'OnlineQuestionType'>
+    
+
+
+/**
+ * Reference to a field of type 'OnlineQuestionType[]'
+ */
+export type ListEnumOnlineQuestionTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'OnlineQuestionType[]'>
+    
+
+
+/**
+ * Reference to a field of type 'OnlineSubmissionStatus'
+ */
+export type EnumOnlineSubmissionStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'OnlineSubmissionStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'OnlineSubmissionStatus[]'
+ */
+export type ListEnumOnlineSubmissionStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'OnlineSubmissionStatus[]'>
+    
+
 /**
  * Batch Payload for updateMany & deleteMany & createMany
  */
@@ -6678,6 +7288,12 @@ export type GlobalOmitConfig = {
   organizationSupportAgent?: Prisma.OrganizationSupportAgentOmit
   organizationSupportBranchScope?: Prisma.OrganizationSupportBranchScopeOmit
   platformSupportEscalation?: Prisma.PlatformSupportEscalationOmit
+  onlineAssignment?: Prisma.OnlineAssignmentOmit
+  onlineQuestion?: Prisma.OnlineQuestionOmit
+  onlineQuestionOption?: Prisma.OnlineQuestionOptionOmit
+  onlineSubmission?: Prisma.OnlineSubmissionOmit
+  onlineAnswer?: Prisma.OnlineAnswerOmit
+  onlineSubmissionFile?: Prisma.OnlineSubmissionFileOmit
 }
 
 /* Types for Logging */

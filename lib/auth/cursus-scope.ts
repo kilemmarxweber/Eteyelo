@@ -90,8 +90,11 @@ export async function listAccessibleCursusStudents(params: {
         classEnrollment: {
           where: {
             branchId,
-            schoolYear: { isCurrentYear: true, branchId, isArchived: false },
           },
+          orderBy: [
+            { schoolYear: { isCurrentYear: "desc" } },
+            { createdAt: "desc" },
+          ],
           take: 1,
           select: {
             schoolYearId: true,
@@ -149,8 +152,11 @@ export async function listAccessibleCursusStudents(params: {
         classEnrollment: {
           where: {
             branchId,
-            schoolYear: { isCurrentYear: true, branchId, isArchived: false },
           },
+          orderBy: [
+            { schoolYear: { isCurrentYear: "desc" } },
+            { createdAt: "desc" },
+          ],
           take: 1,
           select: {
             schoolYearId: true,

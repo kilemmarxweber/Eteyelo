@@ -833,6 +833,74 @@ export type EnumPlatformSupportEscalationStatusWithAggregatesFilter<$PrismaModel
   _max?: Prisma.NestedEnumPlatformSupportEscalationStatusFilter<$PrismaModel>
 }
 
+export type EnumOnlineAssignmentTypeFilter<$PrismaModel = never> = {
+  equals?: $Enums.OnlineAssignmentType | Prisma.EnumOnlineAssignmentTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.OnlineAssignmentType[] | Prisma.ListEnumOnlineAssignmentTypeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.OnlineAssignmentType[] | Prisma.ListEnumOnlineAssignmentTypeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumOnlineAssignmentTypeFilter<$PrismaModel> | $Enums.OnlineAssignmentType
+}
+
+export type EnumOnlineAssignmentStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.OnlineAssignmentStatus | Prisma.EnumOnlineAssignmentStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.OnlineAssignmentStatus[] | Prisma.ListEnumOnlineAssignmentStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.OnlineAssignmentStatus[] | Prisma.ListEnumOnlineAssignmentStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumOnlineAssignmentStatusFilter<$PrismaModel> | $Enums.OnlineAssignmentStatus
+}
+
+export type EnumOnlineAssignmentTypeWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.OnlineAssignmentType | Prisma.EnumOnlineAssignmentTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.OnlineAssignmentType[] | Prisma.ListEnumOnlineAssignmentTypeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.OnlineAssignmentType[] | Prisma.ListEnumOnlineAssignmentTypeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumOnlineAssignmentTypeWithAggregatesFilter<$PrismaModel> | $Enums.OnlineAssignmentType
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumOnlineAssignmentTypeFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumOnlineAssignmentTypeFilter<$PrismaModel>
+}
+
+export type EnumOnlineAssignmentStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.OnlineAssignmentStatus | Prisma.EnumOnlineAssignmentStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.OnlineAssignmentStatus[] | Prisma.ListEnumOnlineAssignmentStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.OnlineAssignmentStatus[] | Prisma.ListEnumOnlineAssignmentStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumOnlineAssignmentStatusWithAggregatesFilter<$PrismaModel> | $Enums.OnlineAssignmentStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumOnlineAssignmentStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumOnlineAssignmentStatusFilter<$PrismaModel>
+}
+
+export type EnumOnlineQuestionTypeFilter<$PrismaModel = never> = {
+  equals?: $Enums.OnlineQuestionType | Prisma.EnumOnlineQuestionTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.OnlineQuestionType[] | Prisma.ListEnumOnlineQuestionTypeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.OnlineQuestionType[] | Prisma.ListEnumOnlineQuestionTypeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumOnlineQuestionTypeFilter<$PrismaModel> | $Enums.OnlineQuestionType
+}
+
+export type EnumOnlineQuestionTypeWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.OnlineQuestionType | Prisma.EnumOnlineQuestionTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.OnlineQuestionType[] | Prisma.ListEnumOnlineQuestionTypeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.OnlineQuestionType[] | Prisma.ListEnumOnlineQuestionTypeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumOnlineQuestionTypeWithAggregatesFilter<$PrismaModel> | $Enums.OnlineQuestionType
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumOnlineQuestionTypeFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumOnlineQuestionTypeFilter<$PrismaModel>
+}
+
+export type EnumOnlineSubmissionStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.OnlineSubmissionStatus | Prisma.EnumOnlineSubmissionStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.OnlineSubmissionStatus[] | Prisma.ListEnumOnlineSubmissionStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.OnlineSubmissionStatus[] | Prisma.ListEnumOnlineSubmissionStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumOnlineSubmissionStatusFilter<$PrismaModel> | $Enums.OnlineSubmissionStatus
+}
+
+export type EnumOnlineSubmissionStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.OnlineSubmissionStatus | Prisma.EnumOnlineSubmissionStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.OnlineSubmissionStatus[] | Prisma.ListEnumOnlineSubmissionStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.OnlineSubmissionStatus[] | Prisma.ListEnumOnlineSubmissionStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumOnlineSubmissionStatusWithAggregatesFilter<$PrismaModel> | $Enums.OnlineSubmissionStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumOnlineSubmissionStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumOnlineSubmissionStatusFilter<$PrismaModel>
+}
+
 export type NestedStringFilter<$PrismaModel = never> = {
   equals?: string | Prisma.StringFieldRefInput<$PrismaModel>
   in?: string[] | Prisma.ListStringFieldRefInput<$PrismaModel>
@@ -1587,6 +1655,74 @@ export type NestedEnumPlatformSupportEscalationStatusWithAggregatesFilter<$Prism
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumPlatformSupportEscalationStatusFilter<$PrismaModel>
   _max?: Prisma.NestedEnumPlatformSupportEscalationStatusFilter<$PrismaModel>
+}
+
+export type NestedEnumOnlineAssignmentTypeFilter<$PrismaModel = never> = {
+  equals?: $Enums.OnlineAssignmentType | Prisma.EnumOnlineAssignmentTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.OnlineAssignmentType[] | Prisma.ListEnumOnlineAssignmentTypeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.OnlineAssignmentType[] | Prisma.ListEnumOnlineAssignmentTypeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumOnlineAssignmentTypeFilter<$PrismaModel> | $Enums.OnlineAssignmentType
+}
+
+export type NestedEnumOnlineAssignmentStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.OnlineAssignmentStatus | Prisma.EnumOnlineAssignmentStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.OnlineAssignmentStatus[] | Prisma.ListEnumOnlineAssignmentStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.OnlineAssignmentStatus[] | Prisma.ListEnumOnlineAssignmentStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumOnlineAssignmentStatusFilter<$PrismaModel> | $Enums.OnlineAssignmentStatus
+}
+
+export type NestedEnumOnlineAssignmentTypeWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.OnlineAssignmentType | Prisma.EnumOnlineAssignmentTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.OnlineAssignmentType[] | Prisma.ListEnumOnlineAssignmentTypeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.OnlineAssignmentType[] | Prisma.ListEnumOnlineAssignmentTypeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumOnlineAssignmentTypeWithAggregatesFilter<$PrismaModel> | $Enums.OnlineAssignmentType
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumOnlineAssignmentTypeFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumOnlineAssignmentTypeFilter<$PrismaModel>
+}
+
+export type NestedEnumOnlineAssignmentStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.OnlineAssignmentStatus | Prisma.EnumOnlineAssignmentStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.OnlineAssignmentStatus[] | Prisma.ListEnumOnlineAssignmentStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.OnlineAssignmentStatus[] | Prisma.ListEnumOnlineAssignmentStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumOnlineAssignmentStatusWithAggregatesFilter<$PrismaModel> | $Enums.OnlineAssignmentStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumOnlineAssignmentStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumOnlineAssignmentStatusFilter<$PrismaModel>
+}
+
+export type NestedEnumOnlineQuestionTypeFilter<$PrismaModel = never> = {
+  equals?: $Enums.OnlineQuestionType | Prisma.EnumOnlineQuestionTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.OnlineQuestionType[] | Prisma.ListEnumOnlineQuestionTypeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.OnlineQuestionType[] | Prisma.ListEnumOnlineQuestionTypeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumOnlineQuestionTypeFilter<$PrismaModel> | $Enums.OnlineQuestionType
+}
+
+export type NestedEnumOnlineQuestionTypeWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.OnlineQuestionType | Prisma.EnumOnlineQuestionTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.OnlineQuestionType[] | Prisma.ListEnumOnlineQuestionTypeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.OnlineQuestionType[] | Prisma.ListEnumOnlineQuestionTypeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumOnlineQuestionTypeWithAggregatesFilter<$PrismaModel> | $Enums.OnlineQuestionType
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumOnlineQuestionTypeFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumOnlineQuestionTypeFilter<$PrismaModel>
+}
+
+export type NestedEnumOnlineSubmissionStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.OnlineSubmissionStatus | Prisma.EnumOnlineSubmissionStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.OnlineSubmissionStatus[] | Prisma.ListEnumOnlineSubmissionStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.OnlineSubmissionStatus[] | Prisma.ListEnumOnlineSubmissionStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumOnlineSubmissionStatusFilter<$PrismaModel> | $Enums.OnlineSubmissionStatus
+}
+
+export type NestedEnumOnlineSubmissionStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.OnlineSubmissionStatus | Prisma.EnumOnlineSubmissionStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.OnlineSubmissionStatus[] | Prisma.ListEnumOnlineSubmissionStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.OnlineSubmissionStatus[] | Prisma.ListEnumOnlineSubmissionStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumOnlineSubmissionStatusWithAggregatesFilter<$PrismaModel> | $Enums.OnlineSubmissionStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumOnlineSubmissionStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumOnlineSubmissionStatusFilter<$PrismaModel>
 }
 
 

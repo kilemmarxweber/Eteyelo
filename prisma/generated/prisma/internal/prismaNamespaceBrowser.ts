@@ -111,7 +111,13 @@ export const ModelName = {
   PlatformSupportAgent: 'PlatformSupportAgent',
   OrganizationSupportAgent: 'OrganizationSupportAgent',
   OrganizationSupportBranchScope: 'OrganizationSupportBranchScope',
-  PlatformSupportEscalation: 'PlatformSupportEscalation'
+  PlatformSupportEscalation: 'PlatformSupportEscalation',
+  OnlineAssignment: 'OnlineAssignment',
+  OnlineQuestion: 'OnlineQuestion',
+  OnlineQuestionOption: 'OnlineQuestionOption',
+  OnlineSubmission: 'OnlineSubmission',
+  OnlineAnswer: 'OnlineAnswer',
+  OnlineSubmissionFile: 'OnlineSubmissionFile'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -578,6 +584,7 @@ export const FicheScalarFieldEnum = {
   anneeName: 'anneeName',
   notes: 'notes',
   autres: 'autres',
+  onlineAssignmentId: 'onlineAssignmentId',
   branchId: 'branchId'
 } as const
 
@@ -1152,6 +1159,109 @@ export const PlatformSupportEscalationScalarFieldEnum = {
 } as const
 
 export type PlatformSupportEscalationScalarFieldEnum = (typeof PlatformSupportEscalationScalarFieldEnum)[keyof typeof PlatformSupportEscalationScalarFieldEnum]
+
+
+export const OnlineAssignmentScalarFieldEnum = {
+  id: 'id',
+  branchId: 'branchId',
+  schoolYearId: 'schoolYearId',
+  classId: 'classId',
+  courseId: 'courseId',
+  teachingId: 'teachingId',
+  teacherId: 'teacherId',
+  periodId: 'periodId',
+  type: 'type',
+  title: 'title',
+  description: 'description',
+  status: 'status',
+  startAt: 'startAt',
+  dueAt: 'dueAt',
+  activityDate: 'activityDate',
+  maxAttempts: 'maxAttempts',
+  totalPoints: 'totalPoints',
+  resultsPublished: 'resultsPublished',
+  shuffleOptions: 'shuffleOptions',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type OnlineAssignmentScalarFieldEnum = (typeof OnlineAssignmentScalarFieldEnum)[keyof typeof OnlineAssignmentScalarFieldEnum]
+
+
+export const OnlineQuestionScalarFieldEnum = {
+  id: 'id',
+  assignmentId: 'assignmentId',
+  type: 'type',
+  position: 'position',
+  statementHtml: 'statementHtml',
+  points: 'points',
+  settingsJson: 'settingsJson',
+  correctAnswerJson: 'correctAnswerJson',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type OnlineQuestionScalarFieldEnum = (typeof OnlineQuestionScalarFieldEnum)[keyof typeof OnlineQuestionScalarFieldEnum]
+
+
+export const OnlineQuestionOptionScalarFieldEnum = {
+  id: 'id',
+  questionId: 'questionId',
+  label: 'label',
+  position: 'position',
+  isCorrect: 'isCorrect'
+} as const
+
+export type OnlineQuestionOptionScalarFieldEnum = (typeof OnlineQuestionOptionScalarFieldEnum)[keyof typeof OnlineQuestionOptionScalarFieldEnum]
+
+
+export const OnlineSubmissionScalarFieldEnum = {
+  id: 'id',
+  assignmentId: 'assignmentId',
+  studentId: 'studentId',
+  attempt: 'attempt',
+  status: 'status',
+  provisionalScore: 'provisionalScore',
+  finalScore: 'finalScore',
+  startedAt: 'startedAt',
+  submittedAt: 'submittedAt',
+  gradedAt: 'gradedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type OnlineSubmissionScalarFieldEnum = (typeof OnlineSubmissionScalarFieldEnum)[keyof typeof OnlineSubmissionScalarFieldEnum]
+
+
+export const OnlineAnswerScalarFieldEnum = {
+  id: 'id',
+  submissionId: 'submissionId',
+  questionId: 'questionId',
+  answerText: 'answerText',
+  answerJson: 'answerJson',
+  awardedPoints: 'awardedPoints',
+  isCorrect: 'isCorrect',
+  needsManual: 'needsManual',
+  teacherFeedback: 'teacherFeedback',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type OnlineAnswerScalarFieldEnum = (typeof OnlineAnswerScalarFieldEnum)[keyof typeof OnlineAnswerScalarFieldEnum]
+
+
+export const OnlineSubmissionFileScalarFieldEnum = {
+  id: 'id',
+  submissionId: 'submissionId',
+  questionId: 'questionId',
+  name: 'name',
+  mimeType: 'mimeType',
+  size: 'size',
+  url: 'url',
+  createdAt: 'createdAt'
+} as const
+
+export type OnlineSubmissionFileScalarFieldEnum = (typeof OnlineSubmissionFileScalarFieldEnum)[keyof typeof OnlineSubmissionFileScalarFieldEnum]
 
 
 export const SortOrder = {

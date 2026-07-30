@@ -346,3 +346,33 @@ export type OrganizationSupportBranchScope = Prisma.OrganizationSupportBranchSco
  * 
  */
 export type PlatformSupportEscalation = Prisma.PlatformSupportEscalationModel
+/**
+ * Model OnlineAssignment
+ * 
+ */
+export type OnlineAssignment = Prisma.OnlineAssignmentModel
+/**
+ * Model OnlineQuestion
+ * 
+ */
+export type OnlineQuestion = Prisma.OnlineQuestionModel
+/**
+ * Model OnlineQuestionOption
+ * 
+ */
+export type OnlineQuestionOption = Prisma.OnlineQuestionOptionModel
+/**
+ * Model OnlineSubmission
+ * 
+ */
+export type OnlineSubmission = Prisma.OnlineSubmissionModel
+/**
+ * Model OnlineAnswer
+ * 
+ */
+export type OnlineAnswer = Prisma.OnlineAnswerModel
+/**
+ * Model OnlineSubmissionFile
+ * 
+ */
+export type OnlineSubmissionFile = Prisma.OnlineSubmissionFileModel
