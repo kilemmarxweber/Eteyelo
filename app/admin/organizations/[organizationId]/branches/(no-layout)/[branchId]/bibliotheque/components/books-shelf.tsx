@@ -31,7 +31,7 @@ type BooksShelfProps = {
   onChanged: () => void;
 };
 
-/** Rayonnage de livres en cartes (remplace l’ancienne table admin). */
+/** Grille compacte de livres. */
 export function BooksShelf({
   books,
   basePath,
@@ -85,37 +85,24 @@ export function BooksShelf({
 
   return (
     <>
-      <div className="rounded-2xl border border-border/80 bg-gradient-to-b from-muted/40 via-background to-background p-3 shadow-inner sm:p-4 dark:from-muted/20">
-        <div className="mb-3 flex items-end justify-between gap-2 px-0.5">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              Rayonnage
-            </p>
-            <p className="text-[11px] text-muted-foreground">
-              {books.length} ouvrage{books.length > 1 ? "s" : ""}
-            </p>
-          </div>
-        </div>
-
-        <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-          {books.map((book) => (
-            <BookCard
-              key={book.id}
-              book={book}
-              href={`${basePath}/${book.id}`}
-              manage={
-                isManage
-                  ? {
-                      busy: busyId === book.id,
-                      onEdit: () => setEditBook(book),
-                      onToggleActive: () => void toggleActive(book),
-                      onDelete: () => setDeleteId(book.id),
-                    }
-                  : undefined
-              }
-            />
-          ))}
-        </div>
+      <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+        {books.map((book) => (
+          <BookCard
+            key={book.id}
+            book={book}
+            href={`${basePath}/${book.id}`}
+            manage={
+              isManage
+                ? {
+                    busy: busyId === book.id,
+                    onEdit: () => setEditBook(book),
+                    onToggleActive: () => void toggleActive(book),
+                    onDelete: () => setDeleteId(book.id),
+                  }
+                : undefined
+            }
+          />
+        ))}
       </div>
 
       {isManage ? (

@@ -105,21 +105,21 @@ export function BibliothequeClient({
           </Button>
         ) : null
       }
-      contentClassName="space-y-5"
+      contentClassName="space-y-4"
     >
-        <div className="flex flex-col gap-3 rounded-xl border border-border bg-card p-3 shadow-sm lg:flex-row lg:items-center">
-          <div className="relative flex-1">
-            <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+          <div className="relative min-w-0 flex-1">
+            <Search className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-muted-foreground" />
             <Input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Rechercher un titre, auteur, matière…"
-              className="bg-background pl-9"
+              placeholder="Rechercher…"
+              className="h-9 bg-background pl-8 text-sm"
             />
           </div>
           {taxonomy.cycles.length > 1 ? (
             <Select value={cycle} onValueChange={setCycle}>
-              <SelectTrigger className="w-full bg-background sm:w-[200px]">
+              <SelectTrigger className="h-9 w-full bg-background sm:w-[160px]">
                 <SelectValue placeholder="Cycle" />
               </SelectTrigger>
               <SelectContent>
@@ -133,7 +133,7 @@ export function BibliothequeClient({
             </Select>
           ) : null}
           <Select value={level} onValueChange={setLevel}>
-            <SelectTrigger className="w-full bg-background sm:w-[200px]">
+            <SelectTrigger className="h-9 w-full bg-background sm:w-[150px]">
               <SelectValue placeholder="Niveau" />
             </SelectTrigger>
             <SelectContent>
@@ -146,7 +146,7 @@ export function BibliothequeClient({
             </SelectContent>
           </Select>
           <Select value={subject} onValueChange={setSubject}>
-            <SelectTrigger className="w-full bg-background sm:w-[200px]">
+            <SelectTrigger className="h-9 w-full bg-background sm:w-[160px]">
               <SelectValue placeholder="Matière" />
             </SelectTrigger>
             <SelectContent>
