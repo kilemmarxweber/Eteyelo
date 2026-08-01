@@ -6,7 +6,7 @@ const KINSHASA_OFFSET_HOURS = 1; // UTC+1 (pas de DST)
  * TEMP TEST — ouvre le devoir immédiatement (ce soir).
  * Remettre à `false` après les essais pour retrouver ven. 16h → dim. 23:59.
  */
-const FORCE_OPEN_NOW_FOR_TEST = false;
+const FORCE_OPEN_NOW_FOR_TEST = true;
 
 function toKinshasaParts(date = new Date()) {
   const utc = date.getTime() + date.getTimezoneOffset() * 60_000;
