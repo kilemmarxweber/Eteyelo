@@ -108,11 +108,6 @@ export default async function EtablissementDetailPage({ params }: PageProps) {
               },
             },
           },
-          parent: {
-            select: {
-              id: true,
-            },
-          },
           member: {
             select: {
               user: {
@@ -170,7 +165,11 @@ export default async function EtablissementDetailPage({ params }: PageProps) {
     ["ADMIN", "DIRECTOR", "SECRETARY", "ACCOUNTANT"].includes(member.role),
   );
 
-  const parents = branch.branchemembers.filter((member) => member.parent);
+  // parent est Parent[] : un tableau vide [] est truthy en JS,
+  // donc filtrer sur member.parent comptait tous les membres.
+  const parents = branch.branchemembers.filter(
+    (member) => member.role === "PARENT",
+  );
 
   const studentsByYear = students.reduce<Record<string, number>>(
     (acc, student) => {
