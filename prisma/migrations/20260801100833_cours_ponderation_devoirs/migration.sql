@@ -1,0 +1,2 @@
+-- RenameIndex
+ALTER INDEX "OnlineAssignment_branchId_classId_courseId_type_activityDate_ke" RENAME TO "OnlineAssignment_branchId_classId_courseId_type_activityDat_key";
