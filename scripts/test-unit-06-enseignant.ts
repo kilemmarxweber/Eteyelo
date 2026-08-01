@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Smoke tests — unit-06 périmètre enseignant (teaching area, pas admin/caisse).
  */
 import assert from "node:assert/strict";
@@ -65,15 +65,15 @@ test("setup Classes / Cours / Inscription / Affectations : pedagogy, pas teachin
   assert.equal(canAccessTeachingArea(sessionTeacher), true);
 });
 
-test("menu enseignant : pas Finance / Enseignement / Utilisateurs ; Horaire via dashboard", () => {
+test("menu enseignant : pas Finance / Enseignement / Utilisateurs ; Horaire via Tableau de bord", () => {
   const links = buildStaticSideLinks(sessionTeacher, BRANCH_PATH, "PRIMAIRE");
   const titles = links.map((item) => item.title);
   const cursus = links.find((item) => item.title === "Cursus");
   const cursusSubs = (cursus?.sub ?? []).map((item) => item.title);
 
-  assert.ok(titles.includes("Dashboard"));
+  assert.ok(titles.includes("Tableau de bord"));
   assert.ok(titles.includes("Cursus"));
-  assert.ok(titles.includes("Presences"));
+  assert.ok(titles.includes("Présences"));
   assert.ok(!titles.includes("Finance"), "enseignant ne doit pas voir Finance");
   assert.ok(!titles.includes("Classes"), "enseignant ne doit pas voir Classes");
   assert.ok(!titles.includes("Inscription"));
@@ -108,7 +108,7 @@ test("titulaire voit Fiches / Fiche Centrale ; non-titulaire non", () => {
   assert.ok(!nonTitulaireCursus.includes("Fiches"));
 });
 
-test("dashboard = variante enseignant (pas revenus école)", () => {
+test("Tableau de bord = variante enseignant (pas revenus école)", () => {
   assert.equal(resolveDashboardVariant(sessionTeacher), "teacher");
   assert.notEqual(resolveDashboardVariant(sessionTeacher), "directeur");
   assert.notEqual(resolveDashboardVariant(sessionTeacher), "caissier");
@@ -122,7 +122,7 @@ test("TEACHING_ROLES non élargi via caissier (caissier hors teaching)", () => {
     "PRIMAIRE",
   ).map((item) => item.title);
   assert.ok(!titles.includes("Enseignement"));
-  assert.ok(!titles.includes("Presences"));
+  assert.ok(!titles.includes("Présences"));
 });
 
 console.log("\nAll unit-06 enseignant smoke tests passed.");

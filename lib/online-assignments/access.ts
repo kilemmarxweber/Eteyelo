@@ -122,3 +122,116 @@ export async function resolveTeacherIdForUser(
   });
   return teacher?.id ?? null;
 }
+
+function teachingBranchFilter(branchId: string) {
+  return {
+    OR: [
+      { branchId },
+      { branchId: null, classe: { branchId } },
+    ],
+  };
+}
+
+/** Affectations actives (classe + cours) pour un enseignant — filtres & création. */
+export async function listTeacherTeachingsForDevoirs(params: {
+  branchId: string;
+  teacherId: string;
+  schoolYearId?: string;
+}) {
+  return prisma.teaching.findMany({
+    where: {
+      teacherId: params.teacherId,
+      OR: [{ statusTeaching: true }, { statusTeaching: null }],
+      AND: [teachingBranchFilter(params.branchId)],
+      ...(params.schoolYearId ? { schoolYearId: params.schoolYearId } : {}),
+    },
+    select: {
+      id: true,
+      schoolYearId: true,
+      teacherId: true,
+      classeId: true,
+      coursId: true,
+      classe: { select: { id: true, nameClasse: true } },
+      cours: { select: { id: true, nameCours: true } },
+    },
+    orderBy: [{ classe: { nameClasse: "asc" } }, { cours: { nameCours: "asc" } }],
+  });
+}
+
+/**
+ * Vérifie qu'un enseignant (non-admin) ne gère que ses propres devoirs.
+ * Les admins passent sans restriction.
+ */
+export async function assertManageAssignmentOwnership(
+  access: OnlineAssignmentAccess,
+  assignment: { teacherId: string },
+) {
+  if (canManageOrganization(access.session)) return;
+  const teacherId = await resolveTeacherIdForUser(
+    access.userId,
+    access.branchId,
+    access.teacherId,
+  );
+  if (!teacherId || assignment.teacherId !== teacherId) {
+    throw new Error("Accès refusé : ce devoir ne vous est pas affecté.");
+  }
+}
+
+/**
+ * Charge une affectation Teaching autorisée pour create/update.
+ * Force le teacherId depuis la BDD (jamais celui du client pour les non-admins).
+ */
+export async function resolveOwnedTeachingForManage(
+  access: OnlineAssignmentAccess,
+  input: {
+    teachingId: string;
+    classId: string;
+    courseId: string;
+    schoolYearId?: string;
+  },
+) {
+  const isAdmin = canManageOrganization(access.session);
+  const teacherId = await resolveTeacherIdForUser(
+    access.userId,
+    access.branchId,
+    access.teacherId,
+  );
+
+  if (!isAdmin && !teacherId) {
+    throw new Error("Profil enseignant introuvable.");
+  }
+
+  const teaching = await prisma.teaching.findFirst({
+    where: {
+      id: input.teachingId,
+      OR: [{ statusTeaching: true }, { statusTeaching: null }],
+      AND: [teachingBranchFilter(access.branchId)],
+      ...(!isAdmin && teacherId ? { teacherId } : {}),
+    },
+    select: {
+      id: true,
+      teacherId: true,
+      classeId: true,
+      coursId: true,
+      schoolYearId: true,
+    },
+  });
+
+  if (!teaching) {
+    throw new Error(
+      "Affectation cours/classe introuvable ou non autorisée.",
+    );
+  }
+  if (teaching.classeId !== input.classId || teaching.coursId !== input.courseId) {
+    throw new Error(
+      "Le cours et la classe doivent correspondre à votre affectation.",
+    );
+  }
+  if (input.schoolYearId && teaching.schoolYearId !== input.schoolYearId) {
+    throw new Error(
+      "L'affectation ne correspond pas à l'année scolaire sélectionnée.",
+    );
+  }
+
+  return teaching;
+}

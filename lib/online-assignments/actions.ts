@@ -4,9 +4,11 @@ import { revalidatePath } from "next/cache";
 import { Prisma } from "@/prisma/generated/prisma/client";
 
 import {
+  assertManageAssignmentOwnership,
   enforceOnlineAssignmentAccess,
   enforceOnlineAssignmentManage,
   getAccessibleStudentsForOnline,
+  resolveOwnedTeachingForManage,
   resolveTeacherIdForUser,
 } from "@/lib/online-assignments/access";
 import { syncFicheFromOnlineAssignment } from "@/lib/online-assignments/fiche-bridge";
@@ -148,7 +150,7 @@ export const listAssignmentsAction = action.handler(async () => {
     const rows = await prisma.onlineAssignment.findMany({
       where: {
         ...assignmentBranchWhere(access.branchId),
-        ...(teacherId ? { teacherId } : {}),
+        ...(!isAdmin ? { teacherId: teacherId ?? "__none__" } : {}),
       },
       orderBy: [{ dueAt: "desc" }, { createdAt: "desc" }],
       include: {
@@ -277,10 +279,17 @@ export const createAssignmentAction = action
   .input(createAssignmentSchema)
   .handler(async ({ input }) => {
     const access = await enforceOnlineAssignmentManage();
-    const activityDate = await assertDayUniqueness({
-      branchId: access.branchId,
+    const teaching = await resolveOwnedTeachingForManage(access, {
+      teachingId: input.teachingId,
       classId: input.classId,
       courseId: input.courseId,
+      schoolYearId: input.schoolYearId,
+    });
+
+    const activityDate = await assertDayUniqueness({
+      branchId: access.branchId,
+      classId: teaching.classeId,
+      courseId: teaching.coursId,
       type: input.type,
       activityDate: input.fridayPreset
         ? getFridayWeekendWindow().activityDate
@@ -292,11 +301,11 @@ export const createAssignmentAction = action
     const created = await prisma.onlineAssignment.create({
       data: {
         branchId: assertAssignmentBranchId(access.branchId),
-        schoolYearId: input.schoolYearId,
-        classId: input.classId,
-        courseId: input.courseId,
-        teachingId: input.teachingId,
-        teacherId: input.teacherId,
+        schoolYearId: teaching.schoolYearId,
+        classId: teaching.classeId,
+        courseId: teaching.coursId,
+        teachingId: teaching.id,
+        teacherId: teaching.teacherId,
         periodId: input.periodId,
         type: input.type,
         title: input.title,
@@ -325,17 +334,27 @@ export const updateAssignmentAction = action
       where: { id: input.id, ...assignmentBranchWhere(access.branchId) },
     });
     if (!existing) throw new Error("Devoir introuvable.");
+    await assertManageAssignmentOwnership(access, existing);
     if (existing.status !== "DRAFT") {
       throw new Error("Seuls les brouillons sont modifiables.");
     }
 
+    const teachingId = input.teachingId ?? existing.teachingId;
     const classId = input.classId ?? existing.classId;
     const courseId = input.courseId ?? existing.courseId;
+    const schoolYearId = input.schoolYearId ?? existing.schoolYearId;
+    const teaching = await resolveOwnedTeachingForManage(access, {
+      teachingId,
+      classId,
+      courseId,
+      schoolYearId,
+    });
+
     const type = input.type ?? existing.type;
     const activityDate = await assertDayUniqueness({
       branchId: access.branchId,
-      classId,
-      courseId,
+      classId: teaching.classeId,
+      courseId: teaching.coursId,
       type,
       activityDate: input.activityDate ?? existing.activityDate,
       excludeId: existing.id,
@@ -347,12 +366,12 @@ export const updateAssignmentAction = action
         title: input.title,
         description: input.description,
         type: input.type,
-        classId: input.classId,
-        courseId: input.courseId,
-        teachingId: input.teachingId,
-        teacherId: input.teacherId,
+        classId: teaching.classeId,
+        courseId: teaching.coursId,
+        teachingId: teaching.id,
+        teacherId: teaching.teacherId,
         periodId: input.periodId,
-        schoolYearId: input.schoolYearId,
+        schoolYearId: teaching.schoolYearId,
         startAt: input.startAt,
         dueAt: input.dueAt,
         activityDate,
@@ -377,6 +396,7 @@ export const publishAssignmentAction = action
       include: { _count: { select: { questions: true } } },
     });
     if (!row) throw new Error("Devoir introuvable.");
+    await assertManageAssignmentOwnership(access, row);
     if (row._count.questions < 1) {
       throw new Error("Ajoutez au moins une question avant de publier.");
     }
@@ -400,8 +420,14 @@ export const closeAssignmentAction = action
   .input(assignmentIdSchema)
   .handler(async ({ input }) => {
     const access = await enforceOnlineAssignmentManage();
-    await prisma.onlineAssignment.updateMany({
+    const row = await prisma.onlineAssignment.findFirst({
       where: { id: input.id, ...assignmentBranchWhere(access.branchId) },
+      select: { id: true, teacherId: true },
+    });
+    if (!row) throw new Error("Devoir introuvable.");
+    await assertManageAssignmentOwnership(access, row);
+    await prisma.onlineAssignment.update({
+      where: { id: row.id },
       data: { status: "CLOSED" },
     });
     revalidateDevoirs(access.organizationId, access.branchId, input.id);
@@ -429,6 +455,7 @@ export const deleteAssignmentAction = action
       },
     });
     if (!row) throw new Error("Devoir introuvable.");
+    await assertManageAssignmentOwnership(access, row);
 
     const isDraft = row.status === "DRAFT";
     const isUncorrected =
@@ -467,6 +494,7 @@ export const duplicateAssignmentAction = action
       },
     });
     if (!source) throw new Error("Devoir introuvable.");
+    await assertManageAssignmentOwnership(access, source);
 
     const friday = getFridayWeekendWindow();
     // Cherche un vendredi libre en avançant semaine par semaine
@@ -579,6 +607,7 @@ export const getAssignmentDetailAction = action
     if (!row) throw new Error("Devoir introuvable.");
 
     if (access.mode === "manage") {
+      await assertManageAssignmentOwnership(access, row);
       return { mode: "manage" as const, assignment: row };
     }
 
@@ -847,9 +876,13 @@ export const gradeAnswerAction = action
         id: input.submissionId,
         assignment: assignmentBranchWhere(access.branchId),
       },
-      include: { answers: true, assignment: { include: { questions: true } } },
+      include: {
+        answers: true,
+        assignment: { select: { id: true, teacherId: true } },
+      },
     });
     if (!submission) throw new Error("Copie introuvable.");
+    await assertManageAssignmentOwnership(access, submission.assignment);
 
     await prisma.onlineAnswer.update({
       where: {
@@ -899,6 +932,10 @@ export const publishResultsAction = action
       include: { submissions: { include: { answers: true } } },
     });
     if (!row) throw new Error("Devoir introuvable.");
+    await assertManageAssignmentOwnership(access, row);
+    if (row.status === "DRAFT") {
+      throw new Error("Publiez d’abord le devoir avant de publier les résultats.");
+    }
 
     // Finalise scores
     for (const sub of row.submissions) {
@@ -953,6 +990,20 @@ export const exportResultsCsvAction = action
       },
     });
     if (!row) throw new Error("Devoir introuvable.");
+    await assertManageAssignmentOwnership(access, row);
+
+    const statusFr = (status: string) => {
+      switch (status) {
+        case "DRAFT":
+          return "En cours";
+        case "SUBMITTED":
+          return "Rendu";
+        case "GRADED":
+          return "Noté";
+        default:
+          return status;
+      }
+    };
 
     const lines = [
       "eleve;statut;note_provisoire;note_finale;soumis_le",
@@ -961,7 +1012,7 @@ export const exportResultsCsvAction = action
         const name = [u?.name, u?.postnom, u?.prenom].filter(Boolean).join(" ");
         return [
           JSON.stringify(name),
-          s.status,
+          statusFr(s.status),
           s.provisionalScore ?? "",
           s.finalScore ?? "",
           s.submittedAt?.toISOString() ?? "",

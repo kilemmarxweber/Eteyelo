@@ -1,7 +1,11 @@
 import { notFound } from "next/navigation";
 
 import { listAccessibleCursusStudents } from "@/lib/auth/cursus-scope";
-import { enforceOnlineAssignmentAccess } from "@/lib/online-assignments/access";
+import { canManageOrganization } from "@/lib/auth/session-roles";
+import {
+  enforceOnlineAssignmentAccess,
+  resolveTeacherIdForUser,
+} from "@/lib/online-assignments/access";
 import { assignmentBranchWhere } from "@/lib/online-assignments/scope";
 import { prisma } from "@/lib/prisma";
 
@@ -57,6 +61,15 @@ export default async function DevoirDetailPage({
     },
   });
   if (!row) notFound();
+
+  if (access.mode === "manage" && !canManageOrganization(access.session)) {
+    const teacherId = await resolveTeacherIdForUser(
+      access.userId,
+      branchId,
+      access.teacherId,
+    );
+    if (!teacherId || row.teacherId !== teacherId) notFound();
+  }
 
   const baseAssignment = {
     id: row.id,

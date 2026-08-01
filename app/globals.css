@@ -1,6 +1,11 @@
 @import "tailwindcss";
 @import "leaflet/dist/leaflet.css";
 
+/* MathML (aperçu formules) — lisible avec le thème */
+.formula-preview math {
+  font-family: "Cambria Math", "Latin Modern Math", "STIX Two Math", serif;
+}
+
 @keyframes global-top-loader-slide {
   0% {
     transform: translateX(-120%);

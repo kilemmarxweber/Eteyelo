@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Smoke tests — unit-04 périmètre caissier (finance + inscription).
  */
 import assert from "node:assert/strict";
@@ -64,7 +64,7 @@ test("login caissier → land branche", () => {
   );
 });
 
-test("menu caissier : Dashboard + Inscription + Finance + Utilisateurs/Élève (+ Aide)", () => {
+test("menu caissier : Tableau de bord + Inscription + Finance + Utilisateurs/Élève (+ Aide)", () => {
   const links = buildStaticSideLinks(sessionCaissier, BRANCH_PATH, "PRIMAIRE");
   const titles = links.map((item) => item.title);
   const usersSubs = (links.find((item) => item.title === "Utilisateurs")?.sub ?? []).map(
@@ -72,7 +72,7 @@ test("menu caissier : Dashboard + Inscription + Finance + Utilisateurs/Élève (
   );
 
   for (const title of [
-    "Dashboard",
+    "Tableau de bord",
     "Inscription",
     "Finance",
     "Utilisateurs",
@@ -85,7 +85,7 @@ test("menu caissier : Dashboard + Inscription + Finance + Utilisateurs/Élève (
     assert.ok(!usersSubs.includes(title), `caissier ne doit pas voir « ${title} »`);
   }
   for (const title of [
-    "Presences",
+    "Présences",
     "Candidatures",
     "Classes",
     "Enseignement",
@@ -95,7 +95,7 @@ test("menu caissier : Dashboard + Inscription + Finance + Utilisateurs/Élève (
   }
 });
 
-test("dashboard caissier = variante caisse", () => {
+test("Tableau de bord caissier = variante caisse", () => {
   assert.equal(resolveDashboardVariant(sessionCaissier), "caissier");
   assert.notEqual(resolveDashboardVariant(sessionCaissier), "directeur");
   assert.notEqual(resolveDashboardVariant(sessionCaissier), "admin");

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
   BookOpen,
@@ -84,6 +84,15 @@ type FilterOptions = {
   schoolYears: Array<{ id: string; label: string; isCurrent: boolean }>;
   classes: Array<{ id: string; label: string }>;
   courses: Array<{ id: string; label: string }>;
+  /** Paires affectation — cascade année → classe → cours pour les enseignants */
+  teachings?: Array<{
+    schoolYearId: string;
+    classId: string;
+    className: string;
+    courseId: string;
+    courseName: string;
+  }>;
+  scopedToTeacher?: boolean;
   defaultSchoolYearId: string;
 };
 
@@ -170,12 +179,96 @@ export function DevoirsClient({
   const [pending, startTransition] = useTransition();
   const base = `/admin/organizations/${organizationId}/branches/${branchId}/devoirs`;
 
+  const teachings = filterOptions.teachings ?? [];
+  const scopedToTeacher = Boolean(filterOptions.scopedToTeacher);
+
+  const initialClassId = (() => {
+    if (!scopedToTeacher || teachings.length === 0) return "all";
+    const yearId = filterOptions.defaultSchoolYearId || "all";
+    const inYear =
+      yearId === "all"
+        ? teachings
+        : teachings.filter((t) => t.schoolYearId === yearId);
+    const unique = [...new Set(inYear.map((t) => t.classId))];
+    return unique.length === 1 ? unique[0]! : "all";
+  })();
+
   const [schoolYearId, setSchoolYearId] = useState(
     filterOptions.defaultSchoolYearId || "all",
   );
-  const [classId, setClassId] = useState("all");
+  const [classId, setClassId] = useState(initialClassId);
   const [courseId, setCourseId] = useState("all");
   const [query, setQuery] = useState("");
+
+  const classOptions = useMemo(() => {
+    if (!scopedToTeacher || teachings.length === 0) {
+      return filterOptions.classes;
+    }
+    const map = new Map<string, string>();
+    for (const t of teachings) {
+      if (schoolYearId !== "all" && t.schoolYearId !== schoolYearId) continue;
+      map.set(t.classId, t.className);
+    }
+    return [...map.entries()]
+      .map(([id, label]) => ({ id, label }))
+      .sort((a, b) => a.label.localeCompare(b.label, "fr"));
+  }, [scopedToTeacher, teachings, schoolYearId, filterOptions.classes]);
+
+  const courseOptions = useMemo(() => {
+    if (!scopedToTeacher || teachings.length === 0) {
+      return filterOptions.courses;
+    }
+    const map = new Map<string, string>();
+    for (const t of teachings) {
+      if (schoolYearId !== "all" && t.schoolYearId !== schoolYearId) continue;
+      if (classId !== "all" && t.classId !== classId) continue;
+      map.set(t.courseId, t.courseName);
+    }
+    return [...map.entries()]
+      .map(([id, label]) => ({ id, label }))
+      .sort((a, b) => a.label.localeCompare(b.label, "fr"));
+  }, [
+    scopedToTeacher,
+    teachings,
+    schoolYearId,
+    classId,
+    filterOptions.courses,
+  ]);
+
+  const onSchoolYearChange = (value: string) => {
+    setSchoolYearId(value);
+    if (!scopedToTeacher) {
+      setClassId("all");
+      setCourseId("all");
+      return;
+    }
+    const inYear =
+      value === "all"
+        ? teachings
+        : teachings.filter((t) => t.schoolYearId === value);
+    const uniqueClasses = [...new Set(inYear.map((t) => t.classId))];
+    const nextClass =
+      uniqueClasses.length === 1 ? uniqueClasses[0]! : "all";
+    setClassId(nextClass);
+    setCourseId("all");
+  };
+
+  const onClassChange = (value: string) => {
+    setClassId(value);
+    setCourseId("all");
+  };
+
+  // Évite une valeur de Select orpheline après cascade année → classe → cours
+  useEffect(() => {
+    if (classId !== "all" && !classOptions.some((c) => c.id === classId)) {
+      setClassId("all");
+      setCourseId("all");
+      return;
+    }
+    if (courseId !== "all" && !courseOptions.some((c) => c.id === courseId)) {
+      setCourseId("all");
+    }
+  }, [classId, courseId, classOptions, courseOptions]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -282,8 +375,18 @@ export function DevoirsClient({
   };
 
   const resetFilters = () => {
-    setSchoolYearId(filterOptions.defaultSchoolYearId || "all");
-    setClassId("all");
+    const year = filterOptions.defaultSchoolYearId || "all";
+    setSchoolYearId(year);
+    if (scopedToTeacher && teachings.length > 0) {
+      const inYear =
+        year === "all"
+          ? teachings
+          : teachings.filter((t) => t.schoolYearId === year);
+      const unique = [...new Set(inYear.map((t) => t.classId))];
+      setClassId(unique.length === 1 ? unique[0]! : "all");
+    } else {
+      setClassId("all");
+    }
     setCourseId("all");
     setQuery("");
   };
@@ -293,7 +396,9 @@ export function DevoirsClient({
       title="Devoirs"
       description={
         mode === "manage"
-          ? "Filtrez par année, classe et cours — publiez pour le weekend."
+          ? scopedToTeacher
+            ? "Uniquement vos classes et cours affectés — publiez pour le weekend."
+            : "Filtrez par année, classe et cours — publiez pour le weekend."
           : mode === "parent"
             ? "Suivi des devoirs de vos enfants."
             : "Vos devoirs à faire pour le weekend."
@@ -305,14 +410,35 @@ export function DevoirsClient({
               type="button"
               variant="outline"
               size="sm"
-              disabled={pending}
+              disabled={
+                pending || (scopedToTeacher && teachings.length === 0)
+              }
               onClick={createFriday}
+              title={
+                scopedToTeacher && teachings.length === 0
+                  ? "Aucune affectation disponible"
+                  : undefined
+              }
             >
               <CalendarDays className="mr-1.5 size-3.5" />
               Vendredi
             </Button>
-            <Button asChild size="sm" disabled={pending}>
-              <Link href={`${base}/new`}>
+            <Button
+              asChild
+              size="sm"
+              disabled={
+                pending || (scopedToTeacher && teachings.length === 0)
+              }
+            >
+              <Link
+                href={`${base}/new`}
+                aria-disabled={scopedToTeacher && teachings.length === 0}
+                className={
+                  scopedToTeacher && teachings.length === 0
+                    ? "pointer-events-none opacity-50"
+                    : undefined
+                }
+              >
                 <Plus className="mr-1.5 size-3.5" />
                 Nouveau
               </Link>
@@ -409,8 +535,12 @@ export function DevoirsClient({
           <div className="min-w-0 flex-1">
             <p className="text-xs font-semibold text-foreground">Filtres</p>
             <p className="text-[11px] text-muted-foreground">
-              {filtered.length} résultat{filtered.length > 1 ? "s" : ""} sur{" "}
-              {assignments.length}
+              {scopedToTeacher
+                ? "Classe puis cours que vous enseignez"
+                : `${filtered.length} résultat${filtered.length > 1 ? "s" : ""} sur ${assignments.length}`}
+              {scopedToTeacher
+                ? ` · ${filtered.length} / ${assignments.length}`
+                : ""}
             </p>
           </div>
           <Button
@@ -428,7 +558,7 @@ export function DevoirsClient({
             <Label className="text-[11px] text-muted-foreground">
               Année scolaire
             </Label>
-            <Select value={schoolYearId} onValueChange={setSchoolYearId}>
+            <Select value={schoolYearId} onValueChange={onSchoolYearChange}>
               <SelectTrigger className="h-8 bg-background text-xs">
                 <SelectValue placeholder="Année" />
               </SelectTrigger>
@@ -444,13 +574,27 @@ export function DevoirsClient({
           </div>
           <div className="space-y-1">
             <Label className="text-[11px] text-muted-foreground">Classe</Label>
-            <Select value={classId} onValueChange={setClassId}>
+            <Select
+              value={classId}
+              onValueChange={onClassChange}
+              disabled={scopedToTeacher && classOptions.length === 0}
+            >
               <SelectTrigger className="h-8 bg-background text-xs">
-                <SelectValue placeholder="Classe" />
+                <SelectValue
+                  placeholder={
+                    scopedToTeacher && classOptions.length === 0
+                      ? "Aucune classe affectée"
+                      : "Classe"
+                  }
+                />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Toutes les classes</SelectItem>
-                {filterOptions.classes.map((c) => (
+                <SelectItem value="all">
+                  {scopedToTeacher
+                    ? "Toutes mes classes"
+                    : "Toutes les classes"}
+                </SelectItem>
+                {classOptions.map((c) => (
                   <SelectItem key={c.id} value={c.id}>
                     {c.label}
                   </SelectItem>
@@ -460,13 +604,34 @@ export function DevoirsClient({
           </div>
           <div className="space-y-1">
             <Label className="text-[11px] text-muted-foreground">Cours</Label>
-            <Select value={courseId} onValueChange={setCourseId}>
+            <Select
+              value={courseId}
+              onValueChange={setCourseId}
+              disabled={
+                scopedToTeacher &&
+                (classId === "all"
+                  ? courseOptions.length === 0
+                  : courseOptions.length === 0)
+              }
+            >
               <SelectTrigger className="h-8 bg-background text-xs">
-                <SelectValue placeholder="Cours" />
+                <SelectValue
+                  placeholder={
+                    scopedToTeacher && classId !== "all" && courseOptions.length === 0
+                      ? "Aucun cours dans cette classe"
+                      : "Cours"
+                  }
+                />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Tous les cours</SelectItem>
-                {filterOptions.courses.map((c) => (
+                <SelectItem value="all">
+                  {scopedToTeacher
+                    ? classId === "all"
+                      ? "Tous mes cours"
+                      : "Tous mes cours de la classe"
+                    : "Tous les cours"}
+                </SelectItem>
+                {courseOptions.map((c) => (
                   <SelectItem key={c.id} value={c.id}>
                     {c.label}
                   </SelectItem>
@@ -489,12 +654,21 @@ export function DevoirsClient({
         </div>
       </section>
 
-      {assignments.length === 0 ? (
+      {mode === "manage" &&
+      scopedToTeacher &&
+      teachings.length === 0 ? (
+        <EmptyState
+          title="Aucune affectation"
+          description="Vous n’êtes affecté à aucune classe ou cours. Contactez l’administration pour recevoir une affectation avant de créer des devoirs."
+        />
+      ) : assignments.length === 0 ? (
         <EmptyState
           title="Aucun devoir"
           description={
             mode === "manage"
-              ? "Créez un devoir du vendredi pour démarrer."
+              ? scopedToTeacher
+                ? "Créez un devoir pour l’une de vos classes afin de démarrer."
+                : "Créez un devoir du vendredi pour démarrer."
               : "Aucun devoir publié pour le moment."
           }
         />
