@@ -1,6 +1,13 @@
 /** Logo / image par défaut Klambocore (fichier dans public/uploads). */
 export const KLAMBOCORE_DEFAULT_IMAGE_PATH = "/uploads/klambocore.png";
 
+/** Logo marque (navbar, footer, pages publiques). */
+export const KLAMBOCORE_LOGO_PATH = "/klambocore-logo.png";
+
+/** Logo marque fond transparent (lettre K / wordmark sans fond blanc). */
+export const KLAMBOCORE_LOGO_TRANSPARENT_PATH =
+  "/klambocore-logo-transparent.png";
+
 /** Domaine public pour les emails et liens absolus. */
 export const KLAMBOCORE_PUBLIC_ORIGIN =
   process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") ||

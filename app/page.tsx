@@ -32,6 +32,7 @@ import { HomeFeaturedSectionHeader } from "@/components/home/home-featured-secti
 import { HomeGallerySection } from "@/components/home/home-gallery-section";
 import { HomeFooter } from "@/components/home-footer";
 import { HomeNavbar } from "@/components/home-navbar";
+import { KlambocoreLogoMark } from "@/components/brand/klambocore-logo-mark";
 import { galleryImages, getHomeData } from "@/lib/home/home-data";
 import { KLAMBOCORE_DEFAULT_IMAGE_PATH } from "@/lib/brand/klambocore-image";
 import {
@@ -149,18 +150,12 @@ export default async function HomePage() {
         <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-3 px-4 py-4 sm:gap-5 sm:px-6">
           <Link
             href="/"
-            className="flex min-w-0 flex-1 items-center gap-3 sm:flex-none"
+            className="flex min-w-0 flex-1 items-center gap-2.5 sm:flex-none"
           >
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 to-cyan-400 text-white">
-              <School />
-            </div>
-
-            <div>
-              <h1 className="text-xl font-black text-blue-700">Klambocore</h1>
-              <p className="text-[11px] font-medium text-slate-400">
-                Gestion scolaire RDC
-              </p>
-            </div>
+            <KlambocoreLogoMark priority />
+            <span className="truncate text-xl font-black text-blue-700">
+              Klambocore
+            </span>
           </Link>
 
           <div className="relative hidden flex-1 md:block">

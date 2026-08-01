@@ -5,11 +5,11 @@ import {
   Mail,
   MapPin,
   Phone,
-  School,
   Youtube,
 } from "lucide-react";
 import Link from "next/link";
 
+import { KlambocoreLogoMark } from "@/components/brand/klambocore-logo-mark";
 import { Button } from "@/components/ui/button";
 
 const socialLinks = [
@@ -27,15 +27,12 @@ export function HomeFooter() {
     <footer id="contact" className="bg-blue-950 text-white">
       <div className="mx-auto grid max-w-7xl gap-10 px-6 py-16 md:grid-cols-4">
         <div>
-          <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-600">
-              <School />
-            </div>
-            <div>
-              <h3 className="text-2xl font-black">Klambocore</h3>
-              <p className="text-xs text-blue-200/70">Marketing scolaire RDC</p>
-            </div>
-          </div>
+          <Link href="/" className="inline-flex items-center gap-3">
+            <span className="inline-flex rounded-xl bg-white p-1.5">
+              <KlambocoreLogoMark />
+            </span>
+            <span className="text-2xl font-black">Klambocore</span>
+          </Link>
 
           <p className="mt-5 text-sm leading-6 text-blue-100/70">
             Plateforme moderne pour decouvrir, promouvoir et digitaliser les

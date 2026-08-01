@@ -19,6 +19,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { z } from "zod";
 
+import { KlambocoreLogoMark } from "@/components/brand/klambocore-logo-mark";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -204,20 +205,12 @@ export function HomeNavbar() {
         <Link
           href="/"
           onClick={closeMobileMenu}
-          className="flex min-w-0 flex-1 items-center gap-3"
+          className="flex min-w-0 flex-1 items-center gap-2.5"
         >
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 to-cyan-400 text-white">
-            <School />
-          </div>
-
-          <div className="min-w-0">
-            <h1 className="truncate text-xl font-black text-blue-700">
-              Klambocore
-            </h1>
-            <p className="truncate text-[11px] font-medium text-slate-400">
-              Gestion scolaire RDC
-            </p>
-          </div>
+          <KlambocoreLogoMark priority />
+          <span className="truncate text-xl font-black text-blue-700">
+            Klambocore
+          </span>
         </Link>
 
         <div className="relative hidden flex-1 xl:block">
