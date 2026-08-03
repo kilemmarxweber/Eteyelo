@@ -117,6 +117,7 @@ const authOptions = {
     sendVerificationEmail: async ({ user, url }) => {
       void sendVerificationEmail({
         to: user.email,
+        phone: (user as { telephone?: string | null }).telephone,
         url,
         name: user.name,
       });
@@ -139,6 +140,9 @@ const authOptions = {
             });
             await sendNewUserCredentialsEmail({
               to: user.email,
+              phone:
+                (user as { telephone?: string | null }).telephone ||
+                pending.phone,
               name: user.name,
               temporaryPassword: pending.password,
               role: pending.role,

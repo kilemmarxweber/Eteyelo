@@ -155,6 +155,7 @@ export async function POST(req: Request) {
 
       await sendMail({
         to: email,
+        whatsappTo: parentUser?.telephone,
         subject: `Résultats de ${studentUser?.name ?? ""}`,
         text: `Bulletin scolaire de ${studentUser?.name ?? ""} — moyenne ${percent}%`,
         html,

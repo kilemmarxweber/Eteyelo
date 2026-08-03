@@ -1,4 +1,4 @@
-import { sendMail, isSmtpConfigured } from "./mailer";
+import { sendMail } from "./mailer";
 import {
   DEFAULT_APP_NAME,
   emailLayoutHtml,
@@ -9,6 +9,7 @@ const APP_NAME = DEFAULT_APP_NAME;
 
 export async function sendVerificationEmail(input: {
   to: string;
+  phone?: string | null;
   url: string;
   name?: string;
   subject?: string;
@@ -42,22 +43,17 @@ export async function sendVerificationEmail(input: {
     cta: { href: input.url, label: "Confirmer mon adresse email" },
   });
 
-  if (isSmtpConfigured()) {
-    try {
-      await sendMail({ to: input.to, subject, text, html });
-      return;
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : String(err);
-      throw new Error(`Nodemailer: ${message}`);
-    }
+  try {
+    await sendMail({
+      to: input.to,
+      whatsappTo: input.phone,
+      whatsappName: input.name,
+      subject,
+      text,
+      html,
+    });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    throw new Error(`Nodemailer: ${message}`);
   }
-
-  if (process.env.NODE_ENV === "development") {
-    // eslint-disable-next-line no-console
-    console.info(`[sendVerificationEmail] to=${input.to} url=${input.url}`);
-    return;
-  }
-
-  // eslint-disable-next-line no-console
-  console.warn("[sendVerificationEmail] SMTP non configuré : email non envoyé.");
 }

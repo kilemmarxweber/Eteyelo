@@ -10,6 +10,8 @@ export type PendingAdminCreatedCredentials = {
   branchName?: string;
   branchPhone?: string;
   branchAddress?: string;
+  /** Téléphone du nouvel utilisateur (pour WhatsApp). */
+  phone?: string;
 };
 
 type PendingMeta = Omit<PendingAdminCreatedCredentials, "password">;
@@ -34,6 +36,7 @@ export function stashAdminCreatedUserPlainPassword(
     branchName: normalized.branchName ?? existing?.branchName,
     branchPhone: normalized.branchPhone ?? existing?.branchPhone,
     branchAddress: normalized.branchAddress ?? existing?.branchAddress,
+    phone: normalized.phone ?? existing?.phone,
   });
 }
 

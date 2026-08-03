@@ -142,6 +142,7 @@ export async function createOrganizationMemberAction(
     branchName: branch?.name,
     branchPhone: branch?.tel?.trim() || undefined,
     branchAddress: branchAddress || undefined,
+    phone: telephone,
   });
 
   let userId: string | null = null;
@@ -457,7 +458,10 @@ import { hashPassword } from "better-auth/crypto";
 
 export async function resetUserPasswordAction(
   input: ResetOrgMemberPasswordInput,
-): Promise<{ ok: true } | { ok: false; message: string }> {
+): Promise<
+  | { ok: true; whatsappSent: boolean; hasPhone: boolean }
+  | { ok: false; message: string }
+> {
   const parsed = resetOrgMemberPasswordSchema.safeParse(input);
   if (!parsed.success) {
     return { ok: false, message: zodFirstMessage(parsed.error) };
@@ -479,9 +483,23 @@ export async function resetUserPasswordAction(
       select: {
         id: true,
         name: true,
+        telephone: true,
         members: {
           where: { organizationId },
-          select: { id: true },
+          select: {
+            id: true,
+            branchMember: {
+              where: {
+                branch: { organizationId },
+                role: { in: ["PARENT", "STUDENT", "TEACHER"] },
+              },
+              take: 1,
+              orderBy: { createdAt: "desc" },
+              select: {
+                branch: { select: { name: true } },
+              },
+            },
+          },
         },
       },
     });
@@ -496,6 +514,9 @@ export async function resetUserPasswordAction(
         message: "Cet utilisateur n'est pas membre de cette organisation.",
       };
     }
+
+    const branchName =
+      user.members[0]?.branchMember[0]?.branch?.name ?? null;
 
     const plainPassword = generateSecurePassword(16);
     stashAdminCreatedUserPlainPassword(email, plainPassword);
@@ -517,14 +538,20 @@ export async function resetUserPasswordAction(
       data: { mustChangePassword: true },
     });
 
-    await sendResetPasswordEmail({
+    const result = await sendResetPasswordEmail({
       to: email,
+      phone: user.telephone,
       name: user.name,
-      temporaryPassword: plainPassword, // Envoie le clair par email
+      temporaryPassword: plainPassword,
+      branchName,
     });
 
     consumeAdminCreatedUserPlainPassword(email);
-    return { ok: true };
+    return {
+      ok: true as const,
+      whatsappSent: result.whatsappSent,
+      hasPhone: Boolean(user.telephone?.trim()),
+    };
   } catch (e) {
     consumeAdminCreatedUserPlainPassword(email);
     return { ok: false, message: errMessage(e) };

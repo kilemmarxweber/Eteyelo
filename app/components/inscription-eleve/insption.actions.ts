@@ -247,10 +247,13 @@ export async function registerStudentOnline(raw: OnlineRegistrationInput) {
       ? `${primaryGuardian.prenom} ${primaryGuardian.name}`.trim()
       : studentName;
 
-  if (confirmationEmail) {
+  const confirmationPhone = primaryGuardian?.telephone?.trim() || null;
+
+  if (confirmationEmail || confirmationPhone) {
     try {
       await sendStudentRegistrationConfirmationEmail({
         to: confirmationEmail.toLowerCase(),
+        phone: confirmationPhone,
         recipientName: recipientName || "Responsable",
         studentName,
         reference,

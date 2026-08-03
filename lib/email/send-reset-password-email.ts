@@ -1,4 +1,4 @@
-import { sendMail, isSmtpConfigured } from "./mailer";
+import { sendMail } from "./mailer";
 import {
   DEFAULT_APP_NAME,
   emailInfoCard,
@@ -6,15 +6,18 @@ import {
   escapeHtml,
   getSignInUrl,
 } from "./email-layout";
+import { sendResetPasswordWhatsApp } from "@/lib/zindua";
 
 const APP_NAME = DEFAULT_APP_NAME;
 
 export async function sendResetPasswordEmail(input: {
   to: string;
+  phone?: string | null;
   name: string;
   temporaryPassword: string;
   loginUrl?: string;
-}): Promise<void> {
+  branchName?: string | null;
+}): Promise<{ emailSent: boolean; whatsappSent: boolean }> {
   const { to, name, temporaryPassword } = input;
   const loginUrl = input.loginUrl ?? getSignInUrl();
 
@@ -61,18 +64,26 @@ export async function sendResetPasswordEmail(input: {
     cta: { href: loginUrl, label: "Se connecter sur Klambocore" },
   });
 
-  if (isSmtpConfigured()) {
-    await sendMail({ to, subject, text, html });
-    return;
+  // Email seul (pas de miroir auto) — WhatsApp dédié avec {{code}} = MDP
+  await sendMail({
+    to,
+    subject,
+    text,
+    html,
+  });
+
+  let whatsappSent = false;
+  if (input.phone?.trim()) {
+    const wa = await sendResetPasswordWhatsApp({
+      to: input.phone,
+      name,
+      temporaryPassword,
+      email: to,
+      loginUrl,
+      branchName: input.branchName,
+    });
+    whatsappSent = Boolean(wa?.success);
   }
 
-  if (process.env.NODE_ENV === "development") {
-    // eslint-disable-next-line no-console
-    console.info(`[RESET EMAIL] to=${to}`);
-    // eslint-disable-next-line no-console
-    console.info(`[RESET PASSWORD] ${temporaryPassword}`);
-  } else {
-    // eslint-disable-next-line no-console
-    console.warn("[RESET EMAIL] SMTP non configuré");
-  }
+  return { emailSent: true, whatsappSent };
 }

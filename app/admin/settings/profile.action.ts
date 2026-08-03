@@ -171,6 +171,7 @@ export async function updateCurrentProfileAction(
       try {
         await sendProfileUpdatedEmail({
           to: updatedUser.email,
+          phone: updatedUser.telephone,
           name: updatedUser.name,
         });
       } catch (error) {

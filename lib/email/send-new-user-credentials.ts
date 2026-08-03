@@ -1,4 +1,4 @@
-import { sendMail, isSmtpConfigured } from "./mailer";
+import { sendMail } from "./mailer";
 import {
   DEFAULT_APP_NAME,
   emailInfoCard,
@@ -6,15 +6,17 @@ import {
   escapeHtml,
   getSignInUrl,
 } from "./email-layout";
+import { sendNewUserCredentialsWhatsApp } from "@/lib/zindua";
 
 const APP_NAME = DEFAULT_APP_NAME;
 
 /**
- * Envoie (ou journalise) les identifiants temporaires après création de compte par un admin.
- * Configurez `SMTP_HOST`, `SMTP_USER` et `SMTP_PASS` pour l’envoi réel via SMTP.
+ * Envoie les identifiants temporaires après création de compte (parent, élève, …).
+ * Email SMTP + WhatsApp dédié (comme le reset MDP).
  */
 export async function sendNewUserCredentialsEmail(input: {
   to: string;
+  phone?: string | null;
   name: string;
   temporaryPassword: string;
   role?: string;
@@ -23,7 +25,7 @@ export async function sendNewUserCredentialsEmail(input: {
   branchPhone?: string;
   branchAddress?: string;
   loginUrl?: string;
-}): Promise<void> {
+}): Promise<{ emailSent: boolean; whatsappSent: boolean }> {
   const { to, name, temporaryPassword } = input;
   const role = input.role?.trim() || "Utilisateur";
   const organizationName = input.organizationName?.trim();
@@ -113,29 +115,28 @@ export async function sendNewUserCredentialsEmail(input: {
     },
   });
 
-  if (isSmtpConfigured()) {
-    try {
-      await sendMail({ to, subject, text, html });
-      return;
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : String(err);
-      throw new Error(`Nodemailer: ${message}`);
-    }
+  // Email seul — WhatsApp dédié (comme le reset MDP)
+  await sendMail({
+    to,
+    subject,
+    text,
+    html,
+  });
+
+  let whatsappSent = false;
+  if (input.phone?.trim()) {
+    const wa = await sendNewUserCredentialsWhatsApp({
+      to: input.phone,
+      name,
+      email: to,
+      temporaryPassword,
+      role,
+      organizationName,
+      branchName,
+      loginUrl,
+    });
+    whatsappSent = Boolean(wa?.success);
   }
 
-  if (process.env.NODE_ENV === "development") {
-    // eslint-disable-next-line no-console
-    console.info(
-      `[sendNewUserCredentialsEmail] to=${to} role=${role} org=${organizationName ?? "-"} branch=${branchName ?? "-"} (dev, pas de SMTP configuré)`,
-    );
-    // eslint-disable-next-line no-console
-    console.info(
-      `[sendNewUserCredentialsEmail] mot de passe temporaire (dev uniquement) : ${temporaryPassword}`,
-    );
-  } else {
-    // eslint-disable-next-line no-console
-    console.warn(
-      "[sendNewUserCredentialsEmail] SMTP non configuré : email non envoyé (production).",
-    );
-  }
+  return { emailSent: true, whatsappSent };
 }

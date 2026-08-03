@@ -67,13 +67,21 @@ async function main() {
 Usage:
   pnpm seed                 Seed owner + support + taux + bibliothèque
   pnpm seed:library         Seed catalogue RDC uniquement
+  pnpm seed:library:reset   Efface OPEN_LICENSE puis re-seed Gutenberg
   pnpm seed -- --clear      Supprime seeds (bibliothèque → … → admin)
   pnpm seed -- --list       Liste les seeds disponibles
 
 Env bibliothèque :
-  LIBRARY_SEED_BRANCH_ID     Une seule branche
-  LIBRARY_SEED_MAX_BRANCHES  Limite (défaut 10)
-  LIBRARY_STORAGE_DRIVER     local | s3
+  LIBRARY_SEED_BRANCH_ID       Une seule branche
+  LIBRARY_SEED_MAX_BRANCHES    Limite (défaut 10)
+  LIBRARY_SEED_INCLUDE_STUBS=1 Inclure PDF démo RDC (1 page) — déconseillé
+  LIBRARY_STORAGE_DRIVER       local | s3
+  LIBRARY_FETCH_LIMIT          Nb livres Gutendex (défaut 150)
+  LIBRARY_FETCH_LANGS          Langues (défaut fr,en)
+
+  pnpm library:fetch           Télécharge Gutenberg → JSON + EPUB complets
+  pnpm seed:library            Importe les EPUB (désactive les stubs PDF)
+  pnpm seed:library:reset      Écrase la base bibliothèque seed puis réimporte
 `);
     return;
   }
@@ -86,6 +94,12 @@ Env bibliothèque :
   }
 
   if (args.includes("--library-only")) {
+    await seedLibraryBooks();
+    return;
+  }
+
+  if (args.includes("--library-reset")) {
+    await clearLibraryBooksSeed();
     await seedLibraryBooks();
     return;
   }

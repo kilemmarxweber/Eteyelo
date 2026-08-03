@@ -55,8 +55,9 @@ export function ResetUsersDialog({
           <DialogDescription>
             Cette action ne peut pas être annulée. Cela réinitialisera le mot de
             passe de l&apos;utilisateur{" "}
-            <span className="font-medium">{email}</span> et enverra un email
-            avec le nouveau mot de passe temporaire.
+            <span className="font-medium">{email}</span> et enverra le nouveau
+            mot de passe temporaire par <strong>email</strong> et{" "}
+            <strong>WhatsApp</strong> (si un numéro est enregistré).
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="gap-2 sm:space-x-0">
@@ -76,7 +77,19 @@ export function ResetUsersDialog({
                 toast.error(res.message);
                 return;
               }
-              toast.success("Mot de passe réinitialisé et email envoyé.");
+              if (res.whatsappSent) {
+                toast.success(
+                  "Mot de passe réinitialisé — email et WhatsApp envoyés.",
+                );
+              } else if (res.hasPhone) {
+                toast.success(
+                  "Mot de passe réinitialisé — email envoyé (WhatsApp non délivré, vérifiez Zindua).",
+                );
+              } else {
+                toast.success(
+                  "Mot de passe réinitialisé — email envoyé (pas de téléphone).",
+                );
+              }
               onSuccess?.();
             }}
             disabled={isResetPending}

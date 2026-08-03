@@ -9,6 +9,13 @@ export type MailPayload = {
   subject: string;
   text: string;
   html?: string;
+  /**
+   * Si fourni, envoie aussi le même contenu texte via WhatsApp (Zindua).
+   * Indépendant du SMTP — les parents/élèves sont notifiés même sans email.
+   */
+  whatsappTo?: string | null;
+  /** Nom destinataire pour {{name}} du template Zindua. */
+  whatsappName?: string | null;
 };
 
 let transporter: Mail | null = null;
@@ -91,22 +98,61 @@ export async function deliverMail({
   });
 }
 
+function queueWhatsAppMirror(payload: MailPayload): void {
+  const phone = payload.whatsappTo?.trim();
+  if (!phone) return;
+
+  void import("@/lib/zindua")
+    .then(({ mirrorEmailToWhatsApp }) =>
+      mirrorEmailToWhatsApp({
+        to: phone,
+        subject: payload.subject,
+        body: payload.text,
+        name: payload.whatsappName,
+      }),
+    )
+    .catch((err) => {
+      // eslint-disable-next-line no-console
+      console.warn(
+        "[sendMail] WhatsApp mirror failed:",
+        err instanceof Error ? err.message : err,
+      );
+    });
+}
+
 /**
  * Met l'email en file BullMQ (non bloquant pour la requête HTTP).
  * Si Redis est indisponible, envoi en arrière-plan sans attendre SMTP.
+ * Si `whatsappTo` est fourni, miroir WhatsApp du texte (indépendant du SMTP).
  */
 export async function sendMail(payload: MailPayload): Promise<void> {
+  queueWhatsAppMirror(payload);
+
+  const emailTo = payload.to?.trim() ?? "";
+  const hasValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailTo);
+
+  // WhatsApp seul (pas d'email parent/élève) — on s'arrête après le miroir.
+  if (!hasValidEmail) {
+    if (process.env.NODE_ENV === "development") {
+      // eslint-disable-next-line no-console
+      console.info(
+        `[sendMail] email invalide/absent — WhatsApp only subject=${payload.subject}`,
+      );
+    }
+    return;
+  }
+
   if (!isSmtpConfigured()) {
     if (process.env.NODE_ENV === "development") {
       // eslint-disable-next-line no-console
       console.info(
-        `[sendMail] SMTP off — skip queue to=${payload.to} subject=${payload.subject}`,
+        `[sendMail] SMTP off — skip queue to=${emailTo} subject=${payload.subject}`,
       );
       return;
     }
     // eslint-disable-next-line no-console
     console.warn(
-      `[sendMail] SMTP non configuré : email non mis en file (to=${payload.to}).`,
+      `[sendMail] SMTP non configuré : email non mis en file (to=${emailTo}).`,
     );
     return;
   }
@@ -119,7 +165,8 @@ export async function sendMail(payload: MailPayload): Promise<void> {
       await redis.connect();
     }
 
-    await getEmailQueue().add("send-email", payload, {
+    const { whatsappTo: _wa, whatsappName: _wn, ...emailJob } = payload;
+    await getEmailQueue().add("send-email", emailJob, {
       jobId: undefined,
     });
   } catch (error) {
@@ -129,7 +176,8 @@ export async function sendMail(payload: MailPayload): Promise<void> {
       "[sendMail] File email indisponible, fallback envoi background:",
       error instanceof Error ? error.message : error,
     );
-    void deliverMail(payload).catch((err) => {
+    const { whatsappTo: _wa, whatsappName: _wn, ...emailOnly } = payload;
+    void deliverMail(emailOnly).catch((err) => {
       // eslint-disable-next-line no-console
       console.error(
         "[sendMail] Fallback SMTP failed:",

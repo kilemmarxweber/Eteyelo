@@ -1,4 +1,4 @@
-import { sendMail, isSmtpConfigured } from "./mailer";
+import { sendMail } from "./mailer";
 import {
   DEFAULT_APP_NAME,
   emailInfoCard,
@@ -10,6 +10,8 @@ const APP_NAME = DEFAULT_APP_NAME;
 
 export async function sendStudentRegistrationConfirmationEmail(input: {
   to: string;
+  /** Téléphone parent/élève pour miroir WhatsApp. */
+  phone?: string | null;
   recipientName: string;
   studentName: string;
   reference: string;
@@ -63,26 +65,17 @@ export async function sendStudentRegistrationConfirmationEmail(input: {
     bodyHtml,
   });
 
-  if (isSmtpConfigured()) {
-    try {
-      await sendMail({ to: input.to, subject, text, html });
-      return;
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : String(err);
-      throw new Error(`Nodemailer: ${message}`);
-    }
+  try {
+    await sendMail({
+      to: input.to,
+      whatsappTo: input.phone,
+      whatsappName: input.recipientName,
+      subject,
+      text,
+      html,
+    });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    throw new Error(`Nodemailer: ${message}`);
   }
-
-  if (process.env.NODE_ENV === "development") {
-    // eslint-disable-next-line no-console
-    console.info(
-      `[sendStudentRegistrationConfirmationEmail] to=${input.to} ref=${input.reference}`,
-    );
-    return;
-  }
-
-  // eslint-disable-next-line no-console
-  console.warn(
-    "[sendStudentRegistrationConfirmationEmail] SMTP non configuré : email non envoyé.",
-  );
 }

@@ -3,7 +3,10 @@ import fs from "fs/promises";
 import path from "path";
 
 import { KLAMBOCORE_DEFAULT_IMAGE_PATH } from "@/lib/brand/klambocore-image";
-import { uploadLibraryBuffer } from "@/lib/library/storage";
+import {
+  MAX_LIBRARY_BOOK_BYTES,
+  uploadLibraryBuffer,
+} from "@/lib/library/storage";
 import { getLibrarySeedCyclesForBranch } from "@/lib/library/taxonomy";
 import { prisma } from "@/lib/prisma";
 import {
@@ -27,13 +30,17 @@ type CatalogEntry = {
   language: string;
   license: string;
   tags: string[];
+  gutenbergId?: number;
+  coverUrl?: string;
 };
 
+const CACHE_DIR = path.join(process.cwd(), ".data", "library-seed-cache");
+
+/** PDF minimal 1 page — uniquement si LIBRARY_SEED_INCLUDE_STUBS=1 */
 function escapePdfText(value: string): string {
   return value.replace(/\\/g, "\\\\").replace(/\(/g, "\\(").replace(/\)/g, "\\)");
 }
 
-/** PDF minimal 1 page (contenu libre CC0) — sans dépendance externe. */
 function buildOpenLicensePdf(entry: CatalogEntry): Buffer {
   const lines = [
     entry.title,
@@ -85,28 +92,119 @@ function buildOpenLicensePdf(entry: CatalogEntry): Buffer {
   return Buffer.from(pdf, "utf8");
 }
 
+async function readJsonCatalog(fileName: string): Promise<CatalogEntry[]> {
+  const filePath = path.join(process.cwd(), "prisma", "seeds", fileName);
+  try {
+    const raw = await fs.readFile(filePath, "utf8");
+    return JSON.parse(raw) as CatalogEntry[];
+  } catch {
+    return [];
+  }
+}
+
 async function loadCatalog(): Promise<CatalogEntry[]> {
-  const filePath = path.join(
-    process.cwd(),
-    "prisma",
-    "seeds",
-    "library-rdc-open.json",
-  );
-  const raw = await fs.readFile(filePath, "utf8");
-  return JSON.parse(raw) as CatalogEntry[];
+  const includeStubs = process.env.LIBRARY_SEED_INCLUDE_STUBS === "1";
+  const [rdc, gutenberg] = await Promise.all([
+    includeStubs ? readJsonCatalog("library-rdc-open.json") : Promise.resolve([]),
+    readJsonCatalog("library-gutenberg-open.json"),
+  ]);
+  const bySlug = new Map<string, CatalogEntry>();
+  for (const entry of [...rdc, ...gutenberg]) {
+    bySlug.set(entry.slug, entry);
+  }
+  return [...bySlug.values()];
+}
+
+async function resolveBookFile(entry: CatalogEntry): Promise<{
+  buffer: Buffer;
+  fileName: string;
+  mimeType: string;
+  fileType: LibraryFileType;
+} | null> {
+  if (entry.gutenbergId) {
+    const epubPath = path.join(CACHE_DIR, `${entry.gutenbergId}.epub`);
+    try {
+      const buffer = await fs.readFile(epubPath);
+      if (buffer.length > MAX_LIBRARY_BOOK_BYTES) {
+        console.warn(
+          `    ⏭ ${entry.title} — EPUB trop volumineux (${(buffer.length / 1024 / 1024).toFixed(1)} Mo > 50 Mo)`,
+        );
+        return null;
+      }
+      if (buffer.length > 1000) {
+        return {
+          buffer,
+          fileName: `${entry.slug}.epub`,
+          mimeType: "application/epub+zip",
+          fileType: LibraryFileType.EPUB,
+        };
+      }
+    } catch {
+      console.warn(`    ⏭ ${entry.title} — EPUB manquant en cache`);
+      return null;
+    }
+  }
+
+  // Stubs PDF 1 page : uniquement si demandé explicitement
+  if (process.env.LIBRARY_SEED_INCLUDE_STUBS === "1") {
+    return {
+      buffer: buildOpenLicensePdf(entry),
+      fileName: `${entry.slug}.pdf`,
+      mimeType: "application/pdf",
+      fileType: LibraryFileType.PDF,
+    };
+  }
+
+  return null;
+}
+
+/** Masque les anciens PDF démo « Kalasa Open Curriculum » (contenu 1 page). */
+async function deactivateStubBooks(branchIds: string[]) {
+  if (branchIds.length === 0) return 0;
+
+  const result = await prisma.libraryBook.updateMany({
+    where: {
+      branchId: { in: branchIds },
+      source: LibrarySource.OPEN_LICENSE,
+      OR: [
+        { author: "Kalasa Open Curriculum" },
+        { tags: { has: "rdc" }, fileType: LibraryFileType.PDF },
+      ],
+    },
+    data: { isActive: false },
+  });
+
+  if (result.count > 0) {
+    console.log(
+      `  ${result.count} stub(s) PDF démo désactivé(s) (contenu limité).`,
+    );
+  }
+  return result.count;
 }
 
 /**
- * Seed le catalogue RDC open-license sur les branches actives.
+ * Seed le catalogue bibliothèque (Gutenberg domaine public — vrais EPUB).
  *
  * Env optionnels :
  * - LIBRARY_SEED_BRANCH_ID : une seule branche
  * - LIBRARY_SEED_MAX_BRANCHES : limite (défaut 10)
+ * - LIBRARY_SEED_INCLUDE_STUBS=1 : inclure aussi les PDF démo RDC (1 page)
+ *
+ * Prérequis Gutenberg : `pnpm library:fetch`
  */
 export async function seedLibraryBooks() {
-  console.log("Initialisation catalogue bibliothèque RDC (open-license)...");
+  console.log("Initialisation catalogue bibliothèque (Gutenberg EPUB)…");
 
   const catalog = await loadCatalog();
+  console.log(`  Catalogue chargé : ${catalog.length} titre(s)`);
+
+  if (catalog.length === 0) {
+    console.warn(
+      "Catalogue vide. Lancez d’abord : pnpm library:fetch",
+    );
+    return { branches: 0, created: 0, skipped: 0 };
+  }
+
   const branchFilterId = process.env.LIBRARY_SEED_BRANCH_ID?.trim();
   const maxBranches = Number(process.env.LIBRARY_SEED_MAX_BRANCHES || 10);
 
@@ -126,6 +224,8 @@ export async function seedLibraryBooks() {
     );
     return { branches: 0, created: 0, skipped: 0 };
   }
+
+  await deactivateStubBooks(branches.map((b) => b.id));
 
   let created = 0;
   let skipped = 0;
@@ -159,22 +259,26 @@ export async function seedLibraryBooks() {
             publisher: entry.publisher,
             description: entry.description,
             license: entry.license,
+            coverImage: entry.coverUrl || KLAMBOCORE_DEFAULT_IMAGE_PATH,
             cycle: entry.cycle as LibraryCycle,
             level: entry.level,
             section: entry.section,
             subject: entry.subject,
+            isActive: true,
           },
         });
         skipped += 1;
         continue;
       }
 
-      const pdf = buildOpenLicensePdf(entry);
+      const file = await resolveBookFile(entry);
+      if (!file) continue;
+
       const saved = await uploadLibraryBuffer({
-        buffer: pdf,
-        fileName: `${entry.slug}.pdf`,
+        buffer: file.buffer,
+        fileName: file.fileName,
         branchId: branch.id,
-        mimeType: "application/pdf",
+        mimeType: file.mimeType,
       });
 
       await prisma.libraryBook.create({
@@ -183,9 +287,9 @@ export async function seedLibraryBooks() {
           author: entry.author,
           publisher: entry.publisher,
           description: entry.description,
-          coverImage: KLAMBOCORE_DEFAULT_IMAGE_PATH,
+          coverImage: entry.coverUrl || KLAMBOCORE_DEFAULT_IMAGE_PATH,
           fileUrl: saved.storageKey,
-          fileType: LibraryFileType.PDF,
+          fileType: file.fileType,
           fileSize: saved.fileSize,
           language: entry.language || "fr",
           license: entry.license,
@@ -205,6 +309,9 @@ export async function seedLibraryBooks() {
       });
 
       created += 1;
+      if (created % 25 === 0) {
+        console.log(`    … ${created} créés`);
+      }
     }
 
     console.log(
@@ -213,7 +320,7 @@ export async function seedLibraryBooks() {
   }
 
   console.log(
-    `Catalogue RDC prêt: ${branches.length} branche(s), ${created} livre(s) créés, ${skipped} déjà présents.`,
+    `Catalogue prêt: ${branches.length} branche(s), ${created} livre(s) créés, ${skipped} déjà présents.`,
   );
   return { branches: branches.length, created, skipped };
 }

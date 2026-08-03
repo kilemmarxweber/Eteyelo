@@ -1,4 +1,4 @@
-import { isSmtpConfigured, sendMail } from "./mailer";
+import { sendMail } from "./mailer";
 import {
   DEFAULT_APP_NAME,
   emailLayoutHtml,
@@ -10,6 +10,7 @@ const APP_NAME = DEFAULT_APP_NAME;
 
 export async function sendProfileUpdatedEmail(input: {
   to: string;
+  phone?: string | null;
   name: string;
 }) {
   const subject = `${APP_NAME} — Votre profil a été modifié`;
@@ -41,18 +42,12 @@ export async function sendProfileUpdatedEmail(input: {
     cta: { href: loginUrl, label: "Voir mon profil" },
   });
 
-  if (isSmtpConfigured()) {
-    await sendMail({ to: input.to, subject, text, html });
-    return;
-  }
-
-  if (process.env.NODE_ENV === "development") {
-    // eslint-disable-next-line no-console
-    console.info(`[sendProfileUpdatedEmail] to=${input.to}`);
-  } else {
-    // eslint-disable-next-line no-console
-    console.warn(
-      "[sendProfileUpdatedEmail] SMTP non configuré : email non envoyé.",
-    );
-  }
+  await sendMail({
+    to: input.to,
+    whatsappTo: input.phone,
+    whatsappName: input.name,
+    subject,
+    text,
+    html,
+  });
 }

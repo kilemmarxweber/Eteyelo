@@ -34,6 +34,22 @@ export function EpubReader({ bookId, className }: EpubReaderProps) {
           location={location}
           locationChanged={(loc) => setLocation(loc)}
           getRendition={() => setReady(true)}
+          loadingView={
+            <div className="flex h-full items-center justify-center gap-2 text-sm text-muted-foreground">
+              <Loader2 className="size-4 animate-spin" />
+              Chargement de l&apos;EPUB…
+            </div>
+          }
+          errorView={
+            <div className="flex h-full items-center justify-center p-6 text-center text-sm text-destructive">
+              Impossible de charger ce livre. Réessayez plus tard.
+            </div>
+          }
+          epubInitOptions={{
+            // L’URL API n’a pas d’extension .epub → sans openAs, epub.js
+            // traite la ressource comme un dossier et échoue.
+            openAs: "epub",
+          }}
           epubOptions={{
             allowPopups: false,
             allowScriptedContent: false,
