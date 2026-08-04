@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import {
   IconArrowLeft,
   IconArrowRight,
+  IconAlertTriangle,
   IconCamera,
   IconCheck,
   IconPhotoPlus,
@@ -76,6 +77,13 @@ import {
   type PrefillEventDetail,
 } from "@/lib/prefill-events";
 import { uploadFile } from "@/lib/upload-file";
+import {
+  emptyFamilyExtraInfo,
+  emptyStudentExtraInfo,
+  type FamilyExtraInfo,
+  type StudentExtraInfo,
+} from "@/lib/registration-extra-info";
+import { RegistrationExtraInfoSheet } from "@/components/registration-extra-info-sheet";
 import {
   defaultCreneauValues,
   type CreneauFormValues,
@@ -238,6 +246,7 @@ export function RegistrationForm({
   const [historyOutcome, setHistoryOutcome] = useState<
     "new" | "passed" | "failed" | "returning"
   >("new");
+  const [feeDebtMessage, setFeeDebtMessage] = useState("");
   const [schoolYearId, setSchoolYearId] = useState("");
   const [level, setLevel] = useState("");
   const [sectionId, setSectionId] = useState("");
@@ -251,6 +260,14 @@ export function RegistrationForm({
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoUrl, setPhotoUrl] = useState("");
   const [cameraOpen, setCameraOpen] = useState(false);
+  const [studentExtra, setStudentExtra] = useState<StudentExtraInfo>(
+    emptyStudentExtraInfo(),
+  );
+  const [familyExtra, setFamilyExtra] = useState<FamilyExtraInfo>(
+    emptyFamilyExtraInfo(),
+  );
+  const [extraSheetOpen, setExtraSheetOpen] = useState(false);
+  const [siblingParentHint, setSiblingParentHint] = useState("");
   const photoPreview = useMemo(
     () => (photoFile ? URL.createObjectURL(photoFile) : photoUrl),
     [photoFile, photoUrl],
@@ -341,6 +358,8 @@ export function RegistrationForm({
     setRequestId(request.id);
     setRequestReference(request.reference);
     setStudentMode("new");
+    setStudentExtra(request.studentExtra ?? emptyStudentExtraInfo());
+    setFamilyExtra(request.familyExtra ?? emptyFamilyExtraInfo());
     setStudent({
       ...emptyStudent,
       ...request.student,
@@ -349,8 +368,59 @@ export function RegistrationForm({
       telephone: request.student.telephone ?? "+243",
       provenanceEcole: request.student.provenanceEcole ?? "",
     });
-    if (guardian) {
+    const matched =
+      request.matchedExistingParent ?? request.existingSiblingParent ?? null;
+    if (matched?.parentId) {
+      setParentMode("existing");
+      setParentId(matched.parentId);
+      setParentQuery(
+        matched.email?.trim() ||
+          matched.telephone?.trim() ||
+          matched.parentLabel ||
+          "",
+      );
+      setParentResults([
+        {
+          id: matched.parentId,
+          profession: matched.profession,
+          branchMember: {
+            member: {
+              user: {
+                name: matched.name || matched.parentLabel,
+                postnom: matched.postnom || "",
+                prenom: matched.prenom || "",
+                email: matched.email || "",
+                telephone: matched.telephone || "",
+              },
+            },
+          },
+        },
+      ]);
+      const reasonLabel =
+        matched.matchReason === "email"
+          ? "email"
+          : matched.matchReason === "telephone"
+            ? "téléphone"
+            : "fratrie";
+      setSiblingParentHint(
+        `Parent existant détecté (${reasonLabel}) : ${matched.parentLabel || "responsable"}. Sélection automatique — vous pouvez changer via la recherche.`,
+      );
+      setParent({
+        ...emptyParent,
+        name: matched.name || "",
+        postnom: matched.postnom || "",
+        prenom: matched.prenom || "",
+        email: matched.email || "",
+        telephone: matched.telephone || "",
+        address: matched.address || "",
+        profession: matched.profession ?? "",
+      });
+    } else if (guardian) {
       setParentMode("new");
+      setParentId("");
+      setParentQuery("");
+      setParentResults([]);
+      setSiblingParentHint("");
       setParent({
         ...emptyParent,
         name: guardian.name,
@@ -600,11 +670,16 @@ export function RegistrationForm({
     setPhotoFile(null);
     setPhotoUrl("");
     setCameraOpen(false);
+    setStudentExtra(emptyStudentExtraInfo());
+    setFamilyExtra(emptyFamilyExtraInfo());
+    setExtraSheetOpen(false);
+    setSiblingParentHint("");
     setStudentQuery("");
     setParentQuery("");
     setStudentResults([]);
     setParentResults([]);
     setHistoryOutcome("new");
+    setFeeDebtMessage("");
     setLevel("");
     setSectionId("");
     setOptionId("");
@@ -640,25 +715,135 @@ export function RegistrationForm({
   }, []);
   function chooseStudent(item: any) {
     setStudentId(item.id);
-    const last = item.classEnrollment?.[0];
-    if (last?.classe?.level) {
-      setLevel(last.classe.level);
-      setOptionId(last.classe.optionId ?? "");
+    setHistoryOutcome("returning");
+    setFeeDebtMessage("");
+    setLevel("");
+    setSectionId("");
+    setOptionId("");
+
+    const user = userOf(item);
+    if (user) {
+      setStudent((current) => ({
+        ...current,
+        name: user.name ?? "",
+        postnom: user.postnom ?? "",
+        prenom: user.prenom ?? "",
+        email: user.email ?? "",
+        telephone: user.telephone ?? "+243",
+      }));
+    }
+
+    const currentYearId =
+      options.schoolYears.find((year: any) => year.isCurrentYear)?.id ??
+      options.schoolYears[0]?.id ??
+      "";
+    if (currentYearId) setSchoolYearId(currentYearId);
+
+    if (!hidesParent && item.parent?.id) {
+      const parentUser = item.parent.branchMember?.member?.user;
+      setParentMode("existing");
+      setParentId(item.parent.id);
+      setParentQuery(
+        parentUser?.email?.trim() ||
+          parentUser?.telephone?.trim() ||
+          `${parentUser?.name ?? ""} ${parentUser?.prenom ?? ""}`.trim() ||
+          "",
+      );
+      setParentResults([item.parent]);
+      setSiblingParentHint(
+        `Parent déjà lié à cet ${peopleLabels.studentLower} : ${
+          `${parentUser?.name ?? ""} ${parentUser?.postnom ?? ""} ${parentUser?.prenom ?? ""}`.trim() ||
+          "responsable"
+        }. Sélection automatique — réinscription (changement de ${classLabelLower} / ${schoolYearLabelLower}).`,
+      );
+      setParent({
+        ...emptyParent,
+        name: parentUser?.name || "",
+        postnom: parentUser?.postnom || "",
+        prenom: parentUser?.prenom || "",
+        email: parentUser?.email || "",
+        telephone: parentUser?.telephone || "",
+        address: parentUser?.address || "",
+        sexe:
+          parentUser?.sexe === "F" || parentUser?.sexe === "feminin"
+            ? "feminin"
+            : "masculin",
+        profession: item.parent.profession ?? "",
+      });
+      toast.success("Parent chargé automatiquement.");
+    } else if (!hidesParent) {
+      setParentMode("new");
+      setParentId("");
+      setParentQuery("");
+      setParentResults([]);
+      setSiblingParentHint("");
+      setParent(emptyParent);
+      toast.message("Aucun parent lié — sélectionnez ou créez un parent.");
     }
   }
+
+  function ensureCurrentSchoolYear() {
+    const currentYearId =
+      options.schoolYears.find((year: any) => year.isCurrentYear)?.id ??
+      options.schoolYears[0]?.id ??
+      "";
+    if (currentYearId) setSchoolYearId(currentYearId);
+  }
+
+  function applySuggestedClass(suggestion: {
+    level: string;
+    optionId?: string | null;
+    sectionId?: string | null;
+  }) {
+    setLevel(suggestion.level);
+    const nextOptionId = suggestion.optionId ?? "";
+    setOptionId(nextOptionId);
+    const fromSuggestion = suggestion.sectionId ?? "";
+    const fromOptions =
+      options.options?.find((item: any) => item.id === nextOptionId)
+        ?.sectionId ?? "";
+    setSectionId(fromSuggestion || fromOptions || "");
+  }
+
   async function applyHistory(outcome: "passed" | "failed" | "returning") {
-    setHistoryOutcome(outcome);
-    if (!studentId || outcome === "returning") return;
+    ensureCurrentSchoolYear();
+
+    if (!studentId) {
+      return toast.error(`Sélectionnez d'abord un ${peopleLabels.studentLower}.`);
+    }
+
+    if (outcome === "returning") {
+      setFeeDebtMessage("");
+      setHistoryOutcome(outcome);
+      setLevel("");
+      setSectionId("");
+      setOptionId("");
+      toast.message(
+        `Choisissez manuellement le niveau de retour pour l'${schoolYearLabelLower} actuelle.`,
+      );
+      return;
+    }
+
     const [suggestion, error] = await suggestNextClassAction({
       studentId,
       outcome,
     });
-    if (error) toast.error(error.message);
-    else {
-      setLevel(suggestion.level);
-      setOptionId(suggestion.optionId ?? "");
-      toast.success(suggestion.reason);
+    if (error) {
+      if (outcome === "passed") {
+        setFeeDebtMessage(error.message);
+        setHistoryOutcome("new");
+        setLevel("");
+        setSectionId("");
+        setOptionId("");
+      }
+      toast.error(error.message);
+      return;
     }
+
+    setFeeDebtMessage("");
+    setHistoryOutcome(outcome);
+    applySuggestedClass(suggestion);
+    toast.success(suggestion.reason);
   }
   function updatePerson<T>(
     current: T,
@@ -669,6 +854,9 @@ export function RegistrationForm({
     setter({ ...current, [key]: value });
   }
   function goNext() {
+    if (feeDebtMessage) {
+      return toast.error(feeDebtMessage);
+    }
     if (currentStepKey === "student" && studentMode === "existing" && !studentId)
       return toast.error(`Sélectionnez un ${peopleLabels.studentLower}.`);
     if (
@@ -765,6 +953,8 @@ export function RegistrationForm({
                 ? new Date(parent.dateOfBirth)
                 : undefined,
             },
+      studentExtra,
+      familyExtra: hidesParent ? undefined : familyExtra,
       historyOutcome,
       photoUrl: studentMode === "new" ? resolvedPhotoUrl || undefined : undefined,
     });
@@ -1346,10 +1536,31 @@ export function RegistrationForm({
           <IconCheck className="h-4 w-4" />
           <AlertTitle>Demande confirmee : {requestReference}</AlertTitle>
           <AlertDescription>
-            Verifiez et completez les donnees avant l'inscription definitive.
+            Verifiez et completez les donnees avant l&apos;inscription
+            definitive.
+            {siblingParentHint ? (
+              <span className="mt-1 block font-medium text-foreground">
+                {siblingParentHint}
+              </span>
+            ) : null}
           </AlertDescription>
         </Alert>
       ) : null}
+      <RegistrationExtraInfoSheet
+        open={extraSheetOpen}
+        onOpenChange={setExtraSheetOpen}
+        initialStudent={studentExtra}
+        initialFamily={familyExtra}
+        hideFamily={hidesParent}
+        onSave={async ({ studentExtra: nextStudent, familyExtra: nextFamily }) => {
+          setStudentExtra(nextStudent);
+          setFamilyExtra(nextFamily);
+          return {
+            ok: true,
+            message: "Infos enregistrées pour cette inscription.",
+          };
+        }}
+      />
       <Card className="h-fit xl:sticky xl:top-4">
         <CardHeader>
           <CardTitle>Progression</CardTitle>
@@ -1391,9 +1602,11 @@ export function RegistrationForm({
                   : "Les champs marqués d'un astérisque sont obligatoires."}
               </CardDescription>
             </div>
-            <Badge variant="secondary">
-              {step + 1} / {registrationSteps.length}
-            </Badge>
+            <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
+              <Badge variant="secondary">
+                {step + 1} / {registrationSteps.length}
+              </Badge>
+            </div>
           </div>
         </CardHeader>
         <CardContent className="flex-1 space-y-6 p-6 pb-28 lg:p-8 lg:pb-28">
@@ -1448,37 +1661,89 @@ export function RegistrationForm({
                     );
                   })}
                   {studentId && (
-                    <div className="rounded-lg border bg-muted/30 p-4">
-                      <Label className="mb-3 block">
-                        {`Situation de l'${peopleLabels.studentLower}`}
-                      </Label>
-                      <div className="flex flex-wrap gap-2">
-                        <Button
-                          variant={
-                            historyOutcome === "passed" ? "default" : "outline"
-                          }
-                          onClick={() => applyHistory("passed")}
-                        >
-                          Réussi
-                        </Button>
-                        <Button
-                          variant={
-                            historyOutcome === "failed" ? "default" : "outline"
-                          }
-                          onClick={() => applyHistory("failed")}
-                        >
-                          Échoué
-                        </Button>
-                        <Button
-                          variant={
-                            historyOutcome === "returning"
-                              ? "default"
-                              : "outline"
-                          }
-                          onClick={() => applyHistory("returning")}
-                        >
-                          Retour après absence
-                        </Button>
+                    <div className="space-y-3 rounded-lg border bg-muted/30 p-4">
+                      {!hidesParent && parentId ? (
+                        <Alert>
+                          <IconCheck className="h-4 w-4" />
+                          <AlertTitle>Parent chargé automatiquement</AlertTitle>
+                          <AlertDescription>
+                            {siblingParentHint ||
+                              "Le responsable existant a été sélectionné. Vérifiez à l'étape Parent si besoin."}
+                          </AlertDescription>
+                        </Alert>
+                      ) : null}
+                      <div>
+                        <Label className="mb-3 block">
+                          {`Situation de l'${peopleLabels.studentLower}`}
+                        </Label>
+                        <p className="mb-3 text-xs text-muted-foreground">
+                          Réussi charge le niveau supérieur ; Échoué conserve le
+                          même niveau. L&apos;{schoolYearLabelLower} actuelle est
+                          sélectionnée automatiquement. La montée en classe
+                          supérieure exige que les frais de l&apos;année passée
+                          soient soldés.
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                          <Button
+                            type="button"
+                            variant={
+                              historyOutcome === "passed" ? "default" : "outline"
+                            }
+                            onClick={() => void applyHistory("passed")}
+                          >
+                            Réussi
+                          </Button>
+                          <Button
+                            type="button"
+                            variant={
+                              historyOutcome === "failed" ? "default" : "outline"
+                            }
+                            onClick={() => void applyHistory("failed")}
+                          >
+                            Échoué
+                          </Button>
+                          <Button
+                            type="button"
+                            variant={
+                              historyOutcome === "returning"
+                                ? "default"
+                                : "outline"
+                            }
+                            onClick={() => void applyHistory("returning")}
+                          >
+                            Retour après absence
+                          </Button>
+                        </div>
+                        {feeDebtMessage ? (
+                          <Alert variant="destructive" className="mt-3">
+                            <IconAlertTriangle className="h-4 w-4" />
+                            <AlertTitle>Frais non soldés</AlertTitle>
+                            <AlertDescription>{feeDebtMessage}</AlertDescription>
+                          </Alert>
+                        ) : null}
+                        {historyOutcome === "passed" ||
+                        historyOutcome === "failed" ? (
+                          <p className="mt-3 text-sm text-muted-foreground">
+                            Niveau prévu :{" "}
+                            <span className="font-medium text-foreground">
+                              {level
+                                ? getClassLevelLabel(options.typebranch, level)
+                                : "—"}
+                            </span>
+                            {schoolYearId ? (
+                              <>
+                                {" "}
+                                ·{" "}
+                                {
+                                  options.schoolYears.find(
+                                    (year: any) => year.id === schoolYearId,
+                                  )?.nameYear
+                                }{" "}
+                                (actuelle)
+                              </>
+                            ) : null}
+                          </p>
+                        ) : null}
                       </div>
                     </div>
                   )}
@@ -1488,6 +1753,26 @@ export function RegistrationForm({
           )}
           {currentStepKey === "parent" && (
             <>
+              <div className="flex flex-col gap-2 rounded-xl border border-dashed border-primary/30 bg-primary/5 p-4 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-sm font-medium">
+                    Infos complémentaires (optionnel)
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Nationalité, mère, origines, tuteur, langue… à compléter
+                    maintenant ou plus tard.
+                  </p>
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="shrink-0"
+                  onClick={() => setExtraSheetOpen(true)}
+                >
+                  Ajouter autres infos
+                </Button>
+              </div>
               <RadioGroup
                 className="grid gap-3 sm:grid-cols-2"
                 value={parentMode}
@@ -1510,30 +1795,74 @@ export function RegistrationForm({
               {parentMode === "new" ? (
                 renderPersonFields(parent, setParent)
               ) : (
-                <SearchPanel
-                  query={parentQuery}
-                  setQuery={setParentQuery}
-                  onSearch={searchParents}
-                  placeholder="Nom, email ou téléphone du parent…"
-                >
-                  {parentResults.map((item) => {
-                    const user = userOf(item);
-                    return (
-                      <ResultButton
-                        key={item.id}
-                        selected={parentId === item.id}
-                        onClick={() => setParentId(item.id)}
-                        title={`${user?.name ?? ""} ${user?.postnom ?? ""} ${user?.prenom ?? ""}`}
-                        subtitle={`${user?.telephone ?? "Sans téléphone"} — ${user?.email ?? "Sans email"}`}
-                      />
-                    );
-                  })}
-                </SearchPanel>
+                <div className="space-y-3">
+                  {parentId && siblingParentHint ? (
+                    <Alert>
+                      <IconCheck className="h-4 w-4" />
+                      <AlertTitle>Parent sélectionné automatiquement</AlertTitle>
+                      <AlertDescription>{siblingParentHint}</AlertDescription>
+                    </Alert>
+                  ) : null}
+                  <SearchPanel
+                    query={parentQuery}
+                    setQuery={setParentQuery}
+                    onSearch={searchParents}
+                    placeholder="Nom, email ou téléphone du parent…"
+                  >
+                    {parentResults.map((item) => {
+                      const user = userOf(item);
+                      return (
+                        <ResultButton
+                          key={item.id}
+                          selected={parentId === item.id}
+                          onClick={() => {
+                            setParentId(item.id);
+                            const user = userOf(item);
+                            setParent({
+                              ...emptyParent,
+                              name: user?.name || "",
+                              postnom: user?.postnom || "",
+                              prenom: user?.prenom || "",
+                              email: user?.email || "",
+                              telephone: user?.telephone || "",
+                              address: user?.address || "",
+                              profession: item.profession ?? "",
+                            });
+                          }}
+                          title={`${user?.name ?? ""} ${user?.postnom ?? ""} ${user?.prenom ?? ""}`}
+                          subtitle={`${user?.telephone ?? "Sans téléphone"} — ${user?.email ?? "Sans email"}`}
+                        />
+                      );
+                    })}
+                  </SearchPanel>
+                </div>
               )}
             </>
           )}
           {currentStepKey === "class" && (
             <div className="space-y-6">
+              {hidesParent ? (
+                <div className="flex flex-col gap-2 rounded-xl border border-dashed border-primary/30 bg-primary/5 p-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <p className="text-sm font-medium">
+                      Infos complémentaires (optionnel)
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Nationalité, langue et autres infos élève — maintenant ou
+                      plus tard.
+                    </p>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="shrink-0"
+                    onClick={() => setExtraSheetOpen(true)}
+                  >
+                    Ajouter autres infos
+                  </Button>
+                </div>
+              ) : null}
               {loadingOptions ? (
                 <p className="text-muted-foreground">{`Chargement des ${classLabelPluralLower}…`}</p>
               ) : (
@@ -1987,7 +2316,10 @@ export function RegistrationForm({
             Précédent
           </Button>
           {step < lastStepIndex ? (
-            <Button onClick={goNext}>
+            <Button
+              disabled={Boolean(feeDebtMessage) || loading}
+              onClick={goNext}
+            >
               Continuer
               <IconArrowRight className="ml-2 h-4 w-4" />
             </Button>

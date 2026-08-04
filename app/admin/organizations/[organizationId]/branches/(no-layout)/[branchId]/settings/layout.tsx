@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, type ReactElement } from "react";
+import { useEffect, useMemo, useState, type ReactElement } from "react";
 import { usePathname } from "next/navigation";
 import {
   IconClipboardList,
@@ -13,7 +13,6 @@ import {
   IconUser,
   IconUserCheck,
   IconCurrencyDollar,
-  IconClockHour4,
 } from "@tabler/icons-react";
 
 import { Layout, LayoutBody } from "@/components/custom/layout";
@@ -33,19 +32,29 @@ type SettingsNavAccess = "always" | "org" | "school_ops" | "support";
 
 export default function Settings({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const { data: session } = authClient.useSession();
-  const canSeeOrgSettings = canAccessBranchOrgSettings(session);
-  const canSeeSchoolOps = canAccessSchoolOpsSettings(session);
-  const canSeeSupport = canAccessSupportSettings(session);
-  const showPrimaryDomains = isPrimaryBranch(session?.branch?.typebranch);
-  const isCursusSelfUser = hasSessionRole(session, [
-    ORG_ROLE.STUDENT,
-    "STUDENT",
-    "student",
-    ORG_ROLE.PARENT,
-    "PARENT",
-    "parent",
-  ]);
+  const { data: session, isPending } = authClient.useSession();
+  const [hasMounted, setHasMounted] = useState(false);
+  const sessionReady = hasMounted && !isPending;
+
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
+
+  const canSeeOrgSettings = sessionReady && canAccessBranchOrgSettings(session);
+  const canSeeSchoolOps = sessionReady && canAccessSchoolOpsSettings(session);
+  const canSeeSupport = sessionReady && canAccessSupportSettings(session);
+  const showPrimaryDomains =
+    sessionReady && isPrimaryBranch(session?.branch?.typebranch);
+  const isCursusSelfUser =
+    sessionReady &&
+    hasSessionRole(session, [
+      ORG_ROLE.STUDENT,
+      "STUDENT",
+      "student",
+      ORG_ROLE.PARENT,
+      "PARENT",
+      "parent",
+    ]);
 
   const branchBasePath =
     pathname?.match(/^\/admin\/organizations\/[^/]+\/branches\/[^/]+/)?.[0] ??
@@ -117,12 +126,6 @@ export default function Settings({ children }: { children: React.ReactNode }) {
         icon: <IconCalendarCog size={18} />,
         href: `${settingsBasePath}/calendar`,
         access: "school_ops",
-      },
-      {
-        title: "Horaires",
-        icon: <IconClockHour4 size={18} />,
-        href: `${settingsBasePath}/horaires`,
-        access: "org",
       },
       {
         title: "Présences",

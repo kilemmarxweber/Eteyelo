@@ -60,14 +60,14 @@ export function DataTableToolbar<TData>({
     <div className="flex items-center justify-between">
       <div className="flex flex-1 items-center space-x-2">
         <Input
-          placeholder="chercher une classe..."
+          placeholder="Rechercher une classe…"
           value={
             (table.getColumn("nameClasse")?.getFilterValue() as string) ?? ""
           }
           onChange={(event) =>
             table.getColumn("nameClasse")?.setFilterValue(event.target.value)
           }
-          className="h-8 w-[150px] lg:w-[250px]"
+          className="h-9 w-[150px] lg:w-[250px]"
         />
         {showOptionFilter && table.getColumn("nameOption") && (
           <DataTableFacetedFilter

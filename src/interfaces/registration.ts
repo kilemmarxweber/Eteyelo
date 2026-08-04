@@ -39,6 +39,15 @@ export const registrationSchema = z
         observation: z.string().trim().optional(),
         provenanceEcole: z.string().trim().optional(),
         placeOfBirth: z.string().trim().optional(),
+        nationalite: z.string().trim().max(120).optional().or(z.literal("")),
+        autreNationalite: z.string().trim().max(120).optional().or(z.literal("")),
+        territoireAutreNationalite: z
+          .string()
+          .trim()
+          .max(120)
+          .optional()
+          .or(z.literal("")),
+        langue: z.string().trim().max(120).optional().or(z.literal("")),
       })
       .optional(),
     parentMode: z.enum(["existing", "new"]),
@@ -55,9 +64,47 @@ export const registrationSchema = z
       discountTypeFraisId: z.string().optional().or(z.literal("")),
       /** Fonction / lieu de travail — optionnel */
       profession: z.string().trim().max(200).optional().or(z.literal("")),
+      nomMere: z.string().trim().max(200).optional().or(z.literal("")),
+      professionMere: z.string().trim().max(200).optional().or(z.literal("")),
+      tuteurNom: z.string().trim().max(200).optional().or(z.literal("")),
+      adresseTuteur: z.string().trim().max(300).optional().or(z.literal("")),
+      provinceOrigine: z.string().trim().max(120).optional().or(z.literal("")),
+      territoireOrigine: z.string().trim().max(120).optional().or(z.literal("")),
+      secteurOrigine: z.string().trim().max(120).optional().or(z.literal("")),
+      villageOrigine: z.string().trim().max(120).optional().or(z.literal("")),
     }).optional(),
     historyOutcome: z.enum(["new", "passed", "failed", "returning"]),
     photoUrl: z.string().trim().min(1).optional().or(z.literal("")),
+    studentExtra: z
+      .object({
+        nationalite: z.string().trim().max(120).optional().or(z.literal("")),
+        autreNationalite: z.string().trim().max(120).optional().or(z.literal("")),
+        territoireAutreNationalite: z
+          .string()
+          .trim()
+          .max(120)
+          .optional()
+          .or(z.literal("")),
+        langue: z.string().trim().max(120).optional().or(z.literal("")),
+      })
+      .optional(),
+    familyExtra: z
+      .object({
+        nomMere: z.string().trim().max(200).optional().or(z.literal("")),
+        professionMere: z.string().trim().max(200).optional().or(z.literal("")),
+        tuteurNom: z.string().trim().max(200).optional().or(z.literal("")),
+        adresseTuteur: z.string().trim().max(300).optional().or(z.literal("")),
+        provinceOrigine: z.string().trim().max(120).optional().or(z.literal("")),
+        territoireOrigine: z
+          .string()
+          .trim()
+          .max(120)
+          .optional()
+          .or(z.literal("")),
+        secteurOrigine: z.string().trim().max(120).optional().or(z.literal("")),
+        villageOrigine: z.string().trim().max(120).optional().or(z.literal("")),
+      })
+      .optional(),
   })
   .superRefine((value, ctx) => {
     if (value.studentMode === "existing" && !value.studentId)

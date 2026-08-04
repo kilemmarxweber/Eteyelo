@@ -31,6 +31,7 @@ export type RegistrationRequestMinAggregateOutputType = {
   organizationId: string | null
   schoolYearId: string | null
   status: $Enums.RegistrationRequestStatus | null
+  siblingGroupId: string | null
   requestedLevel: string | null
   requestedSection: string | null
   requestedOption: string | null
@@ -55,6 +56,7 @@ export type RegistrationRequestMaxAggregateOutputType = {
   organizationId: string | null
   schoolYearId: string | null
   status: $Enums.RegistrationRequestStatus | null
+  siblingGroupId: string | null
   requestedLevel: string | null
   requestedSection: string | null
   requestedOption: string | null
@@ -81,6 +83,7 @@ export type RegistrationRequestCountAggregateOutputType = {
   status: number
   studentData: number
   guardiansData: number
+  siblingGroupId: number
   requestedLevel: number
   requestedSection: number
   requestedOption: number
@@ -107,6 +110,7 @@ export type RegistrationRequestMinAggregateInputType = {
   organizationId?: true
   schoolYearId?: true
   status?: true
+  siblingGroupId?: true
   requestedLevel?: true
   requestedSection?: true
   requestedOption?: true
@@ -131,6 +135,7 @@ export type RegistrationRequestMaxAggregateInputType = {
   organizationId?: true
   schoolYearId?: true
   status?: true
+  siblingGroupId?: true
   requestedLevel?: true
   requestedSection?: true
   requestedOption?: true
@@ -157,6 +162,7 @@ export type RegistrationRequestCountAggregateInputType = {
   status?: true
   studentData?: true
   guardiansData?: true
+  siblingGroupId?: true
   requestedLevel?: true
   requestedSection?: true
   requestedOption?: true
@@ -256,6 +262,7 @@ export type RegistrationRequestGroupByOutputType = {
   status: $Enums.RegistrationRequestStatus
   studentData: runtime.JsonValue
   guardiansData: runtime.JsonValue
+  siblingGroupId: string | null
   requestedLevel: string | null
   requestedSection: string | null
   requestedOption: string | null
@@ -303,6 +310,7 @@ export type RegistrationRequestWhereInput = {
   status?: Prisma.EnumRegistrationRequestStatusFilter<"RegistrationRequest"> | $Enums.RegistrationRequestStatus
   studentData?: Prisma.JsonFilter<"RegistrationRequest">
   guardiansData?: Prisma.JsonFilter<"RegistrationRequest">
+  siblingGroupId?: Prisma.StringNullableFilter<"RegistrationRequest"> | string | null
   requestedLevel?: Prisma.StringNullableFilter<"RegistrationRequest"> | string | null
   requestedSection?: Prisma.StringNullableFilter<"RegistrationRequest"> | string | null
   requestedOption?: Prisma.StringNullableFilter<"RegistrationRequest"> | string | null
@@ -330,6 +338,7 @@ export type RegistrationRequestOrderByWithRelationInput = {
   status?: Prisma.SortOrder
   studentData?: Prisma.SortOrder
   guardiansData?: Prisma.SortOrder
+  siblingGroupId?: Prisma.SortOrderInput | Prisma.SortOrder
   requestedLevel?: Prisma.SortOrderInput | Prisma.SortOrder
   requestedSection?: Prisma.SortOrderInput | Prisma.SortOrder
   requestedOption?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -360,6 +369,7 @@ export type RegistrationRequestWhereUniqueInput = Prisma.AtLeast<{
   status?: Prisma.EnumRegistrationRequestStatusFilter<"RegistrationRequest"> | $Enums.RegistrationRequestStatus
   studentData?: Prisma.JsonFilter<"RegistrationRequest">
   guardiansData?: Prisma.JsonFilter<"RegistrationRequest">
+  siblingGroupId?: Prisma.StringNullableFilter<"RegistrationRequest"> | string | null
   requestedLevel?: Prisma.StringNullableFilter<"RegistrationRequest"> | string | null
   requestedSection?: Prisma.StringNullableFilter<"RegistrationRequest"> | string | null
   requestedOption?: Prisma.StringNullableFilter<"RegistrationRequest"> | string | null
@@ -387,6 +397,7 @@ export type RegistrationRequestOrderByWithAggregationInput = {
   status?: Prisma.SortOrder
   studentData?: Prisma.SortOrder
   guardiansData?: Prisma.SortOrder
+  siblingGroupId?: Prisma.SortOrderInput | Prisma.SortOrder
   requestedLevel?: Prisma.SortOrderInput | Prisma.SortOrder
   requestedSection?: Prisma.SortOrderInput | Prisma.SortOrder
   requestedOption?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -419,6 +430,7 @@ export type RegistrationRequestScalarWhereWithAggregatesInput = {
   status?: Prisma.EnumRegistrationRequestStatusWithAggregatesFilter<"RegistrationRequest"> | $Enums.RegistrationRequestStatus
   studentData?: Prisma.JsonWithAggregatesFilter<"RegistrationRequest">
   guardiansData?: Prisma.JsonWithAggregatesFilter<"RegistrationRequest">
+  siblingGroupId?: Prisma.StringNullableWithAggregatesFilter<"RegistrationRequest"> | string | null
   requestedLevel?: Prisma.StringNullableWithAggregatesFilter<"RegistrationRequest"> | string | null
   requestedSection?: Prisma.StringNullableWithAggregatesFilter<"RegistrationRequest"> | string | null
   requestedOption?: Prisma.StringNullableWithAggregatesFilter<"RegistrationRequest"> | string | null
@@ -444,6 +456,7 @@ export type RegistrationRequestCreateInput = {
   status?: $Enums.RegistrationRequestStatus
   studentData: Prisma.JsonNullValueInput | runtime.InputJsonValue
   guardiansData: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  siblingGroupId?: string | null
   requestedLevel?: string | null
   requestedSection?: string | null
   requestedOption?: string | null
@@ -471,6 +484,7 @@ export type RegistrationRequestUncheckedCreateInput = {
   status?: $Enums.RegistrationRequestStatus
   studentData: Prisma.JsonNullValueInput | runtime.InputJsonValue
   guardiansData: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  siblingGroupId?: string | null
   requestedLevel?: string | null
   requestedSection?: string | null
   requestedOption?: string | null
@@ -496,6 +510,7 @@ export type RegistrationRequestUpdateInput = {
   status?: Prisma.EnumRegistrationRequestStatusFieldUpdateOperationsInput | $Enums.RegistrationRequestStatus
   studentData?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   guardiansData?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  siblingGroupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   requestedLevel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   requestedSection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   requestedOption?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -523,6 +538,7 @@ export type RegistrationRequestUncheckedUpdateInput = {
   status?: Prisma.EnumRegistrationRequestStatusFieldUpdateOperationsInput | $Enums.RegistrationRequestStatus
   studentData?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   guardiansData?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  siblingGroupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   requestedLevel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   requestedSection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   requestedOption?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -549,6 +565,7 @@ export type RegistrationRequestCreateManyInput = {
   status?: $Enums.RegistrationRequestStatus
   studentData: Prisma.JsonNullValueInput | runtime.InputJsonValue
   guardiansData: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  siblingGroupId?: string | null
   requestedLevel?: string | null
   requestedSection?: string | null
   requestedOption?: string | null
@@ -574,6 +591,7 @@ export type RegistrationRequestUpdateManyMutationInput = {
   status?: Prisma.EnumRegistrationRequestStatusFieldUpdateOperationsInput | $Enums.RegistrationRequestStatus
   studentData?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   guardiansData?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  siblingGroupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   requestedLevel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   requestedSection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   requestedOption?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -600,6 +618,7 @@ export type RegistrationRequestUncheckedUpdateManyInput = {
   status?: Prisma.EnumRegistrationRequestStatusFieldUpdateOperationsInput | $Enums.RegistrationRequestStatus
   studentData?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   guardiansData?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  siblingGroupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   requestedLevel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   requestedSection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   requestedOption?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -636,6 +655,7 @@ export type RegistrationRequestCountOrderByAggregateInput = {
   status?: Prisma.SortOrder
   studentData?: Prisma.SortOrder
   guardiansData?: Prisma.SortOrder
+  siblingGroupId?: Prisma.SortOrder
   requestedLevel?: Prisma.SortOrder
   requestedSection?: Prisma.SortOrder
   requestedOption?: Prisma.SortOrder
@@ -660,6 +680,7 @@ export type RegistrationRequestMaxOrderByAggregateInput = {
   organizationId?: Prisma.SortOrder
   schoolYearId?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  siblingGroupId?: Prisma.SortOrder
   requestedLevel?: Prisma.SortOrder
   requestedSection?: Prisma.SortOrder
   requestedOption?: Prisma.SortOrder
@@ -684,6 +705,7 @@ export type RegistrationRequestMinOrderByAggregateInput = {
   organizationId?: Prisma.SortOrder
   schoolYearId?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  siblingGroupId?: Prisma.SortOrder
   requestedLevel?: Prisma.SortOrder
   requestedSection?: Prisma.SortOrder
   requestedOption?: Prisma.SortOrder
@@ -755,6 +777,7 @@ export type RegistrationRequestCreateWithoutBranchInput = {
   status?: $Enums.RegistrationRequestStatus
   studentData: Prisma.JsonNullValueInput | runtime.InputJsonValue
   guardiansData: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  siblingGroupId?: string | null
   requestedLevel?: string | null
   requestedSection?: string | null
   requestedOption?: string | null
@@ -780,6 +803,7 @@ export type RegistrationRequestUncheckedCreateWithoutBranchInput = {
   status?: $Enums.RegistrationRequestStatus
   studentData: Prisma.JsonNullValueInput | runtime.InputJsonValue
   guardiansData: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  siblingGroupId?: string | null
   requestedLevel?: string | null
   requestedSection?: string | null
   requestedOption?: string | null
@@ -835,6 +859,7 @@ export type RegistrationRequestScalarWhereInput = {
   status?: Prisma.EnumRegistrationRequestStatusFilter<"RegistrationRequest"> | $Enums.RegistrationRequestStatus
   studentData?: Prisma.JsonFilter<"RegistrationRequest">
   guardiansData?: Prisma.JsonFilter<"RegistrationRequest">
+  siblingGroupId?: Prisma.StringNullableFilter<"RegistrationRequest"> | string | null
   requestedLevel?: Prisma.StringNullableFilter<"RegistrationRequest"> | string | null
   requestedSection?: Prisma.StringNullableFilter<"RegistrationRequest"> | string | null
   requestedOption?: Prisma.StringNullableFilter<"RegistrationRequest"> | string | null
@@ -860,6 +885,7 @@ export type RegistrationRequestCreateManyBranchInput = {
   status?: $Enums.RegistrationRequestStatus
   studentData: Prisma.JsonNullValueInput | runtime.InputJsonValue
   guardiansData: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  siblingGroupId?: string | null
   requestedLevel?: string | null
   requestedSection?: string | null
   requestedOption?: string | null
@@ -885,6 +911,7 @@ export type RegistrationRequestUpdateWithoutBranchInput = {
   status?: Prisma.EnumRegistrationRequestStatusFieldUpdateOperationsInput | $Enums.RegistrationRequestStatus
   studentData?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   guardiansData?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  siblingGroupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   requestedLevel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   requestedSection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   requestedOption?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -910,6 +937,7 @@ export type RegistrationRequestUncheckedUpdateWithoutBranchInput = {
   status?: Prisma.EnumRegistrationRequestStatusFieldUpdateOperationsInput | $Enums.RegistrationRequestStatus
   studentData?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   guardiansData?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  siblingGroupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   requestedLevel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   requestedSection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   requestedOption?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -935,6 +963,7 @@ export type RegistrationRequestUncheckedUpdateManyWithoutBranchInput = {
   status?: Prisma.EnumRegistrationRequestStatusFieldUpdateOperationsInput | $Enums.RegistrationRequestStatus
   studentData?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   guardiansData?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  siblingGroupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   requestedLevel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   requestedSection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   requestedOption?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -963,6 +992,7 @@ export type RegistrationRequestSelect<ExtArgs extends runtime.Types.Extensions.I
   status?: boolean
   studentData?: boolean
   guardiansData?: boolean
+  siblingGroupId?: boolean
   requestedLevel?: boolean
   requestedSection?: boolean
   requestedOption?: boolean
@@ -990,6 +1020,7 @@ export type RegistrationRequestSelectCreateManyAndReturn<ExtArgs extends runtime
   status?: boolean
   studentData?: boolean
   guardiansData?: boolean
+  siblingGroupId?: boolean
   requestedLevel?: boolean
   requestedSection?: boolean
   requestedOption?: boolean
@@ -1017,6 +1048,7 @@ export type RegistrationRequestSelectUpdateManyAndReturn<ExtArgs extends runtime
   status?: boolean
   studentData?: boolean
   guardiansData?: boolean
+  siblingGroupId?: boolean
   requestedLevel?: boolean
   requestedSection?: boolean
   requestedOption?: boolean
@@ -1044,6 +1076,7 @@ export type RegistrationRequestSelectScalar = {
   status?: boolean
   studentData?: boolean
   guardiansData?: boolean
+  siblingGroupId?: boolean
   requestedLevel?: boolean
   requestedSection?: boolean
   requestedOption?: boolean
@@ -1061,7 +1094,7 @@ export type RegistrationRequestSelectScalar = {
   updatedAt?: boolean
 }
 
-export type RegistrationRequestOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "reference" | "branchId" | "organizationId" | "schoolYearId" | "status" | "studentData" | "guardiansData" | "requestedLevel" | "requestedSection" | "requestedOption" | "photoUrl" | "consentAccepted" | "termsAcceptedAt" | "termsInfoId" | "confirmedById" | "confirmedAt" | "registeredById" | "registeredAt" | "studentId" | "rejectedReason" | "createdAt" | "updatedAt", ExtArgs["result"]["registrationRequest"]>
+export type RegistrationRequestOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "reference" | "branchId" | "organizationId" | "schoolYearId" | "status" | "studentData" | "guardiansData" | "siblingGroupId" | "requestedLevel" | "requestedSection" | "requestedOption" | "photoUrl" | "consentAccepted" | "termsAcceptedAt" | "termsInfoId" | "confirmedById" | "confirmedAt" | "registeredById" | "registeredAt" | "studentId" | "rejectedReason" | "createdAt" | "updatedAt", ExtArgs["result"]["registrationRequest"]>
 export type RegistrationRequestInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
 }
@@ -1086,6 +1119,10 @@ export type $RegistrationRequestPayload<ExtArgs extends runtime.Types.Extensions
     status: $Enums.RegistrationRequestStatus
     studentData: runtime.JsonValue
     guardiansData: runtime.JsonValue
+    /**
+     * Relie les demandes multi-élèves d'une même soumission publique
+     */
+    siblingGroupId: string | null
     requestedLevel: string | null
     requestedSection: string | null
     requestedOption: string | null
@@ -1533,6 +1570,7 @@ export interface RegistrationRequestFieldRefs {
   readonly status: Prisma.FieldRef<"RegistrationRequest", 'RegistrationRequestStatus'>
   readonly studentData: Prisma.FieldRef<"RegistrationRequest", 'Json'>
   readonly guardiansData: Prisma.FieldRef<"RegistrationRequest", 'Json'>
+  readonly siblingGroupId: Prisma.FieldRef<"RegistrationRequest", 'String'>
   readonly requestedLevel: Prisma.FieldRef<"RegistrationRequest", 'String'>
   readonly requestedSection: Prisma.FieldRef<"RegistrationRequest", 'String'>
   readonly requestedOption: Prisma.FieldRef<"RegistrationRequest", 'String'>

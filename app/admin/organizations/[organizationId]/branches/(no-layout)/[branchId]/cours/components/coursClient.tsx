@@ -16,13 +16,13 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { BranchStatCard } from "@/components/ui/branch-stat-card";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { useSession } from "@/lib/auth-client";
 import { canManageOrganization } from "@/lib/auth/session-roles";
 import { useRefresh } from "@/src/hooks/RefreshContext";
@@ -95,6 +95,12 @@ export default function Cours({
           size="sm"
           variant="outline"
           loading={importing}
+          disabled={stats.total > 0}
+          title={
+            stats.total > 0
+              ? "Le catalogue ne peut plus être importé : des cours existent déjà."
+              : undefined
+          }
           onClick={handleImportCatalog}
         >
           <IconDownload size={16} className="mr-2" />
@@ -112,28 +118,34 @@ export default function Cours({
           Importer un cours
         </Button>
       ) : null}
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogTrigger asChild>
+      <Sheet open={open} onOpenChange={setOpen}>
+        <SheetTrigger asChild>
           <Button size="sm" leftSection={<IconPlus size={16} />}>
             Ajouter un cours
           </Button>
-        </DialogTrigger>
-        <DialogContent size="lg">
-          <DialogHeader>
-            <DialogTitle>Créer un cours</DialogTitle>
-            <DialogDescription>
+        </SheetTrigger>
+        <SheetContent
+          side="right"
+          className="flex h-dvh max-h-dvh w-[min(100vw,40rem)] max-w-full flex-col gap-0 overflow-hidden p-0 sm:max-w-[40rem]"
+        >
+          <SheetHeader className="shrink-0 space-y-1.5 border-b px-5 py-4 pr-12 text-left sm:px-6">
+            <SheetTitle>Créer un cours</SheetTitle>
+            <SheetDescription>
               {isPrimary
                 ? "Renseignez le nom, la description et optionnellement le domaine du bulletin."
                 : "Renseignez le nom et la description. Le code unique sera généré automatiquement."}
-            </DialogDescription>
-          </DialogHeader>
-          <CoursUpForm
-            mode="create"
-            isPrimary={isPrimary}
-            onCreated={handleSaved}
-          />
-        </DialogContent>
-      </Dialog>
+            </SheetDescription>
+          </SheetHeader>
+          <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4 sm:px-6">
+            <CoursUpForm
+              mode="create"
+              layout="dialog"
+              isPrimary={isPrimary}
+              onCreated={handleSaved}
+            />
+          </div>
+        </SheetContent>
+      </Sheet>
     </div>
   ) : null;
 

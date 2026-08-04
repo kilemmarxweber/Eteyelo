@@ -18,13 +18,13 @@ import { Badge } from "@/components/ui/badge";
 import { BranchStatCard } from "@/components/ui/branch-stat-card";
 import { Card } from "@/components/ui/card";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { useSession } from "@/lib/auth-client";
 import { canAccessBranchArea } from "@/lib/auth/branch-area-access";
 import { canManagePersonnelRecords } from "@/lib/auth/session-roles";
@@ -161,8 +161,8 @@ export default function Personnels() {
                     Importer un personnel
                   </Button>
                 ) : null}
-                <Dialog open={open} onOpenChange={setOpen}>
-                  <DialogTrigger asChild>
+                <Sheet open={open} onOpenChange={setOpen}>
+                  <SheetTrigger asChild>
                     <Button
                       size="sm"
                       variant="default"
@@ -170,23 +170,29 @@ export default function Personnels() {
                     >
                       Ajouter un personnel
                     </Button>
-                  </DialogTrigger>
+                  </SheetTrigger>
 
-                  <DialogContent size="xl">
-                    <DialogHeader>
-                      <DialogTitle>Créer un personnel administratif</DialogTitle>
-                      <DialogDescription>
+                  <SheetContent
+                    side="right"
+                    className="flex h-dvh max-h-dvh w-[min(100vw,40rem)] max-w-full flex-col gap-0 overflow-hidden p-0 sm:max-w-[40rem]"
+                  >
+                    <SheetHeader className="shrink-0 space-y-1.5 border-b px-5 py-4 pr-12 text-left sm:px-6">
+                      <SheetTitle>Créer un personnel administratif</SheetTitle>
+                      <SheetDescription>
                         Ajoutez un nouveau membre du personnel.
-                      </DialogDescription>
-                    </DialogHeader>
+                      </SheetDescription>
+                    </SheetHeader>
 
-                    <PersonnelUpForm
-                      mode="create"
-                      onCreated={handleUserAction}
-                      onPersonnelCreated={handleUserAction}
-                    />
-                  </DialogContent>
-                </Dialog>
+                    <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4 sm:px-6">
+                      <PersonnelUpForm
+                        mode="create"
+                        layout="dialog"
+                        onCreated={handleUserAction}
+                        onPersonnelCreated={handleUserAction}
+                      />
+                    </div>
+                  </SheetContent>
+                </Sheet>
               </div>
             ) : null
           }

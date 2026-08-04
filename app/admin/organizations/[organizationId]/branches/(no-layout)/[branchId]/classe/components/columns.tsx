@@ -1,19 +1,18 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import { IconDots } from "@tabler/icons-react";
+import { IconDots, IconSchool } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
-  DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import React from "react";
 import { IClasse } from "@/src/interfaces/Classe";
-import { Checkbox } from "@/components/ui/checkbox";
 import { DataTableColumnHeader } from "@/components/data-table-column-header";
 import { useSession } from "@/lib/auth-client";
 import { canManageOrganization } from "@/lib/auth/session-roles";
@@ -30,54 +29,52 @@ export function getClasseColumns(
 ): ColumnDef<IClasse>[] {
   const columns: ColumnDef<IClasse>[] = [
     {
-      id: "select",
-      header: ({ table }) => (
-        <Checkbox
-          checked={
-            table.getIsAllPageRowsSelected() ||
-            (table.getIsSomePageRowsSelected() && "indeterminate")
-          }
-          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-          aria-label="Select all"
-        />
-      ),
-      cell: ({ row }) => (
-        <Checkbox
-          checked={row.getIsSelected()}
-          onCheckedChange={(value) => row.toggleSelected(!!value)}
-          aria-label="Select row"
-        />
-      ),
-      enableSorting: false,
-      enableHiding: false,
-    },
-    {
-      accessorKey: "codeClasse",
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Code" />
-      ),
-      cell: ({ row }) => row.original.codeClasse,
-    },
-    {
       accessorKey: "nameClasse",
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Nom de la classe" />
+        <DataTableColumnHeader column={column} title="Classe" />
       ),
-      cell: ({ row }) => row.original.nameClasse,
+      cell: ({ row }) => {
+        const classe = row.original;
+        return (
+          <div className="flex min-w-0 items-center gap-3">
+            <span className="flex size-8 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground">
+              <IconSchool className="size-3.5" />
+            </span>
+            <div className="min-w-0">
+              <div className="truncate font-medium">{classe.nameClasse}</div>
+              <div className="mt-0.5 flex flex-wrap items-center gap-1.5">
+                <Badge variant="secondary" size="xs">
+                  {classe.codeClasse}
+                </Badge>
+                {classe.createdAt ? (
+                  <span className="text-xs text-muted-foreground">
+                    {new Date(classe.createdAt).toLocaleDateString("fr-FR")}
+                  </span>
+                ) : null}
+              </div>
+            </div>
+          </div>
+        );
+      },
     },
     {
       accessorKey: "level",
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Niveau" />
       ),
-      cell: ({ row }) => row.original.level ?? "-",
-    },
-    {
-      accessorKey: "parallel",
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Parallele" />
-      ),
-      cell: ({ row }) => row.original.parallel ?? "-",
+      cell: ({ row }) => {
+        const { level, parallel } = row.original;
+        return (
+          <div className="leading-tight">
+            <div className="text-sm font-medium">{level ?? "—"}</div>
+            {parallel ? (
+              <div className="text-xs text-muted-foreground">
+                Parallèle {parallel}
+              </div>
+            ) : null}
+          </div>
+        );
+      },
     },
   ];
 
@@ -87,8 +84,15 @@ export function getClasseColumns(
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Option" />
       ),
-      cell: ({ row }) => row.original.option?.nameOption ?? "-",
-      filterFn: (row, id, value) => value.includes(row.getValue(id)),
+      cell: ({ row }) => (
+        <span className="text-sm">
+          {row.original.option?.nameOption ?? "—"}
+        </span>
+      ),
+      filterFn: (row, _id, value) => {
+        const name = row.original.option?.nameOption ?? "";
+        return Array.isArray(value) ? value.includes(name) : true;
+      },
     });
   }
 
@@ -98,21 +102,25 @@ export function getClasseColumns(
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Vacation" />
       ),
-      cell: ({ row }) => row.original.creneau?.nameCreneau ?? "-",
-      filterFn: (row, id, value) => value.includes(row.getValue(id)),
+      cell: ({ row }) => (
+        <span className="text-sm">
+          {row.original.creneau?.nameCreneau ?? "—"}
+        </span>
+      ),
+      filterFn: (row, _id, value) => {
+        const name = row.original.creneau?.nameCreneau ?? "";
+        return Array.isArray(value) ? value.includes(name) : true;
+      },
     },
     {
       accessorKey: "capacity",
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Capacite" />
+        <DataTableColumnHeader column={column} title="Capacité" />
       ),
-      cell: ({ row }) => row.original.capacity ?? "-",
-    },
-    {
-      accessorKey: "createdAt",
-      cell: (row) => new Date(row.getValue() as string).toLocaleDateString(),
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Cree le" />
+      cell: ({ row }) => (
+        <span className="tabular-nums text-sm">
+          {row.original.capacity ?? "—"}
+        </span>
       ),
     },
     {
@@ -126,7 +134,7 @@ export function getClasseColumns(
             <DropdownMenuTrigger asChild>
               <Button
                 type="button"
-                aria-label="Open menu"
+                aria-label="Ouvrir le menu"
                 variant="ghost"
                 size="icon"
                 className="size-8"
@@ -140,7 +148,9 @@ export function getClasseColumns(
                 onSelect={(event) => {
                   event.preventDefault();
                   if (!actions) return;
-                  openOverlayAfterMenuDismiss(() => actions.onEdit(row.original));
+                  openOverlayAfterMenuDismiss(() =>
+                    actions.onEdit(row.original),
+                  );
                 }}
               >
                 Modifier
@@ -158,9 +168,6 @@ export function getClasseColumns(
                 }}
               >
                 Archiver
-                <DropdownMenuShortcut className="text-destructive">
-                  ⌘⌫
-                </DropdownMenuShortcut>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

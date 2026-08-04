@@ -1,4 +1,5 @@
 "use client";
+
 import { HTMLAttributes, useState, useEffect } from "react";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -15,7 +16,6 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/custom/button";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import { useTheme } from "next-themes";
 import { IconSelector, IconCheck } from "@tabler/icons-react";
 import { createOptionAction, updateOptionAction } from "../option.action";
 import {
@@ -41,6 +41,7 @@ interface OptionUpFormProps extends HTMLAttributes<HTMLDivElement> {
   onUpdated?: () => void;
   initialData?: z.infer<typeof optionSchema>;
   mode: "create" | "update";
+  layout?: "default" | "dialog";
 }
 
 export function OptionUpForm({
@@ -50,44 +51,45 @@ export function OptionUpForm({
   onUpdated,
   initialData,
   mode,
+  layout = "default",
   ...props
 }: OptionUpFormProps) {
+  const isDialog = layout === "dialog";
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const [Sections, setSections] = useState<ISection[]>([]);
+  const [sections, setSections] = useState<ISection[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
 
   const form = useForm<z.infer<typeof optionSchema>>({
     resolver: zodResolver(optionSchema),
     defaultValues: initialData || {
       nameOption: "",
+      sectionId: "",
     },
   });
 
   useEffect(() => {
     const fetchSections = async () => {
       const [rawSections, err] = await getSectionsAction();
-      if (err) {
-        throw err.message;
-      }
+      if (err) return;
       setSections(rawSections);
     };
-    fetchSections();
+    void fetchSections();
   }, []);
 
-  const filteredSections = Sections.filter((section) =>
-    section.nameSection.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredSections = sections.filter((section) =>
+    section.nameSection.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   const onSubmit: SubmitHandler<z.infer<typeof optionSchema>> = async (
-    data
+    data,
   ) => {
     setIsLoading(true);
     setErrorMessage("");
 
     try {
       if (mode === "create") {
-        const [option, err] = await createOptionAction({
+        const [, err] = await createOptionAction({
           ...data,
         });
         if (err) {
@@ -95,7 +97,7 @@ export function OptionUpForm({
         }
         toast.success("Option créée avec succès");
       } else {
-        const [option, err] = await updateOptionAction({
+        const [, err] = await updateOptionAction({
           ...data,
         });
         if (err) {
@@ -112,79 +114,96 @@ export function OptionUpForm({
         onUpdated?.();
       }
       onSuccess?.();
-    } catch (error: any) {
-      console.log(error);
-      setErrorMessage(error.message ?? "");
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error ? error.message : "Une erreur est survenue";
+      setErrorMessage(message);
       toast.error(
         mode === "create"
-          ? error.message || "Échec de la création de l'option"
-          : error.message || "Échec de la mise à jour de l'option"
+          ? message || "Échec de la création de l'option"
+          : message || "Échec de la mise à jour de l'option",
       );
     } finally {
       setIsLoading(false);
     }
   };
 
-  const { theme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => setMounted(true), []);
+  const fieldClass = isDialog ? "space-y-0.5" : "space-y-1";
+  const labelClass = isDialog
+    ? "text-xs font-medium text-muted-foreground"
+    : undefined;
+  const controlClass = isDialog
+    ? "h-9 rounded-md px-3 text-sm font-normal"
+    : undefined;
 
   return (
-    <div className={cn("grid gap-6", className)} {...props}>
+    <div
+      className={cn(isDialog ? "grid gap-2" : "grid gap-6", className)}
+      {...props}
+    >
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
-          <div className="grid gap-2">
+          <div
+            className={cn(
+              "grid",
+              isDialog ? "gap-x-4 gap-y-2 sm:grid-cols-2" : "gap-2",
+            )}
+          >
             <FormField
               control={form.control}
               name="nameOption"
               render={({ field }) => (
-                <FormItem className="space-y-1">
-                  <FormLabel>Nom de l'option</FormLabel>
+                <FormItem className={fieldClass}>
+                  <FormLabel className={labelClass}>Nom de l&apos;option</FormLabel>
                   <FormControl>
-                    <Input placeholder="Le nom de l'option" {...field} />
+                    <Input
+                      placeholder="Ex. Bio-Chimie, Math-Physique…"
+                      className={controlClass}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
+
             <FormField
               control={form.control}
               name="sectionId"
               render={({ field }) => (
-                <FormItem className="flex flex-col">
-                  <FormLabel>Le code de la section</FormLabel>
+                <FormItem className={cn(fieldClass, "flex flex-col")}>
+                  <FormLabel className={labelClass}>Section</FormLabel>
                   <Popover>
                     <PopoverTrigger asChild>
                       <FormControl>
                         <Button
+                          type="button"
                           variant="outline"
                           role="combobox"
                           className={cn(
-                            "justify-between",
-                            !field.value && "text-muted-foreground"
+                            "justify-between font-normal",
+                            controlClass,
+                            !field.value && "text-muted-foreground",
                           )}
                         >
                           {field.value
-                            ? Sections.find(
-                                (section) => section.id === field.value
+                            ? sections.find(
+                                (section) => section.id === field.value,
                               )?.nameSection
-                            : "Entrez le code de la section"}
+                            : "Choisir une section"}
                           <IconSelector className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                         </Button>
                       </FormControl>
                     </PopoverTrigger>
-                    <PopoverContent className="p-0">
+                    <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0">
                       <Command>
                         <CommandInput
-                          placeholder="Search section..."
+                          placeholder="Rechercher une section…"
                           value={searchTerm}
-                          onValueChange={(value: string) =>
-                            setSearchTerm(value)
-                          }
+                          onValueChange={setSearchTerm}
                         />
                         <CommandList>
-                          <CommandEmpty>No section found.</CommandEmpty>
+                          <CommandEmpty>Aucune section trouvée.</CommandEmpty>
                           <CommandGroup>
                             {filteredSections.map((section) => (
                               <CommandItem
@@ -199,7 +218,7 @@ export function OptionUpForm({
                                     "mr-2 h-4 w-4",
                                     section.id === field.value
                                       ? "opacity-100"
-                                      : "opacity-0"
+                                      : "opacity-0",
                                   )}
                                 />
                                 {section.nameSection}
@@ -214,21 +233,43 @@ export function OptionUpForm({
                 </FormItem>
               )}
             />
-            <Button className="mt-2" loading={isLoading}>
-              {mode === "create"
-                ? "Enregistrer l'option"
-                : "Mettre à jour l'option"}
-            </Button>
-            {errorMessage && (
-              <p className="mt-2 text-center text-red-500">{errorMessage}</p>
-            )}
+
+            {mode === "create" && isDialog ? (
+              <p className="rounded-md border bg-muted/30 p-2.5 text-xs text-muted-foreground sm:col-span-2">
+                Le code sera généré automatiquement et restera unique dans cette
+                branche.
+              </p>
+            ) : null}
+
+            <div className={cn(isDialog && "sm:col-span-2")}>
+              <Button
+                type="submit"
+                size={isDialog ? "default" : undefined}
+                className={cn(
+                  "mt-2 w-full font-medium",
+                  isDialog && "h-11 text-base",
+                )}
+                loading={isLoading}
+              >
+                {mode === "create"
+                  ? "Enregistrer l'option"
+                  : "Mettre à jour l'option"}
+              </Button>
+            </div>
+
+            {errorMessage ? (
+              <p
+                className={cn(
+                  "mt-2 text-center text-red-500",
+                  isDialog && "sm:col-span-2 text-xs",
+                )}
+              >
+                {errorMessage}
+              </p>
+            ) : null}
           </div>
         </form>
       </Form>
     </div>
   );
-}
-
-function generateOptionname(nom: string, prenom: string): string {
-  return `${nom.toUpperCase()}/${prenom.toUpperCase()}`;
 }

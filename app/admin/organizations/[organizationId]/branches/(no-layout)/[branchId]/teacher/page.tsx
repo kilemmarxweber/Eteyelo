@@ -17,13 +17,13 @@ import { Badge } from "@/components/ui/badge";
 import { BranchStatCard } from "@/components/ui/branch-stat-card";
 import { Card } from "@/components/ui/card";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { useSession } from "@/lib/auth-client";
 import {
   canAccessPedagogyArea,
@@ -119,8 +119,8 @@ export default function Teachers() {
                     Importer un {peopleLabels.teacherLower}
                   </Button>
                 ) : null}
-                <Dialog open={open} onOpenChange={setOpen}>
-                  <DialogTrigger asChild>
+                <Sheet open={open} onOpenChange={setOpen}>
+                  <SheetTrigger asChild>
                     <Button
                       size="sm"
                       variant="default"
@@ -128,24 +128,29 @@ export default function Teachers() {
                     >
                       Ajouter un {peopleLabels.teacher}
                     </Button>
-                  </DialogTrigger>
-                  <DialogContent size="xl">
-                    <DialogHeader>
-                      <DialogTitle>Créer un {peopleLabels.teacher}</DialogTitle>
-                      <DialogDescription>
+                  </SheetTrigger>
+                  <SheetContent
+                    side="right"
+                    className="flex h-dvh max-h-dvh w-[min(100vw,40rem)] max-w-full flex-col gap-0 overflow-hidden p-0 sm:max-w-[40rem]"
+                  >
+                    <SheetHeader className="shrink-0 space-y-1.5 border-b px-5 py-4 pr-12 text-left sm:px-6">
+                      <SheetTitle>Créer un {peopleLabels.teacher}</SheetTitle>
+                      <SheetDescription>
                         Ajoutez un nouveau {peopleLabels.teacherLower}.
-                      </DialogDescription>
-                    </DialogHeader>
-                    <TeacherUpForm
-                      mode="create"
-                      layout="dialog"
-                      onTeacherCreated={() => {
-                        handleUserAction();
-                        setOpen(false);
-                      }}
-                    />
-                  </DialogContent>
-                </Dialog>
+                      </SheetDescription>
+                    </SheetHeader>
+                    <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4 sm:px-6">
+                      <TeacherUpForm
+                        mode="create"
+                        layout="dialog"
+                        onTeacherCreated={() => {
+                          handleUserAction();
+                          setOpen(false);
+                        }}
+                      />
+                    </div>
+                  </SheetContent>
+                </Sheet>
               </div>
             ) : null
           }

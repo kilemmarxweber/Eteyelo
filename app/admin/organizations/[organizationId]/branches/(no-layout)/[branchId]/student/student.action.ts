@@ -37,6 +37,12 @@ import {
 } from "@/lib/reports/resolve-school-branding";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
 import { z } from "zod";
+import {
+  familyExtraInfoSchema,
+  familyExtraToDb,
+  studentExtraInfoSchema,
+  studentExtraToDb,
+} from "@/lib/registration-extra-info";
 
 export async function getCurrentBranch() {
   const { branchId, organizationId, userId, typebranch, session } =
@@ -727,6 +733,50 @@ export const updateStudentAction = action
       console.error("UPDATE ERROR:", error);
       throw new Error(error.message);
     }
+  });
+
+export const updateStudentExtraInfoAction = action
+  .input(
+    z.object({
+      studentId: z.string().min(1),
+      studentExtra: studentExtraInfoSchema,
+      familyExtra: familyExtraInfoSchema,
+    }),
+  )
+  .handler(async ({ input }) => {
+    const { branchId, organizationId, canManageStudents } =
+      await getCurrentBranch();
+    if (!canManageStudents) {
+      return { ok: false as const, message: "Action non autorisee" };
+    }
+
+    const student = await prisma.student.findFirst({
+      where: {
+        id: input.studentId,
+        branchMember: { branchId, member: { organizationId } },
+      },
+      select: { id: true, parentId: true },
+    });
+    if (!student) {
+      return { ok: false as const, message: "Élève introuvable." };
+    }
+
+    await prisma.$transaction([
+      prisma.student.update({
+        where: { id: student.id },
+        data: studentExtraToDb(input.studentExtra),
+      }),
+      prisma.parent.update({
+        where: { id: student.parentId },
+        data: familyExtraToDb(input.familyExtra),
+      }),
+    ]);
+
+    revalidateStudentPages(organizationId, branchId);
+    revalidatePath(
+      `/admin/organizations/${organizationId}/branches/${branchId}/student/${student.id}`,
+    );
+    return { ok: true as const, message: "Informations mises à jour." };
   });
 
 /* ======================================================

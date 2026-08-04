@@ -1,150 +1,177 @@
 "use client";
 
+import React from "react";
 import { ColumnDef } from "@tanstack/react-table";
-import { IconArrowUp, IconDots } from "@tabler/icons-react";
+import { IconCalendar, IconDots, IconEdit, IconArchive } from "@tabler/icons-react";
+
 import { Button } from "@/components/custom/button";
+import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
-  DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { DataTableColumnHeader } from "@/components/data-table-column-header";
+import { ISchoolYear } from "@/src/interfaces/SchoolYear";
+
 import { DeleteSchoolYearsDialog } from "./delete-SchoolYear-dialog";
 import { UpdateSchoolYearDialog } from "./edit-SchoolYear-dialog";
-import React from "react";
-import { ISchoolYear } from "@/src/interfaces/SchoolYear";
-import { Checkbox } from "@/components/ui/checkbox";
-import { DataTableColumnHeader } from "@/components/data-table-column-header";
-import { Switch } from "@/components/ui/switch";
 import { CurrentYear } from "./currentYear";
 
-export const columns: ColumnDef<ISchoolYear>[] = [
-  {
-    id: "select",
-    header: ({ table }) => (
-      <Checkbox
-        checked={
-          table.getIsAllPageRowsSelected() ||
-          (table.getIsSomePageRowsSelected() && "indeterminate")
-        }
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Select all"
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Select row"
-      />
-    ),
-    enableSorting: false,
-    enableHiding: false,
-  },
+function formatDateFr(value: Date | string) {
+  return new Date(value).toLocaleDateString("fr-FR", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+}
+
+type SchoolYearRow = ISchoolYear & {
+  isArchived?: boolean;
+  createdAt?: Date | string;
+};
+
+export const columns: ColumnDef<SchoolYearRow>[] = [
   {
     accessorKey: "nameYear",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Denomination de l'année" />
+      <DataTableColumnHeader column={column} title="Année" />
     ),
     cell: ({ row }) => {
-      return row.original.nameYear;
-    }, 
-  },
-  {
-    accessorKey: "startYear",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Date de la rentrée" />
-    ),
-    cell: (row) => new Date(row.getValue() as string).toLocaleDateString(),
-  },
-  {
-    accessorKey: "endYear",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Date de la fin de l'année" />
-    ),
-    cell: (row) => new Date(row.getValue() as string).toLocaleDateString(),
-  },
-  {
-    accessorKey: "isCurrentYear",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Année en cours" />
-    ),
-    cell: ({ row }) => {
+      const year = row.original;
       return (
-        <CurrentYear
-          id={row.original.id}
-          nameYear={row.original.nameYear}
-          startYear={row.original.startYear}
-          endYear={row.original.endYear}
-          isCurrentYear={row.original.isCurrentYear}
-          branchId={row.original.branchId}
-          //refetchData={() => fetchSchoolYears()}
-        />
+        <div className="flex min-w-0 flex-col gap-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="truncate font-medium">{year.nameYear}</span>
+            {year.isCurrentYear ? (
+              <Badge variant="default" size="xs">
+                En cours
+              </Badge>
+            ) : null}
+            {year.isArchived ? (
+              <Badge variant="outline" size="xs">
+                Clôturée
+              </Badge>
+            ) : null}
+          </div>
+          {year.createdAt ? (
+            <span className="text-xs text-muted-foreground">
+              Ajoutée le {formatDateFr(year.createdAt)}
+            </span>
+          ) : null}
+        </div>
       );
     },
   },
   {
-    accessorKey: "createdAt",
-    cell: (row) => new Date(row.getValue() as string).toLocaleDateString(),
+    id: "period",
+    accessorKey: "startYear",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Ajoutée le " />
+      <DataTableColumnHeader column={column} title="Période" />
     ),
+    cell: ({ row }) => {
+      const { startYear, endYear } = row.original;
+      return (
+        <div className="flex items-center gap-2">
+          <span className="flex size-7 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground">
+            <IconCalendar className="size-3.5" />
+          </span>
+          <div className="leading-tight">
+            <div className="text-sm font-medium">
+              {formatDateFr(startYear)}
+              <span className="mx-1 text-muted-foreground">→</span>
+              {formatDateFr(endYear)}
+            </div>
+            <div className="text-xs text-muted-foreground">
+              {new Date(startYear).getFullYear()} –{" "}
+              {new Date(endYear).getFullYear()}
+            </div>
+          </div>
+        </div>
+      );
+    },
+  },
+  {
+    accessorKey: "isCurrentYear",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Année courante" />
+    ),
+    cell: ({ row }) => {
+      const year = row.original;
+      return (
+        <div className="flex items-center gap-2">
+          <CurrentYear
+            id={year.id}
+            nameYear={year.nameYear}
+            startYear={year.startYear}
+            endYear={year.endYear}
+            isCurrentYear={year.isCurrentYear}
+            branchId={year.branchId}
+          />
+          <span className="hidden text-xs text-muted-foreground sm:inline">
+            {year.isCurrentYear ? "Active" : "Inactive"}
+          </span>
+        </div>
+      );
+    },
   },
   {
     id: "actions",
     cell: function Cell({ row }) {
-      const [showUpdateTaskSheet, setShowUpdateTaskSheet] =
-        React.useState(false);
-      const [showDeleteTaskDialog, setShowDeleteTaskDialog] =
-        React.useState(false);
+      const [showUpdateSheet, setShowUpdateSheet] = React.useState(false);
+      const [showDeleteDialog, setShowDeleteDialog] = React.useState(false);
+      const year = row.original;
 
       return (
         <>
-          {/* Dialogue ou feuille pour l'édition */}
           <UpdateSchoolYearDialog
-            open={showUpdateTaskSheet}
-            onOpenChange={setShowUpdateTaskSheet}
-            schoolYear={row.original} 
-            branchId={row.original.branchId}// Passerlesdonnéesactuellesdel'élèveonSuccess={() => row.toggleSelected(false)}
+            open={showUpdateSheet}
+            onOpenChange={setShowUpdateSheet}
+            schoolYear={year}
+            branchId={year.branchId}
             onSuccess={() => {
               row.toggleSelected(false);
-              setShowUpdateTaskSheet(false);
+              setShowUpdateSheet(false);
             }}
           />
 
           <DeleteSchoolYearsDialog
-            open={showDeleteTaskDialog}
-            onOpenChange={setShowDeleteTaskDialog}
-            SchoolYears={[row.original]}
+            open={showDeleteDialog}
+            onOpenChange={setShowDeleteDialog}
+            SchoolYears={[year]}
             showTrigger={false}
             onSuccess={() => {
               row.toggleSelected(false);
-              setShowDeleteTaskDialog(false);
+              setShowDeleteDialog(false);
             }}
           />
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
-                aria-label="Open menu"
+                aria-label="Ouvrir le menu"
                 variant="ghost"
-                className="flex size-8 p-0 data-[state= open]:bg-muted"
+                className="flex size-8 p-0 data-[state=open]:bg-muted"
               >
                 <IconDots className="size-4" aria-hidden="true" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-40">
-              {/* Ajout de l'option Edit */}
-              <DropdownMenuItem onSelect={() => setShowUpdateTaskSheet(true)}>
-                Edit
+            <DropdownMenuContent align="end" className="w-44">
+              <DropdownMenuItem onSelect={() => setShowUpdateSheet(true)}>
+                <IconEdit className="mr-2 size-4" />
+                Modifier
               </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onSelect={() => setShowDeleteTaskDialog(true)}>
-                Clôturer
-                <DropdownMenuShortcut>⌘⌫</DropdownMenuShortcut>
-              </DropdownMenuItem>
+              {!year.isArchived ? (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onSelect={() => setShowDeleteDialog(true)}>
+                    <IconArchive className="mr-2 size-4" />
+                    Clôturer
+                  </DropdownMenuItem>
+                </>
+              ) : null}
             </DropdownMenuContent>
           </DropdownMenu>
         </>

@@ -32,6 +32,10 @@ export type StudentMinAggregateOutputType = {
   observation: string | null
   provenanceEcole: string | null
   placeOfBirth: string | null
+  nationalite: string | null
+  autreNationalite: string | null
+  territoireAutreNationalite: string | null
+  langue: string | null
   suppositionClasseName: string | null
   suppositionSection: string | null
   suppositionOption: string | null
@@ -48,6 +52,10 @@ export type StudentMaxAggregateOutputType = {
   observation: string | null
   provenanceEcole: string | null
   placeOfBirth: string | null
+  nationalite: string | null
+  autreNationalite: string | null
+  territoireAutreNationalite: string | null
+  langue: string | null
   suppositionClasseName: string | null
   suppositionSection: string | null
   suppositionOption: string | null
@@ -64,6 +72,10 @@ export type StudentCountAggregateOutputType = {
   observation: number
   provenanceEcole: number
   placeOfBirth: number
+  nationalite: number
+  autreNationalite: number
+  territoireAutreNationalite: number
+  langue: number
   suppositionClasseName: number
   suppositionSection: number
   suppositionOption: number
@@ -82,6 +94,10 @@ export type StudentMinAggregateInputType = {
   observation?: true
   provenanceEcole?: true
   placeOfBirth?: true
+  nationalite?: true
+  autreNationalite?: true
+  territoireAutreNationalite?: true
+  langue?: true
   suppositionClasseName?: true
   suppositionSection?: true
   suppositionOption?: true
@@ -98,6 +114,10 @@ export type StudentMaxAggregateInputType = {
   observation?: true
   provenanceEcole?: true
   placeOfBirth?: true
+  nationalite?: true
+  autreNationalite?: true
+  territoireAutreNationalite?: true
+  langue?: true
   suppositionClasseName?: true
   suppositionSection?: true
   suppositionOption?: true
@@ -114,6 +134,10 @@ export type StudentCountAggregateInputType = {
   observation?: true
   provenanceEcole?: true
   placeOfBirth?: true
+  nationalite?: true
+  autreNationalite?: true
+  territoireAutreNationalite?: true
+  langue?: true
   suppositionClasseName?: true
   suppositionSection?: true
   suppositionOption?: true
@@ -203,6 +227,10 @@ export type StudentGroupByOutputType = {
   observation: string | null
   provenanceEcole: string | null
   placeOfBirth: string | null
+  nationalite: string | null
+  autreNationalite: string | null
+  territoireAutreNationalite: string | null
+  langue: string | null
   suppositionClasseName: string | null
   suppositionSection: string | null
   suppositionOption: string | null
@@ -240,6 +268,10 @@ export type StudentWhereInput = {
   observation?: Prisma.StringNullableFilter<"Student"> | string | null
   provenanceEcole?: Prisma.StringNullableFilter<"Student"> | string | null
   placeOfBirth?: Prisma.StringNullableFilter<"Student"> | string | null
+  nationalite?: Prisma.StringNullableFilter<"Student"> | string | null
+  autreNationalite?: Prisma.StringNullableFilter<"Student"> | string | null
+  territoireAutreNationalite?: Prisma.StringNullableFilter<"Student"> | string | null
+  langue?: Prisma.StringNullableFilter<"Student"> | string | null
   suppositionClasseName?: Prisma.StringNullableFilter<"Student"> | string | null
   suppositionSection?: Prisma.StringNullableFilter<"Student"> | string | null
   suppositionOption?: Prisma.StringNullableFilter<"Student"> | string | null
@@ -264,6 +296,10 @@ export type StudentOrderByWithRelationInput = {
   observation?: Prisma.SortOrderInput | Prisma.SortOrder
   provenanceEcole?: Prisma.SortOrderInput | Prisma.SortOrder
   placeOfBirth?: Prisma.SortOrderInput | Prisma.SortOrder
+  nationalite?: Prisma.SortOrderInput | Prisma.SortOrder
+  autreNationalite?: Prisma.SortOrderInput | Prisma.SortOrder
+  territoireAutreNationalite?: Prisma.SortOrderInput | Prisma.SortOrder
+  langue?: Prisma.SortOrderInput | Prisma.SortOrder
   suppositionClasseName?: Prisma.SortOrderInput | Prisma.SortOrder
   suppositionSection?: Prisma.SortOrderInput | Prisma.SortOrder
   suppositionOption?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -291,6 +327,10 @@ export type StudentWhereUniqueInput = Prisma.AtLeast<{
   observation?: Prisma.StringNullableFilter<"Student"> | string | null
   provenanceEcole?: Prisma.StringNullableFilter<"Student"> | string | null
   placeOfBirth?: Prisma.StringNullableFilter<"Student"> | string | null
+  nationalite?: Prisma.StringNullableFilter<"Student"> | string | null
+  autreNationalite?: Prisma.StringNullableFilter<"Student"> | string | null
+  territoireAutreNationalite?: Prisma.StringNullableFilter<"Student"> | string | null
+  langue?: Prisma.StringNullableFilter<"Student"> | string | null
   suppositionClasseName?: Prisma.StringNullableFilter<"Student"> | string | null
   suppositionSection?: Prisma.StringNullableFilter<"Student"> | string | null
   suppositionOption?: Prisma.StringNullableFilter<"Student"> | string | null
@@ -315,6 +355,10 @@ export type StudentOrderByWithAggregationInput = {
   observation?: Prisma.SortOrderInput | Prisma.SortOrder
   provenanceEcole?: Prisma.SortOrderInput | Prisma.SortOrder
   placeOfBirth?: Prisma.SortOrderInput | Prisma.SortOrder
+  nationalite?: Prisma.SortOrderInput | Prisma.SortOrder
+  autreNationalite?: Prisma.SortOrderInput | Prisma.SortOrder
+  territoireAutreNationalite?: Prisma.SortOrderInput | Prisma.SortOrder
+  langue?: Prisma.SortOrderInput | Prisma.SortOrder
   suppositionClasseName?: Prisma.SortOrderInput | Prisma.SortOrder
   suppositionSection?: Prisma.SortOrderInput | Prisma.SortOrder
   suppositionOption?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -337,6 +381,10 @@ export type StudentScalarWhereWithAggregatesInput = {
   observation?: Prisma.StringNullableWithAggregatesFilter<"Student"> | string | null
   provenanceEcole?: Prisma.StringNullableWithAggregatesFilter<"Student"> | string | null
   placeOfBirth?: Prisma.StringNullableWithAggregatesFilter<"Student"> | string | null
+  nationalite?: Prisma.StringNullableWithAggregatesFilter<"Student"> | string | null
+  autreNationalite?: Prisma.StringNullableWithAggregatesFilter<"Student"> | string | null
+  territoireAutreNationalite?: Prisma.StringNullableWithAggregatesFilter<"Student"> | string | null
+  langue?: Prisma.StringNullableWithAggregatesFilter<"Student"> | string | null
   suppositionClasseName?: Prisma.StringNullableWithAggregatesFilter<"Student"> | string | null
   suppositionSection?: Prisma.StringNullableWithAggregatesFilter<"Student"> | string | null
   suppositionOption?: Prisma.StringNullableWithAggregatesFilter<"Student"> | string | null
@@ -351,6 +399,10 @@ export type StudentCreateInput = {
   observation?: string | null
   provenanceEcole?: string | null
   placeOfBirth?: string | null
+  nationalite?: string | null
+  autreNationalite?: string | null
+  territoireAutreNationalite?: string | null
+  langue?: string | null
   suppositionClasseName?: string | null
   suppositionSection?: string | null
   suppositionOption?: string | null
@@ -375,6 +427,10 @@ export type StudentUncheckedCreateInput = {
   observation?: string | null
   provenanceEcole?: string | null
   placeOfBirth?: string | null
+  nationalite?: string | null
+  autreNationalite?: string | null
+  territoireAutreNationalite?: string | null
+  langue?: string | null
   suppositionClasseName?: string | null
   suppositionSection?: string | null
   suppositionOption?: string | null
@@ -395,6 +451,10 @@ export type StudentUpdateInput = {
   observation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   provenanceEcole?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   placeOfBirth?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  nationalite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  autreNationalite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  territoireAutreNationalite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  langue?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suppositionClasseName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suppositionSection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suppositionOption?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -419,6 +479,10 @@ export type StudentUncheckedUpdateInput = {
   observation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   provenanceEcole?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   placeOfBirth?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  nationalite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  autreNationalite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  territoireAutreNationalite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  langue?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suppositionClasseName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suppositionSection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suppositionOption?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -441,6 +505,10 @@ export type StudentCreateManyInput = {
   observation?: string | null
   provenanceEcole?: string | null
   placeOfBirth?: string | null
+  nationalite?: string | null
+  autreNationalite?: string | null
+  territoireAutreNationalite?: string | null
+  langue?: string | null
   suppositionClasseName?: string | null
   suppositionSection?: string | null
   suppositionOption?: string | null
@@ -455,6 +523,10 @@ export type StudentUpdateManyMutationInput = {
   observation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   provenanceEcole?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   placeOfBirth?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  nationalite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  autreNationalite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  territoireAutreNationalite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  langue?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suppositionClasseName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suppositionSection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suppositionOption?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -471,6 +543,10 @@ export type StudentUncheckedUpdateManyInput = {
   observation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   provenanceEcole?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   placeOfBirth?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  nationalite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  autreNationalite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  territoireAutreNationalite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  langue?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suppositionClasseName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suppositionSection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suppositionOption?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -497,6 +573,10 @@ export type StudentCountOrderByAggregateInput = {
   observation?: Prisma.SortOrder
   provenanceEcole?: Prisma.SortOrder
   placeOfBirth?: Prisma.SortOrder
+  nationalite?: Prisma.SortOrder
+  autreNationalite?: Prisma.SortOrder
+  territoireAutreNationalite?: Prisma.SortOrder
+  langue?: Prisma.SortOrder
   suppositionClasseName?: Prisma.SortOrder
   suppositionSection?: Prisma.SortOrder
   suppositionOption?: Prisma.SortOrder
@@ -513,6 +593,10 @@ export type StudentMaxOrderByAggregateInput = {
   observation?: Prisma.SortOrder
   provenanceEcole?: Prisma.SortOrder
   placeOfBirth?: Prisma.SortOrder
+  nationalite?: Prisma.SortOrder
+  autreNationalite?: Prisma.SortOrder
+  territoireAutreNationalite?: Prisma.SortOrder
+  langue?: Prisma.SortOrder
   suppositionClasseName?: Prisma.SortOrder
   suppositionSection?: Prisma.SortOrder
   suppositionOption?: Prisma.SortOrder
@@ -529,6 +613,10 @@ export type StudentMinOrderByAggregateInput = {
   observation?: Prisma.SortOrder
   provenanceEcole?: Prisma.SortOrder
   placeOfBirth?: Prisma.SortOrder
+  nationalite?: Prisma.SortOrder
+  autreNationalite?: Prisma.SortOrder
+  territoireAutreNationalite?: Prisma.SortOrder
+  langue?: Prisma.SortOrder
   suppositionClasseName?: Prisma.SortOrder
   suppositionSection?: Prisma.SortOrder
   suppositionOption?: Prisma.SortOrder
@@ -727,6 +815,10 @@ export type StudentCreateWithoutParentInput = {
   observation?: string | null
   provenanceEcole?: string | null
   placeOfBirth?: string | null
+  nationalite?: string | null
+  autreNationalite?: string | null
+  territoireAutreNationalite?: string | null
+  langue?: string | null
   suppositionClasseName?: string | null
   suppositionSection?: string | null
   suppositionOption?: string | null
@@ -749,6 +841,10 @@ export type StudentUncheckedCreateWithoutParentInput = {
   observation?: string | null
   provenanceEcole?: string | null
   placeOfBirth?: string | null
+  nationalite?: string | null
+  autreNationalite?: string | null
+  territoireAutreNationalite?: string | null
+  langue?: string | null
   suppositionClasseName?: string | null
   suppositionSection?: string | null
   suppositionOption?: string | null
@@ -800,6 +896,10 @@ export type StudentScalarWhereInput = {
   observation?: Prisma.StringNullableFilter<"Student"> | string | null
   provenanceEcole?: Prisma.StringNullableFilter<"Student"> | string | null
   placeOfBirth?: Prisma.StringNullableFilter<"Student"> | string | null
+  nationalite?: Prisma.StringNullableFilter<"Student"> | string | null
+  autreNationalite?: Prisma.StringNullableFilter<"Student"> | string | null
+  territoireAutreNationalite?: Prisma.StringNullableFilter<"Student"> | string | null
+  langue?: Prisma.StringNullableFilter<"Student"> | string | null
   suppositionClasseName?: Prisma.StringNullableFilter<"Student"> | string | null
   suppositionSection?: Prisma.StringNullableFilter<"Student"> | string | null
   suppositionOption?: Prisma.StringNullableFilter<"Student"> | string | null
@@ -814,6 +914,10 @@ export type StudentCreateWithoutStudentAttendanceInput = {
   observation?: string | null
   provenanceEcole?: string | null
   placeOfBirth?: string | null
+  nationalite?: string | null
+  autreNationalite?: string | null
+  territoireAutreNationalite?: string | null
+  langue?: string | null
   suppositionClasseName?: string | null
   suppositionSection?: string | null
   suppositionOption?: string | null
@@ -837,6 +941,10 @@ export type StudentUncheckedCreateWithoutStudentAttendanceInput = {
   observation?: string | null
   provenanceEcole?: string | null
   placeOfBirth?: string | null
+  nationalite?: string | null
+  autreNationalite?: string | null
+  territoireAutreNationalite?: string | null
+  langue?: string | null
   suppositionClasseName?: string | null
   suppositionSection?: string | null
   suppositionOption?: string | null
@@ -872,6 +980,10 @@ export type StudentUpdateWithoutStudentAttendanceInput = {
   observation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   provenanceEcole?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   placeOfBirth?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  nationalite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  autreNationalite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  territoireAutreNationalite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  langue?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suppositionClasseName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suppositionSection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suppositionOption?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -895,6 +1007,10 @@ export type StudentUncheckedUpdateWithoutStudentAttendanceInput = {
   observation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   provenanceEcole?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   placeOfBirth?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  nationalite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  autreNationalite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  territoireAutreNationalite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  langue?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suppositionClasseName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suppositionSection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suppositionOption?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -914,6 +1030,10 @@ export type StudentCreateWithoutGradesInput = {
   observation?: string | null
   provenanceEcole?: string | null
   placeOfBirth?: string | null
+  nationalite?: string | null
+  autreNationalite?: string | null
+  territoireAutreNationalite?: string | null
+  langue?: string | null
   suppositionClasseName?: string | null
   suppositionSection?: string | null
   suppositionOption?: string | null
@@ -937,6 +1057,10 @@ export type StudentUncheckedCreateWithoutGradesInput = {
   observation?: string | null
   provenanceEcole?: string | null
   placeOfBirth?: string | null
+  nationalite?: string | null
+  autreNationalite?: string | null
+  territoireAutreNationalite?: string | null
+  langue?: string | null
   suppositionClasseName?: string | null
   suppositionSection?: string | null
   suppositionOption?: string | null
@@ -972,6 +1096,10 @@ export type StudentUpdateWithoutGradesInput = {
   observation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   provenanceEcole?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   placeOfBirth?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  nationalite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  autreNationalite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  territoireAutreNationalite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  langue?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suppositionClasseName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suppositionSection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suppositionOption?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -995,6 +1123,10 @@ export type StudentUncheckedUpdateWithoutGradesInput = {
   observation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   provenanceEcole?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   placeOfBirth?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  nationalite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  autreNationalite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  territoireAutreNationalite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  langue?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suppositionClasseName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suppositionSection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suppositionOption?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1014,6 +1146,10 @@ export type StudentCreateWithoutClassEnrollmentInput = {
   observation?: string | null
   provenanceEcole?: string | null
   placeOfBirth?: string | null
+  nationalite?: string | null
+  autreNationalite?: string | null
+  territoireAutreNationalite?: string | null
+  langue?: string | null
   suppositionClasseName?: string | null
   suppositionSection?: string | null
   suppositionOption?: string | null
@@ -1037,6 +1173,10 @@ export type StudentUncheckedCreateWithoutClassEnrollmentInput = {
   observation?: string | null
   provenanceEcole?: string | null
   placeOfBirth?: string | null
+  nationalite?: string | null
+  autreNationalite?: string | null
+  territoireAutreNationalite?: string | null
+  langue?: string | null
   suppositionClasseName?: string | null
   suppositionSection?: string | null
   suppositionOption?: string | null
@@ -1072,6 +1212,10 @@ export type StudentUpdateWithoutClassEnrollmentInput = {
   observation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   provenanceEcole?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   placeOfBirth?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  nationalite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  autreNationalite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  territoireAutreNationalite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  langue?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suppositionClasseName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suppositionSection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suppositionOption?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1095,6 +1239,10 @@ export type StudentUncheckedUpdateWithoutClassEnrollmentInput = {
   observation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   provenanceEcole?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   placeOfBirth?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  nationalite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  autreNationalite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  territoireAutreNationalite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  langue?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suppositionClasseName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suppositionSection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suppositionOption?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1114,6 +1262,10 @@ export type StudentCreateWithoutBranchMemberInput = {
   observation?: string | null
   provenanceEcole?: string | null
   placeOfBirth?: string | null
+  nationalite?: string | null
+  autreNationalite?: string | null
+  territoireAutreNationalite?: string | null
+  langue?: string | null
   suppositionClasseName?: string | null
   suppositionSection?: string | null
   suppositionOption?: string | null
@@ -1136,6 +1288,10 @@ export type StudentUncheckedCreateWithoutBranchMemberInput = {
   observation?: string | null
   provenanceEcole?: string | null
   placeOfBirth?: string | null
+  nationalite?: string | null
+  autreNationalite?: string | null
+  territoireAutreNationalite?: string | null
+  langue?: string | null
   suppositionClasseName?: string | null
   suppositionSection?: string | null
   suppositionOption?: string | null
@@ -1182,6 +1338,10 @@ export type StudentCreateWithoutBranchLinksInput = {
   observation?: string | null
   provenanceEcole?: string | null
   placeOfBirth?: string | null
+  nationalite?: string | null
+  autreNationalite?: string | null
+  territoireAutreNationalite?: string | null
+  langue?: string | null
   suppositionClasseName?: string | null
   suppositionSection?: string | null
   suppositionOption?: string | null
@@ -1205,6 +1365,10 @@ export type StudentUncheckedCreateWithoutBranchLinksInput = {
   observation?: string | null
   provenanceEcole?: string | null
   placeOfBirth?: string | null
+  nationalite?: string | null
+  autreNationalite?: string | null
+  territoireAutreNationalite?: string | null
+  langue?: string | null
   suppositionClasseName?: string | null
   suppositionSection?: string | null
   suppositionOption?: string | null
@@ -1240,6 +1404,10 @@ export type StudentUpdateWithoutBranchLinksInput = {
   observation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   provenanceEcole?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   placeOfBirth?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  nationalite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  autreNationalite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  territoireAutreNationalite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  langue?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suppositionClasseName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suppositionSection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suppositionOption?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1263,6 +1431,10 @@ export type StudentUncheckedUpdateWithoutBranchLinksInput = {
   observation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   provenanceEcole?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   placeOfBirth?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  nationalite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  autreNationalite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  territoireAutreNationalite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  langue?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suppositionClasseName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suppositionSection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suppositionOption?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1282,6 +1454,10 @@ export type StudentCreateWithoutIssuedDocumentsInput = {
   observation?: string | null
   provenanceEcole?: string | null
   placeOfBirth?: string | null
+  nationalite?: string | null
+  autreNationalite?: string | null
+  territoireAutreNationalite?: string | null
+  langue?: string | null
   suppositionClasseName?: string | null
   suppositionSection?: string | null
   suppositionOption?: string | null
@@ -1305,6 +1481,10 @@ export type StudentUncheckedCreateWithoutIssuedDocumentsInput = {
   observation?: string | null
   provenanceEcole?: string | null
   placeOfBirth?: string | null
+  nationalite?: string | null
+  autreNationalite?: string | null
+  territoireAutreNationalite?: string | null
+  langue?: string | null
   suppositionClasseName?: string | null
   suppositionSection?: string | null
   suppositionOption?: string | null
@@ -1340,6 +1520,10 @@ export type StudentUpdateWithoutIssuedDocumentsInput = {
   observation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   provenanceEcole?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   placeOfBirth?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  nationalite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  autreNationalite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  territoireAutreNationalite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  langue?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suppositionClasseName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suppositionSection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suppositionOption?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1363,6 +1547,10 @@ export type StudentUncheckedUpdateWithoutIssuedDocumentsInput = {
   observation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   provenanceEcole?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   placeOfBirth?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  nationalite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  autreNationalite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  territoireAutreNationalite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  langue?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suppositionClasseName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suppositionSection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suppositionOption?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1382,6 +1570,10 @@ export type StudentCreateWithoutOnlineSubmissionsInput = {
   observation?: string | null
   provenanceEcole?: string | null
   placeOfBirth?: string | null
+  nationalite?: string | null
+  autreNationalite?: string | null
+  territoireAutreNationalite?: string | null
+  langue?: string | null
   suppositionClasseName?: string | null
   suppositionSection?: string | null
   suppositionOption?: string | null
@@ -1405,6 +1597,10 @@ export type StudentUncheckedCreateWithoutOnlineSubmissionsInput = {
   observation?: string | null
   provenanceEcole?: string | null
   placeOfBirth?: string | null
+  nationalite?: string | null
+  autreNationalite?: string | null
+  territoireAutreNationalite?: string | null
+  langue?: string | null
   suppositionClasseName?: string | null
   suppositionSection?: string | null
   suppositionOption?: string | null
@@ -1440,6 +1636,10 @@ export type StudentUpdateWithoutOnlineSubmissionsInput = {
   observation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   provenanceEcole?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   placeOfBirth?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  nationalite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  autreNationalite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  territoireAutreNationalite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  langue?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suppositionClasseName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suppositionSection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suppositionOption?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1463,6 +1663,10 @@ export type StudentUncheckedUpdateWithoutOnlineSubmissionsInput = {
   observation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   provenanceEcole?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   placeOfBirth?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  nationalite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  autreNationalite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  territoireAutreNationalite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  langue?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suppositionClasseName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suppositionSection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suppositionOption?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1483,6 +1687,10 @@ export type StudentCreateManyParentInput = {
   observation?: string | null
   provenanceEcole?: string | null
   placeOfBirth?: string | null
+  nationalite?: string | null
+  autreNationalite?: string | null
+  territoireAutreNationalite?: string | null
+  langue?: string | null
   suppositionClasseName?: string | null
   suppositionSection?: string | null
   suppositionOption?: string | null
@@ -1497,6 +1705,10 @@ export type StudentUpdateWithoutParentInput = {
   observation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   provenanceEcole?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   placeOfBirth?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  nationalite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  autreNationalite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  territoireAutreNationalite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  langue?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suppositionClasseName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suppositionSection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suppositionOption?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1519,6 +1731,10 @@ export type StudentUncheckedUpdateWithoutParentInput = {
   observation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   provenanceEcole?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   placeOfBirth?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  nationalite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  autreNationalite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  territoireAutreNationalite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  langue?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suppositionClasseName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suppositionSection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suppositionOption?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1540,6 +1756,10 @@ export type StudentUncheckedUpdateManyWithoutParentInput = {
   observation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   provenanceEcole?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   placeOfBirth?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  nationalite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  autreNationalite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  territoireAutreNationalite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  langue?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suppositionClasseName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suppositionSection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suppositionOption?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1555,6 +1775,10 @@ export type StudentCreateManyBranchMemberInput = {
   observation?: string | null
   provenanceEcole?: string | null
   placeOfBirth?: string | null
+  nationalite?: string | null
+  autreNationalite?: string | null
+  territoireAutreNationalite?: string | null
+  langue?: string | null
   suppositionClasseName?: string | null
   suppositionSection?: string | null
   suppositionOption?: string | null
@@ -1569,6 +1793,10 @@ export type StudentUpdateWithoutBranchMemberInput = {
   observation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   provenanceEcole?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   placeOfBirth?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  nationalite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  autreNationalite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  territoireAutreNationalite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  langue?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suppositionClasseName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suppositionSection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suppositionOption?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1591,6 +1819,10 @@ export type StudentUncheckedUpdateWithoutBranchMemberInput = {
   observation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   provenanceEcole?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   placeOfBirth?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  nationalite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  autreNationalite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  territoireAutreNationalite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  langue?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suppositionClasseName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suppositionSection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suppositionOption?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1612,6 +1844,10 @@ export type StudentUncheckedUpdateManyWithoutBranchMemberInput = {
   observation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   provenanceEcole?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   placeOfBirth?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  nationalite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  autreNationalite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  territoireAutreNationalite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  langue?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suppositionClasseName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suppositionSection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suppositionOption?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1704,6 +1940,10 @@ export type StudentSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   observation?: boolean
   provenanceEcole?: boolean
   placeOfBirth?: boolean
+  nationalite?: boolean
+  autreNationalite?: boolean
+  territoireAutreNationalite?: boolean
+  langue?: boolean
   suppositionClasseName?: boolean
   suppositionSection?: boolean
   suppositionOption?: boolean
@@ -1729,6 +1969,10 @@ export type StudentSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   observation?: boolean
   provenanceEcole?: boolean
   placeOfBirth?: boolean
+  nationalite?: boolean
+  autreNationalite?: boolean
+  territoireAutreNationalite?: boolean
+  langue?: boolean
   suppositionClasseName?: boolean
   suppositionSection?: boolean
   suppositionOption?: boolean
@@ -1747,6 +1991,10 @@ export type StudentSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   observation?: boolean
   provenanceEcole?: boolean
   placeOfBirth?: boolean
+  nationalite?: boolean
+  autreNationalite?: boolean
+  territoireAutreNationalite?: boolean
+  langue?: boolean
   suppositionClasseName?: boolean
   suppositionSection?: boolean
   suppositionOption?: boolean
@@ -1765,6 +2013,10 @@ export type StudentSelectScalar = {
   observation?: boolean
   provenanceEcole?: boolean
   placeOfBirth?: boolean
+  nationalite?: boolean
+  autreNationalite?: boolean
+  territoireAutreNationalite?: boolean
+  langue?: boolean
   suppositionClasseName?: boolean
   suppositionSection?: boolean
   suppositionOption?: boolean
@@ -1773,7 +2025,7 @@ export type StudentSelectScalar = {
   updatedAt?: boolean
 }
 
-export type StudentOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "branchMemberId" | "parentId" | "statusStudent" | "observation" | "provenanceEcole" | "placeOfBirth" | "suppositionClasseName" | "suppositionSection" | "suppositionOption" | "category" | "createdAt" | "updatedAt", ExtArgs["result"]["student"]>
+export type StudentOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "branchMemberId" | "parentId" | "statusStudent" | "observation" | "provenanceEcole" | "placeOfBirth" | "nationalite" | "autreNationalite" | "territoireAutreNationalite" | "langue" | "suppositionClasseName" | "suppositionSection" | "suppositionOption" | "category" | "createdAt" | "updatedAt", ExtArgs["result"]["student"]>
 export type StudentInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   parent?: boolean | Prisma.ParentDefaultArgs<ExtArgs>
   classEnrollment?: boolean | Prisma.Student$classEnrollmentArgs<ExtArgs>
@@ -1814,6 +2066,13 @@ export type $StudentPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     observation: string | null
     provenanceEcole: string | null
     placeOfBirth: string | null
+    /**
+     * Infos élève complémentaires (optionnelles)
+     */
+    nationalite: string | null
+    autreNationalite: string | null
+    territoireAutreNationalite: string | null
+    langue: string | null
     suppositionClasseName: string | null
     suppositionSection: string | null
     suppositionOption: string | null
@@ -2258,6 +2517,10 @@ export interface StudentFieldRefs {
   readonly observation: Prisma.FieldRef<"Student", 'String'>
   readonly provenanceEcole: Prisma.FieldRef<"Student", 'String'>
   readonly placeOfBirth: Prisma.FieldRef<"Student", 'String'>
+  readonly nationalite: Prisma.FieldRef<"Student", 'String'>
+  readonly autreNationalite: Prisma.FieldRef<"Student", 'String'>
+  readonly territoireAutreNationalite: Prisma.FieldRef<"Student", 'String'>
+  readonly langue: Prisma.FieldRef<"Student", 'String'>
   readonly suppositionClasseName: Prisma.FieldRef<"Student", 'String'>
   readonly suppositionSection: Prisma.FieldRef<"Student", 'String'>
   readonly suppositionOption: Prisma.FieldRef<"Student", 'String'>

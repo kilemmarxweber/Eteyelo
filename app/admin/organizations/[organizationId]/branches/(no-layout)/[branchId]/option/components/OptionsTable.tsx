@@ -1,11 +1,13 @@
+"use client";
+
 import React, { useEffect, useState } from "react";
-import { IOption } from "@/src/interfaces/Option";
-import { getOptionsAction } from "../option.action";
+import { Edit, Archive, MoreHorizontal, Settings2 } from "lucide-react";
+
 import { ResponsiveDataTable } from "@/components/ui/responsive-data-table";
 import { SearchAndFilter } from "@/components/ui/search-and-filter";
 import { StatusBadge } from "@/components/ui/status-badge";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Edit, Archive, MoreHorizontal } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,6 +15,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { IOption } from "@/src/interfaces/Option";
+
+import { getOptionsAction } from "../option.action";
 import { DeleteOptionsDialog } from "./delete-Option-dialog";
 import { UpdateOptionDialog } from "./edit-Option-dialog";
 
@@ -47,10 +52,9 @@ const OptionsTable: React.FC<OptionsTableProps> = ({ refreshKey }) => {
       }
     };
 
-    fetchOptions();
+    void fetchOptions();
   }, [refreshKey, localRefreshKey]);
 
-  // Filtrer les données
   const filteredOptions = options.filter((option) => {
     const matchesSearch =
       option.nameOption.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -77,35 +81,48 @@ const OptionsTable: React.FC<OptionsTableProps> = ({ refreshKey }) => {
   };
 
   const handleActionSuccess = () => {
-    // Rafraîchir les données après une action
     setShowUpdateDialog(false);
     setShowDeleteDialog(false);
     setSelectedOption(null);
     setLocalRefreshKey((value) => value + 1);
   };
 
-  // Configuration des colonnes pour desktop
   const columns = [
     {
-      key: "codeOption",
-      header: "Code",
-      cell: (option: IOption) => (
-        <div className="font-medium">{option.codeOption}</div>
-      ),
-    },
-    {
       key: "nameOption",
-      header: "Nom de l'option",
+      header: "Option",
       cell: (option: IOption) => (
-        <div className="font-medium">{option.nameOption}</div>
+        <div className="flex min-w-0 items-center gap-3">
+          <span className="flex size-8 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground">
+            <Settings2 className="size-3.5" />
+          </span>
+          <div className="min-w-0">
+            <div className="truncate font-medium">{option.nameOption}</div>
+            <div className="mt-0.5 flex flex-wrap items-center gap-1.5">
+              <Badge variant="secondary" size="xs">
+                {option.codeOption}
+              </Badge>
+              <span className="text-xs text-muted-foreground">
+                {new Date(option.createdAt).toLocaleDateString("fr-FR")}
+              </span>
+            </div>
+          </div>
+        </div>
       ),
     },
     {
       key: "section",
       header: "Section",
       cell: (option: IOption) => (
-        <div className="text-sm text-muted-foreground">
-          {option.nameSection || "Non assignée"}
+        <div className="text-sm">
+          <div className="font-medium">
+            {option.nameSection || "Non assignée"}
+          </div>
+          {option.codeSection ? (
+            <div className="text-xs text-muted-foreground">
+              {option.codeSection}
+            </div>
+          ) : null}
         </div>
       ),
     },
@@ -115,51 +132,44 @@ const OptionsTable: React.FC<OptionsTableProps> = ({ refreshKey }) => {
       cell: (option: IOption) => (
         <StatusBadge
           status={option.statusOption ? "active" : "inactive"}
-          label={option.statusOption ? "Actif" : "Inactif"}
+          label={option.statusOption ? "Active" : "Inactive"}
         />
       ),
     },
     {
-      key: "createdAt",
-      header: "Créé le",
-      cell: (option: IOption) => (
-        <div className="text-sm text-muted-foreground">
-          {new Date(option.createdAt).toLocaleDateString()}
-        </div>
-      ),
-    },
-    {
       key: "actions",
-      header: "Actions",
+      header: "",
       cell: (option: IOption) => (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="sm">
+            <Button variant="ghost" size="sm" className="size-8 p-0">
               <MoreHorizontal className="h-4 w-4" />
+              <span className="sr-only">Actions</span>
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
+          <DropdownMenuContent align="end" className="w-40">
             <DropdownMenuItem onClick={() => handleEdit(option)}>
               <Edit className="mr-2 h-4 w-4" />
               Modifier
             </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={() => handleDelete(option)}
-            >
-              <Archive className="mr-2 h-4 w-4" />
-              Archiver
-            </DropdownMenuItem>
+            {option.statusOption ? (
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => handleDelete(option)}>
+                  <Archive className="mr-2 h-4 w-4" />
+                  Archiver
+                </DropdownMenuItem>
+              </>
+            ) : null}
           </DropdownMenuContent>
         </DropdownMenu>
       ),
     },
   ];
 
-  // Configuration des cartes pour mobile
   const cardConfig = {
     title: (option: IOption) => option.nameOption,
-    subtitle: (option: IOption) => `Code: ${option.codeOption}`,
+    subtitle: (option: IOption) => `Code ${option.codeOption}`,
     details: (option: IOption) => [
       {
         label: "Section",
@@ -170,13 +180,13 @@ const OptionsTable: React.FC<OptionsTableProps> = ({ refreshKey }) => {
         value: (
           <StatusBadge
             status={option.statusOption ? "active" : "inactive"}
-            label={option.statusOption ? "Actif" : "Inactif"}
+            label={option.statusOption ? "Active" : "Inactive"}
           />
         ),
       },
       {
-        label: "Créé le",
-        value: new Date(option.createdAt).toLocaleDateString(),
+        label: "Créée le",
+        value: new Date(option.createdAt).toLocaleDateString("fr-FR"),
       },
     ],
     actions: (option: IOption) => [
@@ -186,19 +196,23 @@ const OptionsTable: React.FC<OptionsTableProps> = ({ refreshKey }) => {
         onClick: () => handleEdit(option),
         variant: "outline" as const,
       },
-      {
-        label: "Archiver",
-        icon: Archive,
-        onClick: () => handleDelete(option),
-        variant: "outline" as const,
-      },
+      ...(option.statusOption
+        ? [
+            {
+              label: "Archiver",
+              icon: Archive,
+              onClick: () => handleDelete(option),
+              variant: "outline" as const,
+            },
+          ]
+        : []),
     ],
   };
 
   const filterOptions = [
-    { value: "all", label: "Tous les statuts" },
-    { value: "active", label: "Actifs uniquement" },
-    { value: "inactive", label: "Inactifs uniquement" },
+    { value: "active", label: "Actives" },
+    { value: "inactive", label: "Inactives" },
+    { value: "all", label: "Toutes" },
   ];
 
   return (
@@ -209,7 +223,7 @@ const OptionsTable: React.FC<OptionsTableProps> = ({ refreshKey }) => {
         filterValue={statusFilter}
         onFilterChange={setStatusFilter}
         filterOptions={filterOptions}
-        searchPlaceholder="Rechercher une option..."
+        searchPlaceholder="Rechercher une option…"
       />
 
       <ResponsiveDataTable
@@ -221,8 +235,7 @@ const OptionsTable: React.FC<OptionsTableProps> = ({ refreshKey }) => {
         searchTerm={searchTerm}
       />
 
-      {/* Dialogs */}
-      {selectedOption && (
+      {selectedOption ? (
         <>
           <UpdateOptionDialog
             open={showUpdateDialog}
@@ -230,7 +243,6 @@ const OptionsTable: React.FC<OptionsTableProps> = ({ refreshKey }) => {
             option={selectedOption}
             onSuccess={handleActionSuccess}
           />
-
           <DeleteOptionsDialog
             open={showDeleteDialog}
             onOpenChange={setShowDeleteDialog}
@@ -239,7 +251,7 @@ const OptionsTable: React.FC<OptionsTableProps> = ({ refreshKey }) => {
             onSuccess={handleActionSuccess}
           />
         </>
-      )}
+      ) : null}
     </div>
   );
 };

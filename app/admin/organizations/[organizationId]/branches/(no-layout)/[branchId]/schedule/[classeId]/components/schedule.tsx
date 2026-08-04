@@ -141,7 +141,6 @@ export default function Schedule({
   const canDeleteSchedule = canManageSchedules;
 
   const vacationHref = `/admin/organizations/${params.organizationId}/branches/${params.branchId}/creneau`;
-  const settingsHref = `/admin/organizations/${params.organizationId}/branches/${params.branchId}/settings/horaires`;
 
   const displayHeuresDebut = useMemo(
     () => buildDisplayTimeSlots(heuresDebut, recreationHour),
@@ -430,11 +429,8 @@ export default function Schedule({
                 puis assignez une vacation a la classe.
               </p>
               <div className="mt-4 flex flex-wrap justify-center gap-2">
-                <Button asChild variant="outline">
-                  <Link href={settingsHref}>Parametres horaires</Link>
-                </Button>
                 <Button asChild>
-                  <Link href={vacationHref}>Gerer les vacations</Link>
+                  <Link href={vacationHref}>Gérer les vacations</Link>
                 </Button>
               </div>
             </div>

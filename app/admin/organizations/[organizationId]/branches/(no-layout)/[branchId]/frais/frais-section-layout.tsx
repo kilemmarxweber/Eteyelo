@@ -4,17 +4,17 @@ import { Layout, LayoutBody } from "@/components/custom/layout";
 import { PageHeader } from "@/components/ui/page-header";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { IconReportMoney, IconSchool } from "@tabler/icons-react";
+import { IconPlus, IconReportMoney, IconSchool } from "@tabler/icons-react";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { DialogTrigger } from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { FraisUpForm } from "./[classeId]/components/frais-form";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/custom/button";
 import { getClassesByIdAction } from "../classe/classe.action";
 import { useEffect, useState } from "react";
 import { IClasse } from "@/src/interfaces/Classe";
@@ -41,13 +41,21 @@ function FraisLayoutContent({ children }: { children: React.ReactNode }) {
     setAddDialogOpen(false);
   };
   const { data: session, isPending } = useSession();
+  const [hasMounted, setHasMounted] = useState(false);
+  const sessionReady = hasMounted && !isPending;
   const [classes, setClasses] = useState<IClasse | null>(null);
-  const [loading, setLoading] = useState(true);
   const params = useParams();
   const classeId = params?.classeId as string;
-  //const hasClasse = Boolean(classeId);
+
   useEffect(() => {
-    if (!classeId) return;
+    setHasMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!classeId) {
+      setClasses(null);
+      return;
+    }
 
     const fetchClasses = async () => {
       try {
@@ -60,22 +68,23 @@ function FraisLayoutContent({ children }: { children: React.ReactNode }) {
         setClasses(rawClasses[0]);
       } catch (error) {
         console.error(error);
-      } finally {
-        setLoading(false);
+        setClasses(null);
       }
     };
 
-    fetchClasses();
+    void fetchClasses();
   }, [classeId]);
 
   const hasClasse = !!classeId;
-  if (isPending) {
+
+  if (!sessionReady) {
     return <Loading />;
   }
 
   if (!canAccessFinanceArea(session)) {
     return <NotFoundView />;
   }
+
   const canCreateFrais = canAccessFinanceArea(session);
   return (
     <Layout fadedBelow fixedHeight>
@@ -88,7 +97,7 @@ function FraisLayoutContent({ children }: { children: React.ReactNode }) {
           }
           description={
             hasClasse
-              ? `Liste de Frais de la ${classes?.codeClasse || ""}`
+              ? `Liste de frais de la ${classes?.codeClasse || ""}`
               : "Gérer les frais scolaires par classe et suivre les paiements des élèves"
           }
           badge={
@@ -100,31 +109,46 @@ function FraisLayoutContent({ children }: { children: React.ReactNode }) {
             </Badge>
           }
           actions={
-            canCreateFrais && (
+            canCreateFrais ? (
               <div className="flex flex-wrap items-center gap-2">
-                {hasClasse && (
-                  <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
-                    <DialogTrigger asChild>
-                      <Button variant="default">Ajouter un frais</Button>
-                    </DialogTrigger>
-                    <DialogContent size="lg">
-                      <DialogHeader>
-                        <DialogTitle>Ajouter un frais</DialogTitle>
-                        <DialogDescription>
-                          Créez un nouveau frais scolaire pour la classe
-                          sélectionnée.
-                        </DialogDescription>
-                      </DialogHeader>
-                      <FraisUpForm
-                        mode="create"
-                        onCreated={handleFraisAction}
-                        classeId={classeId}
-                      />
-                    </DialogContent>
-                  </Dialog>
-                )}
+                {hasClasse ? (
+                  <Sheet open={addDialogOpen} onOpenChange={setAddDialogOpen}>
+                    <SheetTrigger asChild>
+                      <Button
+                        size="sm"
+                        variant="default"
+                        leftSection={<IconPlus size={16} />}
+                      >
+                        Ajouter un frais
+                      </Button>
+                    </SheetTrigger>
+                    <SheetContent
+                      side="right"
+                      className="flex h-dvh max-h-dvh w-[min(100vw,40rem)] max-w-full flex-col gap-0 overflow-hidden p-0 sm:max-w-[40rem]"
+                    >
+                      <SheetHeader className="shrink-0 space-y-1.5 border-b px-5 py-4 pr-12 text-left sm:px-6">
+                        <SheetTitle>Ajouter un frais</SheetTitle>
+                        <SheetDescription>
+                          Créez un nouveau frais scolaire pour{" "}
+                          {classes?.nameClasse ||
+                            classes?.codeClasse ||
+                            "cette classe"}
+                          .
+                        </SheetDescription>
+                      </SheetHeader>
+                      <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4 sm:px-6">
+                        <FraisUpForm
+                          mode="create"
+                          layout="dialog"
+                          onCreated={handleFraisAction}
+                          classeId={classeId}
+                        />
+                      </div>
+                    </SheetContent>
+                  </Sheet>
+                ) : null}
               </div>
-            )
+            ) : null
           }
         />
 

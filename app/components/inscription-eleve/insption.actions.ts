@@ -8,8 +8,13 @@ import { fetchPublishedBranchRegistrationInfo } from "@/lib/fetch-published-bran
 import { getBranchManagerEmails } from "@/lib/email/get-branch-manager-emails";
 import { sendBranchSubmissionNotificationEmail } from "@/lib/email/send-branch-submission-notification-email";
 import { sendStudentRegistrationConfirmationEmail } from "@/lib/email/send-student-registration-confirmation-email";
+import {
+  familyExtraInfoSchema,
+  studentExtraInfoSchema,
+} from "@/lib/registration-extra-info";
 
 const PRIMARY_MIN_AGE = 5;
+const MAX_CHILDREN_PER_SUBMISSION = 8;
 
 const guardianSchema = z.object({
   name: z.string().trim().min(2, "Nom du responsable requis"),
@@ -23,17 +28,50 @@ const guardianSchema = z.object({
   isPrimary: z.boolean(),
 });
 
+const studentEntrySchema = z.object({
+  name: z.string().trim().min(2, "Nom de l'eleve requis"),
+  postnom: z.string().trim().min(2, "Postnom de l'eleve requis"),
+  prenom: z.string().trim().min(2, "Prenom de l'eleve requis"),
+  sexe: z.enum(["masculin", "feminin"]),
+  dateOfBirth: z.string().min(1, "Date de naissance requise"),
+  placeOfBirth: z.string().trim().min(2, "Lieu de naissance requis"),
+  address: z.string().trim().min(5, "Adresse de l'eleve requise"),
+  email: z.string().trim().email().optional().or(z.literal("")),
+  provenanceEcole: z.string().trim().optional(),
+  requestedLevel: z.string().trim().min(1, "Classe ou niveau souhaite requis"),
+  requestedSection: z.string().trim().optional(),
+  requestedOption: z.string().trim().optional(),
+  photoUrl: z.string().trim().optional(),
+  extra: studentExtraInfoSchema.optional(),
+});
+
+const onlineRegistrationBatchSchema = z.object({
+  branchId: z.string().min(1, "Ecole requise"),
+  students: z
+    .array(studentEntrySchema)
+    .min(1, "Au moins un eleve est requis")
+    .max(
+      MAX_CHILDREN_PER_SUBMISSION,
+      `Maximum ${MAX_CHILDREN_PER_SUBMISSION} eleves par demande`,
+    ),
+  guardians: z.array(guardianSchema).max(2),
+  familyExtra: familyExtraInfoSchema.optional(),
+  consentAccepted: z.literal(true, {
+    errorMap: () => ({ message: "Le consentement est obligatoire" }),
+  }),
+  termsInfoId: z.string().optional().nullable(),
+});
+
+/** @deprecated single-student shape kept for type compatibility during transition */
 const onlineRegistrationSchema = z.object({
   branchId: z.string().min(1, "Ecole requise"),
-  student: z.object({
-    name: z.string().trim().min(2, "Nom de l'eleve requis"),
-    postnom: z.string().trim().min(2, "Postnom de l'eleve requis"),
-    prenom: z.string().trim().min(2, "Prenom de l'eleve requis"),
-    sexe: z.enum(["masculin", "feminin"]),
-    dateOfBirth: z.string().min(1, "Date de naissance requise"),
-    placeOfBirth: z.string().trim().min(2, "Lieu de naissance requis"),
-    address: z.string().trim().min(5, "Adresse de l'eleve requise"),
-    email: z.string().trim().email().optional().or(z.literal("")),
+  student: studentEntrySchema.omit({
+    requestedLevel: true,
+    requestedSection: true,
+    requestedOption: true,
+    photoUrl: true,
+    extra: true,
+  }).extend({
     provenanceEcole: z.string().trim().optional(),
   }),
   guardians: z.array(guardianSchema).max(2),
@@ -48,6 +86,9 @@ const onlineRegistrationSchema = z.object({
 });
 
 export type OnlineRegistrationInput = z.infer<typeof onlineRegistrationSchema>;
+export type OnlineRegistrationBatchInput = z.infer<
+  typeof onlineRegistrationBatchSchema
+>;
 
 function ageFromDate(dateStr: string) {
   const birth = new Date(dateStr);
@@ -149,8 +190,21 @@ function createReference() {
   return `INS-${stamp}-${crypto.randomUUID().slice(0, 8).toUpperCase()}`;
 }
 
-export async function registerStudentOnline(raw: OnlineRegistrationInput) {
-  const parsed = onlineRegistrationSchema.safeParse(raw);
+function studentDisplayName(student: {
+  prenom: string;
+  name: string;
+}) {
+  return `${student.prenom} ${student.name}`.trim() || "Élève";
+}
+
+/**
+ * Inscription publique multi-élèves : N demandes RegistrationRequest,
+ * même siblingGroupId, 1 email de confirmation groupé.
+ */
+export async function registerStudentsOnline(
+  raw: OnlineRegistrationBatchInput,
+) {
+  const parsed = onlineRegistrationBatchSchema.safeParse(raw);
   if (!parsed.success) {
     return {
       success: false as const,
@@ -196,16 +250,17 @@ export async function registerStudentOnline(raw: OnlineRegistrationInput) {
   }
 
   if (isPrimaryBranch(branch.typebranch)) {
-    const age = ageFromDate(data.student.dateOfBirth);
-    if (age === null || age < PRIMARY_MIN_AGE) {
-      return {
-        success: false as const,
-        message: `Pour le primaire, l'enfant doit avoir au moins ${PRIMARY_MIN_AGE} ans.`,
-      };
+    for (const student of data.students) {
+      const age = ageFromDate(student.dateOfBirth);
+      if (age === null || age < PRIMARY_MIN_AGE) {
+        return {
+          success: false as const,
+          message: `Pour le primaire, ${studentDisplayName(student)} doit avoir au moins ${PRIMARY_MIN_AGE} ans.`,
+        };
+      }
     }
   }
 
-  const reference = createReference();
   const publishedInfo = data.termsInfoId
     ? await prisma.branchRegistrationInfo.findFirst({
         where: {
@@ -217,37 +272,70 @@ export async function registerStudentOnline(raw: OnlineRegistrationInput) {
       })
     : null;
 
-  await prisma.registrationRequest.create({
-    data: {
-      reference,
-      branchId: branch.id,
-      organizationId: branch.organizationId,
-      schoolYearId: branch.schoolYear[0]?.id ?? null,
-      status: "PENDING",
-      studentData: data.student,
-      guardiansData: data.guardians,
-      requestedLevel: data.requestedLevel,
-      requestedSection: data.requestedSection || null,
-      requestedOption: data.requestedOption || null,
-      photoUrl: data.photoUrl || null,
-      consentAccepted: true,
-      termsAcceptedAt: publishedInfo ? new Date() : null,
-      termsInfoId: publishedInfo?.id ?? null,
-    },
-  });
+  const siblingGroupId =
+    data.students.length > 1 ? crypto.randomUUID() : null;
+  const schoolYearId = branch.schoolYear[0]?.id ?? null;
+  const familyExtra = data.familyExtra ?? {};
+  const termsAcceptedAt = publishedInfo ? new Date() : null;
+  const termsInfoId = publishedInfo?.id ?? null;
 
-  const studentName =
-    `${data.student.prenom} ${data.student.name}`.trim() || "Élève";
+  const created = await prisma.$transaction(
+    data.students.map((student) => {
+      const reference = createReference();
+      const {
+        requestedLevel,
+        requestedSection,
+        requestedOption,
+        photoUrl,
+        extra,
+        ...identity
+      } = student;
+      return prisma.registrationRequest.create({
+        data: {
+          reference,
+          branchId: branch.id,
+          organizationId: branch.organizationId,
+          schoolYearId,
+          status: "PENDING",
+          siblingGroupId,
+          studentData: {
+            ...identity,
+            ...(extra ?? {}),
+            familyExtra,
+          },
+          guardiansData: data.guardians,
+          requestedLevel,
+          requestedSection: requestedSection || null,
+          requestedOption: requestedOption || null,
+          photoUrl: photoUrl || null,
+          consentAccepted: true,
+          termsAcceptedAt,
+          termsInfoId,
+        },
+        select: { reference: true },
+      });
+    }),
+  );
+
+  const references = created.map((row) => row.reference);
+  const studentNames = data.students.map(studentDisplayName);
   const primaryGuardian =
     data.guardians.find((guardian) => guardian.isPrimary) ?? data.guardians[0];
   const confirmationEmail =
-    primaryGuardian?.email?.trim() || data.student.email?.trim() || "";
+    primaryGuardian?.email?.trim() || data.students[0]?.email?.trim() || "";
   const recipientName =
     primaryGuardian != null
       ? `${primaryGuardian.prenom} ${primaryGuardian.name}`.trim()
-      : studentName;
-
+      : studentNames[0] || "Responsable";
   const confirmationPhone = primaryGuardian?.telephone?.trim() || null;
+
+  const studentsSummary = studentNames
+    .map((name, index) => `${name} (${references[index]})`)
+    .join(", ");
+  const levelsSummary = data.students
+    .map((s) => s.requestedLevel)
+    .filter(Boolean)
+    .join(", ");
 
   if (confirmationEmail || confirmationPhone) {
     try {
@@ -255,10 +343,10 @@ export async function registerStudentOnline(raw: OnlineRegistrationInput) {
         to: confirmationEmail.toLowerCase(),
         phone: confirmationPhone,
         recipientName: recipientName || "Responsable",
-        studentName,
-        reference,
+        studentName: studentsSummary,
+        reference: references.join(", "),
         branchName: branch.name,
-        requestedLevel: data.requestedLevel,
+        requestedLevel: levelsSummary,
       });
     } catch (error) {
       console.error("STUDENT_REGISTRATION_CONFIRMATION_EMAIL_ERROR:", error);
@@ -275,23 +363,52 @@ export async function registerStudentOnline(raw: OnlineRegistrationInput) {
       await sendBranchSubmissionNotificationEmail({
         to: managerEmails,
         kind: "inscription",
-        reference,
+        reference: references.join(", "),
         branchName: branch.name,
         submitterName: recipientName || "Responsable",
-        subjectName: studentName,
-        detailLabel: "Classe / niveau souhaité",
-        detailValue: data.requestedLevel,
+        subjectName: studentsSummary,
+        detailLabel:
+          data.students.length > 1
+            ? "Classes / niveaux souhaités"
+            : "Classe / niveau souhaité",
+        detailValue: levelsSummary,
       });
     }
   } catch (error) {
     console.error("STUDENT_REGISTRATION_BRANCH_NOTIFY_EMAIL_ERROR:", error);
   }
 
+  const count = references.length;
   return {
     success: true as const,
     message: confirmationEmail
-      ? "Votre demande a ete envoyee. Un email de confirmation vous a ete adresse."
-      : "Votre demande a ete envoyee et doit etre confirmee par l'ecole.",
-    reference,
+      ? count > 1
+        ? `${count} demandes envoyees. Un email de confirmation vous a ete adresse.`
+        : "Votre demande a ete envoyee. Un email de confirmation vous a ete adresse."
+      : count > 1
+        ? `${count} demandes envoyees et doivent etre confirmees par l'ecole.`
+        : "Votre demande a ete envoyee et doit etre confirmee par l'ecole.",
+    references,
+    reference: references[0]!,
+    siblingGroupId,
   };
+}
+
+/** Compat : une seule inscription (délègue au batch). */
+export async function registerStudentOnline(raw: OnlineRegistrationInput) {
+  return registerStudentsOnline({
+    branchId: raw.branchId,
+    students: [
+      {
+        ...raw.student,
+        requestedLevel: raw.requestedLevel,
+        requestedSection: raw.requestedSection,
+        requestedOption: raw.requestedOption,
+        photoUrl: raw.photoUrl,
+      },
+    ],
+    guardians: raw.guardians,
+    consentAccepted: raw.consentAccepted,
+    termsInfoId: raw.termsInfoId,
+  });
 }

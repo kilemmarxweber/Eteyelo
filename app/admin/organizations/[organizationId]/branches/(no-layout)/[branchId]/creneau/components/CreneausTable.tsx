@@ -1,10 +1,12 @@
+"use client";
+
 import React, { useEffect, useState } from "react";
-import { ICreneau } from "@/src/interfaces/creneau";
-import { getCreneauxAction } from "../creneau.action";
+import { Coffee, Edit, Archive, MoreHorizontal, Clock } from "lucide-react";
+
 import { ResponsiveDataTable } from "@/components/ui/responsive-data-table";
 import { SearchAndFilter } from "@/components/ui/search-and-filter";
 import { Button } from "@/components/ui/button";
-import { Edit, Archive, MoreHorizontal, Clock } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,19 +14,52 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  matchesIsArchivedFilter,
+  type ActiveArchiveFilter,
+} from "@/lib/archive";
+import { previewPeriodsAroundRecreation } from "@/src/hooks/getCourseHours";
+import { ICreneau } from "@/src/interfaces/creneau";
+
+import { getCreneauxAction } from "../creneau.action";
 import { DeleteCreneausDialog } from "./delete-Creneau-dialog";
 import { UpdateCreneauDialog } from "./edit-Creneau-dialog";
-import { matchesIsArchivedFilter, type ActiveArchiveFilter } from "@/lib/archive";
 
 interface CreneausTableProps {
   refreshKey?: string;
+}
+
+function PeriodBadge({ creneau }: { creneau: ICreneau }) {
+  const preview = previewPeriodsAroundRecreation(
+    creneau.startTime,
+    creneau.endTime,
+    creneau.durationCourse,
+    creneau.recreationHour,
+    creneau.recreationDuration,
+  );
+
+  if (!preview) {
+    return <span className="text-sm text-muted-foreground">—</span>;
+  }
+
+  return (
+    <div className="flex flex-wrap items-center gap-1.5">
+      <Badge variant="secondary" size="xs">
+        {preview.before} + {preview.after}
+      </Badge>
+      <span className="text-xs text-muted-foreground">
+        {preview.total} séances
+      </span>
+    </div>
+  );
 }
 
 const CreneausTable: React.FC<CreneausTableProps> = ({ refreshKey }) => {
   const [creneaux, setCreneaus] = useState<ICreneau[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState<ActiveArchiveFilter>("active");
+  const [statusFilter, setStatusFilter] =
+    useState<ActiveArchiveFilter>("active");
 
   const [showUpdateDialog, setShowUpdateDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -35,7 +70,9 @@ const CreneausTable: React.FC<CreneausTableProps> = ({ refreshKey }) => {
     const fetchCreneaus = async () => {
       try {
         setLoading(true);
-        const [rawCreneaus, err] = await getCreneauxAction({ includeArchived: true });
+        const [rawCreneaus, err] = await getCreneauxAction({
+          includeArchived: true,
+        });
         if (err) {
           throw new Error("Failed to fetch creneaux");
         }
@@ -50,7 +87,6 @@ const CreneausTable: React.FC<CreneausTableProps> = ({ refreshKey }) => {
     fetchCreneaus();
   }, [refreshKey, localRefreshKey]);
 
-  // Filtrer les données
   const filteredCreneaux = creneaux.filter((creneau) => {
     const matchesSearch =
       creneau.nameCreneau.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -76,125 +112,138 @@ const CreneausTable: React.FC<CreneausTableProps> = ({ refreshKey }) => {
   };
 
   const handleActionSuccess = () => {
-    // Rafraîchir les données après une action
     setShowUpdateDialog(false);
     setShowDeleteDialog(false);
     setSelectedCreneau(null);
     setLocalRefreshKey((value) => value + 1);
   };
 
-  // Configuration des colonnes pour desktop
   const columns = [
     {
       key: "nameCreneau",
-      header: "Nom de la vacation",
+      header: "Vacation",
       cell: (creneau: ICreneau) => (
-        <div className="font-medium">{creneau.nameCreneau}</div>
+        <div className="flex min-w-0 flex-col gap-1">
+          <div className="flex items-center gap-2">
+            <span className="truncate font-medium">{creneau.nameCreneau}</span>
+            {creneau.isArchived ? (
+              <Badge variant="outline" size="xs">
+                Archivée
+              </Badge>
+            ) : null}
+          </div>
+          <span className="text-xs text-muted-foreground">
+            Créée le {new Date(creneau.createdAt).toLocaleDateString("fr-FR")}
+          </span>
+        </div>
       ),
     },
     {
-      key: "startTime",
-      header: "Heure de début",
+      key: "schedule",
+      header: "Horaires",
       cell: (creneau: ICreneau) => (
         <div className="flex items-center gap-2">
-          <Clock className="h-4 w-4 text-muted-foreground" />
-          <span>{creneau.startTime}</span>
+          <span className="flex size-7 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground">
+            <Clock className="size-3.5" />
+          </span>
+          <div className="leading-tight">
+            <div className="text-sm font-medium tabular-nums">
+              {creneau.startTime}
+              <span className="mx-1 text-muted-foreground">–</span>
+              {creneau.endTime}
+            </div>
+            <div className="text-xs text-muted-foreground">
+              Séance {creneau.durationCourse} min
+            </div>
+          </div>
         </div>
       ),
     },
     {
-      key: "endTime",
-      header: "Heure de fin",
-      cell: (creneau: ICreneau) => (
-        <div className="flex items-center gap-2">
-          <Clock className="h-4 w-4 text-muted-foreground" />
-          <span>{creneau.endTime}</span>
-        </div>
-      ),
-    },
-    {
-      key: "durationCourse",
-      header: "Durée cours",
-      cell: (creneau: ICreneau) => (
-        <div className="text-sm text-muted-foreground">
-          {creneau.durationCourse} min
-        </div>
-      ),
-    },
-    {
-      key: "recreationHour",
+      key: "recreation",
       header: "Récréation",
       cell: (creneau: ICreneau) => (
-        <div className="text-sm text-muted-foreground">
-          {creneau.recreationHour}
+        <div className="flex items-center gap-2">
+          <span className="flex size-7 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground">
+            <Coffee className="size-3.5" />
+          </span>
+          <div className="leading-tight">
+            <div className="text-sm font-medium tabular-nums">
+              {creneau.recreationHour || "—"}
+            </div>
+            <div className="text-xs text-muted-foreground">
+              {creneau.recreationDuration} min
+            </div>
+          </div>
         </div>
       ),
     },
     {
-      key: "recreationDuration",
-      header: "Durée récré",
-      cell: (creneau: ICreneau) => (
-        <div className="text-sm text-muted-foreground">
-          {creneau.recreationDuration} min
-        </div>
-      ),
-    },
-    {
-      key: "createdAt",
-      header: "Créé le",
-      cell: (creneau: ICreneau) => (
-        <div className="text-sm text-muted-foreground">
-          {new Date(creneau.createdAt).toLocaleDateString()}
-        </div>
-      ),
+      key: "periods",
+      header: "Séances",
+      cell: (creneau: ICreneau) => <PeriodBadge creneau={creneau} />,
     },
     {
       key: "actions",
-      header: "Actions",
+      header: "",
       cell: (creneau: ICreneau) => (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="sm">
+            <Button variant="ghost" size="sm" className="size-8 p-0">
               <MoreHorizontal className="h-4 w-4" />
+              <span className="sr-only">Actions</span>
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
+          <DropdownMenuContent align="end" className="w-40">
             <DropdownMenuItem onClick={() => handleEdit(creneau)}>
               <Edit className="mr-2 h-4 w-4" />
               Modifier
             </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={() => handleDelete(creneau)}
-            >
-              <Archive className="mr-2 h-4 w-4" />
-              Archiver
-            </DropdownMenuItem>
+            {!creneau.isArchived ? (
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => handleDelete(creneau)}>
+                  <Archive className="mr-2 h-4 w-4" />
+                  Archiver
+                </DropdownMenuItem>
+              </>
+            ) : null}
           </DropdownMenuContent>
         </DropdownMenu>
       ),
     },
   ];
 
-  // Configuration des cartes pour mobile
   const cardConfig = {
     title: (creneau: ICreneau) => creneau.nameCreneau,
     subtitle: (creneau: ICreneau) =>
-      `${creneau.startTime} - ${creneau.endTime}`,
-    details: (creneau: ICreneau) => [
-      {
-        label: "Durée cours",
-        value: `${creneau.durationCourse} min`,
-      },
-      {
-        label: "Récréation",
-        value: `${creneau.recreationHour} (${creneau.recreationDuration} min)`,
-      },
-      {
-        label: "Créé le",
-        value: new Date(creneau.createdAt).toLocaleDateString(),
-      },
-    ],
+      `${creneau.startTime} – ${creneau.endTime} · séance ${creneau.durationCourse} min`,
+    details: (creneau: ICreneau) => {
+      const preview = previewPeriodsAroundRecreation(
+        creneau.startTime,
+        creneau.endTime,
+        creneau.durationCourse,
+        creneau.recreationHour,
+        creneau.recreationDuration,
+      );
+
+      return [
+        {
+          label: "Récréation",
+          value: `${creneau.recreationHour} (${creneau.recreationDuration} min)`,
+        },
+        {
+          label: "Séances",
+          value: preview
+            ? `${preview.before} + ${preview.after} (${preview.total} séances)`
+            : "—",
+        },
+        {
+          label: "Statut",
+          value: creneau.isArchived ? "Archivée" : "Active",
+        },
+      ];
+    },
     actions: (creneau: ICreneau) => [
       {
         label: "Modifier",
@@ -202,24 +251,28 @@ const CreneausTable: React.FC<CreneausTableProps> = ({ refreshKey }) => {
         onClick: () => handleEdit(creneau),
         variant: "outline" as const,
       },
-      {
-        label: "Archiver",
-        icon: Archive,
-        onClick: () => handleDelete(creneau),
-        variant: "outline" as const,
-      },
+      ...(creneau.isArchived
+        ? []
+        : [
+            {
+              label: "Archiver",
+              icon: Archive,
+              onClick: () => handleDelete(creneau),
+              variant: "outline" as const,
+            },
+          ]),
     ],
   };
 
   const filterOptions = [
-    { value: "active", label: "Actifs uniquement" },
-    { value: "archived", label: "Archivés uniquement" },
-    { value: "all", label: "Tous" },
+    { value: "active", label: "Actives" },
+    { value: "archived", label: "Archivées" },
+    { value: "all", label: "Toutes" },
   ];
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between space-y-4">
+      <div className="flex w-full items-center justify-between">
         <SearchAndFilter
           searchTerm={searchTerm}
           onSearchChange={setSearchTerm}
@@ -228,9 +281,10 @@ const CreneausTable: React.FC<CreneausTableProps> = ({ refreshKey }) => {
             setStatusFilter(value as ActiveArchiveFilter)
           }
           filterOptions={filterOptions}
-          searchPlaceholder="Rechercher une vacation..."
+          searchPlaceholder="Rechercher une vacation…"
         />
       </div>
+
       <ResponsiveDataTable
         data={filteredCreneaux}
         columns={columns}
@@ -239,8 +293,8 @@ const CreneausTable: React.FC<CreneausTableProps> = ({ refreshKey }) => {
         emptyMessage="Aucune vacation trouvée"
         searchTerm={searchTerm}
       />
-      {/* Dialogs */}
-      {selectedCreneau && (
+
+      {selectedCreneau ? (
         <>
           <UpdateCreneauDialog
             open={showUpdateDialog}
@@ -256,7 +310,7 @@ const CreneausTable: React.FC<CreneausTableProps> = ({ refreshKey }) => {
             onSuccess={handleActionSuccess}
           />
         </>
-      )}
+      ) : null}
     </div>
   );
 };

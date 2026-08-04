@@ -47,13 +47,11 @@ type CashierReportData = {
 interface Props {
   refreshKey?: number;
   onToggleExpenseForm?: () => void;
-  showExpenseForm?: boolean;
 }
 
 export default function CashierReport({
   refreshKey,
   onToggleExpenseForm,
-  showExpenseForm,
 }: Props) {
   const [report, setReport] = useState<CashierReportData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -176,16 +174,11 @@ export default function CashierReport({
             type="button"
             size="sm"
             onClick={onToggleExpenseForm}
-            aria-label={
-              showExpenseForm ? "Masquer la dépense" : "Ajouter une dépense"
-            }
-            title={
-              showExpenseForm ? "Masquer la dépense" : "Ajouter une dépense"
-            }
+            aria-label="Ajouter une dépense"
+            title="Ajouter une dépense"
             className={cn(
               "size-8 shrink-0 border-transparent p-0 text-white shadow-sm",
               "bg-red-900 hover:bg-red-950 focus-visible:ring-red-900/40",
-              showExpenseForm && "bg-red-950 ring-2 ring-red-900/30",
             )}
           >
             <HandCoins className="size-4" />

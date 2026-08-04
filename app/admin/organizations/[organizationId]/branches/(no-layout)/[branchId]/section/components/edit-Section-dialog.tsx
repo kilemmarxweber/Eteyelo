@@ -3,54 +3,57 @@
 import * as React from "react";
 
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { SectionUpForm } from "./section-form"; // Importez votre formulaire d'éditionimport { ISection } from"@/src/interfaces/Section";
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import { SectionUpForm } from "./section-form";
 import { ISection } from "@/src/interfaces/Section";
 
 interface UpdateSectionDialogProps extends React.ComponentPropsWithoutRef<
-  typeof Dialog
+  typeof Sheet
 > {
   showTrigger?: boolean;
   onSuccess?: () => void;
-  section: ISection; // Détails de l'élève à éditer
+  section: ISection;
 }
 
 export function UpdateSectionDialog({
-  showTrigger = true,
+  showTrigger: _showTrigger = true,
   onSuccess,
   section,
+  open,
+  onOpenChange,
   ...props
 }: UpdateSectionDialogProps) {
-  const handleUpdate = () => {
-    onSuccess?.();
-  };
-
   return (
-    <Dialog {...props}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Éditer l'élève</DialogTitle>
-          <DialogDescription>
-            Modifiez les détails de l'élève ici. Cliquez sur Enregistrer lorsque
-            vous êtes fait.
-          </DialogDescription>
-        </DialogHeader>
-        <SectionUpForm
-          mode="update"
-          initialData={{
-            id: section.id,
-            codeSection: section.codeSection,
-            nameSection: section.nameSection,
-            statusSection: section.statusSection,
-          }} // Pass the section data for editing
-          onUpdated={handleUpdate}
-        />
-      </DialogContent>
-    </Dialog>
+    <Sheet open={open} onOpenChange={onOpenChange} {...props}>
+      <SheetContent
+        side="right"
+        className="flex h-dvh max-h-dvh w-[min(100vw,40rem)] max-w-full flex-col gap-0 overflow-hidden p-0 sm:max-w-[40rem]"
+      >
+        <SheetHeader className="shrink-0 space-y-1.5 border-b px-5 py-4 pr-12 text-left sm:px-6">
+          <SheetTitle>Modifier la section</SheetTitle>
+          <SheetDescription>
+            Mettez à jour le nom de la section, puis enregistrez.
+          </SheetDescription>
+        </SheetHeader>
+        <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4 sm:px-6">
+          <SectionUpForm
+            mode="update"
+            layout="dialog"
+            initialData={{
+              id: section.id,
+              codeSection: section.codeSection,
+              nameSection: section.nameSection,
+              statusSection: section.statusSection,
+            }}
+            onUpdated={onSuccess}
+          />
+        </div>
+      </SheetContent>
+    </Sheet>
   );
 }

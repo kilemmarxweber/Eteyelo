@@ -57,6 +57,15 @@ model Parent {
   branchMember           BranchMember?            @relation(fields: [branchMemberId], references: [id], onDelete: Cascade)
   /// Fonction / lieu de travail (optionnel, saisi à l'inscription)
   profession     String?
+  /// Infos famille complémentaires (optionnelles)
+  nomMere            String?
+  professionMere     String?
+  tuteurNom          String?
+  adresseTuteur      String?
+  provinceOrigine    String?
+  territoireOrigine  String?
+  secteurOrigine     String?
+  villageOrigine     String?
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @updatedAt
   paymentBatches PaymentBatch[]
@@ -76,6 +85,11 @@ model Student {
   observation      String?
   provenanceEcole String?
   placeOfBirth String?
+  /// Infos élève complémentaires (optionnelles)
+  nationalite               String?
+  autreNationalite          String?
+  territoireAutreNationalite String?
+  langue                    String?
   suppositionClasseName String?
   suppositionSection String?
   suppositionOption String?
@@ -1241,6 +1255,8 @@ model RegistrationRequest {
   status             RegistrationRequestStatus @default(PENDING)
   studentData        Json
   guardiansData      Json
+  /// Relie les demandes multi-élèves d'une même soumission publique
+  siblingGroupId     String?
   requestedLevel     String?
   requestedSection   String?
   requestedOption    String?
@@ -1262,6 +1278,8 @@ model RegistrationRequest {
   @@index([organizationId, branchId])
   @@index([schoolYearId])
   @@index([studentId])
+  @@index([siblingGroupId])
+  @@index([branchId, siblingGroupId])
 }
 
 enum RegistrationRequestStatus {

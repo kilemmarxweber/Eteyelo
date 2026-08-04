@@ -1,8 +1,8 @@
 "use client";
-import React, { useState } from "react";
+
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useAppRouter as useRouter } from "@/hooks/use-app-router";
 import { buttonVariants } from "@/components/custom/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
@@ -23,25 +23,24 @@ export default function SidebarNav({
   ...props
 }: SidebarNavProps) {
   const pathname = usePathname();
-  const router = useRouter();
-  const [val, setVal] = useState(pathname ?? "/admin/settings");
+  const [hasMounted, setHasMounted] = useState(false);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
 
-  const handleSelect = (e: string) => {
-    setVal(e);
-    router.push(e);
-    setIsSheetOpen(false);
-  };
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
 
   const handleLinkClick = () => {
     setIsSheetOpen(false);
   };
 
-  const currentItem = items.find((item) => item.href === pathname);
+  // Évite le mismatch SSR/client (session / pathname peuvent différer au premier paint).
+  const currentItem = hasMounted
+    ? items.find((item) => item.href === pathname)
+    : undefined;
 
   return (
     <>
-      {/* Mobile Navigation - Sheet */}
       <div className="lg:hidden">
         <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
           <SheetTrigger asChild>
@@ -52,10 +51,10 @@ export default function SidebarNav({
             >
               <Menu className="mr-2 h-4 w-4" />
               {currentItem ? (
-                <div className="flex items-center">
+                <span className="flex items-center">
                   <span className="mr-2">{currentItem.icon}</span>
                   {currentItem.title}
-                </div>
+                </span>
               ) : (
                 "Navigation"
               )}
@@ -74,7 +73,7 @@ export default function SidebarNav({
                     onClick={handleLinkClick}
                     className={cn(
                       buttonVariants({ variant: "ghost" }),
-                      pathname === item.href
+                      hasMounted && pathname === item.href
                         ? "bg-muted hover:bg-muted"
                         : "hover:bg-transparent hover:underline",
                       "justify-start",
@@ -90,7 +89,6 @@ export default function SidebarNav({
         </Sheet>
       </div>
 
-      {/* Desktop Navigation */}
       <div className="hidden w-full overflow-x-auto bg-background px-1 py-2 lg:block">
         <nav
           className={cn(
@@ -105,7 +103,7 @@ export default function SidebarNav({
               href={item.href}
               className={cn(
                 buttonVariants({ variant: "ghost" }),
-                pathname === item.href
+                hasMounted && pathname === item.href
                   ? "bg-muted hover:bg-muted"
                   : "hover:bg-transparent hover:underline",
                 "justify-start",

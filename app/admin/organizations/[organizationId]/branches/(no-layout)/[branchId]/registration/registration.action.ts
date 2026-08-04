@@ -23,6 +23,166 @@ import { getPeopleLabels } from "@/lib/people-labels";
 import { isCentreFormationBranch } from "@/lib/branch-capabilities";
 import { ensureCentreDefaultParent } from "@/lib/centre-default-parent";
 import { validateRegistrationParentInput } from "@/src/interfaces/registration";
+import {
+  familyExtraToDb,
+  pickFamilyExtraFromUnknown,
+  pickStudentExtraFromUnknown,
+  studentExtraToDb,
+  type FamilyExtraInfo,
+} from "@/lib/registration-extra-info";
+import {
+  computeScopedDiscountAmount,
+  EMPTY_DISCOUNT,
+  getBestDiscountInfo,
+} from "@/lib/payment-discount";
+
+function formatFeeAmount(value: number) {
+  return new Intl.NumberFormat("fr-FR", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  }).format(value);
+}
+
+type EnrollmentFeeSource = {
+  id: string;
+  classeId: string;
+  schoolYearId: string;
+  schoolYear: { nameYear: string };
+  classe: { nameClasse: string } | null;
+  student: { parentId: string | null } | null;
+};
+
+/**
+ * Solde des frais d'une inscription (année de référence).
+ * Inclut la remise familiale comme pour le tableau de bord caissier.
+ */
+async function getEnrollmentFeeBalance(
+  branchId: string,
+  enrollment: EnrollmentFeeSource,
+) {
+  const fraisList = await prisma.frais.findMany({
+    where: {
+      branchId,
+      statusFrais: true,
+      classeId: enrollment.classeId,
+      OR: [
+        { schoolYearId: enrollment.schoolYearId },
+        { schoolYearId: null },
+      ],
+    },
+    select: {
+      id: true,
+      nameFrais: true,
+      montantFrais: true,
+      typeFraisId: true,
+    },
+  });
+
+  if (fraisList.length === 0) {
+    return {
+      schoolYearName: enrollment.schoolYear.nameYear,
+      classeName: enrollment.classe?.nameClasse ?? "",
+      totalDue: 0,
+      totalPaid: 0,
+      remaining: 0,
+    };
+  }
+
+  const paidAgg = await prisma.familyPayment.groupBy({
+    by: ["fraisId"],
+    where: {
+      branchId,
+      classEnrollmentId: enrollment.id,
+      fraisId: { in: fraisList.map((f) => f.id) },
+      status: "VALIDE",
+    },
+    _sum: { amount: true },
+  });
+  const paidByFrais = new Map(
+    paidAgg.map((row) => [row.fraisId, Number(row._sum.amount ?? 0)]),
+  );
+
+  const parentId = enrollment.student?.parentId ?? null;
+  const discount = parentId
+    ? await getBestDiscountInfo(prisma, parentId, branchId)
+    : EMPTY_DISCOUNT;
+
+  const totalBrut = fraisList.reduce(
+    (sum, f) => sum + Number(f.montantFrais),
+    0,
+  );
+  const remise = computeScopedDiscountAmount(
+    fraisList.map((f) => ({
+      base: Number(f.montantFrais),
+      typeFraisId: f.typeFraisId,
+    })),
+    discount,
+  );
+  const totalDue = Math.max(0, totalBrut - remise);
+  const totalPaid = fraisList.reduce(
+    (sum, f) => sum + (paidByFrais.get(f.id) ?? 0),
+    0,
+  );
+  const remaining = Math.max(0, totalDue - totalPaid);
+
+  return {
+    schoolYearName: enrollment.schoolYear.nameYear,
+    classeName: enrollment.classe?.nameClasse ?? "",
+    totalDue,
+    totalPaid,
+    remaining,
+  };
+}
+
+async function findLatestStudentEnrollment(
+  branchId: string,
+  studentId: string,
+  excludeSchoolYearId?: string,
+) {
+  return prisma.classEnrollment.findFirst({
+    where: {
+      studentId,
+      branchId,
+      OR: [{ statusEnrollment: true }, { statusEnrollment: null }],
+      ...(excludeSchoolYearId
+        ? { schoolYearId: { not: excludeSchoolYearId } }
+        : {}),
+    },
+    orderBy: { schoolYear: { startYear: "desc" } },
+    select: {
+      id: true,
+      classeId: true,
+      schoolYearId: true,
+      schoolYear: { select: { nameYear: true } },
+      classe: {
+        select: {
+          nameClasse: true,
+          level: true,
+          optionId: true,
+          option: { select: { sectionId: true } },
+        },
+      },
+      student: { select: { parentId: true } },
+    },
+  });
+}
+
+async function assertEnrollmentFeesSettledForPromotion(
+  branchId: string,
+  enrollment: EnrollmentFeeSource,
+) {
+  const balance = await getEnrollmentFeeBalance(branchId, enrollment);
+  if (balance.remaining <= 0.009) return;
+
+  const context =
+    balance.classeName && balance.schoolYearName
+      ? `${balance.classeName} (${balance.schoolYearName})`
+      : balance.schoolYearName || "l'année passée";
+
+  throw new Error(
+    `Impossible de monter en classe supérieure : les frais de ${context} ne sont pas soldés. Reste à payer : ${formatFeeAmount(balance.remaining)} (payé ${formatFeeAmount(balance.totalPaid)} / dû ${formatFeeAmount(balance.totalDue)}).`,
+  );
+}
 
 async function requireRegistrationContext() {
   const context = await requireBranchContext();
@@ -57,24 +217,51 @@ function buildStudentCode(branchName: string, studentName: string, sequence: num
 
 const STUDENT_EMAIL_DOMAIN = "klambocore.com";
 
-const requestStudentSchema = z.object({
-  name: z.string(), postnom: z.string(), prenom: z.string(), sexe: z.enum(["masculin", "feminin"]),
-  dateOfBirth: z.string(), placeOfBirth: z.string(), address: z.string(), email: z.string().optional(), telephone: z.string().optional(), provenanceEcole: z.string().optional(),
-});
+const requestStudentSchema = z
+  .object({
+    name: z.string(),
+    postnom: z.string(),
+    prenom: z.string(),
+    sexe: z.enum(["masculin", "feminin"]),
+    dateOfBirth: z.string(),
+    placeOfBirth: z.string(),
+    address: z.string(),
+    email: z.string().optional(),
+    telephone: z.string().optional(),
+    provenanceEcole: z.string().optional(),
+  })
+  .passthrough();
 const requestGuardianSchema = z.object({
-  name: z.string(), postnom: z.string(), prenom: z.string(), relationship: z.string(), sexe: z.enum(["masculin", "feminin"]), telephone: z.string(), email: z.string().optional(), address: z.string(), isPrimary: z.boolean(),
+  name: z.string(),
+  postnom: z.string(),
+  prenom: z.string(),
+  relationship: z.string(),
+  sexe: z.enum(["masculin", "feminin"]),
+  telephone: z.string(),
+  email: z.string().optional(),
+  address: z.string(),
+  isPrimary: z.boolean(),
 });
 type RegistrationRequestRow = {
-  id: string; reference: string; status: string; studentData: Prisma.JsonValue;
-  guardiansData: Prisma.JsonValue; requestedLevel: string | null; requestedOption: string | null;
-  photoUrl: string | null; schoolYearId: string | null; createdAt: Date;
+  id: string;
+  reference: string;
+  status: string;
+  studentData: Prisma.JsonValue;
+  guardiansData: Prisma.JsonValue;
+  requestedLevel: string | null;
+  requestedOption: string | null;
+  photoUrl: string | null;
+  schoolYearId: string | null;
+  siblingGroupId: string | null;
+  createdAt: Date;
 };
 
 export const getPendingRegistrationRequestsAction = action.handler(async () => {
   const { branchId, organizationId } = await requireRegistrationContext();
   return prisma.$queryRaw<RegistrationRequestRow[]>(Prisma.sql`
     SELECT "id", "reference", "status"::text, "studentData", "guardiansData",
-      "requestedLevel", "requestedOption", "photoUrl", "schoolYearId", "createdAt"
+      "requestedLevel", "requestedOption", "photoUrl", "schoolYearId",
+      "siblingGroupId", "createdAt"
     FROM "RegistrationRequest"
     WHERE "branchId" = ${branchId} AND "organizationId" = ${organizationId}
       AND "status" IN ('PENDING'::"RegistrationRequestStatus", 'CONFIRMED'::"RegistrationRequestStatus")
@@ -135,9 +322,16 @@ export const getRegistrationRequestForPrefillAction = action
   .input(z.object({ requestId: z.string().min(1) }))
   .handler(async ({ input }) => {
     const { branchId, organizationId } = await requireRegistrationContext();
-    const [request] = await prisma.$queryRaw<RegistrationRequestRow[]>(Prisma.sql`
+    const [request] = await prisma.$queryRaw<
+      Array<
+        RegistrationRequestRow & {
+          siblingGroupId: string | null;
+        }
+      >
+    >(Prisma.sql`
       SELECT "id", "reference", "status"::text, "studentData", "guardiansData",
-        "requestedLevel", "requestedOption", "photoUrl", "schoolYearId", "createdAt"
+        "requestedLevel", "requestedOption", "photoUrl", "schoolYearId",
+        "siblingGroupId", "createdAt"
       FROM "RegistrationRequest" WHERE "id" = ${input.requestId} AND "branchId" = ${branchId}
         AND "organizationId" = ${organizationId} AND "status" = 'CONFIRMED'::"RegistrationRequestStatus" LIMIT 1
     `);
@@ -150,11 +344,208 @@ export const getRegistrationRequestForPrefillAction = action
           select: { id: true },
         })
       : null;
+
+    const studentExtra = pickStudentExtraFromUnknown(request.studentData);
+    const familyExtra = pickFamilyExtraFromUnknown(
+      (request.studentData as Record<string, unknown>)?.familyExtra ??
+        request.studentData,
+    );
+
+    const primaryGuardian =
+      guardians.find((item) => item.isPrimary) ?? guardians[0] ?? null;
+
+    type MatchedParent = {
+      parentId: string;
+      parentLabel: string;
+      profession: string | null;
+      name: string;
+      postnom: string;
+      prenom: string;
+      email: string;
+      telephone: string;
+      address: string;
+      matchReason: "sibling" | "email" | "telephone";
+      familyExtra: FamilyExtraInfo;
+    };
+
+    let matchedExistingParent: MatchedParent | null = null;
+
+    const parentSelect = {
+      id: true,
+      profession: true,
+      nomMere: true,
+      professionMere: true,
+      tuteurNom: true,
+      adresseTuteur: true,
+      provinceOrigine: true,
+      territoireOrigine: true,
+      secteurOrigine: true,
+      villageOrigine: true,
+      branchMember: {
+        select: {
+          member: {
+            select: {
+              user: {
+                select: {
+                  name: true,
+                  postnom: true,
+                  prenom: true,
+                  email: true,
+                  telephone: true,
+                  address: true,
+                },
+              },
+            },
+          },
+        },
+      },
+    } as const;
+
+    function toMatchedParent(
+      parent: {
+        id: string;
+        profession: string | null;
+        nomMere: string | null;
+        professionMere: string | null;
+        tuteurNom: string | null;
+        adresseTuteur: string | null;
+        provinceOrigine: string | null;
+        territoireOrigine: string | null;
+        secteurOrigine: string | null;
+        villageOrigine: string | null;
+        branchMember: {
+          member: {
+            user: {
+              name: string | null;
+              postnom: string | null;
+              prenom: string | null;
+              email: string | null;
+              telephone: string | null;
+              address: string | null;
+            } | null;
+          } | null;
+        } | null;
+      },
+      matchReason: MatchedParent["matchReason"],
+    ): MatchedParent {
+      const u = parent.branchMember?.member?.user;
+      return {
+        parentId: parent.id,
+        parentLabel: [u?.name, u?.postnom, u?.prenom].filter(Boolean).join(" "),
+        profession: parent.profession,
+        name: u?.name ?? "",
+        postnom: u?.postnom ?? "",
+        prenom: u?.prenom ?? "",
+        email: u?.email ?? "",
+        telephone: u?.telephone ?? "",
+        address: u?.address ?? "",
+        matchReason,
+        familyExtra: {
+          nomMere: parent.nomMere ?? "",
+          professionMere: parent.professionMere ?? "",
+          tuteurNom: parent.tuteurNom ?? "",
+          adresseTuteur: parent.adresseTuteur ?? "",
+          provinceOrigine: parent.provinceOrigine ?? "",
+          territoireOrigine: parent.territoireOrigine ?? "",
+          secteurOrigine: parent.secteurOrigine ?? "",
+          villageOrigine: parent.villageOrigine ?? "",
+        },
+      };
+    }
+
+    if (request.siblingGroupId) {
+      const siblings = await prisma.$queryRaw<
+        Array<{ studentId: string | null; status: string }>
+      >(Prisma.sql`
+        SELECT "studentId", "status"::text
+        FROM "RegistrationRequest"
+        WHERE "siblingGroupId" = ${request.siblingGroupId}
+          AND "branchId" = ${branchId}
+          AND "organizationId" = ${organizationId}
+          AND "id" <> ${request.id}
+          AND "status" = 'REGISTERED'::"RegistrationRequestStatus"
+          AND "studentId" IS NOT NULL
+        ORDER BY "registeredAt" ASC NULLS LAST
+        LIMIT 1
+      `);
+      const siblingStudentId = siblings[0]?.studentId;
+      if (siblingStudentId) {
+        const siblingStudent = await prisma.student.findFirst({
+          where: {
+            id: siblingStudentId,
+            branchMember: { branchId, member: { organizationId } },
+          },
+          select: {
+            parent: { select: parentSelect },
+          },
+        });
+        if (siblingStudent?.parent) {
+          matchedExistingParent = toMatchedParent(
+            siblingStudent.parent,
+            "sibling",
+          );
+        }
+      }
+    }
+
+    if (!matchedExistingParent && primaryGuardian) {
+      const guardianEmail = primaryGuardian.email?.trim().toLowerCase() || "";
+      const guardianPhone = primaryGuardian.telephone?.trim() || "";
+      const phoneUsable =
+        guardianPhone &&
+        guardianPhone !== "+" &&
+        guardianPhone !== "+243"
+          ? guardianPhone
+          : "";
+
+      if (guardianEmail) {
+        const byEmail = await prisma.parent.findFirst({
+          where: {
+            branchMember: {
+              branchId,
+              member: {
+                organizationId,
+                user: { email: { equals: guardianEmail, mode: "insensitive" } },
+              },
+            },
+          },
+          select: parentSelect,
+        });
+        if (byEmail) {
+          matchedExistingParent = toMatchedParent(byEmail, "email");
+        }
+      }
+
+      if (!matchedExistingParent && phoneUsable) {
+        const byPhone = await prisma.parent.findFirst({
+          where: {
+            branchMember: {
+              branchId,
+              member: {
+                organizationId,
+                user: { telephone: phoneUsable },
+              },
+            },
+          },
+          select: parentSelect,
+        });
+        if (byPhone) {
+          matchedExistingParent = toMatchedParent(byPhone, "telephone");
+        }
+      }
+    }
+
     return {
       id: request.id,
       reference: request.reference,
+      siblingGroupId: request.siblingGroupId,
       student,
       guardians,
+      studentExtra,
+      familyExtra: matchedExistingParent?.familyExtra ?? familyExtra,
+      matchedExistingParent,
+      /** @deprecated alias — prefer matchedExistingParent */
+      existingSiblingParent: matchedExistingParent,
       requestedLevel: request.requestedLevel ?? "",
       requestedOption: request.requestedOption ?? "",
       optionId: option?.id ?? "",
@@ -610,11 +1001,47 @@ export const findStudentHistoryAction = action
       },
       select: {
         ...personSelect,
+        parentId: true,
+        parent: {
+          select: {
+            id: true,
+            profession: true,
+            branchMember: {
+              select: {
+                member: {
+                  select: {
+                    user: {
+                      select: {
+                        name: true,
+                        postnom: true,
+                        prenom: true,
+                        email: true,
+                        telephone: true,
+                        address: true,
+                        sexe: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
         classEnrollment: {
           where: { branchId, statusEnrollment: true },
           orderBy: { schoolYear: { startYear: "desc" } },
           take: 1,
-          select: { classe: { select: { level: true, nameClasse: true, optionId: true } }, schoolYear: { select: { nameYear: true } } },
+          select: {
+            classe: {
+              select: {
+                level: true,
+                nameClasse: true,
+                optionId: true,
+                option: { select: { id: true, sectionId: true } },
+              },
+            },
+            schoolYear: { select: { nameYear: true } },
+          },
         },
       },
       take: 10,
@@ -627,20 +1054,52 @@ export const suggestNextClassAction = action
     const { branchId, typebranch } = await requireRegistrationContext();
     if (input.outcome === "returning") {
       if (!input.manualLevel) throw new Error("Choisissez manuellement le niveau de retour.");
-      return { level: input.manualLevel, reason: "Niveau de retour choisi manuellement" };
+      return { level: input.manualLevel, optionId: null as string | null, sectionId: null as string | null, reason: "Niveau de retour choisi manuellement" };
     }
-    const previous = await prisma.classEnrollment.findFirst({
-      where: { studentId: input.studentId, branchId, statusEnrollment: true },
-      orderBy: { schoolYear: { startYear: "desc" } },
-      select: { classe: { select: { level: true, optionId: true } } },
-    });
+    const previous = await findLatestStudentEnrollment(
+      branchId,
+      input.studentId,
+    );
     const currentLevel = previous?.classe?.level;
-    if (!currentLevel) throw new Error("Aucun historique de niveau exploitable.");
-    if (input.outcome === "failed") return { level: currentLevel, optionId: previous.classe?.optionId, reason: "Même niveau après échec" };
+    if (!previous || !currentLevel) {
+      throw new Error("Aucun historique de niveau exploitable.");
+    }
+
+    if (input.outcome === "failed") {
+      return {
+        level: currentLevel,
+        optionId: previous.classe?.optionId ?? null,
+        sectionId: previous.classe?.option?.sectionId ?? null,
+        reason: "Même niveau après échec — année actuelle",
+      };
+    }
+
+    await assertEnrollmentFeesSettledForPromotion(branchId, previous);
+
     const levels = [...getClassLevelsForBranch(typebranch)];
     const index = levels.indexOf(currentLevel);
-    if (index < 0 || index === levels.length - 1) throw new Error("Aucun niveau supérieur n'est configuré pour cette branche.");
-    return { level: levels[index + 1], optionId: previous.classe?.optionId, reason: "Niveau supérieur après réussite" };
+    if (index < 0 || index === levels.length - 1) {
+      throw new Error("Aucun niveau supérieur n'est configuré pour cette branche.");
+    }
+    const nextLevel = levels[index + 1];
+
+    if (typebranch === "PRIMAIRE") {
+      const structure = await ensurePrimaryAcademicStructure(prisma, branchId);
+      const primaryOption = getPrimaryOptionForLevel(structure, nextLevel);
+      return {
+        level: nextLevel,
+        optionId: primaryOption?.id ?? null,
+        sectionId: structure.section.id,
+        reason: "Niveau supérieur après réussite — année actuelle",
+      };
+    }
+
+    return {
+      level: nextLevel,
+      optionId: previous.classe?.optionId ?? null,
+      sectionId: previous.classe?.option?.sectionId ?? null,
+      reason: "Niveau supérieur après réussite — année actuelle",
+    };
   });
 
 export const createRegistrationFlowAction = action
@@ -702,6 +1161,24 @@ export const createRegistrationFlowAction = action
       if (!schoolYear) throw new Error("Année scolaire introuvable dans cette branche.");
       if (input.studentMode === "existing" && !existingStudent) throw new Error(`${peopleLabels.student} introuvable dans cette branche.`);
       if (input.parentMode === "existing" && !existingParent && !usesDefaultParent) throw new Error("Parent introuvable dans cette branche.");
+
+      if (
+        input.studentMode === "existing" &&
+        input.historyOutcome === "passed" &&
+        input.studentId
+      ) {
+        const previousEnrollment = await findLatestStudentEnrollment(
+          branchId,
+          input.studentId,
+          input.schoolYearId,
+        );
+        if (previousEnrollment) {
+          await assertEnrollmentFeesSettledForPromotion(
+            branchId,
+            previousEnrollment,
+          );
+        }
+      }
 
       let newParentMemberId: string | null = null;
       let generatedParentEmail: string | null = null;
@@ -780,6 +1257,36 @@ export const createRegistrationFlowAction = action
             data: {
               branchMemberId: branchMember.id,
               profession,
+              ...familyExtraToDb({
+                nomMere:
+                  input.familyExtra?.nomMere || input.parent?.nomMere || "",
+                professionMere:
+                  input.familyExtra?.professionMere ||
+                  input.parent?.professionMere ||
+                  "",
+                tuteurNom:
+                  input.familyExtra?.tuteurNom || input.parent?.tuteurNom || "",
+                adresseTuteur:
+                  input.familyExtra?.adresseTuteur ||
+                  input.parent?.adresseTuteur ||
+                  "",
+                provinceOrigine:
+                  input.familyExtra?.provinceOrigine ||
+                  input.parent?.provinceOrigine ||
+                  "",
+                territoireOrigine:
+                  input.familyExtra?.territoireOrigine ||
+                  input.parent?.territoireOrigine ||
+                  "",
+                secteurOrigine:
+                  input.familyExtra?.secteurOrigine ||
+                  input.parent?.secteurOrigine ||
+                  "",
+                villageOrigine:
+                  input.familyExtra?.villageOrigine ||
+                  input.parent?.villageOrigine ||
+                  "",
+              }),
             },
           });
           if (input.parent && input.parent.discountPercentage > 0) {
@@ -808,6 +1315,42 @@ export const createRegistrationFlowAction = action
         }
         if (!parentId) throw new Error("Parent requis pour l'inscription.");
 
+        const familyPatch = familyExtraToDb({
+          nomMere: input.familyExtra?.nomMere || input.parent?.nomMere || "",
+          professionMere:
+            input.familyExtra?.professionMere ||
+            input.parent?.professionMere ||
+            "",
+          tuteurNom: input.familyExtra?.tuteurNom || input.parent?.tuteurNom || "",
+          adresseTuteur:
+            input.familyExtra?.adresseTuteur ||
+            input.parent?.adresseTuteur ||
+            "",
+          provinceOrigine:
+            input.familyExtra?.provinceOrigine ||
+            input.parent?.provinceOrigine ||
+            "",
+          territoireOrigine:
+            input.familyExtra?.territoireOrigine ||
+            input.parent?.territoireOrigine ||
+            "",
+          secteurOrigine:
+            input.familyExtra?.secteurOrigine ||
+            input.parent?.secteurOrigine ||
+            "",
+          villageOrigine:
+            input.familyExtra?.villageOrigine ||
+            input.parent?.villageOrigine ||
+            "",
+        });
+        const hasFamilyPatch = Object.values(familyPatch).some(Boolean);
+        if (hasFamilyPatch && parentId && !newParentMemberId) {
+          await tx.parent.update({
+            where: { id: parentId },
+            data: familyPatch,
+          });
+        }
+
         let studentId = existingStudent?.id;
         let studentCode: string | null = null;
         if (newStudentMemberId && newStudentUserId && input.student) {
@@ -833,6 +1376,21 @@ export const createRegistrationFlowAction = action
                 ? null
                 : input.student.provenanceEcole || null,
               placeOfBirth: input.student.placeOfBirth || null,
+              ...studentExtraToDb({
+                nationalite:
+                  input.studentExtra?.nationalite ||
+                  input.student.nationalite ||
+                  "",
+                autreNationalite:
+                  input.studentExtra?.autreNationalite ||
+                  input.student.autreNationalite ||
+                  "",
+                territoireAutreNationalite:
+                  input.studentExtra?.territoireAutreNationalite ||
+                  input.student.territoireAutreNationalite ||
+                  "",
+                langue: input.studentExtra?.langue || input.student.langue || "",
+              }),
               suppositionClasseName: input.level,
               suppositionOption: input.optionId || null,
             },

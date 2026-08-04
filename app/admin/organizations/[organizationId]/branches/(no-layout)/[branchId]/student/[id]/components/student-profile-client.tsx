@@ -37,6 +37,9 @@ import { StudentPresenceSection } from "./student-presence-section";
 import { StudentPhotoAvatar } from "./student-photo-avatar";
 import { StudentPhotoUploadInput } from "./student-photo-upload-input";
 import { useStudentPhotoUpload } from "./use-student-photo-upload";
+import { RegistrationExtraInfoSheet } from "@/components/registration-extra-info-sheet";
+import { updateStudentExtraInfoAction } from "../../student.action";
+import { useAppRouter as useRouter } from "@/hooks/use-app-router";
 
 type ProfileSectionVariant = "personal" | "school" | "guardian";
 
@@ -229,8 +232,10 @@ function formatMoney(amount: number, currency: string) {
 
 export function StudentProfileClient({ profile }: { profile: StudentProfileData }) {
   const peopleLabels = useBranchPeopleLabels();
+  const router = useRouter();
   const badgeSectionRef = React.useRef<StudentBadgeSectionHandle>(null);
   const [tab, setTab] = React.useState("infos");
+  const [extraSheetOpen, setExtraSheetOpen] = React.useState(false);
 
   const initials =
     `${profile.nom?.[0] ?? ""}${profile.prenom?.[0] ?? ""}`.toUpperCase() || "EL";
@@ -244,6 +249,65 @@ export function StudentProfileClient({ profile }: { profile: StudentProfileData 
   return (
     <div className="space-y-4">
       <StudentPhotoUploadInput upload={photoUpload} />
+      {profile.canManageStudents ? (
+        <RegistrationExtraInfoSheet
+          open={extraSheetOpen}
+          onOpenChange={setExtraSheetOpen}
+          initialStudent={{
+            nationalite:
+              profile.nationality !== "-" && profile.nationality !== "Congolaise"
+                ? profile.nationality
+                : profile.nationality === "Congolaise"
+                  ? profile.nationality
+                  : "",
+            autreNationalite:
+              profile.autreNationalite === "-"
+                ? ""
+                : profile.autreNationalite,
+            territoireAutreNationalite:
+              profile.territoireAutreNationalite === "-"
+                ? ""
+                : profile.territoireAutreNationalite,
+            langue: profile.langue === "-" ? "" : profile.langue,
+          }}
+          initialFamily={{
+            nomMere: profile.nomMere === "-" ? "" : profile.nomMere,
+            professionMere:
+              profile.professionMere === "-" ? "" : profile.professionMere,
+            tuteurNom: profile.tuteurNom === "-" ? "" : profile.tuteurNom,
+            adresseTuteur:
+              profile.adresseTuteur === "-" ? "" : profile.adresseTuteur,
+            provinceOrigine:
+              profile.provinceOrigine === "-" ? "" : profile.provinceOrigine,
+            territoireOrigine:
+              profile.territoireOrigine === "-"
+                ? ""
+                : profile.territoireOrigine,
+            secteurOrigine:
+              profile.secteurOrigine === "-" ? "" : profile.secteurOrigine,
+            villageOrigine:
+              profile.villageOrigine === "-" ? "" : profile.villageOrigine,
+          }}
+          onSave={async ({ studentExtra, familyExtra }) => {
+            const [result, error] = await updateStudentExtraInfoAction({
+              studentId: profile.studentId,
+              studentExtra,
+              familyExtra,
+            });
+            if (error) {
+              return { ok: false, message: error.message };
+            }
+            if (!result?.ok) {
+              return {
+                ok: false,
+                message: result?.message ?? "Enregistrement impossible.",
+              };
+            }
+            router.refresh();
+            return { ok: true, message: result.message };
+          }}
+        />
+      ) : null}
       <div className="overflow-hidden rounded-xl border border-primary/20 bg-gradient-to-br from-primary/[0.08] via-card to-card shadow-sm">
         <div className="flex flex-col gap-4 p-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex min-w-0 items-start gap-3">
@@ -294,15 +358,27 @@ export function StudentProfileClient({ profile }: { profile: StudentProfileData 
             </div>
           </div>
 
-          <Button
-            type="button"
-            variant="default"
-            className="gap-2 self-start shadow-sm lg:self-auto"
-            onClick={() => void badgeSectionRef.current?.print()}
-          >
-            <Printer className="size-4" />
-            Imprimer la carte
-          </Button>
+          <div className="flex flex-wrap gap-2 self-start lg:self-auto">
+            {profile.canManageStudents ? (
+              <Button
+                type="button"
+                variant="outline"
+                className="gap-2"
+                onClick={() => setExtraSheetOpen(true)}
+              >
+                Ajouter autres infos
+              </Button>
+            ) : null}
+            <Button
+              type="button"
+              variant="default"
+              className="gap-2 shadow-sm"
+              onClick={() => void badgeSectionRef.current?.print()}
+            >
+              <Printer className="size-4" />
+              Imprimer la carte
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -391,6 +467,21 @@ export function StudentProfileClient({ profile }: { profile: StudentProfileData 
                           variant="personal"
                           label="Nationalite"
                           value={profile.nationality}
+                        />
+                        <InfoField
+                          variant="personal"
+                          label="Autre nationalite"
+                          value={profile.autreNationalite}
+                        />
+                        <InfoField
+                          variant="personal"
+                          label="Territoire autre nationalite"
+                          value={profile.territoireAutreNationalite}
+                        />
+                        <InfoField
+                          variant="personal"
+                          label="Langue"
+                          value={profile.langue}
                         />
                       </div>
 
@@ -534,6 +625,54 @@ export function StudentProfileClient({ profile }: { profile: StudentProfileData 
                         icon={<MapPin className="size-4" />}
                         label="Adresse"
                         value={profile.parentAddress}
+                      />
+                      <InfoField
+                        variant="guardian"
+                        label="Nom de la mere"
+                        value={profile.nomMere}
+                        className="px-1 pt-1"
+                      />
+                      <InfoField
+                        variant="guardian"
+                        label="Profession de la mere"
+                        value={profile.professionMere}
+                        className="px-1"
+                      />
+                      <InfoField
+                        variant="guardian"
+                        label="Nom du tuteur"
+                        value={profile.tuteurNom}
+                        className="px-1"
+                      />
+                      <InfoField
+                        variant="guardian"
+                        label="Adresse du tuteur"
+                        value={profile.adresseTuteur}
+                        className="px-1"
+                      />
+                      <InfoField
+                        variant="guardian"
+                        label="Province d'origine"
+                        value={profile.provinceOrigine}
+                        className="px-1"
+                      />
+                      <InfoField
+                        variant="guardian"
+                        label="Territoire d'origine"
+                        value={profile.territoireOrigine}
+                        className="px-1"
+                      />
+                      <InfoField
+                        variant="guardian"
+                        label="Secteur d'origine"
+                        value={profile.secteurOrigine}
+                        className="px-1"
+                      />
+                      <InfoField
+                        variant="guardian"
+                        label="Village d'origine"
+                        value={profile.villageOrigine}
+                        className="px-1"
                       />
                       <ContactRow
                         variant="guardian"

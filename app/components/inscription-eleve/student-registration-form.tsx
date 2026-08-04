@@ -7,11 +7,14 @@ import {
   Camera,
   CalendarDays,
   Check,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
   FileText,
   ImagePlus,
+  Pencil,
   Send,
+  Trash2,
   UserPlus,
   Wallet,
 } from "lucide-react";
@@ -19,9 +22,15 @@ import { toast } from "sonner";
 
 import { CameraCaptureDialog } from "@/components/camera-capture-dialog";
 import { HomeNavbar } from "@/components/home-navbar";
+import { RegistrationExtraInfoFields } from "@/components/registration-extra-info-fields";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
@@ -34,7 +43,11 @@ import {
 } from "@/components/ui/select";
 import { uploadFile } from "@/lib/upload-file";
 import { generateSlug } from "@/lib/generated-identifiers";
-import { registerStudentOnline, getPublishedBranchRegistrationInfo, getPublicRegistrationAcademicChoices } from "./insption.actions";
+import {
+  registerStudentsOnline,
+  getPublishedBranchRegistrationInfo,
+  getPublicRegistrationAcademicChoices,
+} from "./insption.actions";
 import type { PublicAcademicChoiceSection } from "./insption.actions";
 import { SchoolRegistrationPanel } from "./school-registration-panel";
 import {
@@ -55,6 +68,30 @@ import {
   usesBranchAcademicTree,
   getPublicLevelFieldLabels,
 } from "@/lib/public-establishment-labels";
+import {
+  emptyFamilyExtraInfo,
+  emptyStudentExtraInfo,
+  type StudentExtraInfo,
+} from "@/lib/registration-extra-info";
+
+const MAX_CHILDREN = 8;
+
+type QueuedStudent = {
+  name: string;
+  postnom: string;
+  prenom: string;
+  sexe: "masculin" | "feminin";
+  dateOfBirth: string;
+  placeOfBirth: string;
+  address: string;
+  email: string;
+  provenanceEcole: string;
+  requestedLevel: string;
+  requestedSection: string;
+  requestedOption: string;
+  photo: File | null;
+  extra: StudentExtraInfo;
+};
 
 type Branch = {
   id: string;
@@ -181,10 +218,14 @@ function resolveRegistrationStepKind(
 export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
   const [step, setStep] = useState(0);
   const [isPending, startTransition] = useTransition();
-  const [reference, setReference] = useState("");
+  const [references, setReferences] = useState<string[]>([]);
   const [photo, setPhoto] = useState<File | null>(null);
   const [secondGuardian, setSecondGuardian] = useState(false);
   const [cameraOpen, setCameraOpen] = useState(false);
+  const [queuedStudents, setQueuedStudents] = useState<QueuedStudent[]>([]);
+  const [studentExtra, setStudentExtra] = useState(emptyStudentExtraInfo());
+  const [familyExtra, setFamilyExtra] = useState(emptyFamilyExtraInfo());
+  const [extraOpen, setExtraOpen] = useState(false);
   const [schoolInfo, setSchoolInfo] =
     useState<PublicBranchRegistrationInfo | null>(null);
   const [schoolInfoLoading, setSchoolInfoLoading] = useState(false);
@@ -204,6 +245,7 @@ export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
     dateOfBirth: "",
     placeOfBirth: "",
     address: "",
+    email: "",
     provenanceEcole: "",
     requestedLevel: "",
     requestedSection: "",
@@ -214,6 +256,7 @@ export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
     emptyGuardian(true),
     emptyGuardian(false),
   ]);
+  const branchLocked = queuedStudents.length > 0;
   const preview = useMemo(
     () => (photo ? URL.createObjectURL(photo) : ""),
     [photo],
@@ -326,12 +369,48 @@ export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
     () => previewStudentEmail(form.prenom, form.name),
     [form.prenom, form.name],
   );
+  const resolvedStudentEmail =
+    form.email.trim() || generatedStudentEmail;
+  const canAddAnotherStudent = useMemo(() => {
+    if (queuedStudents.length + 1 >= MAX_CHILDREN) return false;
+    if (
+      !branchTypeFilter ||
+      !form.branchId ||
+      !form.name.trim() ||
+      !form.postnom.trim() ||
+      !form.prenom.trim() ||
+      !form.sexe ||
+      !form.dateOfBirth ||
+      !form.placeOfBirth.trim() ||
+      !form.address.trim()
+    ) {
+      return false;
+    }
+    if (isPrimary) {
+      const age = ageFromDate(form.dateOfBirth);
+      if (age === null || age < PRIMARY_MIN_AGE) return false;
+    }
+    return true;
+  }, [
+    queuedStudents.length,
+    branchTypeFilter,
+    form.branchId,
+    form.name,
+    form.postnom,
+    form.prenom,
+    form.sexe,
+    form.dateOfBirth,
+    form.placeOfBirth,
+    form.address,
+    isPrimary,
+  ]);
   const primaryMaxBirthDate = maxBirthDateForMinAge(PRIMARY_MIN_AGE);
 
   const update = (key: keyof typeof form, value: string | boolean) =>
     setForm((current) => ({ ...current, [key]: value }));
 
   function onBranchTypeChange(value: string) {
+    if (branchLocked) return;
     if (!isPublicRegistrationBranchType(value)) return;
     setBranchTypeFilter(value);
     setForm((current) => ({
@@ -344,6 +423,7 @@ export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
   }
 
   function onBranchChange(value: string) {
+    if (branchLocked) return;
     setForm((current) => ({
       ...current,
       branchId: value,
@@ -374,6 +454,188 @@ export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
         current[1],
       ];
     });
+  }
+
+  function resetCurrentStudentFields() {
+    setForm((current) => ({
+      ...current,
+      name: "",
+      postnom: "",
+      prenom: "",
+      sexe: "",
+      dateOfBirth: "",
+      placeOfBirth: "",
+      address: "",
+      email: "",
+      provenanceEcole: "",
+      requestedLevel: "",
+      requestedSection: "",
+      requestedOption: "",
+      consentAccepted: false,
+    }));
+    setPhoto(null);
+    setStudentExtra(emptyStudentExtraInfo());
+  }
+
+  function buildCurrentQueuedStudent(options?: {
+    requireLevel?: boolean;
+  }): QueuedStudent | null {
+    const requireLevel = options?.requireLevel ?? true;
+    if (
+      !form.name ||
+      !form.postnom ||
+      !form.prenom ||
+      !form.sexe ||
+      !form.dateOfBirth ||
+      !form.placeOfBirth ||
+      !form.address
+    ) {
+      return null;
+    }
+    if (requireLevel && !form.requestedLevel) {
+      return null;
+    }
+    return {
+      name: form.name,
+      postnom: form.postnom,
+      prenom: form.prenom,
+      sexe: form.sexe as "masculin" | "feminin",
+      dateOfBirth: form.dateOfBirth,
+      placeOfBirth: form.placeOfBirth,
+      address: form.address,
+      email: form.email.trim(),
+      provenanceEcole: form.provenanceEcole,
+      requestedLevel: form.requestedLevel,
+      requestedSection: form.requestedSection,
+      requestedOption: form.requestedOption,
+      photo,
+      extra: studentExtra,
+    };
+  }
+
+  function loadStudentIntoForm(entry: QueuedStudent) {
+    setForm((current) => ({
+      ...current,
+      name: entry.name,
+      postnom: entry.postnom,
+      prenom: entry.prenom,
+      sexe: entry.sexe,
+      dateOfBirth: entry.dateOfBirth,
+      placeOfBirth: entry.placeOfBirth,
+      address: entry.address,
+      email: entry.email ?? "",
+      provenanceEcole: entry.provenanceEcole,
+      requestedLevel: entry.requestedLevel,
+      requestedSection: entry.requestedSection,
+      requestedOption: entry.requestedOption,
+    }));
+    setPhoto(entry.photo);
+    setStudentExtra(entry.extra);
+  }
+
+  function validateCurrentIdentity(): boolean {
+    if (
+      !form.branchId ||
+      !form.name ||
+      !form.postnom ||
+      !form.prenom ||
+      !form.sexe ||
+      !form.dateOfBirth ||
+      !form.placeOfBirth ||
+      !form.address
+    ) {
+      toast.error(
+        `Completez les informations obligatoires de ${peopleLabels.studentDefinite}.`,
+      );
+      return false;
+    }
+    if (isPrimary) {
+      const age = ageFromDate(form.dateOfBirth);
+      if (age === null || age < PRIMARY_MIN_AGE) {
+        toast.error(
+          `Pour le primaire, l'enfant doit avoir au moins ${PRIMARY_MIN_AGE} ans.`,
+        );
+        return false;
+      }
+    }
+    return true;
+  }
+
+  function validateCurrentLevel(): boolean {
+    const levelLabels = getPublicLevelFieldLabels(branchType);
+    if (!form.requestedLevel) {
+      toast.error(`Indiquez ${levelLabels.level.toLowerCase()} souhaite(e).`);
+      return false;
+    }
+    if (
+      requiresSectionForClass(branchType, form.requestedLevel) &&
+      !form.requestedSection
+    ) {
+      toast.error(`Choisissez ${levelLabels.section.toLowerCase()}.`);
+      return false;
+    }
+    if (
+      requiresOptionForClass(branchType, form.requestedLevel) &&
+      !form.requestedOption
+    ) {
+      toast.error(`Choisissez ${levelLabels.option.toLowerCase()}.`);
+      return false;
+    }
+    return true;
+  }
+
+  /** Ajoute l'élève en cours à la liste et ouvre une fiche vide (dès l'étape 1). */
+  function queueCurrentAndStartNext(options?: { requireLevel?: boolean }) {
+    const requireLevel = options?.requireLevel ?? stepKind !== "student";
+    if (!validateCurrentIdentity()) return;
+    if (requireLevel && !validateCurrentLevel()) return;
+
+    const current = buildCurrentQueuedStudent({ requireLevel: false });
+    if (!current) {
+      toast.error("Completez d'abord l'eleve en cours.");
+      return;
+    }
+    if (requireLevel && !current.requestedLevel) {
+      toast.error("Indiquez le niveau de cet eleve avant d'en ajouter un autre.");
+      return;
+    }
+    if (queuedStudents.length + 1 >= MAX_CHILDREN) {
+      toast.error(`Maximum ${MAX_CHILDREN} eleves par demande.`);
+      return;
+    }
+    setQueuedStudents((list) => [...list, current]);
+    resetCurrentStudentFields();
+    setStep(0);
+    toast.success(
+      `${peopleLabels.student} ajoute (${queuedStudents.length + 1}). Saisissez le suivant — l'ecole et le responsable seront partages.`,
+    );
+  }
+
+  function editQueuedStudent(index: number) {
+    const entry = queuedStudents[index];
+    if (!entry) return;
+    const current = buildCurrentQueuedStudent({ requireLevel: false });
+    setQueuedStudents((list) => {
+      const without = list.filter((_, i) => i !== index);
+      if (
+        current &&
+        (current.name || current.prenom) &&
+        without.length + 1 < MAX_CHILDREN
+      ) {
+        // Remettre l'élève en cours dans la liste s'il a déjà une identité
+        if (current.name && current.postnom && current.prenom) {
+          return [...without, current];
+        }
+      }
+      return without;
+    });
+    loadStudentIntoForm(entry);
+    setStep(0);
+    toast.message(`Modification de ${entry.prenom} ${entry.name}`);
+  }
+
+  function removeQueuedStudent(index: number) {
+    setQueuedStudents((list) => list.filter((_, i) => i !== index));
   }
 
   function validateStep() {
@@ -470,16 +732,90 @@ export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
   function submit() {
     if (!form.consentAccepted)
       return toast.error("Acceptez le traitement des donnees.");
-    startTransition(async () => {
-      let photoUrl = "";
-      if (photo) {
-        const uploaded = await uploadFile(photo);
-        if (!uploaded.ok) {
-          toast.error(uploaded.message);
-          return;
-        }
-        photoUrl = uploaded.url;
+
+    const current = buildCurrentQueuedStudent({ requireLevel: false });
+    if (!current && queuedStudents.length === 0) {
+      toast.error("Aucun eleve a envoyer.");
+      return;
+    }
+    if (!current) {
+      toast.error("Completez l'eleve en cours ou retirez-le avant l'envoi.");
+      return;
+    }
+    if (!current.requestedLevel.trim()) {
+      toast.error(
+        `Indiquez le niveau pour ${current.prenom} ${current.name} avant l'envoi.`,
+      );
+      setStep(skipsGuardian ? 1 : 2);
+      return;
+    }
+    const incompleteQueued = queuedStudents.findIndex(
+      (item) => !item.requestedLevel.trim(),
+    );
+    if (incompleteQueued >= 0) {
+      const next = queuedStudents[incompleteQueued]!;
+      setQueuedStudents((list) => {
+        const without = list.filter((_, i) => i !== incompleteQueued);
+        return [...without, current];
+      });
+      loadStudentIntoForm(next);
+      setStep(skipsGuardian ? 1 : 2);
+      toast.error(
+        `Indiquez le niveau pour ${next.prenom} ${next.name} avant l'envoi.`,
+      );
+      return;
+    }
+    if (!skipsGuardian) {
+      const primary = guardians[0];
+      if (
+        !primary.name ||
+        !primary.postnom ||
+        !primary.prenom ||
+        !primary.relationshipPreset ||
+        !primary.telephone ||
+        !primary.address
+      ) {
+        toast.error("Completez le responsable principal.");
+        return;
       }
+    }
+
+    const allStudents = [...queuedStudents, current];
+
+    startTransition(async () => {
+      const studentsPayload = [];
+      for (const entry of allStudents) {
+        let photoUrl = "";
+        if (entry.photo) {
+          const uploaded = await uploadFile(entry.photo);
+          if (!uploaded.ok) {
+            toast.error(uploaded.message);
+            return;
+          }
+          photoUrl = uploaded.url;
+        }
+        studentsPayload.push({
+          name: entry.name,
+          postnom: entry.postnom,
+          prenom: entry.prenom,
+          sexe: entry.sexe,
+          dateOfBirth: entry.dateOfBirth,
+          placeOfBirth: entry.placeOfBirth,
+          address: entry.address,
+          email:
+            entry.email.trim() ||
+            previewStudentEmail(entry.prenom, entry.name),
+          provenanceEcole: hidesProvenance
+            ? undefined
+            : entry.provenanceEcole || undefined,
+          requestedLevel: entry.requestedLevel,
+          requestedSection: entry.requestedSection || undefined,
+          requestedOption: entry.requestedOption || undefined,
+          photoUrl: photoUrl || undefined,
+          extra: entry.extra,
+        });
+      }
+
       const guardiansPayload = skipsGuardian
         ? []
         : (secondGuardian ? guardians : [guardians[0]]).map((guardian) => ({
@@ -493,24 +829,12 @@ export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
             address: guardian.address,
             isPrimary: guardian.isPrimary,
           }));
-      const result = await registerStudentOnline({
+
+      const result = await registerStudentsOnline({
         branchId: form.branchId,
-        student: {
-          name: form.name,
-          postnom: form.postnom,
-          prenom: form.prenom,
-          sexe: form.sexe as "masculin" | "feminin",
-          dateOfBirth: form.dateOfBirth,
-          placeOfBirth: form.placeOfBirth,
-          address: form.address,
-          email: generatedStudentEmail,
-          provenanceEcole: hidesProvenance ? undefined : form.provenanceEcole,
-        },
+        students: studentsPayload,
         guardians: guardiansPayload,
-        requestedLevel: form.requestedLevel,
-        requestedSection: form.requestedSection,
-        requestedOption: form.requestedOption,
-        photoUrl,
+        familyExtra: skipsGuardian ? undefined : familyExtra,
         consentAccepted: true,
         termsInfoId: schoolInfo?.id ?? null,
       });
@@ -518,12 +842,12 @@ export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
         toast.error(result.message);
         return;
       }
-      setReference(result.reference);
+      setReferences(result.references);
       toast.success(result.message);
     });
   }
 
-  if (reference) {
+  if (references.length > 0) {
     const feeLabel = schoolInfo
       ? formatRegistrationFee(
           schoolInfo.registrationFeeAmount,
@@ -550,14 +874,27 @@ export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
               </span>
               <div className="w-full space-y-2">
                 <h1 className="text-2xl font-bold text-foreground">
-                  Demande envoyee
+                  {references.length > 1
+                    ? "Demandes envoyees"
+                    : "Demande envoyee"}
                 </h1>
                 <p className="text-muted-foreground">
-                  Conservez cette reference :
+                  Conservez{" "}
+                  {references.length > 1
+                    ? "ces references"
+                    : "cette reference"}{" "}
+                  :
                 </p>
-                <p className="rounded-xl border border-primary/20 bg-primary/5 p-4 font-mono text-xl font-bold text-primary">
-                  {reference}
-                </p>
+                <div className="space-y-2">
+                  {references.map((ref) => (
+                    <p
+                      key={ref}
+                      className="rounded-xl border border-primary/20 bg-primary/5 p-4 font-mono text-xl font-bold text-primary"
+                    >
+                      {ref}
+                    </p>
+                  ))}
+                </div>
                 <p className="text-sm text-muted-foreground">
                   {confirmationMessage}
                 </p>
@@ -573,6 +910,9 @@ export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
                           {schoolInfo.registrationFeeLabel ||
                             "Frais d'inscription"}
                           {feeLabel ? ` — ${feeLabel}` : ""}
+                          {references.length > 1
+                            ? ` (par ${peopleLabels.studentLower})`
+                            : ""}
                         </span>
                       </div>
                       <p className="text-sm text-muted-foreground">
@@ -665,6 +1005,7 @@ export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
                   <Select
                     value={branchTypeFilter || undefined}
                     onValueChange={onBranchTypeChange}
+                    disabled={branchLocked}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Ecole, centre ou universite" />
@@ -682,7 +1023,7 @@ export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
                   <Select
                     value={form.branchId}
                     onValueChange={onBranchChange}
-                    disabled={!branchTypeFilter}
+                    disabled={!branchTypeFilter || branchLocked}
                   >
                     <SelectTrigger>
                       <SelectValue
@@ -766,13 +1107,90 @@ export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
                   value={form.address}
                   onChange={(v) => update("address", v)}
                 />
-                <Field label={peopleLabels.emailAutoLabel}>
+                <Field label="Email (facultatif)">
                   <Input
-                    disabled
-                    className="bg-muted font-mono text-foreground opacity-100"
-                    value={generatedStudentEmail}
+                    type="email"
+                    placeholder={generatedStudentEmail}
+                    value={form.email}
+                    onChange={(event) => update("email", event.target.value)}
                   />
+                  {!form.email.trim() ? (
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      Si vide, un email sera genere :{" "}
+                      <span className="font-mono">{generatedStudentEmail}</span>
+                    </p>
+                  ) : null}
                 </Field>
+                <div className="md:col-span-2 rounded-xl border border-primary/25 bg-primary/5 p-4">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div>
+                      <p className="text-sm font-semibold text-foreground">
+                        Plusieurs {peopleLabels.studentPluralLower} ?
+                      </p>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        {canAddAnotherStudent
+                          ? "Ajoutez-les des le debut. Vous pourrez modifier chaque fiche avant d'envoyer. L'ecole et le responsable sont partages."
+                          : "Completez d'abord tous les champs obligatoires de cet eleve pour pouvoir en ajouter un autre."}
+                      </p>
+                    </div>
+                    {canAddAnotherStudent ? (
+                      <Button
+                        type="button"
+                        variant="default"
+                        className="shrink-0"
+                        onClick={() =>
+                          queueCurrentAndStartNext({ requireLevel: false })
+                        }
+                      >
+                        <UserPlus className="mr-2 size-4" />
+                        Ajouter un autre {peopleLabels.studentLower}
+                      </Button>
+                    ) : null}
+                  </div>
+                  {queuedStudents.length > 0 ? (
+                    <ul className="mt-3 space-y-2 border-t border-primary/15 pt-3">
+                      {queuedStudents.map((item, index) => (
+                        <li
+                          key={`${item.name}-${item.prenom}-${index}`}
+                          className="flex flex-wrap items-center justify-between gap-2 rounded-lg border bg-background px-3 py-2 text-sm"
+                        >
+                          <span>
+                            <span className="font-medium">
+                              {index + 1}. {item.prenom} {item.name}{" "}
+                              {item.postnom}
+                            </span>
+                            <span className="text-muted-foreground">
+                              {item.requestedLevel
+                                ? ` · ${item.requestedLevel}`
+                                : " · niveau a completer"}
+                            </span>
+                          </span>
+                          <div className="flex gap-1">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className="h-8"
+                              onClick={() => editQueuedStudent(index)}
+                            >
+                              <Pencil className="mr-1.5 size-3.5" />
+                              Modifier
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 px-2 text-destructive"
+                              onClick={() => removeQueuedStudent(index)}
+                            >
+                              <Trash2 className="size-4" />
+                            </Button>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : null}
+                </div>
               </div>
             )}
             {stepKind === "guardian" && (
@@ -873,6 +1291,45 @@ export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
                     ? "Retirer le second responsable"
                     : "Ajouter un second responsable"}
                 </Button>
+
+                <Collapsible open={extraOpen} onOpenChange={setExtraOpen}>
+                  <CollapsibleTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      className="w-full justify-between px-0 hover:bg-transparent"
+                    >
+                      <span className="text-sm font-medium">
+                        Infos complementaires (optionnel)
+                      </span>
+                      <ChevronDown
+                        className={`size-4 transition-transform ${extraOpen ? "rotate-180" : ""}`}
+                      />
+                    </Button>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="pt-2">
+                    <p className="mb-3 text-xs text-muted-foreground">
+                      Vous pouvez completer plus tard. Le responsable principal
+                      ci-dessus reste le pere / tuteur principal.
+                    </p>
+                    <RegistrationExtraInfoFields
+                      studentExtra={studentExtra}
+                      familyExtra={familyExtra}
+                      onStudentChange={(key, value) =>
+                        setStudentExtra((current) => ({
+                          ...current,
+                          [key]: value,
+                        }))
+                      }
+                      onFamilyChange={(key, value) =>
+                        setFamilyExtra((current) => ({
+                          ...current,
+                          [key]: value,
+                        }))
+                      }
+                    />
+                  </CollapsibleContent>
+                </Collapsible>
               </div>
             )}
             {stepKind === "level" && (
@@ -961,17 +1418,105 @@ export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
                     </Button>
                   </div>
                 </Field>
+
+                {skipsGuardian ? (
+                  <Collapsible open={extraOpen} onOpenChange={setExtraOpen}>
+                    <CollapsibleTrigger asChild>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        className="w-full justify-between px-0 hover:bg-transparent"
+                      >
+                        <span className="text-sm font-medium">
+                          Infos complementaires (optionnel)
+                        </span>
+                        <ChevronDown
+                          className={`size-4 transition-transform ${extraOpen ? "rotate-180" : ""}`}
+                        />
+                      </Button>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="pt-2">
+                      <RegistrationExtraInfoFields
+                        studentExtra={studentExtra}
+                        familyExtra={familyExtra}
+                        hideFamily
+                        onStudentChange={(key, value) =>
+                          setStudentExtra((current) => ({
+                            ...current,
+                            [key]: value,
+                          }))
+                        }
+                        onFamilyChange={(key, value) =>
+                          setFamilyExtra((current) => ({
+                            ...current,
+                            [key]: value,
+                          }))
+                        }
+                      />
+                    </CollapsibleContent>
+                  </Collapsible>
+                ) : null}
               </div>
             )}
             {stepKind === "recap" && (
               <div className="space-y-5">
+                <div className="space-y-2 rounded-xl border p-4">
+                  <p className="text-sm font-semibold">
+                    {queuedStudents.length > 0
+                      ? `${peopleLabels.studentPlural} de la demande (${queuedStudents.length + 1})`
+                      : `Demande pour 1 ${peopleLabels.studentLower}`}
+                  </p>
+                  <ul className="space-y-2 text-sm">
+                    {queuedStudents.map((item, index) => (
+                      <li
+                        key={`recap-${index}`}
+                        className="flex flex-wrap items-center justify-between gap-2 rounded-lg border px-3 py-2"
+                      >
+                        <span>
+                          {index + 1}. {item.prenom} {item.name} {item.postnom}
+                          <span className="text-muted-foreground">
+                            {item.requestedLevel
+                              ? ` · ${item.requestedLevel}`
+                              : " · niveau manquant"}
+                          </span>
+                        </span>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="h-8"
+                          onClick={() => editQueuedStudent(index)}
+                        >
+                          <Pencil className="mr-1.5 size-3.5" />
+                          Modifier
+                        </Button>
+                      </li>
+                    ))}
+                    <li className="rounded-lg border border-dashed border-primary/40 bg-primary/5 px-3 py-2">
+                      {queuedStudents.length + 1}. {form.prenom} {form.name}{" "}
+                      {form.postnom}
+                      <span className="text-muted-foreground">
+                        {form.requestedLevel
+                          ? ` · ${form.requestedLevel}`
+                          : " · niveau manquant"}{" "}
+                        (en cours)
+                      </span>
+                    </li>
+                  </ul>
+                </div>
                 <div className="grid gap-3 rounded-xl border border-primary/15 bg-primary/5 p-5 md:grid-cols-2">
                   <p>
-                    <b>{peopleLabels.student} :</b> {form.name}{" "}
-                    {form.postnom} {form.prenom}
+                    <b>
+                      {queuedStudents.length > 0
+                        ? `${peopleLabels.student} en cours`
+                        : peopleLabels.student}{" "}
+                      :
+                    </b>{" "}
+                    {form.name} {form.postnom} {form.prenom}
                   </p>
                   <p>
-                    <b>Email :</b> {generatedStudentEmail}
+                    <b>Email :</b> {resolvedStudentEmail}
+                    {!form.email.trim() ? " (auto)" : ""}
                   </p>
                   <p>
                     <b>Niveau :</b> {form.requestedLevel}
@@ -1010,7 +1555,7 @@ export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
                 </Label>
               </div>
             )}
-            <div className="flex justify-between border-t pt-5">
+            <div className="flex flex-col gap-3 border-t pt-5 sm:flex-row sm:items-center sm:justify-between">
               <Button
                 type="button"
                 variant="outline"
@@ -1020,26 +1565,56 @@ export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
                 <ChevronLeft className="mr-2 size-4" />
                 Precedent
               </Button>
-              {step < maxStep ? (
-                <Button
-                  type="button"
-                  onClick={() => {
-                    if (!validateStep()) return;
-                    if (stepKind === "student" && !skipsGuardian) {
-                      prefillPrimaryGuardianFromStudent();
-                    }
-                    setStep((value) => Math.min(value + 1, maxStep));
-                  }}
-                >
-                  Continuer
-                  <ChevronRight className="ml-2 size-4" />
-                </Button>
-              ) : (
-                <Button type="button" disabled={isPending} onClick={submit}>
-                  <Send className="mr-2 size-4" />
-                  {isPending ? "Envoi..." : "Envoyer la demande"}
-                </Button>
-              )}
+              <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:justify-end">
+                {step < maxStep ? (
+                  <Button
+                    type="button"
+                    onClick={() => {
+                      if (!validateStep()) return;
+                      if (stepKind === "student" && !skipsGuardian) {
+                        prefillPrimaryGuardianFromStudent();
+                      }
+                      if (stepKind === "level") {
+                        const incompleteIdx = queuedStudents.findIndex(
+                          (item) => !item.requestedLevel.trim(),
+                        );
+                        if (incompleteIdx >= 0) {
+                          if (!validateCurrentLevel()) return;
+                          const current = buildCurrentQueuedStudent({
+                            requireLevel: true,
+                          });
+                          if (!current) return;
+                          const next = queuedStudents[incompleteIdx]!;
+                          setQueuedStudents((list) => {
+                            const without = list.filter(
+                              (_, i) => i !== incompleteIdx,
+                            );
+                            return [...without, current];
+                          });
+                          loadStudentIntoForm(next);
+                          toast.message(
+                            `Completez le niveau pour ${next.prenom} ${next.name}`,
+                          );
+                          return;
+                        }
+                      }
+                      setStep((value) => Math.min(value + 1, maxStep));
+                    }}
+                  >
+                    Continuer
+                    <ChevronRight className="ml-2 size-4" />
+                  </Button>
+                ) : (
+                  <Button type="button" disabled={isPending} onClick={submit}>
+                    <Send className="mr-2 size-4" />
+                    {isPending
+                      ? "Envoi..."
+                      : queuedStudents.length > 0
+                        ? `Envoyer ${queuedStudents.length + 1} demandes`
+                        : "Envoyer la demande"}
+                  </Button>
+                )}
+              </div>
             </div>
           </CardContent>
         </Card>

@@ -172,20 +172,20 @@ export function PersonnelUpForm({
     }
   }
 
-  const fieldClass = isDialog ? "space-y-0.5" : "space-y-0.5";
+  const fieldClass = "space-y-0.5";
   const labelClass = "text-xs font-medium text-muted-foreground";
   const controlClass = isDialog
     ? "h-9 rounded-md px-3 text-sm font-normal"
     : "h-8 rounded-md px-3 text-sm font-normal";
 
   return (
-    <div className={cn("grid gap-3", className)} {...props}>
+    <div className={cn(isDialog ? "grid gap-2" : "grid gap-3", className)} {...props}>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <div
             className={cn(
-              "grid gap-2.5",
-              isDialog ? "sm:grid-cols-2" : "sm:grid-cols-2",
+              "grid sm:grid-cols-2",
+              isDialog ? "gap-x-4 gap-y-2" : "gap-2.5",
             )}
           >
             <FormField
@@ -335,7 +335,7 @@ export function PersonnelUpForm({
               control={form.control}
               name="address"
               render={({ field }) => (
-                <FormItem className={cn(fieldClass, "sm:col-span-2")}>
+                <FormItem className={fieldClass}>
                   <FormLabel className={labelClass}>Adresse</FormLabel>
                   <FormControl>
                     <Input
@@ -378,8 +378,11 @@ export function PersonnelUpForm({
             <div className="sm:col-span-2">
               <Button
                 type="submit"
-                size="sm"
-                className="mt-1 w-full font-medium sm:w-auto"
+                size={isDialog ? "default" : "sm"}
+                className={cn(
+                  "mt-2 w-full font-medium",
+                  isDialog && "h-11 text-base",
+                )}
                 loading={isLoading}
               >
                 {mode === "create"

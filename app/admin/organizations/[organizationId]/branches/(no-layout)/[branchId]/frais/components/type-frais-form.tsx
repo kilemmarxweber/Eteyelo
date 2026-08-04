@@ -27,6 +27,7 @@ interface TypeFraisUpFormProps extends HTMLAttributes<HTMLDivElement> {
   onUpdated?: () => void;
   initialData?: z.infer<typeof typeFraisSchema>;
   mode: "create" | "update";
+  layout?: "default" | "dialog" | "sheet";
 }
 
 export function TypeFraisUpForm({
@@ -36,8 +37,10 @@ export function TypeFraisUpForm({
   onUpdated,
   initialData,
   mode,
+  layout = "default",
   ...props
 }: TypeFraisUpFormProps) {
+  const isCompact = layout === "dialog" || layout === "sheet";
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -86,10 +89,7 @@ export function TypeFraisUpForm({
         if (err) {
           throw new Error(err.message);
         }
-        toast.success("Type de frais mis a jour avec succes");
-      }
-
-      if (mode === "update") {
+        toast.success("Type de frais mis à jour avec succès");
         onUpdated?.();
       }
       onSuccess?.();
@@ -107,40 +107,52 @@ export function TypeFraisUpForm({
     }
   }
 
+  const fieldClass = isCompact ? "space-y-0.5" : "space-y-1";
+  const labelClass = isCompact
+    ? "text-xs font-medium text-muted-foreground"
+    : undefined;
+  const inputClass = isCompact
+    ? "h-9 rounded-md px-3 text-sm font-normal"
+    : undefined;
+
   return (
-    <div className={cn("grid gap-6", className)} {...props}>
+    <div
+      className={cn(isCompact ? "grid gap-2" : "grid gap-6", className)}
+      {...props}
+    >
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
-          <div className="grid gap-4">
-            <div className="grid grid-cols-1 gap-4">
-              <FormField
-                control={form.control}
-                name="nameType"
-                render={({ field }) => (
-                  <FormItem className="space-y-1">
-                    <FormLabel>Nom du type</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Ex: Frais de scolarité"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+          <div className={cn("grid", isCompact ? "gap-y-2" : "gap-4")}>
+            <FormField
+              control={form.control}
+              name="nameType"
+              render={({ field }) => (
+                <FormItem className={fieldClass}>
+                  <FormLabel className={labelClass}>Nom du type</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Ex: Frais de scolarité"
+                      className={inputClass}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <FormField
               control={form.control}
               name="description"
               render={({ field }) => (
-                <FormItem className="space-y-1">
-                  <FormLabel>Description (optionnel)</FormLabel>
+                <FormItem className={fieldClass}>
+                  <FormLabel className={labelClass}>
+                    Description (optionnel)
+                  </FormLabel>
                   <FormControl>
                     <Textarea
                       placeholder="Description du type de frais"
-                      className="resize-none"
+                      className={cn("resize-none", isCompact && "min-h-20 text-sm")}
                       {...field}
                     />
                   </FormControl>
@@ -153,7 +165,12 @@ export function TypeFraisUpForm({
               control={form.control}
               name="statusType"
               render={({ field }) => (
-                <FormItem className="flex items-center gap-2 space-y-0 rounded-md border p-3">
+                <FormItem
+                  className={cn(
+                    "flex items-center gap-2 space-y-0 rounded-md border",
+                    isCompact ? "p-2.5" : "p-3",
+                  )}
+                >
                   <FormControl>
                     <Checkbox
                       checked={field.value ?? true}
@@ -168,17 +185,37 @@ export function TypeFraisUpForm({
               )}
             />
 
-            <Button className="mt-2" loading={isLoading}>
+            {mode === "create" && isCompact ? (
+              <p className="rounded-md border bg-muted/30 p-2.5 text-xs text-muted-foreground">
+                Le code sera généré automatiquement et restera unique dans cette
+                branche.
+              </p>
+            ) : null}
+
+            <Button
+              type="submit"
+              size={isCompact ? "default" : undefined}
+              className={cn(
+                "mt-2 w-full font-medium",
+                isCompact && "h-11 text-base",
+              )}
+              loading={isLoading}
+            >
               {mode === "create"
                 ? "Enregistrer le type de frais"
                 : "Mettre à jour le type de frais"}
             </Button>
 
-            {errorMessage && (
-              <p className="mt-2 text-center text-red-500 text-sm">
+            {errorMessage ? (
+              <p
+                className={cn(
+                  "mt-2 text-center text-red-500",
+                  isCompact ? "text-xs" : "text-sm",
+                )}
+              >
                 {errorMessage}
               </p>
-            )}
+            ) : null}
           </div>
         </form>
       </Form>

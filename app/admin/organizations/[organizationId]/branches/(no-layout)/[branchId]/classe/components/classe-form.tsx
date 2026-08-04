@@ -596,7 +596,7 @@ export function ClasseUpForm({
             className={cn(
               "mt-1 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end",
               isSheet &&
-                "sticky bottom-0 -mx-6 mt-auto border-t bg-background px-6 py-3",
+                "sticky bottom-0 -mx-5 mt-auto border-t bg-background px-5 py-3 sm:-mx-6 sm:px-6",
             )}
           >
             {errorMessage ? (
@@ -606,7 +606,10 @@ export function ClasseUpForm({
             ) : null}
             <Button
               type="submit"
-              className="w-full sm:w-auto"
+              className={cn(
+                "w-full font-medium",
+                isSheet ? "h-11 text-base sm:w-full" : "sm:w-auto",
+              )}
               disabled={isLoading}
             >
               {isLoading ? (
@@ -614,7 +617,7 @@ export function ClasseUpForm({
               ) : null}
               {mode === "create"
                 ? "Enregistrer la classe"
-                : "Mettre a jour la classe"}
+                : "Mettre à jour la classe"}
             </Button>
           </div>
         </form>

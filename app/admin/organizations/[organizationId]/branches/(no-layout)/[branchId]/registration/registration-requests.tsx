@@ -35,6 +35,7 @@ type RegistrationRequestRow = {
   requestedLevel: string | null;
   requestedOption: string | null;
   photoUrl: string | null;
+  siblingGroupId: string | null;
   createdAt: Date | string;
 };
 
@@ -123,6 +124,18 @@ export function RegistrationRequests() {
     return base;
   }, [requests]);
 
+  const siblingCounts = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const request of requests) {
+      if (!request.siblingGroupId) continue;
+      map.set(
+        request.siblingGroupId,
+        (map.get(request.siblingGroupId) ?? 0) + 1,
+      );
+    }
+    return map;
+  }, [requests]);
+
   const filteredRequests = useMemo(() => {
     if (statusFilter === "ALL") return requests;
     return requests.filter((item) => item.status === statusFilter);
@@ -139,6 +152,7 @@ export function RegistrationRequests() {
     setRequests(
       (data ?? []).map((row) => ({
         ...row,
+        siblingGroupId: row.siblingGroupId ?? null,
         studentData:
           row.studentData && typeof row.studentData === "object"
             ? (row.studentData as Record<string, string>)
@@ -315,6 +329,16 @@ export function RegistrationRequests() {
                           {studentName(request.studentData)}
                         </p>
                         <StatusBadge status={request.status} />
+                        {request.siblingGroupId &&
+                        (siblingCounts.get(request.siblingGroupId) ?? 0) > 1 ? (
+                          <Badge
+                            variant="secondary"
+                            className="h-6 text-[11px]"
+                          >
+                            Fratrie (
+                            {siblingCounts.get(request.siblingGroupId)})
+                          </Badge>
+                        ) : null}
                       </div>
                       <p className="text-xs text-muted-foreground">
                         {request.reference} ·{" "}

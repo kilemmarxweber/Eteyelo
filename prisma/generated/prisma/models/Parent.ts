@@ -28,6 +28,14 @@ export type ParentMinAggregateOutputType = {
   id: string | null
   branchMemberId: string | null
   profession: string | null
+  nomMere: string | null
+  professionMere: string | null
+  tuteurNom: string | null
+  adresseTuteur: string | null
+  provinceOrigine: string | null
+  territoireOrigine: string | null
+  secteurOrigine: string | null
+  villageOrigine: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -36,6 +44,14 @@ export type ParentMaxAggregateOutputType = {
   id: string | null
   branchMemberId: string | null
   profession: string | null
+  nomMere: string | null
+  professionMere: string | null
+  tuteurNom: string | null
+  adresseTuteur: string | null
+  provinceOrigine: string | null
+  territoireOrigine: string | null
+  secteurOrigine: string | null
+  villageOrigine: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -44,6 +60,14 @@ export type ParentCountAggregateOutputType = {
   id: number
   branchMemberId: number
   profession: number
+  nomMere: number
+  professionMere: number
+  tuteurNom: number
+  adresseTuteur: number
+  provinceOrigine: number
+  territoireOrigine: number
+  secteurOrigine: number
+  villageOrigine: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -54,6 +78,14 @@ export type ParentMinAggregateInputType = {
   id?: true
   branchMemberId?: true
   profession?: true
+  nomMere?: true
+  professionMere?: true
+  tuteurNom?: true
+  adresseTuteur?: true
+  provinceOrigine?: true
+  territoireOrigine?: true
+  secteurOrigine?: true
+  villageOrigine?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -62,6 +94,14 @@ export type ParentMaxAggregateInputType = {
   id?: true
   branchMemberId?: true
   profession?: true
+  nomMere?: true
+  professionMere?: true
+  tuteurNom?: true
+  adresseTuteur?: true
+  provinceOrigine?: true
+  territoireOrigine?: true
+  secteurOrigine?: true
+  villageOrigine?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -70,6 +110,14 @@ export type ParentCountAggregateInputType = {
   id?: true
   branchMemberId?: true
   profession?: true
+  nomMere?: true
+  professionMere?: true
+  tuteurNom?: true
+  adresseTuteur?: true
+  provinceOrigine?: true
+  territoireOrigine?: true
+  secteurOrigine?: true
+  villageOrigine?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -151,6 +199,14 @@ export type ParentGroupByOutputType = {
   id: string
   branchMemberId: string
   profession: string | null
+  nomMere: string | null
+  professionMere: string | null
+  tuteurNom: string | null
+  adresseTuteur: string | null
+  provinceOrigine: string | null
+  territoireOrigine: string | null
+  secteurOrigine: string | null
+  villageOrigine: string | null
   createdAt: Date
   updatedAt: Date
   _count: ParentCountAggregateOutputType | null
@@ -180,6 +236,14 @@ export type ParentWhereInput = {
   id?: Prisma.StringFilter<"Parent"> | string
   branchMemberId?: Prisma.StringFilter<"Parent"> | string
   profession?: Prisma.StringNullableFilter<"Parent"> | string | null
+  nomMere?: Prisma.StringNullableFilter<"Parent"> | string | null
+  professionMere?: Prisma.StringNullableFilter<"Parent"> | string | null
+  tuteurNom?: Prisma.StringNullableFilter<"Parent"> | string | null
+  adresseTuteur?: Prisma.StringNullableFilter<"Parent"> | string | null
+  provinceOrigine?: Prisma.StringNullableFilter<"Parent"> | string | null
+  territoireOrigine?: Prisma.StringNullableFilter<"Parent"> | string | null
+  secteurOrigine?: Prisma.StringNullableFilter<"Parent"> | string | null
+  villageOrigine?: Prisma.StringNullableFilter<"Parent"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Parent"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Parent"> | Date | string
   branchMember?: Prisma.XOR<Prisma.BranchMemberNullableScalarRelationFilter, Prisma.BranchMemberWhereInput> | null
@@ -194,6 +258,14 @@ export type ParentOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   branchMemberId?: Prisma.SortOrder
   profession?: Prisma.SortOrderInput | Prisma.SortOrder
+  nomMere?: Prisma.SortOrderInput | Prisma.SortOrder
+  professionMere?: Prisma.SortOrderInput | Prisma.SortOrder
+  tuteurNom?: Prisma.SortOrderInput | Prisma.SortOrder
+  adresseTuteur?: Prisma.SortOrderInput | Prisma.SortOrder
+  provinceOrigine?: Prisma.SortOrderInput | Prisma.SortOrder
+  territoireOrigine?: Prisma.SortOrderInput | Prisma.SortOrder
+  secteurOrigine?: Prisma.SortOrderInput | Prisma.SortOrder
+  villageOrigine?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   branchMember?: Prisma.BranchMemberOrderByWithRelationInput
@@ -211,6 +283,14 @@ export type ParentWhereUniqueInput = Prisma.AtLeast<{
   OR?: Prisma.ParentWhereInput[]
   NOT?: Prisma.ParentWhereInput | Prisma.ParentWhereInput[]
   profession?: Prisma.StringNullableFilter<"Parent"> | string | null
+  nomMere?: Prisma.StringNullableFilter<"Parent"> | string | null
+  professionMere?: Prisma.StringNullableFilter<"Parent"> | string | null
+  tuteurNom?: Prisma.StringNullableFilter<"Parent"> | string | null
+  adresseTuteur?: Prisma.StringNullableFilter<"Parent"> | string | null
+  provinceOrigine?: Prisma.StringNullableFilter<"Parent"> | string | null
+  territoireOrigine?: Prisma.StringNullableFilter<"Parent"> | string | null
+  secteurOrigine?: Prisma.StringNullableFilter<"Parent"> | string | null
+  villageOrigine?: Prisma.StringNullableFilter<"Parent"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Parent"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Parent"> | Date | string
   branchMember?: Prisma.XOR<Prisma.BranchMemberNullableScalarRelationFilter, Prisma.BranchMemberWhereInput> | null
@@ -225,6 +305,14 @@ export type ParentOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   branchMemberId?: Prisma.SortOrder
   profession?: Prisma.SortOrderInput | Prisma.SortOrder
+  nomMere?: Prisma.SortOrderInput | Prisma.SortOrder
+  professionMere?: Prisma.SortOrderInput | Prisma.SortOrder
+  tuteurNom?: Prisma.SortOrderInput | Prisma.SortOrder
+  adresseTuteur?: Prisma.SortOrderInput | Prisma.SortOrder
+  provinceOrigine?: Prisma.SortOrderInput | Prisma.SortOrder
+  territoireOrigine?: Prisma.SortOrderInput | Prisma.SortOrder
+  secteurOrigine?: Prisma.SortOrderInput | Prisma.SortOrder
+  villageOrigine?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.ParentCountOrderByAggregateInput
@@ -239,6 +327,14 @@ export type ParentScalarWhereWithAggregatesInput = {
   id?: Prisma.StringWithAggregatesFilter<"Parent"> | string
   branchMemberId?: Prisma.StringWithAggregatesFilter<"Parent"> | string
   profession?: Prisma.StringNullableWithAggregatesFilter<"Parent"> | string | null
+  nomMere?: Prisma.StringNullableWithAggregatesFilter<"Parent"> | string | null
+  professionMere?: Prisma.StringNullableWithAggregatesFilter<"Parent"> | string | null
+  tuteurNom?: Prisma.StringNullableWithAggregatesFilter<"Parent"> | string | null
+  adresseTuteur?: Prisma.StringNullableWithAggregatesFilter<"Parent"> | string | null
+  provinceOrigine?: Prisma.StringNullableWithAggregatesFilter<"Parent"> | string | null
+  territoireOrigine?: Prisma.StringNullableWithAggregatesFilter<"Parent"> | string | null
+  secteurOrigine?: Prisma.StringNullableWithAggregatesFilter<"Parent"> | string | null
+  villageOrigine?: Prisma.StringNullableWithAggregatesFilter<"Parent"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Parent"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Parent"> | Date | string
 }
@@ -246,6 +342,14 @@ export type ParentScalarWhereWithAggregatesInput = {
 export type ParentCreateInput = {
   id?: string
   profession?: string | null
+  nomMere?: string | null
+  professionMere?: string | null
+  tuteurNom?: string | null
+  adresseTuteur?: string | null
+  provinceOrigine?: string | null
+  territoireOrigine?: string | null
+  secteurOrigine?: string | null
+  villageOrigine?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   branchMember?: Prisma.BranchMemberCreateNestedOneWithoutParentInput
@@ -260,6 +364,14 @@ export type ParentUncheckedCreateInput = {
   id?: string
   branchMemberId: string
   profession?: string | null
+  nomMere?: string | null
+  professionMere?: string | null
+  tuteurNom?: string | null
+  adresseTuteur?: string | null
+  provinceOrigine?: string | null
+  territoireOrigine?: string | null
+  secteurOrigine?: string | null
+  villageOrigine?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   paymentBatches?: Prisma.PaymentBatchUncheckedCreateNestedManyWithoutParentInput
@@ -272,6 +384,14 @@ export type ParentUncheckedCreateInput = {
 export type ParentUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   profession?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  nomMere?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  professionMere?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tuteurNom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  adresseTuteur?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  provinceOrigine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  territoireOrigine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  secteurOrigine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  villageOrigine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branchMember?: Prisma.BranchMemberUpdateOneWithoutParentNestedInput
@@ -286,6 +406,14 @@ export type ParentUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   branchMemberId?: Prisma.StringFieldUpdateOperationsInput | string
   profession?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  nomMere?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  professionMere?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tuteurNom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  adresseTuteur?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  provinceOrigine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  territoireOrigine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  secteurOrigine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  villageOrigine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   paymentBatches?: Prisma.PaymentBatchUncheckedUpdateManyWithoutParentNestedInput
@@ -299,6 +427,14 @@ export type ParentCreateManyInput = {
   id?: string
   branchMemberId: string
   profession?: string | null
+  nomMere?: string | null
+  professionMere?: string | null
+  tuteurNom?: string | null
+  adresseTuteur?: string | null
+  provinceOrigine?: string | null
+  territoireOrigine?: string | null
+  secteurOrigine?: string | null
+  villageOrigine?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -306,6 +442,14 @@ export type ParentCreateManyInput = {
 export type ParentUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   profession?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  nomMere?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  professionMere?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tuteurNom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  adresseTuteur?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  provinceOrigine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  territoireOrigine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  secteurOrigine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  villageOrigine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -314,6 +458,14 @@ export type ParentUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   branchMemberId?: Prisma.StringFieldUpdateOperationsInput | string
   profession?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  nomMere?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  professionMere?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tuteurNom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  adresseTuteur?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  provinceOrigine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  territoireOrigine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  secteurOrigine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  villageOrigine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -322,6 +474,14 @@ export type ParentCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   branchMemberId?: Prisma.SortOrder
   profession?: Prisma.SortOrder
+  nomMere?: Prisma.SortOrder
+  professionMere?: Prisma.SortOrder
+  tuteurNom?: Prisma.SortOrder
+  adresseTuteur?: Prisma.SortOrder
+  provinceOrigine?: Prisma.SortOrder
+  territoireOrigine?: Prisma.SortOrder
+  secteurOrigine?: Prisma.SortOrder
+  villageOrigine?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -330,6 +490,14 @@ export type ParentMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   branchMemberId?: Prisma.SortOrder
   profession?: Prisma.SortOrder
+  nomMere?: Prisma.SortOrder
+  professionMere?: Prisma.SortOrder
+  tuteurNom?: Prisma.SortOrder
+  adresseTuteur?: Prisma.SortOrder
+  provinceOrigine?: Prisma.SortOrder
+  territoireOrigine?: Prisma.SortOrder
+  secteurOrigine?: Prisma.SortOrder
+  villageOrigine?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -338,6 +506,14 @@ export type ParentMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   branchMemberId?: Prisma.SortOrder
   profession?: Prisma.SortOrder
+  nomMere?: Prisma.SortOrder
+  professionMere?: Prisma.SortOrder
+  tuteurNom?: Prisma.SortOrder
+  adresseTuteur?: Prisma.SortOrder
+  provinceOrigine?: Prisma.SortOrder
+  territoireOrigine?: Prisma.SortOrder
+  secteurOrigine?: Prisma.SortOrder
+  villageOrigine?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -479,6 +655,14 @@ export type ParentUncheckedUpdateManyWithoutBranchMemberNestedInput = {
 export type ParentCreateWithoutStudentsInput = {
   id?: string
   profession?: string | null
+  nomMere?: string | null
+  professionMere?: string | null
+  tuteurNom?: string | null
+  adresseTuteur?: string | null
+  provinceOrigine?: string | null
+  territoireOrigine?: string | null
+  secteurOrigine?: string | null
+  villageOrigine?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   branchMember?: Prisma.BranchMemberCreateNestedOneWithoutParentInput
@@ -492,6 +676,14 @@ export type ParentUncheckedCreateWithoutStudentsInput = {
   id?: string
   branchMemberId: string
   profession?: string | null
+  nomMere?: string | null
+  professionMere?: string | null
+  tuteurNom?: string | null
+  adresseTuteur?: string | null
+  provinceOrigine?: string | null
+  territoireOrigine?: string | null
+  secteurOrigine?: string | null
+  villageOrigine?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   paymentBatches?: Prisma.PaymentBatchUncheckedCreateNestedManyWithoutParentInput
@@ -519,6 +711,14 @@ export type ParentUpdateToOneWithWhereWithoutStudentsInput = {
 export type ParentUpdateWithoutStudentsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   profession?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  nomMere?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  professionMere?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tuteurNom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  adresseTuteur?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  provinceOrigine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  territoireOrigine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  secteurOrigine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  villageOrigine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branchMember?: Prisma.BranchMemberUpdateOneWithoutParentNestedInput
@@ -532,6 +732,14 @@ export type ParentUncheckedUpdateWithoutStudentsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   branchMemberId?: Prisma.StringFieldUpdateOperationsInput | string
   profession?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  nomMere?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  professionMere?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tuteurNom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  adresseTuteur?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  provinceOrigine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  territoireOrigine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  secteurOrigine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  villageOrigine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   paymentBatches?: Prisma.PaymentBatchUncheckedUpdateManyWithoutParentNestedInput
@@ -543,6 +751,14 @@ export type ParentUncheckedUpdateWithoutStudentsInput = {
 export type ParentCreateWithoutFeedbacksInput = {
   id?: string
   profession?: string | null
+  nomMere?: string | null
+  professionMere?: string | null
+  tuteurNom?: string | null
+  adresseTuteur?: string | null
+  provinceOrigine?: string | null
+  territoireOrigine?: string | null
+  secteurOrigine?: string | null
+  villageOrigine?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   branchMember?: Prisma.BranchMemberCreateNestedOneWithoutParentInput
@@ -556,6 +772,14 @@ export type ParentUncheckedCreateWithoutFeedbacksInput = {
   id?: string
   branchMemberId: string
   profession?: string | null
+  nomMere?: string | null
+  professionMere?: string | null
+  tuteurNom?: string | null
+  adresseTuteur?: string | null
+  provinceOrigine?: string | null
+  territoireOrigine?: string | null
+  secteurOrigine?: string | null
+  villageOrigine?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   paymentBatches?: Prisma.PaymentBatchUncheckedCreateNestedManyWithoutParentInput
@@ -583,6 +807,14 @@ export type ParentUpdateToOneWithWhereWithoutFeedbacksInput = {
 export type ParentUpdateWithoutFeedbacksInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   profession?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  nomMere?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  professionMere?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tuteurNom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  adresseTuteur?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  provinceOrigine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  territoireOrigine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  secteurOrigine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  villageOrigine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branchMember?: Prisma.BranchMemberUpdateOneWithoutParentNestedInput
@@ -596,6 +828,14 @@ export type ParentUncheckedUpdateWithoutFeedbacksInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   branchMemberId?: Prisma.StringFieldUpdateOperationsInput | string
   profession?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  nomMere?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  professionMere?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tuteurNom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  adresseTuteur?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  provinceOrigine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  territoireOrigine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  secteurOrigine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  villageOrigine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   paymentBatches?: Prisma.PaymentBatchUncheckedUpdateManyWithoutParentNestedInput
@@ -607,6 +847,14 @@ export type ParentUncheckedUpdateWithoutFeedbacksInput = {
 export type ParentCreateWithoutPaymentBatchesInput = {
   id?: string
   profession?: string | null
+  nomMere?: string | null
+  professionMere?: string | null
+  tuteurNom?: string | null
+  adresseTuteur?: string | null
+  provinceOrigine?: string | null
+  territoireOrigine?: string | null
+  secteurOrigine?: string | null
+  villageOrigine?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   branchMember?: Prisma.BranchMemberCreateNestedOneWithoutParentInput
@@ -620,6 +868,14 @@ export type ParentUncheckedCreateWithoutPaymentBatchesInput = {
   id?: string
   branchMemberId: string
   profession?: string | null
+  nomMere?: string | null
+  professionMere?: string | null
+  tuteurNom?: string | null
+  adresseTuteur?: string | null
+  provinceOrigine?: string | null
+  territoireOrigine?: string | null
+  secteurOrigine?: string | null
+  villageOrigine?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   familyPayments?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutParentInput
@@ -647,6 +903,14 @@ export type ParentUpdateToOneWithWhereWithoutPaymentBatchesInput = {
 export type ParentUpdateWithoutPaymentBatchesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   profession?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  nomMere?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  professionMere?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tuteurNom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  adresseTuteur?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  provinceOrigine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  territoireOrigine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  secteurOrigine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  villageOrigine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branchMember?: Prisma.BranchMemberUpdateOneWithoutParentNestedInput
@@ -660,6 +924,14 @@ export type ParentUncheckedUpdateWithoutPaymentBatchesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   branchMemberId?: Prisma.StringFieldUpdateOperationsInput | string
   profession?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  nomMere?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  professionMere?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tuteurNom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  adresseTuteur?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  provinceOrigine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  territoireOrigine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  secteurOrigine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  villageOrigine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   familyPayments?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutParentNestedInput
@@ -671,6 +943,14 @@ export type ParentUncheckedUpdateWithoutPaymentBatchesInput = {
 export type ParentCreateWithoutFamilyPaymentsInput = {
   id?: string
   profession?: string | null
+  nomMere?: string | null
+  professionMere?: string | null
+  tuteurNom?: string | null
+  adresseTuteur?: string | null
+  provinceOrigine?: string | null
+  territoireOrigine?: string | null
+  secteurOrigine?: string | null
+  villageOrigine?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   branchMember?: Prisma.BranchMemberCreateNestedOneWithoutParentInput
@@ -684,6 +964,14 @@ export type ParentUncheckedCreateWithoutFamilyPaymentsInput = {
   id?: string
   branchMemberId: string
   profession?: string | null
+  nomMere?: string | null
+  professionMere?: string | null
+  tuteurNom?: string | null
+  adresseTuteur?: string | null
+  provinceOrigine?: string | null
+  territoireOrigine?: string | null
+  secteurOrigine?: string | null
+  villageOrigine?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   paymentBatches?: Prisma.PaymentBatchUncheckedCreateNestedManyWithoutParentInput
@@ -711,6 +999,14 @@ export type ParentUpdateToOneWithWhereWithoutFamilyPaymentsInput = {
 export type ParentUpdateWithoutFamilyPaymentsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   profession?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  nomMere?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  professionMere?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tuteurNom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  adresseTuteur?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  provinceOrigine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  territoireOrigine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  secteurOrigine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  villageOrigine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branchMember?: Prisma.BranchMemberUpdateOneWithoutParentNestedInput
@@ -724,6 +1020,14 @@ export type ParentUncheckedUpdateWithoutFamilyPaymentsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   branchMemberId?: Prisma.StringFieldUpdateOperationsInput | string
   profession?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  nomMere?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  professionMere?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tuteurNom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  adresseTuteur?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  provinceOrigine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  territoireOrigine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  secteurOrigine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  villageOrigine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   paymentBatches?: Prisma.PaymentBatchUncheckedUpdateManyWithoutParentNestedInput
@@ -735,6 +1039,14 @@ export type ParentUncheckedUpdateWithoutFamilyPaymentsInput = {
 export type ParentCreateWithoutDiscountRulesInput = {
   id?: string
   profession?: string | null
+  nomMere?: string | null
+  professionMere?: string | null
+  tuteurNom?: string | null
+  adresseTuteur?: string | null
+  provinceOrigine?: string | null
+  territoireOrigine?: string | null
+  secteurOrigine?: string | null
+  villageOrigine?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   branchMember?: Prisma.BranchMemberCreateNestedOneWithoutParentInput
@@ -748,6 +1060,14 @@ export type ParentUncheckedCreateWithoutDiscountRulesInput = {
   id?: string
   branchMemberId: string
   profession?: string | null
+  nomMere?: string | null
+  professionMere?: string | null
+  tuteurNom?: string | null
+  adresseTuteur?: string | null
+  provinceOrigine?: string | null
+  territoireOrigine?: string | null
+  secteurOrigine?: string | null
+  villageOrigine?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   paymentBatches?: Prisma.PaymentBatchUncheckedCreateNestedManyWithoutParentInput
@@ -775,6 +1095,14 @@ export type ParentUpdateToOneWithWhereWithoutDiscountRulesInput = {
 export type ParentUpdateWithoutDiscountRulesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   profession?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  nomMere?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  professionMere?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tuteurNom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  adresseTuteur?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  provinceOrigine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  territoireOrigine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  secteurOrigine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  villageOrigine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branchMember?: Prisma.BranchMemberUpdateOneWithoutParentNestedInput
@@ -788,6 +1116,14 @@ export type ParentUncheckedUpdateWithoutDiscountRulesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   branchMemberId?: Prisma.StringFieldUpdateOperationsInput | string
   profession?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  nomMere?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  professionMere?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tuteurNom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  adresseTuteur?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  provinceOrigine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  territoireOrigine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  secteurOrigine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  villageOrigine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   paymentBatches?: Prisma.PaymentBatchUncheckedUpdateManyWithoutParentNestedInput
@@ -799,6 +1135,14 @@ export type ParentUncheckedUpdateWithoutDiscountRulesInput = {
 export type ParentCreateWithoutBranchMemberInput = {
   id?: string
   profession?: string | null
+  nomMere?: string | null
+  professionMere?: string | null
+  tuteurNom?: string | null
+  adresseTuteur?: string | null
+  provinceOrigine?: string | null
+  territoireOrigine?: string | null
+  secteurOrigine?: string | null
+  villageOrigine?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   paymentBatches?: Prisma.PaymentBatchCreateNestedManyWithoutParentInput
@@ -811,6 +1155,14 @@ export type ParentCreateWithoutBranchMemberInput = {
 export type ParentUncheckedCreateWithoutBranchMemberInput = {
   id?: string
   profession?: string | null
+  nomMere?: string | null
+  professionMere?: string | null
+  tuteurNom?: string | null
+  adresseTuteur?: string | null
+  provinceOrigine?: string | null
+  territoireOrigine?: string | null
+  secteurOrigine?: string | null
+  villageOrigine?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   paymentBatches?: Prisma.PaymentBatchUncheckedCreateNestedManyWithoutParentInput
@@ -853,6 +1205,14 @@ export type ParentScalarWhereInput = {
   id?: Prisma.StringFilter<"Parent"> | string
   branchMemberId?: Prisma.StringFilter<"Parent"> | string
   profession?: Prisma.StringNullableFilter<"Parent"> | string | null
+  nomMere?: Prisma.StringNullableFilter<"Parent"> | string | null
+  professionMere?: Prisma.StringNullableFilter<"Parent"> | string | null
+  tuteurNom?: Prisma.StringNullableFilter<"Parent"> | string | null
+  adresseTuteur?: Prisma.StringNullableFilter<"Parent"> | string | null
+  provinceOrigine?: Prisma.StringNullableFilter<"Parent"> | string | null
+  territoireOrigine?: Prisma.StringNullableFilter<"Parent"> | string | null
+  secteurOrigine?: Prisma.StringNullableFilter<"Parent"> | string | null
+  villageOrigine?: Prisma.StringNullableFilter<"Parent"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Parent"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Parent"> | Date | string
 }
@@ -860,6 +1220,14 @@ export type ParentScalarWhereInput = {
 export type ParentCreateManyBranchMemberInput = {
   id?: string
   profession?: string | null
+  nomMere?: string | null
+  professionMere?: string | null
+  tuteurNom?: string | null
+  adresseTuteur?: string | null
+  provinceOrigine?: string | null
+  territoireOrigine?: string | null
+  secteurOrigine?: string | null
+  villageOrigine?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -867,6 +1235,14 @@ export type ParentCreateManyBranchMemberInput = {
 export type ParentUpdateWithoutBranchMemberInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   profession?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  nomMere?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  professionMere?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tuteurNom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  adresseTuteur?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  provinceOrigine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  territoireOrigine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  secteurOrigine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  villageOrigine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   paymentBatches?: Prisma.PaymentBatchUpdateManyWithoutParentNestedInput
@@ -879,6 +1255,14 @@ export type ParentUpdateWithoutBranchMemberInput = {
 export type ParentUncheckedUpdateWithoutBranchMemberInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   profession?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  nomMere?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  professionMere?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tuteurNom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  adresseTuteur?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  provinceOrigine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  territoireOrigine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  secteurOrigine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  villageOrigine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   paymentBatches?: Prisma.PaymentBatchUncheckedUpdateManyWithoutParentNestedInput
@@ -891,6 +1275,14 @@ export type ParentUncheckedUpdateWithoutBranchMemberInput = {
 export type ParentUncheckedUpdateManyWithoutBranchMemberInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   profession?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  nomMere?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  professionMere?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tuteurNom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  adresseTuteur?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  provinceOrigine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  territoireOrigine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  secteurOrigine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  villageOrigine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -966,6 +1358,14 @@ export type ParentSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   id?: boolean
   branchMemberId?: boolean
   profession?: boolean
+  nomMere?: boolean
+  professionMere?: boolean
+  tuteurNom?: boolean
+  adresseTuteur?: boolean
+  provinceOrigine?: boolean
+  territoireOrigine?: boolean
+  secteurOrigine?: boolean
+  villageOrigine?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   branchMember?: boolean | Prisma.Parent$branchMemberArgs<ExtArgs>
@@ -981,6 +1381,14 @@ export type ParentSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extens
   id?: boolean
   branchMemberId?: boolean
   profession?: boolean
+  nomMere?: boolean
+  professionMere?: boolean
+  tuteurNom?: boolean
+  adresseTuteur?: boolean
+  provinceOrigine?: boolean
+  territoireOrigine?: boolean
+  secteurOrigine?: boolean
+  villageOrigine?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   branchMember?: boolean | Prisma.Parent$branchMemberArgs<ExtArgs>
@@ -990,6 +1398,14 @@ export type ParentSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extens
   id?: boolean
   branchMemberId?: boolean
   profession?: boolean
+  nomMere?: boolean
+  professionMere?: boolean
+  tuteurNom?: boolean
+  adresseTuteur?: boolean
+  provinceOrigine?: boolean
+  territoireOrigine?: boolean
+  secteurOrigine?: boolean
+  villageOrigine?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   branchMember?: boolean | Prisma.Parent$branchMemberArgs<ExtArgs>
@@ -999,11 +1415,19 @@ export type ParentSelectScalar = {
   id?: boolean
   branchMemberId?: boolean
   profession?: boolean
+  nomMere?: boolean
+  professionMere?: boolean
+  tuteurNom?: boolean
+  adresseTuteur?: boolean
+  provinceOrigine?: boolean
+  territoireOrigine?: boolean
+  secteurOrigine?: boolean
+  villageOrigine?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type ParentOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "branchMemberId" | "profession" | "createdAt" | "updatedAt", ExtArgs["result"]["parent"]>
+export type ParentOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "branchMemberId" | "profession" | "nomMere" | "professionMere" | "tuteurNom" | "adresseTuteur" | "provinceOrigine" | "territoireOrigine" | "secteurOrigine" | "villageOrigine" | "createdAt" | "updatedAt", ExtArgs["result"]["parent"]>
 export type ParentInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   branchMember?: boolean | Prisma.Parent$branchMemberArgs<ExtArgs>
   paymentBatches?: boolean | Prisma.Parent$paymentBatchesArgs<ExtArgs>
@@ -1037,6 +1461,17 @@ export type $ParentPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
      * Fonction / lieu de travail (optionnel, saisi à l'inscription)
      */
     profession: string | null
+    /**
+     * Infos famille complémentaires (optionnelles)
+     */
+    nomMere: string | null
+    professionMere: string | null
+    tuteurNom: string | null
+    adresseTuteur: string | null
+    provinceOrigine: string | null
+    territoireOrigine: string | null
+    secteurOrigine: string | null
+    villageOrigine: string | null
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["parent"]>
@@ -1471,6 +1906,14 @@ export interface ParentFieldRefs {
   readonly id: Prisma.FieldRef<"Parent", 'String'>
   readonly branchMemberId: Prisma.FieldRef<"Parent", 'String'>
   readonly profession: Prisma.FieldRef<"Parent", 'String'>
+  readonly nomMere: Prisma.FieldRef<"Parent", 'String'>
+  readonly professionMere: Prisma.FieldRef<"Parent", 'String'>
+  readonly tuteurNom: Prisma.FieldRef<"Parent", 'String'>
+  readonly adresseTuteur: Prisma.FieldRef<"Parent", 'String'>
+  readonly provinceOrigine: Prisma.FieldRef<"Parent", 'String'>
+  readonly territoireOrigine: Prisma.FieldRef<"Parent", 'String'>
+  readonly secteurOrigine: Prisma.FieldRef<"Parent", 'String'>
+  readonly villageOrigine: Prisma.FieldRef<"Parent", 'String'>
   readonly createdAt: Prisma.FieldRef<"Parent", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Parent", 'DateTime'>
 }

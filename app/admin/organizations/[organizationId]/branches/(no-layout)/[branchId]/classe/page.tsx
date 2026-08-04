@@ -18,25 +18,25 @@ import { Badge } from "@/components/ui/badge";
 import { BranchStatCard } from "@/components/ui/branch-stat-card";
 import { Card } from "@/components/ui/card";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { useSession } from "@/lib/auth-client";
 import { canAccessBranchArea } from "@/lib/auth/branch-area-access";
-
-import Loading from "../loading";
-import Classes from "./components/ClassesClient";
-import { ClasseUpForm } from "./components/classe-form";
-import { getClassesAction, importClassCatalogAction } from "./classe.action";
-import { getStudentPageContextAction } from "../brevets/brevet.action";
-import { isUniversiteBranch } from "@/lib/branch-capabilities";
 import {
   getClassDisplayLabel,
   getClassDisplayLabelPlural,
+  isUniversiteBranch,
 } from "@/lib/branch-capabilities";
+
+import Loading from "../loading";
+import { getStudentPageContextAction } from "../brevets/brevet.action";
+import Classes from "./components/ClassesClient";
+import { ClasseUpForm } from "./components/classe-form";
+import { getClassesAction, importClassCatalogAction } from "./classe.action";
 
 export default function Page() {
   const [open, setOpen] = useState(false);
@@ -73,7 +73,6 @@ export default function Page() {
     return <Loading />;
   }
 
-  // Setup Classes : pédagogie admin uniquement (pas enseignant — unit-06).
   if (!session || !canAccessBranchArea("school_admin", session)) {
     return <NotFoundView />;
   }
@@ -89,8 +88,12 @@ export default function Page() {
               : ""),
         );
         setRefreshKey((value) => value + 1);
-      } catch (error: any) {
-        toast.error(error?.message || "Échec de l'import du catalogue");
+      } catch (error: unknown) {
+        toast.error(
+          error instanceof Error
+            ? error.message
+            : "Échec de l'import du catalogue",
+        );
       }
     });
   }
@@ -98,82 +101,90 @@ export default function Page() {
   return (
     <BranchPageShell
       title={`Gestion des ${classLabelPlural.toLowerCase()}`}
-          description={`Créez les ${classLabelPlural.toLowerCase()} et organisez leur capacité, option et créneau.`}
-          badge={
-            <Badge variant="outline-primary" icon={<IconUsers size={14} />}>
-              {classLabelPlural}
-            </Badge>
-          }
-          actions={
-            <div className="flex flex-wrap gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                loading={importing}
-                onClick={handleImportCatalog}
-              >
-                <IconDownload size={16} className="mr-2" />
-                Importer catalogue
-              </Button>
-              <Button
-                type="button"
-                variant="default"
-                onClick={() => setOpen(true)}
-              >
-                <IconUserPlus size={16} className="mr-2" />
-                {`Créer une ${classLabel.toLowerCase()}`}
-              </Button>
-            </div>
-          }
-    >
-      <Dialog open={open} onOpenChange={setOpen}>
-          <DialogContent
-            size="lg"
-            className="gap-3"
-            onOpenAutoFocus={(event) => event.preventDefault()}
-            onCloseAutoFocus={(event) => event.preventDefault()}
+      description={`Créez les ${classLabelPlural.toLowerCase()} et organisez leur capacité, option et créneau.`}
+      badge={
+        <Badge variant="outline-primary" icon={<IconUsers size={14} />}>
+          {classLabelPlural}
+        </Badge>
+      }
+      actions={
+        <div className="flex flex-wrap gap-2">
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            loading={importing}
+            disabled={stats.total > 0}
+            title={
+              stats.total > 0
+                ? "Le catalogue ne peut plus être importé : des classes existent déjà."
+                : undefined
+            }
+            onClick={handleImportCatalog}
           >
-            <DialogHeader className="space-y-1">
-              <DialogTitle>{`Créer une ${classLabel.toLowerCase()}`}</DialogTitle>
-              <DialogDescription>
-                {`Niveau, section, option et vacation de la ${classLabel.toLowerCase()}.`}
-              </DialogDescription>
-            </DialogHeader>
-
+            <IconDownload size={16} className="mr-2" />
+            Importer catalogue
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            variant="default"
+            leftSection={<IconUserPlus size={16} />}
+            onClick={() => setOpen(true)}
+          >
+            {`Créer une ${classLabel.toLowerCase()}`}
+          </Button>
+        </div>
+      }
+    >
+      <Sheet open={open} onOpenChange={setOpen}>
+        <SheetContent
+          side="right"
+          className="flex h-dvh max-h-dvh w-[min(100vw,40rem)] max-w-full flex-col gap-0 overflow-hidden p-0 sm:max-w-[40rem]"
+        >
+          <SheetHeader className="shrink-0 space-y-1.5 border-b px-5 py-4 pr-12 text-left sm:px-6">
+            <SheetTitle>{`Créer une ${classLabel.toLowerCase()}`}</SheetTitle>
+            <SheetDescription>
+              {`Niveau, section, option et vacation de la ${classLabel.toLowerCase()}.`}
+            </SheetDescription>
+          </SheetHeader>
+          <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4 sm:px-6">
             {open ? (
               <ClasseUpForm
                 key="create-classe"
                 mode="create"
+                layout="sheet"
                 onCreated={() => {
                   setRefreshKey((value) => value + 1);
                   setOpen(false);
                 }}
               />
             ) : null}
-          </DialogContent>
-        </Dialog>
+          </div>
+        </SheetContent>
+      </Sheet>
 
-        <div className="grid gap-4 sm:grid-cols-3">
-          <BranchStatCard
-            label={`Total des ${classLabelPlural.toLowerCase()}`}
-            value={stats.total}
-            icon={IconUsers}
-          />
-          <BranchStatCard
-            label={`${classLabelPlural} actifs`}
-            value={stats.active}
-            icon={IconSchool}
-          />
-          <BranchStatCard
-            label={`${classLabelPlural} inactifs`}
-            value={stats.inactive}
-            icon={IconSchoolOff}
-          />
-        </div>
+      <div className="grid gap-4 sm:grid-cols-3">
+        <BranchStatCard
+          label={`Total des ${classLabelPlural.toLowerCase()}`}
+          value={stats.total}
+          icon={IconUsers}
+        />
+        <BranchStatCard
+          label={`${classLabelPlural} actifs`}
+          value={stats.active}
+          icon={IconSchool}
+        />
+        <BranchStatCard
+          label={`${classLabelPlural} inactifs`}
+          value={stats.inactive}
+          icon={IconSchoolOff}
+        />
+      </div>
 
-        <Card variant="elevated" padding="none">
-          <Classes refreshKey={refreshKey} />
-        </Card>
+      <Card variant="elevated" padding="none">
+        <Classes refreshKey={refreshKey} />
+      </Card>
     </BranchPageShell>
   );
 }

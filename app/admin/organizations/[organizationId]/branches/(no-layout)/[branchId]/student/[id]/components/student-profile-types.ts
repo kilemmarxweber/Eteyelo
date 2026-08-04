@@ -41,6 +41,9 @@ export type StudentProfileData = {
   ageLabel: string;
   placeOfBirth: string;
   nationality: string;
+  autreNationalite: string;
+  territoireAutreNationalite: string;
+  langue: string;
   bloodGroup: string;
   allergies: string;
   vulnerability: string;
@@ -64,6 +67,14 @@ export type StudentProfileData = {
   parentProfession: string;
   parentAddress: string;
   parentEmergencyContact: string;
+  nomMere: string;
+  professionMere: string;
+  tuteurNom: string;
+  adresseTuteur: string;
+  provinceOrigine: string;
+  territoireOrigine: string;
+  secteurOrigine: string;
+  villageOrigine: string;
   displayId: string;
   badge: StudentBadgeData;
   fees: StudentProfileFee[];

@@ -67,6 +67,7 @@ interface FraisUpFormProps extends HTMLAttributes<HTMLDivElement> {
   initialData?: z.infer<typeof fraisSchema>;
   classeId?: string;
   mode: "create" | "update";
+  layout?: "default" | "dialog";
 }
 
 export function FraisUpForm({
@@ -77,8 +78,10 @@ export function FraisUpForm({
   initialData,
   classeId,
   mode,
+  layout = "default",
   ...props
 }: FraisUpFormProps) {
+  const isDialog = layout === "dialog";
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [calendarOpen, setCalendarOpen] = useState(false);
@@ -180,19 +183,43 @@ export function FraisUpForm({
   }
 
   return (
-    <div className={cn("grid gap-6", className)} {...props}>
+    <div
+      className={cn(isDialog ? "grid gap-2" : "grid gap-6", className)}
+      {...props}
+    >
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
-          <div className="grid gap-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className={cn("grid", isDialog ? "gap-y-2" : "gap-4")}>
+            <div
+              className={cn(
+                "grid grid-cols-1 sm:grid-cols-2",
+                isDialog ? "gap-x-4 gap-y-2" : "gap-4",
+              )}
+            >
               <FormField
                 control={form.control}
                 name="nameFrais"
                 render={({ field }) => (
-                  <FormItem className="space-y-1">
-                    <FormLabel>Nom du frais</FormLabel>
+                  <FormItem className={isDialog ? "space-y-0.5" : "space-y-1"}>
+                    <FormLabel
+                      className={
+                        isDialog
+                          ? "text-xs font-medium text-muted-foreground"
+                          : undefined
+                      }
+                    >
+                      Nom du frais
+                    </FormLabel>
                     <FormControl>
-                      <Input placeholder="Ex: Frais d'inscription" {...field} />
+                      <Input
+                        placeholder="Ex: Frais d'inscription"
+                        className={
+                          isDialog
+                            ? "h-9 rounded-md px-3 text-sm font-normal"
+                            : undefined
+                        }
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -202,8 +229,16 @@ export function FraisUpForm({
                 control={form.control}
                 name="priority"
                 render={({ field }) => (
-                  <FormItem className="space-y-1">
-                    <FormLabel>Priorité (0-100)</FormLabel>
+                  <FormItem className={isDialog ? "space-y-0.5" : "space-y-1"}>
+                    <FormLabel
+                      className={
+                        isDialog
+                          ? "text-xs font-medium text-muted-foreground"
+                          : undefined
+                      }
+                    >
+                      Priorité (0-100)
+                    </FormLabel>
                     <FormControl>
                       <Input
                         placeholder="0"
@@ -211,12 +246,17 @@ export function FraisUpForm({
                         min={0}
                         max={100}
                         step={1}
-                        className={numberInputClassName}
+                        className={cn(
+                          numberInputClassName,
+                          isDialog && "h-9 rounded-md px-3 text-sm font-normal",
+                        )}
                         name={field.name}
                         ref={field.ref}
                         onBlur={field.onBlur}
                         value={formatNumberInputValue(field.value)}
-                        onFocus={() => clearZeroOnFocus(field.value, field.onChange)}
+                        onFocus={() =>
+                          clearZeroOnFocus(field.value, field.onChange)
+                        }
                         onChange={(e) => {
                           const value = e.target.value;
                           field.onChange(
@@ -235,13 +275,26 @@ export function FraisUpForm({
                 render={({ field }) => <input type="hidden" {...field} />}
               />
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div
+              className={cn(
+                "grid grid-cols-1 sm:grid-cols-2",
+                isDialog ? "gap-x-4 gap-y-2" : "gap-4",
+              )}
+            >
               <FormField
                 control={form.control}
                 name="montantFrais"
                 render={({ field }) => (
-                  <FormItem className="space-y-1">
-                    <FormLabel>Montant</FormLabel>
+                  <FormItem className={isDialog ? "space-y-0.5" : "space-y-1"}>
+                    <FormLabel
+                      className={
+                        isDialog
+                          ? "text-xs font-medium text-muted-foreground"
+                          : undefined
+                      }
+                    >
+                      Montant
+                    </FormLabel>
                     <FormControl>
                       <MontantInput
                         name={field.name}
@@ -260,14 +313,28 @@ export function FraisUpForm({
                 control={form.control}
                 name="typeFraisId"
                 render={({ field }) => (
-                  <FormItem className="space-y-1">
-                    <FormLabel>Type de frais</FormLabel>
+                  <FormItem className={isDialog ? "space-y-0.5" : "space-y-1"}>
+                    <FormLabel
+                      className={
+                        isDialog
+                          ? "text-xs font-medium text-muted-foreground"
+                          : undefined
+                      }
+                    >
+                      Type de frais
+                    </FormLabel>
                     <Select
                       onValueChange={field.onChange}
                       value={field.value || undefined}
                     >
                       <FormControl>
-                        <SelectTrigger>
+                        <SelectTrigger
+                          className={
+                            isDialog
+                              ? "h-9 rounded-md px-3 text-sm font-normal"
+                              : undefined
+                          }
+                        >
                           <SelectValue placeholder="Sélectionner un type" />
                         </SelectTrigger>
                       </FormControl>
@@ -293,14 +360,28 @@ export function FraisUpForm({
                 control={form.control}
                 name="classeId"
                 render={({ field }) => (
-                  <FormItem className="space-y-1">
-                    <FormLabel>Classe</FormLabel>
+                  <FormItem className={isDialog ? "space-y-0.5" : "space-y-1"}>
+                    <FormLabel
+                      className={
+                        isDialog
+                          ? "text-xs font-medium text-muted-foreground"
+                          : undefined
+                      }
+                    >
+                      Classe
+                    </FormLabel>
                     <Select
                       onValueChange={field.onChange}
                       value={field.value || undefined}
                     >
                       <FormControl>
-                        <SelectTrigger>
+                        <SelectTrigger
+                          className={
+                            isDialog
+                              ? "h-9 rounded-md px-3 text-sm font-normal"
+                              : undefined
+                          }
+                        >
                           <SelectValue placeholder="Sélectionner une classe" />
                         </SelectTrigger>
                       </FormControl>
@@ -322,15 +403,24 @@ export function FraisUpForm({
               control={form.control}
               name="echeance"
               render={({ field }) => (
-                <FormItem className="space-y-1">
-                  <FormLabel>Date d'échéance (optionnel)</FormLabel>
+                <FormItem className={isDialog ? "space-y-0.5" : "space-y-1"}>
+                  <FormLabel
+                    className={
+                      isDialog
+                        ? "text-xs font-medium text-muted-foreground"
+                        : undefined
+                    }
+                  >
+                    Date d&apos;échéance (optionnel)
+                  </FormLabel>
                   <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
                     <PopoverTrigger asChild>
                       <FormControl>
                         <button
                           type="button"
                           className={cn(
-                            "flex h-10 w-full items-center gap-2 rounded-lg border border-input bg-background px-4 py-2 text-sm transition-all hover:border-ring/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1",
+                            "flex w-full items-center gap-2 rounded-lg border border-input bg-background px-4 py-2 text-sm transition-all hover:border-ring/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1",
+                            isDialog ? "h-9 rounded-md px-3" : "h-10",
                             !field.value && "text-muted-foreground",
                           )}
                         >
@@ -352,7 +442,10 @@ export function FraisUpForm({
                                 field.onChange(undefined);
                               }}
                               onKeyDown={(event) => {
-                                if (event.key === "Enter" || event.key === " ") {
+                                if (
+                                  event.key === "Enter" ||
+                                  event.key === " "
+                                ) {
                                   event.preventDefault();
                                   event.stopPropagation();
                                   field.onChange(undefined);
@@ -371,7 +464,7 @@ export function FraisUpForm({
                     >
                       <div className="border-b bg-muted/30 px-4 py-3">
                         <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-                          Date d'échéance
+                          Date d&apos;échéance
                         </p>
                         <p className="mt-0.5 text-sm font-semibold capitalize text-foreground">
                           {field.value
@@ -419,17 +512,30 @@ export function FraisUpForm({
               )}
             />
 
-            <Button type="submit" className="mt-4" loading={isLoading}>
+            <Button
+              type="submit"
+              size={isDialog ? "default" : undefined}
+              className={cn(
+                "mt-2 w-full font-medium",
+                isDialog && "h-11 text-base",
+              )}
+              loading={isLoading}
+            >
               {mode === "create"
                 ? "Enregistrer le frais"
                 : "Mettre à jour le frais"}
             </Button>
 
-            {errorMessage && (
-              <p className="mt-2 text-center text-red-500 text-sm">
+            {errorMessage ? (
+              <p
+                className={cn(
+                  "mt-2 text-center text-red-500",
+                  isDialog ? "text-xs" : "text-sm",
+                )}
+              >
                 {errorMessage}
               </p>
-            )}
+            ) : null}
           </div>
         </form>
       </Form>
