@@ -266,7 +266,7 @@ export function StudentTakeWorkspace({
                 <>
                   <span>·</span>
                   <span>
-                    Sauvé {lastSavedAt.toLocaleTimeString("fr-CD", { hour: "2-digit", minute: "2-digit" })}
+                    Enregistré {lastSavedAt.toLocaleTimeString("fr-CD", { hour: "2-digit", minute: "2-digit" })}
                   </span>
                 </>
               ) : null}

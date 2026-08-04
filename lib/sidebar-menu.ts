@@ -127,7 +127,7 @@ const CURSUS_ROLES = Array.from(
 
 const staticSidebarMenu: StaticMenuItem[] = [
   {
-    title: "Dashboard",
+    title: "Tableau de bord",
     href: "/admin",
     icon: "dashboard",
     roles: ["*"],
@@ -140,7 +140,7 @@ const staticSidebarMenu: StaticMenuItem[] = [
     roles: [...SCHOOL_ADMIN_ROLES, ...CAISSIER_ROLES],
   },
   {
-    title: "Presences",
+    title: "Présences",
     href: "/admin/attendance",
     icon: "attendance",
     roles: PRESENCE_ROLES,

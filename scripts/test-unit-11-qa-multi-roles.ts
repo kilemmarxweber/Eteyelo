@@ -1,5 +1,5 @@
-/**
- * Smoke tests — unit-11 QA multi-rôles (menus, dashboard, gates, unification).
+﻿/**
+ * Smoke tests — unit-11 QA multi-rôles (menus, Tableau de bord, gates, unification).
  * Agrège les critères d’acceptation de la checklist unit-11.
  */
 import assert from "node:assert/strict";
@@ -123,9 +123,9 @@ test("libellé UI primaire → Directeur ; secondaire → Préfet", () => {
 
 // --- Caissier ---
 
-test("caissier : menu Dashboard + Inscription + Finance + Utilisateurs (+ Aide)", () => {
+test("caissier : menu Tableau de bord + Inscription + Finance + Utilisateurs (+ Aide)", () => {
   const titles = menuTitles(ORG_ROLE.CAISSIER);
-  assert.ok(titles.includes("Dashboard"));
+  assert.ok(titles.includes("Tableau de bord"));
   assert.ok(titles.includes("Inscription"));
   assert.ok(titles.includes("Finance"));
   assert.ok(titles.includes("Utilisateurs"));
@@ -135,7 +135,7 @@ test("caissier : menu Dashboard + Inscription + Finance + Utilisateurs (+ Aide)"
   }
 });
 
-test("caissier : dashboard caisse ; /paiement + inscription OK ; pédagogie refusée ; élèves lecture OK", () => {
+test("caissier : Tableau de bord caisse ; /paiement + inscription OK ; pédagogie refusée ; élèves lecture OK", () => {
   assert.equal(resolveDashboardVariant(sessionWithOrgRole(ORG_ROLE.CAISSIER)), "caissier");
   assert.equal(getDashboardDataBlocks("caissier").cashier, true);
   assert.equal(getDashboardDataBlocks("caissier").pedagogyMetrics, false);
@@ -178,7 +178,7 @@ test("parent : cursus enfants ; self-scoped ; pas Finance", () => {
 
 // --- Enseignant ---
 
-test("enseignant : notes OK ; pas Finance / Enseignement ; dashboard mes classes", () => {
+test("enseignant : notes OK ; pas Finance / Enseignement ; Tableau de bord mes classes", () => {
   const titles = menuTitles(ORG_ROLE.TEACHER);
   assert.ok(titles.includes("Cursus"));
   assert.ok(!titles.includes("Enseignement"));
@@ -248,9 +248,9 @@ test("directeur/préfet : pédagogie sans finance ; pas owner org", () => {
 
 // --- Gestionnaire ---
 
-test("gestionnaire : pas de régression menu large + dashboard pilotage", () => {
+test("gestionnaire : pas de régression menu large + Tableau de bord pilotage", () => {
   const titles = menuTitles(ORG_ROLE.GESTIONNAIRE);
-  for (const title of ["Dashboard", "Finance", "Classes", "Enseignement", "Utilisateurs"]) {
+  for (const title of ["Tableau de bord", "Finance", "Classes", "Enseignement", "Utilisateurs"]) {
     assert.ok(titles.includes(title), `gestionnaire ${title}`);
   }
   assert.equal(

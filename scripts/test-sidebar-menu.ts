@@ -1,4 +1,4 @@
-import assert from "node:assert/strict";
+﻿import assert from "node:assert/strict";
 
 import { ORG_ROLE } from "../lib/permissions";
 import { buildStaticSideLinks } from "../lib/sidebar-menu";
@@ -52,7 +52,7 @@ function assertExcludes(actual: string[], forbidden: string[], label: string) {
   }
 }
 
-test("caissier : Dashboard, Inscription, Finance, Utilisateurs/Élève, Aide — pas Classes / Enseignement / Cursus", () => {
+test("caissier : Tableau de bord, Inscription, Finance, Utilisateurs/Élève, Aide — pas Classes / Enseignement / Cursus", () => {
   const session = sessionWithOrgRole(ORG_ROLE.CAISSIER);
   const titles = menuTitles(session);
   const users = buildStaticSideLinks(session, BRANCH_PATH, "PRIMAIRE").find(
@@ -62,12 +62,12 @@ test("caissier : Dashboard, Inscription, Finance, Utilisateurs/Élève, Aide —
 
   assertIncludes(
     titles,
-    ["Dashboard", "Inscription", "Finance", "Utilisateurs", "Aide"],
+    ["Tableau de bord", "Inscription", "Finance", "Utilisateurs", "Aide"],
     "caissier",
   );
   assertExcludes(
     titles,
-    ["Presences", "Candidatures", "Classes", "Enseignement", "Cursus"],
+    ["Présences", "Candidatures", "Classes", "Enseignement", "Cursus"],
     "caissier",
   );
   assertIncludes(usersSubs, ["Élève"], "caissier utilisateurs");
@@ -75,12 +75,12 @@ test("caissier : Dashboard, Inscription, Finance, Utilisateurs/Élève, Aide —
   assert.equal(hasMenuTitle(session, "Finance"), true);
 });
 
-test("élève : Dashboard, Résultats, Bibliothèque — pas Notes/Horaire/Fiches / Finance", () => {
+test("élève : Tableau de bord, Résultats, Bibliothèque — pas Notes/Horaire/Fiches / Finance", () => {
   const session = sessionWithOrgRole(ORG_ROLE.STUDENT);
   const titles = menuTitles(session);
   const cursus = cursusSubTitles(session);
 
-  assertIncludes(titles, ["Dashboard", "Cursus", "Aide"], "élève");
+  assertIncludes(titles, ["Tableau de bord", "Cursus", "Aide"], "élève");
   assertExcludes(
     titles,
     ["Finance", "Utilisateurs", "Classes", "Inscription", "Enseignement", "Candidatures"],
@@ -102,12 +102,12 @@ test("élève : Dashboard, Résultats, Bibliothèque — pas Notes/Horaire/Fiche
   );
 });
 
-test("parent : Dashboard + Résultats — pas Notes/Horaire/Devoirs/Bibliothèque / Finance / admin", () => {
+test("parent : Tableau de bord + Résultats — pas Notes/Horaire/Devoirs/Bibliothèque / Finance / admin", () => {
   const session = sessionWithOrgRole(ORG_ROLE.PARENT);
   const titles = menuTitles(session);
   const cursus = cursusSubTitles(session);
 
-  assertIncludes(titles, ["Dashboard", "Cursus", "Aide"], "parent");
+  assertIncludes(titles, ["Tableau de bord", "Cursus", "Aide"], "parent");
   assertExcludes(
     titles,
     ["Finance", "Utilisateurs", "Classes", "Inscription", "Enseignement"],
@@ -121,12 +121,12 @@ test("parent : Dashboard + Résultats — pas Notes/Horaire/Devoirs/Bibliothèqu
   );
 });
 
-test("enseignant : pas Enseignement / Utilisateurs ; Cursus Notes/Résultats/Bibliothèque ; Horaire via dashboard", () => {
+test("enseignant : pas Enseignement / Utilisateurs ; Cursus Notes/Résultats/Bibliothèque ; Horaire via Tableau de bord", () => {
   const session = sessionWithOrgRole(ORG_ROLE.TEACHER);
   const titles = menuTitles(session);
   const cursus = cursusSubTitles(session);
 
-  assertIncludes(titles, ["Dashboard", "Cursus", "Presences", "Aide"], "enseignant");
+  assertIncludes(titles, ["Tableau de bord", "Cursus", "Présences", "Aide"], "enseignant");
   assertExcludes(
     titles,
     [
@@ -153,7 +153,7 @@ test("préfet / directeur : pédagogie complète — pas Finance", () => {
     assertIncludes(
       titles,
       [
-        "Dashboard",
+        "Tableau de bord",
         "Inscription",
         "Utilisateurs",
         "Enseignement",
@@ -173,7 +173,7 @@ test("directeur des études : pédagogie — pas Finance", () => {
 
   assertIncludes(
     titles,
-    ["Dashboard", "Inscription", "Utilisateurs", "Enseignement", "Classes", "Cursus", "Aide"],
+    ["Tableau de bord", "Inscription", "Utilisateurs", "Enseignement", "Classes", "Cursus", "Aide"],
     "directeur des études",
   );
   assertExcludes(titles, ["Finance"], "directeur des études");
@@ -185,9 +185,9 @@ test("owner / gestionnaire gardent le large (pas de régression)", () => {
     assertIncludes(
       titles,
       [
-        "Dashboard",
+        "Tableau de bord",
         "Inscription",
-        "Presences",
+        "Présences",
         "Candidatures",
         "Utilisateurs",
         "Enseignement",

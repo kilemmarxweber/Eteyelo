@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Smoke tests — unit-07 périmètre directeur des études (pédagogie, pas finance).
  * Note : `prefet` / `directeur` sont unifiés (chef établissement, sans finance).
  * L’ancien périmètre « préfet sans finance » est porté par `directeur_etudes`.
@@ -80,9 +80,9 @@ test("menu études : pédagogie complète, sans Finance", () => {
     links.find((item) => item.title === "Utilisateurs")?.sub ?? []
   ).map((item) => item.title);
 
-  assert.ok(titles.includes("Dashboard"));
+  assert.ok(titles.includes("Tableau de bord"));
   assert.ok(titles.includes("Inscription"));
-  assert.ok(titles.includes("Presences"));
+  assert.ok(titles.includes("Présences"));
   assert.ok(titles.includes("Candidatures"));
   assert.ok(titles.includes("Utilisateurs"));
   assert.ok(titles.includes("Enseignement"));
@@ -131,7 +131,7 @@ test("distinct caissier / enseignant", () => {
   assert.equal(canAccessPedagogyArea(sessionTeacher), false);
 });
 
-test("dashboard = variante études (pas revenus)", () => {
+test("Tableau de bord = variante études (pas revenus)", () => {
   assert.equal(resolveDashboardVariant(sessionEtudes), "directeur_etudes");
   assert.notEqual(resolveDashboardVariant(sessionEtudes), "directeur");
   assert.notEqual(resolveDashboardVariant(sessionEtudes), "caissier");

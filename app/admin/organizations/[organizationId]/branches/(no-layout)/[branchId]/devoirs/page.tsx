@@ -2,7 +2,11 @@ import { notFound } from "next/navigation";
 
 import { listAccessibleCursusStudents } from "@/lib/auth/cursus-scope";
 import { canManageOrganization } from "@/lib/auth/session-roles";
-import { enforceOnlineAssignmentAccess } from "@/lib/online-assignments/access";
+import {
+  enforceOnlineAssignmentAccess,
+  listTeacherTeachingsForDevoirs,
+  resolveTeacherIdForUser,
+} from "@/lib/online-assignments/access";
 import { assignmentBranchWhere } from "@/lib/online-assignments/scope";
 import { prisma } from "@/lib/prisma";
 
@@ -25,7 +29,7 @@ export default async function DevoirsPage({
   }
   if (access.branchId !== branchId) notFound();
 
-  const [currentYear, schoolYears, classes, courses] = await Promise.all([
+  const [currentYear, schoolYears] = await Promise.all([
     prisma.schoolYear.findFirst({
       where: { branchId, isCurrentYear: true, isArchived: false },
       select: { id: true, nameYear: true },
@@ -35,17 +39,68 @@ export default async function DevoirsPage({
       orderBy: [{ isCurrentYear: "desc" }, { startYear: "desc" }],
       select: { id: true, nameYear: true, isCurrentYear: true },
     }),
-    prisma.classe.findMany({
-      where: { branchId },
-      orderBy: { nameClasse: "asc" },
-      select: { id: true, nameClasse: true },
-    }),
-    prisma.cours.findMany({
-      where: { branchId },
-      orderBy: { nameCours: "asc" },
-      select: { id: true, nameCours: true },
-    }),
   ]);
+
+  const isAdmin = canManageOrganization(access.session);
+  let classes: Array<{ id: string; label: string }> = [];
+  let courses: Array<{ id: string; label: string }> = [];
+  let teachings: Array<{
+    schoolYearId: string;
+    classId: string;
+    className: string;
+    courseId: string;
+    courseName: string;
+  }> = [];
+  let scopedToTeacher = false;
+
+  if (access.mode === "manage" && !isAdmin) {
+    scopedToTeacher = true;
+    const teacherId = await resolveTeacherIdForUser(
+      access.userId,
+      branchId,
+      access.teacherId,
+    );
+    if (teacherId) {
+      const rows = await listTeacherTeachingsForDevoirs({
+        branchId,
+        teacherId,
+      });
+      teachings = rows.map((t) => ({
+        schoolYearId: t.schoolYearId,
+        classId: t.classeId,
+        className: t.classe?.nameClasse ?? "",
+        courseId: t.coursId,
+        courseName: t.cours?.nameCours ?? "",
+      }));
+      const classMap = new Map<string, string>();
+      const courseMap = new Map<string, string>();
+      for (const t of teachings) {
+        classMap.set(t.classId, t.className);
+        courseMap.set(t.courseId, t.courseName);
+      }
+      classes = [...classMap.entries()]
+        .map(([id, label]) => ({ id, label }))
+        .sort((a, b) => a.label.localeCompare(b.label, "fr"));
+      courses = [...courseMap.entries()]
+        .map(([id, label]) => ({ id, label }))
+        .sort((a, b) => a.label.localeCompare(b.label, "fr"));
+    }
+  } else {
+    const [allClasses, allCourses] = await Promise.all([
+      prisma.classe.findMany({
+        where: { branchId },
+        orderBy: { nameClasse: "asc" },
+        select: { id: true, nameClasse: true },
+      }),
+      prisma.cours.findMany({
+        where: { branchId },
+        orderBy: { nameCours: "asc" },
+        select: { id: true, nameCours: true },
+      }),
+    ]);
+    classes = allClasses.map((c) => ({ id: c.id, label: c.nameClasse }));
+    courses = allCourses.map((c) => ({ id: c.id, label: c.nameCours }));
+  }
 
   const filterOptions = {
     schoolYears: schoolYears.map((y) => ({
@@ -53,8 +108,10 @@ export default async function DevoirsPage({
       label: y.isCurrentYear ? `${y.nameYear} (en cours)` : y.nameYear,
       isCurrent: y.isCurrentYear,
     })),
-    classes: classes.map((c) => ({ id: c.id, label: c.nameClasse })),
-    courses: courses.map((c) => ({ id: c.id, label: c.nameCours })),
+    classes,
+    courses,
+    teachings,
+    scopedToTeacher,
     defaultSchoolYearId: currentYear?.id ?? schoolYears[0]?.id ?? "all",
   };
 
@@ -104,13 +161,18 @@ export default async function DevoirsPage({
   });
 
   if (access.mode === "manage") {
-    const isAdmin = canManageOrganization(access.session);
+    const teacherId = isAdmin
+      ? null
+      : await resolveTeacherIdForUser(
+          access.userId,
+          branchId,
+          access.teacherId,
+        );
     const rows = await prisma.onlineAssignment.findMany({
       where: {
         ...assignmentBranchWhere(branchId),
-        ...(!isAdmin && access.teacherId
-          ? { teacherId: access.teacherId }
-          : {}),
+        // Enseignant : uniquement ses devoirs (jamais toute la branche)
+        ...(!isAdmin ? { teacherId: teacherId ?? "__none__" } : {}),
       },
       orderBy: [{ dueAt: "desc" }],
       include: {

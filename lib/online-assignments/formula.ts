@@ -1,34 +1,72 @@
 import katex from "katex";
 
-/** Extrait et rend les segments `$...$` / `$$...$$` en HTML KaTeX. */
-export function renderFormulaHtml(source: string): string {
-  if (!source) return "";
-  const escaped = source
+function escapeHtml(text: string): string {
+  return text
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;");
+}
 
-  const withBlocks = escaped.replace(/\$\$([\s\S]+?)\$\$/g, (_, tex: string) => {
-    try {
-      return katex.renderToString(tex.trim(), {
-        throwOnError: false,
-        displayMode: true,
-      });
-    } catch {
-      return `<code>${tex}</code>`;
-    }
-  });
+/**
+ * MathML natif du navigateur — les radicaux √ s’affichent sans dépendre
+ * du SVG KaTeX (cassé par le preflight Tailwind).
+ */
+function renderTex(tex: string, displayMode: boolean): string {
+  try {
+    return katex.renderToString(tex.trim(), {
+      throwOnError: false,
+      displayMode,
+      strict: "ignore",
+      output: "mathml",
+    });
+  } catch {
+    return `<code>${escapeHtml(tex)}</code>`;
+  }
+}
 
-  return withBlocks.replace(/\$([^$\n]+?)\$/g, (_, tex: string) => {
-    try {
-      return katex.renderToString(tex.trim(), {
-        throwOnError: false,
-        displayMode: false,
-      });
-    } catch {
-      return `<code>${tex}</code>`;
+/**
+ * Extrait et rend les segments `$...$` / `$$...$$` en MathML.
+ * Le texte hors formules (y compris √ unicode) est échappé tel quel.
+ */
+export function renderFormulaHtml(source: string): string {
+  if (!source) return "";
+
+  type Part =
+    | { type: "text"; value: string }
+    | { type: "math"; value: string; display: boolean };
+
+  const parts: Part[] = [];
+  const pattern = /\$\$([\s\S]+?)\$\$|\$([^$\n]+?)\$/g;
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+
+  while ((match = pattern.exec(source)) !== null) {
+    if (match.index > lastIndex) {
+      parts.push({ type: "text", value: source.slice(lastIndex, match.index) });
     }
-  });
+    if (match[1] != null) {
+      parts.push({ type: "math", value: match[1], display: true });
+    } else {
+      parts.push({ type: "math", value: match[2], display: false });
+    }
+    lastIndex = match.index + match[0].length;
+  }
+
+  if (lastIndex < source.length) {
+    parts.push({ type: "text", value: source.slice(lastIndex) });
+  }
+
+  if (parts.length === 0) {
+    return escapeHtml(source);
+  }
+
+  return parts
+    .map((part) =>
+      part.type === "text"
+        ? escapeHtml(part.value)
+        : renderTex(part.value, part.display),
+    )
+    .join("");
 }
 
 export function normalizeComparableText(value: string) {
@@ -130,7 +168,6 @@ export function scoreExpectedAnswer(
     };
   }
 
-  // text
   if (config.caseSensitive) {
     const ok = expected.some((e) => e.trim() === student);
     return {

@@ -40,17 +40,63 @@ function optionLetter(index: number) {
   return String.fromCharCode(65 + index);
 }
 
+function assignmentStatusLabel(status: string) {
+  switch (status) {
+    case "DRAFT":
+      return "Brouillon";
+    case "PUBLISHED":
+      return "Publié";
+    case "CLOSED":
+      return "Clôturé";
+    default:
+      return status;
+  }
+}
+
+function questionTypeLabel(type: string) {
+  switch (type) {
+    case "SHORT_TEXT":
+      return "Calcul / formule";
+    case "LONG_TEXT":
+      return "Rédaction";
+    case "FILE":
+      return "Fichier";
+    case "SINGLE_CHOICE":
+      return "QCM — 1 réponse";
+    case "MULTIPLE_CHOICE":
+      return "QCM — plusieurs";
+    case "TRUE_FALSE":
+      return "Vrai / Faux";
+    default:
+      return type;
+  }
+}
+
 function statusTone(status: string) {
-  if (status === "GRADED" || status === "Noté") {
+  if (
+    status === "GRADED" ||
+    status === "Noté" ||
+    status === "PUBLISHED" ||
+    status === "Publié"
+  ) {
     return "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300";
   }
   if (status === "SUBMITTED" || status === "Rendu") {
     return "border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-300";
   }
-  if (status === "DRAFT" || status === "En cours") {
+  if (
+    status === "DRAFT" ||
+    status === "En cours" ||
+    status === "Brouillon"
+  ) {
     return "border-amber-500/30 bg-amber-500/10 text-amber-800 dark:text-amber-300";
   }
-  if (status === "UPCOMING" || status === "À venir") {
+  if (
+    status === "UPCOMING" ||
+    status === "À venir" ||
+    status === "CLOSED" ||
+    status === "Clôturé"
+  ) {
     return "border-slate-500/30 bg-slate-500/10 text-slate-700 dark:text-slate-300";
   }
   return "border-border bg-muted/50 text-muted-foreground";
@@ -221,9 +267,7 @@ export function DevoirDetailClient({
       });
       if (err || !res) toast.error(err?.message ?? "Erreur");
       else {
-        toast.success(
-          `Résultats publiés. Fiche créée/màj (${res.ficheId.slice(0, 8)}…) status=false.`,
-        );
+        toast.success("Résultats publiés. Fiche créée ou mise à jour.");
         router.refresh();
       }
     });
@@ -284,9 +328,14 @@ export function DevoirDetailClient({
         assignment.type === "EVALUATION" ? "Évaluation" : "Devoir"
       }`}
       badge={
-        <Badge variant="outline" className="h-5 border-border px-1.5 text-[10px]">
-          {assignment.status}
-        </Badge>
+        <span
+          className={cn(
+            "inline-flex h-6 items-center rounded-md border px-2 text-[11px] font-semibold",
+            statusTone(assignmentStatusLabel(assignment.status)),
+          )}
+        >
+          {assignmentStatusLabel(assignment.status)}
+        </span>
       }
       actions={
         mode === "manage" ? (
@@ -296,22 +345,31 @@ export function DevoirDetailClient({
                 Publier
               </Button>
             ) : null}
-            <Button
-              size="sm"
-              variant="secondary"
-              disabled={pending}
-              onClick={publishResults}
-            >
-              Publier résultats
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              disabled={pending}
-              onClick={exportCsv}
-            >
-              CSV
-            </Button>
+            {assignment.status !== "DRAFT" && !assignment.resultsPublished ? (
+              <Button
+                size="sm"
+                variant="secondary"
+                disabled={pending}
+                onClick={publishResults}
+              >
+                Publier les résultats
+              </Button>
+            ) : null}
+            {assignment.resultsPublished ? (
+              <span className="inline-flex h-8 items-center rounded-md border border-emerald-500/30 bg-emerald-500/10 px-2.5 text-xs font-medium text-emerald-700 dark:text-emerald-300">
+                Résultats publiés
+              </span>
+            ) : null}
+            {assignment.status !== "DRAFT" ? (
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={pending}
+                onClick={exportCsv}
+              >
+                Exporter CSV
+              </Button>
+            ) : null}
           </>
         ) : undefined
       }
@@ -328,7 +386,7 @@ export function DevoirDetailClient({
                 <CalendarClock className="mt-0.5 size-3.5 shrink-0 text-primary" />
                 <div className="min-w-0">
                   <p className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
-                    Fenêtre
+                    Période
                   </p>
                   <p className="truncate text-xs font-medium tabular-nums text-foreground">
                     {formatRange()}
@@ -422,7 +480,9 @@ export function DevoirDetailClient({
               Énoncés
             </h2>
             <span className="text-[11px] text-muted-foreground">
-              {assignment.questions.length} / {assignment.totalPoints} pts
+              {assignment.questions.length} question
+              {assignment.questions.length > 1 ? "s" : ""} ·{" "}
+              {assignment.totalPoints} points
             </span>
           </div>
 
@@ -441,7 +501,7 @@ export function DevoirDetailClient({
                       {idx + 1}
                     </span>
                     <span className="text-[9px] font-medium tabular-nums text-primary/80">
-                      {q.points}p
+                      {q.points} pt{q.points > 1 ? "s" : ""}
                     </span>
                   </div>
 
@@ -455,7 +515,7 @@ export function DevoirDetailClient({
                           variant="outline"
                           className="h-5 px-1.5 text-[10px] font-normal"
                         >
-                          {q.type}
+                          {questionTypeLabel(q.type)}
                         </Badge>
                       ) : null}
                     </div>
@@ -711,7 +771,7 @@ export function DevoirDetailClient({
                           ? `${sub.finalScore ?? sub.provisionalScore ?? "—"}/${assignment.totalPoints}`
                           : mode === "parent"
                             ? "Note non publiée"
-                            : `Prov. ${sub.provisionalScore ?? "—"}`}
+                            : `Provisoire ${sub.provisionalScore ?? "—"}`}
                       </span>
                       <span
                         className={cn(

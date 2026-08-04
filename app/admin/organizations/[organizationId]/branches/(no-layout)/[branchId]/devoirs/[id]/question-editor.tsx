@@ -1,12 +1,10 @@
 "use client";
 
-import { useRef, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 import { FlaskConical, Plus, Save, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,7 +20,7 @@ import { updateAssignmentAction } from "@/lib/online-assignments/actions";
 import type { AnswerFormat } from "@/lib/online-assignments/formula";
 
 import { FormulaPreview } from "./formula-preview";
-import { FormulaToolbar } from "./formula-toolbar";
+import { StatementFormulaEditor } from "./statement-formula-editor";
 
 export type EditableOption = {
   id?: string;
@@ -82,8 +80,8 @@ function blankOptionsForType(type: EditableQuestion["type"]): EditableOption[] {
   }
   if (type === "SINGLE_CHOICE" || type === "MULTIPLE_CHOICE") {
     return [
-      { clientKey: newKey(), label: "Option A", isCorrect: true },
-      { clientKey: newKey(), label: "Option B", isCorrect: false },
+      { clientKey: newKey(), label: "Choix A", isCorrect: true },
+      { clientKey: newKey(), label: "Choix B", isCorrect: false },
     ];
   }
   return [];
@@ -190,29 +188,6 @@ export function QuestionEditor({
   const [questions, setQuestions] = useState<EditableQuestion[]>(
     initialQuestions.length ? initialQuestions : [blankQuestion()],
   );
-  const statementRefs = useRef<Record<string, HTMLTextAreaElement | null>>({});
-
-  const insertAtCursor = (clientKey: string, snippet: string) => {
-    const el = statementRefs.current[clientKey];
-    const q = questions.find((x) => x.clientKey === clientKey);
-    if (!q) return;
-    if (!el) {
-      updateQuestion(clientKey, {
-        statementHtml: `${q.statementHtml}${snippet}`,
-      });
-      return;
-    }
-    const start = el.selectionStart ?? q.statementHtml.length;
-    const end = el.selectionEnd ?? start;
-    const next =
-      q.statementHtml.slice(0, start) + snippet + q.statementHtml.slice(end);
-    updateQuestion(clientKey, { statementHtml: next });
-    requestAnimationFrame(() => {
-      el.focus();
-      const pos = start + snippet.length;
-      el.setSelectionRange(pos, pos);
-    });
-  };
 
   const updateQuestion = (
     clientKey: string,
@@ -367,32 +342,34 @@ export function QuestionEditor({
     0,
   );
 
+  const questionCountLabel =
+    questions.length <= 1
+      ? `${questions.length} question`
+      : `${questions.length} questions`;
+
   return (
-    <div className="space-y-5">
-      <div className="rounded-xl border border-border bg-gradient-to-br from-card via-card to-muted/30 p-4 shadow-sm dark:to-muted/10">
-        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <FlaskConical className="size-5 text-primary" />
-              <h2 className="text-lg font-semibold tracking-tight text-foreground">
-                Éditeur de questionnaire
-              </h2>
-            </div>
-            <p className="max-w-7xl text-sm text-muted-foreground">
-              Rédigez l’énoncé (maths / chimie avec barre de formules), définissez
-              les <strong className="text-foreground">réponses attendues</strong>{" "}
-              que l’élève doit trouver, puis enregistrez avant de publier.
-            </p>
+    <div className="space-y-4">
+      <div className="space-y-1.5">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex min-w-0 items-center gap-2">
+            <FlaskConical className="size-4 shrink-0 text-primary" />
+            <h2 className="text-base font-semibold tracking-tight text-foreground">
+              Éditeur de questionnaire
+            </h2>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <Badge variant="secondary">{questions.length} question(s)</Badge>
-            <Badge variant="outline">{totalPoints} pts</Badge>
-            <Button type="button" disabled={pending} onClick={save}>
-              <Save className="mr-2 size-4" />
-              Enregistrer
-            </Button>
+          <div className="flex shrink-0 flex-wrap items-center gap-2 text-xs text-muted-foreground">
+            <span className="rounded-md border border-border bg-muted/40 px-2 py-1">
+              {questionCountLabel}
+            </span>
+            <span className="rounded-md border border-border bg-muted/40 px-2 py-1 tabular-nums">
+              {totalPoints} point{totalPoints > 1 ? "s" : ""}
+            </span>
           </div>
         </div>
+        <p className="text-sm leading-relaxed text-muted-foreground">
+          Rédigez l’énoncé, définissez les réponses attendues, puis
+          enregistrez avant de publier.
+        </p>
       </div>
 
       <div className="flex flex-wrap gap-2">
@@ -427,7 +404,7 @@ export function QuestionEditor({
             setQuestions((prev) => [...prev, blankQuestion("TRUE_FALSE")])
           }
         >
-          <Plus className="mr-1 size-4" /> Vrai/Faux
+          <Plus className="mr-1 size-4" /> Vrai / Faux
         </Button>
         <Button
           type="button"
@@ -442,7 +419,7 @@ export function QuestionEditor({
         </Button>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-3">
         {questions.map((q, index) => {
           const isChoice =
             q.type === "SINGLE_CHOICE" ||
@@ -451,43 +428,46 @@ export function QuestionEditor({
           const isText = q.type === "SHORT_TEXT" || q.type === "LONG_TEXT";
 
           return (
-            <Card
+            <section
               key={q.clientKey}
-              className="overflow-hidden border-border bg-card shadow-sm"
+              className="overflow-hidden rounded-xl border border-border bg-card"
             >
-              <CardHeader className="border-b border-border bg-muted/30 dark:bg-muted/10">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="space-y-1">
-                    <CardTitle className="text-base">
+              <div className="flex items-center justify-between gap-3 border-b border-border/80 px-3 py-2.5 sm:px-4">
+                <div className="flex min-w-0 items-center gap-2.5">
+                  <span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-primary text-[11px] font-bold text-primary-foreground">
+                    {index + 1}
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-foreground">
                       Question {index + 1}
-                    </CardTitle>
-                    <p className="text-xs text-muted-foreground">
+                    </p>
+                    <p className="truncate text-xs text-muted-foreground">
                       {QUESTION_TYPES.find((t) => t.value === q.type)?.label}
                     </p>
                   </div>
-                  <Button
-                    type="button"
-                    size="icon"
-                    variant="ghost"
-                    className="text-destructive"
-                    disabled={pending || questions.length <= 1}
-                    onClick={() =>
-                      setQuestions((prev) => {
-                        const next = prev.filter(
-                          (x) => x.clientKey !== q.clientKey,
-                        );
-                        return next.length ? next : [blankQuestion()];
-                      })
-                    }
-                  >
-                    <Trash2 className="size-4" />
-                  </Button>
                 </div>
-              </CardHeader>
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="ghost"
+                  className="text-destructive"
+                  disabled={pending || questions.length <= 1}
+                  onClick={() =>
+                    setQuestions((prev) => {
+                      const next = prev.filter(
+                        (x) => x.clientKey !== q.clientKey,
+                      );
+                      return next.length ? next : [blankQuestion()];
+                    })
+                  }
+                >
+                  <Trash2 className="size-4" />
+                </Button>
+              </div>
 
-              <CardContent className="grid gap-5 pt-5">
-                <div className="grid gap-4 md:grid-cols-[1fr_120px]">
-                  <div className="space-y-2">
+              <div className="grid gap-4 p-3 sm:p-4">
+                <div className="grid gap-3 md:grid-cols-[1fr_100px]">
+                  <div className="space-y-1.5">
                     <Label>Type de question</Label>
                     <Select
                       value={q.type}
@@ -507,7 +487,7 @@ export function QuestionEditor({
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="space-y-2">
+                  <div className="space-y-1.5">
                     <Label>Points</Label>
                     <Input
                       type="number"
@@ -524,45 +504,22 @@ export function QuestionEditor({
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label>Énoncé (texte + formules)</Label>
-                  <FormulaToolbar
-                    variant="full"
-                    onInsert={(snippet) =>
-                      insertAtCursor(q.clientKey, snippet)
-                    }
-                  />
-                  <Textarea
-                    ref={(el) => {
-                      statementRefs.current[q.clientKey] = el;
-                    }}
-                    className="min-h-28 bg-background font-mono text-sm"
-                    placeholder="Ex. Calculez $\frac{3}{4}+\frac{1}{2}$. Équilibrez $\mathrm{H_2} + \mathrm{O_2} \rightarrow \mathrm{H_2O}$."
-                    value={q.statementHtml}
-                    onChange={(e) =>
-                      updateQuestion(q.clientKey, {
-                        statementHtml: e.target.value,
-                      })
-                    }
-                  />
-                  <div className="space-y-1">
-                    <Label className="text-xs text-muted-foreground">
-                      Aperçu élève
-                    </Label>
-                    <FormulaPreview source={q.statementHtml} />
-                  </div>
-                </div>
+                <StatementFormulaEditor
+                  value={q.statementHtml}
+                  onChange={(statementHtml) =>
+                    updateQuestion(q.clientKey, { statementHtml })
+                  }
+                />
 
                 {isText ? (
-                  <div className="space-y-3 rounded-xl border border-primary/20 bg-primary/5 p-4 dark:bg-primary/10">
+                  <div className="space-y-3 border-t border-border/70 pt-3">
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <div>
                         <Label className="text-sm font-semibold">
-                          Réponses attendues (correction auto)
+                          Réponses attendues
                         </Label>
                         <p className="text-xs text-muted-foreground">
-                          L’élève doit trouver une de ces valeurs. Ajoutez des
-                          variantes acceptées.
+                          Valeurs acceptées pour la correction automatique.
                         </p>
                       </div>
                       <Button
@@ -580,7 +537,7 @@ export function QuestionEditor({
                     </div>
 
                     <div className="grid gap-3 sm:grid-cols-2">
-                      <div className="space-y-2">
+                      <div className="space-y-1.5">
                         <Label>Format de réponse</Label>
                         <Select
                           value={q.answerFormat}
@@ -603,7 +560,7 @@ export function QuestionEditor({
                         </Select>
                       </div>
                       {q.answerFormat === "number" ? (
-                        <div className="space-y-2">
+                        <div className="space-y-1.5">
                           <Label>Tolérance</Label>
                           <Input
                             type="number"
@@ -674,7 +631,7 @@ export function QuestionEditor({
                 ) : null}
 
                 {isChoice ? (
-                  <div className="space-y-3">
+                  <div className="space-y-3 border-t border-border/70 pt-3">
                     <div className="flex items-center justify-between gap-2">
                       <Label>
                         Options — cochez la/les bonne(s) réponse(s)
@@ -690,14 +647,14 @@ export function QuestionEditor({
                                 ...q.options,
                                 {
                                   clientKey: newKey(),
-                                  label: `Option ${String.fromCharCode(65 + q.options.length)}`,
+                                  label: `Choix ${String.fromCharCode(65 + q.options.length)}`,
                                   isCorrect: false,
                                 },
                               ],
                             })
                           }
                         >
-                          <Plus className="mr-1 size-3.5" /> Option
+                          <Plus className="mr-1 size-3.5" /> Choix
                         </Button>
                       ) : null}
                     </div>
@@ -705,7 +662,7 @@ export function QuestionEditor({
                       {q.options.map((opt) => (
                         <div
                           key={opt.clientKey}
-                          className="flex items-center gap-2 rounded-lg border border-border bg-background p-2"
+                          className="flex items-center gap-2 rounded-lg border border-border/80 bg-background px-2 py-1.5"
                         >
                           <Checkbox
                             checked={opt.isCorrect}
@@ -716,7 +673,7 @@ export function QuestionEditor({
                             }
                           />
                           <Input
-                            className="bg-background"
+                            className="border-0 bg-transparent shadow-none focus-visible:ring-0"
                             value={opt.label}
                             disabled={q.type === "TRUE_FALSE"}
                             onChange={(e) =>
@@ -754,22 +711,25 @@ export function QuestionEditor({
                     manuelle.
                   </p>
                 ) : null}
-              </CardContent>
-            </Card>
+              </div>
+            </section>
           );
         })}
       </div>
 
-      <div className="sticky bottom-3 z-10 flex justify-end">
+      <div className="sticky bottom-3 z-10 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-primary/20 bg-card/95 px-3 py-2.5 shadow-md backdrop-blur supports-[backdrop-filter]:bg-card/90">
+        <p className="hidden text-xs text-muted-foreground sm:block">
+          {questionCountLabel} · {totalPoints} point
+          {totalPoints > 1 ? "s" : ""} — enregistrez avant de publier.
+        </p>
         <Button
           type="button"
-          size="lg"
-          className="shadow-lg"
+          className="ml-auto"
           disabled={pending}
           onClick={save}
         >
           <Save className="mr-2 size-4" />
-          Enregistrer le questionnaire
+          Enregistrer
         </Button>
       </div>
     </div>
