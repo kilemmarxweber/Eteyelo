@@ -2,7 +2,7 @@ import "server-only";
 
 import { Queue } from "bullmq";
 
-import { getRedisConnection } from "../redis";
+import { getRedisConnection, onRedisConnectionReset } from "../redis";
 import type { MailPayload } from "@/lib/email/mailer";
 
 export const EMAIL_QUEUE_NAME = "email-queue";
@@ -10,8 +10,21 @@ export const EMAIL_QUEUE_NAME = "email-queue";
 export type EmailJobPayload = MailPayload;
 
 let _emailQueue: Queue<EmailJobPayload> | null = null;
+let _resetBound = false;
+
+function bindReset() {
+  if (_resetBound) return;
+  _resetBound = true;
+  onRedisConnectionReset(() => {
+    if (_emailQueue) {
+      void _emailQueue.close().catch(() => undefined);
+      _emailQueue = null;
+    }
+  });
+}
 
 export function getEmailQueue() {
+  bindReset();
   if (!_emailQueue) {
     _emailQueue = new Queue<EmailJobPayload>(EMAIL_QUEUE_NAME, {
       connection: getRedisConnection() as any,

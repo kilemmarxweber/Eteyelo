@@ -161,6 +161,13 @@ export default async function ClassFichePage() {
   const branchContext: BulletinBranchContext =
     buildBulletinBranchContext(branch);
 
+  if (branchContext.branchType === "PRIMAIRE") {
+    const { listBranchPrimaryDomains } = await import(
+      "@/lib/branch-primary-domains"
+    );
+    branchContext.primaryDomains = await listBranchPrimaryDomains(branchId);
+  }
+
   // 🔹 Group by class ID — titulaire : uniquement ses classes (unit-10)
   const groupedMap = new Map<string, ClassEnrollmentWithRelations["classe"]>();
 

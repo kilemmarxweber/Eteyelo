@@ -21,7 +21,7 @@ import { useSession } from "@/lib/auth-client";
 import { canManageOrganization } from "@/lib/auth/session-roles";
 import { useRefresh } from "@/src/hooks/RefreshContext";
 import { type ICours } from "@/src/interfaces/Cours";
-import { PRIMARY_DOMAIN_SHORT_LABELS } from "@/lib/primary-domains";
+import { PRIMARY_DOMAIN_SHORT_LABELS, type SystemPrimaryDomainCode } from "@/lib/primary-domains";
 import { setCoursStatusAction } from "../cours.action";
 import { DeleteCoursDialog } from "./delete-Cours-dialog";
 import { UpdateCoursDialog } from "./edit-Cours-dialog";
@@ -84,7 +84,8 @@ export function getCoursColumns(isPrimary = false): ColumnDef<ICours>[] {
         }
         return (
           <Badge variant="outline">
-            {PRIMARY_DOMAIN_SHORT_LABELS[domain] ?? domain}
+            {PRIMARY_DOMAIN_SHORT_LABELS[domain as SystemPrimaryDomainCode] ??
+              domain}
           </Badge>
         );
       },

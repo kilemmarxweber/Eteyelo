@@ -231,12 +231,6 @@ const staticSidebarMenu: StaticMenuItem[] = [
     roles: SCHOOL_ADMIN_ROLES,
     sub: [
       {
-        title: "Année scolaire",
-        href: "/admin/schoolYear",
-        icon: "schoolyear",
-        roles: SCHOOL_ADMIN_ROLES,
-      },
-      {
         title: "Sections",
         href: "/admin/section",
         icon: "sections",

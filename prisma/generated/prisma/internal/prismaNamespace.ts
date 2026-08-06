@@ -432,6 +432,7 @@ export const ModelName = {
   Member: 'Member',
   Invitation: 'Invitation',
   Branch: 'Branch',
+  BranchPrimaryDomain: 'BranchPrimaryDomain',
   BranchRegistrationInfo: 'BranchRegistrationInfo',
   RegistrationRequest: 'RegistrationRequest',
   JobApplication: 'JobApplication',
@@ -466,7 +467,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "parent" | "student" | "attendanceSession" | "studentAttendance" | "teacherAttendance" | "personnelAttendance" | "parentFeedback" | "studentGrade" | "personnel" | "frais" | "typeFrais" | "classe" | "creneau" | "option" | "section" | "schoolYear" | "classEnrollment" | "teacher" | "teaching" | "cours" | "coursOptionPonderation" | "schedule" | "calendarEvent" | "eventType" | "semester" | "period" | "periodResultLock" | "fiche" | "invoice" | "paymentBatch" | "familyPayment" | "cashierExpense" | "cashierOpeningBalance" | "exchangeRate" | "paymentAllocation" | "mobileMoneyTransaction" | "paymentEvent" | "discountRule" | "transaction" | "session" | "account" | "verification" | "organization" | "organizationRole" | "member" | "invitation" | "branch" | "branchRegistrationInfo" | "registrationRequest" | "jobApplication" | "partnaire" | "branchMember" | "studentBranchLink" | "issuedDocument" | "branchInvitation" | "libraryBook" | "platformSupportAgent" | "organizationSupportAgent" | "organizationSupportBranchScope" | "platformSupportEscalation" | "onlineAssignment" | "onlineQuestion" | "onlineQuestionOption" | "onlineSubmission" | "onlineAnswer" | "onlineSubmissionFile"
+    modelProps: "user" | "parent" | "student" | "attendanceSession" | "studentAttendance" | "teacherAttendance" | "personnelAttendance" | "parentFeedback" | "studentGrade" | "personnel" | "frais" | "typeFrais" | "classe" | "creneau" | "option" | "section" | "schoolYear" | "classEnrollment" | "teacher" | "teaching" | "cours" | "coursOptionPonderation" | "schedule" | "calendarEvent" | "eventType" | "semester" | "period" | "periodResultLock" | "fiche" | "invoice" | "paymentBatch" | "familyPayment" | "cashierExpense" | "cashierOpeningBalance" | "exchangeRate" | "paymentAllocation" | "mobileMoneyTransaction" | "paymentEvent" | "discountRule" | "transaction" | "session" | "account" | "verification" | "organization" | "organizationRole" | "member" | "invitation" | "branch" | "branchPrimaryDomain" | "branchRegistrationInfo" | "registrationRequest" | "jobApplication" | "partnaire" | "branchMember" | "studentBranchLink" | "issuedDocument" | "branchInvitation" | "libraryBook" | "platformSupportAgent" | "organizationSupportAgent" | "organizationSupportBranchScope" | "platformSupportEscalation" | "onlineAssignment" | "onlineQuestion" | "onlineQuestionOption" | "onlineSubmission" | "onlineAnswer" | "onlineSubmissionFile"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -4022,6 +4023,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    BranchPrimaryDomain: {
+      payload: Prisma.$BranchPrimaryDomainPayload<ExtArgs>
+      fields: Prisma.BranchPrimaryDomainFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.BranchPrimaryDomainFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BranchPrimaryDomainPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.BranchPrimaryDomainFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BranchPrimaryDomainPayload>
+        }
+        findFirst: {
+          args: Prisma.BranchPrimaryDomainFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BranchPrimaryDomainPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.BranchPrimaryDomainFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BranchPrimaryDomainPayload>
+        }
+        findMany: {
+          args: Prisma.BranchPrimaryDomainFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BranchPrimaryDomainPayload>[]
+        }
+        create: {
+          args: Prisma.BranchPrimaryDomainCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BranchPrimaryDomainPayload>
+        }
+        createMany: {
+          args: Prisma.BranchPrimaryDomainCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.BranchPrimaryDomainCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BranchPrimaryDomainPayload>[]
+        }
+        delete: {
+          args: Prisma.BranchPrimaryDomainDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BranchPrimaryDomainPayload>
+        }
+        update: {
+          args: Prisma.BranchPrimaryDomainUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BranchPrimaryDomainPayload>
+        }
+        deleteMany: {
+          args: Prisma.BranchPrimaryDomainDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.BranchPrimaryDomainUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.BranchPrimaryDomainUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BranchPrimaryDomainPayload>[]
+        }
+        upsert: {
+          args: Prisma.BranchPrimaryDomainUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BranchPrimaryDomainPayload>
+        }
+        aggregate: {
+          args: Prisma.BranchPrimaryDomainAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateBranchPrimaryDomain>
+        }
+        groupBy: {
+          args: Prisma.BranchPrimaryDomainGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.BranchPrimaryDomainGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.BranchPrimaryDomainCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.BranchPrimaryDomainCountAggregateOutputType> | number
+        }
+      }
+    }
     BranchRegistrationInfo: {
       payload: Prisma.$BranchRegistrationInfoPayload<ExtArgs>
       fields: Prisma.BranchRegistrationInfoFieldRefs
@@ -6221,6 +6296,21 @@ export const BranchScalarFieldEnum = {
 export type BranchScalarFieldEnum = (typeof BranchScalarFieldEnum)[keyof typeof BranchScalarFieldEnum]
 
 
+export const BranchPrimaryDomainScalarFieldEnum = {
+  id: 'id',
+  branchId: 'branchId',
+  code: 'code',
+  label: 'label',
+  shortLabel: 'shortLabel',
+  sortOrder: 'sortOrder',
+  isSystem: 'isSystem',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type BranchPrimaryDomainScalarFieldEnum = (typeof BranchPrimaryDomainScalarFieldEnum)[keyof typeof BranchPrimaryDomainScalarFieldEnum]
+
+
 export const BranchRegistrationInfoScalarFieldEnum = {
   id: 'id',
   branchId: 'branchId',
@@ -6768,20 +6858,6 @@ export type ListDecimalFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaMo
 
 
 /**
- * Reference to a field of type 'PrimaryDomain'
- */
-export type EnumPrimaryDomainFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PrimaryDomain'>
-    
-
-
-/**
- * Reference to a field of type 'PrimaryDomain[]'
- */
-export type ListEnumPrimaryDomainFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PrimaryDomain[]'>
-    
-
-
-/**
  * Reference to a field of type 'Day'
  */
 export type EnumDayFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Day'>
@@ -7288,6 +7364,7 @@ export type GlobalOmitConfig = {
   member?: Prisma.MemberOmit
   invitation?: Prisma.InvitationOmit
   branch?: Prisma.BranchOmit
+  branchPrimaryDomain?: Prisma.BranchPrimaryDomainOmit
   branchRegistrationInfo?: Prisma.BranchRegistrationInfoOmit
   registrationRequest?: Prisma.RegistrationRequestOmit
   jobApplication?: Prisma.JobApplicationOmit

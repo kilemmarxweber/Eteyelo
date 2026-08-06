@@ -16,6 +16,8 @@ type Props = {
   onFamilyChange: (key: keyof FamilyExtraInfo, value: string) => void;
   /** Masquer le bloc famille (ex. centre de formation). */
   hideFamily?: boolean;
+  /** Masquer le bloc élève (fiche parent). */
+  hideStudent?: boolean;
   className?: string;
 };
 
@@ -25,17 +27,20 @@ export function RegistrationExtraInfoFields({
   onStudentChange,
   onFamilyChange,
   hideFamily = false,
+  hideStudent = false,
   className,
 }: Props) {
   return (
     <div className={className ?? "space-y-5"}>
-      <div className="space-y-3">
-        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-          Élève (optionnel)
-        </p>
-        <div className="grid grid-cols-1 gap-3">
-          {(Object.keys(STUDENT_EXTRA_FIELD_LABELS) as (keyof StudentExtraInfo)[]).map(
-            (key) => (
+      {!hideStudent ? (
+        <div className="space-y-3">
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            Nationalité &amp; langue (élève)
+          </p>
+          <div className="grid grid-cols-1 gap-3">
+            {(
+              Object.keys(STUDENT_EXTRA_FIELD_LABELS) as (keyof StudentExtraInfo)[]
+            ).map((key) => (
               <div key={key} className="min-w-0 space-y-1.5">
                 <Label className="text-xs">{STUDENT_EXTRA_FIELD_LABELS[key]}</Label>
                 <Input
@@ -45,15 +50,15 @@ export function RegistrationExtraInfoFields({
                   placeholder="Optionnel"
                 />
               </div>
-            ),
-          )}
+            ))}
+          </div>
         </div>
-      </div>
+      ) : null}
 
       {!hideFamily ? (
         <div className="space-y-3">
           <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            Famille / origines (optionnel)
+            Famille / origines (parent — partagé par tous les enfants)
           </p>
           <div className="grid grid-cols-1 gap-3">
             {(

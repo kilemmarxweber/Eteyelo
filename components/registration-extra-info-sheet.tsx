@@ -29,6 +29,7 @@ type Props = {
   initialStudent?: StudentExtraInfo;
   initialFamily?: FamilyExtraInfo;
   hideFamily?: boolean;
+  hideStudent?: boolean;
   onSave: (payload: {
     studentExtra: StudentExtraInfo;
     familyExtra: FamilyExtraInfo;
@@ -43,6 +44,7 @@ export function RegistrationExtraInfoSheet({
   initialStudent,
   initialFamily,
   hideFamily = false,
+  hideStudent = false,
   onSave,
 }: Props) {
   const [studentExtra, setStudentExtra] = useState(
@@ -88,6 +90,7 @@ export function RegistrationExtraInfoSheet({
             studentExtra={studentExtra}
             familyExtra={familyExtra}
             hideFamily={hideFamily}
+            hideStudent={hideStudent}
             onStudentChange={(key, value) =>
               setStudentExtra((current) => ({ ...current, [key]: value }))
             }

@@ -67,7 +67,14 @@ export function UpdateStudentDialog({
   const peopleLabels = useBranchPeopleLabels();
   const { refresh } = useRefresh();
 
-  const initialData: StudentFormData = {
+  const initialData: StudentFormData & {
+    studentExtra: {
+      nationalite: string;
+      autreNationalite: string;
+      territoireAutreNationalite: string;
+      langue: string;
+    };
+  } = {
     studentId: student.id,
     memberId: student.memberId,
     username: student.username ?? "",
@@ -80,7 +87,14 @@ export function UpdateStudentDialog({
     dateOfBirth: normalizeDate(student.dateOfBirth),
     parentId: student.parent?.id ?? "",
     address: student.address ?? "",
+    placeOfBirth: student.placeOfBirth ?? "",
     category: normalizeCategory(student.category),
+    studentExtra: {
+      nationalite: student.nationalite ?? "",
+      autreNationalite: student.autreNationalite ?? "",
+      territoireAutreNationalite: student.territoireAutreNationalite ?? "",
+      langue: student.langue ?? "",
+    },
   };
 
   const handleUpdated = () => {

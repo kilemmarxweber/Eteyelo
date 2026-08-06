@@ -8,6 +8,7 @@ import { UserNav } from "@/components/user-nav";
 import { Search } from "@/components/search";
 import { NotificationBell } from "@/components/notification-bell";
 import { MobileNav } from "@/components/layout/mobile-nav";
+import { OwnerBranchesLink } from "@/components/owner-branches-link";
 import { authClient } from "@/lib/auth-client";
 import { useAppLoading } from "@/hooks/use-app-loading";
 import { BranchLoadingFallback } from "@/components/branch-loading-fallback";
@@ -58,6 +59,7 @@ function BranchShell({ children }: { children: React.ReactNode }) {
         <div className="ml-auto flex w-auto min-w-0 items-center gap-4 px-4 py-2 md:px-0">
           <Search className="md:flex-none" />
           <ThemeToggle />
+          <OwnerBranchesLink />
           <NotificationBell />
           <UserNav />
         </div>

@@ -19,6 +19,11 @@ import {
   buildSchoolReportContext,
   schoolReportBranchSelect,
 } from "@/lib/reports/resolve-school-branding";
+import {
+  familyExtraInfoSchema,
+  familyExtraToDb,
+} from "@/lib/registration-extra-info";
+import { z } from "zod";
 
 export async function getCurrentBranch() {
   const { branchId, organizationId, userId, session } =
@@ -415,6 +420,14 @@ export const getParentsAction = action.handler(async (): Promise<IParent[]> => {
       updatedAt: parent.updatedAt,
       statusUser: user?.statusUser ?? true,
       address: user?.address || "",
+      nomMere: parent.nomMere,
+      professionMere: parent.professionMere,
+      tuteurNom: parent.tuteurNom,
+      adresseTuteur: parent.adresseTuteur,
+      provinceOrigine: parent.provinceOrigine,
+      territoireOrigine: parent.territoireOrigine,
+      secteurOrigine: parent.secteurOrigine,
+      villageOrigine: parent.villageOrigine,
 
       discount: discount
         ? {
@@ -451,6 +464,10 @@ export const getParentsAction = action.handler(async (): Promise<IParent[]> => {
           statusUser: studentUser?.statusUser ?? true,
           category: student.category,
           address: studentUser?.address || "",
+          nationalite: student.nationalite,
+          autreNationalite: student.autreNationalite,
+          territoireAutreNationalite: student.territoireAutreNationalite,
+          langue: student.langue,
           classCode: currentEnrollment?.classe?.codeClasse ?? null,
           className: currentEnrollment?.classe?.nameClasse ?? null,
         };
@@ -611,4 +628,41 @@ export const updateParentAction = action
       console.error("UPDATE ERROR:", error);
       throw new Error(error.message);
     }
+  });
+
+export const updateParentExtraInfoAction = action
+  .input(
+    z.object({
+      parentId: z.string().min(1),
+      familyExtra: familyExtraInfoSchema,
+    }),
+  )
+  .handler(async ({ input }) => {
+    const { branchId, organizationId, canManageParents } =
+      await getCurrentBranch();
+    if (!canManageParents) {
+      return { ok: false as const, message: "Action non autorisee" };
+    }
+
+    const parent = await prisma.parent.findFirst({
+      where: {
+        id: input.parentId,
+        branchMember: { branchId, member: { organizationId } },
+      },
+      select: { id: true },
+    });
+    if (!parent) {
+      return { ok: false as const, message: "Parent introuvable." };
+    }
+
+    await prisma.parent.update({
+      where: { id: parent.id },
+      data: familyExtraToDb(input.familyExtra),
+    });
+
+    revalidateParentPages(organizationId, branchId);
+    revalidatePath(
+      `/admin/organizations/${organizationId}/branches/${branchId}/student`,
+    );
+    return { ok: true as const, message: "Informations famille mises à jour." };
   });

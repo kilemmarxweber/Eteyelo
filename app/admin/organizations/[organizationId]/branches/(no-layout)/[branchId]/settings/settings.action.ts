@@ -4,7 +4,18 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
-import { canAccessBranchOrgSettings } from "@/lib/auth/session-roles";
+import {
+  canAccessBranchOrgSettings,
+  canAccessSchoolOpsSettings,
+} from "@/lib/auth/session-roles";
+import {
+  buildPrimaryDomainCode,
+  getCatalogPrimaryPlacement,
+} from "@/lib/primary-domains";
+import {
+  ensureBranchPrimaryDomains,
+  listBranchPrimaryDomains,
+} from "@/lib/branch-primary-domains";
 
 const eventTypeSchema = z.object({
   id: z.string().min(1).optional(),
@@ -13,6 +24,14 @@ const eventTypeSchema = z.object({
 
 function assertCanManage(session: Awaited<ReturnType<typeof requireBranchContext>>["session"]) {
   if (!canAccessBranchOrgSettings(session)) throw new Error("Action non autorisée.");
+}
+
+function assertCanManageSchoolOps(
+  session: Awaited<ReturnType<typeof requireBranchContext>>["session"],
+) {
+  if (!canAccessSchoolOpsSettings(session)) {
+    throw new Error("Action non autorisée.");
+  }
 }
 
 export async function getCalendarSettingsAction() {
@@ -77,45 +96,52 @@ export async function saveAttendanceSettingsAction(input: { attendanceRadius: nu
   return { ok: true, message: "Paramètres de présence enregistrés." };
 }
 
-const primaryDomainSchema = z.enum([
-  "LANGUES",
-  "MATH_SCIENCES_TECH",
-  "UNIVERS_SOCIAUX",
-  "ARTS",
-  "DEVELOPPEMENT",
-]);
+const primaryDomainCodeSchema = z
+  .string()
+  .trim()
+  .min(2)
+  .max(40)
+  .regex(/^[A-Z][A-Z0-9_]*$/, "Code domaine invalide.");
 
 const primaryCourseDomainUpdateSchema = z.object({
   coursId: z.string().min(1),
-  primaryDomain: primaryDomainSchema.nullable(),
+  primaryDomain: primaryDomainCodeSchema.nullable(),
   primarySection: z.string().trim().max(120).nullable(),
   domainOrder: z.coerce.number().int().min(0).max(9999).nullable(),
 });
 
 export async function getPrimaryDomainsSettingsAction() {
   const { branchId, typebranch } = await requireBranchContext();
-  const courses = await prisma.cours.findMany({
-    where: {
-      branchId,
-      // Inclure true et null (comme la liste Cours) — `{ not: false }` exclut les NULL en SQL
-      OR: [{ statusCours: true }, { statusCours: null }],
-    },
-    orderBy: [{ domainOrder: "asc" }, { nameCours: "asc" }],
-    select: {
-      id: true,
-      nameCours: true,
-      codeCours: true,
-      primaryDomain: true,
-      primarySection: true,
-      domainOrder: true,
-    },
-  });
+  const [domains, courses] = await Promise.all([
+    typebranch === "PRIMAIRE"
+      ? listBranchPrimaryDomains(branchId)
+      : Promise.resolve([]),
+    prisma.cours.findMany({
+      where: {
+        branchId,
+        // Inclure true et null (comme la liste Cours) — `{ not: false }` exclut les NULL en SQL
+        OR: [{ statusCours: true }, { statusCours: null }],
+      },
+      orderBy: [{ domainOrder: "asc" }, { nameCours: "asc" }],
+      select: {
+        id: true,
+        nameCours: true,
+        codeCours: true,
+        description: true,
+        primaryDomain: true,
+        primarySection: true,
+        domainOrder: true,
+      },
+    }),
+  ]);
   return {
     isPrimary: typebranch === "PRIMAIRE",
+    domains,
     courses: courses.map((course) => ({
       id: course.id,
       nameCours: course.nameCours,
       codeCours: course.codeCours,
+      description: course.description ?? "",
       primaryDomain: course.primaryDomain,
       primarySection: course.primarySection,
       domainOrder: course.domainOrder,
@@ -123,10 +149,128 @@ export async function getPrimaryDomainsSettingsAction() {
   };
 }
 
+const branchDomainUpsertSchema = z.object({
+  id: z.string().min(1).optional(),
+  shortLabel: z
+    .string()
+    .trim()
+    .min(2, "Le nom court doit avoir au moins 2 caractères.")
+    .max(80),
+  label: z
+    .string()
+    .trim()
+    .min(3, "Le libellé bulletin doit avoir au moins 3 caractères.")
+    .max(160),
+  sortOrder: z.coerce.number().int().min(0).max(9999).optional(),
+});
+
+export async function saveBranchPrimaryDomainAction(
+  input: z.infer<typeof branchDomainUpsertSchema>,
+) {
+  const context = await requireBranchContext();
+  assertCanManageSchoolOps(context.session);
+  if (context.typebranch !== "PRIMAIRE") {
+    return { ok: false, message: "Disponible uniquement pour une branche primaire." };
+  }
+
+  const data = branchDomainUpsertSchema.parse(input);
+  await ensureBranchPrimaryDomains(context.branchId);
+
+  const shortLabel = data.shortLabel.trim();
+  const label = data.label.trim();
+
+  if (data.id) {
+    const existing = await prisma.branchPrimaryDomain.findFirst({
+      where: { id: data.id, branchId: context.branchId },
+      select: { id: true, code: true },
+    });
+    if (!existing) return { ok: false, message: "Domaine introuvable." };
+
+    const duplicateName = await prisma.branchPrimaryDomain.findFirst({
+      where: {
+        branchId: context.branchId,
+        id: { not: data.id },
+        OR: [
+          { shortLabel: { equals: shortLabel, mode: "insensitive" } },
+          { label: { equals: label, mode: "insensitive" } },
+        ],
+      },
+      select: { id: true },
+    });
+    if (duplicateName) {
+      return { ok: false, message: "Un domaine avec ce nom existe déjà." };
+    }
+
+    await prisma.branchPrimaryDomain.update({
+      where: { id: data.id },
+      data: {
+        shortLabel,
+        label,
+        ...(data.sortOrder != null ? { sortOrder: data.sortOrder } : {}),
+      },
+    });
+
+    revalidatePath(
+      `/admin/organizations/${context.organizationId}/branches/${context.branchId}/settings/primary-domains`,
+    );
+    return { ok: true, message: "Domaine modifié." };
+  }
+
+  let code = buildPrimaryDomainCode(shortLabel);
+  const codeTaken = await prisma.branchPrimaryDomain.findFirst({
+    where: { branchId: context.branchId, code },
+    select: { id: true },
+  });
+  if (codeTaken) {
+    code = `${code}_${Date.now().toString(36).toUpperCase()}`.slice(0, 40);
+  }
+
+  const duplicateName = await prisma.branchPrimaryDomain.findFirst({
+    where: {
+      branchId: context.branchId,
+      OR: [
+        { shortLabel: { equals: shortLabel, mode: "insensitive" } },
+        { label: { equals: label, mode: "insensitive" } },
+      ],
+    },
+    select: { id: true },
+  });
+  if (duplicateName) {
+    return { ok: false, message: "Un domaine avec ce nom existe déjà." };
+  }
+
+  const maxOrder = await prisma.branchPrimaryDomain.aggregate({
+    where: { branchId: context.branchId },
+    _max: { sortOrder: true },
+  });
+
+  await prisma.branchPrimaryDomain.create({
+    data: {
+      branchId: context.branchId,
+      code,
+      shortLabel,
+      label,
+      sortOrder: data.sortOrder ?? (maxOrder._max.sortOrder ?? 50) + 10,
+      isSystem: false,
+    },
+  });
+
+  revalidatePath(
+    `/admin/organizations/${context.organizationId}/branches/${context.branchId}/settings/primary-domains`,
+  );
+  return { ok: true, message: "Domaine créé." };
+}
+
+export async function getBranchPrimaryDomainsAction() {
+  const { branchId, typebranch } = await requireBranchContext();
+  if (typebranch !== "PRIMAIRE") return [];
+  return listBranchPrimaryDomains(branchId);
+}
+
 /** Affecte automatiquement les domaines catalogue aux cours sans domaine (primaire). */
 export async function ensurePrimaryDomainsAction() {
   const context = await requireBranchContext();
-  assertCanManage(context.session);
+  assertCanManageSchoolOps(context.session);
   if (context.typebranch !== "PRIMAIRE") {
     return { ok: false, message: "Disponible uniquement pour une branche primaire.", updated: 0 };
   }
@@ -174,7 +318,7 @@ export async function ensurePrimaryDomainsAction() {
 /** Crée / met à jour tous les cours du catalogue officiel RDC (5 domaines) pour la branche. */
 export async function importPrimaryCatalogCoursesAction() {
   const context = await requireBranchContext();
-  assertCanManage(context.session);
+  assertCanManageSchoolOps(context.session);
   if (context.typebranch !== "PRIMAIRE") {
     return {
       ok: false,
@@ -210,7 +354,7 @@ export async function savePrimaryCourseDomainAction(
   input: z.infer<typeof primaryCourseDomainUpdateSchema>,
 ) {
   const context = await requireBranchContext();
-  assertCanManage(context.session);
+  assertCanManageSchoolOps(context.session);
   if (context.typebranch !== "PRIMAIRE") {
     return { ok: false, message: "Disponible uniquement pour une branche primaire." };
   }
@@ -235,4 +379,163 @@ export async function savePrimaryCourseDomainAction(
     `/admin/organizations/${context.organizationId}/branches/${context.branchId}/settings/primary-domains`,
   );
   return { ok: true, message: "Domaine enregistré." };
+}
+
+const primaryCourseUpsertSchema = z.object({
+  id: z.string().min(1).optional(),
+  nameCours: z
+    .string()
+    .trim()
+    .min(4, "Le nom du cours doit avoir au moins 4 caractères."),
+  description: z.string().trim().max(500).optional().or(z.literal("")),
+  primaryDomain: primaryDomainCodeSchema.nullable(),
+});
+
+function resolvePrimaryPlacement(
+  courseName: string,
+  selectedDomain: string | null,
+) {
+  if (!selectedDomain) {
+    return {
+      primaryDomain: null as string | null,
+      primarySection: null as string | null,
+      domainOrder: null as number | null,
+    };
+  }
+  const catalog = getCatalogPrimaryPlacement(courseName);
+  const useCatalog = catalog.domain === selectedDomain;
+  return {
+    primaryDomain: selectedDomain,
+    primarySection: useCatalog
+      ? catalog.section === "AUTRES" || catalog.section === "AUTRES COURS"
+        ? null
+        : catalog.section
+      : null,
+    domainOrder: useCatalog ? catalog.sortOrder : null,
+  };
+}
+
+export async function createPrimaryCourseAction(
+  input: z.infer<typeof primaryCourseUpsertSchema>,
+) {
+  const context = await requireBranchContext();
+  assertCanManageSchoolOps(context.session);
+  if (context.typebranch !== "PRIMAIRE") {
+    return { ok: false, message: "Disponible uniquement pour une branche primaire." };
+  }
+
+  const data = primaryCourseUpsertSchema.parse(input);
+  const nameCours = data.nameCours.trim();
+  const duplicate = await prisma.cours.findFirst({
+    where: {
+      branchId: context.branchId,
+      nameCours: { equals: nameCours, mode: "insensitive" },
+    },
+    select: { id: true },
+  });
+  if (duplicate) {
+    return { ok: false, message: "Un cours avec ce nom existe déjà." };
+  }
+
+  const { ensureUniqueIdentifier, generateCourseCode } = await import(
+    "@/lib/generated-identifiers"
+  );
+  const codeCours = await ensureUniqueIdentifier({
+    base: generateCourseCode(nameCours),
+    separator: "",
+    exists: async (value) =>
+      Boolean(
+        await prisma.cours.findFirst({
+          where: { branchId: context.branchId, codeCours: value },
+          select: { id: true },
+        }),
+      ),
+  });
+
+  const placement = resolvePrimaryPlacement(nameCours, data.primaryDomain);
+  await prisma.cours.create({
+    data: {
+      nameCours,
+      description: data.description?.trim() || null,
+      codeCours,
+      branchId: context.branchId,
+      statusCours: true,
+      ...placement,
+    },
+  });
+
+  revalidatePath(
+    `/admin/organizations/${context.organizationId}/branches/${context.branchId}/settings/primary-domains`,
+  );
+  revalidatePath(
+    `/admin/organizations/${context.organizationId}/branches/${context.branchId}/cours`,
+  );
+  return { ok: true, message: "Cours créé." };
+}
+
+export async function updatePrimaryCourseAction(
+  input: z.infer<typeof primaryCourseUpsertSchema>,
+) {
+  const context = await requireBranchContext();
+  assertCanManageSchoolOps(context.session);
+  if (context.typebranch !== "PRIMAIRE") {
+    return { ok: false, message: "Disponible uniquement pour une branche primaire." };
+  }
+
+  const data = primaryCourseUpsertSchema.parse(input);
+  if (!data.id) {
+    return { ok: false, message: "Identifiant du cours manquant." };
+  }
+
+  const existing = await prisma.cours.findFirst({
+    where: { id: data.id, branchId: context.branchId },
+    select: {
+      id: true,
+      primaryDomain: true,
+      primarySection: true,
+      domainOrder: true,
+    },
+  });
+  if (!existing) {
+    return { ok: false, message: "Cours introuvable." };
+  }
+
+  const nameCours = data.nameCours.trim();
+  const duplicate = await prisma.cours.findFirst({
+    where: {
+      branchId: context.branchId,
+      nameCours: { equals: nameCours, mode: "insensitive" },
+      id: { not: data.id },
+    },
+    select: { id: true },
+  });
+  if (duplicate) {
+    return { ok: false, message: "Un cours avec ce nom existe déjà." };
+  }
+
+  const placement = resolvePrimaryPlacement(nameCours, data.primaryDomain);
+  const domainUnchanged = existing.primaryDomain === placement.primaryDomain;
+
+  await prisma.cours.update({
+    where: { id: data.id },
+    data: {
+      nameCours,
+      description: data.description?.trim() || null,
+      primaryDomain: placement.primaryDomain,
+      primarySection: domainUnchanged
+        ? existing.primarySection
+        : placement.primarySection,
+      domainOrder: domainUnchanged
+        ? existing.domainOrder
+        : placement.domainOrder,
+    },
+  });
+
+  revalidatePath(
+    `/admin/organizations/${context.organizationId}/branches/${context.branchId}/settings/primary-domains`,
+  );
+  revalidatePath(
+    `/admin/organizations/${context.organizationId}/branches/${context.branchId}/cours`,
+  );
+  return { ok: true, message: "Cours mis à jour." };
 }

@@ -260,6 +260,10 @@ function mapStudentRecord(
     id: string;
     category: StudentCategory;
     placeOfBirth: string | null;
+    nationalite: string | null;
+    autreNationalite: string | null;
+    territoireAutreNationalite: string | null;
+    langue: string | null;
     createdAt: Date;
     updatedAt: Date;
     branchMember: {
@@ -286,6 +290,14 @@ function mapStudentRecord(
       id: string;
       createdAt: Date;
       updatedAt: Date;
+      nomMere: string | null;
+      professionMere: string | null;
+      tuteurNom: string | null;
+      adresseTuteur: string | null;
+      provinceOrigine: string | null;
+      territoireOrigine: string | null;
+      secteurOrigine: string | null;
+      villageOrigine: string | null;
       branchMember: {
         memberId: string;
         member: { user: {
@@ -368,6 +380,10 @@ function mapStudentRecord(
     address: user?.address || "",
     category: student.category || "NORMAL",
     placeOfBirth: student.placeOfBirth,
+    nationalite: student.nationalite,
+    autreNationalite: student.autreNationalite,
+    territoireAutreNationalite: student.territoireAutreNationalite,
+    langue: student.langue,
     classCode: preferredEnrollment?.classCode ?? null,
     className: preferredEnrollment?.className ?? null,
     schoolYearId: preferredEnrollment?.schoolYearId ?? null,
@@ -401,6 +417,14 @@ function mapStudentRecord(
           updatedAt: student.parent.updatedAt,
           statusUser: parentUser?.statusUser || true,
           address: parentUser?.address || "",
+          nomMere: student.parent.nomMere,
+          professionMere: student.parent.professionMere,
+          tuteurNom: student.parent.tuteurNom,
+          adresseTuteur: student.parent.adresseTuteur,
+          provinceOrigine: student.parent.provinceOrigine,
+          territoireOrigine: student.parent.territoireOrigine,
+          secteurOrigine: student.parent.secteurOrigine,
+          villageOrigine: student.parent.villageOrigine,
           students: null,
         }
       : undefined,
@@ -740,7 +764,8 @@ export const updateStudentExtraInfoAction = action
     z.object({
       studentId: z.string().min(1),
       studentExtra: studentExtraInfoSchema,
-      familyExtra: familyExtraInfoSchema,
+      /** Optionnel : réservé à l'inscription. En édition élève, ne pas envoyer (géré côté parent). */
+      familyExtra: familyExtraInfoSchema.optional(),
     }),
   )
   .handler(async ({ input }) => {
@@ -761,16 +786,21 @@ export const updateStudentExtraInfoAction = action
       return { ok: false as const, message: "Élève introuvable." };
     }
 
-    await prisma.$transaction([
-      prisma.student.update({
-        where: { id: student.id },
-        data: studentExtraToDb(input.studentExtra),
-      }),
-      prisma.parent.update({
+    await prisma.student.update({
+      where: { id: student.id },
+      data: studentExtraToDb(input.studentExtra),
+    });
+
+    // Infos famille uniquement si fournies (ex. inscription). Sinon : fiche parent.
+    if (input.familyExtra) {
+      await prisma.parent.update({
         where: { id: student.parentId },
         data: familyExtraToDb(input.familyExtra),
-      }),
-    ]);
+      });
+      revalidatePath(
+        `/admin/organizations/${organizationId}/branches/${branchId}/parent`,
+      );
+    }
 
     revalidateStudentPages(organizationId, branchId);
     revalidatePath(

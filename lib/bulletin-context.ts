@@ -29,6 +29,13 @@ export type BulletinBranchContext = {
   country: string;
   logoUrl: string;
   branchType: ManagedBranchType;
+  /** Domaines bulletin primaire (libellés custom par branche). */
+  primaryDomains?: Array<{
+    code: string;
+    label: string;
+    shortLabel: string;
+    sortOrder: number;
+  }>;
 };
 
 export type BulletinBranchRecord = {

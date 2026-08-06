@@ -978,8 +978,16 @@ export default function BulletinPDF({
 
       const subjectMaxima = uniqueSubjects.map((subject) => subject.maxima);
       const generalMaxima = aggregateBulletinPeriodMaxima(subjectMaxima);
+      const primaryDomainOrder =
+        branchContext.primaryDomains?.map((d) => d.code) ?? undefined;
+      const primaryDomainLabels = Object.fromEntries(
+        (branchContext.primaryDomains ?? []).map((d) => [d.code, d.label]),
+      );
       const primaryRows = isPrimaryLayout
-        ? buildPrimaryBulletinRows(uniqueSubjects)
+        ? buildPrimaryBulletinRows(uniqueSubjects, {
+            domainOrder: primaryDomainOrder,
+            domainLabels: primaryDomainLabels,
+          })
         : [];
       const blocs: DynamicBloc[] = isPrimaryLayout
         ? [

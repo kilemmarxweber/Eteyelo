@@ -13,6 +13,8 @@ import {
   IconUser,
   IconUserCheck,
   IconCurrencyDollar,
+  IconCalendarEvent,
+  IconSchool,
 } from "@tabler/icons-react";
 
 import { Layout, LayoutBody } from "@/components/custom/layout";
@@ -26,6 +28,7 @@ import {
   hasSessionRole,
 } from "@/lib/auth/session-roles";
 import { ORG_ROLE } from "@/lib/permissions";
+import { getBranchTypeAction } from "../classe/classe.action";
 import SidebarNav from "./components/sidebar-nav";
 
 type SettingsNavAccess = "always" | "org" | "school_ops" | "support";
@@ -34,17 +37,35 @@ export default function Settings({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { data: session, isPending } = authClient.useSession();
   const [hasMounted, setHasMounted] = useState(false);
+  const [branchType, setBranchType] = useState<string | null>(null);
   const sessionReady = hasMounted && !isPending;
 
   useEffect(() => {
     setHasMounted(true);
   }, []);
 
+  useEffect(() => {
+    let ignore = false;
+
+    getBranchTypeAction()
+      .then(([result, err]) => {
+        if (ignore || err || !result?.typebranch) return;
+        setBranchType(String(result.typebranch));
+      })
+      .catch(() => undefined);
+
+    return () => {
+      ignore = true;
+    };
+  }, [pathname]);
+
   const canSeeOrgSettings = sessionReady && canAccessBranchOrgSettings(session);
   const canSeeSchoolOps = sessionReady && canAccessSchoolOpsSettings(session);
   const canSeeSupport = sessionReady && canAccessSupportSettings(session);
+  const resolvedBranchType =
+    branchType ?? session?.branch?.typebranch ?? null;
   const showPrimaryDomains =
-    sessionReady && isPrimaryBranch(session?.branch?.typebranch);
+    sessionReady && isPrimaryBranch(resolvedBranchType);
   const isCursusSelfUser =
     sessionReady &&
     hasSessionRole(session, [
@@ -128,6 +149,18 @@ export default function Settings({ children }: { children: React.ReactNode }) {
         access: "school_ops",
       },
       {
+        title: "Année scolaire",
+        icon: <IconSchool size={18} />,
+        href: `${settingsBasePath}/annee-scolaire`,
+        access: "school_ops",
+      },
+      {
+        title: "Périodes",
+        icon: <IconCalendarEvent size={18} />,
+        href: `${settingsBasePath}/periodes`,
+        access: "school_ops",
+      },
+      {
         title: "Présences",
         icon: <IconUserCheck size={18} />,
         href: `${settingsBasePath}/attendance`,
@@ -137,7 +170,7 @@ export default function Settings({ children }: { children: React.ReactNode }) {
         title: "Domaines primaire",
         icon: <IconBooks size={18} />,
         href: `${settingsBasePath}/primary-domains`,
-        access: "org",
+        access: "school_ops",
         primaryOnly: true,
       },
       {

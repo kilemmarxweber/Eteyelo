@@ -11,7 +11,9 @@ import {
 
 export type { SubjectWithMaxima } from "@/lib/bulletin-subjects";
 
-export type PrimaryDomainCode =
+export type PrimaryDomainCode = string;
+
+export type SystemPrimaryDomainCode =
   | "LANGUES"
   | "MATH_SCIENCES_TECH"
   | "UNIVERS_SOCIAUX"
@@ -20,7 +22,7 @@ export type PrimaryDomainCode =
 
 export type PrimaryCatalogEntry = {
   name: string;
-  domain: PrimaryDomainCode;
+  domain: SystemPrimaryDomainCode;
   section?: string;
   aliases?: string[];
   sortOrder: number;
@@ -37,7 +39,7 @@ export type PrimarySubjectPlacement = {
   showSectionHeader: boolean;
 };
 
-export const PRIMARY_DOMAIN_LABELS: Record<PrimaryDomainCode, string> = {
+export const PRIMARY_DOMAIN_LABELS: Record<SystemPrimaryDomainCode, string> = {
   LANGUES: "DOMAINE DES LANGUES",
   MATH_SCIENCES_TECH: "DOMAINES DES MATHEMATIQUES, SCIENCES ET TECHNOLOGIE",
   UNIVERS_SOCIAUX: "DOMAINE DE L'UNIVERS SOCIAL ET ENVIRONNEMENT",
@@ -46,7 +48,10 @@ export const PRIMARY_DOMAIN_LABELS: Record<PrimaryDomainCode, string> = {
 };
 
 /** Libellés courts pour l'UI Settings (selects, onglets). */
-export const PRIMARY_DOMAIN_SHORT_LABELS: Record<PrimaryDomainCode, string> = {
+export const PRIMARY_DOMAIN_SHORT_LABELS: Record<
+  SystemPrimaryDomainCode,
+  string
+> = {
   LANGUES: "Langues",
   MATH_SCIENCES_TECH: "Math / Sciences / Tech",
   UNIVERS_SOCIAUX: "Univers social & environnement",
@@ -54,13 +59,75 @@ export const PRIMARY_DOMAIN_SHORT_LABELS: Record<PrimaryDomainCode, string> = {
   DEVELOPPEMENT: "Développement personnel",
 };
 
-export const PRIMARY_DOMAIN_ORDER: PrimaryDomainCode[] = [
+export const PRIMARY_DOMAIN_ORDER: SystemPrimaryDomainCode[] = [
   "LANGUES",
   "MATH_SCIENCES_TECH",
   "UNIVERS_SOCIAUX",
   "ARTS",
   "DEVELOPPEMENT",
 ];
+
+/** Définitions système à seeder par branche. */
+export const SYSTEM_PRIMARY_DOMAIN_DEFS = PRIMARY_DOMAIN_ORDER.map(
+  (code, index) => ({
+    code,
+    label: PRIMARY_DOMAIN_LABELS[code],
+    shortLabel: PRIMARY_DOMAIN_SHORT_LABELS[code],
+    sortOrder: (index + 1) * 10,
+  }),
+);
+
+export type BranchDomainDef = {
+  code: string;
+  label: string;
+  shortLabel: string;
+  sortOrder: number;
+};
+
+export function resolvePrimaryDomainLabel(
+  code: string,
+  domains?: BranchDomainDef[] | null,
+): string {
+  const fromBranch = domains?.find((d) => d.code === code);
+  if (fromBranch?.label) return fromBranch.label;
+  return (
+    PRIMARY_DOMAIN_LABELS[code as SystemPrimaryDomainCode] ?? code
+  );
+}
+
+export function resolvePrimaryDomainShortLabel(
+  code: string,
+  domains?: BranchDomainDef[] | null,
+): string {
+  const fromBranch = domains?.find((d) => d.code === code);
+  if (fromBranch?.shortLabel) return fromBranch.shortLabel;
+  return (
+    PRIMARY_DOMAIN_SHORT_LABELS[code as SystemPrimaryDomainCode] ?? code
+  );
+}
+
+export function resolvePrimaryDomainOrder(
+  domains?: BranchDomainDef[] | null,
+): string[] {
+  if (domains && domains.length > 0) {
+    return [...domains]
+      .sort((a, b) => a.sortOrder - b.sortOrder || a.shortLabel.localeCompare(b.shortLabel, "fr"))
+      .map((d) => d.code);
+  }
+  return [...PRIMARY_DOMAIN_ORDER];
+}
+
+/** Slug code pour un domaine custom (ex. "Arts" → "ARTS", "Langue vivante" → "LANGUE_VIVANTE"). */
+export function buildPrimaryDomainCode(name: string): string {
+  const base = name
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toUpperCase()
+    .replace(/[^A-Z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "")
+    .slice(0, 40);
+  return base || "DOMAINE";
+}
 
 /** Sections : plus affichées en gras sur le bulletin (domaine suffit). */
 
@@ -486,11 +553,24 @@ function getSubjectPeriodMax(subject: SubjectWithMaxima): number {
 
 export function buildPrimaryBulletinRows(
   subjects: SubjectWithPrimaryPlacement[],
+  options?: {
+    domainOrder?: string[];
+    domainLabels?: Record<string, string>;
+  },
 ): PrimaryBulletinRow[] {
   const rows: PrimaryBulletinRow[] = [];
   const uniqueSubjects = dedupePrimarySubjectsByCanonicalName(
     subjects,
   ) as SubjectWithPrimaryPlacement[];
+  const domainOrder = options?.domainOrder?.length
+    ? options.domainOrder
+    : PRIMARY_DOMAIN_ORDER;
+  const domainLabels = options?.domainLabels ?? {};
+
+  const domainRank = (code: string) => {
+    const idx = domainOrder.indexOf(code);
+    return idx === -1 ? 1000 : idx;
+  };
 
   // Preserve DB placement fields after dedupe by name key
   const placementByKey = new Map<string, SubjectWithPrimaryPlacement>();
@@ -518,8 +598,7 @@ export function buildPrimaryBulletinRows(
 
   // Dans chaque domaine : tri uniquement par maxima ASC (10, 20, 40…), pas par ordre matière.
   placed.sort((a, b) => {
-    const domainDiff =
-      PRIMARY_DOMAIN_ORDER.indexOf(a.domain) - PRIMARY_DOMAIN_ORDER.indexOf(b.domain);
+    const domainDiff = domainRank(a.domain) - domainRank(b.domain);
     if (domainDiff !== 0) return domainDiff;
     const maxDiff = getSubjectPeriodMax(a.subject) - getSubjectPeriodMax(b.subject);
     if (maxDiff !== 0) return maxDiff;
@@ -550,7 +629,10 @@ export function buildPrimaryBulletinRows(
       rows.push({
         type: "domain-header",
         domain: item.domain,
-        label: PRIMARY_DOMAIN_LABELS[item.domain],
+        label:
+          domainLabels[item.domain] ??
+          PRIMARY_DOMAIN_LABELS[item.domain as SystemPrimaryDomainCode] ??
+          item.domain,
       });
     }
 

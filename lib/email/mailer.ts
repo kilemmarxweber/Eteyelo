@@ -159,11 +159,8 @@ export async function sendMail(payload: MailPayload): Promise<void> {
 
   try {
     const { getEmailQueue } = await import("@/src/redis/queues/email.queue");
-    const redis = (await import("@/src/redis/redis")).getRedisConnection();
-
-    if (redis.status === "wait" || redis.status === "end") {
-      await redis.connect();
-    }
+    const { ensureRedisReady } = await import("@/src/redis/redis");
+    await ensureRedisReady();
 
     const { whatsappTo: _wa, whatsappName: _wn, ...emailJob } = payload;
     await getEmailQueue().add("send-email", emailJob, {

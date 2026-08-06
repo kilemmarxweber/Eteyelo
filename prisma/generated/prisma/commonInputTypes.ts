@@ -303,23 +303,6 @@ export type IntNullableWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedIntNullableFilter<$PrismaModel>
 }
 
-export type EnumPrimaryDomainNullableFilter<$PrismaModel = never> = {
-  equals?: $Enums.PrimaryDomain | Prisma.EnumPrimaryDomainFieldRefInput<$PrismaModel> | null
-  in?: $Enums.PrimaryDomain[] | Prisma.ListEnumPrimaryDomainFieldRefInput<$PrismaModel> | null
-  notIn?: $Enums.PrimaryDomain[] | Prisma.ListEnumPrimaryDomainFieldRefInput<$PrismaModel> | null
-  not?: Prisma.NestedEnumPrimaryDomainNullableFilter<$PrismaModel> | $Enums.PrimaryDomain | null
-}
-
-export type EnumPrimaryDomainNullableWithAggregatesFilter<$PrismaModel = never> = {
-  equals?: $Enums.PrimaryDomain | Prisma.EnumPrimaryDomainFieldRefInput<$PrismaModel> | null
-  in?: $Enums.PrimaryDomain[] | Prisma.ListEnumPrimaryDomainFieldRefInput<$PrismaModel> | null
-  notIn?: $Enums.PrimaryDomain[] | Prisma.ListEnumPrimaryDomainFieldRefInput<$PrismaModel> | null
-  not?: Prisma.NestedEnumPrimaryDomainNullableWithAggregatesFilter<$PrismaModel> | $Enums.PrimaryDomain | null
-  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
-  _min?: Prisma.NestedEnumPrimaryDomainNullableFilter<$PrismaModel>
-  _max?: Prisma.NestedEnumPrimaryDomainNullableFilter<$PrismaModel>
-}
-
 export type EnumDayFilter<$PrismaModel = never> = {
   equals?: $Enums.Day | Prisma.EnumDayFieldRefInput<$PrismaModel>
   in?: $Enums.Day[] | Prisma.ListEnumDayFieldRefInput<$PrismaModel>
@@ -1190,23 +1173,6 @@ export type NestedFloatNullableFilter<$PrismaModel = never> = {
   gt?: number | Prisma.FloatFieldRefInput<$PrismaModel>
   gte?: number | Prisma.FloatFieldRefInput<$PrismaModel>
   not?: Prisma.NestedFloatNullableFilter<$PrismaModel> | number | null
-}
-
-export type NestedEnumPrimaryDomainNullableFilter<$PrismaModel = never> = {
-  equals?: $Enums.PrimaryDomain | Prisma.EnumPrimaryDomainFieldRefInput<$PrismaModel> | null
-  in?: $Enums.PrimaryDomain[] | Prisma.ListEnumPrimaryDomainFieldRefInput<$PrismaModel> | null
-  notIn?: $Enums.PrimaryDomain[] | Prisma.ListEnumPrimaryDomainFieldRefInput<$PrismaModel> | null
-  not?: Prisma.NestedEnumPrimaryDomainNullableFilter<$PrismaModel> | $Enums.PrimaryDomain | null
-}
-
-export type NestedEnumPrimaryDomainNullableWithAggregatesFilter<$PrismaModel = never> = {
-  equals?: $Enums.PrimaryDomain | Prisma.EnumPrimaryDomainFieldRefInput<$PrismaModel> | null
-  in?: $Enums.PrimaryDomain[] | Prisma.ListEnumPrimaryDomainFieldRefInput<$PrismaModel> | null
-  notIn?: $Enums.PrimaryDomain[] | Prisma.ListEnumPrimaryDomainFieldRefInput<$PrismaModel> | null
-  not?: Prisma.NestedEnumPrimaryDomainNullableWithAggregatesFilter<$PrismaModel> | $Enums.PrimaryDomain | null
-  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
-  _min?: Prisma.NestedEnumPrimaryDomainNullableFilter<$PrismaModel>
-  _max?: Prisma.NestedEnumPrimaryDomainNullableFilter<$PrismaModel>
 }
 
 export type NestedEnumDayFilter<$PrismaModel = never> = {

@@ -481,8 +481,8 @@ model Cours {
   description String?
   teaching    Teaching[]
   statusCours Boolean?
-  /// Domaine bulletin primaire (RDC) — null pour secondaire / non classé
-  primaryDomain  PrimaryDomain?
+  /// Code domaine bulletin primaire (BranchPrimaryDomain.code) — null si non classé
+  primaryDomain  String?
   /// Section affichée sous le domaine (ex. LANGUES CONGOLAISES) — null = pas de sous-en-tête
   primarySection String?
   /// Ordre d'affichage dans le bulletin primaire
@@ -1206,12 +1206,34 @@ model Branch {
   libraryBooks         LibraryBook[]
   supportTickets       PlatformSupportEscalation[]
   onlineAssignments    OnlineAssignment[]
+  primaryDomains       BranchPrimaryDomain[]
 
   @@index([organizationId])
   @@index([organizationId, isActive])
   @@index([organizationId, typebranch])
   @@index([code])
   @@unique([organizationId, code])
+}
+
+/// Domaines du bulletin primaire (par branche) — créables / modifiables
+model BranchPrimaryDomain {
+  id         String   @id @default(cuid())
+  branchId   String
+  branch     Branch   @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  /// Code stable (ex. LANGUES, ARTS, ou slug custom)
+  code       String
+  /// Libellé bulletin (ex. DOMAINE DES LANGUES)
+  label      String
+  /// Libellé court UI (ex. Langues)
+  shortLabel String
+  sortOrder  Int      @default(0)
+  /// Domaine catalogue RDC seedé (non supprimable)
+  isSystem   Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([branchId, code])
+  @@index([branchId, sortOrder])
 }
 
 /// Infos publiques d'inscription en ligne (conditions, frais, programme rentrée), par école / année.
@@ -1493,15 +1515,6 @@ model IssuedDocument {
   @@index([studentId])
   @@index([branchId, studentId])
   @@index([schoolYearId])
-}
-
-/// Domaines du bulletin primaire RDC
-enum PrimaryDomain {
-  LANGUES
-  MATH_SCIENCES_TECH
-  UNIVERS_SOCIAUX
-  ARTS
-  DEVELOPPEMENT
 }
 
 model BranchInvitation {

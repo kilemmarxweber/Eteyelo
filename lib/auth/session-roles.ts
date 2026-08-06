@@ -26,6 +26,8 @@ export function getSessionRoles(
   const roles = new Set<string>([
     ...splitSessionRoles(session?.user?.role),
     ...splitSessionRoles(session?.organization?.role),
+    ...splitSessionRoles(session?.member?.role),
+    ...splitSessionRoles(session?.activeMember?.role),
     ...extraRoles.flatMap(splitSessionRoles),
   ]);
 
@@ -47,6 +49,12 @@ export function getSessionRoles(
         roles.add(normalizedRole);
       }
     }
+  }
+
+  // Alias FR / legacy → slugs canoniques
+  if (roles.has("proprietaire")) roles.add(APP_ROLE.OWNER);
+  if (roles.has("gestionnaire") && !roles.has(ORG_ROLE.GESTIONNAIRE)) {
+    roles.add(ORG_ROLE.GESTIONNAIRE);
   }
 
   return roles;
@@ -233,14 +241,14 @@ export function isOrganizationOwnerSession(
 ): boolean {
   return hasSessionRole(
     session,
-    [APP_ROLE.OWNER, ORG_ROLE.OWNER],
+    [APP_ROLE.OWNER, ORG_ROLE.OWNER, "proprietaire"],
     ...extraRoles,
   );
 }
 
 /**
- * Paramètres branche avancés (types de frais, taux, horaires, présences,
- * domaines primaire) : owner plateforme, admin app, propriétaire ou gestionnaire.
+ * Paramètres branche avancés (types de frais, taux, horaires, présences) :
+ * owner plateforme, admin app, propriétaire org ou gestionnaire.
  */
 export function canAccessBranchOrgSettings(
   session: any,
@@ -253,14 +261,16 @@ export function canAccessBranchOrgSettings(
       APP_ROLE.ADMIN,
       ORG_ROLE.OWNER,
       ORG_ROLE.GESTIONNAIRE,
+      "proprietaire",
     ],
     ...extraRoles,
   );
 }
 
 /**
- * Communication publique + calendrier scolaire :
- * org managers + chef d’établissement (préfet/directeur).
+ * Structure scolaire (périodes, année scolaire, domaines primaire) +
+ * communication publique / calendrier :
+ * managers org (dont propriétaire) + chef d’établissement (préfet/directeur).
  */
 export function canAccessSchoolOpsSettings(
   session: any,
@@ -270,7 +280,15 @@ export function canAccessSchoolOpsSettings(
     canAccessBranchOrgSettings(session, ...extraRoles) ||
     hasSessionRole(
       session,
-      [ORG_ROLE.PREFET, ORG_ROLE.DIRECTEUR, "DIRECTOR", "director"],
+      [
+        APP_ROLE.OWNER,
+        ORG_ROLE.OWNER,
+        "proprietaire",
+        ORG_ROLE.PREFET,
+        ORG_ROLE.DIRECTEUR,
+        "DIRECTOR",
+        "director",
+      ],
       ...extraRoles,
     )
   );

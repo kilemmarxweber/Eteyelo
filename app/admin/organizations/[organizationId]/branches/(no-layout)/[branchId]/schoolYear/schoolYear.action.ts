@@ -20,6 +20,9 @@ import { canManageOrganization } from "@/lib/auth/session-roles";
 
 function revalidateSchoolYearPages(organizationId: string, branchId: string) {
   revalidatePath(`/admin/organizations/${organizationId}/branches/${branchId}/schoolYear`);
+  revalidatePath(
+    `/admin/organizations/${organizationId}/branches/${branchId}/settings/annee-scolaire`,
+  );
   revalidatePath(`/admin/organizations/${organizationId}/branches/${branchId}/schedule`);
 }
 

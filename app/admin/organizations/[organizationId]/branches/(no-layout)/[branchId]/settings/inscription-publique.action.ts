@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { Prisma } from "@/prisma/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
-import { canAccessBranchOrgSettings } from "@/lib/auth/session-roles";
+import { canAccessSchoolOpsSettings } from "@/lib/auth/session-roles";
 import { parseRentreeProgram } from "@/lib/registration-public-info";
 import {
   branchRegistrationInfoFormSchema,
@@ -14,16 +14,67 @@ import {
 
 async function requireBranchRegistrationAccess() {
   const ctx = await requireBranchContext();
-  if (!canAccessBranchOrgSettings(ctx.session)) {
+  if (!canAccessSchoolOpsSettings(ctx.session)) {
     throw new Error("Action non autorisee.");
   }
   return ctx;
 }
 
-export async function getBranchRegistrationSettingsAction() {
+function toFormValues(
+  branchId: string,
+  row: {
+    id: string;
+    schoolYearId: string | null;
+    isPublished: boolean;
+    termsTitle: string;
+    termsContent: string;
+    registrationFeeRequired: boolean;
+    registrationFeeAmount: Prisma.Decimal | null;
+    registrationFeeCurrency: string;
+    registrationFeeLabel: string | null;
+    registrationFeeDueNote: string | null;
+    rentreeProgram: unknown;
+  },
+  fallbackSchoolYearId = "",
+): BranchRegistrationInfoFormValues {
+  return {
+    id: row.id,
+    branchId,
+    schoolYearId: row.schoolYearId ?? fallbackSchoolYearId,
+    isPublished: row.isPublished,
+    termsTitle: row.termsTitle,
+    termsContent: row.termsContent,
+    registrationFeeRequired: row.registrationFeeRequired,
+    registrationFeeAmount:
+      row.registrationFeeAmount != null
+        ? String(Number(row.registrationFeeAmount))
+        : "",
+    registrationFeeCurrency: toFeeCurrency(row.registrationFeeCurrency),
+    registrationFeeLabel: row.registrationFeeLabel ?? "",
+    registrationFeeDueNote: row.registrationFeeDueNote ?? "",
+    rentreeProgram: parseRentreeProgram(row.rentreeProgram),
+  };
+}
+
+export type BranchRegistrationInfoListItem = {
+  id: string;
+  schoolYearId: string | null;
+  schoolYearName: string | null;
+  isPublished: boolean;
+  publishedAt: string | null;
+  updatedAt: string;
+  termsTitle: string;
+  registrationFeeRequired: boolean;
+  registrationFeeAmount: string | null;
+  registrationFeeCurrency: string;
+  rentreeCount: number;
+  formValues: BranchRegistrationInfoFormValues;
+};
+
+export async function listBranchRegistrationInfosAction() {
   const { branchId, organizationId } = await requireBranchRegistrationAccess();
 
-  const [schoolYears, info] = await Promise.all([
+  const [schoolYears, infos] = await Promise.all([
     prisma.schoolYear.findMany({
       where: { branchId, isArchived: false },
       orderBy: [{ isCurrentYear: "desc" }, { startYear: "desc" }],
@@ -33,47 +84,67 @@ export async function getBranchRegistrationSettingsAction() {
         isCurrentYear: true,
       },
     }),
-    prisma.branchRegistrationInfo.findFirst({
+    prisma.branchRegistrationInfo.findMany({
       where: { branchId },
       orderBy: [{ isPublished: "desc" }, { updatedAt: "desc" }],
+      include: {
+        schoolYear: {
+          select: { id: true, nameYear: true, isCurrentYear: true },
+        },
+      },
     }),
   ]);
 
   const currentYear = schoolYears.find((year) => year.isCurrentYear);
-  const preferred =
-    (currentYear &&
-      (await prisma.branchRegistrationInfo.findFirst({
-        where: { branchId, schoolYearId: currentYear.id },
-      }))) ||
-    info;
+
+  const items: BranchRegistrationInfoListItem[] = infos.map((row) => {
+    const rentreeProgram = parseRentreeProgram(row.rentreeProgram);
+    return {
+      id: row.id,
+      schoolYearId: row.schoolYearId,
+      schoolYearName: row.schoolYear?.nameYear ?? null,
+      isPublished: row.isPublished,
+      publishedAt: row.publishedAt?.toISOString() ?? null,
+      updatedAt: row.updatedAt.toISOString(),
+      termsTitle: row.termsTitle,
+      registrationFeeRequired: row.registrationFeeRequired,
+      registrationFeeAmount:
+        row.registrationFeeAmount != null
+          ? String(Number(row.registrationFeeAmount))
+          : null,
+      registrationFeeCurrency: row.registrationFeeCurrency,
+      rentreeCount: rentreeProgram.length,
+      formValues: toFormValues(branchId, row, currentYear?.id ?? ""),
+    };
+  });
 
   return {
     organizationId,
     branchId,
     schoolYears,
+    currentSchoolYearId: currentYear?.id ?? "",
+    items,
+  };
+}
+
+/** @deprecated Prefer listBranchRegistrationInfosAction + form defaults. */
+export async function getBranchRegistrationSettingsAction() {
+  const data = await listBranchRegistrationInfosAction();
+  const preferred =
+    data.items.find(
+      (item) =>
+        item.schoolYearId && item.schoolYearId === data.currentSchoolYearId,
+    ) ?? data.items[0];
+
+  return {
+    organizationId: data.organizationId,
+    branchId: data.branchId,
+    schoolYears: data.schoolYears,
     initialValues: preferred
-      ? ({
-          id: preferred.id,
-          branchId,
-          schoolYearId: preferred.schoolYearId ?? currentYear?.id ?? "",
-          isPublished: preferred.isPublished,
-          termsTitle: preferred.termsTitle,
-          termsContent: preferred.termsContent,
-          registrationFeeRequired: preferred.registrationFeeRequired,
-          registrationFeeAmount:
-            preferred.registrationFeeAmount != null
-              ? String(Number(preferred.registrationFeeAmount))
-              : "",
-          registrationFeeCurrency: toFeeCurrency(
-            preferred.registrationFeeCurrency,
-          ),
-          registrationFeeLabel: preferred.registrationFeeLabel ?? "",
-          registrationFeeDueNote: preferred.registrationFeeDueNote ?? "",
-          rentreeProgram: parseRentreeProgram(preferred.rentreeProgram),
-        } satisfies Partial<BranchRegistrationInfoFormValues>)
+      ? preferred.formValues
       : ({
-          branchId,
-          schoolYearId: currentYear?.id ?? "",
+          branchId: data.branchId,
+          schoolYearId: data.currentSchoolYearId,
           isPublished: false,
           termsTitle: "Conditions d'inscription",
           termsContent: "",
@@ -195,4 +266,32 @@ export async function saveBranchRegistrationSettingsAction(input: unknown) {
       ? "Infos d'inscription publiees."
       : "Infos d'inscription enregistrees (brouillon).",
   };
+}
+
+export async function deleteBranchRegistrationInfoAction(input: {
+  id: string;
+}) {
+  const { branchId, organizationId } = await requireBranchRegistrationAccess();
+  const id = typeof input?.id === "string" ? input.id.trim() : "";
+  if (!id) {
+    return { ok: false as const, message: "Fiche invalide." };
+  }
+
+  const existing = await prisma.branchRegistrationInfo.findFirst({
+    where: { id, branchId },
+    select: { id: true },
+  });
+  if (!existing) {
+    return { ok: false as const, message: "Fiche introuvable." };
+  }
+
+  await prisma.branchRegistrationInfo.delete({ where: { id } });
+
+  revalidatePath(
+    `/admin/organizations/${organizationId}/branches/${branchId}/settings/inscription-publique`,
+  );
+  revalidatePath("/inscription");
+  revalidatePath("/inscription-eleve");
+
+  return { ok: true as const, message: "Fiche supprimee." };
 }

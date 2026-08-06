@@ -99,6 +99,7 @@ export const ModelName = {
   Member: 'Member',
   Invitation: 'Invitation',
   Branch: 'Branch',
+  BranchPrimaryDomain: 'BranchPrimaryDomain',
   BranchRegistrationInfo: 'BranchRegistrationInfo',
   RegistrationRequest: 'RegistrationRequest',
   JobApplication: 'JobApplication',
@@ -888,6 +889,21 @@ export const BranchScalarFieldEnum = {
 } as const
 
 export type BranchScalarFieldEnum = (typeof BranchScalarFieldEnum)[keyof typeof BranchScalarFieldEnum]
+
+
+export const BranchPrimaryDomainScalarFieldEnum = {
+  id: 'id',
+  branchId: 'branchId',
+  code: 'code',
+  label: 'label',
+  shortLabel: 'shortLabel',
+  sortOrder: 'sortOrder',
+  isSystem: 'isSystem',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type BranchPrimaryDomainScalarFieldEnum = (typeof BranchPrimaryDomainScalarFieldEnum)[keyof typeof BranchPrimaryDomainScalarFieldEnum]
 
 
 export const BranchRegistrationInfoScalarFieldEnum = {

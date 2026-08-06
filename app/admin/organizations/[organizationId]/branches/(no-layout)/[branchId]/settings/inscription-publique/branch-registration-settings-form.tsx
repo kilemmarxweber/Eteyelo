@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAppTransition as useTransition } from "@/hooks/use-app-transition";
@@ -31,10 +30,7 @@ import {
   branchRegistrationInfoFormSchema,
   type BranchRegistrationInfoFormValues,
 } from "@/app/admin/organizations/[organizationId]/inscription-publique/schema";
-import {
-  getBranchRegistrationSettingsAction,
-  saveBranchRegistrationSettingsAction,
-} from "../inscription-publique.action";
+import { saveBranchRegistrationSettingsAction } from "../inscription-publique.action";
 
 type SchoolYearOption = {
   id: string;
@@ -42,26 +38,51 @@ type SchoolYearOption = {
   isCurrentYear: boolean;
 };
 
-export function BranchRegistrationSettingsForm() {
+function buildDefaults(
+  branchId: string,
+  schoolYearId = "",
+): BranchRegistrationInfoFormValues {
+  return {
+    branchId,
+    schoolYearId,
+    isPublished: false,
+    termsTitle: "Conditions d'inscription",
+    termsContent: "",
+    registrationFeeRequired: true,
+    registrationFeeAmount: "",
+    registrationFeeCurrency: "CDF",
+    registrationFeeLabel: "Frais d'inscription",
+    registrationFeeDueNote:
+      "A regler aupres de la caisse avant la confirmation du dossier.",
+    rentreeProgram: [],
+  };
+}
+
+export function BranchRegistrationSettingsForm({
+  branchId,
+  schoolYears,
+  initialValues,
+  onSuccess,
+  onCancel,
+}: {
+  branchId: string;
+  schoolYears: SchoolYearOption[];
+  initialValues?: Partial<BranchRegistrationInfoFormValues> | null;
+  onSuccess?: () => void;
+  onCancel?: () => void;
+}) {
   const [pending, startTransition] = useTransition();
-  const [loading, setLoading] = useState(true);
-  const [schoolYears, setSchoolYears] = useState<SchoolYearOption[]>([]);
+  const currentYearId =
+    schoolYears.find((year) => year.isCurrentYear)?.id ??
+    schoolYears[0]?.id ??
+    "";
 
   const form = useForm<BranchRegistrationInfoFormValues>({
     resolver: zodResolver(branchRegistrationInfoFormSchema),
     defaultValues: {
-      branchId: "",
-      schoolYearId: "",
-      isPublished: false,
-      termsTitle: "Conditions d'inscription",
-      termsContent: "",
-      registrationFeeRequired: true,
-      registrationFeeAmount: "",
-      registrationFeeCurrency: "CDF",
-      registrationFeeLabel: "Frais d'inscription",
-      registrationFeeDueNote:
-        "A regler aupres de la caisse avant la confirmation du dossier.",
-      rentreeProgram: [],
+      ...buildDefaults(branchId, currentYearId),
+      ...initialValues,
+      branchId,
     },
   });
 
@@ -72,50 +93,6 @@ export function BranchRegistrationSettingsForm() {
 
   const feeRequired = form.watch("registrationFeeRequired");
 
-  useEffect(() => {
-    let ignore = false;
-    startTransition(async () => {
-      try {
-        const data = await getBranchRegistrationSettingsAction();
-        if (ignore) return;
-        setSchoolYears(data.schoolYears);
-        const defaults: Partial<BranchRegistrationInfoFormValues> = {
-          id: undefined,
-          schoolYearId: "",
-          isPublished: false,
-          termsTitle: "Conditions d'inscription",
-          termsContent: "",
-          registrationFeeRequired: true,
-          registrationFeeAmount: "",
-          registrationFeeCurrency: "CDF",
-          registrationFeeLabel: "Frais d'inscription",
-          registrationFeeDueNote:
-            "A regler aupres de la caisse avant la confirmation du dossier.",
-          rentreeProgram: [],
-        };
-        form.reset({
-          ...defaults,
-          ...data.initialValues,
-          branchId: data.branchId,
-        });
-      } catch (error) {
-        if (ignore) return;
-        toast.error(
-          error instanceof Error
-            ? error.message
-            : "Impossible de charger les infos d'inscription.",
-        );
-      } finally {
-        if (!ignore) setLoading(false);
-      }
-    });
-    return () => {
-      ignore = true;
-    };
-    // Chargement initial une seule fois a l'ouverture de la page
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   function onSubmit(values: BranchRegistrationInfoFormValues) {
     startTransition(async () => {
       const result = await saveBranchRegistrationSettingsAction(values);
@@ -124,26 +101,13 @@ export function BranchRegistrationSettingsForm() {
         return;
       }
       toast.success(result.message);
+      onSuccess?.();
     });
-  }
-
-  if (loading) {
-    return (
-      <p className="text-sm text-muted-foreground">Chargement des parametres…</p>
-    );
   }
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        <div className="space-y-1">
-          <h2 className="text-lg font-semibold">Communication publique</h2>
-          <p className="text-sm text-muted-foreground">
-            Conditions, frais et programme de rentree affiches sur
-            /inscription apres le choix de cette ecole.
-          </p>
-        </div>
-
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <FormField
           control={form.control}
           name="schoolYearId"
@@ -199,7 +163,7 @@ export function BranchRegistrationSettingsForm() {
                 <FormLabel>Contenu *</FormLabel>
                 <FormControl>
                   <Textarea
-                    rows={10}
+                    rows={8}
                     placeholder="Pieces a fournir, regles, calendrier administratif..."
                     {...field}
                   />
@@ -407,7 +371,12 @@ export function BranchRegistrationSettingsForm() {
           )}
         />
 
-        <div className="flex justify-end">
+        <div className="flex justify-end gap-2">
+          {onCancel ? (
+            <Button type="button" variant="outline" onClick={onCancel}>
+              Annuler
+            </Button>
+          ) : null}
           <Button type="submit" disabled={pending}>
             {pending ? "Enregistrement..." : "Enregistrer"}
           </Button>

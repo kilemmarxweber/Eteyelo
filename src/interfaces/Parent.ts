@@ -16,6 +16,15 @@ export interface IParent extends Omit<
     typeFraisName?: string | null;
     category?: unknown;
   } | null;
+  /** Infos famille optionnelles (partagées avec les fiches élèves). */
+  nomMere?: string | null;
+  professionMere?: string | null;
+  tuteurNom?: string | null;
+  adresseTuteur?: string | null;
+  provinceOrigine?: string | null;
+  territoireOrigine?: string | null;
+  secteurOrigine?: string | null;
+  villageOrigine?: string | null;
   role?: string; // 👈 nouveau
   memberId: string; // 👈 ajouté
   userId: string; // 👈 ajouté

@@ -1,5 +1,5 @@
 "use client";
-import { HTMLAttributes, useState } from "react";
+import { HTMLAttributes, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -29,8 +29,8 @@ import {
 import {
   PRIMARY_DOMAIN_ORDER,
   PRIMARY_DOMAIN_SHORT_LABELS,
-  type PrimaryDomainCode,
 } from "@/lib/primary-domains";
+import { getBranchPrimaryDomainsAction } from "../../settings/settings.action";
 
 interface CoursUpFormProps extends HTMLAttributes<HTMLDivElement> {
   onSuccess?: () => void;
@@ -57,6 +57,32 @@ export function CoursUpForm({
   const isDialog = layout === "dialog";
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [domains, setDomains] = useState<
+    Array<{ code: string; shortLabel: string }>
+  >(() =>
+    PRIMARY_DOMAIN_ORDER.map((code) => ({
+      code,
+      shortLabel: PRIMARY_DOMAIN_SHORT_LABELS[code],
+    })),
+  );
+
+  useEffect(() => {
+    if (!isPrimary) return;
+    let ignore = false;
+    getBranchPrimaryDomainsAction()
+      .then((rows) => {
+        if (ignore || !rows.length) return;
+        setDomains(
+          rows.map((d) => ({ code: d.code, shortLabel: d.shortLabel })),
+        );
+      })
+      .catch(() => {
+        /* keep defaults */
+      });
+    return () => {
+      ignore = true;
+    };
+  }, [isPrimary]);
 
   const form = useForm<z.infer<typeof coursSchema>>({
     resolver: zodResolver(coursSchema),
@@ -137,9 +163,7 @@ export function CoursUpForm({
           <Select
             value={field.value ?? "NONE"}
             onValueChange={(value) =>
-              field.onChange(
-                value === "NONE" ? null : (value as PrimaryDomainCode),
-              )
+              field.onChange(value === "NONE" ? null : value)
             }
             disabled={isLoading}
           >
@@ -150,17 +174,17 @@ export function CoursUpForm({
             </FormControl>
             <SelectContent>
               <SelectItem value="NONE">Non classé</SelectItem>
-              {PRIMARY_DOMAIN_ORDER.map((code) => (
-                <SelectItem key={code} value={code}>
-                  {PRIMARY_DOMAIN_SHORT_LABELS[code]}
+              {domains.map((domain) => (
+                <SelectItem key={domain.code} value={domain.code}>
+                  {domain.shortLabel}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
           {!isDialog ? (
             <FormDescription>
-              Les 5 domaines RDC. Si vous laissez « Non classé » à la création,
-              une suggestion automatique peut être appliquée.
+              Domaines du bulletin. Si vous laissez « Non classé » à la
+              création, une suggestion automatique peut être appliquée.
             </FormDescription>
           ) : null}
           <FormMessage />

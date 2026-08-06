@@ -253,6 +253,9 @@ export function StudentProfileClient({ profile }: { profile: StudentProfileData 
         <RegistrationExtraInfoSheet
           open={extraSheetOpen}
           onOpenChange={setExtraSheetOpen}
+          title="Autres informations"
+          description="Nationalité et langue propres à cet élève. Les infos famille / origines se gèrent sur la fiche parent."
+          hideFamily
           initialStudent={{
             nationalite:
               profile.nationality !== "-" && profile.nationality !== "Congolaise"
@@ -270,29 +273,10 @@ export function StudentProfileClient({ profile }: { profile: StudentProfileData 
                 : profile.territoireAutreNationalite,
             langue: profile.langue === "-" ? "" : profile.langue,
           }}
-          initialFamily={{
-            nomMere: profile.nomMere === "-" ? "" : profile.nomMere,
-            professionMere:
-              profile.professionMere === "-" ? "" : profile.professionMere,
-            tuteurNom: profile.tuteurNom === "-" ? "" : profile.tuteurNom,
-            adresseTuteur:
-              profile.adresseTuteur === "-" ? "" : profile.adresseTuteur,
-            provinceOrigine:
-              profile.provinceOrigine === "-" ? "" : profile.provinceOrigine,
-            territoireOrigine:
-              profile.territoireOrigine === "-"
-                ? ""
-                : profile.territoireOrigine,
-            secteurOrigine:
-              profile.secteurOrigine === "-" ? "" : profile.secteurOrigine,
-            villageOrigine:
-              profile.villageOrigine === "-" ? "" : profile.villageOrigine,
-          }}
-          onSave={async ({ studentExtra, familyExtra }) => {
+          onSave={async ({ studentExtra }) => {
             const [result, error] = await updateStudentExtraInfoAction({
               studentId: profile.studentId,
               studentExtra,
-              familyExtra,
             });
             if (error) {
               return { ok: false, message: error.message };
@@ -366,7 +350,7 @@ export function StudentProfileClient({ profile }: { profile: StudentProfileData 
                 className="gap-2"
                 onClick={() => setExtraSheetOpen(true)}
               >
-                Ajouter autres infos
+                Autres informations
               </Button>
             ) : null}
             <Button
@@ -584,7 +568,7 @@ export function StudentProfileClient({ profile }: { profile: StudentProfileData 
                   <ProfileSectionCard
                     variant="guardian"
                     title="Parent / tuteur"
-                    subtitle="Contact principal et urgence"
+                    subtitle="Contact et origines hérités de la fiche parent"
                     icon={<Users className="size-4" />}
                   >
                     <div className={cn("mb-4", SECTION_VARIANTS.guardian.highlightBox)}>

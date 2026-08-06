@@ -20,6 +20,10 @@ export interface IStudent extends Omit<
   "password" | "memberId" | "userId" | "role"
 > {
   placeOfBirth?: string | null;
+  nationalite?: string | null;
+  autreNationalite?: string | null;
+  territoireAutreNationalite?: string | null;
+  langue?: string | null;
   classCode?: string | null;
   className?: string | null;
   schoolYearId?: string | null;

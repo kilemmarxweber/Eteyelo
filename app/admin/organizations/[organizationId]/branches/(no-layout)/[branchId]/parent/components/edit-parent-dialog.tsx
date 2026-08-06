@@ -43,7 +43,8 @@ export function UpdateParentDialog({
         <SheetHeader className="shrink-0 space-y-1.5 border-b px-5 py-4 pr-12 text-left sm:px-6">
           <SheetTitle>Modifier le parent</SheetTitle>
           <SheetDescription>
-            Ajustez les informations du parent, puis enregistrez.
+            Infos du parent et famille / origines partagées par tous les
+            enfants. Nationalité et langue restent sur chaque élève.
           </SheetDescription>
         </SheetHeader>
         <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4 sm:px-6">
@@ -68,6 +69,16 @@ export function UpdateParentDialog({
                   percentage: parent.discount?.percentage ?? 0,
                   minChildren: parent.discount?.minChildren ?? 0,
                   typeFraisId: parent.discount?.typeFraisId ?? "",
+                },
+                familyExtra: {
+                  nomMere: parent.nomMere ?? "",
+                  professionMere: parent.professionMere ?? "",
+                  tuteurNom: parent.tuteurNom ?? "",
+                  adresseTuteur: parent.adresseTuteur ?? "",
+                  provinceOrigine: parent.provinceOrigine ?? "",
+                  territoireOrigine: parent.territoireOrigine ?? "",
+                  secteurOrigine: parent.secteurOrigine ?? "",
+                  villageOrigine: parent.villageOrigine ?? "",
                 },
               }}
               onUpdated={handleUpdated}

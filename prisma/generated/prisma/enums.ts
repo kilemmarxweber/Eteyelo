@@ -209,17 +209,6 @@ export const IssuedDocumentType = {
 export type IssuedDocumentType = (typeof IssuedDocumentType)[keyof typeof IssuedDocumentType]
 
 
-export const PrimaryDomain = {
-  LANGUES: 'LANGUES',
-  MATH_SCIENCES_TECH: 'MATH_SCIENCES_TECH',
-  UNIVERS_SOCIAUX: 'UNIVERS_SOCIAUX',
-  ARTS: 'ARTS',
-  DEVELOPPEMENT: 'DEVELOPPEMENT'
-} as const
-
-export type PrimaryDomain = (typeof PrimaryDomain)[keyof typeof PrimaryDomain]
-
-
 export const LibraryCycle = {
   PRIMAIRE: 'PRIMAIRE',
   SECONDAIRE: 'SECONDAIRE',

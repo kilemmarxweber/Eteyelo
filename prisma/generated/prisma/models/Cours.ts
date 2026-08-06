@@ -40,7 +40,7 @@ export type CoursMinAggregateOutputType = {
   nameCours: string | null
   description: string | null
   statusCours: boolean | null
-  primaryDomain: $Enums.PrimaryDomain | null
+  primaryDomain: string | null
   primarySection: string | null
   domainOrder: number | null
   createdAt: Date | null
@@ -54,7 +54,7 @@ export type CoursMaxAggregateOutputType = {
   nameCours: string | null
   description: string | null
   statusCours: boolean | null
-  primaryDomain: $Enums.PrimaryDomain | null
+  primaryDomain: string | null
   primarySection: string | null
   domainOrder: number | null
   createdAt: Date | null
@@ -221,7 +221,7 @@ export type CoursGroupByOutputType = {
   nameCours: string
   description: string | null
   statusCours: boolean | null
-  primaryDomain: $Enums.PrimaryDomain | null
+  primaryDomain: string | null
   primarySection: string | null
   domainOrder: number | null
   createdAt: Date
@@ -258,7 +258,7 @@ export type CoursWhereInput = {
   nameCours?: Prisma.StringFilter<"Cours"> | string
   description?: Prisma.StringNullableFilter<"Cours"> | string | null
   statusCours?: Prisma.BoolNullableFilter<"Cours"> | boolean | null
-  primaryDomain?: Prisma.EnumPrimaryDomainNullableFilter<"Cours"> | $Enums.PrimaryDomain | null
+  primaryDomain?: Prisma.StringNullableFilter<"Cours"> | string | null
   primarySection?: Prisma.StringNullableFilter<"Cours"> | string | null
   domainOrder?: Prisma.IntNullableFilter<"Cours"> | number | null
   createdAt?: Prisma.DateTimeFilter<"Cours"> | Date | string
@@ -301,7 +301,7 @@ export type CoursWhereUniqueInput = Prisma.AtLeast<{
   nameCours?: Prisma.StringFilter<"Cours"> | string
   description?: Prisma.StringNullableFilter<"Cours"> | string | null
   statusCours?: Prisma.BoolNullableFilter<"Cours"> | boolean | null
-  primaryDomain?: Prisma.EnumPrimaryDomainNullableFilter<"Cours"> | $Enums.PrimaryDomain | null
+  primaryDomain?: Prisma.StringNullableFilter<"Cours"> | string | null
   primarySection?: Prisma.StringNullableFilter<"Cours"> | string | null
   domainOrder?: Prisma.IntNullableFilter<"Cours"> | number | null
   createdAt?: Prisma.DateTimeFilter<"Cours"> | Date | string
@@ -342,7 +342,7 @@ export type CoursScalarWhereWithAggregatesInput = {
   nameCours?: Prisma.StringWithAggregatesFilter<"Cours"> | string
   description?: Prisma.StringNullableWithAggregatesFilter<"Cours"> | string | null
   statusCours?: Prisma.BoolNullableWithAggregatesFilter<"Cours"> | boolean | null
-  primaryDomain?: Prisma.EnumPrimaryDomainNullableWithAggregatesFilter<"Cours"> | $Enums.PrimaryDomain | null
+  primaryDomain?: Prisma.StringNullableWithAggregatesFilter<"Cours"> | string | null
   primarySection?: Prisma.StringNullableWithAggregatesFilter<"Cours"> | string | null
   domainOrder?: Prisma.IntNullableWithAggregatesFilter<"Cours"> | number | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Cours"> | Date | string
@@ -356,7 +356,7 @@ export type CoursCreateInput = {
   nameCours: string
   description?: string | null
   statusCours?: boolean | null
-  primaryDomain?: $Enums.PrimaryDomain | null
+  primaryDomain?: string | null
   primarySection?: string | null
   domainOrder?: number | null
   createdAt?: Date | string
@@ -374,7 +374,7 @@ export type CoursUncheckedCreateInput = {
   nameCours: string
   description?: string | null
   statusCours?: boolean | null
-  primaryDomain?: $Enums.PrimaryDomain | null
+  primaryDomain?: string | null
   primarySection?: string | null
   domainOrder?: number | null
   createdAt?: Date | string
@@ -392,7 +392,7 @@ export type CoursUpdateInput = {
   nameCours?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusCours?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
-  primaryDomain?: Prisma.NullableEnumPrimaryDomainFieldUpdateOperationsInput | $Enums.PrimaryDomain | null
+  primaryDomain?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   primarySection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   domainOrder?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -410,7 +410,7 @@ export type CoursUncheckedUpdateInput = {
   nameCours?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusCours?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
-  primaryDomain?: Prisma.NullableEnumPrimaryDomainFieldUpdateOperationsInput | $Enums.PrimaryDomain | null
+  primaryDomain?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   primarySection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   domainOrder?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -428,7 +428,7 @@ export type CoursCreateManyInput = {
   nameCours: string
   description?: string | null
   statusCours?: boolean | null
-  primaryDomain?: $Enums.PrimaryDomain | null
+  primaryDomain?: string | null
   primarySection?: string | null
   domainOrder?: number | null
   createdAt?: Date | string
@@ -442,7 +442,7 @@ export type CoursUpdateManyMutationInput = {
   nameCours?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusCours?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
-  primaryDomain?: Prisma.NullableEnumPrimaryDomainFieldUpdateOperationsInput | $Enums.PrimaryDomain | null
+  primaryDomain?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   primarySection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   domainOrder?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -455,7 +455,7 @@ export type CoursUncheckedUpdateManyInput = {
   nameCours?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusCours?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
-  primaryDomain?: Prisma.NullableEnumPrimaryDomainFieldUpdateOperationsInput | $Enums.PrimaryDomain | null
+  primaryDomain?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   primarySection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   domainOrder?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -550,10 +550,6 @@ export type CoursUpdateOneRequiredWithoutTeachingNestedInput = {
   upsert?: Prisma.CoursUpsertWithoutTeachingInput
   connect?: Prisma.CoursWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.CoursUpdateToOneWithWhereWithoutTeachingInput, Prisma.CoursUpdateWithoutTeachingInput>, Prisma.CoursUncheckedUpdateWithoutTeachingInput>
-}
-
-export type NullableEnumPrimaryDomainFieldUpdateOperationsInput = {
-  set?: $Enums.PrimaryDomain | null
 }
 
 export type CoursCreateNestedOneWithoutCoursPonderationsInput = {
@@ -670,7 +666,7 @@ export type CoursCreateWithoutTeachingInput = {
   nameCours: string
   description?: string | null
   statusCours?: boolean | null
-  primaryDomain?: $Enums.PrimaryDomain | null
+  primaryDomain?: string | null
   primarySection?: string | null
   domainOrder?: number | null
   createdAt?: Date | string
@@ -687,7 +683,7 @@ export type CoursUncheckedCreateWithoutTeachingInput = {
   nameCours: string
   description?: string | null
   statusCours?: boolean | null
-  primaryDomain?: $Enums.PrimaryDomain | null
+  primaryDomain?: string | null
   primarySection?: string | null
   domainOrder?: number | null
   createdAt?: Date | string
@@ -720,7 +716,7 @@ export type CoursUpdateWithoutTeachingInput = {
   nameCours?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusCours?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
-  primaryDomain?: Prisma.NullableEnumPrimaryDomainFieldUpdateOperationsInput | $Enums.PrimaryDomain | null
+  primaryDomain?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   primarySection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   domainOrder?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -737,7 +733,7 @@ export type CoursUncheckedUpdateWithoutTeachingInput = {
   nameCours?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusCours?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
-  primaryDomain?: Prisma.NullableEnumPrimaryDomainFieldUpdateOperationsInput | $Enums.PrimaryDomain | null
+  primaryDomain?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   primarySection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   domainOrder?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -754,7 +750,7 @@ export type CoursCreateWithoutCoursPonderationsInput = {
   nameCours: string
   description?: string | null
   statusCours?: boolean | null
-  primaryDomain?: $Enums.PrimaryDomain | null
+  primaryDomain?: string | null
   primarySection?: string | null
   domainOrder?: number | null
   createdAt?: Date | string
@@ -771,7 +767,7 @@ export type CoursUncheckedCreateWithoutCoursPonderationsInput = {
   nameCours: string
   description?: string | null
   statusCours?: boolean | null
-  primaryDomain?: $Enums.PrimaryDomain | null
+  primaryDomain?: string | null
   primarySection?: string | null
   domainOrder?: number | null
   createdAt?: Date | string
@@ -804,7 +800,7 @@ export type CoursUpdateWithoutCoursPonderationsInput = {
   nameCours?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusCours?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
-  primaryDomain?: Prisma.NullableEnumPrimaryDomainFieldUpdateOperationsInput | $Enums.PrimaryDomain | null
+  primaryDomain?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   primarySection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   domainOrder?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -821,7 +817,7 @@ export type CoursUncheckedUpdateWithoutCoursPonderationsInput = {
   nameCours?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusCours?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
-  primaryDomain?: Prisma.NullableEnumPrimaryDomainFieldUpdateOperationsInput | $Enums.PrimaryDomain | null
+  primaryDomain?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   primarySection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   domainOrder?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -838,7 +834,7 @@ export type CoursCreateWithoutPeriodInput = {
   nameCours: string
   description?: string | null
   statusCours?: boolean | null
-  primaryDomain?: $Enums.PrimaryDomain | null
+  primaryDomain?: string | null
   primarySection?: string | null
   domainOrder?: number | null
   createdAt?: Date | string
@@ -855,7 +851,7 @@ export type CoursUncheckedCreateWithoutPeriodInput = {
   nameCours: string
   description?: string | null
   statusCours?: boolean | null
-  primaryDomain?: $Enums.PrimaryDomain | null
+  primaryDomain?: string | null
   primarySection?: string | null
   domainOrder?: number | null
   createdAt?: Date | string
@@ -896,7 +892,7 @@ export type CoursScalarWhereInput = {
   nameCours?: Prisma.StringFilter<"Cours"> | string
   description?: Prisma.StringNullableFilter<"Cours"> | string | null
   statusCours?: Prisma.BoolNullableFilter<"Cours"> | boolean | null
-  primaryDomain?: Prisma.EnumPrimaryDomainNullableFilter<"Cours"> | $Enums.PrimaryDomain | null
+  primaryDomain?: Prisma.StringNullableFilter<"Cours"> | string | null
   primarySection?: Prisma.StringNullableFilter<"Cours"> | string | null
   domainOrder?: Prisma.IntNullableFilter<"Cours"> | number | null
   createdAt?: Prisma.DateTimeFilter<"Cours"> | Date | string
@@ -910,7 +906,7 @@ export type CoursCreateWithoutBranchInput = {
   nameCours: string
   description?: string | null
   statusCours?: boolean | null
-  primaryDomain?: $Enums.PrimaryDomain | null
+  primaryDomain?: string | null
   primarySection?: string | null
   domainOrder?: number | null
   createdAt?: Date | string
@@ -927,7 +923,7 @@ export type CoursUncheckedCreateWithoutBranchInput = {
   nameCours: string
   description?: string | null
   statusCours?: boolean | null
-  primaryDomain?: $Enums.PrimaryDomain | null
+  primaryDomain?: string | null
   primarySection?: string | null
   domainOrder?: number | null
   createdAt?: Date | string
@@ -970,7 +966,7 @@ export type CoursCreateWithoutOnlineAssignmentsInput = {
   nameCours: string
   description?: string | null
   statusCours?: boolean | null
-  primaryDomain?: $Enums.PrimaryDomain | null
+  primaryDomain?: string | null
   primarySection?: string | null
   domainOrder?: number | null
   createdAt?: Date | string
@@ -987,7 +983,7 @@ export type CoursUncheckedCreateWithoutOnlineAssignmentsInput = {
   nameCours: string
   description?: string | null
   statusCours?: boolean | null
-  primaryDomain?: $Enums.PrimaryDomain | null
+  primaryDomain?: string | null
   primarySection?: string | null
   domainOrder?: number | null
   createdAt?: Date | string
@@ -1020,7 +1016,7 @@ export type CoursUpdateWithoutOnlineAssignmentsInput = {
   nameCours?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusCours?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
-  primaryDomain?: Prisma.NullableEnumPrimaryDomainFieldUpdateOperationsInput | $Enums.PrimaryDomain | null
+  primaryDomain?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   primarySection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   domainOrder?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1037,7 +1033,7 @@ export type CoursUncheckedUpdateWithoutOnlineAssignmentsInput = {
   nameCours?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusCours?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
-  primaryDomain?: Prisma.NullableEnumPrimaryDomainFieldUpdateOperationsInput | $Enums.PrimaryDomain | null
+  primaryDomain?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   primarySection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   domainOrder?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1054,7 +1050,7 @@ export type CoursUpdateWithoutPeriodInput = {
   nameCours?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusCours?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
-  primaryDomain?: Prisma.NullableEnumPrimaryDomainFieldUpdateOperationsInput | $Enums.PrimaryDomain | null
+  primaryDomain?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   primarySection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   domainOrder?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1071,7 +1067,7 @@ export type CoursUncheckedUpdateWithoutPeriodInput = {
   nameCours?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusCours?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
-  primaryDomain?: Prisma.NullableEnumPrimaryDomainFieldUpdateOperationsInput | $Enums.PrimaryDomain | null
+  primaryDomain?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   primarySection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   domainOrder?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1088,7 +1084,7 @@ export type CoursUncheckedUpdateManyWithoutPeriodInput = {
   nameCours?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusCours?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
-  primaryDomain?: Prisma.NullableEnumPrimaryDomainFieldUpdateOperationsInput | $Enums.PrimaryDomain | null
+  primaryDomain?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   primarySection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   domainOrder?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1102,7 +1098,7 @@ export type CoursCreateManyBranchInput = {
   nameCours: string
   description?: string | null
   statusCours?: boolean | null
-  primaryDomain?: $Enums.PrimaryDomain | null
+  primaryDomain?: string | null
   primarySection?: string | null
   domainOrder?: number | null
   createdAt?: Date | string
@@ -1115,7 +1111,7 @@ export type CoursUpdateWithoutBranchInput = {
   nameCours?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusCours?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
-  primaryDomain?: Prisma.NullableEnumPrimaryDomainFieldUpdateOperationsInput | $Enums.PrimaryDomain | null
+  primaryDomain?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   primarySection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   domainOrder?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1132,7 +1128,7 @@ export type CoursUncheckedUpdateWithoutBranchInput = {
   nameCours?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusCours?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
-  primaryDomain?: Prisma.NullableEnumPrimaryDomainFieldUpdateOperationsInput | $Enums.PrimaryDomain | null
+  primaryDomain?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   primarySection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   domainOrder?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1149,7 +1145,7 @@ export type CoursUncheckedUpdateManyWithoutBranchInput = {
   nameCours?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusCours?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
-  primaryDomain?: Prisma.NullableEnumPrimaryDomainFieldUpdateOperationsInput | $Enums.PrimaryDomain | null
+  primaryDomain?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   primarySection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   domainOrder?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1310,9 +1306,9 @@ export type $CoursPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     description: string | null
     statusCours: boolean | null
     /**
-     * Domaine bulletin primaire (RDC) — null pour secondaire / non classé
+     * Code domaine bulletin primaire (BranchPrimaryDomain.code) — null si non classé
      */
-    primaryDomain: $Enums.PrimaryDomain | null
+    primaryDomain: string | null
     /**
      * Section affichée sous le domaine (ex. LANGUES CONGOLAISES) — null = pas de sous-en-tête
      */
@@ -1757,7 +1753,7 @@ export interface CoursFieldRefs {
   readonly nameCours: Prisma.FieldRef<"Cours", 'String'>
   readonly description: Prisma.FieldRef<"Cours", 'String'>
   readonly statusCours: Prisma.FieldRef<"Cours", 'Boolean'>
-  readonly primaryDomain: Prisma.FieldRef<"Cours", 'PrimaryDomain'>
+  readonly primaryDomain: Prisma.FieldRef<"Cours", 'String'>
   readonly primarySection: Prisma.FieldRef<"Cours", 'String'>
   readonly domainOrder: Prisma.FieldRef<"Cours", 'Int'>
   readonly createdAt: Prisma.FieldRef<"Cours", 'DateTime'>

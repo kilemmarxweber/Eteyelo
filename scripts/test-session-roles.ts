@@ -8,6 +8,7 @@ import {
   canAccessRegistrationArea,
   canAccessResultsArea,
   canAccessScheduleReadArea,
+  canAccessBranchOrgSettings,
   canAccessSchoolOpsSettings,
   canAccessSupportSettings,
   canAccessTeachingArea,
@@ -18,7 +19,7 @@ import {
   canSeeInscriptionNotifications,
   isSchoolLeadershipRole,
 } from "../lib/auth/session-roles";
-import { ORG_ROLE } from "../lib/permissions";
+import { APP_ROLE, ORG_ROLE } from "../lib/permissions";
 
 function test(name: string, assertion: () => void) {
   assertion();
@@ -138,6 +139,19 @@ test("canManageHrDirectory : chef école CRUD ; directeur des études lecture se
   );
   assert.equal(canManageHrDirectory(sessionGestionnaire), true);
   assert.equal(canManageHrDirectory(sessionTeacher), false);
+});
+
+test("settings : propriétaire (owner) a org + school_ops (périodes, année, domaines)", () => {
+  const sessionOwnerApp = { user: { role: APP_ROLE.OWNER } };
+  const sessionOwnerOrg = { organization: { role: ORG_ROLE.OWNER } };
+  assert.equal(canAccessBranchOrgSettings(sessionOwnerApp), true);
+  assert.equal(canAccessBranchOrgSettings(sessionOwnerOrg), true);
+  assert.equal(canAccessSchoolOpsSettings(sessionOwnerApp), true);
+  assert.equal(canAccessSchoolOpsSettings(sessionOwnerOrg), true);
+  assert.equal(
+    canAccessSchoolOpsSettings({ organization: { role: "proprietaire" } }),
+    true,
+  );
 });
 
 test("settings : chef école ops + support ; caissier/enseignant support seulement", () => {

@@ -27,19 +27,27 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-import { createParentAction, updateParentAction } from "../parent.action";
+import { createParentAction, updateParentAction, updateParentExtraInfoAction } from "../parent.action";
 import { getTypeFraisAction } from "../../frais/frais.action";
 
 import { PhoneInput } from "@/components/ui/phone-input";
 import { parentSchema } from "@/src/interfaces/Parent";
 import generateUsername from "@/src/hooks/generateUsername";
 import type { ITypeFrais } from "@/src/interfaces/Frais";
+import { RegistrationExtraInfoFields } from "@/components/registration-extra-info-fields";
+import {
+  emptyFamilyExtraInfo,
+  emptyStudentExtraInfo,
+  type FamilyExtraInfo,
+} from "@/lib/registration-extra-info";
 
 interface ParentUpFormProps extends HTMLAttributes<HTMLDivElement> {
   onSuccess?: () => void;
   onCreated?: () => void;
   onUpdated?: () => void;
-  initialData?: z.input<typeof parentSchema>;
+  initialData?: z.input<typeof parentSchema> & {
+    familyExtra?: FamilyExtraInfo;
+  };
   mode: "create" | "update";
   layout?: "default" | "dialog";
 }
@@ -59,6 +67,9 @@ export function ParentUpForm({
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [typeFraisOptions, setTypeFraisOptions] = useState<ITypeFrais[]>([]);
+  const [familyExtra, setFamilyExtra] = useState<FamilyExtraInfo>(
+    () => initialData?.familyExtra ?? emptyFamilyExtraInfo(),
+  );
   const sexeToUi: Record<string, "masculin" | "feminin"> = {
     M: "masculin",
     F: "feminin",
@@ -99,6 +110,10 @@ export function ParentUpForm({
   });
 
   const discountPercentage = form.watch("discount.percentage");
+
+  useEffect(() => {
+    setFamilyExtra(initialData?.familyExtra ?? emptyFamilyExtraInfo());
+  }, [initialData?.familyExtra]);
 
   useEffect(() => {
     let ignore = false;
@@ -167,6 +182,20 @@ export function ParentUpForm({
         });
 
         if (err) throw new Error(err.message);
+
+        if (data.parentId) {
+          const [extraResult, extraErr] = await updateParentExtraInfoAction({
+            parentId: data.parentId,
+            familyExtra,
+          });
+          if (extraErr) throw new Error(extraErr.message);
+          if (!extraResult?.ok) {
+            throw new Error(
+              extraResult?.message ??
+                "Mise à jour des autres informations impossible",
+            );
+          }
+        }
 
         toast.success("Parent mis à jour avec succès");
         onUpdated?.();
@@ -457,6 +486,33 @@ export function ParentUpForm({
                 )}
               />
             </div>
+            {mode === "update" ? (
+              <div
+                className={cn(
+                  "space-y-3 rounded-lg border border-dashed p-3",
+                  isDialog && "sm:col-span-2",
+                )}
+              >
+                <div>
+                  <p className="text-sm font-medium">Autres informations</p>
+                  <p className="text-xs text-muted-foreground">
+                    Infos famille / origines du parent. Tous les enfants liés
+                    héritent de ces données. Nationalité et langue restent sur
+                    chaque élève.
+                  </p>
+                </div>
+                <RegistrationExtraInfoFields
+                  className="space-y-4"
+                  studentExtra={emptyStudentExtraInfo()}
+                  familyExtra={familyExtra}
+                  hideStudent
+                  onStudentChange={() => undefined}
+                  onFamilyChange={(key, value) =>
+                    setFamilyExtra((current) => ({ ...current, [key]: value }))
+                  }
+                />
+              </div>
+            ) : null}
             <div className={cn(isDialog && "sm:col-span-2")}>
               <Button type="submit" className="mt-1 w-full sm:w-auto" loading={isLoading}>
                 {mode === "create" ? "Enregistrer" : "Mettre à jour"}

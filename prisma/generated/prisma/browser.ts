@@ -258,6 +258,11 @@ export type Invitation = Prisma.InvitationModel
  */
 export type Branch = Prisma.BranchModel
 /**
+ * Model BranchPrimaryDomain
+ * Domaines du bulletin primaire (par branche) — créables / modifiables
+ */
+export type BranchPrimaryDomain = Prisma.BranchPrimaryDomainModel
+/**
  * Model BranchRegistrationInfo
  * Infos publiques d'inscription en ligne (conditions, frais, programme rentrée), par école / année.
  */

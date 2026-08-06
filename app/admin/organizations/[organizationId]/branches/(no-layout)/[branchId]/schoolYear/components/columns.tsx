@@ -39,6 +39,14 @@ export const columns: ColumnDef<SchoolYearRow>[] = [
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Année" />
     ),
+    filterFn: (row, id, value) => {
+      const query = String(value ?? "")
+        .trim()
+        .toLowerCase();
+      if (!query) return true;
+      const name = String(row.getValue(id) ?? "").toLowerCase();
+      return name.includes(query);
+    },
     cell: ({ row }) => {
       const year = row.original;
       return (

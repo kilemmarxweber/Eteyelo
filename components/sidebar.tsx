@@ -14,6 +14,7 @@ import { authClient } from "@/lib/auth-client";
 import { buildStaticSideLinks } from "@/lib/sidebar-menu";
 import { getBranchNameAction } from "@/app/admin/organizations/[organizationId]/branches/(no-layout)/branche.action";
 import { NotificationBell } from "@/components/notification-bell";
+import { OwnerBranchesLink } from "@/components/owner-branches-link";
 import { Search } from "@/components/search";
 import { ThemeToggle } from "@/src/theme/ThemeToggle";
 import cmj from "@/public/cmj.jpg";
@@ -128,6 +129,7 @@ export default function Sidebar({
 
           <div className="flex shrink-0 items-center gap-0.5">
             <ThemeToggle />
+            <OwnerBranchesLink className="px-2" />
             <NotificationBell />
             <Button
               variant="ghost"

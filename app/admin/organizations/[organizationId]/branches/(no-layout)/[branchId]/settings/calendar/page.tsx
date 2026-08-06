@@ -16,13 +16,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { RequireBranchOrgSettingsAccess } from "../components/require-branch-org-settings-access";
 import {
   getCalendarClassesAction,
@@ -35,8 +35,8 @@ import {
 } from "../../CalendarEvent/CalendarEvent.acton";
 import type { ICalendarEvent } from "@/src/interfaces/CalendarEvent";
 import { CalendarEventForm } from "./components/calendar-event-form";
-import { normalizeImageSrc, cn } from "@/lib/utils";
-import { canAccessBranchOrgSettings } from "@/lib/auth/session-roles";
+import { normalizeImageSrc } from "@/lib/utils";
+import { canAccessSchoolOpsSettings } from "@/lib/auth/session-roles";
 
 type EventTypeItem = Awaited<ReturnType<typeof getCalendarSettingsAction>>[number];
 type ClasseItem = Awaited<ReturnType<typeof getCalendarClassesAction>>[number];
@@ -76,7 +76,7 @@ export default function CalendarSettingsPage() {
   const [savingType, setSavingType] = useState(false);
   const [, startTransition] = useTransition();
 
-  const canManage = canAccessBranchOrgSettings(session);
+  const canManage = canAccessSchoolOpsSettings(session);
 
   const loadTypes = useCallback(async () => {
     try {
@@ -191,7 +191,7 @@ export default function CalendarSettingsPage() {
   }
 
   return (
-    <RequireBranchOrgSettingsAccess>
+    <RequireBranchOrgSettingsAccess level="school_ops">
       <div className="space-y-6">
         <div>
           <div className="flex items-center gap-2">
@@ -407,17 +407,22 @@ export default function CalendarSettingsPage() {
           </TabsContent>
         </Tabs>
 
-        <Dialog open={typeOpen} onOpenChange={closeTypeForm}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>
-                {editingType ? "Modifier le type" : "Ajouter un type d'evenement"}
-              </DialogTitle>
-              <DialogDescription>
+        <Sheet open={typeOpen} onOpenChange={closeTypeForm}>
+          <SheetContent
+            side="right"
+            className="flex h-dvh max-h-dvh w-[min(100vw,28rem)] max-w-full flex-col gap-0 overflow-hidden p-0 sm:max-w-[28rem]"
+          >
+            <SheetHeader className="shrink-0 space-y-1.5 border-b px-5 py-4 pr-12 text-left sm:px-6">
+              <SheetTitle>
+                {editingType
+                  ? "Modifier le type"
+                  : "Ajouter un type d'evenement"}
+              </SheetTitle>
+              <SheetDescription>
                 Ce libelle sera propose dans le formulaire d&apos;evenement.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-2">
+              </SheetDescription>
+            </SheetHeader>
+            <div className="min-h-0 flex-1 space-y-2 overflow-y-auto px-5 py-4 sm:px-6">
               <label htmlFor="event-type-name" className="text-sm font-medium">
                 Nom
               </label>
@@ -434,7 +439,7 @@ export default function CalendarSettingsPage() {
                 }}
               />
             </div>
-            <DialogFooter>
+            <SheetFooter className="shrink-0 flex-row justify-end gap-2 border-t px-5 py-4 sm:px-6">
               <Button
                 type="button"
                 variant="outline"
@@ -449,41 +454,45 @@ export default function CalendarSettingsPage() {
               >
                 {savingType ? "Enregistrement..." : "Enregistrer"}
               </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+            </SheetFooter>
+          </SheetContent>
+        </Sheet>
 
-        <Dialog
+        <Sheet
           open={eventOpen}
           onOpenChange={(open) => {
             setEventOpen(open);
             if (!open) setEditingEvent(null);
           }}
         >
-          <DialogContent
-            className={cn("max-h-[90vh] overflow-y-auto sm:max-w-3xl")}
+          <SheetContent
+            side="right"
+            className="flex h-dvh max-h-dvh w-[min(100vw,40rem)] max-w-full flex-col gap-0 overflow-hidden p-0 sm:max-w-[40rem]"
           >
-            <DialogHeader>
-              <DialogTitle>
+            <SheetHeader className="shrink-0 space-y-1.5 border-b px-5 py-4 pr-12 text-left sm:px-6">
+              <SheetTitle>
                 {editingEvent ? "Modifier l'evenement" : "Creer un evenement"}
-              </DialogTitle>
-              <DialogDescription>
+              </SheetTitle>
+              <SheetDescription>
                 Evenement global ou lie a une classe. Ajoutez une image et
                 activez les traductions si besoin.
-              </DialogDescription>
-            </DialogHeader>
-            {session?.user?.id ? (
-              <CalendarEventForm
-                userId={session.user.id}
-                mode={editingEvent ? "update" : "create"}
-                eventTypes={eventTypes}
-                classes={classes}
-                initialEvent={editingEvent}
-                onSuccess={handleEventSuccess}
-              />
-            ) : null}
-          </DialogContent>
-        </Dialog>
+              </SheetDescription>
+            </SheetHeader>
+            <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4 sm:px-6">
+              {session?.user?.id ? (
+                <CalendarEventForm
+                  key={editingEvent?.id ?? "create"}
+                  userId={session.user.id}
+                  mode={editingEvent ? "update" : "create"}
+                  eventTypes={eventTypes}
+                  classes={classes}
+                  initialEvent={editingEvent}
+                  onSuccess={handleEventSuccess}
+                />
+              ) : null}
+            </div>
+          </SheetContent>
+        </Sheet>
       </div>
     </RequireBranchOrgSettingsAccess>
   );

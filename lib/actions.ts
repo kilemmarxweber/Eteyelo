@@ -973,19 +973,22 @@ export async function validateFicheCentrale(params: {
     },
   });
 
-  const { gradeQueue } = await import("@/src/redis/queues/grade.queue");
-  await gradeQueue.add(
-    "generate-grades",
-    { periodId: fiche.periodId },
-    {
-      jobId: `period-${fiche.periodId}`, // 👈 ULTRA IMPORTANT
-      removeOnComplete: true,
-      removeOnFail: true,
-    },
+  const { enqueueGenerateGrades } = await import(
+    "@/src/redis/services/grade.service"
   );
+  const queued = await enqueueGenerateGrades(fiche.periodId);
+
   revalidatePath("/admin/ficheCentrales");
   revalidatePath(`/admin/fiches/${ficheCote.id}`);
   revalidatePath("/admin/results");
+
+  if (!queued.ok) {
+    return {
+      success: true,
+      message:
+        "La fiche a été validée et les moyennes reportées, mais le recalcul des bulletins est en attente (Redis indisponible).",
+    };
+  }
 
   return {
     success: true,

@@ -30,7 +30,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { createStudentAction, updateStudentAction } from "../student.action";
+import { createStudentAction, updateStudentAction, updateStudentExtraInfoAction } from "../student.action";
 import { useBranchPeopleLabels } from "@/hooks/use-branch-people-labels";
 import { hidesParentManagement } from "@/lib/branch-capabilities";
 import { useSession } from "@/lib/auth-client";
@@ -38,13 +38,21 @@ import { getParentsAction } from "../../parent/parent.action";
 import { IParent } from "@/src/interfaces/Parent";
 import { studentSchema } from "@/src/interfaces/Student";
 import generateUsername from "@/src/hooks/generateUsername";
+import { RegistrationExtraInfoFields } from "@/components/registration-extra-info-fields";
+import {
+  emptyFamilyExtraInfo,
+  emptyStudentExtraInfo,
+  type StudentExtraInfo,
+} from "@/lib/registration-extra-info";
 
 const studentFormSchemaBase = studentSchema.extend({
   parentId: z.string().optional(),
 });
 
 type StudentFormValues = z.infer<typeof studentFormSchemaBase>;
-type StudentInitialData = Partial<StudentFormValues>;
+type StudentInitialData = Partial<StudentFormValues> & {
+  studentExtra?: StudentExtraInfo;
+};
 
 interface StudentUpFormProps extends HTMLAttributes<HTMLDivElement> {
   onStudentUpdate?: () => void;
@@ -97,6 +105,9 @@ export function StudentUpForm({
     [hidesParent, mode],
   );
   const [Parents, setParents] = useState<IParent[]>([]);
+  const [studentExtra, setStudentExtra] = useState<StudentExtraInfo>(
+    () => initialData?.studentExtra ?? emptyStudentExtraInfo(),
+  );
   const sexeToUi: Record<string, "masculin" | "feminin"> = {
     M: "masculin",
     F: "feminin",
@@ -123,6 +134,10 @@ export function StudentUpForm({
       orgRole: initialData?.orgRole,
     },
   });
+
+  useEffect(() => {
+    setStudentExtra(initialData?.studentExtra ?? emptyStudentExtraInfo());
+  }, [initialData?.studentExtra]);
 
   useEffect(() => {
     if (hidesParent && mode === "create") return;
@@ -186,6 +201,20 @@ export function StudentUpForm({
         });
         if (err) throw new Error(err.message);
         if (!result?.ok) throw new Error(result?.message);
+
+        if (data.studentId) {
+          const [extraResult, extraErr] = await updateStudentExtraInfoAction({
+            studentId: data.studentId,
+            studentExtra,
+          });
+          if (extraErr) throw new Error(extraErr.message);
+          if (!extraResult?.ok) {
+            throw new Error(
+              extraResult?.message ??
+                "Mise à jour des autres informations impossible",
+            );
+          }
+        }
 
         toast.success(`${peopleLabels.student} mis à jour avec succès`);
         onUpdated?.();
@@ -496,6 +525,34 @@ export function StudentUpForm({
                 </FormItem>
               )}
             />
+            ) : null}
+
+            {mode === "update" ? (
+              <div
+                className={cn(
+                  "space-y-3 rounded-lg border border-dashed p-3",
+                  isDialog && "sm:col-span-2",
+                )}
+              >
+                <div>
+                  <p className="text-sm font-medium">Autres informations</p>
+                  <p className="text-xs text-muted-foreground">
+                    Nationalité et langue propres à cet élève. Les infos famille
+                    / origines se gèrent sur la fiche parent (partagées par tous
+                    les enfants).
+                  </p>
+                </div>
+                <RegistrationExtraInfoFields
+                  className="space-y-4"
+                  studentExtra={studentExtra}
+                  familyExtra={emptyFamilyExtraInfo()}
+                  hideFamily
+                  onStudentChange={(key, value) =>
+                    setStudentExtra((current) => ({ ...current, [key]: value }))
+                  }
+                  onFamilyChange={() => undefined}
+                />
+              </div>
             ) : null}
 
             <div className={cn(isDialog && "sm:col-span-2")}>

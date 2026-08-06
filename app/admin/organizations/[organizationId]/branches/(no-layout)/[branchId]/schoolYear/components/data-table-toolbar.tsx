@@ -1,7 +1,7 @@
 "use client";
 
 import { Table } from "@tanstack/react-table";
-import { IconX } from "@tabler/icons-react";
+import { IconSearch, IconX } from "@tabler/icons-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,20 +17,23 @@ export function DataTableToolbar<TData>({
 }: DataTableToolbarProps<TData>) {
   const { labelLower } = useSchoolYearLabels();
   const isFiltered = table.getState().columnFilters.length > 0;
+  const nameColumn = table.getColumn("nameYear");
+  const filterValue = (nameColumn?.getFilterValue() as string) ?? "";
 
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-      <div className="flex flex-1 flex-wrap items-center gap-2">
-        <Input
-          placeholder={`Rechercher une ${labelLower}…`}
-          value={
-            (table.getColumn("nameYear")?.getFilterValue() as string) ?? ""
-          }
-          onChange={(event) =>
-            table.getColumn("nameYear")?.setFilterValue(event.target.value)
-          }
-          className="h-9 w-full max-w-sm"
-        />
+      <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
+        <div className="relative w-full min-w-0 max-w-5xl">
+          <IconSearch className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            placeholder={`Rechercher une ${labelLower}…`}
+            value={filterValue}
+            onChange={(event) =>
+              nameColumn?.setFilterValue(event.target.value)
+            }
+            className="h-9 pl-8"
+          />
+        </div>
         {isFiltered ? (
           <Button
             variant="ghost"

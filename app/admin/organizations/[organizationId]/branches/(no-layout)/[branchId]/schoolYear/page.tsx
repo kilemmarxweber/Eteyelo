@@ -1,6 +1,7 @@
-import SchoolYearsClient from "./components/SchoolYearsClient";
+import { redirect } from "next/navigation";
 
-export default async function SchoolYears({
+/** Ancienne route : l’année scolaire est désormais dans Paramètres. */
+export default async function SchoolYearsRedirect({
   params,
 }: {
   params: Promise<{
@@ -8,7 +9,8 @@ export default async function SchoolYears({
     branchId: string;
   }>;
 }) {
-  const { branchId } = await params;
-
-  return <SchoolYearsClient branchId={branchId} />;
+  const { organizationId, branchId } = await params;
+  redirect(
+    `/admin/organizations/${organizationId}/branches/${branchId}/settings/annee-scolaire`,
+  );
 }
