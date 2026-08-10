@@ -19,6 +19,14 @@ const nextConfig = {
       },
     ],
   },
+  webpack: (config) => {
+    // react-pdf / pdfjs : pas de canvas natif côté serveur
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      canvas: false,
+    };
+    return config;
+  },
 };
 
 export default nextConfig;
