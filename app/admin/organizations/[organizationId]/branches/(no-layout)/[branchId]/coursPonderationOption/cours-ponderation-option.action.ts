@@ -7,6 +7,7 @@ import { action } from "@/lib/zsa";
 import { coursOptionPonderationSchema } from "./schema";
 import { ensurePrimaryAcademicStructure } from "@/lib/primary-academic-structure";
 import { canManageOrganization } from "@/lib/auth/session-roles";
+import { activeCoursStatusFilter } from "@/lib/active-cours";
 
 function requireManagePermission(session: unknown) {
   if (!canManageOrganization(session as Parameters<typeof canManageOrganization>[0])) {
@@ -21,7 +22,11 @@ async function requireCoursAndOptionInBranch(params: {
 }) {
   const [cours, option] = await Promise.all([
     prisma.cours.findFirst({
-      where: { id: params.coursId, branchId: params.branchId },
+      where: {
+        id: params.coursId,
+        branchId: params.branchId,
+        ...activeCoursStatusFilter,
+      },
       select: { id: true },
     }),
     prisma.option.findFirst({
@@ -74,7 +79,7 @@ export const getCoursPonderationOptionPageDataAction = action.handler(
         },
       }),
       prisma.cours.findMany({
-        where: { branchId },
+        where: { branchId, ...activeCoursStatusFilter },
         orderBy: { nameCours: "asc" },
         select: { id: true, nameCours: true, codeCours: true, statusCours: true },
       }),

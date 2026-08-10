@@ -20,6 +20,7 @@ import {
   searchOrganizationCoursesForBranchImport,
   supportsCourseImport,
 } from "@/lib/extended-course-import";
+import { activeCoursStatusFilter } from "@/lib/active-cours";
 
 function requireCoursManagement(session: unknown) {
   if (!canManageOrganization(session as Parameters<typeof canManageOrganization>[0])) {
@@ -31,6 +32,12 @@ function revalidateCoursPages(organizationId: string, branchId: string) {
   revalidatePath(`/admin/organizations/${organizationId}/branches/${branchId}/cours`);
   revalidatePath(
     `/admin/organizations/${organizationId}/branches/${branchId}/settings/primary-domains`,
+  );
+  revalidatePath(
+    `/admin/organizations/${organizationId}/branches/${branchId}/teaching`,
+  );
+  revalidatePath(
+    `/admin/organizations/${organizationId}/branches/${branchId}/coursPonderationOption`,
   );
 }
 
@@ -217,6 +224,15 @@ export const archiveCoursAction = action
       where: { id },
       data: { statusCours: false },
     });
+    // Masquer aussi les affectations encore actives pour ce cours.
+    await prisma.teaching.updateMany({
+      where: {
+        coursId: id,
+        branchId,
+        OR: [{ statusTeaching: true }, { statusTeaching: null }],
+      },
+      data: { statusTeaching: false },
+    });
     revalidateCoursPages(organizationId, branchId);
     return archivedCours;
   });
@@ -231,7 +247,20 @@ export const setCoursStatusAction = action
     requireCoursManagement(session);
     const existing = await prisma.cours.findFirst({ where: { id: input.id, branchId }, select: { id: true } });
     if (!existing) throw new Error("Cours introuvable dans cette branche");
-    const cours = await prisma.cours.update({ where: { id: input.id }, data: { statusCours: input.active } });
+    const cours = await prisma.cours.update({
+      where: { id: input.id },
+      data: { statusCours: input.active },
+    });
+    if (!input.active) {
+      await prisma.teaching.updateMany({
+        where: {
+          coursId: input.id,
+          branchId,
+          OR: [{ statusTeaching: true }, { statusTeaching: null }],
+        },
+        data: { statusTeaching: false },
+      });
+    }
     revalidateCoursPages(organizationId, branchId);
     return cours;
   });
@@ -252,7 +281,7 @@ export const getCoursAction = action
     const Cours = await prisma.cours.findMany({
       where: {
         branchId,
-        ...(includeInactive ? {} : { OR: [{ statusCours: true }, { statusCours: null }] }),
+        ...(includeInactive ? {} : activeCoursStatusFilter),
       },
     });
 

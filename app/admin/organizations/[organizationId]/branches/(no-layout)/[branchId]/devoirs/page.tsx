@@ -9,6 +9,7 @@ import {
 } from "@/lib/online-assignments/access";
 import { assignmentBranchWhere } from "@/lib/online-assignments/scope";
 import { prisma } from "@/lib/prisma";
+import { activeCoursStatusFilter } from "@/lib/active-cours";
 
 import { DevoirsClient } from "./devoirs-client";
 import { StudentDevoirsHome } from "./student-devoirs-home";
@@ -93,7 +94,7 @@ export default async function DevoirsPage({
         select: { id: true, nameClasse: true },
       }),
       prisma.cours.findMany({
-        where: { branchId },
+        where: { branchId, ...activeCoursStatusFilter },
         orderBy: { nameCours: "asc" },
         select: { id: true, nameCours: true },
       }),

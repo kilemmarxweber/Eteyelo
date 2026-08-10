@@ -4,6 +4,7 @@ import {
   generateCourseCode,
 } from "@/lib/generated-identifiers";
 import { isUniversiteBranch } from "@/lib/branch-capabilities";
+import { activeCoursStatusFilter } from "@/lib/active-cours";
 
 export type ImportCourseSearchResult = {
   id: string;
@@ -43,13 +44,17 @@ export async function searchOrganizationCoursesForBranchImport(params: {
 
   const courses = await prisma.cours.findMany({
     where: {
-      branch: {
-        organizationId: params.organizationId,
-        isActive: true,
-        id: { not: params.targetBranchId },
-      },
-      statusCours: { not: false },
-      ...buildCourseSearchFilter(search),
+      AND: [
+        {
+          branch: {
+            organizationId: params.organizationId,
+            isActive: true,
+            id: { not: params.targetBranchId },
+          },
+        },
+        activeCoursStatusFilter,
+        buildCourseSearchFilter(search),
+      ],
     },
     take: limit,
     orderBy: { nameCours: "asc" },

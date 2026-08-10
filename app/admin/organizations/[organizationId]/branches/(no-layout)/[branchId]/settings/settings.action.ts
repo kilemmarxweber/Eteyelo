@@ -16,6 +16,7 @@ import {
   ensureBranchPrimaryDomains,
   listBranchPrimaryDomains,
 } from "@/lib/branch-primary-domains";
+import { activeCoursStatusFilter } from "@/lib/active-cours";
 
 const eventTypeSchema = z.object({
   id: z.string().min(1).optional(),
@@ -119,8 +120,7 @@ export async function getPrimaryDomainsSettingsAction() {
     prisma.cours.findMany({
       where: {
         branchId,
-        // Inclure true et null (comme la liste Cours) — `{ not: false }` exclut les NULL en SQL
-        OR: [{ statusCours: true }, { statusCours: null }],
+        ...activeCoursStatusFilter,
       },
       orderBy: [{ domainOrder: "asc" }, { nameCours: "asc" }],
       select: {
@@ -277,7 +277,7 @@ export async function ensurePrimaryDomainsAction() {
 
   const { getCatalogPrimaryPlacement } = await import("@/lib/primary-domains");
   const courses = await prisma.cours.findMany({
-    where: { branchId: context.branchId },
+    where: { branchId: context.branchId, ...activeCoursStatusFilter },
     select: { id: true, nameCours: true, primaryDomain: true },
   });
 
@@ -361,10 +361,19 @@ export async function savePrimaryCourseDomainAction(
 
   const data = primaryCourseDomainUpdateSchema.parse(input);
   const existing = await prisma.cours.findFirst({
-    where: { id: data.coursId, branchId: context.branchId },
+    where: {
+      id: data.coursId,
+      branchId: context.branchId,
+      ...activeCoursStatusFilter,
+    },
     select: { id: true },
   });
-  if (!existing) return { ok: false, message: "Cours introuvable." };
+  if (!existing) {
+    return {
+      ok: false,
+      message: "Cours introuvable ou désactivé.",
+    };
+  }
 
   await prisma.cours.update({
     where: { id: data.coursId },
@@ -488,7 +497,11 @@ export async function updatePrimaryCourseAction(
   }
 
   const existing = await prisma.cours.findFirst({
-    where: { id: data.id, branchId: context.branchId },
+    where: {
+      id: data.id,
+      branchId: context.branchId,
+      ...activeCoursStatusFilter,
+    },
     select: {
       id: true,
       primaryDomain: true,
@@ -497,7 +510,7 @@ export async function updatePrimaryCourseAction(
     },
   });
   if (!existing) {
-    return { ok: false, message: "Cours introuvable." };
+    return { ok: false, message: "Cours introuvable ou désactivé." };
   }
 
   const nameCours = data.nameCours.trim();

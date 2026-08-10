@@ -14,6 +14,7 @@ import {
   ensureUniqueIdentifier,
   generateCode,
 } from "@/lib/generated-identifiers";
+import { activeCoursStatusFilter } from "@/lib/active-cours";
 
 function revalidateOptionPages(organizationId: string, branchId: string) {
   revalidatePath(`/admin/organizations/${organizationId}/branches/${branchId}/option`);
@@ -71,7 +72,7 @@ export const createOptionAction = action
     });
 
     const cours = await prisma.cours.findMany({
-      where: { branchId },
+      where: { branchId, ...activeCoursStatusFilter },
       select: { id: true },
     });
 
@@ -280,7 +281,7 @@ export const getOptionPonderationsAction = action
         select: { id: true, nameOption: true, codeOption: true },
       }),
       prisma.cours.findMany({
-        where: { branchId },
+        where: { branchId, ...activeCoursStatusFilter },
         orderBy: { nameCours: "asc" },
         select: { id: true, nameCours: true, codeCours: true },
       }),

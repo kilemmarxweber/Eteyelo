@@ -7,6 +7,7 @@ import { Prisma } from "@/prisma/generated/prisma/client";
 import { ITeaching, teachingSchema } from "@/src/interfaces/Teaching";
 import { z } from "zod";
 import { canManageOrganization } from "@/lib/auth/session-roles";
+import { activeCoursStatusFilter } from "@/lib/active-cours";
 
 const teachingInclude = {
   teacher: {
@@ -57,7 +58,7 @@ export const getTeachingWorkspaceAction = action.handler(async () => {
       where: {
         branchId,
         branch: { organizationId },
-        OR: [{ statusCours: true }, { statusCours: null }],
+        ...activeCoursStatusFilter,
       },
       orderBy: { nameCours: "asc" },
       select: { id: true, nameCours: true, codeCours: true },
@@ -86,7 +87,11 @@ export const getTeachingWorkspaceAction = action.handler(async () => {
         branchId,
         branch: { organizationId },
         classe: { branchId, branch: { organizationId } },
-        cours: { branchId, branch: { organizationId } },
+        cours: {
+          branchId,
+          branch: { organizationId },
+          ...activeCoursStatusFilter,
+        },
       },
       select: { id: true, classeId: true, coursId: true, teacherId: true, schoolYearId: true, statusTeaching: true, titulaire: true, updatedAt: true },
     }),
@@ -112,7 +117,7 @@ export const saveQuickAssignmentsAction = action.input(quickAssignmentSchema).ha
   const [classe, teacher, courses, schoolYear] = await Promise.all([
     prisma.classe.findFirst({ where: { id: input.classeId, branchId, branch: { organizationId }, OR: [{ statusClasse: true }, { statusClasse: null }] }, select: { id: true } }),
     prisma.teacher.findFirst({ where: { id: input.teacherId, branchMember: { branchId, branch: { organizationId } } }, select: { id: true } }),
-    prisma.cours.findMany({ where: { id: { in: input.coursIds }, branchId, branch: { organizationId }, OR: [{ statusCours: true }, { statusCours: null }] }, select: { id: true } }),
+    prisma.cours.findMany({ where: { id: { in: input.coursIds }, branchId, branch: { organizationId }, ...activeCoursStatusFilter }, select: { id: true } }),
     prisma.schoolYear.findFirst({ where: { branchId, branch: { organizationId }, isCurrentYear: true, isArchived: false }, select: { id: true } }),
   ]);
   if (!classe || !teacher || !schoolYear || courses.length !== new Set(input.coursIds).size) throw new Error("Contexte d'affectation invalide ou incomplet");
@@ -274,6 +279,14 @@ export const createTeachingAction = action
 
     await requireClasseInBranch(classeId, branchId);
 
+    const activeCours = await prisma.cours.findFirst({
+      where: { id: coursId, branchId, ...activeCoursStatusFilter },
+      select: { id: true },
+    });
+    if (!activeCours) {
+      throw new Error("Ce cours est désactivé et ne peut plus être affecté.");
+    }
+
     try {
       const teaching = await prisma.teaching.create({
         data: {
@@ -332,6 +345,14 @@ export const updateTeachingAction = action
     await requireTeachingInBranch(id, branchId);
     await requireClasseInBranch(classeId, branchId);
 
+    const activeCours = await prisma.cours.findFirst({
+      where: { id: coursId, branchId, ...activeCoursStatusFilter },
+      select: { id: true },
+    });
+    if (!activeCours) {
+      throw new Error("Ce cours est désactivé et ne peut plus être affecté.");
+    }
+
     const teaching = await prisma.teaching.update({
       data: {
         teacherId,
@@ -368,6 +389,11 @@ export const getTeachingByClassAction = action
         where: {
           classeId,
           classe: { branchId },
+          OR: [{ statusTeaching: true }, { statusTeaching: null }],
+          cours: {
+            branchId,
+            ...activeCoursStatusFilter,
+          },
         },
       });
       const transformedTeachings: ITeaching[] = teachings.map(mapTeaching);
