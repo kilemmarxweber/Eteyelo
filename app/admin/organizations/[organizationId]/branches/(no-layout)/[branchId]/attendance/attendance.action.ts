@@ -233,7 +233,10 @@ export const getAttendanceHistory = action.handler(async () => {
         nom: user ? `${user.name} ${user.prenom ?? ""}` : "",
 
         cours: t.session.teaching?.cours?.nameCours ?? "-",
-        classe: t.session.teaching?.classe?.codeClasse ?? "-",
+        classe:
+          t.session.teaching?.classe?.nameClasse?.trim() ||
+          t.session.teaching?.classe?.codeClasse ||
+          "-",
 
         startTime: t.session?.startTime,
         endTime: t.session?.endTime,
@@ -253,7 +256,10 @@ export const getAttendanceHistory = action.handler(async () => {
         nom: user ? `${user.name} ${user.prenom ?? ""}` : "",
 
         cours: s.session.teaching?.cours?.nameCours ?? "-",
-        classe: s.session.teaching?.classe?.codeClasse ?? "-",
+        classe:
+          s.session.teaching?.classe?.nameClasse?.trim() ||
+          s.session.teaching?.classe?.codeClasse ||
+          "-",
 
         startTime: "-",
         endTime: "-",

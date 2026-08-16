@@ -11,6 +11,7 @@ import {
   IconSearch,
   IconSettings,
   IconAlertTriangle,
+  IconTrash,
 } from "@tabler/icons-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
@@ -29,6 +30,7 @@ import {
   getCoursPonderationOptionPageDataAction,
   createCoursOptionPonderationAction,
   updateCoursOptionPonderationAction,
+  deleteCoursOptionPonderationAction,
 } from "./cours-ponderation-option.action";
 import { useBranchRouteGuard } from "@/hooks/use-branch-route-guard";
 
@@ -189,6 +191,47 @@ export default function CoursPonderationOptionPage() {
           : current,
       );
       toast.success("Pondération enregistrée");
+    });
+  }
+
+  function cancel(courseId: string) {
+    if (!data) return;
+    const key = `${selectedOptionId}:${courseId}`;
+    const previous = map.get(key);
+    if (!previous || previous.id.startsWith("temp-")) {
+      toast.error("Aucune pondération configurée à annuler");
+      return;
+    }
+
+    setData((current) =>
+      current
+        ? {
+            ...current,
+            ponderations: current.ponderations.filter(
+              (item) => item.id !== previous.id,
+            ),
+          }
+        : current,
+    );
+    setSavingId(courseId);
+    startTransition(async () => {
+      const [, error] = await deleteCoursOptionPonderationAction({
+        id: previous.id,
+      });
+      setSavingId(null);
+      if (error) {
+        setData((current) =>
+          current
+            ? {
+                ...current,
+                ponderations: [...current.ponderations, previous],
+              }
+            : current,
+        );
+        toast.error(error.message ?? "Annulation impossible");
+        return;
+      }
+      toast.success("Pondération annulée");
     });
   }
 
@@ -354,6 +397,7 @@ export default function CoursPonderationOptionPage() {
                     ponderation={ponderation}
                     saving={savingId === course.id}
                     onSave={save}
+                    onCancel={cancel}
                   />
                 ))}
               </tbody>
@@ -368,6 +412,7 @@ export default function CoursPonderationOptionPage() {
                 ponderation={ponderation}
                 saving={savingId === course.id}
                 onSave={save}
+                onCancel={cancel}
               />
             ))}
           </div>
@@ -422,13 +467,17 @@ function Summary({
 function WeightEditor({
   courseId,
   value,
+  configured,
   saving,
   onSave,
+  onCancel,
 }: {
   courseId: string;
   value?: number;
+  configured: boolean;
   saving: boolean;
   onSave: (id: string, value: number) => void;
+  onCancel: (id: string) => void;
 }) {
   const [draft, setDraft] = useState(String(value ?? 1));
   useEffect(() => setDraft(String(value ?? 1)), [value]);
@@ -455,6 +504,18 @@ function WeightEditor({
       >
         {saving ? "..." : <IconCheck className="size-4" />}
       </Button>
+      {configured ? (
+        <Button
+          size="sm"
+          variant="ghost"
+          className="h-8 shrink-0 px-2 text-destructive hover:text-destructive"
+          disabled={saving}
+          title="Annuler la pondération"
+          onClick={() => onCancel(courseId)}
+        >
+          <IconTrash className="size-4" />
+        </Button>
+      ) : null}
       {maxPeriode != null ? (
         <span className="shrink-0 text-xs text-muted-foreground">
           max {maxPeriode}
@@ -471,6 +532,7 @@ function PonderationRow({
   ponderation,
   saving,
   onSave,
+  onCancel,
 }: {
   course: CourseRow;
   option?: OptionRow;
@@ -478,6 +540,7 @@ function PonderationRow({
   ponderation?: Ponderation;
   saving: boolean;
   onSave: (id: string, value: number) => void;
+  onCancel: (id: string) => void;
 }) {
   const classesLabel =
     option?.classe.map((item) => item.nameClasse).join(", ") || "Aucune classe";
@@ -492,14 +555,9 @@ function PonderationRow({
       }`}
     >
       <td className="px-3 py-2 align-middle">
-        <div className="flex min-w-0 items-baseline gap-2 whitespace-nowrap">
-          <span className="truncate font-medium" title={course.nameCours}>
-            {course.nameCours}
-          </span>
-          <span className="shrink-0 text-xs text-muted-foreground">
-            {course.codeCours}
-          </span>
-        </div>
+        <span className="block truncate font-medium" title={course.nameCours}>
+          {course.nameCours}
+        </span>
       </td>
       <td className="px-3 py-2 align-middle">
         <div className="flex min-w-0 items-baseline gap-2 whitespace-nowrap">
@@ -518,8 +576,10 @@ function PonderationRow({
         <WeightEditor
           courseId={course.id}
           value={ponderation?.ponderation}
+          configured={!!ponderation}
           saving={saving}
           onSave={onSave}
+          onCancel={onCancel}
         />
       </td>
       <td className="px-3 py-2 align-middle whitespace-nowrap">
@@ -547,11 +607,13 @@ function PonderationCard({
   ponderation,
   saving,
   onSave,
+  onCancel,
 }: {
   course: CourseRow;
   ponderation?: Ponderation;
   saving: boolean;
   onSave: (id: string, value: number) => void;
+  onCancel: (id: string) => void;
 }) {
   return (
     <Card className={`space-y-3 p-4 ${!ponderation ? "border-amber-300" : ""}`}>
@@ -567,8 +629,10 @@ function PonderationCard({
       <WeightEditor
         courseId={course.id}
         value={ponderation?.ponderation}
+        configured={!!ponderation}
         saving={saving}
         onSave={onSave}
+        onCancel={onCancel}
       />
       {ponderation ? (
         <p className="text-xs text-muted-foreground">

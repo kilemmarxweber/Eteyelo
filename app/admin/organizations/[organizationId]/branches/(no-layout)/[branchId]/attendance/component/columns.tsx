@@ -31,9 +31,19 @@ export const columns: ColumnDef<AttendanceSessionRow>[] = [
     filterFn: (row, id, value) => {
       if (!value) return true;
 
-      const noms = row.original.nom ?? "";
+      const query = String(value).toLowerCase().trim();
+      if (!query) return true;
 
-      return noms.toLowerCase().includes(String(value).toLowerCase());
+      const haystack = [
+        row.original.nom,
+        row.original.cours,
+        row.original.classe,
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+
+      return haystack.includes(query);
     },
 
     cell: ({ row }) => row.original.nom ?? "—",
@@ -42,19 +52,16 @@ export const columns: ColumnDef<AttendanceSessionRow>[] = [
     accessorKey: "cours",
     header: "Cours",
 
-    filterFn: (row, id, value) => {
-      if (!value) return true;
-
-      const cours = row.original.cours ?? "";
-
-      return cours.toLowerCase().includes(String(value).toLowerCase());
-    },
-
     cell: ({ row }) => row.original.cours ?? "—",
   },
   {
     accessorKey: "classe",
     header: "Classe",
+
+    filterFn: (row, id, value) => {
+      if (!value) return true;
+      return (row.original.classe ?? "") === String(value);
+    },
 
     cell: ({ row }) => row.original.classe ?? "—",
   },
@@ -87,21 +94,27 @@ export const columns: ColumnDef<AttendanceSessionRow>[] = [
 
     filterFn: (row, id, value) => {
       if (!value) return true;
-      return row.original.type === value;
+      return String(row.original.type ?? "").toLowerCase() === String(value);
     },
 
     cell: ({ row }) => {
-      const type = row.original.type ?? "Teacher";
+      const type = String(row.original.type ?? "teacher").toLowerCase();
+
+      const labels: Record<string, string> = {
+        teacher: "Enseignant",
+        student: "Élève",
+        personnel: "Personnel",
+      };
 
       const styles: Record<string, string> = {
-        Teacher: "bg-blue-100 text-blue-700",
-        Student: "bg-violet-100 text-violet-700",
-        Personnel: "bg-amber-100 text-amber-700",
+        teacher: "bg-blue-100 text-blue-700",
+        student: "bg-violet-100 text-violet-700",
+        personnel: "bg-amber-100 text-amber-700",
       };
 
       return (
         <Badge className={styles[type] ?? "bg-gray-100 text-gray-700"}>
-          {type}
+          {labels[type] ?? type}
         </Badge>
       );
     },

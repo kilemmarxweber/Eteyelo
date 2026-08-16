@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
 import { action } from "@/lib/zsa";
+import { z } from "zod";
 import { coursOptionPonderationSchema } from "./schema";
 import { ensurePrimaryAcademicStructure } from "@/lib/primary-academic-structure";
 import { canManageOrganization } from "@/lib/auth/session-roles";
@@ -191,5 +192,30 @@ export const updateCoursOptionPonderationAction = action
     });
     revalidateCoursPonderationOptionPages(organizationId, branchId);
     return ponderation;
+  });
+
+export const deleteCoursOptionPonderationAction = action
+  .input(
+    z.object({
+      id: z.string().min(1, "ID requis"),
+    }),
+  )
+  .handler(async ({ input }) => {
+    const { branchId, organizationId, session } = await requireBranchContext();
+    requireManagePermission(session);
+
+    const existing = await prisma.coursOptionPonderation.findFirst({
+      where: { id: input.id, branchId },
+      select: { id: true },
+    });
+    if (!existing) {
+      throw new Error("Ponderation introuvable dans cette branche");
+    }
+
+    await prisma.coursOptionPonderation.delete({
+      where: { id: input.id },
+    });
+    revalidateCoursPonderationOptionPages(organizationId, branchId);
+    return { ok: true as const };
   });
 
