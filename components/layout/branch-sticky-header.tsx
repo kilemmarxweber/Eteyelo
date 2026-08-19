@@ -17,8 +17,9 @@ type BranchStickyHeaderProps = {
 };
 
 /**
- * En-tête sticky compact des pages branche
- * (tableau de bord, devoirs, inscription, listes…).
+ * En-tête des pages branche.
+ * Mobile / tablette : défile avec le contenu (gagne de la place).
+ * Desktop (lg+) : reste sticky comme avant.
  */
 export function BranchStickyHeader({
   title,
@@ -32,9 +33,11 @@ export function BranchStickyHeader({
   return (
     <div
       className={cn(
-        "sticky top-0 z-20 -mx-4 bg-background/95 backdrop-blur",
+        "z-20 -mx-4 bg-background/95 backdrop-blur",
         "supports-[backdrop-filter]:bg-background/80",
         "md:-mx-8",
+        // Sticky seulement desktop — mobile/tablette scrollent l’en-tête.
+        "lg:sticky lg:top-0",
         className,
       )}
     >
