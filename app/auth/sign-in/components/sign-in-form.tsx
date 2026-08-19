@@ -1,13 +1,14 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useAppRouter as useRouter } from "@/hooks/use-app-router";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Eye, EyeOff, GraduationCap, Lock, Mail } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { authClient } from "@/lib/auth-client";
-import { useAppLoading } from "@/hooks/use-app-loading";
-import { Button } from "@/components/ui/button";
+import { sessionMustChangePassword } from "@/lib/auth/must-change-password";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Form,
   FormControl,
@@ -17,11 +18,28 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { signInSchema, type SignInValues } from "@/app/auth/schema";
+import {
+  firstLoginPasswordSchema,
+  signInSchema,
+  type FirstLoginPasswordValues,
+  type SignInValues,
+} from "@/app/auth/schema";
+import { completeFirstLoginPasswordAction } from "@/app/auth/sign-in/actions";
+import { useAppRouter as useRouter } from "@/hooks/use-app-router";
+import { cn } from "@/lib/utils";
 
-export function SignInForm({ callbackUrl }: { callbackUrl?: string }) {
+const fieldClass =
+  "h-11 rounded-xl border-primary bg-input pl-10 text-foreground placeholder:text-muted-foreground focus-visible:border-primary focus-visible:ring-primary/30";
+
+type SignInFormProps = {
+  callbackUrl?: string;
+};
+
+export function SignInForm({ callbackUrl }: SignInFormProps) {
   const router = useRouter();
-  const { withLoading } = useAppLoading();
+  const [step, setStep] = useState<"sign-in" | "first-login">("sign-in");
+  const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);
 
   const form = useForm<SignInValues>({
     resolver: zodResolver(signInSchema),
@@ -30,7 +48,46 @@ export function SignInForm({ callbackUrl }: { callbackUrl?: string }) {
     reValidateMode: "onBlur",
   });
 
+  const firstLoginForm = useForm<FirstLoginPasswordValues>({
+    resolver: zodResolver(firstLoginPasswordSchema),
+    defaultValues: {
+      currentPassword: "",
+      newPassword: "",
+      confirmPassword: "",
+    },
+    mode: "onSubmit",
+    reValidateMode: "onBlur",
+  });
+
   const { isSubmitting } = form.formState;
+  const firstLoginSubmitting = firstLoginForm.formState.isSubmitting;
+
+  useEffect(() => {
+    let cancelled = false;
+    void authClient.getSession().then((res) => {
+      if (cancelled) return;
+      if (sessionMustChangePassword(res.data)) {
+        setStep("first-login");
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  async function goAfterLogin() {
+    let destination = callbackUrl;
+    if (!destination) {
+      const redirectRes = await fetch("/api/auth/post-login-redirect", {
+        credentials: "include",
+      });
+      const redirectBody = (await redirectRes.json()) as { path?: string };
+      destination =
+        redirectRes.ok && redirectBody.path ? redirectBody.path : "/admin";
+    }
+    router.refresh();
+    router.push(destination);
+  }
 
   async function onSubmit(values: SignInValues) {
     form.clearErrors("root");
@@ -38,51 +95,41 @@ export function SignInForm({ callbackUrl }: { callbackUrl?: string }) {
       const { error } = await authClient.signIn.email({
         email: values.email,
         password: values.password,
+        rememberMe,
       });
 
       if (error) {
         form.setError("root", {
           type: "server",
           message:
-            error.message ?? "Connexion impossible. Vérifiez vos identifiants.",
+            error.message ??
+            "Connexion impossible. Vérifiez vos identifiants.",
         });
         toast.error(
-          error.message ?? "Connexion impossible. Vérifiez vos identifiants.",
+          error.message ??
+            "Connexion impossible. Vérifiez vos identifiants.",
         );
         return;
       }
 
-      toast.success("Bienvenue !");
-
-      const destination = await withLoading(async () => {
-        const safeCallback =
-          callbackUrl?.startsWith("/") && !callbackUrl.startsWith("//")
-            ? callbackUrl
-            : null;
-
-        const redirectRes = await fetch("/api/auth/post-login-redirect", {
-          credentials: "include",
+      const sessionRes = await authClient.getSession();
+      if (sessionMustChangePassword(sessionRes.data)) {
+        firstLoginForm.reset({
+          currentPassword: "",
+          newPassword: "",
+          confirmPassword: "",
         });
-        const redirectBody = (await redirectRes.json()) as { path?: string };
-        const postPath =
-          redirectRes.ok && redirectBody.path ? redirectBody.path : "/admin/";
+        setShowPassword(false);
+        setStep("first-login");
+        toast.message("Première connexion : choisissez votre mot de passe.");
+        return;
+      }
 
-        // MDP temporaire obligatoire avant d’accepter une invitation (callback).
-        if (
-          postPath.includes("/auth/change-password") ||
-          postPath.includes("/admin/account/change-password")
-        ) {
-          return safeCallback
-            ? `/auth/change-password?callbackUrl=${encodeURIComponent(safeCallback)}`
-            : "/auth/change-password";
-        }
-
-        return safeCallback ?? postPath;
-      });
-
-      router.push(destination);
+      toast.success("Bienvenue !");
+      await goAfterLogin();
     } catch (cause) {
-      const message = cause instanceof Error ? cause.message : "Erreur réseau.";
+      const message =
+        cause instanceof Error ? cause.message : "Erreur réseau.";
       form.setError("root", {
         type: "server",
         message:
@@ -92,83 +139,308 @@ export function SignInForm({ callbackUrl }: { callbackUrl?: string }) {
     }
   }
 
+  async function onFirstLoginSubmit(values: FirstLoginPasswordValues) {
+    firstLoginForm.clearErrors("root");
+    const result = await completeFirstLoginPasswordAction(values);
+    if (!result.ok) {
+      firstLoginForm.setError("root", {
+        type: "server",
+        message: result.message,
+      });
+      toast.error(result.message);
+      return;
+    }
+    toast.success("Mot de passe enregistré. Bienvenue !");
+    await goAfterLogin();
+  }
+
   return (
-    <Form {...form}>
-      <form
-        method="post"
-        className="flex flex-col gap-5 p-5 md:p-7"
-        noValidate
-        onSubmit={form.handleSubmit(onSubmit)}
+    <div className="flex h-full flex-col">
+      <Link
+        href="/accueil"
+        className="mb-5 inline-flex items-center gap-2 self-start"
       >
-        <FormField
-          control={form.control}
-          name="email"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Email</FormLabel>
-              <FormControl>
-                <Input
-                  {...field}
-                  type="email"
-                  autoCapitalize="none"
-                  autoComplete="email"
-                  inputMode="email"
-                  spellCheck={false}
-                  placeholder="vous@kalasa.example"
-                  className="h-11"
-                  disabled={isSubmitting}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <span className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+          <GraduationCap className="size-4" aria-hidden />
+        </span>
+        <span className="leading-tight">
+          <span className="block text-sm font-bold tracking-[0.12em] text-foreground uppercase">
+            Klambocore
+          </span>
+          <span className="block text-[10px] tracking-[0.18em] text-muted-foreground uppercase">
+            Gestion scolaire
+          </span>
+        </span>
+      </Link>
 
-        <FormField
-          control={form.control}
-          name="password"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Mot de passe</FormLabel>
-              <FormControl>
-                <Input
-                  {...field}
-                  type="password"
-                  autoComplete="current-password"
-                  className="h-11"
-                  disabled={isSubmitting}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+      {step === "first-login" ? (
+        <>
+          <div className="mb-4 space-y-1">
+            <h1 className="text-2xl font-bold tracking-tight text-foreground">
+              Première connexion
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              Saisissez l'ancien mot de passe, le nouveau, puis confirmez-le.
+              Tous les caractères sont acceptés.
+            </p>
+          </div>
 
-        {form.formState.errors.root?.message ? (
-          <p className="text-xs text-destructive" role="alert">
-            {String(form.formState.errors.root.message)}
-          </p>
-        ) : null}
+          <Form {...firstLoginForm}>
+            <form
+              method="post"
+              className="flex flex-col gap-3.5"
+              noValidate
+              onSubmit={firstLoginForm.handleSubmit(onFirstLoginSubmit)}
+            >
+              <PasswordField
+                control={firstLoginForm.control}
+                name="currentPassword"
+                label="Ancien mot de passe"
+                autoComplete="current-password"
+                showPassword={showPassword}
+                onToggleShow={() => setShowPassword((v) => !v)}
+                disabled={firstLoginSubmitting}
+              />
+              <PasswordField
+                control={firstLoginForm.control}
+                name="newPassword"
+                label="Nouveau mot de passe"
+                autoComplete="new-password"
+                showPassword={showPassword}
+                onToggleShow={() => setShowPassword((v) => !v)}
+                disabled={firstLoginSubmitting}
+              />
+              <PasswordField
+                control={firstLoginForm.control}
+                name="confirmPassword"
+                label="Confirmation"
+                autoComplete="new-password"
+                showPassword={showPassword}
+                onToggleShow={() => setShowPassword((v) => !v)}
+                disabled={firstLoginSubmitting}
+              />
 
-        <Button
-          type="submit"
-          size="lg"
-          className="h-11 w-full"
-          disabled={isSubmitting}
-        >
-          {isSubmitting ? "Connexion…" : "Se connecter"}
-        </Button>
+              {firstLoginForm.formState.errors.root?.message ? (
+                <p className="text-xs text-rose-400" role="alert">
+                  {String(firstLoginForm.formState.errors.root.message)}
+                </p>
+              ) : null}
 
-        <p className="text-center text-sm text-muted-foreground">
-          Pas encore de compte ?{" "}
-          <Link
-            href="/auth/sign-up"
-            className="font-medium text-primary underline-offset-4 hover:underline"
-          >
-            Créer un compte
-          </Link>
-        </p>
-      </form>
-    </Form>
+              <button
+                type="submit"
+                disabled={firstLoginSubmitting}
+                className="inline-flex h-11 w-full items-center justify-center rounded-xl bg-primary text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 disabled:opacity-60"
+              >
+                {firstLoginSubmitting
+                  ? "Enregistrement…"
+                  : "Enregistrer et continuer"}
+              </button>
+            </form>
+          </Form>
+        </>
+      ) : (
+        <>
+          <div className="mb-4 space-y-1">
+            <h1 className="text-2xl font-bold tracking-tight text-foreground">
+              Bon retour
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              Connectez-vous à votre espace de gestion scolaire.
+            </p>
+          </div>
+
+          <Form {...form}>
+            <form
+              method="post"
+              className="flex flex-col gap-3.5"
+              noValidate
+              onSubmit={form.handleSubmit(onSubmit)}
+            >
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-muted-foreground">
+                      Email
+                    </FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <Mail className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+                        <Input
+                          {...field}
+                          type="email"
+                          autoCapitalize="none"
+                          autoComplete="email"
+                          inputMode="email"
+                          spellCheck={false}
+                          placeholder="vous@exemple.cd"
+                          className={fieldClass}
+                          disabled={isSubmitting}
+                        />
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-muted-foreground">
+                      Mot de passe
+                    </FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <Lock className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+                        <Input
+                          {...field}
+                          type={showPassword ? "text" : "password"}
+                          autoComplete="current-password"
+                          placeholder="Votre mot de passe"
+                          className={cn(fieldClass, "pr-10")}
+                          disabled={isSubmitting}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword((v) => !v)}
+                          className="absolute top-1/2 right-3 -translate-y-1/2 text-muted-foreground transition hover:text-foreground"
+                          aria-label={
+                            showPassword
+                              ? "Masquer le mot de passe"
+                              : "Afficher le mot de passe"
+                          }
+                        >
+                          {showPassword ? (
+                            <EyeOff className="size-4" />
+                          ) : (
+                            <Eye className="size-4" />
+                          )}
+                        </button>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="flex items-center justify-between gap-3">
+                <label className="flex cursor-pointer items-center gap-2 text-sm text-muted-foreground">
+                  <Checkbox
+                    checked={rememberMe}
+                    onCheckedChange={(checked) =>
+                      setRememberMe(checked === true)
+                    }
+                    className="border-border data-[state=checked]:border-primary data-[state=checked]:bg-primary"
+                  />
+                  Se souvenir de moi
+                </label>
+                <button
+                  type="button"
+                  onClick={() =>
+                    toast.message(
+                      "Réinitialisation du mot de passe bientôt disponible.",
+                    )
+                  }
+                  className="text-sm font-medium text-primary transition hover:text-primary/80"
+                >
+                  Mot de passe oublié ?
+                </button>
+              </div>
+
+              {form.formState.errors.root?.message ? (
+                <p className="text-xs text-rose-400" role="alert">
+                  {String(form.formState.errors.root.message)}
+                </p>
+              ) : null}
+
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="inline-flex h-11 w-full items-center justify-center rounded-xl bg-primary text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 disabled:opacity-60"
+              >
+                {isSubmitting ? "Connexion…" : "Se connecter"}
+              </button>
+
+              <p className="text-center text-sm text-muted-foreground">
+                Pas encore de compte ?{" "}
+                <Link
+                  href={
+                    callbackUrl
+                      ? `/auth/sign-up?callbackUrl=${encodeURIComponent(callbackUrl)}`
+                      : "/auth/sign-up"
+                  }
+                  className="font-semibold text-primary transition hover:text-primary/80"
+                >
+                  Créer un compte
+                </Link>
+              </p>
+            </form>
+          </Form>
+        </>
+      )}
+    </div>
+  );
+}
+
+function PasswordField({
+  control,
+  name,
+  label,
+  autoComplete,
+  showPassword,
+  onToggleShow,
+  disabled,
+}: {
+  control: ReturnType<typeof useForm<FirstLoginPasswordValues>>["control"];
+  name: keyof FirstLoginPasswordValues;
+  label: string;
+  autoComplete: string;
+  showPassword: boolean;
+  onToggleShow: () => void;
+  disabled: boolean;
+}) {
+  return (
+    <FormField
+      control={control}
+      name={name}
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel className="text-muted-foreground">{label}</FormLabel>
+          <FormControl>
+            <div className="relative">
+              <Lock className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                {...field}
+                type={showPassword ? "text" : "password"}
+                autoComplete={autoComplete}
+                className={cn(fieldClass, "pr-10")}
+                disabled={disabled}
+              />
+              <button
+                type="button"
+                onClick={onToggleShow}
+                className="absolute top-1/2 right-3 -translate-y-1/2 text-muted-foreground transition hover:text-foreground"
+                aria-label={
+                  showPassword
+                    ? "Masquer le mot de passe"
+                    : "Afficher le mot de passe"
+                }
+              >
+                {showPassword ? (
+                  <EyeOff className="size-4" />
+                ) : (
+                  <Eye className="size-4" />
+                )}
+              </button>
+            </div>
+          </FormControl>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
   );
 }

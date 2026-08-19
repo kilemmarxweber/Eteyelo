@@ -441,6 +441,19 @@
   .animate-slide-in {
     animation: slide-in 0.3s ease-out;
   }
+
+  /* Auth pages — renforce le bleu éducatif sur les écrans de connexion */
+  .klambocore-auth {
+    --primary: oklch(55% 0.18 264);
+    --primary-foreground: oklch(98% 0.005 264);
+    --ring: oklch(55% 0.18 264);
+  }
+
+  .dark .klambocore-auth {
+    --primary: oklch(72% 0.17 264);
+    --primary-foreground: oklch(14% 0.018 264);
+    --ring: oklch(72% 0.17 264);
+  }
 }
 
 @theme inline {

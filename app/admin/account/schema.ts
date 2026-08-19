@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { strongPasswordSchema } from "@/app/auth/schema";
 
 export const updateProfileSchema = z.object({
   name: z
@@ -19,23 +18,19 @@ export const changeEmailSchema = z.object({
   newEmail: z
     .string()
     .trim()
-    .min(1, "L’email est requis.")
+    .min(1, "L'email est requis.")
     .email("Adresse email invalide."),
 });
 
 export const changePasswordSchema = z
   .object({
     currentPassword: z.string().min(1, "Le mot de passe actuel est requis."),
-    newPassword: strongPasswordSchema,
+    newPassword: z.string().min(1, "Le nouveau mot de passe est requis."),
     confirmPassword: z.string().min(1, "Confirmez le mot de passe."),
   })
   .refine((data) => data.newPassword === data.confirmPassword, {
     message: "Les mots de passe ne correspondent pas.",
     path: ["confirmPassword"],
-  })
-  .refine((data) => data.newPassword !== data.currentPassword, {
-    message: "Le nouveau mot de passe doit être différent de l’actuel.",
-    path: ["newPassword"],
   });
 
 export type UpdateProfileValues = z.infer<typeof updateProfileSchema>;

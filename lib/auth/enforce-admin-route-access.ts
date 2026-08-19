@@ -16,6 +16,7 @@ import {
 import { prisma } from "@/lib/prisma";
 
 const CHANGE_PASSWORD_PATH = "/auth/change-password";
+const SIGN_IN_PATH = "/auth/sign-in";
 const LEGACY_CHANGE_PASSWORD_PATH = "/admin/account/change-password";
 
 const UNIVERSAL_ADMIN_PREFIXES = [
@@ -61,6 +62,10 @@ function isChangePasswordPath(pathname: string) {
   );
 }
 
+function isSignInPath(pathname: string) {
+  return pathname === SIGN_IN_PATH || pathname.startsWith(`${SIGN_IN_PATH}/`);
+}
+
 export async function enforceAdminRouteAccess(pathname: string) {
   const context = await getOrganizationAuthContext();
   if (!context) {
@@ -75,8 +80,8 @@ export async function enforceAdminRouteAccess(pathname: string) {
   });
 
   if (passwordState?.mustChangePassword) {
-    if (!isChangePasswordPath(pathname)) {
-      redirect(CHANGE_PASSWORD_PATH);
+    if (!isSignInPath(pathname) && !isChangePasswordPath(pathname)) {
+      redirect(SIGN_IN_PATH);
     }
     return context;
   }

@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Eye, EyeOff, GraduationCap, Lock } from "lucide-react";
 import { useForm } from "react-hook-form";
-import { IconKey, IconShield } from "@tabler/icons-react";
 import { toast } from "sonner";
 
 import { clearMustChangePasswordAction } from "@/app/admin/account/change-password/actions";
@@ -11,14 +12,7 @@ import {
   changePasswordSchema,
   type ChangePasswordValues,
 } from "@/app/admin/account/schema";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { AuthShell } from "@/components/layout/auth-shell";
 import {
   Form,
   FormControl,
@@ -31,6 +25,10 @@ import { Input } from "@/components/ui/input";
 import { useAppRouter as useRouter } from "@/hooks/use-app-router";
 import { authClient } from "@/lib/auth-client";
 import { safeInternalCallbackUrl } from "@/lib/auth/safe-callback-url";
+import { cn } from "@/lib/utils";
+
+const fieldClass =
+  "h-11 rounded-xl border-primary bg-input pl-10 text-foreground placeholder:text-muted-foreground focus-visible:border-primary focus-visible:ring-primary/30";
 
 export function ChangePasswordForm({
   forced,
@@ -41,6 +39,8 @@ export function ChangePasswordForm({
 }) {
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+
   const form = useForm<ChangePasswordValues>({
     resolver: zodResolver(changePasswordSchema),
     defaultValues: {
@@ -99,124 +99,121 @@ export function ChangePasswordForm({
   );
 
   return (
-    <div className="flex h-svh max-h-svh items-center justify-center overflow-hidden bg-gradient-to-br from-background via-muted/20 to-accent/10 p-3">
-      <div className="w-full max-w-[380px] animate-fade-in">
-        <div className="mb-3 flex items-center justify-center gap-2.5">
-          <div className="flex items-center gap-2.5 rounded-xl border border-primary/20 bg-primary/10 px-3 py-2">
-            <IconKey size={22} className="text-primary" />
-            <div className="text-left leading-tight">
-              <p className="text-sm font-bold text-foreground">Kalasa</p>
-              <p className="text-[11px] text-muted-foreground">
-                Gestion scolaire
-              </p>
-            </div>
-          </div>
+    <AuthShell mode="sign-in">
+      <div className="flex h-full flex-col">
+        <Link
+          href="/accueil"
+          className="mb-5 inline-flex items-center gap-2 self-start"
+        >
+          <span className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+            <GraduationCap className="size-4" aria-hidden />
+          </span>
+          <span className="leading-tight">
+            <span className="block text-sm font-bold tracking-[0.12em] text-foreground uppercase">
+              Klambocore
+            </span>
+            <span className="block text-[10px] tracking-[0.18em] text-muted-foreground uppercase">
+              Gestion scolaire
+            </span>
+          </span>
+        </Link>
+
+        <div className="mb-4 space-y-1">
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">
+            {forced ? "Première connexion" : "Changer le mot de passe"}
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            {forcedInviteCopy
+              ? "Remplacez le mot de passe temporaire avant d'accepter l'invitation."
+              : forced
+                ? "Saisissez l'ancien mot de passe, le nouveau, puis confirmez-le. Tous les caractères sont acceptés."
+                : "Choisissez un nouveau mot de passe."}
+          </p>
         </div>
 
-        <Card variant="elevated" className="bg-primary/10">
-          <CardHeader className="space-y-1.5 px-4 pb-2 pt-4 text-center">
-            <CardTitle className="flex items-center justify-center gap-2 text-base">
-              <IconShield size={18} className="text-primary" />
-              {forced
-                ? "Nouveau mot de passe"
-                : "Changer le mot de passe"}
-            </CardTitle>
-            <CardDescription className="text-xs leading-snug">
-              {forcedInviteCopy
-                ? "Remplacez le mot de passe temporaire avant d’accepter l’invitation."
-                : forced
-                  ? "Remplacez le mot de passe temporaire pour continuer."
-                  : "Choisissez un mot de passe robuste."}
-            </CardDescription>
-          </CardHeader>
-
-          <CardContent className="px-4 pb-4 pt-1">
-            <Form {...form}>
-              <form
-                className="flex flex-col gap-3"
-                noValidate
-                onSubmit={(event) => {
-                  event.preventDefault();
-                  void form.handleSubmit(onSubmit)(event);
-                }}
-              >
-                <FormField
-                  control={form.control}
-                  name="currentPassword"
-                  render={({ field }) => (
-                    <FormItem className="gap-1.5">
-                      <FormLabel className="text-xs">
-                        {forced
-                          ? "Mot de passe temporaire"
-                          : "Mot de passe actuel"}
-                      </FormLabel>
-                      <FormControl>
+        <Form {...form}>
+          <form
+            className="flex flex-col gap-3.5"
+            noValidate
+            onSubmit={(event) => {
+              event.preventDefault();
+              void form.handleSubmit(onSubmit)(event);
+            }}
+          >
+            {(
+              [
+                {
+                  name: "currentPassword" as const,
+                  label: forced
+                    ? "Mot de passe temporaire"
+                    : "Mot de passe actuel",
+                  autoComplete: "current-password",
+                },
+                {
+                  name: "newPassword" as const,
+                  label: "Nouveau mot de passe",
+                  autoComplete: "new-password",
+                },
+                {
+                  name: "confirmPassword" as const,
+                  label: "Confirmation",
+                  autoComplete: "new-password",
+                },
+              ] as const
+            ).map((fieldConfig) => (
+              <FormField
+                key={fieldConfig.name}
+                control={form.control}
+                name={fieldConfig.name}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-muted-foreground">
+                      {fieldConfig.label}
+                    </FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <Lock className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
                         <Input
                           {...field}
-                          type="password"
-                          autoComplete="current-password"
-                          className="h-10"
+                          type={showPassword ? "text" : "password"}
+                          autoComplete={fieldConfig.autoComplete}
+                          className={cn(fieldClass, "pr-10")}
                           disabled={submitting}
                         />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword((v) => !v)}
+                          className="absolute top-1/2 right-3 -translate-y-1/2 text-muted-foreground transition hover:text-foreground"
+                          aria-label={
+                            showPassword
+                              ? "Masquer le mot de passe"
+                              : "Afficher le mot de passe"
+                          }
+                        >
+                          {showPassword ? (
+                            <EyeOff className="size-4" />
+                          ) : (
+                            <Eye className="size-4" />
+                          )}
+                        </button>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            ))}
 
-                <FormField
-                  control={form.control}
-                  name="newPassword"
-                  render={({ field }) => (
-                    <FormItem className="gap-1.5">
-                      <FormLabel className="text-xs">Nouveau</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          type="password"
-                          autoComplete="new-password"
-                          placeholder="8+ car., maj., min., chiffre/symbole"
-                          className="h-10"
-                          disabled={submitting}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="confirmPassword"
-                  render={({ field }) => (
-                    <FormItem className="gap-1.5">
-                      <FormLabel className="text-xs">Confirmer</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          type="password"
-                          autoComplete="new-password"
-                          className="h-10"
-                          disabled={submitting}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <Button
-                  type="submit"
-                  className="mt-1 h-10 w-full"
-                  disabled={submitting}
-                >
-                  {submitting ? "Enregistrement…" : "Enregistrer"}
-                </Button>
-              </form>
-            </Form>
-          </CardContent>
-        </Card>
+            <button
+              type="submit"
+              disabled={submitting}
+              className="inline-flex h-11 w-full items-center justify-center rounded-xl bg-primary text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 disabled:opacity-60"
+            >
+              {submitting ? "Enregistrement…" : "Enregistrer et continuer"}
+            </button>
+          </form>
+        </Form>
       </div>
-    </div>
+    </AuthShell>
   );
 }

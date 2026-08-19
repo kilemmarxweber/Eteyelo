@@ -1,19 +1,24 @@
 import type { Metadata } from "next";
 import { AuthShell } from "@/components/layout/auth-shell";
+import { safeInternalCallbackUrl } from "@/lib/auth/safe-callback-url";
 import { SignUpForm } from "./components/sign-up-form";
 
 export const metadata: Metadata = {
-  title: "Créer un compte — Kalasa",
-  description: "Inscription à Kalasa.",
+  title: "Créer un compte — Klambocore",
+  description: "Inscription à Klambocore.",
 };
 
-export default function SignUpPage() {
+type PageProps = {
+  searchParams: Promise<{ callbackUrl?: string }>;
+};
+
+export default async function SignUpPage({ searchParams }: PageProps) {
+  const params = await searchParams;
+  const callbackUrl = safeInternalCallbackUrl(params.callbackUrl) ?? undefined;
+
   return (
-    <AuthShell
-      headline="Créer un compte"
-      description="Un administrateur peut aussi créer votre compte ; cette page permet de s’inscrire tout seul si l’organisation l’autorise."
-    >
-      <SignUpForm />
+    <AuthShell mode="sign-up">
+      <SignUpForm callbackUrl={callbackUrl} />
     </AuthShell>
   );
 }

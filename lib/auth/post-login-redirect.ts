@@ -87,7 +87,7 @@ export async function resolvePostLoginPath(requestHeaders: Headers): Promise<str
     select: { mustChangePassword: true },
   });
   if (passwordState?.mustChangePassword) {
-    return "/auth/change-password";
+    return "/auth/sign-in";
   }
 
   const appRole = normalizeRole(session.user.role);

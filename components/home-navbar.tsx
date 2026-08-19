@@ -203,7 +203,7 @@ export function HomeNavbar() {
     <header className="sticky top-0 z-50 border-b border-blue-100 bg-white/90 backdrop-blur">
       <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-4 sm:px-6">
         <Link
-          href="/"
+          href="/accueil"
           onClick={closeMobileMenu}
           className="flex min-w-0 flex-1 items-center gap-2.5"
         >
