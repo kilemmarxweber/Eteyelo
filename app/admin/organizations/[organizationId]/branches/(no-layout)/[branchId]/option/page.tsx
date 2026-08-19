@@ -23,7 +23,7 @@ import { Card } from "@/components/ui/card";
 import { getBranchTypeAction } from "../classe/classe.action";
 import { usesSectionOptionForBranch } from "@/lib/branch-capabilities";
 import { getTrainingLabels } from "@/lib/training-labels";
-import Loading from "../loading";
+import { BranchLoadingFallback as Loading } from "@/components/branch-loading-fallback";
 
 export default function Options() {
   const [open, setOpen] = useState(false);

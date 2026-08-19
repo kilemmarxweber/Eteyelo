@@ -11,7 +11,6 @@ import { MobileNav } from "@/components/layout/mobile-nav";
 import { OwnerBranchesLink } from "@/components/owner-branches-link";
 import { authClient } from "@/lib/auth-client";
 import { useAppLoading } from "@/hooks/use-app-loading";
-import { BranchLoadingFallback } from "@/components/branch-loading-fallback";
 import { BranchSessionResume } from "@/components/branch-session-resume";
 import { RefreshProvider, useRefresh } from "@/src/hooks/RefreshContext";
 import { cn } from "@/lib/utils";
@@ -23,27 +22,16 @@ function BranchShell({ children }: { children: React.ReactNode }) {
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   useEffect(() => {
-    if (isPending) return;
-    if (session) return;
+    if (isPending || session) return;
 
+    // Ne démonte plus le shell si la session clignote — redirection douce seulement.
     const timeout = window.setTimeout(() => {
       resetLoading();
       window.location.assign("/auth/sign-in");
-    }, 1200);
+    }, 2500);
 
     return () => window.clearTimeout(timeout);
   }, [session, isPending, resetLoading]);
-
-  // Ne bloque plus tout le shell sur l'hydratation session :
-  // le serveur a déjà authentifié ; on affiche la chrome tout de suite.
-  if (!isPending && !session) {
-    return (
-      <BranchLoadingFallback
-        label="Redirection..."
-        className="min-h-screen"
-      />
-    );
-  }
 
   return (
     <div className="relative h-dvh overflow-hidden bg-background">

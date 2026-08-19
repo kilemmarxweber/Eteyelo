@@ -16,7 +16,7 @@ import {
   getCentreBrevetsAction,
   issueCentreBrevetAction,
 } from "../brevet.action";
-import Loading from "../../loading";
+import { BranchLoadingFallback as Loading } from "@/components/branch-loading-fallback";
 
 type BrevetLearner = {
   enrollmentId: string;

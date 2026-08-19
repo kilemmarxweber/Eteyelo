@@ -40,6 +40,43 @@
   animation-play-state: paused;
 }
 
+@keyframes page-loader-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.page-loader-ring {
+  animation: page-loader-spin 1.05s cubic-bezier(0.45, 0.15, 0.25, 1) infinite;
+  will-change: transform;
+}
+
+@keyframes page-loader-veil {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes page-loader-veil-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+.page-loader-veil {
+  animation: page-loader-veil 0.32s ease-out both;
+}
+
+.page-loader-veil-out {
+  animation: page-loader-veil-out 0.22s ease-in both;
+}
+
 .animation-paused {
   animation-play-state: paused;
 }

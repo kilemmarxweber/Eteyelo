@@ -23,7 +23,7 @@ import { useParams } from "next/navigation";
 import { NotFoundView } from "@/components/not-found-view";
 import { useSession } from "@/lib/auth-client";
 import { canAccessFinanceArea } from "@/lib/auth/session-roles";
-import Loading from "../loading";
+import { BranchLoadingFallback as Loading } from "@/components/branch-loading-fallback";
 
 export default function RootLayout({
   children,

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { AuthShell } from "@/components/layout/auth-shell";
+import { PageLoader } from "@/components/ui/page-loader";
 import { safeInternalCallbackUrl } from "@/lib/auth/safe-callback-url";
 import { SignInForm } from "./components/sign-in-form";
 
@@ -30,7 +31,7 @@ export default async function SignInPage({ searchParams }: PageProps) {
   const callbackUrl = safeInternalCallbackUrl(params.callbackUrl) ?? undefined;
 
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<PageLoader className="min-h-svh" />}>
       <SignInPageContent callbackUrl={callbackUrl} />
     </Suspense>
   );

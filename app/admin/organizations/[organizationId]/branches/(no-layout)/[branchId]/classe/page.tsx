@@ -32,7 +32,7 @@ import {
   isUniversiteBranch,
 } from "@/lib/branch-capabilities";
 
-import Loading from "../loading";
+import { BranchLoadingFallback as Loading } from "@/components/branch-loading-fallback";
 import { getStudentPageContextAction } from "../brevets/brevet.action";
 import Classes from "./components/ClassesClient";
 import { ClasseUpForm } from "./components/classe-form";

@@ -17,7 +17,7 @@ import {
   getAtelierAttestationsAction,
   issueAtelierAttestationAction,
 } from "../../brevets/brevet.action";
-import Loading from "../../loading";
+import { BranchLoadingFallback as Loading } from "@/components/branch-loading-fallback";
 
 type AttestationParticipant = {
   studentId: string;

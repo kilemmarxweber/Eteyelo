@@ -13,7 +13,8 @@ import {
 } from "react";
 import { usePathname } from "next/navigation";
 
-import { GlobalTopLoader } from "@/components/global-top-loader";
+import { RouteChangeLoader } from "@/components/ui/route-change-loader";
+import { startRouteLoader } from "@/lib/route-loader";
 
 type AppLoadingContextValue = {
   isLoading: boolean;
@@ -25,7 +26,7 @@ type AppLoadingContextValue = {
 };
 
 const AppLoadingContext = createContext<AppLoadingContextValue | null>(null);
-const MAX_LOADER_MS = 2_500;
+const MAX_LOADER_MS = 12_000;
 const MUTATING_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
 
 function resolveRequestUrl(input: RequestInfo | URL): string {
@@ -77,31 +78,6 @@ function shouldTrackFetch(input: RequestInfo | URL, init?: RequestInit) {
   if (!pathname) return false;
 
   return pathname.startsWith("/api/") || pathname.startsWith("/apis/");
-}
-
-function isInternalNavigationLink(anchor: HTMLAnchorElement, pathname: string) {
-  if (anchor.target === "_blank" || anchor.hasAttribute("download")) return false;
-  if (anchor.getAttribute("href")?.startsWith("#")) return false;
-
-  const href = anchor.href;
-  if (!href) return false;
-
-  try {
-    const url = new URL(href);
-    if (url.origin !== window.location.origin) return false;
-    return url.pathname !== pathname || url.search !== window.location.search;
-  } catch {
-    return false;
-  }
-}
-
-/** Routes qui ont déjà leur propre loading.tsx / fallback établissement. */
-function hasDedicatedBranchLoader(pathname: string) {
-  const match = pathname.match(/\/branches\/([^/]+)(?:\/|$)/);
-  if (!match) return false;
-
-  const segment = match[1];
-  return segment !== "new" && segment !== "edit";
 }
 
 export function AppLoadingProvider({ children }: { children: ReactNode }) {
@@ -158,6 +134,8 @@ export function AppLoadingProvider({ children }: { children: ReactNode }) {
     pendingCountRef.current += 1;
     flushPendingCount();
     scheduleSafetyReset();
+    // Pas de RouteChangeLoader ici : réservé à la navigation réelle.
+    // Sinon chaque server action fait « recharger » la page.
   }, [flushPendingCount, scheduleSafetyReset]);
 
   const stopLoading = useCallback(() => {
@@ -171,8 +149,11 @@ export function AppLoadingProvider({ children }: { children: ReactNode }) {
 
   const startNavigationLoading = useCallback(() => {
     navigationCountRef.current += 1;
-    startLoading();
-  }, [startLoading]);
+    startRouteLoader();
+    pendingCountRef.current += 1;
+    flushPendingCount();
+    scheduleSafetyReset();
+  }, [flushPendingCount, scheduleSafetyReset]);
 
   const finishNavigation = useCallback(() => {
     if (navigationCountRef.current <= 0) return;
@@ -210,36 +191,6 @@ export function AppLoadingProvider({ children }: { children: ReactNode }) {
     window.addEventListener("pagehide", resetOnLeave);
     return () => window.removeEventListener("pagehide", resetOnLeave);
   }, [resetLoading]);
-
-  useEffect(() => {
-    const onClick = (event: MouseEvent) => {
-      const target = event.target;
-      if (!(target instanceof Element)) return;
-
-      const anchor = target.closest("a");
-      if (!(anchor instanceof HTMLAnchorElement)) return;
-      if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
-        return;
-      }
-
-      if (!isInternalNavigationLink(anchor, pathname)) return;
-
-      try {
-        const nextPath = new URL(anchor.href).pathname;
-        if (hasDedicatedBranchLoader(nextPath)) return;
-      } catch {
-        // ignore invalid href
-      }
-
-      startNavigationLoading();
-    };
-
-    document.addEventListener("click", onClick, true);
-
-    return () => {
-      document.removeEventListener("click", onClick, true);
-    };
-  }, [pathname, startNavigationLoading]);
 
   useEffect(() => {
     const originalFetch = window.fetch.bind(window);
@@ -283,7 +234,7 @@ export function AppLoadingProvider({ children }: { children: ReactNode }) {
 
   return (
     <AppLoadingContext.Provider value={value}>
-      <GlobalTopLoader visible={pendingCount > 0} />
+      <RouteChangeLoader />
       {children}
     </AppLoadingContext.Provider>
   );

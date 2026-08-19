@@ -250,10 +250,11 @@ export async function guardOrganizationArchive(
   return guardOrganizationOwner(organizationId);
 }
 
-export async function guardOrganizationBranchAccess(
-  organizationId: string,
-  branchId: string,
-): Promise<OrganizationGuardResult> {
+export const guardOrganizationBranchAccess = cache(
+  async (
+    organizationId: string,
+    branchId: string,
+  ): Promise<OrganizationGuardResult> => {
   const access = await guardOrganizationAccess(organizationId);
   if (!access.ok) {
     return access;
@@ -274,10 +275,10 @@ export async function guardOrganizationBranchAccess(
     return { ok: true, context };
   }
 
-  const membership = await getMembershipForOrganization(
-    context.userId,
-    organizationId,
-  );
+  const membership =
+    context.membership?.organizationId === organizationId
+      ? context.membership
+      : await getMembershipForOrganization(context.userId, organizationId);
 
   if (membership && isOrganizationManagerMember(membership.role)) {
     return { ok: true, context };
@@ -310,7 +311,8 @@ export async function guardOrganizationBranchAccess(
   }
 
   return { ok: true, context };
-}
+},
+);
 
 export async function enforceOrganizationSectionAccess(organizationId: string) {
   const context = await getOrganizationAuthContext();

@@ -4,27 +4,24 @@ import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 
 import { authClient } from "@/lib/auth-client";
-import { useRefresh } from "@/src/hooks/RefreshContext";
 
-const SOFT_RESUME_COOLDOWN_MS = 2000;
+const SESSION_REFRESH_COOLDOWN_MS = 30_000;
 
 /**
- * Au retour sur l'onglet / restauration bfcache (fermer sans logout),
- * la session client et le cache RSC Next peuvent rester figés.
- * F5 marchait car il force un nouveau chargement — on le reproduit ici.
+ * Au retour sur l'onglet / restauration bfcache, rafraîchit la session client.
+ * Ne remonte plus toute la branche (pas de router.refresh / refreshKey) sauf bfcache.
  */
 export function BranchSessionResume() {
   const router = useRouter();
-  const { refresh } = useRefresh();
-  const lastSoftResumeAt = useRef(0);
+  const lastRefreshAt = useRef(0);
 
   useEffect(() => {
     let cancelled = false;
 
-    const softResume = async () => {
+    const refreshSessionOnly = async () => {
       const now = Date.now();
-      if (now - lastSoftResumeAt.current < SOFT_RESUME_COOLDOWN_MS) return;
-      lastSoftResumeAt.current = now;
+      if (now - lastRefreshAt.current < SESSION_REFRESH_COOLDOWN_MS) return;
+      lastRefreshAt.current = now;
 
       try {
         await authClient.getSession({
@@ -33,28 +30,21 @@ export function BranchSessionResume() {
       } catch (error) {
         console.warn("[BranchSessionResume] getSession failed", error);
       }
-
-      if (cancelled) return;
-      router.refresh();
-    };
-
-    const hardResume = async () => {
-      await softResume();
-      if (cancelled) return;
-      // Remonte les pages client (stats / tables chargées une fois au mount).
-      refresh();
     };
 
     const onVisibility = () => {
       if (document.visibilityState === "visible") {
-        void softResume();
+        void refreshSessionOnly();
       }
     };
 
     const onPageShow = (event: PageTransitionEvent) => {
-      if (event.persisted) {
-        void hardResume();
-      }
+      // bfcache uniquement : vrai besoin de resync RSC.
+      if (!event.persisted || cancelled) return;
+      void (async () => {
+        await refreshSessionOnly();
+        if (!cancelled) router.refresh();
+      })();
     };
 
     document.addEventListener("visibilitychange", onVisibility);
@@ -65,7 +55,7 @@ export function BranchSessionResume() {
       document.removeEventListener("visibilitychange", onVisibility);
       window.removeEventListener("pageshow", onPageShow);
     };
-  }, [refresh, router]);
+  }, [router]);
 
   return null;
 }

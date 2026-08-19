@@ -67,7 +67,7 @@ export function useAttendanceReport() {
         );
       }
     });
-  }, []);
+  }, [startTransition]);
 
   useEffect(() => {
     loadReport(appliedFilters);

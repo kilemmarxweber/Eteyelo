@@ -16,7 +16,22 @@ export async function switchActiveBranch(
     appRole?: string | null;
   },
 ): Promise<{ ok: true } | { ok: false; message: string; notFound?: boolean }> {
-  let appRole = options?.appRole ?? null;
+  const session = await getCachedSession();
+
+  if (!session?.session?.id || !session.user?.id) {
+    return { ok: false, message: "Session introuvable" };
+  }
+
+  const alreadyActive =
+    session.session.activeOrganizationId === organizationId &&
+    session.session.activeBranchId === branchId;
+
+  // Déjà sur la bonne branche : pas de guard ni d'écriture (cas navigation interne).
+  if (alreadyActive) {
+    return { ok: true };
+  }
+
+  let appRole = options?.appRole ?? session.user.role ?? null;
 
   if (!options?.alreadyGuarded) {
     const guard = await guardOrganizationBranchAccess(organizationId, branchId);
@@ -28,20 +43,6 @@ export async function switchActiveBranch(
       };
     }
     appRole = guard.context.appRole;
-  }
-
-  const session = await getCachedSession();
-
-  if (!session?.session?.id || !session.user?.id) {
-    return { ok: false, message: "Session introuvable" };
-  }
-
-  const alreadyActive =
-    session.session.activeOrganizationId === organizationId &&
-    session.session.activeBranchId === branchId;
-
-  if (alreadyActive) {
-    return { ok: true };
   }
 
   try {

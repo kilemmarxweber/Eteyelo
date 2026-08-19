@@ -31,7 +31,7 @@ import {
   getUniversityAttestationsAction,
   issueUniversityAttestationAction,
 } from "../../releves/releve.action";
-import Loading from "../../loading";
+import { BranchLoadingFallback as Loading } from "@/components/branch-loading-fallback";
 
 type UniversityLearner = {
   studentId: string;

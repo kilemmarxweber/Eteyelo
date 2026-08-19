@@ -26,7 +26,7 @@ import {
   canAccessPedagogyArea,
   canManageOrganization,
 } from "@/lib/auth/session-roles";
-import Loading from "../loading";
+import { BranchLoadingFallback as Loading } from "@/components/branch-loading-fallback";
 
 export default function RootLayout({
   children,
