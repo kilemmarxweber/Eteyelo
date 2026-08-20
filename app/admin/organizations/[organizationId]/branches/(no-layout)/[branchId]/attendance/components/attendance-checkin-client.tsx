@@ -3,15 +3,24 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   IconBarcode,
+  IconCamera,
   IconKeyboard,
   IconLogout,
   IconScan,
+  IconSearch,
   IconUserCheck,
 } from "@tabler/icons-react";
 import { toast } from "sonner";
 import { useAppTransition as useTransition } from "@/hooks/use-app-transition";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -27,7 +36,7 @@ import type {
 } from "../attendance-scan-types";
 import { getCurrentPosition } from "../component/attendance.client";
 import { AttendanceCheckoutDialog } from "./attendance-checkout-dialog";
-import { AttendanceScanner } from "./attendance-scanner";
+import { AttendanceScanDialog } from "./attendance-scanner";
 
 async function resolveCheckInCoords() {
   const position = await getCurrentPosition();
@@ -48,13 +57,14 @@ type CheckoutTarget = {
 };
 
 const personTypeLabels: Record<AttendancePersonType, string> = {
-  student: "Eleve",
+  student: "Élève",
   teacher: "Enseignant",
   personnel: "Personnel",
 };
 
 export function AttendanceCheckInClient() {
-  const [mode, setMode] = useState<PointageMode>("scan");
+  const [mode, setMode] = useState<PointageMode>("manual");
+  const [scanOpen, setScanOpen] = useState(false);
   const [manualCode, setManualCode] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [results, setResults] = useState<AttendancePersonLookup[]>([]);
@@ -156,6 +166,7 @@ export function AttendanceCheckInClient() {
         personName: result.person.name,
         sessionLabel: result.sessionLabel,
       });
+      setScanOpen(false);
       toast.message(result.message);
     },
     [],
@@ -175,6 +186,7 @@ export function AttendanceCheckInClient() {
         setSelected(null);
         setSearchQuery("");
         setResults([]);
+        setScanOpen(false);
       } else {
         toast.error(result.message);
       }
@@ -263,13 +275,24 @@ export function AttendanceCheckInClient() {
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-xl font-semibold">Pointage</h2>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Scannez pour l&apos;arrivée. Un second scan (ou « Pointer sortie »)
-          ouvre l&apos;encodage de sortie — normale ou anticipée avec motif.
-        </p>
+    <div className="mx-auto w-full max-w-7xl space-y-5">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+        <div className="min-w-0 flex-1">
+          <h2 className="text-xl font-semibold tracking-tight">Pointage</h2>
+          <p className="mt-1 w-full max-w-7xl text-sm leading-relaxed text-muted-foreground">
+            Recherchez une personne ou saisissez un matricule pour pointer
+            l&apos;arrivée ou la sortie. Le scan caméra s&apos;ouvre dans une
+            fenêtre dédiée.
+          </p>
+        </div>
+        <Button
+          type="button"
+          className="w-full shrink-0 lg:w-auto"
+          onClick={() => setScanOpen(true)}
+        >
+          <IconCamera className="mr-2 size-4" />
+          Scanner une carte
+        </Button>
       </div>
 
       <Tabs
@@ -277,141 +300,183 @@ export function AttendanceCheckInClient() {
         onValueChange={(value) => setMode(value as PointageMode)}
         className="space-y-4"
       >
-        <div className="sticky top-0 z-10 flex flex-col gap-3 rounded-xl border bg-card/95 p-3 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-card/80 lg:flex-row lg:items-center lg:justify-between">
-          <div
-            className="hidden min-h-9 w-full lg:block lg:max-w-md"
-            aria-hidden
-          />
-          <TabsList className="grid h-auto w-full shrink-0 grid-cols-2 border border-primary/20 bg-primary/10 lg:w-auto">
-            <TabsTrigger
-              value="scan"
-              className="gap-1.5 text-xs text-primary/70 sm:text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm"
-            >
-              <IconScan size={16} className="shrink-0" />
-              Scan
-            </TabsTrigger>
+        <div className="sticky top-0 z-10 rounded-xl border bg-card/95 p-2 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-card/80">
+          <TabsList className="grid h-auto min-h-11 w-full grid-cols-2 border border-primary/20 bg-primary/10">
             <TabsTrigger
               value="manual"
-              className="gap-1.5 text-xs text-primary/70 sm:text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm"
+              className="gap-1.5 py-2.5 text-sm text-primary/70 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm"
             >
               <IconKeyboard size={16} className="shrink-0" />
               Manuel
             </TabsTrigger>
+            <TabsTrigger
+              value="scan"
+              className="gap-1.5 py-2.5 text-sm text-primary/70 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm"
+            >
+              <IconScan size={16} className="shrink-0" />
+              Scan
+            </TabsTrigger>
           </TabsList>
         </div>
 
-        <TabsContent value="scan" className="mt-0 space-y-4">
-          <AttendanceScanner onScan={runScan} disabled={pending} />
-          <p className="text-xs text-muted-foreground">
-            Placez le code-barres ou le QR code de la carte devant la camera. Si
-            la personne est déjà arrivée, le scan propose d&apos;encoder la
-            sortie.
-          </p>
+        <TabsContent value="manual" className="mt-0">
+          <Card>
+            <CardHeader className="pb-4">
+              <CardTitle className="text-base">Pointage manuel</CardTitle>
+              <CardDescription className="w-full max-w-7xl text-pretty">
+                Saisissez un matricule ou un code carte, ou recherchez par nom,
+                puis enregistrez l&apos;arrivée ou la sortie.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-5">
+              <div className="grid gap-4 lg:grid-cols-2">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">
+                    Matricule ou code carte
+                  </label>
+                  <div className="flex flex-col gap-2 sm:flex-row">
+                    <Input
+                      placeholder="ELV-…, ENS-…, PRS-… ou matricule"
+                      value={manualCode}
+                      onChange={(event) => setManualCode(event.target.value)}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter") runScan(manualCode);
+                      }}
+                    />
+                    <Button
+                      type="button"
+                      onClick={() => runScan(manualCode)}
+                      disabled={pending || !manualCode.trim()}
+                    >
+                      <IconBarcode className="mr-2 size-4" />
+                      Pointer
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">
+                    Rechercher une personne
+                  </label>
+                  <div className="relative">
+                    <IconSearch className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      className="pl-9"
+                      placeholder="Nom, prénom ou matricule…"
+                      value={searchQuery}
+                      onChange={(event) => setSearchQuery(event.target.value)}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {results.length > 0 ? (
+                <div className="max-h-72 space-y-2 overflow-y-auto pr-1">
+                  {results.map((person) => {
+                    const isSelected =
+                      selected?.id === person.id &&
+                      selected?.personType === person.personType;
+                    return (
+                      <button
+                        key={`${person.personType}-${person.id}`}
+                        type="button"
+                        onClick={() => setSelected(person)}
+                        className={`flex w-full items-center justify-between rounded-xl border px-4 py-3 text-left transition ${
+                          isSelected
+                            ? "border-primary bg-primary/5 shadow-sm"
+                            : "hover:bg-muted/40"
+                        }`}
+                      >
+                        <div className="min-w-0">
+                          <p className="truncate font-medium">{person.name}</p>
+                          <p className="truncate text-xs text-muted-foreground">
+                            {person.matricule} • {person.roleLabel}
+                          </p>
+                          {person.expectedSessionLabel ? (
+                            <p className="mt-0.5 truncate text-xs text-primary">
+                              Cours prévu : {person.expectedSessionLabel}
+                            </p>
+                          ) : null}
+                        </div>
+                        <div className="ml-3 flex shrink-0 items-center gap-2">
+                          <Badge variant="outline">
+                            {personTypeLabels[person.personType]}
+                          </Badge>
+                          {isSelected ? (
+                            <Badge variant="outline-primary">Sélectionné</Badge>
+                          ) : null}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              ) : searchQuery.trim().length >= 2 && !pending ? (
+                <p className="rounded-lg border border-dashed px-4 py-6 text-center text-sm text-muted-foreground">
+                  Aucune personne trouvée.
+                </p>
+              ) : null}
+
+              <div className="flex flex-col gap-2 border-t pt-4 sm:flex-row sm:justify-end">
+                <Button
+                  type="button"
+                  className="w-full sm:w-auto"
+                  onClick={checkInSelected}
+                  disabled={pending || !selected}
+                >
+                  <IconUserCheck className="mr-2 size-4" />
+                  Pointer arrivée
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full sm:w-auto"
+                  onClick={checkOutSelected}
+                  disabled={pending || !selected}
+                >
+                  <IconLogout className="mr-2 size-4" />
+                  Pointer sortie
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
 
-        <TabsContent value="manual" className="mt-0 space-y-4">
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Matricule ou code carte</label>
-            <div className="flex flex-col gap-2 sm:flex-row">
-              <Input
-                placeholder="ELV-..., ENS-..., PRS-... ou matricule..."
-                value={manualCode}
-                onChange={(event) => setManualCode(event.target.value)}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter") runScan(manualCode);
-                }}
-              />
-              <Button
-                type="button"
-                onClick={() => runScan(manualCode)}
-                disabled={pending || !manualCode.trim()}
-              >
-                <IconBarcode className="mr-2 size-4" />
-                Pointer
+        <TabsContent value="scan" className="mt-0">
+          <Card className="overflow-hidden">
+            <CardContent className="flex flex-col items-start gap-4 px-6 py-10 sm:px-8">
+              <div className="flex size-16 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                <IconCamera className="size-8" />
+              </div>
+              <div className="w-full space-y-1">
+                <h3 className="text-base font-semibold">Scan caméra</h3>
+                <p className="w-full max-w-7xl text-sm leading-relaxed text-muted-foreground">
+                  L&apos;appareil photo s&apos;ouvre dans une popup. Placez le
+                  QR ou le code-barres de la carte dans le cadre. Un second scan
+                  propose la sortie si la personne est déjà arrivée.
+                </p>
+              </div>
+              <Button type="button" onClick={() => setScanOpen(true)}>
+                <IconScan className="mr-2 size-4" />
+                Ouvrir l&apos;appareil
               </Button>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Rechercher une personne</label>
-            <Input
-              placeholder="Nom, prenom ou matricule..."
-              value={searchQuery}
-              onChange={(event) => setSearchQuery(event.target.value)}
-            />
-          </div>
-
-          {results.length > 0 ? (
-            <div className="space-y-2">
-              {results.map((person) => (
-                <button
-                  key={`${person.personType}-${person.id}`}
-                  type="button"
-                  onClick={() => setSelected(person)}
-                  className={`flex w-full items-center justify-between rounded-lg border px-4 py-3 text-left transition ${
-                    selected?.id === person.id &&
-                    selected?.personType === person.personType
-                      ? "border-primary bg-primary/5"
-                      : "hover:bg-muted/40"
-                  }`}
-                >
-                  <div>
-                    <p className="font-medium">{person.name}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {person.matricule} • {person.roleLabel}
-                    </p>
-                    {person.expectedSessionLabel ? (
-                      <p className="text-xs text-primary">
-                        Cours prevu: {person.expectedSessionLabel}
-                      </p>
-                    ) : null}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Badge variant="outline">
-                      {personTypeLabels[person.personType]}
-                    </Badge>
-                    {selected?.id === person.id &&
-                    selected?.personType === person.personType ? (
-                      <Badge variant="outline-primary">Selectionne</Badge>
-                    ) : null}
-                  </div>
-                </button>
-              ))}
-            </div>
-          ) : null}
-
-          <div className="flex flex-col gap-2 sm:flex-row">
-            <Button
-              type="button"
-              className="w-full sm:w-auto"
-              onClick={checkInSelected}
-              disabled={pending || !selected}
-            >
-              <IconUserCheck className="mr-2 size-4" />
-              Pointer arrivée
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full sm:w-auto"
-              onClick={checkOutSelected}
-              disabled={pending || !selected}
-            >
-              <IconLogout className="mr-2 size-4" />
-              Pointer sortie
-            </Button>
-          </div>
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
 
       {recent.length > 0 ? (
-        <div className="space-y-3 border-t pt-4">
-          <h3 className="text-sm font-semibold">Derniers pointages</h3>
-          <div className="space-y-2">
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">Derniers pointages</CardTitle>
+            <CardDescription className="w-full max-w-7xl">
+              Arrivées et sorties enregistrées pendant cette session.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-2">
             {recent.map((item) => (
               <div
                 key={item.id}
-                className="flex flex-wrap items-center gap-2 rounded-lg border px-4 py-3 text-sm"
+                className="flex flex-wrap items-center gap-2 rounded-xl border bg-muted/20 px-4 py-3 text-sm"
               >
                 <span className="font-medium">
                   {item.person?.name ?? "Personne"}
@@ -439,9 +504,16 @@ export function AttendanceCheckInClient() {
                 </span>
               </div>
             ))}
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       ) : null}
+
+      <AttendanceScanDialog
+        open={scanOpen}
+        onOpenChange={setScanOpen}
+        onScan={runScan}
+        disabled={pending}
+      />
 
       {checkout ? (
         <AttendanceCheckoutDialog
