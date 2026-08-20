@@ -317,6 +317,7 @@ function mapStudentRecord(
       } | null;
     };
     classEnrollment: Array<{
+      createdAt?: Date;
       classe: { codeClasse: string; nameClasse: string } | null;
       schoolYear?: {
         id: string;
@@ -344,6 +345,7 @@ function mapStudentRecord(
         isCurrentYear: year.isCurrentYear,
         classCode: enrollment.classe?.codeClasse ?? null,
         className: enrollment.classe?.nameClasse ?? null,
+        createdAt: enrollment.createdAt ?? null,
       };
     })
     .filter(
@@ -355,6 +357,7 @@ function mapStudentRecord(
         isCurrentYear: boolean;
         classCode: string | null;
         className: string | null;
+        createdAt: Date | null;
       } => Boolean(enrollment),
     );
 
@@ -394,6 +397,7 @@ function mapStudentRecord(
       schoolYearName: enrollment.schoolYearName,
       classCode: enrollment.classCode,
       className: enrollment.className,
+      createdAt: enrollment.createdAt,
     })),
     memberId: student.branchMember?.memberId ?? "",
     userId: student.branchMember?.member?.user?.id ?? "",

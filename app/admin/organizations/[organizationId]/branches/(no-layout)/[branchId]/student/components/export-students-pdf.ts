@@ -10,6 +10,7 @@ import type { SchoolReportContext } from "@/lib/reports/types";
 
 export type StudentReportSexe = "M" | "F";
 export type StudentReportStatus = "active" | "inactive";
+export type StudentReportPeriod = "all" | "today" | "week" | "month";
 
 export type StudentReportOptions = {
   selectedClass?: { code: string; name: string } | null;
@@ -17,6 +18,14 @@ export type StudentReportOptions = {
   sexe?: StudentReportSexe | null;
   /** Filtre statut UI si présent. */
   status?: StudentReportStatus | null;
+  /** Filtre période d'enregistrement. */
+  period?: StudentReportPeriod | null;
+  /** Libellés des années scolaires filtrées. */
+  schoolYears?: string[] | null;
+  /** Ids des années scolaires filtrées (affichage classe). */
+  schoolYearIds?: string[] | null;
+  /** Texte de recherche actif. */
+  search?: string | null;
 };
 
 function safeFilePart(value: string) {
@@ -36,6 +45,19 @@ function statusLabel(status: StudentReportStatus): string {
   return status === "active" ? "Actifs" : "Inactifs";
 }
 
+function periodLabel(period: StudentReportPeriod): string {
+  switch (period) {
+    case "today":
+      return "Aujourd'hui";
+    case "week":
+      return "Semaine";
+    case "month":
+      return "Mois";
+    default:
+      return "Toute";
+  }
+}
+
 /** Titre PDF aligné sur l'intention des filtres UI. */
 export function buildStudentsReportTitle(
   options: StudentReportOptions = {},
@@ -43,6 +65,7 @@ export function buildStudentsReportTitle(
   const selectedClass = options.selectedClass ?? null;
   const sexe = options.sexe ?? null;
   const status = options.status ?? null;
+  const period = options.period ?? null;
 
   let title = "Liste des élèves";
 
@@ -58,6 +81,15 @@ export function buildStudentsReportTitle(
     title = `${title} — ${statusLabel(status)}`;
   }
 
+  if (period && period !== "all") {
+    title = `${title} — ${periodLabel(period)}`;
+  }
+
+  const schoolYears = options.schoolYears?.filter(Boolean) ?? [];
+  if (schoolYears.length === 1) {
+    title = `${title} — ${schoolYears[0]}`;
+  }
+
   return title;
 }
 
@@ -69,7 +101,18 @@ export function buildStudentsReportFilterLabels(
   const selectedClass = options.selectedClass ?? null;
   const sexe = options.sexe ?? null;
   const status = options.status ?? null;
+  const period = options.period ?? null;
+  const schoolYears = options.schoolYears?.filter(Boolean) ?? [];
+  const search = options.search?.trim() || null;
 
+  if (period && period !== "all") {
+    labels.push(`Période : ${periodLabel(period)}`);
+  }
+  if (schoolYears.length === 1) {
+    labels.push(`Année : ${schoolYears[0]}`);
+  } else if (schoolYears.length > 1) {
+    labels.push(`Années : ${schoolYears.join(", ")}`);
+  }
   if (selectedClass) {
     labels.push(`Classe : ${selectedClass.name}`);
   }
@@ -78,6 +121,9 @@ export function buildStudentsReportFilterLabels(
   }
   if (status) {
     labels.push(`Statut : ${statusLabel(status)}`);
+  }
+  if (search) {
+    labels.push(`Recherche : ${search}`);
   }
 
   return labels;
@@ -88,6 +134,7 @@ function buildReportFileName(options: StudentReportOptions = {}): string {
   const selectedClass = options.selectedClass ?? null;
   const sexe = options.sexe ?? null;
   const status = options.status ?? null;
+  const period = options.period ?? null;
 
   if (selectedClass) {
     parts.push(safeFilePart(selectedClass.name));
@@ -96,8 +143,44 @@ function buildReportFileName(options: StudentReportOptions = {}): string {
   if (sexe === "F") parts.push("filles");
   if (status === "active") parts.push("actifs");
   if (status === "inactive") parts.push("inactifs");
+  if (period && period !== "all") parts.push(period);
 
   return parts.join("-");
+}
+
+function resolveStudentClassLabel(
+  student: IStudent,
+  schoolYearIds?: string[] | null,
+): string {
+  if (schoolYearIds?.length === 1) {
+    const enrollment = student.enrollments?.find(
+      (item) => item.schoolYearId === schoolYearIds[0],
+    );
+    if (enrollment) {
+      return enrollment.className || enrollment.classCode || "Non affecté";
+    }
+  }
+  return student.className || student.classCode || "Non affecté";
+}
+
+function calculateAge(dateOfBirth: Date | string | null | undefined) {
+  if (!dateOfBirth) return null;
+  const birth = new Date(dateOfBirth);
+  if (Number.isNaN(birth.getTime())) return null;
+  const today = new Date();
+  let age = today.getFullYear() - birth.getFullYear();
+  const birthdayNotReached =
+    today.getMonth() < birth.getMonth() ||
+    (today.getMonth() === birth.getMonth() && today.getDate() < birth.getDate());
+  if (birthdayNotReached) age -= 1;
+  return age >= 0 ? age : null;
+}
+
+function formatDateOfBirth(dateOfBirth: Date | string | null | undefined) {
+  if (!dateOfBirth) return "-";
+  const date = new Date(dateOfBirth);
+  if (Number.isNaN(date.getTime())) return "-";
+  return date.toLocaleDateString("fr-FR");
 }
 
 export async function buildStudentsReportPdf(
@@ -107,11 +190,25 @@ export async function buildStudentsReportPdf(
 ) {
   const selectedClass = options.selectedClass ?? null;
   const isClassReport = Boolean(selectedClass);
+  const hasYearFilter = Boolean(options.schoolYearIds?.length);
+  // Liste classe + année uniquement : pas de Date n. / Âge / Lieu de naissance.
+  const isClassYearOnlyReport =
+    isClassReport &&
+    hasYearFilter &&
+    !options.sexe &&
+    (!options.period || options.period === "all") &&
+    !options.search;
+  const showBirthColumns = !isClassYearOnlyReport;
+
   const title = buildStudentsReportTitle(options);
   const filterLabels = buildStudentsReportFilterLabels(options);
-  const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+  const doc = new jsPDF({
+    orientation: showBirthColumns ? "landscape" : "portrait",
+    unit: "mm",
+    format: "a4",
+  });
   const pageWidth = doc.internal.pageSize.getWidth();
-  const marginX = 14;
+  const marginX = showBirthColumns ? 12 : 14;
   const usableWidth = pageWidth - marginX * 2;
   const logo = await imageUrlToDataUrl(context.logoUrl);
 
@@ -125,9 +222,18 @@ export async function buildStudentsReportPdf(
   // Dessine l'en-tête page 1 et récupère la vraie hauteur (évite le chevauchement).
   const contentTop = drawReportHeader(doc, context, headerOptions);
 
-  const head = isClassReport
-    ? ["#", "Matricule", "Nom", "Postnom", "Prénom", "Sexe"]
-    : ["#", "Matricule", "Nom", "Postnom", "Prénom", "Sexe", "Classe"];
+  const head = [
+    "#",
+    "Matricule",
+    "Nom",
+    "Postnom",
+    "Prénom",
+    "Sexe",
+    ...(!isClassReport ? (["Classe"] as const) : []),
+    ...(showBirthColumns
+      ? (["Date n.", "Âge", "Lieu de naissance"] as const)
+      : []),
+  ];
 
   const body = students.map((student, index) => {
     const row: (string | number)[] = [
@@ -139,33 +245,71 @@ export async function buildStudentsReportPdf(
       student.sexe || "-",
     ];
     if (!isClassReport) {
-      row.push(student.className || "Non affecté");
+      row.push(resolveStudentClassLabel(student, options.schoolYearIds));
+    }
+    if (showBirthColumns) {
+      const age = calculateAge(student.dateOfBirth);
+      row.push(
+        formatDateOfBirth(student.dateOfBirth),
+        age === null ? "-" : String(age),
+        student.placeOfBirth?.trim() || "-",
+      );
     }
     return row;
   });
 
-  // Largeurs proportionnelles sur toute la largeur utile A4.
+  // Largeurs proportionnelles.
   const columnStyles: Record<
     number,
     { cellWidth: number; halign: "center" | "left" }
-  > = isClassReport
-    ? {
-        0: { cellWidth: usableWidth * 0.06, halign: "center" },
-        1: { cellWidth: usableWidth * 0.28, halign: "left" },
-        2: { cellWidth: usableWidth * 0.18, halign: "left" },
-        3: { cellWidth: usableWidth * 0.18, halign: "left" },
-        4: { cellWidth: usableWidth * 0.18, halign: "left" },
-        5: { cellWidth: usableWidth * 0.12, halign: "center" },
-      }
-    : {
-        0: { cellWidth: usableWidth * 0.05, halign: "center" },
-        1: { cellWidth: usableWidth * 0.22, halign: "left" },
-        2: { cellWidth: usableWidth * 0.14, halign: "left" },
-        3: { cellWidth: usableWidth * 0.14, halign: "left" },
-        4: { cellWidth: usableWidth * 0.14, halign: "left" },
-        5: { cellWidth: usableWidth * 0.08, halign: "center" },
-        6: { cellWidth: usableWidth * 0.23, halign: "left" },
+  > = (() => {
+    if (isClassReport && !showBirthColumns) {
+      return {
+        0: { cellWidth: usableWidth * 0.06, halign: "center" as const },
+        1: { cellWidth: usableWidth * 0.28, halign: "left" as const },
+        2: { cellWidth: usableWidth * 0.18, halign: "left" as const },
+        3: { cellWidth: usableWidth * 0.18, halign: "left" as const },
+        4: { cellWidth: usableWidth * 0.18, halign: "left" as const },
+        5: { cellWidth: usableWidth * 0.12, halign: "center" as const },
       };
+    }
+    if (isClassReport && showBirthColumns) {
+      return {
+        0: { cellWidth: usableWidth * 0.04, halign: "center" as const },
+        1: { cellWidth: usableWidth * 0.14, halign: "left" as const },
+        2: { cellWidth: usableWidth * 0.12, halign: "left" as const },
+        3: { cellWidth: usableWidth * 0.12, halign: "left" as const },
+        4: { cellWidth: usableWidth * 0.12, halign: "left" as const },
+        5: { cellWidth: usableWidth * 0.06, halign: "center" as const },
+        6: { cellWidth: usableWidth * 0.11, halign: "center" as const },
+        7: { cellWidth: usableWidth * 0.06, halign: "center" as const },
+        8: { cellWidth: usableWidth * 0.23, halign: "left" as const },
+      };
+    }
+    if (!isClassReport && !showBirthColumns) {
+      return {
+        0: { cellWidth: usableWidth * 0.05, halign: "center" as const },
+        1: { cellWidth: usableWidth * 0.22, halign: "left" as const },
+        2: { cellWidth: usableWidth * 0.14, halign: "left" as const },
+        3: { cellWidth: usableWidth * 0.14, halign: "left" as const },
+        4: { cellWidth: usableWidth * 0.14, halign: "left" as const },
+        5: { cellWidth: usableWidth * 0.08, halign: "center" as const },
+        6: { cellWidth: usableWidth * 0.23, halign: "left" as const },
+      };
+    }
+    return {
+      0: { cellWidth: usableWidth * 0.035, halign: "center" as const },
+      1: { cellWidth: usableWidth * 0.12, halign: "left" as const },
+      2: { cellWidth: usableWidth * 0.1, halign: "left" as const },
+      3: { cellWidth: usableWidth * 0.1, halign: "left" as const },
+      4: { cellWidth: usableWidth * 0.1, halign: "left" as const },
+      5: { cellWidth: usableWidth * 0.05, halign: "center" as const },
+      6: { cellWidth: usableWidth * 0.13, halign: "left" as const },
+      7: { cellWidth: usableWidth * 0.1, halign: "center" as const },
+      8: { cellWidth: usableWidth * 0.05, halign: "center" as const },
+      9: { cellWidth: usableWidth * 0.215, halign: "left" as const },
+    };
+  })();
 
   autoTable(doc, {
     startY: contentTop,

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { useAppTransition as useTransition } from "@/hooks/use-app-transition";
 import {
@@ -71,8 +71,18 @@ import {
 import {
   emptyFamilyExtraInfo,
   emptyStudentExtraInfo,
+  type FamilyExtraInfo,
   type StudentExtraInfo,
 } from "@/lib/registration-extra-info";
+import {
+  clearPublicRegistrationDraft,
+  formatDraftSavedAt,
+  isMeaningfulPublicDraft,
+  readPublicRegistrationDraft,
+  REGISTRATION_DRAFT_DEBOUNCE_MS,
+  writePublicRegistrationDraft,
+  type PublicRegistrationDraftPayload,
+} from "@/lib/registration-draft";
 
 const MAX_CHILDREN = 8;
 
@@ -256,6 +266,10 @@ export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
     emptyGuardian(true),
     emptyGuardian(false),
   ]);
+  const [draftSavedAt, setDraftSavedAt] = useState<number | null>(null);
+  const draftReadyRef = useRef(false);
+  const draftTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const latestDraftRef = useRef<PublicRegistrationDraftPayload | null>(null);
   const branchLocked = queuedStudents.length > 0;
   const preview = useMemo(
     () => (photo ? URL.createObjectURL(photo) : ""),
@@ -267,6 +281,147 @@ export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
     },
     [preview],
   );
+
+  function buildDraftPayload(): PublicRegistrationDraftPayload {
+    return {
+      step,
+      branchTypeFilter,
+      secondGuardian,
+      form: { ...form },
+      guardians: guardians.map((guardian) => ({ ...guardian })),
+      studentExtra: { ...studentExtra },
+      familyExtra: { ...familyExtra },
+      queuedStudents: queuedStudents.map((item) => ({
+        ...item,
+        photo: null,
+        extra: { ...item.extra },
+      })),
+    };
+  }
+
+  function flushDraft() {
+    if (!draftReadyRef.current) return;
+    const payload = latestDraftRef.current ?? buildDraftPayload();
+    if (!isMeaningfulPublicDraft(payload)) {
+      clearPublicRegistrationDraft();
+      setDraftSavedAt(null);
+      return;
+    }
+    const savedAt = writePublicRegistrationDraft(payload);
+    if (savedAt) setDraftSavedAt(savedAt);
+  }
+
+  function scheduleDraft() {
+    if (!draftReadyRef.current) return;
+    if (draftTimerRef.current) clearTimeout(draftTimerRef.current);
+    draftTimerRef.current = setTimeout(() => {
+      draftTimerRef.current = null;
+      flushDraft();
+    }, REGISTRATION_DRAFT_DEBOUNCE_MS);
+  }
+
+  function discardDraft() {
+    if (draftTimerRef.current) clearTimeout(draftTimerRef.current);
+    clearPublicRegistrationDraft();
+    setDraftSavedAt(null);
+    toast.message("Brouillon local effacé");
+  }
+
+  useEffect(() => {
+    const draft = readPublicRegistrationDraft();
+    if (draft?.payload) {
+      const p = draft.payload;
+      if (typeof p.step === "number") setStep(Math.max(0, p.step));
+      if (typeof p.branchTypeFilter === "string") {
+        setBranchTypeFilter(
+          (p.branchTypeFilter as ManagedBranchType | "") || "",
+        );
+      }
+      if (typeof p.secondGuardian === "boolean") {
+        setSecondGuardian(p.secondGuardian);
+      }
+      if (p.form && typeof p.form === "object") {
+        setForm((current) => ({
+          ...current,
+          ...(p.form as typeof form),
+        }));
+      }
+      if (Array.isArray(p.guardians) && p.guardians.length > 0) {
+        setGuardians(
+          p.guardians.map((item, index) => ({
+            ...emptyGuardian(index === 0),
+            ...(item as Guardian),
+          })),
+        );
+      }
+      if (p.studentExtra && typeof p.studentExtra === "object") {
+        setStudentExtra({
+          ...emptyStudentExtraInfo(),
+          ...(p.studentExtra as StudentExtraInfo),
+        });
+      }
+      if (p.familyExtra && typeof p.familyExtra === "object") {
+        setFamilyExtra({
+          ...emptyFamilyExtraInfo(),
+          ...(p.familyExtra as FamilyExtraInfo),
+        });
+      }
+      if (Array.isArray(p.queuedStudents)) {
+        setQueuedStudents(
+          p.queuedStudents.map((item) => ({
+            ...(item as QueuedStudent),
+            photo: null,
+            extra: {
+              ...emptyStudentExtraInfo(),
+              ...((item as QueuedStudent).extra ?? {}),
+            },
+          })),
+        );
+      }
+      setDraftSavedAt(draft.savedAt);
+      toast.message("Brouillon local restauré", {
+        description: "Saisie récupérée après fermeture ou coupure.",
+      });
+    }
+    draftReadyRef.current = true;
+    return () => {
+      draftReadyRef.current = false;
+      if (draftTimerRef.current) clearTimeout(draftTimerRef.current);
+    };
+    // Restauration unique au montage.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    latestDraftRef.current = buildDraftPayload();
+    scheduleDraft();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    step,
+    branchTypeFilter,
+    secondGuardian,
+    form,
+    guardians,
+    studentExtra,
+    familyExtra,
+    queuedStudents,
+  ]);
+
+  useEffect(() => {
+    function onHide() {
+      if (document.visibilityState === "hidden") flushDraft();
+    }
+    function onPageHide() {
+      flushDraft();
+    }
+    document.addEventListener("visibilitychange", onHide);
+    window.addEventListener("pagehide", onPageHide);
+    return () => {
+      document.removeEventListener("visibilitychange", onHide);
+      window.removeEventListener("pagehide", onPageHide);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (!form.branchId) {
@@ -840,8 +995,11 @@ export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
       });
       if (!result.success) {
         toast.error(result.message);
+        flushDraft();
         return;
       }
+      clearPublicRegistrationDraft();
+      setDraftSavedAt(null);
       setReferences(result.references);
       toast.success(result.message);
     });
@@ -972,9 +1130,21 @@ export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
 
       <section className="border-b border-primary/10 bg-primary text-primary-foreground shadow-lg shadow-primary/10">
         <div className="mx-auto max-w-7xl px-4 py-8 md:py-10">
-          <div className="inline-flex items-center gap-2 rounded-full bg-primary-foreground/15 px-3 py-1.5 text-xs font-semibold text-primary-foreground/90">
-            <UserPlus className="size-4" />
-            Inscription en ligne
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <div className="inline-flex items-center gap-2 rounded-full bg-primary-foreground/15 px-3 py-1.5 text-xs font-semibold text-primary-foreground/90">
+              <UserPlus className="size-4" />
+              Inscription en ligne
+            </div>
+            {draftSavedAt ? (
+              <button
+                type="button"
+                className="inline-flex items-center gap-2 rounded-full bg-primary-foreground/15 px-3 py-1.5 text-xs font-medium text-primary-foreground/90 hover:bg-primary-foreground/25"
+                title="Sauvegarde locale automatique (navigateur). Cliquez pour effacer."
+                onClick={discardDraft}
+              >
+                Brouillon local · {formatDraftSavedAt(draftSavedAt)}
+              </button>
+            ) : null}
           </div>
           <h1 className="mt-3 text-2xl font-bold tracking-tight md:text-3xl">
             Demande d&apos;inscription

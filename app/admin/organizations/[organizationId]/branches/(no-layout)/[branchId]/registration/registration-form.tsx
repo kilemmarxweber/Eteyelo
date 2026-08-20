@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
+import { useParams } from "next/navigation";
 import { useAppRouter as useRouter } from "@/hooks/use-app-router";
 import { toast } from "sonner";
 import {
@@ -40,6 +41,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
+import { SearchCombobox } from "@/components/ui/search-combobox";
 import { Textarea } from "@/components/ui/textarea";
 import {
   createRegistrationFlowAction,
@@ -83,6 +85,15 @@ import {
   type FamilyExtraInfo,
   type StudentExtraInfo,
 } from "@/lib/registration-extra-info";
+import {
+  clearAdminRegistrationDraft,
+  formatDraftSavedAt,
+  isMeaningfulAdminDraft,
+  readAdminRegistrationDraft,
+  REGISTRATION_DRAFT_DEBOUNCE_MS,
+  writeAdminRegistrationDraft,
+  type AdminRegistrationDraftPayload,
+} from "@/lib/registration-draft";
 import { RegistrationExtraInfoSheet } from "@/components/registration-extra-info-sheet";
 import {
   defaultCreneauValues,
@@ -218,6 +229,8 @@ export function RegistrationForm({
   initialRequestId?: string;
 }) {
   const router = useRouter();
+  const params = useParams<{ branchId: string }>();
+  const branchId = params.branchId ?? "";
   const requestedRequestId = initialRequestId;
   const [requestId, setRequestId] = useState("");
   const [requestReference, setRequestReference] = useState("");
@@ -243,6 +256,7 @@ export function RegistrationForm({
   const [parentQuery, setParentQuery] = useState("");
   const [studentResults, setStudentResults] = useState<any[]>([]);
   const [parentResults, setParentResults] = useState<any[]>([]);
+  const parentNameSearchTimerRef = useRef<number | null>(null);
   const [historyOutcome, setHistoryOutcome] = useState<
     "new" | "passed" | "failed" | "returning"
   >("new");
@@ -268,10 +282,167 @@ export function RegistrationForm({
   );
   const [extraSheetOpen, setExtraSheetOpen] = useState(false);
   const [siblingParentHint, setSiblingParentHint] = useState("");
+  const [draftSavedAt, setDraftSavedAt] = useState<number | null>(null);
+  const draftReadyRef = useRef(false);
+  const draftTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const latestDraftRef = useRef<AdminRegistrationDraftPayload | null>(null);
   const photoPreview = useMemo(
     () => (photoFile ? URL.createObjectURL(photoFile) : photoUrl),
     [photoFile, photoUrl],
   );
+
+  function buildAdminDraftPayload(): AdminRegistrationDraftPayload {
+    return {
+      step,
+      studentMode,
+      studentId,
+      student: { ...student },
+      parentMode,
+      parentId,
+      parent: { ...parent },
+      studentExtra: { ...studentExtra },
+      familyExtra: { ...familyExtra },
+      historyOutcome,
+      schoolYearId,
+      level,
+      sectionId,
+      optionId,
+      creneauId,
+      photoUrl,
+    };
+  }
+
+  function flushAdminDraft() {
+    if (!draftReadyRef.current || !branchId || requestedRequestId) return;
+    const payload = latestDraftRef.current ?? buildAdminDraftPayload();
+    if (!isMeaningfulAdminDraft(payload)) {
+      clearAdminRegistrationDraft(branchId);
+      setDraftSavedAt(null);
+      return;
+    }
+    const savedAt = writeAdminRegistrationDraft(branchId, payload);
+    if (savedAt) setDraftSavedAt(savedAt);
+  }
+
+  function scheduleAdminDraft() {
+    if (!draftReadyRef.current || !branchId || requestedRequestId) return;
+    if (draftTimerRef.current) clearTimeout(draftTimerRef.current);
+    draftTimerRef.current = setTimeout(() => {
+      draftTimerRef.current = null;
+      flushAdminDraft();
+    }, REGISTRATION_DRAFT_DEBOUNCE_MS);
+  }
+
+  function discardAdminDraft() {
+    if (!branchId) return;
+    if (draftTimerRef.current) clearTimeout(draftTimerRef.current);
+    clearAdminRegistrationDraft(branchId);
+    setDraftSavedAt(null);
+    toast.message("Brouillon local effacé");
+  }
+
+  useEffect(() => {
+    if (!branchId || requestedRequestId) {
+      draftReadyRef.current = true;
+      return;
+    }
+    const draft = readAdminRegistrationDraft(branchId);
+    if (draft?.payload) {
+      const p = draft.payload;
+      if (typeof p.step === "number") setStep(Math.max(0, p.step));
+      if (p.studentMode === "existing" || p.studentMode === "new") {
+        setStudentMode(p.studentMode);
+      }
+      if (typeof p.studentId === "string") setStudentId(p.studentId);
+      if (p.student && typeof p.student === "object") {
+        setStudent({ ...emptyStudent, ...(p.student as StudentForm) });
+      }
+      if (p.parentMode === "existing" || p.parentMode === "new") {
+        setParentMode(p.parentMode);
+      }
+      if (typeof p.parentId === "string") setParentId(p.parentId);
+      if (p.parent && typeof p.parent === "object") {
+        setParent({ ...emptyParent, ...(p.parent as ParentForm) });
+      }
+      if (p.studentExtra && typeof p.studentExtra === "object") {
+        setStudentExtra({
+          ...emptyStudentExtraInfo(),
+          ...(p.studentExtra as StudentExtraInfo),
+        });
+      }
+      if (p.familyExtra && typeof p.familyExtra === "object") {
+        setFamilyExtra({
+          ...emptyFamilyExtraInfo(),
+          ...(p.familyExtra as FamilyExtraInfo),
+        });
+      }
+      if (
+        p.historyOutcome === "new" ||
+        p.historyOutcome === "passed" ||
+        p.historyOutcome === "failed" ||
+        p.historyOutcome === "returning"
+      ) {
+        setHistoryOutcome(p.historyOutcome);
+      }
+      if (typeof p.schoolYearId === "string") setSchoolYearId(p.schoolYearId);
+      if (typeof p.level === "string") setLevel(p.level);
+      if (typeof p.sectionId === "string") setSectionId(p.sectionId);
+      if (typeof p.optionId === "string") setOptionId(p.optionId);
+      if (typeof p.creneauId === "string") setCreneauId(p.creneauId);
+      if (typeof p.photoUrl === "string") setPhotoUrl(p.photoUrl);
+      setDraftSavedAt(draft.savedAt);
+      toast.message("Brouillon local restauré", {
+        description: "Saisie récupérée après fermeture ou coupure.",
+      });
+    }
+    draftReadyRef.current = true;
+    return () => {
+      draftReadyRef.current = false;
+      if (draftTimerRef.current) clearTimeout(draftTimerRef.current);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [branchId, requestedRequestId]);
+
+  useEffect(() => {
+    latestDraftRef.current = buildAdminDraftPayload();
+    scheduleAdminDraft();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    step,
+    studentMode,
+    studentId,
+    student,
+    parentMode,
+    parentId,
+    parent,
+    studentExtra,
+    familyExtra,
+    historyOutcome,
+    schoolYearId,
+    level,
+    sectionId,
+    optionId,
+    creneauId,
+    photoUrl,
+    branchId,
+  ]);
+
+  useEffect(() => {
+    function onHide() {
+      if (document.visibilityState === "hidden") flushAdminDraft();
+    }
+    function onPageHide() {
+      flushAdminDraft();
+    }
+    document.addEventListener("visibilitychange", onHide);
+    window.addEventListener("pagehide", onPageHide);
+    return () => {
+      document.removeEventListener("visibilitychange", onHide);
+      window.removeEventListener("pagehide", onPageHide);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [branchId]);
+
   const peopleLabels = useMemo(
     () => getPeopleLabels(options.typebranch),
     [options.typebranch],
@@ -713,6 +884,61 @@ export function RegistrationForm({
     if (error) toast.error(error.message);
     else setParentResults(data ?? []);
   }, []);
+
+  const parentNameOptions = useMemo(
+    () =>
+      parentResults.map((item) => {
+        const user = userOf(item);
+        const fullName =
+          `${user?.name ?? ""} ${user?.postnom ?? ""} ${user?.prenom ?? ""}`.trim() ||
+          "Parent";
+        return {
+          value: item.id as string,
+          label: fullName,
+          search: [
+            user?.name,
+            user?.postnom,
+            user?.prenom,
+            user?.email,
+            user?.telephone,
+          ]
+            .filter(Boolean)
+            .join(" "),
+        };
+      }),
+    [parentResults],
+  );
+
+  function scheduleParentNameSearch(query: string) {
+    if (parentNameSearchTimerRef.current != null) {
+      window.clearTimeout(parentNameSearchTimerRef.current);
+    }
+    parentNameSearchTimerRef.current = window.setTimeout(() => {
+      void searchParents(query);
+    }, 300);
+  }
+
+  function selectExistingParentFromNameSearch(parentItemId: string) {
+    const item = parentResults.find((entry) => entry.id === parentItemId);
+    if (!item) return;
+    const user = userOf(item);
+    const searchText =
+      user?.name?.trim() ||
+      `${user?.name ?? ""} ${user?.postnom ?? ""} ${user?.prenom ?? ""}`.trim() ||
+      user?.email?.trim() ||
+      user?.telephone?.trim() ||
+      "";
+
+    setParentMode("existing");
+    setParentId("");
+    setParentQuery(searchText);
+    setParentResults((prev) => {
+      if (prev.some((entry) => entry.id === item.id)) return prev;
+      return [item, ...prev];
+    });
+    setSiblingParentHint("");
+    toast.message("Cliquez sur le parent dans la liste pour le confirmer.");
+  }
   function chooseStudent(item: any) {
     setStudentId(item.id);
     setHistoryOutcome("returning");
@@ -959,7 +1185,12 @@ export function RegistrationForm({
       photoUrl: studentMode === "new" ? resolvedPhotoUrl || undefined : undefined,
     });
     setLoading(false);
-    if (error) return toast.error(error.message);
+    if (error) {
+      flushAdminDraft();
+      return toast.error(error.message);
+    }
+    if (branchId) clearAdminRegistrationDraft(branchId);
+    setDraftSavedAt(null);
     toast.success(`Inscription confirmée dans ${result.classeName}`);
     router.refresh();
     if (requestId) router.replace(window.location.pathname);
@@ -1188,17 +1419,41 @@ export function RegistrationForm({
     value: StudentForm | ParentForm,
     setter: (value: any) => void,
     studentFields = false,
+    parentNameSearch = false,
   ) {
     return (
       <div className="space-y-6">
         <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
           <Field label="Nom *">
-            <Input
-              value={value.name}
-              onChange={(event) =>
-                updatePerson(value, setter, "name", event.target.value)
-              }
-            />
+            {parentNameSearch ? (
+              <SearchCombobox
+                freeText
+                filterItems={false}
+                items={parentNameOptions}
+                value={value.name}
+                onValueChange={(next) => {
+                  setParent((current) => ({ ...current, name: next }));
+                  scheduleParentNameSearch(next);
+                }}
+                onSelectItem={(item) => {
+                  selectExistingParentFromNameSearch(item.value);
+                }}
+                onCreate={(name) => {
+                  setParent((current) => ({ ...current, name }));
+                }}
+                createLabel={(query) => `+ Nouveau parent «${query}»`}
+                placeholder="Saisir le nom du parent"
+                emptyText="Aucun parent — continuez pour en créer un."
+                showClear
+              />
+            ) : (
+              <Input
+                value={value.name}
+                onChange={(event) =>
+                  updatePerson(value, setter, "name", event.target.value)
+                }
+              />
+            )}
           </Field>
           <Field label="Postnom *">
             <Input
@@ -1563,7 +1818,19 @@ export function RegistrationForm({
       />
       <Card className="h-fit xl:sticky xl:top-4">
         <CardHeader>
-          <CardTitle>Progression</CardTitle>
+          <CardTitle className="flex flex-wrap items-center gap-2">
+            Progression
+            {draftSavedAt ? (
+              <button
+                type="button"
+                className="rounded-full border bg-muted/60 px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground hover:bg-muted"
+                title="Sauvegarde locale automatique (navigateur). Cliquez pour effacer."
+                onClick={discardAdminDraft}
+              >
+                Brouillon local · {formatDraftSavedAt(draftSavedAt)}
+              </button>
+            ) : null}
+          </CardTitle>
           <CardDescription>
             Un dossier complet en quatre étapes.
           </CardDescription>
@@ -1793,7 +2060,7 @@ export function RegistrationForm({
               </RadioGroup>
               <Separator />
               {parentMode === "new" ? (
-                renderPersonFields(parent, setParent)
+                renderPersonFields(parent, setParent, false, true)
               ) : (
                 <div className="space-y-3">
                   {parentId && siblingParentHint ? (
@@ -1809,6 +2076,12 @@ export function RegistrationForm({
                     onSearch={searchParents}
                     placeholder="Nom, email ou téléphone du parent…"
                   >
+                    {!parentId && parentResults.length > 0 ? (
+                      <p className="text-sm text-muted-foreground">
+                        Cliquez sur un parent pour le sélectionner, puis
+                        continuez.
+                      </p>
+                    ) : null}
                     {parentResults.map((item) => {
                       const user = userOf(item);
                       return (

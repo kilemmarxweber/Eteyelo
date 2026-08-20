@@ -45,6 +45,13 @@ export type SearchableSelectProps = {
   /** auto = recherche si options.length > searchThreshold */
   searchable?: boolean | "auto";
   searchThreshold?: number;
+  /** Si fourni : proposition « + Ajouter «query» » quand aucun item exact. */
+  onCreate?: (label: string) => void;
+  createLabel?: (query: string) => string;
+  /** Appelé à chaque frappe dans le champ de recherche (ex. recherche async). */
+  onQueryChange?: (query: string) => void;
+  /** false = ne pas refiltrer côté client (résultats déjà filtrés serveur). */
+  shouldFilter?: boolean;
   className?: string;
   triggerClassName?: string;
   id?: string;
@@ -60,6 +67,8 @@ function optionSearchText(option: SearchableSelectOption): string {
   return option.value;
 }
 
+const CREATE_VALUE_PREFIX = "__create__:";
+
 function SearchableCombobox({
   options,
   value,
@@ -68,6 +77,10 @@ function SearchableCombobox({
   searchPlaceholder = "Rechercher…",
   emptyMessage = "Aucun résultat.",
   disabled,
+  onCreate,
+  createLabel,
+  onQueryChange,
+  shouldFilter = true,
   className,
   triggerClassName,
   id,
@@ -75,9 +88,24 @@ function SearchableCombobox({
   onBlur,
 }: SearchableSelectProps) {
   const [open, setOpen] = React.useState(false);
+  const [query, setQuery] = React.useState("");
   const listboxId = React.useId();
 
   const selected = options.find((option) => option.value === value);
+  const displayLabel = selected?.label ?? (value ? value : null);
+
+  const trimmedQuery = query.trim();
+  const canCreate =
+    Boolean(onCreate) &&
+    trimmedQuery.length > 0 &&
+    !options.some(
+      (option) =>
+        optionSearchText(option).toLowerCase() === trimmedQuery.toLowerCase(),
+    );
+
+  React.useEffect(() => {
+    if (!open) setQuery("");
+  }, [open]);
 
   return (
     <Popover open={open} onOpenChange={setOpen} modal={false}>
@@ -94,13 +122,13 @@ function SearchableCombobox({
           onBlur={onBlur}
           className={cn(
             "flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1",
-            !value && "text-muted-foreground",
+            !displayLabel && "text-muted-foreground",
             triggerClassName,
             className,
           )}
         >
           <span className="truncate text-left">
-            {selected ? selected.label : placeholder}
+            {displayLabel ?? placeholder}
           </span>
           <ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />
         </button>
@@ -113,6 +141,7 @@ function SearchableCombobox({
         className="w-[var(--radix-popover-trigger-width)] p-0"
       >
         <Command
+          shouldFilter={shouldFilter}
           onPointerDown={() => markRadixPortalInteraction()}
           onKeyDown={(event) => {
             if (event.key === "Enter" || event.key === " ") {
@@ -120,7 +149,15 @@ function SearchableCombobox({
             }
           }}
         >
-          <CommandInput placeholder={searchPlaceholder} className="h-9" />
+          <CommandInput
+            placeholder={searchPlaceholder}
+            className="h-9"
+            value={query}
+            onValueChange={(next) => {
+              setQuery(next);
+              onQueryChange?.(next);
+            }}
+          />
           <CommandList>
             <CommandEmpty>{emptyMessage}</CommandEmpty>
             <CommandGroup>
@@ -148,6 +185,22 @@ function SearchableCombobox({
                   </CommandItem>
                 );
               })}
+              {canCreate ? (
+                <CommandItem
+                  value={`${CREATE_VALUE_PREFIX}${trimmedQuery}`}
+                  onSelect={() => {
+                    markRadixPortalInteraction();
+                    onCreate?.(trimmedQuery);
+                    setOpen(false);
+                  }}
+                >
+                  <span className="truncate">
+                    {createLabel
+                      ? createLabel(trimmedQuery)
+                      : `+ Ajouter «${trimmedQuery}»`}
+                  </span>
+                </CommandItem>
+              ) : null}
             </CommandGroup>
           </CommandList>
         </Command>
@@ -166,6 +219,10 @@ export function SearchableSelect({
   disabled,
   searchable = "auto",
   searchThreshold = DEFAULT_SEARCH_THRESHOLD,
+  onCreate,
+  createLabel,
+  onQueryChange,
+  shouldFilter,
   className,
   triggerClassName,
   id,
@@ -173,6 +230,8 @@ export function SearchableSelect({
   onBlur,
 }: SearchableSelectProps) {
   const useSearch =
+    Boolean(onCreate) ||
+    Boolean(onQueryChange) ||
     searchable === true ||
     (searchable === "auto" && options.length > searchThreshold);
 
@@ -216,6 +275,10 @@ export function SearchableSelect({
       }
       emptyMessage={emptyMessage}
       disabled={disabled}
+      onCreate={onCreate}
+      createLabel={createLabel}
+      onQueryChange={onQueryChange}
+      shouldFilter={shouldFilter}
       className={className}
       triggerClassName={triggerClassName}
       id={id}

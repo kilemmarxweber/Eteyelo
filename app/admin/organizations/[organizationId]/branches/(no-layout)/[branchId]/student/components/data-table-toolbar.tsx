@@ -3,29 +3,29 @@
 import { useMemo, useState } from "react";
 import { Cross2Icon } from "@radix-ui/react-icons";
 import { Table } from "@tanstack/react-table";
-import {
-  IconEye,
-  IconFileTypePdf,
-  IconSearch,
-  IconUpload,
-} from "@tabler/icons-react";
+import { IconFileTypePdf, IconSearch, IconUpload } from "@tabler/icons-react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/custom/button";
 import { DataTableFacetedFilter } from "@/components/data-table-faceted-filter";
-import { DataTableViewOptions } from "@/components/data-table-view-options";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import type { PeopleLabels } from "@/lib/people-labels";
 import { DEFAULT_PEOPLE_LABELS } from "@/lib/people-labels";
-import type { SchoolReportContext } from "@/lib/reports/types";
 import type { IStudent } from "@/src/interfaces/Student";
 import {
   exportStudentsReportPdf,
   type StudentReportOptions,
+  type StudentReportPeriod,
   type StudentReportSexe,
 } from "./export-students-pdf";
-import { StudentsListPreviewDialog } from "./students-list-preview-dialog";
 import { getStudentReportContextAction } from "../student.action";
-import { toast } from "sonner";
 
 interface DataTableToolbarProps<TData> {
   table: Table<TData>;
@@ -57,6 +57,19 @@ function readFilterValues(value: unknown): string[] {
   return [];
 }
 
+function readPeriodFilter(value: unknown): StudentReportPeriod {
+  const values = Array.isArray(value)
+    ? value.map(String)
+    : typeof value === "string"
+      ? [value]
+      : [];
+  const period = values[0];
+  if (period === "today" || period === "week" || period === "month") {
+    return period;
+  }
+  return "all";
+}
+
 function resolveReportOptions(table: Table<unknown>): StudentReportOptions {
   const classFilterValue = table.getColumn("classCode")?.getFilterValue();
   const selectedClassCodes = readFilterValues(classFilterValue);
@@ -77,14 +90,63 @@ function resolveReportOptions(table: Table<unknown>): StudentReportOptions {
       ? (sexeValues[0] as StudentReportSexe)
       : null;
 
+  const period = readPeriodFilter(
+    table.getColumn("registeredPeriod")?.getFilterValue(),
+  );
+
+  const selectedYearIds = readFilterValues(
+    table.getColumn("schoolYearId")?.getFilterValue(),
+  );
+  const schoolYears = selectedYearIds.length
+    ? Array.from(
+        new Map(
+          table
+            .getPreFilteredRowModel()
+            .rows.flatMap((row) => {
+              const student = row.original as IStudent;
+              const fromEnrollments = (student.enrollments ?? [])
+                .filter((enrollment) =>
+                  selectedYearIds.includes(enrollment.schoolYearId),
+                )
+                .map(
+                  (enrollment) =>
+                    [enrollment.schoolYearId, enrollment.schoolYearName] as const,
+                );
+              if (fromEnrollments.length) return fromEnrollments;
+              if (
+                student.schoolYearId &&
+                student.schoolYearName &&
+                selectedYearIds.includes(student.schoolYearId)
+              ) {
+                return [[student.schoolYearId, student.schoolYearName] as const];
+              }
+              return [];
+            }),
+        ).values(),
+      )
+    : [];
+
+  const searchRaw = table.getColumn("nom")?.getFilterValue();
+  const search =
+    typeof searchRaw === "string" && searchRaw.trim() ? searchRaw.trim() : null;
+
+  const selectedClassName =
+    selectedClassStudent?.className ||
+    selectedClassStudent?.classCode ||
+    selectedClassCode;
+
   return {
     selectedClass: selectedClassCode
       ? {
           code: selectedClassCode,
-          name: selectedClassStudent?.className || selectedClassCode,
+          name: selectedClassName || selectedClassCode,
         }
       : null,
     sexe,
+    period: period === "all" ? null : period,
+    schoolYears: schoolYears.length ? schoolYears : null,
+    schoolYearIds: selectedYearIds.length ? selectedYearIds : null,
+    search,
   };
 }
 
@@ -98,12 +160,6 @@ export function DataTableToolbar<TData>({
   onOpenImport,
 }: DataTableToolbarProps<TData>) {
   const [exportingPdf, setExportingPdf] = useState(false);
-  const [previewOpen, setPreviewOpen] = useState(false);
-  const [previewLoading, setPreviewLoading] = useState(false);
-  const [previewContext, setPreviewContext] =
-    useState<SchoolReportContext | null>(null);
-  const [previewStudents, setPreviewStudents] = useState<IStudent[]>([]);
-  const [previewOptions, setPreviewOptions] = useState<StudentReportOptions>({});
   const isFiltered = table.getState().columnFilters.length > 0;
   const preFilteredRows = table.getPreFilteredRowModel().rows;
   const selectedYearIds = readFilterValues(
@@ -187,8 +243,9 @@ export function DataTableToolbar<TData>({
   );
 
   const loadReportPayload = async () => {
+    // Même jeu que la liste visible : filtré + trié (avant pagination).
     const filteredStudents = table
-      .getFilteredRowModel()
+      .getSortedRowModel()
       .rows.map((row) => row.original as IStudent);
     const options = resolveReportOptions(table as Table<unknown>);
     const [context, error] = await getStudentReportContextAction();
@@ -220,133 +277,117 @@ export function DataTableToolbar<TData>({
     }
   };
 
-  const openListPreview = async () => {
-    setPreviewLoading(true);
-    try {
-      const { filteredStudents, context, options } = await loadReportPayload();
-      setPreviewStudents(filteredStudents);
-      setPreviewContext(context);
-      setPreviewOptions(options);
-      setPreviewOpen(true);
-    } catch (error) {
-      console.error(error);
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "Impossible d'ouvrir l'apercu de la liste.",
-      );
-    } finally {
-      setPreviewLoading(false);
-    }
-  };
-
-  const hasRows = table.getFilteredRowModel().rows.length > 0;
+  const hasRows = table.getSortedRowModel().rows.length > 0;
+  const periodFilter = readPeriodFilter(
+    table.getColumn("registeredPeriod")?.getFilterValue(),
+  );
 
   return (
-    <>
-      <div className="flex flex-col gap-3 border-b border bg-card p-4 lg:flex-row lg:items-center lg:justify-between">
-        <div className="relative w-full lg:max-w-[300px]">
-          <IconSearch className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-foreground/40" />
+    <div className="flex flex-col gap-3 border-b border bg-card p-4 lg:flex-row lg:items-center lg:justify-between">
+      <div className="relative w-full lg:max-w-[300px]">
+        <IconSearch className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-foreground/40" />
 
-          <Input
-            placeholder="Rechercher par nom ou matricule..."
-            value={(table.getColumn("nom")?.getFilterValue() as string) ?? ""}
-            onChange={(event) =>
-              table.getColumn("nom")?.setFilterValue(event.target.value)
-            }
-            className="h-11 rounded-xl border bg-card pl-9 text-foreground placeholder:text-foreground/40 focus-visible:ring-blue-200"
-          />
-        </div>
-
-        <div className="flex flex-wrap items-center justify-end gap-2">
-          {table.getColumn("schoolYearId") && yearOptions.length ? (
-            <DataTableFacetedFilter
-              column={table.getColumn("schoolYearId")}
-              title="Annee"
-              options={yearOptions}
-              value="all"
-              onValueChange={() => undefined}
-            />
-          ) : null}
-
-          {table.getColumn("classCode") && classOptions.length ? (
-            <DataTableFacetedFilter
-              column={table.getColumn("classCode")}
-              title={classLabel}
-              options={classOptions}
-              value="all"
-              onValueChange={() => undefined}
-            />
-          ) : null}
-
-          {table.getColumn("sexe") ? (
-            <DataTableFacetedFilter
-              column={table.getColumn("sexe")}
-              title="Sexe"
-              options={sexes}
-              value={
-                (table.getColumn("sexe")?.getFilterValue() as string) ?? "all"
-              }
-              onValueChange={(value) =>
-                table
-                  .getColumn("sexe")
-                  ?.setFilterValue(value === "all" ? "" : value)
-              }
-            />
-          ) : null}
-
-          <Button
-            variant="outline"
-            leftSection={<IconEye size={16} />}
-            onClick={openListPreview}
-            loading={previewLoading}
-            disabled={!hasRows || previewLoading || exportingPdf}
-          >
-            {previewLoading ? "Chargement..." : "Apercu liste"}
-          </Button>
-
-          <Button
-            variant="outline"
-            leftSection={<IconFileTypePdf size={16} />}
-            onClick={exportFilteredPdf}
-            loading={exportingPdf}
-            disabled={!hasRows || exportingPdf || previewLoading}
-          >
-            {exportingPdf ? "Generation..." : "Rapport PDF"}
-          </Button>
-
-          {isFiltered ? (
-            <Button
-              variant="outline"
-              onClick={() => table.resetColumnFilters()}
-              className="h-10 border-border text-primary hover:bg-blue-50 hover:text-blue-800"
-            >
-              Reinitialiser
-              <Cross2Icon className="ml-2 size-4" />
-            </Button>
-          ) : null}
-
-          {canManageStudents && (requiresImport || supportsImport) ? (
-            <Button
-              variant={requiresImport ? "default" : "outline"}
-              leftSection={<IconUpload size={16} />}
-              onClick={() => onOpenImport?.()}
-            >
-              Importer
-            </Button>
-          ) : null}
-
-          <DataTableViewOptions table={table} />
-        </div>
+        <Input
+          placeholder="Rechercher par nom ou matricule..."
+          value={(table.getColumn("nom")?.getFilterValue() as string) ?? ""}
+          onChange={(event) =>
+            table.getColumn("nom")?.setFilterValue(event.target.value)
+          }
+          className="h-11 rounded-xl border bg-card pl-9 text-foreground placeholder:text-foreground/40 focus-visible:ring-blue-200"
+        />
       </div>
 
-      <StudentsListPreviewDialog
-        open={previewOpen}
-        onOpenChange={setPreviewOpen}
-        students={previewStudents}
-        context={previewContext}
-        options={previewOptions}
-      />
-    </>
+      <div className="flex flex-wrap items-center justify-end gap-2">
+        {table.getColumn("registeredPeriod") ? (
+          <Select
+            value={periodFilter}
+            onValueChange={(value) =>
+              table
+                .getColumn("registeredPeriod")
+                ?.setFilterValue(
+                  value === "all" || !value ? undefined : [value],
+                )
+            }
+          >
+            <SelectTrigger className="h-8 w-[130px] border-dashed">
+              <SelectValue placeholder="Période" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Toute</SelectItem>
+              <SelectItem value="today">Aujourd&apos;hui</SelectItem>
+              <SelectItem value="week">Semaine</SelectItem>
+              <SelectItem value="month">Mois</SelectItem>
+            </SelectContent>
+          </Select>
+        ) : null}
+
+        {table.getColumn("schoolYearId") && yearOptions.length ? (
+          <DataTableFacetedFilter
+            column={table.getColumn("schoolYearId")}
+            title="Annee"
+            options={yearOptions}
+            value="all"
+            onValueChange={() => undefined}
+          />
+        ) : null}
+
+        {table.getColumn("classCode") && classOptions.length ? (
+          <DataTableFacetedFilter
+            column={table.getColumn("classCode")}
+            title={classLabel}
+            options={classOptions}
+            value="all"
+            onValueChange={() => undefined}
+          />
+        ) : null}
+
+        {table.getColumn("sexe") ? (
+          <DataTableFacetedFilter
+            column={table.getColumn("sexe")}
+            title="Sexe"
+            options={sexes}
+            value={
+              (table.getColumn("sexe")?.getFilterValue() as string) ?? "all"
+            }
+            onValueChange={(value) =>
+              table
+                .getColumn("sexe")
+                ?.setFilterValue(value === "all" ? "" : value)
+            }
+          />
+        ) : null}
+
+        <Button
+          variant="outline"
+          leftSection={<IconFileTypePdf size={16} />}
+          onClick={exportFilteredPdf}
+          loading={exportingPdf}
+          disabled={!hasRows || exportingPdf}
+        >
+          {exportingPdf ? "Generation..." : "Rapport PDF"}
+        </Button>
+
+        {isFiltered ? (
+          <Button
+            variant="outline"
+            onClick={() => table.resetColumnFilters()}
+            className="h-10 border-border text-primary hover:bg-blue-50 hover:text-blue-800"
+          >
+            Reinitialiser
+            <Cross2Icon className="ml-2 size-4" />
+          </Button>
+        ) : null}
+
+        {canManageStudents && (requiresImport || supportsImport) ? (
+          <Button
+            variant={requiresImport ? "default" : "outline"}
+            leftSection={<IconUpload size={16} />}
+            onClick={() => onOpenImport?.()}
+          >
+            Importer
+          </Button>
+        ) : null}
+      </div>
+    </div>
   );
 }

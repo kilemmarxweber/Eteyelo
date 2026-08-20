@@ -52,6 +52,9 @@ interface ResponsiveDataTableProps<TData, TValue> {
   }[];
   onRowClick?: (row: TData) => void;
   className?: string;
+  initialColumnVisibility?: VisibilityState;
+  /** Lignes visibles (filtrées + triées, avant pagination). */
+  onFilteredRowsChange?: (rows: TData[]) => void;
 }
 
 export function ResponsiveDataTable<TData, TValue>({
@@ -65,10 +68,12 @@ export function ResponsiveDataTable<TData, TValue>({
   mobileCardBadges,
   onRowClick,
   className,
+  initialColumnVisibility,
+  onFilteredRowsChange,
 }: ResponsiveDataTableProps<TData, TValue>) {
   const [rowSelection, setRowSelection] = React.useState({});
   const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>({});
+    React.useState<VisibilityState>(initialColumnVisibility ?? {});
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     [],
   );
@@ -107,6 +112,29 @@ export function ResponsiveDataTable<TData, TValue>({
     getFacetedRowModel: getFacetedRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
   });
+
+  const onFilteredRowsChangeRef = React.useRef(onFilteredRowsChange);
+  onFilteredRowsChangeRef.current = onFilteredRowsChange;
+
+  const visibleRowsKey = [
+    data.length,
+    JSON.stringify(columnFilters),
+    JSON.stringify(sorting),
+    table
+      .getSortedRowModel()
+      .rows.map((row) => row.id)
+      .join("|"),
+  ].join("::");
+
+  // Sync without useEffect so HMR cannot change the deps array length.
+  const lastVisibleRowsKeyRef = React.useRef<string | null>(null);
+  if (lastVisibleRowsKeyRef.current !== visibleRowsKey) {
+    lastVisibleRowsKeyRef.current = visibleRowsKey;
+    const rows = table.getSortedRowModel().rows.map((row) => row.original);
+    queueMicrotask(() => {
+      onFilteredRowsChangeRef.current?.(rows);
+    });
+  }
 
   function handleRowNavigate(
     event: React.MouseEvent<HTMLElement>,

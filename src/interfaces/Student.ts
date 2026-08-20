@@ -34,6 +34,8 @@ export interface IStudent extends Omit<
     schoolYearName: string;
     classCode: string | null;
     className: string | null;
+    /** Date d'inscription (ClassEnrollment.createdAt). */
+    createdAt?: Date | string | null;
   }>;
   sourceBranchName?: string | null;
   sourceBranchId?: string | null;

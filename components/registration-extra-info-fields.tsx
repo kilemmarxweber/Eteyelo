@@ -1,9 +1,13 @@
 "use client";
 
+import { useMemo, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { SearchCombobox } from "@/components/ui/search-combobox";
 import {
   FAMILY_EXTRA_FIELD_LABELS,
+  isPresetRegistrationLanguage,
+  REGISTRATION_LANGUAGE_OPTIONS,
   STUDENT_EXTRA_FIELD_LABELS,
   type FamilyExtraInfo,
   type StudentExtraInfo,
@@ -21,6 +25,10 @@ type Props = {
   className?: string;
 };
 
+const STUDENT_TEXT_FIELDS = (
+  Object.keys(STUDENT_EXTRA_FIELD_LABELS) as (keyof StudentExtraInfo)[]
+).filter((key) => key !== "langue");
+
 export function RegistrationExtraInfoFields({
   studentExtra,
   familyExtra,
@@ -30,6 +38,31 @@ export function RegistrationExtraInfoFields({
   hideStudent = false,
   className,
 }: Props) {
+  const langueValue = studentExtra.langue?.trim() ?? "";
+  const [extraLanguages, setExtraLanguages] = useState<string[]>(() =>
+    langueValue && !isPresetRegistrationLanguage(langueValue)
+      ? [langueValue]
+      : [],
+  );
+
+  const languageOptions = useMemo(() => {
+    const seen = new Set<string>();
+    const options: { value: string; label: string }[] = [];
+
+    for (const option of [
+      ...REGISTRATION_LANGUAGE_OPTIONS,
+      ...extraLanguages,
+      ...(langueValue ? [langueValue] : []),
+    ]) {
+      const key = option.toLowerCase();
+      if (seen.has(key)) continue;
+      seen.add(key);
+      options.push({ value: option, label: option });
+    }
+
+    return options;
+  }, [extraLanguages, langueValue]);
+
   return (
     <div className={className ?? "space-y-5"}>
       {!hideStudent ? (
@@ -38,9 +71,7 @@ export function RegistrationExtraInfoFields({
             Nationalité &amp; langue (élève)
           </p>
           <div className="grid grid-cols-1 gap-3">
-            {(
-              Object.keys(STUDENT_EXTRA_FIELD_LABELS) as (keyof StudentExtraInfo)[]
-            ).map((key) => (
+            {STUDENT_TEXT_FIELDS.map((key) => (
               <div key={key} className="min-w-0 space-y-1.5">
                 <Label className="text-xs">{STUDENT_EXTRA_FIELD_LABELS[key]}</Label>
                 <Input
@@ -51,6 +82,31 @@ export function RegistrationExtraInfoFields({
                 />
               </div>
             ))}
+
+            <div className="min-w-0 space-y-1.5">
+              <Label className="text-xs">{STUDENT_EXTRA_FIELD_LABELS.langue}</Label>
+              <SearchCombobox
+                freeText
+                items={languageOptions}
+                value={studentExtra.langue ?? ""}
+                onValueChange={(next) => onStudentChange("langue", next)}
+                onSelectItem={(item) => onStudentChange("langue", item.label)}
+                onCreate={(name) => {
+                  setExtraLanguages((prev) =>
+                    prev.some(
+                      (item) => item.toLowerCase() === name.toLowerCase(),
+                    )
+                      ? prev
+                      : [...prev, name],
+                  );
+                  onStudentChange("langue", name);
+                }}
+                createLabel={(query) => `+ Ajouter «${query}»`}
+                placeholder="Saisir ou rechercher une langue"
+                emptyText="Aucune langue — continuez pour en ajouter une."
+                showClear
+              />
+            </div>
           </div>
         </div>
       ) : null}

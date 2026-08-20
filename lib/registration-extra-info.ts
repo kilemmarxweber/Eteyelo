@@ -129,6 +129,30 @@ export const STUDENT_EXTRA_FIELD_LABELS: Record<
   langue: "Langue",
 };
 
+/** Langues proposées à l'inscription (autres infos). */
+export const REGISTRATION_LANGUAGE_OPTIONS = [
+  "Français",
+  "Anglais",
+  "Portugais",
+  "Espagnol",
+  "Swahili",
+  "Lingala",
+  "Kikongo",
+  "Tshiluba",
+  "Chinois",
+  "Arabe",
+  "Allemand",
+  "Italien",
+] as const;
+
+export function isPresetRegistrationLanguage(value: string) {
+  const trimmed = value.trim();
+  if (!trimmed) return false;
+  return (REGISTRATION_LANGUAGE_OPTIONS as readonly string[]).some(
+    (option) => option.toLowerCase() === trimmed.toLowerCase(),
+  );
+}
+
 export const FAMILY_EXTRA_FIELD_LABELS: Record<keyof FamilyExtraInfo, string> =
   {
     nomMere: "Nom de la mère",

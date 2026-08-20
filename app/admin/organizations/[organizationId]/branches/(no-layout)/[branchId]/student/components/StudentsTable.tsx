@@ -20,14 +20,27 @@ import { useBranchPeopleLabels } from "@/hooks/use-branch-people-labels";
 import { getClassDisplayLabel, isSchoolBranch } from "@/lib/branch-capabilities";
 import { useSession } from "@/lib/auth-client";
 
+function EmptyStudentsEffect({
+  onVisibleStudentsChange,
+}: {
+  onVisibleStudentsChange?: (students: IStudent[]) => void;
+}) {
+  useEffect(() => {
+    onVisibleStudentsChange?.([]);
+  }, [onVisibleStudentsChange]);
+  return null;
+}
+
 const StudentsList = ({
   refreshKey,
   onRefresh,
   canManageStudents,
+  onVisibleStudentsChange,
 }: {
   refreshKey: number;
   onRefresh: () => void;
   canManageStudents: boolean;
+  onVisibleStudentsChange?: (students: IStudent[]) => void;
 }) => {
   const [students, setStudents] = useState<IStudent[]>([]);
   const [loading, setLoading] = useState(true);
@@ -192,6 +205,7 @@ const StudentsList = ({
     return (
       <>
         {dialogs}
+        <EmptyStudentsEffect onVisibleStudentsChange={onVisibleStudentsChange} />
         <div className="space-y-4 p-4">
           {requiresImport ? (
             <Alert className="rounded-xl border-primary/20 bg-primary/5">
@@ -253,6 +267,8 @@ const StudentsList = ({
           mobileCardTitle={(row) => `${row.nom} ${row.postnom} ${row.prenom}`}
           mobileCardSubtitle={(row) => row.username ?? ""}
           onRowClick={handleStudentRowClick}
+          initialColumnVisibility={{ registeredPeriod: false }}
+          onFilteredRowsChange={onVisibleStudentsChange}
         />
       </div>
     </>

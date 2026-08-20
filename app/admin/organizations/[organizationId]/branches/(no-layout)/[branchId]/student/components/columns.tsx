@@ -138,6 +138,76 @@ export const createStudentColumns = (
     filterFn: (row, id, value) => value.includes(row.getValue(id)),
   },
   {
+    id: "registeredPeriod",
+    accessorFn: (student) => student.createdAt,
+    header: () => null,
+    cell: () => null,
+    filterFn: (row, _id, value) => {
+      const selected = Array.isArray(value)
+        ? value.map(String).filter(Boolean)
+        : typeof value === "string" && value
+          ? [value]
+          : [];
+      const period = selected[0];
+      if (!period || period === "all") return true;
+
+      const startOfLocalDay = (date: Date) =>
+        new Date(date.getFullYear(), date.getMonth(), date.getDate());
+
+      const getRange = () => {
+        const now = new Date();
+        const end = new Date(
+          now.getFullYear(),
+          now.getMonth(),
+          now.getDate(),
+          23,
+          59,
+          59,
+          999,
+        );
+
+        if (period === "today") {
+          return { start: startOfLocalDay(now), end };
+        }
+
+        if (period === "week") {
+          const day = now.getDay();
+          const mondayOffset = day === 0 ? -6 : 1 - day;
+          const monday = startOfLocalDay(now);
+          monday.setDate(monday.getDate() + mondayOffset);
+          return { start: monday, end };
+        }
+
+        if (period === "month") {
+          return {
+            start: new Date(now.getFullYear(), now.getMonth(), 1),
+            end,
+          };
+        }
+
+        return null;
+      };
+
+      const range = getRange();
+      if (!range) return true;
+
+      const isInRange = (date: Date | string | null | undefined) => {
+        if (!date) return false;
+        const d = new Date(date);
+        if (Number.isNaN(d.getTime())) return false;
+        return d >= range.start && d <= range.end;
+      };
+
+      const student = row.original;
+      if (isInRange(student.createdAt)) return true;
+      return (student.enrollments ?? []).some((enrollment) =>
+        isInRange(enrollment.createdAt),
+      );
+    },
+    enableHiding: true,
+    enableSorting: false,
+  },
+  {
     id: "schoolYearId",
     accessorKey: "schoolYearId",
     header: ({ column }) => (
@@ -169,7 +239,7 @@ export const createStudentColumns = (
   {
     accessorKey: "classCode",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Code classe" />
+      <DataTableColumnHeader column={column} title="Classe" />
     ),
     cell: ({ row, table }) => {
       const yearFilter = table.getColumn("schoolYearId")?.getFilterValue();
@@ -182,12 +252,16 @@ export const createStudentColumns = (
               (item) => item.schoolYearId === selectedYears[0],
             )
           : null;
-      const classCode =
-        enrollment?.classCode ?? row.original.classCode ?? null;
+      const classLabel =
+        enrollment?.className ??
+        enrollment?.classCode ??
+        row.original.className ??
+        row.original.classCode ??
+        null;
 
       return (
         <span className="font-medium text-primary">
-          {classCode || "Non inscrit"}
+          {classLabel || "Non inscrit"}
         </span>
       );
     },
@@ -212,13 +286,6 @@ export const createStudentColumns = (
       const age = calculateAge(row.original.dateOfBirth);
       return age === null ? "N/A" : `${age} an${age > 1 ? "s" : ""}`;
     },
-  },
-  {
-    accessorKey: "placeOfBirth",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Lieu de naissance" />
-    ),
-    cell: ({ row }) => row.original.placeOfBirth || "N/A",
   },
   {
     id: "actions",
