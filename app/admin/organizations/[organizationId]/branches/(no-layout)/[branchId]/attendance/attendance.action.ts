@@ -31,6 +31,12 @@ import {
   listTeacherScheduleCandidates,
 } from "@/lib/attendance-teacher-session";
 import {
+  afterPersonnelAttendanceWrite,
+  afterStudentAttendanceWrite,
+  afterTeacherAttendanceWrite,
+  signalEndedAbsencesForBranchDebounced,
+} from "@/lib/attendance-absence";
+import {
   buildSchoolReportContext,
   schoolReportBranchSelect,
 } from "@/lib/reports/resolve-school-branding";
@@ -56,6 +62,9 @@ export async function getCurrentBranch() {
 export const getAttendanceSessions = action.handler(async () => {
   const { branchId, session, userId } = await requireBranchContext();
   await autoCloseSessions(branchId);
+  void signalEndedAbsencesForBranchDebounced(branchId).catch((error) => {
+    console.error("[getAttendanceSessions] absence signal", error);
+  });
 
   const teacherScope = await getTeacherAttendanceReadScope({
     session,
@@ -466,7 +475,8 @@ export const markStudentAttendance = action
     }),
   )
   .handler(async ({ input }) => {
-    const { branchId, session, userId } = await requireBranchContext();
+    const { branchId, organizationId, session, userId } =
+      await requireBranchContext();
 
     await assertWithinBranchAttendanceRadius({
       branchId,
@@ -502,7 +512,7 @@ export const markStudentAttendance = action
       throw new Error("Presence eleve impossible dans cette branche");
     }
 
-    return prisma.studentAttendance.upsert({
+    const attendance = await prisma.studentAttendance.upsert({
       where: {
         branchId_sessionId_studentId: {
           studentId: input.studentId,
@@ -513,6 +523,9 @@ export const markStudentAttendance = action
       update: {
         status: input.status,
         remark: input.remark,
+        ...(input.status === "PRESENT" || input.status === "LATE"
+          ? { checkIn: nowLocal() }
+          : {}),
       },
       create: {
         studentId: input.studentId,
@@ -520,8 +533,25 @@ export const markStudentAttendance = action
         status: input.status,
         remark: input.remark,
         branchId,
+        ...(input.status === "PRESENT" || input.status === "LATE"
+          ? { checkIn: nowLocal() }
+          : {}),
       },
     });
+
+    void afterStudentAttendanceWrite({
+      branchId,
+      organizationId,
+      studentId: input.studentId,
+      sessionId: input.sessionId,
+      attendanceId: attendance.id,
+      status: input.status,
+      checkIn: attendance.checkIn,
+    }).catch((error) => {
+      console.error("[markStudentAttendance] absence sync", error);
+    });
+
+    return attendance;
   });
 
 export async function getTeacherCurrentSession(teacherId: string) {
@@ -643,7 +673,8 @@ export const markTeacherAttendance = action
     }),
   )
   .handler(async ({ input }) => {
-    const { branchId, session, userId } = await requireBranchContext();
+    const { branchId, organizationId, session, userId } =
+      await requireBranchContext();
 
     await assertWithinBranchAttendanceRadius({
       branchId,
@@ -679,7 +710,7 @@ export const markTeacherAttendance = action
       throw new Error("Presence enseignant impossible dans cette branche");
     }
 
-    return prisma.teacherAttendance.upsert({
+    const attendance = await prisma.teacherAttendance.upsert({
       where: {
         teacherId_sessionId_branchId: {
           teacherId: input.teacherId,
@@ -689,15 +720,32 @@ export const markTeacherAttendance = action
       },
       update: {
         status: input.status,
+        checkIn:
+          input.status === "ABSENT" ? undefined : nowLocal(),
       },
       create: {
         teacherId: input.teacherId,
         sessionId: input.sessionId,
         status: input.status,
         date: nowLocal(),
+        checkIn: input.status === "ABSENT" ? undefined : nowLocal(),
         branchId,
       },
     });
+
+    void afterTeacherAttendanceWrite({
+      branchId,
+      organizationId,
+      teacherId: input.teacherId,
+      sessionId: input.sessionId,
+      attendanceId: attendance.id,
+      status: input.status,
+      checkIn: attendance.checkIn,
+    }).catch((error) => {
+      console.error("[markTeacherAttendance] absence sync", error);
+    });
+
+    return attendance;
   });
 
 export async function getActiveSession(teachingId: string) {
@@ -732,72 +780,7 @@ export async function getOrCreateSession(
 
 export async function autoMarkTeacherAbsent() {
   const { branchId } = await getCurrentBranch();
-  const now = nowLocal();
-  const current = toMinutes(now);
-
-  const schedules = await prisma.schedule.findMany({
-    where: {
-      OR: [
-        {
-          branchMember: {
-            branchId,
-          },
-        },
-        {
-          teaching: {
-            branchId,
-          },
-        },
-      ],
-    },
-    include: {
-      teaching: true,
-    },
-  });
-
-  for (const s of schedules) {
-    if (!s.teachingId || !s.hour) continue;
-
-    const start = scheduleHourToMinutes(s.hour);
-    const end = start + 60;
-
-    const isPast = current > end + 15;
-    if (!isPast) continue;
-
-    const session = await prisma.attendanceSession.findFirst({
-      where: {
-        teachingId: s.teachingId,
-        branchId, // 🔥 IMPORTANT
-        startTime: s.hour,
-        date: new Date(now.toDateString()),
-      },
-    });
-
-    if (!session) continue;
-
-    const teacherId = s.teaching?.teacherId;
-    if (!teacherId) continue;
-
-    await prisma.teacherAttendance.upsert({
-      where: {
-        teacherId_sessionId_branchId: {
-          teacherId,
-          sessionId: session.id,
-          branchId,
-        },
-      },
-      update: {
-        status: "ABSENT",
-      },
-      create: {
-        teacherId,
-        sessionId: session.id,
-        status: "ABSENT",
-        date: nowLocal(),
-        branchId, // 🔥 IMPORTANT
-      },
-    });
-  }
+  return signalEndedAbsencesForBranchDebounced(branchId);
 }
 /* =========================
    PERSONNEL ATTENDANCE
@@ -806,7 +789,7 @@ export async function autoMarkTeacherAbsent() {
 export const markPersonnelAttendance = action
   .input(personnelAttendanceSchema)
   .handler(async ({ input }) => {
-    const { branchId } = await getCurrentBranch();
+    const { branchId, organizationId } = await requireBranchContext();
     const personnel = await prisma.personnel.findFirst({
       where: {
         id: input.personnelId,
@@ -821,7 +804,7 @@ export const markPersonnelAttendance = action
       throw new Error("Presence personnel impossible dans cette branche");
     }
 
-    return prisma.personnelAttendance.upsert({
+    const attendance = await prisma.personnelAttendance.upsert({
       where: {
         personnelId_date_branchId: {
           personnelId: input.personnelId,
@@ -837,9 +820,23 @@ export const markPersonnelAttendance = action
       },
       create: {
         ...input,
-        branchId, // 🔥 IMPORTANT
+        branchId,
       },
     });
+
+    void afterPersonnelAttendanceWrite({
+      branchId,
+      organizationId,
+      personnelId: input.personnelId,
+      attendanceId: attendance.id,
+      date: input.date,
+      status: input.status,
+      checkIn: attendance.checkIn,
+    }).catch((error) => {
+      console.error("[markPersonnelAttendance] absence sync", error);
+    });
+
+    return attendance;
   });
 
 function getDayEnum(date = new Date()) {

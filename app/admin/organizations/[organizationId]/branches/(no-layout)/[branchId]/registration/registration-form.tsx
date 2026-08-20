@@ -87,8 +87,10 @@ import {
 } from "@/lib/registration-extra-info";
 import {
   clearAdminRegistrationDraft,
+  consumeRegistrationDraftCleared,
   formatDraftSavedAt,
   isMeaningfulAdminDraft,
+  markRegistrationDraftCleared,
   readAdminRegistrationDraft,
   REGISTRATION_DRAFT_DEBOUNCE_MS,
   writeAdminRegistrationDraft,
@@ -333,21 +335,67 @@ export function RegistrationForm({
     }, REGISTRATION_DRAFT_DEBOUNCE_MS);
   }
 
+  function resetAdminRegistrationForm() {
+    setRequestId("");
+    setRequestReference("");
+    setStep(0);
+    setStudentMode("new");
+    setStudentId("");
+    setStudent(emptyStudent);
+    setParentMode("new");
+    setParentId("");
+    setParent(emptyParent);
+    setStudentQuery("");
+    setParentQuery("");
+    setStudentResults([]);
+    setParentResults([]);
+    setHistoryOutcome("new");
+    setFeeDebtMessage("");
+    setSchoolYearId("");
+    setLevel("");
+    setSectionId("");
+    setOptionId("");
+    setCreneauId("");
+    setClassCapacity("30");
+    setCreneauForm(emptyCreneau());
+    setPhotoFile(null);
+    setPhotoUrl("");
+    setCameraOpen(false);
+    setStudentExtra(emptyStudentExtraInfo());
+    setFamilyExtra(emptyFamilyExtraInfo());
+    setExtraSheetOpen(false);
+    setSiblingParentHint("");
+    setDraftSavedAt(null);
+    latestDraftRef.current = null;
+  }
+
   function discardAdminDraft() {
     if (!branchId) return;
-    if (draftTimerRef.current) clearTimeout(draftTimerRef.current);
+    draftReadyRef.current = false;
+    if (draftTimerRef.current) {
+      clearTimeout(draftTimerRef.current);
+      draftTimerRef.current = null;
+    }
     clearAdminRegistrationDraft(branchId);
-    setDraftSavedAt(null);
-    toast.message("Brouillon local effacé");
+    resetAdminRegistrationForm();
+    markRegistrationDraftCleared();
+    window.location.reload();
   }
 
   useEffect(() => {
+    if (consumeRegistrationDraftCleared()) {
+      toast.message("Brouillon local effacé", {
+        description: "Tous les champs ont été réinitialisés.",
+      });
+    }
     if (!branchId || requestedRequestId) {
       draftReadyRef.current = true;
       return;
     }
     const draft = readAdminRegistrationDraft(branchId);
-    if (draft?.payload) {
+    if (draft?.payload && !isMeaningfulAdminDraft(draft.payload)) {
+      clearAdminRegistrationDraft(branchId);
+    } else if (draft?.payload) {
       const p = draft.payload;
       if (typeof p.step === "number") setStep(Math.max(0, p.step));
       if (p.studentMode === "existing" || p.studentMode === "new") {
@@ -1824,7 +1872,7 @@ export function RegistrationForm({
               <button
                 type="button"
                 className="rounded-full border bg-muted/60 px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground hover:bg-muted"
-                title="Sauvegarde locale automatique (navigateur). Cliquez pour effacer."
+                title="Sauvegarde locale automatique (navigateur). Cliquez pour tout vider et recharger la page."
                 onClick={discardAdminDraft}
               >
                 Brouillon local · {formatDraftSavedAt(draftSavedAt)}

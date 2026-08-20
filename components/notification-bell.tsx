@@ -14,6 +14,8 @@ import {
   AlertCircle,
   Eye,
   XCircle,
+  ClipboardList,
+  Undo2,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -44,6 +46,11 @@ import {
   rejectNotificationRequestAction,
 } from "@/lib/actions/notification.actions";
 import { reviewJobApplicationAction } from "@/app/components/depot-candidature/job-application.actions";
+import { getAbsenceInboxAction } from "@/lib/actions/absence.actions";
+import {
+  AbsenceCaseDialog,
+  type AbsenceCaseDialogData,
+} from "@/components/absence-case-dialog";
 
 type RegistrationRow = {
   id: string;
@@ -76,7 +83,17 @@ type JobRow = {
   kind: "job";
 };
 
-type NotificationItem = RegistrationRow | JobRow;
+type AbsenceRow = {
+  id: string;
+  type: string;
+  title: string;
+  body: string;
+  createdAt: Date | string;
+  kind: "absence";
+  case: AbsenceCaseDialogData | null;
+};
+
+type NotificationItem = RegistrationRow | JobRow | AbsenceRow;
 
 function CountBadge({ count }: { count: number }) {
   if (count === 0) return null;
@@ -151,8 +168,8 @@ function NotificationRow({
   onReject,
   busyId,
 }: {
-  item: NotificationItem;
-  onView: (item: NotificationItem) => void;
+  item: RegistrationRow | JobRow;
+  onView: (item: RegistrationRow | JobRow) => void;
   onReject: (item: RegistrationRow) => void;
   busyId: string | null;
 }) {
@@ -262,6 +279,56 @@ function NotificationRow({
   );
 }
 
+function AbsenceNotificationRow({
+  item,
+  onOpen,
+}: {
+  item: AbsenceRow;
+  onOpen: (item: AbsenceRow) => void;
+}) {
+  const createdAt =
+    item.createdAt instanceof Date ? item.createdAt : new Date(item.createdAt);
+  const actionLabel =
+    item.type === "ABSENCE"
+      ? "Justifier"
+      : item.type === "JUSTIFICATION_SUBMITTED"
+        ? "Examiner"
+        : "Voir";
+
+  return (
+    <div className="group flex items-start gap-3 border-b border-border/50 px-4 py-3 last:border-0 transition-colors hover:bg-accent/50">
+      <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-rose-500/10 text-rose-600">
+        {item.type === "RETURN" ? (
+          <Undo2 className="size-4" />
+        ) : (
+          <ClipboardList className="size-4" />
+        )}
+      </div>
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-sm font-semibold leading-tight text-foreground">
+          {item.title}
+        </p>
+        <p className="mt-0.5 truncate text-xs text-muted-foreground">
+          {item.body}
+        </p>
+        <p className="mt-0.5 flex items-center gap-1 text-[10px] text-muted-foreground/70">
+          <Clock className="size-3" />
+          {formatDistanceToNow(createdAt, { addSuffix: true, locale: fr })}
+        </p>
+      </div>
+      <Button
+        size="sm"
+        variant="ghost"
+        className="h-7 gap-1 px-2 text-[10px] text-primary hover:bg-primary/10"
+        onClick={() => onOpen(item)}
+      >
+        <Eye className="size-3" />
+        {actionLabel}
+      </Button>
+    </div>
+  );
+}
+
 export function NotificationBell() {
   const params = useParams<{ organizationId: string; branchId: string }>();
   const router = useRouter();
@@ -274,16 +341,20 @@ export function NotificationBell() {
   const [error, setError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [, startTransition] = useTransition();
+  const [absenceDialog, setAbsenceDialog] = useState<{
+    mode: "justify" | "review" | "view";
+    caseRow: AbsenceCaseDialogData;
+  } | null>(null);
 
   const canSeeInscriptions = canSeeInscriptionNotifications(session);
   const canSeeCandidatures = canSeeCandidatureNotifications(session);
-  const canSeeNotifications = canSeeBranchNotifications(session);
+  const canSeeLegacyNotifications = canSeeBranchNotifications(session);
 
-  const pendingCount = items.filter((item) =>
-    item.kind === "registration"
-      ? item.status === "PENDING"
-      : item.status === "PENDING" || item.status === "REVIEWED",
-  ).length;
+  const pendingCount = items.filter((item) => {
+    if (item.kind === "absence") return true;
+    if (item.kind === "registration") return item.status === "PENDING";
+    return item.status === "PENDING" || item.status === "REVIEWED";
+  }).length;
 
   const branchBase =
     params.organizationId && params.branchId
@@ -291,20 +362,32 @@ export function NotificationBell() {
       : "";
 
   const loadRequests = useCallback(async () => {
-    if (!canSeeNotifications) {
+    if (!params.branchId) {
       setItems([]);
       return;
     }
     setLoading(true);
     setError(null);
     try {
-      const [data, err] = await getNotificationRequestsAction();
-      if (err || !data) {
-        setError("Impossible de charger les notifications.");
-        return;
-      }
+      const [absenceData] = await getAbsenceInboxAction();
+      const [legacyData] = canSeeLegacyNotifications
+        ? await getNotificationRequestsAction()
+        : [null, null];
+
+      const absenceItems: AbsenceRow[] = (absenceData?.notifications ?? []).map(
+        (row) => ({
+          id: row.id,
+          type: row.type,
+          title: row.title,
+          body: row.body,
+          createdAt: row.createdAt,
+          kind: "absence" as const,
+          case: row.case,
+        }),
+      );
+
       const registrationItems: RegistrationRow[] = canSeeInscriptions
-        ? (data.registrations ?? [])
+        ? (legacyData?.registrations ?? [])
             .filter(
               (row) => row.status === "PENDING" || row.status === "CONFIRMED",
             )
@@ -319,25 +402,32 @@ export function NotificationBell() {
         : [];
 
       const jobItems: JobRow[] = canSeeCandidatures
-        ? (data.jobApplications ?? [])
+        ? (legacyData?.jobApplications ?? [])
             .filter((row) =>
               ["PENDING", "REVIEWED"].includes(row.status),
             )
             .map((row) => ({ ...row, kind: "job" as const }))
         : [];
 
-      const merged = [...registrationItems, ...jobItems].sort((a, b) => {
-        const left = new Date(a.createdAt).getTime();
-        const right = new Date(b.createdAt).getTime();
-        return right - left;
-      });
-      setItems(merged.slice(0, 30));
+      const merged = [...absenceItems, ...registrationItems, ...jobItems].sort(
+        (a, b) => {
+          const left = new Date(a.createdAt).getTime();
+          const right = new Date(b.createdAt).getTime();
+          return right - left;
+        },
+      );
+      setItems(merged.slice(0, 40));
     } catch {
       setError("Erreur inattendue.");
     } finally {
       setLoading(false);
     }
-  }, [canSeeCandidatures, canSeeInscriptions, canSeeNotifications]);
+  }, [
+    canSeeCandidatures,
+    canSeeInscriptions,
+    canSeeLegacyNotifications,
+    params.branchId,
+  ]);
 
   useEffect(() => {
     if (open) void loadRequests();
@@ -348,12 +438,12 @@ export function NotificationBell() {
   }, [loadRequests]);
 
   useEffect(() => {
-    if (!params.branchId || !canSeeNotifications) return;
+    if (!params.branchId) return;
     const interval = setInterval(() => {
       if (!open) void loadRequests();
     }, 15_000);
     return () => clearInterval(interval);
-  }, [open, params.branchId, loadRequests, canSeeNotifications]);
+  }, [open, params.branchId, loadRequests]);
 
   const openRegistration = useCallback(
     (requestId: string) => {
@@ -400,7 +490,7 @@ export function NotificationBell() {
   );
 
   const handleView = useCallback(
-    (item: NotificationItem) => {
+    (item: RegistrationRow | JobRow) => {
       setBusyId(item.id);
       startTransition(async () => {
         try {
@@ -452,7 +542,7 @@ export function NotificationBell() {
     [],
   );
 
-  if (!params.branchId || !canSeeNotifications) return null;
+  if (!params.branchId) return null;
 
   return (
     <>
@@ -569,26 +659,56 @@ export function NotificationBell() {
                     Tout est à jour
                   </p>
                   <p className="mt-1 text-xs text-muted-foreground">
-                    Aucune demande en attente.
+                    Aucune notification pour le moment.
                   </p>
                 </div>
               </div>
             ) : (
               <div className="divide-y divide-border/50">
-                {items.map((item) => (
-                  <NotificationRow
-                    key={`${item.kind}-${item.id}`}
-                    item={item}
-                    onView={handleView}
-                    onReject={handleReject}
-                    busyId={busyId}
-                  />
-                ))}
+                {items.map((item) =>
+                  item.kind === "absence" ? (
+                    <AbsenceNotificationRow
+                      key={`${item.kind}-${item.id}`}
+                      item={item}
+                      onOpen={(row) => {
+                        if (!row.case) return;
+                        const mode =
+                          row.type === "ABSENCE" &&
+                          (row.case.status === "OPEN" ||
+                            row.case.status === "REJECTED")
+                            ? "justify"
+                            : row.type === "JUSTIFICATION_SUBMITTED" &&
+                                row.case.status === "PENDING_REVIEW"
+                              ? "review"
+                              : "view";
+                        setAbsenceDialog({ mode, caseRow: row.case });
+                        setOpen(false);
+                      }}
+                    />
+                  ) : (
+                    <NotificationRow
+                      key={`${item.kind}-${item.id}`}
+                      item={item}
+                      onView={handleView}
+                      onReject={handleReject}
+                      busyId={busyId}
+                    />
+                  ),
+                )}
               </div>
             )}
           </div>
         </PopoverContent>
       </Popover>
+      <AbsenceCaseDialog
+        open={Boolean(absenceDialog)}
+        onOpenChange={(next) => {
+          if (!next) setAbsenceDialog(null);
+        }}
+        mode={absenceDialog?.mode ?? "view"}
+        caseRow={absenceDialog?.caseRow ?? null}
+        onDone={() => void loadRequests()}
+      />
     </>
   );
 }

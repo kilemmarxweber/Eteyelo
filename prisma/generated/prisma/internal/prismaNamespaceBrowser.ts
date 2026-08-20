@@ -91,6 +91,8 @@ export const ModelName = {
   PaymentEvent: 'PaymentEvent',
   DiscountRule: 'DiscountRule',
   Transaction: 'Transaction',
+  AbsenceCase: 'AbsenceCase',
+  AppNotification: 'AppNotification',
   Session: 'Session',
   Account: 'Account',
   Verification: 'Verification',
@@ -230,6 +232,11 @@ export const StudentAttendanceScalarFieldEnum = {
   studentId: 'studentId',
   status: 'status',
   remark: 'remark',
+  checkIn: 'checkIn',
+  checkOut: 'checkOut',
+  earlyExit: 'earlyExit',
+  exitReason: 'exitReason',
+  exitReasonCode: 'exitReasonCode',
   createdAt: 'createdAt',
   recordedAt: 'recordedAt',
   branchId: 'branchId'
@@ -245,6 +252,11 @@ export const TeacherAttendanceScalarFieldEnum = {
   date: 'date',
   status: 'status',
   remark: 'remark',
+  checkIn: 'checkIn',
+  checkOut: 'checkOut',
+  earlyExit: 'earlyExit',
+  exitReason: 'exitReason',
+  exitReasonCode: 'exitReasonCode',
   createdAt: 'createdAt',
   branchId: 'branchId'
 } as const
@@ -260,6 +272,9 @@ export const PersonnelAttendanceScalarFieldEnum = {
   checkOut: 'checkOut',
   status: 'status',
   remark: 'remark',
+  earlyExit: 'earlyExit',
+  exitReason: 'exitReason',
+  exitReasonCode: 'exitReasonCode',
   createdAt: 'createdAt',
   branchId: 'branchId'
 } as const
@@ -760,6 +775,53 @@ export const TransactionScalarFieldEnum = {
 } as const
 
 export type TransactionScalarFieldEnum = (typeof TransactionScalarFieldEnum)[keyof typeof TransactionScalarFieldEnum]
+
+
+export const AbsenceCaseScalarFieldEnum = {
+  id: 'id',
+  branchId: 'branchId',
+  organizationId: 'organizationId',
+  userId: 'userId',
+  subjectType: 'subjectType',
+  sourceKey: 'sourceKey',
+  studentId: 'studentId',
+  teacherId: 'teacherId',
+  personnelId: 'personnelId',
+  sessionId: 'sessionId',
+  studentAttendanceId: 'studentAttendanceId',
+  teacherAttendanceId: 'teacherAttendanceId',
+  personnelAttendanceId: 'personnelAttendanceId',
+  occurredOn: 'occurredOn',
+  contextLabel: 'contextLabel',
+  status: 'status',
+  justification: 'justification',
+  justifiedAt: 'justifiedAt',
+  reviewComment: 'reviewComment',
+  reviewedById: 'reviewedById',
+  reviewedAt: 'reviewedAt',
+  absenceNotifiedAt: 'absenceNotifiedAt',
+  returnNotifiedAt: 'returnNotifiedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type AbsenceCaseScalarFieldEnum = (typeof AbsenceCaseScalarFieldEnum)[keyof typeof AbsenceCaseScalarFieldEnum]
+
+
+export const AppNotificationScalarFieldEnum = {
+  id: 'id',
+  branchId: 'branchId',
+  userId: 'userId',
+  type: 'type',
+  title: 'title',
+  body: 'body',
+  href: 'href',
+  absenceCaseId: 'absenceCaseId',
+  readAt: 'readAt',
+  createdAt: 'createdAt'
+} as const
+
+export type AppNotificationScalarFieldEnum = (typeof AppNotificationScalarFieldEnum)[keyof typeof AppNotificationScalarFieldEnum]
 
 
 export const SessionScalarFieldEnum = {

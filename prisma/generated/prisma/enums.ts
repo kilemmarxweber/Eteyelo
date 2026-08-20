@@ -124,6 +124,46 @@ export const AttendanceStatus = {
 export type AttendanceStatus = (typeof AttendanceStatus)[keyof typeof AttendanceStatus]
 
 
+export const AttendanceExitReason = {
+  MALADIE: 'MALADIE',
+  URGENCE: 'URGENCE',
+  AUTORISE: 'AUTORISE',
+  AUTRE: 'AUTRE'
+} as const
+
+export type AttendanceExitReason = (typeof AttendanceExitReason)[keyof typeof AttendanceExitReason]
+
+
+export const AttendanceSubjectType = {
+  STUDENT: 'STUDENT',
+  TEACHER: 'TEACHER',
+  PERSONNEL: 'PERSONNEL'
+} as const
+
+export type AttendanceSubjectType = (typeof AttendanceSubjectType)[keyof typeof AttendanceSubjectType]
+
+
+export const AbsenceCaseStatus = {
+  OPEN: 'OPEN',
+  PENDING_REVIEW: 'PENDING_REVIEW',
+  ACCEPTED: 'ACCEPTED',
+  REJECTED: 'REJECTED',
+  CLEARED: 'CLEARED'
+} as const
+
+export type AbsenceCaseStatus = (typeof AbsenceCaseStatus)[keyof typeof AbsenceCaseStatus]
+
+
+export const AppNotificationType = {
+  ABSENCE: 'ABSENCE',
+  JUSTIFICATION_SUBMITTED: 'JUSTIFICATION_SUBMITTED',
+  JUSTIFICATION_DECISION: 'JUSTIFICATION_DECISION',
+  RETURN: 'RETURN'
+} as const
+
+export type AppNotificationType = (typeof AppNotificationType)[keyof typeof AppNotificationType]
+
+
 export const StudentCategory = {
   NORMAL: 'NORMAL',
   ORPHAN: 'ORPHAN',

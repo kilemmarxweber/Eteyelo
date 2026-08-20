@@ -10,7 +10,7 @@ const adapter = new PrismaPg({
  * Bump when Prisma schema fields change so the cached client is rebuilt in dev.
  * Also used to bust Turbopack module cache after `prisma generate`.
  */
-const PRISMA_CLIENT_VERSION = "branch-primary-domain-1";
+const PRISMA_CLIENT_VERSION = "absence-justification-1";
 
 const globalForPrisma = globalThis as unknown as {
   prisma?: PrismaClient;
@@ -64,7 +64,14 @@ function getPrismaClient() {
     hasBranchPrimaryDomainDelegate &&
     modelHasField(existing, "User", "theme") &&
     modelHasField(existing, "PlatformSupportEscalation", "branch") &&
-    modelHasField(existing, "PlatformSupportEscalation", "channel")
+    modelHasField(existing, "PlatformSupportEscalation", "channel") &&
+    modelHasField(existing, "StudentAttendance", "checkIn") &&
+    modelHasField(existing, "TeacherAttendance", "earlyExit") &&
+    modelHasField(existing, "PersonnelAttendance", "earlyExit") &&
+    typeof (existing as { absenceCase?: { findFirst?: unknown } })
+      ?.absenceCase?.findFirst === "function" &&
+    typeof (existing as { appNotification?: { findFirst?: unknown } })
+      ?.appNotification?.findFirst === "function"
   ) {
     return existing;
   }

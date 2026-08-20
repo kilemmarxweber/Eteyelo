@@ -31,6 +31,11 @@ export type TeacherAttendanceMinAggregateOutputType = {
   date: Date | null
   status: $Enums.AttendanceStatus | null
   remark: string | null
+  checkIn: Date | null
+  checkOut: Date | null
+  earlyExit: boolean | null
+  exitReason: string | null
+  exitReasonCode: $Enums.AttendanceExitReason | null
   createdAt: Date | null
   branchId: string | null
 }
@@ -42,6 +47,11 @@ export type TeacherAttendanceMaxAggregateOutputType = {
   date: Date | null
   status: $Enums.AttendanceStatus | null
   remark: string | null
+  checkIn: Date | null
+  checkOut: Date | null
+  earlyExit: boolean | null
+  exitReason: string | null
+  exitReasonCode: $Enums.AttendanceExitReason | null
   createdAt: Date | null
   branchId: string | null
 }
@@ -53,6 +63,11 @@ export type TeacherAttendanceCountAggregateOutputType = {
   date: number
   status: number
   remark: number
+  checkIn: number
+  checkOut: number
+  earlyExit: number
+  exitReason: number
+  exitReasonCode: number
   createdAt: number
   branchId: number
   _all: number
@@ -66,6 +81,11 @@ export type TeacherAttendanceMinAggregateInputType = {
   date?: true
   status?: true
   remark?: true
+  checkIn?: true
+  checkOut?: true
+  earlyExit?: true
+  exitReason?: true
+  exitReasonCode?: true
   createdAt?: true
   branchId?: true
 }
@@ -77,6 +97,11 @@ export type TeacherAttendanceMaxAggregateInputType = {
   date?: true
   status?: true
   remark?: true
+  checkIn?: true
+  checkOut?: true
+  earlyExit?: true
+  exitReason?: true
+  exitReasonCode?: true
   createdAt?: true
   branchId?: true
 }
@@ -88,6 +113,11 @@ export type TeacherAttendanceCountAggregateInputType = {
   date?: true
   status?: true
   remark?: true
+  checkIn?: true
+  checkOut?: true
+  earlyExit?: true
+  exitReason?: true
+  exitReasonCode?: true
   createdAt?: true
   branchId?: true
   _all?: true
@@ -172,6 +202,11 @@ export type TeacherAttendanceGroupByOutputType = {
   date: Date
   status: $Enums.AttendanceStatus
   remark: string | null
+  checkIn: Date | null
+  checkOut: Date | null
+  earlyExit: boolean
+  exitReason: string | null
+  exitReasonCode: $Enums.AttendanceExitReason | null
   createdAt: Date
   branchId: string
   _count: TeacherAttendanceCountAggregateOutputType | null
@@ -204,11 +239,17 @@ export type TeacherAttendanceWhereInput = {
   date?: Prisma.DateTimeFilter<"TeacherAttendance"> | Date | string
   status?: Prisma.EnumAttendanceStatusFilter<"TeacherAttendance"> | $Enums.AttendanceStatus
   remark?: Prisma.StringNullableFilter<"TeacherAttendance"> | string | null
+  checkIn?: Prisma.DateTimeNullableFilter<"TeacherAttendance"> | Date | string | null
+  checkOut?: Prisma.DateTimeNullableFilter<"TeacherAttendance"> | Date | string | null
+  earlyExit?: Prisma.BoolFilter<"TeacherAttendance"> | boolean
+  exitReason?: Prisma.StringNullableFilter<"TeacherAttendance"> | string | null
+  exitReasonCode?: Prisma.EnumAttendanceExitReasonNullableFilter<"TeacherAttendance"> | $Enums.AttendanceExitReason | null
   createdAt?: Prisma.DateTimeFilter<"TeacherAttendance"> | Date | string
   branchId?: Prisma.StringFilter<"TeacherAttendance"> | string
   teacher?: Prisma.XOR<Prisma.TeacherScalarRelationFilter, Prisma.TeacherWhereInput>
   session?: Prisma.XOR<Prisma.AttendanceSessionScalarRelationFilter, Prisma.AttendanceSessionWhereInput>
   branch?: Prisma.XOR<Prisma.BranchScalarRelationFilter, Prisma.BranchWhereInput>
+  absenceCase?: Prisma.XOR<Prisma.AbsenceCaseNullableScalarRelationFilter, Prisma.AbsenceCaseWhereInput> | null
 }
 
 export type TeacherAttendanceOrderByWithRelationInput = {
@@ -218,11 +259,17 @@ export type TeacherAttendanceOrderByWithRelationInput = {
   date?: Prisma.SortOrder
   status?: Prisma.SortOrder
   remark?: Prisma.SortOrderInput | Prisma.SortOrder
+  checkIn?: Prisma.SortOrderInput | Prisma.SortOrder
+  checkOut?: Prisma.SortOrderInput | Prisma.SortOrder
+  earlyExit?: Prisma.SortOrder
+  exitReason?: Prisma.SortOrderInput | Prisma.SortOrder
+  exitReasonCode?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   branchId?: Prisma.SortOrder
   teacher?: Prisma.TeacherOrderByWithRelationInput
   session?: Prisma.AttendanceSessionOrderByWithRelationInput
   branch?: Prisma.BranchOrderByWithRelationInput
+  absenceCase?: Prisma.AbsenceCaseOrderByWithRelationInput
 }
 
 export type TeacherAttendanceWhereUniqueInput = Prisma.AtLeast<{
@@ -236,11 +283,17 @@ export type TeacherAttendanceWhereUniqueInput = Prisma.AtLeast<{
   date?: Prisma.DateTimeFilter<"TeacherAttendance"> | Date | string
   status?: Prisma.EnumAttendanceStatusFilter<"TeacherAttendance"> | $Enums.AttendanceStatus
   remark?: Prisma.StringNullableFilter<"TeacherAttendance"> | string | null
+  checkIn?: Prisma.DateTimeNullableFilter<"TeacherAttendance"> | Date | string | null
+  checkOut?: Prisma.DateTimeNullableFilter<"TeacherAttendance"> | Date | string | null
+  earlyExit?: Prisma.BoolFilter<"TeacherAttendance"> | boolean
+  exitReason?: Prisma.StringNullableFilter<"TeacherAttendance"> | string | null
+  exitReasonCode?: Prisma.EnumAttendanceExitReasonNullableFilter<"TeacherAttendance"> | $Enums.AttendanceExitReason | null
   createdAt?: Prisma.DateTimeFilter<"TeacherAttendance"> | Date | string
   branchId?: Prisma.StringFilter<"TeacherAttendance"> | string
   teacher?: Prisma.XOR<Prisma.TeacherScalarRelationFilter, Prisma.TeacherWhereInput>
   session?: Prisma.XOR<Prisma.AttendanceSessionScalarRelationFilter, Prisma.AttendanceSessionWhereInput>
   branch?: Prisma.XOR<Prisma.BranchScalarRelationFilter, Prisma.BranchWhereInput>
+  absenceCase?: Prisma.XOR<Prisma.AbsenceCaseNullableScalarRelationFilter, Prisma.AbsenceCaseWhereInput> | null
 }, "id" | "teacherId_sessionId_branchId">
 
 export type TeacherAttendanceOrderByWithAggregationInput = {
@@ -250,6 +303,11 @@ export type TeacherAttendanceOrderByWithAggregationInput = {
   date?: Prisma.SortOrder
   status?: Prisma.SortOrder
   remark?: Prisma.SortOrderInput | Prisma.SortOrder
+  checkIn?: Prisma.SortOrderInput | Prisma.SortOrder
+  checkOut?: Prisma.SortOrderInput | Prisma.SortOrder
+  earlyExit?: Prisma.SortOrder
+  exitReason?: Prisma.SortOrderInput | Prisma.SortOrder
+  exitReasonCode?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   branchId?: Prisma.SortOrder
   _count?: Prisma.TeacherAttendanceCountOrderByAggregateInput
@@ -267,6 +325,11 @@ export type TeacherAttendanceScalarWhereWithAggregatesInput = {
   date?: Prisma.DateTimeWithAggregatesFilter<"TeacherAttendance"> | Date | string
   status?: Prisma.EnumAttendanceStatusWithAggregatesFilter<"TeacherAttendance"> | $Enums.AttendanceStatus
   remark?: Prisma.StringNullableWithAggregatesFilter<"TeacherAttendance"> | string | null
+  checkIn?: Prisma.DateTimeNullableWithAggregatesFilter<"TeacherAttendance"> | Date | string | null
+  checkOut?: Prisma.DateTimeNullableWithAggregatesFilter<"TeacherAttendance"> | Date | string | null
+  earlyExit?: Prisma.BoolWithAggregatesFilter<"TeacherAttendance"> | boolean
+  exitReason?: Prisma.StringNullableWithAggregatesFilter<"TeacherAttendance"> | string | null
+  exitReasonCode?: Prisma.EnumAttendanceExitReasonNullableWithAggregatesFilter<"TeacherAttendance"> | $Enums.AttendanceExitReason | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"TeacherAttendance"> | Date | string
   branchId?: Prisma.StringWithAggregatesFilter<"TeacherAttendance"> | string
 }
@@ -276,10 +339,16 @@ export type TeacherAttendanceCreateInput = {
   date: Date | string
   status: $Enums.AttendanceStatus
   remark?: string | null
+  checkIn?: Date | string | null
+  checkOut?: Date | string | null
+  earlyExit?: boolean
+  exitReason?: string | null
+  exitReasonCode?: $Enums.AttendanceExitReason | null
   createdAt?: Date | string
   teacher: Prisma.TeacherCreateNestedOneWithoutTeacherAttendanceInput
   session: Prisma.AttendanceSessionCreateNestedOneWithoutTeacherAttendanceInput
   branch: Prisma.BranchCreateNestedOneWithoutTeacherAttendanceInput
+  absenceCase?: Prisma.AbsenceCaseCreateNestedOneWithoutTeacherAttendanceInput
 }
 
 export type TeacherAttendanceUncheckedCreateInput = {
@@ -289,8 +358,14 @@ export type TeacherAttendanceUncheckedCreateInput = {
   date: Date | string
   status: $Enums.AttendanceStatus
   remark?: string | null
+  checkIn?: Date | string | null
+  checkOut?: Date | string | null
+  earlyExit?: boolean
+  exitReason?: string | null
+  exitReasonCode?: $Enums.AttendanceExitReason | null
   createdAt?: Date | string
   branchId: string
+  absenceCase?: Prisma.AbsenceCaseUncheckedCreateNestedOneWithoutTeacherAttendanceInput
 }
 
 export type TeacherAttendanceUpdateInput = {
@@ -298,10 +373,16 @@ export type TeacherAttendanceUpdateInput = {
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumAttendanceStatusFieldUpdateOperationsInput | $Enums.AttendanceStatus
   remark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  checkIn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  checkOut?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  earlyExit?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  exitReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  exitReasonCode?: Prisma.NullableEnumAttendanceExitReasonFieldUpdateOperationsInput | $Enums.AttendanceExitReason | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   teacher?: Prisma.TeacherUpdateOneRequiredWithoutTeacherAttendanceNestedInput
   session?: Prisma.AttendanceSessionUpdateOneRequiredWithoutTeacherAttendanceNestedInput
   branch?: Prisma.BranchUpdateOneRequiredWithoutTeacherAttendanceNestedInput
+  absenceCase?: Prisma.AbsenceCaseUpdateOneWithoutTeacherAttendanceNestedInput
 }
 
 export type TeacherAttendanceUncheckedUpdateInput = {
@@ -311,8 +392,14 @@ export type TeacherAttendanceUncheckedUpdateInput = {
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumAttendanceStatusFieldUpdateOperationsInput | $Enums.AttendanceStatus
   remark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  checkIn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  checkOut?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  earlyExit?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  exitReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  exitReasonCode?: Prisma.NullableEnumAttendanceExitReasonFieldUpdateOperationsInput | $Enums.AttendanceExitReason | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
+  absenceCase?: Prisma.AbsenceCaseUncheckedUpdateOneWithoutTeacherAttendanceNestedInput
 }
 
 export type TeacherAttendanceCreateManyInput = {
@@ -322,6 +409,11 @@ export type TeacherAttendanceCreateManyInput = {
   date: Date | string
   status: $Enums.AttendanceStatus
   remark?: string | null
+  checkIn?: Date | string | null
+  checkOut?: Date | string | null
+  earlyExit?: boolean
+  exitReason?: string | null
+  exitReasonCode?: $Enums.AttendanceExitReason | null
   createdAt?: Date | string
   branchId: string
 }
@@ -331,6 +423,11 @@ export type TeacherAttendanceUpdateManyMutationInput = {
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumAttendanceStatusFieldUpdateOperationsInput | $Enums.AttendanceStatus
   remark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  checkIn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  checkOut?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  earlyExit?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  exitReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  exitReasonCode?: Prisma.NullableEnumAttendanceExitReasonFieldUpdateOperationsInput | $Enums.AttendanceExitReason | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -341,6 +438,11 @@ export type TeacherAttendanceUncheckedUpdateManyInput = {
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumAttendanceStatusFieldUpdateOperationsInput | $Enums.AttendanceStatus
   remark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  checkIn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  checkOut?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  earlyExit?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  exitReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  exitReasonCode?: Prisma.NullableEnumAttendanceExitReasonFieldUpdateOperationsInput | $Enums.AttendanceExitReason | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
 }
@@ -368,6 +470,11 @@ export type TeacherAttendanceCountOrderByAggregateInput = {
   date?: Prisma.SortOrder
   status?: Prisma.SortOrder
   remark?: Prisma.SortOrder
+  checkIn?: Prisma.SortOrder
+  checkOut?: Prisma.SortOrder
+  earlyExit?: Prisma.SortOrder
+  exitReason?: Prisma.SortOrder
+  exitReasonCode?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   branchId?: Prisma.SortOrder
 }
@@ -379,6 +486,11 @@ export type TeacherAttendanceMaxOrderByAggregateInput = {
   date?: Prisma.SortOrder
   status?: Prisma.SortOrder
   remark?: Prisma.SortOrder
+  checkIn?: Prisma.SortOrder
+  checkOut?: Prisma.SortOrder
+  earlyExit?: Prisma.SortOrder
+  exitReason?: Prisma.SortOrder
+  exitReasonCode?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   branchId?: Prisma.SortOrder
 }
@@ -390,8 +502,18 @@ export type TeacherAttendanceMinOrderByAggregateInput = {
   date?: Prisma.SortOrder
   status?: Prisma.SortOrder
   remark?: Prisma.SortOrder
+  checkIn?: Prisma.SortOrder
+  checkOut?: Prisma.SortOrder
+  earlyExit?: Prisma.SortOrder
+  exitReason?: Prisma.SortOrder
+  exitReasonCode?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   branchId?: Prisma.SortOrder
+}
+
+export type TeacherAttendanceNullableScalarRelationFilter = {
+  is?: Prisma.TeacherAttendanceWhereInput | null
+  isNot?: Prisma.TeacherAttendanceWhereInput | null
 }
 
 export type TeacherAttendanceCreateNestedManyWithoutSessionInput = {
@@ -478,6 +600,22 @@ export type TeacherAttendanceUncheckedUpdateManyWithoutTeacherNestedInput = {
   deleteMany?: Prisma.TeacherAttendanceScalarWhereInput | Prisma.TeacherAttendanceScalarWhereInput[]
 }
 
+export type TeacherAttendanceCreateNestedOneWithoutAbsenceCaseInput = {
+  create?: Prisma.XOR<Prisma.TeacherAttendanceCreateWithoutAbsenceCaseInput, Prisma.TeacherAttendanceUncheckedCreateWithoutAbsenceCaseInput>
+  connectOrCreate?: Prisma.TeacherAttendanceCreateOrConnectWithoutAbsenceCaseInput
+  connect?: Prisma.TeacherAttendanceWhereUniqueInput
+}
+
+export type TeacherAttendanceUpdateOneWithoutAbsenceCaseNestedInput = {
+  create?: Prisma.XOR<Prisma.TeacherAttendanceCreateWithoutAbsenceCaseInput, Prisma.TeacherAttendanceUncheckedCreateWithoutAbsenceCaseInput>
+  connectOrCreate?: Prisma.TeacherAttendanceCreateOrConnectWithoutAbsenceCaseInput
+  upsert?: Prisma.TeacherAttendanceUpsertWithoutAbsenceCaseInput
+  disconnect?: Prisma.TeacherAttendanceWhereInput | boolean
+  delete?: Prisma.TeacherAttendanceWhereInput | boolean
+  connect?: Prisma.TeacherAttendanceWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.TeacherAttendanceUpdateToOneWithWhereWithoutAbsenceCaseInput, Prisma.TeacherAttendanceUpdateWithoutAbsenceCaseInput>, Prisma.TeacherAttendanceUncheckedUpdateWithoutAbsenceCaseInput>
+}
+
 export type TeacherAttendanceCreateNestedManyWithoutBranchInput = {
   create?: Prisma.XOR<Prisma.TeacherAttendanceCreateWithoutBranchInput, Prisma.TeacherAttendanceUncheckedCreateWithoutBranchInput> | Prisma.TeacherAttendanceCreateWithoutBranchInput[] | Prisma.TeacherAttendanceUncheckedCreateWithoutBranchInput[]
   connectOrCreate?: Prisma.TeacherAttendanceCreateOrConnectWithoutBranchInput | Prisma.TeacherAttendanceCreateOrConnectWithoutBranchInput[]
@@ -525,9 +663,15 @@ export type TeacherAttendanceCreateWithoutSessionInput = {
   date: Date | string
   status: $Enums.AttendanceStatus
   remark?: string | null
+  checkIn?: Date | string | null
+  checkOut?: Date | string | null
+  earlyExit?: boolean
+  exitReason?: string | null
+  exitReasonCode?: $Enums.AttendanceExitReason | null
   createdAt?: Date | string
   teacher: Prisma.TeacherCreateNestedOneWithoutTeacherAttendanceInput
   branch: Prisma.BranchCreateNestedOneWithoutTeacherAttendanceInput
+  absenceCase?: Prisma.AbsenceCaseCreateNestedOneWithoutTeacherAttendanceInput
 }
 
 export type TeacherAttendanceUncheckedCreateWithoutSessionInput = {
@@ -536,8 +680,14 @@ export type TeacherAttendanceUncheckedCreateWithoutSessionInput = {
   date: Date | string
   status: $Enums.AttendanceStatus
   remark?: string | null
+  checkIn?: Date | string | null
+  checkOut?: Date | string | null
+  earlyExit?: boolean
+  exitReason?: string | null
+  exitReasonCode?: $Enums.AttendanceExitReason | null
   createdAt?: Date | string
   branchId: string
+  absenceCase?: Prisma.AbsenceCaseUncheckedCreateNestedOneWithoutTeacherAttendanceInput
 }
 
 export type TeacherAttendanceCreateOrConnectWithoutSessionInput = {
@@ -576,6 +726,11 @@ export type TeacherAttendanceScalarWhereInput = {
   date?: Prisma.DateTimeFilter<"TeacherAttendance"> | Date | string
   status?: Prisma.EnumAttendanceStatusFilter<"TeacherAttendance"> | $Enums.AttendanceStatus
   remark?: Prisma.StringNullableFilter<"TeacherAttendance"> | string | null
+  checkIn?: Prisma.DateTimeNullableFilter<"TeacherAttendance"> | Date | string | null
+  checkOut?: Prisma.DateTimeNullableFilter<"TeacherAttendance"> | Date | string | null
+  earlyExit?: Prisma.BoolFilter<"TeacherAttendance"> | boolean
+  exitReason?: Prisma.StringNullableFilter<"TeacherAttendance"> | string | null
+  exitReasonCode?: Prisma.EnumAttendanceExitReasonNullableFilter<"TeacherAttendance"> | $Enums.AttendanceExitReason | null
   createdAt?: Prisma.DateTimeFilter<"TeacherAttendance"> | Date | string
   branchId?: Prisma.StringFilter<"TeacherAttendance"> | string
 }
@@ -585,9 +740,15 @@ export type TeacherAttendanceCreateWithoutTeacherInput = {
   date: Date | string
   status: $Enums.AttendanceStatus
   remark?: string | null
+  checkIn?: Date | string | null
+  checkOut?: Date | string | null
+  earlyExit?: boolean
+  exitReason?: string | null
+  exitReasonCode?: $Enums.AttendanceExitReason | null
   createdAt?: Date | string
   session: Prisma.AttendanceSessionCreateNestedOneWithoutTeacherAttendanceInput
   branch: Prisma.BranchCreateNestedOneWithoutTeacherAttendanceInput
+  absenceCase?: Prisma.AbsenceCaseCreateNestedOneWithoutTeacherAttendanceInput
 }
 
 export type TeacherAttendanceUncheckedCreateWithoutTeacherInput = {
@@ -596,8 +757,14 @@ export type TeacherAttendanceUncheckedCreateWithoutTeacherInput = {
   date: Date | string
   status: $Enums.AttendanceStatus
   remark?: string | null
+  checkIn?: Date | string | null
+  checkOut?: Date | string | null
+  earlyExit?: boolean
+  exitReason?: string | null
+  exitReasonCode?: $Enums.AttendanceExitReason | null
   createdAt?: Date | string
   branchId: string
+  absenceCase?: Prisma.AbsenceCaseUncheckedCreateNestedOneWithoutTeacherAttendanceInput
 }
 
 export type TeacherAttendanceCreateOrConnectWithoutTeacherInput = {
@@ -626,14 +793,100 @@ export type TeacherAttendanceUpdateManyWithWhereWithoutTeacherInput = {
   data: Prisma.XOR<Prisma.TeacherAttendanceUpdateManyMutationInput, Prisma.TeacherAttendanceUncheckedUpdateManyWithoutTeacherInput>
 }
 
+export type TeacherAttendanceCreateWithoutAbsenceCaseInput = {
+  id?: string
+  date: Date | string
+  status: $Enums.AttendanceStatus
+  remark?: string | null
+  checkIn?: Date | string | null
+  checkOut?: Date | string | null
+  earlyExit?: boolean
+  exitReason?: string | null
+  exitReasonCode?: $Enums.AttendanceExitReason | null
+  createdAt?: Date | string
+  teacher: Prisma.TeacherCreateNestedOneWithoutTeacherAttendanceInput
+  session: Prisma.AttendanceSessionCreateNestedOneWithoutTeacherAttendanceInput
+  branch: Prisma.BranchCreateNestedOneWithoutTeacherAttendanceInput
+}
+
+export type TeacherAttendanceUncheckedCreateWithoutAbsenceCaseInput = {
+  id?: string
+  teacherId: string
+  sessionId: string
+  date: Date | string
+  status: $Enums.AttendanceStatus
+  remark?: string | null
+  checkIn?: Date | string | null
+  checkOut?: Date | string | null
+  earlyExit?: boolean
+  exitReason?: string | null
+  exitReasonCode?: $Enums.AttendanceExitReason | null
+  createdAt?: Date | string
+  branchId: string
+}
+
+export type TeacherAttendanceCreateOrConnectWithoutAbsenceCaseInput = {
+  where: Prisma.TeacherAttendanceWhereUniqueInput
+  create: Prisma.XOR<Prisma.TeacherAttendanceCreateWithoutAbsenceCaseInput, Prisma.TeacherAttendanceUncheckedCreateWithoutAbsenceCaseInput>
+}
+
+export type TeacherAttendanceUpsertWithoutAbsenceCaseInput = {
+  update: Prisma.XOR<Prisma.TeacherAttendanceUpdateWithoutAbsenceCaseInput, Prisma.TeacherAttendanceUncheckedUpdateWithoutAbsenceCaseInput>
+  create: Prisma.XOR<Prisma.TeacherAttendanceCreateWithoutAbsenceCaseInput, Prisma.TeacherAttendanceUncheckedCreateWithoutAbsenceCaseInput>
+  where?: Prisma.TeacherAttendanceWhereInput
+}
+
+export type TeacherAttendanceUpdateToOneWithWhereWithoutAbsenceCaseInput = {
+  where?: Prisma.TeacherAttendanceWhereInput
+  data: Prisma.XOR<Prisma.TeacherAttendanceUpdateWithoutAbsenceCaseInput, Prisma.TeacherAttendanceUncheckedUpdateWithoutAbsenceCaseInput>
+}
+
+export type TeacherAttendanceUpdateWithoutAbsenceCaseInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  status?: Prisma.EnumAttendanceStatusFieldUpdateOperationsInput | $Enums.AttendanceStatus
+  remark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  checkIn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  checkOut?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  earlyExit?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  exitReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  exitReasonCode?: Prisma.NullableEnumAttendanceExitReasonFieldUpdateOperationsInput | $Enums.AttendanceExitReason | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  teacher?: Prisma.TeacherUpdateOneRequiredWithoutTeacherAttendanceNestedInput
+  session?: Prisma.AttendanceSessionUpdateOneRequiredWithoutTeacherAttendanceNestedInput
+  branch?: Prisma.BranchUpdateOneRequiredWithoutTeacherAttendanceNestedInput
+}
+
+export type TeacherAttendanceUncheckedUpdateWithoutAbsenceCaseInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  teacherId?: Prisma.StringFieldUpdateOperationsInput | string
+  sessionId?: Prisma.StringFieldUpdateOperationsInput | string
+  date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  status?: Prisma.EnumAttendanceStatusFieldUpdateOperationsInput | $Enums.AttendanceStatus
+  remark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  checkIn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  checkOut?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  earlyExit?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  exitReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  exitReasonCode?: Prisma.NullableEnumAttendanceExitReasonFieldUpdateOperationsInput | $Enums.AttendanceExitReason | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  branchId?: Prisma.StringFieldUpdateOperationsInput | string
+}
+
 export type TeacherAttendanceCreateWithoutBranchInput = {
   id?: string
   date: Date | string
   status: $Enums.AttendanceStatus
   remark?: string | null
+  checkIn?: Date | string | null
+  checkOut?: Date | string | null
+  earlyExit?: boolean
+  exitReason?: string | null
+  exitReasonCode?: $Enums.AttendanceExitReason | null
   createdAt?: Date | string
   teacher: Prisma.TeacherCreateNestedOneWithoutTeacherAttendanceInput
   session: Prisma.AttendanceSessionCreateNestedOneWithoutTeacherAttendanceInput
+  absenceCase?: Prisma.AbsenceCaseCreateNestedOneWithoutTeacherAttendanceInput
 }
 
 export type TeacherAttendanceUncheckedCreateWithoutBranchInput = {
@@ -643,7 +896,13 @@ export type TeacherAttendanceUncheckedCreateWithoutBranchInput = {
   date: Date | string
   status: $Enums.AttendanceStatus
   remark?: string | null
+  checkIn?: Date | string | null
+  checkOut?: Date | string | null
+  earlyExit?: boolean
+  exitReason?: string | null
+  exitReasonCode?: $Enums.AttendanceExitReason | null
   createdAt?: Date | string
+  absenceCase?: Prisma.AbsenceCaseUncheckedCreateNestedOneWithoutTeacherAttendanceInput
 }
 
 export type TeacherAttendanceCreateOrConnectWithoutBranchInput = {
@@ -678,6 +937,11 @@ export type TeacherAttendanceCreateManySessionInput = {
   date: Date | string
   status: $Enums.AttendanceStatus
   remark?: string | null
+  checkIn?: Date | string | null
+  checkOut?: Date | string | null
+  earlyExit?: boolean
+  exitReason?: string | null
+  exitReasonCode?: $Enums.AttendanceExitReason | null
   createdAt?: Date | string
   branchId: string
 }
@@ -687,9 +951,15 @@ export type TeacherAttendanceUpdateWithoutSessionInput = {
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumAttendanceStatusFieldUpdateOperationsInput | $Enums.AttendanceStatus
   remark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  checkIn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  checkOut?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  earlyExit?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  exitReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  exitReasonCode?: Prisma.NullableEnumAttendanceExitReasonFieldUpdateOperationsInput | $Enums.AttendanceExitReason | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   teacher?: Prisma.TeacherUpdateOneRequiredWithoutTeacherAttendanceNestedInput
   branch?: Prisma.BranchUpdateOneRequiredWithoutTeacherAttendanceNestedInput
+  absenceCase?: Prisma.AbsenceCaseUpdateOneWithoutTeacherAttendanceNestedInput
 }
 
 export type TeacherAttendanceUncheckedUpdateWithoutSessionInput = {
@@ -698,8 +968,14 @@ export type TeacherAttendanceUncheckedUpdateWithoutSessionInput = {
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumAttendanceStatusFieldUpdateOperationsInput | $Enums.AttendanceStatus
   remark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  checkIn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  checkOut?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  earlyExit?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  exitReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  exitReasonCode?: Prisma.NullableEnumAttendanceExitReasonFieldUpdateOperationsInput | $Enums.AttendanceExitReason | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
+  absenceCase?: Prisma.AbsenceCaseUncheckedUpdateOneWithoutTeacherAttendanceNestedInput
 }
 
 export type TeacherAttendanceUncheckedUpdateManyWithoutSessionInput = {
@@ -708,6 +984,11 @@ export type TeacherAttendanceUncheckedUpdateManyWithoutSessionInput = {
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumAttendanceStatusFieldUpdateOperationsInput | $Enums.AttendanceStatus
   remark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  checkIn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  checkOut?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  earlyExit?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  exitReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  exitReasonCode?: Prisma.NullableEnumAttendanceExitReasonFieldUpdateOperationsInput | $Enums.AttendanceExitReason | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
 }
@@ -718,6 +999,11 @@ export type TeacherAttendanceCreateManyTeacherInput = {
   date: Date | string
   status: $Enums.AttendanceStatus
   remark?: string | null
+  checkIn?: Date | string | null
+  checkOut?: Date | string | null
+  earlyExit?: boolean
+  exitReason?: string | null
+  exitReasonCode?: $Enums.AttendanceExitReason | null
   createdAt?: Date | string
   branchId: string
 }
@@ -727,9 +1013,15 @@ export type TeacherAttendanceUpdateWithoutTeacherInput = {
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumAttendanceStatusFieldUpdateOperationsInput | $Enums.AttendanceStatus
   remark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  checkIn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  checkOut?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  earlyExit?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  exitReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  exitReasonCode?: Prisma.NullableEnumAttendanceExitReasonFieldUpdateOperationsInput | $Enums.AttendanceExitReason | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   session?: Prisma.AttendanceSessionUpdateOneRequiredWithoutTeacherAttendanceNestedInput
   branch?: Prisma.BranchUpdateOneRequiredWithoutTeacherAttendanceNestedInput
+  absenceCase?: Prisma.AbsenceCaseUpdateOneWithoutTeacherAttendanceNestedInput
 }
 
 export type TeacherAttendanceUncheckedUpdateWithoutTeacherInput = {
@@ -738,8 +1030,14 @@ export type TeacherAttendanceUncheckedUpdateWithoutTeacherInput = {
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumAttendanceStatusFieldUpdateOperationsInput | $Enums.AttendanceStatus
   remark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  checkIn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  checkOut?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  earlyExit?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  exitReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  exitReasonCode?: Prisma.NullableEnumAttendanceExitReasonFieldUpdateOperationsInput | $Enums.AttendanceExitReason | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
+  absenceCase?: Prisma.AbsenceCaseUncheckedUpdateOneWithoutTeacherAttendanceNestedInput
 }
 
 export type TeacherAttendanceUncheckedUpdateManyWithoutTeacherInput = {
@@ -748,6 +1046,11 @@ export type TeacherAttendanceUncheckedUpdateManyWithoutTeacherInput = {
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumAttendanceStatusFieldUpdateOperationsInput | $Enums.AttendanceStatus
   remark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  checkIn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  checkOut?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  earlyExit?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  exitReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  exitReasonCode?: Prisma.NullableEnumAttendanceExitReasonFieldUpdateOperationsInput | $Enums.AttendanceExitReason | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
 }
@@ -759,6 +1062,11 @@ export type TeacherAttendanceCreateManyBranchInput = {
   date: Date | string
   status: $Enums.AttendanceStatus
   remark?: string | null
+  checkIn?: Date | string | null
+  checkOut?: Date | string | null
+  earlyExit?: boolean
+  exitReason?: string | null
+  exitReasonCode?: $Enums.AttendanceExitReason | null
   createdAt?: Date | string
 }
 
@@ -767,9 +1075,15 @@ export type TeacherAttendanceUpdateWithoutBranchInput = {
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumAttendanceStatusFieldUpdateOperationsInput | $Enums.AttendanceStatus
   remark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  checkIn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  checkOut?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  earlyExit?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  exitReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  exitReasonCode?: Prisma.NullableEnumAttendanceExitReasonFieldUpdateOperationsInput | $Enums.AttendanceExitReason | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   teacher?: Prisma.TeacherUpdateOneRequiredWithoutTeacherAttendanceNestedInput
   session?: Prisma.AttendanceSessionUpdateOneRequiredWithoutTeacherAttendanceNestedInput
+  absenceCase?: Prisma.AbsenceCaseUpdateOneWithoutTeacherAttendanceNestedInput
 }
 
 export type TeacherAttendanceUncheckedUpdateWithoutBranchInput = {
@@ -779,7 +1093,13 @@ export type TeacherAttendanceUncheckedUpdateWithoutBranchInput = {
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumAttendanceStatusFieldUpdateOperationsInput | $Enums.AttendanceStatus
   remark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  checkIn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  checkOut?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  earlyExit?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  exitReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  exitReasonCode?: Prisma.NullableEnumAttendanceExitReasonFieldUpdateOperationsInput | $Enums.AttendanceExitReason | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  absenceCase?: Prisma.AbsenceCaseUncheckedUpdateOneWithoutTeacherAttendanceNestedInput
 }
 
 export type TeacherAttendanceUncheckedUpdateManyWithoutBranchInput = {
@@ -789,6 +1109,11 @@ export type TeacherAttendanceUncheckedUpdateManyWithoutBranchInput = {
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumAttendanceStatusFieldUpdateOperationsInput | $Enums.AttendanceStatus
   remark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  checkIn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  checkOut?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  earlyExit?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  exitReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  exitReasonCode?: Prisma.NullableEnumAttendanceExitReasonFieldUpdateOperationsInput | $Enums.AttendanceExitReason | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -801,11 +1126,17 @@ export type TeacherAttendanceSelect<ExtArgs extends runtime.Types.Extensions.Int
   date?: boolean
   status?: boolean
   remark?: boolean
+  checkIn?: boolean
+  checkOut?: boolean
+  earlyExit?: boolean
+  exitReason?: boolean
+  exitReasonCode?: boolean
   createdAt?: boolean
   branchId?: boolean
   teacher?: boolean | Prisma.TeacherDefaultArgs<ExtArgs>
   session?: boolean | Prisma.AttendanceSessionDefaultArgs<ExtArgs>
   branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
+  absenceCase?: boolean | Prisma.TeacherAttendance$absenceCaseArgs<ExtArgs>
 }, ExtArgs["result"]["teacherAttendance"]>
 
 export type TeacherAttendanceSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -815,6 +1146,11 @@ export type TeacherAttendanceSelectCreateManyAndReturn<ExtArgs extends runtime.T
   date?: boolean
   status?: boolean
   remark?: boolean
+  checkIn?: boolean
+  checkOut?: boolean
+  earlyExit?: boolean
+  exitReason?: boolean
+  exitReasonCode?: boolean
   createdAt?: boolean
   branchId?: boolean
   teacher?: boolean | Prisma.TeacherDefaultArgs<ExtArgs>
@@ -829,6 +1165,11 @@ export type TeacherAttendanceSelectUpdateManyAndReturn<ExtArgs extends runtime.T
   date?: boolean
   status?: boolean
   remark?: boolean
+  checkIn?: boolean
+  checkOut?: boolean
+  earlyExit?: boolean
+  exitReason?: boolean
+  exitReasonCode?: boolean
   createdAt?: boolean
   branchId?: boolean
   teacher?: boolean | Prisma.TeacherDefaultArgs<ExtArgs>
@@ -843,15 +1184,21 @@ export type TeacherAttendanceSelectScalar = {
   date?: boolean
   status?: boolean
   remark?: boolean
+  checkIn?: boolean
+  checkOut?: boolean
+  earlyExit?: boolean
+  exitReason?: boolean
+  exitReasonCode?: boolean
   createdAt?: boolean
   branchId?: boolean
 }
 
-export type TeacherAttendanceOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "teacherId" | "sessionId" | "date" | "status" | "remark" | "createdAt" | "branchId", ExtArgs["result"]["teacherAttendance"]>
+export type TeacherAttendanceOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "teacherId" | "sessionId" | "date" | "status" | "remark" | "checkIn" | "checkOut" | "earlyExit" | "exitReason" | "exitReasonCode" | "createdAt" | "branchId", ExtArgs["result"]["teacherAttendance"]>
 export type TeacherAttendanceInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   teacher?: boolean | Prisma.TeacherDefaultArgs<ExtArgs>
   session?: boolean | Prisma.AttendanceSessionDefaultArgs<ExtArgs>
   branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
+  absenceCase?: boolean | Prisma.TeacherAttendance$absenceCaseArgs<ExtArgs>
 }
 export type TeacherAttendanceIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   teacher?: boolean | Prisma.TeacherDefaultArgs<ExtArgs>
@@ -870,6 +1217,7 @@ export type $TeacherAttendancePayload<ExtArgs extends runtime.Types.Extensions.I
     teacher: Prisma.$TeacherPayload<ExtArgs>
     session: Prisma.$AttendanceSessionPayload<ExtArgs>
     branch: Prisma.$BranchPayload<ExtArgs>
+    absenceCase: Prisma.$AbsenceCasePayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -878,6 +1226,17 @@ export type $TeacherAttendancePayload<ExtArgs extends runtime.Types.Extensions.I
     date: Date
     status: $Enums.AttendanceStatus
     remark: string | null
+    /**
+     * Début effectif du cours (pointage)
+     */
+    checkIn: Date | null
+    /**
+     * Fin effective du cours (pointage sortie ou fin de séance)
+     */
+    checkOut: Date | null
+    earlyExit: boolean
+    exitReason: string | null
+    exitReasonCode: $Enums.AttendanceExitReason | null
     createdAt: Date
     branchId: string
   }, ExtArgs["result"]["teacherAttendance"]>
@@ -1277,6 +1636,7 @@ export interface Prisma__TeacherAttendanceClient<T, Null = never, ExtArgs extend
   teacher<T extends Prisma.TeacherDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.TeacherDefaultArgs<ExtArgs>>): Prisma.Prisma__TeacherClient<runtime.Types.Result.GetResult<Prisma.$TeacherPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   session<T extends Prisma.AttendanceSessionDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.AttendanceSessionDefaultArgs<ExtArgs>>): Prisma.Prisma__AttendanceSessionClient<runtime.Types.Result.GetResult<Prisma.$AttendanceSessionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   branch<T extends Prisma.BranchDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.BranchDefaultArgs<ExtArgs>>): Prisma.Prisma__BranchClient<runtime.Types.Result.GetResult<Prisma.$BranchPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  absenceCase<T extends Prisma.TeacherAttendance$absenceCaseArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.TeacherAttendance$absenceCaseArgs<ExtArgs>>): Prisma.Prisma__AbsenceCaseClient<runtime.Types.Result.GetResult<Prisma.$AbsenceCasePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1312,6 +1672,11 @@ export interface TeacherAttendanceFieldRefs {
   readonly date: Prisma.FieldRef<"TeacherAttendance", 'DateTime'>
   readonly status: Prisma.FieldRef<"TeacherAttendance", 'AttendanceStatus'>
   readonly remark: Prisma.FieldRef<"TeacherAttendance", 'String'>
+  readonly checkIn: Prisma.FieldRef<"TeacherAttendance", 'DateTime'>
+  readonly checkOut: Prisma.FieldRef<"TeacherAttendance", 'DateTime'>
+  readonly earlyExit: Prisma.FieldRef<"TeacherAttendance", 'Boolean'>
+  readonly exitReason: Prisma.FieldRef<"TeacherAttendance", 'String'>
+  readonly exitReasonCode: Prisma.FieldRef<"TeacherAttendance", 'AttendanceExitReason'>
   readonly createdAt: Prisma.FieldRef<"TeacherAttendance", 'DateTime'>
   readonly branchId: Prisma.FieldRef<"TeacherAttendance", 'String'>
 }
@@ -1712,6 +2077,25 @@ export type TeacherAttendanceDeleteManyArgs<ExtArgs extends runtime.Types.Extens
    * Limit how many TeacherAttendances to delete.
    */
   limit?: number
+}
+
+/**
+ * TeacherAttendance.absenceCase
+ */
+export type TeacherAttendance$absenceCaseArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the AbsenceCase
+   */
+  select?: Prisma.AbsenceCaseSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the AbsenceCase
+   */
+  omit?: Prisma.AbsenceCaseOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AbsenceCaseInclude<ExtArgs> | null
+  where?: Prisma.AbsenceCaseWhereInput
 }
 
 /**

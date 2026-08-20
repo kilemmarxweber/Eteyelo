@@ -17,6 +17,7 @@ import {
   canReadScheduleArea,
   canSeeCandidatureNotifications,
   canSeeInscriptionNotifications,
+  canReviewAbsenceJustifications,
   isSchoolLeadershipRole,
 } from "../lib/auth/session-roles";
 import { APP_ROLE, ORG_ROLE } from "../lib/permissions";
@@ -169,6 +170,25 @@ test("notifications : caissier inscription oui, candidature non", () => {
   assert.equal(canSeeInscriptionNotifications(sessionCaissier), true);
   assert.equal(canSeeCandidatureNotifications(sessionCaissier), false);
   assert.equal(canSeeCandidatureNotifications(sessionPrefet), true);
+});
+
+test("absences : pref / directeur / propriétaire examinent, pas élève ni caissier", () => {
+  assert.equal(canReviewAbsenceJustifications(sessionPrefet), true);
+  assert.equal(canReviewAbsenceJustifications(sessionDirecteur), true);
+  assert.equal(canReviewAbsenceJustifications(sessionGestionnaire), false);
+  assert.equal(
+    canReviewAbsenceJustifications(sessionWithOrgRole(ORG_ROLE.OWNER)),
+    true,
+  );
+  assert.equal(
+    canReviewAbsenceJustifications(
+      sessionWithOrgRole(ORG_ROLE.DIRECTEUR_ETUDES),
+    ),
+    true,
+  );
+  assert.equal(canReviewAbsenceJustifications(sessionCaissier), false);
+  assert.equal(canReviewAbsenceJustifications(sessionTeacher), false);
+  assert.equal(canReviewAbsenceJustifications(sessionStudent), false);
 });
 
 console.log("\nAll session-roles helper smoke tests passed.");

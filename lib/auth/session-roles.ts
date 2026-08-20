@@ -367,7 +367,30 @@ export function canSeeBranchNotifications(
 ): boolean {
   return (
     canSeeCandidatureNotifications(session, ...extraRoles) ||
-    canSeeInscriptionNotifications(session, ...extraRoles)
+    canSeeInscriptionNotifications(session, ...extraRoles) ||
+    canReviewAbsenceJustifications(session, ...extraRoles)
+  );
+}
+
+/**
+ * Absences et justifications : propriétaire, préfet, directeur, études.
+ * Ce sont les rôles qui examinent le dossier.
+ */
+export function canReviewAbsenceJustifications(
+  session: any,
+  ...extraRoles: unknown[]
+): boolean {
+  return hasSessionRole(
+    session,
+    [
+      APP_ROLE.OWNER,
+      APP_ROLE.ADMIN,
+      ORG_ROLE.OWNER,
+      ORG_ROLE.PREFET,
+      ORG_ROLE.DIRECTEUR,
+      ORG_ROLE.DIRECTEUR_ETUDES,
+    ],
+    ...extraRoles,
   );
 }
 

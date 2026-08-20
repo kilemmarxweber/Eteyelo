@@ -131,6 +131,28 @@ export function clearAdminRegistrationDraft(branchId: string) {
   clearDraft(adminRegistrationDraftKey(branchId));
 }
 
+const DRAFT_CLEARED_FLAG = "eteyelo:inscription-draft-cleared";
+
+export function markRegistrationDraftCleared() {
+  if (typeof window === "undefined") return;
+  try {
+    sessionStorage.setItem(DRAFT_CLEARED_FLAG, "1");
+  } catch {
+    /* ignore */
+  }
+}
+
+export function consumeRegistrationDraftCleared() {
+  if (typeof window === "undefined") return false;
+  try {
+    if (!sessionStorage.getItem(DRAFT_CLEARED_FLAG)) return false;
+    sessionStorage.removeItem(DRAFT_CLEARED_FLAG);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export function formatDraftSavedAt(savedAt: number) {
   return new Date(savedAt).toLocaleTimeString("fr-FR", {
     hour: "2-digit",
@@ -138,43 +160,112 @@ export function formatDraftSavedAt(savedAt: number) {
   });
 }
 
+const DEFAULT_PHONE_VALUES = new Set(["", "+", "+243"]);
+
+function hasEnteredText(value: unknown) {
+  if (typeof value !== "string") return false;
+  const trimmed = value.trim();
+  if (!trimmed) return false;
+  return !DEFAULT_PHONE_VALUES.has(trimmed);
+}
+
+function recordHasEnteredText(
+  record: Record<string, unknown> | undefined,
+  keys: string[],
+) {
+  if (!record) return false;
+  return keys.some((key) => hasEnteredText(record[key]));
+}
+
+const PUBLIC_FORM_KEYS = [
+  "branchId",
+  "name",
+  "postnom",
+  "prenom",
+  "sexe",
+  "dateOfBirth",
+  "placeOfBirth",
+  "address",
+  "email",
+  "provenanceEcole",
+  "requestedLevel",
+  "requestedSection",
+  "requestedOption",
+];
+
+const GUARDIAN_KEYS = [
+  "name",
+  "postnom",
+  "prenom",
+  "relationshipPreset",
+  "relationshipOther",
+  "telephone",
+  "email",
+  "address",
+];
+
+const PERSON_KEYS = [
+  "username",
+  "name",
+  "postnom",
+  "prenom",
+  "email",
+  "telephone",
+  "address",
+  "dateOfBirth",
+  "placeOfBirth",
+  "provenanceEcole",
+  "observation",
+  "profession",
+];
+
+const EXTRA_KEYS = [
+  "nationalite",
+  "autreNationalite",
+  "territoireAutreNationalite",
+  "langue",
+  "nomMere",
+  "professionMere",
+  "tuteurNom",
+  "adresseTuteur",
+  "provinceOrigine",
+  "territoireOrigine",
+  "secteurOrigine",
+  "villageOrigine",
+];
+
 export function isMeaningfulPublicDraft(payload: PublicRegistrationDraftPayload) {
-  const form = payload.form ?? {};
-  const hasFormValue = [
-    form.branchId,
-    form.name,
-    form.postnom,
-    form.prenom,
-    form.dateOfBirth,
-    form.address,
-    form.requestedLevel,
-  ].some((value) => typeof value === "string" && value.trim().length > 0);
-  const hasGuardian = (payload.guardians ?? []).some((item) => {
-    if (!item || typeof item !== "object") return false;
-    const guardian = item as Record<string, unknown>;
-    return [guardian.name, guardian.telephone, guardian.email].some(
-      (value) => typeof value === "string" && value.trim().length > 0,
-    );
-  });
-  return (
-    hasFormValue ||
-    hasGuardian ||
-    (payload.queuedStudents?.length ?? 0) > 0
-  );
+  if (recordHasEnteredText(payload.form, PUBLIC_FORM_KEYS)) return true;
+  if (payload.form?.consentAccepted === true) return true;
+  if (
+    (payload.guardians ?? []).some((item) => {
+      if (!item || typeof item !== "object") return false;
+      const guardian = item as Record<string, unknown>;
+      return (
+        recordHasEnteredText(guardian, GUARDIAN_KEYS) ||
+        guardian.sexe === "feminin"
+      );
+    })
+  ) {
+    return true;
+  }
+  if (recordHasEnteredText(payload.studentExtra, EXTRA_KEYS)) return true;
+  if (recordHasEnteredText(payload.familyExtra, EXTRA_KEYS)) return true;
+  return (payload.queuedStudents?.length ?? 0) > 0;
 }
 
 export function isMeaningfulAdminDraft(payload: AdminRegistrationDraftPayload) {
-  const student = payload.student ?? {};
-  const parent = payload.parent ?? {};
+  if (recordHasEnteredText(payload.student, PERSON_KEYS)) return true;
+  if (recordHasEnteredText(payload.parent, PERSON_KEYS)) return true;
+  if (recordHasEnteredText(payload.studentExtra, EXTRA_KEYS)) return true;
+  if (recordHasEnteredText(payload.familyExtra, EXTRA_KEYS)) return true;
   return [
-    student.name,
-    student.prenom,
-    student.postnom,
-    parent.name,
-    parent.prenom,
     payload.studentId,
     payload.parentId,
     payload.level,
-    payload.schoolYearId,
-  ].some((value) => typeof value === "string" && value.trim().length > 0);
+    payload.sectionId,
+    payload.optionId,
+    payload.creneauId,
+    payload.photoUrl,
+  ].some((value) => hasEnteredText(value));
 }

@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import {
   IconChartBar,
   IconClock,
+  IconFileAnalytics,
   IconListDetails,
   IconScan,
   IconUserCheck,
@@ -30,6 +31,11 @@ const NAV_ITEMS = [
     title: "Detail des presences",
     segment: "/details",
     icon: IconListDetails,
+  },
+  {
+    title: "Rapports",
+    segment: "/rapports",
+    icon: IconFileAnalytics,
   },
   {
     title: "Historique",

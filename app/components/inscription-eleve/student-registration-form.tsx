@@ -76,8 +76,10 @@ import {
 } from "@/lib/registration-extra-info";
 import {
   clearPublicRegistrationDraft,
+  consumeRegistrationDraftCleared,
   formatDraftSavedAt,
   isMeaningfulPublicDraft,
+  markRegistrationDraftCleared,
   readPublicRegistrationDraft,
   REGISTRATION_DRAFT_DEBOUNCE_MS,
   writePublicRegistrationDraft,
@@ -152,6 +154,23 @@ const emptyGuardian = (isPrimary: boolean): Guardian => ({
   email: "",
   address: "",
   isPrimary,
+});
+
+const emptyPublicForm = () => ({
+  branchId: "",
+  name: "",
+  postnom: "",
+  prenom: "",
+  sexe: "",
+  dateOfBirth: "",
+  placeOfBirth: "",
+  address: "",
+  email: "",
+  provenanceEcole: "",
+  requestedLevel: "",
+  requestedSection: "",
+  requestedOption: "",
+  consentAccepted: false,
 });
 
 function resolveRelationship(guardian: Guardian) {
@@ -246,22 +265,7 @@ export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
   const [branchTypeFilter, setBranchTypeFilter] = useState<
     ManagedBranchType | ""
   >("");
-  const [form, setForm] = useState({
-    branchId: "",
-    name: "",
-    postnom: "",
-    prenom: "",
-    sexe: "",
-    dateOfBirth: "",
-    placeOfBirth: "",
-    address: "",
-    email: "",
-    provenanceEcole: "",
-    requestedLevel: "",
-    requestedSection: "",
-    requestedOption: "",
-    consentAccepted: false,
-  });
+  const [form, setForm] = useState(emptyPublicForm);
   const [guardians, setGuardians] = useState<Guardian[]>([
     emptyGuardian(true),
     emptyGuardian(false),
@@ -320,16 +324,45 @@ export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
     }, REGISTRATION_DRAFT_DEBOUNCE_MS);
   }
 
-  function discardDraft() {
-    if (draftTimerRef.current) clearTimeout(draftTimerRef.current);
-    clearPublicRegistrationDraft();
+  function resetPublicRegistrationForm() {
+    setStep(0);
+    setReferences([]);
+    setPhoto(null);
+    setSecondGuardian(false);
+    setCameraOpen(false);
+    setQueuedStudents([]);
+    setStudentExtra(emptyStudentExtraInfo());
+    setFamilyExtra(emptyFamilyExtraInfo());
+    setExtraOpen(false);
+    setForm(emptyPublicForm());
+    setGuardians([emptyGuardian(true), emptyGuardian(false)]);
+    setBranchTypeFilter("");
     setDraftSavedAt(null);
-    toast.message("Brouillon local effacé");
+    latestDraftRef.current = null;
+  }
+
+  function discardDraft() {
+    draftReadyRef.current = false;
+    if (draftTimerRef.current) {
+      clearTimeout(draftTimerRef.current);
+      draftTimerRef.current = null;
+    }
+    clearPublicRegistrationDraft();
+    resetPublicRegistrationForm();
+    markRegistrationDraftCleared();
+    window.location.reload();
   }
 
   useEffect(() => {
+    if (consumeRegistrationDraftCleared()) {
+      toast.message("Brouillon local effacé", {
+        description: "Tous les champs ont été réinitialisés.",
+      });
+    }
     const draft = readPublicRegistrationDraft();
-    if (draft?.payload) {
+    if (draft?.payload && !isMeaningfulPublicDraft(draft.payload)) {
+      clearPublicRegistrationDraft();
+    } else if (draft?.payload) {
       const p = draft.payload;
       if (typeof p.step === "number") setStep(Math.max(0, p.step));
       if (typeof p.branchTypeFilter === "string") {
@@ -1139,7 +1172,7 @@ export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
               <button
                 type="button"
                 className="inline-flex items-center gap-2 rounded-full bg-primary-foreground/15 px-3 py-1.5 text-xs font-medium text-primary-foreground/90 hover:bg-primary-foreground/25"
-                title="Sauvegarde locale automatique (navigateur). Cliquez pour effacer."
+                title="Sauvegarde locale automatique (navigateur). Cliquez pour tout vider et recharger la page."
                 onClick={discardDraft}
               >
                 Brouillon local · {formatDraftSavedAt(draftSavedAt)}

@@ -30,9 +30,13 @@ import type { AttendanceStatus, Prisma } from "@/prisma/generated/prisma/client"
 import {
   nowLocal,
   scheduleHourToMinutes,
+  startOfTodayParis,
   toMinutes,
 } from "@/lib/timezone";
 import { z } from "zod";
+import {
+  resolveAbsenceIfPresent,
+} from "@/lib/attendance-absence";
 import type {
   AttendanceCheckInResult,
   AttendancePersonLookup,
@@ -487,6 +491,28 @@ function buildAlreadyCheckedInResult(
   };
 }
 
+function buildNeedsCheckoutResult(
+  lookup: AttendancePersonLookup,
+  attendanceId: string,
+  status: AttendanceStatus,
+  sessionLabel: string,
+  checkedAt: Date,
+): AttendanceCheckInResult {
+  const isKnownCheckInStatus = status === "PRESENT" || status === "LATE";
+  return {
+    ok: false,
+    needsCheckout: true,
+    attendanceId,
+    message: `${lookup.name} est déjà pointé(e) à l'arrivée. Encodez la sortie (normale ou anticipée avec motif).`,
+    personType: lookup.personType,
+    person: lookup,
+    status: isKnownCheckInStatus ? status : undefined,
+    statusLabel: status === "LATE" ? "Retard" : status === "PRESENT" ? "Present" : undefined,
+    sessionLabel,
+    checkedAt: checkedAt.toISOString(),
+  };
+}
+
 function buildSuccessResult(
   lookup: AttendancePersonLookup,
   status: "PRESENT" | "LATE",
@@ -660,11 +686,25 @@ async function performStudentCheckIn(
   });
 
   if (existingAttendance) {
+    if (
+      existingAttendance.checkIn &&
+      !existingAttendance.checkOut &&
+      !existingAttendance.earlyExit
+    ) {
+      return buildNeedsCheckoutResult(
+        lookup,
+        existingAttendance.id,
+        existingAttendance.status,
+        sessionLabel,
+        existingAttendance.checkIn ?? existingAttendance.recordedAt,
+      );
+    }
+
     return buildAlreadyCheckedInResult(
       lookup,
       existingAttendance.status,
       sessionLabel,
-      existingAttendance.recordedAt,
+      existingAttendance.checkIn ?? existingAttendance.recordedAt,
     );
   }
 
@@ -679,6 +719,7 @@ async function performStudentCheckIn(
     update: {
       status,
       recordedAt: now,
+      checkIn: now,
     },
     create: {
       branchId,
@@ -686,7 +727,15 @@ async function performStudentCheckIn(
       studentId: student.id,
       status,
       recordedAt: now,
+      checkIn: now,
     },
+  });
+
+  void resolveAbsenceIfPresent({
+    branchId,
+    sourceKey: `student:${attendanceSession.id}:${student.id}`,
+  }).catch((error) => {
+    console.error("[performStudentCheckIn] absence sync", error);
   });
 
   return buildSuccessResult(lookup, status, sessionLabel, now);
@@ -773,11 +822,25 @@ async function performTeacherCheckIn(
   });
 
   if (existingAttendance) {
+    if (
+      existingAttendance.checkIn &&
+      !existingAttendance.checkOut &&
+      !existingAttendance.earlyExit
+    ) {
+      return buildNeedsCheckoutResult(
+        lookup,
+        existingAttendance.id,
+        existingAttendance.status,
+        sessionLabel,
+        existingAttendance.checkIn ?? existingAttendance.date,
+      );
+    }
+
     return buildAlreadyCheckedInResult(
       lookup,
       existingAttendance.status,
       sessionLabel,
-      existingAttendance.date,
+      existingAttendance.checkIn ?? existingAttendance.date,
     );
   }
 
@@ -792,6 +855,7 @@ async function performTeacherCheckIn(
     update: {
       status,
       date: now,
+      checkIn: now,
     },
     create: {
       branchId,
@@ -799,7 +863,15 @@ async function performTeacherCheckIn(
       teacherId: teacher.id,
       status,
       date: now,
+      checkIn: now,
     },
+  });
+
+  void resolveAbsenceIfPresent({
+    branchId,
+    sourceKey: `teacher:${hydratedSession.id}:${teacher.id}`,
+  }).catch((error) => {
+    console.error("[performTeacherCheckIn] absence sync", error);
   });
 
   return buildSuccessResult(lookup, status, sessionLabel, now);
@@ -831,8 +903,7 @@ async function performPersonnelCheckIn(
   if (geoError) return geoError;
 
   const now = nowLocal();
-  const today = new Date(now);
-  today.setHours(0, 0, 0, 0);
+  const today = startOfTodayParis(now);
   const status = resolvePersonnelStatus();
 
   const existingAttendance = await prisma.personnelAttendance.findUnique({
@@ -846,6 +917,16 @@ async function performPersonnelCheckIn(
   });
 
   if (existingAttendance?.checkIn) {
+    if (!existingAttendance.checkOut && !existingAttendance.earlyExit) {
+      return buildNeedsCheckoutResult(
+        lookup,
+        existingAttendance.id,
+        existingAttendance.status,
+        "Presence journaliere",
+        existingAttendance.checkIn,
+      );
+    }
+
     return buildAlreadyCheckedInResult(
       lookup,
       existingAttendance.status,
@@ -873,6 +954,14 @@ async function performPersonnelCheckIn(
       status,
       checkIn: now,
     },
+  });
+
+  const dayKey = startOfTodayParis(today).toISOString().slice(0, 10);
+  void resolveAbsenceIfPresent({
+    branchId,
+    sourceKey: `personnel:${dayKey}:${personnel.id}`,
+  }).catch((error) => {
+    console.error("[performPersonnelCheckIn] absence sync", error);
   });
 
   return buildSuccessResult(lookup, status, "Presence journaliere", now);
@@ -1104,4 +1193,130 @@ export async function checkInStudentByIdAction(
   coords: AttendanceGeoCoords,
 ) {
   return checkInPersonByIdAction("student", studentId, coords);
+}
+
+/** Trouve une présence ouverte (arrivée sans sortie) pour encoder la sortie. */
+export async function findOpenCheckoutForPersonAction(
+  personType: AttendancePersonType,
+  personId: string,
+): Promise<AttendanceCheckInResult | null> {
+  const { branchId, organizationId } = await requireBranchContext();
+  const now = nowLocal();
+  const today = new Date(now);
+  today.setHours(0, 0, 0, 0);
+  const end = new Date(today);
+  end.setHours(23, 59, 59, 999);
+
+  if (personType === "student") {
+    const student = await prisma.student.findFirst({
+      where: {
+        id: personId,
+        branchMember: { branchId, branch: { organizationId } },
+      },
+      include: studentInclude(),
+    });
+    if (!student) return null;
+    const lookup = mapStudentLookup(student);
+    const open = await prisma.studentAttendance.findFirst({
+      where: {
+        branchId,
+        studentId: personId,
+        checkIn: { not: null },
+        checkOut: null,
+        earlyExit: false,
+        status: { in: ["PRESENT", "LATE", "EXCUSED"] },
+        session: { date: { gte: today, lte: end } },
+      },
+      orderBy: { recordedAt: "desc" },
+    });
+    if (!open?.checkIn) {
+      return {
+        ok: false,
+        message: `${lookup.name} n'a pas de pointage d'arrivée ouvert aujourd'hui.`,
+        personType: "student",
+        person: lookup,
+      };
+    }
+    return buildNeedsCheckoutResult(
+      lookup,
+      open.id,
+      open.status,
+      "Session du jour",
+      open.checkIn,
+    );
+  }
+
+  if (personType === "teacher") {
+    const teacher = await prisma.teacher.findFirst({
+      where: {
+        id: personId,
+        branchMember: { branchId, branch: { organizationId } },
+      },
+      include: userInclude(),
+    });
+    if (!teacher) return null;
+    const lookup = mapTeacherLookup(teacher);
+    const open = await prisma.teacherAttendance.findFirst({
+      where: {
+        branchId,
+        teacherId: personId,
+        date: { gte: today, lte: end },
+        checkIn: { not: null },
+        checkOut: null,
+        earlyExit: false,
+        status: { in: ["PRESENT", "LATE", "EXCUSED"] },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+    if (!open?.checkIn) {
+      return {
+        ok: false,
+        message: `${lookup.name} n'a pas de pointage d'arrivée ouvert aujourd'hui.`,
+        personType: "teacher",
+        person: lookup,
+      };
+    }
+    return buildNeedsCheckoutResult(
+      lookup,
+      open.id,
+      open.status,
+      "Cours du jour",
+      open.checkIn,
+    );
+  }
+
+  const personnel = await prisma.personnel.findFirst({
+    where: {
+      id: personId,
+      branchMember: { branchId, branch: { organizationId } },
+    },
+    include: userInclude(),
+  });
+  if (!personnel) return null;
+  const lookup = mapPersonnelLookup(personnel);
+  const open = await prisma.personnelAttendance.findFirst({
+    where: {
+      branchId,
+      personnelId: personId,
+      date: today,
+      checkIn: { not: null },
+      checkOut: null,
+      earlyExit: false,
+    },
+  });
+  if (!open?.checkIn) {
+    return {
+      ok: false,
+      message: `${lookup.name} n'a pas de pointage d'arrivée ouvert aujourd'hui.`,
+      personType: "personnel",
+      person: lookup,
+    };
+  }
+  return buildNeedsCheckoutResult(
+    lookup,
+    open.id,
+    open.status,
+    "Presence journaliere",
+    open.checkIn,
+  );
 }

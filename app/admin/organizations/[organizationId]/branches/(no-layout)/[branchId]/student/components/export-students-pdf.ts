@@ -259,10 +259,8 @@ export async function buildStudentsReportPdf(
   });
 
   // Largeurs proportionnelles.
-  const columnStyles: Record<
-    number,
-    { cellWidth: number; halign: "center" | "left" }
-  > = (() => {
+  type PdfColumnStyle = { cellWidth: number; halign: "center" | "left" };
+  const columnStyles: Record<number, PdfColumnStyle> = (() => {
     if (isClassReport && !showBirthColumns) {
       return {
         0: { cellWidth: usableWidth * 0.06, halign: "center" as const },
@@ -309,7 +307,7 @@ export async function buildStudentsReportPdf(
       8: { cellWidth: usableWidth * 0.05, halign: "center" as const },
       9: { cellWidth: usableWidth * 0.215, halign: "left" as const },
     };
-  })();
+  })() as Record<number, PdfColumnStyle>;
 
   autoTable(doc, {
     startY: contentTop,

@@ -41,6 +41,7 @@ import {
   StudentIdentitySection,
   TeacherSpaceSection,
 } from "./dashboard-sections";
+import { AbsenceDashboardSection } from "@/components/absence-dashboard-card";
 
 type AdminStats = {
   typebranch?: string | null;
@@ -500,6 +501,8 @@ export default function AdminDashboard() {
               studentLabel={peopleLabels.student}
             />
           ) : null}
+
+          <AbsenceDashboardSection />
 
           {variant === "parent" ? (
             <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(260px,0.9fr)]">

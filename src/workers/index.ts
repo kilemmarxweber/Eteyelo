@@ -4,5 +4,8 @@
  */
 import "./grade.worker";
 import "./email.worker";
+import { startAttendanceAbsenceCron } from "../server/cron/attendanceCron";
 
-console.log("👷 All workers started (grade + email)");
+startAttendanceAbsenceCron();
+
+console.log("👷 All workers started (grade + email + attendance)");

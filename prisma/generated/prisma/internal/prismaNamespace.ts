@@ -424,6 +424,8 @@ export const ModelName = {
   PaymentEvent: 'PaymentEvent',
   DiscountRule: 'DiscountRule',
   Transaction: 'Transaction',
+  AbsenceCase: 'AbsenceCase',
+  AppNotification: 'AppNotification',
   Session: 'Session',
   Account: 'Account',
   Verification: 'Verification',
@@ -467,7 +469,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "parent" | "student" | "attendanceSession" | "studentAttendance" | "teacherAttendance" | "personnelAttendance" | "parentFeedback" | "studentGrade" | "personnel" | "frais" | "typeFrais" | "classe" | "creneau" | "option" | "section" | "schoolYear" | "classEnrollment" | "teacher" | "teaching" | "cours" | "coursOptionPonderation" | "schedule" | "calendarEvent" | "eventType" | "semester" | "period" | "periodResultLock" | "fiche" | "invoice" | "paymentBatch" | "familyPayment" | "cashierExpense" | "cashierOpeningBalance" | "exchangeRate" | "paymentAllocation" | "mobileMoneyTransaction" | "paymentEvent" | "discountRule" | "transaction" | "session" | "account" | "verification" | "organization" | "organizationRole" | "member" | "invitation" | "branch" | "branchPrimaryDomain" | "branchRegistrationInfo" | "registrationRequest" | "jobApplication" | "partnaire" | "branchMember" | "studentBranchLink" | "issuedDocument" | "branchInvitation" | "libraryBook" | "platformSupportAgent" | "organizationSupportAgent" | "organizationSupportBranchScope" | "platformSupportEscalation" | "onlineAssignment" | "onlineQuestion" | "onlineQuestionOption" | "onlineSubmission" | "onlineAnswer" | "onlineSubmissionFile"
+    modelProps: "user" | "parent" | "student" | "attendanceSession" | "studentAttendance" | "teacherAttendance" | "personnelAttendance" | "parentFeedback" | "studentGrade" | "personnel" | "frais" | "typeFrais" | "classe" | "creneau" | "option" | "section" | "schoolYear" | "classEnrollment" | "teacher" | "teaching" | "cours" | "coursOptionPonderation" | "schedule" | "calendarEvent" | "eventType" | "semester" | "period" | "periodResultLock" | "fiche" | "invoice" | "paymentBatch" | "familyPayment" | "cashierExpense" | "cashierOpeningBalance" | "exchangeRate" | "paymentAllocation" | "mobileMoneyTransaction" | "paymentEvent" | "discountRule" | "transaction" | "absenceCase" | "appNotification" | "session" | "account" | "verification" | "organization" | "organizationRole" | "member" | "invitation" | "branch" | "branchPrimaryDomain" | "branchRegistrationInfo" | "registrationRequest" | "jobApplication" | "partnaire" | "branchMember" | "studentBranchLink" | "issuedDocument" | "branchInvitation" | "libraryBook" | "platformSupportAgent" | "organizationSupportAgent" | "organizationSupportBranchScope" | "platformSupportEscalation" | "onlineAssignment" | "onlineQuestion" | "onlineQuestionOption" | "onlineSubmission" | "onlineAnswer" | "onlineSubmissionFile"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -3431,6 +3433,154 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    AbsenceCase: {
+      payload: Prisma.$AbsenceCasePayload<ExtArgs>
+      fields: Prisma.AbsenceCaseFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.AbsenceCaseFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AbsenceCasePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.AbsenceCaseFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AbsenceCasePayload>
+        }
+        findFirst: {
+          args: Prisma.AbsenceCaseFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AbsenceCasePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.AbsenceCaseFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AbsenceCasePayload>
+        }
+        findMany: {
+          args: Prisma.AbsenceCaseFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AbsenceCasePayload>[]
+        }
+        create: {
+          args: Prisma.AbsenceCaseCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AbsenceCasePayload>
+        }
+        createMany: {
+          args: Prisma.AbsenceCaseCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.AbsenceCaseCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AbsenceCasePayload>[]
+        }
+        delete: {
+          args: Prisma.AbsenceCaseDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AbsenceCasePayload>
+        }
+        update: {
+          args: Prisma.AbsenceCaseUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AbsenceCasePayload>
+        }
+        deleteMany: {
+          args: Prisma.AbsenceCaseDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.AbsenceCaseUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.AbsenceCaseUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AbsenceCasePayload>[]
+        }
+        upsert: {
+          args: Prisma.AbsenceCaseUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AbsenceCasePayload>
+        }
+        aggregate: {
+          args: Prisma.AbsenceCaseAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateAbsenceCase>
+        }
+        groupBy: {
+          args: Prisma.AbsenceCaseGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AbsenceCaseGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.AbsenceCaseCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AbsenceCaseCountAggregateOutputType> | number
+        }
+      }
+    }
+    AppNotification: {
+      payload: Prisma.$AppNotificationPayload<ExtArgs>
+      fields: Prisma.AppNotificationFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.AppNotificationFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AppNotificationPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.AppNotificationFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AppNotificationPayload>
+        }
+        findFirst: {
+          args: Prisma.AppNotificationFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AppNotificationPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.AppNotificationFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AppNotificationPayload>
+        }
+        findMany: {
+          args: Prisma.AppNotificationFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AppNotificationPayload>[]
+        }
+        create: {
+          args: Prisma.AppNotificationCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AppNotificationPayload>
+        }
+        createMany: {
+          args: Prisma.AppNotificationCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.AppNotificationCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AppNotificationPayload>[]
+        }
+        delete: {
+          args: Prisma.AppNotificationDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AppNotificationPayload>
+        }
+        update: {
+          args: Prisma.AppNotificationUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AppNotificationPayload>
+        }
+        deleteMany: {
+          args: Prisma.AppNotificationDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.AppNotificationUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.AppNotificationUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AppNotificationPayload>[]
+        }
+        upsert: {
+          args: Prisma.AppNotificationUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AppNotificationPayload>
+        }
+        aggregate: {
+          args: Prisma.AppNotificationAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateAppNotification>
+        }
+        groupBy: {
+          args: Prisma.AppNotificationGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AppNotificationGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.AppNotificationCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AppNotificationCountAggregateOutputType> | number
+        }
+      }
+    }
     Session: {
       payload: Prisma.$SessionPayload<ExtArgs>
       fields: Prisma.SessionFieldRefs
@@ -5635,6 +5785,11 @@ export const StudentAttendanceScalarFieldEnum = {
   studentId: 'studentId',
   status: 'status',
   remark: 'remark',
+  checkIn: 'checkIn',
+  checkOut: 'checkOut',
+  earlyExit: 'earlyExit',
+  exitReason: 'exitReason',
+  exitReasonCode: 'exitReasonCode',
   createdAt: 'createdAt',
   recordedAt: 'recordedAt',
   branchId: 'branchId'
@@ -5650,6 +5805,11 @@ export const TeacherAttendanceScalarFieldEnum = {
   date: 'date',
   status: 'status',
   remark: 'remark',
+  checkIn: 'checkIn',
+  checkOut: 'checkOut',
+  earlyExit: 'earlyExit',
+  exitReason: 'exitReason',
+  exitReasonCode: 'exitReasonCode',
   createdAt: 'createdAt',
   branchId: 'branchId'
 } as const
@@ -5665,6 +5825,9 @@ export const PersonnelAttendanceScalarFieldEnum = {
   checkOut: 'checkOut',
   status: 'status',
   remark: 'remark',
+  earlyExit: 'earlyExit',
+  exitReason: 'exitReason',
+  exitReasonCode: 'exitReasonCode',
   createdAt: 'createdAt',
   branchId: 'branchId'
 } as const
@@ -6165,6 +6328,53 @@ export const TransactionScalarFieldEnum = {
 } as const
 
 export type TransactionScalarFieldEnum = (typeof TransactionScalarFieldEnum)[keyof typeof TransactionScalarFieldEnum]
+
+
+export const AbsenceCaseScalarFieldEnum = {
+  id: 'id',
+  branchId: 'branchId',
+  organizationId: 'organizationId',
+  userId: 'userId',
+  subjectType: 'subjectType',
+  sourceKey: 'sourceKey',
+  studentId: 'studentId',
+  teacherId: 'teacherId',
+  personnelId: 'personnelId',
+  sessionId: 'sessionId',
+  studentAttendanceId: 'studentAttendanceId',
+  teacherAttendanceId: 'teacherAttendanceId',
+  personnelAttendanceId: 'personnelAttendanceId',
+  occurredOn: 'occurredOn',
+  contextLabel: 'contextLabel',
+  status: 'status',
+  justification: 'justification',
+  justifiedAt: 'justifiedAt',
+  reviewComment: 'reviewComment',
+  reviewedById: 'reviewedById',
+  reviewedAt: 'reviewedAt',
+  absenceNotifiedAt: 'absenceNotifiedAt',
+  returnNotifiedAt: 'returnNotifiedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type AbsenceCaseScalarFieldEnum = (typeof AbsenceCaseScalarFieldEnum)[keyof typeof AbsenceCaseScalarFieldEnum]
+
+
+export const AppNotificationScalarFieldEnum = {
+  id: 'id',
+  branchId: 'branchId',
+  userId: 'userId',
+  type: 'type',
+  title: 'title',
+  body: 'body',
+  href: 'href',
+  absenceCaseId: 'absenceCaseId',
+  readAt: 'readAt',
+  createdAt: 'createdAt'
+} as const
+
+export type AppNotificationScalarFieldEnum = (typeof AppNotificationScalarFieldEnum)[keyof typeof AppNotificationScalarFieldEnum]
 
 
 export const SessionScalarFieldEnum = {
@@ -6816,6 +7026,20 @@ export type ListEnumAttendanceStatusFieldRefInput<$PrismaModel> = FieldRefInputT
 
 
 /**
+ * Reference to a field of type 'AttendanceExitReason'
+ */
+export type EnumAttendanceExitReasonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AttendanceExitReason'>
+    
+
+
+/**
+ * Reference to a field of type 'AttendanceExitReason[]'
+ */
+export type ListEnumAttendanceExitReasonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AttendanceExitReason[]'>
+    
+
+
+/**
  * Reference to a field of type 'Int'
  */
 export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>
@@ -6966,6 +7190,48 @@ export type EnumDiscountScopeFieldRefInput<$PrismaModel> = FieldRefInputType<$Pr
  * Reference to a field of type 'DiscountScope[]'
  */
 export type ListEnumDiscountScopeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DiscountScope[]'>
+    
+
+
+/**
+ * Reference to a field of type 'AttendanceSubjectType'
+ */
+export type EnumAttendanceSubjectTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AttendanceSubjectType'>
+    
+
+
+/**
+ * Reference to a field of type 'AttendanceSubjectType[]'
+ */
+export type ListEnumAttendanceSubjectTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AttendanceSubjectType[]'>
+    
+
+
+/**
+ * Reference to a field of type 'AbsenceCaseStatus'
+ */
+export type EnumAbsenceCaseStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AbsenceCaseStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'AbsenceCaseStatus[]'
+ */
+export type ListEnumAbsenceCaseStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AbsenceCaseStatus[]'>
+    
+
+
+/**
+ * Reference to a field of type 'AppNotificationType'
+ */
+export type EnumAppNotificationTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AppNotificationType'>
+    
+
+
+/**
+ * Reference to a field of type 'AppNotificationType[]'
+ */
+export type ListEnumAppNotificationTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AppNotificationType[]'>
     
 
 
@@ -7356,6 +7622,8 @@ export type GlobalOmitConfig = {
   paymentEvent?: Prisma.PaymentEventOmit
   discountRule?: Prisma.DiscountRuleOmit
   transaction?: Prisma.TransactionOmit
+  absenceCase?: Prisma.AbsenceCaseOmit
+  appNotification?: Prisma.AppNotificationOmit
   session?: Prisma.SessionOmit
   account?: Prisma.AccountOmit
   verification?: Prisma.VerificationOmit

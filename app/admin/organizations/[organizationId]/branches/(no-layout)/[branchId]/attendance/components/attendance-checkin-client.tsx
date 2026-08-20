@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import {
   IconBarcode,
   IconKeyboard,
+  IconLogout,
   IconScan,
   IconUserCheck,
 } from "@tabler/icons-react";
@@ -16,6 +17,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   checkInByScanAction,
   checkInPersonByIdAction,
+  findOpenCheckoutForPersonAction,
   searchPeopleForCheckInAction,
 } from "../attendance-scan.action";
 import type {
@@ -24,6 +26,7 @@ import type {
   AttendancePersonType,
 } from "../attendance-scan-types";
 import { getCurrentPosition } from "../component/attendance.client";
+import { AttendanceCheckoutDialog } from "./attendance-checkout-dialog";
 import { AttendanceScanner } from "./attendance-scanner";
 
 async function resolveCheckInCoords() {
@@ -36,6 +39,13 @@ async function resolveCheckInCoords() {
 
 type RecentCheckIn = AttendanceCheckInResult & { id: string };
 type PointageMode = "scan" | "manual";
+
+type CheckoutTarget = {
+  personType: AttendancePersonType;
+  attendanceId: string;
+  personName: string;
+  sessionLabel?: string | null;
+};
 
 const personTypeLabels: Record<AttendancePersonType, string> = {
   student: "Eleve",
@@ -50,23 +60,21 @@ export function AttendanceCheckInClient() {
   const [results, setResults] = useState<AttendancePersonLookup[]>([]);
   const [selected, setSelected] = useState<AttendancePersonLookup | null>(null);
   const [recent, setRecent] = useState<RecentCheckIn[]>([]);
+  const [checkout, setCheckout] = useState<CheckoutTarget | null>(null);
   const [pending, startTransition] = useTransition();
   const lastScanRef = useRef<string>("");
   const lastScanAtRef = useRef(0);
 
-  const fetchResults = useCallback(
-    async (query: string) => {
-      const trimmed = query.trim();
-      if (trimmed.length < 2) {
-        setResults([]);
-        return;
-      }
+  const fetchResults = useCallback(async (query: string) => {
+    const trimmed = query.trim();
+    if (trimmed.length < 2) {
+      setResults([]);
+      return;
+    }
 
-      const items = await searchPeopleForCheckInAction(trimmed);
-      setResults(items);
-    },
-    [],
-  );
+    const items = await searchPeopleForCheckInAction(trimmed);
+    setResults(items);
+  }, []);
 
   useEffect(() => {
     if (searchQuery.trim().length < 2) {
@@ -121,17 +129,45 @@ export function AttendanceCheckInClient() {
   }, [results, selected]);
 
   const pushRecent = useCallback((result: AttendanceCheckInResult) => {
-    setRecent((items) => [
-      {
-        ...result,
-        id: `${Date.now()}-${result.person?.id ?? "unknown"}`,
-      },
-      ...items,
-    ].slice(0, 6));
+    setRecent((items) =>
+      [
+        {
+          ...result,
+          id: `${Date.now()}-${result.person?.id ?? "unknown"}`,
+        },
+        ...items,
+      ].slice(0, 6),
+    );
   }, []);
+
+  const openCheckoutFromResult = useCallback(
+    (result: AttendanceCheckInResult) => {
+      if (
+        !result.needsCheckout ||
+        !result.attendanceId ||
+        !result.personType ||
+        !result.person
+      ) {
+        return;
+      }
+      setCheckout({
+        personType: result.personType,
+        attendanceId: result.attendanceId,
+        personName: result.person.name,
+        sessionLabel: result.sessionLabel,
+      });
+      toast.message(result.message);
+    },
+    [],
+  );
 
   const handleCheckInResult = useCallback(
     (result: AttendanceCheckInResult) => {
+      if (result.needsCheckout) {
+        openCheckoutFromResult(result);
+        return;
+      }
+
       pushRecent(result);
       if (result.ok) {
         toast.success(result.message);
@@ -143,7 +179,7 @@ export function AttendanceCheckInClient() {
         toast.error(result.message);
       }
     },
-    [pushRecent],
+    [openCheckoutFromResult, pushRecent],
   );
 
   const runScan = useCallback(
@@ -202,13 +238,37 @@ export function AttendanceCheckInClient() {
     });
   }
 
+  function checkOutSelected() {
+    if (!selected) return;
+
+    startTransition(async () => {
+      try {
+        const result = await findOpenCheckoutForPersonAction(
+          selected.personType,
+          selected.id,
+        );
+        if (!result) {
+          toast.error("Aucune présence ouverte trouvée.");
+          return;
+        }
+        handleCheckInResult(result);
+      } catch (error) {
+        toast.error(
+          error instanceof Error
+            ? error.message
+            : "Impossible de préparer la sortie.",
+        );
+      }
+    });
+  }
+
   return (
     <div className="space-y-6">
       <div>
         <h2 className="text-xl font-semibold">Pointage</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Scannez la carte eleve, enseignant ou personnel. Si aucun lecteur
-          n&apos;est disponible, utilisez la saisie manuelle.
+          Scannez pour l&apos;arrivée. Un second scan (ou « Pointer sortie »)
+          ouvre l&apos;encodage de sortie — normale ou anticipée avec motif.
         </p>
       </div>
 
@@ -243,7 +303,9 @@ export function AttendanceCheckInClient() {
         <TabsContent value="scan" className="mt-0 space-y-4">
           <AttendanceScanner onScan={runScan} disabled={pending} />
           <p className="text-xs text-muted-foreground">
-            Placez le code-barres ou le QR code de la carte devant la camera.
+            Placez le code-barres ou le QR code de la carte devant la camera. Si
+            la personne est déjà arrivée, le scan propose d&apos;encoder la
+            sortie.
           </p>
         </TabsContent>
 
@@ -318,15 +380,27 @@ export function AttendanceCheckInClient() {
             </div>
           ) : null}
 
-          <Button
-            type="button"
-            className="w-full sm:w-auto"
-            onClick={checkInSelected}
-            disabled={pending || !selected}
-          >
-            <IconUserCheck className="mr-2 size-4" />
-            Pointer present
-          </Button>
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <Button
+              type="button"
+              className="w-full sm:w-auto"
+              onClick={checkInSelected}
+              disabled={pending || !selected}
+            >
+              <IconUserCheck className="mr-2 size-4" />
+              Pointer arrivée
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full sm:w-auto"
+              onClick={checkOutSelected}
+              disabled={pending || !selected}
+            >
+              <IconLogout className="mr-2 size-4" />
+              Pointer sortie
+            </Button>
+          </div>
         </TabsContent>
       </Tabs>
 
@@ -367,6 +441,40 @@ export function AttendanceCheckInClient() {
             ))}
           </div>
         </div>
+      ) : null}
+
+      {checkout ? (
+        <AttendanceCheckoutDialog
+          open={Boolean(checkout)}
+          onOpenChange={(open) => {
+            if (!open) setCheckout(null);
+          }}
+          personType={checkout.personType}
+          attendanceId={checkout.attendanceId}
+          personName={checkout.personName}
+          sessionLabel={checkout.sessionLabel}
+          onDone={(message) => {
+            pushRecent({
+              ok: true,
+              message,
+              personType: checkout.personType,
+              person: {
+                id: checkout.attendanceId,
+                name: checkout.personName,
+                matricule: "",
+                roleLabel: personTypeLabels[checkout.personType],
+                personType: checkout.personType,
+              },
+              statusLabel: "Sortie",
+              sessionLabel: checkout.sessionLabel ?? undefined,
+            });
+            setCheckout(null);
+            setSelected(null);
+            setSearchQuery("");
+            setResults([]);
+            setManualCode("");
+          }}
+        />
       ) : null}
     </div>
   );

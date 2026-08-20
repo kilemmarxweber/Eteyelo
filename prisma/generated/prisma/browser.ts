@@ -218,6 +218,16 @@ export type DiscountRule = Prisma.DiscountRuleModel
  */
 export type Transaction = Prisma.TransactionModel
 /**
+ * Model AbsenceCase
+ * Absence auto (aucun scan / pointage) + justification / retour.
+ */
+export type AbsenceCase = Prisma.AbsenceCaseModel
+/**
+ * Model AppNotification
+ * 
+ */
+export type AppNotification = Prisma.AppNotificationModel
+/**
  * Model Session
  * 
  */

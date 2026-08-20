@@ -5,11 +5,11 @@ import { action } from "@/lib/zsa";
 import { prisma } from "@/lib/prisma";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
 import {
-  canSeeBranchNotifications,
   canSeeCandidatureNotifications,
   canSeeInscriptionNotifications,
 } from "@/lib/auth/session-roles";
 import { Prisma } from "@/prisma/generated/prisma/client";
+import { countUnreadAppNotifications } from "@/lib/attendance-absence";
 
 // ─── types ────────────────────────────────────────────────────────────────────
 export type NotificationRequestRow = {
@@ -50,9 +50,6 @@ async function requireNotificationContext() {
     select: { role: true },
   });
   const memberRole = branchMember?.role;
-  if (!canSeeBranchNotifications(context.session, memberRole)) {
-    throw new Error("Accès non autorisé aux notifications.");
-  }
   return {
     ...context,
     memberRole,
@@ -126,11 +123,12 @@ export const getNotificationCountAction = action.handler(async () => {
   const {
     branchId,
     organizationId,
+    userId,
     canSeeInscriptions,
     canSeeCandidatures,
   } = await requireNotificationContext();
 
-  const [registrationCount, jobCount] = await Promise.all([
+  const [registrationCount, jobCount, absenceCount] = await Promise.all([
     canSeeInscriptions
       ? prisma.$queryRaw<Array<{ count: bigint }>>(Prisma.sql`
           SELECT COUNT(*) AS count
@@ -148,10 +146,11 @@ export const getNotificationCountAction = action.handler(async () => {
           },
         })
       : Promise.resolve(0),
+    countUnreadAppNotifications({ branchId, userId }),
   ]);
 
   return {
-    count: Number(registrationCount[0]?.count ?? 0) + jobCount,
+    count: Number(registrationCount[0]?.count ?? 0) + jobCount + absenceCount,
   };
 });
 

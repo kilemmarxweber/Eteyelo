@@ -19,6 +19,9 @@ export type AttendanceCheckInResult = {
   statusLabel?: string;
   sessionLabel?: string;
   checkedAt?: string;
+  /** Déjà pointé à l'arrivée : le client doit encoder la sortie. */
+  needsCheckout?: boolean;
+  attendanceId?: string;
 };
 
 /** @deprecated Use AttendancePersonLookup */

@@ -158,6 +158,26 @@ export async function getOrCreateTeacherAttendanceSession(
   branchId: string,
   courseDurationMinutes = TEACHER_COURSE_DURATION_MINUTES,
 ) {
+  return ensureAttendanceSessionForSchedule(
+    teachingId,
+    scheduleId,
+    branchId,
+    courseDurationMinutes,
+    { requireCheckInWindow: true },
+  );
+}
+
+/**
+ * Crée la session du jour même après la fenêtre de pointage
+ * (pour signaler les absences auto une fois le cours terminé).
+ */
+export async function ensureAttendanceSessionForSchedule(
+  teachingId: string,
+  scheduleId: string,
+  branchId: string,
+  courseDurationMinutes = TEACHER_COURSE_DURATION_MINUTES,
+  options?: { requireCheckInWindow?: boolean },
+) {
   const now = nowLocal();
 
   const schedule = await prisma.schedule.findFirst({
@@ -205,16 +225,18 @@ export async function getOrCreateTeacherAttendanceSession(
     return existing;
   }
 
-  const currentMinutes = toMinutes(now);
-  const startMinutes = scheduleHourToMinutes(schedule.hour);
-  if (
-    !isTeacherCheckInWindow(
-      currentMinutes,
-      startMinutes,
-      courseDurationMinutes,
-    )
-  ) {
-    return null;
+  if (options?.requireCheckInWindow !== false) {
+    const currentMinutes = toMinutes(now);
+    const startMinutes = scheduleHourToMinutes(schedule.hour);
+    if (
+      !isTeacherCheckInWindow(
+        currentMinutes,
+        startMinutes,
+        courseDurationMinutes,
+      )
+    ) {
+      return null;
+    }
   }
 
   return prisma.attendanceSession.create({

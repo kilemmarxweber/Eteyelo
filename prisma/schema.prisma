@@ -43,6 +43,9 @@ model User {
   invitations Invitation[]
   platformSupportAgent     PlatformSupportAgent?
   platformEscalationsRequested PlatformSupportEscalation[] @relation("EscalationRequester")
+  absenceCases             AbsenceCase[]        @relation("AbsenceCaseSubject")
+  reviewedAbsenceCases     AbsenceCase[]        @relation("AbsenceCaseReviewer")
+  appNotifications         AppNotification[]
 
   @@index([telephone])
   @@index([role])
@@ -143,15 +146,26 @@ model StudentAttendance {
   student       Student           @relation(fields: [studentId], references: [id])
   status        AttendanceStatus
   remark        String?
+  /// Heure d'arrivée / pointage
+  checkIn       DateTime?
+  /// Heure de sortie (fin de vacation ou sortie anticipée)
+  checkOut      DateTime?
+  /// Sortie avant la fin prévue de la vacation
+  earlyExit     Boolean           @default(false)
+  /// Motif de sortie anticipée (maladie, urgence, etc.)
+  exitReason    String?
+  exitReasonCode AttendanceExitReason?
   createdAt     DateTime          @default(now())
   recordedAt    DateTime          @default(now())
   branchId             String
   branch               Branch             @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  absenceCase          AbsenceCase?
 
   @@unique([branchId, sessionId, studentId])
   @@index([studentId])
   @@index([status])
   @@index([recordedAt])
+  @@index([branchId, earlyExit])
 }
 
 model TeacherAttendance {
@@ -162,14 +176,23 @@ model TeacherAttendance {
   date      DateTime
   status    AttendanceStatus
   remark    String?
+  /// Début effectif du cours (pointage)
+  checkIn   DateTime?
+  /// Fin effective du cours (pointage sortie ou fin de séance)
+  checkOut  DateTime?
+  earlyExit Boolean           @default(false)
+  exitReason String?
+  exitReasonCode AttendanceExitReason?
   createdAt DateTime          @default(now())
   session   AttendanceSession @relation(fields: [sessionId], references: [id])
   branchId             String
   branch               Branch             @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  absenceCase          AbsenceCase?
 
   @@unique([teacherId, sessionId, branchId])
   @@index([branchId])
   @@index([branchId, date])
+  @@index([branchId, earlyExit])
 }
 
 model PersonnelAttendance {
@@ -181,13 +204,18 @@ model PersonnelAttendance {
   checkOut    DateTime?
   status      AttendanceStatus
   remark      String?
+  earlyExit   Boolean          @default(false)
+  exitReason  String?
+  exitReasonCode AttendanceExitReason?
   createdAt   DateTime         @default(now())
   branchId             String
   branch               Branch             @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  absenceCase          AbsenceCase?
 
   @@unique([personnelId, date,branchId])
   @@index([branchId])
   @@index([branchId, date])
+  @@index([branchId, earlyExit])
 }
 
 model ParentFeedback {
@@ -985,6 +1013,97 @@ enum AttendanceStatus {
   EXCUSED
 }
 
+/// Motif de sortie anticipée (élève / enseignant / personnel).
+enum AttendanceExitReason {
+  MALADIE
+  URGENCE
+  AUTORISE
+  AUTRE
+}
+
+enum AttendanceSubjectType {
+  STUDENT
+  TEACHER
+  PERSONNEL
+}
+
+enum AbsenceCaseStatus {
+  OPEN
+  PENDING_REVIEW
+  ACCEPTED
+  REJECTED
+  CLEARED
+}
+
+enum AppNotificationType {
+  ABSENCE
+  JUSTIFICATION_SUBMITTED
+  JUSTIFICATION_DECISION
+  RETURN
+}
+
+/// Absence auto (aucun scan / pointage) + justification / retour.
+model AbsenceCase {
+  id                      String                @id @default(cuid())
+  branchId                String
+  branch                  Branch                @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  organizationId          String
+  userId                  String
+  user                    User                  @relation("AbsenceCaseSubject", fields: [userId], references: [id], onDelete: Cascade)
+  subjectType             AttendanceSubjectType
+  sourceKey               String
+  studentId               String?
+  teacherId               String?
+  personnelId             String?
+  sessionId               String?
+  studentAttendanceId     String?               @unique
+  studentAttendance       StudentAttendance?    @relation(fields: [studentAttendanceId], references: [id], onDelete: Cascade)
+  teacherAttendanceId     String?               @unique
+  teacherAttendance       TeacherAttendance?    @relation(fields: [teacherAttendanceId], references: [id], onDelete: Cascade)
+  personnelAttendanceId   String?               @unique
+  personnelAttendance     PersonnelAttendance?  @relation(fields: [personnelAttendanceId], references: [id], onDelete: Cascade)
+  occurredOn              DateTime
+  contextLabel            String
+  status                  AbsenceCaseStatus     @default(OPEN)
+  justification           String?
+  justifiedAt             DateTime?
+  reviewComment           String?
+  reviewedById            String?
+  reviewedBy              User?                 @relation("AbsenceCaseReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+  reviewedAt              DateTime?
+  absenceNotifiedAt       DateTime?
+  returnNotifiedAt        DateTime?
+  createdAt               DateTime              @default(now())
+  updatedAt               DateTime              @updatedAt
+  notifications           AppNotification[]
+
+  @@unique([branchId, sourceKey])
+  @@index([branchId, status])
+  @@index([userId, status])
+  @@index([organizationId, status])
+  @@index([occurredOn])
+}
+
+model AppNotification {
+  id            String              @id @default(cuid())
+  branchId      String
+  branch        Branch              @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  userId        String
+  user          User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type          AppNotificationType
+  title         String
+  body          String
+  href          String?
+  absenceCaseId String?
+  absenceCase   AbsenceCase?        @relation(fields: [absenceCaseId], references: [id], onDelete: Cascade)
+  readAt        DateTime?
+  createdAt     DateTime            @default(now())
+
+  @@index([userId, readAt])
+  @@index([branchId, userId, createdAt])
+  @@index([absenceCaseId])
+}
+
 enum StudentCategory {
   NORMAL
   ORPHAN
@@ -1207,6 +1326,8 @@ model Branch {
   supportTickets       PlatformSupportEscalation[]
   onlineAssignments    OnlineAssignment[]
   primaryDomains       BranchPrimaryDomain[]
+  absenceCases         AbsenceCase[]
+  appNotifications     AppNotification[]
 
   @@index([organizationId])
   @@index([organizationId, isActive])
