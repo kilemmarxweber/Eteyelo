@@ -24,7 +24,7 @@ const guardianSchema = z.object({
   sexe: z.enum(["masculin", "feminin"]),
   telephone: z.string().trim().min(7, "Telephone du responsable requis"),
   email: z.string().trim().email("Email du responsable invalide").optional().or(z.literal("")),
-  address: z.string().trim().min(5, "Adresse du responsable requise"),
+  address: z.string().trim().min(1, "Adresse du responsable requise"),
   isPrimary: z.boolean(),
 });
 
@@ -35,7 +35,7 @@ const studentEntrySchema = z.object({
   sexe: z.enum(["masculin", "feminin"]),
   dateOfBirth: z.string().min(1, "Date de naissance requise"),
   placeOfBirth: z.string().trim().min(2, "Lieu de naissance requis"),
-  address: z.string().trim().min(5, "Adresse de l'eleve requise"),
+  address: z.string().trim().min(1, "Adresse de l'eleve requise"),
   email: z.string().trim().email().optional().or(z.literal("")),
   provenanceEcole: z.string().trim().optional(),
   requestedLevel: z.string().trim().min(1, "Classe ou niveau souhaite requis"),

@@ -28,12 +28,17 @@ export interface IStudent extends Omit<
   className?: string | null;
   schoolYearId?: string | null;
   schoolYearName?: string | null;
+  /** Codes examen (année préférée / courante). */
+  e13?: string | null;
+  e80?: string | null;
   enrollmentYearIds?: string[];
   enrollments?: Array<{
     schoolYearId: string;
     schoolYearName: string;
     classCode: string | null;
     className: string | null;
+    e13?: string | null;
+    e80?: string | null;
     /** Date d'inscription (ClassEnrollment.createdAt). */
     createdAt?: Date | string | null;
   }>;
@@ -65,7 +70,7 @@ export const studentSchema = z.object({
     .string()
     .startsWith("+243")
     .regex(/^\+243\d{9}$/, "Numéro invalide (format +243XXXXXXXXX)"),
-  address: z.string().min(10, { message: "Veuillez saisir l'adresse" }),
+  address: z.string().trim().min(1, { message: "Veuillez saisir l'adresse" }),
   orgRole: z
     .string()
     .min(3, {

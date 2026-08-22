@@ -3,7 +3,7 @@
 import { useAppTransition as useTransition } from "@/hooks/use-app-transition";
 
 import * as React from "react";
-import { IconArchive, IconReload } from "@tabler/icons-react";
+import { IconArchive, IconReload, IconTrash } from "@tabler/icons-react";
 import { type Row } from "@tanstack/react-table";
 import { toast } from "sonner";
 
@@ -19,7 +19,10 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { ITeacher } from "@/src/interfaces/Teacher";
-import { archiveTeacherAction } from "../teacher.action";
+import {
+  archiveTeacherAction,
+  deleteTeacherPermanentlyAction,
+} from "../teacher.action";
 
 interface DeleteTeacherDialogProps extends React.ComponentPropsWithoutRef<
   typeof Dialog
@@ -27,40 +30,56 @@ interface DeleteTeacherDialogProps extends React.ComponentPropsWithoutRef<
   showTrigger?: boolean;
   onSuccess?: () => void;
   teachers: Row<ITeacher>["original"][];
+  /** Si true : suppression définitive (propriétaire uniquement). */
+  permanent?: boolean;
 }
 
 export function DeleteTeacherDialog({
   showTrigger = true,
   onSuccess,
   teachers,
+  permanent = false,
   ...props
 }: DeleteTeacherDialogProps) {
-  const [isArchivePending, startArchiveTransition] = useTransition();
+  const [isPending, startTransition] = useTransition();
 
-  const handleArchive = () => {
-    startArchiveTransition(async () => {
+  const handleConfirm = () => {
+    startTransition(async () => {
       try {
-        let hasArchived = false;
+        let hasDone = false;
 
         for (const teacher of teachers) {
-          const [result, error] = await archiveTeacherAction({
-            id: teacher.id,
-          });
+          const [result, error] = permanent
+            ? await deleteTeacherPermanentlyAction({ id: teacher.id })
+            : await archiveTeacherAction({ id: teacher.id });
 
           if (error) {
-            toast.error(error.message ?? "Erreur lors de l'archivage");
+            toast.error(
+              error.message ??
+                (permanent
+                  ? "Erreur lors de la suppression"
+                  : "Erreur lors de l'archivage"),
+            );
             continue;
           }
 
-          if (result?.success) {
-            hasArchived = true;
-            toast.success(result.message ?? "Enseignant archivé");
+          if (result && ("ok" in result ? result.ok : result.success)) {
+            hasDone = true;
+            toast.success(
+              result.message ??
+                (permanent ? "Enseignant supprimé" : "Enseignant archivé"),
+            );
           } else {
-            toast.error(result?.message ?? "Erreur lors de l'archivage");
+            toast.error(
+              result?.message ??
+                (permanent
+                  ? "Erreur lors de la suppression"
+                  : "Erreur lors de l'archivage"),
+            );
           }
         }
 
-        if (hasArchived) {
+        if (hasDone) {
           onSuccess?.();
           props.onOpenChange?.(false);
         }
@@ -79,22 +98,34 @@ export function DeleteTeacherDialog({
       {showTrigger ? (
         <DialogTrigger asChild>
           <Button variant="outline" size="sm">
-            <IconArchive className="mr-2 size-4" aria-hidden="true" />
-            Archiver ({count})
+            {permanent ? (
+              <IconTrash className="mr-2 size-4" aria-hidden="true" />
+            ) : (
+              <IconArchive className="mr-2 size-4" aria-hidden="true" />
+            )}
+            {permanent ? `Supprimer (${count})` : `Archiver (${count})`}
           </Button>
         </DialogTrigger>
       ) : null}
       <DialogContent>
         <DialogHeader>
           <DialogTitle>
-            {count === 1
-              ? "Archiver l'enseignant ?"
-              : `Archiver ${count} enseignants ?`}
+            {permanent
+              ? count === 1
+                ? "Supprimer définitivement l'enseignant ?"
+                : `Supprimer définitivement ${count} enseignants ?`
+              : count === 1
+                ? "Archiver l'enseignant ?"
+                : `Archiver ${count} enseignants ?`}
           </DialogTitle>
           <DialogDescription>
-            {count === 1
-              ? "L'enseignant sera masqué des listes actives mais l'historique sera conservé."
-              : "Ces enseignants seront masqués des listes actives mais l'historique sera conservé."}
+            {permanent
+              ? count === 1
+                ? "Cette action est irréversible : cours, pointages, fiches, devoirs en ligne et le compte seront effacés."
+                : "Cette action est irréversible : toutes les données liées et les comptes seront effacés."
+              : count === 1
+                ? "L'enseignant sera masqué des listes actives mais l'historique sera conservé."
+                : "Ces enseignants seront masqués des listes actives mais l'historique sera conservé."}
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="gap-2 sm:space-x-0">
@@ -102,18 +133,20 @@ export function DeleteTeacherDialog({
             <Button variant="outline">Annuler</Button>
           </DialogClose>
           <Button
-            aria-label="Archiver la sélection"
-            variant="outline"
-            onClick={handleArchive}
-            disabled={isArchivePending}
+            aria-label={
+              permanent ? "Supprimer définitivement" : "Archiver la sélection"
+            }
+            variant={permanent ? "destructive" : "outline"}
+            onClick={handleConfirm}
+            disabled={isPending}
           >
-            {isArchivePending && (
+            {isPending && (
               <IconReload
                 className="mr-2 size-4 animate-spin"
                 aria-hidden="true"
               />
             )}
-            Archiver
+            {permanent ? "Supprimer définitivement" : "Archiver"}
           </Button>
         </DialogFooter>
       </DialogContent>

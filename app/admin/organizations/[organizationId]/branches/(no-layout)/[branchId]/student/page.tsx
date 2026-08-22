@@ -18,7 +18,10 @@ import { BranchStatCard } from "@/components/ui/branch-stat-card";
 import { Card } from "@/components/ui/card";
 import { useSession } from "@/lib/auth-client";
 import { canAccessBranchArea } from "@/lib/auth/branch-area-access";
-import { canManageOrganization } from "@/lib/auth/session-roles";
+import {
+  canManageOrganization,
+  isOrganizationOwnerSession,
+} from "@/lib/auth/session-roles";
 
 import { useBranchPeopleLabels } from "@/hooks/use-branch-people-labels";
 import { pluralizeStudentLabelLower } from "@/lib/people-labels";
@@ -80,6 +83,8 @@ export default function Students() {
   const [hasMounted, setHasMounted] = useState(false);
   const sessionReady = hasMounted && !isPending;
   const canManage = sessionReady && canManageOrganization(session);
+  const canPurgePermanently =
+    sessionReady && isOrganizationOwnerSession(session);
 
   const handleUserAction = () => {
     setRefreshKey((prev) => prev + 1);
@@ -223,6 +228,7 @@ export default function Students() {
           refreshKey={refreshKey}
           onRefresh={handleUserAction}
           canManageStudents={canManage}
+          canPurgePermanently={canPurgePermanently}
           onVisibleStudentsChange={handleVisibleStudentsChange}
         />
       </Card>

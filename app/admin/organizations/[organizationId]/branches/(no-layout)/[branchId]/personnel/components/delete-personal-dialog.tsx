@@ -3,7 +3,7 @@
 import { useAppTransition as useTransition } from "@/hooks/use-app-transition";
 
 import * as React from "react";
-import { IconArchive, IconReload } from "@tabler/icons-react";
+import { IconArchive, IconReload, IconTrash } from "@tabler/icons-react";
 import { type Row } from "@tanstack/react-table";
 import { toast } from "sonner";
 
@@ -19,7 +19,10 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { IPersonnel } from "@/src/interfaces/Personnel";
-import { archivePersonalAction } from "../personnel.action";
+import {
+  archivePersonalAction,
+  deletePersonnelPermanentlyAction,
+} from "../personnel.action";
 import { useRefresh } from "@/src/hooks/RefreshContext";
 
 interface DeletePersonalDialogProps extends React.ComponentPropsWithoutRef<
@@ -28,34 +31,60 @@ interface DeletePersonalDialogProps extends React.ComponentPropsWithoutRef<
   showTrigger?: boolean;
   onSuccess?: () => void;
   personals: Row<IPersonnel>["original"][];
+  /** Si true : suppression définitive (propriétaire uniquement). */
+  permanent?: boolean;
 }
 
 export function DeletePersonalDialog({
   showTrigger = true,
   onSuccess,
   personals,
+  permanent = false,
   ...props
 }: DeletePersonalDialogProps) {
-  const [isArchivePending, startArchiveTransition] = useTransition();
-
+  const [isPending, startTransition] = useTransition();
   const { refresh } = useRefresh();
-  const handleArchive = () => {
-    startArchiveTransition(async () => {
-      try {
-        await archivePersonalAction({
-          ids: personals.map((p) => p.id),
-        });
 
-        toast.success(
-          personals.length === 1
-            ? "Personnel archivé"
-            : "Personnels archivés",
-        );
+  const handleConfirm = () => {
+    startTransition(async () => {
+      try {
+        if (permanent) {
+          const [result, error] = await deletePersonnelPermanentlyAction({
+            ids: personals.map((p) => p.id),
+          });
+          if (error) {
+            toast.error(error.message ?? "Erreur lors de la suppression");
+            return;
+          }
+          if (!result?.ok) {
+            toast.error(result?.message ?? "Erreur lors de la suppression");
+            return;
+          }
+          toast.success(
+            personals.length === 1
+              ? "Personnel supprimé"
+              : "Personnels supprimés",
+          );
+        } else {
+          await archivePersonalAction({
+            ids: personals.map((p) => p.id),
+          });
+          toast.success(
+            personals.length === 1
+              ? "Personnel archivé"
+              : "Personnels archivés",
+          );
+        }
+
         onSuccess?.();
         refresh();
         props.onOpenChange?.(false);
       } catch {
-        toast.error("Erreur lors de l'archivage du personnel");
+        toast.error(
+          permanent
+            ? "Erreur lors de la suppression du personnel"
+            : "Erreur lors de l'archivage du personnel",
+        );
       }
     });
   };
@@ -67,22 +96,34 @@ export function DeletePersonalDialog({
       {showTrigger ? (
         <DialogTrigger asChild>
           <Button variant="outline" size="sm">
-            <IconArchive className="mr-2 size-4" aria-hidden="true" />
-            Archiver ({count})
+            {permanent ? (
+              <IconTrash className="mr-2 size-4" aria-hidden="true" />
+            ) : (
+              <IconArchive className="mr-2 size-4" aria-hidden="true" />
+            )}
+            {permanent ? `Supprimer (${count})` : `Archiver (${count})`}
           </Button>
         </DialogTrigger>
       ) : null}
       <DialogContent>
         <DialogHeader>
           <DialogTitle>
-            {count === 1
-              ? "Archiver le personnel ?"
-              : `Archiver ${count} personnels ?`}
+            {permanent
+              ? count === 1
+                ? "Supprimer définitivement le personnel ?"
+                : `Supprimer définitivement ${count} personnels ?`
+              : count === 1
+                ? "Archiver le personnel ?"
+                : `Archiver ${count} personnels ?`}
           </DialogTitle>
           <DialogDescription>
-            {count === 1
-              ? "Le personnel sera masqué des listes actives mais l'historique sera conservé."
-              : "Ces personnels seront masqués des listes actives mais l'historique sera conservé."}
+            {permanent
+              ? count === 1
+                ? "Cette action est irréversible : pointages, absences et le compte seront effacés."
+                : "Cette action est irréversible : toutes les données liées et les comptes seront effacés."
+              : count === 1
+                ? "Le personnel sera masqué des listes actives mais l'historique sera conservé."
+                : "Ces personnels seront masqués des listes actives mais l'historique sera conservé."}
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="gap-2 sm:space-x-0">
@@ -90,18 +131,20 @@ export function DeletePersonalDialog({
             <Button variant="outline">Annuler</Button>
           </DialogClose>
           <Button
-            aria-label="Archiver la sélection"
-            variant="outline"
-            onClick={handleArchive}
-            disabled={isArchivePending}
+            aria-label={
+              permanent ? "Supprimer définitivement" : "Archiver la sélection"
+            }
+            variant={permanent ? "destructive" : "outline"}
+            onClick={handleConfirm}
+            disabled={isPending}
           >
-            {isArchivePending && (
+            {isPending && (
               <IconReload
                 className="mr-2 size-4 animate-spin"
                 aria-hidden="true"
               />
             )}
-            Archiver
+            {permanent ? "Supprimer définitivement" : "Archiver"}
           </Button>
         </DialogFooter>
       </DialogContent>

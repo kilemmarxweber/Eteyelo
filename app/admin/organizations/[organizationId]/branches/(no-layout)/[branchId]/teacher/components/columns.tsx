@@ -38,6 +38,7 @@ export const createTeacherColumns = (
   onRefresh?: () => void,
   canManageTeachers = true,
   actions?: TeacherTableActions,
+  canPurgePermanently = false,
 ): ColumnDef<ITeacher>[] => [
   {
     id: "select",
@@ -199,12 +200,15 @@ export const createTeacherColumns = (
     cell: function Cell({ row }) {
       const [showDeleteTaskDialog, setShowDeleteTaskDialog] =
         React.useState(false);
+      const [showPurgeTaskDialog, setShowPurgeTaskDialog] =
+        React.useState(false);
       const [showDetailsTaskDialog, setShowDetailsTaskDialog] =
         React.useState(false);
       const [showResetTaskDialog, setShowResetTaskDialog] =
         React.useState(false);
       const params = useParams<{ organizationId: string; branchId: string }>();
       const teacherHref = `/admin/organizations/${params.organizationId}/branches/${params.branchId}/teacher/${row.original.id}`;
+      const isArchived = row.original.statusUser === false;
 
       const handleSuccess = () => {
         row.toggleSelected(false);
@@ -227,6 +231,16 @@ export const createTeacherColumns = (
                 showTrigger={false}
                 onSuccess={handleSuccess}
               />
+              {canPurgePermanently ? (
+                <DeleteTeacherDialog
+                  open={showPurgeTaskDialog}
+                  onOpenChange={setShowPurgeTaskDialog}
+                  teachers={[row.original]}
+                  showTrigger={false}
+                  permanent
+                  onSuccess={handleSuccess}
+                />
+              ) : null}
               <ResetUsersDialog
                 open={showResetTaskDialog}
                 onOpenChange={setShowResetTaskDialog}
@@ -274,12 +288,23 @@ export const createTeacherColumns = (
                     Reinitialiser
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    onSelect={() => setShowDeleteTaskDialog(true)}
-                  >
-                    Archiver
-                    <DropdownMenuShortcut>Del</DropdownMenuShortcut>
-                  </DropdownMenuItem>
+                  {!isArchived ? (
+                    <DropdownMenuItem
+                      onSelect={() => setShowDeleteTaskDialog(true)}
+                    >
+                      Archiver
+                      <DropdownMenuShortcut>Del</DropdownMenuShortcut>
+                    </DropdownMenuItem>
+                  ) : null}
+                  {canPurgePermanently ? (
+                    <DropdownMenuItem
+                      className="text-red-600 focus:text-red-600"
+                      onSelect={() => setShowPurgeTaskDialog(true)}
+                    >
+                      Supprimer
+                      <DropdownMenuShortcut>⇧Del</DropdownMenuShortcut>
+                    </DropdownMenuItem>
+                  ) : null}
                 </>
               ) : null}
             </DropdownMenuContent>

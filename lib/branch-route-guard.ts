@@ -80,6 +80,11 @@ export const BRANCH_ROUTE_RULES: BranchRouteRule[] = [
     redirectTo: "/results",
   },
   {
+    suffix: "/finalistes",
+    isAllowed: isPrimaryBranch,
+    redirectTo: "/results",
+  },
+  {
     suffix: "/devoirs",
     isAllowed: isSchoolBranch,
     redirectTo: "/results",
@@ -191,6 +196,10 @@ export function shouldHideSidebarHref(
   }
 
   if (normalizedHref === "/releves" && !usesReleveForBranch(typebranch)) {
+    return true;
+  }
+
+  if (normalizedHref === "/finalistes" && !isPrimaryBranch(typebranch)) {
     return true;
   }
 

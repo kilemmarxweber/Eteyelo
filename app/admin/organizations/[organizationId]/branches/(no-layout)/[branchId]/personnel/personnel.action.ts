@@ -15,10 +15,13 @@ import {
 } from "@/lib/admin-created-user-password";
 import { generateSecurePassword } from "@/lib/generate-password";
 import { requireBranchContext, requireHrWriteBranchContext } from "@/lib/auth/require-branch-context";
+import { isOrganizationOwnerSession } from "@/lib/auth/session-roles";
 import {
   buildSchoolReportContext,
   schoolReportBranchSelect,
 } from "@/lib/reports/resolve-school-branding";
+import { purgePersonnelPermanently } from "@/lib/purge-branch-person";
+import { revalidatePath } from "next/cache";
 
 function errMessage(err: unknown): string {
   if (
@@ -220,6 +223,66 @@ export const archivePersonalAction = action
 
 /** @deprecated Utiliser archivePersonalAction */
 export const deletePersonalAction = archivePersonalAction;
+
+/** Suppression définitive uniquement après archivage — nettoie toutes les données liées. */
+export const deletePersonnelPermanentlyAction = action
+  .input(z.object({ ids: z.array(z.string()).min(1) }))
+  .handler(async ({ input }) => {
+    const { branchId, organizationId, session } =
+      await requireHrWriteBranchContext();
+
+    if (!isOrganizationOwnerSession(session)) {
+      return {
+        ok: false as const,
+        message: "Seul le propriétaire peut supprimer définitivement.",
+        results: [],
+      };
+    }
+
+    const results: Array<{ id: string; ok: boolean; message: string }> = [];
+
+    for (const personnelId of input.ids) {
+      try {
+        const result = await purgePersonnelPermanently({
+          personnelId,
+          branchId,
+        });
+        results.push({
+          id: personnelId,
+          ok: result.ok,
+          message: result.message,
+        });
+      } catch (error: unknown) {
+        results.push({
+          id: personnelId,
+          ok: false,
+          message: errMessage(error),
+        });
+      }
+    }
+
+    revalidatePath(
+      `/admin/organizations/${organizationId}/branches/${branchId}/personnel`,
+    );
+
+    const failed = results.filter((result) => !result.ok);
+    if (failed.length === input.ids.length) {
+      return {
+        ok: false as const,
+        message: failed[0]?.message ?? "Suppression impossible",
+        results,
+      };
+    }
+
+    return {
+      ok: true as const,
+      message:
+        failed.length === 0
+          ? "Personnel supprimé et données liées nettoyées."
+          : `${input.ids.length - failed.length} supprimé(s), ${failed.length} en échec.`,
+      results,
+    };
+  });
 
 export const updatePersonnelFullAction = action
   .input(

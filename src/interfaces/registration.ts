@@ -54,7 +54,7 @@ export const registrationSchema = z
     parentId: z.string().optional(),
     parent: personSchema.extend({
       /** Adresse parent — toujours requise */
-      address: z.string().trim().min(5, "Adresse requise"),
+      address: z.string().trim().min(1, "Adresse requise"),
       /** Email facultatif : généré côté serveur si vide */
       email: optionalEmailSchema.optional(),
       /** Téléphone parent — facultatif */

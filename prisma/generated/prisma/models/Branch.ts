@@ -103,6 +103,7 @@ export type BranchCountAggregateOutputType = {
   isActive: number
   createdAt: number
   updatedAt: number
+  examExportMeta: number
   _all: number
 }
 
@@ -184,6 +185,7 @@ export type BranchCountAggregateInputType = {
   isActive?: true
   createdAt?: true
   updatedAt?: true
+  examExportMeta?: true
   _all?: true
 }
 
@@ -294,6 +296,7 @@ export type BranchGroupByOutputType = {
   isActive: boolean
   createdAt: Date
   updatedAt: Date
+  examExportMeta: runtime.JsonValue | null
   _count: BranchCountAggregateOutputType | null
   _avg: BranchAvgAggregateOutputType | null
   _sum: BranchSumAggregateOutputType | null
@@ -340,6 +343,7 @@ export type BranchWhereInput = {
   isActive?: Prisma.BoolFilter<"Branch"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Branch"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Branch"> | Date | string
+  examExportMeta?: Prisma.JsonNullableFilter<"Branch">
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
   studentAttendance?: Prisma.StudentAttendanceListRelationFilter
   branchemembers?: Prisma.BranchMemberListRelationFilter
@@ -413,6 +417,7 @@ export type BranchOrderByWithRelationInput = {
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  examExportMeta?: Prisma.SortOrderInput | Prisma.SortOrder
   organization?: Prisma.OrganizationOrderByWithRelationInput
   studentAttendance?: Prisma.StudentAttendanceOrderByRelationAggregateInput
   branchemembers?: Prisma.BranchMemberOrderByRelationAggregateInput
@@ -490,6 +495,7 @@ export type BranchWhereUniqueInput = Prisma.AtLeast<{
   isActive?: Prisma.BoolFilter<"Branch"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Branch"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Branch"> | Date | string
+  examExportMeta?: Prisma.JsonNullableFilter<"Branch">
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
   studentAttendance?: Prisma.StudentAttendanceListRelationFilter
   branchemembers?: Prisma.BranchMemberListRelationFilter
@@ -563,6 +569,7 @@ export type BranchOrderByWithAggregationInput = {
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  examExportMeta?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.BranchCountOrderByAggregateInput
   _avg?: Prisma.BranchAvgOrderByAggregateInput
   _max?: Prisma.BranchMaxOrderByAggregateInput
@@ -594,6 +601,7 @@ export type BranchScalarWhereWithAggregatesInput = {
   isActive?: Prisma.BoolWithAggregatesFilter<"Branch"> | boolean
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Branch"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Branch"> | Date | string
+  examExportMeta?: Prisma.JsonNullableWithAggregatesFilter<"Branch">
 }
 
 export type BranchCreateInput = {
@@ -616,6 +624,7 @@ export type BranchCreateInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization: Prisma.OrganizationCreateNestedOneWithoutBranchesInput
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
@@ -689,6 +698,7 @@ export type BranchUncheckedCreateInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
@@ -760,6 +770,7 @@ export type BranchUpdateInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutBranchesNestedInput
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
@@ -833,6 +844,7 @@ export type BranchUncheckedUpdateInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
@@ -905,6 +917,7 @@ export type BranchCreateManyInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
 }
 
 export type BranchUpdateManyMutationInput = {
@@ -927,6 +940,7 @@ export type BranchUpdateManyMutationInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
 }
 
 export type BranchUncheckedUpdateManyInput = {
@@ -950,6 +964,7 @@ export type BranchUncheckedUpdateManyInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
 }
 
 export type BranchNullableScalarRelationFilter = {
@@ -998,6 +1013,7 @@ export type BranchCountOrderByAggregateInput = {
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  examExportMeta?: Prisma.SortOrder
 }
 
 export type BranchAvgOrderByAggregateInput = {
@@ -1818,6 +1834,7 @@ export type BranchCreateWithoutAttendanceSessionsInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization: Prisma.OrganizationCreateNestedOneWithoutBranchesInput
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
@@ -1890,6 +1907,7 @@ export type BranchUncheckedCreateWithoutAttendanceSessionsInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
@@ -1976,6 +1994,7 @@ export type BranchUpdateWithoutAttendanceSessionsInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutBranchesNestedInput
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
@@ -2048,6 +2067,7 @@ export type BranchUncheckedUpdateWithoutAttendanceSessionsInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
@@ -2118,6 +2138,7 @@ export type BranchCreateWithoutStudentAttendanceInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization: Prisma.OrganizationCreateNestedOneWithoutBranchesInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseCreateNestedManyWithoutBranchInput
@@ -2190,6 +2211,7 @@ export type BranchUncheckedCreateWithoutStudentAttendanceInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchUncheckedCreateNestedManyWithoutBranchInput
@@ -2276,6 +2298,7 @@ export type BranchUpdateWithoutStudentAttendanceInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutBranchesNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUpdateManyWithoutBranchNestedInput
@@ -2348,6 +2371,7 @@ export type BranchUncheckedUpdateWithoutStudentAttendanceInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUncheckedUpdateManyWithoutBranchNestedInput
@@ -2418,6 +2442,7 @@ export type BranchCreateWithoutTeacherAttendanceInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization: Prisma.OrganizationCreateNestedOneWithoutBranchesInput
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
@@ -2490,6 +2515,7 @@ export type BranchUncheckedCreateWithoutTeacherAttendanceInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
@@ -2576,6 +2602,7 @@ export type BranchUpdateWithoutTeacherAttendanceInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutBranchesNestedInput
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
@@ -2648,6 +2675,7 @@ export type BranchUncheckedUpdateWithoutTeacherAttendanceInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
@@ -2718,6 +2746,7 @@ export type BranchCreateWithoutPersonnelAttendanceInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization: Prisma.OrganizationCreateNestedOneWithoutBranchesInput
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
@@ -2790,6 +2819,7 @@ export type BranchUncheckedCreateWithoutPersonnelAttendanceInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
@@ -2876,6 +2906,7 @@ export type BranchUpdateWithoutPersonnelAttendanceInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutBranchesNestedInput
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
@@ -2948,6 +2979,7 @@ export type BranchUncheckedUpdateWithoutPersonnelAttendanceInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
@@ -3018,6 +3050,7 @@ export type BranchCreateWithoutParentFeedbackInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization: Prisma.OrganizationCreateNestedOneWithoutBranchesInput
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
@@ -3090,6 +3123,7 @@ export type BranchUncheckedCreateWithoutParentFeedbackInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
@@ -3176,6 +3210,7 @@ export type BranchUpdateWithoutParentFeedbackInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutBranchesNestedInput
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
@@ -3248,6 +3283,7 @@ export type BranchUncheckedUpdateWithoutParentFeedbackInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
@@ -3318,6 +3354,7 @@ export type BranchCreateWithoutStudentGradeInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization: Prisma.OrganizationCreateNestedOneWithoutBranchesInput
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
@@ -3390,6 +3427,7 @@ export type BranchUncheckedCreateWithoutStudentGradeInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
@@ -3476,6 +3514,7 @@ export type BranchUpdateWithoutStudentGradeInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutBranchesNestedInput
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
@@ -3548,6 +3587,7 @@ export type BranchUncheckedUpdateWithoutStudentGradeInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
@@ -3618,6 +3658,7 @@ export type BranchCreateWithoutFraisInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization: Prisma.OrganizationCreateNestedOneWithoutBranchesInput
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
@@ -3690,6 +3731,7 @@ export type BranchUncheckedCreateWithoutFraisInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
@@ -3776,6 +3818,7 @@ export type BranchUpdateWithoutFraisInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutBranchesNestedInput
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
@@ -3848,6 +3891,7 @@ export type BranchUncheckedUpdateWithoutFraisInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
@@ -3918,6 +3962,7 @@ export type BranchCreateWithoutTypeFraisInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization: Prisma.OrganizationCreateNestedOneWithoutBranchesInput
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
@@ -3990,6 +4035,7 @@ export type BranchUncheckedCreateWithoutTypeFraisInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
@@ -4076,6 +4122,7 @@ export type BranchUpdateWithoutTypeFraisInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutBranchesNestedInput
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
@@ -4148,6 +4195,7 @@ export type BranchUncheckedUpdateWithoutTypeFraisInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
@@ -4218,6 +4266,7 @@ export type BranchCreateWithoutClassesInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization: Prisma.OrganizationCreateNestedOneWithoutBranchesInput
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
@@ -4290,6 +4339,7 @@ export type BranchUncheckedCreateWithoutClassesInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchUncheckedCreateNestedManyWithoutBranchInput
@@ -4376,6 +4426,7 @@ export type BranchUpdateWithoutClassesInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutBranchesNestedInput
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
@@ -4448,6 +4499,7 @@ export type BranchUncheckedUpdateWithoutClassesInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUncheckedUpdateManyWithoutBranchNestedInput
@@ -4518,6 +4570,7 @@ export type BranchCreateWithoutCreneauInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization: Prisma.OrganizationCreateNestedOneWithoutBranchesInput
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
@@ -4590,6 +4643,7 @@ export type BranchUncheckedCreateWithoutCreneauInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
@@ -4676,6 +4730,7 @@ export type BranchUpdateWithoutCreneauInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutBranchesNestedInput
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
@@ -4748,6 +4803,7 @@ export type BranchUncheckedUpdateWithoutCreneauInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
@@ -4818,6 +4874,7 @@ export type BranchCreateWithoutOptionInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization: Prisma.OrganizationCreateNestedOneWithoutBranchesInput
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
@@ -4890,6 +4947,7 @@ export type BranchUncheckedCreateWithoutOptionInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
@@ -4976,6 +5034,7 @@ export type BranchUpdateWithoutOptionInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutBranchesNestedInput
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
@@ -5048,6 +5107,7 @@ export type BranchUncheckedUpdateWithoutOptionInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
@@ -5118,6 +5178,7 @@ export type BranchCreateWithoutSectionInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization: Prisma.OrganizationCreateNestedOneWithoutBranchesInput
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
@@ -5190,6 +5251,7 @@ export type BranchUncheckedCreateWithoutSectionInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
@@ -5276,6 +5338,7 @@ export type BranchUpdateWithoutSectionInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutBranchesNestedInput
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
@@ -5348,6 +5411,7 @@ export type BranchUncheckedUpdateWithoutSectionInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
@@ -5418,6 +5482,7 @@ export type BranchCreateWithoutSchoolYearInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization: Prisma.OrganizationCreateNestedOneWithoutBranchesInput
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
@@ -5490,6 +5555,7 @@ export type BranchUncheckedCreateWithoutSchoolYearInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
@@ -5576,6 +5642,7 @@ export type BranchUpdateWithoutSchoolYearInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutBranchesNestedInput
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
@@ -5648,6 +5715,7 @@ export type BranchUncheckedUpdateWithoutSchoolYearInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
@@ -5718,6 +5786,7 @@ export type BranchCreateWithoutClassEnrollmentInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization: Prisma.OrganizationCreateNestedOneWithoutBranchesInput
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
@@ -5790,6 +5859,7 @@ export type BranchUncheckedCreateWithoutClassEnrollmentInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
@@ -5876,6 +5946,7 @@ export type BranchUpdateWithoutClassEnrollmentInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutBranchesNestedInput
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
@@ -5948,6 +6019,7 @@ export type BranchUncheckedUpdateWithoutClassEnrollmentInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
@@ -6018,6 +6090,7 @@ export type BranchCreateWithoutTeachingInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization: Prisma.OrganizationCreateNestedOneWithoutBranchesInput
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
@@ -6090,6 +6163,7 @@ export type BranchUncheckedCreateWithoutTeachingInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
@@ -6176,6 +6250,7 @@ export type BranchUpdateWithoutTeachingInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutBranchesNestedInput
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
@@ -6248,6 +6323,7 @@ export type BranchUncheckedUpdateWithoutTeachingInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
@@ -6318,6 +6394,7 @@ export type BranchCreateWithoutCoursInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization: Prisma.OrganizationCreateNestedOneWithoutBranchesInput
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
@@ -6390,6 +6467,7 @@ export type BranchUncheckedCreateWithoutCoursInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
@@ -6476,6 +6554,7 @@ export type BranchUpdateWithoutCoursInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutBranchesNestedInput
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
@@ -6548,6 +6627,7 @@ export type BranchUncheckedUpdateWithoutCoursInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
@@ -6618,6 +6698,7 @@ export type BranchCreateWithoutCoursPonderationsInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization: Prisma.OrganizationCreateNestedOneWithoutBranchesInput
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
@@ -6690,6 +6771,7 @@ export type BranchUncheckedCreateWithoutCoursPonderationsInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
@@ -6776,6 +6858,7 @@ export type BranchUpdateWithoutCoursPonderationsInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutBranchesNestedInput
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
@@ -6848,6 +6931,7 @@ export type BranchUncheckedUpdateWithoutCoursPonderationsInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
@@ -6918,6 +7002,7 @@ export type BranchCreateWithoutCalendarEventInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization: Prisma.OrganizationCreateNestedOneWithoutBranchesInput
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
@@ -6990,6 +7075,7 @@ export type BranchUncheckedCreateWithoutCalendarEventInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
@@ -7076,6 +7162,7 @@ export type BranchUpdateWithoutCalendarEventInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutBranchesNestedInput
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
@@ -7148,6 +7235,7 @@ export type BranchUncheckedUpdateWithoutCalendarEventInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
@@ -7218,6 +7306,7 @@ export type BranchCreateWithoutEventTypeInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization: Prisma.OrganizationCreateNestedOneWithoutBranchesInput
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
@@ -7290,6 +7379,7 @@ export type BranchUncheckedCreateWithoutEventTypeInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
@@ -7376,6 +7466,7 @@ export type BranchUpdateWithoutEventTypeInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutBranchesNestedInput
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
@@ -7448,6 +7539,7 @@ export type BranchUncheckedUpdateWithoutEventTypeInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
@@ -7518,6 +7610,7 @@ export type BranchCreateWithoutSemesterInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization: Prisma.OrganizationCreateNestedOneWithoutBranchesInput
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
@@ -7590,6 +7683,7 @@ export type BranchUncheckedCreateWithoutSemesterInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
@@ -7676,6 +7770,7 @@ export type BranchUpdateWithoutSemesterInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutBranchesNestedInput
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
@@ -7748,6 +7843,7 @@ export type BranchUncheckedUpdateWithoutSemesterInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
@@ -7818,6 +7914,7 @@ export type BranchCreateWithoutPeriodInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization: Prisma.OrganizationCreateNestedOneWithoutBranchesInput
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
@@ -7890,6 +7987,7 @@ export type BranchUncheckedCreateWithoutPeriodInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
@@ -7976,6 +8074,7 @@ export type BranchUpdateWithoutPeriodInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutBranchesNestedInput
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
@@ -8048,6 +8147,7 @@ export type BranchUncheckedUpdateWithoutPeriodInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
@@ -8118,6 +8218,7 @@ export type BranchCreateWithoutPeriodResultLockInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization: Prisma.OrganizationCreateNestedOneWithoutBranchesInput
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
@@ -8190,6 +8291,7 @@ export type BranchUncheckedCreateWithoutPeriodResultLockInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
@@ -8276,6 +8378,7 @@ export type BranchUpdateWithoutPeriodResultLockInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutBranchesNestedInput
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
@@ -8348,6 +8451,7 @@ export type BranchUncheckedUpdateWithoutPeriodResultLockInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
@@ -8418,6 +8522,7 @@ export type BranchCreateWithoutFicheInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization: Prisma.OrganizationCreateNestedOneWithoutBranchesInput
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
@@ -8490,6 +8595,7 @@ export type BranchUncheckedCreateWithoutFicheInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
@@ -8576,6 +8682,7 @@ export type BranchUpdateWithoutFicheInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutBranchesNestedInput
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
@@ -8648,6 +8755,7 @@ export type BranchUncheckedUpdateWithoutFicheInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
@@ -8718,6 +8826,7 @@ export type BranchCreateWithoutInvoiceInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization: Prisma.OrganizationCreateNestedOneWithoutBranchesInput
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
@@ -8790,6 +8899,7 @@ export type BranchUncheckedCreateWithoutInvoiceInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
@@ -8876,6 +8986,7 @@ export type BranchUpdateWithoutInvoiceInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutBranchesNestedInput
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
@@ -8948,6 +9059,7 @@ export type BranchUncheckedUpdateWithoutInvoiceInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
@@ -9018,6 +9130,7 @@ export type BranchCreateWithoutPaymentBatchInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization: Prisma.OrganizationCreateNestedOneWithoutBranchesInput
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
@@ -9090,6 +9203,7 @@ export type BranchUncheckedCreateWithoutPaymentBatchInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
@@ -9176,6 +9290,7 @@ export type BranchUpdateWithoutPaymentBatchInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutBranchesNestedInput
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
@@ -9248,6 +9363,7 @@ export type BranchUncheckedUpdateWithoutPaymentBatchInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
@@ -9318,6 +9434,7 @@ export type BranchCreateWithoutFamilyPaymentInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization: Prisma.OrganizationCreateNestedOneWithoutBranchesInput
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
@@ -9390,6 +9507,7 @@ export type BranchUncheckedCreateWithoutFamilyPaymentInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
@@ -9476,6 +9594,7 @@ export type BranchUpdateWithoutFamilyPaymentInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutBranchesNestedInput
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
@@ -9548,6 +9667,7 @@ export type BranchUncheckedUpdateWithoutFamilyPaymentInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
@@ -9618,6 +9738,7 @@ export type BranchCreateWithoutCashierExpenseInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization: Prisma.OrganizationCreateNestedOneWithoutBranchesInput
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
@@ -9690,6 +9811,7 @@ export type BranchUncheckedCreateWithoutCashierExpenseInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
@@ -9776,6 +9898,7 @@ export type BranchUpdateWithoutCashierExpenseInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutBranchesNestedInput
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
@@ -9848,6 +9971,7 @@ export type BranchUncheckedUpdateWithoutCashierExpenseInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
@@ -9918,6 +10042,7 @@ export type BranchCreateWithoutCashierOpeningBalanceInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization: Prisma.OrganizationCreateNestedOneWithoutBranchesInput
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
@@ -9990,6 +10115,7 @@ export type BranchUncheckedCreateWithoutCashierOpeningBalanceInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
@@ -10076,6 +10202,7 @@ export type BranchUpdateWithoutCashierOpeningBalanceInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutBranchesNestedInput
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
@@ -10148,6 +10275,7 @@ export type BranchUncheckedUpdateWithoutCashierOpeningBalanceInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
@@ -10218,6 +10346,7 @@ export type BranchCreateWithoutPaymentAllocationInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization: Prisma.OrganizationCreateNestedOneWithoutBranchesInput
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
@@ -10290,6 +10419,7 @@ export type BranchUncheckedCreateWithoutPaymentAllocationInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
@@ -10376,6 +10506,7 @@ export type BranchUpdateWithoutPaymentAllocationInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutBranchesNestedInput
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
@@ -10448,6 +10579,7 @@ export type BranchUncheckedUpdateWithoutPaymentAllocationInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
@@ -10518,6 +10650,7 @@ export type BranchCreateWithoutMobileMoneyTransactionInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization: Prisma.OrganizationCreateNestedOneWithoutBranchesInput
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
@@ -10590,6 +10723,7 @@ export type BranchUncheckedCreateWithoutMobileMoneyTransactionInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
@@ -10676,6 +10810,7 @@ export type BranchUpdateWithoutMobileMoneyTransactionInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutBranchesNestedInput
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
@@ -10748,6 +10883,7 @@ export type BranchUncheckedUpdateWithoutMobileMoneyTransactionInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
@@ -10818,6 +10954,7 @@ export type BranchCreateWithoutPaymentEventInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization: Prisma.OrganizationCreateNestedOneWithoutBranchesInput
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
@@ -10890,6 +11027,7 @@ export type BranchUncheckedCreateWithoutPaymentEventInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
@@ -10976,6 +11114,7 @@ export type BranchUpdateWithoutPaymentEventInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutBranchesNestedInput
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
@@ -11048,6 +11187,7 @@ export type BranchUncheckedUpdateWithoutPaymentEventInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
@@ -11118,6 +11258,7 @@ export type BranchCreateWithoutDiscountRuleInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization: Prisma.OrganizationCreateNestedOneWithoutBranchesInput
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
@@ -11190,6 +11331,7 @@ export type BranchUncheckedCreateWithoutDiscountRuleInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
@@ -11276,6 +11418,7 @@ export type BranchUpdateWithoutDiscountRuleInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutBranchesNestedInput
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
@@ -11348,6 +11491,7 @@ export type BranchUncheckedUpdateWithoutDiscountRuleInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
@@ -11418,6 +11562,7 @@ export type BranchCreateWithoutTransactionInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization: Prisma.OrganizationCreateNestedOneWithoutBranchesInput
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
@@ -11490,6 +11635,7 @@ export type BranchUncheckedCreateWithoutTransactionInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
@@ -11576,6 +11722,7 @@ export type BranchUpdateWithoutTransactionInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutBranchesNestedInput
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
@@ -11648,6 +11795,7 @@ export type BranchUncheckedUpdateWithoutTransactionInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
@@ -11718,6 +11866,7 @@ export type BranchCreateWithoutAbsenceCasesInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization: Prisma.OrganizationCreateNestedOneWithoutBranchesInput
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
@@ -11790,6 +11939,7 @@ export type BranchUncheckedCreateWithoutAbsenceCasesInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
@@ -11876,6 +12026,7 @@ export type BranchUpdateWithoutAbsenceCasesInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutBranchesNestedInput
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
@@ -11948,6 +12099,7 @@ export type BranchUncheckedUpdateWithoutAbsenceCasesInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
@@ -12018,6 +12170,7 @@ export type BranchCreateWithoutAppNotificationsInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization: Prisma.OrganizationCreateNestedOneWithoutBranchesInput
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
@@ -12090,6 +12243,7 @@ export type BranchUncheckedCreateWithoutAppNotificationsInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
@@ -12176,6 +12330,7 @@ export type BranchUpdateWithoutAppNotificationsInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutBranchesNestedInput
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
@@ -12248,6 +12403,7 @@ export type BranchUncheckedUpdateWithoutAppNotificationsInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
@@ -12318,6 +12474,7 @@ export type BranchCreateWithoutOrganizationInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseCreateNestedManyWithoutBranchInput
@@ -12389,6 +12546,7 @@ export type BranchUncheckedCreateWithoutOrganizationInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
@@ -12490,6 +12648,7 @@ export type BranchScalarWhereInput = {
   isActive?: Prisma.BoolFilter<"Branch"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Branch"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Branch"> | Date | string
+  examExportMeta?: Prisma.JsonNullableFilter<"Branch">
 }
 
 export type BranchCreateWithoutPrimaryDomainsInput = {
@@ -12512,6 +12671,7 @@ export type BranchCreateWithoutPrimaryDomainsInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization: Prisma.OrganizationCreateNestedOneWithoutBranchesInput
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
@@ -12584,6 +12744,7 @@ export type BranchUncheckedCreateWithoutPrimaryDomainsInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
@@ -12670,6 +12831,7 @@ export type BranchUpdateWithoutPrimaryDomainsInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutBranchesNestedInput
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
@@ -12742,6 +12904,7 @@ export type BranchUncheckedUpdateWithoutPrimaryDomainsInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
@@ -12812,6 +12975,7 @@ export type BranchCreateWithoutRegistrationInfosInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization: Prisma.OrganizationCreateNestedOneWithoutBranchesInput
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
@@ -12884,6 +13048,7 @@ export type BranchUncheckedCreateWithoutRegistrationInfosInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
@@ -12970,6 +13135,7 @@ export type BranchUpdateWithoutRegistrationInfosInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutBranchesNestedInput
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
@@ -13042,6 +13208,7 @@ export type BranchUncheckedUpdateWithoutRegistrationInfosInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
@@ -13112,6 +13279,7 @@ export type BranchCreateWithoutRegistrationRequestsInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization: Prisma.OrganizationCreateNestedOneWithoutBranchesInput
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
@@ -13184,6 +13352,7 @@ export type BranchUncheckedCreateWithoutRegistrationRequestsInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
@@ -13270,6 +13439,7 @@ export type BranchUpdateWithoutRegistrationRequestsInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutBranchesNestedInput
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
@@ -13342,6 +13512,7 @@ export type BranchUncheckedUpdateWithoutRegistrationRequestsInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
@@ -13412,6 +13583,7 @@ export type BranchCreateWithoutJobApplicationsInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization: Prisma.OrganizationCreateNestedOneWithoutBranchesInput
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
@@ -13484,6 +13656,7 @@ export type BranchUncheckedCreateWithoutJobApplicationsInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
@@ -13570,6 +13743,7 @@ export type BranchUpdateWithoutJobApplicationsInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutBranchesNestedInput
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
@@ -13642,6 +13816,7 @@ export type BranchUncheckedUpdateWithoutJobApplicationsInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
@@ -13712,6 +13887,7 @@ export type BranchCreateWithoutPartnairesInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization: Prisma.OrganizationCreateNestedOneWithoutBranchesInput
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
@@ -13784,6 +13960,7 @@ export type BranchUncheckedCreateWithoutPartnairesInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
@@ -13870,6 +14047,7 @@ export type BranchUpdateWithoutPartnairesInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutBranchesNestedInput
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
@@ -13942,6 +14120,7 @@ export type BranchUncheckedUpdateWithoutPartnairesInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
@@ -14012,6 +14191,7 @@ export type BranchCreateWithoutBranchemembersInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization: Prisma.OrganizationCreateNestedOneWithoutBranchesInput
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseCreateNestedManyWithoutBranchInput
@@ -14084,6 +14264,7 @@ export type BranchUncheckedCreateWithoutBranchemembersInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
   paymentBatch?: Prisma.PaymentBatchUncheckedCreateNestedManyWithoutBranchInput
@@ -14170,6 +14351,7 @@ export type BranchUpdateWithoutBranchemembersInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutBranchesNestedInput
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUpdateManyWithoutBranchNestedInput
@@ -14242,6 +14424,7 @@ export type BranchUncheckedUpdateWithoutBranchemembersInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
   paymentBatch?: Prisma.PaymentBatchUncheckedUpdateManyWithoutBranchNestedInput
@@ -14312,6 +14495,7 @@ export type BranchCreateWithoutTargetStudentLinksInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization: Prisma.OrganizationCreateNestedOneWithoutBranchesInput
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
@@ -14384,6 +14568,7 @@ export type BranchUncheckedCreateWithoutTargetStudentLinksInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
@@ -14459,6 +14644,7 @@ export type BranchCreateWithoutSourceStudentLinksInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization: Prisma.OrganizationCreateNestedOneWithoutBranchesInput
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
@@ -14531,6 +14717,7 @@ export type BranchUncheckedCreateWithoutSourceStudentLinksInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
@@ -14617,6 +14804,7 @@ export type BranchUpdateWithoutTargetStudentLinksInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutBranchesNestedInput
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
@@ -14689,6 +14877,7 @@ export type BranchUncheckedUpdateWithoutTargetStudentLinksInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
@@ -14770,6 +14959,7 @@ export type BranchUpdateWithoutSourceStudentLinksInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutBranchesNestedInput
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
@@ -14842,6 +15032,7 @@ export type BranchUncheckedUpdateWithoutSourceStudentLinksInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
@@ -14912,6 +15103,7 @@ export type BranchCreateWithoutIssuedDocumentsInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization: Prisma.OrganizationCreateNestedOneWithoutBranchesInput
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
@@ -14984,6 +15176,7 @@ export type BranchUncheckedCreateWithoutIssuedDocumentsInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
@@ -15070,6 +15263,7 @@ export type BranchUpdateWithoutIssuedDocumentsInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutBranchesNestedInput
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
@@ -15142,6 +15336,7 @@ export type BranchUncheckedUpdateWithoutIssuedDocumentsInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
@@ -15212,6 +15407,7 @@ export type BranchCreateWithoutBranchInvitationInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization: Prisma.OrganizationCreateNestedOneWithoutBranchesInput
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
@@ -15284,6 +15480,7 @@ export type BranchUncheckedCreateWithoutBranchInvitationInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
@@ -15370,6 +15567,7 @@ export type BranchUpdateWithoutBranchInvitationInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutBranchesNestedInput
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
@@ -15442,6 +15640,7 @@ export type BranchUncheckedUpdateWithoutBranchInvitationInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
@@ -15512,6 +15711,7 @@ export type BranchCreateWithoutLibraryBooksInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization: Prisma.OrganizationCreateNestedOneWithoutBranchesInput
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
@@ -15584,6 +15784,7 @@ export type BranchUncheckedCreateWithoutLibraryBooksInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
@@ -15670,6 +15871,7 @@ export type BranchUpdateWithoutLibraryBooksInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutBranchesNestedInput
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
@@ -15742,6 +15944,7 @@ export type BranchUncheckedUpdateWithoutLibraryBooksInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
@@ -15812,6 +16015,7 @@ export type BranchCreateWithoutOrganizationSupportBranchScopesInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization: Prisma.OrganizationCreateNestedOneWithoutBranchesInput
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
@@ -15884,6 +16088,7 @@ export type BranchUncheckedCreateWithoutOrganizationSupportBranchScopesInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
@@ -15970,6 +16175,7 @@ export type BranchUpdateWithoutOrganizationSupportBranchScopesInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutBranchesNestedInput
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
@@ -16042,6 +16248,7 @@ export type BranchUncheckedUpdateWithoutOrganizationSupportBranchScopesInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
@@ -16112,6 +16319,7 @@ export type BranchCreateWithoutSupportTicketsInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization: Prisma.OrganizationCreateNestedOneWithoutBranchesInput
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
@@ -16184,6 +16392,7 @@ export type BranchUncheckedCreateWithoutSupportTicketsInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
@@ -16270,6 +16479,7 @@ export type BranchUpdateWithoutSupportTicketsInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutBranchesNestedInput
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
@@ -16342,6 +16552,7 @@ export type BranchUncheckedUpdateWithoutSupportTicketsInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
@@ -16412,6 +16623,7 @@ export type BranchCreateWithoutOnlineAssignmentsInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization: Prisma.OrganizationCreateNestedOneWithoutBranchesInput
   studentAttendance?: Prisma.StudentAttendanceCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberCreateNestedManyWithoutBranchInput
@@ -16484,6 +16696,7 @@ export type BranchUncheckedCreateWithoutOnlineAssignmentsInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedCreateNestedManyWithoutBranchInput
   branchemembers?: Prisma.BranchMemberUncheckedCreateNestedManyWithoutBranchInput
   classes?: Prisma.ClasseUncheckedCreateNestedManyWithoutBranchInput
@@ -16570,6 +16783,7 @@ export type BranchUpdateWithoutOnlineAssignmentsInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutBranchesNestedInput
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
@@ -16642,6 +16856,7 @@ export type BranchUncheckedUpdateWithoutOnlineAssignmentsInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
@@ -16712,6 +16927,7 @@ export type BranchCreateManyOrganizationInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
 }
 
 export type BranchUpdateWithoutOrganizationInput = {
@@ -16734,6 +16950,7 @@ export type BranchUpdateWithoutOrganizationInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUpdateManyWithoutBranchNestedInput
@@ -16805,6 +17022,7 @@ export type BranchUncheckedUpdateWithoutOrganizationInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   studentAttendance?: Prisma.StudentAttendanceUncheckedUpdateManyWithoutBranchNestedInput
   branchemembers?: Prisma.BranchMemberUncheckedUpdateManyWithoutBranchNestedInput
   classes?: Prisma.ClasseUncheckedUpdateManyWithoutBranchNestedInput
@@ -16876,6 +17094,7 @@ export type BranchUncheckedUpdateManyWithoutOrganizationInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  examExportMeta?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
 }
 
 
@@ -17362,6 +17581,7 @@ export type BranchSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   isActive?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  examExportMeta?: boolean
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   studentAttendance?: boolean | Prisma.Branch$studentAttendanceArgs<ExtArgs>
   branchemembers?: boolean | Prisma.Branch$branchemembersArgs<ExtArgs>
@@ -17436,6 +17656,7 @@ export type BranchSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extens
   isActive?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  examExportMeta?: boolean
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["branch"]>
 
@@ -17460,6 +17681,7 @@ export type BranchSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extens
   isActive?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  examExportMeta?: boolean
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["branch"]>
 
@@ -17484,9 +17706,10 @@ export type BranchSelectScalar = {
   isActive?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  examExportMeta?: boolean
 }
 
-export type BranchOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "code" | "image" | "note" | "adresse" | "province" | "ville" | "commune" | "pays" | "idnat" | "tel" | "latitude" | "longitude" | "attendanceRadius" | "organizationId" | "typebranch" | "isActive" | "createdAt" | "updatedAt", ExtArgs["result"]["branch"]>
+export type BranchOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "code" | "image" | "note" | "adresse" | "province" | "ville" | "commune" | "pays" | "idnat" | "tel" | "latitude" | "longitude" | "attendanceRadius" | "organizationId" | "typebranch" | "isActive" | "createdAt" | "updatedAt" | "examExportMeta", ExtArgs["result"]["branch"]>
 export type BranchInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   studentAttendance?: boolean | Prisma.Branch$studentAttendanceArgs<ExtArgs>
@@ -17625,6 +17848,10 @@ export type $BranchPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     isActive: boolean
     createdAt: Date
     updatedAt: Date
+    /**
+     * En-tête listing finalistes Excel : province, centre, établissement, option, gestion…
+     */
+    examExportMeta: runtime.JsonValue | null
   }, ExtArgs["result"]["branch"]>
   composites: {}
 }
@@ -18118,6 +18345,7 @@ export interface BranchFieldRefs {
   readonly isActive: Prisma.FieldRef<"Branch", 'Boolean'>
   readonly createdAt: Prisma.FieldRef<"Branch", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Branch", 'DateTime'>
+  readonly examExportMeta: Prisma.FieldRef<"Branch", 'Json'>
 }
     
 

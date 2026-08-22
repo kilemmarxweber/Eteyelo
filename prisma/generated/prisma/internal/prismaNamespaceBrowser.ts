@@ -438,6 +438,8 @@ export const ClassEnrollmentScalarFieldEnum = {
   schoolYearId: 'schoolYearId',
   classeId: 'classeId',
   studentId: 'studentId',
+  e13: 'e13',
+  e80: 'e80',
   statusEnrollment: 'statusEnrollment',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
@@ -947,7 +949,8 @@ export const BranchScalarFieldEnum = {
   typebranch: 'typebranch',
   isActive: 'isActive',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  examExportMeta: 'examExportMeta'
 } as const
 
 export type BranchScalarFieldEnum = (typeof BranchScalarFieldEnum)[keyof typeof BranchScalarFieldEnum]

@@ -18,6 +18,7 @@ import { useRefresh } from "@/src/hooks/RefreshContext";
 import { UpdateStudentDialog } from "./edit-student-dialog";
 import { useBranchPeopleLabels } from "@/hooks/use-branch-people-labels";
 import { getClassDisplayLabel, isSchoolBranch } from "@/lib/branch-capabilities";
+import { sortActiveStatusUserFirst } from "@/lib/archive";
 import { useSession } from "@/lib/auth-client";
 
 function EmptyStudentsEffect({
@@ -35,11 +36,13 @@ const StudentsList = ({
   refreshKey,
   onRefresh,
   canManageStudents,
+  canPurgePermanently = false,
   onVisibleStudentsChange,
 }: {
   refreshKey: number;
   onRefresh: () => void;
   canManageStudents: boolean;
+  canPurgePermanently?: boolean;
   onVisibleStudentsChange?: (students: IStudent[]) => void;
 }) => {
   const [students, setStudents] = useState<IStudent[]>([]);
@@ -86,8 +89,14 @@ const StudentsList = ({
   );
 
   const columns = useMemo(
-    () => createStudentColumns(onRefresh, canManageStudents, tableActions),
-    [canManageStudents, onRefresh, tableActions],
+    () =>
+      createStudentColumns(
+        onRefresh,
+        canManageStudents,
+        tableActions,
+        canPurgePermanently,
+      ),
+    [canManageStudents, canPurgePermanently, onRefresh, tableActions],
   );
 
   const StudentToolbar = useMemo(() => {
@@ -122,7 +131,7 @@ const StudentsList = ({
       const [rawStudents, err] = await getStudentsAction();
       if (err) throw new Error(err.message);
 
-      setStudents(rawStudents || []);
+      setStudents(sortActiveStatusUserFirst(rawStudents || []));
       hasLoadedOnce.current = true;
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Erreur serveur");
@@ -267,7 +276,11 @@ const StudentsList = ({
           mobileCardTitle={(row) => `${row.nom} ${row.postnom} ${row.prenom}`}
           mobileCardSubtitle={(row) => row.username ?? ""}
           onRowClick={handleStudentRowClick}
-          initialColumnVisibility={{ registeredPeriod: false }}
+          initialColumnVisibility={{
+            registeredPeriod: false,
+            e13: false,
+            e80: false,
+          }}
           onFilteredRowsChange={onVisibleStudentsChange}
         />
       </div>

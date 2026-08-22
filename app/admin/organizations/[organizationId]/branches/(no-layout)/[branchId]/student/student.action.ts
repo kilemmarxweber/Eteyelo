@@ -14,6 +14,7 @@ import {
   canManageOrganization,
   getSessionRoles,
   hasSessionRole,
+  isOrganizationOwnerSession,
 } from "@/lib/auth/session-roles";
 import { ORG_ROLE } from "@/lib/permissions";
 import {
@@ -43,6 +44,7 @@ import {
   studentExtraInfoSchema,
   studentExtraToDb,
 } from "@/lib/registration-extra-info";
+import { purgeStudentPermanently } from "@/lib/purge-branch-person";
 
 export async function getCurrentBranch() {
   const { branchId, organizationId, userId, typebranch, session } =
@@ -72,6 +74,7 @@ export async function getCurrentBranch() {
     branchMemberRole: branchMember?.role ?? null,
     roles,
     canManageStudents: canManageOrganization(session, branchMember?.role),
+    canPurgePermanently: isOrganizationOwnerSession(session, branchMember?.role),
     canReadStudents: canAccessStudentDirectory(session, branchMember?.role),
     canIssueDocuments: canIssueBranchDocuments(session, branchMember?.role),
     isParent: hasSessionRole(
@@ -318,6 +321,8 @@ function mapStudentRecord(
     };
     classEnrollment: Array<{
       createdAt?: Date;
+      e13?: string | null;
+      e80?: string | null;
       classe: { codeClasse: string; nameClasse: string } | null;
       schoolYear?: {
         id: string;
@@ -345,6 +350,8 @@ function mapStudentRecord(
         isCurrentYear: year.isCurrentYear,
         classCode: enrollment.classe?.codeClasse ?? null,
         className: enrollment.classe?.nameClasse ?? null,
+        e13: enrollment.e13 ?? null,
+        e80: enrollment.e80 ?? null,
         createdAt: enrollment.createdAt ?? null,
       };
     })
@@ -357,6 +364,8 @@ function mapStudentRecord(
         isCurrentYear: boolean;
         classCode: string | null;
         className: string | null;
+        e13: string | null;
+        e80: string | null;
         createdAt: Date | null;
       } => Boolean(enrollment),
     );
@@ -379,7 +388,7 @@ function mapStudentRecord(
     image: user?.image?.trim() || undefined,
     createdAt: student.createdAt,
     updatedAt: student.updatedAt,
-    statusUser: user?.statusUser || true,
+    statusUser: user?.statusUser ?? true,
     address: user?.address || "",
     category: student.category || "NORMAL",
     placeOfBirth: student.placeOfBirth,
@@ -391,12 +400,16 @@ function mapStudentRecord(
     className: preferredEnrollment?.className ?? null,
     schoolYearId: preferredEnrollment?.schoolYearId ?? null,
     schoolYearName: preferredEnrollment?.schoolYearName ?? null,
+    e13: preferredEnrollment?.e13 ?? null,
+    e80: preferredEnrollment?.e80 ?? null,
     enrollmentYearIds: enrollments.map((enrollment) => enrollment.schoolYearId),
     enrollments: enrollments.map((enrollment) => ({
       schoolYearId: enrollment.schoolYearId,
       schoolYearName: enrollment.schoolYearName,
       classCode: enrollment.classCode,
       className: enrollment.className,
+      e13: enrollment.e13,
+      e80: enrollment.e80,
       createdAt: enrollment.createdAt,
     })),
     memberId: student.branchMember?.memberId ?? "",
@@ -419,7 +432,7 @@ function mapStudentRecord(
           telephone: parentUser?.telephone || "",
           createdAt: student.parent.createdAt,
           updatedAt: student.parent.updatedAt,
-          statusUser: parentUser?.statusUser || true,
+          statusUser: parentUser?.statusUser ?? true,
           address: parentUser?.address || "",
           nomMere: student.parent.nomMere,
           professionMere: student.parent.professionMere,
@@ -986,5 +999,91 @@ export const updateStudentPhotoAction = action
     }
   });
 
+/** Suppression définitive uniquement après archivage — nettoie toutes les données liées. */
+export const deleteStudentPermanentlyAction = action
+  .input(deleteStudentSchema)
+  .handler(async ({ input }) => {
+    const { branchId, organizationId, canPurgePermanently } =
+      await getCurrentBranch();
+    if (!canPurgePermanently) {
+      return {
+        ok: false as const,
+        message: "Seul le propriétaire peut supprimer définitivement.",
+      };
+    }
+
+    try {
+      const result = await purgeStudentPermanently({
+        studentId: input.id,
+        branchId,
+      });
+      if (result.ok) {
+        revalidateStudentPages(organizationId, branchId);
+      }
+      return result;
+    } catch (error: unknown) {
+      return {
+        ok: false as const,
+        message: errMessage(error) || "Erreur lors de la suppression",
+      };
+    }
+  });
+
 /** @deprecated Utiliser archiveStudentAction */
 export const deleteStudentAction = archiveStudentAction;
+
+const studentExamCodesSchema = z.object({
+  studentId: z.string().min(1),
+  schoolYearId: z.string().min(1),
+  e13: z.string().trim().max(40).optional().or(z.literal("")),
+  e80: z.string().trim().max(40).optional().or(z.literal("")),
+});
+
+/** Enregistre ou met à jour les codes E13 / E80 pour l'inscription de l'année. */
+export const saveStudentExamCodesAction = action
+  .input(studentExamCodesSchema)
+  .handler(async ({ input }) => {
+    const { branchId, organizationId, canManageStudents } =
+      await getCurrentBranch();
+    if (!canManageStudents) {
+      throw new Error("Permission insuffisante pour modifier les codes E13/E80.");
+    }
+
+    const enrollment = await prisma.classEnrollment.findFirst({
+      where: {
+        studentId: input.studentId,
+        schoolYearId: input.schoolYearId,
+        branchId,
+        statusEnrollment: true,
+      },
+      select: { id: true, e13: true, e80: true },
+    });
+
+    if (!enrollment) {
+      throw new Error(
+        "Aucune inscription active trouvée pour cet élève et cette année.",
+      );
+    }
+
+    const e13 = input.e13?.trim() || null;
+    const e80 = input.e80?.trim() || null;
+    const alreadySet = Boolean(enrollment.e13 || enrollment.e80);
+
+    const updated = await prisma.classEnrollment.update({
+      where: { id: enrollment.id },
+      data: { e13, e80 },
+      select: { e13: true, e80: true },
+    });
+
+    revalidateStudentPages(organizationId, branchId);
+
+    return {
+      ok: true as const,
+      updated: alreadySet,
+      e13: updated.e13,
+      e80: updated.e80,
+      message: alreadySet
+        ? "Codes E13 & E80 mis à jour"
+        : "Codes E13 & E80 enregistrés",
+    };
+  });

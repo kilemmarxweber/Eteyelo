@@ -36,7 +36,7 @@ export const userSchema = z.object({
   password: z.string().min(4, {
     message: "Le mot de passe dois avoir au moins 8 caractères",
   }),
-  address: z.string().min(10, { message: "Veuillez saisir l'adresse" }),
+  address: z.string().trim().min(1, { message: "Veuillez saisir l'adresse" }),
 });
 export const updateUserSchema = z.object({
   id: z.string(),

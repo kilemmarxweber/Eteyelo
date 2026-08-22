@@ -17,17 +17,20 @@ import { createPersonnelColumns } from "./columns";
 import { DataTableToolbar } from "./data-table-toolbar";
 import { getPersonnelsAction } from "../personnel.action";
 import { UpdatePersonnelDialog } from "./edit-personnel-dialog";
+import { sortActiveStatusUserFirst } from "@/lib/archive";
 
 const PersonnelsList = ({
   refreshKey,
   onRefresh,
   canManagePersonnel,
+  canPurgePermanently = false,
   supportsStaffImport = false,
   onOpenImport,
 }: {
   refreshKey: number;
   onRefresh: () => void;
   canManagePersonnel: boolean;
+  canPurgePermanently?: boolean;
   supportsStaffImport?: boolean;
   onOpenImport?: () => void;
 }) => {
@@ -50,8 +53,13 @@ const PersonnelsList = ({
 
   const columns = useMemo(
     () =>
-      createPersonnelColumns(onRefresh, canManagePersonnel, tableActions),
-    [canManagePersonnel, onRefresh, tableActions],
+      createPersonnelColumns(
+        onRefresh,
+        canManagePersonnel,
+        tableActions,
+        canPurgePermanently,
+      ),
+    [canManagePersonnel, canPurgePermanently, onRefresh, tableActions],
   );
 
   const Toolbar = useMemo(
@@ -82,7 +90,7 @@ const PersonnelsList = ({
       const [rawPersonnels, err] = await getPersonnelsAction();
       if (err) throw new Error(err.message);
 
-      setPersonnels(rawPersonnels || []);
+      setPersonnels(sortActiveStatusUserFirst(rawPersonnels || []));
       hasLoadedOnce.current = true;
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Erreur serveur");

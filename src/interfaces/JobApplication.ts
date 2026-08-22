@@ -26,7 +26,7 @@ export const jobApplicationInputSchema = z
     dateOfBirth: z.string().min(1, "Date de naissance requise"),
     telephone: z.string().trim().min(7, "Téléphone requis"),
     email: z.string().trim().email("Email invalide"),
-    address: z.string().trim().min(10, "Adresse requise"),
+    address: z.string().trim().min(1, "Adresse requise"),
     photoUrl: z.string().trim().optional(),
     desiredSubjects: z.string().trim().optional(),
     desiredLevels: z.string().trim().optional(),

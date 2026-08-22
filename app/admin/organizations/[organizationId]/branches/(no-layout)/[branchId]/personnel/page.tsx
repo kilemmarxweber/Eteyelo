@@ -27,7 +27,10 @@ import {
 } from "@/components/ui/sheet";
 import { useSession } from "@/lib/auth-client";
 import { canAccessBranchArea } from "@/lib/auth/branch-area-access";
-import { canManagePersonnelRecords } from "@/lib/auth/session-roles";
+import {
+  canManagePersonnelRecords,
+  isOrganizationOwnerSession,
+} from "@/lib/auth/session-roles";
 
 import { PersonnelUpForm } from "./components/personnel-form";
 import UserList from "./components/PersonnelsTable";
@@ -66,6 +69,8 @@ export default function Personnels() {
   const [hasMounted, setHasMounted] = useState(false);
   const sessionReady = hasMounted && !isPending;
   const canManage = sessionReady && canManagePersonnelRecords(session);
+  const canPurgePermanently =
+    sessionReady && isOrganizationOwnerSession(session);
 
   const handleUserAction = () => {
     setRefreshKey((prev) => prev + 1);
@@ -239,6 +244,7 @@ export default function Personnels() {
             refreshKey={refreshKey}
             onRefresh={handleUserAction}
             canManagePersonnel={canManage}
+            canPurgePermanently={canPurgePermanently}
             supportsStaffImport={supportsStaffImport}
             onOpenImport={() => setImportOpen(true)}
           />

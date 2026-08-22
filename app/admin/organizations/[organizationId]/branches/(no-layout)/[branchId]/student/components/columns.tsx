@@ -19,6 +19,7 @@ import {
 import { IStudent } from "@/src/interfaces/Student";
 import { DeleteStudentsDialog } from "./delete-students-dialog";
 import { DetailsStudentDialog } from "./details-student-dialog";
+import { E13E80Dialog } from "./e13-e80-dialog";
 import { ResetUsersDialog } from "./reset-users-dialog";
 import { StudentListPhotoCell } from "./student-list-photo-cell";
 import { openOverlayAfterMenuDismiss } from "@/lib/radix-portal-dismiss";
@@ -44,6 +45,7 @@ export const createStudentColumns = (
   onRefresh?: () => void,
   canManageStudents = true,
   actions?: StudentTableActions,
+  canPurgePermanently = false,
 ): ColumnDef<IStudent>[] => [
   {
     id: "select",
@@ -288,16 +290,72 @@ export const createStudentColumns = (
     },
   },
   {
+    id: "e13",
+    accessorFn: (student) => student.e13 ?? "",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="E13" />
+    ),
+    cell: ({ row, table }) => {
+      const yearFilter = table.getColumn("schoolYearId")?.getFilterValue();
+      const selectedYears = Array.isArray(yearFilter)
+        ? yearFilter.map(String)
+        : [];
+      const enrollment =
+        selectedYears.length === 1
+          ? row.original.enrollments?.find(
+              (item) => item.schoolYearId === selectedYears[0],
+            )
+          : null;
+      const value = enrollment?.e13 ?? row.original.e13;
+      return (
+        <span className="font-mono text-xs text-muted-foreground">
+          {value || "—"}
+        </span>
+      );
+    },
+    enableHiding: true,
+  },
+  {
+    id: "e80",
+    accessorFn: (student) => student.e80 ?? "",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="E80" />
+    ),
+    cell: ({ row, table }) => {
+      const yearFilter = table.getColumn("schoolYearId")?.getFilterValue();
+      const selectedYears = Array.isArray(yearFilter)
+        ? yearFilter.map(String)
+        : [];
+      const enrollment =
+        selectedYears.length === 1
+          ? row.original.enrollments?.find(
+              (item) => item.schoolYearId === selectedYears[0],
+            )
+          : null;
+      const value = enrollment?.e80 ?? row.original.e80;
+      return (
+        <span className="font-mono text-xs text-muted-foreground">
+          {value || "—"}
+        </span>
+      );
+    },
+    enableHiding: true,
+  },
+  {
     id: "actions",
     cell: function Cell({ row }) {
       const [showDeleteTaskDialog, setShowDeleteTaskDialog] =
+        React.useState(false);
+      const [showPurgeTaskDialog, setShowPurgeTaskDialog] =
         React.useState(false);
       const [showDetailsTaskDialog, setShowDetailsTaskDialog] =
         React.useState(false);
       const [showResetTaskDialog, setShowResetTaskDialog] =
         React.useState(false);
+      const [showE13E80Dialog, setShowE13E80Dialog] = React.useState(false);
 
       const params = useParams<{ organizationId: string; branchId: string }>();
+      const isArchived = row.original.statusUser === false;
 
       const handleSuccess = () => {
         row.toggleSelected(false);
@@ -314,6 +372,12 @@ export const createStudentColumns = (
 
           {canManageStudents ? (
             <>
+              <E13E80Dialog
+                open={showE13E80Dialog}
+                onOpenChange={setShowE13E80Dialog}
+                student={row.original}
+                onSuccess={handleSuccess}
+              />
               <DeleteStudentsDialog
                 open={showDeleteTaskDialog}
                 onOpenChange={setShowDeleteTaskDialog}
@@ -321,6 +385,16 @@ export const createStudentColumns = (
                 showTrigger={false}
                 onSuccess={handleSuccess}
               />
+              {canPurgePermanently ? (
+                <DeleteStudentsDialog
+                  open={showPurgeTaskDialog}
+                  onOpenChange={setShowPurgeTaskDialog}
+                  students={[row.original]}
+                  showTrigger={false}
+                  permanent
+                  onSuccess={handleSuccess}
+                />
+              ) : null}
 
               <ResetUsersDialog
                 open={showResetTaskDialog}
@@ -364,6 +438,17 @@ export const createStudentColumns = (
                   </DropdownMenuItem>
 
                   <DropdownMenuItem
+                    onSelect={(event) => {
+                      event.preventDefault();
+                      openOverlayAfterMenuDismiss(() =>
+                        setShowE13E80Dialog(true),
+                      );
+                    }}
+                  >
+                    E13 &amp; E80
+                  </DropdownMenuItem>
+
+                  <DropdownMenuItem
                     onSelect={() => setShowResetTaskDialog(true)}
                   >
                     Réinitialiser
@@ -371,13 +456,25 @@ export const createStudentColumns = (
 
                   <DropdownMenuSeparator />
 
-                  <DropdownMenuItem
-                    className="text-red-600 focus:text-red-600"
-                    onSelect={() => setShowDeleteTaskDialog(true)}
-                  >
-                    Archiver
-                    <DropdownMenuShortcut>Del</DropdownMenuShortcut>
-                  </DropdownMenuItem>
+                  {!isArchived ? (
+                    <DropdownMenuItem
+                      className="text-red-600 focus:text-red-600"
+                      onSelect={() => setShowDeleteTaskDialog(true)}
+                    >
+                      Archiver
+                      <DropdownMenuShortcut>Del</DropdownMenuShortcut>
+                    </DropdownMenuItem>
+                  ) : null}
+
+                  {canPurgePermanently ? (
+                    <DropdownMenuItem
+                      className="text-red-600 focus:text-red-600"
+                      onSelect={() => setShowPurgeTaskDialog(true)}
+                    >
+                      Supprimer
+                      <DropdownMenuShortcut>⇧Del</DropdownMenuShortcut>
+                    </DropdownMenuItem>
+                  ) : null}
                 </>
               ) : null}
             </DropdownMenuContent>

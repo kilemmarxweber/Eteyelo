@@ -342,6 +342,12 @@ const staticSidebarMenu: StaticMenuItem[] = [
         icon: "results",
         roles: SCHOOL_ADMIN_ROLES,
       },
+      {
+        title: "Liste finalistes",
+        href: "/admin/finalistes",
+        icon: "fiches",
+        roles: SCHOOL_ADMIN_ROLES,
+      },
     ],
   },
   {

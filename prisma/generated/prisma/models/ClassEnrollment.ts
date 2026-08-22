@@ -29,6 +29,8 @@ export type ClassEnrollmentMinAggregateOutputType = {
   schoolYearId: string | null
   classeId: string | null
   studentId: string | null
+  e13: string | null
+  e80: string | null
   statusEnrollment: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -40,6 +42,8 @@ export type ClassEnrollmentMaxAggregateOutputType = {
   schoolYearId: string | null
   classeId: string | null
   studentId: string | null
+  e13: string | null
+  e80: string | null
   statusEnrollment: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -51,6 +55,8 @@ export type ClassEnrollmentCountAggregateOutputType = {
   schoolYearId: number
   classeId: number
   studentId: number
+  e13: number
+  e80: number
   statusEnrollment: number
   createdAt: number
   updatedAt: number
@@ -64,6 +70,8 @@ export type ClassEnrollmentMinAggregateInputType = {
   schoolYearId?: true
   classeId?: true
   studentId?: true
+  e13?: true
+  e80?: true
   statusEnrollment?: true
   createdAt?: true
   updatedAt?: true
@@ -75,6 +83,8 @@ export type ClassEnrollmentMaxAggregateInputType = {
   schoolYearId?: true
   classeId?: true
   studentId?: true
+  e13?: true
+  e80?: true
   statusEnrollment?: true
   createdAt?: true
   updatedAt?: true
@@ -86,6 +96,8 @@ export type ClassEnrollmentCountAggregateInputType = {
   schoolYearId?: true
   classeId?: true
   studentId?: true
+  e13?: true
+  e80?: true
   statusEnrollment?: true
   createdAt?: true
   updatedAt?: true
@@ -170,6 +182,8 @@ export type ClassEnrollmentGroupByOutputType = {
   schoolYearId: string
   classeId: string
   studentId: string
+  e13: string | null
+  e80: string | null
   statusEnrollment: boolean | null
   createdAt: Date
   updatedAt: Date
@@ -202,6 +216,8 @@ export type ClassEnrollmentWhereInput = {
   schoolYearId?: Prisma.StringFilter<"ClassEnrollment"> | string
   classeId?: Prisma.StringFilter<"ClassEnrollment"> | string
   studentId?: Prisma.StringFilter<"ClassEnrollment"> | string
+  e13?: Prisma.StringNullableFilter<"ClassEnrollment"> | string | null
+  e80?: Prisma.StringNullableFilter<"ClassEnrollment"> | string | null
   statusEnrollment?: Prisma.BoolNullableFilter<"ClassEnrollment"> | boolean | null
   createdAt?: Prisma.DateTimeFilter<"ClassEnrollment"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"ClassEnrollment"> | Date | string
@@ -219,6 +235,8 @@ export type ClassEnrollmentOrderByWithRelationInput = {
   schoolYearId?: Prisma.SortOrder
   classeId?: Prisma.SortOrder
   studentId?: Prisma.SortOrder
+  e13?: Prisma.SortOrderInput | Prisma.SortOrder
+  e80?: Prisma.SortOrderInput | Prisma.SortOrder
   statusEnrollment?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -240,6 +258,8 @@ export type ClassEnrollmentWhereUniqueInput = Prisma.AtLeast<{
   schoolYearId?: Prisma.StringFilter<"ClassEnrollment"> | string
   classeId?: Prisma.StringFilter<"ClassEnrollment"> | string
   studentId?: Prisma.StringFilter<"ClassEnrollment"> | string
+  e13?: Prisma.StringNullableFilter<"ClassEnrollment"> | string | null
+  e80?: Prisma.StringNullableFilter<"ClassEnrollment"> | string | null
   statusEnrollment?: Prisma.BoolNullableFilter<"ClassEnrollment"> | boolean | null
   createdAt?: Prisma.DateTimeFilter<"ClassEnrollment"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"ClassEnrollment"> | Date | string
@@ -257,6 +277,8 @@ export type ClassEnrollmentOrderByWithAggregationInput = {
   schoolYearId?: Prisma.SortOrder
   classeId?: Prisma.SortOrder
   studentId?: Prisma.SortOrder
+  e13?: Prisma.SortOrderInput | Prisma.SortOrder
+  e80?: Prisma.SortOrderInput | Prisma.SortOrder
   statusEnrollment?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -274,6 +296,8 @@ export type ClassEnrollmentScalarWhereWithAggregatesInput = {
   schoolYearId?: Prisma.StringWithAggregatesFilter<"ClassEnrollment"> | string
   classeId?: Prisma.StringWithAggregatesFilter<"ClassEnrollment"> | string
   studentId?: Prisma.StringWithAggregatesFilter<"ClassEnrollment"> | string
+  e13?: Prisma.StringNullableWithAggregatesFilter<"ClassEnrollment"> | string | null
+  e80?: Prisma.StringNullableWithAggregatesFilter<"ClassEnrollment"> | string | null
   statusEnrollment?: Prisma.BoolNullableWithAggregatesFilter<"ClassEnrollment"> | boolean | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"ClassEnrollment"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"ClassEnrollment"> | Date | string
@@ -282,6 +306,8 @@ export type ClassEnrollmentScalarWhereWithAggregatesInput = {
 
 export type ClassEnrollmentCreateInput = {
   id?: string
+  e13?: string | null
+  e80?: string | null
   statusEnrollment?: boolean | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -298,6 +324,8 @@ export type ClassEnrollmentUncheckedCreateInput = {
   schoolYearId: string
   classeId: string
   studentId: string
+  e13?: string | null
+  e80?: string | null
   statusEnrollment?: boolean | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -308,6 +336,8 @@ export type ClassEnrollmentUncheckedCreateInput = {
 
 export type ClassEnrollmentUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  e13?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  e80?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusEnrollment?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -324,6 +354,8 @@ export type ClassEnrollmentUncheckedUpdateInput = {
   schoolYearId?: Prisma.StringFieldUpdateOperationsInput | string
   classeId?: Prisma.StringFieldUpdateOperationsInput | string
   studentId?: Prisma.StringFieldUpdateOperationsInput | string
+  e13?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  e80?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusEnrollment?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -337,6 +369,8 @@ export type ClassEnrollmentCreateManyInput = {
   schoolYearId: string
   classeId: string
   studentId: string
+  e13?: string | null
+  e80?: string | null
   statusEnrollment?: boolean | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -345,6 +379,8 @@ export type ClassEnrollmentCreateManyInput = {
 
 export type ClassEnrollmentUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  e13?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  e80?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusEnrollment?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -355,6 +391,8 @@ export type ClassEnrollmentUncheckedUpdateManyInput = {
   schoolYearId?: Prisma.StringFieldUpdateOperationsInput | string
   classeId?: Prisma.StringFieldUpdateOperationsInput | string
   studentId?: Prisma.StringFieldUpdateOperationsInput | string
+  e13?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  e80?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusEnrollment?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -381,6 +419,8 @@ export type ClassEnrollmentCountOrderByAggregateInput = {
   schoolYearId?: Prisma.SortOrder
   classeId?: Prisma.SortOrder
   studentId?: Prisma.SortOrder
+  e13?: Prisma.SortOrder
+  e80?: Prisma.SortOrder
   statusEnrollment?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -392,6 +432,8 @@ export type ClassEnrollmentMaxOrderByAggregateInput = {
   schoolYearId?: Prisma.SortOrder
   classeId?: Prisma.SortOrder
   studentId?: Prisma.SortOrder
+  e13?: Prisma.SortOrder
+  e80?: Prisma.SortOrder
   statusEnrollment?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -403,6 +445,8 @@ export type ClassEnrollmentMinOrderByAggregateInput = {
   schoolYearId?: Prisma.SortOrder
   classeId?: Prisma.SortOrder
   studentId?: Prisma.SortOrder
+  e13?: Prisma.SortOrder
+  e80?: Prisma.SortOrder
   statusEnrollment?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -619,6 +663,8 @@ export type ClassEnrollmentUncheckedUpdateManyWithoutBranchNestedInput = {
 
 export type ClassEnrollmentCreateWithoutStudentInput = {
   id?: string
+  e13?: string | null
+  e80?: string | null
   statusEnrollment?: boolean | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -633,6 +679,8 @@ export type ClassEnrollmentUncheckedCreateWithoutStudentInput = {
   id?: string
   schoolYearId: string
   classeId: string
+  e13?: string | null
+  e80?: string | null
   statusEnrollment?: boolean | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -675,6 +723,8 @@ export type ClassEnrollmentScalarWhereInput = {
   schoolYearId?: Prisma.StringFilter<"ClassEnrollment"> | string
   classeId?: Prisma.StringFilter<"ClassEnrollment"> | string
   studentId?: Prisma.StringFilter<"ClassEnrollment"> | string
+  e13?: Prisma.StringNullableFilter<"ClassEnrollment"> | string | null
+  e80?: Prisma.StringNullableFilter<"ClassEnrollment"> | string | null
   statusEnrollment?: Prisma.BoolNullableFilter<"ClassEnrollment"> | boolean | null
   createdAt?: Prisma.DateTimeFilter<"ClassEnrollment"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"ClassEnrollment"> | Date | string
@@ -683,6 +733,8 @@ export type ClassEnrollmentScalarWhereInput = {
 
 export type ClassEnrollmentCreateWithoutClasseInput = {
   id?: string
+  e13?: string | null
+  e80?: string | null
   statusEnrollment?: boolean | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -697,6 +749,8 @@ export type ClassEnrollmentUncheckedCreateWithoutClasseInput = {
   id?: string
   schoolYearId: string
   studentId: string
+  e13?: string | null
+  e80?: string | null
   statusEnrollment?: boolean | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -733,6 +787,8 @@ export type ClassEnrollmentUpdateManyWithWhereWithoutClasseInput = {
 
 export type ClassEnrollmentCreateWithoutSchoolYearInput = {
   id?: string
+  e13?: string | null
+  e80?: string | null
   statusEnrollment?: boolean | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -747,6 +803,8 @@ export type ClassEnrollmentUncheckedCreateWithoutSchoolYearInput = {
   id?: string
   classeId: string
   studentId: string
+  e13?: string | null
+  e80?: string | null
   statusEnrollment?: boolean | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -783,6 +841,8 @@ export type ClassEnrollmentUpdateManyWithWhereWithoutSchoolYearInput = {
 
 export type ClassEnrollmentCreateWithoutInvoicesInput = {
   id?: string
+  e13?: string | null
+  e80?: string | null
   statusEnrollment?: boolean | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -798,6 +858,8 @@ export type ClassEnrollmentUncheckedCreateWithoutInvoicesInput = {
   schoolYearId: string
   classeId: string
   studentId: string
+  e13?: string | null
+  e80?: string | null
   statusEnrollment?: boolean | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -823,6 +885,8 @@ export type ClassEnrollmentUpdateToOneWithWhereWithoutInvoicesInput = {
 
 export type ClassEnrollmentUpdateWithoutInvoicesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  e13?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  e80?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusEnrollment?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -838,6 +902,8 @@ export type ClassEnrollmentUncheckedUpdateWithoutInvoicesInput = {
   schoolYearId?: Prisma.StringFieldUpdateOperationsInput | string
   classeId?: Prisma.StringFieldUpdateOperationsInput | string
   studentId?: Prisma.StringFieldUpdateOperationsInput | string
+  e13?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  e80?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusEnrollment?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -847,6 +913,8 @@ export type ClassEnrollmentUncheckedUpdateWithoutInvoicesInput = {
 
 export type ClassEnrollmentCreateWithoutPaiementInput = {
   id?: string
+  e13?: string | null
+  e80?: string | null
   statusEnrollment?: boolean | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -862,6 +930,8 @@ export type ClassEnrollmentUncheckedCreateWithoutPaiementInput = {
   schoolYearId: string
   classeId: string
   studentId: string
+  e13?: string | null
+  e80?: string | null
   statusEnrollment?: boolean | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -887,6 +957,8 @@ export type ClassEnrollmentUpdateToOneWithWhereWithoutPaiementInput = {
 
 export type ClassEnrollmentUpdateWithoutPaiementInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  e13?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  e80?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusEnrollment?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -902,6 +974,8 @@ export type ClassEnrollmentUncheckedUpdateWithoutPaiementInput = {
   schoolYearId?: Prisma.StringFieldUpdateOperationsInput | string
   classeId?: Prisma.StringFieldUpdateOperationsInput | string
   studentId?: Prisma.StringFieldUpdateOperationsInput | string
+  e13?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  e80?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusEnrollment?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -911,6 +985,8 @@ export type ClassEnrollmentUncheckedUpdateWithoutPaiementInput = {
 
 export type ClassEnrollmentCreateWithoutBranchInput = {
   id?: string
+  e13?: string | null
+  e80?: string | null
   statusEnrollment?: boolean | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -926,6 +1002,8 @@ export type ClassEnrollmentUncheckedCreateWithoutBranchInput = {
   schoolYearId: string
   classeId: string
   studentId: string
+  e13?: string | null
+  e80?: string | null
   statusEnrollment?: boolean | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -963,6 +1041,8 @@ export type ClassEnrollmentCreateManyStudentInput = {
   id?: string
   schoolYearId: string
   classeId: string
+  e13?: string | null
+  e80?: string | null
   statusEnrollment?: boolean | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -971,6 +1051,8 @@ export type ClassEnrollmentCreateManyStudentInput = {
 
 export type ClassEnrollmentUpdateWithoutStudentInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  e13?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  e80?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusEnrollment?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -985,6 +1067,8 @@ export type ClassEnrollmentUncheckedUpdateWithoutStudentInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   schoolYearId?: Prisma.StringFieldUpdateOperationsInput | string
   classeId?: Prisma.StringFieldUpdateOperationsInput | string
+  e13?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  e80?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusEnrollment?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -997,6 +1081,8 @@ export type ClassEnrollmentUncheckedUpdateManyWithoutStudentInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   schoolYearId?: Prisma.StringFieldUpdateOperationsInput | string
   classeId?: Prisma.StringFieldUpdateOperationsInput | string
+  e13?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  e80?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusEnrollment?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1007,6 +1093,8 @@ export type ClassEnrollmentCreateManyClasseInput = {
   id?: string
   schoolYearId: string
   studentId: string
+  e13?: string | null
+  e80?: string | null
   statusEnrollment?: boolean | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1015,6 +1103,8 @@ export type ClassEnrollmentCreateManyClasseInput = {
 
 export type ClassEnrollmentUpdateWithoutClasseInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  e13?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  e80?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusEnrollment?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1029,6 +1119,8 @@ export type ClassEnrollmentUncheckedUpdateWithoutClasseInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   schoolYearId?: Prisma.StringFieldUpdateOperationsInput | string
   studentId?: Prisma.StringFieldUpdateOperationsInput | string
+  e13?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  e80?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusEnrollment?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1041,6 +1133,8 @@ export type ClassEnrollmentUncheckedUpdateManyWithoutClasseInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   schoolYearId?: Prisma.StringFieldUpdateOperationsInput | string
   studentId?: Prisma.StringFieldUpdateOperationsInput | string
+  e13?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  e80?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusEnrollment?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1051,6 +1145,8 @@ export type ClassEnrollmentCreateManySchoolYearInput = {
   id?: string
   classeId: string
   studentId: string
+  e13?: string | null
+  e80?: string | null
   statusEnrollment?: boolean | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1059,6 +1155,8 @@ export type ClassEnrollmentCreateManySchoolYearInput = {
 
 export type ClassEnrollmentUpdateWithoutSchoolYearInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  e13?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  e80?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusEnrollment?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1073,6 +1171,8 @@ export type ClassEnrollmentUncheckedUpdateWithoutSchoolYearInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   classeId?: Prisma.StringFieldUpdateOperationsInput | string
   studentId?: Prisma.StringFieldUpdateOperationsInput | string
+  e13?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  e80?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusEnrollment?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1085,6 +1185,8 @@ export type ClassEnrollmentUncheckedUpdateManyWithoutSchoolYearInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   classeId?: Prisma.StringFieldUpdateOperationsInput | string
   studentId?: Prisma.StringFieldUpdateOperationsInput | string
+  e13?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  e80?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusEnrollment?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1096,6 +1198,8 @@ export type ClassEnrollmentCreateManyBranchInput = {
   schoolYearId: string
   classeId: string
   studentId: string
+  e13?: string | null
+  e80?: string | null
   statusEnrollment?: boolean | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1103,6 +1207,8 @@ export type ClassEnrollmentCreateManyBranchInput = {
 
 export type ClassEnrollmentUpdateWithoutBranchInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  e13?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  e80?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusEnrollment?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1118,6 +1224,8 @@ export type ClassEnrollmentUncheckedUpdateWithoutBranchInput = {
   schoolYearId?: Prisma.StringFieldUpdateOperationsInput | string
   classeId?: Prisma.StringFieldUpdateOperationsInput | string
   studentId?: Prisma.StringFieldUpdateOperationsInput | string
+  e13?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  e80?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusEnrollment?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1130,6 +1238,8 @@ export type ClassEnrollmentUncheckedUpdateManyWithoutBranchInput = {
   schoolYearId?: Prisma.StringFieldUpdateOperationsInput | string
   classeId?: Prisma.StringFieldUpdateOperationsInput | string
   studentId?: Prisma.StringFieldUpdateOperationsInput | string
+  e13?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  e80?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusEnrollment?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1180,6 +1290,8 @@ export type ClassEnrollmentSelect<ExtArgs extends runtime.Types.Extensions.Inter
   schoolYearId?: boolean
   classeId?: boolean
   studentId?: boolean
+  e13?: boolean
+  e80?: boolean
   statusEnrollment?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -1198,6 +1310,8 @@ export type ClassEnrollmentSelectCreateManyAndReturn<ExtArgs extends runtime.Typ
   schoolYearId?: boolean
   classeId?: boolean
   studentId?: boolean
+  e13?: boolean
+  e80?: boolean
   statusEnrollment?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -1213,6 +1327,8 @@ export type ClassEnrollmentSelectUpdateManyAndReturn<ExtArgs extends runtime.Typ
   schoolYearId?: boolean
   classeId?: boolean
   studentId?: boolean
+  e13?: boolean
+  e80?: boolean
   statusEnrollment?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -1228,13 +1344,15 @@ export type ClassEnrollmentSelectScalar = {
   schoolYearId?: boolean
   classeId?: boolean
   studentId?: boolean
+  e13?: boolean
+  e80?: boolean
   statusEnrollment?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   branchId?: boolean
 }
 
-export type ClassEnrollmentOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "schoolYearId" | "classeId" | "studentId" | "statusEnrollment" | "createdAt" | "updatedAt" | "branchId", ExtArgs["result"]["classEnrollment"]>
+export type ClassEnrollmentOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "schoolYearId" | "classeId" | "studentId" | "e13" | "e80" | "statusEnrollment" | "createdAt" | "updatedAt" | "branchId", ExtArgs["result"]["classEnrollment"]>
 export type ClassEnrollmentInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   paiement?: boolean | Prisma.ClassEnrollment$paiementArgs<ExtArgs>
   schoolYear?: boolean | Prisma.SchoolYearDefaultArgs<ExtArgs>
@@ -1272,6 +1390,11 @@ export type $ClassEnrollmentPayload<ExtArgs extends runtime.Types.Extensions.Int
     schoolYearId: string
     classeId: string
     studentId: string
+    /**
+     * Codes examen officiel (TENAFEP / listing finalistes) — par année scolaire
+     */
+    e13: string | null
+    e80: string | null
     statusEnrollment: boolean | null
     createdAt: Date
     updatedAt: Date
@@ -1709,6 +1832,8 @@ export interface ClassEnrollmentFieldRefs {
   readonly schoolYearId: Prisma.FieldRef<"ClassEnrollment", 'String'>
   readonly classeId: Prisma.FieldRef<"ClassEnrollment", 'String'>
   readonly studentId: Prisma.FieldRef<"ClassEnrollment", 'String'>
+  readonly e13: Prisma.FieldRef<"ClassEnrollment", 'String'>
+  readonly e80: Prisma.FieldRef<"ClassEnrollment", 'String'>
   readonly statusEnrollment: Prisma.FieldRef<"ClassEnrollment", 'Boolean'>
   readonly createdAt: Prisma.FieldRef<"ClassEnrollment", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"ClassEnrollment", 'DateTime'>

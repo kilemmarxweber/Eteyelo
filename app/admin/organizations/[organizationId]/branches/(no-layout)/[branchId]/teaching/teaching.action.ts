@@ -107,7 +107,7 @@ export const getTeachingWorkspaceAction = action.handler(async () => {
 
 const quickAssignmentSchema = z.object({
   classeId: z.string().min(1),
-  coursIds: z.array(z.string().min(1)).min(1).max(50),
+  coursIds: z.array(z.string().min(1)).min(1).max(200),
   teacherId: z.string().min(1),
 });
 
@@ -149,7 +149,7 @@ export const saveQuickAssignmentsAction = action.input(quickAssignmentSchema).ha
 
 const removeAssignmentSchema = z.object({
   classeId: z.string().min(1),
-  coursIds: z.array(z.string().min(1)).min(1).max(50),
+  coursIds: z.array(z.string().min(1)).min(1).max(200),
 });
 
 /** Retire l'enseignant des cours sélectionnés (désactive l'affectation pour l'année en cours). */

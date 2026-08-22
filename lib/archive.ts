@@ -37,3 +37,14 @@ export function matchesIsArchivedFilter(
   const archived = Boolean(isArchived);
   return filter === "archived" ? archived : !archived;
 }
+
+/** Actifs d'abord, archivés (`statusUser === false`) en bas de liste. */
+export function sortActiveStatusUserFirst<T extends { statusUser?: boolean | null }>(
+  items: T[],
+): T[] {
+  return [...items].sort((a, b) => {
+    const aArchived = a.statusUser === false ? 1 : 0;
+    const bArchived = b.statusUser === false ? 1 : 0;
+    return aArchived - bArchived;
+  });
+}

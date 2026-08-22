@@ -22,7 +22,7 @@ export const userSchema = z.object({
   dateOfBirth: z.date(),
   sexe: z.string().min(4, { message: "Veuillez saisir le sexe" }),
   telephone: z.string().regex(phoneRegex, "Invalid Number!"),
-  address: z.string().min(10, { message: "Veuillez saisir l'adresse" }),
+  address: z.string().trim().min(1, { message: "Veuillez saisir l'adresse" }),
   orgRole: z.string().min(3, {
     message: "Veuillez assigner au moins un rôle",
   }),

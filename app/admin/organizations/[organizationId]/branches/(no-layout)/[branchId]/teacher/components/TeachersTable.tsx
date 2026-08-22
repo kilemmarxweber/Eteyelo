@@ -14,6 +14,7 @@ import { IconAlertCircle, IconUsers } from "@tabler/icons-react";
 import { useRefresh } from "@/src/hooks/RefreshContext";
 import { UpdateTeacherDialog } from "./edit-teacher-dialog";
 import { useBranchPeopleLabels } from "@/hooks/use-branch-people-labels";
+import { sortActiveStatusUserFirst } from "@/lib/archive";
 
 type TeacherAssignmentFilter =
   | "all"
@@ -25,6 +26,7 @@ const TeachersList = ({
   refreshKey,
   onRefresh,
   canManageTeachers,
+  canPurgePermanently = false,
   assignmentFilter,
   supportsStaffImport = false,
   onOpenImport,
@@ -32,6 +34,7 @@ const TeachersList = ({
   refreshKey: number;
   onRefresh: () => void;
   canManageTeachers: boolean;
+  canPurgePermanently?: boolean;
   assignmentFilter: TeacherAssignmentFilter;
   supportsStaffImport?: boolean;
   onOpenImport?: () => void;
@@ -53,8 +56,14 @@ const TeachersList = ({
   );
 
   const columns = useMemo(
-    () => createTeacherColumns(onRefresh, canManageTeachers, tableActions),
-    [canManageTeachers, onRefresh, tableActions],
+    () =>
+      createTeacherColumns(
+        onRefresh,
+        canManageTeachers,
+        tableActions,
+        canPurgePermanently,
+      ),
+    [canManageTeachers, canPurgePermanently, onRefresh, tableActions],
   );
 
   const TeacherToolbar = useMemo(() => {
@@ -75,22 +84,24 @@ const TeachersList = ({
 
   const displayedTeachers = useMemo(
     () =>
-      teachers.filter((teacher) => {
-        if (assignmentFilter === "active") return teacher.statusUser !== false;
-        if (assignmentFilter === "assigned") {
-          return (
-            teacher.statusUser !== false &&
-            teacher.assignmentStatus === "assigned"
-          );
-        }
-        if (assignmentFilter === "unassigned") {
-          return (
-            teacher.statusUser !== false &&
-            teacher.assignmentStatus === "unassigned"
-          );
-        }
-        return true;
-      }),
+      sortActiveStatusUserFirst(
+        teachers.filter((teacher) => {
+          if (assignmentFilter === "active") return teacher.statusUser !== false;
+          if (assignmentFilter === "assigned") {
+            return (
+              teacher.statusUser !== false &&
+              teacher.assignmentStatus === "assigned"
+            );
+          }
+          if (assignmentFilter === "unassigned") {
+            return (
+              teacher.statusUser !== false &&
+              teacher.assignmentStatus === "unassigned"
+            );
+          }
+          return true;
+        }),
+      ),
     [assignmentFilter, teachers],
   );
 

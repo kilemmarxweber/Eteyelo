@@ -10,6 +10,7 @@ import {
   canManageOrganization,
   getSessionRoles,
   hasSessionRole,
+  isOrganizationOwnerSession,
 } from "@/lib/auth/session-roles";
 import { generateSecurePassword } from "@/lib/generate-password";
 import { ORG_ROLE } from "@/lib/permissions";
@@ -26,6 +27,8 @@ import {
   ITeacher,
   teacherSchema,
 } from "@/src/interfaces/Teacher";
+import { purgeTeacherPermanently } from "@/lib/purge-branch-person";
+import { revalidatePath } from "next/cache";
 
 async function syncTeacherTitulaire(input: {
   branchId: string;
@@ -150,6 +153,7 @@ export async function getCurrentBranch() {
     roles,
     branchMemberId: branchMember?.id ?? null,
     canManageTeachers: canManageOrganization(session, branchMember?.role),
+    canPurgePermanently: isOrganizationOwnerSession(session, branchMember?.role),
     isTeacher: hasSessionRole(
       session,
       [ORG_ROLE.TEACHER, "TEACHER"],
@@ -340,6 +344,40 @@ export const archiveTeacherAction = action
         success: false,
         message:
           errMessage(error) || "Erreur lors de l'archivage de l'enseignant",
+      };
+    }
+  });
+
+/** Suppression définitive uniquement après archivage — nettoie toutes les données liées. */
+export const deleteTeacherPermanentlyAction = action
+  .input(deleteTeacherSchema)
+  .handler(async ({ input }) => {
+    const { branchId, organizationId, canPurgePermanently } =
+      await getCurrentBranch();
+
+    if (!canPurgePermanently) {
+      return {
+        ok: false as const,
+        message: "Seul le propriétaire peut supprimer définitivement.",
+      };
+    }
+
+    try {
+      const result = await purgeTeacherPermanently({
+        teacherId: input.id,
+        branchId,
+      });
+      if (result.ok) {
+        revalidatePath(
+          `/admin/organizations/${organizationId}/branches/${branchId}/teacher`,
+        );
+      }
+      return result;
+    } catch (error: unknown) {
+      return {
+        ok: false as const,
+        message:
+          errMessage(error) || "Erreur lors de la suppression de l'enseignant",
       };
     }
   });

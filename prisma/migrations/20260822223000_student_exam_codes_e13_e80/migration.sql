@@ -1,0 +1,6 @@
+-- AlterTable
+ALTER TABLE "ClassEnrollment" ADD COLUMN IF NOT EXISTS "e13" TEXT;
+ALTER TABLE "ClassEnrollment" ADD COLUMN IF NOT EXISTS "e80" TEXT;
+
+-- AlterTable
+ALTER TABLE "Branch" ADD COLUMN IF NOT EXISTS "examExportMeta" JSONB;

@@ -436,6 +436,9 @@ model ClassEnrollment {
   schoolYearId     String
   classeId         String
   studentId        String
+  /// Codes examen officiel (TENAFEP / listing finalistes) — par année scolaire
+  e13              String?
+  e80              String?
   paiement         FamilyPayment[]
   schoolYear       SchoolYear      @relation(fields: [schoolYearId], references: [id])
   classe           Classe?         @relation(fields: [classeId], references: [id])
@@ -1328,6 +1331,8 @@ model Branch {
   primaryDomains       BranchPrimaryDomain[]
   absenceCases         AbsenceCase[]
   appNotifications     AppNotification[]
+  /// En-tête listing finalistes Excel : province, centre, établissement, option, gestion…
+  examExportMeta       Json?
 
   @@index([organizationId])
   @@index([organizationId, isActive])

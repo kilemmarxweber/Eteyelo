@@ -28,6 +28,7 @@ import { useSession } from "@/lib/auth-client";
 import {
   canAccessPedagogyArea,
   canManageOrganization,
+  isOrganizationOwnerSession,
 } from "@/lib/auth/session-roles";
 
 import UserList from "./components/TeachersTable";
@@ -67,6 +68,8 @@ export default function Teachers() {
   const [hasMounted, setHasMounted] = useState(false);
   const sessionReady = hasMounted && !isPending;
   const canManage = sessionReady && canManageOrganization(session);
+  const canPurgePermanently =
+    sessionReady && isOrganizationOwnerSession(session);
 
   const handleUserAction = () => {
     setRefreshKey((prev) => prev + 1);
@@ -235,6 +238,7 @@ export default function Teachers() {
             refreshKey={refreshKey}
             onRefresh={handleUserAction}
             canManageTeachers={canManage}
+            canPurgePermanently={canPurgePermanently}
             assignmentFilter={assignmentFilter}
             supportsStaffImport={supportsStaffImport}
             onOpenImport={() => setImportOpen(true)}

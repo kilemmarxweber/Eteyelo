@@ -137,6 +137,24 @@ export default function TeachingWorkspacePage() {
   const selectedAssignedCourses = selectedCourses.filter((id) =>
     assignmentMap.has(id),
   );
+  const rowIds = useMemo(() => rows.map((row) => row.id), [rows]);
+  const allVisibleSelected =
+    rowIds.length > 0 && rowIds.every((id) => selectedCourses.includes(id));
+  const someVisibleSelected = rowIds.some((id) =>
+    selectedCourses.includes(id),
+  );
+
+  function toggleSelectAllVisible(checked: boolean | "indeterminate") {
+    const selectAll = checked === true;
+    setSelectedCourses((current) => {
+      if (selectAll) {
+        return [...new Set([...current, ...rowIds])];
+      }
+      const remove = new Set(rowIds);
+      return current.filter((id) => !remove.has(id));
+    });
+  }
+
   const totalUnassigned = (data?.classes ?? []).reduce((sum, classe) => {
     const assignedCourseIds = new Set(
       data?.teachings
@@ -427,7 +445,7 @@ export default function TeachingWorkspacePage() {
                   </div>
                 )}
               </div>
-              <div className="mt-3 grid gap-2 md:grid-cols-3">
+              <div className="mt-3 grid gap-2 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_auto]">
                 <div className="relative">
                   <IconSearch className="absolute left-3 top-3 size-4 text-muted-foreground" />
                   <Input
@@ -458,24 +476,55 @@ export default function TeachingWorkspacePage() {
                     <SelectItem value="unassigned">Non affectés</SelectItem>
                   </SelectContent>
                 </Select>
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={!rowIds.length || allVisibleSelected}
+                    onClick={() => toggleSelectAllVisible(true)}
+                  >
+                    Tout cocher
+                    {rowIds.length > 0 ? ` (${rowIds.length})` : ""}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    disabled={!someVisibleSelected}
+                    onClick={() => toggleSelectAllVisible(false)}
+                  >
+                    Tout décocher
+                  </Button>
+                </div>
               </div>
+              <p className="mt-2 text-xs text-muted-foreground">
+                Cochez les cours un par un, ou tous d&apos;un coup, puis
+                choisissez l&apos;enseignant pour les affecter.
+              </p>
             </div>
             <div className="min-h-0 flex-1 overflow-auto">
               <table className="w-full min-w-[780px] text-sm">
                 <thead className="sticky top-0 bg-background text-left shadow-sm">
                   <tr>
                     <th className="p-3">
-                      <Checkbox
-                        checked={
-                          rows.length > 0 &&
-                          rows.every((row) => selectedCourses.includes(row.id))
-                        }
-                        onCheckedChange={(checked) =>
-                          setSelectedCourses(
-                            checked ? rows.map((row) => row.id) : [],
-                          )
-                        }
-                      />
+                      <label className="inline-flex cursor-pointer items-center gap-2">
+                        <Checkbox
+                          checked={
+                            allVisibleSelected
+                              ? true
+                              : someVisibleSelected
+                                ? "indeterminate"
+                                : false
+                          }
+                          onCheckedChange={toggleSelectAllVisible}
+                          aria-label="Tout cocher les cours visibles"
+                          disabled={!rowIds.length}
+                        />
+                        <span className="text-xs font-medium text-muted-foreground">
+                          Tout
+                        </span>
+                      </label>
                     </th>
                     <th className="p-3">Cours</th>
                     <th className="p-3">Enseignant</th>

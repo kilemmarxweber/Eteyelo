@@ -34,6 +34,7 @@ export const createPersonnelColumns = (
   onRefresh?: () => void,
   canManagePersonnel = true,
   actions?: PersonnelTableActions,
+  canPurgePermanently = false,
 ): ColumnDef<IPersonnel>[] => [
   {
     id: "select",
@@ -184,6 +185,8 @@ export const createPersonnelColumns = (
         React.useState(false);
       const [showDeleteTaskDialog, setShowDeleteTaskDialog] =
         React.useState(false);
+      const [showPurgeTaskDialog, setShowPurgeTaskDialog] =
+        React.useState(false);
       const [showDetailsTaskDialog, setShowDetailsTaskDialog] =
         React.useState(false);
       const [showResetTaskDialog, setShowResetTaskDialog] =
@@ -191,6 +194,7 @@ export const createPersonnelColumns = (
 
       const params = useParams<{ organizationId: string; branchId: string }>();
       const personnel = row.original;
+      const isArchived = personnel.statusUser === false;
 
       const handleSuccess = () => {
         row.toggleSelected(false);
@@ -214,6 +218,16 @@ export const createPersonnelColumns = (
                 showTrigger={false}
                 onSuccess={handleSuccess}
               />
+              {canPurgePermanently ? (
+                <DeletePersonalDialog
+                  open={showPurgeTaskDialog}
+                  onOpenChange={setShowPurgeTaskDialog}
+                  personals={[personnel]}
+                  showTrigger={false}
+                  permanent
+                  onSuccess={handleSuccess}
+                />
+              ) : null}
               <ResetUsersDialog
                 open={showResetTaskDialog}
                 onOpenChange={setShowResetTaskDialog}
@@ -275,13 +289,25 @@ export const createPersonnelColumns = (
 
                   <DropdownMenuSeparator />
 
-                  <DropdownMenuItem
-                    className="text-red-600 focus:text-red-600"
-                    onSelect={() => setShowDeleteTaskDialog(true)}
-                  >
-                    Archiver
-                    <DropdownMenuShortcut>Del</DropdownMenuShortcut>
-                  </DropdownMenuItem>
+                  {!isArchived ? (
+                    <DropdownMenuItem
+                      className="text-red-600 focus:text-red-600"
+                      onSelect={() => setShowDeleteTaskDialog(true)}
+                    >
+                      Archiver
+                      <DropdownMenuShortcut>Del</DropdownMenuShortcut>
+                    </DropdownMenuItem>
+                  ) : null}
+
+                  {canPurgePermanently ? (
+                    <DropdownMenuItem
+                      className="text-red-600 focus:text-red-600"
+                      onSelect={() => setShowPurgeTaskDialog(true)}
+                    >
+                      Supprimer
+                      <DropdownMenuShortcut>⇧Del</DropdownMenuShortcut>
+                    </DropdownMenuItem>
+                  ) : null}
                 </>
               ) : null}
             </DropdownMenuContent>
