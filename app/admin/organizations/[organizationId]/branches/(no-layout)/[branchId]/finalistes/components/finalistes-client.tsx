@@ -22,7 +22,6 @@ import {
   emptyExamExportMeta,
   type ExamExportMeta,
 } from "@/lib/exam-export-meta";
-import { downloadFinalistesExcel } from "../export-finalistes-excel";
 import {
   getFinalistesWorkspaceAction,
   listFinalistesAction,
@@ -159,6 +158,10 @@ export function FinalistesClient() {
       return;
     }
     try {
+      // Chargé seulement au clic — n'alourdit pas l'ouverture de la page.
+      const { downloadFinalistesExcel } = await import(
+        "../export-finalistes-excel"
+      );
       await downloadFinalistesExcel({
         meta,
         session,

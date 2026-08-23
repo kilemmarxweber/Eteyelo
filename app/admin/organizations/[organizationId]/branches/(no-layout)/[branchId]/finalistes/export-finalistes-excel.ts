@@ -49,14 +49,123 @@ const HEADERS = [
   "ECOLE",
 ] as const;
 
-function metaLine(
-  label: string,
-  value: string | undefined,
-  code: string | undefined,
+const META_ROW_COUNT = 7;
+const TABLE_HEADER_ROW = META_ROW_COUNT + 1;
+
+const FONT_LABEL = {
+  name: "Arial",
+  size: 10,
+  color: { argb: "FF000000" },
+} as const;
+
+const FONT_VALUE_BLUE = {
+  name: "Arial",
+  size: 10,
+  color: { argb: "FF0000FF" },
+} as const;
+
+const FONT_VALUE_RED = {
+  name: "Arial",
+  size: 10,
+  color: { argb: "FFFF0000" },
+} as const;
+
+const FONT_VALUE_BLUE_BOLD = {
+  name: "Arial",
+  size: 10,
+  bold: true,
+  color: { argb: "FF0000FF" },
+} as const;
+
+type MetaRowSpec = {
+  label: string;
+  value: string;
+  valueColor?: "blue" | "red";
+  valueBold?: boolean;
+  code?: string;
+};
+
+function displayOrDash(value: string | undefined) {
+  const trimmed = value?.trim();
+  return trimmed || "—";
+}
+
+function writeMetaRow(
+  sheet: import("exceljs").Worksheet,
+  rowIndex: number,
+  spec: MetaRowSpec,
 ) {
-  const parts = [value?.trim()].filter(Boolean);
-  if (code?.trim()) parts.push(`(CODE: ${code.trim()})`);
-  return `${label}: ${parts.join(" ") || "—"}`;
+  const labelCell = sheet.getCell(`A${rowIndex}`);
+  labelCell.value = `${spec.label}:`;
+  labelCell.font = { ...FONT_LABEL };
+
+  const valueCell = sheet.getCell(`B${rowIndex}`);
+  valueCell.value = spec.value;
+  valueCell.font =
+    spec.valueBold === true
+      ? { ...FONT_VALUE_BLUE_BOLD }
+      : spec.valueColor === "red"
+        ? { ...FONT_VALUE_RED }
+        : { ...FONT_VALUE_BLUE };
+
+  if (spec.code !== undefined) {
+    const codeLabelCell = sheet.getCell(`D${rowIndex}`);
+    codeLabelCell.value = "CODE:";
+    codeLabelCell.font = { ...FONT_LABEL };
+
+    const codeCell = sheet.getCell(`F${rowIndex}`);
+    codeCell.value = displayOrDash(spec.code);
+    codeCell.font = { ...FONT_VALUE_BLUE };
+    codeCell.alignment = { horizontal: "right" };
+    codeCell.numFmt = "@";
+  } else if (spec.label === "ORDRE") {
+    valueCell.numFmt = "@";
+    valueCell.alignment = { horizontal: "left" };
+  }
+}
+
+function buildMetaRows(
+  meta: ExamExportMeta,
+  session: string,
+): MetaRowSpec[] {
+  return [
+    {
+      label: "PROVINCE",
+      value: displayOrDash(meta.province),
+      valueColor: "red",
+      code: meta.provinceCode,
+    },
+    {
+      label: "CENTRE",
+      value: displayOrDash(meta.centre),
+      code: meta.centreCode,
+    },
+    {
+      label: "ETABLISSEMENT",
+      value: displayOrDash(meta.etablissement),
+      code: meta.etablissementCode,
+    },
+    {
+      label: "OPTION",
+      value: displayOrDash(meta.option),
+      code: meta.optionCode,
+    },
+    {
+      label: "ORDRE",
+      value: displayOrDash(meta.ordre),
+    },
+    {
+      label: "GESTION",
+      value: displayOrDash(meta.gestion),
+      valueBold: true,
+      code: meta.gestionCode,
+    },
+    {
+      label: "SESSION",
+      value: displayOrDash(session),
+      valueColor: "red",
+    },
+  ];
 }
 
 export async function downloadFinalistesExcel(payload: FinalisteExcelPayload) {
@@ -66,34 +175,14 @@ export async function downloadFinalistesExcel(payload: FinalisteExcelPayload) {
   workbook.created = new Date();
 
   const sheet = workbook.addWorksheet("Finalistes", {
-    views: [{ state: "frozen", ySplit: 9 }],
+    views: [{ state: "frozen", ySplit: TABLE_HEADER_ROW }],
   });
 
-  sheet.mergeCells("A1:R1");
-  sheet.getCell("A1").value = "LISTE DES FINALISTES — PRIMAIRE 6";
-  sheet.getCell("A1").font = { bold: true, size: 14 };
-  sheet.getCell("A1").alignment = { horizontal: "center" };
-
-  const { meta } = payload;
-  const headerLines = [
-    metaLine("PROVINCE", meta.province, meta.provinceCode),
-    metaLine("CENTRE", meta.centre, meta.centreCode),
-    metaLine("ETABLISSEMENT", meta.etablissement, meta.etablissementCode),
-    metaLine("OPTION", meta.option, meta.optionCode),
-    `ORDRE: ${meta.ordre?.trim() || "—"}`,
-    metaLine("GESTION", meta.gestion, meta.gestionCode),
-    `SESSION: ${payload.session}`,
-    `CLASSE: ${payload.classLabel}`,
-  ];
-
-  headerLines.forEach((line, index) => {
-    const rowIndex = index + 2;
-    sheet.mergeCells(`A${rowIndex}:R${rowIndex}`);
-    sheet.getCell(`A${rowIndex}`).value = line;
-    sheet.getCell(`A${rowIndex}`).font = { size: 10 };
+  buildMetaRows(payload.meta, payload.session).forEach((spec, index) => {
+    writeMetaRow(sheet, index + 1, spec);
   });
 
-  const headerRow = sheet.getRow(10);
+  const headerRow = sheet.getRow(TABLE_HEADER_ROW);
   HEADERS.forEach((title, index) => {
     const cell = headerRow.getCell(index + 1);
     cell.value = title;
@@ -145,9 +234,19 @@ export async function downloadFinalistesExcel(payload: FinalisteExcelPayload) {
     });
   });
 
-  const widths = [6, 14, 32, 16, 16, 8, 12, 12, 24, 24, 14, 18, 10, 18, 16, 14, 10, 14];
-  widths.forEach((width, index) => {
-    sheet.getColumn(index + 1).width = width;
+  sheet.getColumn(1).width = 16;
+  sheet.getColumn(2).width = 42;
+  sheet.getColumn(3).width = 4;
+  sheet.getColumn(4).width = 10;
+  sheet.getColumn(5).width = 4;
+  sheet.getColumn(6).width = 14;
+
+  const dataWidths = [6, 14, 32, 16, 16, 8, 12, 12, 24, 24, 14, 18, 10, 18, 16, 14, 10, 14];
+  dataWidths.forEach((width, index) => {
+    sheet.getColumn(index + 1).width = Math.max(
+      sheet.getColumn(index + 1).width ?? 0,
+      width,
+    );
   });
 
   const buffer = await workbook.xlsx.writeBuffer();

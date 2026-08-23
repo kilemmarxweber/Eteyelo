@@ -1,8 +1,16 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Redis / BullMQ restent utilisés côté serveur, mais ne sont plus bundlés
-  // par Webpack (évite le warning "Critical dependency" de child-processor).
-  serverExternalPackages: ["bullmq", "ioredis"],
+  // Redis / BullMQ : non bundlés (évite warning child-processor).
+  // exceljs (+ unzipper/fstream/rimraf) : externalisés pour éviter le warning
+  // Turbopack « Package rimraf can't be external » sur les pages qui exportent Excel.
+  serverExternalPackages: [
+    "bullmq",
+    "ioredis",
+    "exceljs",
+    "unzipper",
+    "fstream",
+    "rimraf",
+  ],
   async rewrites() {
     return [
       {
@@ -30,15 +38,3 @@ const nextConfig = {
 };
 
 export default nextConfig;
-
-/* module.exports = {
-    async redirects() {
-      return [
-        {
-          source: "/:path*",
-          destination: "/:path*",
-          permanent: true,
-        },
-      ];
-    },
-  }; */
