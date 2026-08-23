@@ -18,8 +18,8 @@ const MAX_CHILDREN_PER_SUBMISSION = 8;
 
 const guardianSchema = z.object({
   name: z.string().trim().min(2, "Nom du responsable requis"),
-  postnom: z.string().trim().min(2, "Postnom du responsable requis"),
-  prenom: z.string().trim().min(2, "Prenom du responsable requis"),
+  postnom: z.string().trim().optional().or(z.literal("")),
+  prenom: z.string().trim().optional().or(z.literal("")),
   relationship: z.string().trim().min(1, "Lien de parente requis"),
   sexe: z.enum(["masculin", "feminin"]),
   telephone: z.string().trim().min(7, "Telephone du responsable requis"),
@@ -30,8 +30,8 @@ const guardianSchema = z.object({
 
 const studentEntrySchema = z.object({
   name: z.string().trim().min(2, "Nom de l'eleve requis"),
-  postnom: z.string().trim().min(2, "Postnom de l'eleve requis"),
-  prenom: z.string().trim().min(2, "Prenom de l'eleve requis"),
+  postnom: z.string().trim().optional().or(z.literal("")),
+  prenom: z.string().trim().optional().or(z.literal("")),
   sexe: z.enum(["masculin", "feminin"]),
   dateOfBirth: z.string().min(1, "Date de naissance requise"),
   placeOfBirth: z.string().trim().min(2, "Lieu de naissance requis"),

@@ -43,6 +43,7 @@ export type CashierExpenseMinAggregateOutputType = {
   createdAt: Date | null
   updatedAt: Date | null
   branchId: string | null
+  createdByUserId: string | null
 }
 
 export type CashierExpenseMaxAggregateOutputType = {
@@ -54,6 +55,7 @@ export type CashierExpenseMaxAggregateOutputType = {
   createdAt: Date | null
   updatedAt: Date | null
   branchId: string | null
+  createdByUserId: string | null
 }
 
 export type CashierExpenseCountAggregateOutputType = {
@@ -65,6 +67,7 @@ export type CashierExpenseCountAggregateOutputType = {
   createdAt: number
   updatedAt: number
   branchId: number
+  createdByUserId: number
   _all: number
 }
 
@@ -86,6 +89,7 @@ export type CashierExpenseMinAggregateInputType = {
   createdAt?: true
   updatedAt?: true
   branchId?: true
+  createdByUserId?: true
 }
 
 export type CashierExpenseMaxAggregateInputType = {
@@ -97,6 +101,7 @@ export type CashierExpenseMaxAggregateInputType = {
   createdAt?: true
   updatedAt?: true
   branchId?: true
+  createdByUserId?: true
 }
 
 export type CashierExpenseCountAggregateInputType = {
@@ -108,6 +113,7 @@ export type CashierExpenseCountAggregateInputType = {
   createdAt?: true
   updatedAt?: true
   branchId?: true
+  createdByUserId?: true
   _all?: true
 }
 
@@ -206,6 +212,7 @@ export type CashierExpenseGroupByOutputType = {
   createdAt: Date
   updatedAt: Date
   branchId: string
+  createdByUserId: string | null
   _count: CashierExpenseCountAggregateOutputType | null
   _avg: CashierExpenseAvgAggregateOutputType | null
   _sum: CashierExpenseSumAggregateOutputType | null
@@ -240,7 +247,9 @@ export type CashierExpenseWhereInput = {
   createdAt?: Prisma.DateTimeFilter<"CashierExpense"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"CashierExpense"> | Date | string
   branchId?: Prisma.StringFilter<"CashierExpense"> | string
+  createdByUserId?: Prisma.StringNullableFilter<"CashierExpense"> | string | null
   branch?: Prisma.XOR<Prisma.BranchScalarRelationFilter, Prisma.BranchWhereInput>
+  createdByUser?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
 }
 
 export type CashierExpenseOrderByWithRelationInput = {
@@ -252,7 +261,9 @@ export type CashierExpenseOrderByWithRelationInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   branchId?: Prisma.SortOrder
+  createdByUserId?: Prisma.SortOrderInput | Prisma.SortOrder
   branch?: Prisma.BranchOrderByWithRelationInput
+  createdByUser?: Prisma.UserOrderByWithRelationInput
 }
 
 export type CashierExpenseWhereUniqueInput = Prisma.AtLeast<{
@@ -268,7 +279,9 @@ export type CashierExpenseWhereUniqueInput = Prisma.AtLeast<{
   createdAt?: Prisma.DateTimeFilter<"CashierExpense"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"CashierExpense"> | Date | string
   branchId?: Prisma.StringFilter<"CashierExpense"> | string
+  createdByUserId?: Prisma.StringNullableFilter<"CashierExpense"> | string | null
   branch?: Prisma.XOR<Prisma.BranchScalarRelationFilter, Prisma.BranchWhereInput>
+  createdByUser?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
 }, "id" | "branchId_transactionRef">
 
 export type CashierExpenseOrderByWithAggregationInput = {
@@ -280,6 +293,7 @@ export type CashierExpenseOrderByWithAggregationInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   branchId?: Prisma.SortOrder
+  createdByUserId?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.CashierExpenseCountOrderByAggregateInput
   _avg?: Prisma.CashierExpenseAvgOrderByAggregateInput
   _max?: Prisma.CashierExpenseMaxOrderByAggregateInput
@@ -299,6 +313,7 @@ export type CashierExpenseScalarWhereWithAggregatesInput = {
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"CashierExpense"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"CashierExpense"> | Date | string
   branchId?: Prisma.StringWithAggregatesFilter<"CashierExpense"> | string
+  createdByUserId?: Prisma.StringNullableWithAggregatesFilter<"CashierExpense"> | string | null
 }
 
 export type CashierExpenseCreateInput = {
@@ -310,6 +325,7 @@ export type CashierExpenseCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   branch: Prisma.BranchCreateNestedOneWithoutCashierExpenseInput
+  createdByUser?: Prisma.UserCreateNestedOneWithoutCashierExpensesCreatedInput
 }
 
 export type CashierExpenseUncheckedCreateInput = {
@@ -321,6 +337,7 @@ export type CashierExpenseUncheckedCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   branchId: string
+  createdByUserId?: string | null
 }
 
 export type CashierExpenseUpdateInput = {
@@ -332,6 +349,7 @@ export type CashierExpenseUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branch?: Prisma.BranchUpdateOneRequiredWithoutCashierExpenseNestedInput
+  createdByUser?: Prisma.UserUpdateOneWithoutCashierExpensesCreatedNestedInput
 }
 
 export type CashierExpenseUncheckedUpdateInput = {
@@ -343,6 +361,7 @@ export type CashierExpenseUncheckedUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
+  createdByUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type CashierExpenseCreateManyInput = {
@@ -354,6 +373,7 @@ export type CashierExpenseCreateManyInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   branchId: string
+  createdByUserId?: string | null
 }
 
 export type CashierExpenseUpdateManyMutationInput = {
@@ -375,6 +395,17 @@ export type CashierExpenseUncheckedUpdateManyInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
+  createdByUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+}
+
+export type CashierExpenseListRelationFilter = {
+  every?: Prisma.CashierExpenseWhereInput
+  some?: Prisma.CashierExpenseWhereInput
+  none?: Prisma.CashierExpenseWhereInput
+}
+
+export type CashierExpenseOrderByRelationAggregateInput = {
+  _count?: Prisma.SortOrder
 }
 
 export type CashierExpenseBranchIdTransactionRefCompoundUniqueInput = {
@@ -391,6 +422,7 @@ export type CashierExpenseCountOrderByAggregateInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   branchId?: Prisma.SortOrder
+  createdByUserId?: Prisma.SortOrder
 }
 
 export type CashierExpenseAvgOrderByAggregateInput = {
@@ -406,6 +438,7 @@ export type CashierExpenseMaxOrderByAggregateInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   branchId?: Prisma.SortOrder
+  createdByUserId?: Prisma.SortOrder
 }
 
 export type CashierExpenseMinOrderByAggregateInput = {
@@ -417,20 +450,53 @@ export type CashierExpenseMinOrderByAggregateInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   branchId?: Prisma.SortOrder
+  createdByUserId?: Prisma.SortOrder
 }
 
 export type CashierExpenseSumOrderByAggregateInput = {
   amount?: Prisma.SortOrder
 }
 
-export type CashierExpenseListRelationFilter = {
-  every?: Prisma.CashierExpenseWhereInput
-  some?: Prisma.CashierExpenseWhereInput
-  none?: Prisma.CashierExpenseWhereInput
+export type CashierExpenseCreateNestedManyWithoutCreatedByUserInput = {
+  create?: Prisma.XOR<Prisma.CashierExpenseCreateWithoutCreatedByUserInput, Prisma.CashierExpenseUncheckedCreateWithoutCreatedByUserInput> | Prisma.CashierExpenseCreateWithoutCreatedByUserInput[] | Prisma.CashierExpenseUncheckedCreateWithoutCreatedByUserInput[]
+  connectOrCreate?: Prisma.CashierExpenseCreateOrConnectWithoutCreatedByUserInput | Prisma.CashierExpenseCreateOrConnectWithoutCreatedByUserInput[]
+  createMany?: Prisma.CashierExpenseCreateManyCreatedByUserInputEnvelope
+  connect?: Prisma.CashierExpenseWhereUniqueInput | Prisma.CashierExpenseWhereUniqueInput[]
 }
 
-export type CashierExpenseOrderByRelationAggregateInput = {
-  _count?: Prisma.SortOrder
+export type CashierExpenseUncheckedCreateNestedManyWithoutCreatedByUserInput = {
+  create?: Prisma.XOR<Prisma.CashierExpenseCreateWithoutCreatedByUserInput, Prisma.CashierExpenseUncheckedCreateWithoutCreatedByUserInput> | Prisma.CashierExpenseCreateWithoutCreatedByUserInput[] | Prisma.CashierExpenseUncheckedCreateWithoutCreatedByUserInput[]
+  connectOrCreate?: Prisma.CashierExpenseCreateOrConnectWithoutCreatedByUserInput | Prisma.CashierExpenseCreateOrConnectWithoutCreatedByUserInput[]
+  createMany?: Prisma.CashierExpenseCreateManyCreatedByUserInputEnvelope
+  connect?: Prisma.CashierExpenseWhereUniqueInput | Prisma.CashierExpenseWhereUniqueInput[]
+}
+
+export type CashierExpenseUpdateManyWithoutCreatedByUserNestedInput = {
+  create?: Prisma.XOR<Prisma.CashierExpenseCreateWithoutCreatedByUserInput, Prisma.CashierExpenseUncheckedCreateWithoutCreatedByUserInput> | Prisma.CashierExpenseCreateWithoutCreatedByUserInput[] | Prisma.CashierExpenseUncheckedCreateWithoutCreatedByUserInput[]
+  connectOrCreate?: Prisma.CashierExpenseCreateOrConnectWithoutCreatedByUserInput | Prisma.CashierExpenseCreateOrConnectWithoutCreatedByUserInput[]
+  upsert?: Prisma.CashierExpenseUpsertWithWhereUniqueWithoutCreatedByUserInput | Prisma.CashierExpenseUpsertWithWhereUniqueWithoutCreatedByUserInput[]
+  createMany?: Prisma.CashierExpenseCreateManyCreatedByUserInputEnvelope
+  set?: Prisma.CashierExpenseWhereUniqueInput | Prisma.CashierExpenseWhereUniqueInput[]
+  disconnect?: Prisma.CashierExpenseWhereUniqueInput | Prisma.CashierExpenseWhereUniqueInput[]
+  delete?: Prisma.CashierExpenseWhereUniqueInput | Prisma.CashierExpenseWhereUniqueInput[]
+  connect?: Prisma.CashierExpenseWhereUniqueInput | Prisma.CashierExpenseWhereUniqueInput[]
+  update?: Prisma.CashierExpenseUpdateWithWhereUniqueWithoutCreatedByUserInput | Prisma.CashierExpenseUpdateWithWhereUniqueWithoutCreatedByUserInput[]
+  updateMany?: Prisma.CashierExpenseUpdateManyWithWhereWithoutCreatedByUserInput | Prisma.CashierExpenseUpdateManyWithWhereWithoutCreatedByUserInput[]
+  deleteMany?: Prisma.CashierExpenseScalarWhereInput | Prisma.CashierExpenseScalarWhereInput[]
+}
+
+export type CashierExpenseUncheckedUpdateManyWithoutCreatedByUserNestedInput = {
+  create?: Prisma.XOR<Prisma.CashierExpenseCreateWithoutCreatedByUserInput, Prisma.CashierExpenseUncheckedCreateWithoutCreatedByUserInput> | Prisma.CashierExpenseCreateWithoutCreatedByUserInput[] | Prisma.CashierExpenseUncheckedCreateWithoutCreatedByUserInput[]
+  connectOrCreate?: Prisma.CashierExpenseCreateOrConnectWithoutCreatedByUserInput | Prisma.CashierExpenseCreateOrConnectWithoutCreatedByUserInput[]
+  upsert?: Prisma.CashierExpenseUpsertWithWhereUniqueWithoutCreatedByUserInput | Prisma.CashierExpenseUpsertWithWhereUniqueWithoutCreatedByUserInput[]
+  createMany?: Prisma.CashierExpenseCreateManyCreatedByUserInputEnvelope
+  set?: Prisma.CashierExpenseWhereUniqueInput | Prisma.CashierExpenseWhereUniqueInput[]
+  disconnect?: Prisma.CashierExpenseWhereUniqueInput | Prisma.CashierExpenseWhereUniqueInput[]
+  delete?: Prisma.CashierExpenseWhereUniqueInput | Prisma.CashierExpenseWhereUniqueInput[]
+  connect?: Prisma.CashierExpenseWhereUniqueInput | Prisma.CashierExpenseWhereUniqueInput[]
+  update?: Prisma.CashierExpenseUpdateWithWhereUniqueWithoutCreatedByUserInput | Prisma.CashierExpenseUpdateWithWhereUniqueWithoutCreatedByUserInput[]
+  updateMany?: Prisma.CashierExpenseUpdateManyWithWhereWithoutCreatedByUserInput | Prisma.CashierExpenseUpdateManyWithWhereWithoutCreatedByUserInput[]
+  deleteMany?: Prisma.CashierExpenseScalarWhereInput | Prisma.CashierExpenseScalarWhereInput[]
 }
 
 export type CashierExpenseCreateNestedManyWithoutBranchInput = {
@@ -475,6 +541,69 @@ export type CashierExpenseUncheckedUpdateManyWithoutBranchNestedInput = {
   deleteMany?: Prisma.CashierExpenseScalarWhereInput | Prisma.CashierExpenseScalarWhereInput[]
 }
 
+export type CashierExpenseCreateWithoutCreatedByUserInput = {
+  id?: string
+  transactionRef: string
+  amount: number
+  description?: string | null
+  category?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  branch: Prisma.BranchCreateNestedOneWithoutCashierExpenseInput
+}
+
+export type CashierExpenseUncheckedCreateWithoutCreatedByUserInput = {
+  id?: string
+  transactionRef: string
+  amount: number
+  description?: string | null
+  category?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  branchId: string
+}
+
+export type CashierExpenseCreateOrConnectWithoutCreatedByUserInput = {
+  where: Prisma.CashierExpenseWhereUniqueInput
+  create: Prisma.XOR<Prisma.CashierExpenseCreateWithoutCreatedByUserInput, Prisma.CashierExpenseUncheckedCreateWithoutCreatedByUserInput>
+}
+
+export type CashierExpenseCreateManyCreatedByUserInputEnvelope = {
+  data: Prisma.CashierExpenseCreateManyCreatedByUserInput | Prisma.CashierExpenseCreateManyCreatedByUserInput[]
+  skipDuplicates?: boolean
+}
+
+export type CashierExpenseUpsertWithWhereUniqueWithoutCreatedByUserInput = {
+  where: Prisma.CashierExpenseWhereUniqueInput
+  update: Prisma.XOR<Prisma.CashierExpenseUpdateWithoutCreatedByUserInput, Prisma.CashierExpenseUncheckedUpdateWithoutCreatedByUserInput>
+  create: Prisma.XOR<Prisma.CashierExpenseCreateWithoutCreatedByUserInput, Prisma.CashierExpenseUncheckedCreateWithoutCreatedByUserInput>
+}
+
+export type CashierExpenseUpdateWithWhereUniqueWithoutCreatedByUserInput = {
+  where: Prisma.CashierExpenseWhereUniqueInput
+  data: Prisma.XOR<Prisma.CashierExpenseUpdateWithoutCreatedByUserInput, Prisma.CashierExpenseUncheckedUpdateWithoutCreatedByUserInput>
+}
+
+export type CashierExpenseUpdateManyWithWhereWithoutCreatedByUserInput = {
+  where: Prisma.CashierExpenseScalarWhereInput
+  data: Prisma.XOR<Prisma.CashierExpenseUpdateManyMutationInput, Prisma.CashierExpenseUncheckedUpdateManyWithoutCreatedByUserInput>
+}
+
+export type CashierExpenseScalarWhereInput = {
+  AND?: Prisma.CashierExpenseScalarWhereInput | Prisma.CashierExpenseScalarWhereInput[]
+  OR?: Prisma.CashierExpenseScalarWhereInput[]
+  NOT?: Prisma.CashierExpenseScalarWhereInput | Prisma.CashierExpenseScalarWhereInput[]
+  id?: Prisma.StringFilter<"CashierExpense"> | string
+  transactionRef?: Prisma.StringFilter<"CashierExpense"> | string
+  amount?: Prisma.FloatFilter<"CashierExpense"> | number
+  description?: Prisma.StringNullableFilter<"CashierExpense"> | string | null
+  category?: Prisma.StringNullableFilter<"CashierExpense"> | string | null
+  createdAt?: Prisma.DateTimeFilter<"CashierExpense"> | Date | string
+  updatedAt?: Prisma.DateTimeFilter<"CashierExpense"> | Date | string
+  branchId?: Prisma.StringFilter<"CashierExpense"> | string
+  createdByUserId?: Prisma.StringNullableFilter<"CashierExpense"> | string | null
+}
+
 export type CashierExpenseCreateWithoutBranchInput = {
   id?: string
   transactionRef: string
@@ -483,6 +612,7 @@ export type CashierExpenseCreateWithoutBranchInput = {
   category?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  createdByUser?: Prisma.UserCreateNestedOneWithoutCashierExpensesCreatedInput
 }
 
 export type CashierExpenseUncheckedCreateWithoutBranchInput = {
@@ -493,6 +623,7 @@ export type CashierExpenseUncheckedCreateWithoutBranchInput = {
   category?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  createdByUserId?: string | null
 }
 
 export type CashierExpenseCreateOrConnectWithoutBranchInput = {
@@ -521,18 +652,48 @@ export type CashierExpenseUpdateManyWithWhereWithoutBranchInput = {
   data: Prisma.XOR<Prisma.CashierExpenseUpdateManyMutationInput, Prisma.CashierExpenseUncheckedUpdateManyWithoutBranchInput>
 }
 
-export type CashierExpenseScalarWhereInput = {
-  AND?: Prisma.CashierExpenseScalarWhereInput | Prisma.CashierExpenseScalarWhereInput[]
-  OR?: Prisma.CashierExpenseScalarWhereInput[]
-  NOT?: Prisma.CashierExpenseScalarWhereInput | Prisma.CashierExpenseScalarWhereInput[]
-  id?: Prisma.StringFilter<"CashierExpense"> | string
-  transactionRef?: Prisma.StringFilter<"CashierExpense"> | string
-  amount?: Prisma.FloatFilter<"CashierExpense"> | number
-  description?: Prisma.StringNullableFilter<"CashierExpense"> | string | null
-  category?: Prisma.StringNullableFilter<"CashierExpense"> | string | null
-  createdAt?: Prisma.DateTimeFilter<"CashierExpense"> | Date | string
-  updatedAt?: Prisma.DateTimeFilter<"CashierExpense"> | Date | string
-  branchId?: Prisma.StringFilter<"CashierExpense"> | string
+export type CashierExpenseCreateManyCreatedByUserInput = {
+  id?: string
+  transactionRef: string
+  amount: number
+  description?: string | null
+  category?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  branchId: string
+}
+
+export type CashierExpenseUpdateWithoutCreatedByUserInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  transactionRef?: Prisma.StringFieldUpdateOperationsInput | string
+  amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  branch?: Prisma.BranchUpdateOneRequiredWithoutCashierExpenseNestedInput
+}
+
+export type CashierExpenseUncheckedUpdateWithoutCreatedByUserInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  transactionRef?: Prisma.StringFieldUpdateOperationsInput | string
+  amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  branchId?: Prisma.StringFieldUpdateOperationsInput | string
+}
+
+export type CashierExpenseUncheckedUpdateManyWithoutCreatedByUserInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  transactionRef?: Prisma.StringFieldUpdateOperationsInput | string
+  amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  branchId?: Prisma.StringFieldUpdateOperationsInput | string
 }
 
 export type CashierExpenseCreateManyBranchInput = {
@@ -543,6 +704,7 @@ export type CashierExpenseCreateManyBranchInput = {
   category?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  createdByUserId?: string | null
 }
 
 export type CashierExpenseUpdateWithoutBranchInput = {
@@ -553,6 +715,7 @@ export type CashierExpenseUpdateWithoutBranchInput = {
   category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdByUser?: Prisma.UserUpdateOneWithoutCashierExpensesCreatedNestedInput
 }
 
 export type CashierExpenseUncheckedUpdateWithoutBranchInput = {
@@ -563,6 +726,7 @@ export type CashierExpenseUncheckedUpdateWithoutBranchInput = {
   category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdByUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type CashierExpenseUncheckedUpdateManyWithoutBranchInput = {
@@ -573,6 +737,7 @@ export type CashierExpenseUncheckedUpdateManyWithoutBranchInput = {
   category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdByUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 
@@ -586,7 +751,9 @@ export type CashierExpenseSelect<ExtArgs extends runtime.Types.Extensions.Intern
   createdAt?: boolean
   updatedAt?: boolean
   branchId?: boolean
+  createdByUserId?: boolean
   branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
+  createdByUser?: boolean | Prisma.CashierExpense$createdByUserArgs<ExtArgs>
 }, ExtArgs["result"]["cashierExpense"]>
 
 export type CashierExpenseSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -598,7 +765,9 @@ export type CashierExpenseSelectCreateManyAndReturn<ExtArgs extends runtime.Type
   createdAt?: boolean
   updatedAt?: boolean
   branchId?: boolean
+  createdByUserId?: boolean
   branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
+  createdByUser?: boolean | Prisma.CashierExpense$createdByUserArgs<ExtArgs>
 }, ExtArgs["result"]["cashierExpense"]>
 
 export type CashierExpenseSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -610,7 +779,9 @@ export type CashierExpenseSelectUpdateManyAndReturn<ExtArgs extends runtime.Type
   createdAt?: boolean
   updatedAt?: boolean
   branchId?: boolean
+  createdByUserId?: boolean
   branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
+  createdByUser?: boolean | Prisma.CashierExpense$createdByUserArgs<ExtArgs>
 }, ExtArgs["result"]["cashierExpense"]>
 
 export type CashierExpenseSelectScalar = {
@@ -622,23 +793,28 @@ export type CashierExpenseSelectScalar = {
   createdAt?: boolean
   updatedAt?: boolean
   branchId?: boolean
+  createdByUserId?: boolean
 }
 
-export type CashierExpenseOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "transactionRef" | "amount" | "description" | "category" | "createdAt" | "updatedAt" | "branchId", ExtArgs["result"]["cashierExpense"]>
+export type CashierExpenseOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "transactionRef" | "amount" | "description" | "category" | "createdAt" | "updatedAt" | "branchId" | "createdByUserId", ExtArgs["result"]["cashierExpense"]>
 export type CashierExpenseInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
+  createdByUser?: boolean | Prisma.CashierExpense$createdByUserArgs<ExtArgs>
 }
 export type CashierExpenseIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
+  createdByUser?: boolean | Prisma.CashierExpense$createdByUserArgs<ExtArgs>
 }
 export type CashierExpenseIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
+  createdByUser?: boolean | Prisma.CashierExpense$createdByUserArgs<ExtArgs>
 }
 
 export type $CashierExpensePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "CashierExpense"
   objects: {
     branch: Prisma.$BranchPayload<ExtArgs>
+    createdByUser: Prisma.$UserPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -649,6 +825,10 @@ export type $CashierExpensePayload<ExtArgs extends runtime.Types.Extensions.Inte
     createdAt: Date
     updatedAt: Date
     branchId: string
+    /**
+     * Caissier / utilisateur ayant enregistré la dépense
+     */
+    createdByUserId: string | null
   }, ExtArgs["result"]["cashierExpense"]>
   composites: {}
 }
@@ -1044,6 +1224,7 @@ readonly fields: CashierExpenseFieldRefs;
 export interface Prisma__CashierExpenseClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   branch<T extends Prisma.BranchDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.BranchDefaultArgs<ExtArgs>>): Prisma.Prisma__BranchClient<runtime.Types.Result.GetResult<Prisma.$BranchPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  createdByUser<T extends Prisma.CashierExpense$createdByUserArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.CashierExpense$createdByUserArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1081,6 +1262,7 @@ export interface CashierExpenseFieldRefs {
   readonly createdAt: Prisma.FieldRef<"CashierExpense", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"CashierExpense", 'DateTime'>
   readonly branchId: Prisma.FieldRef<"CashierExpense", 'String'>
+  readonly createdByUserId: Prisma.FieldRef<"CashierExpense", 'String'>
 }
     
 
@@ -1479,6 +1661,25 @@ export type CashierExpenseDeleteManyArgs<ExtArgs extends runtime.Types.Extension
    * Limit how many CashierExpenses to delete.
    */
   limit?: number
+}
+
+/**
+ * CashierExpense.createdByUser
+ */
+export type CashierExpense$createdByUserArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the User
+   */
+  select?: Prisma.UserSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the User
+   */
+  omit?: Prisma.UserOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.UserInclude<ExtArgs> | null
+  where?: Prisma.UserWhereInput
 }
 
 /**

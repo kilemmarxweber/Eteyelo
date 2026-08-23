@@ -21,12 +21,14 @@ export const createOrgMemberSchema = z.object({
   orgRole: z.string().refine(orgRoleRefine, "Rôle d’organisation invalide."),
   postnom: z
     .string()
-    .min(3, { message: "Veuillez saisir le postnom" })
-    .optional(),
+    .trim()
+    .optional()
+    .or(z.literal("")),
   prenom: z
     .string()
-    .min(3, { message: "Veuillez saisir le prenom" })
-    .optional(),
+    .trim()
+    .optional()
+    .or(z.literal("")),
   dateOfBirth: z.date().optional(),
   sexe: z.string().min(4, { message: "Veuillez saisir le sexe" }).optional(),
   telephone: z

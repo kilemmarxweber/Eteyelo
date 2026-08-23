@@ -664,7 +664,8 @@ export const FamilyPaymentScalarFieldEnum = {
   updatedAt: 'updatedAt',
   fraisId: 'fraisId',
   classEnrollmentId: 'classEnrollmentId',
-  branchId: 'branchId'
+  branchId: 'branchId',
+  createdByUserId: 'createdByUserId'
 } as const
 
 export type FamilyPaymentScalarFieldEnum = (typeof FamilyPaymentScalarFieldEnum)[keyof typeof FamilyPaymentScalarFieldEnum]
@@ -678,7 +679,8 @@ export const CashierExpenseScalarFieldEnum = {
   category: 'category',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
-  branchId: 'branchId'
+  branchId: 'branchId',
+  createdByUserId: 'createdByUserId'
 } as const
 
 export type CashierExpenseScalarFieldEnum = (typeof CashierExpenseScalarFieldEnum)[keyof typeof CashierExpenseScalarFieldEnum]

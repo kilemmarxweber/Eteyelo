@@ -15,7 +15,7 @@ import { getBaseCurrency } from "@/lib/exchange-rate";
 import { prisma } from "@/lib/prisma";
 import { getCachedSession } from "@/lib/auth/get-session-cached";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
-import { canAccessFinanceArea } from "@/lib/auth/session-roles";
+import { canAccessFinanceArea, resolveCashierSelfScope } from "@/lib/auth/session-roles";
 import { switchActiveBranch } from "@/lib/auth/switch-branch";
 import { action } from "@/lib/zsa";
 import { Day } from "@/prisma/generated/prisma/client";
@@ -824,11 +824,20 @@ async function countUnpaidEnrollments(
   return unpaidCount;
 }
 
-async function getCashierDashboardData(branchId: string, organizationId: string) {
-  const { session } = await requireBranchContext();
+async function getCashierDashboardData(
+  branchId: string,
+  organizationId: string,
+  userId: string,
+  session: any,
+) {
   if (!canAccessFinanceArea(session)) {
     throw new Error("Action non autorisée");
   }
+
+  const cashierScope = resolveCashierSelfScope(session, userId);
+  const cashierFilter = cashierScope
+    ? { createdByUserId: cashierScope }
+    : {};
 
   const start = new Date();
   start.setHours(0, 0, 0, 0);
@@ -840,46 +849,91 @@ async function getCashierDashboardData(branchId: string, organizationId: string)
     select: { id: true },
   });
 
-  const [todayAgg, todayCount, unpaidCount, selectedExchangeRate, exchangeRates] =
-    await Promise.all([
-      prisma.familyPayment.aggregate({
-        _sum: { amount: true },
-        where: {
-          branchId,
-          status: "VALIDE",
-          createdAt: { gte: start, lt: end },
-        },
-      }),
-      prisma.familyPayment.count({
-        where: {
-          branchId,
-          status: "VALIDE",
-          createdAt: { gte: start, lt: end },
-        },
-      }),
-      currentYear
-        ? countUnpaidEnrollments(branchId, currentYear.id)
-        : Promise.resolve(0),
-      prisma.exchangeRate.findFirst({
-        where: { organizationId, isSelected: true },
-        select: { fromCurrency: true },
-      }),
-      prisma.exchangeRate.findMany({
-        where: { organizationId, isActive: true },
-        select: {
-          fromCurrency: true,
-          toCurrency: true,
-          rate: true,
-          isActive: true,
-          isSelected: true,
-        },
-      }),
-    ]);
+  const [
+    todayAgg,
+    todayCount,
+    todayExpenseAgg,
+    openingIncomeAgg,
+    openingExpenseAgg,
+    unpaidCount,
+    selectedExchangeRate,
+    exchangeRates,
+  ] = await Promise.all([
+    prisma.familyPayment.aggregate({
+      _sum: { amount: true },
+      where: {
+        branchId,
+        status: "VALIDE",
+        createdAt: { gte: start, lt: end },
+        ...cashierFilter,
+      },
+    }),
+    prisma.familyPayment.count({
+      where: {
+        branchId,
+        status: "VALIDE",
+        createdAt: { gte: start, lt: end },
+        ...cashierFilter,
+      },
+    }),
+    prisma.cashierExpense.aggregate({
+      _sum: { amount: true },
+      where: {
+        branchId,
+        createdAt: { gte: start, lt: end },
+        ...cashierFilter,
+      },
+    }),
+    prisma.familyPayment.aggregate({
+      _sum: { amount: true },
+      where: {
+        branchId,
+        status: "VALIDE",
+        createdAt: { lt: start },
+        ...cashierFilter,
+      },
+    }),
+    prisma.cashierExpense.aggregate({
+      _sum: { amount: true },
+      where: {
+        branchId,
+        createdAt: { lt: start },
+        ...cashierFilter,
+      },
+    }),
+    currentYear
+      ? countUnpaidEnrollments(branchId, currentYear.id)
+      : Promise.resolve(0),
+    prisma.exchangeRate.findFirst({
+      where: { organizationId, isSelected: true },
+      select: { fromCurrency: true },
+    }),
+    prisma.exchangeRate.findMany({
+      where: { organizationId, isActive: true },
+      select: {
+        fromCurrency: true,
+        toCurrency: true,
+        rate: true,
+        isActive: true,
+        isSelected: true,
+      },
+    }),
+  ]);
+
+  const todayIncome = todayAgg._sum.amount ?? 0;
+  const todayExpenses = todayExpenseAgg._sum.amount ?? 0;
+  const openingBalance =
+    Number(openingIncomeAgg._sum.amount ?? 0) -
+    Number(openingExpenseAgg._sum.amount ?? 0);
 
   return {
-    todayIncome: todayAgg._sum.amount ?? 0,
+    todayIncome,
     todayCount,
+    todayExpenses,
+    openingBalance,
+    netBalance: openingBalance + todayIncome - todayExpenses,
     unpaidInvoices: unpaidCount,
+    scopedToSelf: Boolean(cashierScope),
     currency:
       selectedExchangeRate?.fromCurrency ?? getBaseCurrency(exchangeRates),
   };
@@ -1373,7 +1427,7 @@ export async function getBranchDashboardData(params: {
           null,
         ] as const),
     blocks.cashier
-      ? getCashierDashboardData(branchId, organizationId)
+      ? getCashierDashboardData(branchId, organizationId, userId, session)
       : Promise.resolve(null),
     blocks.teacher
       ? getTeacherDashboardData(branchId, userId)

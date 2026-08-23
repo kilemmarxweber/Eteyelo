@@ -46,6 +46,8 @@ model User {
   absenceCases             AbsenceCase[]        @relation("AbsenceCaseSubject")
   reviewedAbsenceCases     AbsenceCase[]        @relation("AbsenceCaseReviewer")
   appNotifications         AppNotification[]
+  familyPaymentsCreated    FamilyPayment[]  @relation("FamilyPaymentCreatedBy")
+  cashierExpensesCreated   CashierExpense[] @relation("CashierExpenseCreatedBy")
 
   @@index([telephone])
   @@index([role])
@@ -820,6 +822,9 @@ model FamilyPayment {
   classEnrollmentId String
   branchId             String
   branch               Branch             @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  /// Caissier / utilisateur ayant enregistré le paiement
+  createdByUserId   String?
+  createdByUser     User?                 @relation("FamilyPaymentCreatedBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
 
   @@index([fraisId])
   @@index([classEnrollmentId])
@@ -829,6 +834,7 @@ model FamilyPayment {
   @@index([branchId, createdAt])
   @@index([branchId, receivedCurrency])
   @@index([branchId, status, classEnrollmentId, fraisId])
+  @@index([branchId, createdByUserId, createdAt])
   @@unique([branchId, transactionRef])
 }
 
@@ -842,7 +848,11 @@ model CashierExpense {
   updatedAt      DateTime @updatedAt
   branchId             String
   branch               Branch             @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  /// Caissier / utilisateur ayant enregistré la dépense
+  createdByUserId String?
+  createdByUser   User?    @relation("CashierExpenseCreatedBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
   @@index([branchId])
+  @@index([branchId, createdByUserId, createdAt])
   @@unique([branchId, transactionRef])
 }
 

@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
-import { usePathname } from "next/navigation";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { usePathname, useSearchParams } from "next/navigation";
 import { searchFamilyAction, Family, StudentItem } from "../paiement.action";
 import { Input } from "@/components/ui/input";
 import {
@@ -11,13 +11,63 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
 import { getCurrentSchoolYearAction, getSchoolYearsAction1 } from "../../schoolYear/schoolYear.action";
 import { ISchoolYear } from "@/src/interfaces/SchoolYear";
 import { Check, Loader2, Search, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSession } from "@/lib/auth-client";
 import { useBranchPeopleLabels } from "@/hooks/use-branch-people-labels";
+
+const PAIEMENT_BOOTSTRAP_TTL_MS = 5 * 60 * 1000;
+
+function readPaiementBootstrap(
+  branchId: string | undefined,
+  options?: { consume?: boolean },
+): {
+  q: string;
+  enrollmentId: string;
+} {
+  if (typeof window === "undefined") {
+    return { q: "", enrollmentId: "" };
+  }
+
+  const fromUrl = new URLSearchParams(window.location.search);
+  const urlQ = (fromUrl.get("q") ?? "").trim();
+  const urlEnrollmentId = (fromUrl.get("enrollmentId") ?? "").trim();
+
+  let storageQ = "";
+  let storageEnrollmentId = "";
+  if (branchId) {
+    try {
+      const key = `eteyelo:paiement-bootstrap:${branchId}`;
+      const raw = sessionStorage.getItem(key);
+      if (raw) {
+        const parsed = JSON.parse(raw) as {
+          q?: string;
+          enrollmentId?: string;
+          at?: number;
+        };
+        const fresh =
+          typeof parsed.at === "number" &&
+          Date.now() - parsed.at < PAIEMENT_BOOTSTRAP_TTL_MS;
+        if (fresh) {
+          storageQ = (parsed.q ?? "").trim();
+          storageEnrollmentId = (parsed.enrollmentId ?? "").trim();
+        }
+        if (options?.consume) {
+          sessionStorage.removeItem(key);
+        }
+      }
+    } catch {
+      // ignore
+    }
+  }
+
+  return {
+    q: urlQ || storageQ,
+    enrollmentId: urlEnrollmentId || storageEnrollmentId,
+  };
+}
 
 interface Props {
   onChange: (data: {
@@ -28,6 +78,10 @@ interface Props {
   resetKey?: number;
   /** Masque le sélecteur d'année (affiché ailleurs, ex. panneau gauche). */
   hideSchoolYearSelect?: boolean;
+  /** Préremplit la recherche (ex. après inscription). */
+  initialSearch?: string;
+  /** Pré-coche l'inscription (ex. après inscription). */
+  initialEnrollmentId?: string;
   /** Contrôle externe de l'année scolaire. */
   schoolYearId?: string;
   onSchoolYearIdChange?: (schoolYearId: string) => void;
@@ -38,11 +92,48 @@ export default function FamilySelector({
   onChange,
   resetKey,
   hideSchoolYearSelect = false,
+  initialSearch = "",
+  initialEnrollmentId = "",
   schoolYearId: controlledSchoolYearId,
   onSchoolYearIdChange,
   onSchoolYearsLoaded,
 }: Props) {
-  const [search, setSearch] = useState("");
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const branchIdFromPath = pathname.match(/\/branches\/([^/]+)/)?.[1];
+  const { data: session } = useSession();
+  const branchId =
+    branchIdFromPath ??
+    session?.branch?.id ??
+    session?.session?.activeBranchId;
+
+  const querySearch = (searchParams.get("q") ?? "").trim();
+  const queryEnrollmentId = (searchParams.get("enrollmentId") ?? "").trim();
+
+  const [bootstrap] = useState(() => {
+    const fromWindow = readPaiementBootstrap(branchIdFromPath);
+    return {
+      q: (fromWindow.q || querySearch || initialSearch).trim(),
+      enrollmentId: (
+        fromWindow.enrollmentId ||
+        queryEnrollmentId ||
+        initialEnrollmentId
+      ).trim(),
+    };
+  });
+
+  const bootstrapSearch = (
+    bootstrap.q ||
+    querySearch ||
+    initialSearch
+  ).trim();
+  const bootstrapEnrollmentId = (
+    bootstrap.enrollmentId ||
+    queryEnrollmentId ||
+    initialEnrollmentId
+  ).trim();
+
+  const [search, setSearch] = useState(() => bootstrapSearch);
   const [results, setResults] = useState<Family[]>([]);
   const [selected, setSelected] = useState<string[]>([]);
   const [selectedDetails, setSelectedDetails] = useState<
@@ -66,16 +157,11 @@ export default function FamilySelector({
     }
     onSchoolYearIdChange?.(next);
   };
-  const { data: session } = useSession();
   const peopleLabels = useBranchPeopleLabels();
-  const pathname = usePathname();
-  const branchIdFromPath = pathname.match(/\/branches\/([^/]+)/)?.[1];
-  const branchId =
-    branchIdFromPath ??
-    session?.branch?.id ??
-    session?.session?.activeBranchId;
   const didMountRef = useRef(false);
   const searchRequestRef = useRef(0);
+  const autoSelectedRef = useRef(false);
+  const bootstrappedSearchRef = useRef(false);
   const onChangeRef = useRef(onChange);
   onChangeRef.current = onChange;
   const onSchoolYearsLoadedRef = useRef(onSchoolYearsLoaded);
@@ -117,13 +203,65 @@ export default function FamilySelector({
     }
   };
 
+  useLayoutEffect(() => {
+    if (bootstrappedSearchRef.current) return;
+    const fromWindow = readPaiementBootstrap(branchIdFromPath, {
+      consume: true,
+    });
+    const next = (
+      fromWindow.q ||
+      querySearch ||
+      initialSearch ||
+      bootstrap.q
+    ).trim();
+    if (!next) return;
+    bootstrappedSearchRef.current = true;
+    setSearch(next);
+  }, [
+    branchIdFromPath,
+    querySearch,
+    initialSearch,
+    bootstrap.q,
+  ]);
+
   useEffect(() => {
     const timer = setTimeout(() => {
       void runSearch(search);
-    }, 300);
+    }, 200);
 
     return () => clearTimeout(timer);
   }, [search]);
+
+  useEffect(() => {
+    if (autoSelectedRef.current) return;
+    if (!bootstrapEnrollmentId || !results.length) return;
+
+    for (const family of results) {
+      const child = family.students.find((s) => {
+        if (s.classEnrollId !== bootstrapEnrollmentId) return false;
+        if (schoolYear && s.schoolYearId && s.schoolYearId !== schoolYear) {
+          return false;
+        }
+        return true;
+      });
+      if (!child) continue;
+
+      autoSelectedRef.current = true;
+      const parentLabel = `${family.parent.prenom} ${family.parent.nom}`.trim();
+      setSelected([child.classEnrollId]);
+      setSelectedDetails({
+        [child.classEnrollId]: { ...child, parentLabel },
+      });
+      setActiveParent(family.parent.id);
+      setPinnedFamily(family);
+      onChangeRef.current({
+        parentId: family.parent.id,
+        classEnrollIds: [child.classEnrollId],
+        schoolYearId: schoolYear,
+      });
+      break;
+    }
+  }, [results, schoolYear, bootstrapEnrollmentId]);
 
   const toggleStudent = (parentId: string, child: StudentItem, family: Family) => {
     const id = child.classEnrollId;
@@ -193,25 +331,6 @@ export default function FamilySelector({
     });
   };
 
-  const removeStudent = (classEnrollId: string) => {
-    const updated = selected.filter((id) => id !== classEnrollId);
-    const nextDetails = { ...selectedDetails };
-    delete nextDetails[classEnrollId];
-
-    setSelected(updated);
-    setSelectedDetails(nextDetails);
-
-    if (updated.length === 0) {
-      setActiveParent("");
-      setPinnedFamily(null);
-    }
-
-    emitChange({
-      parentId: updated.length === 0 ? "" : activeParent,
-      classEnrollIds: updated,
-    });
-  };
-
   const selectedStudents = useMemo(
     () => Object.values(selectedDetails),
     [selectedDetails],
@@ -247,14 +366,6 @@ export default function FamilySelector({
         "";
 
       setSchoolYear(resolvedYear);
-
-      if (resolvedYear) {
-        onChangeRef.current({
-          parentId: "",
-          classEnrollIds: [],
-          schoolYearId: resolvedYear,
-        });
-      }
     };
 
     void loadYears();
@@ -280,6 +391,7 @@ export default function FamilySelector({
     setActiveParent("");
     setPinnedFamily(null);
     setSearching(false);
+    autoSelectedRef.current = false;
 
     emitChange({
       parentId: "",
@@ -292,7 +404,7 @@ export default function FamilySelector({
     <div className="flex flex-col gap-3">
       <div className="space-y-2">
         <label htmlFor="student-search" className="text-sm font-medium">
-          {peopleLabels.searchLabel}
+          Rechercher un {peopleLabels.studentLower} ou son tuteur
         </label>
         <Input
           id="student-search"
@@ -340,44 +452,30 @@ export default function FamilySelector({
       </div>
 
       {selectedStudents.length > 0 && (
-        <div className="rounded-md border bg-muted/30 p-3 space-y-2">
-          <div className="flex items-center justify-between gap-2">
-            <p className="text-sm font-medium">
-              {peopleLabels.studentPlural} sélectionnés ({selectedStudents.length})
-            </p>
-            <button
-              type="button"
-              onClick={clearAll}
-              className="text-xs text-muted-foreground hover:text-destructive"
-            >
-              Tout effacer
-            </button>
-          </div>
-          <div className="flex flex-wrap gap-1.5">
-            {selectedStudents.map((student) => (
-              <Badge
-                key={student.classEnrollId}
-                variant="secondary"
-                className="gap-1 pr-1"
-              >
-                {student.prenom} {student.nom} ({student.codeClasse})
-                <button
-                  type="button"
-                  onClick={() => removeStudent(student.classEnrollId)}
-                  className="rounded-sm hover:bg-background/80 p-0.5"
-                  aria-label={`Retirer ${student.prenom} ${student.nom}`}
-                >
-                  <X className="h-3 w-3" />
-                </button>
-              </Badge>
-            ))}
-          </div>
+        <div className="flex items-center justify-between gap-2 rounded-md border bg-muted/30 px-3 py-2.5">
+          <p className="text-sm font-medium">
+            {peopleLabels.studentPlural} sélectionnés ({selectedStudents.length})
+          </p>
+          <button
+            type="button"
+            onClick={clearAll}
+            className="text-xs text-muted-foreground hover:text-destructive"
+          >
+            Tout effacer
+          </button>
         </div>
       )}
 
-      <div className="flex flex-col gap-3 min-h-[120px]">
+      <div
+        className={cn(
+          "min-h-[120px] gap-3",
+          displayedResults.length >= 2
+            ? "grid grid-cols-1 sm:grid-cols-2"
+            : "flex flex-col",
+        )}
+      >
         {search.trim().length > 0 && search.trim().length < 2 && (
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-muted-foreground sm:col-span-2">
             Continuez à saisir pour rechercher…
           </p>
         )}
@@ -386,64 +484,80 @@ export default function FamilySelector({
           !searching &&
           displayedResults.length === 0 &&
           results.length === 0 && (
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-muted-foreground sm:col-span-2">
             Aucun {peopleLabels.studentLower} ou parent trouvé pour « {search.trim()} ».
           </p>
         )}
 
         {displayedResults.map((family) => {
-          const studentsForYear = family.students.filter(
-            (child) => child.schoolYearId === schoolYear,
-          );
+          const studentsForYear = schoolYear
+            ? family.students.filter(
+                (child) => child.schoolYearId === schoolYear,
+              )
+            : family.students;
 
           if (studentsForYear.length === 0) return null;
 
           return (
             <div
               key={family.parent.id}
-              className="border rounded-lg p-4 shadow-sm"
+              className="rounded-lg border p-2.5 shadow-sm"
             >
-              <div className="flex justify-between items-center font-medium mb-3 gap-2">
-                <span className="text-sm">
+              <div className="mb-2 flex items-center justify-between gap-2 font-medium">
+                <span className="truncate text-xs sm:text-sm">
                   {family.parent.prenom} {family.parent.nom}
-                  <span className="text-muted-foreground font-normal">
+                  <span className="font-normal text-muted-foreground">
                     {" "}
                     — parent / tuteur
                   </span>
                 </span>
 
-                <div className="flex gap-1 shrink-0">
+                <div className="flex shrink-0 gap-0.5">
                   <button
                     type="button"
                     onClick={() => selectAll(family)}
-                    className="p-1.5 rounded hover:bg-green-50 text-green-600"
+                    className="rounded p-1 text-green-600 hover:bg-green-50"
                     title="Tout sélectionner"
                   >
-                    <Check size={16} />
+                    <Check size={14} />
                   </button>
                   <button
                     type="button"
                     onClick={clearAll}
-                    className="p-1.5 rounded hover:bg-red-50 text-red-500"
+                    className="rounded p-1 text-red-500 hover:bg-red-50"
                     title="Effacer la sélection"
                   >
-                    <X size={16} />
+                    <X size={14} />
                   </button>
                 </div>
               </div>
 
-              <div className="space-y-1">
+              <div
+                className={cn(
+                  "gap-1.5",
+                  studentsForYear.length >= 2
+                    ? "grid grid-cols-1 sm:grid-cols-2"
+                    : "flex flex-col",
+                )}
+              >
                 {studentsForYear.map((child) => {
                   const checked = selected.includes(child.classEnrollId);
+                  const fullName = [
+                    child.prenom,
+                    child.nom,
+                    child.postnom,
+                  ]
+                    .filter(Boolean)
+                    .join(" ");
 
                   return (
                     <label
                       key={child.classEnrollId}
                       className={cn(
-                        "flex items-center gap-3 text-sm p-2.5 rounded-md cursor-pointer transition-colors",
+                        "flex cursor-pointer items-center gap-2 rounded-md border px-2.5 py-1.5 text-sm transition-colors",
                         checked
-                          ? "bg-primary/5 border border-primary/20"
-                          : "hover:bg-muted/50 border border-transparent",
+                          ? "border-primary/30 bg-primary/5"
+                          : "border-border/70 hover:bg-muted/50",
                       )}
                     >
                       <input
@@ -452,17 +566,13 @@ export default function FamilySelector({
                         onChange={() =>
                           toggleStudent(family.parent.id, child, family)
                         }
-                        className="h-4 w-4"
+                        className="h-3.5 w-3.5 shrink-0"
                       />
-
-                      <span className="flex-1 min-w-0">
-                        <span className="font-medium">
-                          {child.prenom} {child.nom}
-                          {child.postnom ? ` ${child.postnom}` : ""}
-                        </span>
+                      <span className="min-w-0 flex-1 truncate">
+                        <span className="font-medium">{fullName}</span>
                         <span className="text-muted-foreground">
-                          {" "}
-                          — {child.codeClasse || child.classeName}
+                          {" · "}
+                          {child.codeClasse || child.classeName}
                         </span>
                       </span>
                     </label>

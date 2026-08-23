@@ -139,6 +139,26 @@ export function canAccessFinanceArea(
 }
 
 /**
+ * Portée caisse : `null` = vue globale (managers finance),
+ * sinon `userId` = uniquement les opérations de ce caissier.
+ */
+export function resolveCashierSelfScope(
+  session: any,
+  userId: string,
+): string | null {
+  if (
+    hasSessionRole(session, [
+      ...APP_MANAGER_ROLES,
+      ORG_ROLE.OWNER,
+      ORG_ROLE.GESTIONNAIRE,
+    ])
+  ) {
+    return null;
+  }
+  return userId;
+}
+
+/**
  * Inscription, classes, utilisateurs (hors finance) — leadership + études + gestionnaire.
  * Nom canonique unit-00 : `canAccessPedagogyArea`.
  */

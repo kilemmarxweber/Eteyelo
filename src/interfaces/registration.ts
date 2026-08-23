@@ -7,11 +7,17 @@ const optionalEmailSchema = z.union([
   z.string().trim().email("Adresse email invalide"),
 ]);
 
+const optionalNamePartSchema = z
+  .string()
+  .trim()
+  .optional()
+  .or(z.literal(""));
+
 const personSchema = z.object({
   username: z.string().trim().min(4, "Code d'accès requis").optional(),
   name: z.string().trim().min(2, "Nom requis"),
-  postnom: z.string().trim().min(2, "Postnom requis"),
-  prenom: z.string().trim().min(2, "Prénom requis"),
+  postnom: optionalNamePartSchema,
+  prenom: optionalNamePartSchema,
   email: optionalEmailSchema.optional(),
   telephone: z.string().trim().optional().or(z.literal("")),
   sexe: z.enum(["masculin", "feminin"]),

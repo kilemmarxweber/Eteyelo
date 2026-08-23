@@ -108,7 +108,14 @@ function SearchableCombobox({
   }, [open]);
 
   return (
-    <Popover open={open} onOpenChange={setOpen} modal={false}>
+    <Popover
+      open={open}
+      onOpenChange={(next) => {
+        markRadixPortalInteraction(next ? 800 : 400);
+        setOpen(next);
+      }}
+      modal={false}
+    >
       <PopoverTrigger asChild>
         <button
           type="button"
@@ -120,6 +127,7 @@ function SearchableCombobox({
           aria-expanded={open}
           aria-controls={listboxId}
           onBlur={onBlur}
+          onPointerDown={() => markRadixPortalInteraction()}
           className={cn(
             "flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1",
             !displayLabel && "text-muted-foreground",
@@ -138,7 +146,19 @@ function SearchableCombobox({
         id={listboxId}
         role="listbox"
         align="start"
-        className="w-[var(--radix-popover-trigger-width)] p-0"
+        data-eteyelo-portal=""
+        className="z-[80] w-[var(--radix-popover-trigger-width)] p-0"
+        onOpenAutoFocus={(event) => {
+          markRadixPortalInteraction();
+          event.preventDefault();
+          const input = event.currentTarget.querySelector("input");
+          input?.focus();
+        }}
+        onCloseAutoFocus={(event) => {
+          markRadixPortalInteraction(400);
+          event.preventDefault();
+        }}
+        onPointerDownOutside={() => markRadixPortalInteraction(400)}
       >
         <Command
           shouldFilter={shouldFilter}

@@ -180,7 +180,7 @@ export async function buildCashierReportPdf(
     doc.setFontSize(10);
     doc.setTextColor(15, 23, 42);
     doc.setFont("helvetica", "bold");
-    doc.text("Détail des Dépenses", marginX, finalY + 10);
+    doc.text("Détail des dépenses / sorties de fond", marginX, finalY + 10);
 
     autoTable(doc, {
       startY: finalY + 14,
@@ -254,7 +254,7 @@ export async function buildCashierReportPdf(
   });
 
   doc.setTextColor(15, 23, 42);
-  doc.text("Total Dépenses :", labelX, finalY + 26);
+  doc.text("Total dépenses / sorties de fond :", labelX, finalY + 26);
   doc.setTextColor(225, 29, 72);
   doc.text(money(data.outflowTotal), valueX, finalY + 26, {
     align: "right",

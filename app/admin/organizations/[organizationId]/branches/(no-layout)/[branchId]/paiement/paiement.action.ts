@@ -5,6 +5,7 @@ import { action } from "@/lib/zsa";
 import z from "zod";
 import { paiementSchema, StatusPaiement } from "@/src/interfaces/Paiement";
 import { requireFinanceBranchContext } from "@/lib/auth/require-branch-context";
+import { resolveCashierSelfScope } from "@/lib/auth/session-roles";
 import { randomUUID } from "node:crypto";
 import { Prisma, CurrencyCode } from "@/prisma/generated/prisma/client";
 import {
@@ -115,14 +116,24 @@ function revalidatePaiementPages(organizationId: string, branchId: string) {
  * Solde d'ouverture automatique = solde net cumule juste avant `before`
  * (encaissements VALIDES - depenses). Equivalent au solde net de la veille
  * lorsque `before` est le debut du jour affiche.
+ * Si `createdByUserId` est fourni, limite au caissier concerné.
  */
-async function getAutomaticOpeningBalance(branchId: string, before: Date) {
+async function getAutomaticOpeningBalance(
+  branchId: string,
+  before: Date,
+  createdByUserId?: string | null,
+) {
+  const cashierFilter = createdByUserId
+    ? { createdByUserId }
+    : {};
+
   const [incomeBefore, expenseBefore] = await Promise.all([
     prisma.familyPayment.aggregate({
       where: {
         branchId,
         status: StatusPaiement.VALIDE,
         createdAt: { lt: before },
+        ...cashierFilter,
       },
       _sum: { amount: true },
     }),
@@ -130,6 +141,7 @@ async function getAutomaticOpeningBalance(branchId: string, before: Date) {
       where: {
         branchId,
         createdAt: { lt: before },
+        ...cashierFilter,
       },
       _sum: { amount: true },
     }),
@@ -515,7 +527,8 @@ export const createPaiementAction = action
       throw new Error("❌ Montant invalide");
     }
 
-    const { branchId, organizationId } = await requireFinanceBranchContext();
+    const { branchId, organizationId, userId } =
+      await requireFinanceBranchContext();
     const {
       rates: exchangeRates,
       baseCurrency,
@@ -855,6 +868,7 @@ export const createPaiementAction = action
             transactionRef: buildFamilyPaymentRef(reference, paymentLineIndex),
             notes,
             branchId,
+            createdByUserId: userId,
             ...currencyFields,
           },
         });
@@ -1065,7 +1079,8 @@ export const createCashierExpenseAction = action
   )
   .handler(async ({ input }) => {
     const { amount, description, category } = input;
-    const { branchId, organizationId } = await requireFinanceBranchContext();
+    const { branchId, organizationId, userId } =
+      await requireFinanceBranchContext();
 
     const result = await prisma.$transaction(async (tx) => {
       const reference = buildUniqueReference("EXP");
@@ -1081,6 +1096,7 @@ export const createCashierExpenseAction = action
           description,
           category,
           branchId,
+          createdByUserId: userId,
         },
       });
 
@@ -1114,7 +1130,8 @@ export const getCashierReportAction = action
     }),
   )
   .handler(async ({ input }) => {
-    const { branchId } = await requireFinanceBranchContext();
+    const { branchId, userId, session } = await requireFinanceBranchContext();
+    const cashierScope = resolveCashierSelfScope(session, userId);
     
     const start = input.startDate ? new Date(input.startDate) : new Date();
     start.setHours(0, 0, 0, 0);
@@ -1130,6 +1147,7 @@ export const getCashierReportAction = action
       branchId,
       createdAt: { gte: start, lte: end },
       status: StatusPaiement.VALIDE,
+      ...(cashierScope ? { createdByUserId: cashierScope } : {}),
     };
 
     if (input.modePaiement) paymentWhere.method = input.modePaiement;
@@ -1165,11 +1183,19 @@ export const getCashierReportAction = action
     const expenses = skipExpenses 
       ? [] 
       : await prisma.cashierExpense.findMany({
-          where: { branchId, createdAt: { gte: start, lte: end } },
+          where: {
+            branchId,
+            createdAt: { gte: start, lte: end },
+            ...(cashierScope ? { createdByUserId: cashierScope } : {}),
+          },
           orderBy: { createdAt: "desc" },
         });
 
-    const openingBalance = await getAutomaticOpeningBalance(branchId, start);
+    const openingBalance = await getAutomaticOpeningBalance(
+      branchId,
+      start,
+      cashierScope,
+    );
     const previousDay = new Date(start);
     previousDay.setDate(previousDay.getDate() - 1);
 
@@ -1188,8 +1214,11 @@ export const getCashierReportAction = action
       openingBalance,
       hasOpeningBalance: true,
       openingSource: "previous_net" as const,
-      openingLabel: `Solde net du ${previousDay.toLocaleDateString("fr-FR")}`,
+      openingLabel: cashierScope
+        ? `Votre solde net du ${previousDay.toLocaleDateString("fr-FR")}`
+        : `Solde net du ${previousDay.toLocaleDateString("fr-FR")}`,
       openingNote: null,
+      scopedToSelf: Boolean(cashierScope),
       incomeTotal,
       outflowTotal,
       periodBalance: incomeTotal - outflowTotal,
@@ -1283,9 +1312,13 @@ export const getPaymentReportContextAction = action.handler(async () => {
    GET ALL PAYMENTS
 ====================================================== */
 export const getAllPaiementAction = action.handler(async () => {
-  const { branchId } = await requireFinanceBranchContext();
+  const { branchId, userId, session } = await requireFinanceBranchContext();
+  const cashierScope = resolveCashierSelfScope(session, userId);
   const paiements = await prisma.familyPayment.findMany({
-    where: { branchId },
+    where: {
+      branchId,
+      ...(cashierScope ? { createdByUserId: cashierScope } : {}),
+    },
     include: {
       frais: {
         include: { classe: true, typeFrais: true },
@@ -1637,43 +1670,53 @@ export type Family = {
 ====================================================== */
 
 export async function searchFamilyAction(query: string): Promise<Family[]> {
-  if (!query || query.length < 2) return [];
+  const tokens = query
+    .trim()
+    .split(/\s+/)
+    .map((t) => t.trim())
+    .filter((t) => t.length >= 2);
+
+  if (!tokens.length) return [];
 
   const { branchId } = await requireFinanceBranchContext();
 
-  const matched = await prisma.student.findMany({
-    where: {
-      branchMember: { branchId },
-      OR: [
-        {
+  const tokenClause = (token: string) => ({
+    OR: [
+      {
+        branchMember: {
+          member: {
+            user: {
+              OR: [
+                { name: { contains: token, mode: "insensitive" as const } },
+                { prenom: { contains: token, mode: "insensitive" as const } },
+                { postnom: { contains: token, mode: "insensitive" as const } },
+              ],
+            },
+          },
+        },
+      },
+      {
+        parent: {
           branchMember: {
+            branchId,
             member: {
               user: {
                 OR: [
-                  { name: { contains: query, mode: "insensitive" } },
-                  { prenom: { contains: query, mode: "insensitive" } },
-                  { postnom: { contains: query, mode: "insensitive" } },
+                  { name: { contains: token, mode: "insensitive" as const } },
+                  { prenom: { contains: token, mode: "insensitive" as const } },
                 ],
               },
             },
           },
         },
-        {
-          parent: {
-            branchMember: {
-              branchId,
-              member: {
-                user: {
-                  OR: [
-                    { name: { contains: query, mode: "insensitive" } },
-                    { prenom: { contains: query, mode: "insensitive" } },
-                  ],
-                },
-              },
-            },
-          },
-        },
-      ],
+      },
+    ],
+  });
+
+  const matched = await prisma.student.findMany({
+    where: {
+      branchMember: { branchId },
+      AND: tokens.map(tokenClause),
     },
     select: { parentId: true },
   });

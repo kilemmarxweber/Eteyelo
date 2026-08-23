@@ -57,6 +57,7 @@ export type FamilyPaymentMinAggregateOutputType = {
   fraisId: string | null
   classEnrollmentId: string | null
   branchId: string | null
+  createdByUserId: string | null
 }
 
 export type FamilyPaymentMaxAggregateOutputType = {
@@ -76,6 +77,7 @@ export type FamilyPaymentMaxAggregateOutputType = {
   fraisId: string | null
   classEnrollmentId: string | null
   branchId: string | null
+  createdByUserId: string | null
 }
 
 export type FamilyPaymentCountAggregateOutputType = {
@@ -95,6 +97,7 @@ export type FamilyPaymentCountAggregateOutputType = {
   fraisId: number
   classEnrollmentId: number
   branchId: number
+  createdByUserId: number
   _all: number
 }
 
@@ -130,6 +133,7 @@ export type FamilyPaymentMinAggregateInputType = {
   fraisId?: true
   classEnrollmentId?: true
   branchId?: true
+  createdByUserId?: true
 }
 
 export type FamilyPaymentMaxAggregateInputType = {
@@ -149,6 +153,7 @@ export type FamilyPaymentMaxAggregateInputType = {
   fraisId?: true
   classEnrollmentId?: true
   branchId?: true
+  createdByUserId?: true
 }
 
 export type FamilyPaymentCountAggregateInputType = {
@@ -168,6 +173,7 @@ export type FamilyPaymentCountAggregateInputType = {
   fraisId?: true
   classEnrollmentId?: true
   branchId?: true
+  createdByUserId?: true
   _all?: true
 }
 
@@ -274,6 +280,7 @@ export type FamilyPaymentGroupByOutputType = {
   fraisId: string
   classEnrollmentId: string
   branchId: string
+  createdByUserId: string | null
   _count: FamilyPaymentCountAggregateOutputType | null
   _avg: FamilyPaymentAvgAggregateOutputType | null
   _sum: FamilyPaymentSumAggregateOutputType | null
@@ -316,6 +323,7 @@ export type FamilyPaymentWhereInput = {
   fraisId?: Prisma.StringFilter<"FamilyPayment"> | string
   classEnrollmentId?: Prisma.StringFilter<"FamilyPayment"> | string
   branchId?: Prisma.StringFilter<"FamilyPayment"> | string
+  createdByUserId?: Prisma.StringNullableFilter<"FamilyPayment"> | string | null
   parent?: Prisma.XOR<Prisma.ParentScalarRelationFilter, Prisma.ParentWhereInput>
   batch?: Prisma.XOR<Prisma.PaymentBatchNullableScalarRelationFilter, Prisma.PaymentBatchWhereInput> | null
   allocations?: Prisma.PaymentAllocationListRelationFilter
@@ -324,6 +332,7 @@ export type FamilyPaymentWhereInput = {
   frais?: Prisma.XOR<Prisma.FraisNullableScalarRelationFilter, Prisma.FraisWhereInput> | null
   classEnrollment?: Prisma.XOR<Prisma.ClassEnrollmentNullableScalarRelationFilter, Prisma.ClassEnrollmentWhereInput> | null
   branch?: Prisma.XOR<Prisma.BranchScalarRelationFilter, Prisma.BranchWhereInput>
+  createdByUser?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
 }
 
 export type FamilyPaymentOrderByWithRelationInput = {
@@ -343,6 +352,7 @@ export type FamilyPaymentOrderByWithRelationInput = {
   fraisId?: Prisma.SortOrder
   classEnrollmentId?: Prisma.SortOrder
   branchId?: Prisma.SortOrder
+  createdByUserId?: Prisma.SortOrderInput | Prisma.SortOrder
   parent?: Prisma.ParentOrderByWithRelationInput
   batch?: Prisma.PaymentBatchOrderByWithRelationInput
   allocations?: Prisma.PaymentAllocationOrderByRelationAggregateInput
@@ -351,6 +361,7 @@ export type FamilyPaymentOrderByWithRelationInput = {
   frais?: Prisma.FraisOrderByWithRelationInput
   classEnrollment?: Prisma.ClassEnrollmentOrderByWithRelationInput
   branch?: Prisma.BranchOrderByWithRelationInput
+  createdByUser?: Prisma.UserOrderByWithRelationInput
 }
 
 export type FamilyPaymentWhereUniqueInput = Prisma.AtLeast<{
@@ -374,6 +385,7 @@ export type FamilyPaymentWhereUniqueInput = Prisma.AtLeast<{
   fraisId?: Prisma.StringFilter<"FamilyPayment"> | string
   classEnrollmentId?: Prisma.StringFilter<"FamilyPayment"> | string
   branchId?: Prisma.StringFilter<"FamilyPayment"> | string
+  createdByUserId?: Prisma.StringNullableFilter<"FamilyPayment"> | string | null
   parent?: Prisma.XOR<Prisma.ParentScalarRelationFilter, Prisma.ParentWhereInput>
   batch?: Prisma.XOR<Prisma.PaymentBatchNullableScalarRelationFilter, Prisma.PaymentBatchWhereInput> | null
   allocations?: Prisma.PaymentAllocationListRelationFilter
@@ -382,6 +394,7 @@ export type FamilyPaymentWhereUniqueInput = Prisma.AtLeast<{
   frais?: Prisma.XOR<Prisma.FraisNullableScalarRelationFilter, Prisma.FraisWhereInput> | null
   classEnrollment?: Prisma.XOR<Prisma.ClassEnrollmentNullableScalarRelationFilter, Prisma.ClassEnrollmentWhereInput> | null
   branch?: Prisma.XOR<Prisma.BranchScalarRelationFilter, Prisma.BranchWhereInput>
+  createdByUser?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
 }, "id" | "branchId_transactionRef">
 
 export type FamilyPaymentOrderByWithAggregationInput = {
@@ -401,6 +414,7 @@ export type FamilyPaymentOrderByWithAggregationInput = {
   fraisId?: Prisma.SortOrder
   classEnrollmentId?: Prisma.SortOrder
   branchId?: Prisma.SortOrder
+  createdByUserId?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.FamilyPaymentCountOrderByAggregateInput
   _avg?: Prisma.FamilyPaymentAvgOrderByAggregateInput
   _max?: Prisma.FamilyPaymentMaxOrderByAggregateInput
@@ -428,6 +442,7 @@ export type FamilyPaymentScalarWhereWithAggregatesInput = {
   fraisId?: Prisma.StringWithAggregatesFilter<"FamilyPayment"> | string
   classEnrollmentId?: Prisma.StringWithAggregatesFilter<"FamilyPayment"> | string
   branchId?: Prisma.StringWithAggregatesFilter<"FamilyPayment"> | string
+  createdByUserId?: Prisma.StringNullableWithAggregatesFilter<"FamilyPayment"> | string | null
 }
 
 export type FamilyPaymentCreateInput = {
@@ -450,6 +465,7 @@ export type FamilyPaymentCreateInput = {
   frais?: Prisma.FraisCreateNestedOneWithoutPaiementInput
   classEnrollment?: Prisma.ClassEnrollmentCreateNestedOneWithoutPaiementInput
   branch: Prisma.BranchCreateNestedOneWithoutFamilyPaymentInput
+  createdByUser?: Prisma.UserCreateNestedOneWithoutFamilyPaymentsCreatedInput
 }
 
 export type FamilyPaymentUncheckedCreateInput = {
@@ -469,6 +485,7 @@ export type FamilyPaymentUncheckedCreateInput = {
   fraisId: string
   classEnrollmentId: string
   branchId: string
+  createdByUserId?: string | null
   allocations?: Prisma.PaymentAllocationUncheckedCreateNestedManyWithoutFamilyPaymentInput
   mobileTx?: Prisma.MobileMoneyTransactionUncheckedCreateNestedOneWithoutPaymentInput
   events?: Prisma.PaymentEventUncheckedCreateNestedManyWithoutPaymentInput
@@ -494,6 +511,7 @@ export type FamilyPaymentUpdateInput = {
   frais?: Prisma.FraisUpdateOneWithoutPaiementNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUpdateOneWithoutPaiementNestedInput
   branch?: Prisma.BranchUpdateOneRequiredWithoutFamilyPaymentNestedInput
+  createdByUser?: Prisma.UserUpdateOneWithoutFamilyPaymentsCreatedNestedInput
 }
 
 export type FamilyPaymentUncheckedUpdateInput = {
@@ -513,6 +531,7 @@ export type FamilyPaymentUncheckedUpdateInput = {
   fraisId?: Prisma.StringFieldUpdateOperationsInput | string
   classEnrollmentId?: Prisma.StringFieldUpdateOperationsInput | string
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
+  createdByUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   allocations?: Prisma.PaymentAllocationUncheckedUpdateManyWithoutFamilyPaymentNestedInput
   mobileTx?: Prisma.MobileMoneyTransactionUncheckedUpdateOneWithoutPaymentNestedInput
   events?: Prisma.PaymentEventUncheckedUpdateManyWithoutPaymentNestedInput
@@ -535,6 +554,7 @@ export type FamilyPaymentCreateManyInput = {
   fraisId: string
   classEnrollmentId: string
   branchId: string
+  createdByUserId?: string | null
 }
 
 export type FamilyPaymentUpdateManyMutationInput = {
@@ -568,6 +588,7 @@ export type FamilyPaymentUncheckedUpdateManyInput = {
   fraisId?: Prisma.StringFieldUpdateOperationsInput | string
   classEnrollmentId?: Prisma.StringFieldUpdateOperationsInput | string
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
+  createdByUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type FamilyPaymentListRelationFilter = {
@@ -602,6 +623,7 @@ export type FamilyPaymentCountOrderByAggregateInput = {
   fraisId?: Prisma.SortOrder
   classEnrollmentId?: Prisma.SortOrder
   branchId?: Prisma.SortOrder
+  createdByUserId?: Prisma.SortOrder
 }
 
 export type FamilyPaymentAvgOrderByAggregateInput = {
@@ -628,6 +650,7 @@ export type FamilyPaymentMaxOrderByAggregateInput = {
   fraisId?: Prisma.SortOrder
   classEnrollmentId?: Prisma.SortOrder
   branchId?: Prisma.SortOrder
+  createdByUserId?: Prisma.SortOrder
 }
 
 export type FamilyPaymentMinOrderByAggregateInput = {
@@ -647,6 +670,7 @@ export type FamilyPaymentMinOrderByAggregateInput = {
   fraisId?: Prisma.SortOrder
   classEnrollmentId?: Prisma.SortOrder
   branchId?: Prisma.SortOrder
+  createdByUserId?: Prisma.SortOrder
 }
 
 export type FamilyPaymentSumOrderByAggregateInput = {
@@ -659,6 +683,48 @@ export type FamilyPaymentSumOrderByAggregateInput = {
 export type FamilyPaymentScalarRelationFilter = {
   is?: Prisma.FamilyPaymentWhereInput
   isNot?: Prisma.FamilyPaymentWhereInput
+}
+
+export type FamilyPaymentCreateNestedManyWithoutCreatedByUserInput = {
+  create?: Prisma.XOR<Prisma.FamilyPaymentCreateWithoutCreatedByUserInput, Prisma.FamilyPaymentUncheckedCreateWithoutCreatedByUserInput> | Prisma.FamilyPaymentCreateWithoutCreatedByUserInput[] | Prisma.FamilyPaymentUncheckedCreateWithoutCreatedByUserInput[]
+  connectOrCreate?: Prisma.FamilyPaymentCreateOrConnectWithoutCreatedByUserInput | Prisma.FamilyPaymentCreateOrConnectWithoutCreatedByUserInput[]
+  createMany?: Prisma.FamilyPaymentCreateManyCreatedByUserInputEnvelope
+  connect?: Prisma.FamilyPaymentWhereUniqueInput | Prisma.FamilyPaymentWhereUniqueInput[]
+}
+
+export type FamilyPaymentUncheckedCreateNestedManyWithoutCreatedByUserInput = {
+  create?: Prisma.XOR<Prisma.FamilyPaymentCreateWithoutCreatedByUserInput, Prisma.FamilyPaymentUncheckedCreateWithoutCreatedByUserInput> | Prisma.FamilyPaymentCreateWithoutCreatedByUserInput[] | Prisma.FamilyPaymentUncheckedCreateWithoutCreatedByUserInput[]
+  connectOrCreate?: Prisma.FamilyPaymentCreateOrConnectWithoutCreatedByUserInput | Prisma.FamilyPaymentCreateOrConnectWithoutCreatedByUserInput[]
+  createMany?: Prisma.FamilyPaymentCreateManyCreatedByUserInputEnvelope
+  connect?: Prisma.FamilyPaymentWhereUniqueInput | Prisma.FamilyPaymentWhereUniqueInput[]
+}
+
+export type FamilyPaymentUpdateManyWithoutCreatedByUserNestedInput = {
+  create?: Prisma.XOR<Prisma.FamilyPaymentCreateWithoutCreatedByUserInput, Prisma.FamilyPaymentUncheckedCreateWithoutCreatedByUserInput> | Prisma.FamilyPaymentCreateWithoutCreatedByUserInput[] | Prisma.FamilyPaymentUncheckedCreateWithoutCreatedByUserInput[]
+  connectOrCreate?: Prisma.FamilyPaymentCreateOrConnectWithoutCreatedByUserInput | Prisma.FamilyPaymentCreateOrConnectWithoutCreatedByUserInput[]
+  upsert?: Prisma.FamilyPaymentUpsertWithWhereUniqueWithoutCreatedByUserInput | Prisma.FamilyPaymentUpsertWithWhereUniqueWithoutCreatedByUserInput[]
+  createMany?: Prisma.FamilyPaymentCreateManyCreatedByUserInputEnvelope
+  set?: Prisma.FamilyPaymentWhereUniqueInput | Prisma.FamilyPaymentWhereUniqueInput[]
+  disconnect?: Prisma.FamilyPaymentWhereUniqueInput | Prisma.FamilyPaymentWhereUniqueInput[]
+  delete?: Prisma.FamilyPaymentWhereUniqueInput | Prisma.FamilyPaymentWhereUniqueInput[]
+  connect?: Prisma.FamilyPaymentWhereUniqueInput | Prisma.FamilyPaymentWhereUniqueInput[]
+  update?: Prisma.FamilyPaymentUpdateWithWhereUniqueWithoutCreatedByUserInput | Prisma.FamilyPaymentUpdateWithWhereUniqueWithoutCreatedByUserInput[]
+  updateMany?: Prisma.FamilyPaymentUpdateManyWithWhereWithoutCreatedByUserInput | Prisma.FamilyPaymentUpdateManyWithWhereWithoutCreatedByUserInput[]
+  deleteMany?: Prisma.FamilyPaymentScalarWhereInput | Prisma.FamilyPaymentScalarWhereInput[]
+}
+
+export type FamilyPaymentUncheckedUpdateManyWithoutCreatedByUserNestedInput = {
+  create?: Prisma.XOR<Prisma.FamilyPaymentCreateWithoutCreatedByUserInput, Prisma.FamilyPaymentUncheckedCreateWithoutCreatedByUserInput> | Prisma.FamilyPaymentCreateWithoutCreatedByUserInput[] | Prisma.FamilyPaymentUncheckedCreateWithoutCreatedByUserInput[]
+  connectOrCreate?: Prisma.FamilyPaymentCreateOrConnectWithoutCreatedByUserInput | Prisma.FamilyPaymentCreateOrConnectWithoutCreatedByUserInput[]
+  upsert?: Prisma.FamilyPaymentUpsertWithWhereUniqueWithoutCreatedByUserInput | Prisma.FamilyPaymentUpsertWithWhereUniqueWithoutCreatedByUserInput[]
+  createMany?: Prisma.FamilyPaymentCreateManyCreatedByUserInputEnvelope
+  set?: Prisma.FamilyPaymentWhereUniqueInput | Prisma.FamilyPaymentWhereUniqueInput[]
+  disconnect?: Prisma.FamilyPaymentWhereUniqueInput | Prisma.FamilyPaymentWhereUniqueInput[]
+  delete?: Prisma.FamilyPaymentWhereUniqueInput | Prisma.FamilyPaymentWhereUniqueInput[]
+  connect?: Prisma.FamilyPaymentWhereUniqueInput | Prisma.FamilyPaymentWhereUniqueInput[]
+  update?: Prisma.FamilyPaymentUpdateWithWhereUniqueWithoutCreatedByUserInput | Prisma.FamilyPaymentUpdateWithWhereUniqueWithoutCreatedByUserInput[]
+  updateMany?: Prisma.FamilyPaymentUpdateManyWithWhereWithoutCreatedByUserInput | Prisma.FamilyPaymentUpdateManyWithWhereWithoutCreatedByUserInput[]
+  deleteMany?: Prisma.FamilyPaymentScalarWhereInput | Prisma.FamilyPaymentScalarWhereInput[]
 }
 
 export type FamilyPaymentCreateNestedManyWithoutParentInput = {
@@ -929,6 +995,99 @@ export type FamilyPaymentUncheckedUpdateManyWithoutBranchNestedInput = {
   deleteMany?: Prisma.FamilyPaymentScalarWhereInput | Prisma.FamilyPaymentScalarWhereInput[]
 }
 
+export type FamilyPaymentCreateWithoutCreatedByUserInput = {
+  id?: string
+  amount: number
+  receivedCurrency?: $Enums.CurrencyCode
+  receivedAmount?: number | null
+  exchangeRateUsed?: number | null
+  method: $Enums.PaymentMethod
+  transactionRef: string
+  notes?: string | null
+  status?: $Enums.PaymentStatus
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  parent: Prisma.ParentCreateNestedOneWithoutFamilyPaymentsInput
+  batch?: Prisma.PaymentBatchCreateNestedOneWithoutPaymentsInput
+  allocations?: Prisma.PaymentAllocationCreateNestedManyWithoutFamilyPaymentInput
+  mobileTx?: Prisma.MobileMoneyTransactionCreateNestedOneWithoutPaymentInput
+  events?: Prisma.PaymentEventCreateNestedManyWithoutPaymentInput
+  frais?: Prisma.FraisCreateNestedOneWithoutPaiementInput
+  classEnrollment?: Prisma.ClassEnrollmentCreateNestedOneWithoutPaiementInput
+  branch: Prisma.BranchCreateNestedOneWithoutFamilyPaymentInput
+}
+
+export type FamilyPaymentUncheckedCreateWithoutCreatedByUserInput = {
+  id?: string
+  parentId: string
+  batchId?: number | null
+  amount: number
+  receivedCurrency?: $Enums.CurrencyCode
+  receivedAmount?: number | null
+  exchangeRateUsed?: number | null
+  method: $Enums.PaymentMethod
+  transactionRef: string
+  notes?: string | null
+  status?: $Enums.PaymentStatus
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  fraisId: string
+  classEnrollmentId: string
+  branchId: string
+  allocations?: Prisma.PaymentAllocationUncheckedCreateNestedManyWithoutFamilyPaymentInput
+  mobileTx?: Prisma.MobileMoneyTransactionUncheckedCreateNestedOneWithoutPaymentInput
+  events?: Prisma.PaymentEventUncheckedCreateNestedManyWithoutPaymentInput
+}
+
+export type FamilyPaymentCreateOrConnectWithoutCreatedByUserInput = {
+  where: Prisma.FamilyPaymentWhereUniqueInput
+  create: Prisma.XOR<Prisma.FamilyPaymentCreateWithoutCreatedByUserInput, Prisma.FamilyPaymentUncheckedCreateWithoutCreatedByUserInput>
+}
+
+export type FamilyPaymentCreateManyCreatedByUserInputEnvelope = {
+  data: Prisma.FamilyPaymentCreateManyCreatedByUserInput | Prisma.FamilyPaymentCreateManyCreatedByUserInput[]
+  skipDuplicates?: boolean
+}
+
+export type FamilyPaymentUpsertWithWhereUniqueWithoutCreatedByUserInput = {
+  where: Prisma.FamilyPaymentWhereUniqueInput
+  update: Prisma.XOR<Prisma.FamilyPaymentUpdateWithoutCreatedByUserInput, Prisma.FamilyPaymentUncheckedUpdateWithoutCreatedByUserInput>
+  create: Prisma.XOR<Prisma.FamilyPaymentCreateWithoutCreatedByUserInput, Prisma.FamilyPaymentUncheckedCreateWithoutCreatedByUserInput>
+}
+
+export type FamilyPaymentUpdateWithWhereUniqueWithoutCreatedByUserInput = {
+  where: Prisma.FamilyPaymentWhereUniqueInput
+  data: Prisma.XOR<Prisma.FamilyPaymentUpdateWithoutCreatedByUserInput, Prisma.FamilyPaymentUncheckedUpdateWithoutCreatedByUserInput>
+}
+
+export type FamilyPaymentUpdateManyWithWhereWithoutCreatedByUserInput = {
+  where: Prisma.FamilyPaymentScalarWhereInput
+  data: Prisma.XOR<Prisma.FamilyPaymentUpdateManyMutationInput, Prisma.FamilyPaymentUncheckedUpdateManyWithoutCreatedByUserInput>
+}
+
+export type FamilyPaymentScalarWhereInput = {
+  AND?: Prisma.FamilyPaymentScalarWhereInput | Prisma.FamilyPaymentScalarWhereInput[]
+  OR?: Prisma.FamilyPaymentScalarWhereInput[]
+  NOT?: Prisma.FamilyPaymentScalarWhereInput | Prisma.FamilyPaymentScalarWhereInput[]
+  id?: Prisma.StringFilter<"FamilyPayment"> | string
+  parentId?: Prisma.StringFilter<"FamilyPayment"> | string
+  batchId?: Prisma.IntNullableFilter<"FamilyPayment"> | number | null
+  amount?: Prisma.FloatFilter<"FamilyPayment"> | number
+  receivedCurrency?: Prisma.EnumCurrencyCodeFilter<"FamilyPayment"> | $Enums.CurrencyCode
+  receivedAmount?: Prisma.FloatNullableFilter<"FamilyPayment"> | number | null
+  exchangeRateUsed?: Prisma.FloatNullableFilter<"FamilyPayment"> | number | null
+  method?: Prisma.EnumPaymentMethodFilter<"FamilyPayment"> | $Enums.PaymentMethod
+  transactionRef?: Prisma.StringFilter<"FamilyPayment"> | string
+  notes?: Prisma.StringNullableFilter<"FamilyPayment"> | string | null
+  status?: Prisma.EnumPaymentStatusFilter<"FamilyPayment"> | $Enums.PaymentStatus
+  createdAt?: Prisma.DateTimeFilter<"FamilyPayment"> | Date | string
+  updatedAt?: Prisma.DateTimeFilter<"FamilyPayment"> | Date | string
+  fraisId?: Prisma.StringFilter<"FamilyPayment"> | string
+  classEnrollmentId?: Prisma.StringFilter<"FamilyPayment"> | string
+  branchId?: Prisma.StringFilter<"FamilyPayment"> | string
+  createdByUserId?: Prisma.StringNullableFilter<"FamilyPayment"> | string | null
+}
+
 export type FamilyPaymentCreateWithoutParentInput = {
   id?: string
   amount: number
@@ -948,6 +1107,7 @@ export type FamilyPaymentCreateWithoutParentInput = {
   frais?: Prisma.FraisCreateNestedOneWithoutPaiementInput
   classEnrollment?: Prisma.ClassEnrollmentCreateNestedOneWithoutPaiementInput
   branch: Prisma.BranchCreateNestedOneWithoutFamilyPaymentInput
+  createdByUser?: Prisma.UserCreateNestedOneWithoutFamilyPaymentsCreatedInput
 }
 
 export type FamilyPaymentUncheckedCreateWithoutParentInput = {
@@ -966,6 +1126,7 @@ export type FamilyPaymentUncheckedCreateWithoutParentInput = {
   fraisId: string
   classEnrollmentId: string
   branchId: string
+  createdByUserId?: string | null
   allocations?: Prisma.PaymentAllocationUncheckedCreateNestedManyWithoutFamilyPaymentInput
   mobileTx?: Prisma.MobileMoneyTransactionUncheckedCreateNestedOneWithoutPaymentInput
   events?: Prisma.PaymentEventUncheckedCreateNestedManyWithoutPaymentInput
@@ -997,28 +1158,6 @@ export type FamilyPaymentUpdateManyWithWhereWithoutParentInput = {
   data: Prisma.XOR<Prisma.FamilyPaymentUpdateManyMutationInput, Prisma.FamilyPaymentUncheckedUpdateManyWithoutParentInput>
 }
 
-export type FamilyPaymentScalarWhereInput = {
-  AND?: Prisma.FamilyPaymentScalarWhereInput | Prisma.FamilyPaymentScalarWhereInput[]
-  OR?: Prisma.FamilyPaymentScalarWhereInput[]
-  NOT?: Prisma.FamilyPaymentScalarWhereInput | Prisma.FamilyPaymentScalarWhereInput[]
-  id?: Prisma.StringFilter<"FamilyPayment"> | string
-  parentId?: Prisma.StringFilter<"FamilyPayment"> | string
-  batchId?: Prisma.IntNullableFilter<"FamilyPayment"> | number | null
-  amount?: Prisma.FloatFilter<"FamilyPayment"> | number
-  receivedCurrency?: Prisma.EnumCurrencyCodeFilter<"FamilyPayment"> | $Enums.CurrencyCode
-  receivedAmount?: Prisma.FloatNullableFilter<"FamilyPayment"> | number | null
-  exchangeRateUsed?: Prisma.FloatNullableFilter<"FamilyPayment"> | number | null
-  method?: Prisma.EnumPaymentMethodFilter<"FamilyPayment"> | $Enums.PaymentMethod
-  transactionRef?: Prisma.StringFilter<"FamilyPayment"> | string
-  notes?: Prisma.StringNullableFilter<"FamilyPayment"> | string | null
-  status?: Prisma.EnumPaymentStatusFilter<"FamilyPayment"> | $Enums.PaymentStatus
-  createdAt?: Prisma.DateTimeFilter<"FamilyPayment"> | Date | string
-  updatedAt?: Prisma.DateTimeFilter<"FamilyPayment"> | Date | string
-  fraisId?: Prisma.StringFilter<"FamilyPayment"> | string
-  classEnrollmentId?: Prisma.StringFilter<"FamilyPayment"> | string
-  branchId?: Prisma.StringFilter<"FamilyPayment"> | string
-}
-
 export type FamilyPaymentCreateWithoutFraisInput = {
   id?: string
   amount: number
@@ -1038,6 +1177,7 @@ export type FamilyPaymentCreateWithoutFraisInput = {
   events?: Prisma.PaymentEventCreateNestedManyWithoutPaymentInput
   classEnrollment?: Prisma.ClassEnrollmentCreateNestedOneWithoutPaiementInput
   branch: Prisma.BranchCreateNestedOneWithoutFamilyPaymentInput
+  createdByUser?: Prisma.UserCreateNestedOneWithoutFamilyPaymentsCreatedInput
 }
 
 export type FamilyPaymentUncheckedCreateWithoutFraisInput = {
@@ -1056,6 +1196,7 @@ export type FamilyPaymentUncheckedCreateWithoutFraisInput = {
   updatedAt?: Date | string
   classEnrollmentId: string
   branchId: string
+  createdByUserId?: string | null
   allocations?: Prisma.PaymentAllocationUncheckedCreateNestedManyWithoutFamilyPaymentInput
   mobileTx?: Prisma.MobileMoneyTransactionUncheckedCreateNestedOneWithoutPaymentInput
   events?: Prisma.PaymentEventUncheckedCreateNestedManyWithoutPaymentInput
@@ -1106,6 +1247,7 @@ export type FamilyPaymentCreateWithoutClassEnrollmentInput = {
   events?: Prisma.PaymentEventCreateNestedManyWithoutPaymentInput
   frais?: Prisma.FraisCreateNestedOneWithoutPaiementInput
   branch: Prisma.BranchCreateNestedOneWithoutFamilyPaymentInput
+  createdByUser?: Prisma.UserCreateNestedOneWithoutFamilyPaymentsCreatedInput
 }
 
 export type FamilyPaymentUncheckedCreateWithoutClassEnrollmentInput = {
@@ -1124,6 +1266,7 @@ export type FamilyPaymentUncheckedCreateWithoutClassEnrollmentInput = {
   updatedAt?: Date | string
   fraisId: string
   branchId: string
+  createdByUserId?: string | null
   allocations?: Prisma.PaymentAllocationUncheckedCreateNestedManyWithoutFamilyPaymentInput
   mobileTx?: Prisma.MobileMoneyTransactionUncheckedCreateNestedOneWithoutPaymentInput
   events?: Prisma.PaymentEventUncheckedCreateNestedManyWithoutPaymentInput
@@ -1174,6 +1317,7 @@ export type FamilyPaymentCreateWithoutBatchInput = {
   frais?: Prisma.FraisCreateNestedOneWithoutPaiementInput
   classEnrollment?: Prisma.ClassEnrollmentCreateNestedOneWithoutPaiementInput
   branch: Prisma.BranchCreateNestedOneWithoutFamilyPaymentInput
+  createdByUser?: Prisma.UserCreateNestedOneWithoutFamilyPaymentsCreatedInput
 }
 
 export type FamilyPaymentUncheckedCreateWithoutBatchInput = {
@@ -1192,6 +1336,7 @@ export type FamilyPaymentUncheckedCreateWithoutBatchInput = {
   fraisId: string
   classEnrollmentId: string
   branchId: string
+  createdByUserId?: string | null
   allocations?: Prisma.PaymentAllocationUncheckedCreateNestedManyWithoutFamilyPaymentInput
   mobileTx?: Prisma.MobileMoneyTransactionUncheckedCreateNestedOneWithoutPaymentInput
   events?: Prisma.PaymentEventUncheckedCreateNestedManyWithoutPaymentInput
@@ -1242,6 +1387,7 @@ export type FamilyPaymentCreateWithoutAllocationsInput = {
   frais?: Prisma.FraisCreateNestedOneWithoutPaiementInput
   classEnrollment?: Prisma.ClassEnrollmentCreateNestedOneWithoutPaiementInput
   branch: Prisma.BranchCreateNestedOneWithoutFamilyPaymentInput
+  createdByUser?: Prisma.UserCreateNestedOneWithoutFamilyPaymentsCreatedInput
 }
 
 export type FamilyPaymentUncheckedCreateWithoutAllocationsInput = {
@@ -1261,6 +1407,7 @@ export type FamilyPaymentUncheckedCreateWithoutAllocationsInput = {
   fraisId: string
   classEnrollmentId: string
   branchId: string
+  createdByUserId?: string | null
   mobileTx?: Prisma.MobileMoneyTransactionUncheckedCreateNestedOneWithoutPaymentInput
   events?: Prisma.PaymentEventUncheckedCreateNestedManyWithoutPaymentInput
 }
@@ -1300,6 +1447,7 @@ export type FamilyPaymentUpdateWithoutAllocationsInput = {
   frais?: Prisma.FraisUpdateOneWithoutPaiementNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUpdateOneWithoutPaiementNestedInput
   branch?: Prisma.BranchUpdateOneRequiredWithoutFamilyPaymentNestedInput
+  createdByUser?: Prisma.UserUpdateOneWithoutFamilyPaymentsCreatedNestedInput
 }
 
 export type FamilyPaymentUncheckedUpdateWithoutAllocationsInput = {
@@ -1319,6 +1467,7 @@ export type FamilyPaymentUncheckedUpdateWithoutAllocationsInput = {
   fraisId?: Prisma.StringFieldUpdateOperationsInput | string
   classEnrollmentId?: Prisma.StringFieldUpdateOperationsInput | string
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
+  createdByUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mobileTx?: Prisma.MobileMoneyTransactionUncheckedUpdateOneWithoutPaymentNestedInput
   events?: Prisma.PaymentEventUncheckedUpdateManyWithoutPaymentNestedInput
 }
@@ -1342,6 +1491,7 @@ export type FamilyPaymentCreateWithoutMobileTxInput = {
   frais?: Prisma.FraisCreateNestedOneWithoutPaiementInput
   classEnrollment?: Prisma.ClassEnrollmentCreateNestedOneWithoutPaiementInput
   branch: Prisma.BranchCreateNestedOneWithoutFamilyPaymentInput
+  createdByUser?: Prisma.UserCreateNestedOneWithoutFamilyPaymentsCreatedInput
 }
 
 export type FamilyPaymentUncheckedCreateWithoutMobileTxInput = {
@@ -1361,6 +1511,7 @@ export type FamilyPaymentUncheckedCreateWithoutMobileTxInput = {
   fraisId: string
   classEnrollmentId: string
   branchId: string
+  createdByUserId?: string | null
   allocations?: Prisma.PaymentAllocationUncheckedCreateNestedManyWithoutFamilyPaymentInput
   events?: Prisma.PaymentEventUncheckedCreateNestedManyWithoutPaymentInput
 }
@@ -1400,6 +1551,7 @@ export type FamilyPaymentUpdateWithoutMobileTxInput = {
   frais?: Prisma.FraisUpdateOneWithoutPaiementNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUpdateOneWithoutPaiementNestedInput
   branch?: Prisma.BranchUpdateOneRequiredWithoutFamilyPaymentNestedInput
+  createdByUser?: Prisma.UserUpdateOneWithoutFamilyPaymentsCreatedNestedInput
 }
 
 export type FamilyPaymentUncheckedUpdateWithoutMobileTxInput = {
@@ -1419,6 +1571,7 @@ export type FamilyPaymentUncheckedUpdateWithoutMobileTxInput = {
   fraisId?: Prisma.StringFieldUpdateOperationsInput | string
   classEnrollmentId?: Prisma.StringFieldUpdateOperationsInput | string
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
+  createdByUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   allocations?: Prisma.PaymentAllocationUncheckedUpdateManyWithoutFamilyPaymentNestedInput
   events?: Prisma.PaymentEventUncheckedUpdateManyWithoutPaymentNestedInput
 }
@@ -1442,6 +1595,7 @@ export type FamilyPaymentCreateWithoutEventsInput = {
   frais?: Prisma.FraisCreateNestedOneWithoutPaiementInput
   classEnrollment?: Prisma.ClassEnrollmentCreateNestedOneWithoutPaiementInput
   branch: Prisma.BranchCreateNestedOneWithoutFamilyPaymentInput
+  createdByUser?: Prisma.UserCreateNestedOneWithoutFamilyPaymentsCreatedInput
 }
 
 export type FamilyPaymentUncheckedCreateWithoutEventsInput = {
@@ -1461,6 +1615,7 @@ export type FamilyPaymentUncheckedCreateWithoutEventsInput = {
   fraisId: string
   classEnrollmentId: string
   branchId: string
+  createdByUserId?: string | null
   allocations?: Prisma.PaymentAllocationUncheckedCreateNestedManyWithoutFamilyPaymentInput
   mobileTx?: Prisma.MobileMoneyTransactionUncheckedCreateNestedOneWithoutPaymentInput
 }
@@ -1500,6 +1655,7 @@ export type FamilyPaymentUpdateWithoutEventsInput = {
   frais?: Prisma.FraisUpdateOneWithoutPaiementNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUpdateOneWithoutPaiementNestedInput
   branch?: Prisma.BranchUpdateOneRequiredWithoutFamilyPaymentNestedInput
+  createdByUser?: Prisma.UserUpdateOneWithoutFamilyPaymentsCreatedNestedInput
 }
 
 export type FamilyPaymentUncheckedUpdateWithoutEventsInput = {
@@ -1519,6 +1675,7 @@ export type FamilyPaymentUncheckedUpdateWithoutEventsInput = {
   fraisId?: Prisma.StringFieldUpdateOperationsInput | string
   classEnrollmentId?: Prisma.StringFieldUpdateOperationsInput | string
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
+  createdByUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   allocations?: Prisma.PaymentAllocationUncheckedUpdateManyWithoutFamilyPaymentNestedInput
   mobileTx?: Prisma.MobileMoneyTransactionUncheckedUpdateOneWithoutPaymentNestedInput
 }
@@ -1542,6 +1699,7 @@ export type FamilyPaymentCreateWithoutBranchInput = {
   events?: Prisma.PaymentEventCreateNestedManyWithoutPaymentInput
   frais?: Prisma.FraisCreateNestedOneWithoutPaiementInput
   classEnrollment?: Prisma.ClassEnrollmentCreateNestedOneWithoutPaiementInput
+  createdByUser?: Prisma.UserCreateNestedOneWithoutFamilyPaymentsCreatedInput
 }
 
 export type FamilyPaymentUncheckedCreateWithoutBranchInput = {
@@ -1560,6 +1718,7 @@ export type FamilyPaymentUncheckedCreateWithoutBranchInput = {
   updatedAt?: Date | string
   fraisId: string
   classEnrollmentId: string
+  createdByUserId?: string | null
   allocations?: Prisma.PaymentAllocationUncheckedCreateNestedManyWithoutFamilyPaymentInput
   mobileTx?: Prisma.MobileMoneyTransactionUncheckedCreateNestedOneWithoutPaymentInput
   events?: Prisma.PaymentEventUncheckedCreateNestedManyWithoutPaymentInput
@@ -1591,6 +1750,88 @@ export type FamilyPaymentUpdateManyWithWhereWithoutBranchInput = {
   data: Prisma.XOR<Prisma.FamilyPaymentUpdateManyMutationInput, Prisma.FamilyPaymentUncheckedUpdateManyWithoutBranchInput>
 }
 
+export type FamilyPaymentCreateManyCreatedByUserInput = {
+  id?: string
+  parentId: string
+  batchId?: number | null
+  amount: number
+  receivedCurrency?: $Enums.CurrencyCode
+  receivedAmount?: number | null
+  exchangeRateUsed?: number | null
+  method: $Enums.PaymentMethod
+  transactionRef: string
+  notes?: string | null
+  status?: $Enums.PaymentStatus
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  fraisId: string
+  classEnrollmentId: string
+  branchId: string
+}
+
+export type FamilyPaymentUpdateWithoutCreatedByUserInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  receivedCurrency?: Prisma.EnumCurrencyCodeFieldUpdateOperationsInput | $Enums.CurrencyCode
+  receivedAmount?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  exchangeRateUsed?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  method?: Prisma.EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
+  transactionRef?: Prisma.StringFieldUpdateOperationsInput | string
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  parent?: Prisma.ParentUpdateOneRequiredWithoutFamilyPaymentsNestedInput
+  batch?: Prisma.PaymentBatchUpdateOneWithoutPaymentsNestedInput
+  allocations?: Prisma.PaymentAllocationUpdateManyWithoutFamilyPaymentNestedInput
+  mobileTx?: Prisma.MobileMoneyTransactionUpdateOneWithoutPaymentNestedInput
+  events?: Prisma.PaymentEventUpdateManyWithoutPaymentNestedInput
+  frais?: Prisma.FraisUpdateOneWithoutPaiementNestedInput
+  classEnrollment?: Prisma.ClassEnrollmentUpdateOneWithoutPaiementNestedInput
+  branch?: Prisma.BranchUpdateOneRequiredWithoutFamilyPaymentNestedInput
+}
+
+export type FamilyPaymentUncheckedUpdateWithoutCreatedByUserInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  parentId?: Prisma.StringFieldUpdateOperationsInput | string
+  batchId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  receivedCurrency?: Prisma.EnumCurrencyCodeFieldUpdateOperationsInput | $Enums.CurrencyCode
+  receivedAmount?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  exchangeRateUsed?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  method?: Prisma.EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
+  transactionRef?: Prisma.StringFieldUpdateOperationsInput | string
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  fraisId?: Prisma.StringFieldUpdateOperationsInput | string
+  classEnrollmentId?: Prisma.StringFieldUpdateOperationsInput | string
+  branchId?: Prisma.StringFieldUpdateOperationsInput | string
+  allocations?: Prisma.PaymentAllocationUncheckedUpdateManyWithoutFamilyPaymentNestedInput
+  mobileTx?: Prisma.MobileMoneyTransactionUncheckedUpdateOneWithoutPaymentNestedInput
+  events?: Prisma.PaymentEventUncheckedUpdateManyWithoutPaymentNestedInput
+}
+
+export type FamilyPaymentUncheckedUpdateManyWithoutCreatedByUserInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  parentId?: Prisma.StringFieldUpdateOperationsInput | string
+  batchId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  receivedCurrency?: Prisma.EnumCurrencyCodeFieldUpdateOperationsInput | $Enums.CurrencyCode
+  receivedAmount?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  exchangeRateUsed?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  method?: Prisma.EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
+  transactionRef?: Prisma.StringFieldUpdateOperationsInput | string
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  fraisId?: Prisma.StringFieldUpdateOperationsInput | string
+  classEnrollmentId?: Prisma.StringFieldUpdateOperationsInput | string
+  branchId?: Prisma.StringFieldUpdateOperationsInput | string
+}
+
 export type FamilyPaymentCreateManyParentInput = {
   id?: string
   batchId?: number | null
@@ -1607,6 +1848,7 @@ export type FamilyPaymentCreateManyParentInput = {
   fraisId: string
   classEnrollmentId: string
   branchId: string
+  createdByUserId?: string | null
 }
 
 export type FamilyPaymentUpdateWithoutParentInput = {
@@ -1628,6 +1870,7 @@ export type FamilyPaymentUpdateWithoutParentInput = {
   frais?: Prisma.FraisUpdateOneWithoutPaiementNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUpdateOneWithoutPaiementNestedInput
   branch?: Prisma.BranchUpdateOneRequiredWithoutFamilyPaymentNestedInput
+  createdByUser?: Prisma.UserUpdateOneWithoutFamilyPaymentsCreatedNestedInput
 }
 
 export type FamilyPaymentUncheckedUpdateWithoutParentInput = {
@@ -1646,6 +1889,7 @@ export type FamilyPaymentUncheckedUpdateWithoutParentInput = {
   fraisId?: Prisma.StringFieldUpdateOperationsInput | string
   classEnrollmentId?: Prisma.StringFieldUpdateOperationsInput | string
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
+  createdByUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   allocations?: Prisma.PaymentAllocationUncheckedUpdateManyWithoutFamilyPaymentNestedInput
   mobileTx?: Prisma.MobileMoneyTransactionUncheckedUpdateOneWithoutPaymentNestedInput
   events?: Prisma.PaymentEventUncheckedUpdateManyWithoutPaymentNestedInput
@@ -1667,6 +1911,7 @@ export type FamilyPaymentUncheckedUpdateManyWithoutParentInput = {
   fraisId?: Prisma.StringFieldUpdateOperationsInput | string
   classEnrollmentId?: Prisma.StringFieldUpdateOperationsInput | string
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
+  createdByUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type FamilyPaymentCreateManyFraisInput = {
@@ -1685,6 +1930,7 @@ export type FamilyPaymentCreateManyFraisInput = {
   updatedAt?: Date | string
   classEnrollmentId: string
   branchId: string
+  createdByUserId?: string | null
 }
 
 export type FamilyPaymentUpdateWithoutFraisInput = {
@@ -1706,6 +1952,7 @@ export type FamilyPaymentUpdateWithoutFraisInput = {
   events?: Prisma.PaymentEventUpdateManyWithoutPaymentNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUpdateOneWithoutPaiementNestedInput
   branch?: Prisma.BranchUpdateOneRequiredWithoutFamilyPaymentNestedInput
+  createdByUser?: Prisma.UserUpdateOneWithoutFamilyPaymentsCreatedNestedInput
 }
 
 export type FamilyPaymentUncheckedUpdateWithoutFraisInput = {
@@ -1724,6 +1971,7 @@ export type FamilyPaymentUncheckedUpdateWithoutFraisInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   classEnrollmentId?: Prisma.StringFieldUpdateOperationsInput | string
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
+  createdByUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   allocations?: Prisma.PaymentAllocationUncheckedUpdateManyWithoutFamilyPaymentNestedInput
   mobileTx?: Prisma.MobileMoneyTransactionUncheckedUpdateOneWithoutPaymentNestedInput
   events?: Prisma.PaymentEventUncheckedUpdateManyWithoutPaymentNestedInput
@@ -1745,6 +1993,7 @@ export type FamilyPaymentUncheckedUpdateManyWithoutFraisInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   classEnrollmentId?: Prisma.StringFieldUpdateOperationsInput | string
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
+  createdByUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type FamilyPaymentCreateManyClassEnrollmentInput = {
@@ -1763,6 +2012,7 @@ export type FamilyPaymentCreateManyClassEnrollmentInput = {
   updatedAt?: Date | string
   fraisId: string
   branchId: string
+  createdByUserId?: string | null
 }
 
 export type FamilyPaymentUpdateWithoutClassEnrollmentInput = {
@@ -1784,6 +2034,7 @@ export type FamilyPaymentUpdateWithoutClassEnrollmentInput = {
   events?: Prisma.PaymentEventUpdateManyWithoutPaymentNestedInput
   frais?: Prisma.FraisUpdateOneWithoutPaiementNestedInput
   branch?: Prisma.BranchUpdateOneRequiredWithoutFamilyPaymentNestedInput
+  createdByUser?: Prisma.UserUpdateOneWithoutFamilyPaymentsCreatedNestedInput
 }
 
 export type FamilyPaymentUncheckedUpdateWithoutClassEnrollmentInput = {
@@ -1802,6 +2053,7 @@ export type FamilyPaymentUncheckedUpdateWithoutClassEnrollmentInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   fraisId?: Prisma.StringFieldUpdateOperationsInput | string
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
+  createdByUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   allocations?: Prisma.PaymentAllocationUncheckedUpdateManyWithoutFamilyPaymentNestedInput
   mobileTx?: Prisma.MobileMoneyTransactionUncheckedUpdateOneWithoutPaymentNestedInput
   events?: Prisma.PaymentEventUncheckedUpdateManyWithoutPaymentNestedInput
@@ -1823,6 +2075,7 @@ export type FamilyPaymentUncheckedUpdateManyWithoutClassEnrollmentInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   fraisId?: Prisma.StringFieldUpdateOperationsInput | string
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
+  createdByUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type FamilyPaymentCreateManyBatchInput = {
@@ -1841,6 +2094,7 @@ export type FamilyPaymentCreateManyBatchInput = {
   fraisId: string
   classEnrollmentId: string
   branchId: string
+  createdByUserId?: string | null
 }
 
 export type FamilyPaymentUpdateWithoutBatchInput = {
@@ -1862,6 +2116,7 @@ export type FamilyPaymentUpdateWithoutBatchInput = {
   frais?: Prisma.FraisUpdateOneWithoutPaiementNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUpdateOneWithoutPaiementNestedInput
   branch?: Prisma.BranchUpdateOneRequiredWithoutFamilyPaymentNestedInput
+  createdByUser?: Prisma.UserUpdateOneWithoutFamilyPaymentsCreatedNestedInput
 }
 
 export type FamilyPaymentUncheckedUpdateWithoutBatchInput = {
@@ -1880,6 +2135,7 @@ export type FamilyPaymentUncheckedUpdateWithoutBatchInput = {
   fraisId?: Prisma.StringFieldUpdateOperationsInput | string
   classEnrollmentId?: Prisma.StringFieldUpdateOperationsInput | string
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
+  createdByUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   allocations?: Prisma.PaymentAllocationUncheckedUpdateManyWithoutFamilyPaymentNestedInput
   mobileTx?: Prisma.MobileMoneyTransactionUncheckedUpdateOneWithoutPaymentNestedInput
   events?: Prisma.PaymentEventUncheckedUpdateManyWithoutPaymentNestedInput
@@ -1901,6 +2157,7 @@ export type FamilyPaymentUncheckedUpdateManyWithoutBatchInput = {
   fraisId?: Prisma.StringFieldUpdateOperationsInput | string
   classEnrollmentId?: Prisma.StringFieldUpdateOperationsInput | string
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
+  createdByUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type FamilyPaymentCreateManyBranchInput = {
@@ -1919,6 +2176,7 @@ export type FamilyPaymentCreateManyBranchInput = {
   updatedAt?: Date | string
   fraisId: string
   classEnrollmentId: string
+  createdByUserId?: string | null
 }
 
 export type FamilyPaymentUpdateWithoutBranchInput = {
@@ -1940,6 +2198,7 @@ export type FamilyPaymentUpdateWithoutBranchInput = {
   events?: Prisma.PaymentEventUpdateManyWithoutPaymentNestedInput
   frais?: Prisma.FraisUpdateOneWithoutPaiementNestedInput
   classEnrollment?: Prisma.ClassEnrollmentUpdateOneWithoutPaiementNestedInput
+  createdByUser?: Prisma.UserUpdateOneWithoutFamilyPaymentsCreatedNestedInput
 }
 
 export type FamilyPaymentUncheckedUpdateWithoutBranchInput = {
@@ -1958,6 +2217,7 @@ export type FamilyPaymentUncheckedUpdateWithoutBranchInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   fraisId?: Prisma.StringFieldUpdateOperationsInput | string
   classEnrollmentId?: Prisma.StringFieldUpdateOperationsInput | string
+  createdByUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   allocations?: Prisma.PaymentAllocationUncheckedUpdateManyWithoutFamilyPaymentNestedInput
   mobileTx?: Prisma.MobileMoneyTransactionUncheckedUpdateOneWithoutPaymentNestedInput
   events?: Prisma.PaymentEventUncheckedUpdateManyWithoutPaymentNestedInput
@@ -1979,6 +2239,7 @@ export type FamilyPaymentUncheckedUpdateManyWithoutBranchInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   fraisId?: Prisma.StringFieldUpdateOperationsInput | string
   classEnrollmentId?: Prisma.StringFieldUpdateOperationsInput | string
+  createdByUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 
@@ -2038,6 +2299,7 @@ export type FamilyPaymentSelect<ExtArgs extends runtime.Types.Extensions.Interna
   fraisId?: boolean
   classEnrollmentId?: boolean
   branchId?: boolean
+  createdByUserId?: boolean
   parent?: boolean | Prisma.ParentDefaultArgs<ExtArgs>
   batch?: boolean | Prisma.FamilyPayment$batchArgs<ExtArgs>
   allocations?: boolean | Prisma.FamilyPayment$allocationsArgs<ExtArgs>
@@ -2046,6 +2308,7 @@ export type FamilyPaymentSelect<ExtArgs extends runtime.Types.Extensions.Interna
   frais?: boolean | Prisma.FamilyPayment$fraisArgs<ExtArgs>
   classEnrollment?: boolean | Prisma.FamilyPayment$classEnrollmentArgs<ExtArgs>
   branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
+  createdByUser?: boolean | Prisma.FamilyPayment$createdByUserArgs<ExtArgs>
   _count?: boolean | Prisma.FamilyPaymentCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["familyPayment"]>
 
@@ -2066,11 +2329,13 @@ export type FamilyPaymentSelectCreateManyAndReturn<ExtArgs extends runtime.Types
   fraisId?: boolean
   classEnrollmentId?: boolean
   branchId?: boolean
+  createdByUserId?: boolean
   parent?: boolean | Prisma.ParentDefaultArgs<ExtArgs>
   batch?: boolean | Prisma.FamilyPayment$batchArgs<ExtArgs>
   frais?: boolean | Prisma.FamilyPayment$fraisArgs<ExtArgs>
   classEnrollment?: boolean | Prisma.FamilyPayment$classEnrollmentArgs<ExtArgs>
   branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
+  createdByUser?: boolean | Prisma.FamilyPayment$createdByUserArgs<ExtArgs>
 }, ExtArgs["result"]["familyPayment"]>
 
 export type FamilyPaymentSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -2090,11 +2355,13 @@ export type FamilyPaymentSelectUpdateManyAndReturn<ExtArgs extends runtime.Types
   fraisId?: boolean
   classEnrollmentId?: boolean
   branchId?: boolean
+  createdByUserId?: boolean
   parent?: boolean | Prisma.ParentDefaultArgs<ExtArgs>
   batch?: boolean | Prisma.FamilyPayment$batchArgs<ExtArgs>
   frais?: boolean | Prisma.FamilyPayment$fraisArgs<ExtArgs>
   classEnrollment?: boolean | Prisma.FamilyPayment$classEnrollmentArgs<ExtArgs>
   branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
+  createdByUser?: boolean | Prisma.FamilyPayment$createdByUserArgs<ExtArgs>
 }, ExtArgs["result"]["familyPayment"]>
 
 export type FamilyPaymentSelectScalar = {
@@ -2114,9 +2381,10 @@ export type FamilyPaymentSelectScalar = {
   fraisId?: boolean
   classEnrollmentId?: boolean
   branchId?: boolean
+  createdByUserId?: boolean
 }
 
-export type FamilyPaymentOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "parentId" | "batchId" | "amount" | "receivedCurrency" | "receivedAmount" | "exchangeRateUsed" | "method" | "transactionRef" | "notes" | "status" | "createdAt" | "updatedAt" | "fraisId" | "classEnrollmentId" | "branchId", ExtArgs["result"]["familyPayment"]>
+export type FamilyPaymentOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "parentId" | "batchId" | "amount" | "receivedCurrency" | "receivedAmount" | "exchangeRateUsed" | "method" | "transactionRef" | "notes" | "status" | "createdAt" | "updatedAt" | "fraisId" | "classEnrollmentId" | "branchId" | "createdByUserId", ExtArgs["result"]["familyPayment"]>
 export type FamilyPaymentInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   parent?: boolean | Prisma.ParentDefaultArgs<ExtArgs>
   batch?: boolean | Prisma.FamilyPayment$batchArgs<ExtArgs>
@@ -2126,6 +2394,7 @@ export type FamilyPaymentInclude<ExtArgs extends runtime.Types.Extensions.Intern
   frais?: boolean | Prisma.FamilyPayment$fraisArgs<ExtArgs>
   classEnrollment?: boolean | Prisma.FamilyPayment$classEnrollmentArgs<ExtArgs>
   branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
+  createdByUser?: boolean | Prisma.FamilyPayment$createdByUserArgs<ExtArgs>
   _count?: boolean | Prisma.FamilyPaymentCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type FamilyPaymentIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -2134,6 +2403,7 @@ export type FamilyPaymentIncludeCreateManyAndReturn<ExtArgs extends runtime.Type
   frais?: boolean | Prisma.FamilyPayment$fraisArgs<ExtArgs>
   classEnrollment?: boolean | Prisma.FamilyPayment$classEnrollmentArgs<ExtArgs>
   branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
+  createdByUser?: boolean | Prisma.FamilyPayment$createdByUserArgs<ExtArgs>
 }
 export type FamilyPaymentIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   parent?: boolean | Prisma.ParentDefaultArgs<ExtArgs>
@@ -2141,6 +2411,7 @@ export type FamilyPaymentIncludeUpdateManyAndReturn<ExtArgs extends runtime.Type
   frais?: boolean | Prisma.FamilyPayment$fraisArgs<ExtArgs>
   classEnrollment?: boolean | Prisma.FamilyPayment$classEnrollmentArgs<ExtArgs>
   branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
+  createdByUser?: boolean | Prisma.FamilyPayment$createdByUserArgs<ExtArgs>
 }
 
 export type $FamilyPaymentPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -2154,6 +2425,7 @@ export type $FamilyPaymentPayload<ExtArgs extends runtime.Types.Extensions.Inter
     frais: Prisma.$FraisPayload<ExtArgs> | null
     classEnrollment: Prisma.$ClassEnrollmentPayload<ExtArgs> | null
     branch: Prisma.$BranchPayload<ExtArgs>
+    createdByUser: Prisma.$UserPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -2184,6 +2456,10 @@ export type $FamilyPaymentPayload<ExtArgs extends runtime.Types.Extensions.Inter
     fraisId: string
     classEnrollmentId: string
     branchId: string
+    /**
+     * Caissier / utilisateur ayant enregistré le paiement
+     */
+    createdByUserId: string | null
   }, ExtArgs["result"]["familyPayment"]>
   composites: {}
 }
@@ -2586,6 +2862,7 @@ export interface Prisma__FamilyPaymentClient<T, Null = never, ExtArgs extends ru
   frais<T extends Prisma.FamilyPayment$fraisArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.FamilyPayment$fraisArgs<ExtArgs>>): Prisma.Prisma__FraisClient<runtime.Types.Result.GetResult<Prisma.$FraisPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   classEnrollment<T extends Prisma.FamilyPayment$classEnrollmentArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.FamilyPayment$classEnrollmentArgs<ExtArgs>>): Prisma.Prisma__ClassEnrollmentClient<runtime.Types.Result.GetResult<Prisma.$ClassEnrollmentPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   branch<T extends Prisma.BranchDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.BranchDefaultArgs<ExtArgs>>): Prisma.Prisma__BranchClient<runtime.Types.Result.GetResult<Prisma.$BranchPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  createdByUser<T extends Prisma.FamilyPayment$createdByUserArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.FamilyPayment$createdByUserArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2631,6 +2908,7 @@ export interface FamilyPaymentFieldRefs {
   readonly fraisId: Prisma.FieldRef<"FamilyPayment", 'String'>
   readonly classEnrollmentId: Prisma.FieldRef<"FamilyPayment", 'String'>
   readonly branchId: Prisma.FieldRef<"FamilyPayment", 'String'>
+  readonly createdByUserId: Prisma.FieldRef<"FamilyPayment", 'String'>
 }
     
 
@@ -3153,6 +3431,25 @@ export type FamilyPayment$classEnrollmentArgs<ExtArgs extends runtime.Types.Exte
    */
   include?: Prisma.ClassEnrollmentInclude<ExtArgs> | null
   where?: Prisma.ClassEnrollmentWhereInput
+}
+
+/**
+ * FamilyPayment.createdByUser
+ */
+export type FamilyPayment$createdByUserArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the User
+   */
+  select?: Prisma.UserSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the User
+   */
+  omit?: Prisma.UserOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.UserInclude<ExtArgs> | null
+  where?: Prisma.UserWhereInput
 }
 
 /**

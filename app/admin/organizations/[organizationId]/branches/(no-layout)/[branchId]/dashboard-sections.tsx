@@ -736,19 +736,25 @@ export function CashierStatsSection({
   loading,
   todayIncome,
   todayCount,
+  todayExpenses = 0,
+  netBalance = 0,
   unpaidInvoices,
   currency,
+  scopedToSelf = false,
 }: {
   loading: boolean;
   todayIncome: number;
   todayCount: number;
+  todayExpenses?: number;
+  netBalance?: number;
   unpaidInvoices: number;
   currency: string;
+  scopedToSelf?: boolean;
 }) {
   return (
-    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
       <BranchStatCard
-        label="Encaissements du jour"
+        label={scopedToSelf ? "Mes encaissements du jour" : "Encaissements du jour"}
         value={
           loading
             ? "—"
@@ -762,16 +768,30 @@ export function CashierStatsSection({
         icon={IconCurrencyDollar}
       />
       <BranchStatCard
+        label={scopedToSelf ? "Mes dépenses du jour" : "Dépenses du jour"}
+        value={
+          loading
+            ? "—"
+            : formatReportAmountCurrencyFirst(todayExpenses, currency)
+        }
+        description={scopedToSelf ? "Sorties de votre caisse" : "Sorties de caisse"}
+        icon={IconClipboardList}
+      />
+      <BranchStatCard
+        label={scopedToSelf ? "Mon solde net" : "Solde net"}
+        value={
+          loading
+            ? "—"
+            : formatReportAmountCurrencyFirst(netBalance, currency)
+        }
+        description="Ouverture + encaissements − dépenses"
+        icon={IconUsers}
+      />
+      <BranchStatCard
         label="Impayés"
         value={loading ? "—" : unpaidInvoices}
         description="Inscriptions avec solde (année en cours)"
         icon={IconClipboardList}
-      />
-      <BranchStatCard
-        label="Paiements aujourd'hui"
-        value={loading ? "—" : todayCount}
-        description="File d'attente / encaissements"
-        icon={IconUsers}
       />
     </div>
   );

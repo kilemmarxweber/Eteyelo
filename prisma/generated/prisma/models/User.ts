@@ -319,6 +319,8 @@ export type UserWhereInput = {
   absenceCases?: Prisma.AbsenceCaseListRelationFilter
   reviewedAbsenceCases?: Prisma.AbsenceCaseListRelationFilter
   appNotifications?: Prisma.AppNotificationListRelationFilter
+  familyPaymentsCreated?: Prisma.FamilyPaymentListRelationFilter
+  cashierExpensesCreated?: Prisma.CashierExpenseListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
@@ -352,6 +354,8 @@ export type UserOrderByWithRelationInput = {
   absenceCases?: Prisma.AbsenceCaseOrderByRelationAggregateInput
   reviewedAbsenceCases?: Prisma.AbsenceCaseOrderByRelationAggregateInput
   appNotifications?: Prisma.AppNotificationOrderByRelationAggregateInput
+  familyPaymentsCreated?: Prisma.FamilyPaymentOrderByRelationAggregateInput
+  cashierExpensesCreated?: Prisma.CashierExpenseOrderByRelationAggregateInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -388,6 +392,8 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   absenceCases?: Prisma.AbsenceCaseListRelationFilter
   reviewedAbsenceCases?: Prisma.AbsenceCaseListRelationFilter
   appNotifications?: Prisma.AppNotificationListRelationFilter
+  familyPaymentsCreated?: Prisma.FamilyPaymentListRelationFilter
+  cashierExpensesCreated?: Prisma.CashierExpenseListRelationFilter
 }, "id" | "username" | "email">
 
 export type UserOrderByWithAggregationInput = {
@@ -475,6 +481,8 @@ export type UserCreateInput = {
   absenceCases?: Prisma.AbsenceCaseCreateNestedManyWithoutUserInput
   reviewedAbsenceCases?: Prisma.AbsenceCaseCreateNestedManyWithoutReviewedByInput
   appNotifications?: Prisma.AppNotificationCreateNestedManyWithoutUserInput
+  familyPaymentsCreated?: Prisma.FamilyPaymentCreateNestedManyWithoutCreatedByUserInput
+  cashierExpensesCreated?: Prisma.CashierExpenseCreateNestedManyWithoutCreatedByUserInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -508,6 +516,8 @@ export type UserUncheckedCreateInput = {
   absenceCases?: Prisma.AbsenceCaseUncheckedCreateNestedManyWithoutUserInput
   reviewedAbsenceCases?: Prisma.AbsenceCaseUncheckedCreateNestedManyWithoutReviewedByInput
   appNotifications?: Prisma.AppNotificationUncheckedCreateNestedManyWithoutUserInput
+  familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutCreatedByUserInput
+  cashierExpensesCreated?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutCreatedByUserInput
 }
 
 export type UserUpdateInput = {
@@ -541,6 +551,8 @@ export type UserUpdateInput = {
   absenceCases?: Prisma.AbsenceCaseUpdateManyWithoutUserNestedInput
   reviewedAbsenceCases?: Prisma.AbsenceCaseUpdateManyWithoutReviewedByNestedInput
   appNotifications?: Prisma.AppNotificationUpdateManyWithoutUserNestedInput
+  familyPaymentsCreated?: Prisma.FamilyPaymentUpdateManyWithoutCreatedByUserNestedInput
+  cashierExpensesCreated?: Prisma.CashierExpenseUpdateManyWithoutCreatedByUserNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -574,6 +586,8 @@ export type UserUncheckedUpdateInput = {
   absenceCases?: Prisma.AbsenceCaseUncheckedUpdateManyWithoutUserNestedInput
   reviewedAbsenceCases?: Prisma.AbsenceCaseUncheckedUpdateManyWithoutReviewedByNestedInput
   appNotifications?: Prisma.AppNotificationUncheckedUpdateManyWithoutUserNestedInput
+  familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutCreatedByUserNestedInput
+  cashierExpensesCreated?: Prisma.CashierExpenseUncheckedUpdateManyWithoutCreatedByUserNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -720,14 +734,14 @@ export type UserMinOrderByAggregateInput = {
   banExpires?: Prisma.SortOrder
 }
 
-export type UserScalarRelationFilter = {
-  is?: Prisma.UserWhereInput
-  isNot?: Prisma.UserWhereInput
-}
-
 export type UserNullableScalarRelationFilter = {
   is?: Prisma.UserWhereInput | null
   isNot?: Prisma.UserWhereInput | null
+}
+
+export type UserScalarRelationFilter = {
+  is?: Prisma.UserWhereInput
+  isNot?: Prisma.UserWhereInput
 }
 
 export type StringFieldUpdateOperationsInput = {
@@ -752,6 +766,38 @@ export type NullableBoolFieldUpdateOperationsInput = {
 
 export type DateTimeFieldUpdateOperationsInput = {
   set?: Date | string
+}
+
+export type UserCreateNestedOneWithoutFamilyPaymentsCreatedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutFamilyPaymentsCreatedInput, Prisma.UserUncheckedCreateWithoutFamilyPaymentsCreatedInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutFamilyPaymentsCreatedInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneWithoutFamilyPaymentsCreatedNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutFamilyPaymentsCreatedInput, Prisma.UserUncheckedCreateWithoutFamilyPaymentsCreatedInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutFamilyPaymentsCreatedInput
+  upsert?: Prisma.UserUpsertWithoutFamilyPaymentsCreatedInput
+  disconnect?: Prisma.UserWhereInput | boolean
+  delete?: Prisma.UserWhereInput | boolean
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutFamilyPaymentsCreatedInput, Prisma.UserUpdateWithoutFamilyPaymentsCreatedInput>, Prisma.UserUncheckedUpdateWithoutFamilyPaymentsCreatedInput>
+}
+
+export type UserCreateNestedOneWithoutCashierExpensesCreatedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutCashierExpensesCreatedInput, Prisma.UserUncheckedCreateWithoutCashierExpensesCreatedInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutCashierExpensesCreatedInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneWithoutCashierExpensesCreatedNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutCashierExpensesCreatedInput, Prisma.UserUncheckedCreateWithoutCashierExpensesCreatedInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutCashierExpensesCreatedInput
+  upsert?: Prisma.UserUpsertWithoutCashierExpensesCreatedInput
+  disconnect?: Prisma.UserWhereInput | boolean
+  delete?: Prisma.UserWhereInput | boolean
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutCashierExpensesCreatedInput, Prisma.UserUpdateWithoutCashierExpensesCreatedInput>, Prisma.UserUncheckedUpdateWithoutCashierExpensesCreatedInput>
 }
 
 export type UserCreateNestedOneWithoutAbsenceCasesInput = {
@@ -882,6 +928,310 @@ export type UserUpdateOneRequiredWithoutPlatformEscalationsRequestedNestedInput 
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutPlatformEscalationsRequestedInput, Prisma.UserUpdateWithoutPlatformEscalationsRequestedInput>, Prisma.UserUncheckedUpdateWithoutPlatformEscalationsRequestedInput>
 }
 
+export type UserCreateWithoutFamilyPaymentsCreatedInput = {
+  id?: string
+  username?: string | null
+  email?: string | null
+  telephone?: string | null
+  postnom?: string | null
+  prenom?: string | null
+  dateOfBirth?: Date | string | null
+  sexe?: string | null
+  emailVerified?: boolean
+  image?: string | null
+  address?: string | null
+  statusUser?: boolean | null
+  mustChangePassword?: boolean
+  theme?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  name: string
+  role?: string | null
+  banned?: boolean | null
+  banReason?: string | null
+  banExpires?: Date | string | null
+  sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
+  members?: Prisma.MemberCreateNestedManyWithoutUserInput
+  invitations?: Prisma.InvitationCreateNestedManyWithoutUserInput
+  platformSupportAgent?: Prisma.PlatformSupportAgentCreateNestedOneWithoutUserInput
+  platformEscalationsRequested?: Prisma.PlatformSupportEscalationCreateNestedManyWithoutRequesterUserInput
+  absenceCases?: Prisma.AbsenceCaseCreateNestedManyWithoutUserInput
+  reviewedAbsenceCases?: Prisma.AbsenceCaseCreateNestedManyWithoutReviewedByInput
+  appNotifications?: Prisma.AppNotificationCreateNestedManyWithoutUserInput
+  cashierExpensesCreated?: Prisma.CashierExpenseCreateNestedManyWithoutCreatedByUserInput
+}
+
+export type UserUncheckedCreateWithoutFamilyPaymentsCreatedInput = {
+  id?: string
+  username?: string | null
+  email?: string | null
+  telephone?: string | null
+  postnom?: string | null
+  prenom?: string | null
+  dateOfBirth?: Date | string | null
+  sexe?: string | null
+  emailVerified?: boolean
+  image?: string | null
+  address?: string | null
+  statusUser?: boolean | null
+  mustChangePassword?: boolean
+  theme?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  name: string
+  role?: string | null
+  banned?: boolean | null
+  banReason?: string | null
+  banExpires?: Date | string | null
+  sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
+  members?: Prisma.MemberUncheckedCreateNestedManyWithoutUserInput
+  invitations?: Prisma.InvitationUncheckedCreateNestedManyWithoutUserInput
+  platformSupportAgent?: Prisma.PlatformSupportAgentUncheckedCreateNestedOneWithoutUserInput
+  platformEscalationsRequested?: Prisma.PlatformSupportEscalationUncheckedCreateNestedManyWithoutRequesterUserInput
+  absenceCases?: Prisma.AbsenceCaseUncheckedCreateNestedManyWithoutUserInput
+  reviewedAbsenceCases?: Prisma.AbsenceCaseUncheckedCreateNestedManyWithoutReviewedByInput
+  appNotifications?: Prisma.AppNotificationUncheckedCreateNestedManyWithoutUserInput
+  cashierExpensesCreated?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutCreatedByUserInput
+}
+
+export type UserCreateOrConnectWithoutFamilyPaymentsCreatedInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutFamilyPaymentsCreatedInput, Prisma.UserUncheckedCreateWithoutFamilyPaymentsCreatedInput>
+}
+
+export type UserUpsertWithoutFamilyPaymentsCreatedInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutFamilyPaymentsCreatedInput, Prisma.UserUncheckedUpdateWithoutFamilyPaymentsCreatedInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutFamilyPaymentsCreatedInput, Prisma.UserUncheckedCreateWithoutFamilyPaymentsCreatedInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutFamilyPaymentsCreatedInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutFamilyPaymentsCreatedInput, Prisma.UserUncheckedUpdateWithoutFamilyPaymentsCreatedInput>
+}
+
+export type UserUpdateWithoutFamilyPaymentsCreatedInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  username?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  telephone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  postnom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  prenom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  sexe?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  statusUser?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  theme?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  banned?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  banReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  banExpires?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
+  members?: Prisma.MemberUpdateManyWithoutUserNestedInput
+  invitations?: Prisma.InvitationUpdateManyWithoutUserNestedInput
+  platformSupportAgent?: Prisma.PlatformSupportAgentUpdateOneWithoutUserNestedInput
+  platformEscalationsRequested?: Prisma.PlatformSupportEscalationUpdateManyWithoutRequesterUserNestedInput
+  absenceCases?: Prisma.AbsenceCaseUpdateManyWithoutUserNestedInput
+  reviewedAbsenceCases?: Prisma.AbsenceCaseUpdateManyWithoutReviewedByNestedInput
+  appNotifications?: Prisma.AppNotificationUpdateManyWithoutUserNestedInput
+  cashierExpensesCreated?: Prisma.CashierExpenseUpdateManyWithoutCreatedByUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutFamilyPaymentsCreatedInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  username?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  telephone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  postnom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  prenom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  sexe?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  statusUser?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  theme?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  banned?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  banReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  banExpires?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
+  members?: Prisma.MemberUncheckedUpdateManyWithoutUserNestedInput
+  invitations?: Prisma.InvitationUncheckedUpdateManyWithoutUserNestedInput
+  platformSupportAgent?: Prisma.PlatformSupportAgentUncheckedUpdateOneWithoutUserNestedInput
+  platformEscalationsRequested?: Prisma.PlatformSupportEscalationUncheckedUpdateManyWithoutRequesterUserNestedInput
+  absenceCases?: Prisma.AbsenceCaseUncheckedUpdateManyWithoutUserNestedInput
+  reviewedAbsenceCases?: Prisma.AbsenceCaseUncheckedUpdateManyWithoutReviewedByNestedInput
+  appNotifications?: Prisma.AppNotificationUncheckedUpdateManyWithoutUserNestedInput
+  cashierExpensesCreated?: Prisma.CashierExpenseUncheckedUpdateManyWithoutCreatedByUserNestedInput
+}
+
+export type UserCreateWithoutCashierExpensesCreatedInput = {
+  id?: string
+  username?: string | null
+  email?: string | null
+  telephone?: string | null
+  postnom?: string | null
+  prenom?: string | null
+  dateOfBirth?: Date | string | null
+  sexe?: string | null
+  emailVerified?: boolean
+  image?: string | null
+  address?: string | null
+  statusUser?: boolean | null
+  mustChangePassword?: boolean
+  theme?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  name: string
+  role?: string | null
+  banned?: boolean | null
+  banReason?: string | null
+  banExpires?: Date | string | null
+  sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
+  members?: Prisma.MemberCreateNestedManyWithoutUserInput
+  invitations?: Prisma.InvitationCreateNestedManyWithoutUserInput
+  platformSupportAgent?: Prisma.PlatformSupportAgentCreateNestedOneWithoutUserInput
+  platformEscalationsRequested?: Prisma.PlatformSupportEscalationCreateNestedManyWithoutRequesterUserInput
+  absenceCases?: Prisma.AbsenceCaseCreateNestedManyWithoutUserInput
+  reviewedAbsenceCases?: Prisma.AbsenceCaseCreateNestedManyWithoutReviewedByInput
+  appNotifications?: Prisma.AppNotificationCreateNestedManyWithoutUserInput
+  familyPaymentsCreated?: Prisma.FamilyPaymentCreateNestedManyWithoutCreatedByUserInput
+}
+
+export type UserUncheckedCreateWithoutCashierExpensesCreatedInput = {
+  id?: string
+  username?: string | null
+  email?: string | null
+  telephone?: string | null
+  postnom?: string | null
+  prenom?: string | null
+  dateOfBirth?: Date | string | null
+  sexe?: string | null
+  emailVerified?: boolean
+  image?: string | null
+  address?: string | null
+  statusUser?: boolean | null
+  mustChangePassword?: boolean
+  theme?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  name: string
+  role?: string | null
+  banned?: boolean | null
+  banReason?: string | null
+  banExpires?: Date | string | null
+  sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
+  members?: Prisma.MemberUncheckedCreateNestedManyWithoutUserInput
+  invitations?: Prisma.InvitationUncheckedCreateNestedManyWithoutUserInput
+  platformSupportAgent?: Prisma.PlatformSupportAgentUncheckedCreateNestedOneWithoutUserInput
+  platformEscalationsRequested?: Prisma.PlatformSupportEscalationUncheckedCreateNestedManyWithoutRequesterUserInput
+  absenceCases?: Prisma.AbsenceCaseUncheckedCreateNestedManyWithoutUserInput
+  reviewedAbsenceCases?: Prisma.AbsenceCaseUncheckedCreateNestedManyWithoutReviewedByInput
+  appNotifications?: Prisma.AppNotificationUncheckedCreateNestedManyWithoutUserInput
+  familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutCreatedByUserInput
+}
+
+export type UserCreateOrConnectWithoutCashierExpensesCreatedInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutCashierExpensesCreatedInput, Prisma.UserUncheckedCreateWithoutCashierExpensesCreatedInput>
+}
+
+export type UserUpsertWithoutCashierExpensesCreatedInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutCashierExpensesCreatedInput, Prisma.UserUncheckedUpdateWithoutCashierExpensesCreatedInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutCashierExpensesCreatedInput, Prisma.UserUncheckedCreateWithoutCashierExpensesCreatedInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutCashierExpensesCreatedInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutCashierExpensesCreatedInput, Prisma.UserUncheckedUpdateWithoutCashierExpensesCreatedInput>
+}
+
+export type UserUpdateWithoutCashierExpensesCreatedInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  username?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  telephone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  postnom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  prenom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  sexe?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  statusUser?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  theme?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  banned?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  banReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  banExpires?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
+  members?: Prisma.MemberUpdateManyWithoutUserNestedInput
+  invitations?: Prisma.InvitationUpdateManyWithoutUserNestedInput
+  platformSupportAgent?: Prisma.PlatformSupportAgentUpdateOneWithoutUserNestedInput
+  platformEscalationsRequested?: Prisma.PlatformSupportEscalationUpdateManyWithoutRequesterUserNestedInput
+  absenceCases?: Prisma.AbsenceCaseUpdateManyWithoutUserNestedInput
+  reviewedAbsenceCases?: Prisma.AbsenceCaseUpdateManyWithoutReviewedByNestedInput
+  appNotifications?: Prisma.AppNotificationUpdateManyWithoutUserNestedInput
+  familyPaymentsCreated?: Prisma.FamilyPaymentUpdateManyWithoutCreatedByUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutCashierExpensesCreatedInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  username?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  telephone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  postnom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  prenom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  sexe?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  statusUser?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  theme?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  banned?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  banReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  banExpires?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
+  members?: Prisma.MemberUncheckedUpdateManyWithoutUserNestedInput
+  invitations?: Prisma.InvitationUncheckedUpdateManyWithoutUserNestedInput
+  platformSupportAgent?: Prisma.PlatformSupportAgentUncheckedUpdateOneWithoutUserNestedInput
+  platformEscalationsRequested?: Prisma.PlatformSupportEscalationUncheckedUpdateManyWithoutRequesterUserNestedInput
+  absenceCases?: Prisma.AbsenceCaseUncheckedUpdateManyWithoutUserNestedInput
+  reviewedAbsenceCases?: Prisma.AbsenceCaseUncheckedUpdateManyWithoutReviewedByNestedInput
+  appNotifications?: Prisma.AppNotificationUncheckedUpdateManyWithoutUserNestedInput
+  familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutCreatedByUserNestedInput
+}
+
 export type UserCreateWithoutAbsenceCasesInput = {
   id?: string
   username?: string | null
@@ -912,6 +1262,8 @@ export type UserCreateWithoutAbsenceCasesInput = {
   platformEscalationsRequested?: Prisma.PlatformSupportEscalationCreateNestedManyWithoutRequesterUserInput
   reviewedAbsenceCases?: Prisma.AbsenceCaseCreateNestedManyWithoutReviewedByInput
   appNotifications?: Prisma.AppNotificationCreateNestedManyWithoutUserInput
+  familyPaymentsCreated?: Prisma.FamilyPaymentCreateNestedManyWithoutCreatedByUserInput
+  cashierExpensesCreated?: Prisma.CashierExpenseCreateNestedManyWithoutCreatedByUserInput
 }
 
 export type UserUncheckedCreateWithoutAbsenceCasesInput = {
@@ -944,6 +1296,8 @@ export type UserUncheckedCreateWithoutAbsenceCasesInput = {
   platformEscalationsRequested?: Prisma.PlatformSupportEscalationUncheckedCreateNestedManyWithoutRequesterUserInput
   reviewedAbsenceCases?: Prisma.AbsenceCaseUncheckedCreateNestedManyWithoutReviewedByInput
   appNotifications?: Prisma.AppNotificationUncheckedCreateNestedManyWithoutUserInput
+  familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutCreatedByUserInput
+  cashierExpensesCreated?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutCreatedByUserInput
 }
 
 export type UserCreateOrConnectWithoutAbsenceCasesInput = {
@@ -981,6 +1335,8 @@ export type UserCreateWithoutReviewedAbsenceCasesInput = {
   platformEscalationsRequested?: Prisma.PlatformSupportEscalationCreateNestedManyWithoutRequesterUserInput
   absenceCases?: Prisma.AbsenceCaseCreateNestedManyWithoutUserInput
   appNotifications?: Prisma.AppNotificationCreateNestedManyWithoutUserInput
+  familyPaymentsCreated?: Prisma.FamilyPaymentCreateNestedManyWithoutCreatedByUserInput
+  cashierExpensesCreated?: Prisma.CashierExpenseCreateNestedManyWithoutCreatedByUserInput
 }
 
 export type UserUncheckedCreateWithoutReviewedAbsenceCasesInput = {
@@ -1013,6 +1369,8 @@ export type UserUncheckedCreateWithoutReviewedAbsenceCasesInput = {
   platformEscalationsRequested?: Prisma.PlatformSupportEscalationUncheckedCreateNestedManyWithoutRequesterUserInput
   absenceCases?: Prisma.AbsenceCaseUncheckedCreateNestedManyWithoutUserInput
   appNotifications?: Prisma.AppNotificationUncheckedCreateNestedManyWithoutUserInput
+  familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutCreatedByUserInput
+  cashierExpensesCreated?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutCreatedByUserInput
 }
 
 export type UserCreateOrConnectWithoutReviewedAbsenceCasesInput = {
@@ -1061,6 +1419,8 @@ export type UserUpdateWithoutAbsenceCasesInput = {
   platformEscalationsRequested?: Prisma.PlatformSupportEscalationUpdateManyWithoutRequesterUserNestedInput
   reviewedAbsenceCases?: Prisma.AbsenceCaseUpdateManyWithoutReviewedByNestedInput
   appNotifications?: Prisma.AppNotificationUpdateManyWithoutUserNestedInput
+  familyPaymentsCreated?: Prisma.FamilyPaymentUpdateManyWithoutCreatedByUserNestedInput
+  cashierExpensesCreated?: Prisma.CashierExpenseUpdateManyWithoutCreatedByUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAbsenceCasesInput = {
@@ -1093,6 +1453,8 @@ export type UserUncheckedUpdateWithoutAbsenceCasesInput = {
   platformEscalationsRequested?: Prisma.PlatformSupportEscalationUncheckedUpdateManyWithoutRequesterUserNestedInput
   reviewedAbsenceCases?: Prisma.AbsenceCaseUncheckedUpdateManyWithoutReviewedByNestedInput
   appNotifications?: Prisma.AppNotificationUncheckedUpdateManyWithoutUserNestedInput
+  familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutCreatedByUserNestedInput
+  cashierExpensesCreated?: Prisma.CashierExpenseUncheckedUpdateManyWithoutCreatedByUserNestedInput
 }
 
 export type UserUpsertWithoutReviewedAbsenceCasesInput = {
@@ -1136,6 +1498,8 @@ export type UserUpdateWithoutReviewedAbsenceCasesInput = {
   platformEscalationsRequested?: Prisma.PlatformSupportEscalationUpdateManyWithoutRequesterUserNestedInput
   absenceCases?: Prisma.AbsenceCaseUpdateManyWithoutUserNestedInput
   appNotifications?: Prisma.AppNotificationUpdateManyWithoutUserNestedInput
+  familyPaymentsCreated?: Prisma.FamilyPaymentUpdateManyWithoutCreatedByUserNestedInput
+  cashierExpensesCreated?: Prisma.CashierExpenseUpdateManyWithoutCreatedByUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutReviewedAbsenceCasesInput = {
@@ -1168,6 +1532,8 @@ export type UserUncheckedUpdateWithoutReviewedAbsenceCasesInput = {
   platformEscalationsRequested?: Prisma.PlatformSupportEscalationUncheckedUpdateManyWithoutRequesterUserNestedInput
   absenceCases?: Prisma.AbsenceCaseUncheckedUpdateManyWithoutUserNestedInput
   appNotifications?: Prisma.AppNotificationUncheckedUpdateManyWithoutUserNestedInput
+  familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutCreatedByUserNestedInput
+  cashierExpensesCreated?: Prisma.CashierExpenseUncheckedUpdateManyWithoutCreatedByUserNestedInput
 }
 
 export type UserCreateWithoutAppNotificationsInput = {
@@ -1200,6 +1566,8 @@ export type UserCreateWithoutAppNotificationsInput = {
   platformEscalationsRequested?: Prisma.PlatformSupportEscalationCreateNestedManyWithoutRequesterUserInput
   absenceCases?: Prisma.AbsenceCaseCreateNestedManyWithoutUserInput
   reviewedAbsenceCases?: Prisma.AbsenceCaseCreateNestedManyWithoutReviewedByInput
+  familyPaymentsCreated?: Prisma.FamilyPaymentCreateNestedManyWithoutCreatedByUserInput
+  cashierExpensesCreated?: Prisma.CashierExpenseCreateNestedManyWithoutCreatedByUserInput
 }
 
 export type UserUncheckedCreateWithoutAppNotificationsInput = {
@@ -1232,6 +1600,8 @@ export type UserUncheckedCreateWithoutAppNotificationsInput = {
   platformEscalationsRequested?: Prisma.PlatformSupportEscalationUncheckedCreateNestedManyWithoutRequesterUserInput
   absenceCases?: Prisma.AbsenceCaseUncheckedCreateNestedManyWithoutUserInput
   reviewedAbsenceCases?: Prisma.AbsenceCaseUncheckedCreateNestedManyWithoutReviewedByInput
+  familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutCreatedByUserInput
+  cashierExpensesCreated?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutCreatedByUserInput
 }
 
 export type UserCreateOrConnectWithoutAppNotificationsInput = {
@@ -1280,6 +1650,8 @@ export type UserUpdateWithoutAppNotificationsInput = {
   platformEscalationsRequested?: Prisma.PlatformSupportEscalationUpdateManyWithoutRequesterUserNestedInput
   absenceCases?: Prisma.AbsenceCaseUpdateManyWithoutUserNestedInput
   reviewedAbsenceCases?: Prisma.AbsenceCaseUpdateManyWithoutReviewedByNestedInput
+  familyPaymentsCreated?: Prisma.FamilyPaymentUpdateManyWithoutCreatedByUserNestedInput
+  cashierExpensesCreated?: Prisma.CashierExpenseUpdateManyWithoutCreatedByUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAppNotificationsInput = {
@@ -1312,6 +1684,8 @@ export type UserUncheckedUpdateWithoutAppNotificationsInput = {
   platformEscalationsRequested?: Prisma.PlatformSupportEscalationUncheckedUpdateManyWithoutRequesterUserNestedInput
   absenceCases?: Prisma.AbsenceCaseUncheckedUpdateManyWithoutUserNestedInput
   reviewedAbsenceCases?: Prisma.AbsenceCaseUncheckedUpdateManyWithoutReviewedByNestedInput
+  familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutCreatedByUserNestedInput
+  cashierExpensesCreated?: Prisma.CashierExpenseUncheckedUpdateManyWithoutCreatedByUserNestedInput
 }
 
 export type UserCreateWithoutSessionsInput = {
@@ -1344,6 +1718,8 @@ export type UserCreateWithoutSessionsInput = {
   absenceCases?: Prisma.AbsenceCaseCreateNestedManyWithoutUserInput
   reviewedAbsenceCases?: Prisma.AbsenceCaseCreateNestedManyWithoutReviewedByInput
   appNotifications?: Prisma.AppNotificationCreateNestedManyWithoutUserInput
+  familyPaymentsCreated?: Prisma.FamilyPaymentCreateNestedManyWithoutCreatedByUserInput
+  cashierExpensesCreated?: Prisma.CashierExpenseCreateNestedManyWithoutCreatedByUserInput
 }
 
 export type UserUncheckedCreateWithoutSessionsInput = {
@@ -1376,6 +1752,8 @@ export type UserUncheckedCreateWithoutSessionsInput = {
   absenceCases?: Prisma.AbsenceCaseUncheckedCreateNestedManyWithoutUserInput
   reviewedAbsenceCases?: Prisma.AbsenceCaseUncheckedCreateNestedManyWithoutReviewedByInput
   appNotifications?: Prisma.AppNotificationUncheckedCreateNestedManyWithoutUserInput
+  familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutCreatedByUserInput
+  cashierExpensesCreated?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutCreatedByUserInput
 }
 
 export type UserCreateOrConnectWithoutSessionsInput = {
@@ -1424,6 +1802,8 @@ export type UserUpdateWithoutSessionsInput = {
   absenceCases?: Prisma.AbsenceCaseUpdateManyWithoutUserNestedInput
   reviewedAbsenceCases?: Prisma.AbsenceCaseUpdateManyWithoutReviewedByNestedInput
   appNotifications?: Prisma.AppNotificationUpdateManyWithoutUserNestedInput
+  familyPaymentsCreated?: Prisma.FamilyPaymentUpdateManyWithoutCreatedByUserNestedInput
+  cashierExpensesCreated?: Prisma.CashierExpenseUpdateManyWithoutCreatedByUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSessionsInput = {
@@ -1456,6 +1836,8 @@ export type UserUncheckedUpdateWithoutSessionsInput = {
   absenceCases?: Prisma.AbsenceCaseUncheckedUpdateManyWithoutUserNestedInput
   reviewedAbsenceCases?: Prisma.AbsenceCaseUncheckedUpdateManyWithoutReviewedByNestedInput
   appNotifications?: Prisma.AppNotificationUncheckedUpdateManyWithoutUserNestedInput
+  familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutCreatedByUserNestedInput
+  cashierExpensesCreated?: Prisma.CashierExpenseUncheckedUpdateManyWithoutCreatedByUserNestedInput
 }
 
 export type UserCreateWithoutAccountsInput = {
@@ -1488,6 +1870,8 @@ export type UserCreateWithoutAccountsInput = {
   absenceCases?: Prisma.AbsenceCaseCreateNestedManyWithoutUserInput
   reviewedAbsenceCases?: Prisma.AbsenceCaseCreateNestedManyWithoutReviewedByInput
   appNotifications?: Prisma.AppNotificationCreateNestedManyWithoutUserInput
+  familyPaymentsCreated?: Prisma.FamilyPaymentCreateNestedManyWithoutCreatedByUserInput
+  cashierExpensesCreated?: Prisma.CashierExpenseCreateNestedManyWithoutCreatedByUserInput
 }
 
 export type UserUncheckedCreateWithoutAccountsInput = {
@@ -1520,6 +1904,8 @@ export type UserUncheckedCreateWithoutAccountsInput = {
   absenceCases?: Prisma.AbsenceCaseUncheckedCreateNestedManyWithoutUserInput
   reviewedAbsenceCases?: Prisma.AbsenceCaseUncheckedCreateNestedManyWithoutReviewedByInput
   appNotifications?: Prisma.AppNotificationUncheckedCreateNestedManyWithoutUserInput
+  familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutCreatedByUserInput
+  cashierExpensesCreated?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutCreatedByUserInput
 }
 
 export type UserCreateOrConnectWithoutAccountsInput = {
@@ -1568,6 +1954,8 @@ export type UserUpdateWithoutAccountsInput = {
   absenceCases?: Prisma.AbsenceCaseUpdateManyWithoutUserNestedInput
   reviewedAbsenceCases?: Prisma.AbsenceCaseUpdateManyWithoutReviewedByNestedInput
   appNotifications?: Prisma.AppNotificationUpdateManyWithoutUserNestedInput
+  familyPaymentsCreated?: Prisma.FamilyPaymentUpdateManyWithoutCreatedByUserNestedInput
+  cashierExpensesCreated?: Prisma.CashierExpenseUpdateManyWithoutCreatedByUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAccountsInput = {
@@ -1600,6 +1988,8 @@ export type UserUncheckedUpdateWithoutAccountsInput = {
   absenceCases?: Prisma.AbsenceCaseUncheckedUpdateManyWithoutUserNestedInput
   reviewedAbsenceCases?: Prisma.AbsenceCaseUncheckedUpdateManyWithoutReviewedByNestedInput
   appNotifications?: Prisma.AppNotificationUncheckedUpdateManyWithoutUserNestedInput
+  familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutCreatedByUserNestedInput
+  cashierExpensesCreated?: Prisma.CashierExpenseUncheckedUpdateManyWithoutCreatedByUserNestedInput
 }
 
 export type UserCreateWithoutMembersInput = {
@@ -1632,6 +2022,8 @@ export type UserCreateWithoutMembersInput = {
   absenceCases?: Prisma.AbsenceCaseCreateNestedManyWithoutUserInput
   reviewedAbsenceCases?: Prisma.AbsenceCaseCreateNestedManyWithoutReviewedByInput
   appNotifications?: Prisma.AppNotificationCreateNestedManyWithoutUserInput
+  familyPaymentsCreated?: Prisma.FamilyPaymentCreateNestedManyWithoutCreatedByUserInput
+  cashierExpensesCreated?: Prisma.CashierExpenseCreateNestedManyWithoutCreatedByUserInput
 }
 
 export type UserUncheckedCreateWithoutMembersInput = {
@@ -1664,6 +2056,8 @@ export type UserUncheckedCreateWithoutMembersInput = {
   absenceCases?: Prisma.AbsenceCaseUncheckedCreateNestedManyWithoutUserInput
   reviewedAbsenceCases?: Prisma.AbsenceCaseUncheckedCreateNestedManyWithoutReviewedByInput
   appNotifications?: Prisma.AppNotificationUncheckedCreateNestedManyWithoutUserInput
+  familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutCreatedByUserInput
+  cashierExpensesCreated?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutCreatedByUserInput
 }
 
 export type UserCreateOrConnectWithoutMembersInput = {
@@ -1712,6 +2106,8 @@ export type UserUpdateWithoutMembersInput = {
   absenceCases?: Prisma.AbsenceCaseUpdateManyWithoutUserNestedInput
   reviewedAbsenceCases?: Prisma.AbsenceCaseUpdateManyWithoutReviewedByNestedInput
   appNotifications?: Prisma.AppNotificationUpdateManyWithoutUserNestedInput
+  familyPaymentsCreated?: Prisma.FamilyPaymentUpdateManyWithoutCreatedByUserNestedInput
+  cashierExpensesCreated?: Prisma.CashierExpenseUpdateManyWithoutCreatedByUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutMembersInput = {
@@ -1744,6 +2140,8 @@ export type UserUncheckedUpdateWithoutMembersInput = {
   absenceCases?: Prisma.AbsenceCaseUncheckedUpdateManyWithoutUserNestedInput
   reviewedAbsenceCases?: Prisma.AbsenceCaseUncheckedUpdateManyWithoutReviewedByNestedInput
   appNotifications?: Prisma.AppNotificationUncheckedUpdateManyWithoutUserNestedInput
+  familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutCreatedByUserNestedInput
+  cashierExpensesCreated?: Prisma.CashierExpenseUncheckedUpdateManyWithoutCreatedByUserNestedInput
 }
 
 export type UserCreateWithoutInvitationsInput = {
@@ -1776,6 +2174,8 @@ export type UserCreateWithoutInvitationsInput = {
   absenceCases?: Prisma.AbsenceCaseCreateNestedManyWithoutUserInput
   reviewedAbsenceCases?: Prisma.AbsenceCaseCreateNestedManyWithoutReviewedByInput
   appNotifications?: Prisma.AppNotificationCreateNestedManyWithoutUserInput
+  familyPaymentsCreated?: Prisma.FamilyPaymentCreateNestedManyWithoutCreatedByUserInput
+  cashierExpensesCreated?: Prisma.CashierExpenseCreateNestedManyWithoutCreatedByUserInput
 }
 
 export type UserUncheckedCreateWithoutInvitationsInput = {
@@ -1808,6 +2208,8 @@ export type UserUncheckedCreateWithoutInvitationsInput = {
   absenceCases?: Prisma.AbsenceCaseUncheckedCreateNestedManyWithoutUserInput
   reviewedAbsenceCases?: Prisma.AbsenceCaseUncheckedCreateNestedManyWithoutReviewedByInput
   appNotifications?: Prisma.AppNotificationUncheckedCreateNestedManyWithoutUserInput
+  familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutCreatedByUserInput
+  cashierExpensesCreated?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutCreatedByUserInput
 }
 
 export type UserCreateOrConnectWithoutInvitationsInput = {
@@ -1856,6 +2258,8 @@ export type UserUpdateWithoutInvitationsInput = {
   absenceCases?: Prisma.AbsenceCaseUpdateManyWithoutUserNestedInput
   reviewedAbsenceCases?: Prisma.AbsenceCaseUpdateManyWithoutReviewedByNestedInput
   appNotifications?: Prisma.AppNotificationUpdateManyWithoutUserNestedInput
+  familyPaymentsCreated?: Prisma.FamilyPaymentUpdateManyWithoutCreatedByUserNestedInput
+  cashierExpensesCreated?: Prisma.CashierExpenseUpdateManyWithoutCreatedByUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutInvitationsInput = {
@@ -1888,6 +2292,8 @@ export type UserUncheckedUpdateWithoutInvitationsInput = {
   absenceCases?: Prisma.AbsenceCaseUncheckedUpdateManyWithoutUserNestedInput
   reviewedAbsenceCases?: Prisma.AbsenceCaseUncheckedUpdateManyWithoutReviewedByNestedInput
   appNotifications?: Prisma.AppNotificationUncheckedUpdateManyWithoutUserNestedInput
+  familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutCreatedByUserNestedInput
+  cashierExpensesCreated?: Prisma.CashierExpenseUncheckedUpdateManyWithoutCreatedByUserNestedInput
 }
 
 export type UserCreateWithoutPlatformSupportAgentInput = {
@@ -1920,6 +2326,8 @@ export type UserCreateWithoutPlatformSupportAgentInput = {
   absenceCases?: Prisma.AbsenceCaseCreateNestedManyWithoutUserInput
   reviewedAbsenceCases?: Prisma.AbsenceCaseCreateNestedManyWithoutReviewedByInput
   appNotifications?: Prisma.AppNotificationCreateNestedManyWithoutUserInput
+  familyPaymentsCreated?: Prisma.FamilyPaymentCreateNestedManyWithoutCreatedByUserInput
+  cashierExpensesCreated?: Prisma.CashierExpenseCreateNestedManyWithoutCreatedByUserInput
 }
 
 export type UserUncheckedCreateWithoutPlatformSupportAgentInput = {
@@ -1952,6 +2360,8 @@ export type UserUncheckedCreateWithoutPlatformSupportAgentInput = {
   absenceCases?: Prisma.AbsenceCaseUncheckedCreateNestedManyWithoutUserInput
   reviewedAbsenceCases?: Prisma.AbsenceCaseUncheckedCreateNestedManyWithoutReviewedByInput
   appNotifications?: Prisma.AppNotificationUncheckedCreateNestedManyWithoutUserInput
+  familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutCreatedByUserInput
+  cashierExpensesCreated?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutCreatedByUserInput
 }
 
 export type UserCreateOrConnectWithoutPlatformSupportAgentInput = {
@@ -2000,6 +2410,8 @@ export type UserUpdateWithoutPlatformSupportAgentInput = {
   absenceCases?: Prisma.AbsenceCaseUpdateManyWithoutUserNestedInput
   reviewedAbsenceCases?: Prisma.AbsenceCaseUpdateManyWithoutReviewedByNestedInput
   appNotifications?: Prisma.AppNotificationUpdateManyWithoutUserNestedInput
+  familyPaymentsCreated?: Prisma.FamilyPaymentUpdateManyWithoutCreatedByUserNestedInput
+  cashierExpensesCreated?: Prisma.CashierExpenseUpdateManyWithoutCreatedByUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutPlatformSupportAgentInput = {
@@ -2032,6 +2444,8 @@ export type UserUncheckedUpdateWithoutPlatformSupportAgentInput = {
   absenceCases?: Prisma.AbsenceCaseUncheckedUpdateManyWithoutUserNestedInput
   reviewedAbsenceCases?: Prisma.AbsenceCaseUncheckedUpdateManyWithoutReviewedByNestedInput
   appNotifications?: Prisma.AppNotificationUncheckedUpdateManyWithoutUserNestedInput
+  familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutCreatedByUserNestedInput
+  cashierExpensesCreated?: Prisma.CashierExpenseUncheckedUpdateManyWithoutCreatedByUserNestedInput
 }
 
 export type UserCreateWithoutPlatformEscalationsRequestedInput = {
@@ -2064,6 +2478,8 @@ export type UserCreateWithoutPlatformEscalationsRequestedInput = {
   absenceCases?: Prisma.AbsenceCaseCreateNestedManyWithoutUserInput
   reviewedAbsenceCases?: Prisma.AbsenceCaseCreateNestedManyWithoutReviewedByInput
   appNotifications?: Prisma.AppNotificationCreateNestedManyWithoutUserInput
+  familyPaymentsCreated?: Prisma.FamilyPaymentCreateNestedManyWithoutCreatedByUserInput
+  cashierExpensesCreated?: Prisma.CashierExpenseCreateNestedManyWithoutCreatedByUserInput
 }
 
 export type UserUncheckedCreateWithoutPlatformEscalationsRequestedInput = {
@@ -2096,6 +2512,8 @@ export type UserUncheckedCreateWithoutPlatformEscalationsRequestedInput = {
   absenceCases?: Prisma.AbsenceCaseUncheckedCreateNestedManyWithoutUserInput
   reviewedAbsenceCases?: Prisma.AbsenceCaseUncheckedCreateNestedManyWithoutReviewedByInput
   appNotifications?: Prisma.AppNotificationUncheckedCreateNestedManyWithoutUserInput
+  familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutCreatedByUserInput
+  cashierExpensesCreated?: Prisma.CashierExpenseUncheckedCreateNestedManyWithoutCreatedByUserInput
 }
 
 export type UserCreateOrConnectWithoutPlatformEscalationsRequestedInput = {
@@ -2144,6 +2562,8 @@ export type UserUpdateWithoutPlatformEscalationsRequestedInput = {
   absenceCases?: Prisma.AbsenceCaseUpdateManyWithoutUserNestedInput
   reviewedAbsenceCases?: Prisma.AbsenceCaseUpdateManyWithoutReviewedByNestedInput
   appNotifications?: Prisma.AppNotificationUpdateManyWithoutUserNestedInput
+  familyPaymentsCreated?: Prisma.FamilyPaymentUpdateManyWithoutCreatedByUserNestedInput
+  cashierExpensesCreated?: Prisma.CashierExpenseUpdateManyWithoutCreatedByUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutPlatformEscalationsRequestedInput = {
@@ -2176,6 +2596,8 @@ export type UserUncheckedUpdateWithoutPlatformEscalationsRequestedInput = {
   absenceCases?: Prisma.AbsenceCaseUncheckedUpdateManyWithoutUserNestedInput
   reviewedAbsenceCases?: Prisma.AbsenceCaseUncheckedUpdateManyWithoutReviewedByNestedInput
   appNotifications?: Prisma.AppNotificationUncheckedUpdateManyWithoutUserNestedInput
+  familyPaymentsCreated?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutCreatedByUserNestedInput
+  cashierExpensesCreated?: Prisma.CashierExpenseUncheckedUpdateManyWithoutCreatedByUserNestedInput
 }
 
 
@@ -2192,6 +2614,8 @@ export type UserCountOutputType = {
   absenceCases: number
   reviewedAbsenceCases: number
   appNotifications: number
+  familyPaymentsCreated: number
+  cashierExpensesCreated: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -2203,6 +2627,8 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   absenceCases?: boolean | UserCountOutputTypeCountAbsenceCasesArgs
   reviewedAbsenceCases?: boolean | UserCountOutputTypeCountReviewedAbsenceCasesArgs
   appNotifications?: boolean | UserCountOutputTypeCountAppNotificationsArgs
+  familyPaymentsCreated?: boolean | UserCountOutputTypeCountFamilyPaymentsCreatedArgs
+  cashierExpensesCreated?: boolean | UserCountOutputTypeCountCashierExpensesCreatedArgs
 }
 
 /**
@@ -2271,6 +2697,20 @@ export type UserCountOutputTypeCountAppNotificationsArgs<ExtArgs extends runtime
   where?: Prisma.AppNotificationWhereInput
 }
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountFamilyPaymentsCreatedArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.FamilyPaymentWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountCashierExpensesCreatedArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.CashierExpenseWhereInput
+}
+
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -2303,6 +2743,8 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   absenceCases?: boolean | Prisma.User$absenceCasesArgs<ExtArgs>
   reviewedAbsenceCases?: boolean | Prisma.User$reviewedAbsenceCasesArgs<ExtArgs>
   appNotifications?: boolean | Prisma.User$appNotificationsArgs<ExtArgs>
+  familyPaymentsCreated?: boolean | Prisma.User$familyPaymentsCreatedArgs<ExtArgs>
+  cashierExpensesCreated?: boolean | Prisma.User$cashierExpensesCreatedArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -2389,6 +2831,8 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   absenceCases?: boolean | Prisma.User$absenceCasesArgs<ExtArgs>
   reviewedAbsenceCases?: boolean | Prisma.User$reviewedAbsenceCasesArgs<ExtArgs>
   appNotifications?: boolean | Prisma.User$appNotificationsArgs<ExtArgs>
+  familyPaymentsCreated?: boolean | Prisma.User$familyPaymentsCreatedArgs<ExtArgs>
+  cashierExpensesCreated?: boolean | Prisma.User$cashierExpensesCreatedArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -2406,6 +2850,8 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     absenceCases: Prisma.$AbsenceCasePayload<ExtArgs>[]
     reviewedAbsenceCases: Prisma.$AbsenceCasePayload<ExtArgs>[]
     appNotifications: Prisma.$AppNotificationPayload<ExtArgs>[]
+    familyPaymentsCreated: Prisma.$FamilyPaymentPayload<ExtArgs>[]
+    cashierExpensesCreated: Prisma.$CashierExpensePayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -2838,6 +3284,8 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   absenceCases<T extends Prisma.User$absenceCasesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$absenceCasesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AbsenceCasePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   reviewedAbsenceCases<T extends Prisma.User$reviewedAbsenceCasesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$reviewedAbsenceCasesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AbsenceCasePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   appNotifications<T extends Prisma.User$appNotificationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$appNotificationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AppNotificationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  familyPaymentsCreated<T extends Prisma.User$familyPaymentsCreatedArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$familyPaymentsCreatedArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$FamilyPaymentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  cashierExpensesCreated<T extends Prisma.User$cashierExpensesCreatedArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$cashierExpensesCreatedArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CashierExpensePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -3489,6 +3937,54 @@ export type User$appNotificationsArgs<ExtArgs extends runtime.Types.Extensions.I
   take?: number
   skip?: number
   distinct?: Prisma.AppNotificationScalarFieldEnum | Prisma.AppNotificationScalarFieldEnum[]
+}
+
+/**
+ * User.familyPaymentsCreated
+ */
+export type User$familyPaymentsCreatedArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the FamilyPayment
+   */
+  select?: Prisma.FamilyPaymentSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the FamilyPayment
+   */
+  omit?: Prisma.FamilyPaymentOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.FamilyPaymentInclude<ExtArgs> | null
+  where?: Prisma.FamilyPaymentWhereInput
+  orderBy?: Prisma.FamilyPaymentOrderByWithRelationInput | Prisma.FamilyPaymentOrderByWithRelationInput[]
+  cursor?: Prisma.FamilyPaymentWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.FamilyPaymentScalarFieldEnum | Prisma.FamilyPaymentScalarFieldEnum[]
+}
+
+/**
+ * User.cashierExpensesCreated
+ */
+export type User$cashierExpensesCreatedArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the CashierExpense
+   */
+  select?: Prisma.CashierExpenseSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the CashierExpense
+   */
+  omit?: Prisma.CashierExpenseOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.CashierExpenseInclude<ExtArgs> | null
+  where?: Prisma.CashierExpenseWhereInput
+  orderBy?: Prisma.CashierExpenseOrderByWithRelationInput | Prisma.CashierExpenseOrderByWithRelationInput[]
+  cursor?: Prisma.CashierExpenseWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.CashierExpenseScalarFieldEnum | Prisma.CashierExpenseScalarFieldEnum[]
 }
 
 /**

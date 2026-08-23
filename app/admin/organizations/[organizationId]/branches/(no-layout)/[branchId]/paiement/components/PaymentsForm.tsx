@@ -56,9 +56,11 @@ type FormData = z.infer<typeof paiementSchema>;
 
 interface Props {
   fraisList: any;
-  classEnrollList: any;
+  classEnrollList?: any;
   onCreated?: () => void;
   onSuccess?: () => void;
+  initialSearch?: string;
+  initialEnrollmentId?: string;
 }
 
 function buildTransactionRef() {
@@ -84,6 +86,8 @@ export default function PaymentsForm({
   classEnrollList: _classEnrollList,
   onCreated,
   onSuccess,
+  initialSearch = "",
+  initialEnrollmentId = "",
 }: Props) {
   const peopleLabels = useBranchPeopleLabels();
   const { register, handleSubmit, setValue, watch, reset } = useForm<FormData>({
@@ -872,20 +876,23 @@ export default function PaymentsForm({
       ))}
     </div>
   );
-  // ================= UI (INCHANGÉ) =================
+  // ================= UI =================
   return (
     <>
     <form
       onSubmit={handleSubmit(onSubmit)}
-      className="flex flex-col lg:flex-row gap-3"
+      className="flex flex-col gap-4 lg:flex-row lg:items-stretch"
     >
       {/* LEFT */}
-      <div className="hidden lg:flex lg:flex-col w-60 gap-3 border p-4 rounded-md">
+      <div className="hidden w-64 shrink-0 flex-col gap-3 rounded-xl border border-border/70 bg-muted/20 p-4 lg:flex">
+        <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+          Paramètres
+        </p>
         <Select
           value={schoolYearId || undefined}
           onValueChange={setSchoolYearId}
         >
-          <SelectTrigger className="w-full sm:w-[200px] h-9 text-sm">
+          <SelectTrigger className="h-9 w-full text-sm transition-colors hover:border-primary/40">
             <SelectValue placeholder="Année scolaire" />
           </SelectTrigger>
           <SelectContent>
@@ -902,7 +909,7 @@ export default function PaymentsForm({
           value={watch("modePaiement")}
           onValueChange={(v) => setValue("modePaiement", v as ModePaiement)}
         >
-          <SelectTrigger className="w-full sm:w-[200px] h-9 text-sm">
+          <SelectTrigger className="h-9 w-full text-sm transition-colors hover:border-primary/40">
             <SelectValue placeholder="Mode paiement" />
           </SelectTrigger>
           <SelectContent>
@@ -920,7 +927,7 @@ export default function PaymentsForm({
             {currencyToggle}
             <MontantInput
               {...amountInputProps}
-              className={cn(amountInputProps.className, "sm:w-[200px]")}
+              className={cn(amountInputProps.className, "w-full")}
             />
             {!hasNoSelection && !isSolded && (
               <p className="text-[11px] text-muted-foreground -mt-1">
@@ -937,13 +944,13 @@ export default function PaymentsForm({
         <Textarea
           {...register("notes")}
           placeholder="Notes..."
-          className="min-h-[45px] sm:w-[200px]"
+          className="min-h-[45px] w-full resize-none bg-background/80"
         />
 
         {/* 💾 BOUTON SUBMIT */}
         <Button
           type="submit"
-          className="mt-3 sm:w-[200px]"
+          className="mt-1 w-full shadow-sm transition-transform active:scale-[0.98]"
           disabled={loading || (!hasNoSelection && isSolded)}
         >
           {!hasNoSelection && isSolded
@@ -955,10 +962,13 @@ export default function PaymentsForm({
       </div>
 
       {/* CENTER */}
-      <div className="flex-1 border p-3 rounded-md">
+      <div className="min-w-0 flex-1 rounded-xl border border-border/70 bg-background p-3 shadow-sm sm:p-4">
         <FamilySelector
+          key={`family-${initialSearch}-${initialEnrollmentId}`}
           resetKey={familyResetKey}
           hideSchoolYearSelect
+          initialSearch={initialSearch}
+          initialEnrollmentId={initialEnrollmentId}
           schoolYearId={schoolYearId}
           onSchoolYearIdChange={setSchoolYearId}
           onSchoolYearsLoaded={setSchoolYears}
@@ -993,7 +1003,10 @@ export default function PaymentsForm({
       </div>
 
       {/* RIGHT */}
-      <div className="w-full lg:w-96 border p-3 rounded-md space-y-3">
+      <div className="w-full space-y-3 rounded-xl border border-border/70 bg-muted/15 p-3 sm:p-4 lg:w-[22rem] lg:shrink-0">
+        <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+          Frais &amp; récapitulatif
+        </p>
         <MultiSelect
           options={fraisOptions}
           value={watch("fraisIds") || []}
@@ -1012,21 +1025,21 @@ export default function PaymentsForm({
         />
 
         {selectedFraisDetails.length > 0 && (
-          <div className="rounded-md border bg-muted/30">
-            <div className="flex items-center gap-2 px-3 py-2 border-b bg-muted/50">
-              <Receipt className="h-4 w-4 text-muted-foreground" />
+          <div className="animate-fade-in overflow-hidden rounded-xl border border-border/60 bg-card shadow-sm">
+            <div className="flex items-center gap-2 border-b border-border/60 bg-muted/40 px-3 py-2.5">
+              <Receipt className="h-4 w-4 text-primary" />
               <p className="text-sm font-medium">
                 Frais sélectionnés ({selectedFraisDetails.length})
               </p>
             </div>
-            <ul className="divide-y max-h-48 overflow-y-auto">
+            <ul className="max-h-48 divide-y overflow-y-auto">
               {selectedFraisDetails.map((frais) => (
                 <li
                   key={frais.id}
-                  className="flex items-start justify-between gap-2 px-3 py-2 text-sm"
+                  className="flex items-start justify-between gap-2 px-3 py-2.5 text-sm transition-colors hover:bg-muted/30"
                 >
                   <div className="min-w-0 flex-1">
-                    <p className="font-medium truncate">{frais.name}</p>
+                    <p className="truncate font-medium">{frais.name}</p>
                     <p className="text-xs text-muted-foreground">
                       {formatAmount(frais.unitAmount)}
                       {frais.dueEnrollmentCount > 0 &&
@@ -1050,8 +1063,8 @@ export default function PaymentsForm({
                       </p>
                     )}
                   </div>
-                  <div className="flex flex-col items-end gap-1 shrink-0">
-                    <span className="text-[10px] text-muted-foreground uppercase">
+                  <div className="flex shrink-0 flex-col items-end gap-1">
+                    <span className="text-[10px] uppercase text-muted-foreground">
                       Reste
                     </span>
                     <span className="font-semibold text-primary">
@@ -1060,7 +1073,7 @@ export default function PaymentsForm({
                     <button
                       type="button"
                       onClick={() => removeFrais(frais.id)}
-                      className="text-muted-foreground hover:text-destructive transition-colors"
+                      className="text-muted-foreground transition-colors hover:text-destructive"
                       aria-label={`Retirer ${frais.name}`}
                     >
                       <X className="h-3.5 w-3.5" />
@@ -1072,7 +1085,10 @@ export default function PaymentsForm({
           </div>
         )}
 
-        <Card variant="default">
+        <Card
+          variant="default"
+          className="overflow-hidden border-border/60 shadow-sm transition-shadow hover:shadow-md"
+        >
           <CardContent className="space-y-3 pt-4">
             <p className="font-bold">Récapitulatif</p>
 
@@ -1134,13 +1150,13 @@ export default function PaymentsForm({
                   )}
                 </div>
 
-                <div className="flex justify-between items-center border-t pt-2">
+                <div className="flex items-center justify-between rounded-lg border border-primary/15 bg-primary/[0.04] px-3 py-2.5">
                   <span className="font-bold">
                     {isSolded ? "Entièrement soldé" : "Reste à payer"}
                   </span>
                   <span
                     className={cn(
-                      "text-lg font-bold",
+                      "text-lg font-bold tabular-nums",
                       isSolded ? "text-green-600" : "text-primary",
                     )}
                   >
@@ -1149,9 +1165,9 @@ export default function PaymentsForm({
                 </div>
 
                 {!isSolded && amount > 0 && (
-                  <div className="flex justify-between text-sm border-t pt-2">
+                  <div className="flex justify-between border-t pt-2 text-sm">
                     <span className="text-muted-foreground">Montant saisi</span>
-                    <span className="font-semibold">
+                    <span className="font-semibold tabular-nums">
                       {formatAmount(amount)}
                     </span>
                   </div>
@@ -1161,7 +1177,7 @@ export default function PaymentsForm({
 
             {/* Montant payé — mobile/tablette */}
             {!isLargeScreen && !hasNoSelection && !isSolded && (
-              <div className="border-t pt-3 space-y-2">
+              <div className="space-y-2 border-t pt-3">
                 <label className="text-sm font-medium">Montant payé</label>
                 {currencyToggle}
                 <MontantInput {...amountInputProps} />
@@ -1174,7 +1190,7 @@ export default function PaymentsForm({
                 </p>
                 <Button
                   type="submit"
-                  className="w-full"
+                  className="w-full shadow-sm transition-transform active:scale-[0.98]"
                   disabled={loading || (!hasNoSelection && isSolded)}
                 >
                   {!hasNoSelection && isSolded
@@ -1191,8 +1207,8 @@ export default function PaymentsForm({
               amount > summary.remaining &&
               amount > 0 &&
               balances.length > 0 && (
-              <div className="border-t pt-2 bg-yellow-50 p-2 rounded space-y-1">
-                <p className="text-yellow-800 text-xs font-bold">
+              <div className="space-y-1 rounded-lg border border-amber-200/80 bg-amber-50 p-2.5 animate-fade-in">
+                <p className="text-xs font-bold text-yellow-800">
                   Excédent — remboursement à prévoir
                 </p>
                 <div className="flex justify-between text-xs">
@@ -1205,13 +1221,13 @@ export default function PaymentsForm({
             )}
 
             {amountWarning && (
-              <p className="text-orange-600 text-xs bg-orange-50 p-2 rounded">
+              <p className="rounded-lg bg-orange-50 p-2 text-xs text-orange-600 animate-fade-in">
                 {amountWarning}
               </p>
             )}
 
             {!hasNoSelection && isSolded && balances.length > 0 && (
-              <p className="text-green-600 text-xs bg-green-50 p-2 rounded font-medium">
+              <p className="rounded-lg bg-green-50 p-2 text-xs font-medium text-green-600 animate-fade-in">
                 Dossier soldé — aucun paiement possible
               </p>
             )}

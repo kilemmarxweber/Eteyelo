@@ -1261,12 +1261,12 @@ export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
                   onChange={(v) => update("name", v)}
                 />
                 <Text
-                  label="Postnom *"
+                  label="Postnom (facultatif)"
                   value={form.postnom}
                   onChange={(v) => update("postnom", v)}
                 />
                 <Text
-                  label="Prenom *"
+                  label="Prenom (facultatif)"
                   value={form.prenom}
                   onChange={(v) => update("prenom", v)}
                 />
@@ -1423,8 +1423,8 @@ export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
                             label={
                               {
                                 name: "Nom *",
-                                postnom: "Postnom *",
-                                prenom: "Prenom *",
+                                postnom: "Postnom (facultatif)",
+                                prenom: "Prenom (facultatif)",
                                 telephone: "Telephone *",
                                 email: "Email",
                                 address: "Adresse *",

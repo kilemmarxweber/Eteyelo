@@ -1,7 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { HandCoins } from "lucide-react";
+import {
+  ArrowDownRight,
+  ArrowUpRight,
+  HandCoins,
+  Scale,
+  Wallet,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -21,6 +27,7 @@ type CashierReportData = {
   hasOpeningBalance: boolean;
   openingLabel?: string;
   openingNote: string | null;
+  scopedToSelf?: boolean;
   incomeTotal: number;
   outflowTotal: number;
   periodBalance: number;
@@ -47,6 +54,81 @@ type CashierReportData = {
 interface Props {
   refreshKey?: number;
   onToggleExpenseForm?: () => void;
+}
+
+function MetricCard({
+  label,
+  value,
+  hint,
+  icon: Icon,
+  tone = "neutral",
+  delayClass,
+}: {
+  label: string;
+  value: string;
+  hint?: string;
+  icon: React.ComponentType<{ className?: string }>;
+  tone?: "neutral" | "income" | "expense" | "net";
+  delayClass?: string;
+}) {
+  const toneClass = {
+    neutral: "from-slate-500/10 to-transparent text-foreground",
+    income: "from-emerald-500/12 to-transparent text-emerald-700 dark:text-emerald-400",
+    expense: "from-rose-500/12 to-transparent text-rose-700 dark:text-rose-400",
+    net: "from-primary/15 to-transparent text-primary",
+  }[tone];
+
+  const iconWrap = {
+    neutral: "bg-muted text-muted-foreground",
+    income: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400",
+    expense: "bg-rose-500/15 text-rose-700 dark:text-rose-400",
+    net: "bg-primary/15 text-primary",
+  }[tone];
+
+  return (
+    <div
+      className={cn(
+        "animate-fade-up group relative overflow-hidden rounded-xl border border-border/60 bg-card p-4 shadow-sm transition-all duration-300",
+        "hover:-translate-y-0.5 hover:shadow-md hover:border-border",
+        delayClass,
+      )}
+    >
+      <div
+        className={cn(
+          "pointer-events-none absolute inset-0 bg-gradient-to-br opacity-90",
+          toneClass,
+        )}
+      />
+      <div className="relative flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            {label}
+          </p>
+          <p
+            className={cn(
+              "mt-2 text-xl font-semibold tabular-nums tracking-tight sm:text-2xl",
+              tone === "income" && "text-emerald-700 dark:text-emerald-400",
+              tone === "expense" && "text-rose-700 dark:text-rose-400",
+              tone === "net" && "text-primary",
+            )}
+          >
+            {value}
+          </p>
+          {hint ? (
+            <p className="mt-1 truncate text-xs text-muted-foreground">{hint}</p>
+          ) : null}
+        </div>
+        <div
+          className={cn(
+            "flex size-9 shrink-0 items-center justify-center rounded-lg transition-transform duration-300 group-hover:scale-105",
+            iconWrap,
+          )}
+        >
+          <Icon className="size-4" />
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export default function CashierReport({
@@ -123,18 +205,18 @@ export default function CashierReport({
   }, []);
 
   return (
-    <Card className="rounded-xl border p-4">
-      <CardHeader className="flex flex-col gap-4 px-0 pt-0 md:flex-row md:items-start md:justify-between">
-        <div>
-          <CardTitle>Rapport de caisse</CardTitle>
-          <p className="text-sm text-muted-foreground">
-            Solde d&apos;ouverture = solde net de la veille. Solde net =
-            ouverture + encaissements - depenses. Montants en{" "}
-            <span className="font-medium text-foreground">{baseCurrency}</span>.
-          </p>
+    <Card className="mx-auto w-full max-w-7xl overflow-hidden rounded-2xl border-border/70 shadow-sm ring-1 ring-black/[0.02]">
+      <CardHeader className="flex flex-col gap-4 border-b border-border/60 bg-gradient-to-r from-muted/40 via-background to-background px-4 py-4 sm:px-5 md:flex-row md:items-start md:justify-between">
+        <div className="w-full max-w-4xl">
+          <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+            <span className="flex size-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+              <Wallet className="size-4" />
+            </span>
+            {report?.scopedToSelf ? "Ma caisse" : "Rapport de caisse"}
+          </CardTitle>
         </div>
         <div className="flex w-full flex-wrap items-center justify-end gap-2">
-          <div className="flex items-center gap-2 rounded-md bg-muted/50 p-1">
+          <div className="flex items-center gap-2 rounded-lg border border-border/60 bg-background/80 px-2 py-1 shadow-sm">
             <input
               type="date"
               value={startDate}
@@ -155,8 +237,12 @@ export default function CashierReport({
             size="sm"
             onClick={() => void fetchReport()}
             disabled={loading}
+            className="transition-transform active:scale-[0.98]"
           >
-            <IconRefresh size={16} className="mr-2" />
+            <IconRefresh
+              size={16}
+              className={cn("mr-2", loading && "animate-spin")}
+            />
             Actualiser
           </Button>
 
@@ -165,6 +251,7 @@ export default function CashierReport({
             size="sm"
             onClick={handleExportPdf}
             disabled={!report || loading || exporting}
+            className="transition-transform active:scale-[0.98]"
           >
             <IconFileTypePdf size={16} className="mr-2" />
             {exporting ? "Génération..." : "Imprimer PDF"}
@@ -174,10 +261,10 @@ export default function CashierReport({
             type="button"
             size="sm"
             onClick={onToggleExpenseForm}
-            aria-label="Ajouter une dépense"
-            title="Ajouter une dépense"
+            aria-label="Dépense ou sortie de fond"
+            title="Dépense ou sortie de fond"
             className={cn(
-              "size-8 shrink-0 border-transparent p-0 text-white shadow-sm",
+              "size-8 shrink-0 border-transparent p-0 text-white shadow-sm transition-transform active:scale-95",
               "bg-red-900 hover:bg-red-950 focus-visible:ring-red-900/40",
             )}
           >
@@ -185,53 +272,55 @@ export default function CashierReport({
           </Button>
         </div>
       </CardHeader>
-      <CardContent className="space-y-4 px-0 pb-0">
+      <CardContent className="space-y-4 px-4 py-4 sm:px-5">
         {loading ? (
-          <div className="animate-pulse py-4 text-center text-sm text-muted-foreground">
-            Chargement du rapport...
+          <div className="grid gap-3 md:grid-cols-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div
+                key={i}
+                className="h-[104px] animate-pulse rounded-xl border bg-muted/50"
+              />
+            ))}
           </div>
         ) : error ? (
-          <div className="py-4 text-sm text-destructive">{error}</div>
+          <div className="rounded-xl border border-destructive/20 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+            {error}
+          </div>
         ) : report ? (
-          <div className="grid gap-4 md:grid-cols-4">
-            <div className="rounded-xl border border-border bg-muted p-4">
-              <div className="text-sm text-muted-foreground">
-                Solde d&apos;ouverture
-              </div>
-              <div className="mt-2 text-xl font-semibold tabular-nums tracking-normal sm:text-2xl">
-                {formatReportAmount(report.openingBalance, baseCurrency)}
-              </div>
-              <div className="mt-1 text-xs text-muted-foreground">
-                {report.openingLabel ?? "Solde net de la veille (automatique)"}
-              </div>
-            </div>
-            <div className="rounded-xl border border-border bg-muted p-4">
-              <div className="text-sm text-muted-foreground">Encaissements</div>
-              <div className="mt-2 text-xl font-semibold tabular-nums tracking-normal text-emerald-600 sm:text-2xl dark:text-emerald-400">
-                {formatReportAmount(report.incomeTotal, baseCurrency)}
-              </div>
-              <div className="text-sm text-secondary">
-                {report.payments.length} entrée(s)
-              </div>
-            </div>
-            <div className="rounded-xl border border-border bg-muted p-4">
-              <div className="text-sm text-muted-foreground">Sorties</div>
-              <div className="mt-2 text-xl font-semibold tabular-nums tracking-normal text-rose-600 sm:text-2xl dark:text-rose-400">
-                {formatReportAmount(report.outflowTotal, baseCurrency)}
-              </div>
-              <div className="text-sm text-secondary">
-                {report.expenses.length} dépense(s)
-              </div>
-            </div>
-            <div className="rounded-xl border border-primary/30 bg-muted p-4 shadow-sm">
-              <div className="text-sm font-medium text-foreground">Solde Net</div>
-              <div className="mt-2 text-xl font-black tabular-nums tracking-normal text-primary sm:text-2xl">
-                {formatReportAmount(report.balance, baseCurrency)}
-              </div>
-              <div className="text-sm tabular-nums text-secondary">
-                Periode {formatReportAmount(report.periodBalance, baseCurrency)}
-              </div>
-            </div>
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+            <MetricCard
+              label="Solde d'ouverture"
+              value={formatReportAmount(report.openingBalance, baseCurrency)}
+              hint={
+                report.openingLabel ?? "Solde net de la veille (automatique)"
+              }
+              icon={Scale}
+              tone="neutral"
+            />
+            <MetricCard
+              label="Encaissements"
+              value={formatReportAmount(report.incomeTotal, baseCurrency)}
+              hint={`${report.payments.length} entrée(s)`}
+              icon={ArrowUpRight}
+              tone="income"
+              delayClass="animate-delay-75"
+            />
+            <MetricCard
+              label="Sorties de fond"
+              value={formatReportAmount(report.outflowTotal, baseCurrency)}
+              hint={`${report.expenses.length} sortie(s) de fond`}
+              icon={ArrowDownRight}
+              tone="expense"
+              delayClass="animate-delay-150"
+            />
+            <MetricCard
+              label="Solde net"
+              value={formatReportAmount(report.balance, baseCurrency)}
+              hint={`Période ${formatReportAmount(report.periodBalance, baseCurrency)}`}
+              icon={Wallet}
+              tone="net"
+              delayClass="animate-delay-225"
+            />
           </div>
         ) : (
           <div className="py-4 text-sm text-muted-foreground">

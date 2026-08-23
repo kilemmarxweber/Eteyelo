@@ -158,8 +158,8 @@ export async function createOrganizationMemberAction(
       name,
       password,
       data: {
-        prenom,
-        postnom,
+        prenom: prenom?.trim() || null,
+        postnom: postnom?.trim() || null,
         sexe: sexeMap[sexe as string],
         telephone,
         dateOfBirth,

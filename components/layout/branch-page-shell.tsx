@@ -5,7 +5,7 @@ import { BranchStickyHeader } from "@/components/layout/branch-sticky-header";
 import { cn } from "@/lib/utils";
 
 type BranchPageShellProps = {
-  title: ReactNode;
+  title?: ReactNode;
   description?: ReactNode;
   badge?: ReactNode;
   actions?: ReactNode;
@@ -20,6 +20,8 @@ type BranchPageShellProps = {
   /** Layout plein hauteur (présences, frais, etc.). */
   fixedHeight?: boolean;
   fadedBelow?: boolean;
+  /** Masque le bandeau sticky (titre / description / actions). */
+  hideHeader?: boolean;
 };
 
 /**
@@ -40,6 +42,7 @@ export function BranchPageShell({
   contentClassName,
   fixedHeight = false,
   fadedBelow = false,
+  hideHeader = false,
 }: BranchPageShellProps) {
   return (
     <Layout fadedBelow={fadedBelow} fixedHeight={fixedHeight}>
@@ -52,17 +55,20 @@ export function BranchPageShell({
             {breadcrumbs}
           </div>
         ) : null}
-        <BranchStickyHeader
-          title={title}
-          description={description}
-          badge={badge}
-          actions={actions}
-          backHref={backHref}
-          backLabel={backLabel}
-        />
+        {!hideHeader && title != null ? (
+          <BranchStickyHeader
+            title={title}
+            description={description}
+            badge={badge}
+            actions={actions}
+            backHref={backHref}
+            backLabel={backLabel}
+          />
+        ) : null}
         <div
           className={cn(
-            "min-w-0 flex-1 pb-4 pt-1",
+            "min-w-0 flex-1 pb-4",
+            hideHeader ? "pt-0" : "pt-1",
             fixedHeight ? "flex min-h-0 flex-col" : "space-y-6",
             contentClassName,
           )}

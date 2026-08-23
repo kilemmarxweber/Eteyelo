@@ -121,8 +121,11 @@ export default function AdminDashboard() {
   const [cashier, setCashier] = useState<{
     todayIncome: number;
     todayCount: number;
+    todayExpenses?: number;
+    netBalance?: number;
     unpaidInvoices: number;
     currency: string;
+    scopedToSelf?: boolean;
   } | null>(null);
   const [teacher, setTeacher] = useState<{
     classes: { id: string; name: string }[];
@@ -478,8 +481,11 @@ export default function AdminDashboard() {
               loading={loading}
               todayIncome={cashier.todayIncome}
               todayCount={cashier.todayCount}
+              todayExpenses={cashier.todayExpenses}
+              netBalance={cashier.netBalance}
               unpaidInvoices={cashier.unpaidInvoices}
               currency={cashier.currency}
+              scopedToSelf={cashier.scopedToSelf}
             />
           ) : null}
 

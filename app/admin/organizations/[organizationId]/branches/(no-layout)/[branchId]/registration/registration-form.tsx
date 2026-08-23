@@ -1,6 +1,17 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  Children,
+  cloneElement,
+  isValidElement,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactElement,
+  type ReactNode,
+} from "react";
 import Image from "next/image";
 import { useParams } from "next/navigation";
 import { useAppRouter as useRouter } from "@/hooks/use-app-router";
@@ -181,8 +192,6 @@ function isStudentStepReady(
   if (studentMode === "existing") return Boolean(studentId);
   return Boolean(
     student.name &&
-    student.postnom &&
-    student.prenom &&
     student.dateOfBirth,
   );
 }
@@ -195,8 +204,6 @@ function isParentStepReady(
   if (parentMode === "existing") return Boolean(parentId);
   return Boolean(
     parent.name &&
-    parent.postnom &&
-    parent.prenom &&
     parent.address &&
     (parent.discountPercentage <= 0 || parent.discountTypeFraisId),
   );
@@ -231,7 +238,8 @@ export function RegistrationForm({
   initialRequestId?: string;
 }) {
   const router = useRouter();
-  const params = useParams<{ branchId: string }>();
+  const params = useParams<{ organizationId: string; branchId: string }>();
+  const organizationId = params.organizationId ?? "";
   const branchId = params.branchId ?? "";
   const requestedRequestId = initialRequestId;
   const [requestId, setRequestId] = useState("");
@@ -643,8 +651,8 @@ export function RegistrationForm({
       setParent({
         ...emptyParent,
         name: guardian.name,
-        postnom: guardian.postnom,
-        prenom: guardian.prenom,
+        postnom: guardian.postnom || "",
+        prenom: guardian.prenom || "",
         sexe: guardian.sexe,
         telephone: guardian.telephone,
         email: guardian.email ?? "",
@@ -1240,6 +1248,44 @@ export function RegistrationForm({
     if (branchId) clearAdminRegistrationDraft(branchId);
     setDraftSavedAt(null);
     toast.success(`Inscription confirmée dans ${result.classeName}`);
+
+    const childUser =
+      studentMode === "new" ? student : userOf(selectedStudent);
+    const searchName =
+      (typeof result.studentSearchName === "string"
+        ? result.studentSearchName.trim()
+        : "") ||
+      [childUser?.name, childUser?.prenom]
+        .map((part) => (typeof part === "string" ? part.trim() : ""))
+        .filter(Boolean)
+        .join(" ");
+
+    if (organizationId && branchId) {
+      const params = new URLSearchParams();
+      if (searchName.length >= 2) params.set("q", searchName);
+      if (result.enrollmentId) {
+        params.set("enrollmentId", String(result.enrollmentId));
+      }
+      try {
+        sessionStorage.setItem(
+          `eteyelo:paiement-bootstrap:${branchId}`,
+          JSON.stringify({
+            q: searchName,
+            enrollmentId: result.enrollmentId ?? "",
+            at: Date.now(),
+          }),
+        );
+      } catch {
+        // ignore quota / private mode
+      }
+      const query = params.toString();
+      // Navigation pleine page : garantit que ?q= est bien lu au chargement
+      window.location.assign(
+        `/admin/organizations/${organizationId}/branches/${branchId}/paiement${query ? `?${query}` : ""}`,
+      );
+      return;
+    }
+
     router.refresh();
     if (requestId) router.replace(window.location.pathname);
     resetForm();
@@ -1348,7 +1394,7 @@ export function RegistrationForm({
                   }
                 />
               </Field>
-              <Field label="Début *">
+              <Field label="Début *" keepLabel>
                 <Input
                   type="time"
                   value={creneauForm.startTime}
@@ -1360,7 +1406,7 @@ export function RegistrationForm({
                   }
                 />
               </Field>
-              <Field label="Fin *">
+              <Field label="Fin *" keepLabel>
                 <Input
                   type="time"
                   value={creneauForm.endTime}
@@ -1372,7 +1418,7 @@ export function RegistrationForm({
                   }
                 />
               </Field>
-              <Field label="Heure de récréation *">
+              <Field label="Heure de récréation *" keepLabel>
                 <Input
                   type="time"
                   value={creneauForm.recreationHour}
@@ -1470,8 +1516,8 @@ export function RegistrationForm({
     parentNameSearch = false,
   ) {
     return (
-      <div className="space-y-6">
-        <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+      <div className="space-y-3">
+        <div className="grid gap-2.5 md:grid-cols-2 xl:grid-cols-3">
           <Field label="Nom *">
             {parentNameSearch ? (
               <SearchCombobox
@@ -1503,7 +1549,7 @@ export function RegistrationForm({
               />
             )}
           </Field>
-          <Field label="Postnom *">
+          <Field label="Postnom (facultatif)">
             <Input
               value={value.postnom}
               onChange={(event) =>
@@ -1511,7 +1557,7 @@ export function RegistrationForm({
               }
             />
           </Field>
-          <Field label="Prénom *">
+          <Field label="Prénom (facultatif)">
             <Input
               value={value.prenom}
               onChange={(event) =>
@@ -1525,6 +1571,7 @@ export function RegistrationForm({
               <Field label="Date de naissance *">
                 <Input
                   type="date"
+                  title="Date de naissance *"
                   value={value.dateOfBirth}
                   onChange={(event) =>
                     updatePerson(
@@ -1629,31 +1676,32 @@ export function RegistrationForm({
                       isStudentStepReady(studentMode, studentId, student),
                     )
                   }
-                  rows={3}
+                  rows={2}
                 />
               </Field>
               <Field
                 label={peopleLabels.photoOptionalLabel}
                 className="md:col-span-2 xl:col-span-3"
+                keepLabel
               >
-                <div className="flex flex-wrap items-center gap-3">
+                <div className="flex flex-wrap items-center gap-2">
                   {photoPreview ? (
                     <Image
                       src={photoPreview}
                       alt={peopleLabels.photoPreviewAlt}
-                      width={80}
-                      height={80}
+                      width={56}
+                      height={56}
                       unoptimized
-                      className="size-20 rounded-lg border object-cover"
+                      className="size-14 rounded-md border object-cover"
                     />
                   ) : (
-                    <div className="flex size-20 items-center justify-center rounded-lg border border-dashed bg-muted/40 text-muted-foreground">
-                      <IconPhotoPlus className="h-6 w-6" />
+                    <div className="flex size-14 items-center justify-center rounded-md border border-dashed bg-muted/40 text-muted-foreground">
+                      <IconPhotoPlus className="h-5 w-5" />
                     </div>
                   )}
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Label className="inline-flex h-9 cursor-pointer items-center rounded-md border bg-background px-3 text-sm font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground">
-                      <IconPhotoPlus className="mr-2 h-4 w-4" />
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <Label className="inline-flex h-8 cursor-pointer items-center rounded-md border bg-background px-2.5 text-xs font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground">
+                      <IconPhotoPlus className="mr-1.5 h-3.5 w-3.5" />
                       Parcourir
                       <Input
                         className="hidden"
@@ -1668,25 +1716,28 @@ export function RegistrationForm({
                       type="button"
                       variant="outline"
                       size="sm"
+                      className="h-8"
                       onClick={() => setCameraOpen(true)}
                     >
-                      <IconCamera className="mr-2 h-4 w-4" />
+                      <IconCamera className="mr-1.5 h-3.5 w-3.5" />
                       Caméra
                     </Button>
                     {photoPreview ? (
                       <Button
                         type="button"
                         variant="ghost"
+                        size="sm"
+                        className="h-8"
                         onClick={clearStudentPhoto}
                       >
-                        <IconX className="mr-2 h-4 w-4" />
+                        <IconX className="mr-1.5 h-3.5 w-3.5" />
                         Retirer
                       </Button>
                     ) : null}
                   </div>
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  Parcourir un fichier ou capturer directement avec la caméra.
+                <p className="text-[11px] text-muted-foreground">
+                  Fichier ou caméra.
                 </p>
               </Field>
             </>
@@ -1761,7 +1812,7 @@ export function RegistrationForm({
         {!studentFields && (
           <>
             <Separator />
-            <div className="grid gap-5 md:grid-cols-2">
+            <div className="grid gap-2.5 md:grid-cols-2">
               <Field label="Remise familiale en % (facultatif)">
                 <Input
                   type="number"
@@ -1833,7 +1884,7 @@ export function RegistrationForm({
   }
 
   return (
-    <div className="grid min-h-[calc(100vh-12rem)] gap-6 xl:grid-cols-[280px_minmax(0,1fr)]">
+    <div className="grid gap-3 xl:grid-cols-[300px_minmax(0,1fr)]">
       {requestReference ? (
         <Alert className="xl:col-span-2">
           <IconCheck className="h-4 w-4" />
@@ -1864,71 +1915,99 @@ export function RegistrationForm({
           };
         }}
       />
-      <Card className="h-fit xl:sticky xl:top-4">
-        <CardHeader>
-          <CardTitle className="flex flex-wrap items-center gap-2">
+      <Card
+        padding="none"
+        className="h-fit overflow-hidden border-sky-200/70 bg-gradient-to-b from-sky-50/80 to-card shadow-sm xl:sticky xl:top-3 dark:border-sky-900/40 dark:from-sky-950/30"
+      >
+        <CardHeader className="gap-0.5 space-y-0 border-b border-sky-100/80 !p-4 !pb-3 dark:border-sky-900/40">
+          <CardTitle className="flex flex-wrap items-center gap-2 text-base font-semibold text-sky-950 dark:text-sky-100">
             Progression
             {draftSavedAt ? (
               <button
                 type="button"
-                className="rounded-full border bg-muted/60 px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground hover:bg-muted"
+                className="rounded-full border border-sky-200 bg-sky-100/70 px-2.5 py-0.5 text-[11px] font-medium text-sky-800 hover:bg-sky-100 dark:border-sky-800 dark:bg-sky-900/50 dark:text-sky-200"
                 title="Sauvegarde locale automatique (navigateur). Cliquez pour tout vider et recharger la page."
                 onClick={discardAdminDraft}
               >
-                Brouillon local · {formatDraftSavedAt(draftSavedAt)}
+                Brouillon · {formatDraftSavedAt(draftSavedAt)}
               </button>
             ) : null}
           </CardTitle>
-          <CardDescription>
-            Un dossier complet en quatre étapes.
+          <CardDescription className="text-sm text-sky-800/80 dark:text-sky-300/80">
+            Quatre étapes.
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-5">
-          <Progress value={((step + 1) / registrationSteps.length) * 100} />
-          {registrationSteps.map(({ label, icon: Icon }, index) => (
-            <div
-              key={label}
-              className={`flex items-center gap-3 rounded-lg border p-3 ${index === step ? "border-primary bg-primary/5" : ""}`}
-            >
+        <CardContent className="space-y-2.5 p-4 pt-3">
+          <Progress value={((step + 1) / registrationSteps.length) * 100} className="h-2" />
+          {registrationSteps.map(({ label, icon: Icon }, index) => {
+            const isCurrent = index === step;
+            const isDone = index < step;
+            return (
               <div
-                className={`rounded-full p-2 ${index <= step ? "bg-primary text-primary-foreground" : "bg-muted"}`}
+                key={label}
+                className={`flex items-center gap-3 rounded-lg border px-3 py-2.5 transition-all duration-300 ease-out ${
+                  isCurrent
+                    ? "scale-[1.02] border-sky-400 bg-sky-100/90 shadow-sm ring-1 ring-sky-300/60 dark:border-sky-500 dark:bg-sky-950/50 dark:ring-sky-700/50"
+                    : isDone
+                      ? "border-emerald-300/80 bg-emerald-50/80 dark:border-emerald-800 dark:bg-emerald-950/30"
+                      : "border-transparent bg-muted/40 opacity-80"
+                }`}
               >
-                <Icon size={17} />
+                <div
+                  className={`rounded-full p-2 transition-colors duration-300 ${
+                    isCurrent
+                      ? "bg-sky-600 text-white"
+                      : isDone
+                        ? "bg-emerald-600 text-white"
+                        : "bg-muted text-muted-foreground"
+                  }`}
+                >
+                  <Icon size={18} />
+                </div>
+                <div className="min-w-0">
+                  <p className="truncate text-base font-medium leading-tight">{label}</p>
+                  <p className="mt-0.5 text-xs leading-tight text-muted-foreground">
+                    {isDone ? "Terminée" : isCurrent ? "En cours" : `Étape ${index + 1}`}
+                  </p>
+                </div>
               </div>
-              <div>
-                <p className="font-medium">{label}</p>
-                <p className="text-xs text-muted-foreground">
-                  Étape {index + 1}
-                </p>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </CardContent>
       </Card>
 
-      <Card className="flex min-h-[650px] flex-col">
-        <CardHeader className="shrink-0 border-b">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <CardTitle className="text-2xl">{registrationSteps[step].label}</CardTitle>
-              <CardDescription className="mt-1">
+      <Card
+        padding="none"
+        className="flex flex-col overflow-hidden border-border/80 shadow-sm"
+      >
+        <CardHeader className="shrink-0 gap-0 space-y-0 border-b border-sky-100/80 bg-gradient-to-r from-sky-50/60 via-transparent to-transparent !px-3 !py-1.5 !pb-1.5 dark:border-sky-900/30 dark:from-sky-950/20">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0">
+              <CardTitle className="text-sm font-semibold leading-none">
+                {registrationSteps[step].label}
+              </CardTitle>
+              <CardDescription className="text-[10px] leading-none">
                 {currentStepKey === "class"
-                  ? `Choisissez l'${classLabelLower} demandé(e) ; la parallèle sera attribuée selon les places disponibles.`
-                  : "Les champs marqués d'un astérisque sont obligatoires."}
+                  ? `Choisissez l'${classLabelLower} demandé(e).`
+                  : "* = obligatoire"}
               </CardDescription>
             </div>
-            <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
-              <Badge variant="secondary">
-                {step + 1} / {registrationSteps.length}
-              </Badge>
-            </div>
+            <Badge
+              variant="secondary"
+              className="h-5 shrink-0 border-sky-200 bg-sky-100 px-1.5 text-[10px] text-sky-900 dark:border-sky-800 dark:bg-sky-950 dark:text-sky-100"
+            >
+              {step + 1}/{registrationSteps.length}
+            </Badge>
           </div>
         </CardHeader>
-        <CardContent className="flex-1 space-y-6 p-6 pb-28 lg:p-8 lg:pb-28">
+        <CardContent
+          key={currentStepKey}
+          className="animate-fade-in flex-1 space-y-2.5 p-3 pb-16 sm:p-4 sm:pb-16"
+        >
           {currentStepKey === "student" && (
             <>
               <RadioGroup
-                className="grid gap-3 sm:grid-cols-2"
+                className="grid gap-2 sm:grid-cols-2"
                 value={studentMode}
                 onValueChange={(value) => {
                   setStudentMode(value as any);
@@ -1938,12 +2017,14 @@ export function RegistrationForm({
                 <ModeChoice
                   id="student-new"
                   value="new"
+                  accent="create"
                   title={`Nouvel ${peopleLabels.studentLower}`}
                   description="Créer son compte et son dossier scolaire."
                 />
                 <ModeChoice
                   id="student-existing"
                   value="existing"
+                  accent="reuse"
                   title={`Ancien ${peopleLabels.studentLower}`}
                   description="Retrouver son historique et le réinscrire."
                 />
@@ -1976,7 +2057,7 @@ export function RegistrationForm({
                     );
                   })}
                   {studentId && (
-                    <div className="space-y-3 rounded-lg border bg-muted/30 p-4">
+                    <div className="space-y-2 rounded-md border bg-muted/30 p-3">
                       {!hidesParent && parentId ? (
                         <Alert>
                           <IconCheck className="h-4 w-4" />
@@ -1988,19 +2069,19 @@ export function RegistrationForm({
                         </Alert>
                       ) : null}
                       <div>
-                        <Label className="mb-3 block">
+                        <Label className="mb-1.5 block text-sm">
                           {`Situation de l'${peopleLabels.studentLower}`}
                         </Label>
-                        <p className="mb-3 text-xs text-muted-foreground">
-                          Réussi charge le niveau supérieur ; Échoué conserve le
-                          même niveau. L&apos;{schoolYearLabelLower} actuelle est
-                          sélectionnée automatiquement. La montée en classe
-                          supérieure exige que les frais de l&apos;année passée
-                          soient soldés.
+                        <p className="mb-2 text-[11px] leading-snug text-muted-foreground">
+                          Réussi → niveau supérieur ; Échoué → même niveau.
+                          L&apos;{schoolYearLabelLower} actuelle est sélectionnée
+                          automatiquement. Montée en classe : frais de l&apos;année
+                          passée soldés.
                         </p>
-                        <div className="flex flex-wrap gap-2">
+                        <div className="flex flex-wrap gap-1.5">
                           <Button
                             type="button"
+                            size="sm"
                             variant={
                               historyOutcome === "passed" ? "default" : "outline"
                             }
@@ -2010,6 +2091,7 @@ export function RegistrationForm({
                           </Button>
                           <Button
                             type="button"
+                            size="sm"
                             variant={
                               historyOutcome === "failed" ? "default" : "outline"
                             }
@@ -2019,6 +2101,7 @@ export function RegistrationForm({
                           </Button>
                           <Button
                             type="button"
+                            size="sm"
                             variant={
                               historyOutcome === "returning"
                                 ? "default"
@@ -2030,7 +2113,7 @@ export function RegistrationForm({
                           </Button>
                         </div>
                         {feeDebtMessage ? (
-                          <Alert variant="destructive" className="mt-3">
+                          <Alert variant="destructive" className="mt-2">
                             <IconAlertTriangle className="h-4 w-4" />
                             <AlertTitle>Frais non soldés</AlertTitle>
                             <AlertDescription>{feeDebtMessage}</AlertDescription>
@@ -2038,7 +2121,7 @@ export function RegistrationForm({
                         ) : null}
                         {historyOutcome === "passed" ||
                         historyOutcome === "failed" ? (
-                          <p className="mt-3 text-sm text-muted-foreground">
+                          <p className="mt-2 text-xs text-muted-foreground">
                             Niveau prévu :{" "}
                             <span className="font-medium text-foreground">
                               {level
@@ -2068,40 +2151,41 @@ export function RegistrationForm({
           )}
           {currentStepKey === "parent" && (
             <>
-              <div className="flex flex-col gap-2 rounded-xl border border-dashed border-primary/30 bg-primary/5 p-4 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <p className="text-sm font-medium">
+              <div className="flex flex-col gap-1.5 rounded-lg border border-dashed border-teal-300/70 bg-teal-50/60 px-3 py-2 transition-colors duration-300 sm:flex-row sm:items-center sm:justify-between dark:border-teal-800 dark:bg-teal-950/30">
+                <div className="min-w-0">
+                  <p className="text-sm font-medium leading-tight text-teal-950 dark:text-teal-100">
                     Infos complémentaires (optionnel)
                   </p>
-                  <p className="text-xs text-muted-foreground">
-                    Nationalité, mère, origines, tuteur, langue… à compléter
-                    maintenant ou plus tard.
+                  <p className="text-[11px] text-teal-800/80 dark:text-teal-300/80">
+                    Nationalité, mère, origines, tuteur, langue…
                   </p>
                 </div>
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
-                  className="shrink-0"
+                  className="h-8 shrink-0 border-teal-300 bg-background/80 hover:bg-teal-100 dark:border-teal-700 dark:hover:bg-teal-950"
                   onClick={() => setExtraSheetOpen(true)}
                 >
                   Ajouter autres infos
                 </Button>
               </div>
               <RadioGroup
-                className="grid gap-3 sm:grid-cols-2"
+                className="grid gap-2 sm:grid-cols-2"
                 value={parentMode}
                 onValueChange={(value) => setParentMode(value as any)}
               >
                 <ModeChoice
                   id="parent-new"
                   value="new"
+                  accent="create"
                   title="Nouveau parent / tuteur"
                   description="Créer le compte du responsable."
                 />
                 <ModeChoice
                   id="parent-existing"
                   value="existing"
+                  accent="reuse"
                   title="Parent existant"
                   description={`Lier l'${peopleLabels.studentLower} à un responsable connu.`}
                 />
@@ -2110,7 +2194,7 @@ export function RegistrationForm({
               {parentMode === "new" ? (
                 renderPersonFields(parent, setParent, false, true)
               ) : (
-                <div className="space-y-3">
+                <div className="space-y-2">
                   {parentId && siblingParentHint ? (
                     <Alert>
                       <IconCheck className="h-4 w-4" />
@@ -2161,23 +2245,22 @@ export function RegistrationForm({
             </>
           )}
           {currentStepKey === "class" && (
-            <div className="space-y-6">
+            <div className="space-y-3">
               {hidesParent ? (
-                <div className="flex flex-col gap-2 rounded-xl border border-dashed border-primary/30 bg-primary/5 p-4 sm:flex-row sm:items-center sm:justify-between">
-                  <div>
-                    <p className="text-sm font-medium">
+                <div className="flex flex-col gap-1.5 rounded-lg border border-dashed border-teal-300/70 bg-teal-50/60 px-3 py-2 transition-colors duration-300 sm:flex-row sm:items-center sm:justify-between dark:border-teal-800 dark:bg-teal-950/30">
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium leading-tight text-teal-950 dark:text-teal-100">
                       Infos complémentaires (optionnel)
                     </p>
-                    <p className="text-xs text-muted-foreground">
-                      Nationalité, langue et autres infos élève — maintenant ou
-                      plus tard.
+                    <p className="text-[11px] text-teal-800/80 dark:text-teal-300/80">
+                      Nationalité, langue et autres infos élève.
                     </p>
                   </div>
                   <Button
                     type="button"
                     variant="outline"
                     size="sm"
-                    className="shrink-0"
+                    className="h-8 shrink-0 border-teal-300 bg-background/80 hover:bg-teal-100 dark:border-teal-700 dark:hover:bg-teal-950"
                     onClick={() => setExtraSheetOpen(true)}
                   >
                     Ajouter autres infos
@@ -2189,7 +2272,7 @@ export function RegistrationForm({
               ) : (
                 <>
                   <div
-                    className={`grid gap-5 ${options.allowsOption ? "lg:grid-cols-3" : "lg:grid-cols-4"}`}
+                    className={`grid gap-2.5 ${options.allowsOption ? "lg:grid-cols-3" : "lg:grid-cols-4"}`}
                   >
                     <Field label={`${schoolYearLabel} *`}>
                       <Select
@@ -2349,7 +2432,7 @@ export function RegistrationForm({
                       )
                     ) : (
                       <>
-                        <Field label="Section">
+                        <Field label="Section" keepLabel>
                           <Input
                             disabled
                             className="bg-muted text-foreground opacity-100"
@@ -2359,7 +2442,7 @@ export function RegistrationForm({
                             }
                           />
                         </Field>
-                        <Field label="Niveau de pondération">
+                        <Field label="Niveau de pondération" keepLabel>
                           <Input
                             disabled
                             className="bg-muted text-foreground opacity-100"
@@ -2384,29 +2467,35 @@ export function RegistrationForm({
                     </AlertDescription>
                   </Alert>
                   <div>
-                    <div className="mb-3 flex items-center justify-between">
-                      <h3 className="font-semibold">Parallèles existantes</h3>
-                      <Badge variant="outline">
+                    <div className="mb-2 flex items-center justify-between">
+                      <h3 className="text-sm font-semibold">Parallèles existantes</h3>
+                      <Badge variant="outline" className="text-[11px]">
                         {selectedClasses.length} {classLabelLower}(s)
                       </Badge>
                     </div>
                     {!level ? (
-                      <p className="rounded-lg border border-dashed p-8 text-center text-muted-foreground">
+                      <p className="rounded-md border border-dashed px-3 py-4 text-center text-sm text-muted-foreground">
                         {`Sélectionnez un ${classLabelLower} pour voir les parallèles.`}
                       </p>
                     ) : requiresOptionForLevel(options.typebranch, level) &&
                       !optionId ? (
-                      <p className="rounded-lg border border-dashed p-8 text-center text-muted-foreground">
+                      <p className="rounded-md border border-dashed px-3 py-4 text-center text-sm text-muted-foreground">
                         {`Choisissez une option pour afficher les ${classLabelPluralLower} et leur capacité.`}
                       </p>
                     ) : (
                       <>
                         {classStats.length > 0 ? (
-                          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                          <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">
                             {classStats.map((classe: any) => (
                               <div
                                 key={classe.id}
-                                className="rounded-lg border p-4"
+                                className={`rounded-md border p-2.5 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-sm ${
+                                  classe.available
+                                    ? "border-emerald-300/80 bg-emerald-50/70 dark:border-emerald-800 dark:bg-emerald-950/25"
+                                    : classe.hasCapacity
+                                      ? "border-rose-300/80 bg-rose-50/70 dark:border-rose-900 dark:bg-rose-950/25"
+                                      : "border-amber-300/80 bg-amber-50/70 dark:border-amber-900 dark:bg-amber-950/25"
+                                }`}
                               >
                                 <div className="flex items-center justify-between gap-2">
                                   <div>
@@ -2425,6 +2514,11 @@ export function RegistrationForm({
                                           ? "destructive"
                                           : "outline"
                                     }
+                                    className={
+                                      classe.available
+                                        ? "border-emerald-300 bg-emerald-100 text-emerald-900 dark:border-emerald-800 dark:bg-emerald-950 dark:text-emerald-100"
+                                        : undefined
+                                    }
                                   >
                                     {classe.available
                                       ? "Disponible"
@@ -2433,14 +2527,18 @@ export function RegistrationForm({
                                         : "Capacité manquante"}
                                   </Badge>
                                 </div>
-                                <p className="mt-2 text-sm text-muted-foreground">
+                                <p className="mt-1 text-xs text-muted-foreground">
                                   {classe.hasCapacity
                                     ? `${classe.occupied} / ${classe.capacity} places`
                                     : `${classe.occupied} inscription(s) — capacité non définie`}
                                 </p>
                                 {classe.hasCapacity ? (
                                   <Progress
-                                    className="mt-3"
+                                    className={`mt-1.5 h-1.5 ${
+                                      classe.available
+                                        ? "[&>div]:bg-emerald-500"
+                                        : "[&>div]:bg-rose-500"
+                                    }`}
                                     value={Math.min(
                                       100,
                                       (classe.occupied / classe.capacity) * 100,
@@ -2473,7 +2571,7 @@ export function RegistrationForm({
                           : null}
 
                         {predictedClass ? (
-                          <Alert className="mt-4">
+                          <Alert className="mt-2">
                             <IconCheck className="h-4 w-4" />
                             <AlertTitle>Affectation prévue</AlertTitle>
                             <AlertDescription>
@@ -2492,7 +2590,7 @@ export function RegistrationForm({
             </div>
           )}
           {currentStepKey === "confirm" && (
-            <div className="space-y-6">
+            <div className="space-y-3">
               <Alert>
                 <IconCheck className="h-4 w-4" />
                 <AlertTitle>Dossier prêt à être enregistré</AlertTitle>
@@ -2501,9 +2599,10 @@ export function RegistrationForm({
                   définitive.
                 </AlertDescription>
               </Alert>
-              <div className="grid gap-4 md:grid-cols-2">
+              <div className="grid gap-2.5 md:grid-cols-2">
                 <Summary
                   title={peopleLabels.student}
+                  tone="student"
                   lines={
                     studentMode === "new"
                       ? [
@@ -2532,6 +2631,7 @@ export function RegistrationForm({
                 {!hidesParent ? (
                   <Summary
                     title="Parent / tuteur"
+                    tone="parent"
                     lines={
                       parentMode === "new"
                         ? [
@@ -2580,6 +2680,7 @@ export function RegistrationForm({
                 ) : null}
                 <Summary
                   title="Scolarité"
+                  tone="school"
                   lines={[
                     options.schoolYears.find(
                       (item: any) => item.id === schoolYearId,
@@ -2611,6 +2712,7 @@ export function RegistrationForm({
                 />
                 <Summary
                   title="Affectation"
+                  tone="assign"
                   lines={[
                     predictedClass
                       ? `Parallèle : ${predictedClass.nameClasse}`
@@ -2627,7 +2729,7 @@ export function RegistrationForm({
             </div>
           )}
         </CardContent>
-        <div className="sticky bottom-0 z-20 mt-auto flex items-center justify-between gap-3 border-t bg-card/95 p-4 shadow-[0_-8px_24px_-12px_rgba(0,0,0,0.18)] backdrop-blur supports-[backdrop-filter]:bg-card/80 sm:p-6">
+        <div className="sticky bottom-0 z-20 mt-auto flex items-center justify-between gap-2 border-t bg-card/95 px-3 py-2.5 shadow-[0_-8px_24px_-12px_rgba(0,0,0,0.18)] backdrop-blur supports-[backdrop-filter]:bg-card/80">
           <Button
             variant="outline"
             disabled={step === 0 || loading}
@@ -2663,19 +2765,82 @@ export function RegistrationForm({
   );
 }
 
+function enhanceWithPlaceholder(node: ReactNode, label: string): ReactNode {
+  return Children.map(node, (child) => {
+    if (!isValidElement(child)) return child;
+
+    const element = child as ReactElement<{
+      children?: ReactNode;
+      placeholder?: string;
+      type?: string;
+      "aria-label"?: string;
+    }>;
+    const props = element.props;
+    const typeName =
+      typeof element.type === "string"
+        ? element.type
+        : ((element.type as { displayName?: string; name?: string })
+            .displayName ??
+          (element.type as { name?: string }).name ??
+          "");
+
+    const isInputLike =
+      element.type === Input ||
+      element.type === Textarea ||
+      element.type === SearchCombobox ||
+      typeName === "input" ||
+      typeName === "textarea";
+    const isSelectValue =
+      element.type === SelectValue || typeName === "SelectValue";
+
+    const nextChildren =
+      props.children != null && !isInputLike
+        ? enhanceWithPlaceholder(props.children, label)
+        : props.children;
+
+    if (isInputLike) {
+      return cloneElement(element, {
+        placeholder: label,
+        "aria-label": props["aria-label"] ?? label,
+        ...(nextChildren !== props.children ? { children: nextChildren } : {}),
+      });
+    }
+
+    if (isSelectValue) {
+      return cloneElement(element, {
+        placeholder: label,
+        ...(nextChildren !== props.children ? { children: nextChildren } : {}),
+      });
+    }
+
+    if (nextChildren !== props.children) {
+      return cloneElement(element, { children: nextChildren });
+    }
+
+    return element;
+  });
+}
+
 function Field({
   label,
   children,
   className = "",
+  keepLabel = false,
 }: {
   label: string;
   children: React.ReactNode;
   className?: string;
+  /** Garde le label visible (photo, date, etc.). */
+  keepLabel?: boolean;
 }) {
   return (
-    <div className={`space-y-2 ${className}`}>
-      <Label>{label}</Label>
-      {children}
+    <div
+      className={`[&_input:not([type=file]):not([type=hidden])]:h-8 [&_input:not([type=file]):not([type=hidden])]:px-3 [&_input:not([type=file]):not([type=hidden])]:py-1.5 [&_input:not([type=file]):not([type=hidden])]:text-xs [&_[role=combobox]]:h-8 [&_textarea]:min-h-[52px] [&_textarea]:py-1.5 [&_textarea]:text-xs ${keepLabel ? "space-y-1" : ""} ${className}`}
+    >
+      <Label className={keepLabel ? "text-xs leading-none" : "sr-only"}>
+        {label}
+      </Label>
+      {keepLabel ? children : enhanceWithPlaceholder(children, label)}
     </div>
   );
 }
@@ -2684,21 +2849,28 @@ function ModeChoice({
   value,
   title,
   description,
+  accent = "create",
 }: {
   id: string;
   value: string;
   title: string;
   description: string;
+  accent?: "create" | "reuse";
 }) {
+  const tones =
+    accent === "create"
+      ? "border-emerald-200/80 bg-emerald-50/40 hover:border-emerald-300 hover:bg-emerald-50 has-[[data-state=checked]]:border-emerald-500 has-[[data-state=checked]]:bg-emerald-100/90 has-[[data-state=checked]]:shadow-sm has-[[data-state=checked]]:ring-1 has-[[data-state=checked]]:ring-emerald-300/70 dark:border-emerald-900/50 dark:bg-emerald-950/20 dark:has-[[data-state=checked]]:border-emerald-500 dark:has-[[data-state=checked]]:bg-emerald-950/50"
+      : "border-sky-200/80 bg-sky-50/40 hover:border-sky-300 hover:bg-sky-50 has-[[data-state=checked]]:border-sky-500 has-[[data-state=checked]]:bg-sky-100/90 has-[[data-state=checked]]:shadow-sm has-[[data-state=checked]]:ring-1 has-[[data-state=checked]]:ring-sky-300/70 dark:border-sky-900/50 dark:bg-sky-950/20 dark:has-[[data-state=checked]]:border-sky-500 dark:has-[[data-state=checked]]:bg-sky-950/50";
+
   return (
     <Label
       htmlFor={id}
-      className="flex cursor-pointer items-start gap-3 rounded-lg border p-4 hover:bg-muted/40"
+      className={`flex cursor-pointer items-start gap-2 rounded-md border px-2.5 py-2 transition-all duration-300 ease-out hover:-translate-y-0.5 ${tones}`}
     >
-      <RadioGroupItem id={id} value={value} className="mt-1" />
+      <RadioGroupItem id={id} value={value} className="mt-0.5" />
       <span>
-        <span className="block font-semibold">{title}</span>
-        <span className="mt-1 block text-sm font-normal text-muted-foreground">
+        <span className="block text-sm font-semibold leading-tight">{title}</span>
+        <span className="mt-0.5 block text-[11px] font-normal leading-snug text-muted-foreground">
           {description}
         </span>
       </span>
@@ -2748,25 +2920,25 @@ function SearchPanel({
   }, [query, onSearch]);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-2">
       <div className="relative">
         <IconSearch className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
         <Input
           value={query}
           onChange={(event) => setQuery(event.target.value)}
           placeholder={placeholder}
-          className="pl-9"
+          className="h-9 pl-9"
           autoComplete="off"
         />
       </div>
       {searching ? (
-        <p className="text-sm text-muted-foreground">Recherche…</p>
+        <p className="text-xs text-muted-foreground">Recherche…</p>
       ) : query.trim().length > 0 && query.trim().length < 2 ? (
-        <p className="text-sm text-muted-foreground">
+        <p className="text-xs text-muted-foreground">
           Saisissez au moins 2 caractères.
         </p>
       ) : null}
-      <div className="grid gap-2">{children}</div>
+      <div className="grid gap-1.5">{children}</div>
     </div>
   );
 }
@@ -2785,25 +2957,64 @@ function ResultButton({
     <button
       type="button"
       onClick={onClick}
-      className={`rounded-lg border p-4 text-left transition-colors hover:bg-muted/50 ${selected ? "border-primary bg-primary/5 ring-1 ring-primary" : ""}`}
+      className={`rounded-md border px-2.5 py-2 text-left transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-sm ${
+        selected
+          ? "border-sky-500 bg-sky-100/90 shadow-sm ring-1 ring-sky-300/70 dark:border-sky-500 dark:bg-sky-950/50 dark:ring-sky-700/50"
+          : "hover:border-sky-200 hover:bg-sky-50/50 dark:hover:border-sky-900 dark:hover:bg-sky-950/20"
+      }`}
     >
-      <div className="flex items-center justify-between gap-4">
-        <div>
-          <p className="font-semibold">{title}</p>
-          <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <p className="truncate text-sm font-semibold leading-tight">{title}</p>
+          <p className="mt-0.5 truncate text-[11px] text-muted-foreground">
+            {subtitle}
+          </p>
         </div>
-        {selected && <IconCheck className="text-primary" />}
+        {selected && (
+          <IconCheck className="size-4 shrink-0 animate-fade-in text-sky-600 dark:text-sky-400" />
+        )}
       </div>
     </button>
   );
 }
-function Summary({ title, lines }: { title: string; lines: string[] }) {
+
+const summaryTones = {
+  student:
+    "border-sky-200/80 bg-gradient-to-br from-sky-50/90 to-card dark:border-sky-900/50 dark:from-sky-950/40",
+  parent:
+    "border-amber-200/80 bg-gradient-to-br from-amber-50/90 to-card dark:border-amber-900/50 dark:from-amber-950/30",
+  school:
+    "border-emerald-200/80 bg-gradient-to-br from-emerald-50/90 to-card dark:border-emerald-900/50 dark:from-emerald-950/30",
+  assign:
+    "border-teal-200/80 bg-gradient-to-br from-teal-50/90 to-card dark:border-teal-900/50 dark:from-teal-950/30",
+} as const;
+
+const summaryTitleTones = {
+  student: "text-sky-900 dark:text-sky-100",
+  parent: "text-amber-950 dark:text-amber-100",
+  school: "text-emerald-950 dark:text-emerald-100",
+  assign: "text-teal-950 dark:text-teal-100",
+} as const;
+
+function Summary({
+  title,
+  lines,
+  tone = "student",
+}: {
+  title: string;
+  lines: string[];
+  tone?: keyof typeof summaryTones;
+}) {
   return (
-    <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className="text-base">{title}</CardTitle>
+    <Card
+      className={`animate-fade-in overflow-hidden border shadow-sm transition-transform duration-300 hover:-translate-y-0.5 hover:shadow-md ${summaryTones[tone]}`}
+    >
+      <CardHeader className="space-y-0 p-3 pb-1.5">
+        <CardTitle className={`text-sm ${summaryTitleTones[tone]}`}>
+          {title}
+        </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-1 text-sm">
+      <CardContent className="space-y-0.5 p-3 pt-0 text-xs">
         {lines.map((line) => (
           <p key={line}>{line}</p>
         ))}

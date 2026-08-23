@@ -220,8 +220,8 @@ const STUDENT_EMAIL_DOMAIN = "klambocore.com";
 const requestStudentSchema = z
   .object({
     name: z.string(),
-    postnom: z.string(),
-    prenom: z.string(),
+    postnom: z.string().optional().or(z.literal("")),
+    prenom: z.string().optional().or(z.literal("")),
     sexe: z.enum(["masculin", "feminin"]),
     dateOfBirth: z.string(),
     placeOfBirth: z.string(),
@@ -233,8 +233,8 @@ const requestStudentSchema = z
   .passthrough();
 const requestGuardianSchema = z.object({
   name: z.string(),
-  postnom: z.string(),
-  prenom: z.string(),
+  postnom: z.string().optional().or(z.literal("")),
+  prenom: z.string().optional().or(z.literal("")),
   relationship: z.string(),
   sexe: z.enum(["masculin", "feminin"]),
   telephone: z.string(),
@@ -554,8 +554,11 @@ export const getRegistrationRequestForPrefillAction = action
     };
   });
 
-async function buildStudentEmail(name: string, prenom: string) {
-  const localBase = generateSlug(`${prenom}.${name}`, "eleve");
+async function buildStudentEmail(name: string, prenom?: string | null) {
+  const localBase = generateSlug(
+    [prenom?.trim(), name.trim()].filter(Boolean).join(".") || name.trim() || "eleve",
+    "eleve",
+  );
   const localPart = await ensureUniqueIdentifier({
     base: localBase,
     separator: "",
@@ -571,8 +574,11 @@ async function buildStudentEmail(name: string, prenom: string) {
 }
 
 /** Email parent généré (même logique que l'élève) si aucun email saisi. */
-async function buildParentEmail(name: string, prenom: string) {
-  const localBase = generateSlug(`${prenom}.${name}`, "parent");
+async function buildParentEmail(name: string, prenom?: string | null) {
+  const localBase = generateSlug(
+    [prenom?.trim(), name.trim()].filter(Boolean).join(".") || name.trim() || "parent",
+    "parent",
+  );
   const localPart = await ensureUniqueIdentifier({
     base: localBase,
     separator: "",
@@ -587,8 +593,11 @@ async function buildParentEmail(name: string, prenom: string) {
   return `${localPart}@${STUDENT_EMAIL_DOMAIN}`;
 }
 
-async function buildParentUsername(name: string, prenom: string) {
-  const localBase = `parent.${generateSlug(`${prenom}.${name}`, "parent")}`;
+async function buildParentUsername(name: string, prenom?: string | null) {
+  const localBase = `parent.${generateSlug(
+    [prenom?.trim(), name.trim()].filter(Boolean).join(".") || name.trim() || "parent",
+    "parent",
+  )}`;
   return ensureUniqueIdentifier({
     base: localBase,
     separator: "",
@@ -1201,8 +1210,8 @@ export const createRegistrationFlowAction = action
         const parentUsername = await buildParentUsername(input.parent.name, input.parent.prenom);
         const created = await createOrganizationMemberAction({
           name: input.parent.name,
-          postnom: input.parent.postnom,
-          prenom: input.parent.prenom,
+          postnom: optionalTrimmed(input.parent.postnom) ?? undefined,
+          prenom: optionalTrimmed(input.parent.prenom) ?? undefined,
           sexe: input.parent.sexe,
           dateOfBirth: input.parent.dateOfBirth,
           email: generatedParentEmail,
@@ -1230,8 +1239,8 @@ export const createRegistrationFlowAction = action
         if (duplicate) throw new Error(`Un compte ${peopleLabels.studentLower} existe déjà avec cet email. Recherchez-le avant de continuer.`);
         const created = await createOrganizationMemberAction({
           name: input.student.name,
-          postnom: input.student.postnom,
-          prenom: input.student.prenom,
+          postnom: optionalTrimmed(input.student.postnom) ?? undefined,
+          prenom: optionalTrimmed(input.student.prenom) ?? undefined,
           sexe: input.student.sexe,
           dateOfBirth: input.student.dateOfBirth,
           email: generatedStudentEmail,
@@ -1432,7 +1441,36 @@ export const createRegistrationFlowAction = action
           `);
           if (marked !== 1) throw new Error("Cette demande vient deja d'etre inscrite.");
         }
-        return { enrollmentId: enrollment.id, studentId, parentId, classeId: classe.id, classeName: classe.nameClasse, studentCode, studentEmail: generatedStudentEmail };
+
+        let studentSearchName = "";
+        if (input.student?.name || input.student?.prenom) {
+          studentSearchName = [input.student.name, input.student.prenom]
+            .map((part) => (typeof part === "string" ? part.trim() : ""))
+            .filter(Boolean)
+            .join(" ");
+        } else {
+          const linked = await tx.student.findFirst({
+            where: { id: studentId },
+            select: {
+              branchMember: {
+                select: {
+                  member: {
+                    select: {
+                      user: { select: { name: true, prenom: true } },
+                    },
+                  },
+                },
+              },
+            },
+          });
+          const user = linked?.branchMember?.member?.user;
+          studentSearchName = [user?.name, user?.prenom]
+            .map((part) => (typeof part === "string" ? part.trim() : ""))
+            .filter(Boolean)
+            .join(" ");
+        }
+
+        return { enrollmentId: enrollment.id, studentId, parentId, classeId: classe.id, classeName: classe.nameClasse, studentCode, studentEmail: generatedStudentEmail, studentSearchName };
       }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
 
       const base = `/admin/organizations/${organizationId}/branches/${branchId}`;
@@ -1440,6 +1478,7 @@ export const createRegistrationFlowAction = action
       revalidatePath(`${base}/student`);
       revalidatePath(`${base}/parent`);
       revalidatePath(`${base}/classEnrollment`);
+      revalidatePath(`${base}/paiement`);
       return result;
     } catch (error) {
       await Promise.all(createdUserIds.map((id) => prisma.user.delete({ where: { id } }).catch(() => undefined)));
