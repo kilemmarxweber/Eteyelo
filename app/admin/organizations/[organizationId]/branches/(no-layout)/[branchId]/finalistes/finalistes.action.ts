@@ -134,18 +134,24 @@ export const listFinalistesAction = action
     });
     if (!schoolYear) throw new Error("Année scolaire introuvable");
 
-    const finalistClasses = await prisma.classe.findMany({
-      where: {
-        branchId,
-        OR: [{ statusClasse: true }, { statusClasse: null }],
-      },
-      select: {
-        id: true,
-        nameClasse: true,
-        codeClasse: true,
-        level: true,
-      },
-    });
+    const [finalistClasses, branch] = await Promise.all([
+      prisma.classe.findMany({
+        where: {
+          branchId,
+          OR: [{ statusClasse: true }, { statusClasse: null }],
+        },
+        select: {
+          id: true,
+          nameClasse: true,
+          codeClasse: true,
+          level: true,
+        },
+      }),
+      prisma.branch.findFirst({
+        where: { id: branchId, organizationId },
+        select: { ville: true, commune: true, name: true },
+      }),
+    ]);
     const allowedIds = new Set(
       finalistClasses.filter(isPrimaryFinalistClass).map((item) => item.id),
     );
@@ -236,11 +242,6 @@ export const listFinalistesAction = action
       const nameA = a.student?.branchMember?.member?.user?.name ?? "";
       const nameB = b.student?.branchMember?.member?.user?.name ?? "";
       return nameA.localeCompare(nameB, "fr");
-    });
-
-    const branch = await prisma.branch.findFirst({
-      where: { id: branchId, organizationId },
-      select: { ville: true, commune: true, name: true },
     });
 
     const selectedClass = input.classeId

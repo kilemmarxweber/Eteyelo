@@ -342,6 +342,7 @@ model Classe {
   @@index([branchId, optionId])
   @@unique([branchId, codeClasse])
   @@unique([branchId, nameClasse])
+  @@index([branchId, level])
 }
 
 model Creneau {
@@ -457,6 +458,9 @@ model ClassEnrollment {
   @@index([branchId])
   @@index([branchId, classeId])
   @@index([branchId, schoolYearId])
+  /// Liste finalistes / inscriptions actives par branche + année (+ classe).
+  @@index([branchId, schoolYearId, statusEnrollment])
+  @@index([branchId, schoolYearId, statusEnrollment, classeId])
 }
 
 model Teacher {
