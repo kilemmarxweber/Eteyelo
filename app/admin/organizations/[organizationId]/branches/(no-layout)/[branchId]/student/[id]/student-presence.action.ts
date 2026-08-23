@@ -209,14 +209,16 @@ export async function getStudentPresenceReportAction(
 
   const mapped = records.map((record) => {
     const sessionDate = record.session.date;
-    const arrivalAt =
-      record.status === "ABSENT" || record.status === "EXCUSED"
-        ? null
-        : record.recordedAt;
-    const departureAt =
-      record.status === "ABSENT" || record.status === "EXCUSED"
-        ? null
-        : (record.session.endTime ?? null);
+    const isAbsentLike =
+      record.status === "ABSENT" || record.status === "EXCUSED";
+    const arrivalAt = isAbsentLike
+      ? null
+      : (record.checkIn ?? record.recordedAt);
+    // Aligné sur les rapports attendance : checkOut réel, sinon fin de séance.
+    const departureAt = isAbsentLike
+      ? null
+      : (record.checkOut ??
+        (record.earlyExit ? null : (record.session.endTime ?? null)));
 
     return {
       id: record.id,

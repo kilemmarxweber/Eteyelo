@@ -163,6 +163,28 @@ function resolveStudentClassLabel(
   return student.className || student.classCode || "Non affecté";
 }
 
+/** Codes E13 / E80 : inscription filtrée (année) sinon valeurs préférées. */
+function resolveStudentExamCodes(
+  student: IStudent,
+  schoolYearIds?: string[] | null,
+): { e13: string; e80: string } {
+  if (schoolYearIds?.length === 1) {
+    const enrollment = student.enrollments?.find(
+      (item) => item.schoolYearId === schoolYearIds[0],
+    );
+    if (enrollment) {
+      return {
+        e13: enrollment.e13?.trim() || "—",
+        e80: enrollment.e80?.trim() || "—",
+      };
+    }
+  }
+  return {
+    e13: student.e13?.trim() || "—",
+    e80: student.e80?.trim() || "—",
+  };
+}
+
 function calculateAge(dateOfBirth: Date | string | null | undefined) {
   if (!dateOfBirth) return null;
   const birth = new Date(dateOfBirth);
@@ -199,16 +221,16 @@ export async function buildStudentsReportPdf(
     (!options.period || options.period === "all") &&
     !options.search;
   const showBirthColumns = !isClassYearOnlyReport;
-
   const title = buildStudentsReportTitle(options);
   const filterLabels = buildStudentsReportFilterLabels(options);
+  // Landscape : place pour E13 / E80 (comme Liste finalistes / Cursus).
   const doc = new jsPDF({
-    orientation: showBirthColumns ? "landscape" : "portrait",
+    orientation: "landscape",
     unit: "mm",
     format: "a4",
   });
   const pageWidth = doc.internal.pageSize.getWidth();
-  const marginX = showBirthColumns ? 12 : 14;
+  const marginX = 10;
   const usableWidth = pageWidth - marginX * 2;
   const logo = await imageUrlToDataUrl(context.logoUrl);
 
@@ -230,12 +252,15 @@ export async function buildStudentsReportPdf(
     "Prénom",
     "Sexe",
     ...(!isClassReport ? (["Classe"] as const) : []),
+    "E13",
+    "E80",
     ...(showBirthColumns
       ? (["Date n.", "Âge", "Lieu de naissance"] as const)
       : []),
   ];
 
   const body = students.map((student, index) => {
+    const exam = resolveStudentExamCodes(student, options.schoolYearIds);
     const row: (string | number)[] = [
       index + 1,
       student.username || "-",
@@ -247,6 +272,7 @@ export async function buildStudentsReportPdf(
     if (!isClassReport) {
       row.push(resolveStudentClassLabel(student, options.schoolYearIds));
     }
+    row.push(exam.e13, exam.e80);
     if (showBirthColumns) {
       const age = calculateAge(student.dateOfBirth);
       row.push(
@@ -258,54 +284,62 @@ export async function buildStudentsReportPdf(
     return row;
   });
 
-  // Largeurs proportionnelles.
+  // Largeurs proportionnelles (E13 / E80 inclus).
   type PdfColumnStyle = { cellWidth: number; halign: "center" | "left" };
   const columnStyles: Record<number, PdfColumnStyle> = (() => {
     if (isClassReport && !showBirthColumns) {
       return {
-        0: { cellWidth: usableWidth * 0.06, halign: "center" as const },
-        1: { cellWidth: usableWidth * 0.28, halign: "left" as const },
-        2: { cellWidth: usableWidth * 0.18, halign: "left" as const },
-        3: { cellWidth: usableWidth * 0.18, halign: "left" as const },
-        4: { cellWidth: usableWidth * 0.18, halign: "left" as const },
-        5: { cellWidth: usableWidth * 0.12, halign: "center" as const },
+        0: { cellWidth: usableWidth * 0.05, halign: "center" as const },
+        1: { cellWidth: usableWidth * 0.16, halign: "left" as const },
+        2: { cellWidth: usableWidth * 0.14, halign: "left" as const },
+        3: { cellWidth: usableWidth * 0.14, halign: "left" as const },
+        4: { cellWidth: usableWidth * 0.14, halign: "left" as const },
+        5: { cellWidth: usableWidth * 0.07, halign: "center" as const },
+        6: { cellWidth: usableWidth * 0.15, halign: "center" as const },
+        7: { cellWidth: usableWidth * 0.15, halign: "center" as const },
       };
     }
     if (isClassReport && showBirthColumns) {
       return {
-        0: { cellWidth: usableWidth * 0.04, halign: "center" as const },
-        1: { cellWidth: usableWidth * 0.14, halign: "left" as const },
-        2: { cellWidth: usableWidth * 0.12, halign: "left" as const },
-        3: { cellWidth: usableWidth * 0.12, halign: "left" as const },
-        4: { cellWidth: usableWidth * 0.12, halign: "left" as const },
-        5: { cellWidth: usableWidth * 0.06, halign: "center" as const },
-        6: { cellWidth: usableWidth * 0.11, halign: "center" as const },
-        7: { cellWidth: usableWidth * 0.06, halign: "center" as const },
-        8: { cellWidth: usableWidth * 0.23, halign: "left" as const },
+        0: { cellWidth: usableWidth * 0.035, halign: "center" as const },
+        1: { cellWidth: usableWidth * 0.1, halign: "left" as const },
+        2: { cellWidth: usableWidth * 0.09, halign: "left" as const },
+        3: { cellWidth: usableWidth * 0.09, halign: "left" as const },
+        4: { cellWidth: usableWidth * 0.09, halign: "left" as const },
+        5: { cellWidth: usableWidth * 0.045, halign: "center" as const },
+        6: { cellWidth: usableWidth * 0.09, halign: "center" as const },
+        7: { cellWidth: usableWidth * 0.09, halign: "center" as const },
+        8: { cellWidth: usableWidth * 0.09, halign: "center" as const },
+        9: { cellWidth: usableWidth * 0.05, halign: "center" as const },
+        10: { cellWidth: usableWidth * 0.14, halign: "left" as const },
       };
     }
     if (!isClassReport && !showBirthColumns) {
       return {
-        0: { cellWidth: usableWidth * 0.05, halign: "center" as const },
-        1: { cellWidth: usableWidth * 0.22, halign: "left" as const },
-        2: { cellWidth: usableWidth * 0.14, halign: "left" as const },
-        3: { cellWidth: usableWidth * 0.14, halign: "left" as const },
-        4: { cellWidth: usableWidth * 0.14, halign: "left" as const },
-        5: { cellWidth: usableWidth * 0.08, halign: "center" as const },
-        6: { cellWidth: usableWidth * 0.23, halign: "left" as const },
+        0: { cellWidth: usableWidth * 0.04, halign: "center" as const },
+        1: { cellWidth: usableWidth * 0.12, halign: "left" as const },
+        2: { cellWidth: usableWidth * 0.11, halign: "left" as const },
+        3: { cellWidth: usableWidth * 0.11, halign: "left" as const },
+        4: { cellWidth: usableWidth * 0.11, halign: "left" as const },
+        5: { cellWidth: usableWidth * 0.05, halign: "center" as const },
+        6: { cellWidth: usableWidth * 0.16, halign: "left" as const },
+        7: { cellWidth: usableWidth * 0.15, halign: "center" as const },
+        8: { cellWidth: usableWidth * 0.15, halign: "center" as const },
       };
     }
     return {
-      0: { cellWidth: usableWidth * 0.035, halign: "center" as const },
-      1: { cellWidth: usableWidth * 0.12, halign: "left" as const },
-      2: { cellWidth: usableWidth * 0.1, halign: "left" as const },
-      3: { cellWidth: usableWidth * 0.1, halign: "left" as const },
-      4: { cellWidth: usableWidth * 0.1, halign: "left" as const },
-      5: { cellWidth: usableWidth * 0.05, halign: "center" as const },
-      6: { cellWidth: usableWidth * 0.13, halign: "left" as const },
-      7: { cellWidth: usableWidth * 0.1, halign: "center" as const },
-      8: { cellWidth: usableWidth * 0.05, halign: "center" as const },
-      9: { cellWidth: usableWidth * 0.215, halign: "left" as const },
+      0: { cellWidth: usableWidth * 0.03, halign: "center" as const },
+      1: { cellWidth: usableWidth * 0.09, halign: "left" as const },
+      2: { cellWidth: usableWidth * 0.08, halign: "left" as const },
+      3: { cellWidth: usableWidth * 0.08, halign: "left" as const },
+      4: { cellWidth: usableWidth * 0.08, halign: "left" as const },
+      5: { cellWidth: usableWidth * 0.04, halign: "center" as const },
+      6: { cellWidth: usableWidth * 0.1, halign: "left" as const },
+      7: { cellWidth: usableWidth * 0.08, halign: "center" as const },
+      8: { cellWidth: usableWidth * 0.08, halign: "center" as const },
+      9: { cellWidth: usableWidth * 0.08, halign: "center" as const },
+      10: { cellWidth: usableWidth * 0.04, halign: "center" as const },
+      11: { cellWidth: usableWidth * 0.12, halign: "left" as const },
     };
   })() as Record<number, PdfColumnStyle>;
 
@@ -324,8 +358,8 @@ export async function buildStudentsReportPdf(
     showHead: "everyPage",
     styles: {
       font: "helvetica",
-      fontSize: 8,
-      cellPadding: { top: 2.8, right: 2, bottom: 2.8, left: 2 },
+      fontSize: 7.5,
+      cellPadding: { top: 2.5, right: 1.5, bottom: 2.5, left: 1.5 },
       overflow: "linebreak",
       valign: "middle",
       lineColor: [226, 232, 240],
@@ -337,8 +371,8 @@ export async function buildStudentsReportPdf(
       textColor: 255,
       fontStyle: "bold",
       halign: "center",
-      fontSize: 8,
-      cellPadding: { top: 3.2, right: 2, bottom: 3.2, left: 2 },
+      fontSize: 7.5,
+      cellPadding: { top: 3, right: 1.5, bottom: 3, left: 1.5 },
     },
     alternateRowStyles: { fillColor: [248, 250, 252] },
     columnStyles,

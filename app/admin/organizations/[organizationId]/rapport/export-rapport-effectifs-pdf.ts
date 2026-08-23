@@ -610,7 +610,8 @@ function buildPresences(
       [
         "#",
         "Date",
-        "Heure",
+        "Heure début",
+        "Heure fin",
         "Matricule",
         "Nom",
         "Classe / Rôle",
@@ -622,6 +623,7 @@ function buildPresences(
         i + 1,
         p.date,
         p.time,
+        p.endTime,
         p.matricule,
         p.name,
         p.role,
@@ -632,6 +634,7 @@ function buildPresences(
       {
         totalsRow: [
           "TOTAUX",
+          "",
           "",
           "",
           "",

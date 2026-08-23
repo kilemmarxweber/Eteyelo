@@ -35,7 +35,10 @@ export type AttendancePersonDetailRow = {
 /** Pointage individuel absent ou en retard. */
 export type AttendanceIncidentRow = {
   date: string;
+  /** Heure d'arrivée / pointage. */
   time: string;
+  /** Heure de fin / sortie (checkOut ou fin de séance). */
+  endTime: string;
   dateSort: string;
   matricule: string;
   name: string;
@@ -83,8 +86,10 @@ type AttendanceRawRow = {
   status: string;
   /** Jour du pointage (affichage date). */
   day: Date;
-  /** Horodatage pour l’heure (et le tri). */
+  /** Horodatage pour l’heure d’arrivée (et le tri). */
   at: Date;
+  /** Horodatage de sortie / fin (null si absent). */
+  endAt: Date | null;
   matricule: string;
   name: string;
   role: string;
@@ -198,6 +203,7 @@ function buildTrack(rows: AttendanceRawRow[]): TrackAttendanceReport {
       incidents.push({
         date: formatDateFr(row.day),
         time: formatTimeFr(row.at),
+        endTime: row.endAt ? formatTimeFr(row.endAt) : "—",
         dateSort: row.at.toISOString(),
         matricule: row.matricule,
         name: row.name,
@@ -285,6 +291,9 @@ export async function getAttendanceReport(params: {
       select: {
         status: true,
         recordedAt: true,
+        checkIn: true,
+        checkOut: true,
+        earlyExit: true,
         remark: true,
         studentId: true,
         student: {
@@ -303,6 +312,7 @@ export async function getAttendanceReport(params: {
         branch: { select: { name: true } },
         session: {
           select: {
+            endTime: true,
             teaching: {
               select: {
                 classe: {
@@ -325,6 +335,9 @@ export async function getAttendanceReport(params: {
         status: true,
         date: true,
         createdAt: true,
+        checkIn: true,
+        checkOut: true,
+        earlyExit: true,
         remark: true,
         teacherId: true,
         teacher: {
@@ -342,6 +355,7 @@ export async function getAttendanceReport(params: {
           },
         },
         branch: { select: { name: true } },
+        session: { select: { endTime: true, startTime: true } },
       },
     }),
     prisma.personnelAttendance.findMany({
@@ -350,6 +364,7 @@ export async function getAttendanceReport(params: {
         status: true,
         date: true,
         checkIn: true,
+        checkOut: true,
         createdAt: true,
         remark: true,
         personnelId: true,
@@ -382,11 +397,16 @@ export async function getAttendanceReport(params: {
           classe?.nameClasse?.trim() ||
           classe?.codeClasse?.trim() ||
           "Élève";
+        const isAbsentLike = r.status === "ABSENT" || r.status === "EXCUSED";
         return {
           personId: r.studentId,
           status: r.status,
           day: r.recordedAt,
-          at: r.recordedAt,
+          at: r.checkIn ?? r.recordedAt,
+          endAt: isAbsentLike
+            ? null
+            : (r.checkOut ??
+              (r.earlyExit ? null : (r.session?.endTime ?? null))),
           matricule: user?.username?.trim() || "—",
           name: formatPersonName(user),
           role,
@@ -398,11 +418,18 @@ export async function getAttendanceReport(params: {
     teachers: buildTrack(
       teacherRows.map((r) => {
         const user = r.teacher?.branchMember?.member?.user ?? null;
+        const isAbsentLike = r.status === "ABSENT" || r.status === "EXCUSED";
         return {
           personId: r.teacherId,
           status: r.status,
           day: r.date,
-          at: hasClockTime(r.date) ? r.date : r.createdAt,
+          at:
+            r.checkIn ??
+            (hasClockTime(r.date) ? r.date : r.createdAt),
+          endAt: isAbsentLike
+            ? null
+            : (r.checkOut ??
+              (r.earlyExit ? null : (r.session?.endTime ?? null))),
           matricule: user?.username?.trim() || "—",
           name: formatPersonName(user),
           role: roleLabel(r.teacher?.branchMember?.role, "Enseignant"),
@@ -419,6 +446,7 @@ export async function getAttendanceReport(params: {
           ? roleLabel(bm.role, "Personnel")
           : null;
         const fromMember = bm?.member?.role?.trim() || null;
+        const isAbsentLike = r.status === "ABSENT" || r.status === "EXCUSED";
         return {
           personId: r.personnelId,
           status: r.status,
@@ -426,6 +454,7 @@ export async function getAttendanceReport(params: {
           at:
             r.checkIn ??
             (hasClockTime(r.date) ? r.date : r.createdAt),
+          endAt: isAbsentLike ? null : (r.checkOut ?? null),
           matricule: user?.username?.trim() || "—",
           name: formatPersonName(user),
           role: fromBranch || fromMember || "Personnel",

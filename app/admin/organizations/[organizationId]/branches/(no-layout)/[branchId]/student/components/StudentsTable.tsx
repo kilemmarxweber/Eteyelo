@@ -278,8 +278,6 @@ const StudentsList = ({
           onRowClick={handleStudentRowClick}
           initialColumnVisibility={{
             registeredPeriod: false,
-            e13: false,
-            e80: false,
           }}
           onFilteredRowsChange={onVisibleStudentsChange}
         />

@@ -204,13 +204,21 @@ function mapStudentRecords(
   return records.map((record) => {
     const user = record.student.branchMember?.member?.user;
     const classe = record.session.teaching?.classe?.codeClasse;
+    const isAbsentLike =
+      record.status === "ABSENT" || record.status === "EXCUSED";
 
     return {
       id: record.id,
       date: record.recordedAt,
       status: record.status,
-      arrivalAt: record.recordedAt,
-      departureAt: record.session.endTime ?? null,
+      arrivalAt: isAbsentLike
+        ? null
+        : (record.checkIn ?? record.recordedAt),
+      // Préfère la sortie réelle (checkOut), sinon fin de séance si pas anticipée.
+      departureAt: isAbsentLike
+        ? null
+        : (record.checkOut ??
+          (record.earlyExit ? null : (record.session.endTime ?? null))),
       sortAt: record.recordedAt,
       user: user
         ? {
@@ -244,13 +252,20 @@ function mapTeacherRecords(
 ): UnifiedRecord[] {
   return records.map((record) => {
     const user = record.teacher.branchMember?.member?.user;
+    const isAbsentLike =
+      record.status === "ABSENT" || record.status === "EXCUSED";
 
     return {
       id: record.id,
       date: record.date,
       status: record.status,
-      arrivalAt: record.session?.startTime ?? record.createdAt,
-      departureAt: record.session?.endTime ?? null,
+      arrivalAt: isAbsentLike
+        ? null
+        : (record.checkIn ?? record.session?.startTime ?? record.createdAt),
+      departureAt: isAbsentLike
+        ? null
+        : (record.checkOut ??
+          (record.earlyExit ? null : (record.session?.endTime ?? null))),
       sortAt: record.createdAt,
       user: user
         ? {

@@ -711,7 +711,8 @@ export function RapportDashboard({ organizationId, data }: Props) {
                 columns={[
                   "#",
                   "Date",
-                  "Heure",
+                  "Heure début",
+                  "Heure fin",
                   "Matricule",
                   "Nom",
                   "Classe / Rôle",
@@ -723,6 +724,7 @@ export function RapportDashboard({ organizationId, data }: Props) {
                   i + 1,
                   p.date,
                   p.time,
+                  p.endTime,
                   p.matricule,
                   p.name,
                   p.role,

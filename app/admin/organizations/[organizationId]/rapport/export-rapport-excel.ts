@@ -556,8 +556,8 @@ async function buildPresencesSheet(
   const ws = workbook.addWorksheet("Présences", {
     properties: { tabColor: { argb: "FF16A34A" } },
   });
-  styleSheet(ws, 8);
-  writeBanner(ws, "Présences", meta, 8, organizationName);
+  styleSheet(ws, 10);
+  writeBanner(ws, "Présences", meta, 10, organizationName);
 
   const tracks = [
     { key: "students" as const, label: "Élèves" },
@@ -568,7 +568,7 @@ async function buildPresencesSheet(
   let row = 5;
   for (const track of tracks) {
     const data = attendance[track.key];
-    row = writeSectionTitle(ws, row, `Mensuels — ${track.label}`, 8);
+    row = writeSectionTitle(ws, row, `Mensuels — ${track.label}`, 10);
     row = writeTable(
       ws,
       row,
@@ -595,7 +595,7 @@ async function buildPresencesSheet(
       ws,
       row,
       `Synthèse — Absents / retards — ${track.label}`,
-      8,
+      10,
     );
     row = writeTable(
       ws,
@@ -636,7 +636,7 @@ async function buildPresencesSheet(
       ws,
       row,
       `Détails — Absents et retards — ${track.label}`,
-      8,
+      10,
     );
     row = writeTable(
       ws,
@@ -644,7 +644,8 @@ async function buildPresencesSheet(
       [
         "#",
         "Date",
-        "Heure",
+        "Heure début",
+        "Heure fin",
         "Matricule",
         "Nom",
         "Classe / Rôle",
@@ -656,6 +657,7 @@ async function buildPresencesSheet(
         i + 1,
         p.date,
         p.time,
+        p.endTime,
         p.matricule,
         p.name,
         p.role,
@@ -668,6 +670,7 @@ async function buildPresencesSheet(
         "",
         "",
         "",
+        "",
         `${data.incidents.length} pointage(s)`,
         "",
         "",
@@ -676,7 +679,7 @@ async function buildPresencesSheet(
       ],
     );
 
-    row = writeSectionTitle(ws, row, `Totaux — ${track.label}`, 8);
+    row = writeSectionTitle(ws, row, `Totaux — ${track.label}`, 10);
     row = writeKpis(ws, row, [
       { label: "Pointages", value: data.total },
       { label: "Taux présence", value: `${data.presentRate}%` },
