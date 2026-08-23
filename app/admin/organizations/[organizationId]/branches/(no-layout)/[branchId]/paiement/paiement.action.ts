@@ -29,6 +29,34 @@ import {
   type DiscountInfo,
 } from "@/lib/payment-discount";
 
+async function loadPaidAmountsByEnrollmentAndFrais(
+  branchId: string,
+  classEnrollmentIds: string[],
+  fraisIds: string[],
+) {
+  if (!classEnrollmentIds.length || !fraisIds.length) {
+    return new Map<string, number>();
+  }
+
+  const paidGroups = await prisma.familyPayment.groupBy({
+    by: ["classEnrollmentId", "fraisId"],
+    where: {
+      branchId,
+      status: StatusPaiement.VALIDE,
+      classEnrollmentId: { in: classEnrollmentIds },
+      fraisId: { in: fraisIds },
+    },
+    _sum: { amount: true },
+  });
+
+  return new Map(
+    paidGroups.map((row) => [
+      `${row.classEnrollmentId}:${row.fraisId}`,
+      Number(row._sum.amount ?? 0),
+    ]),
+  );
+}
+
 async function loadOrgExchangeRates(organizationId: string): Promise<{
   rates: ExchangeRatePair[];
   baseCurrency: CurrencyCode;
@@ -243,6 +271,12 @@ export async function getFraisWithBalance(
     },
   });
 
+  const paidMap = await loadPaidAmountsByEnrollmentAndFrais(
+    activeBranchId,
+    enrollments.map((e) => e.id),
+    fraisList.map((f) => f.id),
+  );
+
   const results = [];
 
   for (const enrollment of enrollments) {
@@ -250,17 +284,8 @@ export async function getFraisWithBalance(
       // Uniquement les frais de la classe de l'inscription
       if (frais.classeId !== enrollment.classeId) continue;
 
-      const paid = await prisma.familyPayment.aggregate({
-        where: {
-          branchId: activeBranchId,
-          classEnrollmentId: enrollment.id,
-          fraisId: frais.id,
-          status: StatusPaiement.VALIDE,
-        },
-        _sum: { amount: true },
-      });
-
-      const alreadyPaid = Number(paid._sum.amount ?? 0);
+      const alreadyPaid =
+        paidMap.get(`${enrollment.id}:${frais.id}`) ?? 0;
       const total = Number(frais.montantFrais);
 
       results.push({
@@ -350,22 +375,10 @@ export async function getSelectableFraisForEnrollments(input: {
 
   if (!fraisList.length) return empty;
 
-  const paidGroups = await prisma.familyPayment.groupBy({
-    by: ["classEnrollmentId", "fraisId"],
-    where: {
-      branchId: activeBranchId,
-      status: StatusPaiement.VALIDE,
-      classEnrollmentId: { in: enrollments.map((e) => e.id) },
-      fraisId: { in: fraisList.map((f) => f.id) },
-    },
-    _sum: { amount: true },
-  });
-
-  const paidMap = new Map(
-    paidGroups.map((row) => [
-      `${row.classEnrollmentId}:${row.fraisId}`,
-      Number(row._sum.amount ?? 0),
-    ]),
+  const paidMap = await loadPaidAmountsByEnrollmentAndFrais(
+    activeBranchId,
+    enrollments.map((e) => e.id),
+    fraisList.map((f) => f.id),
   );
 
   const items: SelectableFraisItem[] = [];
@@ -1481,21 +1494,21 @@ export const getUnpaidFraisAction = action
       },
     });
 
+    const fraisRows = enrollments.flatMap(
+      (enrollment) => enrollment.classe?.Frais ?? [],
+    );
+    const paidMap = await loadPaidAmountsByEnrollmentAndFrais(
+      branchId,
+      enrollments.map((e) => e.id),
+      fraisRows.map((f) => f.id),
+    );
+
     const result = [];
 
     for (const enrollment of enrollments) {
       for (const frais of enrollment.classe?.Frais || []) {
-        const paid = await prisma.familyPayment.aggregate({
-          where: {
-            branchId,
-            fraisId: frais.id,
-            classEnrollmentId: enrollment.id,
-            status: StatusPaiement.VALIDE,
-          },
-          _sum: { amount: true },
-        });
-
-        const montantPaye = Number(paid._sum.amount || 0);
+        const montantPaye =
+          paidMap.get(`${enrollment.id}:${frais.id}`) ?? 0;
         const montantDu = Number(frais.montantFrais);
 
         if (montantDu - montantPaye > 0) {

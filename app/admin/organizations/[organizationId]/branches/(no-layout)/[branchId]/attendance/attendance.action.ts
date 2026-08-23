@@ -46,6 +46,40 @@ const geoCoordsSchema = z.object({
   longitude: z.number().min(-180).max(180),
 });
 
+/** Fenêtre par défaut pour l'historique présences (évite un full scan). */
+const ATTENDANCE_HISTORY_DAYS = 90;
+
+const attendanceMemberUserSelect = {
+  select: {
+    name: true,
+    prenom: true,
+    postnom: true,
+  },
+} as const;
+
+const attendancePersonInclude = {
+  branchMember: {
+    include: {
+      member: {
+        include: {
+          user: attendanceMemberUserSelect,
+        },
+      },
+    },
+  },
+} as const;
+
+const attendanceTeachingSessionInclude = {
+  include: {
+    teaching: {
+      include: {
+        cours: { select: { nameCours: true } },
+        classe: { select: { nameClasse: true, codeClasse: true } },
+      },
+    },
+  },
+} as const;
+
 /* =========================
    SESSIONS
 ========================= */
@@ -82,15 +116,15 @@ export const getAttendanceSessions = action.handler(async () => {
     include: {
       teaching: {
         include: {
-          classe: true,
-          cours: true,
+          classe: { select: { nameClasse: true } },
+          cours: { select: { nameCours: true } },
           teacher: {
             include: {
               branchMember: {
                 include: {
                   member: {
                     include: {
-                      user: true,
+                      user: attendanceMemberUserSelect,
                     },
                   },
                 },
@@ -99,9 +133,16 @@ export const getAttendanceSessions = action.handler(async () => {
           },
         },
       },
-      attendances: true,
+      attendances: {
+        select: {
+          studentId: true,
+          status: true,
+          remark: true,
+        },
+      },
     },
     orderBy: { date: "desc" },
+    take: 200,
   });
 
   return sessions.map((s) => ({
@@ -140,94 +181,60 @@ export const getAttendanceHistory = action.handler(async () => {
     branchId,
   });
 
-  const teachers = await prisma.teacherAttendance.findMany({
-    where: {
-      branchId,
-      ...(teacherScope ? { teacherId: teacherScope.teacherId } : {}),
-    },
-    include: {
-      teacher: {
-        include: {
-          branchMember: {
-            include: {
-              member: {
-                include: {
-                  user: true,
-                },
-              },
-            },
-          },
-        },
-      },
-      session: {
-        include: {
-          teaching: {
-            include: {
-              cours: true,
-              classe: true,
-            },
-          },
-        },
-      },
-    },
-  });
+  const historySince = new Date();
+  historySince.setDate(historySince.getDate() - ATTENDANCE_HISTORY_DAYS);
 
-  const students = await prisma.studentAttendance.findMany({
-    where: {
-      branchId,
-      ...(teacherScope
-        ? { session: { teachingId: { in: teacherScope.teachingIds } } }
-        : {}),
-    },
-    include: {
-      student: {
-        include: {
-          branchMember: {
-            include: {
-              member: {
-                include: {
-                  user: true,
-                },
-              },
-            },
-          },
-        },
+  const [teachers, students, personnels] = await Promise.all([
+    prisma.teacherAttendance.findMany({
+      where: {
+        branchId,
+        date: { gte: historySince },
+        ...(teacherScope ? { teacherId: teacherScope.teacherId } : {}),
       },
-      session: {
-        include: {
-          teaching: {
-            include: {
-              cours: true,
-              classe: true,
-            },
-          },
+      include: {
+        teacher: {
+          include: attendancePersonInclude,
         },
+        session: attendanceTeachingSessionInclude,
       },
-    },
-  });
+      orderBy: { date: "desc" },
+      take: 500,
+    }),
 
-  const personnels = teacherScope
-    ? []
-    : await prisma.personnelAttendance.findMany({
-        where: {
-          branchId,
+    prisma.studentAttendance.findMany({
+      where: {
+        branchId,
+        recordedAt: { gte: historySince },
+        ...(teacherScope
+          ? { session: { teachingId: { in: teacherScope.teachingIds } } }
+          : {}),
+      },
+      include: {
+        student: {
+          include: attendancePersonInclude,
         },
-        include: {
-          personnel: {
-            include: {
-              branchMember: {
-                include: {
-                  member: {
-                    include: {
-                      user: true,
-                    },
-                  },
-                },
-              },
+        session: attendanceTeachingSessionInclude,
+      },
+      orderBy: { recordedAt: "desc" },
+      take: 500,
+    }),
+
+    teacherScope
+      ? Promise.resolve([])
+      : prisma.personnelAttendance.findMany({
+          where: {
+            branchId,
+            date: { gte: historySince },
+          },
+          include: {
+            personnel: {
+              include: attendancePersonInclude,
             },
           },
-        },
-      });
+          orderBy: { date: "desc" },
+          take: 500,
+        }),
+  ]);
 
   return [
     ...teachers.map((t) => {
@@ -405,12 +412,13 @@ export const getAttendanceSessionById = action
                   },
                   include: {
                     student: {
-                      include: {
+                      select: {
+                        id: true,
                         branchMember: {
                           include: {
                             member: {
                               include: {
-                                user: true,
+                                user: attendanceMemberUserSelect,
                               },
                             },
                           },
@@ -421,14 +429,14 @@ export const getAttendanceSessionById = action
                 },
               },
             },
-            cours: true,
+            cours: { select: { nameCours: true } },
             teacher: {
               include: {
                 branchMember: {
                   include: {
                     member: {
                       include: {
-                        user: true,
+                        user: attendanceMemberUserSelect,
                       },
                     },
                   },
@@ -439,20 +447,10 @@ export const getAttendanceSessionById = action
         },
 
         attendances: {
-          include: {
-            student: {
-              include: {
-                branchMember: {
-                  include: {
-                    member: {
-                      include: {
-                        user: true,
-                      },
-                    },
-                  },
-                },
-              },
-            },
+          select: {
+            studentId: true,
+            status: true,
+            remark: true,
           },
         },
       },

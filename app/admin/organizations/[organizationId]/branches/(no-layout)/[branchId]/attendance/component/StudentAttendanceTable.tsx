@@ -129,10 +129,12 @@ export default function StudentAttendanceTable({ session }: { session?: any }) {
           const attendance = attendancesMap.get(studentId);
           const status = attendance?.status;
 
+          const user = student?.branchMember?.member?.user;
+
           const fullName = [
-            student?.user?.nom,
-            student?.user?.postnom,
-            student?.user?.prenom,
+            user?.name,
+            user?.postnom,
+            user?.prenom,
           ]
             .filter(Boolean)
             .join(" ");

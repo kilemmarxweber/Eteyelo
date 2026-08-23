@@ -2,7 +2,6 @@
 
 import { prisma } from "@/lib/prisma";
 import ClassFicheClient from "./components/ClassFicheClient";
-import type { Prisma } from "@/prisma/generated/prisma/client";
 import { redirect, notFound } from "next/navigation";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
 import {
@@ -19,40 +18,9 @@ import {
   buildBulletinBranchContext,
   type BulletinBranchContext,
 } from "@/lib/bulletin-context";
+import { getSchoolYearForBranch } from "@/lib/school-year";
 
 export const dynamic = "force-dynamic";
-
-// 🔹 Typage Prisma
-type ClassEnrollmentWithRelations = Prisma.ClassEnrollmentGetPayload<{
-  include: {
-    classe: {
-      include: {
-        option: true;
-        teaching: {
-          where: {
-            titulaire: true;
-          };
-          include: {
-            teacher: {
-              include: {
-                branchMember: {
-                  include: {
-                    member: {
-                      include: {
-                        user: true;
-                      };
-                    };
-                  };
-                };
-              };
-            };
-            cours: true;
-          };
-        };
-      };
-    };
-  };
-}>;
 
 export default async function ClassFichePage() {
   const { session, userId, branchId, organizationId, typebranch } =
@@ -85,46 +53,55 @@ export default async function ClassFichePage() {
     notFound();
   }
 
-  // 🔹 Fetch data
+  // 🔹 Fetch data (classes distinctes, année courante — pas toutes les inscriptions)
+  const currentYear = await getSchoolYearForBranch(branchId);
+
   const [classesFromDB, branch] = await Promise.all([
-    prisma.classEnrollment.findMany({
+    prisma.classe.findMany({
       where: {
         branchId,
+        ...(currentYear
+          ? {
+              classEnrollment: {
+                some: {
+                  branchId,
+                  schoolYearId: currentYear.id,
+                  statusEnrollment: true,
+                },
+              },
+            }
+          : {}),
       },
       include: {
-        classe: {
-          include: {
-            option: true,
-            teaching: {
-              where: {
-                titulaire: true,
-                OR: [
-                  { branchId },
-                  {
-                    branchId: null,
-                    classe: {
-                      branchId,
-                    },
-                  },
-                ],
+        option: true,
+        teaching: {
+          where: {
+            titulaire: true,
+            OR: [
+              { branchId },
+              {
+                branchId: null,
+                classe: {
+                  branchId,
+                },
               },
+            ],
+          },
+          include: {
+            teacher: {
               include: {
-                teacher: {
+                branchMember: {
                   include: {
-                    branchMember: {
+                    member: {
                       include: {
-                        member: {
-                          include: {
-                            user: true,
-                          },
-                        },
+                        user: { select: { name: true, userId: true } },
                       },
                     },
                   },
                 },
-                cours: true,
               },
             },
+            cours: { select: { nameCours: true } },
           },
         },
       },
@@ -168,41 +145,27 @@ export default async function ClassFichePage() {
     branchContext.primaryDomains = await listBranchPrimaryDomains(branchId);
   }
 
-  // 🔹 Group by class ID — titulaire : uniquement ses classes (unit-10)
-  const groupedMap = new Map<string, ClassEnrollmentWithRelations["classe"]>();
+  // 🔹 Filtrer titulaire : uniquement ses classes (unit-10)
+  const groupedClasses = classesFromDB.filter((classe) => {
+    if (canManage) return true;
 
-  classesFromDB.forEach((item) => {
-    const classe = item.classe;
-    if (!classe) return;
-
-    if (!canManage) {
-      const isTitulaireOfClass = (classe.teaching ?? []).some(
-        (t) =>
-          t.titulaire &&
-          t.teacher?.branchMember?.member?.userId === userId,
-      );
-      if (!isTitulaireOfClass) return;
-    }
-
-    if (!groupedMap.has(classe.id)) {
-      groupedMap.set(classe.id, {
-        ...classe,
-      });
-    }
+    return (classe.teaching ?? []).some(
+      (t) =>
+        t.titulaire &&
+        t.teacher?.branchMember?.member?.userId === userId,
+    );
   });
-
-  const groupedClasses = Array.from(groupedMap.values());
 
   // 🔹 Transform for client
   const classes = groupedClasses.map((c) => {
-    const teaching = c?.teaching || [];
+    const teaching = c.teaching || [];
 
     return {
-      id: c?.id || "N/A",
-      name: c?.nameClasse || "N/A",
-      codename: c?.codeClasse || "N/A",
-      level: c?.level ?? null,
-      optionName: c?.option?.nameOption ?? null,
+      id: c.id,
+      name: c.nameClasse || "N/A",
+      codename: c.codeClasse || "N/A",
+      level: c.level ?? null,
+      optionName: c.option?.nameOption ?? null,
       capacity: 25,
       supervisor:
         teaching[0]?.teacher?.branchMember?.member?.user?.name ?? "N/A",
