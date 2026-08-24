@@ -4,6 +4,7 @@ import {
   buildBulletinBranchContext,
   resolveBulletinLayoutKind,
 } from "../lib/bulletin-context";
+import { KLAMBOCORE_DEFAULT_IMAGE_PATH } from "../lib/brand/klambocore-image";
 
 function test(name: string, assertion: () => void) {
   assertion();
@@ -58,8 +59,9 @@ test("nom, code et adresse correspondent à la branche sélectionnée", () => {
     city: "Matadi",
     commune: "",
     country: "RDC",
-    logoUrl: "",
+    logoUrl: KLAMBOCORE_DEFAULT_IMAGE_PATH,
     branchType: "SECONDAIRE",
+    educationSystem: "CONGOLAIS",
   });
 });
 
@@ -167,8 +169,20 @@ test("absence de logo dynamique n’empêche pas la création du contexte", () =
     organization: { name: "Organisation", logo: null },
   });
 
-  assert.equal(context.logoUrl, "");
+  assert.equal(context.logoUrl, KLAMBOCORE_DEFAULT_IMAGE_PATH);
   assert.equal(context.branchName, "École");
+  assert.equal(context.educationSystem, "CONGOLAIS");
 });
 
-console.log("\n13 tests du contexte et de l’en-tête du bulletin réussis.");
+test("système d'enseignement Angolaise : layout term-period", () => {
+  const context = buildBulletinBranchContext({
+    name: "Escola",
+    typebranch: "PRIMAIRE",
+    educationSystem: "ANGOLAIS",
+    organization: { name: "Org" },
+  });
+  assert.equal(context.educationSystem, "ANGOLAIS");
+  assert.equal(resolveBulletinLayoutKind("PRIMAIRE", "ANGOLAIS"), "term-period");
+});
+
+console.log("\n14 tests du contexte et de l’en-tête du bulletin réussis.");

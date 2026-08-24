@@ -16,6 +16,7 @@
     "library:fetch": "tsx scripts/fetch-gutenberg-library.ts",
     "seed:clear": "tsx prisma/seeds/seedData.ts --clear",
     "seed:help": "tsx prisma/seeds/seedData.ts --help",
+    "seed:angola-students": "tsx prisma/seeds/seedData.ts --angola-students",
     "seed:list": "tsx prisma/seeds/seedData.ts --list",
     "migrate:library-s3": "tsx scripts/migrate-library-local-to-s3.ts",
     "migrate:library-s3:dry-run": "tsx scripts/migrate-library-local-to-s3.ts --dry-run",

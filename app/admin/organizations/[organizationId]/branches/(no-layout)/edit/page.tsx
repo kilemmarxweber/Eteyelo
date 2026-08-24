@@ -80,6 +80,7 @@ export default async function EditBranchPage({
           longitude: branch.longitude,
           attendanceRadius: branch.attendanceRadius,
           typebranch: branch.typebranch,
+          educationSystem: branch.educationSystem ?? "CONGOLAIS",
         }}
       />
     </div>

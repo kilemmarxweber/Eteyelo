@@ -1,4 +1,8 @@
 import { requiresOptionForClass } from "@/lib/class-structure";
+import {
+  isAngolaFirstCycleLevel,
+  normalizeAngolaSecondaryLevel,
+} from "@/lib/angola-secondary-structure";
 
 export type ClassForLevelMatch = {
   level: string | null;
@@ -13,7 +17,12 @@ function escapeRegex(value: string) {
 
 function classMatchesLevel(classe: ClassForLevelMatch, level: string) {
   const classLevel = classe.level?.trim();
-  if (classLevel) return classLevel === level;
+  if (classLevel) {
+    if (classLevel === level) return true;
+    const angolaClass = normalizeAngolaSecondaryLevel(classLevel);
+    const angolaLevel = normalizeAngolaSecondaryLevel(level);
+    return Boolean(angolaClass && angolaLevel && angolaClass === angolaLevel);
+  }
   return new RegExp(`^${escapeRegex(level)}\\b`, "i").test(classe.nameClasse.trim());
 }
 
@@ -50,13 +59,20 @@ export function matchesClassForLevel(
     level: string;
     optionId?: string | null;
     optionName?: string | null;
+    educationSystem?: unknown;
   },
 ): boolean {
   const level = params.level.trim();
   if (!level) return false;
   if (!classMatchesLevel(classe, level)) return false;
 
-  const optionRequired = requiresOptionForClass(params.typebranch, level);
+  if (isAngolaFirstCycleLevel(level)) return true;
+
+  const optionRequired = requiresOptionForClass(
+    params.typebranch,
+    level,
+    params.educationSystem,
+  );
   const optionId = params.optionId?.trim() || null;
   const optionName = params.optionName?.trim() || null;
 

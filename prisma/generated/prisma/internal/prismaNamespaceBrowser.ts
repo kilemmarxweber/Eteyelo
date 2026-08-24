@@ -363,6 +363,7 @@ export const ClasseScalarFieldEnum = {
   optionId: 'optionId',
   statusClasse: 'statusClasse',
   creneauId: 'creneauId',
+  horaireType: 'horaireType',
   branchId: 'branchId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -950,6 +951,7 @@ export const BranchScalarFieldEnum = {
   attendanceRadius: 'attendanceRadius',
   organizationId: 'organizationId',
   typebranch: 'typebranch',
+  educationSystem: 'educationSystem',
   isActive: 'isActive',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',

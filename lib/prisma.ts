@@ -10,7 +10,7 @@ const adapter = new PrismaPg({
  * Bump when Prisma schema fields change so the cached client is rebuilt in dev.
  * Also used to bust Turbopack module cache after `prisma generate`.
  */
-const PRISMA_CLIENT_VERSION = "student-exam-codes-e13-e80-1";
+const PRISMA_CLIENT_VERSION = "classe-horaire-type-1";
 
 const globalForPrisma = globalThis as unknown as {
   prisma?: PrismaClient;
@@ -70,6 +70,8 @@ function getPrismaClient() {
     modelHasField(existing, "PersonnelAttendance", "earlyExit") &&
     modelHasField(existing, "ClassEnrollment", "e13") &&
     modelHasField(existing, "ClassEnrollment", "e80") &&
+    modelHasField(existing, "Branch", "educationSystem") &&
+    modelHasField(existing, "Classe", "horaireType") &&
     typeof (existing as { absenceCase?: { findFirst?: unknown } })
       ?.absenceCase?.findFirst === "function" &&
     typeof (existing as { appNotification?: { findFirst?: unknown } })

@@ -18,6 +18,7 @@ import {
   buildBulletinBranchContext,
   type BulletinBranchContext,
 } from "@/lib/bulletin-context";
+import { getBranchDirectorForBulletin } from "@/lib/actions";
 import { getSchoolYearForBranch } from "@/lib/school-year";
 
 export const dynamic = "force-dynamic";
@@ -121,6 +122,7 @@ export default async function ClassFichePage() {
         pays: true,
         image: true,
         typebranch: true,
+        educationSystem: true,
         organization: {
           select: {
             name: true,
@@ -137,6 +139,10 @@ export default async function ClassFichePage() {
 
   const branchContext: BulletinBranchContext =
     buildBulletinBranchContext(branch);
+
+  const director = await getBranchDirectorForBulletin();
+  branchContext.directorName = director.directorName;
+  branchContext.directorTitle = director.directorTitle;
 
   if (branchContext.branchType === "PRIMAIRE") {
     const { listBranchPrimaryDomains } = await import(
@@ -166,6 +172,7 @@ export default async function ClassFichePage() {
       codename: c.codeClasse || "N/A",
       level: c.level ?? null,
       optionName: c.option?.nameOption ?? null,
+      parallel: c.parallel ?? null,
       capacity: 25,
       supervisor:
         teaching[0]?.teacher?.branchMember?.member?.user?.name ?? "N/A",

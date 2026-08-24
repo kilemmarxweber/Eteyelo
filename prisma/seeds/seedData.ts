@@ -13,6 +13,10 @@ import {
   seedLibraryBooks,
   clearLibraryBooksSeed,
 } from "./seedLibraryBooks";
+import {
+  seedAngolaSecondaryStudents,
+  clearAngolaSecondaryStudents,
+} from "./seedAngolaSecondaryStudents";
 
 const INIT_ORDER = [
   { name: "superAdmin", init: seedSuperAdmin, clear: clearSuperAdmin },
@@ -82,6 +86,7 @@ Env bibliothèque :
   pnpm library:fetch           Télécharge Gutenberg → JSON + EPUB complets
   pnpm seed:library            Importe les EPUB (désactive les stubs PDF)
   pnpm seed:library:reset      Écrase la base bibliothèque seed puis réimporte
+  pnpm seed -- --angola-students   Élèves 7ª + 10ª (branche secondaire angolaise)
 `);
     return;
   }
@@ -90,6 +95,7 @@ Env bibliothèque :
     for (const script of INIT_ORDER) {
       console.log(`  - ${script.name}`);
     }
+    console.log("  - angolaSecondaryStudents (pnpm seed:angola-students)");
     return;
   }
 
@@ -101,6 +107,11 @@ Env bibliothèque :
   if (args.includes("--library-reset")) {
     await clearLibraryBooksSeed();
     await seedLibraryBooks();
+    return;
+  }
+
+  if (args.includes("--angola-students")) {
+    await seedAngolaSecondaryStudents();
     return;
   }
 

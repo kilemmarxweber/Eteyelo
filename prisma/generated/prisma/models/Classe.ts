@@ -44,6 +44,7 @@ export type ClasseMinAggregateOutputType = {
   optionId: string | null
   statusClasse: boolean | null
   creneauId: string | null
+  horaireType: $Enums.HoraireType | null
   branchId: string | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -59,6 +60,7 @@ export type ClasseMaxAggregateOutputType = {
   optionId: string | null
   statusClasse: boolean | null
   creneauId: string | null
+  horaireType: $Enums.HoraireType | null
   branchId: string | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -74,6 +76,7 @@ export type ClasseCountAggregateOutputType = {
   optionId: number
   statusClasse: number
   creneauId: number
+  horaireType: number
   branchId: number
   createdAt: number
   updatedAt: number
@@ -99,6 +102,7 @@ export type ClasseMinAggregateInputType = {
   optionId?: true
   statusClasse?: true
   creneauId?: true
+  horaireType?: true
   branchId?: true
   createdAt?: true
   updatedAt?: true
@@ -114,6 +118,7 @@ export type ClasseMaxAggregateInputType = {
   optionId?: true
   statusClasse?: true
   creneauId?: true
+  horaireType?: true
   branchId?: true
   createdAt?: true
   updatedAt?: true
@@ -129,6 +134,7 @@ export type ClasseCountAggregateInputType = {
   optionId?: true
   statusClasse?: true
   creneauId?: true
+  horaireType?: true
   branchId?: true
   createdAt?: true
   updatedAt?: true
@@ -231,6 +237,7 @@ export type ClasseGroupByOutputType = {
   optionId: string | null
   statusClasse: boolean | null
   creneauId: string | null
+  horaireType: $Enums.HoraireType
   branchId: string
   createdAt: Date
   updatedAt: Date
@@ -269,6 +276,7 @@ export type ClasseWhereInput = {
   optionId?: Prisma.StringNullableFilter<"Classe"> | string | null
   statusClasse?: Prisma.BoolNullableFilter<"Classe"> | boolean | null
   creneauId?: Prisma.StringNullableFilter<"Classe"> | string | null
+  horaireType?: Prisma.EnumHoraireTypeFilter<"Classe"> | $Enums.HoraireType
   branchId?: Prisma.StringFilter<"Classe"> | string
   createdAt?: Prisma.DateTimeFilter<"Classe"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Classe"> | Date | string
@@ -293,6 +301,7 @@ export type ClasseOrderByWithRelationInput = {
   optionId?: Prisma.SortOrderInput | Prisma.SortOrder
   statusClasse?: Prisma.SortOrderInput | Prisma.SortOrder
   creneauId?: Prisma.SortOrderInput | Prisma.SortOrder
+  horaireType?: Prisma.SortOrder
   branchId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -322,6 +331,7 @@ export type ClasseWhereUniqueInput = Prisma.AtLeast<{
   optionId?: Prisma.StringNullableFilter<"Classe"> | string | null
   statusClasse?: Prisma.BoolNullableFilter<"Classe"> | boolean | null
   creneauId?: Prisma.StringNullableFilter<"Classe"> | string | null
+  horaireType?: Prisma.EnumHoraireTypeFilter<"Classe"> | $Enums.HoraireType
   branchId?: Prisma.StringFilter<"Classe"> | string
   createdAt?: Prisma.DateTimeFilter<"Classe"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Classe"> | Date | string
@@ -346,6 +356,7 @@ export type ClasseOrderByWithAggregationInput = {
   optionId?: Prisma.SortOrderInput | Prisma.SortOrder
   statusClasse?: Prisma.SortOrderInput | Prisma.SortOrder
   creneauId?: Prisma.SortOrderInput | Prisma.SortOrder
+  horaireType?: Prisma.SortOrder
   branchId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -369,6 +380,7 @@ export type ClasseScalarWhereWithAggregatesInput = {
   optionId?: Prisma.StringNullableWithAggregatesFilter<"Classe"> | string | null
   statusClasse?: Prisma.BoolNullableWithAggregatesFilter<"Classe"> | boolean | null
   creneauId?: Prisma.StringNullableWithAggregatesFilter<"Classe"> | string | null
+  horaireType?: Prisma.EnumHoraireTypeWithAggregatesFilter<"Classe"> | $Enums.HoraireType
   branchId?: Prisma.StringWithAggregatesFilter<"Classe"> | string
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Classe"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Classe"> | Date | string
@@ -382,6 +394,7 @@ export type ClasseCreateInput = {
   parallel?: string | null
   capacity?: number | null
   statusClasse?: boolean | null
+  horaireType?: $Enums.HoraireType
   createdAt?: Date | string
   updatedAt?: Date | string
   branch: Prisma.BranchCreateNestedOneWithoutClassesInput
@@ -405,6 +418,7 @@ export type ClasseUncheckedCreateInput = {
   optionId?: string | null
   statusClasse?: boolean | null
   creneauId?: string | null
+  horaireType?: $Enums.HoraireType
   branchId: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -424,6 +438,7 @@ export type ClasseUpdateInput = {
   parallel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   statusClasse?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  horaireType?: Prisma.EnumHoraireTypeFieldUpdateOperationsInput | $Enums.HoraireType
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branch?: Prisma.BranchUpdateOneRequiredWithoutClassesNestedInput
@@ -447,6 +462,7 @@ export type ClasseUncheckedUpdateInput = {
   optionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusClasse?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   creneauId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  horaireType?: Prisma.EnumHoraireTypeFieldUpdateOperationsInput | $Enums.HoraireType
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -468,6 +484,7 @@ export type ClasseCreateManyInput = {
   optionId?: string | null
   statusClasse?: boolean | null
   creneauId?: string | null
+  horaireType?: $Enums.HoraireType
   branchId: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -481,6 +498,7 @@ export type ClasseUpdateManyMutationInput = {
   parallel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   statusClasse?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  horaireType?: Prisma.EnumHoraireTypeFieldUpdateOperationsInput | $Enums.HoraireType
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -495,6 +513,7 @@ export type ClasseUncheckedUpdateManyInput = {
   optionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusClasse?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   creneauId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  horaireType?: Prisma.EnumHoraireTypeFieldUpdateOperationsInput | $Enums.HoraireType
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -525,6 +544,7 @@ export type ClasseCountOrderByAggregateInput = {
   optionId?: Prisma.SortOrder
   statusClasse?: Prisma.SortOrder
   creneauId?: Prisma.SortOrder
+  horaireType?: Prisma.SortOrder
   branchId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -544,6 +564,7 @@ export type ClasseMaxOrderByAggregateInput = {
   optionId?: Prisma.SortOrder
   statusClasse?: Prisma.SortOrder
   creneauId?: Prisma.SortOrder
+  horaireType?: Prisma.SortOrder
   branchId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -559,6 +580,7 @@ export type ClasseMinOrderByAggregateInput = {
   optionId?: Prisma.SortOrder
   statusClasse?: Prisma.SortOrder
   creneauId?: Prisma.SortOrder
+  horaireType?: Prisma.SortOrder
   branchId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -603,6 +625,10 @@ export type NullableIntFieldUpdateOperationsInput = {
   decrement?: number
   multiply?: number
   divide?: number
+}
+
+export type EnumHoraireTypeFieldUpdateOperationsInput = {
+  set?: $Enums.HoraireType
 }
 
 export type ClasseCreateNestedManyWithoutCreneauInput = {
@@ -815,6 +841,7 @@ export type ClasseCreateWithoutFraisInput = {
   parallel?: string | null
   capacity?: number | null
   statusClasse?: boolean | null
+  horaireType?: $Enums.HoraireType
   createdAt?: Date | string
   updatedAt?: Date | string
   branch: Prisma.BranchCreateNestedOneWithoutClassesInput
@@ -837,6 +864,7 @@ export type ClasseUncheckedCreateWithoutFraisInput = {
   optionId?: string | null
   statusClasse?: boolean | null
   creneauId?: string | null
+  horaireType?: $Enums.HoraireType
   branchId: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -871,6 +899,7 @@ export type ClasseUpdateWithoutFraisInput = {
   parallel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   statusClasse?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  horaireType?: Prisma.EnumHoraireTypeFieldUpdateOperationsInput | $Enums.HoraireType
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branch?: Prisma.BranchUpdateOneRequiredWithoutClassesNestedInput
@@ -893,6 +922,7 @@ export type ClasseUncheckedUpdateWithoutFraisInput = {
   optionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusClasse?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   creneauId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  horaireType?: Prisma.EnumHoraireTypeFieldUpdateOperationsInput | $Enums.HoraireType
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -911,6 +941,7 @@ export type ClasseCreateWithoutCreneauInput = {
   parallel?: string | null
   capacity?: number | null
   statusClasse?: boolean | null
+  horaireType?: $Enums.HoraireType
   createdAt?: Date | string
   updatedAt?: Date | string
   branch: Prisma.BranchCreateNestedOneWithoutClassesInput
@@ -932,6 +963,7 @@ export type ClasseUncheckedCreateWithoutCreneauInput = {
   capacity?: number | null
   optionId?: string | null
   statusClasse?: boolean | null
+  horaireType?: $Enums.HoraireType
   branchId: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -982,6 +1014,7 @@ export type ClasseScalarWhereInput = {
   optionId?: Prisma.StringNullableFilter<"Classe"> | string | null
   statusClasse?: Prisma.BoolNullableFilter<"Classe"> | boolean | null
   creneauId?: Prisma.StringNullableFilter<"Classe"> | string | null
+  horaireType?: Prisma.EnumHoraireTypeFilter<"Classe"> | $Enums.HoraireType
   branchId?: Prisma.StringFilter<"Classe"> | string
   createdAt?: Prisma.DateTimeFilter<"Classe"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Classe"> | Date | string
@@ -995,6 +1028,7 @@ export type ClasseCreateWithoutOptionInput = {
   parallel?: string | null
   capacity?: number | null
   statusClasse?: boolean | null
+  horaireType?: $Enums.HoraireType
   createdAt?: Date | string
   updatedAt?: Date | string
   branch: Prisma.BranchCreateNestedOneWithoutClassesInput
@@ -1016,6 +1050,7 @@ export type ClasseUncheckedCreateWithoutOptionInput = {
   capacity?: number | null
   statusClasse?: boolean | null
   creneauId?: string | null
+  horaireType?: $Enums.HoraireType
   branchId: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1061,6 +1096,7 @@ export type ClasseCreateWithoutClassEnrollmentInput = {
   parallel?: string | null
   capacity?: number | null
   statusClasse?: boolean | null
+  horaireType?: $Enums.HoraireType
   createdAt?: Date | string
   updatedAt?: Date | string
   branch: Prisma.BranchCreateNestedOneWithoutClassesInput
@@ -1083,6 +1119,7 @@ export type ClasseUncheckedCreateWithoutClassEnrollmentInput = {
   optionId?: string | null
   statusClasse?: boolean | null
   creneauId?: string | null
+  horaireType?: $Enums.HoraireType
   branchId: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1117,6 +1154,7 @@ export type ClasseUpdateWithoutClassEnrollmentInput = {
   parallel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   statusClasse?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  horaireType?: Prisma.EnumHoraireTypeFieldUpdateOperationsInput | $Enums.HoraireType
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branch?: Prisma.BranchUpdateOneRequiredWithoutClassesNestedInput
@@ -1139,6 +1177,7 @@ export type ClasseUncheckedUpdateWithoutClassEnrollmentInput = {
   optionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusClasse?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   creneauId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  horaireType?: Prisma.EnumHoraireTypeFieldUpdateOperationsInput | $Enums.HoraireType
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1157,6 +1196,7 @@ export type ClasseCreateWithoutTeachingInput = {
   parallel?: string | null
   capacity?: number | null
   statusClasse?: boolean | null
+  horaireType?: $Enums.HoraireType
   createdAt?: Date | string
   updatedAt?: Date | string
   branch: Prisma.BranchCreateNestedOneWithoutClassesInput
@@ -1179,6 +1219,7 @@ export type ClasseUncheckedCreateWithoutTeachingInput = {
   optionId?: string | null
   statusClasse?: boolean | null
   creneauId?: string | null
+  horaireType?: $Enums.HoraireType
   branchId: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1213,6 +1254,7 @@ export type ClasseUpdateWithoutTeachingInput = {
   parallel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   statusClasse?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  horaireType?: Prisma.EnumHoraireTypeFieldUpdateOperationsInput | $Enums.HoraireType
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branch?: Prisma.BranchUpdateOneRequiredWithoutClassesNestedInput
@@ -1235,6 +1277,7 @@ export type ClasseUncheckedUpdateWithoutTeachingInput = {
   optionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusClasse?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   creneauId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  horaireType?: Prisma.EnumHoraireTypeFieldUpdateOperationsInput | $Enums.HoraireType
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1253,6 +1296,7 @@ export type ClasseCreateWithoutCalendarEventInput = {
   parallel?: string | null
   capacity?: number | null
   statusClasse?: boolean | null
+  horaireType?: $Enums.HoraireType
   createdAt?: Date | string
   updatedAt?: Date | string
   branch: Prisma.BranchCreateNestedOneWithoutClassesInput
@@ -1275,6 +1319,7 @@ export type ClasseUncheckedCreateWithoutCalendarEventInput = {
   optionId?: string | null
   statusClasse?: boolean | null
   creneauId?: string | null
+  horaireType?: $Enums.HoraireType
   branchId: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1309,6 +1354,7 @@ export type ClasseUpdateWithoutCalendarEventInput = {
   parallel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   statusClasse?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  horaireType?: Prisma.EnumHoraireTypeFieldUpdateOperationsInput | $Enums.HoraireType
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branch?: Prisma.BranchUpdateOneRequiredWithoutClassesNestedInput
@@ -1331,6 +1377,7 @@ export type ClasseUncheckedUpdateWithoutCalendarEventInput = {
   optionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusClasse?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   creneauId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  horaireType?: Prisma.EnumHoraireTypeFieldUpdateOperationsInput | $Enums.HoraireType
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1349,6 +1396,7 @@ export type ClasseCreateWithoutFicheInput = {
   parallel?: string | null
   capacity?: number | null
   statusClasse?: boolean | null
+  horaireType?: $Enums.HoraireType
   createdAt?: Date | string
   updatedAt?: Date | string
   branch: Prisma.BranchCreateNestedOneWithoutClassesInput
@@ -1371,6 +1419,7 @@ export type ClasseUncheckedCreateWithoutFicheInput = {
   optionId?: string | null
   statusClasse?: boolean | null
   creneauId?: string | null
+  horaireType?: $Enums.HoraireType
   branchId: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1405,6 +1454,7 @@ export type ClasseUpdateWithoutFicheInput = {
   parallel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   statusClasse?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  horaireType?: Prisma.EnumHoraireTypeFieldUpdateOperationsInput | $Enums.HoraireType
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branch?: Prisma.BranchUpdateOneRequiredWithoutClassesNestedInput
@@ -1427,6 +1477,7 @@ export type ClasseUncheckedUpdateWithoutFicheInput = {
   optionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusClasse?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   creneauId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  horaireType?: Prisma.EnumHoraireTypeFieldUpdateOperationsInput | $Enums.HoraireType
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1445,6 +1496,7 @@ export type ClasseCreateWithoutBranchInput = {
   parallel?: string | null
   capacity?: number | null
   statusClasse?: boolean | null
+  horaireType?: $Enums.HoraireType
   createdAt?: Date | string
   updatedAt?: Date | string
   classEnrollment?: Prisma.ClassEnrollmentCreateNestedManyWithoutClasseInput
@@ -1467,6 +1519,7 @@ export type ClasseUncheckedCreateWithoutBranchInput = {
   optionId?: string | null
   statusClasse?: boolean | null
   creneauId?: string | null
+  horaireType?: $Enums.HoraireType
   createdAt?: Date | string
   updatedAt?: Date | string
   classEnrollment?: Prisma.ClassEnrollmentUncheckedCreateNestedManyWithoutClasseInput
@@ -1511,6 +1564,7 @@ export type ClasseCreateWithoutOnlineAssignmentsInput = {
   parallel?: string | null
   capacity?: number | null
   statusClasse?: boolean | null
+  horaireType?: $Enums.HoraireType
   createdAt?: Date | string
   updatedAt?: Date | string
   branch: Prisma.BranchCreateNestedOneWithoutClassesInput
@@ -1533,6 +1587,7 @@ export type ClasseUncheckedCreateWithoutOnlineAssignmentsInput = {
   optionId?: string | null
   statusClasse?: boolean | null
   creneauId?: string | null
+  horaireType?: $Enums.HoraireType
   branchId: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1567,6 +1622,7 @@ export type ClasseUpdateWithoutOnlineAssignmentsInput = {
   parallel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   statusClasse?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  horaireType?: Prisma.EnumHoraireTypeFieldUpdateOperationsInput | $Enums.HoraireType
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branch?: Prisma.BranchUpdateOneRequiredWithoutClassesNestedInput
@@ -1589,6 +1645,7 @@ export type ClasseUncheckedUpdateWithoutOnlineAssignmentsInput = {
   optionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusClasse?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   creneauId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  horaireType?: Prisma.EnumHoraireTypeFieldUpdateOperationsInput | $Enums.HoraireType
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1608,6 +1665,7 @@ export type ClasseCreateManyCreneauInput = {
   capacity?: number | null
   optionId?: string | null
   statusClasse?: boolean | null
+  horaireType?: $Enums.HoraireType
   branchId: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1621,6 +1679,7 @@ export type ClasseUpdateWithoutCreneauInput = {
   parallel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   statusClasse?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  horaireType?: Prisma.EnumHoraireTypeFieldUpdateOperationsInput | $Enums.HoraireType
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branch?: Prisma.BranchUpdateOneRequiredWithoutClassesNestedInput
@@ -1642,6 +1701,7 @@ export type ClasseUncheckedUpdateWithoutCreneauInput = {
   capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   optionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusClasse?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  horaireType?: Prisma.EnumHoraireTypeFieldUpdateOperationsInput | $Enums.HoraireType
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1662,6 +1722,7 @@ export type ClasseUncheckedUpdateManyWithoutCreneauInput = {
   capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   optionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusClasse?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  horaireType?: Prisma.EnumHoraireTypeFieldUpdateOperationsInput | $Enums.HoraireType
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1676,6 +1737,7 @@ export type ClasseCreateManyOptionInput = {
   capacity?: number | null
   statusClasse?: boolean | null
   creneauId?: string | null
+  horaireType?: $Enums.HoraireType
   branchId: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1689,6 +1751,7 @@ export type ClasseUpdateWithoutOptionInput = {
   parallel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   statusClasse?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  horaireType?: Prisma.EnumHoraireTypeFieldUpdateOperationsInput | $Enums.HoraireType
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branch?: Prisma.BranchUpdateOneRequiredWithoutClassesNestedInput
@@ -1710,6 +1773,7 @@ export type ClasseUncheckedUpdateWithoutOptionInput = {
   capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   statusClasse?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   creneauId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  horaireType?: Prisma.EnumHoraireTypeFieldUpdateOperationsInput | $Enums.HoraireType
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1730,6 +1794,7 @@ export type ClasseUncheckedUpdateManyWithoutOptionInput = {
   capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   statusClasse?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   creneauId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  horaireType?: Prisma.EnumHoraireTypeFieldUpdateOperationsInput | $Enums.HoraireType
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1745,6 +1810,7 @@ export type ClasseCreateManyBranchInput = {
   optionId?: string | null
   statusClasse?: boolean | null
   creneauId?: string | null
+  horaireType?: $Enums.HoraireType
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -1757,6 +1823,7 @@ export type ClasseUpdateWithoutBranchInput = {
   parallel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   statusClasse?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  horaireType?: Prisma.EnumHoraireTypeFieldUpdateOperationsInput | $Enums.HoraireType
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   classEnrollment?: Prisma.ClassEnrollmentUpdateManyWithoutClasseNestedInput
@@ -1779,6 +1846,7 @@ export type ClasseUncheckedUpdateWithoutBranchInput = {
   optionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusClasse?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   creneauId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  horaireType?: Prisma.EnumHoraireTypeFieldUpdateOperationsInput | $Enums.HoraireType
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   classEnrollment?: Prisma.ClassEnrollmentUncheckedUpdateManyWithoutClasseNestedInput
@@ -1799,6 +1867,7 @@ export type ClasseUncheckedUpdateManyWithoutBranchInput = {
   optionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusClasse?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   creneauId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  horaireType?: Prisma.EnumHoraireTypeFieldUpdateOperationsInput | $Enums.HoraireType
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1889,6 +1958,7 @@ export type ClasseSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   optionId?: boolean
   statusClasse?: boolean
   creneauId?: boolean
+  horaireType?: boolean
   branchId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -1914,6 +1984,7 @@ export type ClasseSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extens
   optionId?: boolean
   statusClasse?: boolean
   creneauId?: boolean
+  horaireType?: boolean
   branchId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -1932,6 +2003,7 @@ export type ClasseSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extens
   optionId?: boolean
   statusClasse?: boolean
   creneauId?: boolean
+  horaireType?: boolean
   branchId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -1950,12 +2022,13 @@ export type ClasseSelectScalar = {
   optionId?: boolean
   statusClasse?: boolean
   creneauId?: boolean
+  horaireType?: boolean
   branchId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type ClasseOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "codeClasse" | "nameClasse" | "level" | "parallel" | "capacity" | "optionId" | "statusClasse" | "creneauId" | "branchId" | "createdAt" | "updatedAt", ExtArgs["result"]["classe"]>
+export type ClasseOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "codeClasse" | "nameClasse" | "level" | "parallel" | "capacity" | "optionId" | "statusClasse" | "creneauId" | "horaireType" | "branchId" | "createdAt" | "updatedAt", ExtArgs["result"]["classe"]>
 export type ClasseInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
   classEnrollment?: boolean | Prisma.Classe$classEnrollmentArgs<ExtArgs>
@@ -2002,6 +2075,10 @@ export type $ClassePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     optionId: string | null
     statusClasse: boolean | null
     creneauId: string | null
+    /**
+     * COMPLET = présence tous les jours (2.º Ciclo 10ª–12ª). REDUIT = ciclo longo 13ª.
+     */
+    horaireType: $Enums.HoraireType
     branchId: string
     createdAt: Date
     updatedAt: Date
@@ -2446,6 +2523,7 @@ export interface ClasseFieldRefs {
   readonly optionId: Prisma.FieldRef<"Classe", 'String'>
   readonly statusClasse: Prisma.FieldRef<"Classe", 'Boolean'>
   readonly creneauId: Prisma.FieldRef<"Classe", 'String'>
+  readonly horaireType: Prisma.FieldRef<"Classe", 'HoraireType'>
   readonly branchId: Prisma.FieldRef<"Classe", 'String'>
   readonly createdAt: Prisma.FieldRef<"Classe", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Classe", 'DateTime'>

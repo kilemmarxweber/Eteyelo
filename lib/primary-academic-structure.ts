@@ -3,6 +3,7 @@ import {
   PRIMARY_CLASS_LEVELS,
   type PrimaryClassLevel,
 } from "@/lib/class-structure";
+import { angolaPrimaryToDrcLevel } from "@/lib/angola-primary-structure";
 
 type AcademicDb = Pick<
   Prisma.TransactionClient,
@@ -26,8 +27,8 @@ export type PrimaryAcademicStructure = {
 };
 
 /** Code option pour un niveau primaire (ex. 1è → PRI-1). */
-export function primaryLevelOptionCode(level: PrimaryClassLevel): string {
-  const digit = level.replace("è", "").trim();
+export function primaryLevelOptionCode(level: string): string {
+  const digit = level.replace(/[ªaèe]/gi, "").trim();
   return `PRI-${digit}`;
 }
 
@@ -47,8 +48,11 @@ export function resolvePrimaryClassLevel(params: {
   nameClasse?: string | null;
 }): PrimaryClassLevel | null {
   if (isPrimaryClassLevel(params.level)) return params.level;
-  const fromName = params.nameClasse?.match(/^(1è|2è|3è|4è|5è|6è)/)?.[1];
-  return isPrimaryClassLevel(fromName) ? fromName : null;
+  const mapped = angolaPrimaryToDrcLevel(params.level);
+  if (mapped) return mapped;
+  const fromName = params.nameClasse?.match(/^(1è|2è|3è|4è|5è|6è|1ª|2ª|3ª|4ª|5ª|6ª)/)?.[1];
+  if (isPrimaryClassLevel(fromName)) return fromName;
+  return angolaPrimaryToDrcLevel(fromName);
 }
 
 /**
@@ -228,6 +232,10 @@ export function getPrimaryOptionForLevel(
   structure: PrimaryAcademicStructure,
   level: string | null | undefined,
 ): PrimaryLevelOption | null {
-  if (!isPrimaryClassLevel(level)) return null;
-  return structure.optionsByLevel[level] ?? null;
+  if (isPrimaryClassLevel(level)) {
+    return structure.optionsByLevel[level] ?? null;
+  }
+  const mapped = angolaPrimaryToDrcLevel(level);
+  if (!mapped) return null;
+  return structure.optionsByLevel[mapped] ?? null;
 }

@@ -186,7 +186,13 @@ export type PeriodLabel =
   | "1er Periode"
   | "Exam 1er trimestre"
   | "Exam 2e trimestre"
-  | "Exam 3e trimestre";
+  | "Exam 3e trimestre"
+  | "1.ª Período"
+  | "2.ª Período"
+  | "3.ª Período"
+  | "Period 1"
+  | "Period 2"
+  | "Period 3";
 
 export type GroupRecords = Partial<Record<SemKey, string>>;
 
@@ -227,18 +233,26 @@ export const periodKeyMap: Record<PeriodLabel, PeriodKey> = {
   "Exam 1er trimestre": "exam1",
   "Exam 2e trimestre": "exam2",
   "Exam 3e trimestre": "exam3",
+  "1.ª Período": "p1",
+  "2.ª Período": "p2",
+  "3.ª Período": "p3",
+  "Period 1": "p1",
+  "Period 2": "p2",
+  "Period 3": "p3",
 };
 
 export function buildSemOrder(
   typebranch?: unknown,
+  educationSystem?: unknown,
 ): Record<StorageGroupKey, readonly (PeriodKey | TotalKey)[]> {
-  const structure = getAcademicStructure(typebranch);
+  const structure = getAcademicStructure(typebranch, educationSystem);
   const order = {} as Record<StorageGroupKey, readonly (PeriodKey | TotalKey)[]>;
 
   for (const group of structure.groups) {
     order[getStorageGroupKey(group)] = getGroupPeriodOrder(
       typebranch,
       group.order,
+      educationSystem,
     ) as readonly (PeriodKey | TotalKey)[];
   }
 
@@ -377,14 +391,18 @@ export type RecapRow = {
   studentSexe: string;
   periods: RecapPeriod[];
   classId?: string;
+  fatherName?: string;
+  motherName?: string;
+  placeOfBirth?: string;
 };
 // Map period indices to semester and periodKey
 export type SemesterKey = "sem1" | "sem2" | "sem3";
 
 export function buildPeriodKeyDefinitions(
   typebranch?: unknown,
+  educationSystem?: unknown,
 ): Record<PeriodKey, StorageGroupKey> {
-  const structure = getAcademicStructure(typebranch);
+  const structure = getAcademicStructure(typebranch, educationSystem);
   const definitions = {} as Record<PeriodKey, StorageGroupKey>;
 
   for (const group of structure.groups) {
@@ -411,6 +429,7 @@ export type ClassType = {
   codename: string;
   level?: string | null;
   optionName?: string | null;
+  parallel?: string | null;
   capacity: number;
   supervisor: string;
   lessons: Lesson[] | undefined;
@@ -467,14 +486,15 @@ export function canShowPeriodInGroup(
   key: PeriodKey,
   active: string[],
   typebranch?: unknown,
+  educationSystem?: unknown,
 ): boolean {
-  const group = getAcademicGroupByOrder(typebranch, groupOrder);
+  const group = getAcademicGroupByOrder(typebranch, groupOrder, educationSystem);
   if (!group) return false;
 
   const periodKeys = group.periods.map((period) => period.key);
   const examKey = group.periods.find((period) => period.kind === "EXAM")?.key;
 
-  const laterGroups = getAcademicStructure(typebranch).groups.filter(
+  const laterGroups = getAcademicStructure(typebranch, educationSystem).groups.filter(
     (item) => item.order > groupOrder,
   );
   if (
@@ -496,16 +516,19 @@ export function canShowGroupTotal(
   groupOrder: number,
   active: string[],
   typebranch?: unknown,
+  educationSystem?: unknown,
 ): boolean {
-  const group = getAcademicGroupByOrder(typebranch, groupOrder);
+  const group = getAcademicGroupByOrder(typebranch, groupOrder, educationSystem);
   if (!group) return false;
 
   const examKey = group.periods.find((period) => period.kind === "EXAM")?.key;
-  if (!examKey) return false;
+  if (!examKey) {
+    return group.periods.some((period) => active.includes(period.key));
+  }
 
   if (active.includes(examKey)) return true;
 
-  return getAcademicStructure(typebranch)
+  return getAcademicStructure(typebranch, educationSystem)
     .groups.filter((item) => item.order > groupOrder)
     .some((laterGroup) =>
       laterGroup.periods.some((period) => active.includes(period.key)),

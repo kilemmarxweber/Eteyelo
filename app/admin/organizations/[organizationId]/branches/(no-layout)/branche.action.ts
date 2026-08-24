@@ -15,8 +15,10 @@ import {
 } from "@/lib/generated-identifiers";
 import { ensurePrimaryAcademicStructure } from "@/lib/primary-academic-structure";
 import { ensureSecondaryCtebStructure } from "@/lib/secondary-cteb-structure";
+import { ensureAngolaSecondaryStructure } from "@/lib/angola-secondary-bootstrap";
 import { ensureDefaultCreneaux } from "@/lib/default-creneaux";
 import { ensureExtendedBranchStructure } from "@/lib/extended-branch-bootstrap";
+import { usesTermPeriodCalendar } from "@/lib/education-system";
 
 export async function getBranchNameAction(branchId: string) {
   if (!branchId) return null;
@@ -98,6 +100,12 @@ export async function createBranchAction(
         longitude: parsed.data.longitude,
         attendanceRadius: parsed.data.attendanceRadius,
         typebranch: parsed.data.typebranch,
+        educationSystem: usesTermPeriodCalendar(
+          parsed.data.typebranch,
+          parsed.data.educationSystem,
+        )
+          ? parsed.data.educationSystem
+          : "CONGOLAIS",
       },
       select: { id: true },
     });
@@ -117,7 +125,11 @@ export async function createBranchAction(
     }
 
     if (parsed.data.typebranch === "SECONDAIRE") {
-      await ensureSecondaryCtebStructure(tx, createdBranch.id);
+      if (parsed.data.educationSystem === "ANGOLAIS") {
+        await ensureAngolaSecondaryStructure(tx, createdBranch.id);
+      } else {
+        await ensureSecondaryCtebStructure(tx, createdBranch.id);
+      }
     }
 
     await ensureExtendedBranchStructure(
@@ -133,6 +145,7 @@ export async function createBranchAction(
   await ensureAcademicPeriodsForBranch({
     branchId: branch.id,
     typebranch: parsed.data.typebranch,
+    educationSystem: parsed.data.educationSystem,
   });
 
   revalidatePath(`/admin/organizations/${organizationId}/branches`);
@@ -179,6 +192,7 @@ export async function getBranchByIdAction(branchId: string) {
       longitude: true,
       attendanceRadius: true,
       typebranch: true,
+      educationSystem: true,
       organizationId: true,
     },
   });
@@ -190,7 +204,7 @@ export async function updateBranchAction(
 ) {
   const existingBranch = await prisma.branch.findUnique({
     where: { id: branchId },
-    select: { id: true, organizationId: true, code: true },
+    select: { id: true, organizationId: true, code: true, educationSystem: true },
   });
 
   if (!existingBranch) {
@@ -212,6 +226,26 @@ export async function updateBranchAction(
       data: null,
       error: parsed.error.issues[0]?.message ?? "Données invalides.",
     };
+  }
+
+  const nextEducationSystem = usesTermPeriodCalendar(
+    parsed.data.typebranch,
+    parsed.data.educationSystem,
+  )
+    ? parsed.data.educationSystem
+    : "CONGOLAIS";
+
+  if (existingBranch.educationSystem !== nextEducationSystem) {
+    const gradeCount = await prisma.studentGrade.count({
+      where: { branchId },
+    });
+    if (gradeCount > 0) {
+      return {
+        data: null,
+        error:
+          "Le système d'enseignement ne peut plus être modifié une fois des notes saisies.",
+      };
+    }
   }
 
   const requestedCode = parsed.data.code?.trim().toUpperCase() || "";
@@ -256,20 +290,26 @@ export async function updateBranchAction(
       longitude: parsed.data.longitude,
       attendanceRadius: parsed.data.attendanceRadius,
       typebranch: parsed.data.typebranch,
+      educationSystem: nextEducationSystem,
     },
-    select: { id: true, typebranch: true },
+    select: { id: true, typebranch: true, educationSystem: true },
   });
 
   await ensureAcademicPeriodsForBranch({
     branchId,
     typebranch: branch.typebranch,
+    educationSystem: branch.educationSystem,
   });
   if (branch.typebranch === "PRIMAIRE") {
     await ensurePrimaryAcademicStructure(prisma, branchId);
   }
 
   if (branch.typebranch === "SECONDAIRE") {
-    await ensureSecondaryCtebStructure(prisma, branchId);
+    if (branch.educationSystem === "ANGOLAIS") {
+      await ensureAngolaSecondaryStructure(prisma, branchId);
+    } else {
+      await ensureSecondaryCtebStructure(prisma, branchId);
+    }
   }
 
   await ensureExtendedBranchStructure(prisma, branchId, branch.typebranch);

@@ -37,15 +37,20 @@ export async function requireBranchContext(
   }
 
   // Si customSession a déjà chargé la branche courante, éviter un findFirst.
+  const sessionEducationSystem = (
+    session.branch as { educationSystem?: string } | null | undefined
+  )?.educationSystem;
   if (
     session.branch?.id === branchId &&
-    session.branch.typebranch != null
+    session.branch.typebranch != null &&
+    sessionEducationSystem
   ) {
     return {
       userId,
       organizationId,
       branchId,
       typebranch: session.branch.typebranch,
+      educationSystem: sessionEducationSystem,
       session,
     };
   }
@@ -58,6 +63,7 @@ export async function requireBranchContext(
     select: {
       id: true,
       typebranch: true,
+      educationSystem: true,
     },
   });
 
@@ -71,6 +77,7 @@ export async function requireBranchContext(
     organizationId,
     branchId,
     typebranch: branch.typebranch,
+    educationSystem: branch.educationSystem,
     session,
   };
 }

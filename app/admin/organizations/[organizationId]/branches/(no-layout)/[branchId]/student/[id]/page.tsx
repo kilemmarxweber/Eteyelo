@@ -483,6 +483,7 @@ const SingleStudentPage = async ({
     listBranchPeriodOptions({
       branchId,
       typebranch: branch.typebranch,
+      educationSystem: branch.educationSystem,
       ensure: false,
     }),
     buildReleveNotesData({

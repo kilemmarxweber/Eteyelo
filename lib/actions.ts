@@ -25,6 +25,12 @@ import {
   getCoursePonderationMap,
   resolveCoursePonderation,
 } from "@/lib/course-ponderation";
+import { ORG_ROLE } from "@/lib/permissions";
+import {
+  angolaDirectorTitle,
+  formatPersonFullName,
+  memberHasOrgRole,
+} from "@/lib/person-full-name";
 
 export async function logout() {
   await auth.api.signOut({
@@ -296,10 +302,139 @@ export async function getStudentsByClass(
       };
     });
 }
+
+export async function getClassStudentFamilies(classId: string) {
+  const { session, userId, branchId } = await requireBranchContext();
+  await assertClassRosterAccess({ session, userId, branchId, classId });
+
+  const currentYear = await prisma.schoolYear.findFirst({
+    where: { isCurrentYear: true, branchId },
+    select: { id: true },
+  });
+
+  const enrollments = await prisma.classEnrollment.findMany({
+    where: {
+      branchId,
+      classeId: classId,
+      ...(currentYear?.id ? { schoolYearId: currentYear.id } : {}),
+    },
+    select: {
+      student: {
+        select: {
+          id: true,
+          placeOfBirth: true,
+          parent: {
+            select: {
+              nomMere: true,
+              branchMember: {
+                select: {
+                  member: {
+                    select: {
+                      user: {
+                        select: {
+                          name: true,
+                          postnom: true,
+                          prenom: true,
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  });
+
+  const families: Record<
+    string,
+    { fatherName: string; motherName: string; placeOfBirth: string }
+  > = {};
+
+  for (const enrollment of enrollments) {
+    const student = enrollment.student;
+    if (!student) continue;
+    families[student.id] = {
+      fatherName: formatPersonFullName(
+        student.parent?.branchMember?.member?.user,
+      ),
+      motherName: student.parent?.nomMere?.trim() ?? "",
+      placeOfBirth: student.placeOfBirth?.trim() ?? "",
+    };
+  }
+
+  return families;
+}
+
+export async function getBranchDirectorForBulletin() {
+  const { branchId, typebranch } = await requireBranchContext();
+  const preferPrefet = typebranch === "SECONDAIRE";
+
+  const leaders = await prisma.branchMember.findMany({
+    where: {
+      branchId,
+      member: {
+        isArchived: false,
+        user: {
+          OR: [{ banned: false }, { banned: null }],
+        },
+      },
+    },
+    orderBy: { createdAt: "asc" },
+    select: {
+      role: true,
+      member: {
+        select: {
+          role: true,
+          user: {
+            select: {
+              name: true,
+              postnom: true,
+              prenom: true,
+              sexe: true,
+              statusUser: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  const active = leaders.filter((row) => row.member.user?.statusUser !== false);
+  const isPrefet = (row: (typeof active)[number]) =>
+    memberHasOrgRole(row.member.role, ORG_ROLE.PREFET);
+  const isSchoolHead = (row: (typeof active)[number]) =>
+    isPrefet(row) ||
+    memberHasOrgRole(row.member.role, ORG_ROLE.DIRECTEUR) ||
+    row.role === "DIRECTOR";
+
+  // Secondaire : le chef d'établissement s'appelle Préfet (rôle prefet ou directeur).
+  const chosen = preferPrefet
+    ? (active.find(isPrefet) ?? active.find(isSchoolHead))
+    : (active.find(isSchoolHead) ?? active.find(isPrefet));
+
+  const user = chosen?.member?.user;
+  const directorName = formatPersonFullName(user);
+  if (!directorName) {
+    return { directorName: "", directorTitle: "Directora" };
+  }
+
+  return {
+    directorName,
+    directorTitle: angolaDirectorTitle(user?.sexe),
+  };
+}
+
 // récupère toutes les périodes / sessions selon le type de branche
 export async function getPeriods() {
-  const { branchId, typebranch } = await requireBranchContext();
-  const periods = await listBranchPeriodOptions({ branchId, typebranch });
+  const { branchId, typebranch, educationSystem } = await requireBranchContext();
+  const periods = await listBranchPeriodOptions({
+    branchId,
+    typebranch,
+    educationSystem,
+  });
 
   return periods.map((period) => ({
     id: period.id,

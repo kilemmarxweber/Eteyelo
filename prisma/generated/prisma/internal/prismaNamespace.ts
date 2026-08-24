@@ -5916,6 +5916,7 @@ export const ClasseScalarFieldEnum = {
   optionId: 'optionId',
   statusClasse: 'statusClasse',
   creneauId: 'creneauId',
+  horaireType: 'horaireType',
   branchId: 'branchId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -6503,6 +6504,7 @@ export const BranchScalarFieldEnum = {
   attendanceRadius: 'attendanceRadius',
   organizationId: 'organizationId',
   typebranch: 'typebranch',
+  educationSystem: 'educationSystem',
   isActive: 'isActive',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
@@ -7088,6 +7090,20 @@ export type ListDecimalFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaMo
 
 
 /**
+ * Reference to a field of type 'HoraireType'
+ */
+export type EnumHoraireTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'HoraireType'>
+    
+
+
+/**
+ * Reference to a field of type 'HoraireType[]'
+ */
+export type ListEnumHoraireTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'HoraireType[]'>
+    
+
+
+/**
  * Reference to a field of type 'Day'
  */
 export type EnumDayFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Day'>
@@ -7252,6 +7268,20 @@ export type EnumTypeBracheFieldRefInput<$PrismaModel> = FieldRefInputType<$Prism
  * Reference to a field of type 'TypeBrache[]'
  */
 export type ListEnumTypeBracheFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TypeBrache[]'>
+    
+
+
+/**
+ * Reference to a field of type 'EducationSystem'
+ */
+export type EnumEducationSystemFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'EducationSystem'>
+    
+
+
+/**
+ * Reference to a field of type 'EducationSystem[]'
+ */
+export type ListEnumEducationSystemFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'EducationSystem[]'>
     
 
 

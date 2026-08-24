@@ -10,6 +10,11 @@ import { Prisma } from "@/prisma/generated/prisma/client";
 import { findAvailableClassForLevel } from "@/lib/class-enrollment/find-available-class";
 import { matchesClassForLevel } from "@/lib/class-enrollment/match-class-for-level";
 import { getClassLevelsForBranch, requiresOptionForClass, allowsOptionForBranch } from "@/lib/class-structure";
+import { ensureAngolaSecondaryStructure } from "@/lib/angola-secondary-bootstrap";
+import {
+  isAngolaFirstCycleLevel,
+  isAngolaSecondarySystem,
+} from "@/lib/angola-secondary-structure";
 import { buildClassCode, buildClassName, validateClassInput } from "@/lib/class-structure";
 import { ensureUniqueIdentifier, generateSlug } from "@/lib/generated-identifiers";
 import { registrationSchema } from "@/src/interfaces/registration";
@@ -646,7 +651,7 @@ export const findParentForRegistrationAction = action
   });
 
 export const getRegistrationOptionsAction = action.handler(async () => {
-  const { branchId, typebranch } = await requireRegistrationContext();
+  const { branchId, typebranch, educationSystem } = await requireRegistrationContext();
   const primaryStructure =
     typebranch === "PRIMAIRE"
       ? await ensurePrimaryAcademicStructure(prisma, branchId)
@@ -722,8 +727,9 @@ export const getRegistrationOptionsAction = action.handler(async () => {
     sections,
     creneaux,
     typeFrais,
-    levels: [...getClassLevelsForBranch(typebranch)],
+    levels: [...getClassLevelsForBranch(typebranch, educationSystem)],
     typebranch,
+    educationSystem,
     allowsOption: allowsOptionForBranch(typebranch),
     primaryStructure,
     branchName: branch.name,
@@ -785,13 +791,21 @@ export const createNextParallelForRegistrationAction = action
     }),
   )
   .handler(async ({ input }) => {
-    const { branchId, organizationId, typebranch } =
+    const { branchId, organizationId, typebranch, educationSystem } =
       await requireRegistrationContext();
+    let optionId = input.optionId;
+    if (
+      isAngolaSecondarySystem(typebranch, educationSystem) &&
+      isAngolaFirstCycleLevel(input.level)
+    ) {
+      optionId = (await ensureAngolaSecondaryStructure(prisma, branchId)).option
+        .id;
+    }
     const validated = validateClassInput({
       typebranch,
+      educationSystem,
       level: input.level,
-      optionId:
-        typebranch === "PRIMAIRE" ? undefined : input.optionId || undefined,
+      optionId: typebranch === "PRIMAIRE" ? undefined : optionId || undefined,
     });
     const option =
       typebranch === "PRIMAIRE"
@@ -843,6 +857,7 @@ export const createNextParallelForRegistrationAction = action
     const existing = existingClasses.filter((classe) =>
       matchesClassForLevel(classe, {
         typebranch,
+        educationSystem,
         level: validated.level!,
         optionId: option?.id ?? null,
         optionName: option?.nameOption ?? null,
@@ -860,9 +875,13 @@ export const createNextParallelForRegistrationAction = action
     // Classes catalogue sans capacité : définir la capacité avant d'ouvrir une parallèle.
     if (existing.length > 0 && existing.some(needsCapacity)) {
       if (existing.some(hasFreeSeats)) {
-        throw new Error(
-          "Une parallèle dispose encore de places disponibles. L'affectation utilisera la première classe libre.",
-        );
+        const free = existing.find(hasFreeSeats)!;
+        return {
+          id: free.id,
+          nameClasse: free.nameClasse,
+          capacity: free.capacity,
+          parallel: free.parallel,
+        };
       }
       const target = existing.find(needsCapacity)!;
       const updated = await prisma.classe.update({
@@ -883,9 +902,13 @@ export const createNextParallelForRegistrationAction = action
     if (existing.length === 0) {
       parallel = undefined;
     } else if (existing.some(hasFreeSeats)) {
-      throw new Error(
-        "Une parallèle dispose encore de places disponibles. L'affectation utilisera la première classe libre.",
-      );
+      const free = existing.find(hasFreeSeats)!;
+      return {
+        id: free.id,
+        nameClasse: free.nameClasse,
+        capacity: free.capacity,
+        parallel: free.parallel,
+      };
     } else {
       const simpleClasses = existing.filter((classe) => !classe.parallel);
       const used = new Set(
@@ -1060,7 +1083,7 @@ export const findStudentHistoryAction = action
 export const suggestNextClassAction = action
   .input(z.object({ studentId: z.string(), outcome: z.enum(["passed", "failed", "returning"]), manualLevel: z.string().optional() }))
   .handler(async ({ input }) => {
-    const { branchId, typebranch } = await requireRegistrationContext();
+    const { branchId, typebranch, educationSystem } = await requireRegistrationContext();
     if (input.outcome === "returning") {
       if (!input.manualLevel) throw new Error("Choisissez manuellement le niveau de retour.");
       return { level: input.manualLevel, optionId: null as string | null, sectionId: null as string | null, reason: "Niveau de retour choisi manuellement" };
@@ -1085,7 +1108,7 @@ export const suggestNextClassAction = action
 
     await assertEnrollmentFeesSettledForPromotion(branchId, previous);
 
-    const levels = [...getClassLevelsForBranch(typebranch)];
+    const levels = [...getClassLevelsForBranch(typebranch, educationSystem)];
     const index = levels.indexOf(currentLevel);
     if (index < 0 || index === levels.length - 1) {
       throw new Error("Aucun niveau supérieur n'est configuré pour cette branche.");
@@ -1114,7 +1137,7 @@ export const suggestNextClassAction = action
 export const createRegistrationFlowAction = action
   .input(registrationSchema)
   .handler(async ({ input }) => {
-    const { branchId, organizationId, typebranch, userId } = await requireRegistrationContext();
+    const { branchId, organizationId, typebranch, educationSystem, userId } = await requireRegistrationContext();
     const peopleLabels = getPeopleLabels(typebranch);
     const parentValidationError = validateRegistrationParentInput(typebranch, input);
     if (parentValidationError) {
@@ -1141,8 +1164,21 @@ export const createRegistrationFlowAction = action
         `))[0] ?? null
       : null;
     if (input.requestId && !request) throw new Error("Cette demande a deja ete traitee ou n'est plus disponible.");
-    if (requiresOptionForClass(typebranch, input.level) && !input.optionId)
+    let enrollmentOptionId = input.optionId;
+    if (
+      isAngolaSecondarySystem(typebranch, educationSystem) &&
+      isAngolaFirstCycleLevel(input.level)
+    ) {
+      enrollmentOptionId = (
+        await ensureAngolaSecondaryStructure(prisma, branchId)
+      ).option.id;
+    }
+    if (
+      requiresOptionForClass(typebranch, input.level, educationSystem) &&
+      !enrollmentOptionId
+    ) {
       throw new Error("Une option est requise pour ce niveau.");
+    }
 
     const selectedOption =
       typebranch === "PRIMAIRE"
@@ -1150,9 +1186,9 @@ export const createRegistrationFlowAction = action
             await ensurePrimaryAcademicStructure(prisma, branchId),
             input.level,
           )
-        : input.optionId
+        : enrollmentOptionId
           ? await prisma.option.findFirst({
-          where: { id: input.optionId, branchId, statusOption: true },
+          where: { id: enrollmentOptionId, branchId, statusOption: true },
           select: { id: true, nameOption: true },
             })
           : null;

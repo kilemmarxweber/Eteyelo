@@ -3,6 +3,21 @@ import {
   normalizeBranchType,
 } from "@/lib/academic-structure";
 import {
+  ANGOLA_SECONDARY_LEVELS,
+  angolaSecondaryLevelLabel,
+  isAngolaFirstCycleLevel,
+  isAngolaReducedHoursLevel,
+  isAngolaSecondarySystem,
+  angolaRequiresArea,
+  normalizeAngolaSecondaryLevel,
+} from "@/lib/angola-secondary-structure";
+import {
+  ANGOLA_PRIMARY_LEVELS,
+  angolaPrimaryLevelLabel,
+  isAngolaPrimarySystem,
+  normalizeAngolaPrimaryLevel,
+} from "@/lib/angola-primary-structure";
+import {
   getBranchTypeLabel as getBranchTypeLabelFromCapabilities,
   isPrimaryBranch as isPrimaryBranchFromCapabilities,
 } from "@/lib/branch-capabilities";
@@ -72,13 +87,22 @@ export function isHumanitesLevel(level: string): boolean {
   return (SECONDARY_HUMANITES_LEVELS as readonly string[]).includes(level);
 }
 
-export function getClassLevelsForBranch(typebranch: unknown): readonly string[] {
+export function getClassLevelsForBranch(
+  typebranch: unknown,
+  educationSystem?: unknown,
+): readonly string[] {
   const branchType = normalizeBranchType(typebranch);
 
   switch (branchType) {
     case "PRIMAIRE":
+      if (isAngolaPrimarySystem(branchType, educationSystem)) {
+        return ANGOLA_PRIMARY_LEVELS;
+      }
       return PRIMARY_CLASS_LEVELS;
     case "SECONDAIRE":
+      if (isAngolaSecondarySystem(branchType, educationSystem)) {
+        return ANGOLA_SECONDARY_LEVELS;
+      }
       return SECONDARY_CLASS_LEVELS;
     case "UNIVERSITE":
       return UNIVERSITY_CLASS_LEVELS;
@@ -95,8 +119,17 @@ export function getClassLevelsForBranch(typebranch: unknown): readonly string[] 
 export function getClassLevelLabel(
   typebranch: unknown,
   level: string,
+  educationSystem?: unknown,
 ): string {
   const branchType = normalizeBranchType(typebranch);
+
+  if (isAngolaSecondarySystem(branchType, educationSystem)) {
+    return angolaSecondaryLevelLabel(level);
+  }
+
+  if (isAngolaPrimarySystem(branchType, educationSystem)) {
+    return angolaPrimaryLevelLabel(level);
+  }
 
   if (branchType === "PRIMAIRE") {
     return `${level}-PR`;
@@ -131,8 +164,13 @@ export function getClassLevelLabel(
 export function requiresOptionForClass(
   typebranch: unknown,
   level: string,
+  educationSystem?: unknown,
 ): boolean {
   const branchType = normalizeBranchType(typebranch);
+
+  if (isAngolaSecondarySystem(branchType, educationSystem)) {
+    return angolaRequiresArea(level);
+  }
 
   if (branchType === "SECONDAIRE") {
     return (SECONDARY_CLASS_LEVELS_WITH_OPTION as readonly string[]).includes(
@@ -151,10 +189,14 @@ export function requiresOptionForClass(
 export function requiresSectionForClass(
   typebranch: unknown,
   level: string,
+  educationSystem?: unknown,
 ): boolean {
   const branchType = normalizeBranchType(typebranch);
   if (branchType === "CENTRE_FORMATION" || branchType === "UNIVERSITE") {
     return Boolean(level?.trim());
+  }
+  if (isAngolaSecondarySystem(branchType, educationSystem)) {
+    return angolaRequiresArea(level);
   }
   return branchType === "SECONDAIRE" && isHumanitesLevel(level);
 }
@@ -171,8 +213,15 @@ export function allowsOptionForBranch(typebranch: unknown): boolean {
 export function isValidClassLevel(
   typebranch: unknown,
   level: string,
+  educationSystem?: unknown,
 ): boolean {
-  return getClassLevelsForBranch(typebranch).includes(level);
+  if (isAngolaSecondarySystem(typebranch, educationSystem)) {
+    return normalizeAngolaSecondaryLevel(level) !== null;
+  }
+  if (isAngolaPrimarySystem(typebranch, educationSystem)) {
+    return normalizeAngolaPrimaryLevel(level) !== null;
+  }
+  return getClassLevelsForBranch(typebranch, educationSystem).includes(level);
 }
 
 export function normalizeParallel(value?: string | null): string | undefined {
@@ -187,6 +236,7 @@ export type BuildClassIdentityInput = {
   optionName?: string | null;
   /** Abréviation catalogue (BIO, MAT, TC…) — prioritaire pour le code. */
   optionAbbrev?: string | null;
+  educationSystem?: unknown;
 };
 
 export function buildClassName(input: BuildClassIdentityInput): string {
@@ -195,6 +245,10 @@ export function buildClassName(input: BuildClassIdentityInput): string {
   const level = input.level.trim();
 
   if (branchType === "PRIMAIRE") {
+    if (isAngolaPrimarySystem(branchType, input.educationSystem)) {
+      const angolaLevel = normalizeAngolaPrimaryLevel(level) ?? level;
+      return parallel ? `${angolaLevel} ${parallel}` : angolaLevel;
+    }
     const base = `${level}-PR`;
     return parallel ? `${base} ${parallel}` : base;
   }
@@ -213,8 +267,14 @@ export function buildClassName(input: BuildClassIdentityInput): string {
 
   const parts: string[] = [level];
   if (parallel) parts.push(parallel);
-  if (requiresOptionForClass(branchType, level) && input.optionName?.trim()) {
+  if (requiresOptionForClass(branchType, level, input.educationSystem) && input.optionName?.trim()) {
     parts.push(input.optionName.trim());
+  }
+  if (
+    isAngolaSecondarySystem(branchType, input.educationSystem) &&
+    isAngolaReducedHoursLevel(level)
+  ) {
+    parts.push("HR");
   }
   return parts.join(" ");
 }
@@ -225,6 +285,12 @@ export function buildClassCode(input: BuildClassIdentityInput): string {
   const level = input.level.trim();
 
   if (branchType === "PRIMAIRE") {
+    if (isAngolaPrimarySystem(branchType, input.educationSystem)) {
+      const angolaLevel = normalizeAngolaPrimaryLevel(level) ?? level;
+      const parts = [angolaLevel];
+      if (parallel) parts.push(parallel);
+      return parts.join("-");
+    }
     const parts = [`${level}-PR`];
     if (parallel) parts.push(parallel);
     return parts.join("-");
@@ -258,6 +324,12 @@ export function buildClassCode(input: BuildClassIdentityInput): string {
       : "");
 
   const parts = [level, parallel, abbrev].filter(Boolean);
+  if (
+    isAngolaSecondarySystem(branchType, input.educationSystem) &&
+    isAngolaReducedHoursLevel(level)
+  ) {
+    parts.push("HR");
+  }
   return parts.join("-") || "CLS";
 }
 
@@ -268,6 +340,7 @@ export function validateClassInput(params: {
   optionId?: string | null;
   nameClasse?: string | null;
   isLegacy?: boolean;
+  educationSystem?: unknown;
 }): {
   level?: string;
   parallel?: string;
@@ -305,12 +378,18 @@ export function validateClassInput(params: {
     };
   }
 
-  const level = params.level?.trim();
-  if (!level) {
+  const rawLevel = params.level?.trim();
+  if (!rawLevel) {
     throw new Error("Veuillez selectionner un niveau");
   }
 
-  if (!isValidClassLevel(branchType, level)) {
+  const level = isAngolaSecondarySystem(branchType, params.educationSystem)
+    ? (normalizeAngolaSecondaryLevel(rawLevel) ?? rawLevel)
+    : isAngolaPrimarySystem(branchType, params.educationSystem)
+      ? (normalizeAngolaPrimaryLevel(rawLevel) ?? rawLevel)
+      : rawLevel;
+
+  if (!isValidClassLevel(branchType, level, params.educationSystem)) {
     throw new Error("Niveau de classe invalide pour cette branche");
   }
 
@@ -322,7 +401,10 @@ export function validateClassInput(params: {
     throw new Error("Les groupes d'atelier ne peuvent pas avoir d'option");
   }
 
-  if (requiresOptionForClass(branchType, level) && !params.optionId) {
+  if (
+    requiresOptionForClass(branchType, level, params.educationSystem) &&
+    !params.optionId
+  ) {
     throw new Error("Une option est requise pour ce niveau");
   }
 

@@ -37,6 +37,16 @@ import {
 import { primaryLevelOptionCode, isPrimaryClassLevel } from "@/lib/primary-academic-structure";
 import { CTEB_OPTION_CODE, CTEB_SECTION_CODE } from "@/lib/class-catalog";
 import { ManagedBranchType } from "@/lib/academic-structure";
+import type { EducationSystem } from "@/lib/education-system";
+import {
+  ANGOLA_CICLO1_SECTION_CODE,
+  isAngolaNucleoComumOption,
+  angolaHoraireHelp,
+  getAngolaHoraireType,
+  isAngolaFirstCycleLevel,
+  isAngolaSecondarySystem,
+  angolaRequiresArea,
+} from "@/lib/angola-secondary-structure";
 import { IOption } from "@/src/interfaces/Option";
 import { ICreneau } from "@/src/interfaces/creneau";
 import { getCreneauxAction } from "../../creneau/creneau.action";
@@ -85,6 +95,8 @@ export function ClasseUpForm({
   const [selectedSectionId, setSelectedSectionId] = useState("");
   const [creneaux, setCreneaux] = useState<ICreneau[]>([]);
   const [branchType, setBranchType] = useState<ManagedBranchType>("SECONDAIRE");
+  const [educationSystem, setEducationSystem] =
+    useState<EducationSystem>("CONGOLAIS");
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -123,6 +135,9 @@ export function ClasseUpForm({
       if (creneauxErr) throw creneauxErr;
 
       setBranchType(branchResult.typebranch as ManagedBranchType);
+      setEducationSystem(
+        (branchResult.educationSystem as EducationSystem) ?? "CONGOLAIS",
+      );
       setOptions(rawOptions);
       setCreneaux(rawCreneaux);
     };
@@ -158,12 +173,24 @@ export function ClasseUpForm({
   const watchedParallel = form.watch("parallel");
   const watchedOptionId = form.watch("optionId");
 
-  const classLevels = getClassLevelsForBranch(branchType);
+  const angolaSecondary = isAngolaSecondarySystem(branchType, educationSystem);
+  const classLevels = getClassLevelsForBranch(branchType, educationSystem);
   const showOptionField =
     branchType === "PRIMAIRE" ||
     (allowsOptionForBranch(branchType) &&
       (isLegacyUpdate ||
-        requiresOptionForClass(branchType, watchedLevel ?? "")));
+        requiresOptionForClass(
+          branchType,
+          watchedLevel ?? "",
+          educationSystem,
+        )));
+  const angolaCycle1 = angolaSecondary && isAngolaFirstCycleLevel(watchedLevel);
+  const troncCommunLevel =
+    angolaCycle1 || (!angolaSecondary && isCtebLevel(watchedLevel ?? ""));
+  const horaireHelp = angolaSecondary
+    ? angolaHoraireHelp(watchedLevel)
+    : "";
+  const horaireType = getAngolaHoraireType(watchedLevel);
 
   const sections = useMemo(() => {
     const map = new Map<string, { id: string; name: string; code: string }>();
@@ -184,6 +211,12 @@ export function ClasseUpForm({
 
   const sectionsForLevel = useMemo(() => {
     if (!watchedLevel || branchType !== "SECONDAIRE") return sections;
+    if (angolaSecondary && isAngolaFirstCycleLevel(watchedLevel)) {
+      return sections.filter((s) => s.code === ANGOLA_CICLO1_SECTION_CODE);
+    }
+    if (angolaSecondary && angolaRequiresArea(watchedLevel)) {
+      return sections.filter((s) => s.code !== ANGOLA_CICLO1_SECTION_CODE);
+    }
     // 7è / 8è : uniquement Éducation de Base (CTEB)
     if (isCtebLevel(watchedLevel)) {
       return sections.filter((s) => s.code === CTEB_SECTION_CODE);
@@ -193,11 +226,11 @@ export function ClasseUpForm({
       return sections.filter((s) => s.code !== CTEB_SECTION_CODE);
     }
     return sections;
-  }, [branchType, sections, watchedLevel]);
+  }, [angolaSecondary, branchType, sections, watchedLevel]);
 
   const optionsForSection = useMemo(() => {
     if (branchType === "PRIMAIRE") {
-      if (!isPrimaryClassLevel(watchedLevel)) return options;
+      if (!watchedLevel) return options;
       const code = primaryLevelOptionCode(watchedLevel);
       const match = options.filter(
         (o) =>
@@ -208,6 +241,12 @@ export function ClasseUpForm({
     }
     if (!selectedSectionId) return [];
     const inSection = options.filter((o) => o.sectionId === selectedSectionId);
+    if (isAngolaFirstCycleLevel(watchedLevel ?? "")) {
+      return inSection.filter(
+        (o) =>
+          isAngolaNucleoComumOption(o),
+      );
+    }
     if (isCtebLevel(watchedLevel ?? "")) {
       return inSection.filter(
         (o) =>
@@ -219,7 +258,7 @@ export function ClasseUpForm({
   }, [branchType, options, selectedSectionId, watchedLevel]);
 
   useEffect(() => {
-    if (branchType !== "PRIMAIRE" || !isPrimaryClassLevel(watchedLevel)) return;
+    if (branchType !== "PRIMAIRE" || !watchedLevel) return;
     const code = primaryLevelOptionCode(watchedLevel);
     const levelOption = options.find(
       (option) =>
@@ -230,9 +269,10 @@ export function ClasseUpForm({
     }
   }, [branchType, form, options, watchedLevel]);
 
-  // 7è / 8è : section CTEB + option Tronc commun obligatoires
+  // 7è / 8è : section CTEB + option Tronc commun obligatoires (RDC)
   useEffect(() => {
-    if (branchType !== "SECONDAIRE" || !isCtebLevel(watchedLevel ?? "")) return;
+    if (branchType !== "SECONDAIRE" || angolaSecondary) return;
+    if (!isCtebLevel(watchedLevel ?? "")) return;
 
     const ctebSection = sections.find((s) => s.code === CTEB_SECTION_CODE);
     const troncCommun = options.find(
@@ -248,7 +288,32 @@ export function ClasseUpForm({
       form.setValue("optionId", troncCommun.id);
     }
   }, [
+    angolaSecondary,
     branchType,
+    watchedLevel,
+    sections,
+    options,
+    selectedSectionId,
+    form,
+  ]);
+
+  // Angola 7ª–9ª : Núcleo comum (comme le tronc commun)
+  useEffect(() => {
+    if (!angolaSecondary || !isAngolaFirstCycleLevel(watchedLevel ?? "")) return;
+
+    const cicloSection = sections.find(
+      (s) => s.code === ANGOLA_CICLO1_SECTION_CODE,
+    );
+    const cicloOption = options.find((o) => isAngolaNucleoComumOption(o));
+
+    if (cicloSection && selectedSectionId !== cicloSection.id) {
+      setSelectedSectionId(cicloSection.id);
+    }
+    if (cicloOption && form.getValues("optionId") !== cicloOption.id) {
+      form.setValue("optionId", cicloOption.id);
+    }
+  }, [
+    angolaSecondary,
     watchedLevel,
     sections,
     options,
@@ -258,7 +323,7 @@ export function ClasseUpForm({
 
   useEffect(() => {
     if (branchType !== "SECONDAIRE" || !watchedLevel) return;
-    if (isCtebLevel(watchedLevel)) return;
+    if (angolaCycle1 || (!angolaSecondary && isCtebLevel(watchedLevel))) return;
 
     // Réinitialise section/option si elles ne correspondent plus au niveau
     if (
@@ -293,12 +358,14 @@ export function ClasseUpForm({
 
     return buildClassName({
       typebranch: branchType,
+      educationSystem,
       level,
       parallel: watchedParallel,
       optionName,
     });
   }, [
     branchType,
+    educationSystem,
     isLegacyUpdate,
     options,
     watchedLevel,
@@ -423,7 +490,11 @@ export function ClasseUpForm({
                           searchable="auto"
                           options={classLevels.map((level) => ({
                             value: level,
-                            label: getClassLevelLabel(branchType, level),
+                            label: getClassLevelLabel(
+                              branchType,
+                              level,
+                              educationSystem,
+                            ),
                           }))}
                           value={field.value ?? ""}
                           onValueChange={(value) => {
@@ -440,6 +511,20 @@ export function ClasseUpForm({
                     </FormItem>
                   )}
                 />
+
+                {horaireHelp ? (
+                  <div className="rounded-md border bg-muted/40 px-3 py-2 text-[11px] leading-snug text-muted-foreground sm:col-span-2">
+                    <p>
+                      <span className="font-medium text-foreground">
+                        {horaireType === "REDUIT"
+                          ? "Horaire réduit"
+                          : "Horaire complet"}
+                        {" · "}
+                      </span>
+                      {horaireHelp}
+                    </p>
+                  </div>
+                ) : null}
 
                 <FormField
                   control={form.control}
@@ -466,7 +551,14 @@ export function ClasseUpForm({
               </>
             )}
 
-            {showOptionField && branchType === "SECONDAIRE" ? (
+            {angolaCycle1 ? (
+              <p className="text-[11px] leading-snug text-muted-foreground sm:col-span-2">
+                7ª–9ª : Núcleo comum (comme le tronc commun). Choisissez seulement
+                le niveau et le parallèle — pas de filière.
+              </p>
+            ) : null}
+
+            {showOptionField && branchType === "SECONDAIRE" && !angolaCycle1 ? (
               <FormItem>
                 <FormLabel>Section (filiere)</FormLabel>
                 <SearchableSelect
@@ -480,20 +572,24 @@ export function ClasseUpForm({
                     setSelectedSectionId(value);
                     form.setValue("optionId", "");
                   }}
-                  disabled={isCtebLevel(watchedLevel ?? "")}
-                  placeholder="Selectionner une section"
-                  searchPlaceholder="Rechercher une section…"
-                  triggerClassName="h-9"
-                />
-                {isCtebLevel(watchedLevel ?? "") ? (
-                  <FormDescription className="text-[11px] leading-snug">
-                    CTEB — Tronc commun obligatoire (7ᵉ / 8ᵉ).
-                  </FormDescription>
-                ) : null}
+                      disabled={troncCommunLevel}
+                      placeholder="Selectionner une section"
+                      searchPlaceholder="Rechercher une section…"
+                      triggerClassName="h-9"
+                    />
+                    {angolaCycle1 ? (
+                      <FormDescription className="text-[11px] leading-snug">
+                        7ª–9ª — Núcleo comum (comme le tronc commun). Pas d'option à choisir.
+                      </FormDescription>
+                    ) : isCtebLevel(watchedLevel ?? "") && !angolaSecondary ? (
+                      <FormDescription className="text-[11px] leading-snug">
+                        CTEB — Tronc commun obligatoire (7ᵉ / 8ᵉ).
+                      </FormDescription>
+                    ) : null}
               </FormItem>
             ) : null}
 
-            {showOptionField ? (
+            {showOptionField && !angolaCycle1 ? (
               <FormField
                 control={form.control}
                 name="optionId"
@@ -515,7 +611,7 @@ export function ClasseUpForm({
                         onValueChange={field.onChange}
                         disabled={
                           branchType === "PRIMAIRE" ||
-                          isCtebLevel(watchedLevel ?? "") ||
+                          troncCommunLevel ||
                           (branchType === "SECONDAIRE" && !selectedSectionId)
                         }
                         placeholder={
@@ -523,8 +619,10 @@ export function ClasseUpForm({
                             ? watchedLevel
                               ? `${watchedLevel} année`
                               : "Selon le niveau"
-                            : isCtebLevel(watchedLevel ?? "")
-                              ? "Tronc commun"
+                            : troncCommunLevel
+                              ? angolaCycle1
+                                ? "Núcleo comum"
+                                : "Tronc commun"
                               : !selectedSectionId &&
                                   branchType === "SECONDAIRE"
                                 ? "Choisir d'abord une section"

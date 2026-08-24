@@ -9,6 +9,7 @@ import {
   resolveAcademicPeriodConfig,
 } from "@/lib/academic-structure";
 import { UNIVERSITY_LMD_LABELS } from "@/lib/university-lmd-labels";
+import { usesTermPeriodCalendar } from "@/lib/education-system";
 
 function addDays(date: Date, days: number) {
   const next = new Date(date);
@@ -29,11 +30,12 @@ function getDefaultAcademicYearRange() {
 export async function ensureAcademicPeriodsForBranch(params: {
   branchId: string;
   typebranch: unknown;
+  educationSystem?: unknown;
   startDate?: Date;
   endDate?: Date;
 }) {
   const typebranch = normalizeBranchType(params.typebranch);
-  const structure = getAcademicStructure(typebranch);
+  const structure = getAcademicStructure(typebranch, params.educationSystem);
   const range = {
     ...getDefaultAcademicYearRange(),
     ...params,
@@ -165,9 +167,15 @@ function isKnownAcademicPeriod(
   label: string,
   typebranch: unknown,
   semesterLabel?: string | null,
+  educationSystem?: unknown,
 ): boolean {
   return (
-    resolveAcademicPeriodConfig(label, typebranch, semesterLabel) !== null
+    resolveAcademicPeriodConfig(
+      label,
+      typebranch,
+      semesterLabel,
+      educationSystem,
+    ) !== null
   );
 }
 
@@ -186,16 +194,22 @@ function dedupeUniversitySessions(
 export async function listBranchPeriodOptions(params: {
   branchId: string;
   typebranch: unknown;
+  educationSystem?: unknown;
   ensure?: boolean;
   /** Universite : ne retourner que Premiere session et Deuxieme session. */
   sessionsOnly?: boolean;
 }): Promise<BranchPeriodOption[]> {
   const typebranch = normalizeBranchType(params.typebranch);
 
-  if (params.ensure !== false && isUniversiteBranch(typebranch)) {
+  if (
+    params.ensure !== false &&
+    (isUniversiteBranch(typebranch) ||
+      usesTermPeriodCalendar(typebranch, params.educationSystem))
+  ) {
     await ensureAcademicPeriodsForBranch({
       branchId: params.branchId,
       typebranch,
+      educationSystem: params.educationSystem,
     });
   }
 
@@ -216,6 +230,7 @@ export async function listBranchPeriodOptions(params: {
         rawLabel,
         typebranch,
         semesterLabel,
+        params.educationSystem,
       );
       const kind = config?.kind ?? null;
       const isUniversitySession =
@@ -235,7 +250,12 @@ export async function listBranchPeriodOptions(params: {
       };
     })
     .filter((period) =>
-      isKnownAcademicPeriod(period.rawLabel, typebranch, period.semesterLabel),
+      isKnownAcademicPeriod(
+        period.rawLabel,
+        typebranch,
+        period.semesterLabel,
+        params.educationSystem,
+      ),
     )
     .filter((period) => {
       if (!params.sessionsOnly || !isUniversiteBranch(typebranch)) {
@@ -249,11 +269,13 @@ export async function listBranchPeriodOptions(params: {
           left.rawLabel,
           typebranch,
           left.semesterLabel,
+          params.educationSystem,
         ) -
         getAcademicPeriodOrderForSemester(
           right.rawLabel,
           typebranch,
           right.semesterLabel,
+          params.educationSystem,
         ),
     );
 

@@ -1,4 +1,8 @@
 import { UNIVERSITY_LMD_LABELS } from "@/lib/university-lmd-labels";
+import {
+  normalizeEducationSystem,
+  usesTermPeriodCalendar,
+} from "@/lib/education-system";
 
 export const BRANCH_TYPES = [
   "PRIMAIRE",
@@ -32,6 +36,109 @@ export type AcademicStructure = {
   groups: AcademicGroupConfig[];
   periods: AcademicPeriodConfig[];
 };
+
+const TERM_PERIOD_GROUPS_PT: AcademicGroupConfig[] = [
+  {
+    key: "trim1",
+    label: "1.º Trimestre",
+    order: 1,
+    periods: [
+      {
+        key: "p1",
+        label: "1.ª Período",
+        groupLabel: "1.º Trimestre",
+        order: 1,
+        kind: "PERIOD",
+      },
+    ],
+  },
+  {
+    key: "trim2",
+    label: "2.º Trimestre",
+    order: 2,
+    periods: [
+      {
+        key: "p2",
+        label: "2.ª Período",
+        groupLabel: "2.º Trimestre",
+        order: 2,
+        kind: "PERIOD",
+      },
+    ],
+  },
+  {
+    key: "trim3",
+    label: "3.º Trimestre",
+    order: 3,
+    periods: [
+      {
+        key: "p3",
+        label: "3.ª Período",
+        groupLabel: "3.º Trimestre",
+        order: 3,
+        kind: "PERIOD",
+      },
+    ],
+  },
+];
+
+const TERM_PERIOD_GROUPS_EN: AcademicGroupConfig[] = [
+  {
+    key: "trim1",
+    label: "Term 1",
+    order: 1,
+    periods: [
+      {
+        key: "p1",
+        label: "Period 1",
+        groupLabel: "Term 1",
+        order: 1,
+        kind: "PERIOD",
+      },
+    ],
+  },
+  {
+    key: "trim2",
+    label: "Term 2",
+    order: 2,
+    periods: [
+      {
+        key: "p2",
+        label: "Period 2",
+        groupLabel: "Term 2",
+        order: 2,
+        kind: "PERIOD",
+      },
+    ],
+  },
+  {
+    key: "trim3",
+    label: "Term 3",
+    order: 3,
+    periods: [
+      {
+        key: "p3",
+        label: "Period 3",
+        groupLabel: "Term 3",
+        order: 3,
+        kind: "PERIOD",
+      },
+    ],
+  },
+];
+
+function buildTermPeriodStructure(
+  typebranch: ManagedBranchType,
+  educationSystem: "ANGOLAIS" | "ANGLAIS",
+): AcademicStructure {
+  const groups =
+    educationSystem === "ANGLAIS" ? TERM_PERIOD_GROUPS_EN : TERM_PERIOD_GROUPS_PT;
+  return {
+    typebranch,
+    groups,
+    periods: groups.flatMap((group) => group.periods),
+  };
+}
 
 const SECONDARY_GROUPS: AcademicGroupConfig[] = [
   {
@@ -224,12 +331,42 @@ export function normalizeBranchType(value: unknown): ManagedBranchType {
   return isManagedBranchType(value) ? value : "SECONDAIRE";
 }
 
-export function getAcademicStructure(typebranch: unknown): AcademicStructure {
-  return ACADEMIC_STRUCTURES[normalizeBranchType(typebranch)];
+export function getAcademicStructure(
+  typebranch: unknown,
+  educationSystem?: unknown,
+): AcademicStructure {
+  const type = normalizeBranchType(typebranch);
+  const system = normalizeEducationSystem(educationSystem);
+  if (usesTermPeriodCalendar(type, system)) {
+    return buildTermPeriodStructure(
+      type,
+      system === "ANGLAIS" ? "ANGLAIS" : "ANGOLAIS",
+    );
+  }
+  return ACADEMIC_STRUCTURES[type];
 }
 
-export function getAcademicPeriodLabels(typebranch: unknown): string[] {
-  return getAcademicStructure(typebranch).periods.map((period) => period.label);
+function structuresForLookup(
+  typebranch?: unknown,
+  educationSystem?: unknown,
+): AcademicStructure[] {
+  if (typebranch !== undefined && typebranch !== null && typebranch !== "") {
+    return [getAcademicStructure(typebranch, educationSystem)];
+  }
+  return [
+    ...Object.values(ACADEMIC_STRUCTURES),
+    buildTermPeriodStructure("PRIMAIRE", "ANGOLAIS"),
+    buildTermPeriodStructure("PRIMAIRE", "ANGLAIS"),
+  ];
+}
+
+export function getAcademicPeriodLabels(
+  typebranch: unknown,
+  educationSystem?: unknown,
+): string[] {
+  return getAcademicStructure(typebranch, educationSystem).periods.map(
+    (period) => period.label,
+  );
 }
 
 const ACADEMIC_PERIOD_ALIASES: Record<string, string> = {
@@ -257,6 +394,21 @@ const ACADEMIC_PERIOD_ALIASES: Record<string, string> = {
   "Première session (examens ordinaires)": UNIVERSITY_LMD_LABELS.firstSession,
   "Deuxième session (rattrapage, si organisée)":
     UNIVERSITY_LMD_LABELS.secondSession,
+  "1ª Período": "1.ª Período",
+  "1.a Período": "1.ª Período",
+  "1º Período": "1.ª Período",
+  "1.º Período": "1.ª Período",
+  "1.ª Periodo": "1.ª Período",
+  "2ª Período": "2.ª Período",
+  "2.a Período": "2.ª Período",
+  "2º Período": "2.ª Período",
+  "2.º Período": "2.ª Período",
+  "2.ª Periodo": "2.ª Período",
+  "3ª Período": "3.ª Período",
+  "3.a Período": "3.ª Período",
+  "3º Período": "3.ª Período",
+  "3.º Período": "3.ª Período",
+  "3.ª Periodo": "3.ª Período",
 };
 export function normalizeAcademicPeriodLabel(label: string): string {
   return ACADEMIC_PERIOD_ALIASES[label] ?? label;
@@ -269,11 +421,13 @@ export function getAcademicPeriodAliases(label: string): string[] {
     .map(([alias]) => alias);
 }
 
-export function getAcademicPeriodKey(label: string, typebranch?: unknown): string | null {
+export function getAcademicPeriodKey(
+  label: string,
+  typebranch?: unknown,
+  educationSystem?: unknown,
+): string | null {
   const normalizedLabel = normalizeAcademicPeriodLabel(label);
-  const structures = typebranch
-    ? [getAcademicStructure(typebranch)]
-    : Object.values(ACADEMIC_STRUCTURES);
+  const structures = structuresForLookup(typebranch, educationSystem);
 
   for (const structure of structures) {
     const match = structure.periods.find((period) => period.label === normalizedLabel);
@@ -283,11 +437,13 @@ export function getAcademicPeriodKey(label: string, typebranch?: unknown): strin
   return null;
 }
 
-export function getAcademicPeriodOrder(label: string, typebranch?: unknown): number {
+export function getAcademicPeriodOrder(
+  label: string,
+  typebranch?: unknown,
+  educationSystem?: unknown,
+): number {
   const normalizedLabel = normalizeAcademicPeriodLabel(label);
-  const structures = typebranch
-    ? [getAcademicStructure(typebranch)]
-    : Object.values(ACADEMIC_STRUCTURES);
+  const structures = structuresForLookup(typebranch, educationSystem);
 
   for (const structure of structures) {
     const match = structure.periods.find((period) => period.label === normalizedLabel);
@@ -302,9 +458,10 @@ export function resolveAcademicPeriodConfig(
   label: string,
   typebranch?: unknown,
   semesterLabel?: string | null,
+  educationSystem?: unknown,
 ): AcademicPeriodConfig | null {
   const normalizedLabel = normalizeAcademicPeriodLabel(label);
-  const structure = getAcademicStructure(typebranch);
+  const structure = getAcademicStructure(typebranch, educationSystem);
 
   if (semesterLabel) {
     const group = structure.groups.find((item) => item.label === semesterLabel);
@@ -319,17 +476,27 @@ export function getAcademicPeriodOrderForSemester(
   label: string,
   typebranch?: unknown,
   semesterLabel?: string | null,
+  educationSystem?: unknown,
 ): number {
   return (
-    resolveAcademicPeriodConfig(label, typebranch, semesterLabel)?.order ??
-    Number.MAX_SAFE_INTEGER
+    resolveAcademicPeriodConfig(label, typebranch, semesterLabel, educationSystem)
+      ?.order ?? Number.MAX_SAFE_INTEGER
   );
 }
 
-export function getActivePeriodKeys(label: string, typebranch?: unknown): string[] {
-  const structure = typebranch ? getAcademicStructure(typebranch) : undefined;
-  const order = getAcademicPeriodOrder(label, typebranch);
-  const periods = structure?.periods ?? Object.values(ACADEMIC_STRUCTURES).flatMap((item) => item.periods);
+export function getActivePeriodKeys(
+  label: string,
+  typebranch?: unknown,
+  educationSystem?: unknown,
+): string[] {
+  const structure =
+    typebranch !== undefined && typebranch !== null && typebranch !== ""
+      ? getAcademicStructure(typebranch, educationSystem)
+      : undefined;
+  const order = getAcademicPeriodOrder(label, typebranch, educationSystem);
+  const periods =
+    structure?.periods ??
+    structuresForLookup(undefined, educationSystem).flatMap((item) => item.periods);
 
   return periods
     .filter((period) => period.order <= order)
@@ -337,11 +504,13 @@ export function getActivePeriodKeys(label: string, typebranch?: unknown): string
     .map((period) => period.key);
 }
 
-export function getAcademicGroupLabels(label: string, typebranch?: unknown): string[] {
+export function getAcademicGroupLabels(
+  label: string,
+  typebranch?: unknown,
+  educationSystem?: unknown,
+): string[] {
   const normalizedLabel = normalizeAcademicPeriodLabel(label);
-  const structures = typebranch
-    ? [getAcademicStructure(typebranch)]
-    : Object.values(ACADEMIC_STRUCTURES);
+  const structures = structuresForLookup(typebranch, educationSystem);
 
   for (const structure of structures) {
     const group = structure.groups.find((item) =>
@@ -392,8 +561,9 @@ export function getAcademicGroupPeriodKeys(group: AcademicGroupConfig): string[]
 export function getAcademicGroupByOrder(
   typebranch: unknown,
   groupOrder: number,
+  educationSystem?: unknown,
 ): AcademicGroupConfig | undefined {
-  return getAcademicStructure(typebranch).groups.find(
+  return getAcademicStructure(typebranch, educationSystem).groups.find(
     (group) => group.order === groupOrder,
   );
 }
@@ -401,10 +571,9 @@ export function getAcademicGroupByOrder(
 export function getAcademicGroupByPeriodKey(
   periodKey: string,
   typebranch?: unknown,
+  educationSystem?: unknown,
 ): AcademicGroupConfig | undefined {
-  const structures = typebranch
-    ? [getAcademicStructure(typebranch)]
-    : Object.values(ACADEMIC_STRUCTURES);
+  const structures = structuresForLookup(typebranch, educationSystem);
 
   for (const structure of structures) {
     const group = structure.groups.find((item) =>
@@ -419,16 +588,18 @@ export function getAcademicGroupByPeriodKey(
 export function getPeriodStorageGroupKey(
   periodKey: string,
   typebranch?: unknown,
+  educationSystem?: unknown,
 ): StorageGroupKey | undefined {
-  const group = getAcademicGroupByPeriodKey(periodKey, typebranch);
+  const group = getAcademicGroupByPeriodKey(periodKey, typebranch, educationSystem);
   return group ? getStorageGroupKey(group) : undefined;
 }
 
 export function getGroupPeriodOrder(
   typebranch: unknown,
   groupOrder: number,
+  educationSystem?: unknown,
 ): readonly AcademicPeriodField[] {
-  const group = getAcademicGroupByOrder(typebranch, groupOrder);
+  const group = getAcademicGroupByOrder(typebranch, groupOrder, educationSystem);
   if (!group) return [];
 
   return [
@@ -449,8 +620,9 @@ export function getGroupPeriodLabelAliases(label: string): string[] {
 
 export function buildPeriodFieldMap(
   typebranch: unknown,
+  educationSystem?: unknown,
 ): Record<string, PeriodFieldMapEntry> {
-  const structure = getAcademicStructure(typebranch);
+  const structure = getAcademicStructure(typebranch, educationSystem);
   const map: Record<string, PeriodFieldMapEntry> = {};
 
   for (const group of structure.groups) {
@@ -486,8 +658,9 @@ export function isAcademicGroupComplete(
 export function areAllAcademicGroupsComplete(
   periods: Array<{ periodName: string }>,
   typebranch: unknown,
+  educationSystem?: unknown,
 ): boolean {
-  return getAcademicStructure(typebranch).groups.every((group) =>
+  return getAcademicStructure(typebranch, educationSystem).groups.every((group) =>
     isAcademicGroupComplete(periods, group),
   );
 }
@@ -512,11 +685,16 @@ export function getAcademicGroupExamLabel(group: AcademicGroupConfig): string {
 export function isAcademicExamPeriodName(
   periodName: string,
   typebranch?: unknown,
+  educationSystem?: unknown,
 ): boolean {
-  const periodKey = getAcademicPeriodKey(periodName, typebranch);
+  const periodKey = getAcademicPeriodKey(periodName, typebranch, educationSystem);
   if (!periodKey) return false;
 
-  const group = getAcademicGroupByPeriodKey(periodKey, typebranch);
+  const group = getAcademicGroupByPeriodKey(
+    periodKey,
+    typebranch,
+    educationSystem,
+  );
   if (!group) return false;
 
   return group.periods.some(
@@ -527,8 +705,9 @@ export function isAcademicExamPeriodName(
 /** Scores vides par groupe (sem1/sem2/sem3) selon le type de branche. */
 export function buildEmptySubjectGroupScores(
   typebranch?: unknown,
+  educationSystem?: unknown,
 ): Partial<Record<StorageGroupKey, Record<string, number>>> {
-  const structure = getAcademicStructure(typebranch);
+  const structure = getAcademicStructure(typebranch, educationSystem);
   const groups: Partial<Record<StorageGroupKey, Record<string, number>>> = {};
 
   for (const group of structure.groups) {

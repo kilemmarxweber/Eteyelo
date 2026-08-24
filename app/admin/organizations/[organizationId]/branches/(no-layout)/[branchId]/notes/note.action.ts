@@ -100,10 +100,11 @@ async function syncClassStudentsAcrossFiches({
 }
 // récupère toutes les périodes / sessions selon le type de branche
 export async function getPeriods() {
-  const { branchId, typebranch } = await requireBranchContext();
+  const { branchId, typebranch, educationSystem } = await requireBranchContext();
   const periods = await listBranchPeriodOptions({
     branchId,
     typebranch,
+    educationSystem,
     sessionsOnly: isUniversiteBranch(typebranch),
   });
 
@@ -165,7 +166,7 @@ export async function createFiche(
   data: CreateFicheParams,
 ): Promise<CreateFicheResult> {
   try {
-    const { session, userId, branchId, typebranch } =
+    const { session, userId, branchId, typebranch, educationSystem } =
       await requireBranchContext();
     const canManage = canManageOrganization(session);
     const isTeacher = hasSessionRole(session, [ORG_ROLE.TEACHER, "TEACHER"]);
@@ -179,7 +180,11 @@ export async function createFiche(
       };
     }
 
-    const periodRecord = await listBranchPeriodOptions({ branchId, typebranch });
+    const periodRecord = await listBranchPeriodOptions({
+      branchId,
+      typebranch,
+      educationSystem,
+    });
     const selectedPeriod = periodRecord.find((p) => p.id === data.periodId);
     const isExamPeriod = selectedPeriod?.kind === "EXAM";
 

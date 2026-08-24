@@ -589,10 +589,12 @@ export default function FicheSaisieClient({
                       getAcademicPeriodOrder(
                         a.rawLabel ?? a.label,
                         notesLabels.typebranch,
+                        notesLabels.educationSystem,
                       ) -
                       getAcademicPeriodOrder(
                         b.rawLabel ?? b.label,
                         notesLabels.typebranch,
+                        notesLabels.educationSystem,
                       ),
                   );
                 return (

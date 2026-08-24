@@ -230,6 +230,23 @@ export const TypeBrache = {
 export type TypeBrache = (typeof TypeBrache)[keyof typeof TypeBrache]
 
 
+export const EducationSystem = {
+  CONGOLAIS: 'CONGOLAIS',
+  ANGOLAIS: 'ANGOLAIS',
+  ANGLAIS: 'ANGLAIS'
+} as const
+
+export type EducationSystem = (typeof EducationSystem)[keyof typeof EducationSystem]
+
+
+export const HoraireType = {
+  COMPLET: 'COMPLET',
+  REDUIT: 'REDUIT'
+} as const
+
+export type HoraireType = (typeof HoraireType)[keyof typeof HoraireType]
+
+
 export const StudentLinkType = {
   IMPORTED: 'IMPORTED',
   NATIVE: 'NATIVE'

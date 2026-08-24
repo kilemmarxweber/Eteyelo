@@ -26,6 +26,12 @@ import {
   getPrimaryOptionForLevel,
 } from "@/lib/primary-academic-structure";
 import { ensureSecondaryCtebStructure } from "@/lib/secondary-cteb-structure";
+import { ensureAngolaSecondaryStructure } from "@/lib/angola-secondary-bootstrap";
+import {
+  getAngolaHoraireType,
+  isAngolaFirstCycleLevel,
+  isAngolaSecondarySystem,
+} from "@/lib/angola-secondary-structure";
 import {
   ensureUniqueIdentifier,
   generateClassCode,
@@ -40,6 +46,7 @@ function revalidateClassePages(organizationId: string, branchId: string) {
 
 async function resolveClassIdentity(params: {
   typebranch: unknown;
+  educationSystem?: unknown;
   level?: string | null;
   parallel?: string | null;
   optionId?: string | null;
@@ -48,15 +55,31 @@ async function resolveClassIdentity(params: {
   isLegacy?: boolean;
 }) {
   const primary = isPrimaryBranch(params.typebranch);
+  const angola = isAngolaSecondarySystem(
+    params.typebranch,
+    params.educationSystem,
+  );
 
   let optionId = primary ? undefined : params.optionId;
-  if (!primary && !params.isLegacy && isCtebLevel(params.level ?? "")) {
+  if (
+    !primary &&
+    !params.isLegacy &&
+    angola &&
+    isAngolaFirstCycleLevel(params.level ?? "")
+  ) {
+    const angolaStructure = await ensureAngolaSecondaryStructure(
+      prisma,
+      params.branchId,
+    );
+    optionId = angolaStructure.option.id;
+  } else if (!primary && !params.isLegacy && isCtebLevel(params.level ?? "")) {
     const cteb = await ensureSecondaryCtebStructure(prisma, params.branchId);
     optionId = cteb.option.id;
   }
 
   const validated = validateClassInput({
     typebranch: params.typebranch,
+    educationSystem: params.educationSystem,
     level: params.level,
     parallel: params.parallel,
     optionId,
@@ -89,6 +112,12 @@ async function resolveClassIdentity(params: {
     if (!option) {
       throw new Error("Niveau primaire invalide pour la pondération");
     }
+  } else if (
+    angola &&
+    isAngolaFirstCycleLevel(validated.level ?? "")
+  ) {
+    option = (await ensureAngolaSecondaryStructure(prisma, params.branchId))
+      .option;
   } else if (isCtebLevel(validated.level ?? "")) {
     option = (await ensureSecondaryCtebStructure(prisma, params.branchId))
       .option;
@@ -105,6 +134,7 @@ async function resolveClassIdentity(params: {
 
   const nameClasse = buildClassName({
     typebranch: params.typebranch,
+    educationSystem: params.educationSystem,
     level: validated.level!,
     parallel: validated.parallel,
     optionName: option?.nameOption,
@@ -112,6 +142,7 @@ async function resolveClassIdentity(params: {
 
   const codeBase = buildClassCode({
     typebranch: params.typebranch,
+    educationSystem: params.educationSystem,
     level: validated.level!,
     parallel: validated.parallel,
     optionName: option?.nameOption,
@@ -128,20 +159,21 @@ async function resolveClassIdentity(params: {
 }
 
 export const getBranchTypeAction = action.handler(async () => {
-  const { typebranch } = await requireBranchContext();
-  return { typebranch };
+  const { typebranch, educationSystem } = await requireBranchContext();
+  return { typebranch, educationSystem };
 });
 
 export const createClasseAction = action
   .input(classeCreateSchema)
   .handler(async ({ input }) => {
     try {
-      const { branchId, organizationId, typebranch } =
+      const { branchId, organizationId, typebranch, educationSystem } =
         await requireBranchContext();
       const { statusClasse, creneauId, capacity } = input;
 
       const identity = await resolveClassIdentity({
         typebranch,
+        educationSystem,
         level: input.level,
         parallel: input.parallel,
         optionId: input.optionId,
@@ -188,6 +220,7 @@ export const createClasseAction = action
           optionId: identity.optionId,
           statusClasse,
           creneauId: creneauId || null,
+          horaireType: getAngolaHoraireType(identity.level),
           branchId,
         },
       });
@@ -305,7 +338,7 @@ export const getClassesByIdAction = action
 export const updateClasseAction = action
   .input(classeSchema)
   .handler(async ({ input }) => {
-    const { branchId, organizationId, typebranch } =
+    const { branchId, organizationId, typebranch, educationSystem } =
       await requireBranchContext();
     const { id, statusClasse, creneauId, capacity } = input;
     if (!id) throw new Error("Identifiant de classe manquant");
@@ -320,6 +353,7 @@ export const updateClasseAction = action
 
     const identity = await resolveClassIdentity({
       typebranch,
+      educationSystem,
       level: input.level?.trim() || existing.level,
       parallel: input.parallel,
       optionId: input.optionId,
@@ -367,6 +401,7 @@ export const updateClasseAction = action
         optionId: identity.optionId,
         statusClasse,
         creneauId: creneauId || null,
+        horaireType: getAngolaHoraireType(identity.level),
       },
     });
     revalidateClassePages(organizationId, branchId);

@@ -8,11 +8,15 @@ import { UNIVERSITY_NOTES_LABELS } from "@/lib/university-lmd-labels";
 export function useNotesLabels(typebranchOverride?: unknown) {
   const { data: session } = useSession();
   const typebranch = typebranchOverride ?? session?.branch?.typebranch;
+  const educationSystem = (
+    session?.branch as { educationSystem?: string } | null | undefined
+  )?.educationSystem;
   const isUniversite = isUniversiteBranch(typebranch);
   const peopleLabels = getPeopleLabels(typebranch);
 
   return {
     typebranch,
+    educationSystem,
     isUniversite,
     sessionLabel: isUniversite ? UNIVERSITY_NOTES_LABELS.session : "Période",
     sessionPlaceholder: isUniversite

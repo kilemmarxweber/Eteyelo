@@ -11,6 +11,7 @@ import {
   getAcademicStructure,
   normalizeBranchType,
 } from "@/lib/academic-structure";
+import { usesTermPeriodCalendar } from "@/lib/education-system";
 
 function assertCanManage(
   session: Awaited<ReturnType<typeof requireBranchContext>>["session"],
@@ -20,8 +21,13 @@ function assertCanManage(
   }
 }
 
-function structureBadgeLabel(typebranch: unknown) {
+function structureBadgeLabel(typebranch: unknown, educationSystem?: unknown) {
   const type = normalizeBranchType(typebranch);
+  if (usesTermPeriodCalendar(type, educationSystem)) {
+    return type === "PRIMAIRE"
+      ? "Primaire — 3 trimestres / 3 périodes"
+      : "Secondaire — 3 trimestres / 3 périodes";
+  }
   switch (type) {
     case "PRIMAIRE":
       return "Primaire — trimestres";
@@ -79,8 +85,8 @@ function revalidatePeriodsPath(
 }
 
 export const listPeriodsSettingsAction = action.handler(async () => {
-  const { branchId, typebranch } = await requireBranchContext();
-  const structure = getAcademicStructure(typebranch);
+  const { branchId, typebranch, educationSystem } = await requireBranchContext();
+  const structure = getAcademicStructure(typebranch, educationSystem);
 
   const [semesters, periods] = await Promise.all([
     prisma.semester.findMany({
@@ -116,7 +122,7 @@ export const listPeriodsSettingsAction = action.handler(async () => {
 
   return {
     typebranch: normalizeBranchType(typebranch),
-    structureLabel: structureBadgeLabel(typebranch),
+    structureLabel: structureBadgeLabel(typebranch, educationSystem),
     groupLabels: structure.groups.map((group) => group.label),
     semesters: semesters.map((semester) => ({
       id: semester.id,
@@ -272,6 +278,7 @@ export const ensurePeriodsFromTemplateAction = action.handler(async () => {
   await ensureAcademicPeriodsForBranch({
     branchId: context.branchId,
     typebranch: context.typebranch,
+    educationSystem: context.educationSystem,
   });
 
   revalidatePeriodsPath(context.organizationId, context.branchId);

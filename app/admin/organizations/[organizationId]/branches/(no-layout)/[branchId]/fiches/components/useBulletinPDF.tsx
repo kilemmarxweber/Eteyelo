@@ -34,6 +34,7 @@ import {
 } from "@/lib/academic-structure";
 import type { BulletinBranchContext } from "@/lib/bulletin-context";
 import { resolveBulletinLayoutKind } from "@/lib/bulletin-context";
+import { renderTermPeriodBulletins } from "@/lib/bulletin-term-period-render";
 import {
   aggregateBulletinPeriodMaxima,
   calculateBulletinYearMaxima,
@@ -128,7 +129,9 @@ export default function BulletinPDF({
   classCode,
   classLevel,
   classOptionName,
+  classParallel,
   schoolYear,
+  selectedPeriod,
 }: {
   data: any[];
   branchContext: BulletinBranchContext;
@@ -141,8 +144,10 @@ export default function BulletinPDF({
   classLevel?: string | null;
   /** Option de la classe (ex. Biologie-Chimie) */
   classOptionName?: string | null;
+  classParallel?: string | null;
   /** Libellé année scolaire en cours */
   schoolYear?: string;
+  selectedPeriod?: string;
 }) {
   const [imageData1, setImageData1] = useState<string | null>(null);
   const [imageData2, setImageData2] = useState<string | null>(null);
@@ -183,17 +188,39 @@ export default function BulletinPDF({
   }, []);
 
   const generatePDF = useCallback(() => {
-    if (!imageData1 || !imageData2) {
-      alert("Image non chargée.");
-      return;
-    }
+    const layoutKind = resolveBulletinLayoutKind(
+      branchContext.branchType,
+      branchContext.educationSystem,
+    );
 
     const doc = new jsPDF("p", "mm", "a4") as jsPDFWithPlugin;
     const pageWidth = doc.internal.pageSize.getWidth();
     const margin = 10;
     const frameWidth = pageWidth - 2 * margin;
 
-    const layoutKind = resolveBulletinLayoutKind(branchContext.branchType);
+    if (layoutKind === "term-period") {
+      renderTermPeriodBulletins(doc, {
+        students: data,
+        branchContext,
+        periodLabel: selectedPeriod || data[0]?.periods?.[0]?.periodName || "",
+        schoolYear,
+        classLabel: classOptionName || classLevel || classCode,
+        classLevel,
+        classParallel,
+      });
+      const blob = doc.output("blob");
+      const url = URL.createObjectURL(blob);
+      setPdfUrl(url);
+      setLoading(false);
+      setOpen(true);
+      return;
+    }
+
+    if (!imageData1 || !imageData2) {
+      alert("Image non chargée.");
+      return;
+    }
+
     const isPrimaryLayout = layoutKind === "primary";
 
     const shiftX = 0;
@@ -1559,7 +1586,7 @@ export default function BulletinPDF({
     const url = URL.createObjectURL(pdfBlob);
     setPdfUrl(url);
     return url;
-  }, [imageData1, imageData2, watermarkData, data, branchContext, classCode, classLevel, classOptionName, schoolYear]);
+  }, [imageData1, imageData2, watermarkData, data, branchContext, classCode, classLevel, classOptionName, classParallel, schoolYear, selectedPeriod]);
   return (
     <div className="flex flex-col gap-4">
       {imageData1 && (

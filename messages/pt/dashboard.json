@@ -4,7 +4,7 @@
   "loadError": "Não foi possível carregar o painel.",
   "retry": "Tentar novamente",
   "vsLastMonth": "vs mês anterior",
-  "enrolledPct": "{rate}% inscritos · {change} vs mês anterior",
+  "enrolledPct": "{rate}% registados · {change} vs mês anterior",
   "activePct": "{rate}% ativos · {change} vs mês anterior",
   "occupiedPct": "{rate}% ocupados · {change} vs mês anterior",
   "revenue": "Receitas ({currency})",
@@ -34,8 +34,8 @@
     "toPay": "A pagar",
     "remaining": "Restante",
     "paidPct": "{pct}% pago",
-    "registration": "Inscrição",
-    "enrollStudents": "Inscrever {students}",
+    "registration": "Registo",
+    "enrollStudents": "Registar {students}",
     "registerStudents": "Registar {students}",
     "attendance": "Presenças",
     "attendanceToday": "Acompanhar as presenças de hoje",
@@ -118,7 +118,7 @@
     "myNetBalance": "O meu saldo líquido",
     "netHint": "Abertura + cobranças − despesas",
     "unpaid": "Por pagar",
-    "unpaidHint": "Inscrições com saldo (ano em curso)"
+    "unpaidHint": "Registos com saldo (ano em curso)"
   },
   "teacher": {
     "myClasses": "As minhas turmas",
@@ -131,7 +131,7 @@
   "student": {
     "identity": "Identidade",
     "class": "Turma",
-    "notEnrolled": "Não inscrito",
+    "notEnrolled": "Não registado",
     "currentYear": "Ano em curso",
     "schoolYear": "Ano letivo",
     "activeYear": "Ano ativo"

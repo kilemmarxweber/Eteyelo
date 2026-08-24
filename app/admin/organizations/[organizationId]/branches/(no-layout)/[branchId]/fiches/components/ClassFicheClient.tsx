@@ -11,7 +11,11 @@ import {
 } from "@tanstack/react-table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "react-toastify";
-import { getLessonsWithFichesByClass, getPeriods } from "@/lib/actions";
+import {
+  getLessonsWithFichesByClass,
+  getClassStudentFamilies,
+  getPeriods,
+} from "@/lib/actions";
 import { Badge } from "@/components/ui/badge";
 import { DataTable } from "@/components/ui/data-table";
 import { Button } from "@/components/ui/button";
@@ -48,6 +52,7 @@ import {
   isAcademicGroupComplete,
   type AcademicGroupConfig,
 } from "@/lib/academic-structure";
+import { usesTermPeriodCalendar } from "@/lib/education-system";
 import {
   getSchoolYearDisplayLabel,
   getSchoolYearDisplayLabelLower,
@@ -162,6 +167,9 @@ export default function ClassFicheClient({
   const [selectedAnnee, setSelectedAnnee] = useState("");
   const [selectedSubjects, setSelectedSubjects] = useState<string[]>([]);
   const [totalPeriods, setTotalPeriods] = useState(0);
+  const [families, setFamilies] = useState<
+    Record<string, { fatherName: string; motherName: string; placeOfBirth: string }>
+  >({});
   const schoolYearLabel = useMemo(
     () => getSchoolYearDisplayLabel(branchContext.branchType),
     [branchContext.branchType],
@@ -175,18 +183,45 @@ export default function ClassFicheClient({
   // ================= PERIOD AGGREGATION RULES =================
   const getAggregatedPeriods = useCallback(
     (selectedPeriod: string): string[] => {
-      const selectedOrder = getAcademicPeriodOrder(selectedPeriod);
+      if (
+        usesTermPeriodCalendar(
+          branchContext.branchType,
+          branchContext.educationSystem,
+        )
+      ) {
+        return [selectedPeriod];
+      }
+      const selectedOrder = getAcademicPeriodOrder(
+        selectedPeriod,
+        branchContext.branchType,
+        branchContext.educationSystem,
+      );
       if (selectedOrder === Number.MAX_SAFE_INTEGER) return [selectedPeriod];
 
       return Array.from(new Set(fiches.map((f) => f.periodName)))
         .filter(
-          (periodName) => getAcademicPeriodOrder(periodName) <= selectedOrder,
+          (periodName) =>
+            getAcademicPeriodOrder(
+              periodName,
+              branchContext.branchType,
+              branchContext.educationSystem,
+            ) <= selectedOrder,
         )
         .sort(
-          (a, b) => getAcademicPeriodOrder(a) - getAcademicPeriodOrder(b),
+          (a, b) =>
+            getAcademicPeriodOrder(
+              a,
+              branchContext.branchType,
+              branchContext.educationSystem,
+            ) -
+            getAcademicPeriodOrder(
+              b,
+              branchContext.branchType,
+              branchContext.educationSystem,
+            ),
         );
     },
-    [fiches],
+    [fiches, branchContext.branchType, branchContext.educationSystem],
   );
   const availablePeriodsOrdered = useMemo(() => {
     const uniquePeriods = Array.from(new Set(fiches.map((f) => f.periodName)));
@@ -288,6 +323,24 @@ export default function ClassFicheClient({
   }, [selectedClassId]);
 
   useEffect(() => {
+    async function loadFamilies() {
+      if (!selectedClassId) {
+        setFamilies({});
+        return;
+      }
+      try {
+        const data = await getClassStudentFamilies(selectedClassId);
+        setFamilies(data ?? {});
+      } catch (error) {
+        console.error(error);
+        setFamilies({});
+      }
+    }
+
+    loadFamilies();
+  }, [selectedClassId]);
+
+  useEffect(() => {
     async function loadPeriods() {
       try {
         const data = await getPeriods();
@@ -358,6 +411,9 @@ export default function ClassFicheClient({
             studentnaissance: studentNote.studentnaissance,
             studentclasse: studentNote.studentclasse,
             studentSexe: studentNote.studentSexe,
+            fatherName: families[studentNote.studentId]?.fatherName ?? "",
+            motherName: families[studentNote.studentId]?.motherName ?? "",
+            placeOfBirth: families[studentNote.studentId]?.placeOfBirth ?? "",
             periods: [],
           };
         }
@@ -382,7 +438,7 @@ export default function ClassFicheClient({
       });
     });
     return Object.values(recap);
-  }, [filteredFiches]);
+  }, [filteredFiches, families]);
 
   const ficheRecap = useMemo(() => {
     const allowedPeriods = selectedPeriod
@@ -450,6 +506,9 @@ export default function ClassFicheClient({
             studentnaissance: studentNote.studentnaissance,
             studentclasse: studentNote.studentclasse,
             studentSexe: studentNote.studentSexe,
+            fatherName: families[studentNote.studentId]?.fatherName ?? "",
+            motherName: families[studentNote.studentId]?.motherName ?? "",
+            placeOfBirth: families[studentNote.studentId]?.placeOfBirth ?? "",
             periods: [],
           };
         }
@@ -474,7 +533,7 @@ export default function ClassFicheClient({
     });
 
     return Object.values(recap);
-  }, [filteredFichespdf]);
+  }, [filteredFichespdf, families]);
 
   // ================= TABLEAU SUBJECTS =================
   const subjects = useMemo(() => {
@@ -579,8 +638,14 @@ export default function ClassFicheClient({
 
   const bulletinDataForPDF: RecapRow[] = useMemo(() => {
     const branchType = branchContext.branchType;
-    const academicStructure = getAcademicStructure(branchType);
-    const periodMap = buildPeriodFieldMap(branchType);
+    const academicStructure = getAcademicStructure(
+      branchType,
+      branchContext.educationSystem,
+    );
+    const periodMap = buildPeriodFieldMap(
+      branchType,
+      branchContext.educationSystem,
+    );
 
     function createEmptyAutres(existing?: TypeFiche): TypeFiche {
       const createGroupRecords = (
@@ -973,11 +1038,13 @@ export default function ClassFicheClient({
             classCode={selectedClass?.codename}
             classLevel={selectedClass?.level}
             classOptionName={selectedClass?.optionName}
+            classParallel={selectedClass?.parallel}
             schoolYear={
               selectedAnnee ||
               bulletinDataForPDF[0]?.periods?.[0]?.anneeName ||
               ""
             }
+            selectedPeriod={selectedPeriod}
           />
         </div>
       ),
@@ -1133,11 +1200,13 @@ export default function ClassFicheClient({
                 classCode={selectedClass?.codename}
                 classLevel={selectedClass?.level}
                 classOptionName={selectedClass?.optionName}
+                classParallel={selectedClass?.parallel}
                 schoolYear={
                   selectedAnnee ||
                   bulletinDataForPDF[0]?.periods?.[0]?.anneeName ||
                   ""
                 }
+                selectedPeriod={selectedPeriod}
                 label={
                   selectedAnnee
                     ? `Exporter les bulletins (${selectedAnnee})`

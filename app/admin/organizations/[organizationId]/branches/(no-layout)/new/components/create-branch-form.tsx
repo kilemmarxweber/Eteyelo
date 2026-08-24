@@ -30,6 +30,19 @@ import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { BranchTypeSelect } from "@/components/branch/branch-type-select";
 import type { ManagedBranchType } from "@/lib/academic-structure";
+import {
+  EDUCATION_SYSTEMS,
+  educationSystemLabel,
+  isSchoolBranchType,
+  type EducationSystem,
+} from "@/lib/education-system";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { getRegistrationFormLabels } from "@/lib/registration-form-labels";
 import {
   Dialog,
@@ -141,6 +154,7 @@ export function CreateBranchForm({
       longitude: defaultValues?.longitude ?? 15.2663,
       attendanceRadius: defaultValues?.attendanceRadius ?? 10,
       typebranch: defaultValues?.typebranch ?? "SECONDAIRE",
+      educationSystem: defaultValues?.educationSystem ?? "CONGOLAIS",
     },
     mode: "onSubmit",
     reValidateMode: "onBlur",
@@ -148,6 +162,7 @@ export function CreateBranchForm({
 
   const { isSubmitting } = form.formState;
   const selectedTypebranch = form.watch("typebranch") as ManagedBranchType;
+  const showEducationSystem = isSchoolBranchType(selectedTypebranch);
   const labels = getRegistrationFormLabels(selectedTypebranch);
 
   async function reverseGeocode(lat: number, lng: number) {
@@ -494,7 +509,12 @@ export function CreateBranchForm({
                           <FormControl>
                             <BranchTypeSelect
                               value={field.value as ManagedBranchType}
-                              onValueChange={field.onChange}
+                              onValueChange={(value) => {
+                                field.onChange(value);
+                                if (!isSchoolBranchType(value)) {
+                                  form.setValue("educationSystem", "CONGOLAIS");
+                                }
+                              }}
                               disabled={isSubmitting}
                               excludeTypes={
                                 isRequestMode ? (["ATELIER"] as const) : undefined
@@ -538,6 +558,43 @@ export function CreateBranchForm({
                       )}
                     />
                   </div>
+
+                  {showEducationSystem ? (
+                    <FormField
+                      control={form.control}
+                      name="educationSystem"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Système d'enseignement</FormLabel>
+                          <Select
+                            value={field.value ?? "CONGOLAIS"}
+                            onValueChange={(value) =>
+                              field.onChange(value as EducationSystem)
+                            }
+                            disabled={isSubmitting}
+                          >
+                            <FormControl>
+                              <SelectTrigger className="h-9 rounded-xl">
+                                <SelectValue placeholder="Choisir le système" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {EDUCATION_SYSTEMS.map((system) => (
+                                <SelectItem key={system} value={system}>
+                                  {educationSystemLabel(system)}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormDescription>
+                            Congolais : calendrier actuel. Angolais / anglais :
+                            3 trimestres et 3 périodes, pondération inchangée.
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  ) : null}
 
                   <Alert className="rounded-xl border-primary/20 bg-primary/5">
                     <AlertDescription className="text-sm leading-6">

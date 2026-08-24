@@ -79,6 +79,13 @@ import {
   CTEB_SECTION_CODE,
 } from "@/lib/class-catalog";
 import {
+  ANGOLA_CICLO1_SECTION_CODE,
+  isAngolaFirstCycleLevel,
+  isAngolaNucleoComumOption,
+  isAngolaSecondarySystem,
+  angolaRequiresArea,
+} from "@/lib/angola-secondary-structure";
+import {
   getClassDisplayLabel,
   getClassDisplayLabelPlural,
   hidesParentManagement,
@@ -181,8 +188,9 @@ const emptyCreneau = (): CreneauFormValues => ({ ...defaultCreneauValues });
 function requiresOptionForLevel(
   typebranch: string | undefined,
   level: string,
+  educationSystem?: string,
 ) {
-  return requiresOptionForClass(typebranch, level);
+  return requiresOptionForClass(typebranch, level, educationSystem);
 }
 
 function isStudentStepReady(
@@ -707,9 +715,31 @@ export function RegistrationForm({
     }
   }
 
+  const angolaSecondary = isAngolaSecondarySystem(
+    options.typebranch,
+    options.educationSystem,
+  );
+  const angolaNucleoLevel =
+    options.typebranch === "SECONDAIRE" && isAngolaFirstCycleLevel(level);
+  const angolaAreaLevel =
+    (angolaSecondary || options.typebranch === "SECONDAIRE") &&
+    angolaRequiresArea(level);
+
   const sectionsForLevel = useMemo(() => {
     const sections = options.sections ?? [];
     if (options.typebranch !== "SECONDAIRE" || !level) return sections;
+    if (angolaNucleoLevel) {
+      return sections.filter(
+        (section: { codeSection: string }) =>
+          section.codeSection === ANGOLA_CICLO1_SECTION_CODE,
+      );
+    }
+    if (angolaAreaLevel) {
+      return sections.filter(
+        (section: { codeSection: string }) =>
+          section.codeSection !== ANGOLA_CICLO1_SECTION_CODE,
+      );
+    }
     if (isCtebLevel(level)) {
       return sections.filter(
         (section: { codeSection: string }) =>
@@ -723,7 +753,7 @@ export function RegistrationForm({
       );
     }
     return sections;
-  }, [level, options.sections, options.typebranch]);
+  }, [angolaAreaLevel, angolaNucleoLevel, level, options.sections, options.typebranch]);
 
   const optionsForSection = useMemo(() => {
     const branchOptions = options.options ?? [];
@@ -732,6 +762,11 @@ export function RegistrationForm({
     const inSection = branchOptions.filter(
       (item: { sectionId?: string | null }) => item.sectionId === sectionId,
     );
+    if (angolaNucleoLevel) {
+      return inSection.filter((item: { codeOption?: string; nameOption?: string }) =>
+        isAngolaNucleoComumOption(item),
+      );
+    }
     if (isCtebLevel(level)) {
       return inSection.filter(
         (item: { codeOption?: string; nameOption?: string }) =>
@@ -740,32 +775,43 @@ export function RegistrationForm({
       );
     }
     return inSection;
-  }, [level, options.options, options.typebranch, sectionId]);
+  }, [angolaNucleoLevel, level, options.options, options.typebranch, sectionId]);
 
   const secondaryHumanitesLevel =
     options.typebranch === "SECONDAIRE" &&
-    requiresSectionForClass(options.typebranch, level);
+    requiresSectionForClass(
+      options.typebranch,
+      level,
+      options.educationSystem,
+    ) &&
+    !angolaNucleoLevel;
 
   useEffect(() => {
-    if (options.typebranch !== "SECONDAIRE" || !isCtebLevel(level)) return;
+    if (options.typebranch !== "SECONDAIRE") return;
+    if (!isCtebLevel(level) && !angolaNucleoLevel) return;
 
-    const ctebSection = (options.sections ?? []).find(
+    const lockedSection = (options.sections ?? []).find(
       (section: { codeSection: string; id: string }) =>
-        section.codeSection === CTEB_SECTION_CODE,
+        angolaNucleoLevel
+          ? section.codeSection === ANGOLA_CICLO1_SECTION_CODE
+          : section.codeSection === CTEB_SECTION_CODE,
     );
-    const troncCommun = (options.options ?? []).find(
+    const lockedOption = (options.options ?? []).find(
       (item: { codeOption?: string; nameOption?: string; id: string }) =>
-        item.codeOption === CTEB_OPTION_CODE ||
-        item.nameOption?.toLowerCase() === "tronc commun",
+        angolaNucleoLevel
+          ? isAngolaNucleoComumOption(item)
+          : item.codeOption === CTEB_OPTION_CODE ||
+            item.nameOption?.toLowerCase() === "tronc commun",
     );
 
-    if (ctebSection && sectionId !== ctebSection.id) {
-      setSectionId(ctebSection.id);
+    if (lockedSection && sectionId !== lockedSection.id) {
+      setSectionId(lockedSection.id);
     }
-    if (troncCommun && optionId !== troncCommun.id) {
-      setOptionId(troncCommun.id);
+    if (lockedOption && optionId !== lockedOption.id) {
+      setOptionId(lockedOption.id);
     }
   }, [
+    angolaNucleoLevel,
     level,
     optionId,
     options.options,
@@ -775,7 +821,12 @@ export function RegistrationForm({
   ]);
 
   useEffect(() => {
-    if (options.typebranch !== "SECONDAIRE" || !level || isCtebLevel(level)) {
+    if (
+      options.typebranch !== "SECONDAIRE" ||
+      !level ||
+      isCtebLevel(level) ||
+      angolaNucleoLevel
+    ) {
       return;
     }
     if (
@@ -794,6 +845,7 @@ export function RegistrationForm({
     return options.classes.filter((classe: any) =>
       matchesClassForLevel(classe, {
         typebranch: options.typebranch,
+        educationSystem: options.educationSystem,
         level,
         optionId: options.allowsOption ? optionId || null : null,
         optionName,
@@ -805,6 +857,7 @@ export function RegistrationForm({
     options.classes,
     options.options,
     options.typebranch,
+    options.educationSystem,
     options.allowsOption,
   ]);
   const generatedStudentCode = useMemo(
@@ -1173,10 +1226,10 @@ export function RegistrationForm({
         return toast.error(
           tReg("chooseClassHint", { classLabel }),
         );
-      if (requiresSectionForClass(options.typebranch, level) && !sectionId) {
+      if (requiresSectionForClass(options.typebranch, level, options.educationSystem) && !sectionId) {
         return toast.error("Choisissez une section (filière) pour ce niveau.");
       }
-      if (requiresOptionForLevel(options.typebranch, level) && !optionId) {
+      if (requiresOptionForLevel(options.typebranch, level, options.educationSystem) && !optionId) {
         return toast.error("Choisissez une option pour ce niveau.");
       }
       if (selectedClasses.length === 0)
@@ -1340,10 +1393,16 @@ export function RegistrationForm({
       return toast.error(
         `Choisissez d'abord l'${schoolYearLabelLower} et l'${classLabelLower} demandé(e).`,
       );
-    if (requiresSectionForClass(options.typebranch, level) && !sectionId) {
+    if (predictedClass) {
+      toast.success(
+        `${predictedClass.nameClasse} a encore des places. L'élève y sera inscrit.`,
+      );
+      return;
+    }
+    if (requiresSectionForClass(options.typebranch, level, options.educationSystem) && !sectionId) {
       return toast.error("Choisissez une section (filière) pour ce niveau.");
     }
-    if (requiresOptionForLevel(options.typebranch, level) && !optionId) {
+    if (requiresOptionForLevel(options.typebranch, level, options.educationSystem) && !optionId) {
       return toast.error("Choisissez une option pour ce niveau.");
     }
     if (!creneauId)
@@ -1365,7 +1424,18 @@ export function RegistrationForm({
       capacity,
     });
     setCreatingClass(false);
-    if (error) return toast.error(error.message);
+    if (error) {
+      if (/places disponibles|classe libre/i.test(error.message)) {
+        toast.success(
+          predictedClass
+            ? `${predictedClass.nameClasse} a encore des places. L'élève y sera inscrit.`
+            : "Une classe a encore des places. L'élève y sera inscrit.",
+        );
+        await loadRegistrationOptions();
+        return;
+      }
+      return toast.error(error.message);
+    }
     const parallelLabel = classe.parallel
       ? ` (parallèle ${classe.parallel})`
       : "";
@@ -2136,7 +2206,11 @@ export function RegistrationForm({
                             {tReg("expectedLevel")}{" "}
                             <span className="font-medium text-foreground">
                               {level
-                                ? getClassLevelLabel(options.typebranch, level)
+                                ? getClassLevelLabel(
+                                    options.typebranch,
+                                    level,
+                                    options.educationSystem,
+                                  )
                                 : "—"}
                             </span>
                             {schoolYearId ? (
@@ -2319,7 +2393,11 @@ export function RegistrationForm({
                         <SelectContent>
                           {options.levels.map((item: string) => (
                             <SelectItem key={item} value={item}>
-                              {getClassLevelLabel(options.typebranch, item)}
+                              {getClassLevelLabel(
+                                options.typebranch,
+                                item,
+                                options.educationSystem,
+                              )}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -2361,7 +2439,11 @@ export function RegistrationForm({
                           ) : null}
                           <Field
                             label={
-                              requiresOptionForLevel(options.typebranch, level)
+                              requiresOptionForLevel(
+                                options.typebranch,
+                                level,
+                                options.educationSystem,
+                              )
                                 ? tReg("fields.optionRequired")
                                 : tReg("fields.option")
                             }
@@ -2372,6 +2454,7 @@ export function RegistrationForm({
                               disabled={
                                 !level ||
                                 isCtebLevel(level) ||
+                                angolaNucleoLevel ||
                                 (secondaryHumanitesLevel && !sectionId)
                               }
                             >
@@ -2380,14 +2463,16 @@ export function RegistrationForm({
                                   placeholder={
                                     secondaryHumanitesLevel && !sectionId
                                       ? tReg("placeholders.chooseOptionFirst")
-                                      : isCtebLevel(level)
+                                      : isCtebLevel(level) || angolaNucleoLevel
                                         ? tReg("placeholders.commonCore")
                                         : tReg("placeholders.chooseOption")
                                   }
                                 />
                               </SelectTrigger>
                               <SelectContent>
-                                {(secondaryHumanitesLevel || isCtebLevel(level)
+                                {(secondaryHumanitesLevel ||
+                                isCtebLevel(level) ||
+                                angolaNucleoLevel
                                   ? optionsForSection
                                   : options.options
                                 ).map((item: any) => (
@@ -2397,9 +2482,11 @@ export function RegistrationForm({
                                 ))}
                               </SelectContent>
                             </Select>
-                            {isCtebLevel(level) ? (
+                            {isCtebLevel(level) || angolaNucleoLevel ? (
                               <p className="mt-1 text-xs text-muted-foreground">
-                                {tReg("ctebHint")}
+                                {angolaNucleoLevel
+                                  ? "7ª–9ª : Núcleo comum (comme le tronc commun). Pas d'option à choisir."
+                                  : tReg("ctebHint")}
                               </p>
                             ) : null}
                           </Field>
@@ -2407,7 +2494,7 @@ export function RegistrationForm({
                       ) : (
                         <Field
                           label={
-                            requiresOptionForLevel(options.typebranch, level)
+                            requiresOptionForLevel(options.typebranch, level, options.educationSystem)
                               ? tReg("fields.optionRequired")
                               : tReg("fields.option")
                           }
@@ -2415,7 +2502,7 @@ export function RegistrationForm({
                           <Select
                             value={
                               optionId ||
-                              (requiresOptionForLevel(options.typebranch, level)
+                              (requiresOptionForLevel(options.typebranch, level, options.educationSystem)
                                 ? undefined
                                 : "none")
                             }
@@ -2489,7 +2576,7 @@ export function RegistrationForm({
                       <p className="rounded-md border border-dashed px-3 py-4 text-center text-sm text-muted-foreground">
                         {tReg("selectClassForParallels", { classLabel })}
                       </p>
-                    ) : requiresOptionForLevel(options.typebranch, level) &&
+                    ) : requiresOptionForLevel(options.typebranch, level, options.educationSystem) &&
                       !optionId ? (
                       <p className="rounded-md border border-dashed px-3 py-4 text-center text-sm text-muted-foreground">
                         {tReg("chooseOptionForClasses", { classLabelPlural })}

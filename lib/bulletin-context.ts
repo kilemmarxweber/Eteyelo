@@ -4,13 +4,23 @@ import {
 } from "@/lib/academic-structure";
 import { usesBulletinForBranch } from "@/lib/branch-capabilities";
 import { KLAMBOCORE_DEFAULT_IMAGE_PATH } from "@/lib/brand/klambocore-image";
+import {
+  normalizeEducationSystem,
+  usesTermPeriodCalendar,
+  type EducationSystem,
+} from "@/lib/education-system";
 
-export type BulletinLayoutKind = "primary" | "secondary";
+export type BulletinLayoutKind = "primary" | "secondary" | "term-period";
 
 /** Sélectionne le moteur de dessin selon le type de branche (repli SECONDAIRE si inconnu). */
 export function resolveBulletinLayoutKind(
   branchType: ManagedBranchType | unknown,
+  educationSystem?: unknown,
 ): BulletinLayoutKind {
+  if (usesTermPeriodCalendar(branchType, educationSystem)) {
+    return "term-period";
+  }
+
   if (!usesBulletinForBranch(branchType)) {
     return "secondary";
   }
@@ -29,6 +39,9 @@ export type BulletinBranchContext = {
   country: string;
   logoUrl: string;
   branchType: ManagedBranchType;
+  educationSystem: EducationSystem;
+  directorName?: string;
+  directorTitle?: string;
   /** Domaines bulletin primaire (libellés custom par branche). */
   primaryDomains?: Array<{
     code: string;
@@ -48,6 +61,7 @@ export type BulletinBranchRecord = {
   pays?: string | null;
   image?: unknown;
   typebranch?: unknown;
+  educationSystem?: unknown;
   organization: {
     name: string;
     logo?: string | null;
@@ -118,5 +132,6 @@ export function buildBulletinBranchContext(
     country: branch.pays?.trim() ?? "",
     logoUrl: resolveBulletinLogoUrl(branch.image, branch.organization.logo),
     branchType: normalizeBranchType(branch.typebranch),
+    educationSystem: normalizeEducationSystem(branch.educationSystem),
   };
 }

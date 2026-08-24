@@ -9,5 +9,9 @@
   "required": "Obligatoire",
   "optional": "Facultatif",
   "errorGeneric": "Une erreur est survenue.",
-  "successGeneric": "Opération réussie."
+  "successGeneric": "Opération réussie.",
+  "educationSystem": "Système d'enseignement",
+  "educationCongolese": "Congolais",
+  "educationAngolan": "Angolais",
+  "educationEnglish": "Anglais"
 }

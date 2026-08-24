@@ -70,7 +70,7 @@ test("branches scolaires vs etendues", () => {
 test("structures academiques par type", () => {
   assert.equal(getAcademicStructure("PRIMAIRE").periods.length, 9);
   assert.equal(getAcademicStructure("SECONDAIRE").periods.length, 6);
-  assert.equal(getAcademicStructure("UNIVERSITE").periods.length, 10);
+  assert.equal(getAcademicStructure("UNIVERSITE").periods.length, 6);
   assert.equal(getAcademicStructure("CENTRE_FORMATION").periods.length, 5);
   assert.equal(getAcademicStructure("ATELIER").periods.length, 1);
 });

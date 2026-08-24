@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { EDUCATION_SYSTEMS } from "@/lib/education-system";
 import { branchTypeSchema } from "@/lib/schemas/extended-branch";
 
 const branchImagesSchema = z.object({
@@ -52,6 +53,7 @@ export const createBranchFormSchema = z.object({
     .min(10, "Le rayon doit être au moins 10 mètres.")
     .max(10000, "Le rayon est trop grand."),
   typebranch: branchTypeSchema,
+  educationSystem: z.enum(EDUCATION_SYSTEMS).default("CONGOLAIS"),
   image: branchImagesSchema.default({
     logo: "",
     event: [],

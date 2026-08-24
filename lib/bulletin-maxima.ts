@@ -176,8 +176,9 @@ export function calculateBulletinSemesterMaxima(
 export function calculateBulletinYearMaxima(
   maxima: BulletinPeriodMaxima,
   typebranch?: ManagedBranchType | unknown,
+  educationSystem?: unknown,
 ): BulletinYearMaxima {
-  const groups = getAcademicStructure(typebranch).groups.map((group) => {
+  const groups = getAcademicStructure(typebranch, educationSystem).groups.map((group) => {
     const periodKeys = getAcademicGroupPeriodKeys(group) as BulletinPeriodKey[];
     const groupMaxima = calculateBulletinGroupMaxima(maxima, periodKeys);
 
