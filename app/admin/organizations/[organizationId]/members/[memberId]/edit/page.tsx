@@ -7,6 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { listOrganizationActiveBranchesAction } from "../../actions";
 
 type PageProps = {
   params: Promise<{ organizationId: string; memberId: string }>;
@@ -17,6 +18,8 @@ export default async function EditOrganizationMemberPage({
 }: PageProps) {
   const { organizationId, memberId } = await params;
   const base = `/admin/organizations/${organizationId}/members`;
+  const branchesRes = await listOrganizationActiveBranchesAction(organizationId);
+  const branches = branchesRes.ok ? branchesRes.branches : [];
 
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-5 px-4 py-6 sm:px-6">
@@ -25,7 +28,8 @@ export default async function EditOrganizationMemberPage({
       <div className="flex flex-col gap-1">
         <h1 className="text-xl font-semibold">Modifier un membre</h1>
         <p className="text-sm text-muted-foreground">
-          Modifier le rôle ou retirer le membre de l’organisation.
+          Modifier le rôle, les branches autorisées, ou retirer le membre de
+          l’organisation.
         </p>
       </div>
 
@@ -33,12 +37,16 @@ export default async function EditOrganizationMemberPage({
         <CardHeader>
           <CardTitle>Informations du membre</CardTitle>
           <CardDescription>
-            Mise à jour des droits et paramètres du compte.
+            Mise à jour des droits et des établissements accessibles.
           </CardDescription>
         </CardHeader>
 
         <CardContent>
-          <EditMemberForm organizationId={organizationId} memberId={memberId} />
+          <EditMemberForm
+            organizationId={organizationId}
+            memberId={memberId}
+            branches={branches}
+          />
         </CardContent>
       </Card>
     </div>

@@ -1,15 +1,14 @@
 "use client";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { IconChevronDown } from "@tabler/icons-react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
+import { useTranslations } from "next-intl";
 import { z } from "zod";
 
-import { cn } from "@/lib/utils";
-import { Button, buttonVariants } from "@/components/custom/button";
+import { Button } from "@/components/custom/button";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -33,61 +32,75 @@ import {
 } from "@/components/ui/select";
 
 import { useTheme } from "next-themes";
-
-const appearanceFormSchema = z.object({
-  theme: z.enum(["light", "dark"], {
-    required_error: "Veuillez sélectionner un thème.",
-  }),
-  font: z.enum(["inter", "manrope", "system"], {
-    invalid_type_error: "Sélectionnez une police",
-    required_error: "Veuillez sélectionner une police.",
-  }),
-});
-
-type AppearanceFormValues = z.infer<typeof appearanceFormSchema>;
-
-// This can come from your database or API.
-const defaultValues: Partial<AppearanceFormValues> = {
-  theme: "light",
-};
+import { LocalePreferenceButtons } from "@/components/locale-preference-buttons";
 
 export function AppearanceForm() {
-  const form = useForm<AppearanceFormValues>({
-    resolver: zodResolver(appearanceFormSchema),
-    defaultValues,
+  const t = useTranslations("settings");
+  const { setTheme, theme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  const appearanceFormSchema = z.object({
+    theme: z.enum(["light", "dark"], {
+      required_error: t("themeRequired"),
+    }),
+    font: z.enum(["inter", "manrope", "system"], {
+      invalid_type_error: t("fontInvalid"),
+      required_error: t("fontRequired"),
+    }),
   });
 
-  const { setTheme, theme } = useTheme();
+  type AppearanceFormValues = z.infer<typeof appearanceFormSchema>;
+
+  const form = useForm<AppearanceFormValues>({
+    resolver: zodResolver(appearanceFormSchema),
+    defaultValues: {
+      theme: "light",
+      font: "inter",
+    },
+  });
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!mounted) return;
+    if (theme === "light" || theme === "dark") {
+      form.setValue("theme", theme);
+    }
+  }, [mounted, theme, form]);
 
   function onSubmit(data: AppearanceFormValues) {
     setTheme(data.theme);
     toast({
-      title: "Préférences mises à jour",
-      description:
-        "Votre thème a été enregistré pour ce compte uniquement.",
+      title: t("prefsUpdated"),
+      description: t("prefsUpdatedDesc"),
     });
   }
 
   return (
     <div className="space-y-6 px-2 sm:px-4 md:px-6">
-      {/* HEADER */}
       <div className="space-y-2">
-        <h3 className="text-lg sm:text-xl font-medium">Apparence</h3>
-        <p className="text-sm text-muted-foreground">
-          Personnalisez l'apparence de votre interface et basculez entre le mode
-          clair et sombre.
-        </p>
+        <h3 className="text-lg sm:text-xl font-medium">{t("appearance")}</h3>
+        <p className="text-sm text-muted-foreground">{t("appearanceDesc")}</p>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base sm:text-lg">{t("language")}</CardTitle>
+          <CardDescription>{t("languageDesc")}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <LocalePreferenceButtons showLabels={false} />
+        </CardContent>
+      </Card>
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          {/* ===== THEME ===== */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-base sm:text-lg">Thème</CardTitle>
-              <CardDescription>
-                Choisissez le thème pour votre interface.
-              </CardDescription>
+              <CardTitle className="text-base sm:text-lg">{t("theme")}</CardTitle>
+              <CardDescription>{t("themeDesc")}</CardDescription>
             </CardHeader>
 
             <CardContent>
@@ -99,18 +112,21 @@ export function AppearanceForm() {
                     <FormMessage />
 
                     <RadioGroup
-                      onValueChange={field.onChange}
-                      defaultValue={theme}
+                      onValueChange={(value) => {
+                        field.onChange(value);
+                        if (value === "light" || value === "dark") {
+                          setTheme(value);
+                        }
+                      }}
+                      value={field.value}
                       className="grid grid-cols-1 sm:grid-cols-2 gap-4"
                     >
-                      {/* LIGHT */}
                       <FormItem className="w-full">
                         <FormLabel className="w-full cursor-pointer">
                           <FormControl>
                             <RadioGroupItem
                               value="light"
                               className="sr-only"
-                              onClick={() => setTheme("light")}
                             />
                           </FormControl>
 
@@ -124,19 +140,17 @@ export function AppearanceForm() {
                           </div>
 
                           <span className="block text-center mt-2 text-sm sm:text-base">
-                            Clair
+                            {t("themeLight")}
                           </span>
                         </FormLabel>
                       </FormItem>
 
-                      {/* DARK */}
                       <FormItem className="w-full">
                         <FormLabel className="w-full cursor-pointer">
                           <FormControl>
                             <RadioGroupItem
                               value="dark"
                               className="sr-only"
-                              onClick={() => setTheme("dark")}
                             />
                           </FormControl>
 
@@ -150,7 +164,7 @@ export function AppearanceForm() {
                           </div>
 
                           <span className="block text-center mt-2 text-sm sm:text-base">
-                            Sombre
+                            {t("themeDark")}
                           </span>
                         </FormLabel>
                       </FormItem>
@@ -161,13 +175,10 @@ export function AppearanceForm() {
             </CardContent>
           </Card>
 
-          {/* ===== FONT ===== */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-base sm:text-lg">Police</CardTitle>
-              <CardDescription>
-                Définissez la police du tableau de bord.
-              </CardDescription>
+              <CardTitle className="text-base sm:text-lg">{t("font")}</CardTitle>
+              <CardDescription>{t("fontDesc")}</CardDescription>
             </CardHeader>
 
             <CardContent>
@@ -182,13 +193,13 @@ export function AppearanceForm() {
                         defaultValue={field.value}
                       >
                         <SelectTrigger className="w-full sm:w-[250px]">
-                          <SelectValue placeholder="Sélectionnez une police" />
+                          <SelectValue placeholder={t("fontPlaceholder")} />
                         </SelectTrigger>
 
                         <SelectContent>
                           <SelectItem value="inter">Inter</SelectItem>
                           <SelectItem value="manrope">Manrope</SelectItem>
-                          <SelectItem value="system">Système</SelectItem>
+                          <SelectItem value="system">{t("fontSystem")}</SelectItem>
                         </SelectContent>
                       </Select>
                     </FormControl>
@@ -200,10 +211,9 @@ export function AppearanceForm() {
             </CardContent>
           </Card>
 
-          {/* ===== BUTTON ===== */}
           <div className="flex flex-col sm:flex-row justify-end gap-2">
             <Button type="submit" className="w-full sm:w-auto">
-              Mettre à jour
+              {t("update")}
             </Button>
           </div>
         </form>

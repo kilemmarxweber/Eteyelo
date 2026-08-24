@@ -1,0 +1,16 @@
+{
+  "title": "Gestion des {classes}",
+  "description": "Créez les {classes} et organisez leur capacité, option et créneau.",
+  "importCatalog": "Importer catalogue",
+  "importDisabled": "Le catalogue ne peut plus être importé : des classes existent déjà.",
+  "create": "Créer une {class}",
+  "createDesc": "Niveau, section, option et vacation de la {class}.",
+  "total": "Total",
+  "active": "Actives",
+  "inactive": "Inactives",
+  "importSuccess": "{created} classe(s) créée(s), {skipped} déjà présente(s)",
+  "importExtra": " · {sections} section(s), {options} option(s)",
+  "importFail": "Échec de l'import du catalogue",
+  "sectionSheetDesc": "Renseignez le nom de la section, puis enregistrez.",
+  "optionSheetDesc": "Renseignez le nom de l'option, puis enregistrez."
+}

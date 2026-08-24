@@ -1,0 +1,45 @@
+{
+  "results": {
+    "title": "Results management",
+    "description": "Manage student results information.",
+    "badge": "Results",
+    "detail": "Intervention details"
+  },
+  "notes": {
+    "title": "Grade entry"
+  },
+  "homework": {
+    "title": "Homework",
+    "mine": "My homework",
+    "new": "New homework",
+    "descAdmin": "Filter by year, class and course — publish for the weekend.",
+    "descTeacher": "Only your assigned classes and courses — publish for the weekend.",
+    "descParent": "Follow your children's homework.",
+    "descStudent": "Your homework to complete for the weekend.",
+    "friday": "Friday",
+    "emptyAssign": "No assignment",
+    "empty": "No homework",
+    "noResult": "No results",
+    "openNow": "Open now",
+    "upcoming": "Upcoming",
+    "done": "Completed / closed"
+  },
+  "library": {
+    "title": "Library",
+    "addBook": "Add a book",
+    "books": "{count, plural, one {# book} other {# books}}"
+  },
+  "sheets": {
+    "title": "Marking sheet",
+    "central": "Central sheets"
+  },
+  "transcripts": {
+    "title": "Transcripts"
+  },
+  "certificates": {
+    "title": "Training certificates"
+  },
+  "finalists": {
+    "title": "Finalists list"
+  }
+}

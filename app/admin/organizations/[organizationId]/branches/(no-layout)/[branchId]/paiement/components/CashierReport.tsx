@@ -19,6 +19,7 @@ import { toast } from "sonner";
 import { IconFileTypePdf, IconRefresh } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
 import { formatReportAmount } from "@/lib/reports/format-amount";
+import { useTranslations } from "next-intl";
 
 type CashierReportData = {
   date: string;
@@ -135,6 +136,7 @@ export default function CashierReport({
   refreshKey,
   onToggleExpenseForm,
 }: Props) {
+  const t = useTranslations("finance");
   const [report, setReport] = useState<CashierReportData | null>(null);
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
@@ -158,7 +160,7 @@ export default function CashierReport({
     });
 
     if (err || !data) {
-      setError(err?.message ?? "Impossible de charger le rapport de caisse.");
+      setError(err?.message ?? t("cashier.loadFailed"));
       setReport(null);
     } else {
       setReport(data);
@@ -173,7 +175,7 @@ export default function CashierReport({
     try {
       const [context, err] = await getCashierReportContextAction();
       if (err || !context) {
-        throw new Error(err?.message || "Impossible de charger le contexte");
+        throw new Error(err?.message || t("cashier.contextFailed"));
       }
 
       await exportCashierReportPdf(report, context, {
@@ -183,9 +185,9 @@ export default function CashierReport({
       if (context.baseCurrency) {
         setBaseCurrency(context.baseCurrency);
       }
-      toast.success("Rapport PDF généré avec succès.");
+      toast.success(t("cashier.pdfSuccess"));
     } catch (e: any) {
-      toast.error(e.message || "Erreur lors de la génération du PDF");
+      toast.error(e.message || t("cashier.pdfError"));
     } finally {
       setExporting(false);
     }
@@ -212,7 +214,7 @@ export default function CashierReport({
             <span className="flex size-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
               <Wallet className="size-4" />
             </span>
-            {report?.scopedToSelf ? "Ma caisse" : "Rapport de caisse"}
+            {report?.scopedToSelf ? t("cashier.myCash") : t("cashier.title")}
           </CardTitle>
         </div>
         <div className="flex w-full flex-wrap items-center justify-end gap-2">
@@ -223,7 +225,7 @@ export default function CashierReport({
               onChange={(e) => setStartDate(e.target.value)}
               className="border-none bg-transparent text-sm focus:ring-0"
             />
-            <span className="text-sm text-muted-foreground">au</span>
+            <span className="text-sm text-muted-foreground">{t("cashier.to")}</span>
             <input
               type="date"
               value={endDate}
@@ -243,7 +245,7 @@ export default function CashierReport({
               size={16}
               className={cn("mr-2", loading && "animate-spin")}
             />
-            Actualiser
+            {t("cashier.refresh")}
           </Button>
 
           <Button
@@ -254,15 +256,15 @@ export default function CashierReport({
             className="transition-transform active:scale-[0.98]"
           >
             <IconFileTypePdf size={16} className="mr-2" />
-            {exporting ? "Génération..." : "Imprimer PDF"}
+            {exporting ? t("cashier.generating") : t("cashier.printPdf")}
           </Button>
 
           <Button
             type="button"
             size="sm"
             onClick={onToggleExpenseForm}
-            aria-label="Dépense ou sortie de fond"
-            title="Dépense ou sortie de fond"
+            aria-label={t("cashier.expenseAria")}
+            title={t("cashier.expenseAria")}
             className={cn(
               "size-8 shrink-0 border-transparent p-0 text-white shadow-sm transition-transform active:scale-95",
               "bg-red-900 hover:bg-red-950 focus-visible:ring-red-900/40",
@@ -289,34 +291,34 @@ export default function CashierReport({
         ) : report ? (
           <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
             <MetricCard
-              label="Solde d'ouverture"
+              label={t("cashier.openingBalance")}
               value={formatReportAmount(report.openingBalance, baseCurrency)}
-              hint={
-                report.openingLabel ?? "Solde net de la veille (automatique)"
-              }
+              hint={report.openingLabel ?? t("cashier.openingHint")}
               icon={Scale}
               tone="neutral"
             />
             <MetricCard
-              label="Encaissements"
+              label={t("cashier.income")}
               value={formatReportAmount(report.incomeTotal, baseCurrency)}
-              hint={`${report.payments.length} entrée(s)`}
+              hint={t("cashier.incomeHint", { count: report.payments.length })}
               icon={ArrowUpRight}
               tone="income"
               delayClass="animate-delay-75"
             />
             <MetricCard
-              label="Sorties de fond"
+              label={t("cashier.outflows")}
               value={formatReportAmount(report.outflowTotal, baseCurrency)}
-              hint={`${report.expenses.length} sortie(s) de fond`}
+              hint={t("cashier.outflowsHint", { count: report.expenses.length })}
               icon={ArrowDownRight}
               tone="expense"
               delayClass="animate-delay-150"
             />
             <MetricCard
-              label="Solde net"
+              label={t("cashier.netBalance")}
               value={formatReportAmount(report.balance, baseCurrency)}
-              hint={`Période ${formatReportAmount(report.periodBalance, baseCurrency)}`}
+              hint={t("cashier.periodHint", {
+                amount: formatReportAmount(report.periodBalance, baseCurrency),
+              })}
               icon={Wallet}
               tone="net"
               delayClass="animate-delay-225"
@@ -324,7 +326,7 @@ export default function CashierReport({
           </div>
         ) : (
           <div className="py-4 text-sm text-muted-foreground">
-            Aucune donnée disponible.
+            {t("cashier.noData")}
           </div>
         )}
       </CardContent>

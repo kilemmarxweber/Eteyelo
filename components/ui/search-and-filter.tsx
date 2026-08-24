@@ -17,6 +17,7 @@ interface SearchAndFilterProps {
   searchTerm?: string;
   onSearchChange?: (value: string) => void;
   searchPlaceholder?: string;
+  filterPlaceholder?: string;
   filterValue?: string;
   onFilterChange?: (value: string) => void;
   filterOptions?: Array<{ value: string; label: string }>;
@@ -28,6 +29,7 @@ export function SearchAndFilter({
   searchTerm,
   onSearchChange,
   searchPlaceholder = "Rechercher...",
+  filterPlaceholder = "Filtrer par...",
   filterValue,
   onFilterChange,
   filterOptions = [],
@@ -69,7 +71,7 @@ export function SearchAndFilter({
       {filterOptions.length > 0 && onFilterChange && (
         <Select value={filterValue} onValueChange={onFilterChange}>
           <SelectTrigger className="w-full sm:w-[200px] h-9 text-sm">
-            <SelectValue placeholder="Filtrer par..." />
+            <SelectValue placeholder={filterPlaceholder} />
           </SelectTrigger>
           <SelectContent>
             {filterOptions.map((option) => (

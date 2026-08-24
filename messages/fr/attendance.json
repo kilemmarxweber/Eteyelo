@@ -1,0 +1,14 @@
+{
+  "title": "Gestion des présences",
+  "description": "Suivez les pointages du personnel, analysez les statistiques et exportez les rapports.",
+  "badge": "Présences",
+  "checkIn": "Pointer",
+  "nav": {
+    "title": "Présences",
+    "dashboard": "Tableau de bord",
+    "checkIn": "Pointage",
+    "details": "Détail des présences",
+    "reports": "Rapports",
+    "history": "Historique"
+  }
+}

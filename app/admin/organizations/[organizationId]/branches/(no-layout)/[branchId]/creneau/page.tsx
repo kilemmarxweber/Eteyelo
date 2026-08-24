@@ -3,6 +3,7 @@
 import { BranchPageShell } from "@/components/layout/branch-page-shell";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { IconBeach, IconPlus } from "@tabler/icons-react";
 
 import { Button } from "@/components/custom/button";
@@ -20,6 +21,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
 export default function Creneaus() {
+  const t = useTranslations("teaching");
   const [open, setOpen] = useState(false);
   const { refreshKey, refresh } = useRefresh();
 
@@ -30,11 +32,11 @@ export default function Creneaus() {
 
   return (
     <BranchPageShell
-      title="Vacations"
-      description="Configurez les séances et la récréation (ex. 3 + 3 au secondaire)."
+      title={t("vacation.title")}
+      description={t("vacation.description")}
       badge={
         <Badge variant="outline-primary" icon={<IconBeach size={14} />}>
-          Vacations
+          {t("vacation.badge")}
         </Badge>
       }
       actions={
@@ -45,7 +47,7 @@ export default function Creneaus() {
           leftSection={<IconPlus size={16} />}
           onClick={() => setOpen(true)}
         >
-          Ajouter une vacation
+          {t("vacation.add")}
         </Button>
       }
     >

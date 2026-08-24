@@ -1,5 +1,7 @@
 import type { DashboardVariant } from "@/lib/auth/dashboard-variant";
 
+type Translate = (key: string, values?: Record<string, string | number>) => string;
+
 export type DashboardShortcut = {
   title: string;
   description: string;
@@ -37,13 +39,10 @@ function branchHref(
 type ShortcutContext = {
   organizationId: string;
   branchId: string;
-  studentLabel: string;
   studentPluralLower: string;
   classLabelPlural: string;
   showFinance: boolean;
-  /** Lien « Ma fiche » (profil élève). */
   studentProfileId?: string | null;
-  /** Totaux finance foyer (dashboard parent). */
   parentFinance?: {
     totalDue: number;
     totalRemaining: number;
@@ -56,23 +55,26 @@ type ShortcutContext = {
 export function getDashboardShortcuts(
   variant: DashboardVariant,
   ctx: ShortcutContext,
+  t: Translate,
 ): DashboardShortcut[] {
   const href = (path: string) =>
     branchHref(ctx.organizationId, ctx.branchId, path);
+  const students = ctx.studentPluralLower;
+  const classes = ctx.classLabelPlural.toLowerCase();
 
   switch (variant) {
     case "directeur":
       return [
         {
-          title: "Inscription",
-          description: `Inscrire des ${ctx.studentPluralLower}`,
+          title: t("shortcuts.registration"),
+          description: t("shortcuts.enrollStudents", { students }),
           href: href("/registration"),
           color: "bg-blue-500",
           iconKey: "users",
         },
         {
-          title: "Présences",
-          description: "Suivre les présences du jour",
+          title: t("shortcuts.attendance"),
+          description: t("shortcuts.attendanceToday"),
           href: href("/attendance"),
           color: "bg-emerald-500",
           iconKey: "attendance",
@@ -80,8 +82,8 @@ export function getDashboardShortcuts(
         ...(ctx.showFinance
           ? [
               {
-                title: "Finance",
-                description: "Frais et paiements",
+                title: t("shortcuts.finance"),
+                description: t("shortcuts.feesAndPayments"),
                 href: href("/paiement"),
                 color: "bg-orange-500",
                 iconKey: "currency" as const,
@@ -89,8 +91,8 @@ export function getDashboardShortcuts(
             ]
           : []),
         {
-          title: "Utilisateurs",
-          description: `Gérer les ${ctx.studentPluralLower} et le personnel`,
+          title: t("shortcuts.users"),
+          description: t("shortcuts.managePeople", { students }),
           href: href("/student"),
           color: "bg-violet-500",
           iconKey: "users",
@@ -101,29 +103,29 @@ export function getDashboardShortcuts(
     case "prefet":
       return [
         {
-          title: "Inscription",
-          description: `Inscrire des ${ctx.studentPluralLower}`,
+          title: t("shortcuts.registration"),
+          description: t("shortcuts.enrollStudents", { students }),
           href: href("/registration"),
           color: "bg-blue-500",
           iconKey: "users",
         },
         {
-          title: "Présences",
-          description: "Suivre les présences",
+          title: t("shortcuts.attendance"),
+          description: t("shortcuts.attendanceFollow"),
           href: href("/attendance"),
           color: "bg-emerald-500",
           iconKey: "attendance",
         },
         {
           title: ctx.classLabelPlural,
-          description: `Organiser les ${ctx.classLabelPlural.toLowerCase()}`,
+          description: t("shortcuts.organizeClasses", { classes }),
           href: href("/classe"),
           color: "bg-green-500",
           iconKey: "school",
         },
         {
-          title: "Cursus",
-          description: "Résultats et notes",
+          title: t("shortcuts.cursus"),
+          description: t("shortcuts.resultsAndGrades"),
           href: href("/results"),
           color: "bg-purple-500",
           iconKey: "results",
@@ -133,29 +135,29 @@ export function getDashboardShortcuts(
     case "teacher":
       return [
         {
-          title: "Notes",
-          description: "Saisir les notes de mes cours",
+          title: t("shortcuts.grades"),
+          description: t("shortcuts.enterGrades"),
           href: href("/notes"),
           color: "bg-purple-500",
           iconKey: "notes",
         },
         {
-          title: "Présences",
-          description: "Présences de mes classes",
+          title: t("shortcuts.attendance"),
+          description: t("shortcuts.attendanceMyClasses"),
           href: href("/attendance"),
           color: "bg-emerald-500",
           iconKey: "attendance",
         },
         {
-          title: "Horaire",
-          description: "Mon emploi du temps",
+          title: t("shortcuts.schedule"),
+          description: t("shortcuts.mySchedule"),
           href: href("/schedule"),
           color: "bg-blue-500",
           iconKey: "calendar",
         },
         {
-          title: "Résultats",
-          description: "Résultats de mes classes",
+          title: t("shortcuts.results"),
+          description: t("shortcuts.classResults"),
           href: href("/results"),
           color: "bg-indigo-500",
           iconKey: "results",
@@ -165,22 +167,22 @@ export function getDashboardShortcuts(
     case "caissier":
       return [
         {
-          title: "Inscription",
-          description: `Enregistrer des ${ctx.studentPluralLower}`,
+          title: t("shortcuts.registration"),
+          description: t("shortcuts.registerStudents", { students }),
           href: href("/registration"),
           color: "bg-blue-500",
           iconKey: "users",
         },
         {
-          title: "Frais",
-          description: "Consulter et gérer les frais",
+          title: t("shortcuts.fees"),
+          description: t("shortcuts.manageFees"),
           href: href("/frais"),
           color: "bg-orange-500",
           iconKey: "currency",
         },
         {
-          title: "Paiement",
-          description: "Encaisser et suivre les paiements",
+          title: t("shortcuts.payment"),
+          description: t("shortcuts.collectPayments"),
           href: href("/paiement"),
           color: "bg-emerald-500",
           iconKey: "currency",
@@ -193,29 +195,29 @@ export function getDashboardShortcuts(
         : href("/");
       return [
         {
-          title: "Ma fiche",
-          description: "Mon dossier et mes documents scolaires",
+          title: t("shortcuts.myFile"),
+          description: t("shortcuts.myFileDesc"),
           href: ficheHref,
           color: "bg-violet-500",
           iconKey: "notes",
         },
         {
-          title: "Résultats",
-          description: "Mes résultats scolaires",
+          title: t("shortcuts.results"),
+          description: t("shortcuts.myResults"),
           href: href("/results"),
           color: "bg-indigo-500",
           iconKey: "results",
         },
         {
-          title: "Devoirs",
-          description: "Mes devoirs du weekend",
+          title: t("shortcuts.homework"),
+          description: t("shortcuts.weekendHomework"),
           href: href("/devoirs"),
           color: "bg-emerald-500",
           iconKey: "notes",
         },
         {
-          title: "Bibliothèque",
-          description: "Ressources en lecture",
+          title: t("shortcuts.library"),
+          description: t("shortcuts.readingResources"),
           href: href("/bibliotheque"),
           color: "bg-amber-500",
           iconKey: "library",
@@ -226,15 +228,15 @@ export function getDashboardShortcuts(
     case "support":
       return [
         {
-          title: "Support établissement",
-          description: "Escalades et suivi des signalements",
+          title: t("shortcuts.orgSupport"),
+          description: t("shortcuts.orgSupportDesc"),
           href: `/admin/organizations/${ctx.organizationId}/support`,
           color: "bg-blue-600",
           iconKey: "users",
         },
         {
-          title: "Contact local",
-          description: "Page support de la branche",
+          title: t("shortcuts.localContact"),
+          description: t("shortcuts.localContactDesc"),
           href: href("/settings/support"),
           color: "bg-sky-500",
           iconKey: "book",
@@ -247,8 +249,8 @@ export function getDashboardShortcuts(
         : href("/");
       const financeCard: DashboardShortcut | null = ctx.showFinance
         ? {
-            title: "Finance",
-            description: "Totaux des enfants (année en cours)",
+            title: t("shortcuts.finance"),
+            description: t("shortcuts.parentFinance"),
             href: financeHref,
             color: "bg-emerald-500",
             iconKey: "currency",
@@ -262,8 +264,8 @@ export function getDashboardShortcuts(
 
       return [
         {
-          title: "Résultats",
-          description: "Résultats des enfants",
+          title: t("shortcuts.results"),
+          description: t("shortcuts.childrenResults"),
           href: href("/results"),
           color: "bg-indigo-500",
           iconKey: "results",
@@ -276,8 +278,8 @@ export function getDashboardShortcuts(
     default:
       return [
         {
-          title: "Aide",
-          description: "Centre d'aide",
+          title: t("shortcuts.help"),
+          description: t("shortcuts.helpCenter"),
           href: href("/help"),
           color: "bg-slate-500",
           iconKey: "book",
@@ -290,26 +292,27 @@ export function overviewDescriptionForVariant(
   variant: DashboardVariant,
   branchTypeLabel: string,
   isSchoolBranch: boolean,
+  t: Translate,
 ): string {
   switch (variant) {
     case "directeur":
       return isSchoolBranch
-        ? `Pilotage pédagogique de votre établissement (${branchTypeLabel})`
-        : `Pilotage de votre ${branchTypeLabel.toLowerCase()}`;
+        ? t("overview.school", { branchType: branchTypeLabel })
+        : t("overview.center", { branchType: branchTypeLabel.toLowerCase() });
     case "directeur_etudes":
     case "prefet":
-      return `Vue pédagogique — ${branchTypeLabel}`;
+      return t("overview.pedagogy", { branchType: branchTypeLabel });
     case "teacher":
-      return "Mon espace enseignant";
+      return t("overview.teacher");
     case "caissier":
-      return "Vue caisse — encaissements et impayés";
+      return t("overview.cashier");
     case "student":
-      return "Mon espace personnel";
+      return t("overview.student");
     case "parent":
-      return "Espace foyer — suivi des enfants";
+      return t("overview.parent");
     case "support":
-      return "Espace support — signalements et escalades";
+      return t("overview.support");
     default:
-      return `Tableau de bord — ${branchTypeLabel}`;
+      return t("overview.default", { branchType: branchTypeLabel });
   }
 }

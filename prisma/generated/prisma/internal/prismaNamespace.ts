@@ -5707,6 +5707,7 @@ export const UserScalarFieldEnum = {
   statusUser: 'statusUser',
   mustChangePassword: 'mustChangePassword',
   theme: 'theme',
+  locale: 'locale',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   name: 'name',

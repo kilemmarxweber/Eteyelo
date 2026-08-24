@@ -1,11 +1,15 @@
 import nextDynamic from "next/dynamic";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { createTranslator } from "next-intl";
 import { Badge } from "@/components/ui/badge";
 import { BranchPageShell } from "@/components/layout/branch-page-shell";
 import { IconUserCheck } from "@tabler/icons-react";
+import { auth } from "@/lib/auth";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
 import { requiresStudentImport } from "@/lib/branch-capabilities";
-import { getPeopleLabels } from "@/lib/people-labels";
+import { loadMessages } from "@/lib/i18n";
+import { resolvePreferredLocale } from "@/lib/resolve-preferred-locale";
 
 export const dynamic = "force-dynamic";
 
@@ -17,7 +21,7 @@ const RegistrationForm = nextDynamic(
   {
     loading: () => (
       <div className="rounded-xl border bg-card p-8 text-sm text-muted-foreground">
-        Chargement du formulaire d&apos;inscription…
+        …
       </div>
     ),
   },
@@ -30,7 +34,6 @@ export default async function RegistrationPage({
 }) {
   const query = await searchParams;
   const { organizationId, branchId, typebranch } = await requireBranchContext();
-  const peopleLabels = getPeopleLabels(typebranch);
 
   if (requiresStudentImport(typebranch)) {
     redirect(
@@ -38,14 +41,25 @@ export default async function RegistrationPage({
     );
   }
 
+  const session = await auth.api.getSession({ headers: await headers() });
+  const locale = await resolvePreferredLocale(
+    (session?.user as { locale?: string | null } | undefined)?.locale,
+  );
+  const messages = await loadMessages(locale);
+  const t = createTranslator({
+    locale,
+    messages,
+    namespace: "registration",
+  });
+
   return (
     <BranchPageShell
       className="w-full"
-      title="Nouvelle inscription"
-      description={`Constituez le dossier familial complet et affectez ${peopleLabels.studentDefinite} dans une classe disponible.`}
+      title={t("title")}
+      description={t("description")}
       badge={
         <Badge variant="outline-primary" icon={<IconUserCheck size={14} />}>
-          Inscription unifiee
+          {t("badge")}
         </Badge>
       }
     >

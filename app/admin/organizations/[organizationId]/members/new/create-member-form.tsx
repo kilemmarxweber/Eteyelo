@@ -3,21 +3,26 @@
 import { useAppTransition as useTransition } from "@/hooks/use-app-transition";
 import Link from "next/link";
 import { useAppRouter as useRouter } from "@/hooks/use-app-router";
-import { Mail, Shield, UserRound } from "lucide-react";
-import { useForm } from "react-hook-form";
+import { Building2, Mail, Shield, UserRound } from "lucide-react";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 
 import { ALL_ORG_ROLE_SLUGS } from "@/lib/permissions";
 import { orgRoleLabel } from "@/lib/org-role-labels";
 import { createOrganizationMemberAction } from "../actions";
+import {
+  MemberBranchPicker,
+  type MemberBranchOption,
+} from "../branch-picker";
 import { createOrgMemberSchema, type CreateOrgMemberInput } from "../schema";
 
 type Props = {
   organizationId: string;
+  branches: MemberBranchOption[];
 };
 
-export function CreateMemberForm({ organizationId }: Props) {
+export function CreateMemberForm({ organizationId, branches }: Props) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
 
@@ -28,14 +33,24 @@ export function CreateMemberForm({ organizationId }: Props) {
       email: "",
       name: "",
       orgRole: ALL_ORG_ROLE_SLUGS[2],
+      branchIds: branches.length === 1 ? [branches[0]!.id] : [],
     },
   });
 
+  const branchIds = useWatch({ control: form.control, name: "branchIds" }) ?? [];
+
   function onSubmit(values: CreateOrgMemberInput) {
+    const selected = values.branchIds ?? [];
+    if (selected.length === 0) {
+      toast.error("Sélectionnez au moins une branche.");
+      return;
+    }
+
     startTransition(async () => {
       const res = await createOrganizationMemberAction({
         ...values,
         organizationId,
+        branchIds: selected,
       });
 
       if (!res.ok) {
@@ -103,6 +118,23 @@ export function CreateMemberForm({ organizationId }: Props) {
         <FormError message={form.formState.errors.orgRole?.message} />
       </label>
 
+      <div className="space-y-2">
+        <div className="flex items-center gap-2 text-sm font-medium">
+          <Building2 className="size-4 text-muted-foreground" />
+          Branches autorisées
+        </div>
+        <p className="text-xs text-muted-foreground">
+          Le membre ne pourra ouvrir que les établissements cochés.
+        </p>
+        <MemberBranchPicker
+          branches={branches}
+          value={branchIds}
+          onChange={(ids) => form.setValue("branchIds", ids, { shouldDirty: true })}
+          disabled={pending}
+          error={form.formState.errors.branchIds?.message}
+        />
+      </div>
+
       <div className="flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:justify-end">
         <Link
           href={`/admin/organizations/${organizationId}/members`}
@@ -113,7 +145,7 @@ export function CreateMemberForm({ organizationId }: Props) {
 
         <button
           type="submit"
-          disabled={pending}
+          disabled={pending || branches.length === 0}
           className="inline-flex h-11 w-full items-center justify-center rounded-full bg-primary px-5 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/20 transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-70 sm:w-auto"
         >
           {pending ? "Création..." : "Créer le membre"}

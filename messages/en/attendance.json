@@ -1,0 +1,14 @@
+{
+  "title": "Attendance management",
+  "description": "Track staff check-ins, review statistics and export reports.",
+  "badge": "Attendance",
+  "checkIn": "Check in",
+  "nav": {
+    "title": "Attendance",
+    "dashboard": "Dashboard",
+    "checkIn": "Check-in",
+    "details": "Attendance details",
+    "reports": "Reports",
+    "history": "History"
+  }
+}

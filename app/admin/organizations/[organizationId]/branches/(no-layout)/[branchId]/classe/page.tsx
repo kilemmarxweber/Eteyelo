@@ -3,6 +3,7 @@
 import { BranchPageShell } from "@/components/layout/branch-page-shell";
 
 import { useEffect, useState, useTransition } from "react";
+import { useTranslations } from "next-intl";
 import { NotFoundView } from "@/components/not-found-view";
 import {
   IconDownload,
@@ -39,6 +40,7 @@ import { ClasseUpForm } from "./components/classe-form";
 import { getClassesAction, importClassCatalogAction } from "./classe.action";
 
 export default function Page() {
+  const t = useTranslations("classes");
   const [open, setOpen] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
   const [stats, setStats] = useState({ total: 0, active: 0, inactive: 0 });
@@ -82,9 +84,15 @@ export default function Page() {
       try {
         const result = await importClassCatalogAction();
         toast.success(
-          `${result.created} classe(s) créée(s), ${result.skipped} déjà présente(s)` +
+          t("importSuccess", {
+            created: result.created,
+            skipped: result.skipped,
+          }) +
             (result.sectionsCreated || result.optionsCreated
-              ? ` · ${result.sectionsCreated} section(s), ${result.optionsCreated} option(s)`
+              ? t("importExtra", {
+                  sections: result.sectionsCreated,
+                  options: result.optionsCreated,
+                })
               : ""),
         );
         setRefreshKey((value) => value + 1);
@@ -92,7 +100,7 @@ export default function Page() {
         toast.error(
           error instanceof Error
             ? error.message
-            : "Échec de l'import du catalogue",
+            : t("importFail"),
         );
       }
     });
@@ -100,8 +108,8 @@ export default function Page() {
 
   return (
     <BranchPageShell
-      title={`Gestion des ${classLabelPlural.toLowerCase()}`}
-      description={`Créez les ${classLabelPlural.toLowerCase()} et organisez leur capacité, option et créneau.`}
+      title={t("title", { classes: classLabelPlural.toLowerCase() })}
+      description={t("description", { classes: classLabelPlural.toLowerCase() })}
       badge={
         <Badge variant="outline-primary" icon={<IconUsers size={14} />}>
           {classLabelPlural}
@@ -117,13 +125,13 @@ export default function Page() {
             disabled={stats.total > 0}
             title={
               stats.total > 0
-                ? "Le catalogue ne peut plus être importé : des classes existent déjà."
+                ? t("importDisabled")
                 : undefined
             }
             onClick={handleImportCatalog}
           >
             <IconDownload size={16} className="mr-2" />
-            Importer catalogue
+            {t("importCatalog")}
           </Button>
           <Button
             type="button"
@@ -132,7 +140,7 @@ export default function Page() {
             leftSection={<IconUserPlus size={16} />}
             onClick={() => setOpen(true)}
           >
-            {`Créer une ${classLabel.toLowerCase()}`}
+            {t("create", { class: classLabel.toLowerCase() })}
           </Button>
         </div>
       }
@@ -143,9 +151,9 @@ export default function Page() {
           className="flex h-dvh max-h-dvh w-[min(100vw,40rem)] max-w-full flex-col gap-0 overflow-hidden p-0 sm:max-w-[40rem]"
         >
           <SheetHeader className="shrink-0 space-y-1.5 border-b px-5 py-4 pr-12 text-left sm:px-6">
-            <SheetTitle>{`Créer une ${classLabel.toLowerCase()}`}</SheetTitle>
+            <SheetTitle>{t("create", { class: classLabel.toLowerCase() })}</SheetTitle>
             <SheetDescription>
-              {`Niveau, section, option et vacation de la ${classLabel.toLowerCase()}.`}
+              {t("createDesc", { class: classLabel.toLowerCase() })}
             </SheetDescription>
           </SheetHeader>
           <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4 sm:px-6">

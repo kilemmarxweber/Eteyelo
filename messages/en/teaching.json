@@ -1,0 +1,48 @@
+{
+  "assignments": {
+    "title": "Course assignments",
+    "year": "School year: {year}",
+    "yearMissing": "not configured",
+    "badge": "Teaching",
+    "unassigned": "No teacher ({count})",
+    "classes": "Classes",
+    "searchClass": "Search a class…",
+    "searchCourse": "Search a course…",
+    "searchTeacher": "Search a teacher…",
+    "noTeacherFound": "No teacher found.",
+    "teachersCount": "{count, plural, one {# teacher} other {# teachers}}"
+  },
+  "courses": {
+    "title": "Course management",
+    "descPrimary": "Create and organize the subjects taught in this school.",
+    "descImportOrg": "Create subjects or import courses from another branch of the organization.",
+    "descImportCatalog": "Create subjects or import the DRC catalog (common core + option specialties).",
+    "badge": "Courses",
+    "total": "Total courses",
+    "totalHint": "Registered subjects",
+    "active": "Active courses",
+    "activeHint": "Available for assignment",
+    "inactive": "Inactive courses"
+  },
+  "schedule": {
+    "plan": "Plan the course timetable",
+    "classTitle": "Course timetable - {code}",
+    "badge": "Timetables",
+    "classes": "Classes",
+    "yearTitle": "Year timetable",
+    "selectClass": "Select a class in the left panel to view the timetable."
+  },
+  "vacation": {
+    "title": "Time slots",
+    "description": "Configure sessions and break time (e.g. 3 + 3 in secondary).",
+    "badge": "Time slots",
+    "add": "Add a time slot"
+  },
+  "ponderation": {
+    "title": "Course weightings",
+    "configured": "Configured courses",
+    "missing": "Missing weightings",
+    "average": "Average",
+    "total": "Total courses"
+  }
+}

@@ -9,6 +9,7 @@ import { IconChartBar } from "@tabler/icons-react";
 import { ORG_ROLE } from "@/lib/permissions";
 import { assertBranchAreaAccess } from "@/lib/auth/assert-branch-area-access";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
+import { getServerTranslator } from "@/lib/i18n-server";
 import {
   canManageOrganization,
   hasSessionRole,
@@ -17,6 +18,7 @@ import {
 export const dynamic = "force-dynamic";
 
 const ResultListPage = async () => {
+  const t = await getServerTranslator("cursus");
   const { session, userId: currentUserId, branchId } =
     await requireBranchContext();
   await assertBranchAreaAccess("results", session);
@@ -476,11 +478,11 @@ const ResultListPage = async () => {
 
   return (
     <BranchPageShell
-      title="Gestion des Resultats"
-          description="Gérer les informations des Resultats des élèves"
+      title={t("results.title")}
+      description={t("results.description")}
           badge={
             <Badge variant="outline-primary" icon={<IconChartBar size={14} />}>
-              Resultats
+              {t("results.badge")}
             </Badge>
           }
     >

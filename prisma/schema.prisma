@@ -30,6 +30,8 @@ model User {
   mustChangePassword Boolean @default(false)
   /// Préférence d'apparence propre à l'utilisateur (light | dark | system)
   theme       String?      @default("light")
+  /// Langue d'interface (fr | en | pt)
+  locale      String?      @default("fr")
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
   name        String

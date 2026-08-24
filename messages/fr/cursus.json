@@ -1,0 +1,45 @@
+{
+  "results": {
+    "title": "Gestion des résultats",
+    "description": "Gérer les informations des résultats des élèves.",
+    "badge": "Résultats",
+    "detail": "Détail des interventions"
+  },
+  "notes": {
+    "title": "Saisie des notes"
+  },
+  "homework": {
+    "title": "Devoirs",
+    "mine": "Mes devoirs",
+    "new": "Nouveau devoir",
+    "descAdmin": "Filtrez par année, classe et cours — publiez pour le weekend.",
+    "descTeacher": "Uniquement vos classes et cours affectés — publiez pour le weekend.",
+    "descParent": "Suivi des devoirs de vos enfants.",
+    "descStudent": "Vos devoirs à faire pour le weekend.",
+    "friday": "Vendredi",
+    "emptyAssign": "Aucune affectation",
+    "empty": "Aucun devoir",
+    "noResult": "Aucun résultat",
+    "openNow": "Ouverts maintenant",
+    "upcoming": "À venir",
+    "done": "Terminés / clôturés"
+  },
+  "library": {
+    "title": "Bibliothèque",
+    "addBook": "Ajouter un livre",
+    "books": "{count, plural, one {# livre} other {# livres}}"
+  },
+  "sheets": {
+    "title": "Fiche de cotation",
+    "central": "Fiches centrales"
+  },
+  "transcripts": {
+    "title": "Relevés de notes"
+  },
+  "certificates": {
+    "title": "Brevets de formation"
+  },
+  "finalists": {
+    "title": "Liste finalistes"
+  }
+}

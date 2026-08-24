@@ -3,6 +3,7 @@
 import { BranchPageShell } from "@/components/layout/branch-page-shell";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import {
   IconUserCheck,
   IconUserOff,
@@ -59,6 +60,7 @@ const emptyStats: PersonnelStats = {
 };
 
 export default function Personnels() {
+  const t = useTranslations("users");
   const [refreshKey, setRefreshKey] = useState(0);
   const [open, setOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
@@ -125,32 +127,32 @@ export default function Personnels() {
 
   const statCards = [
     {
-      label: "Total personnels",
+      label: `${t("staff.badge")} total`,
       value: stats.total,
-      description: "membres",
+      description: t("staff.members"),
       icon: IconUsersGroup,
     },
     {
-      label: "Actifs",
+      label: t("staff.active"),
       value: stats.actifs,
-      description: "membres",
+      description: t("staff.members"),
       icon: IconUserCheck,
     },
     {
-      label: "Inactifs",
+      label: t("staff.inactive"),
       value: stats.inactifs,
-      description: "membres",
+      description: t("staff.members"),
       icon: IconUserOff,
     },
   ];
 
   return (
     <BranchPageShell
-      title="Gestion des personnels"
-          description="Gérer les informations des personnels administratifs et leurs contrats dans l'établissement."
+      title={t("staff.title")}
+      description={t("staff.description")}
           badge={
             <Badge variant="outline-primary" icon={<IconUsers size={14} />}>
-              Personnels
+              {t("staff.badge")}
             </Badge>
           }
           actions={
@@ -163,7 +165,7 @@ export default function Personnels() {
                     leftSection={<IconUpload size={16} />}
                     onClick={() => setImportOpen(true)}
                   >
-                    Importer un personnel
+                    {t("staff.importOne")}
                   </Button>
                 ) : null}
                 <Sheet open={open} onOpenChange={setOpen}>
@@ -173,7 +175,7 @@ export default function Personnels() {
                       variant="default"
                       leftSection={<IconUserPlus size={16} />}
                     >
-                      Ajouter un personnel
+                      {t("staff.addOne")}
                     </Button>
                   </SheetTrigger>
 
@@ -182,9 +184,9 @@ export default function Personnels() {
                     className="flex h-dvh max-h-dvh w-[min(100vw,40rem)] max-w-full flex-col gap-0 overflow-hidden p-0 sm:max-w-[40rem]"
                   >
                     <SheetHeader className="shrink-0 space-y-1.5 border-b px-5 py-4 pr-12 text-left sm:px-6">
-                      <SheetTitle>Créer un personnel administratif</SheetTitle>
+                      <SheetTitle>{t("staff.createTitle")}</SheetTitle>
                       <SheetDescription>
-                        Ajoutez un nouveau membre du personnel.
+                        {t("staff.createDesc")}
                       </SheetDescription>
                     </SheetHeader>
 
@@ -216,7 +218,7 @@ export default function Personnels() {
           <BranchStatCard
             label="Présents aujourd'hui"
             value={`${stats.present} / ${stats.totalExpected}`}
-            description="présents / total prévu"
+            description={t("staff.presenceHint")}
             icon={IconCalendarCheck}
             footer={
               <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">

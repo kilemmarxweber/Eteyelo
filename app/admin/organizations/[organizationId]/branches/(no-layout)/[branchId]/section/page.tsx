@@ -3,6 +3,7 @@
 import { BranchPageShell } from "@/components/layout/branch-page-shell";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { useParams } from "next/navigation";
 import { useAppRouter as useRouter } from "@/hooks/use-app-router";
 import { IconClipboard, IconPlus } from "@tabler/icons-react";
@@ -26,6 +27,7 @@ import { getTrainingLabels } from "@/lib/training-labels";
 import { BranchLoadingFallback as Loading } from "@/components/branch-loading-fallback";
 
 export default function Sections() {
+  const tClasses = useTranslations("classes");
   const [open, setOpen] = useState(false);
   const [checkingBranch, setCheckingBranch] = useState(true);
   const [labels, setLabels] = useState(getTrainingLabels("SECONDAIRE"));
@@ -103,7 +105,7 @@ export default function Sections() {
           <SheetHeader className="shrink-0 space-y-1.5 border-b px-5 py-4 pr-12 text-left sm:px-6">
             <SheetTitle>{labels.sectionCreate}</SheetTitle>
             <SheetDescription>
-              Renseignez le nom de la section, puis enregistrez.
+              {tClasses("sectionSheetDesc")}
             </SheetDescription>
           </SheetHeader>
           <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4 sm:px-6">

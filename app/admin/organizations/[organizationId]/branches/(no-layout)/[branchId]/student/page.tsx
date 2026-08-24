@@ -3,6 +3,7 @@
 import { BranchPageShell } from "@/components/layout/branch-page-shell";
 
 import { useCallback, useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { NotFoundView } from "@/components/not-found-view";
 import {
   IconGenderBigender,
@@ -75,6 +76,7 @@ function computeStudentStats(students: IStudent[]): StudentStats {
 }
 
 export default function Students() {
+  const t = useTranslations("users");
   const [refreshKey, setRefreshKey] = useState(0);
   const [stats, setStats] = useState<StudentStats>(emptyStats);
   const peopleLabels = useBranchPeopleLabels();
@@ -123,27 +125,27 @@ export default function Students() {
 
   const statCards = [
     {
-      label: `Total ${studentWord}`,
+      label: t("students.total", { students: studentWord }),
       value: stats.total,
-      description: "selon filtres / tri actifs",
+      description: t("students.byFilters"),
       icon: IconUsersGroup,
     },
     {
-      label: "Actifs",
+      label: t("students.active"),
       value: stats.actifs,
-      description: "avec classe assignée",
+      description: t("students.activeHint"),
       icon: IconUserCheck,
     },
     {
-      label: "Inactifs",
+      label: t("students.inactive"),
       value: stats.inactifs,
-      description: "sans inscription visible",
+      description: t("students.inactiveHint"),
       icon: IconUserOff,
     },
     {
-      label: `Nouveaux ${nouveauxWord}`,
+      label: t("students.new", { students: nouveauxWord }),
       value: stats.nouveauxTrimestre,
-      description: "ce trimestre (filtrés)",
+      description: t("students.newHint"),
       icon: IconUserPlus,
     },
   ];
@@ -156,8 +158,10 @@ export default function Students() {
 
   return (
     <BranchPageShell
-      title={`Gestion des ${peopleLabels.studentPluralLower}`}
-      description={`Dossiers ${peopleLabels.studentPluralLower} et suivi académique en temps réel.`}
+      title={t("students.title", { students: peopleLabels.studentPluralLower })}
+      description={t("students.description", {
+        students: peopleLabels.studentPluralLower,
+      })}
       badge={
         <Badge variant="outline-primary" icon={<IconUsers size={14} />}>
           {peopleLabels.studentPlural}
@@ -176,7 +180,7 @@ export default function Students() {
         ))}
 
         <BranchStatCard
-          label="Sexe / genre"
+          label={t("students.gender")}
           value={
             <span>
               <span className="text-blue-700">{stats.masculin}M</span>
@@ -214,13 +218,13 @@ export default function Students() {
       >
         <div className="border-b border-border bg-muted/30 px-4 py-3 sm:px-5">
           <h2 className="text-sm font-semibold text-foreground">
-            Liste des {peopleLabels.studentPluralLower}
+            {t("students.title", { students: peopleLabels.studentPluralLower })}
             <span className="ml-2 font-normal text-muted-foreground">
               ({stats.total})
             </span>
           </h2>
           <p className="text-xs text-muted-foreground">
-            Totaux recalculés selon les filtres et le tri actifs.
+            {t("students.byFilters")}
           </p>
         </div>
         <UserList

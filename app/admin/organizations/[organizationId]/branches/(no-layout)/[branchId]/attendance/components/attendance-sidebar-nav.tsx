@@ -11,6 +11,7 @@ import {
   IconUserCheck,
 } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
+import { useTranslations } from "next-intl";
 
 type AttendanceSidebarNavProps = {
   basePath: string;
@@ -18,27 +19,27 @@ type AttendanceSidebarNavProps = {
 
 const NAV_ITEMS = [
   {
-    title: "Tableau de bord",
+    titleKey: "nav.dashboard",
     segment: "",
     icon: IconChartBar,
   },
   {
-    title: "Pointage",
+    titleKey: "nav.checkIn",
     segment: "/pointage",
     icon: IconScan,
   },
   {
-    title: "Detail des presences",
+    titleKey: "nav.details",
     segment: "/details",
     icon: IconListDetails,
   },
   {
-    title: "Rapports",
+    titleKey: "nav.reports",
     segment: "/rapports",
     icon: IconFileAnalytics,
   },
   {
-    title: "Historique",
+    titleKey: "nav.history",
     segment: "/historique",
     icon: IconClock,
   },
@@ -46,12 +47,13 @@ const NAV_ITEMS = [
 
 export function AttendanceSidebarNav({ basePath }: AttendanceSidebarNavProps) {
   const pathname = usePathname();
+  const t = useTranslations("attendance");
 
   return (
     <nav className="flex flex-col gap-1">
       <div className="mb-3 flex items-center gap-2 border-b border-border/50 pb-3">
         <IconUserCheck size={18} className="text-primary" />
-        <h3 className="font-semibold text-foreground">Presences</h3>
+        <h3 className="font-semibold text-foreground">{t("nav.title")}</h3>
       </div>
 
       {NAV_ITEMS.map((item) => {
@@ -74,7 +76,7 @@ export function AttendanceSidebarNav({ basePath }: AttendanceSidebarNavProps) {
             )}
           >
             <Icon size={16} />
-            {item.title}
+            {t(item.titleKey)}
           </Link>
         );
       })}

@@ -30,10 +30,12 @@ import {
 import { ORG_ROLE } from "@/lib/permissions";
 import { getBranchTypeAction } from "../classe/classe.action";
 import SidebarNav from "./components/sidebar-nav";
+import { useTranslations } from "next-intl";
 
 type SettingsNavAccess = "always" | "org" | "school_ops" | "support";
 
 export default function Settings({ children }: { children: React.ReactNode }) {
+  const t = useTranslations("settings");
   const pathname = usePathname();
   const { data: session, isPending } = authClient.useSession();
   const [hasMounted, setHasMounted] = useState(false);
@@ -87,12 +89,12 @@ export default function Settings({ children }: { children: React.ReactNode }) {
     if (isCursusSelfUser && !canSeeOrgSettings && !canSeeSchoolOps) {
       return [
         {
-          title: "Profil",
+          title: t("profile"),
           icon: <IconUser size={18} />,
           href: settingsBasePath,
         },
         {
-          title: "Mot de passe",
+          title: t("password"),
           icon: <IconKey size={18} />,
           href: "/auth/change-password",
         },
@@ -107,74 +109,74 @@ export default function Settings({ children }: { children: React.ReactNode }) {
       primaryOnly?: boolean;
     }> = [
       {
-        title: "Profil",
+        title: t("profile"),
         icon: <IconUser size={18} />,
         href: settingsBasePath,
         access: "always",
       },
       {
-        title: "Apparence",
+        title: t("appearance"),
         icon: <IconPalette size={18} />,
         href: `${settingsBasePath}/appearance`,
         access: "always",
       },
       {
-        title: "Mot de passe",
+        title: t("password"),
         icon: <IconKey size={18} />,
         href: "/auth/change-password",
         access: "always",
       },
       {
-        title: "Types de frais",
+        title: t("feeTypes"),
         icon: <IconReportMoney size={18} />,
         href: `${settingsBasePath}/typeFrais`,
         access: "org",
       },
       {
-        title: "Taux de change",
+        title: t("exchangeRates"),
         icon: <IconCurrencyDollar size={18} />,
         href: `${settingsBasePath}/exchange-rates`,
         access: "org",
       },
       {
-        title: "Communication publique",
+        title: t("publicCommunication"),
         icon: <IconClipboardList size={18} />,
         href: `${settingsBasePath}/inscription-publique`,
         access: "school_ops",
       },
       {
-        title: "Calendrier scolaire",
+        title: t("schoolCalendar"),
         icon: <IconCalendarCog size={18} />,
         href: `${settingsBasePath}/calendar`,
         access: "school_ops",
       },
       {
-        title: "Année scolaire",
+        title: t("schoolYear"),
         icon: <IconSchool size={18} />,
         href: `${settingsBasePath}/annee-scolaire`,
         access: "school_ops",
       },
       {
-        title: "Périodes",
+        title: t("periods"),
         icon: <IconCalendarEvent size={18} />,
         href: `${settingsBasePath}/periodes`,
         access: "school_ops",
       },
       {
-        title: "Présences",
+        title: t("attendance"),
         icon: <IconUserCheck size={18} />,
         href: `${settingsBasePath}/attendance`,
         access: "org",
       },
       {
-        title: "Domaines primaire",
+        title: t("primaryDomains"),
         icon: <IconBooks size={18} />,
         href: `${settingsBasePath}/primary-domains`,
         access: "school_ops",
         primaryOnly: true,
       },
       {
-        title: "Support",
+        title: t("support"),
         icon: <IconHeadphones size={18} />,
         href: `${settingsBasePath}/support`,
         access: "support",
@@ -204,6 +206,7 @@ export default function Settings({ children }: { children: React.ReactNode }) {
       )
       .map(({ access: _, primaryOnly: __, ...item }) => item);
   }, [
+    t,
     settingsBasePath,
     canSeeOrgSettings,
     canSeeSchoolOps,
@@ -216,8 +219,8 @@ export default function Settings({ children }: { children: React.ReactNode }) {
     <Layout fadedBelow fixedHeight>
       <LayoutBody className="flex flex-col gap-0 pt-0 md:pt-0" fixedHeight>
         <BranchStickyHeader
-          title="Parametres"
-          description="Gerer les preferences de votre compte"
+          title={t("title")}
+          description={t("description")}
         />
 
         <div className="flex min-h-0 flex-1 flex-col gap-8 pt-1 lg:flex-row lg:gap-12">

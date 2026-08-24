@@ -3,11 +3,15 @@ import type { ReactNode } from "react";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
+import { AppIntlProvider } from "@/components/app-intl-provider";
 import { ThemeProvider } from "@/components/theme-provider";
+import { UserLocaleSync } from "@/components/user-locale-sync";
 import { UserThemeSync } from "@/components/user-theme-sync";
 import { AdminShell } from "@/components/layout/admin-shell";
 import { auth } from "@/lib/auth";
 import { enforceAdminRouteAccess } from "@/lib/auth/enforce-admin-route-access";
+import { loadMessages } from "@/lib/i18n";
+import { resolvePreferredLocale } from "@/lib/resolve-preferred-locale";
 import {
   normalizeUserTheme,
   userThemeStorageKey,
@@ -52,6 +56,10 @@ export default async function AdminLayout({
   const preferredTheme = normalizeUserTheme(
     (session.user as { theme?: string | null }).theme,
   );
+  const preferredLocale = await resolvePreferredLocale(
+    (session.user as { locale?: string | null }).locale,
+  );
+  const messages = await loadMessages(preferredLocale);
 
   return (
     <ThemeProvider
@@ -62,12 +70,19 @@ export default async function AdminLayout({
       storageKey={userThemeStorageKey(userId)}
       disableTransitionOnChange
     >
-      <UserThemeSync userId={userId} preferredTheme={preferredTheme} />
-      {isChangePasswordRoute ? (
-        children
-      ) : (
-        <AdminShell>{children}</AdminShell>
-      )}
+      <AppIntlProvider
+        key={`${userId}-${preferredLocale}`}
+        locale={preferredLocale}
+        messages={messages}
+      >
+        <UserThemeSync userId={userId} preferredTheme={preferredTheme} />
+        <UserLocaleSync userId={userId} preferredLocale={preferredLocale} />
+        {isChangePasswordRoute ? (
+          children
+        ) : (
+          <AdminShell>{children}</AdminShell>
+        )}
+      </AppIntlProvider>
     </ThemeProvider>
   );
 }

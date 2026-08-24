@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/custom/button";
 import {
@@ -25,6 +26,7 @@ import {
 import { ChevronDown, LogOut, Settings, UserRound } from "lucide-react";
 
 export function UserNav() {
+  const tNav = useTranslations("nav");
   const router = useRouter();
   const { resetLoading } = useAppLoading();
   const { data: session } = authClient.useSession();
@@ -95,7 +97,7 @@ export function UserNav() {
                   ) : null}
                 </>
               ) : (
-                <p className="text-sm text-muted-foreground">Chargement…</p>
+                <p className="text-sm text-muted-foreground">{tNav("loading")}</p>
               )}
             </div>
           </div>
@@ -107,7 +109,7 @@ export function UserNav() {
             onClick={() => router.push("/admin/settings")}
           >
             <UserRound className="size-4 text-muted-foreground" />
-            Profil
+            {tNav("profile")}
             <DropdownMenuShortcut>⇧⌘P</DropdownMenuShortcut>
           </DropdownMenuItem>
           <DropdownMenuItem
@@ -115,7 +117,7 @@ export function UserNav() {
             onClick={() => router.push("/admin/settings")}
           >
             <Settings className="size-4 text-muted-foreground" />
-            Paramètres
+            {tNav("settings")}
             <DropdownMenuShortcut>⌘S</DropdownMenuShortcut>
           </DropdownMenuItem>
         </DropdownMenuGroup>
@@ -137,7 +139,7 @@ export function UserNav() {
             }}
           >
             <LogOut className="size-4" />
-            Se déconnecter
+            {tNav("signOut")}
             <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>
           </DropdownMenuItem>
         </div>

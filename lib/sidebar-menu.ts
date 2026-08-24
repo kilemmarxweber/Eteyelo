@@ -2,10 +2,16 @@ import { getOrganizationAccessRoleLabel } from "@/lib/auth/role-labels";
 import { orgRoleLabel } from "@/lib/org-role-labels";
 import { APP_ROLE, ORG_ROLE } from "@/lib/permissions";
 import { shouldHideSidebarHref } from "@/lib/branch-route-guard";
-import { getClassDisplayLabelPlural, getClassDisplayLabel } from "@/lib/branch-capabilities";
-import { getPeopleLabels } from "@/lib/people-labels";
-import { getSchoolYearDisplayLabel } from "@/lib/university-lmd";
-import { getTrainingLabels, usesTrainingLabels } from "@/lib/training-labels";
+import {
+  getClassDisplayLabel,
+  isUniversiteBranch,
+} from "@/lib/branch-capabilities";
+import {
+  getNavClassKeys,
+  getNavPeopleKeys,
+  getPeopleVariant,
+} from "@/lib/people-variant";
+import { usesTrainingLabels } from "@/lib/training-labels";
 import { normalizeBranchType } from "@/lib/academic-structure";
 import type { SideLink } from "@/src/data/sidelinks";
 
@@ -127,57 +133,57 @@ const CURSUS_ROLES = Array.from(
 
 const staticSidebarMenu: StaticMenuItem[] = [
   {
-    title: "Tableau de bord",
+    title: "dashboard",
     href: "/admin",
     icon: "dashboard",
     roles: ["*"],
   },
   {
-    title: "Inscription",
+    title: "registration",
     href: "/admin/registration",
     icon: "inscriptions",
     // School admin + caissier (enregistrement élèves / encaissement lié).
     roles: [...SCHOOL_ADMIN_ROLES, ...CAISSIER_ROLES],
   },
   {
-    title: "Présences",
+    title: "attendance",
     href: "/admin/attendance",
     icon: "attendance",
     roles: PRESENCE_ROLES,
   },
   {
-    title: "Candidatures",
+    title: "candidatures",
     href: "/admin/candidatures",
     icon: "candidatures",
     roles: SCHOOL_ADMIN_ROLES,
   },
   {
-    title: "Utilisateurs",
+    title: "users",
     href: "/admin/settings",
     icon: "users",
     // Enseignant : pas d’annuaire (accès via dashboard Horaire / Cursus).
     roles: [...SCHOOL_ADMIN_ROLES, ...CAISSIER_ROLES],
     sub: [
       {
-        title: "Élève",
+        title: "student",
         href: "/admin/student",
         icon: "eleves",
         roles: STUDENT_DIRECTORY_ROLES,
       },
       {
-        title: "Personnel",
+        title: "staff",
         href: "/admin/personnel",
         icon: "personnels",
         roles: SCHOOL_ADMIN_ROLES,
       },
       {
-        title: "Enseignant",
+        title: "teacher",
         href: "/admin/teacher",
         icon: "enseignants",
         roles: SCHOOL_ADMIN_ROLES,
       },
       {
-        title: "Parent",
+        title: "parent",
         href: "/admin/parent",
         icon: "parents",
         roles: SCHOOL_ADMIN_ROLES,
@@ -186,38 +192,38 @@ const staticSidebarMenu: StaticMenuItem[] = [
   },
   {
     // Setup enseignement (admin) — enseignant : Horaire via tableau de bord uniquement.
-    title: "Enseignement",
+    title: "teaching",
     href: "#",
     icon: "enseignants",
     roles: SCHOOL_ADMIN_ROLES,
     sub: [
       {
-        title: "Cours",
+        title: "courses",
         href: "/admin/cours",
         icon: "cours",
         roles: COURSE_ROLES,
       },
       {
-        title: "Ponderations",
+        title: "ponderations",
         href: "/admin/coursPonderationOption",
         icon: "options",
         roles: COURSE_ROLES,
       },
       {
-        title: "Affectations",
+        title: "assignments",
         href: "/admin/teaching",
         icon: "affectations",
         roles: SCHOOL_ADMIN_ROLES,
       },
       {
-        title: "Vacation",
+        title: "vacation",
         href: "/admin/creneau",
         icon: "vacation",
         roles: SCHOOL_ADMIN_ROLES,
       },
       {
         // Gestion horaire admin — lecture élève/parent sous Cursus ; enseignant via dashboard.
-        title: "Horaire",
+        title: "schedule",
         href: "/admin/schedule",
         icon: "horaire",
         roles: SCHOOL_ADMIN_ROLES,
@@ -225,37 +231,37 @@ const staticSidebarMenu: StaticMenuItem[] = [
     ],
   },
   {
-    title: "Classes",
+    title: "classes",
     href: "#",
     icon: "classes",
     roles: SCHOOL_ADMIN_ROLES,
     sub: [
       {
-        title: "Sections",
+        title: "sections",
         href: "/admin/section",
         icon: "sections",
         roles: SCHOOL_ADMIN_ROLES,
       },
       {
-        title: "Options",
+        title: "options",
         href: "/admin/option",
         icon: "options",
         roles: SCHOOL_ADMIN_ROLES,
       },
       {
-        title: "Programmes",
+        title: "programmes",
         href: "/admin/programmes",
         icon: "sections",
         roles: SCHOOL_ADMIN_ROLES,
       },
       {
-        title: "Modules",
+        title: "modules",
         href: "/admin/modules",
         icon: "options",
         roles: SCHOOL_ADMIN_ROLES,
       },
       {
-        title: "Classe",
+        title: "class",
         href: "/admin/classe",
         icon: "classe",
         roles: SCHOOL_ADMIN_ROLES,
@@ -263,19 +269,19 @@ const staticSidebarMenu: StaticMenuItem[] = [
     ],
   },
   {
-    title: "Finance",
+    title: "finance",
     href: "#",
     icon: "finance",
     roles: FINANCE_ROLES,
     sub: [
       {
-        title: "Frais",
+        title: "fees",
         href: "/admin/frais",
         icon: "frais",
         roles: FINANCE_ROLES,
       },
       {
-        title: "Paiement",
+        title: "payment",
         href: "/admin/paiement",
         icon: "paiement",
         roles: FINANCE_ROLES,
@@ -283,67 +289,67 @@ const staticSidebarMenu: StaticMenuItem[] = [
     ],
   },
   {
-    title: "Cursus",
+    title: "cursus",
     href: "#",
     icon: "cursus",
     roles: CURSUS_ROLES,
     sub: [
       {
-        title: "Résultats",
+        title: "results",
         href: "/admin/results",
         icon: "results",
         roles: RESULTS_ROLES,
       },
       {
-        title: "Devoirs",
+        title: "homework",
         href: "/admin/devoirs",
         icon: "devoirs",
         roles: DEVOIRS_ROLES,
       },
       {
-        title: "Bibliothèque",
+        title: "library",
         href: "/admin/bibliotheque",
         icon: "bibliotheque",
         roles: LIBRARY_ROLES,
       },
       {
-        title: "Notes",
+        title: "grades",
         href: "/admin/notes",
         icon: "notes",
         roles: NOTES_ROLES,
       },
       {
-        title: "Fiche Centrale",
+        title: "centralSheet",
         href: "/admin/ficheCentrales",
         icon: "fiches",
         roles: FICHE_CENTRALE_ROLES,
       },
       {
-        title: "Fiches",
+        title: "sheets",
         href: "/admin/fiches",
         icon: "fiches",
         roles: FICHES_ROLES,
       },
       {
-        title: "Attestations",
+        title: "attestations",
         href: "/admin/attestations",
         icon: "results",
         roles: SCHOOL_ADMIN_ROLES,
       },
       {
-        title: "Brevets",
+        title: "certificates",
         href: "/admin/brevets",
         icon: "results",
         roles: SCHOOL_ADMIN_ROLES,
       },
       {
-        title: "Relevés de notes",
+        title: "transcripts",
         href: "/admin/releves",
         icon: "results",
         roles: SCHOOL_ADMIN_ROLES,
       },
       {
-        title: "Liste finalistes",
+        title: "finalists",
         href: "/admin/finalistes",
         icon: "fiches",
         roles: SCHOOL_ADMIN_ROLES,
@@ -351,13 +357,13 @@ const staticSidebarMenu: StaticMenuItem[] = [
     ],
   },
   {
-    title: "Aide",
+    title: "help",
     href: "/admin/help",
     icon: "cursus",
     roles: ["*"],
   },
   {
-    title: "Paramètres",
+    title: "settings",
     href: "/admin/settings",
     icon: "settings",
     // Profil sûr pour tous ; sous-routes avancées gated ailleurs (unit-09).
@@ -434,37 +440,38 @@ function mapMenuItem(
   let title = item.title;
   let href = item.href;
 
-  if (item.title === "Classes" && item.href === "#") {
-    title = getClassDisplayLabelPlural(resolvedTypebranch);
+  if (item.title === "classes" && item.href === "#") {
+    title = getNavClassKeys(getClassDisplayLabel(resolvedTypebranch)).plural;
   }
 
   if (item.href === "/admin/classe") {
-    title = getClassDisplayLabel(resolvedTypebranch);
+    title = getNavClassKeys(getClassDisplayLabel(resolvedTypebranch)).singular;
   }
 
   if (item.href === "/admin/schoolYear") {
-    title = getSchoolYearDisplayLabel(resolvedTypebranch);
+    title = isUniversiteBranch(resolvedTypebranch)
+      ? "academicYear"
+      : "schoolYear";
   }
 
-  const peopleLabels = getPeopleLabels(resolvedTypebranch);
+  const peopleKeys = getNavPeopleKeys(resolvedTypebranch);
 
   if (item.href === "/admin/student") {
-    title = peopleLabels.student;
+    title = peopleKeys.student;
   }
 
   if (item.href === "/admin/teacher") {
-    title = peopleLabels.teacher;
+    title = peopleKeys.teacher;
   }
 
   if (usesTrainingLabels(resolvedTypebranch)) {
-    const labels = getTrainingLabels(resolvedTypebranch);
-
+    const variant = getPeopleVariant(resolvedTypebranch);
     if (item.href === "/admin/programmes") {
-      title = labels.programmesMenu;
+      title = variant === "university" ? "faculties" : "programmes";
     }
 
     if (item.href === "/admin/modules") {
-      title = labels.modulesMenu;
+      title = variant === "university" ? "tracks" : "modules";
     }
   }
 

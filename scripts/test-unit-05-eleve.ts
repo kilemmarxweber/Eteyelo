@@ -104,14 +104,27 @@ test("dashboard élève : variante student ; raccourcis Ma fiche + Résultats + 
   assert.equal(blocks.revenue, false);
   assert.equal(blocks.cashier, false);
 
-  const shortcuts = getDashboardShortcuts("student", {
-    organizationId: "org-test",
-    branchId: "branch-test",
-    studentLabel: "Élève",
-    studentPluralLower: "élèves",
-    classLabelPlural: "Classes",
-    showFinance: false,
-  });
+  const shortcuts = getDashboardShortcuts(
+    "student",
+    {
+      organizationId: "org-test",
+      branchId: "branch-test",
+      studentPluralLower: "élèves",
+      classLabelPlural: "Classes",
+      showFinance: false,
+    },
+    (key) =>
+      ({
+        "shortcuts.myFile": "Ma fiche",
+        "shortcuts.myFileDesc": "Mon dossier et mes documents scolaires",
+        "shortcuts.results": "Résultats",
+        "shortcuts.myResults": "Mes résultats scolaires",
+        "shortcuts.homework": "Devoirs",
+        "shortcuts.weekendHomework": "Mes devoirs du weekend",
+        "shortcuts.library": "Bibliothèque",
+        "shortcuts.readingResources": "Ressources en lecture",
+      })[key] ?? key,
+  );
   const titles = shortcuts.map((item) => item.title);
   assert.deepEqual(titles, ["Ma fiche", "Résultats", "Devoirs", "Bibliothèque"]);
   assert.ok(!titles.includes("Notes"));

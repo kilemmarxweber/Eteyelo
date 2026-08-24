@@ -33,6 +33,8 @@ import {
 } from "@/lib/auth/organization-member-operations";
 import { buildIsArchivedUpdate } from "@/lib/archive";
 import { orgRoleLabel } from "@/lib/org-role-labels";
+import { orgRoleToBranchRole } from "@/lib/auth/org-role-to-branch-role";
+import type { BranchRole } from "@/prisma/generated/prisma/enums";
 
 function errMessage(err: unknown): string {
   if (
@@ -48,6 +50,125 @@ function errMessage(err: unknown): string {
 
 function zodFirstMessage(err: ZodError): string {
   return err.issues[0]?.message ?? "Données invalides.";
+}
+
+function uniqueBranchIds(ids: Array<string | undefined | null>): string[] {
+  return [...new Set(ids.map((id) => id?.trim()).filter(Boolean) as string[])];
+}
+
+async function resolveValidBranchIds(
+  organizationId: string,
+  branchIds: string[],
+): Promise<{ ok: true; ids: string[] } | { ok: false; message: string }> {
+  const unique = uniqueBranchIds(branchIds);
+  if (unique.length === 0) {
+    return { ok: false, message: "Sélectionnez au moins une branche." };
+  }
+
+  const branches = await prisma.branch.findMany({
+    where: {
+      organizationId,
+      id: { in: unique },
+      isActive: true,
+    },
+    select: { id: true },
+  });
+
+  if (branches.length !== unique.length) {
+    return {
+      ok: false,
+      message: "Une ou plusieurs branches sont invalides ou inactives.",
+    };
+  }
+
+  return { ok: true, ids: unique };
+}
+
+function branchMemberHasLinkedProfile(counts: {
+  teacher: number;
+  parent: number;
+  student: number;
+  personel: number;
+  schedule: number;
+}) {
+  return (
+    counts.teacher +
+      counts.parent +
+      counts.student +
+      counts.personel +
+      counts.schedule >
+    0
+  );
+}
+
+async function syncMemberBranches(params: {
+  memberId: string;
+  organizationId: string;
+  branchIds: string[];
+  branchRole: BranchRole;
+}): Promise<{ ok: true } | { ok: false; message: string }> {
+  const { memberId, organizationId, branchIds, branchRole } = params;
+  const selected = new Set(branchIds);
+
+  const existing = await prisma.branchMember.findMany({
+    where: { memberId, branch: { organizationId } },
+    select: {
+      id: true,
+      branchId: true,
+      role: true,
+      branch: { select: { name: true } },
+      _count: {
+        select: {
+          teacher: true,
+          parent: true,
+          student: true,
+          personel: true,
+          schedule: true,
+        },
+      },
+    },
+  });
+
+  const blocked = existing.filter(
+    (row) =>
+      !selected.has(row.branchId) &&
+      branchMemberHasLinkedProfile(row._count),
+  );
+  if (blocked.length > 0) {
+    const names = blocked.map((row) => row.branch.name).join(", ");
+    return {
+      ok: false,
+      message: `Impossible de retirer l’accès à : ${names}. Ce membre y a encore un profil (élève, enseignant, parent ou personnel).`,
+    };
+  }
+
+  await prisma.$transaction(async (tx) => {
+    const toDeleteIds = existing
+      .filter((row) => !selected.has(row.branchId))
+      .map((row) => row.id);
+    if (toDeleteIds.length > 0) {
+      await tx.branchMember.deleteMany({ where: { id: { in: toDeleteIds } } });
+    }
+
+    for (const branchId of branchIds) {
+      const found = existing.find((row) => row.branchId === branchId);
+      if (found) {
+        if (!branchMemberHasLinkedProfile(found._count)) {
+          await tx.branchMember.update({
+            where: { id: found.id },
+            data: { role: branchRole },
+          });
+        }
+        continue;
+      }
+
+      await tx.branchMember.create({
+        data: { memberId, branchId, role: branchRole },
+      });
+    }
+  });
+
+  return { ok: true };
 }
 
 function normalizeStatusUser(
@@ -94,6 +215,7 @@ export async function createOrganizationMemberAction(
   const {
     organizationId,
     branchId,
+    branchIds: requestedBranchIds,
     email,
     name,
     orgRole,
@@ -109,14 +231,30 @@ export async function createOrganizationMemberAction(
   const emailLower = email.toLowerCase();
   const password = generateSecurePassword(16);
 
+  const requestedIds = uniqueBranchIds([
+    ...(requestedBranchIds ?? []),
+    branchId,
+  ]);
+  const formRequestedAssignment = requestedBranchIds !== undefined;
+  let assignedBranchIds: string[] = [];
+  if (formRequestedAssignment) {
+    const branches = await resolveValidBranchIds(organizationId, requestedIds);
+    if (!branches.ok) {
+      return branches;
+    }
+    assignedBranchIds = branches.ids;
+  }
+
+  const primaryBranchId = assignedBranchIds[0] ?? branchId;
+
   const [organization, branch] = await Promise.all([
     prisma.organization.findUnique({
       where: { id: organizationId },
       select: { name: true },
     }),
-    branchId
+    primaryBranchId
       ? prisma.branch.findUnique({
-          where: { id: branchId },
+          where: { id: primaryBranchId },
           select: {
             name: true,
             tel: true,
@@ -194,6 +332,18 @@ export async function createOrganizationMemberAction(
       };
     }
 
+    if (formRequestedAssignment) {
+      const synced = await syncMemberBranches({
+        memberId: member.id,
+        organizationId,
+        branchIds: assignedBranchIds,
+        branchRole: orgRoleToBranchRole(orgRole),
+      });
+      if (!synced.ok) {
+        return synced;
+      }
+    }
+
     if (options?.revalidateMembersPage) {
       revalidatePath(`/admin/organizations/${organizationId}/members`, "page");
     }
@@ -221,12 +371,17 @@ export async function updateOrganizationMemberAction(
   if (!parsed.success) {
     return { ok: false, message: zodFirstMessage(parsed.error) };
   }
-  const { organizationId, memberId, orgRole } = parsed.data;
+  const { organizationId, memberId, orgRole, branchIds } = parsed.data;
   const guard = await guardOrganizationMemberPermission(organizationId, {
     member: ["update"],
   });
   if (!guard.ok) {
     return { ok: false, message: guard.message };
+  }
+
+  const branches = await resolveValidBranchIds(organizationId, branchIds);
+  if (!branches.ok) {
+    return branches;
   }
 
   const h = await headers();
@@ -240,6 +395,15 @@ export async function updateOrganizationMemberAction(
       },
       h,
     );
+    const synced = await syncMemberBranches({
+      memberId,
+      organizationId,
+      branchIds: branches.ids,
+      branchRole: orgRoleToBranchRole(orgRole),
+    });
+    if (!synced.ok) {
+      return synced;
+    }
     revalidatePath(`/admin/organizations/${organizationId}/members`, "page");
     revalidatePath(
       `/admin/organizations/${organizationId}/members/${memberId}/edit`,
@@ -412,7 +576,70 @@ export type OrganizationMemberListItem = {
     name: string;
     image: string | null;
   };
+  branches: { id: string; name: string }[];
 };
+
+export type MemberBranchOption = {
+  id: string;
+  name: string;
+  code: string | null;
+  typebranch: string;
+};
+
+export async function listOrganizationActiveBranchesAction(
+  organizationId: string,
+): Promise<
+  | { ok: true; branches: MemberBranchOption[] }
+  | { ok: false; message: string }
+> {
+  const guard = await guardOrganizationMemberPermission(organizationId, {
+    member: ["read"],
+  });
+  if (!guard.ok) {
+    return { ok: false, message: guard.message };
+  }
+
+  try {
+    const branches = await prisma.branch.findMany({
+      where: { organizationId, isActive: true },
+      select: { id: true, name: true, code: true, typebranch: true },
+      orderBy: { name: "asc" },
+    });
+    return { ok: true, branches };
+  } catch (e) {
+    return { ok: false, message: errMessage(e) };
+  }
+}
+
+export async function listOrganizationMemberAssignedBranchesAction(
+  organizationId: string,
+  memberId: string,
+): Promise<
+  | { ok: true; branchIds: string[] }
+  | { ok: false; message: string }
+> {
+  const guard = await guardOrganizationMemberPermission(organizationId, {
+    member: ["read"],
+  });
+  if (!guard.ok) {
+    return { ok: false, message: guard.message };
+  }
+
+  try {
+    const rows = await prisma.branchMember.findMany({
+      where: {
+        memberId,
+        member: { organizationId },
+        branch: { organizationId, isActive: true },
+      },
+      select: { branchId: true },
+      orderBy: { createdAt: "asc" },
+    });
+    return { ok: true, branchIds: rows.map((row) => row.branchId) };
+  } catch (e) {
+    return { ok: false, message: errMessage(e) };
+  }
+}
 
 export async function listOrganizationMembersAction(
   organizationId: string,
@@ -444,11 +671,29 @@ export async function listOrganizationMembersAction(
             image: true,
           },
         },
+        branchMember: {
+          where: { branch: { organizationId, isActive: true } },
+          select: {
+            branch: { select: { id: true, name: true } },
+          },
+          orderBy: { createdAt: "asc" },
+        },
       },
       orderBy: [{ isArchived: "asc" }, { createdAt: "desc" }],
     });
 
-    return { ok: true, members };
+    return {
+      ok: true,
+      members: members.map((member) => ({
+        id: member.id,
+        userId: member.userId,
+        role: member.role,
+        isArchived: member.isArchived,
+        createdAt: member.createdAt,
+        user: member.user,
+        branches: member.branchMember.map((row) => row.branch),
+      })),
+    };
   } catch (e) {
     return { ok: false, message: errMessage(e) };
   }

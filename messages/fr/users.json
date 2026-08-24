@@ -1,0 +1,50 @@
+{
+  "students": {
+    "title": "Gestion des {students}",
+    "description": "Dossiers {students} et suivi académique en temps réel.",
+    "total": "Total {students}",
+    "byFilters": "selon filtres / tri actifs",
+    "active": "Actifs",
+    "activeHint": "avec classe assignée",
+    "inactive": "Inactifs",
+    "inactiveHint": "sans inscription visible",
+    "new": "Nouveaux {students}",
+    "newHint": "ce trimestre (filtrés)",
+    "gender": "Sexe / genre"
+  },
+  "parents": {
+    "title": "Gestion des tuteurs",
+    "description": "Gérer les informations des tuteurs et le suivi des inscriptions de leurs enfants.",
+    "badge": "Tuteurs",
+    "total": "Total général",
+    "tutors": "tuteurs",
+    "tutorsYear": "Tuteurs {year}",
+    "withStudent": "avec {student} inscrit",
+    "enrollmentsYear": "Inscriptions {year}",
+    "studentsEnrolled": "{students} inscrits",
+    "coverage": "Couverture {year}",
+    "coverageHint": "tuteurs avec inscription / total",
+    "currentYear": "Année en cours"
+  },
+  "teachers": {
+    "title": "Gestion des {teachers}",
+    "description": "Gérer les informations des {teachers} et leurs contrats dans l'établissement.",
+    "importOne": "Importer un {teacher}",
+    "addOne": "Ajouter un {teacher}",
+    "createTitle": "Créer un {teacher}",
+    "createDesc": "Ajoutez un nouveau {teacher}."
+  },
+  "staff": {
+    "title": "Gestion des personnels",
+    "description": "Gérer les informations des personnels administratifs et leurs contrats dans l'établissement.",
+    "badge": "Personnels",
+    "importOne": "Importer un personnel",
+    "addOne": "Ajouter un personnel",
+    "createTitle": "Créer un personnel administratif",
+    "createDesc": "Ajoutez un nouveau membre du personnel.",
+    "active": "Actifs",
+    "inactive": "Inactifs",
+    "members": "membres",
+    "presenceHint": "présents / total prévu"
+  }
+}

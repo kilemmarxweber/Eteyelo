@@ -23,6 +23,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { CheckCircle2, Receipt, X } from "lucide-react";
+import { useLocale, useTranslations } from "next-intl";
 
 import {
   createPaiementAction,
@@ -74,8 +75,8 @@ function buildTransactionRef() {
 
 const emptyAmount = undefined as unknown as number;
 
-function formatAmount(value: number) {
-  return value.toLocaleString("fr-FR", {
+function formatAmount(value: number, locale = "fr-FR") {
+  return value.toLocaleString(locale, {
     minimumFractionDigits: 0,
     maximumFractionDigits: 2,
   });
@@ -89,7 +90,15 @@ export default function PaymentsForm({
   initialSearch = "",
   initialEnrollmentId = "",
 }: Props) {
+  const t = useTranslations("finance");
+  const locale = useLocale();
   const peopleLabels = useBranchPeopleLabels();
+  const numberLocale = locale.startsWith("en")
+    ? "en-GB"
+    : locale.startsWith("pt")
+      ? "pt-PT"
+      : "fr-FR";
+  const fmt = (value: number) => formatAmount(value, numberLocale);
   const { register, handleSubmit, setValue, watch, reset } = useForm<FormData>({
     resolver: zodResolver(paiementSchema),
     defaultValues: {
@@ -315,7 +324,7 @@ export default function PaymentsForm({
       } catch (error) {
         console.error(error);
         lastSelectableKeyRef.current = "";
-        toast.error("Impossible de charger les frais disponibles.");
+        toast.error(t("loadFeesFailed"));
         setSelectableFrais([]);
       } finally {
         setLoadingSelectableFrais(false);
@@ -500,7 +509,7 @@ export default function PaymentsForm({
 
         return {
           id: fraisId,
-          name: selectable?.nameFrais ?? frais?.nameFrais ?? "Frais",
+          name: selectable?.nameFrais ?? frais?.nameFrais ?? t("feeFallback"),
           unitAmount: Number(
             selectable?.montantFrais ??
               frais?.montantFrais ??
@@ -529,7 +538,7 @@ export default function PaymentsForm({
 
       return {
         id: fraisId,
-        name: frais?.nameFrais ?? "Frais",
+        name: frais?.nameFrais ?? t("feeFallback"),
         unitAmount,
         total: unitAmount,
         alreadyPaid: 0,
@@ -612,7 +621,7 @@ export default function PaymentsForm({
       setValue("amount", baseAmount, { shouldValidate: true });
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : "Conversion impossible.",
+        error instanceof Error ? error.message : t("conversionFailed"),
       );
     }
   };
@@ -643,7 +652,7 @@ export default function PaymentsForm({
       setDisplayAmount(fromBase(baseAmount, next));
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : "Conversion impossible.",
+        error instanceof Error ? error.message : t("conversionFailed"),
       );
     }
   };
@@ -653,14 +662,14 @@ export default function PaymentsForm({
     try {
       // 🏦 BANK CHECK 1: Already paid?
       if (isSolded) {
-        toast.error("❌ Impossible: Ce dossier est déjà entièrement soldé.");
+        toast.error(t("alreadyFullySettled"));
         return;
       }
 
       // 🏦 BANK CHECK 2: Selection complete?
       if (hasNoSelection) {
         toast.error(
-          `❌ Impossible: Sélectionnez ${peopleLabels.studentIndefinite} et au moins un frais.`,
+          t("selectStudentAndFee", { student: peopleLabels.studentIndefinite }),
         );
         return;
       }
@@ -670,7 +679,7 @@ export default function PaymentsForm({
         ? Number(data.amount)
         : 0;
       if (!inputAmountBase || inputAmountBase <= 0) {
-        toast.error("❌ Impossible: Montant doit être > 0");
+        toast.error(t("amountMustBePositive"));
         return;
       }
 
@@ -690,7 +699,10 @@ export default function PaymentsForm({
             undefined;
           if (exchangeRateUsed == null) {
             toast.error(
-              `Taux de change inactif pour ${receivedCurrency} → ${baseCurrency}.`,
+              t("exchangeRateInactive", {
+                from: receivedCurrency,
+                to: baseCurrency,
+              }),
             );
             setLoading(false);
             return;
@@ -698,7 +710,7 @@ export default function PaymentsForm({
         }
       } catch (error) {
         toast.error(
-          error instanceof Error ? error.message : "Conversion impossible.",
+          error instanceof Error ? error.message : t("conversionFailed"),
         );
         setLoading(false);
         return;
@@ -707,7 +719,12 @@ export default function PaymentsForm({
       // 💰 Show refund warning if applicable
       if (refundAmountBase > 0) {
         setAmountWarning(
-          `💰 Montant saisi: ${formatAmount(inputAmountBase)} ${baseCurrency} | À payer: ${formatAmount(finalAmountBase)} ${baseCurrency} | Remboursement: ${formatAmount(refundAmountBase)} ${baseCurrency}`,
+          t("amountWarning", {
+            entered: fmt(inputAmountBase),
+            due: fmt(finalAmountBase),
+            refund: fmt(refundAmountBase),
+            currency: baseCurrency,
+          }),
         );
       }
 
@@ -729,23 +746,25 @@ export default function PaymentsForm({
 
       // 🏦 Backend says: Already paid (BANK SYSTEM)
       if (res?.isSolded || res?.message?.includes("déjà soldé")) {
-        toast.warning(
-          `⚠️ ${res?.message || "Ce dossier est déjà entièrement soldé"}`,
-        );
+        toast.warning(res?.message || t("alreadyFullySettled"));
         setSelection({ parentId: "", classEnrollIds: [] });
         return;
       }
 
       if (!res || res.totalPaid === 0) {
-        toast.warning(`⚠️ ${res?.message || "Aucun paiement effectué"}`);
+        toast.warning(res?.message || t("noPaymentMade"));
         return;
       }
 
       // 💰 Show success with refund info if applicable
       const successMsg =
         refundAmountBase > 0
-          ? `✅ Paiement: ${formatAmount(finalAmountBase)} ${baseCurrency} | Remboursement: ${formatAmount(refundAmountBase)} ${baseCurrency}`
-          : `✅ ${res?.message || "Paiement enregistré avec succès"}`;
+          ? t("paymentWithRefund", {
+              paid: fmt(finalAmountBase),
+              refund: fmt(refundAmountBase),
+              currency: baseCurrency,
+            })
+          : res?.message || t("paymentSuccess");
 
       toast.success(successMsg);
       if (res.receipt) {
@@ -787,7 +806,7 @@ export default function PaymentsForm({
       onCreated?.();
       onSuccess?.();
     } catch (e: any) {
-      toast.error(`❌ Erreur: ${e.message}`);
+      toast.error(t("genericError", { message: e.message }));
     } finally {
       setLoading(false);
     }
@@ -800,7 +819,7 @@ export default function PaymentsForm({
     if (!selection.classEnrollIds.length) return [];
 
     return selectableFrais.map((f) => ({
-      label: `${f.nameFrais} (${formatAmount(Number(f.montantFrais))} ${baseCurrency})`,
+      label: `${f.nameFrais} (${fmt(Number(f.montantFrais))} ${baseCurrency})`,
       value: f.id,
     }));
   }, [selectableFrais, selection.classEnrollIds.length, baseCurrency]);
@@ -845,8 +864,8 @@ export default function PaymentsForm({
     onChange: handleAmountChange,
     placeholder:
       !hasNoSelection && isSolded
-        ? "Déjà soldé"
-        : `Montant payé (${receivedCurrency})`,
+        ? t("alreadySettled")
+        : t("amountPaidPlaceholder", { currency: receivedCurrency }),
     disabled: !hasNoSelection && isSolded,
     className: cn(
       "h-9 text-sm",
@@ -856,7 +875,7 @@ export default function PaymentsForm({
 
   const baseHint =
     receivedCurrency !== baseCurrency && amount > 0
-      ? `≈ ${formatAmount(amount)} ${baseCurrency}`
+      ? t("approxBase", { amount: fmt(amount), currency: baseCurrency })
       : null;
 
   const currencyToggle = (
@@ -886,20 +905,20 @@ export default function PaymentsForm({
       {/* LEFT */}
       <div className="hidden w-64 shrink-0 flex-col gap-3 rounded-xl border border-border/70 bg-muted/20 p-4 lg:flex">
         <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-          Paramètres
+          {t("settings")}
         </p>
         <Select
           value={schoolYearId || undefined}
           onValueChange={setSchoolYearId}
         >
           <SelectTrigger className="h-9 w-full text-sm transition-colors hover:border-primary/40">
-            <SelectValue placeholder="Année scolaire" />
+            <SelectValue placeholder={t("schoolYearPlaceholder")} />
           </SelectTrigger>
           <SelectContent>
             {schoolYears.map((year) => (
               <SelectItem key={year.id} value={year.id}>
                 {year.nameYear}
-                {year.isCurrentYear ? " (en cours)" : ""}
+                {year.isCurrentYear ? ` ${t("yearInProgress")}` : ""}
               </SelectItem>
             ))}
           </SelectContent>
@@ -910,12 +929,12 @@ export default function PaymentsForm({
           onValueChange={(v) => setValue("modePaiement", v as ModePaiement)}
         >
           <SelectTrigger className="h-9 w-full text-sm transition-colors hover:border-primary/40">
-            <SelectValue placeholder="Mode paiement" />
+            <SelectValue placeholder={t("paymentMode")} />
           </SelectTrigger>
           <SelectContent>
             {Object.values(ModePaiement).map((m) => (
               <SelectItem key={m} value={m}>
-                {m}
+                {t(`modes.${m}` as never)}
               </SelectItem>
             ))}
           </SelectContent>
@@ -934,8 +953,8 @@ export default function PaymentsForm({
                 {baseHint
                   ? baseHint
                   : amountManuallyEdited
-                    ? "Montant modifié manuellement"
-                    : "Saisissez le montant payé"}
+                    ? t("amountEditedManually")
+                    : t("enterPaidAmount")}
               </p>
             )}
           </>
@@ -943,7 +962,7 @@ export default function PaymentsForm({
 
         <Textarea
           {...register("notes")}
-          placeholder="Notes..."
+          placeholder={t("notesPlaceholder")}
           className="min-h-[45px] w-full resize-none bg-background/80"
         />
 
@@ -954,10 +973,10 @@ export default function PaymentsForm({
           disabled={loading || (!hasNoSelection && isSolded)}
         >
           {!hasNoSelection && isSolded
-            ? "Paiement soldé"
+            ? t("submitSettled")
             : loading
-              ? "Enregistrement..."
-              : "Valider le paiement"}
+              ? t("submitting")
+              : t("submitValidate")}
         </Button>
       </div>
 
@@ -1005,7 +1024,7 @@ export default function PaymentsForm({
       {/* RIGHT */}
       <div className="w-full space-y-3 rounded-xl border border-border/70 bg-muted/15 p-3 sm:p-4 lg:w-[22rem] lg:shrink-0">
         <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-          Frais &amp; récapitulatif
+          {t("feesAndSummary")}
         </p>
         <MultiSelect
           options={fraisOptions}
@@ -1013,10 +1032,12 @@ export default function PaymentsForm({
           onValueChange={handleFraisChange}
           placeholder={
             loadingSelectableFrais
-              ? "Chargement des frais…"
+              ? t("loadingFees")
               : selection.classEnrollIds.length
-                ? "Sélectionner les frais"
-                : `Sélectionnez ${peopleLabels.studentIndefinite} d'abord`
+                ? t("selectFees")
+                : t("selectStudentFirst", {
+                    student: peopleLabels.studentIndefinite,
+                  })
           }
           searchable
           closeOnSelect={false}
@@ -1029,7 +1050,7 @@ export default function PaymentsForm({
             <div className="flex items-center gap-2 border-b border-border/60 bg-muted/40 px-3 py-2.5">
               <Receipt className="h-4 w-4 text-primary" />
               <p className="text-sm font-medium">
-                Frais sélectionnés ({selectedFraisDetails.length})
+                {t("selectedFees", { count: selectedFraisDetails.length })}
               </p>
             </div>
             <ul className="max-h-48 divide-y overflow-y-auto">
@@ -1041,7 +1062,7 @@ export default function PaymentsForm({
                   <div className="min-w-0 flex-1">
                     <p className="truncate font-medium">{frais.name}</p>
                     <p className="text-xs text-muted-foreground">
-                      {formatAmount(frais.unitAmount)}
+                      {fmt(frais.unitAmount)}
                       {frais.dueEnrollmentCount > 0 &&
                         frais.selectedEnrollmentCount > 1 &&
                         ` · ${frais.dueEnrollmentCount}/${frais.selectedEnrollmentCount} ${peopleLabels.studentPluralLower}`}
@@ -1051,7 +1072,7 @@ export default function PaymentsForm({
                     </p>
                     {frais.hasDiscount ? (
                       <p className="text-[11px] font-medium text-amber-700">
-                        Remise {summary.discount}% applicable
+                        {t("discountApplicable", { percent: summary.discount })}
                         {summary.discountTypeFraisName
                           ? ` (${summary.discountTypeFraisName})`
                           : ""}
@@ -1059,22 +1080,24 @@ export default function PaymentsForm({
                     ) : null}
                     {frais.alreadyPaid > 0 && (
                       <p className="text-xs text-green-700">
-                        Déjà payé : {formatAmount(frais.alreadyPaid)}
+                        {t("alreadyPaidColon", {
+                          amount: fmt(frais.alreadyPaid),
+                        })}
                       </p>
                     )}
                   </div>
                   <div className="flex shrink-0 flex-col items-end gap-1">
                     <span className="text-[10px] uppercase text-muted-foreground">
-                      Reste
+                      {t("remaining")}
                     </span>
                     <span className="font-semibold text-primary">
-                      {formatAmount(frais.remaining)}
+                      {fmt(frais.remaining)}
                     </span>
                     <button
                       type="button"
                       onClick={() => removeFrais(frais.id)}
                       className="text-muted-foreground transition-colors hover:text-destructive"
-                      aria-label={`Retirer ${frais.name}`}
+                      aria-label={t("removeFee", { name: frais.name })}
                     >
                       <X className="h-3.5 w-3.5" />
                     </button>
@@ -1090,38 +1113,40 @@ export default function PaymentsForm({
           className="overflow-hidden border-border/60 shadow-sm transition-shadow hover:shadow-md"
         >
           <CardContent className="space-y-3 pt-4">
-            <p className="font-bold">Récapitulatif</p>
+            <p className="font-bold">{t("summary")}</p>
 
             {hasNoSelection ? (
               <p className="text-sm text-muted-foreground">
-                Sélectionnez {peopleLabels.studentIndefinite} et au moins un frais pour voir le
-                récapitulatif.
+                {t("summaryEmpty", {
+                  student: peopleLabels.studentIndefinite,
+                })}
               </p>
             ) : balances.length === 0 ? (
               <p className="text-sm text-muted-foreground">
-                Calcul des soldes en cours…
+                {t("computingBalances")}
               </p>
             ) : (
               <>
                 {summary.studentCount > 0 && (
                   <p className="text-xs text-muted-foreground">
-                    {summary.studentCount}{" "}
-                    {pluralizeStudentLabelLower(peopleLabels, summary.studentCount)} ·{" "}
-                    {summary.fraisCount} frais
+                    {t("summaryCounts", {
+                      students: `${summary.studentCount} ${pluralizeStudentLabelLower(peopleLabels, summary.studentCount)}`,
+                      fees: summary.fraisCount,
+                    })}
                   </p>
                 )}
 
                 <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 text-sm">
-                  <span className="text-muted-foreground">Total frais</span>
+                  <span className="text-muted-foreground">{t("totalFees")}</span>
                   <span className="text-right font-medium">
-                    {formatAmount(summary.totalDue)}
+                    {fmt(summary.totalDue)}
                   </span>
 
                   {summary.alreadyPaid > 0 && (
                     <>
-                      <span className="text-muted-foreground">Déjà payé</span>
+                      <span className="text-muted-foreground">{t("alreadyPaid")}</span>
                       <span className="text-right font-medium text-green-700">
-                        -{formatAmount(summary.alreadyPaid)}
+                        -{fmt(summary.alreadyPaid)}
                       </span>
                     </>
                   )}
@@ -1129,21 +1154,22 @@ export default function PaymentsForm({
                   {summary.discount > 0 && (
                     <>
                       <span className="text-muted-foreground">
-                        Remise ({summary.discount}%)
+                        {t("discountPercent", { percent: summary.discount })}
                         {summary.discountTypeFraisName
                           ? ` · ${summary.discountTypeFraisName}`
                           : ""}
                       </span>
                       <span className="text-right font-medium text-orange-600">
                         {summary.discountAmount > 0
-                          ? `-${formatAmount(summary.discountAmount)}`
+                          ? `-${fmt(summary.discountAmount)}`
                           : "—"}
                       </span>
                       {summary.discountTypeFraisName &&
                       !summary.hasEligibleFraisSelected ? (
                         <p className="col-span-2 text-[11px] text-amber-700">
-                          Sélectionnez un frais « {summary.discountTypeFraisName} »
-                          pour appliquer la remise.
+                          {t("selectFeeForDiscount", {
+                            name: summary.discountTypeFraisName,
+                          })}
                         </p>
                       ) : null}
                     </>
@@ -1152,7 +1178,7 @@ export default function PaymentsForm({
 
                 <div className="flex items-center justify-between rounded-lg border border-primary/15 bg-primary/[0.04] px-3 py-2.5">
                   <span className="font-bold">
-                    {isSolded ? "Entièrement soldé" : "Reste à payer"}
+                    {isSolded ? t("fullySettled") : t("remainingToPay")}
                   </span>
                   <span
                     className={cn(
@@ -1160,15 +1186,15 @@ export default function PaymentsForm({
                       isSolded ? "text-green-600" : "text-primary",
                     )}
                   >
-                    {formatAmount(summary.remaining)}
+                    {fmt(summary.remaining)}
                   </span>
                 </div>
 
                 {!isSolded && amount > 0 && (
                   <div className="flex justify-between border-t pt-2 text-sm">
-                    <span className="text-muted-foreground">Montant saisi</span>
+                    <span className="text-muted-foreground">{t("enteredAmount")}</span>
                     <span className="font-semibold tabular-nums">
-                      {formatAmount(amount)}
+                      {fmt(amount)}
                     </span>
                   </div>
                 )}
@@ -1178,15 +1204,15 @@ export default function PaymentsForm({
             {/* Montant payé — mobile/tablette */}
             {!isLargeScreen && !hasNoSelection && !isSolded && (
               <div className="space-y-2 border-t pt-3">
-                <label className="text-sm font-medium">Montant payé</label>
+                <label className="text-sm font-medium">{t("amountPaid")}</label>
                 {currencyToggle}
                 <MontantInput {...amountInputProps} />
                 <p className="text-[11px] text-muted-foreground">
                   {baseHint
                     ? baseHint
                     : amountManuallyEdited
-                      ? "Montant modifié manuellement"
-                      : "Saisissez le montant payé"}
+                      ? t("amountEditedManually")
+                      : t("enterPaidAmount")}
                 </p>
                 <Button
                   type="submit"
@@ -1194,10 +1220,10 @@ export default function PaymentsForm({
                   disabled={loading || (!hasNoSelection && isSolded)}
                 >
                   {!hasNoSelection && isSolded
-                    ? "Paiement soldé"
+                    ? t("submitSettled")
                     : loading
-                      ? "Enregistrement..."
-                      : "Valider le paiement"}
+                      ? t("submitting")
+                      : t("submitValidate")}
                 </Button>
               </div>
             )}
@@ -1209,12 +1235,12 @@ export default function PaymentsForm({
               balances.length > 0 && (
               <div className="space-y-1 rounded-lg border border-amber-200/80 bg-amber-50 p-2.5 animate-fade-in">
                 <p className="text-xs font-bold text-yellow-800">
-                  Excédent — remboursement à prévoir
+                  {t("excessTitle")}
                 </p>
                 <div className="flex justify-between text-xs">
-                  <span className="text-yellow-700">Remboursement</span>
+                  <span className="text-yellow-700">{t("refund")}</span>
                   <span className="font-bold text-yellow-700">
-                    {formatAmount(amount - summary.remaining)}
+                    {fmt(amount - summary.remaining)}
                   </span>
                 </div>
               </div>
@@ -1228,7 +1254,7 @@ export default function PaymentsForm({
 
             {!hasNoSelection && isSolded && balances.length > 0 && (
               <p className="rounded-lg bg-green-50 p-2 text-xs font-medium text-green-600 animate-fade-in">
-                Dossier soldé — aucun paiement possible
+                {t("folderSettled")}
               </p>
             )}
           </CardContent>
@@ -1239,16 +1265,16 @@ export default function PaymentsForm({
       open={receiptDialogOpen}
       onOpenChange={setReceiptDialogOpen}
       data={receiptData}
-      title="Paiement enregistré"
+      title={t("receiptTitle")}
       description={
         receiptData
-          ? `Reçu ${receiptData.invoiceNumber} prêt pour impression.`
+          ? t("receiptReady", { number: receiptData.invoiceNumber })
           : undefined
       }
       banner={
         <div className="flex items-center gap-2 font-medium text-green-700">
           <CheckCircle2 className="size-4" />
-          Paiement créé avec succès
+          {t("paymentCreated")}
         </div>
       }
     />

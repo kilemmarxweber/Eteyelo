@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import z from "zod";
 import {
@@ -34,6 +35,7 @@ export default function CashierExpenseForm({
   onClose,
   layout = "default",
 }: Props) {
+  const t = useTranslations("finance");
   const isDialog = layout === "dialog";
   const {
     register,
@@ -66,10 +68,12 @@ export default function CashierExpenseForm({
     );
     return unique.map((item) => ({
       value: item,
-      label: item,
+      label: (CASHIER_EXPENSE_CATEGORIES as readonly string[]).includes(item)
+        ? t(`expense.categories.${item}` as never)
+        : item,
       search: item,
     }));
-  }, [customCategories]);
+  }, [customCategories, t]);
 
   const handleCategoryChange = (value: string) => {
     setValue("category", value, { shouldValidate: true, shouldDirty: true });
@@ -81,7 +85,7 @@ export default function CashierExpenseForm({
     const updated = saveCustomExpenseCategory(next);
     setCustomCategories(updated);
     setValue("category", next, { shouldValidate: true, shouldDirty: true });
-    toast.success(`Catégorie « ${next} » ajoutée`);
+    toast.success(t("expense.categoryAdded", { name: next }));
   };
 
   const onSubmit = async (data: FormData) => {
@@ -89,7 +93,7 @@ export default function CashierExpenseForm({
 
     const normalizedCategory = (data.category ?? "").trim();
     if (!normalizedCategory) {
-      toast.error("Choisissez ou ajoutez une catégorie.");
+      toast.error(t("expense.chooseCategory"));
       return;
     }
 
@@ -100,15 +104,15 @@ export default function CashierExpenseForm({
 
     if (err) {
       setServerError(
-        err.message ?? "Erreur lors de l'enregistrement de la sortie de fond.",
+        err.message ?? t("expense.saveFailed"),
       );
       toast.error(
-        err.message ?? "Erreur lors de l'enregistrement de la sortie de fond.",
+        err.message ?? t("expense.saveFailed"),
       );
       return;
     }
 
-    toast.success("Dépense / sortie de fond enregistrée");
+    toast.success(t("expense.saved"));
     reset({
       amount: undefined as unknown as number,
       description: "",
@@ -139,13 +143,13 @@ export default function CashierExpenseForm({
       >
         <div className={cn(isDialog ? "space-y-0.5" : "space-y-1.5")}>
           <Label htmlFor="expense-amount" className={labelClass}>
-            Montant
+            {t("expense.amount")}
           </Label>
           <Input
             id="expense-amount"
             type="number"
             step="0.01"
-            placeholder="0.00"
+            placeholder={t("expense.amountPlaceholder")}
             className={controlClass}
             {...register("amount", { valueAsNumber: true })}
           />
@@ -156,7 +160,7 @@ export default function CashierExpenseForm({
 
         <div className={cn(isDialog ? "space-y-0.5" : "space-y-1.5")}>
           <Label htmlFor="expense-category" className={labelClass}>
-            Catégorie
+            {t("expense.category")}
           </Label>
           <SearchableSelect
             id="expense-category"
@@ -165,10 +169,10 @@ export default function CashierExpenseForm({
             value={category || undefined}
             onValueChange={handleCategoryChange}
             onCreate={handleCreateCategory}
-            createLabel={(query) => `+ Ajouter « ${query} »`}
-            placeholder="Rechercher ou choisir…"
-            searchPlaceholder="Rechercher une catégorie…"
-            emptyMessage="Aucune catégorie. Tapez pour en créer une."
+            createLabel={(query) => t("expense.createCategory", { query })}
+            placeholder={t("expense.categoryPlaceholder")}
+            searchPlaceholder={t("expense.categorySearch")}
+            emptyMessage={t("expense.categoryEmpty")}
             triggerClassName={cn(controlClass, "w-full")}
           />
           {errors.category ? (
@@ -184,11 +188,11 @@ export default function CashierExpenseForm({
           )}
         >
           <Label htmlFor="expense-description" className={labelClass}>
-            Description
+            {t("expense.descriptionLabel")}
           </Label>
           <Textarea
             id="expense-description"
-            placeholder="Précisez le motif de la dépense ou sortie de fond"
+            placeholder={t("expense.descriptionPlaceholder")}
             rows={isDialog ? 4 : 4}
             className={isDialog ? "min-h-24 resize-none" : undefined}
             {...register("description")}
@@ -203,9 +207,7 @@ export default function CashierExpenseForm({
 
       {isDialog ? (
         <p className="rounded-md border bg-muted/30 p-2.5 text-xs text-muted-foreground">
-          Le montant est enregistré dans la devise de base de
-          l&apos;organisation. Tapez dans la catégorie pour rechercher ou
-          ajouter.
+          {t("expense.hint")}
         </p>
       ) : null}
 
@@ -222,7 +224,7 @@ export default function CashierExpenseForm({
           isDialog && "mt-2 h-11 text-base",
         )}
       >
-        Enregistrer la sortie de fond
+        {t("expense.submit")}
       </Button>
     </form>
   );

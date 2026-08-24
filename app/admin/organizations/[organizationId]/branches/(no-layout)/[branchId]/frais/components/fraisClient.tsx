@@ -6,8 +6,10 @@ import { useRefresh } from "@/src/hooks/RefreshContext";
 import { IconList } from "@tabler/icons-react";
 import { useSession } from "@/lib/auth-client";
 import { canAccessFinanceArea } from "@/lib/auth/session-roles";
+import { useTranslations } from "next-intl";
 
 export default function FraisClient({ classeId }: { classeId: string }) {
+  const t = useTranslations("finance");
   const { refreshKey } = useRefresh();
   const { data: session } = useSession();
 
@@ -20,7 +22,7 @@ export default function FraisClient({ classeId }: { classeId: string }) {
       <div className="flex items-center gap-2 text-muted-foreground">
         <IconList size={18} />
         <span className="text-sm">
-          Vue d'ensemble de tous les frais scolaires
+          {t("fees.overview")}
         </span>
       </div>
 

@@ -76,6 +76,12 @@ const authOptions = {
         defaultValue: "light",
         input: false,
       },
+      locale: {
+        type: "string",
+        required: false,
+        defaultValue: "fr",
+        input: false,
+      },
     },
     // Configuration changeEmail
     changeEmail: {

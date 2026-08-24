@@ -17,12 +17,16 @@ import {
   type AbsenceCaseDialogData,
 } from "@/components/absence-case-dialog";
 import { getAbsenceDashboardAction } from "@/lib/actions/absence.actions";
+import { useTranslations } from "next-intl";
 
-function statusLabel(status: string) {
-  if (status === "OPEN") return "À justifier";
-  if (status === "PENDING_REVIEW") return "En examen";
-  if (status === "ACCEPTED") return "Acceptée · retour";
-  if (status === "REJECTED") return "Refusée";
+function statusLabel(
+  status: string,
+  t: (key: string) => string,
+) {
+  if (status === "OPEN") return t("absence.open");
+  if (status === "PENDING_REVIEW") return t("absence.pending");
+  if (status === "ACCEPTED") return t("absence.accepted");
+  if (status === "REJECTED") return t("absence.rejected");
   return status;
 }
 
@@ -39,6 +43,7 @@ function CaseList({
   actionLabel: string;
   onOpen: (row: AbsenceCaseDialogData) => void;
 }) {
+  const t = useTranslations("dashboard");
   if (rows.length === 0) return null;
   return (
     <Card>
@@ -62,7 +67,7 @@ function CaseList({
               </p>
             </div>
             <div className="flex shrink-0 items-center gap-2">
-              <Badge variant="outline">{statusLabel(row.status)}</Badge>
+              <Badge variant="outline">{statusLabel(row.status, t)}</Badge>
               <Button
                 type="button"
                 size="sm"
@@ -80,6 +85,7 @@ function CaseList({
 }
 
 export function AbsenceDashboardSection() {
+  const t = useTranslations("dashboard");
   const [mine, setMine] = useState<AbsenceCaseDialogData[]>([]);
   const [pending, setPending] = useState<AbsenceCaseDialogData[]>([]);
   const [canReview, setCanReview] = useState(false);
@@ -114,10 +120,10 @@ export function AbsenceDashboardSection() {
     <>
       <div className="grid gap-4 lg:grid-cols-2">
         <CaseList
-          title="Mes absences"
-          description="Justifiez une absence signalée (aucun scan ni pointage)."
+          title={t("absence.mine")}
+          description={t("absence.mineDesc")}
           rows={[...openMine, ...waiting]}
-          actionLabel="Voir / justifier"
+          actionLabel={t("absence.viewJustify")}
           onOpen={(row) =>
             setDialog({
               mode:
@@ -133,10 +139,10 @@ export function AbsenceDashboardSection() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-sm">
                 <Undo2 className="h-4 w-4" />
-                Retours signalés
+                {t("absence.returns")}
               </CardTitle>
               <CardDescription>
-                Justifications acceptées — retour enregistré dans votre compte.
+                {t("absence.returnsDesc")}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-2">
@@ -153,10 +159,10 @@ export function AbsenceDashboardSection() {
         ) : null}
         {canReview ? (
           <CaseList
-            title="Justifications à traiter"
-            description="Préfet, directeur et propriétaire examinent les dossiers."
+            title={t("absence.review")}
+            description={t("absence.reviewDesc")}
             rows={pending}
-            actionLabel="Examiner"
+            actionLabel={t("absence.examine")}
             onOpen={(row) => setDialog({ mode: "review", caseRow: row })}
           />
         ) : null}

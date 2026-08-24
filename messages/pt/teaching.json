@@ -1,0 +1,48 @@
+{
+  "assignments": {
+    "title": "Atribuição de cursos",
+    "year": "Ano letivo: {year}",
+    "yearMissing": "não configurado",
+    "badge": "Ensino",
+    "unassigned": "Sem professor ({count})",
+    "classes": "Turmas",
+    "searchClass": "Pesquisar uma turma…",
+    "searchCourse": "Pesquisar um curso…",
+    "searchTeacher": "Pesquisar um professor…",
+    "noTeacherFound": "Nenhum professor encontrado.",
+    "teachersCount": "{count, plural, one {# professor} other {# professores}}"
+  },
+  "courses": {
+    "title": "Gestão dos cursos",
+    "descPrimary": "Crie e organize as disciplinas lecionadas neste estabelecimento.",
+    "descImportOrg": "Crie disciplinas ou importe cursos de outra filial da organização.",
+    "descImportCatalog": "Crie disciplinas ou importe o catálogo RDC (tronco comum + especialidades por opção).",
+    "badge": "Cursos",
+    "total": "Total de cursos",
+    "totalHint": "Disciplinas registadas",
+    "active": "Cursos ativos",
+    "activeHint": "Disponíveis para atribuição",
+    "inactive": "Cursos inativos"
+  },
+  "schedule": {
+    "plan": "Planear o horário dos cursos",
+    "classTitle": "Horário dos cursos - {code}",
+    "badge": "Horários",
+    "classes": "Turmas",
+    "yearTitle": "Horário do ano",
+    "selectClass": "Seleccione uma turma no painel esquerdo para consultar o horário."
+  },
+  "vacation": {
+    "title": "Horários",
+    "description": "Configure as sessões e o intervalo (ex. 3 + 3 no secundário).",
+    "badge": "Horários",
+    "add": "Adicionar um horário"
+  },
+  "ponderation": {
+    "title": "Ponderação dos cursos",
+    "configured": "Cursos configurados",
+    "missing": "Ponderações em falta",
+    "average": "Média",
+    "total": "Total de cursos"
+  }
+}

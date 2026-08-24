@@ -12,12 +12,14 @@ import { NotFoundView } from "@/components/not-found-view";
 import { useSession } from "@/lib/auth-client";
 import { canAccessTeachingArea } from "@/lib/auth/session-roles";
 import { AttendanceSidebarNav } from "./components/attendance-sidebar-nav";
+import { useTranslations } from "next-intl";
 
 export default function AttendanceLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const t = useTranslations("attendance");
   const { data: session, isPending } = useSession();
   const [hasMounted, setHasMounted] = useState(false);
   const sessionReady = hasMounted && !isPending;
@@ -39,11 +41,11 @@ export default function AttendanceLayout({
     <BranchPageShell
       fixedHeight
       fadedBelow
-      title="Gestion des presences"
-      description="Suivez les pointages du personnel, analysez les statistiques et exportez les rapports."
+      title={t("title")}
+      description={t("description")}
       badge={
         <Badge variant="outline-primary" icon={<IconUserCheck size={14} />}>
-          Presences
+          {t("badge")}
         </Badge>
       }
       actions={
@@ -51,7 +53,7 @@ export default function AttendanceLayout({
           <Button asChild>
             <Link href={pointagePath}>
               <IconScan className="mr-2 size-4" />
-              Pointer
+              {t("checkIn")}
             </Link>
           </Button>
         ) : null

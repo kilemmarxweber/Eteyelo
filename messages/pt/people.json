@@ -1,0 +1,44 @@
+{
+  "school": {
+    "student": "Aluno",
+    "studentPlural": "Alunos",
+    "studentLower": "aluno",
+    "studentPluralLower": "alunos",
+    "teacher": "Professor",
+    "teacherPlural": "Professores",
+    "studentNew": "Novo aluno",
+    "studentExisting": "Aluno antigo",
+    "photoOptional": "Foto do aluno (opcional)",
+    "photoPreview": "Pré-visualização da foto",
+    "searchStudent": "Nome, email ou telemóvel do aluno…",
+    "situation": "Situação do aluno"
+  },
+  "training": {
+    "student": "Aprendiz",
+    "studentPlural": "Aprendizes",
+    "studentLower": "aprendiz",
+    "studentPluralLower": "aprendizes",
+    "teacher": "Professor",
+    "teacherPlural": "Professores",
+    "studentNew": "Novo aprendiz",
+    "studentExisting": "Aprendiz antigo",
+    "photoOptional": "Foto do aprendiz (opcional)",
+    "photoPreview": "Pré-visualização da foto",
+    "searchStudent": "Nome, email ou telemóvel do aprendiz…",
+    "situation": "Situação do aprendiz"
+  },
+  "university": {
+    "student": "Estudante",
+    "studentPlural": "Estudantes",
+    "studentLower": "estudante",
+    "studentPluralLower": "estudantes",
+    "teacher": "Docente",
+    "teacherPlural": "Docentes",
+    "studentNew": "Novo estudante",
+    "studentExisting": "Estudante antigo",
+    "photoOptional": "Foto do estudante (opcional)",
+    "photoPreview": "Pré-visualização da foto",
+    "searchStudent": "Nome, email ou telemóvel do estudante…",
+    "situation": "Situação do estudante"
+  }
+}

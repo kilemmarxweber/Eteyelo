@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense, useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { HandCoins, Wallet } from "lucide-react";
 
 import PaymentsForm from "./PaymentsForm";
@@ -14,6 +15,7 @@ import {
 } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import { shouldPreventDismissOutside } from "@/lib/radix-portal-dismiss";
+import { useBranchPeopleLabels } from "@/hooks/use-branch-people-labels";
 
 type Props = {
   fraisList: any[];
@@ -26,6 +28,8 @@ export default function PaymentClient({
   initialSearch = "",
   initialEnrollmentId = "",
 }: Props) {
+  const t = useTranslations("finance");
+  const peopleLabels = useBranchPeopleLabels();
   const [refreshKey, setRefreshKey] = useState(0);
   const [showExpenseForm, setShowExpenseForm] = useState(false);
   const focusCheckout = Boolean(initialSearch || initialEnrollmentId);
@@ -57,10 +61,12 @@ export default function PaymentClient({
             </div>
             <div className="min-w-0">
               <h2 className="text-sm font-semibold tracking-tight sm:text-base">
-                Encaissement
+                {t("checkout.title")}
               </h2>
               <p className="text-xs text-muted-foreground sm:text-sm">
-                Recherchez un élève, cochez les frais, validez le paiement.
+                {t("checkout.description", {
+                  student: peopleLabels.studentLower,
+                })}
               </p>
             </div>
           </div>
@@ -68,7 +74,7 @@ export default function PaymentClient({
             <Suspense
               fallback={
                 <div className="animate-pulse rounded-xl border border-dashed bg-muted/30 p-8 text-center text-sm text-muted-foreground">
-                  Chargement du formulaire…
+                  {t("checkout.loadingForm")}
                 </div>
               }
             >
@@ -99,7 +105,7 @@ export default function PaymentClient({
           </div>
         ) : (
           <p className="animate-fade-in text-center text-xs text-muted-foreground">
-            Préparation des rapports de caisse…
+            {t("checkout.preparingReports")}
           </p>
         )}
       </div>
@@ -134,11 +140,10 @@ export default function PaymentClient({
           <SheetHeader className="shrink-0 space-y-1.5 border-b px-5 py-4 pr-12 text-left sm:px-6">
             <SheetTitle className="flex items-center gap-2">
               <HandCoins className="size-5 text-red-900" />
-              Dépense ou sortie de fond
+              {t("expense.title")}
             </SheetTitle>
             <SheetDescription>
-              Enregistrez une dépense ou sortie de fond. Le solde net du
-              rapport sera mis à jour.
+              {t("expense.description")}
             </SheetDescription>
           </SheetHeader>
           <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4 sm:px-6">

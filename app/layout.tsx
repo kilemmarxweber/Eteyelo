@@ -3,8 +3,12 @@ import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
 import type { ReactNode } from "react";
 import "./globals.css";
+import { AppIntlProvider } from "@/components/app-intl-provider";
 import { AppLoadingProvider } from "@/components/app-loading-provider";
 import { Toaster } from "@/components/ui/sonner";
+import { loadMessages } from "@/lib/i18n";
+import { resolvePreferredLocale } from "@/lib/resolve-preferred-locale";
+import { intlLocaleFromUserLocale } from "@/lib/user-locale";
 import {
   SITE_DESCRIPTION,
   SITE_LEGAL_NAME,
@@ -71,15 +75,20 @@ export const metadata: Metadata = {
 export default async function RootLayout({
   children,
 }: Readonly<{ children: ReactNode }>) {
+  const locale = await resolvePreferredLocale();
+  const messages = await loadMessages(locale);
+
   return (
     <html
-      lang="fr"
+      lang={intlLocaleFromUserLocale(locale)}
       className={`${GeistSans.variable} ${GeistMono.variable}`}
       suppressHydrationWarning
     >
       <body className="min-h-svh font-sans antialiased">
-        <AppLoadingProvider>{children}</AppLoadingProvider>
-        <Toaster richColors closeButton />
+        <AppIntlProvider locale={locale} messages={messages}>
+          <AppLoadingProvider>{children}</AppLoadingProvider>
+          <Toaster richColors closeButton />
+        </AppIntlProvider>
       </body>
     </html>
   );

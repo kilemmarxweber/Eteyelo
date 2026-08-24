@@ -1,8 +1,10 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
+import { useRouter } from "next/navigation";
+import { useLocale, useTranslations } from "next-intl";
 import {
   Camera,
   Globe,
@@ -15,11 +17,14 @@ import {
 import { toast } from "sonner";
 import { authClient } from "@/lib/auth-client";
 import {
+  intlLocaleFromUserLocale,
   LOCALE_OPTIONS,
-  readLocalePreference,
-  writeLocalePreference,
-  type LocalePreference,
-} from "@/lib/locale-preference";
+  isUserLocale,
+  normalizeUserLocale,
+  writeUserLocalePreference,
+  type UserLocale,
+} from "@/lib/user-locale";
+import { updateUserLocaleAction } from "@/lib/user-locale.action";
 import { orgRoleLabel } from "@/lib/org-role-labels";
 import { normalizeImageSrc } from "@/lib/utils";
 import { MAX_IMAGE_UPLOAD_BYTES, uploadFile } from "@/lib/upload-file";
@@ -35,7 +40,13 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { ListGroup, ListItem } from "@/components/ui/list-item";
-import { Select } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   ResponsiveDialog,
   ResponsiveDialogContent,
@@ -57,6 +68,12 @@ import {
 const APP_VERSION = process.env.NEXT_PUBLIC_APP_VERSION ?? "0.1.0";
 const SUPPORT_EMAIL = "support@kalasa.cd";
 
+const LOCALE_UPDATED_TOAST: Record<UserLocale, string> = {
+  fr: "Langue : français",
+  en: "Language: English",
+  pt: "Idioma: português de Portugal",
+};
+
 type AccountViewProps = {
   memberSince: string | null;
   organizationName: string | null;
@@ -73,8 +90,13 @@ function getUserInitials(name?: string | null, email?: string | null) {
   return display.charAt(0).toUpperCase();
 }
 
-function formatDateFr(iso: string) {
-  return new Intl.DateTimeFormat("fr-FR", {
+function formatDateLocalized(iso: string, locale: string) {
+  const tag = locale.startsWith("en")
+    ? "en-GB"
+    : locale.startsWith("pt")
+      ? "pt-PT"
+      : "fr-FR";
+  return new Intl.DateTimeFormat(tag, {
     day: "numeric",
     month: "long",
     year: "numeric",
@@ -87,18 +109,25 @@ export function AccountView({
   organizationRole,
   userCreatedAt,
 }: AccountViewProps) {
-  const { data: session, refetch, isPending } = authClient.useSession();
+  const t = useTranslations("account");
+  const tCommon = useTranslations("common");
+  const activeLocale = useLocale();
+  const router = useRouter();
+  const [pendingLocale, startLocaleTransition] = useTransition();
+  const { data: session, refetch } = authClient.useSession();
   const user = session?.user;
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [profileOpen, setProfileOpen] = useState(false);
   const [emailOpen, setEmailOpen] = useState(false);
   const [passwordOpen, setPasswordOpen] = useState(false);
-  const [locale, setLocale] = useState<LocalePreference>("fr");
+  const [locale, setLocale] = useState<UserLocale>(
+    normalizeUserLocale(activeLocale),
+  );
 
   useEffect(() => {
-    setLocale(readLocalePreference());
-  }, []);
+    setLocale(normalizeUserLocale(activeLocale));
+  }, [activeLocale]);
 
   const profileForm = useForm<UpdateProfileValues>({
     resolver: zodResolver(updateProfileSchema),
@@ -131,14 +160,16 @@ export function AccountView({
   if (!user) {
     return (
       <div className="mx-auto max-w-2xl px-4 py-8 md:max-w-4xl md:px-6">
-        <p className="text-sm text-muted-foreground">Chargement du compte…</p>
+        <p className="text-sm text-muted-foreground">{t("loading")}</p>
       </div>
     );
   }
 
   const initials = getUserInitials(user.name, user.email);
-  const memberSinceLabel = memberSince ? formatDateFr(memberSince) : null;
-  const accountSinceLabel = formatDateFr(userCreatedAt);
+  const memberSinceLabel = memberSince
+    ? formatDateLocalized(memberSince, locale)
+    : null;
+  const accountSinceLabel = formatDateLocalized(userCreatedAt, locale);
 
   async function handleImageFile(file: File) {
     if (!file.type.startsWith("image/")) {
@@ -209,10 +240,25 @@ export function AccountView({
   }
 
   function handleLocaleChange(value: string) {
-    const next = value === "en" ? "en" : "fr";
+    if (!isUserLocale(value)) return;
+    const next = value;
+    const previous = locale;
     setLocale(next);
-    writeLocalePreference(next);
-    toast.success(next === "fr" ? "Langue : français" : "Language: English");
+    writeUserLocalePreference(next, user.id);
+    document.documentElement.lang = intlLocaleFromUserLocale(next);
+    startLocaleTransition(() => {
+      void updateUserLocaleAction(next)
+        .then(() => {
+          toast.success(LOCALE_UPDATED_TOAST[next]);
+          router.refresh();
+        })
+        .catch(() => {
+          setLocale(previous);
+          writeUserLocalePreference(previous, user.id);
+          document.documentElement.lang = intlLocaleFromUserLocale(previous);
+          toast.error(tCommon("errorGeneric"));
+        });
+    });
   }
 
   return (
@@ -222,45 +268,43 @@ export function AccountView({
           type="button"
           className="relative rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring"
           onClick={() => fileInputRef.current?.click()}
-          aria-label="Changer la photo de profil"
+          aria-label={t("changePhoto")}
         >
           <Avatar className="size-20">
             <AvatarImage
               src={normalizeImageSrc(user.image)}
-              alt={user.name ?? "Profil"}
+              alt={user.name ?? ""}
             />
-            <AvatarFallback className="text-lg font-semibold">
-              {initials}
-            </AvatarFallback>
+            <AvatarFallback className="text-lg">{initials}</AvatarFallback>
           </Avatar>
-          <span className="absolute -bottom-0.5 -right-0.5 flex size-8 items-center justify-center rounded-full border-2 border-card bg-primary text-primary-foreground">
-            <Camera className="size-4" aria-hidden />
+          <span className="absolute bottom-0 right-0 flex size-7 items-center justify-center rounded-full border bg-background shadow-sm">
+            <Camera className="size-3.5 text-muted-foreground" />
           </span>
         </button>
         <input
           ref={fileInputRef}
           type="file"
           accept="image/*"
-          className="sr-only"
-          onChange={(e) => {
-            const file = e.target.files?.[0];
+          className="hidden"
+          onChange={(event) => {
+            const file = event.target.files?.[0];
             if (file) void handleImageFile(file);
-            e.target.value = "";
+            event.target.value = "";
           }}
         />
-        <div>
-          <h2 className="text-lg font-semibold leading-tight">{user.name}</h2>
-          <p className="mt-0.5 text-sm text-muted-foreground">{user.email}</p>
+        <div className="space-y-1">
+          <h1 className="text-xl font-semibold tracking-tight">{user.name}</h1>
+          <p className="text-sm text-muted-foreground">{user.email}</p>
           {organizationName ? (
-            <p className="mt-2 text-xs text-muted-foreground">
-              {organizationRole ? `${orgRoleLabel(organizationRole)} · ` : ""}
+            <p className="text-xs text-muted-foreground">
               {organizationName}
+              {organizationRole
+                ? ` · ${orgRoleLabel(organizationRole)}`
+                : null}
             </p>
           ) : null}
-          <p className="mt-2 text-xs text-muted-foreground">
-            {memberSince
-              ? `Membre depuis le ${memberSinceLabel}`
-              : `Compte créé le ${accountSinceLabel}`}
+          <p className="text-xs text-muted-foreground">
+            {memberSinceLabel ?? accountSinceLabel}
           </p>
         </div>
         <Button
@@ -269,66 +313,73 @@ export function AccountView({
           size="sm"
           onClick={() => setProfileOpen(true)}
         >
-          Modifier le profil
+          {t("editProfile")}
         </Button>
       </section>
 
-      <ListGroup title="Compte">
+      <ListGroup title={t("sectionAccount")}>
         <ListItem
-          title="Nom et photo"
+          title={t("nameAndPhoto")}
           subtitle={user.name}
           leading={<User className="size-5 text-muted-foreground" />}
           onClick={() => setProfileOpen(true)}
         />
         <ListItem
-          title="Adresse email"
+          title={t("email")}
           subtitle={user.email}
           leading={<Mail className="size-5 text-muted-foreground" />}
           onClick={() => setEmailOpen(true)}
         />
         <ListItem
-          title="Langue"
+          title={t("language")}
           subtitle={LOCALE_OPTIONS.find((o) => o.value === locale)?.label}
           leading={<Globe className="size-5 text-muted-foreground" />}
           trailing={
             <Select
-              // className="h-9 w-[7.5rem] shrink-0"
               value={locale}
-              // onChange={(e) => handleLocaleChange(e.target.value)}
-              aria-label="Langue de l’interface"
+              onValueChange={handleLocaleChange}
+              disabled={pendingLocale}
             >
-              {LOCALE_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
+              <SelectTrigger
+                className="h-9 w-[8.5rem] shrink-0"
+                aria-label={t("languageHint")}
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {LOCALE_OPTIONS.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    {opt.nativeLabel}
+                  </SelectItem>
+                ))}
+              </SelectContent>
             </Select>
           }
           showChevron={false}
         />
         <ListItem
-          title="Mot de passe"
-          subtitle="Modifier votre mot de passe"
+          title={t("password")}
+          subtitle={t("passwordHint")}
           leading={<KeyRound className="size-5 text-muted-foreground" />}
           onClick={() => setPasswordOpen(true)}
         />
       </ListGroup>
 
-      <ListGroup title="Application">
+      <ListGroup title={t("sectionApp")}>
         <ListItem
-          title="Confidentialité"
-          subtitle="Politique de protection des données"
+          title={t("privacy")}
+          subtitle={t("privacyHint")}
           leading={<Lock className="size-5 text-muted-foreground" />}
           href="/admin/help"
         />
         <ListItem
-          title="Version"
+          title={t("version")}
           subtitle={`Kalasa v${APP_VERSION}`}
           showChevron={false}
         />
         <ListItem
-          title="Signaler un souci"
-          subtitle="Contactez le support"
+          title={t("reportIssue")}
+          subtitle={t("reportHint")}
           leading={
             <MessageCircleWarning className="size-5 text-muted-foreground" />
           }
@@ -339,9 +390,9 @@ export function AccountView({
       <ResponsiveDialog open={profileOpen} onOpenChange={setProfileOpen}>
         <ResponsiveDialogContent>
           <ResponsiveDialogHeader>
-            <ResponsiveDialogTitle>Profil</ResponsiveDialogTitle>
+            <ResponsiveDialogTitle>{t("profileTitle")}</ResponsiveDialogTitle>
             <ResponsiveDialogDescription>
-              Nom affiché et URL de photo (optionnel).
+              {t("profileDesc")}
             </ResponsiveDialogDescription>
           </ResponsiveDialogHeader>
           <Form {...profileForm}>
@@ -387,8 +438,8 @@ export function AccountView({
                   disabled={profileForm.formState.isSubmitting}
                 >
                   {profileForm.formState.isSubmitting
-                    ? "Enregistrement…"
-                    : "Enregistrer"}
+                    ? tCommon("loading")
+                    : tCommon("save")}
                 </Button>
               </ResponsiveDialogFooter>
             </form>
@@ -399,7 +450,7 @@ export function AccountView({
       <ResponsiveDialog open={emailOpen} onOpenChange={setEmailOpen}>
         <ResponsiveDialogContent>
           <ResponsiveDialogHeader>
-            <ResponsiveDialogTitle>Adresse email</ResponsiveDialogTitle>
+            <ResponsiveDialogTitle>{t("email")}</ResponsiveDialogTitle>
             <ResponsiveDialogDescription>
               Un lien de confirmation sera envoyé à la nouvelle adresse.
             </ResponsiveDialogDescription>
@@ -433,7 +484,9 @@ export function AccountView({
                   className="w-full"
                   disabled={emailForm.formState.isSubmitting}
                 >
-                  {emailForm.formState.isSubmitting ? "Envoi…" : "Confirmer"}
+                  {emailForm.formState.isSubmitting
+                    ? tCommon("loading")
+                    : tCommon("continue")}
                 </Button>
               </ResponsiveDialogFooter>
             </form>
@@ -444,7 +497,7 @@ export function AccountView({
       <ResponsiveDialog open={passwordOpen} onOpenChange={setPasswordOpen}>
         <ResponsiveDialogContent>
           <ResponsiveDialogHeader>
-            <ResponsiveDialogTitle>Mot de passe</ResponsiveDialogTitle>
+            <ResponsiveDialogTitle>{t("password")}</ResponsiveDialogTitle>
             <ResponsiveDialogDescription>
               Les autres sessions seront déconnectées après le changement.
             </ResponsiveDialogDescription>
@@ -515,8 +568,8 @@ export function AccountView({
                   disabled={passwordForm.formState.isSubmitting}
                 >
                   {passwordForm.formState.isSubmitting
-                    ? "Mise à jour…"
-                    : "Changer le mot de passe"}
+                    ? tCommon("loading")
+                    : t("passwordHint")}
                 </Button>
               </ResponsiveDialogFooter>
             </form>

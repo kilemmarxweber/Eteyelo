@@ -8,6 +8,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Menu } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTranslations } from "next-intl";
 
 interface SidebarNavProps extends React.HTMLAttributes<HTMLElement> {
   items: {
@@ -22,6 +23,7 @@ export default function SidebarNav({
   items,
   ...props
 }: SidebarNavProps) {
+  const t = useTranslations("settings");
   const pathname = usePathname();
   const [hasMounted, setHasMounted] = useState(false);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
@@ -56,14 +58,14 @@ export default function SidebarNav({
                   {currentItem.title}
                 </span>
               ) : (
-                "Navigation"
+                t("navigation")
               )}
             </Button>
           </SheetTrigger>
           <SheetContent side="left" className="w-[300px] sm:w-[400px]">
             <div className="px-1 py-6">
               <h2 className="mb-6 text-lg font-semibold tracking-tight">
-                Paramètres
+                {t("title")}
               </h2>
               <nav className="flex flex-col space-y-2">
                 {items.map((item) => (

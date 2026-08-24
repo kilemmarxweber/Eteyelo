@@ -4,6 +4,7 @@ import { BranchPageShell } from "@/components/layout/branch-page-shell";
 import { Layout, LayoutBody } from "@/components/custom/layout";
 
 import { useEffect, useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import { useAppTransition as useTransition } from "@/hooks/use-app-transition";
 import {
   IconBooks,
@@ -56,6 +57,7 @@ type Workspace = NonNullable<
 const PAGE_SIZE = 8;
 
 export default function TeachingWorkspacePage() {
+  const t = useTranslations("teaching");
   const [data, setData] = useState<Workspace | null>(null);
   const [selectedClassId, setSelectedClassId] = useState("");
   const [classSearch, setClassSearch] = useState("");
@@ -296,11 +298,13 @@ export default function TeachingWorkspacePage() {
 
   return (
     <BranchPageShell
-      title="Affectation des cours"
-          description={`Année scolaire : ${data.schoolYear?.nameYear ?? "non configurée"}`}
+      title={t("assignments.title")}
+      description={t("assignments.year", {
+        year: data.schoolYear?.nameYear ?? t("assignments.yearMissing"),
+      })}
           badge={
             <Badge variant="outline-primary" icon={<IconUsers size={14} />}>
-              Enseignement
+              {t("assignments.badge")}
             </Badge>
           }
           actions={
@@ -309,7 +313,7 @@ export default function TeachingWorkspacePage() {
               onClick={() => setAssignmentFilter("unassigned")}
             >
               <IconUserOff className="mr-2 size-4" />
-              Sans enseignant ({totalUnassigned})
+              {t("assignments.unassigned", { count: totalUnassigned })}
             </Button>
           }
       fixedHeight
@@ -318,7 +322,7 @@ export default function TeachingWorkspacePage() {
       <div className="grid min-h-0 flex-1 gap-4 lg:grid-cols-[300px_minmax(0,1fr)]">
           <Card className="flex min-h-0 flex-col overflow-hidden">
             <div className="border-b p-3">
-              <h2 className="font-semibold">Classes</h2>
+              <h2 className="font-semibold">{t("assignments.classes")}</h2>
               <div className="relative mt-2">
                 <IconSearch className="absolute left-3 top-3 size-4 text-muted-foreground" />
                 <Input
@@ -327,7 +331,7 @@ export default function TeachingWorkspacePage() {
                     setClassSearch(e.target.value);
                     setPage(0);
                   }}
-                  placeholder="Rechercher..."
+                  placeholder={t("assignments.searchClass")}
                   className="pl-9"
                 />
               </div>
@@ -674,11 +678,11 @@ function TeacherPicker({
       </PopoverTrigger>
       <PopoverContent className="w-[300px] p-0" align="start">
         <Command>
-          <CommandInput placeholder="Rechercher un enseignant..." />
+          <CommandInput placeholder={t("assignments.searchTeacher")} />
           <CommandList className="max-h-64">
-            <CommandEmpty>Aucun enseignant trouvé.</CommandEmpty>
+            <CommandEmpty>{t("assignments.noTeacherFound")}</CommandEmpty>
             <CommandGroup
-              heading={`${teachers.length} enseignant${teachers.length > 1 ? "s" : ""}`}
+              heading={t("assignments.teachersCount", { count: teachers.length })}
             >
               {allowAll && (
                 <CommandItem

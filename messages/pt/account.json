@@ -1,0 +1,22 @@
+{
+  "title": "Conta",
+  "loading": "A carregar a conta…",
+  "sectionAccount": "Conta",
+  "sectionApp": "Aplicação",
+  "nameAndPhoto": "Nome e foto",
+  "email": "Endereço de email",
+  "language": "Idioma",
+  "languageHint": "Idioma da interface",
+  "password": "Palavra-passe",
+  "passwordHint": "Alterar a palavra-passe",
+  "privacy": "Privacidade",
+  "privacyHint": "Política de proteção de dados",
+  "version": "Versão",
+  "reportIssue": "Reportar um problema",
+  "reportHint": "Contactar o suporte",
+  "editProfile": "Editar perfil",
+  "profileTitle": "Perfil",
+  "profileDesc": "Nome apresentado e URL da foto (opcional).",
+  "localeUpdated": "Idioma: português de Portugal",
+  "changePhoto": "Alterar a foto de perfil"
+}

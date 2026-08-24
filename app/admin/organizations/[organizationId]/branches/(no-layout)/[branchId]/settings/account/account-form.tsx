@@ -42,24 +42,9 @@ import { fr } from "date-fns/locale";
 import { updateUserAction } from "../../../../../members/actions";
 import { updateUserSchema } from "../../../../../members/schema";
 import { PhoneInput } from "@/components/ui/phone-input";
+import { LocalePreferenceButtons } from "@/components/locale-preference-buttons";
 
-const languages = [
-  { label: "Français", value: "fr" },
-  { label: "English", value: "en" },
-  { label: "Deutsch", value: "de" },
-  { label: "Español", value: "es" },
-  { label: "Português", value: "pt" },
-  { label: "Русский", value: "ru" },
-  { label: "日本語", value: "ja" },
-  { label: "한국어", value: "ko" },
-  { label: "中文", value: "zh" },
-] as const;
-
-const accountFormSchema = updateUserSchema.extend({
-  language: z.string({
-    required_error: "Veuillez sélectionner une langue.",
-  }),
-});
+const accountFormSchema = updateUserSchema;
 
 type AccountFormValues = z.infer<typeof accountFormSchema>;
 interface AccountFormProps {
@@ -81,7 +66,6 @@ export function AccountForm({ currentUser }: AccountFormProps) {
       dateOfBirth: currentUser.dateOfBirth
         ? new Date(currentUser.dateOfBirth)
         : new Date(),
-      language: currentUser.language || "fr",
     },
   });
 
@@ -109,8 +93,8 @@ export function AccountForm({ currentUser }: AccountFormProps) {
       <div>
         <h3 className="text-lg font-medium">Paramètres du compte</h3>
         <p className="text-sm text-muted-foreground">
-          Mettez à jour vos paramètres de compte. Définissez votre langue
-          préférée et votre fuseau horaire.
+          Mettez à jour vos informations personnelles et votre langue
+          d&apos;interface.
         </p>
       </div>
 
@@ -285,42 +269,12 @@ export function AccountForm({ currentUser }: AccountFormProps) {
           <Card>
             <CardHeader>
               <CardTitle>Préférences</CardTitle>
-              <CardDescription>Langue et paramètres régionaux.</CardDescription>
+              <CardDescription>
+                Langue de l&apos;interface pour ce compte.
+              </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <FormField
-                control={form.control}
-                name="language"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Langue</FormLabel>
-                    <FormControl>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                      >
-                        <SelectTrigger className="w-full sm:w-[240px]">
-                          <SelectValue placeholder="Sélectionner une langue" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {languages.map((language) => (
-                            <SelectItem
-                              key={language.value}
-                              value={language.value}
-                            >
-                              {language.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </FormControl>
-                    <FormDescription>
-                      Cette langue sera utilisée dans le tableau de bord.
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+            <CardContent>
+              <LocalePreferenceButtons />
             </CardContent>
           </Card>
 

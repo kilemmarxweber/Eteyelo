@@ -6,6 +6,7 @@ import { useAppRouter as useRouter } from "@/hooks/use-app-router";
 import {
   Archive,
   ArchiveRestore,
+  Building2,
   Mail,
   MoreHorizontal,
   Plus,
@@ -82,10 +83,12 @@ export function OrganizationMembersView({
     return members.filter((member) => {
       const role = member.role.split(",")[0]?.trim();
 
+      const branchNames = member.branches.map((b) => b.name.toLowerCase());
       return (
         member.user.name?.toLowerCase().includes(q) ||
         member.user.email?.toLowerCase().includes(q) ||
-        orgRoleLabel(role).toLowerCase().includes(q)
+        orgRoleLabel(role).toLowerCase().includes(q) ||
+        branchNames.some((name) => name.includes(q))
       );
     });
   }, [members, search]);
@@ -185,7 +188,7 @@ export function OrganizationMembersView({
               <Input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Rechercher un membre..."
+                placeholder="Rechercher par nom, email, rôle ou branche..."
                 className="h-auto border-0 bg-transparent p-0 shadow-none focus-visible:ring-0"
               />
             </div>
@@ -239,6 +242,12 @@ export function OrganizationMembersView({
                         <p className="mt-0.5 flex items-center gap-1 truncate text-sm text-muted-foreground">
                           <Mail className="size-3.5 shrink-0" />
                           {member.user.email}
+                        </p>
+                        <p className="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+                          <Building2 className="size-3.5 shrink-0" />
+                          {member.branches.length === 0
+                            ? "Aucune branche"
+                            : member.branches.map((b) => b.name).join(" · ")}
                         </p>
                       </div>
                     </div>

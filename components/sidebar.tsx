@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { IconChevronsLeft, IconMenu2, IconX } from "@tabler/icons-react";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useAppRouter as useRouter } from "@/hooks/use-app-router";
 
 import { Layout, LayoutHeader } from "./custom/layout";
@@ -18,6 +19,7 @@ import { OwnerBranchesLink } from "@/components/owner-branches-link";
 import { Search } from "@/components/search";
 import { ThemeToggle } from "@/src/theme/ThemeToggle";
 import cmj from "@/public/cmj.jpg";
+import type { SideLink } from "@/src/data/sidelinks";
 
 interface SidebarProps extends React.HTMLAttributes<HTMLElement> {
   isCollapsed: boolean;
@@ -37,7 +39,17 @@ export default function Sidebar({
   const [branchType, setBranchType] = useState<unknown>(undefined);
   const [branchLoaded, setBranchLoaded] = useState(false);
   const { data: session } = authClient.useSession();
-  const links = buildStaticSideLinks(session, pathname, branchType);
+  const tNav = useTranslations("nav");
+  const rawLinks = buildStaticSideLinks(session, pathname, branchType);
+  const links = useMemo(() => {
+    const translate = (items: SideLink[]): SideLink[] =>
+      items.map((item) => ({
+        ...item,
+        title: tNav(item.title as never),
+        sub: item.sub ? translate(item.sub) : undefined,
+      }));
+    return translate(rawLinks);
+  }, [rawLinks, tNav]);
   const branchId = pathname.match(
     /^\/admin\/organizations\/[^/]+\/branches\/([^/]+)/,
   )?.[1];

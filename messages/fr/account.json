@@ -1,0 +1,22 @@
+{
+  "title": "Compte",
+  "loading": "Chargement du compte…",
+  "sectionAccount": "Compte",
+  "sectionApp": "Application",
+  "nameAndPhoto": "Nom et photo",
+  "email": "Adresse email",
+  "language": "Langue",
+  "languageHint": "Langue de l’interface",
+  "password": "Mot de passe",
+  "passwordHint": "Modifier votre mot de passe",
+  "privacy": "Confidentialité",
+  "privacyHint": "Politique de protection des données",
+  "version": "Version",
+  "reportIssue": "Signaler un souci",
+  "reportHint": "Contactez le support",
+  "editProfile": "Modifier le profil",
+  "profileTitle": "Profil",
+  "profileDesc": "Nom affiché et URL de photo (optionnel).",
+  "localeUpdated": "Langue : français",
+  "changePhoto": "Changer la photo de profil"
+}

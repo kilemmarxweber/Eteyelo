@@ -8,6 +8,7 @@ import { requireBranchContext } from "@/lib/auth/require-branch-context";
 import { getPeopleLabels } from "@/lib/people-labels";
 import { Badge } from "@/components/ui/badge";
 import { IconWallet } from "@tabler/icons-react";
+import { getServerTranslator } from "@/lib/i18n-server";
 
 export const dynamic = "force-dynamic";
 
@@ -19,6 +20,7 @@ export default async function PaymentPage({
   const query = await searchParams;
   const { typebranch, session } = await requireBranchContext();
   await assertBranchAreaAccess("finance", session);
+  const t = await getServerTranslator("finance");
 
   const peopleLabels = getPeopleLabels(typebranch);
 
@@ -33,11 +35,13 @@ export default async function PaymentPage({
 
   return (
     <BranchPageShell
-      title="Gestion des paiements"
-      description={`Suivez les paiements des ${peopleLabels.studentPluralLower} et les soldes restants.`}
+      title={t("payments.title")}
+      description={t("payments.description", {
+        students: peopleLabels.studentPluralLower,
+      })}
       badge={
         <Badge variant="outline-primary" icon={<IconWallet size={14} />}>
-          Paiements
+          {t("payments.badge")}
         </Badge>
       }
       contentClassName="space-y-0"

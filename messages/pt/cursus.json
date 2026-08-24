@@ -1,0 +1,45 @@
+{
+  "results": {
+    "title": "Gestão dos resultados",
+    "description": "Gerir as informações dos resultados dos alunos.",
+    "badge": "Resultados",
+    "detail": "Detalhe das intervenções"
+  },
+  "notes": {
+    "title": "Lançamento de notas"
+  },
+  "homework": {
+    "title": "Trabalhos",
+    "mine": "Os meus trabalhos",
+    "new": "Novo trabalho",
+    "descAdmin": "Filtre por ano, turma e curso — publique para o fim de semana.",
+    "descTeacher": "Apenas as suas turmas e cursos atribuídos — publique para o fim de semana.",
+    "descParent": "Acompanhamento dos trabalhos dos seus filhos.",
+    "descStudent": "Os seus trabalhos a fazer no fim de semana.",
+    "friday": "Sexta-feira",
+    "emptyAssign": "Nenhuma atribuição",
+    "empty": "Nenhum trabalho",
+    "noResult": "Nenhum resultado",
+    "openNow": "Abertos agora",
+    "upcoming": "A seguir",
+    "done": "Terminados / encerrados"
+  },
+  "library": {
+    "title": "Biblioteca",
+    "addBook": "Adicionar um livro",
+    "books": "{count, plural, one {# livro} other {# livros}}"
+  },
+  "sheets": {
+    "title": "Ficha de cotação",
+    "central": "Fichas centrais"
+  },
+  "transcripts": {
+    "title": "Boletins de notas"
+  },
+  "certificates": {
+    "title": "Certificados de formação"
+  },
+  "finalists": {
+    "title": "Lista de finalistas"
+  }
+}

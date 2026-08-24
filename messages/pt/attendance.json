@@ -1,0 +1,14 @@
+{
+  "title": "Gestão de presenças",
+  "description": "Consulte as marcações do pessoal, analise as estatísticas e exporte os relatórios.",
+  "badge": "Presenças",
+  "checkIn": "Marcar",
+  "nav": {
+    "title": "Presenças",
+    "dashboard": "Painel",
+    "checkIn": "Marcação",
+    "details": "Detalhe das presenças",
+    "reports": "Relatórios",
+    "history": "Histórico"
+  }
+}

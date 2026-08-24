@@ -1,0 +1,16 @@
+{
+  "title": "Gestão de {classes}",
+  "description": "Crie as {classes} e organize a capacidade, opção e horário.",
+  "importCatalog": "Importar catálogo",
+  "importDisabled": "O catálogo já não pode ser importado: já existem turmas.",
+  "create": "Criar uma {class}",
+  "createDesc": "Nível, secção, opção e horário da {class}.",
+  "total": "Total",
+  "active": "Ativas",
+  "inactive": "Inativas",
+  "importSuccess": "{created} turma(s) criada(s), {skipped} já presente(s)",
+  "importExtra": " · {sections} secção(ões), {options} opção(ões)",
+  "importFail": "Falha na importação do catálogo",
+  "sectionSheetDesc": "Indique o nome da secção e guarde.",
+  "optionSheetDesc": "Indique o nome da opção e guarde."
+}

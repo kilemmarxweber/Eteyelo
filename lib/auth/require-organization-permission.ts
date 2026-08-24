@@ -280,33 +280,43 @@ export const guardOrganizationBranchAccess = cache(
       ? context.membership
       : await getMembershipForOrganization(context.userId, organizationId);
 
+  const assignedBranches = membership
+    ? await prisma.branchMember.findMany({
+        where: {
+          member: {
+            userId: context.userId,
+            organizationId,
+          },
+          branch: { organizationId, isActive: true },
+        },
+        select: { branchId: true },
+      })
+    : [];
+  const assignedBranchIds = new Set(
+    assignedBranches.map((row) => row.branchId),
+  );
+
   if (membership && isOrganizationManagerMember(membership.role)) {
-    return { ok: true, context };
+    if (assignedBranchIds.size === 0 || assignedBranchIds.has(branchId)) {
+      return { ok: true, context };
+    }
+    return { ok: false, message: "Acces a cette branche refuse." };
   }
 
-  // Caissier / enseignant / parent / élève : accès à la branche de leur org.
   if (
     membership &&
     splitRoles(membership.role).some((role) => BRANCH_LOGIN_ORG_ROLES.has(role))
   ) {
-    if (branch.isActive) {
+    if (!branch.isActive) {
+      return { ok: false, message: "Acces a cette branche refuse." };
+    }
+    if (assignedBranchIds.size === 0 || assignedBranchIds.has(branchId)) {
       return { ok: true, context };
     }
+    return { ok: false, message: "Acces a cette branche refuse." };
   }
 
-  const branchMember = await prisma.branchMember.findFirst({
-    where: {
-      branchId,
-      branch: { organizationId },
-      member: {
-        userId: context.userId,
-        organizationId,
-      },
-    },
-    select: { id: true },
-  });
-
-  if (!branchMember) {
+  if (!assignedBranchIds.has(branchId)) {
     return { ok: false, message: "Acces a cette branche refuse." };
   }
 

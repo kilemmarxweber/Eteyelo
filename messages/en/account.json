@@ -1,0 +1,22 @@
+{
+  "title": "Account",
+  "loading": "Loading account…",
+  "sectionAccount": "Account",
+  "sectionApp": "Application",
+  "nameAndPhoto": "Name and photo",
+  "email": "Email address",
+  "language": "Language",
+  "languageHint": "Interface language",
+  "password": "Password",
+  "passwordHint": "Change your password",
+  "privacy": "Privacy",
+  "privacyHint": "Data protection policy",
+  "version": "Version",
+  "reportIssue": "Report an issue",
+  "reportHint": "Contact support",
+  "editProfile": "Edit profile",
+  "profileTitle": "Profile",
+  "profileDesc": "Display name and photo URL (optional).",
+  "localeUpdated": "Language: English",
+  "changePhoto": "Change profile photo"
+}

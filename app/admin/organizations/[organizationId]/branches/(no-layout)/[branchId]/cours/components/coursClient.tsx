@@ -3,6 +3,7 @@
 import { BranchPageShell } from "@/components/layout/branch-page-shell";
 
 import { useEffect, useState, useTransition } from "react";
+import { useTranslations } from "next-intl";
 import {
   IconBook,
   IconBookOff,
@@ -41,6 +42,7 @@ export default function Cours({
   isPrimary?: boolean;
   supportsCourseImport?: boolean;
 }) {
+  const t = useTranslations("teaching");
   const [open, setOpen] = useState(false);
   const [importCourseOpen, setImportCourseOpen] = useState(false);
   const [stats, setStats] = useState({ total: 0, active: 0, inactive: 0 });
@@ -151,36 +153,36 @@ export default function Cours({
 
   return (
     <BranchPageShell
-      title="Gestion des cours"
+      title={t("courses.title")}
           description={
             isPrimary
-              ? "Créez et organisez les matières enseignées dans cet établissement."
+              ? t("courses.descPrimary")
               : supportsCourseImport
-                ? "Créez les matières ou importez des cours depuis une autre branche de l'organisation."
-                : "Créez les matières ou importez le catalogue RDC (socle commun + spécialités par option)."
+                ? t("courses.descImportOrg")
+                : t("courses.descImportCatalog")
           }
           badge={
             <Badge variant="outline-primary" icon={<IconBooks size={14} />}>
-              Cours
+              {t("courses.badge")}
             </Badge>
           }
           actions={headerActions}
     >
       <div className="grid gap-4 sm:grid-cols-3">
           <BranchStatCard
-            label="Total des cours"
+            label={t("courses.total")}
             value={stats.total}
-            description="Matières enregistrées"
+            description={t("courses.totalHint")}
             icon={IconBooks}
           />
           <BranchStatCard
-            label="Cours actifs"
+            label={t("courses.active")}
             value={stats.active}
-            description="Disponibles pour affectation"
+            description={t("courses.activeHint")}
             icon={IconBook}
           />
           <BranchStatCard
-            label="Cours inactifs"
+            label={t("courses.inactive")}
             value={stats.inactive}
             description="Masqués des listes actives"
             icon={IconBookOff}

@@ -1,0 +1,50 @@
+{
+  "students": {
+    "title": "Gestão de {students}",
+    "description": "Dossiers de {students} e acompanhamento académico em tempo real.",
+    "total": "Total de {students}",
+    "byFilters": "segundo filtros / ordenação ativos",
+    "active": "Ativos",
+    "activeHint": "com turma atribuída",
+    "inactive": "Inativos",
+    "inactiveHint": "sem inscrição visível",
+    "new": "Novos {students}",
+    "newHint": "neste trimestre (filtrados)",
+    "gender": "Sexo / género"
+  },
+  "parents": {
+    "title": "Gestão dos encarregados",
+    "description": "Gerir os dados dos encarregados e o acompanhamento das inscrições dos filhos.",
+    "badge": "Encarregados",
+    "total": "Total geral",
+    "tutors": "encarregados",
+    "tutorsYear": "Encarregados {year}",
+    "withStudent": "com {student} inscrito",
+    "enrollmentsYear": "Inscrições {year}",
+    "studentsEnrolled": "{students} inscritos",
+    "coverage": "Cobertura {year}",
+    "coverageHint": "encarregados com inscrição / total",
+    "currentYear": "Ano em curso"
+  },
+  "teachers": {
+    "title": "Gestão de {teachers}",
+    "description": "Gerir os dados dos {teachers} e os seus contratos no estabelecimento.",
+    "importOne": "Importar um {teacher}",
+    "addOne": "Adicionar um {teacher}",
+    "createTitle": "Criar um {teacher}",
+    "createDesc": "Adicione um novo {teacher}."
+  },
+  "staff": {
+    "title": "Gestão do pessoal",
+    "description": "Gerir os dados do pessoal administrativo e os seus contratos.",
+    "badge": "Pessoal",
+    "importOne": "Importar pessoal",
+    "addOne": "Adicionar pessoal",
+    "createTitle": "Criar pessoal administrativo",
+    "createDesc": "Adicione um novo membro do pessoal.",
+    "active": "Ativos",
+    "inactive": "Inativos",
+    "members": "membros",
+    "presenceHint": "presentes / total previsto"
+  }
+}

@@ -1,18 +1,23 @@
-export const LOCALE_STORAGE_KEY = "Kalasa-locale";
+export {
+  LOCALE_OPTIONS,
+  readUserLocalePreference,
+  writeUserLocalePreference,
+  type UserLocale as LocalePreference,
+  USER_LOCALE_COOKIE as LOCALE_STORAGE_KEY,
+} from "@/lib/user-locale";
 
-export const LOCALE_OPTIONS = [
-  { value: "fr", label: "Français" },
-  { value: "en", label: "English" },
-] as const;
+import {
+  readUserLocalePreference,
+  writeUserLocalePreference,
+  type UserLocale,
+} from "@/lib/user-locale";
 
-export type LocalePreference = (typeof LOCALE_OPTIONS)[number]["value"];
-
-export function readLocalePreference(): LocalePreference {
-  if (typeof window === "undefined") return "fr";
-  const stored = localStorage.getItem(LOCALE_STORAGE_KEY);
-  return stored === "en" ? "en" : "fr";
+/** @deprecated Prefer readUserLocalePreference(userId) */
+export function readLocalePreference(): UserLocale {
+  return readUserLocalePreference();
 }
 
-export function writeLocalePreference(locale: LocalePreference) {
-  localStorage.setItem(LOCALE_STORAGE_KEY, locale);
+/** @deprecated Prefer writeUserLocalePreference(locale, userId) */
+export function writeLocalePreference(locale: UserLocale) {
+  writeUserLocalePreference(locale);
 }

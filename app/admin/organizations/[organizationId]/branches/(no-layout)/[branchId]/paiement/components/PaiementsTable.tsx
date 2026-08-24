@@ -26,6 +26,7 @@ import { ReceiptPreviewDialog } from "@/components/reports/ReceiptPreviewDialog"
 import type { SchoolReportContext } from "@/lib/reports/types";
 import { DEFAULT_EXCHANGE_RATE_USD_CDF } from "@/lib/reports/types";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 import { useBranchPeopleLabels } from "@/hooks/use-branch-people-labels";
 import {
   exportPaiementsReportPdf,
@@ -93,7 +94,7 @@ function mapPaiement(p: any): IPaiement {
 function mapGroupedToReceipt(
   g: GroupedPaiement,
   branding: SchoolReportContext,
-  parentFallback = "Parent",
+  labels: { parentFallback: string; establishment: string; schoolFee: string },
 ): FacturePaymentStudentData {
   const receivedCurrency =
     g.items.find((i) => i.receivedCurrency)?.receivedCurrency ??
@@ -103,14 +104,14 @@ function mapGroupedToReceipt(
   return {
     invoiceNumber: g.reference,
     sender: {
-      name: branding.branchName || branding.schoolName || "Établissement",
+      name: branding.branchName || branding.schoolName || labels.establishment,
       address: branding.address ?? "",
     },
     recipient: {
-      name: g.parentName.trim() || parentFallback,
+      name: g.parentName.trim() || labels.parentFallback,
     },
     items: g.items.map((i) => ({
-      description: i.frais?.nameFrais || "Frais scolaire",
+      description: i.frais?.nameFrais || labels.schoolFee,
       price: Number(i.frais?.montantFrais ?? i.montantPaye),
       mode: String(i.modePaiement || ModePaiement.ESPECES),
       montant: Number(i.montantPaye),
@@ -133,6 +134,7 @@ function mapGroupedToReceipt(
 }
 
 const PaiementsTable = ({ refreshKey }: { refreshKey?: string }) => {
+  const t = useTranslations("finance");
   const peopleLabels = useBranchPeopleLabels();
   const [paiements, setPaiements] = useState<IPaiement[]>([]);
   const [loading, setLoading] = useState(true);
@@ -178,10 +180,16 @@ const PaiementsTable = ({ refreshKey }: { refreshKey?: string }) => {
 
   const openReceipt = (g: GroupedPaiement) => {
     if (!branding) {
-      toast.error("Contexte établissement indisponible pour le reçu.");
+      toast.error(t("table.receiptContextFailed"));
       return;
     }
-    setReceiptData(mapGroupedToReceipt(g, branding));
+    setReceiptData(
+      mapGroupedToReceipt(g, branding, {
+        parentFallback: t("table.parent"),
+        establishment: t("table.establishment"),
+        schoolFee: t("schoolFeeFallback"),
+      }),
+    );
     setReceiptIssuedAt(g.date);
     setReceiptOpen(true);
   };
@@ -277,10 +285,10 @@ const PaiementsTable = ({ refreshKey }: { refreshKey?: string }) => {
   };
 
   const dateRangeOptions = [
-    { value: "today", label: "Aujourd'hui" },
-    { value: "week", label: "Cette semaine" },
-    { value: "month", label: "Ce mois" },
-    { value: "year", label: "Année" },
+    { value: "today", label: t("table.today") },
+    { value: "week", label: t("table.week") },
+    { value: "month", label: t("table.month") },
+    { value: "year", label: t("table.year") },
   ];
 
   const filtered = useMemo<GroupedPaiement[]>(() => {
@@ -312,8 +320,7 @@ const PaiementsTable = ({ refreshKey }: { refreshKey?: string }) => {
         const [fresh, err] = await getPaymentReportContextAction();
         if (err || !fresh) {
           throw new Error(
-            err?.message ||
-              "Impossible de charger les informations du rapport.",
+            err?.message || t("table.contextFailed"),
           );
         }
         context = fresh;
@@ -325,13 +332,11 @@ const PaiementsTable = ({ refreshKey }: { refreshKey?: string }) => {
         statusFilter,
         modeFilter,
       });
-      toast.success("Le rapport PDF des paiements a été généré.");
+      toast.success(t("table.pdfSuccess"));
     } catch (error) {
       console.error(error);
       toast.error(
-        error instanceof Error
-          ? error.message
-          : "Impossible de générer le rapport PDF.",
+        error instanceof Error ? error.message : t("table.pdfError"),
       );
     } finally {
       setExportingPdf(false);
@@ -341,42 +346,42 @@ const PaiementsTable = ({ refreshKey }: { refreshKey?: string }) => {
   const getModeLabel = (m: ModePaiement) => {
     switch (m) {
       case ModePaiement.ESPECES:
-        return "Espèces";
+        return t("modes.ESPECES");
       case ModePaiement.MPESA:
-        return "Mpesa";
+        return t("modes.MPESA");
       case ModePaiement.AIRTEL_MONEY:
-        return "Airtel Money";
+        return t("modes.AIRTEL_MONEY");
       case ModePaiement.ORANGE_MONEY:
-        return "Orange Money";
+        return t("modes.ORANGE_MONEY");
       case ModePaiement.CARTE:
-        return "Carte Bancaire";
+        return t("modes.CARTE");
       case ModePaiement.BANQUE:
-        return "Banque";
+        return t("modes.BANQUE");
       default:
-        return "Inconnu";
+        return t("modes.unknown");
     }
   };
 
   const getStatus = (s: StatusPaiement) => {
     switch (s) {
       case StatusPaiement.VALIDE:
-        return <StatusBadge status="active" label="Validé" />;
+        return <StatusBadge status="active" label={t("status.VALIDE")} />;
       case StatusPaiement.ANNULE:
-        return <StatusBadge status="cancelled" label="Annulé" />;
+        return <StatusBadge status="cancelled" label={t("status.ANNULE")} />;
       case StatusPaiement.EN_ATTENTE:
-        return <StatusBadge status="pending" label="En attente" />;
+        return <StatusBadge status="pending" label={t("status.EN_ATTENTE")} />;
       case StatusPaiement.REMBOURSE:
-        return <StatusBadge status="completed" label="Remboursé" />;
+        return <StatusBadge status="completed" label={t("status.REMBOURSE")} />;
       default:
-        return <StatusBadge status="inactive" label="Inconnu" />;
+        return <StatusBadge status="inactive" label={t("status.unknown")} />;
     }
   };
 
   const statusOptions = [
-    { value: "all", label: "Tous" },
-    { value: StatusPaiement.VALIDE, label: "Validé" },
-    { value: StatusPaiement.EN_ATTENTE, label: "En attente" },
-    { value: StatusPaiement.ANNULE, label: "Annulé" },
+    { value: "all", label: t("table.all") },
+    { value: StatusPaiement.VALIDE, label: t("status.VALIDE") },
+    { value: StatusPaiement.EN_ATTENTE, label: t("status.EN_ATTENTE") },
+    { value: StatusPaiement.ANNULE, label: t("status.ANNULE") },
   ].map((o, i) => ({
     ...o,
     value: String(o.value),
@@ -384,11 +389,11 @@ const PaiementsTable = ({ refreshKey }: { refreshKey?: string }) => {
   }));
 
   const modeOptions = [
-    { value: "all", label: "Tous" },
-    { value: ModePaiement.ESPECES, label: "Espèces" },
-    { value: ModePaiement.MPESA, label: "Mpesa" },
-    { value: ModePaiement.AIRTEL_MONEY, label: "Airtel" },
-    { value: ModePaiement.ORANGE_MONEY, label: "Orange" },
+    { value: "all", label: t("table.all") },
+    { value: ModePaiement.ESPECES, label: t("modes.ESPECES") },
+    { value: ModePaiement.MPESA, label: t("modes.MPESA") },
+    { value: ModePaiement.AIRTEL_MONEY, label: t("table.airtel") },
+    { value: ModePaiement.ORANGE_MONEY, label: t("table.orange") },
   ].map((o, i) => ({
     ...o,
     value: String(o.value),
@@ -405,12 +410,12 @@ const PaiementsTable = ({ refreshKey }: { refreshKey?: string }) => {
   const columns = [
     {
       key: "reference",
-      header: "Référence",
+      header: t("table.reference"),
       cell: (g: GroupedPaiement) => g.reference,
     },
     {
       key: "parent",
-      header: "Parent",
+      header: t("table.parent"),
       cell: (g: GroupedPaiement) => g.parentName,
     },
     {
@@ -426,7 +431,7 @@ const PaiementsTable = ({ refreshKey }: { refreshKey?: string }) => {
     },
     {
       key: "total",
-      header: `Total (${quoteCurrency})`,
+      header: t("table.totalQuote", { currency: quoteCurrency }),
       cell: (g: GroupedPaiement) => {
         if (baseCurrency === "USD" && quoteCurrency === "CDF") {
           return formatReportAmount(g.total * exchangeRate, "CDF");
@@ -455,12 +460,12 @@ const PaiementsTable = ({ refreshKey }: { refreshKey?: string }) => {
     },
     {
       key: "mode",
-      header: "Mode",
+      header: t("table.mode"),
       cell: (g: GroupedPaiement) => getModeLabel(g.mode),
     },
     {
       key: "status",
-      header: "Statut",
+      header: t("table.status"),
       cell: (g: GroupedPaiement) => getStatus(g.status),
     },
     {
@@ -477,7 +482,7 @@ const PaiementsTable = ({ refreshKey }: { refreshKey?: string }) => {
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={() => openReceipt(g)}>
               <Eye className="mr-2 h-4 w-4" />
-              Voir reçu
+              {t("table.viewReceipt")}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -491,7 +496,7 @@ const PaiementsTable = ({ refreshKey }: { refreshKey?: string }) => {
     details: (g: GroupedPaiement) => [
       { label: peopleLabels.studentPlural, value: g.students.join(", ") },
       {
-        label: "Total",
+        label: t("table.total"),
         value: formatReportAmount(g.total, baseCurrency),
       },
     ],
@@ -504,24 +509,28 @@ const PaiementsTable = ({ refreshKey }: { refreshKey?: string }) => {
         <SearchAndFilter
           searchTerm={searchTerm}
           onSearchChange={setSearchTerm}
+          searchPlaceholder={t("table.search")}
         />
 
         <SearchAndFilter
           filterValue={dateRangeFilter}
           onFilterChange={setDateRangeFilter}
           filterOptions={dateRangeOptions}
+          filterPlaceholder={t("table.filter")}
         />
 
         <SearchAndFilter
           filterValue={statusFilter}
           onFilterChange={setStatusFilter}
           filterOptions={statusOptions}
+          filterPlaceholder={t("table.filter")}
         />
 
         <SearchAndFilter
           filterValue={modeFilter}
           onFilterChange={setModeFilter}
           filterOptions={modeOptions}
+          filterPlaceholder={t("table.filter")}
         />
         <Button
           variant="outline"
@@ -531,7 +540,7 @@ const PaiementsTable = ({ refreshKey }: { refreshKey?: string }) => {
           className="border-sky-600 text-sky-600! hover:bg-sky-600/10 focus-visible:border-sky-600 focus-visible:ring-sky-600/20 dark:border-sky-400 dark:text-sky-400! dark:hover:bg-sky-400/10 dark:focus-visible:border-sky-400 dark:focus-visible:ring-sky-400/40"
         >
           <FileSpreadsheet data-icon="inline-start" />
-          {exportingPdf ? "Génération..." : "Export PDF"}
+          {exportingPdf ? t("table.generating") : t("table.exportPdf")}
         </Button>
       </div>
 
@@ -539,7 +548,7 @@ const PaiementsTable = ({ refreshKey }: { refreshKey?: string }) => {
         open={receiptOpen}
         onOpenChange={setReceiptOpen}
         data={receiptData}
-        title="Reçu de paiement"
+        title={t("table.receiptTitle")}
         issuedAt={receiptIssuedAt}
       />
 

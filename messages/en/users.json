@@ -1,0 +1,50 @@
+{
+  "students": {
+    "title": "{students} management",
+    "description": "{students} records and real-time academic follow-up.",
+    "total": "Total {students}",
+    "byFilters": "based on active filters / sort",
+    "active": "Active",
+    "activeHint": "with assigned class",
+    "inactive": "Inactive",
+    "inactiveHint": "no visible enrollment",
+    "new": "New {students}",
+    "newHint": "this quarter (filtered)",
+    "gender": "Sex / gender"
+  },
+  "parents": {
+    "title": "Guardian management",
+    "description": "Manage guardian details and their children's enrollments.",
+    "badge": "Guardians",
+    "total": "Overall total",
+    "tutors": "guardians",
+    "tutorsYear": "Guardians {year}",
+    "withStudent": "with enrolled {student}",
+    "enrollmentsYear": "Enrollments {year}",
+    "studentsEnrolled": "enrolled {students}",
+    "coverage": "Coverage {year}",
+    "coverageHint": "guardians with enrollment / total",
+    "currentYear": "Current year"
+  },
+  "teachers": {
+    "title": "{teachers} management",
+    "description": "Manage {teachers} details and contracts in the school.",
+    "importOne": "Import a {teacher}",
+    "addOne": "Add a {teacher}",
+    "createTitle": "Create a {teacher}",
+    "createDesc": "Add a new {teacher}."
+  },
+  "staff": {
+    "title": "Staff management",
+    "description": "Manage administrative staff details and contracts.",
+    "badge": "Staff",
+    "importOne": "Import staff",
+    "addOne": "Add staff",
+    "createTitle": "Create administrative staff",
+    "createDesc": "Add a new staff member.",
+    "active": "Active",
+    "inactive": "Inactive",
+    "members": "members",
+    "presenceHint": "present / expected total"
+  }
+}

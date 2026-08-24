@@ -1,0 +1,48 @@
+{
+  "assignments": {
+    "title": "Affectation des cours",
+    "year": "Année scolaire : {year}",
+    "yearMissing": "non configurée",
+    "badge": "Enseignement",
+    "unassigned": "Sans enseignant ({count})",
+    "classes": "Classes",
+    "searchClass": "Rechercher une classe…",
+    "searchCourse": "Rechercher un cours…",
+    "searchTeacher": "Rechercher un enseignant…",
+    "noTeacherFound": "Aucun enseignant trouvé.",
+    "teachersCount": "{count, plural, one {# enseignant} other {# enseignants}}"
+  },
+  "courses": {
+    "title": "Gestion des cours",
+    "descPrimary": "Créez et organisez les matières enseignées dans cet établissement.",
+    "descImportOrg": "Créez les matières ou importez des cours depuis une autre branche de l'organisation.",
+    "descImportCatalog": "Créez les matières ou importez le catalogue RDC (socle commun + spécialités par option).",
+    "badge": "Cours",
+    "total": "Total des cours",
+    "totalHint": "Matières enregistrées",
+    "active": "Cours actifs",
+    "activeHint": "Disponibles pour affectation",
+    "inactive": "Cours inactifs"
+  },
+  "schedule": {
+    "plan": "Planifier horaire des cours",
+    "classTitle": "Horaire des cours - {code}",
+    "badge": "Horaires",
+    "classes": "Classes",
+    "yearTitle": "Horaire de l'année",
+    "selectClass": "Sélectionnez une classe dans le panneau de gauche pour consulter l'horaire."
+  },
+  "vacation": {
+    "title": "Vacations",
+    "description": "Configurez les séances et la récréation (ex. 3 + 3 au secondaire).",
+    "badge": "Vacations",
+    "add": "Ajouter une vacation"
+  },
+  "ponderation": {
+    "title": "Pondération des cours",
+    "configured": "Cours configurés",
+    "missing": "Pondérations manquantes",
+    "average": "Moyenne",
+    "total": "Total des cours"
+  }
+}

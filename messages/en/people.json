@@ -1,0 +1,44 @@
+{
+  "school": {
+    "student": "Student",
+    "studentPlural": "Students",
+    "studentLower": "student",
+    "studentPluralLower": "students",
+    "teacher": "Teacher",
+    "teacherPlural": "Teachers",
+    "studentNew": "New student",
+    "studentExisting": "Returning student",
+    "photoOptional": "Student photo (optional)",
+    "photoPreview": "Student photo preview",
+    "searchStudent": "Name, email or phone of the student…",
+    "situation": "Student status"
+  },
+  "training": {
+    "student": "Learner",
+    "studentPlural": "Learners",
+    "studentLower": "learner",
+    "studentPluralLower": "learners",
+    "teacher": "Teacher",
+    "teacherPlural": "Teachers",
+    "studentNew": "New learner",
+    "studentExisting": "Returning learner",
+    "photoOptional": "Learner photo (optional)",
+    "photoPreview": "Learner photo preview",
+    "searchStudent": "Name, email or phone of the learner…",
+    "situation": "Learner status"
+  },
+  "university": {
+    "student": "Student",
+    "studentPlural": "Students",
+    "studentLower": "student",
+    "studentPluralLower": "students",
+    "teacher": "Professor",
+    "teacherPlural": "Professors",
+    "studentNew": "New student",
+    "studentExisting": "Returning student",
+    "photoOptional": "Student photo (optional)",
+    "photoPreview": "Student photo preview",
+    "searchStudent": "Name, email or phone of the student…",
+    "situation": "Student status"
+  }
+}

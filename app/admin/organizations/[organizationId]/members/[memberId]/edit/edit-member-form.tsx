@@ -18,9 +18,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
+  listOrganizationMemberAssignedBranchesAction,
   removeOrganizationMemberAction,
   updateOrganizationMemberAction,
 } from "../../actions";
+import {
+  MemberBranchPicker,
+  type MemberBranchOption,
+} from "../../branch-picker";
 import { ResetUsersDialog } from "../../../branches/(no-layout)/[branchId]/student/components/reset-users-dialog";
 
 type MemberRow = {
@@ -30,21 +35,30 @@ type MemberRow = {
   user: { id: string; email: string; name: string };
 };
 
-type Props = { organizationId: string; memberId: string };
+type Props = {
+  organizationId: string;
+  memberId: string;
+  branches: MemberBranchOption[];
+};
 
-export function EditMemberForm({ organizationId, memberId }: Props) {
+export function EditMemberForm({ organizationId, memberId, branches }: Props) {
   const router = useRouter();
   const [member, setMember] = useState<MemberRow | null | undefined>(undefined);
   const [role, setRole] = useState<string>(ALL_ORG_ROLE_SLUGS[2]);
+  const [branchIds, setBranchIds] = useState<string[]>([]);
+  const [branchError, setBranchError] = useState<string | undefined>();
   const [pending, startTransition] = useTransition();
   const [pendingRemove, startRemove] = useTransition();
   const [showResetDialog, setShowResetDialog] = useState(false);
 
   const load = useCallback(async () => {
     try {
-      const res = await authClient.organization.listMembers({
-        query: { organizationId, limit: 200 },
-      });
+      const [res, assignedRes] = await Promise.all([
+        authClient.organization.listMembers({
+          query: { organizationId, limit: 200 },
+        }),
+        listOrganizationMemberAssignedBranchesAction(organizationId, memberId),
+      ]);
       if (res.error) {
         toast.error(res.error.message ?? "Impossible de charger le membre.");
         setMember(null);
@@ -54,6 +68,11 @@ export function EditMemberForm({ organizationId, memberId }: Props) {
       const list = Array.isArray(raw) ? (raw as MemberRow[]) : [];
       const found = list.find((m) => m.id === memberId) ?? null;
       setMember(found);
+      if (assignedRes.ok) {
+        setBranchIds(assignedRes.branchIds);
+      } else {
+        toast.error(assignedRes.message);
+      }
       if (found) {
         const primary =
           found.role.split(",")[0]?.trim() ?? ALL_ORG_ROLE_SLUGS[2];
@@ -75,17 +94,23 @@ export function EditMemberForm({ organizationId, memberId }: Props) {
 
   function onSave(e: React.FormEvent) {
     e.preventDefault();
+    if (branchIds.length === 0) {
+      setBranchError("Sélectionnez au moins une branche.");
+      return;
+    }
+    setBranchError(undefined);
     startTransition(async () => {
       const res = await updateOrganizationMemberAction({
         organizationId,
         memberId,
         orgRole: role,
+        branchIds,
       });
       if (!res.ok) {
         toast.error(res.message);
         return;
       }
-      toast.success("Rôle mis à jour.");
+      toast.success("Membre mis à jour.");
       router.refresh();
       await load();
     });
@@ -159,10 +184,26 @@ export function EditMemberForm({ organizationId, memberId }: Props) {
             </SelectContent>
           </Select>
         </div>
+        <div className="flex flex-col gap-2">
+          <Label>Branches autorisées</Label>
+          <p className="text-xs text-muted-foreground">
+            Cochez les établissements auxquels ce membre peut accéder.
+          </p>
+          <MemberBranchPicker
+            branches={branches}
+            value={branchIds}
+            onChange={(ids) => {
+              setBranchIds(ids);
+              if (ids.length > 0) setBranchError(undefined);
+            }}
+            disabled={pending || pendingRemove}
+            error={branchError}
+          />
+        </div>
         <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
           <Button
             type="submit"
-            disabled={pending || pendingRemove}
+            disabled={pending || pendingRemove || branches.length === 0}
             className="h-12 min-h-[48px] touch-manipulation sm:h-11 sm:min-h-0"
           >
             {pending ? "Enregistrement…" : "Enregistrer"}

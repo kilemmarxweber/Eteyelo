@@ -3,6 +3,7 @@
 import { BranchPageShell } from "@/components/layout/branch-page-shell";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import {
   IconCalendarStats,
   IconSchool,
@@ -44,6 +45,7 @@ const emptyStats: ParentStats = {
 };
 
 export default function Parents() {
+  const t = useTranslations("users");
   const [stats, setStats] = useState<ParentStats>(emptyStats);
   const [hasMounted, setHasMounted] = useState(false);
   const peopleLabels = useBranchPeopleLabels();
@@ -80,36 +82,38 @@ export default function Parents() {
     ? Math.round((stats.parentsCurrentYear / stats.totalParents) * 100)
     : 0;
 
-  const yearLabel = stats.currentYearName ?? "Année en cours";
+  const yearLabel = stats.currentYearName ?? t("parents.currentYear");
 
   const statCards = [
     {
-      label: "Total général",
+      label: t("parents.total"),
       value: stats.totalParents,
-      description: "tuteurs",
+      description: t("parents.tutors"),
       icon: IconUsersGroup,
     },
     {
-      label: `Tuteurs ${yearLabel}`,
+      label: t("parents.tutorsYear", { year: yearLabel }),
       value: stats.parentsCurrentYear,
-      description: `avec ${peopleLabels.studentLower} inscrit`,
+      description: t("parents.withStudent", { student: peopleLabels.studentLower }),
       icon: IconUsers,
     },
     {
-      label: `Inscriptions ${yearLabel}`,
+      label: t("parents.enrollmentsYear", { year: yearLabel }),
       value: stats.enrollmentsCurrentYear,
-      description: `${peopleLabels.studentPluralLower} inscrits`,
+      description: t("parents.studentsEnrolled", {
+        students: peopleLabels.studentPluralLower,
+      }),
       icon: IconSchool,
     },
   ];
 
   return (
     <BranchPageShell
-      title="Gestion des Tuteurs"
-          description="Gérer les informations des tuteurs et le suivi des inscriptions de leurs enfants."
+      title={t("parents.title")}
+      description={t("parents.description")}
           badge={
             <Badge variant="outline-primary" icon={<IconUsers size={14} />}>
-              Tuteurs
+              {t("parents.badge")}
             </Badge>
           }
     >
@@ -125,9 +129,9 @@ export default function Parents() {
           ))}
 
           <BranchStatCard
-            label={`Couverture ${yearLabel}`}
+            label={t("parents.coverage", { year: yearLabel })}
             value={`${stats.parentsCurrentYear} / ${stats.totalParents}`}
-            description="tuteurs avec inscription / total"
+            description={t("parents.coverageHint")}
             icon={IconCalendarStats}
             footer={
               <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">

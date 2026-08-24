@@ -1,0 +1,16 @@
+{
+  "title": "{classes} management",
+  "description": "Create {classes} and organize capacity, option and time slot.",
+  "importCatalog": "Import catalog",
+  "importDisabled": "The catalog can no longer be imported: classes already exist.",
+  "create": "Create a {class}",
+  "createDesc": "Level, section, option and time slot of the {class}.",
+  "total": "Total",
+  "active": "Active",
+  "inactive": "Inactive",
+  "importSuccess": "{created} class(es) created, {skipped} already present",
+  "importExtra": " · {sections} section(s), {options} option(s)",
+  "importFail": "Catalog import failed",
+  "sectionSheetDesc": "Enter the section name, then save.",
+  "optionSheetDesc": "Enter the option name, then save."
+}

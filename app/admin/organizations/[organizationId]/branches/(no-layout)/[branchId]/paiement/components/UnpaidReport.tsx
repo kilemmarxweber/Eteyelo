@@ -28,6 +28,8 @@ import {
 } from "../paiement.action";
 import { exportUnpaidReportPdf } from "./export-unpaid-pdf";
 import { formatReportAmount } from "@/lib/reports/format-amount";
+import { useTranslations } from "next-intl";
+import { useBranchPeopleLabels } from "@/hooks/use-branch-people-labels";
 
 type ClassOption = { id: string; name: string };
 type YearOption = { id: string; name: string };
@@ -37,6 +39,8 @@ type UnpaidReportProps = {
 };
 
 export default function UnpaidReport({ refreshKey = 0 }: UnpaidReportProps) {
+  const t = useTranslations("finance");
+  const peopleLabels = useBranchPeopleLabels();
   const pathname = usePathname();
   const { data: session } = useSession();
   const branchIdFromPath = pathname.match(/\/branches\/([^/]+)/)?.[1];
@@ -97,7 +101,7 @@ export default function UnpaidReport({ refreshKey = 0 }: UnpaidReportProps) {
         const classOptions = (classesData ?? [])
           .map((classe) => ({
             id: classe.id,
-            name: classe.nameClasse || classe.codeClasse || "Classe",
+            name: classe.nameClasse || classe.codeClasse || t("unpaid.classFallback"),
           }))
           .sort((a, b) => a.name.localeCompare(b.name, "fr"));
         setClasses(classOptions);
@@ -106,7 +110,7 @@ export default function UnpaidReport({ refreshKey = 0 }: UnpaidReportProps) {
         setSchoolYearId(defaultYearId);
       } catch (e) {
         console.error(e);
-        setError("Impossible de charger les filtres du rapport.");
+        setError(t("unpaid.loadFiltersFailed"));
       } finally {
         setFiltersReady(true);
       }
@@ -124,7 +128,7 @@ export default function UnpaidReport({ refreshKey = 0 }: UnpaidReportProps) {
       setCounts({ aJour: 0, partiel: 0, enRetard: 0 });
       setTotals({ totalDu: 0, totalPaye: 0, totalReste: 0, totalRemise: 0 });
       setSchoolYearLabel(null);
-      setError("Aucune année scolaire disponible.");
+      setError(t("unpaid.noYear"));
       return;
     }
 
@@ -139,7 +143,7 @@ export default function UnpaidReport({ refreshKey = 0 }: UnpaidReportProps) {
 
       if (err || !data) {
         setError(
-          err?.message ?? "Impossible de charger la situation financière.",
+          err?.message ?? t("unpaid.loadFailed"),
         );
         setRows([]);
         setCounts({ aJour: 0, partiel: 0, enRetard: 0 });
@@ -173,7 +177,7 @@ export default function UnpaidReport({ refreshKey = 0 }: UnpaidReportProps) {
     try {
       const [context, err] = await getUnpaidReportContextAction();
       if (err || !context) {
-        throw new Error(err?.message || "Impossible de charger le contexte");
+        throw new Error(err?.message || t("unpaid.contextFailed"));
       }
 
       await exportUnpaidReportPdf(rows, context, {
@@ -181,18 +185,16 @@ export default function UnpaidReport({ refreshKey = 0 }: UnpaidReportProps) {
         classeName: selectedClasseName,
         emptyMessage:
           rows.length === 0
-            ? "Aucun élève / aucun impayé pour ces filtres."
+            ? t("unpaid.emptyPdf", { student: peopleLabels.studentLower })
             : undefined,
       });
       if (context.baseCurrency) {
         setBaseCurrency(context.baseCurrency);
       }
-      toast.success("Rapport PDF généré avec succès.");
+      toast.success(t("unpaid.pdfSuccess"));
     } catch (e) {
       toast.error(
-        e instanceof Error
-          ? e.message
-          : "Erreur lors de la génération du PDF",
+        e instanceof Error ? e.message : t("unpaid.pdfError"),
       );
     } finally {
       setExporting(false);
@@ -203,10 +205,12 @@ export default function UnpaidReport({ refreshKey = 0 }: UnpaidReportProps) {
     <Card className="rounded-xl border p-4">
       <CardHeader className="flex flex-col gap-4 px-0 pt-0 md:flex-row md:items-start md:justify-between">
         <div>
-          <CardTitle>Situation financière / impayés</CardTitle>
+          <CardTitle>{t("unpaid.title")}</CardTitle>
           <p className="text-sm text-muted-foreground">
-            Élèves à jour, partiels ou en retard — montants dus et restes (
-            {baseCurrency}).
+            {t("unpaid.description", {
+              students: peopleLabels.studentPlural,
+              currency: baseCurrency,
+            })}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -216,7 +220,7 @@ export default function UnpaidReport({ refreshKey = 0 }: UnpaidReportProps) {
             disabled={!years.length}
           >
             <SelectTrigger className="w-[160px]">
-              <SelectValue placeholder="Année" />
+              <SelectValue placeholder={t("unpaid.year")} />
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
@@ -231,11 +235,11 @@ export default function UnpaidReport({ refreshKey = 0 }: UnpaidReportProps) {
 
           <Select value={classeId} onValueChange={setClasseId}>
             <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Classe" />
+              <SelectValue placeholder={t("unpaid.class")} />
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
-                <SelectItem value="all">Toutes les classes</SelectItem>
+                <SelectItem value="all">{t("unpaid.allClasses")}</SelectItem>
                 {classes.map((classe) => (
                   <SelectItem key={classe.id} value={classe.id}>
                     {classe.name}
@@ -252,7 +256,7 @@ export default function UnpaidReport({ refreshKey = 0 }: UnpaidReportProps) {
             disabled={loading || exporting || !schoolYearId}
           >
             <IconFileTypePdf data-icon="inline-start" />
-            {exporting ? "Génération..." : "Export PDF"}
+            {exporting ? t("unpaid.generating") : t("unpaid.exportPdf")}
           </Button>
         </div>
       </CardHeader>
@@ -260,7 +264,7 @@ export default function UnpaidReport({ refreshKey = 0 }: UnpaidReportProps) {
       <CardContent className="flex flex-col gap-4 px-0 pb-0">
         {loading ? (
           <div className="animate-pulse py-4 text-center text-sm text-muted-foreground">
-            Chargement de la situation…
+            {t("unpaid.loading")}
           </div>
         ) : error ? (
           <div className="py-4 text-sm text-destructive">{error}</div>
@@ -268,31 +272,38 @@ export default function UnpaidReport({ refreshKey = 0 }: UnpaidReportProps) {
           <>
             <div className="grid gap-4 md:grid-cols-4">
               <div className="rounded-xl border border-border bg-muted p-4">
-                <div className="text-sm text-muted-foreground">À jour</div>
+                <div className="text-sm text-muted-foreground">{t("unpaid.upToDate")}</div>
                 <div className="mt-2 text-2xl font-semibold">{counts.aJour}</div>
               </div>
               <div className="rounded-xl border border-border bg-muted p-4">
-                <div className="text-sm text-muted-foreground">Partiel</div>
+                <div className="text-sm text-muted-foreground">{t("unpaid.partial")}</div>
                 <div className="mt-2 text-2xl font-semibold">{counts.partiel}</div>
               </div>
               <div className="rounded-xl border border-border bg-muted p-4">
-                <div className="text-sm text-muted-foreground">En retard</div>
+                <div className="text-sm text-muted-foreground">{t("unpaid.late")}</div>
                 <div className="mt-2 text-2xl font-semibold text-rose-600 dark:text-rose-400">
                   {counts.enRetard}
                 </div>
               </div>
               <div className="rounded-xl border border-primary/30 bg-muted p-4 shadow-sm">
                 <div className="text-sm font-medium text-foreground">
-                  Reste total
+                  {t("unpaid.totalRemaining")}
                 </div>
                 <div className="mt-2 text-xl font-black tabular-nums tracking-normal text-primary sm:text-2xl">
                   {formatReportAmount(totals.totalReste, baseCurrency)}
                 </div>
                 <div className="mt-1 text-xs tabular-nums text-muted-foreground">
-                  Dû {formatReportAmount(totals.totalDu, baseCurrency)} · Payé{" "}
-                  {formatReportAmount(totals.totalPaye, baseCurrency)}
+                  {t("unpaid.duePaid", {
+                    due: formatReportAmount(totals.totalDu, baseCurrency),
+                    paid: formatReportAmount(totals.totalPaye, baseCurrency),
+                  })}
                   {totals.totalRemise > 0
-                    ? ` · Remise ${formatReportAmount(totals.totalRemise, baseCurrency)}`
+                    ? t("unpaid.discountPart", {
+                        amount: formatReportAmount(
+                          totals.totalRemise,
+                          baseCurrency,
+                        ),
+                      })
                     : ""}
                 </div>
               </div>
@@ -300,8 +311,7 @@ export default function UnpaidReport({ refreshKey = 0 }: UnpaidReportProps) {
 
             {rows.length === 0 ? (
               <p className="py-2 text-sm text-muted-foreground">
-                Aucun élève pour ces filtres. Vous pouvez quand même exporter un
-                PDF avec ce message.
+                {t("unpaid.empty", { student: peopleLabels.studentLower })}
               </p>
             ) : null}
           </>

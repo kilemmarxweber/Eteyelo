@@ -26,6 +26,7 @@ import {
 } from "@tabler/icons-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { useLocale, useTranslations } from "next-intl";
 import { formatReportAmountCurrencyFirst } from "@/lib/reports/format-amount";
 import { cn } from "@/lib/utils";
 import type { DashboardShortcut } from "./dashboard-shortcuts";
@@ -180,6 +181,7 @@ export function SchoolStatsSection({
   selectedRatePair,
   baseCurrency,
 }: SchoolStatsProps) {
+  const t = useTranslations("dashboard");
   return (
     <div
       className={cn(
@@ -190,24 +192,35 @@ export function SchoolStatsSection({
       <BranchStatCard
         label={studentLabel}
         value={loading ? "—" : studentTotal}
-        description={`${enrollmentRate}% inscrits · ${formatSignedPercent(studentChange)} vs mois dernier`}
+        description={t("enrolledPct", {
+          rate: enrollmentRate,
+          change: formatSignedPercent(studentChange),
+        })}
         icon={IconUsers}
       />
       <BranchStatCard
         label={teacherLabel}
         value={loading ? "—" : teacherTotal}
-        description={`${teacherActivityRate}% actifs · ${formatSignedPercent(teacherChange)} vs mois dernier`}
+        description={t("activePct", {
+          rate: teacherActivityRate,
+          change: formatSignedPercent(teacherChange),
+        })}
         icon={IconChalkboardTeacher}
       />
       <BranchStatCard
         label={classLabelPlural}
         value={loading ? "—" : classTotal}
-        description={`${classOccupancyRate}% occupés · ${formatSignedPercent(classChange)} vs mois dernier`}
+        description={t("occupiedPct", {
+          rate: classOccupancyRate,
+          change: formatSignedPercent(classChange),
+        })}
         icon={IconSchool}
       />
       {showRevenue ? (
         <BranchStatCard
-          label={`Revenus (${revenueCurrency ?? baseCurrency ?? "…"})`}
+          label={t("revenue", {
+            currency: revenueCurrency ?? baseCurrency ?? "…",
+          })}
           value={
             loading
               ? "—"
@@ -218,8 +231,11 @@ export function SchoolStatsSection({
           }
           description={
             selectedRatePair
-              ? `Base ${selectedRatePair} · ${formatSignedPercent(revenueChange)} vs mois dernier`
-              : `${formatSignedPercent(revenueChange)} vs mois dernier`
+              ? t("revenueBase", {
+                  pair: selectedRatePair,
+                  change: formatSignedPercent(revenueChange),
+                })
+              : `${formatSignedPercent(revenueChange)} ${t("vsLastMonth")}`
           }
           icon={IconCurrencyDollar}
         />
@@ -233,6 +249,7 @@ export function ShortcutsSection({
 }: {
   actions: DashboardShortcut[];
 }) {
+  const t = useTranslations("dashboard");
   if (actions.length === 0) return null;
 
   return (
@@ -287,9 +304,9 @@ export function ShortcutsSection({
                     <p className="mt-1 truncate text-[11px] text-muted-foreground">
                       {amounts
                         ? isSettled
-                          ? "Situation à jour"
-                          : "Solde des enfants"
-                        : "Accès rapide"}
+                          ? t("shortcuts.upToDate")
+                          : t("shortcuts.childrenBalance")
+                        : t("shortcuts.quickAccess")}
                     </p>
                   </div>
                 </div>
@@ -306,7 +323,7 @@ export function ShortcutsSection({
                     <div className="grid grid-cols-2 gap-2">
                       <div className="rounded-md border border-border/70 bg-background/70 px-2 py-1.5 dark:bg-background/40">
                         <p className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
-                          À payer
+                          {t("shortcuts.toPay")}
                         </p>
                         <p className="mt-0.5 truncate text-sm font-semibold tabular-nums text-foreground">
                           {formatReportAmountCurrencyFirst(
@@ -324,7 +341,7 @@ export function ShortcutsSection({
                         )}
                       >
                         <p className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
-                          Reste
+                          {t("shortcuts.remaining")}
                         </p>
                         <p
                           className={cn(
@@ -352,7 +369,9 @@ export function ShortcutsSection({
                         />
                       </div>
                       <p className="text-[10px] text-muted-foreground">
-                        {Math.round(paidRatio * 100)}% réglé
+                        {t("shortcuts.paidPct", {
+                          pct: Math.round(paidRatio * 100),
+                        })}
                       </p>
                     </div>
                   </>
@@ -391,9 +410,11 @@ export function ParentSatisfactionSection({
     myFeedbackCount: number;
   } | null;
 }) {
+  const t = useTranslations("dashboard");
+  const tCommon = useTranslations("common");
   const percentage = satisfaction?.percentage ?? 0;
   const feedbackCount = satisfaction?.feedbackCount ?? 0;
-  const yearLabel = satisfaction?.schoolYearLabel ?? "année en cours";
+  const yearLabel = satisfaction?.schoolYearLabel ?? t("satisfaction.currentYear");
   const tone =
     percentage >= 75
       ? "emerald"
@@ -458,16 +479,16 @@ export function ParentSatisfactionSection({
             </div>
             <div className="min-w-0">
               <CardTitle className="text-sm font-medium leading-none">
-                Satisfaction annuelle
+                {t("satisfaction.title")}
               </CardTitle>
               <CardDescription className="mt-1 text-[11px]">
-                Avis parents · {yearLabel}
+                {t("satisfaction.parentsReviews", { year: yearLabel })}
               </CardDescription>
             </div>
           </div>
           {!loading && feedbackCount > 0 ? (
             <Badge variant="outline" className={cn("shrink-0 text-[10px]", tones.badge)}>
-              {feedbackCount} avis
+              {t("satisfaction.reviewsCount", { count: feedbackCount })}
             </Badge>
           ) : null}
         </div>
@@ -475,7 +496,7 @@ export function ParentSatisfactionSection({
       <CardContent className="space-y-3 pt-0">
         {loading ? (
           <div className={cn("rounded-md border px-2.5 py-2 text-xs font-medium", tones.badge)}>
-            Chargement…
+            {tCommon("loading")}
           </div>
         ) : (
           <>
@@ -485,8 +506,8 @@ export function ParentSatisfactionSection({
               </p>
               <p className="max-w-[12rem] text-right text-[11px] text-muted-foreground">
                 {feedbackCount > 0
-                  ? "Part des avis favorables (≥ 4/5) sur l’année"
-                  : "Aucun avis parent enregistré cette année"}
+                  ? t("satisfaction.favorableShare")
+                  : t("satisfaction.noReviews")}
               </p>
             </div>
             <div className="h-2 overflow-hidden rounded-full bg-muted">
@@ -503,11 +524,14 @@ export function ParentSatisfactionSection({
                 tones.badge,
               )}
             >
-              <span className="font-medium">Votre moyenne</span>
+              <span className="font-medium">{t("satisfaction.yourAverage")}</span>
               <span className="tabular-nums font-semibold">
                 {satisfaction?.myFeedbackCount
-                  ? `${satisfaction.myAverageRating}/5 · ${satisfaction.myFeedbackCount} mois`
-                  : "Pas encore d’avis"}
+                  ? t("satisfaction.yourAverageValue", {
+                      rating: satisfaction.myAverageRating ?? 0,
+                      count: satisfaction.myFeedbackCount,
+                    })
+                  : t("satisfaction.noPersonalReview")}
               </span>
             </div>
           </>
@@ -524,6 +548,8 @@ export function EventsSection({
   branchTypeLabel: string;
   events: { id: string; title?: string | null; dateStart: string | Date }[];
 }) {
+  const t = useTranslations("dashboard");
+  const locale = useLocale();
   const upcomingEvents = events
     .filter((event) => new Date(event.dateStart).getTime() >= Date.now())
     .sort(
@@ -542,10 +568,12 @@ export function EventsSection({
             </div>
             <div className="min-w-0">
               <CardTitle className="text-sm font-medium leading-none">
-                Prochains événements
+                {t("events.title")}
               </CardTitle>
               <CardDescription className="mt-1 text-[11px]">
-                À venir dans votre {branchTypeLabel.toLowerCase()}
+                {t("events.upcomingIn", {
+                  branchType: branchTypeLabel.toLowerCase(),
+                })}
               </CardDescription>
             </div>
           </div>
@@ -576,10 +604,10 @@ export function EventsSection({
                 >
                   <div className="min-w-0">
                     <p className="truncate text-sm font-semibold text-foreground">
-                      {event.title || "Événement"}
+                      {event.title || t("events.event")}
                     </p>
                     <p className="truncate text-[11px] text-muted-foreground">
-                      {eventDate.toLocaleDateString("fr-FR", {
+                      {eventDate.toLocaleDateString(locale, {
                         day: "numeric",
                         month: "long",
                         year: "numeric",
@@ -596,15 +624,15 @@ export function EventsSection({
                     )}
                   >
                     {isToday
-                      ? "Aujourd'hui"
-                      : `Dans ${diffDays} jour${diffDays > 1 ? "s" : ""}`}
+                      ? t("events.today")
+                      : t("events.inDays", { count: diffDays })}
                   </Badge>
                 </div>
               );
             })
           ) : (
             <div className="rounded-md border border-blue-500/25 bg-blue-500/10 px-2.5 py-2 text-xs font-medium text-blue-700 dark:text-blue-300">
-              Aucun événement à venir
+              {t("events.none")}
             </div>
           )}
         </div>
@@ -637,20 +665,23 @@ export function PedagogyMetricsSection({
   metrics,
   studentsLabelLower,
 }: MetricsProps) {
+  const t = useTranslations("dashboard");
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <IconChartBar className="h-5 w-5" />
-          Métriques de performance
+          {t("metrics.title")}
         </CardTitle>
-        <CardDescription>Indicateurs clés — {branchTypeLabel}</CardDescription>
+        <CardDescription>
+          {t("metrics.indicators", { branchType: branchTypeLabel })}
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
           <div>
             <div className="mb-2 flex items-center justify-between">
-              <span className="text-sm font-medium">Taux de présence</span>
+              <span className="text-sm font-medium">{t("metrics.attendanceRate")}</span>
               <span className="text-sm text-muted-foreground">
                 {metrics.attendanceCount > 0 ? `${metrics.attendance}%` : "—"}
               </span>
@@ -668,14 +699,16 @@ export function PedagogyMetricsSection({
             </div>
             <p className="mt-1 text-xs text-muted-foreground">
               {metrics.attendanceCount > 0
-                ? `${metrics.attendanceCount} pointages (présent + retard)`
-                : "Aucune présence enregistrée pour le moment"}
+                ? t("metrics.attendanceHint", {
+                    count: metrics.attendanceCount,
+                  })
+                : t("metrics.noAttendance")}
             </p>
           </div>
 
           <div>
             <div className="mb-2 flex items-center justify-between">
-              <span className="text-sm font-medium">Moyenne générale</span>
+              <span className="text-sm font-medium">{t("metrics.averageScore")}</span>
               <span className="text-sm text-muted-foreground">
                 {metrics.studentsCount > 0 ? `${metrics.averageScore}%` : "—"}
               </span>
@@ -693,15 +726,20 @@ export function PedagogyMetricsSection({
             </div>
             <p className="mt-1 text-xs text-muted-foreground">
               {metrics.studentsCount > 0
-                ? `Réussite ${metrics.successRate}% · ${metrics.passedCount}/${metrics.studentsCount} ${studentsLabelLower} ≥ 50%`
-                : "Aucune cote enregistrée pour le moment"}
+                ? t("metrics.successHint", {
+                    rate: metrics.successRate,
+                    passed: metrics.passedCount,
+                    total: metrics.studentsCount,
+                    students: studentsLabelLower,
+                  })
+                : t("metrics.noGrades")}
             </p>
           </div>
 
           {showParents ? (
             <div>
               <div className="mb-2 flex items-center justify-between">
-                <span className="text-sm font-medium">Satisfaction parents</span>
+                <span className="text-sm font-medium">{t("metrics.parentSatisfaction")}</span>
                 <span className="text-sm text-muted-foreground">
                   {metrics.feedbackCount > 0
                     ? `${metrics.satisfaction}%`
@@ -721,8 +759,12 @@ export function PedagogyMetricsSection({
               </div>
               <p className="mt-1 text-xs text-muted-foreground">
                 {metrics.feedbackCount > 0
-                  ? `${metrics.feedbackCount} avis · réponse du mois ${metrics.responseRate}% (${metrics.parentsCount} parents)`
-                  : "Aucun avis parent ce mois — popup à la 1ʳᵉ connexion"}
+                  ? t("metrics.feedbackHint", {
+                      count: metrics.feedbackCount,
+                      rate: metrics.responseRate,
+                      parents: metrics.parentsCount,
+                    })
+                  : t("metrics.noFeedback")}
               </p>
             </div>
           ) : null}
@@ -751,10 +793,13 @@ export function CashierStatsSection({
   currency: string;
   scopedToSelf?: boolean;
 }) {
+  const t = useTranslations("dashboard");
   return (
     <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
       <BranchStatCard
-        label={scopedToSelf ? "Mes encaissements du jour" : "Encaissements du jour"}
+        label={
+          scopedToSelf ? t("cashier.myTodayIncome") : t("cashier.todayIncome")
+        }
         value={
           loading
             ? "—"
@@ -763,34 +808,40 @@ export function CashierStatsSection({
         description={
           loading
             ? "…"
-            : `${todayCount} paiement${todayCount > 1 ? "s" : ""} validé${todayCount > 1 ? "s" : ""}`
+            : t("cashier.payments", { count: todayCount })
         }
         icon={IconCurrencyDollar}
       />
       <BranchStatCard
-        label={scopedToSelf ? "Mes dépenses du jour" : "Dépenses du jour"}
+        label={
+          scopedToSelf
+            ? t("cashier.myTodayExpenses")
+            : t("cashier.todayExpenses")
+        }
         value={
           loading
             ? "—"
             : formatReportAmountCurrencyFirst(todayExpenses, currency)
         }
-        description={scopedToSelf ? "Sorties de votre caisse" : "Sorties de caisse"}
+        description={
+          scopedToSelf ? t("cashier.myCashOut") : t("cashier.cashOut")
+        }
         icon={IconClipboardList}
       />
       <BranchStatCard
-        label={scopedToSelf ? "Mon solde net" : "Solde net"}
+        label={scopedToSelf ? t("cashier.myNetBalance") : t("cashier.netBalance")}
         value={
           loading
             ? "—"
             : formatReportAmountCurrencyFirst(netBalance, currency)
         }
-        description="Ouverture + encaissements − dépenses"
+        description={t("cashier.netHint")}
         icon={IconUsers}
       />
       <BranchStatCard
-        label="Impayés"
+        label={t("cashier.unpaid")}
         value={loading ? "—" : unpaidInvoices}
-        description="Inscriptions avec solde (année en cours)"
+        description={t("cashier.unpaidHint")}
         icon={IconClipboardList}
       />
     </div>
@@ -813,6 +864,8 @@ export function TeacherSpaceSection({
   }[];
   assignmentCount: number;
 }) {
+  const t = useTranslations("dashboard");
+  const tCommon = useTranslations("common");
   const params = useParams<{ organizationId: string; branchId: string }>();
   const scheduleBase =
     params.organizationId && params.branchId
@@ -825,12 +878,15 @@ export function TeacherSpaceSection({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <IconSchool className="h-5 w-5" />
-            Mes classes
+            {t("teacher.myClasses")}
           </CardTitle>
           <CardDescription>
             {loading
-              ? "Chargement…"
-              : `${classes.length} classe${classes.length > 1 ? "s" : ""} · ${assignmentCount} cours assigné${assignmentCount > 1 ? "s" : ""}`}
+              ? tCommon("loading")
+              : t("teacher.classesSummary", {
+                  classes: classes.length,
+                  courses: assignmentCount,
+                })}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -856,7 +912,7 @@ export function TeacherSpaceSection({
             </ul>
           ) : (
             <p className="text-sm text-muted-foreground">
-              Aucune classe assignée pour l&apos;année en cours
+              {t("teacher.noClasses")}
             </p>
           )}
         </CardContent>
@@ -866,9 +922,9 @@ export function TeacherSpaceSection({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <IconCalendar className="h-5 w-5" />
-            Cours du jour
+            {t("teacher.todayCourses")}
           </CardTitle>
-          <CardDescription>Mon horaire aujourd&apos;hui</CardDescription>
+          <CardDescription>{t("teacher.todaySchedule")}</CardDescription>
         </CardHeader>
         <CardContent>
           {loading ? (
@@ -892,7 +948,7 @@ export function TeacherSpaceSection({
             </ul>
           ) : (
             <p className="text-sm text-muted-foreground">
-              Aucun cours planifié aujourd&apos;hui
+              {t("teacher.noCourses")}
             </p>
           )}
         </CardContent>
@@ -914,24 +970,25 @@ export function StudentIdentitySection({
   schoolYear: string | null;
   studentLabel: string;
 }) {
+  const t = useTranslations("dashboard");
   return (
     <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
       <BranchStatCard
-        label="Identité"
+        label={t("student.identity")}
         value={loading ? "—" : name || "—"}
         description={studentLabel}
         icon={IconUsers}
       />
       <BranchStatCard
-        label="Classe"
-        value={loading ? "—" : className || "Non inscrit"}
-        description="Année en cours"
+        label={t("student.class")}
+        value={loading ? "—" : className || t("student.notEnrolled")}
+        description={t("student.currentYear")}
         icon={IconSchool}
       />
       <BranchStatCard
-        label="Année scolaire"
+        label={t("student.schoolYear")}
         value={loading ? "—" : schoolYear || "—"}
-        description="Année active"
+        description={t("student.activeYear")}
         icon={IconCalendar}
       />
     </div>
@@ -972,6 +1029,8 @@ export function ParentChildrenSection({
   loading: boolean;
   childProfiles: { id: string; name: string; className: string | null }[];
 }) {
+  const t = useTranslations("dashboard");
+  const tCommon = useTranslations("common");
   const params = useParams<{ organizationId: string; branchId: string }>();
   const organizationId = params.organizationId;
   const branchId = params.branchId;
@@ -986,12 +1045,10 @@ export function ParentChildrenSection({
             </div>
             <div className="min-w-0">
               <CardTitle className="text-sm font-medium leading-none">
-                Mes enfants
+                {t("parent.children")}
               </CardTitle>
               <CardDescription className="mt-1 text-[11px]">
-                {loading
-                  ? "Chargement…"
-                  : "Cliquez une carte pour ouvrir la fiche"}
+                {loading ? tCommon("loading") : t("parent.openFile")}
               </CardDescription>
             </div>
           </div>
@@ -1008,7 +1065,7 @@ export function ParentChildrenSection({
       <CardContent className="pt-0">
         {loading ? (
           <div className="rounded-md border border-violet-500/25 bg-violet-500/10 px-2.5 py-2 text-xs font-medium text-violet-700 dark:text-violet-300">
-            Chargement…
+            {tCommon("loading")}
           </div>
         ) : childProfiles.length > 0 ? (
           <div className="flex flex-wrap gap-2.5">
@@ -1050,7 +1107,7 @@ export function ParentChildrenSection({
                         tone.pill,
                       )}
                     >
-                      {child.className ?? "Sans classe"}
+                      {child.className ?? t("parent.noClass")}
                     </p>
                   </div>
                   <IconChevronRight
@@ -1065,7 +1122,7 @@ export function ParentChildrenSection({
           </div>
         ) : (
           <div className="rounded-md border border-violet-500/25 bg-violet-500/10 px-2.5 py-2 text-xs font-medium text-violet-700 dark:text-violet-300">
-            Aucun enfant lié à ce compte sur cette branche
+            {t("parent.noChildren")}
           </div>
         )}
       </CardContent>
@@ -1088,6 +1145,8 @@ export function ParentAnnouncementsSection({
     eventTypeName: string | null;
   }[];
 }) {
+  const t = useTranslations("dashboard");
+  const tCommon = useTranslations("common");
   return (
     <Card className="overflow-hidden border-sky-500/25 bg-gradient-to-br from-sky-500/[0.07] via-card to-card dark:border-sky-400/20 dark:from-sky-400/[0.08]">
       <CardHeader className="pb-3">
@@ -1098,10 +1157,10 @@ export function ParentAnnouncementsSection({
             </div>
             <div className="min-w-0">
               <CardTitle className="text-sm font-medium leading-none">
-                Annonces
+                {t("parent.announcements")}
               </CardTitle>
               <CardDescription className="mt-1 text-[11px]">
-                École et classes de vos enfants
+                {t("parent.announcementsDesc")}
               </CardDescription>
             </div>
           </div>
@@ -1118,7 +1177,7 @@ export function ParentAnnouncementsSection({
       <CardContent className="pt-0">
         {loading ? (
           <div className="rounded-md border border-sky-500/25 bg-sky-500/10 px-2.5 py-2 text-xs font-medium text-sky-700 dark:text-sky-300">
-            Chargement…
+            {tCommon("loading")}
           </div>
         ) : announcements.length > 0 ? (
           <div className="space-y-2">
@@ -1157,7 +1216,7 @@ export function ParentAnnouncementsSection({
           </div>
         ) : (
           <div className="rounded-md border border-sky-500/25 bg-sky-500/10 px-2.5 py-2 text-xs font-medium text-sky-700 dark:text-sky-300">
-            Aucune annonce pour vos enfants
+            {t("parent.noAnnouncements")}
           </div>
         )}
       </CardContent>

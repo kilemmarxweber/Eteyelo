@@ -4,21 +4,16 @@ import { BranchPageShell } from "@/components/layout/branch-page-shell";
 import { Badge } from "@/components/ui/badge";
 import { BranchLoadingFallback } from "@/components/branch-loading-fallback";
 import { useParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { IconChartBar } from "@tabler/icons-react";
 import {
   createParentFeedback,
   getBranchDashboardData,
 } from "./admin-stats";
 import { useEffect, useMemo, useState } from "react";
-import {
-  DEFAULT_PEOPLE_LABELS,
-  getPeopleLabels,
-  pluralizeStudentLabel,
-  pluralizeStudentLabelLower,
-} from "@/lib/people-labels";
+import { getPeopleVariant } from "@/lib/people-variant";
 import {
   getBranchCapabilities,
-  getBranchTypeLabel,
   getClassDisplayLabelPlural,
   hidesParentManagement,
   usesFinanceForBranch,
@@ -101,6 +96,9 @@ const EMPTY_METRICS: DashboardMetrics = {
 };
 
 export default function AdminDashboard() {
+  const t = useTranslations("dashboard");
+  const tPeopleAll = useTranslations("people");
+  const tReg = useTranslations("registration");
   const params = useParams();
   const organizationId = params.organizationId as string;
   const branchId = params.branchId as string;
@@ -171,12 +169,21 @@ export default function AdminDashboard() {
   const [typebranchState, setTypebranchState] = useState<string | null>(null);
 
   const typebranch = stats?.typebranch ?? typebranchState ?? null;
-  const peopleLabels = typebranch
-    ? getPeopleLabels(typebranch)
-    : DEFAULT_PEOPLE_LABELS;
+  const peopleVariant = getPeopleVariant(typebranch);
+  const peopleLabels = {
+    student: tPeopleAll(`${peopleVariant}.student` as "school.student"),
+    studentPlural: tPeopleAll(`${peopleVariant}.studentPlural` as "school.studentPlural"),
+    studentLower: tPeopleAll(`${peopleVariant}.studentLower` as "school.studentLower"),
+    studentPluralLower: tPeopleAll(
+      `${peopleVariant}.studentPluralLower` as "school.studentPluralLower",
+    ),
+    teacherPlural: tPeopleAll(`${peopleVariant}.teacherPlural` as "school.teacherPlural"),
+  };
   const capabilities = getBranchCapabilities(typebranch);
-  const classLabelPlural = getClassDisplayLabelPlural(typebranch);
-  const branchTypeLabel = getBranchTypeLabel(typebranch);
+  const rawClassPlural = getClassDisplayLabelPlural(typebranch);
+  const classLabelPlural = tReg(`classLabelsPlural.${rawClassPlural}` as never);
+  const branchTypeKey = capabilities.typebranch;
+  const branchTypeLabel = t(`branchTypes.${branchTypeKey}` as never);
   const showFinanceCapability = usesFinanceForBranch(typebranch);
   const showParents = !hidesParentManagement(typebranch);
   const showRevenue =
@@ -235,9 +242,7 @@ export default function AdminDashboard() {
         if (!cancelled) {
           setVariant(null);
           setLoadError(
-            err instanceof Error
-              ? err.message
-              : "Impossible de charger le tableau de bord.",
+            err instanceof Error ? err.message : t("loadError"),
           );
         }
       } finally {
@@ -249,52 +254,55 @@ export default function AdminDashboard() {
     return () => {
       cancelled = true;
     };
-  }, [branchId, organizationId, reloadToken]);
+  }, [branchId, organizationId, reloadToken, t]);
 
   const quickActions = useMemo(
     () =>
       variant
-        ? getDashboardShortcuts(variant, {
-            organizationId,
-            branchId,
-            studentLabel: peopleLabels.student,
-            studentPluralLower: peopleLabels.studentPluralLower,
-            classLabelPlural,
-            showFinance:
-              showFinanceCapability &&
-              ((variant === "directeur" && canAccessFinance) ||
-                variant === "parent"),
-            parentFinance:
-              variant === "parent" && parent?.finance
-                ? {
-                    totalDue: parent.finance.totalDue,
-                    totalRemaining: parent.finance.totalRemaining,
-                    currency: parent.finance.currency,
-                    firstChildId: parent.children[0]?.id ?? null,
-                  }
-                : variant === "parent"
+        ? getDashboardShortcuts(
+            variant,
+            {
+              organizationId,
+              branchId,
+              studentPluralLower: peopleLabels.studentPluralLower,
+              classLabelPlural,
+              showFinance:
+                showFinanceCapability &&
+                ((variant === "directeur" && canAccessFinance) ||
+                  variant === "parent"),
+              parentFinance:
+                variant === "parent" && parent?.finance
                   ? {
-                      totalDue: 0,
-                      totalRemaining: 0,
-                      currency: "USD",
-                      firstChildId: parent?.children[0]?.id ?? null,
+                      totalDue: parent.finance.totalDue,
+                      totalRemaining: parent.finance.totalRemaining,
+                      currency: parent.finance.currency,
+                      firstChildId: parent.children[0]?.id ?? null,
                     }
-                  : null,
-            studentProfileId:
-              variant === "student" ? (student?.studentId ?? null) : null,
-          })
+                  : variant === "parent"
+                    ? {
+                        totalDue: 0,
+                        totalRemaining: 0,
+                        currency: "USD",
+                        firstChildId: parent?.children[0]?.id ?? null,
+                      }
+                    : null,
+              studentProfileId:
+                variant === "student" ? (student?.studentId ?? null) : null,
+            },
+            (key, values) => t(key as never, values),
+          )
         : [],
     [
       variant,
       organizationId,
       branchId,
-      peopleLabels.student,
       peopleLabels.studentPluralLower,
       classLabelPlural,
       showFinanceCapability,
       canAccessFinance,
       parent,
       student,
+      t,
     ],
   );
 
@@ -310,8 +318,9 @@ export default function AdminDashboard() {
         variant,
         branchTypeLabel,
         capabilities.isSchoolBranch,
+        (key, values) => t(key as never, values),
       )
-    : "Chargement du tableau de bord…";
+    : t("loading");
 
   const showSchoolStats =
     variant === "directeur" ||
@@ -332,13 +341,13 @@ export default function AdminDashboard() {
             className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
             onClick={() => setReloadToken((n) => n + 1)}
           >
-            Réessayer
+            {t("retry")}
           </button>
         </div>
       );
     }
     return (
-      <BranchLoadingFallback label="Chargement du tableau de bord…" />
+      <BranchLoadingFallback label={t("loading")} />
     );
   }
 
@@ -348,7 +357,7 @@ export default function AdminDashboard() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
           <div className="w-full max-w-md min-w-[320px] flex-shrink-0 rounded-2xl bg-white p-6 text-center shadow-xl">
             <h2 className="mb-5 text-lg font-bold">
-              Comment trouvez-vous l’établissement ?
+              {t("feedback.title")}
             </h2>
 
             <div className="mb-6 flex items-center justify-between gap-2">
@@ -376,14 +385,14 @@ export default function AdminDashboard() {
             {selectedRating === 1 ? (
               <div className="mb-4 text-left">
                 <label className="text-sm font-medium text-red-600">
-                  Expliquez pourquoi vous êtes insatisfait *
+                  {t("feedback.explain")}
                 </label>
                 <textarea
                   value={comment}
                   onChange={(e) => setComment(e.target.value)}
                   className="mt-2 w-full resize-none rounded-lg border p-3 text-sm focus:outline-none focus:ring-2 focus:ring-red-400"
                   rows={3}
-                  placeholder="Décrivez le problème..."
+                  placeholder={t("feedback.placeholder")}
                 />
                 {error ? (
                   <p className="mt-1 text-xs text-red-500">{error}</p>
@@ -397,7 +406,7 @@ export default function AdminDashboard() {
               onClick={async () => {
                 if (!selectedRating) return;
                 if (selectedRating === 1 && comment.trim().length < 5) {
-                  setError("Veuillez expliquer votre insatisfaction");
+                  setError(t("feedback.needExplain"));
                   return;
                 }
                 setError("");
@@ -436,14 +445,14 @@ export default function AdminDashboard() {
               }}
               className="w-full rounded-xl bg-blue-600 py-3 font-medium text-white disabled:opacity-50"
             >
-              Envoyer
+              {t("feedback.send")}
             </button>
           </div>
         </div>
       ) : null}
 
       <BranchPageShell
-        title="Tableau de bord"
+        title={t("title")}
         description={overviewDescription}
         badge={
           <Badge variant="outline-primary" icon={<IconChartBar size={14} />}>
@@ -455,7 +464,11 @@ export default function AdminDashboard() {
           {showSchoolStats ? (
             <SchoolStatsSection
               loading={loading}
-              studentLabel={pluralizeStudentLabel(peopleLabels, studentTotal)}
+              studentLabel={
+                studentTotal === 1
+                  ? peopleLabels.student
+                  : peopleLabels.studentPlural
+              }
               teacherLabel={peopleLabels.teacherPlural}
               classLabelPlural={classLabelPlural}
               studentTotal={studentTotal}
@@ -545,10 +558,11 @@ export default function AdminDashboard() {
                 branchTypeLabel={branchTypeLabel}
                 showParents={showParents}
                 metrics={metrics ?? EMPTY_METRICS}
-                studentsLabelLower={pluralizeStudentLabelLower(
-                  peopleLabels,
-                  metrics?.studentsCount ?? 0,
-                )}
+                studentsLabelLower={
+                  (metrics?.studentsCount ?? 0) === 1
+                    ? peopleLabels.studentLower
+                    : peopleLabels.studentPluralLower
+                }
               />
             ) : null}
           </div>

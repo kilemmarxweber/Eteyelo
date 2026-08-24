@@ -16,6 +16,7 @@ import { ISchoolYear } from "@/src/interfaces/SchoolYear";
 import { Check, Loader2, Search, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSession } from "@/lib/auth-client";
+import { useTranslations } from "next-intl";
 import { useBranchPeopleLabels } from "@/hooks/use-branch-people-labels";
 
 const PAIEMENT_BOOTSTRAP_TTL_MS = 5 * 60 * 1000;
@@ -158,6 +159,7 @@ export default function FamilySelector({
     onSchoolYearIdChange?.(next);
   };
   const peopleLabels = useBranchPeopleLabels();
+  const t = useTranslations("finance");
   const didMountRef = useRef(false);
   const searchRequestRef = useRef(0);
   const autoSelectedRef = useRef(false);
@@ -404,11 +406,13 @@ export default function FamilySelector({
     <div className="flex flex-col gap-3">
       <div className="space-y-2">
         <label htmlFor="student-search" className="text-sm font-medium">
-          Rechercher un {peopleLabels.studentLower} ou son tuteur
+          {t("searchFamily.label", { student: peopleLabels.studentLower })}
         </label>
         <Input
           id="student-search"
-          placeholder={`Nom, prénom ou postnom de ${peopleLabels.studentDefinite} ou du parent…`}
+          placeholder={t("searchFamily.placeholder", {
+            student: peopleLabels.studentDefinite,
+          })}
           className="h-10 text-sm"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
@@ -420,7 +424,7 @@ export default function FamilySelector({
           }
         />
         <p className="text-xs text-muted-foreground">
-          Saisissez au moins 2 caractères pour lancer la recherche.
+          {t("searchFamily.hint")}
         </p>
       </div>
 
@@ -431,20 +435,20 @@ export default function FamilySelector({
         )}
       >
         <span className="text-sm text-muted-foreground shrink-0">
-          Année scolaire
+          {t("schoolYear")}
         </span>
         <Select
           value={schoolYear || undefined}
           onValueChange={setSchoolYear}
         >
           <SelectTrigger className="w-full sm:w-[200px] h-9 text-sm">
-            <SelectValue placeholder="Année scolaire" />
+            <SelectValue placeholder={t("schoolYearPlaceholder")} />
           </SelectTrigger>
           <SelectContent>
             {schoolYears.map((year) => (
               <SelectItem key={year.id} value={year.id}>
                 {year.nameYear}
-                {year.isCurrentYear ? " (en cours)" : ""}
+                {year.isCurrentYear ? ` ${t("yearInProgress")}` : ""}
               </SelectItem>
             ))}
           </SelectContent>
@@ -454,14 +458,17 @@ export default function FamilySelector({
       {selectedStudents.length > 0 && (
         <div className="flex items-center justify-between gap-2 rounded-md border bg-muted/30 px-3 py-2.5">
           <p className="text-sm font-medium">
-            {peopleLabels.studentPlural} sélectionnés ({selectedStudents.length})
+            {t("searchFamily.selected", {
+              students: peopleLabels.studentPlural,
+              count: selectedStudents.length,
+            })}
           </p>
           <button
             type="button"
             onClick={clearAll}
             className="text-xs text-muted-foreground hover:text-destructive"
           >
-            Tout effacer
+            {t("searchFamily.clearAll")}
           </button>
         </div>
       )}
@@ -476,7 +483,7 @@ export default function FamilySelector({
       >
         {search.trim().length > 0 && search.trim().length < 2 && (
           <p className="text-sm text-muted-foreground sm:col-span-2">
-            Continuez à saisir pour rechercher…
+            {t("searchFamily.keepTyping")}
           </p>
         )}
 
@@ -485,7 +492,10 @@ export default function FamilySelector({
           displayedResults.length === 0 &&
           results.length === 0 && (
           <p className="text-sm text-muted-foreground sm:col-span-2">
-            Aucun {peopleLabels.studentLower} ou parent trouvé pour « {search.trim()} ».
+            {t("searchFamily.noneFound", {
+              student: peopleLabels.studentLower,
+              query: search.trim(),
+            })}
           </p>
         )}
 
@@ -508,7 +518,7 @@ export default function FamilySelector({
                   {family.parent.prenom} {family.parent.nom}
                   <span className="font-normal text-muted-foreground">
                     {" "}
-                    — parent / tuteur
+                    — {t("searchFamily.parentTutor")}
                   </span>
                 </span>
 
@@ -517,7 +527,7 @@ export default function FamilySelector({
                     type="button"
                     onClick={() => selectAll(family)}
                     className="rounded p-1 text-green-600 hover:bg-green-50"
-                    title="Tout sélectionner"
+                    title={t("searchFamily.selectAll")}
                   >
                     <Check size={14} />
                   </button>
@@ -525,7 +535,7 @@ export default function FamilySelector({
                     type="button"
                     onClick={clearAll}
                     className="rounded p-1 text-red-500 hover:bg-red-50"
-                    title="Effacer la sélection"
+                    title={t("searchFamily.clearSelection")}
                   >
                     <X size={14} />
                   </button>

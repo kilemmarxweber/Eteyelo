@@ -13,6 +13,7 @@ import {
   type ReactNode,
 } from "react";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import { useParams } from "next/navigation";
 import { useAppRouter as useRouter } from "@/hooks/use-app-router";
 import { toast } from "sonner";
@@ -82,9 +83,9 @@ import {
   getClassDisplayLabelPlural,
   hidesParentManagement,
   hidesProvenanceEcole,
+  isUniversiteBranch,
 } from "@/lib/branch-capabilities";
-import { getSchoolYearDisplayLabel, getSchoolYearDisplayLabelLower } from "@/lib/university-lmd";
-import { getPeopleLabels } from "@/lib/people-labels";
+import { getPeopleVariant } from "@/lib/people-variant";
 import {
   REGISTRATION_PREFILL_EVENT,
   type PrefillEventDetail,
@@ -237,6 +238,8 @@ export function RegistrationForm({
 }: {
   initialRequestId?: string;
 }) {
+  const tReg = useTranslations("registration");
+  const tPeopleAll = useTranslations("people");
   const router = useRouter();
   const params = useParams<{ organizationId: string; branchId: string }>();
   const organizationId = params.organizationId ?? "";
@@ -499,28 +502,34 @@ export function RegistrationForm({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [branchId]);
 
-  const peopleLabels = useMemo(
-    () => getPeopleLabels(options.typebranch),
-    [options.typebranch],
-  );
-  const classLabel = useMemo(
-    () => getClassDisplayLabel(options.typebranch),
-    [options.typebranch],
-  );
-  const classLabelPlural = useMemo(
-    () => getClassDisplayLabelPlural(options.typebranch),
-    [options.typebranch],
-  );
+  const peopleVariant = getPeopleVariant(options.typebranch);
+  const peopleLabels = useMemo(() => {
+    const tp = (key: string) =>
+      tPeopleAll(`${peopleVariant}.${key}` as "school.student");
+    return {
+      student: tp("student"),
+      studentPlural: tp("studentPlural"),
+      studentLower: tp("studentLower"),
+      studentPluralLower: tp("studentPluralLower"),
+      teacher: tp("teacher"),
+      photoOptionalLabel: tp("photoOptional"),
+      photoPreviewAlt: tp("photoPreview"),
+      studentNew: tp("studentNew"),
+      studentExisting: tp("studentExisting"),
+      searchStudent: tp("searchStudent"),
+      situation: tp("situation"),
+    };
+  }, [peopleVariant, tPeopleAll]);
+  const rawClass = getClassDisplayLabel(options.typebranch);
+  const classLabel = tReg(`classLabels.${rawClass}`);
+  const rawClassPlural = getClassDisplayLabelPlural(options.typebranch);
+  const classLabelPlural = tReg(`classLabelsPlural.${rawClassPlural}`);
   const classLabelLower = classLabel.toLowerCase();
   const classLabelPluralLower = classLabelPlural.toLowerCase();
-  const schoolYearLabel = useMemo(
-    () => getSchoolYearDisplayLabel(options.typebranch),
-    [options.typebranch],
-  );
-  const schoolYearLabelLower = useMemo(
-    () => getSchoolYearDisplayLabelLower(options.typebranch),
-    [options.typebranch],
-  );
+  const schoolYearLabel = isUniversiteBranch(options.typebranch)
+    ? tReg("academicYear")
+    : tReg("schoolYear");
+  const schoolYearLabelLower = schoolYearLabel.toLowerCase();
   const hidesParent = hidesParentManagement(options.typebranch);
   const hidesProvenance = hidesProvenanceEcole(options.typebranch);
   const registrationStepKeys = useMemo<RegistrationStepKey[]>(
@@ -537,14 +546,14 @@ export function RegistrationForm({
           case "student":
             return { label: peopleLabels.student, icon: IconUser };
           case "parent":
-            return { label: "Parent", icon: IconUsers };
+            return { label: tReg("steps.parent"), icon: IconUsers };
           case "class":
             return { label: classLabel, icon: IconSchool };
           case "confirm":
-            return { label: "Confirmation", icon: IconCheck };
+            return { label: tReg("steps.confirm"), icon: IconCheck };
         }
       }),
-    [registrationStepKeys, peopleLabels.student, classLabel],
+    [registrationStepKeys, peopleLabels.student, classLabel, tReg],
   );
   const currentStepKey = registrationStepKeys[step] ?? "student";
   const lastStepIndex = registrationStepKeys.length - 1;
@@ -552,12 +561,12 @@ export function RegistrationForm({
   const parentStepIndex = registrationStepKeys.indexOf("parent");
   const historyLabels = useMemo(
     () => ({
-      new: `Nouvel ${peopleLabels.studentLower}`,
-      passed: "Réussi — niveau supérieur",
-      failed: "Échoué — même niveau",
-      returning: "Retour après absence",
+      new: tReg("history.new", { student: peopleLabels.studentLower }),
+      passed: tReg("history.passed"),
+      failed: tReg("history.failed"),
+      returning: tReg("history.returning"),
     }),
-    [peopleLabels.studentLower],
+    [peopleLabels.studentLower, tReg],
   );
   useEffect(
     () => () => {
@@ -1162,7 +1171,7 @@ export function RegistrationForm({
     if (currentStepKey === "class") {
       if (!schoolYearId || !level)
         return toast.error(
-          `Choisissez l'${schoolYearLabelLower} et l'${classLabelLower} demandé(e).`,
+          tReg("chooseClassHint", { classLabel }),
         );
       if (requiresSectionForClass(options.typebranch, level) && !sectionId) {
         return toast.error("Choisissez une section (filière) pour ce niveau.");
@@ -1383,7 +1392,7 @@ export function RegistrationForm({
               Aucune vacation disponible — créez-en une
             </p>
             <div className="grid gap-4 md:grid-cols-2">
-              <Field label="Nom de la vacation *">
+              <Field label={tReg("fields.vacationNameRequired")}>
                 <Input
                   value={creneauForm.nameCreneau}
                   onChange={(event) =>
@@ -1394,7 +1403,7 @@ export function RegistrationForm({
                   }
                 />
               </Field>
-              <Field label="Début *" keepLabel>
+              <Field label={tReg("fields.startRequired")} keepLabel>
                 <Input
                   type="time"
                   value={creneauForm.startTime}
@@ -1406,7 +1415,7 @@ export function RegistrationForm({
                   }
                 />
               </Field>
-              <Field label="Fin *" keepLabel>
+              <Field label={tReg("fields.endRequired")} keepLabel>
                 <Input
                   type="time"
                   value={creneauForm.endTime}
@@ -1418,7 +1427,7 @@ export function RegistrationForm({
                   }
                 />
               </Field>
-              <Field label="Heure de récréation *" keepLabel>
+              <Field label={tReg("fields.breakTimeRequired")} keepLabel>
                 <Input
                   type="time"
                   value={creneauForm.recreationHour}
@@ -1430,7 +1439,7 @@ export function RegistrationForm({
                   }
                 />
               </Field>
-              <Field label="Durée cours (min)">
+              <Field label={tReg("fields.courseDuration")}>
                 <Input
                   type="number"
                   min={1}
@@ -1445,7 +1454,7 @@ export function RegistrationForm({
                   }
                 />
               </Field>
-              <Field label="Durée récréation (min)">
+              <Field label={tReg("fields.breakDuration")}>
                 <Input
                   type="number"
                   min={1}
@@ -1462,20 +1471,20 @@ export function RegistrationForm({
               </Field>
             </div>
             <Button disabled={creatingCreneau} onClick={createCreneau}>
-              {creatingCreneau ? "Création…" : "Créer la vacation"}
+              {creatingCreneau ? tReg("actions.creating") : "Créer la vacation"}
             </Button>
           </div>
         ) : (
           <div className="grid gap-4 md:grid-cols-2">
-            <Field label="Vacation *">
+            <Field label={tReg("fields.vacationRequired")}>
               <Select
                 value={creneauId || "none"}
-                onValueChange={(value) =>
+                onValueChange={(value: string) =>
                   setCreneauId(value === "none" ? "" : value)
                 }
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Choisir une vacation" />
+                  <SelectValue placeholder={tReg("placeholders.chooseVacation")} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="none">Sélectionner…</SelectItem>
@@ -1487,7 +1496,7 @@ export function RegistrationForm({
                 </SelectContent>
               </Select>
             </Field>
-            <Field label={`Capacité de l'${classLabelLower} *`}>
+            <Field label={tReg("fields.classCapacityRequired", { classLabel })}>
               <Input
                 type="number"
                 min={1}
@@ -1502,7 +1511,7 @@ export function RegistrationForm({
             disabled={creatingClass || !creneauId}
             onClick={createNextParallel}
           >
-            {creatingClass ? "Création…" : buttonLabel}
+            {creatingClass ? tReg("actions.creating") : buttonLabel}
           </Button>
         )}
       </div>
@@ -1518,14 +1527,14 @@ export function RegistrationForm({
     return (
       <div className="space-y-3">
         <div className="grid gap-2.5 md:grid-cols-2 xl:grid-cols-3">
-          <Field label="Nom *">
+          <Field label={tReg("fields.nameRequired")}>
             {parentNameSearch ? (
               <SearchCombobox
                 freeText
                 filterItems={false}
                 items={parentNameOptions}
                 value={value.name}
-                onValueChange={(next) => {
+                onValueChange={(next: string) => {
                   setParent((current) => ({ ...current, name: next }));
                   scheduleParentNameSearch(next);
                 }}
@@ -1535,9 +1544,9 @@ export function RegistrationForm({
                 onCreate={(name) => {
                   setParent((current) => ({ ...current, name }));
                 }}
-                createLabel={(query) => `+ Nouveau parent «${query}»`}
-                placeholder="Saisir le nom du parent"
-                emptyText="Aucun parent — continuez pour en créer un."
+                createLabel={(query) => tReg("createParent", { query })}
+                placeholder={tReg("placeholders.parentName")}
+                emptyText={tReg("noParentEmpty")}
                 showClear
               />
             ) : (
@@ -1549,7 +1558,7 @@ export function RegistrationForm({
               />
             )}
           </Field>
-          <Field label="Postnom (facultatif)">
+          <Field label={tReg("fields.postnomOptional")}>
             <Input
               value={value.postnom}
               onChange={(event) =>
@@ -1557,7 +1566,7 @@ export function RegistrationForm({
               }
             />
           </Field>
-          <Field label="Prénom (facultatif)">
+          <Field label={tReg("fields.prenomOptional")}>
             <Input
               value={value.prenom}
               onChange={(event) =>
@@ -1568,10 +1577,10 @@ export function RegistrationForm({
 
           {studentFields ? (
             <>
-              <Field label="Date de naissance *">
+              <Field label={tReg("fields.dateOfBirthRequired")}>
                 <Input
                   type="date"
-                  title="Date de naissance *"
+                  title={tReg("fields.dateOfBirthRequired")}
                   value={value.dateOfBirth}
                   onChange={(event) =>
                     updatePerson(
@@ -1583,7 +1592,7 @@ export function RegistrationForm({
                   }
                 />
               </Field>
-              <Field label="Lieu de naissance (facultatif)">
+              <Field label={tReg("fields.placeOfBirthOptional")}>
                 <Input
                   value={(value as StudentForm).placeOfBirth}
                   onChange={(event) =>
@@ -1596,10 +1605,10 @@ export function RegistrationForm({
                   }
                 />
               </Field>
-              <Field label="Sexe *">
+              <Field label={tReg("fields.sexRequired")}>
                 <Select
                   value={value.sexe}
-                  onValueChange={(next) =>
+                  onValueChange={(next: string) =>
                     updatePerson(value, setter, "sexe", next)
                   }
                 >
@@ -1607,12 +1616,12 @@ export function RegistrationForm({
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="masculin">Masculin</SelectItem>
-                    <SelectItem value="feminin">Féminin</SelectItem>
+                    <SelectItem value="masculin">{tReg("sex.male")}</SelectItem>
+                    <SelectItem value="feminin">{tReg("sex.female")}</SelectItem>
                   </SelectContent>
                 </Select>
               </Field>
-              <Field label="Adresse complète (facultatif)">
+              <Field label={tReg("fields.addressOptional")}>
                 <Input
                   value={value.address}
                   onChange={(event) =>
@@ -1621,7 +1630,7 @@ export function RegistrationForm({
                 />
               </Field>
               {!hidesProvenance ? (
-                <Field label="École de provenance (facultatif)">
+                <Field label={tReg("fields.provenanceOptional")}>
                   <Input
                     value={(value as StudentForm).provenanceEcole}
                     onChange={(event) =>
@@ -1635,10 +1644,10 @@ export function RegistrationForm({
                   />
                 </Field>
               ) : null}
-              <Field label="Catégorie">
+              <Field label={tReg("fields.category")}>
                 <Select
                   value={(value as StudentForm).category}
-                  onValueChange={(next) =>
+                  onValueChange={(next: string) =>
                     updatePerson(value, setter, "category", next)
                   }
                 >
@@ -1657,7 +1666,7 @@ export function RegistrationForm({
                 </Select>
               </Field>
               <Field
-                label="Observation (facultatif)"
+                label={tReg("fields.observationOptional")}
                 className="md:col-span-2 xl:col-span-3"
               >
                 <Textarea
@@ -1702,7 +1711,7 @@ export function RegistrationForm({
                   <div className="flex flex-wrap items-center gap-1.5">
                     <Label className="inline-flex h-8 cursor-pointer items-center rounded-md border bg-background px-2.5 text-xs font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground">
                       <IconPhotoPlus className="mr-1.5 h-3.5 w-3.5" />
-                      Parcourir
+                      {tReg("actions.browse")}
                       <Input
                         className="hidden"
                         type="file"
@@ -1720,7 +1729,7 @@ export function RegistrationForm({
                       onClick={() => setCameraOpen(true)}
                     >
                       <IconCamera className="mr-1.5 h-3.5 w-3.5" />
-                      Caméra
+                      {tReg("actions.camera")}
                     </Button>
                     {photoPreview ? (
                       <Button
@@ -1731,19 +1740,19 @@ export function RegistrationForm({
                         onClick={clearStudentPhoto}
                       >
                         <IconX className="mr-1.5 h-3.5 w-3.5" />
-                        Retirer
+                        {tReg("actions.remove")}
                       </Button>
                     ) : null}
                   </div>
                 </div>
                 <p className="text-[11px] text-muted-foreground">
-                  Fichier ou caméra.
+                  {tReg("photoHint")}
                 </p>
               </Field>
             </>
           ) : (
             <>
-              <Field label="Adresse *">
+              <Field label={tReg("fields.addressRequired")}>
                 <Input
                   value={value.address}
                   onChange={(event) =>
@@ -1751,18 +1760,18 @@ export function RegistrationForm({
                   }
                 />
               </Field>
-              <Field label="Téléphone (facultatif)">
+              <Field label={tReg("fields.phoneOptional")}>
                 <Input
-                  placeholder="+243…"
+                  placeholder={tReg("placeholders.phone")}
                   value={value.telephone}
                   onChange={(event) =>
                     updatePerson(value, setter, "telephone", event.target.value)
                   }
                 />
               </Field>
-              <Field label="Fonction / lieu de travail (facultatif)">
+              <Field label={tReg("fields.professionOptional")}>
                 <Input
-                  placeholder="Ex. Enseignant, commerçant, entreprise…"
+                  placeholder={tReg("placeholders.profession")}
                   value={(value as ParentForm).profession}
                   onChange={(event) =>
                     updatePerson(
@@ -1774,7 +1783,7 @@ export function RegistrationForm({
                   }
                 />
               </Field>
-              <Field label="Email (facultatif)">
+              <Field label={tReg("fields.emailOptional")}>
                 <Input
                   type="email"
                   placeholder={generatedParentEmail}
@@ -1785,15 +1794,15 @@ export function RegistrationForm({
                 />
                 {!value.email.trim() ? (
                   <p className="mt-1 text-xs text-muted-foreground">
-                    Si vide, un email sera généré :{" "}
+                    {tReg("emailAutoHint")}{" "}
                     <span className="font-mono">{generatedParentEmail}</span>
                   </p>
                 ) : null}
               </Field>
-              <Field label="Sexe *">
+              <Field label={tReg("fields.sexRequired")}>
                 <Select
                   value={value.sexe}
-                  onValueChange={(next) =>
+                  onValueChange={(next: string) =>
                     updatePerson(value, setter, "sexe", next)
                   }
                 >
@@ -1801,8 +1810,8 @@ export function RegistrationForm({
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="masculin">Masculin</SelectItem>
-                    <SelectItem value="feminin">Féminin</SelectItem>
+                    <SelectItem value="masculin">{tReg("sex.male")}</SelectItem>
+                    <SelectItem value="feminin">{tReg("sex.female")}</SelectItem>
                   </SelectContent>
                 </Select>
               </Field>
@@ -1813,7 +1822,7 @@ export function RegistrationForm({
           <>
             <Separator />
             <div className="grid gap-2.5 md:grid-cols-2">
-              <Field label="Remise familiale en % (facultatif)">
+              <Field label={tReg("fields.familyDiscountOptional")}>
                 <Input
                   type="number"
                   min={0}
@@ -1841,12 +1850,12 @@ export function RegistrationForm({
                 />
               </Field>
               {(value as ParentForm).discountPercentage > 0 ? (
-                <Field label="Type de frais concerné par la remise">
+                <Field label={tReg("fields.discountFeeType")}>
                   <Select
                     value={
                       (value as ParentForm).discountTypeFraisId || undefined
                     }
-                    onValueChange={(next) =>
+                    onValueChange={(next: string) =>
                       updatePerson(
                         value,
                         setter,
@@ -1856,7 +1865,7 @@ export function RegistrationForm({
                     }
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Choisir le type de frais" />
+                      <SelectValue placeholder={tReg("placeholders.chooseFeeType")} />
                     </SelectTrigger>
                     <SelectContent>
                       {(options.typeFrais ?? []).map(
@@ -1869,8 +1878,7 @@ export function RegistrationForm({
                     </SelectContent>
                   </Select>
                   <p className="mt-1 text-xs text-muted-foreground">
-                    La remise ne s&apos;appliquera qu&apos;aux frais de ce type
-                    lors des paiements.
+                    {tReg("discountHint")}
                   </p>
                 </Field>
               ) : (
@@ -1888,10 +1896,12 @@ export function RegistrationForm({
       {requestReference ? (
         <Alert className="xl:col-span-2">
           <IconCheck className="h-4 w-4" />
-          <AlertTitle>Demande confirmee : {requestReference}</AlertTitle>
+          <AlertTitle>
+            {tReg("requestConfirmed", { reference: requestReference })}
+          </AlertTitle>
           <AlertDescription>
-            Verifiez et completez les donnees avant l&apos;inscription
-            definitive.
+            {tReg("requestConfirmedDesc")}
+
             {siblingParentHint ? (
               <span className="mt-1 block font-medium text-foreground">
                 {siblingParentHint}
@@ -1911,7 +1921,7 @@ export function RegistrationForm({
           setFamilyExtra(nextFamily);
           return {
             ok: true,
-            message: "Infos enregistrées pour cette inscription.",
+            message: tReg("extraInfoSaved"),
           };
         }}
       />
@@ -1921,20 +1931,20 @@ export function RegistrationForm({
       >
         <CardHeader className="gap-0.5 space-y-0 border-b border-sky-100/80 !p-4 !pb-3 dark:border-sky-900/40">
           <CardTitle className="flex flex-wrap items-center gap-2 text-base font-semibold text-sky-950 dark:text-sky-100">
-            Progression
+            {tReg("progress")}
             {draftSavedAt ? (
               <button
                 type="button"
                 className="rounded-full border border-sky-200 bg-sky-100/70 px-2.5 py-0.5 text-[11px] font-medium text-sky-800 hover:bg-sky-100 dark:border-sky-800 dark:bg-sky-900/50 dark:text-sky-200"
-                title="Sauvegarde locale automatique (navigateur). Cliquez pour tout vider et recharger la page."
+                title={tReg("draftTitle")}
                 onClick={discardAdminDraft}
               >
-                Brouillon · {formatDraftSavedAt(draftSavedAt)}
+                {tReg("draft")} · {formatDraftSavedAt(draftSavedAt)}
               </button>
             ) : null}
           </CardTitle>
           <CardDescription className="text-sm text-sky-800/80 dark:text-sky-300/80">
-            Quatre étapes.
+            {tReg("fourSteps")}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-2.5 p-4 pt-3">
@@ -1967,7 +1977,11 @@ export function RegistrationForm({
                 <div className="min-w-0">
                   <p className="truncate text-base font-medium leading-tight">{label}</p>
                   <p className="mt-0.5 text-xs leading-tight text-muted-foreground">
-                    {isDone ? "Terminée" : isCurrent ? "En cours" : `Étape ${index + 1}`}
+                    {isDone
+                      ? tReg("stepDone")
+                      : isCurrent
+                        ? tReg("stepCurrent")
+                        : tReg("stepLabel", { n: index + 1 })}
                   </p>
                 </div>
               </div>
@@ -1988,8 +2002,8 @@ export function RegistrationForm({
               </CardTitle>
               <CardDescription className="text-[10px] leading-none">
                 {currentStepKey === "class"
-                  ? `Choisissez l'${classLabelLower} demandé(e).`
-                  : "* = obligatoire"}
+                  ? tReg("chooseClassHint", { classLabel })
+                  : tReg("requiredHint")}
               </CardDescription>
             </div>
             <Badge
@@ -2009,7 +2023,7 @@ export function RegistrationForm({
               <RadioGroup
                 className="grid gap-2 sm:grid-cols-2"
                 value={studentMode}
-                onValueChange={(value) => {
+                onValueChange={(value: string) => {
                   setStudentMode(value as any);
                   setHistoryOutcome(value === "new" ? "new" : "returning");
                 }}
@@ -2018,15 +2032,15 @@ export function RegistrationForm({
                   id="student-new"
                   value="new"
                   accent="create"
-                  title={`Nouvel ${peopleLabels.studentLower}`}
-                  description="Créer son compte et son dossier scolaire."
+                  title={peopleLabels.studentNew}
+                  description={tReg("mode.newStudentDesc")}
                 />
                 <ModeChoice
                   id="student-existing"
                   value="existing"
                   accent="reuse"
-                  title={`Ancien ${peopleLabels.studentLower}`}
-                  description="Retrouver son historique et le réinscrire."
+                  title={peopleLabels.studentExisting}
+                  description={tReg("mode.existingStudentDesc")}
                 />
               </RadioGroup>
               <Separator />
@@ -2037,7 +2051,7 @@ export function RegistrationForm({
                   query={studentQuery}
                   setQuery={setStudentQuery}
                   onSearch={searchStudents}
-                  placeholder={`Nom, email ou téléphone de l'${peopleLabels.studentLower}…`}
+                  placeholder={peopleLabels.searchStudent}
                 >
                   {studentResults.map((item) => {
                     const user = userOf(item);
@@ -2050,8 +2064,8 @@ export function RegistrationForm({
                         title={`${user?.name ?? ""} ${user?.postnom ?? ""} ${user?.prenom ?? ""}`}
                         subtitle={
                           last
-                            ? `Dernière ${classLabelLower} : ${last.classe?.nameClasse} — ${last.schoolYear.nameYear}`
-                            : "Aucune inscription précédente"
+                            ? tReg("lastClass", { classLabel, name: last.classe?.nameClasse, year: last.schoolYear.nameYear })
+                            : tReg("noPreviousEnrollment")
                         }
                       />
                     );
@@ -2061,22 +2075,19 @@ export function RegistrationForm({
                       {!hidesParent && parentId ? (
                         <Alert>
                           <IconCheck className="h-4 w-4" />
-                          <AlertTitle>Parent chargé automatiquement</AlertTitle>
+                          <AlertTitle>{tReg("parentAutoTitle")}</AlertTitle>
                           <AlertDescription>
                             {siblingParentHint ||
-                              "Le responsable existant a été sélectionné. Vérifiez à l'étape Parent si besoin."}
+                              tReg("parentAutoDesc")}
                           </AlertDescription>
                         </Alert>
                       ) : null}
                       <div>
                         <Label className="mb-1.5 block text-sm">
-                          {`Situation de l'${peopleLabels.studentLower}`}
+                          {peopleLabels.situation}
                         </Label>
                         <p className="mb-2 text-[11px] leading-snug text-muted-foreground">
-                          Réussi → niveau supérieur ; Échoué → même niveau.
-                          L&apos;{schoolYearLabelLower} actuelle est sélectionnée
-                          automatiquement. Montée en classe : frais de l&apos;année
-                          passée soldés.
+                          {tReg("historyHint", { yearLabel: schoolYearLabel })}
                         </p>
                         <div className="flex flex-wrap gap-1.5">
                           <Button
@@ -2087,7 +2098,7 @@ export function RegistrationForm({
                             }
                             onClick={() => void applyHistory("passed")}
                           >
-                            Réussi
+                            {tReg("actions.passed")}
                           </Button>
                           <Button
                             type="button"
@@ -2097,7 +2108,7 @@ export function RegistrationForm({
                             }
                             onClick={() => void applyHistory("failed")}
                           >
-                            Échoué
+                            {tReg("actions.failed")}
                           </Button>
                           <Button
                             type="button"
@@ -2109,20 +2120,20 @@ export function RegistrationForm({
                             }
                             onClick={() => void applyHistory("returning")}
                           >
-                            Retour après absence
+                            {tReg("actions.returning")}
                           </Button>
                         </div>
                         {feeDebtMessage ? (
                           <Alert variant="destructive" className="mt-2">
                             <IconAlertTriangle className="h-4 w-4" />
-                            <AlertTitle>Frais non soldés</AlertTitle>
+                            <AlertTitle>{tReg("feeDebtTitle")}</AlertTitle>
                             <AlertDescription>{feeDebtMessage}</AlertDescription>
                           </Alert>
                         ) : null}
                         {historyOutcome === "passed" ||
                         historyOutcome === "failed" ? (
                           <p className="mt-2 text-xs text-muted-foreground">
-                            Niveau prévu :{" "}
+                            {tReg("expectedLevel")}{" "}
                             <span className="font-medium text-foreground">
                               {level
                                 ? getClassLevelLabel(options.typebranch, level)
@@ -2137,7 +2148,7 @@ export function RegistrationForm({
                                     (year: any) => year.id === schoolYearId,
                                   )?.nameYear
                                 }{" "}
-                                (actuelle)
+                                {tReg("currentYear")}
                               </>
                             ) : null}
                           </p>
@@ -2154,10 +2165,10 @@ export function RegistrationForm({
               <div className="flex flex-col gap-1.5 rounded-lg border border-dashed border-teal-300/70 bg-teal-50/60 px-3 py-2 transition-colors duration-300 sm:flex-row sm:items-center sm:justify-between dark:border-teal-800 dark:bg-teal-950/30">
                 <div className="min-w-0">
                   <p className="text-sm font-medium leading-tight text-teal-950 dark:text-teal-100">
-                    Infos complémentaires (optionnel)
+                    {tReg("extraInfoTitle")}
                   </p>
                   <p className="text-[11px] text-teal-800/80 dark:text-teal-300/80">
-                    Nationalité, mère, origines, tuteur, langue…
+                    {tReg("extraInfoDesc")}
                   </p>
                 </div>
                 <Button
@@ -2167,27 +2178,29 @@ export function RegistrationForm({
                   className="h-8 shrink-0 border-teal-300 bg-background/80 hover:bg-teal-100 dark:border-teal-700 dark:hover:bg-teal-950"
                   onClick={() => setExtraSheetOpen(true)}
                 >
-                  Ajouter autres infos
+                  {tReg("actions.addExtraInfo")}
                 </Button>
               </div>
               <RadioGroup
                 className="grid gap-2 sm:grid-cols-2"
                 value={parentMode}
-                onValueChange={(value) => setParentMode(value as any)}
+                onValueChange={(value: string) =>
+                  setParentMode(value as any)
+                }
               >
                 <ModeChoice
                   id="parent-new"
                   value="new"
                   accent="create"
-                  title="Nouveau parent / tuteur"
-                  description="Créer le compte du responsable."
+                  title={tReg("mode.newParent")}
+                  description={tReg("mode.newParentDesc")}
                 />
                 <ModeChoice
                   id="parent-existing"
                   value="existing"
                   accent="reuse"
-                  title="Parent existant"
-                  description={`Lier l'${peopleLabels.studentLower} à un responsable connu.`}
+                  title={tReg("mode.existingParent")}
+                  description={tReg("mode.existingParentDesc")}
                 />
               </RadioGroup>
               <Separator />
@@ -2198,7 +2211,7 @@ export function RegistrationForm({
                   {parentId && siblingParentHint ? (
                     <Alert>
                       <IconCheck className="h-4 w-4" />
-                      <AlertTitle>Parent sélectionné automatiquement</AlertTitle>
+                      <AlertTitle>{tReg("parentSelectedTitle")}</AlertTitle>
                       <AlertDescription>{siblingParentHint}</AlertDescription>
                     </Alert>
                   ) : null}
@@ -2206,12 +2219,11 @@ export function RegistrationForm({
                     query={parentQuery}
                     setQuery={setParentQuery}
                     onSearch={searchParents}
-                    placeholder="Nom, email ou téléphone du parent…"
+                    placeholder={tReg("placeholders.searchParent")}
                   >
                     {!parentId && parentResults.length > 0 ? (
                       <p className="text-sm text-muted-foreground">
-                        Cliquez sur un parent pour le sélectionner, puis
-                        continuez.
+                        {tReg("parentClickHint")}
                       </p>
                     ) : null}
                     {parentResults.map((item) => {
@@ -2235,7 +2247,7 @@ export function RegistrationForm({
                             });
                           }}
                           title={`${user?.name ?? ""} ${user?.postnom ?? ""} ${user?.prenom ?? ""}`}
-                          subtitle={`${user?.telephone ?? "Sans téléphone"} — ${user?.email ?? "Sans email"}`}
+                          subtitle={`${user?.telephone ?? tReg("summary.noPhone")} — ${user?.email ?? tReg("summary.noEmail")}`}
                         />
                       );
                     })}
@@ -2250,10 +2262,10 @@ export function RegistrationForm({
                 <div className="flex flex-col gap-1.5 rounded-lg border border-dashed border-teal-300/70 bg-teal-50/60 px-3 py-2 transition-colors duration-300 sm:flex-row sm:items-center sm:justify-between dark:border-teal-800 dark:bg-teal-950/30">
                   <div className="min-w-0">
                     <p className="text-sm font-medium leading-tight text-teal-950 dark:text-teal-100">
-                      Infos complémentaires (optionnel)
+                      {tReg("extraInfoTitle")}
                     </p>
                     <p className="text-[11px] text-teal-800/80 dark:text-teal-300/80">
-                      Nationalité, langue et autres infos élève.
+                      {tReg("extraInfoDescStudentOnly")}
                     </p>
                   </div>
                   <Button
@@ -2263,46 +2275,46 @@ export function RegistrationForm({
                     className="h-8 shrink-0 border-teal-300 bg-background/80 hover:bg-teal-100 dark:border-teal-700 dark:hover:bg-teal-950"
                     onClick={() => setExtraSheetOpen(true)}
                   >
-                    Ajouter autres infos
+                    {tReg("actions.addExtraInfo")}
                   </Button>
                 </div>
               ) : null}
               {loadingOptions ? (
-                <p className="text-muted-foreground">{`Chargement des ${classLabelPluralLower}…`}</p>
+                <p className="text-muted-foreground">{tReg("loadingClasses", { classLabelPlural })}</p>
               ) : (
                 <>
                   <div
                     className={`grid gap-2.5 ${options.allowsOption ? "lg:grid-cols-3" : "lg:grid-cols-4"}`}
                   >
-                    <Field label={`${schoolYearLabel} *`}>
+                    <Field label={tReg("fields.schoolYearRequired", { yearLabel: schoolYearLabel })}>
                       <Select
                         value={schoolYearId}
                         onValueChange={setSchoolYearId}
                       >
                         <SelectTrigger>
-                          <SelectValue placeholder="Choisir l'année" />
+                          <SelectValue placeholder={tReg("placeholders.chooseYear")} />
                         </SelectTrigger>
                         <SelectContent>
                           {options.schoolYears.map((year: any) => (
                             <SelectItem key={year.id} value={year.id}>
                               {year.nameYear}
-                              {year.isCurrentYear ? " — actuelle" : ""}
+                              {year.isCurrentYear ? tReg("yearCurrentSuffix") : ""}
                             </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
                     </Field>
-                    <Field label={`${classLabel} / niveau demandé *`}>
+                    <Field label={tReg("fields.classLevelRequired", { classLabel })}>
                       <Select
                         value={level}
-                        onValueChange={(value) => {
+                        onValueChange={(value: string) => {
                           setLevel(value);
                           setSectionId("");
                           setOptionId("");
                         }}
                       >
                         <SelectTrigger>
-                          <SelectValue placeholder={`Choisir l'${classLabelLower}`} />
+                          <SelectValue placeholder={tReg("placeholders.chooseClass", { classLabel })} />
                         </SelectTrigger>
                         <SelectContent>
                           {options.levels.map((item: string) => (
@@ -2317,17 +2329,17 @@ export function RegistrationForm({
                       options.typebranch === "SECONDAIRE" ? (
                         <>
                           {secondaryHumanitesLevel ? (
-                            <Field label="Section (filière) *">
+                            <Field label={tReg("fields.sectionTrackRequired")}>
                               <Select
                                 value={sectionId || undefined}
-                                onValueChange={(value) => {
+                                onValueChange={(value: string) => {
                                   setSectionId(value);
                                   setOptionId("");
                                 }}
                                 disabled={!level}
                               >
                                 <SelectTrigger>
-                                  <SelectValue placeholder="Choisir une section" />
+                                  <SelectValue placeholder={tReg("placeholders.chooseSection")} />
                                 </SelectTrigger>
                                 <SelectContent>
                                   {sectionsForLevel.map(
@@ -2350,8 +2362,8 @@ export function RegistrationForm({
                           <Field
                             label={
                               requiresOptionForLevel(options.typebranch, level)
-                                ? "Option *"
-                                : "Option"
+                                ? tReg("fields.optionRequired")
+                                : tReg("fields.option")
                             }
                           >
                             <Select
@@ -2367,10 +2379,10 @@ export function RegistrationForm({
                                 <SelectValue
                                   placeholder={
                                     secondaryHumanitesLevel && !sectionId
-                                      ? "Choisir d'abord une section"
+                                      ? tReg("placeholders.chooseOptionFirst")
                                       : isCtebLevel(level)
-                                        ? "Tronc commun"
-                                        : "Choisir l'option"
+                                        ? tReg("placeholders.commonCore")
+                                        : tReg("placeholders.chooseOption")
                                   }
                                 />
                               </SelectTrigger>
@@ -2387,7 +2399,7 @@ export function RegistrationForm({
                             </Select>
                             {isCtebLevel(level) ? (
                               <p className="mt-1 text-xs text-muted-foreground">
-                                7ᵉ / 8ᵉ année : Tronc commun (CTEB).
+                                {tReg("ctebHint")}
                               </p>
                             ) : null}
                           </Field>
@@ -2396,8 +2408,8 @@ export function RegistrationForm({
                         <Field
                           label={
                             requiresOptionForLevel(options.typebranch, level)
-                              ? "Option *"
-                              : "Option"
+                              ? tReg("fields.optionRequired")
+                              : tReg("fields.option")
                           }
                         >
                           <Select
@@ -2407,19 +2419,19 @@ export function RegistrationForm({
                                 ? undefined
                                 : "none")
                             }
-                            onValueChange={(value) =>
+                            onValueChange={(value: string) =>
                               setOptionId(value === "none" ? "" : value)
                             }
                           >
                             <SelectTrigger>
-                              <SelectValue placeholder="Choisir l'option" />
+                              <SelectValue placeholder={tReg("placeholders.chooseOption")} />
                             </SelectTrigger>
                             <SelectContent>
                               {!requiresOptionForLevel(
                                 options.typebranch,
                                 level,
                               ) ? (
-                                <SelectItem value="none">Aucune option</SelectItem>
+                                <SelectItem value="none">{tReg("noOptionItem")}</SelectItem>
                               ) : null}
                               {options.options.map((item: any) => (
                                 <SelectItem key={item.id} value={item.id}>
@@ -2432,27 +2444,27 @@ export function RegistrationForm({
                       )
                     ) : (
                       <>
-                        <Field label="Section" keepLabel>
+                        <Field label={tReg("fields.section")} keepLabel>
                           <Input
                             disabled
                             className="bg-muted text-foreground opacity-100"
                             value={
                               options.primaryStructure?.section?.nameSection ??
-                              "Primaire"
+                              tReg("primary")
                             }
                           />
                         </Field>
-                        <Field label="Niveau de pondération" keepLabel>
+                        <Field label={tReg("fields.ponderationLevel")} keepLabel>
                           <Input
                             disabled
                             className="bg-muted text-foreground opacity-100"
                             value={
                               options.primaryStructure?.optionsByLevel?.[level]
                                 ?.nameOption
-                                ? `${options.primaryStructure.optionsByLevel[level].nameOption} année`
+                                ? tReg("yearSuffix", { name: options.primaryStructure.optionsByLevel[level].nameOption })
                                 : level
-                                  ? `${level} année`
-                                  : "Selon le niveau choisi"
+                                  ? tReg("yearSuffix", { name: level })
+                                  : tReg("accordingToLevel")
                             }
                           />
                         </Field>
@@ -2461,26 +2473,26 @@ export function RegistrationForm({
                   </div>
                   <Alert>
                     <IconSchool className="h-4 w-4" />
-                    <AlertTitle>Affectation automatique</AlertTitle>
+                    <AlertTitle>{tReg("autoAssignTitle")}</AlertTitle>
                     <AlertDescription>
-                      {`Le premier ${classLabelLower} est créé sans lettre. Lorsqu'il est plein, il devient A et le nouveau ${classLabelLower} devient B, puis C, etc.`}
+                      {tReg("autoAssignDesc", { classLabel })}
                     </AlertDescription>
                   </Alert>
                   <div>
                     <div className="mb-2 flex items-center justify-between">
-                      <h3 className="text-sm font-semibold">Parallèles existantes</h3>
+                      <h3 className="text-sm font-semibold">{tReg("existingParallels")}</h3>
                       <Badge variant="outline" className="text-[11px]">
                         {selectedClasses.length} {classLabelLower}(s)
                       </Badge>
                     </div>
                     {!level ? (
                       <p className="rounded-md border border-dashed px-3 py-4 text-center text-sm text-muted-foreground">
-                        {`Sélectionnez un ${classLabelLower} pour voir les parallèles.`}
+                        {tReg("selectClassForParallels", { classLabel })}
                       </p>
                     ) : requiresOptionForLevel(options.typebranch, level) &&
                       !optionId ? (
                       <p className="rounded-md border border-dashed px-3 py-4 text-center text-sm text-muted-foreground">
-                        {`Choisissez une option pour afficher les ${classLabelPluralLower} et leur capacité.`}
+                        {tReg("chooseOptionForClasses", { classLabelPlural })}
                       </p>
                     ) : (
                       <>
@@ -2502,7 +2514,7 @@ export function RegistrationForm({
                                     <b>{classe.nameClasse}</b>
                                     {classe.parallel ? (
                                       <p className="text-xs text-muted-foreground">
-                                        Parallèle {classe.parallel}
+                                        {tReg("parallel", { letter: classe.parallel })}
                                       </p>
                                     ) : null}
                                   </div>
@@ -2521,16 +2533,16 @@ export function RegistrationForm({
                                     }
                                   >
                                     {classe.available
-                                      ? "Disponible"
+                                      ? tReg("available")
                                       : classe.hasCapacity
-                                        ? "Pleine"
-                                        : "Capacité manquante"}
+                                        ? tReg("full")
+                                        : tReg("capacityMissing")}
                                   </Badge>
                                 </div>
                                 <p className="mt-1 text-xs text-muted-foreground">
                                   {classe.hasCapacity
-                                    ? `${classe.occupied} / ${classe.capacity} places`
-                                    : `${classe.occupied} inscription(s) — capacité non définie`}
+                                    ? tReg("places", { occupied: classe.occupied, capacity: classe.capacity })
+                                    : tReg("enrollmentsNoCapacity", { count: classe.occupied })}
                                 </p>
                                 {classe.hasCapacity ? (
                                   <Progress
@@ -2553,32 +2565,34 @@ export function RegistrationForm({
                         {needsClassAction
                           ? renderClassCreationPanel(
                               selectedClasses.length === 0
-                                ? `Aucun ${classLabelLower} configuré pour ce niveau`
+                                ? tReg("noClassConfigured", { classLabel })
                                 : classesNeedingCapacity
-                                  ? "Capacité à définir"
-                                  : "Toutes les parallèles sont pleines",
+                                  ? tReg("capacityToDefine")
+                                  : tReg("allParallelsFull"),
                               selectedClasses.length === 0
-                                ? `Créez le premier ${classLabelLower} avec une vacation et une capacité.`
+                                ? tReg("createFirstClass", { classLabel })
                                 : classesNeedingCapacity
-                                  ? `Les ${classLabelPluralLower} catalogue n'ont pas encore de capacité. Définissez-la pour pouvoir inscrire.`
-                                  : `Créez la prochaine parallèle (A → B → C…). Le ${classLabelLower} simple plein devient A.`,
+                                  ? tReg("defineCapacityHint", { classLabelPlural })
+                                  : tReg("createNextParallelHint", { classLabel }),
                               selectedClasses.length === 0
-                                ? `Créer l'${classLabelLower}`
+                                ? tReg("createClass", { classLabel })
                                 : classesNeedingCapacity
-                                  ? "Définir la capacité"
-                                  : "Créer la prochaine parallèle",
+                                  ? tReg("defineCapacity")
+                                  : tReg("createNextParallel"),
                             )
                           : null}
 
                         {predictedClass ? (
                           <Alert className="mt-2">
                             <IconCheck className="h-4 w-4" />
-                            <AlertTitle>Affectation prévue</AlertTitle>
+                            <AlertTitle>{tReg("plannedAssignTitle")}</AlertTitle>
                             <AlertDescription>
-                              {`L'${peopleLabels.studentLower} sera inscrit dans `}
-                              <strong>{predictedClass.nameClasse}</strong> (
-                              {predictedClass.occupied + 1} /{" "}
-                              {predictedClass.capacity} places).
+                              {tReg("plannedAssignDesc", {
+                                student: peopleLabels.studentLower,
+                                className: predictedClass.nameClasse,
+                                occupied: predictedClass.occupied + 1,
+                                capacity: predictedClass.capacity,
+                              })}
                             </AlertDescription>
                           </Alert>
                         ) : null}
@@ -2593,10 +2607,9 @@ export function RegistrationForm({
             <div className="space-y-3">
               <Alert>
                 <IconCheck className="h-4 w-4" />
-                <AlertTitle>Dossier prêt à être enregistré</AlertTitle>
+                <AlertTitle>{tReg("readyTitle")}</AlertTitle>
                 <AlertDescription>
-                  Vérifiez les informations importantes avant la création
-                  définitive.
+                  {tReg("readyDesc")}
                 </AlertDescription>
               </Alert>
               <div className="grid gap-2.5 md:grid-cols-2">
@@ -2607,43 +2620,52 @@ export function RegistrationForm({
                     studentMode === "new"
                       ? [
                           `${student.name} ${student.postnom} ${student.prenom}`,
-                          `Catégorie : ${student.category}`,
+                          tReg("summary.category", { value: student.category }),
                           ...(hidesProvenance
                             ? []
                             : [
                                 student.provenanceEcole
-                                  ? `Provenance : ${student.provenanceEcole}`
-                                  : "Sans école de provenance",
+                                  ? tReg("summary.provenance", { value: student.provenanceEcole })
+                                  : tReg("summary.noProvenance"),
                               ]),
-                          photoPreview ? "Photo : ajoutée" : "Photo : non ajoutée",
+                          photoPreview ? tReg("summary.photoAdded") : tReg("summary.photoMissing"),
                         ]
                       : [
                           `${userOf(selectedStudent)?.name ?? ""} ${userOf(selectedStudent)?.postnom ?? ""} ${userOf(selectedStudent)?.prenom ?? ""}`.trim() ||
-                            `${peopleLabels.student} existant`,
-                          `Situation : ${historyLabels[historyOutcome]}`,
+                            tReg("summary.existingStudent", { student: peopleLabels.student }),
+                          tReg("summary.situation", { value: historyLabels[historyOutcome] }),
                           selectedStudent?.classEnrollment?.[0]?.classe
                             ?.nameClasse
-                            ? `Dernière ${classLabelLower} : ${selectedStudent.classEnrollment[0].classe.nameClasse}`
-                            : "Aucune inscription précédente",
+                            ? tReg("summary.lastClassSimple", { classLabel, name: selectedStudent.classEnrollment[0].classe.nameClasse })
+                            : tReg("noPreviousEnrollment"),
                         ]
                   }
                 />
                 {!hidesParent ? (
                   <Summary
-                    title="Parent / tuteur"
+                    title={tReg("summary.parentTutor")}
                     tone="parent"
                     lines={
                       parentMode === "new"
                         ? [
                             `${parent.name} ${parent.postnom} ${parent.prenom}`,
                             parent.telephone.trim()
-                              ? `Téléphone : ${parent.telephone}`
-                              : "Sans téléphone",
-                            `Email : ${resolvedParentEmail}${
-                              parent.email.trim() ? "" : " (auto)"
-                            }`,
+                              ? tReg("summary.phone", {
+                                  value: parent.telephone,
+                                })
+                              : tReg("summary.noPhone"),
+                            tReg("summary.email", {
+                              value: resolvedParentEmail,
+                            }) +
+                              (parent.email.trim()
+                                ? ""
+                                : tReg("summary.emailAuto")),
                             ...(parent.profession.trim()
-                              ? [`Fonction : ${parent.profession.trim()}`]
+                              ? [
+                                  tReg("summary.profession", {
+                                    value: parent.profession.trim(),
+                                  }),
+                                ]
                               : []),
                             parent.discountPercentage
                               ? (() => {
@@ -2656,36 +2678,51 @@ export function RegistrationForm({
                                     }) =>
                                       type.id === parent.discountTypeFraisId,
                                   )?.nameType;
-                                  return `Remise : ${parent.discountPercentage}%${
-                                    typeName ? ` sur ${typeName}` : ""
-                                  }`;
+                                  return (
+                                    tReg("summary.discount", {
+                                      pct: parent.discountPercentage,
+                                    }) +
+                                    (typeName
+                                      ? tReg("summary.discountOn", {
+                                          type: typeName,
+                                        })
+                                      : "")
+                                  );
                                 })()
-                              : "Sans remise",
+                              : tReg("summary.noDiscount"),
                           ]
                         : [
                             `${userOf(selectedParent)?.name ?? ""} ${userOf(selectedParent)?.postnom ?? ""} ${userOf(selectedParent)?.prenom ?? ""}`.trim() ||
-                              "Parent existant",
+                              tReg("summary.existingParent"),
                             userOf(selectedParent)?.telephone
-                              ? `Téléphone : ${userOf(selectedParent)?.telephone}`
-                              : "Sans téléphone",
+                              ? tReg("summary.phone", {
+                                  value: userOf(selectedParent)?.telephone,
+                                })
+                              : tReg("summary.noPhone"),
                             userOf(selectedParent)?.email
-                              ? `Email : ${userOf(selectedParent)?.email}`
-                              : "Sans email",
+                              ? tReg("summary.email", {
+                                  value: userOf(selectedParent)?.email,
+                                })
+                              : tReg("summary.noEmail"),
                             ...(selectedParent?.profession
-                              ? [`Fonction : ${selectedParent.profession}`]
+                              ? [
+                                  tReg("summary.profession", {
+                                    value: selectedParent.profession,
+                                  }),
+                                ]
                               : []),
                           ]
                     }
                   />
                 ) : null}
                 <Summary
-                  title="Scolarité"
+                  title={tReg("summary.schooling")}
                   tone="school"
                   lines={[
                     options.schoolYears.find(
                       (item: any) => item.id === schoolYearId,
-                    )?.nameYear ?? "Année non choisie",
-                    `Niveau demandé : ${level}`,
+                    )?.nameYear ?? tReg("summary.yearNotChosen"),
+                    tReg("summary.requestedLevel", { level }),
                     ...(options.allowsOption
                       ? [
                           ...(secondaryHumanitesLevel &&
@@ -2693,36 +2730,40 @@ export function RegistrationForm({
                             (item: { id: string }) => item.id === sectionId,
                           )?.nameSection
                             ? [
-                                `Section : ${
-                                  sectionsForLevel.find(
+                                tReg("summary.section", {
+                                  value: sectionsForLevel.find(
                                     (item: { id: string }) =>
                                       item.id === sectionId,
-                                  )?.nameSection
-                                }`,
+                                  )?.nameSection,
+                                }),
                               ]
                             : []),
                           options.options.find(
                             (item: any) => item.id === optionId,
                           )?.nameOption
-                            ? `Option : ${options.options.find((item: any) => item.id === optionId)?.nameOption}`
-                            : "Sans option",
+                            ? tReg("summary.option", {
+                                value: options.options.find(
+                                  (item: any) => item.id === optionId,
+                                )?.nameOption,
+                              })
+                            : tReg("summary.noOption"),
                         ]
                       : []),
                   ]}
                 />
                 <Summary
-                  title="Affectation"
+                  title={tReg("summary.assignment")}
                   tone="assign"
                   lines={[
                     predictedClass
-                      ? `Parallèle : ${predictedClass.nameClasse}`
-                      : "Aucune place disponible",
+                      ? tReg("summary.parallel", { name: predictedClass.nameClasse })
+                      : tReg("summary.noSeat"),
                     predictedClass
-                      ? `Places : ${predictedClass.occupied + 1} / ${predictedClass.capacity}`
+                      ? tReg("summary.seats", { occupied: predictedClass.occupied + 1, capacity: predictedClass.capacity })
                       : classesNeedingCapacity
-                        ? `Définissez d'abord la capacité de l'${classLabelLower}`
-                        : "Créez une parallèle avant de confirmer",
-                    "Inscription protégée contre les doublons",
+                        ? tReg("summary.defineCapacityFirst", { classLabel })
+                        : tReg("summary.createParallelFirst"),
+                    tReg("summary.duplicateProtected"),
                   ]}
                 />
               </div>
@@ -2736,19 +2777,19 @@ export function RegistrationForm({
             onClick={goPrevious}
           >
             <IconArrowLeft className="mr-2 h-4 w-4" />
-            Précédent
+            {tReg("actions.previous")}
           </Button>
           {step < lastStepIndex ? (
             <Button
               disabled={Boolean(feeDebtMessage) || loading}
               onClick={goNext}
             >
-              Continuer
+              {tReg("actions.continue")}
               <IconArrowRight className="ml-2 h-4 w-4" />
             </Button>
           ) : (
             <Button disabled={loading} onClick={submit}>
-              {loading ? "Enregistrement…" : "Confirmer l'inscription"}
+              {loading ? tReg("actions.saving") : tReg("actions.confirm")}
             </Button>
           )}
         </div>
@@ -2756,7 +2797,7 @@ export function RegistrationForm({
       <CameraCaptureDialog
         open={cameraOpen}
         onOpenChange={setCameraOpen}
-        title="Capture photo"
+        title={tReg("cameraTitle")}
         onCapture={(file) => {
           applyStudentPhoto(file);
         }}
