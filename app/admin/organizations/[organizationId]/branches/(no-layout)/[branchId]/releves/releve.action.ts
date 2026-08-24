@@ -17,6 +17,7 @@ import {
   findDuplicateIssuedDocument,
 } from "@/lib/issued-document-server";
 import { prisma } from "@/lib/prisma";
+import { branchDocumentName } from "@/lib/branch-document-name";
 import { getCurrentBranch } from "../student/student.action";
 
 function revalidateUniversityPages(organizationId: string, branchId: string) {
@@ -172,6 +173,7 @@ export async function getUniversityRelevesAction() {
       where: { id: branchId, organizationId },
       select: {
         name: true,
+        description: true,
         organization: { select: { name: true } },
         schoolYear: {
           where: { isCurrentYear: true },
@@ -185,7 +187,7 @@ export async function getUniversityRelevesAction() {
   return {
     ok: true as const,
     canManage: canIssueDocuments,
-    branchName: branch?.name ?? "",
+    branchName: branchDocumentName(branch ?? { name: "" }),
     organizationName: branch?.organization.name ?? "",
     schoolYearName: branch?.schoolYear[0]?.nameYear ?? "",
     learners,
@@ -232,7 +234,11 @@ export async function issueReleveNotesAction(input: {
   const [branch, releveNumber] = await Promise.all([
     prisma.branch.findUnique({
       where: { id: branchId },
-      select: { name: true, organization: { select: { name: true } } },
+      select: {
+        name: true,
+        description: true,
+        organization: { select: { name: true } },
+      },
     }),
     generateReleveNumber(branchId),
   ]);
@@ -291,7 +297,7 @@ export async function issueReleveNotesAction(input: {
       title: document.title,
       issuedAt: document.issuedAt.toISOString(),
       organizationName: branch.organization.name,
-      branchName: branch.name,
+      branchName: branchDocumentName(branch),
       releveData,
     },
   };
@@ -348,6 +354,7 @@ export async function getUniversityAttestationsAction() {
       where: { id: branchId, organizationId },
       select: {
         name: true,
+        description: true,
         organization: { select: { name: true } },
         schoolYear: {
           where: { isCurrentYear: true },
@@ -361,7 +368,7 @@ export async function getUniversityAttestationsAction() {
   return {
     ok: true as const,
     canManage: canIssueDocuments,
-    branchName: branch?.name ?? "",
+    branchName: branchDocumentName(branch ?? { name: "" }),
     organizationName: branch?.organization.name ?? "",
     schoolYearName: branch?.schoolYear[0]?.nameYear ?? "",
     learners: learners.filter((learner) => learner.hasActiveEnrollment),
@@ -465,7 +472,11 @@ export async function issueUniversityAttestationAction(input: {
 
   const branch = await prisma.branch.findUnique({
     where: { id: branchId },
-    select: { name: true, organization: { select: { name: true } } },
+    select: {
+      name: true,
+      description: true,
+      organization: { select: { name: true } },
+    },
   });
 
   const document = await prisma.issuedDocument.create({
@@ -496,7 +507,7 @@ export async function issueUniversityAttestationAction(input: {
       issuedAt: document.issuedAt.toISOString(),
       kind: input.kind,
       organizationName: branch?.organization.name ?? "",
-      branchName: branch?.name ?? "",
+      branchName: branchDocumentName(branch ?? { name: "" }),
       schoolYearName: enrollment.schoolYear.nameYear,
       studentName,
       username: user?.username ?? "",

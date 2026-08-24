@@ -14,8 +14,6 @@ import {
 import React from "react";
 import { IClasse } from "@/src/interfaces/Classe";
 import { DataTableColumnHeader } from "@/components/data-table-column-header";
-import { useSession } from "@/lib/auth-client";
-import { canManageOrganization } from "@/lib/auth/session-roles";
 import { openOverlayAfterMenuDismiss } from "@/lib/radix-portal-dismiss";
 
 export type ClasseTableActions = {
@@ -26,6 +24,7 @@ export type ClasseTableActions = {
 export function getClasseColumns(
   showOption = true,
   actions?: ClasseTableActions,
+  canManage = false,
 ): ColumnDef<IClasse>[] {
   const columns: ColumnDef<IClasse>[] = [
     {
@@ -125,54 +124,49 @@ export function getClasseColumns(
     },
     {
       id: "actions",
-      cell: function Cell({ row }) {
-        const { data: session } = useSession();
-        const canManageClasse = canManageOrganization(session);
-
-        return (
-          <DropdownMenu modal={false}>
-            <DropdownMenuTrigger asChild>
-              <Button
-                type="button"
-                aria-label="Ouvrir le menu"
-                variant="ghost"
-                size="icon"
-                className="size-8"
-              >
-                <IconDots className="size-4" aria-hidden="true" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-40">
-              <DropdownMenuItem
-                disabled={!canManageClasse || !actions}
-                onSelect={(event) => {
-                  event.preventDefault();
-                  if (!actions) return;
-                  openOverlayAfterMenuDismiss(() =>
-                    actions.onEdit(row.original),
-                  );
-                }}
-              >
-                Modifier
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                disabled={!canManageClasse || !actions}
-                className="text-destructive focus:bg-destructive/10 focus:text-destructive"
-                onSelect={(event) => {
-                  event.preventDefault();
-                  if (!actions) return;
-                  openOverlayAfterMenuDismiss(() =>
-                    actions.onArchive(row.original),
-                  );
-                }}
-              >
-                Archiver
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        );
-      },
+      cell: ({ row }) => (
+        <DropdownMenu modal={false}>
+          <DropdownMenuTrigger asChild>
+            <Button
+              type="button"
+              aria-label="Ouvrir le menu"
+              variant="ghost"
+              size="icon"
+              className="size-8"
+            >
+              <IconDots className="size-4" aria-hidden="true" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-40">
+            <DropdownMenuItem
+              disabled={!canManage || !actions}
+              onSelect={(event) => {
+                event.preventDefault();
+                if (!actions) return;
+                openOverlayAfterMenuDismiss(() =>
+                  actions.onEdit(row.original),
+                );
+              }}
+            >
+              Modifier
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              disabled={!canManage || !actions}
+              className="text-destructive focus:bg-destructive/10 focus:text-destructive"
+              onSelect={(event) => {
+                event.preventDefault();
+                if (!actions) return;
+                openOverlayAfterMenuDismiss(() =>
+                  actions.onArchive(row.original),
+                );
+              }}
+            >
+              Archiver
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      ),
     },
   );
 

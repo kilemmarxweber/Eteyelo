@@ -23,6 +23,7 @@ import {
   findDuplicateIssuedDocument,
 } from "@/lib/issued-document-server";
 import { importStudentSchema } from "@/lib/schemas/extended-branch";
+import { branchDocumentName } from "@/lib/branch-document-name";
 import { prisma } from "@/lib/prisma";
 import { getCurrentBranch } from "../student/student.action";
 
@@ -327,6 +328,7 @@ export async function getAtelierAttestationsAction() {
       where: { id: branchId, organizationId },
       select: {
         name: true,
+        description: true,
         organization: { select: { name: true } },
         schoolYear: {
           where: { isCurrentYear: true },
@@ -340,7 +342,7 @@ export async function getAtelierAttestationsAction() {
   return {
     ok: true as const,
     canManage: canIssueDocuments,
-    branchName: branch?.name ?? "",
+    branchName: branchDocumentName(branch ?? { name: "" }),
     organizationName: branch?.organization.name ?? "",
     schoolYearName: branch?.schoolYear[0]?.nameYear ?? "",
     participants: links.map((link) => {
@@ -517,6 +519,7 @@ export async function getCentreBrevetsAction() {
       where: { id: branchId, organizationId },
       select: {
         name: true,
+        description: true,
         code: true,
         organization: { select: { name: true } },
         schoolYear: {
@@ -620,7 +623,7 @@ export async function getCentreBrevetsAction() {
   return {
     ok: true as const,
     canManage: canIssueDocuments,
-    branchName: branch?.name ?? "",
+    branchName: branchDocumentName(branch ?? { name: "" }),
     branchCode: branch?.code ?? "",
     organizationName: branch?.organization.name ?? "",
     schoolYearName: branch?.schoolYear[0]?.nameYear ?? "",
@@ -726,6 +729,7 @@ export async function issueCentreBrevetAction(input: {
       where: { id: branchId },
       select: {
         name: true,
+        description: true,
         code: true,
         ville: true,
         organization: { select: { name: true } },
@@ -812,7 +816,7 @@ export async function issueCentreBrevetAction(input: {
       sessionName: classe.nameClasse,
       schoolYearName: enrollment.schoolYear.nameYear,
       organizationName: branch.organization.name,
-      branchName: branch.name,
+      branchName: branchDocumentName(branch),
       branchCode: branch.code,
       branchCity,
       placeOfBirth,

@@ -30,7 +30,8 @@ export function buildReleveNotesPdfDoc(input: ReleveNotesPdfInput) {
 
   doc.setFontSize(11);
   doc.setFont("helvetica", "normal");
-  doc.text(input.branchName, pageWidth / 2, 25, { align: "center" });
+  const branchLines = doc.splitTextToSize(input.branchName, 180) as string[];
+  doc.text(branchLines, pageWidth / 2, 25, { align: "center" });
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(16);

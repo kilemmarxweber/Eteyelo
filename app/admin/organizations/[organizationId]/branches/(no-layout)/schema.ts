@@ -14,7 +14,13 @@ export const createBranchFormSchema = z.object({
     .string()
     .trim()
     .min(2, "Le nom doit contenir au moins 2 caractères.")
-    .max(120, "Le nom est trop long."),
+    .max(180, "Le nom est trop long."),
+  description: z
+    .string()
+    .trim()
+    .max(2000, "La description ne doit pas dépasser 2000 caractères.")
+    .optional()
+    .or(z.literal("")),
   code: z
     .string()
     .trim()

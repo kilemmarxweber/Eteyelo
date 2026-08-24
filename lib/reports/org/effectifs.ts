@@ -1,3 +1,4 @@
+import { branchDocumentName } from "@/lib/branch-document-name";
 import { prisma } from "@/lib/prisma";
 import { buildBranchIdFilter, type BranchScopeInput } from "./scope";
 
@@ -119,7 +120,7 @@ export async function getEffectifsReport(params: {
           branchMember: {
             select: {
               branchId: true,
-              branch: { select: { name: true } },
+              branch: { select: { name: true, description: true } },
               member: {
                 select: {
                   isArchived: true,
@@ -144,7 +145,7 @@ export async function getEffectifsReport(params: {
           branchMember: {
             select: {
               branchId: true,
-              branch: { select: { name: true } },
+              branch: { select: { name: true, description: true } },
               member: {
                 select: {
                   isArchived: true,
@@ -162,7 +163,7 @@ export async function getEffectifsReport(params: {
           branchMember: {
             select: {
               branchId: true,
-              branch: { select: { name: true } },
+              branch: { select: { name: true, description: true } },
               member: {
                 select: {
                   isArchived: true,
@@ -180,7 +181,7 @@ export async function getEffectifsReport(params: {
           branchMember: {
             select: {
               branchId: true,
-              branch: { select: { name: true } },
+              branch: { select: { name: true, description: true } },
               member: {
                 select: {
                   isArchived: true,
@@ -201,12 +202,14 @@ export async function getEffectifsReport(params: {
           params.scope.scope === "branch" && params.scope.branchId
             ? { id: params.scope.branchId }
             : { organizationId: params.scope.organizationId, isActive: true },
-        select: { id: true, name: true },
+        select: { id: true, name: true, description: true },
         orderBy: { name: "asc" },
       }),
     ]);
 
-  const branchNameById = new Map(branches.map((b) => [b.id, b.name]));
+  const branchNameById = new Map(
+    branches.map((b) => [b.id, branchDocumentName(b)]),
+  );
   const classMap = new Map<string, ClassCount>();
   for (const c of classes) {
     classMap.set(c.id, {
@@ -256,7 +259,7 @@ export async function getEffectifsReport(params: {
       sexe: sexeLabel(user.sexe),
       statut: isActive ? "Actif" : "Inactif",
       branche:
-        s.branchMember.branch.name ||
+        branchDocumentName(s.branchMember.branch) ||
         branchNameById.get(s.branchMember.branchId) ||
         "—",
       telephone: user.telephone?.trim() || "—",
@@ -309,7 +312,7 @@ export async function getEffectifsReport(params: {
         sexe: sexeLabel(user.sexe),
         statut: archived ? "Inactif" : "Actif",
         branche:
-          row.branchMember.branch.name ||
+          branchDocumentName(row.branchMember.branch) ||
           branchNameById.get(row.branchMember.branchId) ||
           "—",
         telephone: user.telephone?.trim() || "—",
@@ -347,7 +350,7 @@ export async function getEffectifsReport(params: {
     ).length;
     return {
       branchId: b.id,
-      branchName: b.name,
+      branchName: branchDocumentName(b),
       students: studentCount,
       parents: parentCount,
       teachers: teacherCount,

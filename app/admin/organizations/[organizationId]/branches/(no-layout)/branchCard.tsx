@@ -53,10 +53,10 @@ export function BranchCard({
   };
 
   return (
-    <div className="relative">
+    <div className="relative min-w-0 w-full">
       <Link
         href={enterHref}
-        className={`group block cursor-pointer ${
+        className={`group block h-full cursor-pointer ${
           pending ? "pointer-events-none opacity-50" : ""
         }`}
       >
@@ -64,7 +64,7 @@ export function BranchCard({
       </Link>
 
       <div
-        className="absolute top-1/2 right-2 z-20 flex -translate-y-1/2 items-center gap-1"
+        className="absolute top-2 right-2 z-20 flex items-center gap-1"
         onClick={(e) => {
           e.preventDefault();
           e.stopPropagation();

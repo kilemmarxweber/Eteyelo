@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { toast } from "sonner";
+import { useSession } from "@/lib/auth-client";
+import { canPermanentlyDeleteInformation } from "@/lib/auth/session-roles";
 
 import {
   AlertDialog,
@@ -40,6 +41,8 @@ export function BooksShelf({
   onChanged,
 }: BooksShelfProps) {
   const isManage = mode === "manage";
+  const { data: session } = useSession();
+  const canHardDelete = canPermanentlyDeleteInformation(session);
   const [editBook, setEditBook] = useState<LibraryBookListItem | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -97,7 +100,9 @@ export function BooksShelf({
                     busy: busyId === book.id,
                     onEdit: () => setEditBook(book),
                     onToggleActive: () => void toggleActive(book),
-                    onDelete: () => setDeleteId(book.id),
+                    onDelete: canHardDelete
+                      ? () => setDeleteId(book.id)
+                      : undefined,
                   }
                 : undefined
             }

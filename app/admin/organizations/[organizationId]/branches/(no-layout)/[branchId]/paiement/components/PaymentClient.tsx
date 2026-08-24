@@ -100,7 +100,10 @@ export default function PaymentClient({
               <UnpaidReportLazy refreshKey={refreshKey} />
             </div>
             <div className="animate-fade-up animate-delay-225 overflow-hidden rounded-2xl border border-border/70 bg-card p-3 shadow-sm ring-1 ring-black/[0.02] sm:p-5">
-              <PaiementsTableLazy refreshKey={refreshKey} />
+              <PaiementsTableLazy
+                refreshKey={refreshKey}
+                onChanged={() => setRefreshKey((k) => k + 1)}
+              />
             </div>
           </div>
         ) : (
@@ -189,7 +192,13 @@ function UnpaidReportLazy({ refreshKey }: { refreshKey: number }) {
   return <Comp refreshKey={refreshKey} />;
 }
 
-function PaiementsTableLazy({ refreshKey }: { refreshKey: number }) {
+function PaiementsTableLazy({
+  refreshKey,
+  onChanged,
+}: {
+  refreshKey: number;
+  onChanged?: () => void;
+}) {
   const [Comp, setComp] = useState<
     null | typeof import("./PaiementsTable").default
   >(null);
@@ -197,5 +206,5 @@ function PaiementsTableLazy({ refreshKey }: { refreshKey: number }) {
     void import("./PaiementsTable").then((m) => setComp(() => m.default));
   }, []);
   if (!Comp) return null;
-  return <Comp key={refreshKey} />;
+  return <Comp key={refreshKey} onChanged={onChanged} />;
 }

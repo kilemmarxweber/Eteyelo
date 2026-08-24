@@ -7,6 +7,8 @@ import { revalidatePath } from "next/cache";
 import {
   canAccessTitulaireFichesArea,
   canManageOrganization,
+  canPermanentlyDeleteInformation,
+  PERMANENT_DELETE_DENIED_MESSAGE,
 } from "@/lib/auth/session-roles";
 import { assertTitulaireClassAccess } from "@/lib/auth/data-scope";
 
@@ -17,8 +19,8 @@ export async function deleteFicheCentrale(params: {
   anneeId: string;
 }) {
   const { organizationId, branchId, session } = await requireBranchContext();
-  if (!canManageOrganization(session)) {
-    return { success: false, message: "Action non autorisée." };
+  if (!canPermanentlyDeleteInformation(session)) {
+    return { success: false, message: PERMANENT_DELETE_DENIED_MESSAGE };
   }
 
   const where = {

@@ -107,8 +107,8 @@ export function InviteMemberControls({
       <div className="flex flex-wrap gap-2">
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
-            <Button size="sm" className="rounded-full">
-              <MailPlus className="mr-1.5 size-3.5" />
+            <Button variant="outline" className="h-11 rounded-xl">
+              <MailPlus className="size-4" />
               Inviter un membre
             </Button>
           </DialogTrigger>
@@ -164,7 +164,7 @@ export function InviteMemberControls({
       </div>
 
       {invitations.length > 0 ? (
-        <section className="rounded-2xl border bg-card p-4 shadow-sm">
+        <section className="rounded-2xl border border-border bg-card p-4 shadow-sm">
           <h2 className="text-base font-semibold">Invitations en attente</h2>
           <ul className="mt-3 divide-y">
             {invitations.map((invitation) => (

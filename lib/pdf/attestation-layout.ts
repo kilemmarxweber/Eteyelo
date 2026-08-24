@@ -33,7 +33,8 @@ export function buildAttestationPdfDoc(input: AttestationPdfInput) {
 
   doc.setFontSize(11);
   doc.setFont("helvetica", "normal");
-  doc.text(input.branchName, pageWidth / 2, 31, { align: "center" });
+  const branchLines = doc.splitTextToSize(input.branchName, 170) as string[];
+  doc.text(branchLines, pageWidth / 2, 31, { align: "center" });
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(18);

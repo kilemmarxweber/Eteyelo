@@ -7,6 +7,7 @@ import {
 import { prisma } from "@/lib/prisma";
 import {
   getOrganizationAccessRoleLabel,
+  canArchiveOrganizationAsMember,
   isOrganizationOwnerMember,
 } from "@/lib/auth/role-labels";
 
@@ -44,14 +45,15 @@ export function canDeleteOrganization(
 }
 
 /**
- * Archivage : owner plateforme ou propriétaire de l'organisation.
+ * Archivage : owner plateforme, propriétaire org ou gestionnaire.
+ * Le gestionnaire ne peut pas supprimer, seulement archiver / modifier.
  */
 export function canArchiveOrganization(
   appRole: string | null | undefined,
   orgMemberRole?: string | null,
 ): boolean {
   if (isPlatformOwnerRole(appRole)) return true;
-  return isOrganizationOwnerMember(orgMemberRole);
+  return canArchiveOrganizationAsMember(orgMemberRole);
 }
 
 /**
@@ -115,7 +117,7 @@ export function canArchiveSpecificOrganization(
   if (!membership || membership.organizationId !== organizationId) {
     return false;
   }
-  return isOrganizationOwnerMember(membership.role);
+  return canArchiveOrganizationAsMember(membership.role);
 }
 
 /** Le gestionnaire applicatif (admin) peut lire/modifier son organisation uniquement. */

@@ -187,10 +187,12 @@ export function renderTermPeriodBulletins(
     doc.text(copy.ministry, pageWidth / 2, y, { align: "center" });
     y += 7;
     doc.setFontSize(12);
-    doc.text(params.branchContext.branchName, pageWidth / 2, y, {
-      align: "center",
-    });
-    y += 5;
+    const schoolLines = doc.splitTextToSize(
+      params.branchContext.branchName,
+      pageWidth - margin * 2,
+    ) as string[];
+    doc.text(schoolLines, pageWidth / 2, y, { align: "center" });
+    y += 5 + (schoolLines.length - 1) * 5;
     doc.setFont("helvetica", "normal");
     doc.setFontSize(8);
     const location = [params.branchContext.city, params.branchContext.province]

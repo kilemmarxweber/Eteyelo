@@ -4,6 +4,7 @@ import {
 } from "@/lib/academic-structure";
 import { usesBulletinForBranch } from "@/lib/branch-capabilities";
 import { KLAMBOCORE_DEFAULT_IMAGE_PATH } from "@/lib/brand/klambocore-image";
+import { branchDocumentName } from "@/lib/branch-document-name";
 import {
   normalizeEducationSystem,
   usesTermPeriodCalendar,
@@ -53,6 +54,7 @@ export type BulletinBranchContext = {
 
 export type BulletinBranchRecord = {
   name: string;
+  description?: string | null;
   code?: string | null;
   adresse?: string | null;
   province?: string | null;
@@ -123,7 +125,7 @@ export function buildBulletinBranchContext(
 ): BulletinBranchContext {
   return {
     organizationName: branch.organization.name.trim(),
-    branchName: branch.name.trim(),
+    branchName: branchDocumentName(branch),
     branchCode: branch.code?.trim() ?? "",
     address: branch.adresse?.trim() ?? "",
     province: branch.province?.trim() ?? "",

@@ -388,14 +388,20 @@ export function RegistrationForm({
     latestDraftRef.current = null;
   }
 
-  function discardAdminDraft() {
-    if (!branchId) return;
+  function stopAndClearAdminDraft() {
     draftReadyRef.current = false;
     if (draftTimerRef.current) {
       clearTimeout(draftTimerRef.current);
       draftTimerRef.current = null;
     }
-    clearAdminRegistrationDraft(branchId);
+    latestDraftRef.current = null;
+    if (branchId) clearAdminRegistrationDraft(branchId);
+    setDraftSavedAt(null);
+  }
+
+  function discardAdminDraft() {
+    if (!branchId) return;
+    stopAndClearAdminDraft();
     resetAdminRegistrationForm();
     markRegistrationDraftCleared();
     window.location.reload();
@@ -1307,8 +1313,7 @@ export function RegistrationForm({
       flushAdminDraft();
       return toast.error(error.message);
     }
-    if (branchId) clearAdminRegistrationDraft(branchId);
-    setDraftSavedAt(null);
+    stopAndClearAdminDraft();
     toast.success(`Inscription confirmée dans ${result.classeName}`);
 
     const childUser =

@@ -1,3 +1,4 @@
+import { branchDocumentName } from "@/lib/branch-document-name";
 import { prisma } from "@/lib/prisma";
 import { buildBranchIdFilter, monthKey, monthLabelFr, pct, type BranchScopeInput } from "./scope";
 
@@ -53,7 +54,7 @@ export async function getHiringReport(params: {
         params.scope.scope === "branch" && params.scope.branchId
           ? { id: params.scope.branchId }
           : { organizationId: params.scope.organizationId, isActive: true },
-      select: { id: true, name: true },
+      select: { id: true, name: true, description: true },
       orderBy: { name: "asc" },
     }),
   ]);
@@ -95,7 +96,7 @@ export async function getHiringReport(params: {
     const rows = apps.filter((a) => a.branchId === b.id);
     return {
       branchId: b.id,
-      branchName: b.name,
+      branchName: branchDocumentName(b),
       total: rows.length,
       hired: rows.filter((r) => r.status === "HIRED").length,
       rejected: rows.filter((r) => r.status === "REJECTED").length,

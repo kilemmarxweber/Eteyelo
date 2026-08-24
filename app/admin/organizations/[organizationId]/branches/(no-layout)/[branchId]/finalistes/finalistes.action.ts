@@ -11,6 +11,7 @@ import {
   isPrimaryFinalistClass,
   parseExamExportMeta,
 } from "@/lib/exam-export-meta";
+import { branchDocumentName } from "@/lib/branch-document-name";
 import { prisma } from "@/lib/prisma";
 import { action } from "@/lib/zsa";
 import type { Prisma } from "@/prisma/generated/prisma/client";
@@ -61,6 +62,7 @@ export const getFinalistesWorkspaceAction = action.handler(async () => {
       where: { id: branchId, organizationId },
       select: {
         name: true,
+        description: true,
         code: true,
         province: true,
         ville: true,
@@ -97,7 +99,7 @@ export const getFinalistesWorkspaceAction = action.handler(async () => {
 
   const finalistClasses = classes.filter(isPrimaryFinalistClass);
   const meta = parseExamExportMeta(branch.examExportMeta);
-  if (!meta.etablissement) meta.etablissement = branch.name;
+  if (!meta.etablissement) meta.etablissement = branchDocumentName(branch);
   if (!meta.etablissementCode && branch.code) {
     meta.etablissementCode = branch.code;
   }
@@ -106,7 +108,7 @@ export const getFinalistesWorkspaceAction = action.handler(async () => {
 
   return {
     canManage,
-    branchName: branch.name,
+    branchName: branchDocumentName(branch),
     schoolYears,
     classes: finalistClasses,
     meta: { ...emptyExamExportMeta(), ...meta },

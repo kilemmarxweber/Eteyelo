@@ -263,6 +263,7 @@ export const organizationRoleStatements: Record<string, StatementShape> = {
     platformEscalation: ["read"],
   },
   [ORG_ROLE.GESTIONNAIRE]: {
+    // CRU : créer / lire / modifier / archiver. Jamais de suppression physique.
     ...withActions(CRU_ACTIONS),
     organizationSupport: ["create", "read", "update"],
     platformEscalation: ["read"],

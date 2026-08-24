@@ -23,7 +23,6 @@ import { useParams } from "next/navigation";
 import { NotFoundView } from "@/components/not-found-view";
 import { useSession } from "@/lib/auth-client";
 import { canAccessFinanceArea } from "@/lib/auth/session-roles";
-import { BranchLoadingFallback as Loading } from "@/components/branch-loading-fallback";
 
 export default function RootLayout({
   children,
@@ -77,11 +76,7 @@ function FraisLayoutContent({ children }: { children: React.ReactNode }) {
 
   const hasClasse = !!classeId;
 
-  if (!sessionReady) {
-    return <Loading />;
-  }
-
-  if (!canAccessFinanceArea(session)) {
+  if (sessionReady && !canAccessFinanceArea(session)) {
     return <NotFoundView />;
   }
 

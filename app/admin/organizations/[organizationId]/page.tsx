@@ -8,6 +8,8 @@ import { getUserOrganizationMembership } from "@/lib/auth/org-membership";
 import { enforceOrganizationManagerPage } from "@/lib/auth/require-organization-permission";
 import {
   BRANCH_LOGIN_ORG_ROLES,
+  buildGestionnaireLandingPath,
+  isGestionnaireBranchLandingRole,
   resolveActiveBranchId,
 } from "@/lib/auth/user-branch-access";
 import { ORG_ROLE } from "@/lib/permissions";
@@ -59,7 +61,23 @@ export default async function AdminOrganizationHomePage({
     }
   }
 
-  await enforceOrganizationManagerPage(organizationId);
+  const context = await enforceOrganizationManagerPage(organizationId);
+
+  // Gestionnaire : entre directement dans la (les) branche(s) qu’il gère.
+  if (
+    isGestionnaireBranchLandingRole(
+      context.membership?.role ?? membership?.role,
+    ) &&
+    session?.user?.id
+  ) {
+    const branchId = await resolveActiveBranchId(
+      session.user.id,
+      organizationId,
+      session.session.activeBranchId,
+      context.membership?.role ?? membership?.role,
+    );
+    redirect(buildGestionnaireLandingPath(organizationId, branchId));
+  }
 
   const access = await getOrganizationAccessAction(organizationId);
   if (!access) {

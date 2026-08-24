@@ -14,12 +14,14 @@ import {
   canAccessTeachingArea,
   canManageHrDirectory,
   canManageOrganization,
+  canPermanentlyDeleteInformation,
   canReadScheduleArea,
   canSeeCandidatureNotifications,
   canSeeInscriptionNotifications,
   canReviewAbsenceJustifications,
   isSchoolLeadershipRole,
 } from "../lib/auth/session-roles";
+import { canArchiveOrganizationAsMember } from "../lib/auth/role-labels";
 import { APP_ROLE, ORG_ROLE } from "../lib/permissions";
 
 function test(name: string, assertion: () => void) {
@@ -71,6 +73,22 @@ test("canManageOrganization inclut leadership et gestionnaire", () => {
   assert.equal(canManageOrganization(sessionPrefet), true);
   assert.equal(canManageOrganization(sessionGestionnaire), true);
   assert.equal(canManageOrganization(sessionTeacher), false);
+});
+
+test("canPermanentlyDeleteInformation refuse le gestionnaire, autorise owner et chef etablissement", () => {
+  assert.equal(canPermanentlyDeleteInformation(sessionGestionnaire), false);
+  assert.equal(
+    canPermanentlyDeleteInformation(sessionWithOrgRole(ORG_ROLE.OWNER)),
+    true,
+  );
+  assert.equal(canPermanentlyDeleteInformation(sessionDirecteur), true);
+  assert.equal(
+    canPermanentlyDeleteInformation({ user: { role: APP_ROLE.OWNER } }),
+    true,
+  );
+  assert.equal(canArchiveOrganizationAsMember(ORG_ROLE.GESTIONNAIRE), true);
+  assert.equal(canArchiveOrganizationAsMember(ORG_ROLE.OWNER), true);
+  assert.equal(canArchiveOrganizationAsMember(ORG_ROLE.PREFET), false);
 });
 
 test("isSchoolLeadershipRole = prefet + directeur + superviseur", () => {

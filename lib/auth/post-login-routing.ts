@@ -2,6 +2,8 @@ import { APP_ROLE, ORG_ROLE } from "@/lib/permissions";
 import {
   BRANCH_LOGIN_ORG_ROLES,
   buildBranchPickerPath,
+  buildGestionnaireLandingPath,
+  isGestionnaireBranchLandingRole,
 } from "@/lib/auth/user-branch-access";
 
 /**
@@ -16,10 +18,7 @@ const ECODIM_ORG_ROLES = new Set<string>([
   ORG_ROLE.SUPERVISEUR,
 ]);
 
-const ORG_HOME_ROLES = new Set<string>([
-  ORG_ROLE.OWNER,
-  ORG_ROLE.GESTIONNAIRE,
-]);
+const ORG_HOME_ROLES = new Set<string>([ORG_ROLE.OWNER]);
 
 /** Agents support établissement → espace tickets / escalades. */
 const SUPPORT_ORG_ROLES = new Set<string>([ORG_ROLE.SUPPORT]);
@@ -80,6 +79,16 @@ export function resolveMembershipPostLoginPath(input: {
     return base;
   }
 
+  // Gestionnaire → établissement(s) qu’il gère (1 branche ou liste).
+  if (isGestionnaireBranchLandingRole(input.membershipRole)) {
+    return buildGestionnaireLandingPath(input.organizationId, input.branchId);
+  }
+
+  // Propriétaire organisation : accueil org (pas le picker ni une branche).
+  if (roles.some((role) => ORG_HOME_ROLES.has(role))) {
+    return base;
+  }
+
   if (input.branchId) {
     return `${base}/branches/${input.branchId}`;
   }
@@ -94,10 +103,6 @@ export function resolveMembershipPostLoginPath(input: {
 
   if (roles.some((role) => SUPPORT_ORG_ROLES.has(role))) {
     return `${base}/support`;
-  }
-
-  if (roles.some((role) => ORG_HOME_ROLES.has(role))) {
-    return base;
   }
 
   return base;

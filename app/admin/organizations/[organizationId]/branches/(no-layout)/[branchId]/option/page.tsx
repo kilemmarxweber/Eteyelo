@@ -24,12 +24,10 @@ import { Card } from "@/components/ui/card";
 import { getBranchTypeAction } from "../classe/classe.action";
 import { usesSectionOptionForBranch } from "@/lib/branch-capabilities";
 import { getTrainingLabels } from "@/lib/training-labels";
-import { BranchLoadingFallback as Loading } from "@/components/branch-loading-fallback";
 
 export default function Options() {
   const tClasses = useTranslations("classes");
   const [open, setOpen] = useState(false);
-  const [checkingBranch, setCheckingBranch] = useState(true);
   const [labels, setLabels] = useState(getTrainingLabels("SECONDAIRE"));
   const { refreshKey, refresh } = useRefresh();
   const router = useRouter();
@@ -55,12 +53,8 @@ export default function Options() {
         if (result?.typebranch) {
           setLabels(getTrainingLabels(result.typebranch));
         }
-
-        setCheckingBranch(false);
       })
-      .catch(() => {
-        if (!ignore) setCheckingBranch(false);
-      });
+      .catch(() => {});
 
     return () => {
       ignore = true;
@@ -71,10 +65,6 @@ export default function Options() {
     refresh();
     setOpen(false);
   };
-
-  if (checkingBranch) {
-    return <Loading />;
-  }
 
   return (
     <BranchPageShell

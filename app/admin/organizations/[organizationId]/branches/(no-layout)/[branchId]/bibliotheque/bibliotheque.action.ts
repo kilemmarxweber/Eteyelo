@@ -8,6 +8,10 @@ import {
   toPublicLibraryBook,
 } from "@/lib/library/access";
 import {
+  canPermanentlyDeleteInformation,
+  PERMANENT_DELETE_DENIED_MESSAGE,
+} from "@/lib/auth/session-roles";
+import {
   libraryBookIdSchema,
   updateLibraryBookSchema,
 } from "@/lib/library/schemas";
@@ -205,7 +209,11 @@ export const setLibraryBookActiveAction = action
 export const deleteLibraryBookAction = action
   .input(libraryBookIdSchema)
   .handler(async ({ input }) => {
-    const { branchId, organizationId } = await enforceLibraryManageAccess();
+    const { branchId, organizationId, session } =
+      await enforceLibraryManageAccess();
+    if (!canPermanentlyDeleteInformation(session)) {
+      throw new Error(PERMANENT_DELETE_DENIED_MESSAGE);
+    }
 
     const existing = await prisma.libraryBook.findFirst({
       where: { id: input.id, branchId },

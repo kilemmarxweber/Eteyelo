@@ -7,7 +7,11 @@ import { action } from "@/lib/zsa";
 import { z } from "zod";
 import { coursOptionPonderationSchema } from "./schema";
 import { ensurePrimaryAcademicStructure } from "@/lib/primary-academic-structure";
-import { canManageOrganization } from "@/lib/auth/session-roles";
+import {
+  canManageOrganization,
+  canPermanentlyDeleteInformation,
+  PERMANENT_DELETE_DENIED_MESSAGE,
+} from "@/lib/auth/session-roles";
 import { activeCoursStatusFilter } from "@/lib/active-cours";
 
 function requireManagePermission(session: unknown) {
@@ -203,6 +207,9 @@ export const deleteCoursOptionPonderationAction = action
   .handler(async ({ input }) => {
     const { branchId, organizationId, session } = await requireBranchContext();
     requireManagePermission(session);
+    if (!canPermanentlyDeleteInformation(session)) {
+      throw new Error(PERMANENT_DELETE_DENIED_MESSAGE);
+    }
 
     const existing = await prisma.coursOptionPonderation.findFirst({
       where: { id: input.id, branchId },

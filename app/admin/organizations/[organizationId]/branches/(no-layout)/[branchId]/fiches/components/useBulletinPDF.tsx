@@ -419,6 +419,7 @@ export default function BulletinPDF({
           italic?: boolean;
           underline?: boolean;
           maxWidth?: number;
+          wrap?: boolean;
         },
       ) {
         const palette: Record<string, [number, number, number]> = {
@@ -438,6 +439,7 @@ export default function BulletinPDF({
           italic = false,
           underline = false,
           maxWidth,
+          wrap = false,
         } = options || {};
 
         // 🎨 FONT STYLE
@@ -451,6 +453,14 @@ export default function BulletinPDF({
         if (palette[color]) doc.setTextColor(...palette[color]);
 
         let renderedText = text;
+        if (maxWidth && wrap) {
+          const lines = (doc.splitTextToSize(text, maxWidth) as string[]).slice(
+            0,
+            2,
+          );
+          doc.text(lines, x, y, { align });
+          return;
+        }
         if (maxWidth && doc.getTextWidth(renderedText) > maxWidth) {
           while (
             renderedText.length > 1 &&
@@ -527,7 +537,13 @@ export default function BulletinPDF({
           `ECOLE : ${schoolName || "………………"}`,
           12,
           schoolLabelYs[3],
-          { size: 7.5, bold: true, align: "left", maxWidth: leftColMaxWidth },
+          {
+            size: 7.5,
+            bold: true,
+            align: "left",
+            maxWidth: leftColMaxWidth,
+            wrap: true,
+          },
         );
         drawLabel("CODE :", 12, schoolLabelYs[4], {
           size: 7.5,
@@ -568,6 +584,7 @@ export default function BulletinPDF({
           bold: true,
           align: "left",
           maxWidth: leftColMaxWidth,
+          wrap: true,
         });
         drawLabel("CODE :", 12, schoolLabelYs[4], {
           size: 7.5,

@@ -68,7 +68,9 @@ export function MemberBranchPicker({
               <span className="min-w-0">
                 <span className="flex items-center gap-1.5 font-medium leading-snug">
                   <Building2 className="size-4 shrink-0 text-muted-foreground" />
-                  <span className="truncate">{branch.name}</span>
+                  <span className="whitespace-normal break-words leading-snug">
+                    {branch.name}
+                  </span>
                 </span>
                 <span className="mt-0.5 block text-xs text-muted-foreground">
                   {getBranchTypeShortLabel(branch.typebranch)}

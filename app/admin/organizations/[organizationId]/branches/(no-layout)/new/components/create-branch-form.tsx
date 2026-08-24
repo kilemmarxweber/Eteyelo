@@ -134,6 +134,7 @@ export function CreateBranchForm({
     ),
     defaultValues: {
       name: defaultValues?.name ?? "",
+      description: defaultValues?.description ?? "",
       code: defaultValues?.code ?? "",
       contactEmail: "",
       image: defaultValues?.image ?? {
@@ -453,6 +454,29 @@ export function CreateBranchForm({
                             disabled={isSubmitting}
                           />
                         </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="description"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Description officielle (documents)</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            {...field}
+                            placeholder="Nom officiel long affiché uniquement sur les PDF et Excel…"
+                            className="min-h-24 rounded-xl"
+                            disabled={isSubmitting}
+                            maxLength={2000}
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          Non affichée sur les cartes. Utilisée comme intitulé de l’établissement sur les bulletins, PDF et exports Excel.
+                        </FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}

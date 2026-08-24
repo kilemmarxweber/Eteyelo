@@ -21,6 +21,7 @@ import {
   shouldUseAngolaPrimaryStudyDeclaration,
 } from "../lib/angola-primary-structure";
 import { mapAngolaPrimaryGrades } from "../lib/angola-primary-declaration-render";
+import { branchDocumentName } from "../lib/branch-document-name";
 import {
   angolaDirectorTitle,
   angolaDeclarationSchoolLabel,
@@ -99,6 +100,13 @@ test("Declaração : directora, père et mère", () => {
   assert.equal(
     angolaDeclarationSchoolLabel("École Communautaire", "ECPL"),
     "ECPL",
+  );
+  assert.equal(
+    branchDocumentName({
+      name: "ECPL",
+      description: "Complexo Escolar Anexo ao Magistério-Cabinda",
+    }),
+    "Complexo Escolar Anexo ao Magistério-Cabinda",
   );
 });
 

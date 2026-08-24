@@ -10,9 +10,9 @@ import {
 } from "@/lib/route-loader";
 
 const IS_PROD = process.env.NODE_ENV === "production";
-const SHOW_DELAY_MS = IS_PROD ? 320 : 80;
-const FADE_OUT_MS = IS_PROD ? 240 : 140;
-const MAX_VISIBLE_MS = 12_000;
+const SHOW_DELAY_MS = IS_PROD ? 180 : 60;
+const FADE_OUT_MS = IS_PROD ? 100 : 70;
+const MAX_VISIBLE_MS = 8_000;
 
 function RouteChangeLoaderInner() {
   const pathname = usePathname();
@@ -58,12 +58,9 @@ function RouteChangeLoaderInner() {
   }
 
   useEffect(() => {
-    // Laisse le temps à la page de redemander le loader (fetch client)
-    // avant de couper l’overlay — évite le flash « disparition puis 2e spinner ».
-    if (hideTimer.current != null) window.clearTimeout(hideTimer.current);
-    hideTimer.current = window.setTimeout(() => {
-      hide();
-    }, 220);
+    // La nouvelle route est commitée : on coupe tout de suite.
+    // Les fetchs de la page (session, listes) ne doivent plus retenir l’overlay.
+    hide();
     // eslint-disable-next-line react-hooks/exhaustive-deps -- routeKey is the signal
   }, [routeKey]);
 

@@ -5,6 +5,7 @@ import { getCachedSession } from "@/lib/auth/get-session-cached";
 import { canAccessOrganization } from "@/lib/auth/organization-access";
 import { getUserOrganizationMembership } from "@/lib/auth/org-membership";
 import { BRANCH_LOGIN_ORG_ROLES } from "@/lib/auth/user-branch-access";
+import { canArchiveOrganizationAsMember } from "@/lib/auth/role-labels";
 import {
   APP_ROLE,
   ORG_ROLE,
@@ -236,18 +237,42 @@ export async function guardOrganizationDelete(
     return {
       ok: false,
       message:
-        "Suppression reservee au owner plateforme. Le proprietaire peut archiver l'organisation.",
+        "Suppression reservee au owner plateforme. Le proprietaire ou le gestionnaire peut archiver l'organisation.",
     };
   }
 
   return { ok: true, context: access.context };
 }
 
-/** Archivage / reactivation : owner plateforme ou propriétaire org. */
+/** Archivage / reactivation : owner plateforme, propriétaire org ou gestionnaire. */
 export async function guardOrganizationArchive(
   organizationId: string,
 ): Promise<OrganizationGuardResult> {
-  return guardOrganizationOwner(organizationId);
+  const access = await guardOrganizationAccess(organizationId);
+  if (!access.ok) {
+    return access;
+  }
+
+  const { context } = access;
+
+  if (isPlatformOwnerRole(context.appRole)) {
+    return { ok: true, context };
+  }
+
+  const membership =
+    context.membership?.organizationId === organizationId
+      ? context.membership
+      : await getMembershipForOrganization(context.userId, organizationId);
+
+  if (canArchiveOrganizationAsMember(membership?.role)) {
+    return { ok: true, context };
+  }
+
+  return {
+    ok: false,
+    message:
+      "Archivage reserve au proprietaire ou au gestionnaire de l'organisation.",
+  };
 }
 
 export const guardOrganizationBranchAccess = cache(

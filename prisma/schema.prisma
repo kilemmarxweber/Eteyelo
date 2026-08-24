@@ -1283,6 +1283,8 @@ model Branch {
   name             String
   code             String?
   image            Json?
+  /// Nom officiel long, utilisé uniquement sur les PDF / Excel
+  description      String?      @db.Text
   /// Texte optionnel affiché à la une sur la page d'accueil (spotlight)
   note             String?      @db.Text
   adresse          String?

@@ -1,21 +1,44 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useAppTransition as useTransition } from "@/hooks/use-app-transition";
 import Link from "next/link";
 import { useAppRouter as useRouter } from "@/hooks/use-app-router";
-import { Building2, Mail, Shield, UserRound } from "lucide-react";
+import { Building2, Shield, UserRound } from "lucide-react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 
 import { ALL_ORG_ROLE_SLUGS } from "@/lib/permissions";
 import { orgRoleLabel } from "@/lib/org-role-labels";
+import { formatPersonFullName } from "@/lib/person-full-name";
+import { MAX_IMAGE_UPLOAD_BYTES, uploadFile } from "@/lib/upload-file";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { createOrganizationMemberAction } from "../actions";
 import {
   MemberBranchPicker,
   type MemberBranchOption,
 } from "../branch-picker";
-import { createOrgMemberSchema, type CreateOrgMemberInput } from "../schema";
+import { MemberPhotoField } from "../member-photo-field";
+import {
+  MemberFormLayout,
+  MemberFormSection,
+  MemberFormSummaryRow,
+  memberFieldClass,
+} from "../member-form-section";
+import {
+  createOrgMemberFormSchema,
+  type CreateOrgMemberFormInput,
+} from "../schema";
 
 type Props = {
   organizationId: string;
@@ -25,21 +48,55 @@ type Props = {
 export function CreateMemberForm({ organizationId, branches }: Props) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
 
-  const form = useForm<CreateOrgMemberInput>({
-    resolver: zodResolver(createOrgMemberSchema),
+  const form = useForm<CreateOrgMemberFormInput>({
+    resolver: zodResolver(createOrgMemberFormSchema),
     defaultValues: {
       organizationId,
       email: "",
-      name: "",
+      nom: "",
+      postnom: "",
+      prenom: "",
       orgRole: ALL_ORG_ROLE_SLUGS[2],
       branchIds: branches.length === 1 ? [branches[0]!.id] : [],
     },
   });
 
   const branchIds = useWatch({ control: form.control, name: "branchIds" }) ?? [];
+  const nom = useWatch({ control: form.control, name: "nom" }) ?? "";
+  const postnom = useWatch({ control: form.control, name: "postnom" }) ?? "";
+  const prenom = useWatch({ control: form.control, name: "prenom" }) ?? "";
+  const email = useWatch({ control: form.control, name: "email" }) ?? "";
+  const orgRole = useWatch({ control: form.control, name: "orgRole" }) ?? "";
+  const fullName = formatPersonFullName({ name: nom, postnom, prenom });
 
-  function onSubmit(values: CreateOrgMemberInput) {
+  useEffect(() => {
+    return () => {
+      if (photoPreview?.startsWith("blob:")) URL.revokeObjectURL(photoPreview);
+    };
+  }, [photoPreview]);
+
+  const listHref = `/admin/organizations/${organizationId}/members`;
+
+  function handlePickPhoto(file: File) {
+    if (!file.type.startsWith("image/")) {
+      toast.error("Choisissez une image (JPEG, PNG, WebP…).");
+      return;
+    }
+    if (file.size > MAX_IMAGE_UPLOAD_BYTES) {
+      toast.error("Image trop volumineuse (max. 5 Mo).");
+      return;
+    }
+    setPhotoPreview((current) => {
+      if (current?.startsWith("blob:")) URL.revokeObjectURL(current);
+      return URL.createObjectURL(file);
+    });
+    setPhotoFile(file);
+  }
+
+  function onSubmit(values: CreateOrgMemberFormInput) {
     const selected = values.branchIds ?? [];
     if (selected.length === 0) {
       toast.error("Sélectionnez au moins une branche.");
@@ -47,8 +104,22 @@ export function CreateMemberForm({ organizationId, branches }: Props) {
     }
 
     startTransition(async () => {
+      let image = "";
+      if (photoFile) {
+        const uploaded = await uploadFile(photoFile);
+        if (!uploaded.ok) {
+          toast.error(uploaded.message);
+          return;
+        }
+        image = uploaded.url;
+      }
+
       const res = await createOrganizationMemberAction({
         ...values,
+        name: values.nom,
+        postnom: values.postnom,
+        prenom: values.prenom,
+        image,
         organizationId,
         branchIds: selected,
       });
@@ -58,105 +129,179 @@ export function CreateMemberForm({ organizationId, branches }: Props) {
         return;
       }
 
-      toast.success("Membre créé avec succès.");
-      router.push(`/admin/organizations/${organizationId}/members`);
+      toast.success("Membre créé. Un mot de passe temporaire a été envoyé.");
+      router.push(listHref);
       router.refresh();
     });
   }
 
   return (
-    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+    <form onSubmit={form.handleSubmit(onSubmit)}>
       <input type="hidden" {...form.register("organizationId")} />
-
-      <label className="block space-y-2 text-sm font-medium">
-        Nom complet
-        <div className="flex items-center gap-2 rounded-2xl border bg-card px-3">
-          <UserRound className="size-4 text-muted-foreground" />
-          <input
-            {...form.register("name")}
-            disabled={pending}
-            autoComplete="name"
-            placeholder="Ex. Kilem Marxweber"
-            className="h-12 w-full bg-transparent text-sm outline-none"
-          />
-        </div>
-        <FormError message={form.formState.errors.name?.message} />
-      </label>
-
-      <label className="block space-y-2 text-sm font-medium">
-        Email
-        <div className="flex items-center gap-2 rounded-2xl border bg-card px-3">
-          <Mail className="size-4 text-muted-foreground" />
-          <input
-            {...form.register("email")}
-            disabled={pending}
-            type="email"
-            autoComplete="email"
-            placeholder="membre@example.com"
-            className="h-12 w-full bg-transparent text-sm outline-none"
-          />
-        </div>
-        <FormError message={form.formState.errors.email?.message} />
-      </label>
-
-      <label className="block space-y-2 text-sm font-medium">
-        Rôle
-        <div className="flex items-center gap-2 rounded-2xl border bg-card px-3">
-          <Shield className="size-4 text-muted-foreground" />
-          <select
-            {...form.register("orgRole")}
-            disabled={pending}
-            className="h-12 w-full bg-transparent text-sm outline-none"
-          >
-            {ALL_ORG_ROLE_SLUGS.map((slug) => (
-              <option key={slug} value={slug}>
-                {orgRoleLabel(slug)}
-              </option>
-            ))}
-          </select>
-        </div>
-        <FormError message={form.formState.errors.orgRole?.message} />
-      </label>
-
-      <div className="space-y-2">
-        <div className="flex items-center gap-2 text-sm font-medium">
-          <Building2 className="size-4 text-muted-foreground" />
-          Branches autorisées
-        </div>
-        <p className="text-xs text-muted-foreground">
-          Le membre ne pourra ouvrir que les établissements cochés.
-        </p>
-        <MemberBranchPicker
-          branches={branches}
-          value={branchIds}
-          onChange={(ids) => form.setValue("branchIds", ids, { shouldDirty: true })}
-          disabled={pending}
-          error={form.formState.errors.branchIds?.message}
-        />
-      </div>
-
-      <div className="flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:justify-end">
-        <Link
-          href={`/admin/organizations/${organizationId}/members`}
-          className="inline-flex h-11 w-full items-center justify-center rounded-full border bg-card px-5 text-sm font-semibold transition hover:bg-muted sm:w-auto"
+      <MemberFormLayout
+        aside={
+          <>
+            <Card className="gap-0 py-0 shadow-sm">
+              <CardHeader className="border-b border-border/80 py-4">
+                <CardTitle>Récapitulatif</CardTitle>
+                <CardDescription>
+                  Vérifiez les informations avant de créer le compte.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3 py-4 text-sm">
+                <MemberFormSummaryRow
+                  label="Nom"
+                  value={fullName || "—"}
+                />
+                <MemberFormSummaryRow
+                  label="Email"
+                  value={email.trim() || "—"}
+                />
+                <MemberFormSummaryRow
+                  label="Rôle"
+                  value={orgRoleLabel(orgRole)}
+                />
+                <MemberFormSummaryRow
+                  label="Établissements"
+                  value={
+                    branchIds.length === 0
+                      ? "Aucun"
+                      : `${branchIds.length} sélectionné${branchIds.length > 1 ? "s" : ""}`
+                  }
+                />
+              </CardContent>
+            </Card>
+            <div className="flex flex-col gap-2">
+              <Button
+                type="submit"
+                disabled={pending || branches.length === 0}
+                className="h-11 w-full"
+              >
+                {pending ? "Création…" : "Créer le membre"}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                className="h-11 w-full"
+                disabled={pending}
+                asChild
+              >
+                <Link href={listHref}>Annuler</Link>
+              </Button>
+            </div>
+          </>
+        }
+      >
+        <MemberFormSection
+          icon={UserRound}
+          title="Identité"
+          description="Nom, postnom, prénom et photo, comme pour un élève. L’email sert à l’envoi du mot de passe temporaire."
         >
-          Annuler
-        </Link>
+          <div className="grid gap-4">
+            <MemberPhotoField
+              previewUrl={photoPreview}
+              onPickFile={handlePickPhoto}
+              disabled={pending}
+              fullName={fullName}
+            />
+            <div className="grid gap-4 sm:grid-cols-3">
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="create-nom">Nom</Label>
+                <Input
+                  id="create-nom"
+                  {...form.register("nom")}
+                  autoComplete="family-name"
+                  placeholder="Ex. Kabila"
+                  className={memberFieldClass}
+                  disabled={pending}
+                />
+                <FormError message={form.formState.errors.nom?.message} />
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="create-postnom">Postnom</Label>
+                <Input
+                  id="create-postnom"
+                  {...form.register("postnom")}
+                  placeholder="Ex. Kabange"
+                  className={memberFieldClass}
+                  disabled={pending}
+                />
+                <FormError message={form.formState.errors.postnom?.message} />
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="create-prenom">Prénom</Label>
+                <Input
+                  id="create-prenom"
+                  {...form.register("prenom")}
+                  autoComplete="given-name"
+                  placeholder="Ex. Marie"
+                  className={memberFieldClass}
+                  disabled={pending}
+                />
+                <FormError message={form.formState.errors.prenom?.message} />
+              </div>
+            </div>
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="create-email">Email</Label>
+              <Input
+                id="create-email"
+                {...form.register("email")}
+                type="email"
+                inputMode="email"
+                autoComplete="email"
+                placeholder="membre@example.com"
+                className={memberFieldClass}
+                disabled={pending}
+              />
+              <FormError message={form.formState.errors.email?.message} />
+            </div>
+          </div>
+        </MemberFormSection>
 
-        <button
-          type="submit"
-          disabled={pending || branches.length === 0}
-          className="inline-flex h-11 w-full items-center justify-center rounded-full bg-primary px-5 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/20 transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-70 sm:w-auto"
+        <MemberFormSection
+          icon={Shield}
+          title="Accès"
+          description="Le rôle détermine les droits dans l’organisation."
         >
-          {pending ? "Création..." : "Créer le membre"}
-        </button>
-      </div>
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="create-role">Rôle dans l’organisation</Label>
+            <select
+              id="create-role"
+              {...form.register("orgRole")}
+              disabled={pending}
+              className={memberFieldClass + " border bg-background px-3"}
+            >
+              {ALL_ORG_ROLE_SLUGS.map((slug) => (
+                <option key={slug} value={slug}>
+                  {orgRoleLabel(slug)}
+                </option>
+              ))}
+            </select>
+            <FormError message={form.formState.errors.orgRole?.message} />
+          </div>
+        </MemberFormSection>
+
+        <MemberFormSection
+          icon={Building2}
+          title="Affectation"
+          description="Le membre ne pourra ouvrir que les établissements cochés."
+        >
+          <MemberBranchPicker
+            branches={branches}
+            value={branchIds}
+            onChange={(ids) =>
+              form.setValue("branchIds", ids, { shouldDirty: true })
+            }
+            disabled={pending}
+            error={form.formState.errors.branchIds?.message}
+          />
+        </MemberFormSection>
+      </MemberFormLayout>
     </form>
   );
 }
 
 function FormError({ message }: { message?: string }) {
   if (!message) return null;
-
-  return <p className="text-xs text-red-600">{message}</p>;
+  return <p className="text-xs text-destructive">{message}</p>;
 }

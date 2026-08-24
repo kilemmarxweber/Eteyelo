@@ -4,6 +4,12 @@ import { phoneRegex } from "@/src/interfaces/User";
 const orgRoleRefine = (role: string) =>
   (ALL_ORG_ROLE_SLUGS as readonly string[]).includes(role);
 
+const namePart = z
+  .string()
+  .trim()
+  .min(2, "Au moins 2 caractères.")
+  .max(80, "Trop long.");
+
 export const createOrgMemberSchema = z.object({
   organizationId: z.string().min(1),
   /** Branche d’affectation — utilisée pour l’email de bienvenue. */
@@ -15,6 +21,7 @@ export const createOrgMemberSchema = z.object({
     .trim()
     .min(1, "L’email est requis.")
     .email("Adresse email invalide."),
+  /** Nom de famille (comme pour un élève). */
   name: z
     .string()
     .trim()
@@ -31,6 +38,7 @@ export const createOrgMemberSchema = z.object({
     .trim()
     .optional()
     .or(z.literal("")),
+  image: z.string().trim().max(2000).optional().or(z.literal("")),
   dateOfBirth: z.date().optional(),
   sexe: z.string().min(4, { message: "Veuillez saisir le sexe" }).optional(),
   telephone: z
@@ -50,7 +58,25 @@ export const updateOrgMemberSchema = z.object({
   branchIds: z
     .array(z.string().min(1))
     .min(1, "Sélectionnez au moins une branche."),
+  email: z
+    .string()
+    .trim()
+    .min(1, "L’email est requis.")
+    .email("Adresse email invalide."),
+  nom: namePart,
+  postnom: namePart,
+  prenom: namePart,
+  image: z.string().trim().max(2000).optional().or(z.literal("")),
 });
+
+/** Schéma du formulaire d’ajout membre (identité séparée comme un élève). */
+export const createOrgMemberFormSchema = createOrgMemberSchema
+  .omit({ name: true })
+  .extend({
+    nom: namePart,
+    postnom: namePart,
+    prenom: namePart,
+  });
 
 export const removeOrgMemberSchema = z.object({
   organizationId: z.string().min(1),
@@ -85,6 +111,7 @@ export const updateUserSchema = z.object({
 });
 
 export type CreateOrgMemberInput = z.infer<typeof createOrgMemberSchema>;
+export type CreateOrgMemberFormInput = z.infer<typeof createOrgMemberFormSchema>;
 export type UpdateOrgMemberInput = z.infer<typeof updateOrgMemberSchema>;
 export type RemoveOrgMemberInput = z.infer<typeof removeOrgMemberSchema>;
 export type ArchiveOrgMemberInput = z.infer<typeof archiveOrgMemberSchema>;

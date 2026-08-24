@@ -7,20 +7,30 @@ import {
   StatusPaiement,
 } from "@/src/interfaces/Paiement";
 import {
+  deletePaiementAction,
   getAllPaiementAction,
   getPaymentReportContextAction,
 } from "../paiement.action";
 import { ResponsiveDataTable } from "@/components/ui/responsive-data-table";
 import { SearchAndFilter } from "@/components/ui/search-and-filter";
 import { StatusBadge } from "@/components/ui/status-badge";
-import { Eye, FileSpreadsheet, MoreHorizontal } from "lucide-react";
+import { Eye, FileSpreadsheet, Loader2, MoreHorizontal, Trash2 } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import type { FacturePaymentStudentData } from "@/components/FacturePaymentStudent";
 import { ReceiptPreviewDialog } from "@/components/reports/ReceiptPreviewDialog";
 import type { SchoolReportContext } from "@/lib/reports/types";
@@ -133,11 +143,22 @@ function mapGroupedToReceipt(
   };
 }
 
-const PaiementsTable = ({ refreshKey }: { refreshKey?: string }) => {
+const PaiementsTable = ({
+  refreshKey,
+  onChanged,
+}: {
+  refreshKey?: string;
+  onChanged?: () => void;
+}) => {
   const t = useTranslations("finance");
+  const tCommon = useTranslations("common");
   const peopleLabels = useBranchPeopleLabels();
   const [paiements, setPaiements] = useState<IPaiement[]>([]);
   const [loading, setLoading] = useState(true);
+  const [pendingDelete, setPendingDelete] = useState<GroupedPaiement | null>(
+    null,
+  );
+  const [deleting, setDeleting] = useState(false);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -192,6 +213,34 @@ const PaiementsTable = ({ refreshKey }: { refreshKey?: string }) => {
     );
     setReceiptIssuedAt(g.date);
     setReceiptOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!pendingDelete) return;
+    const ids = pendingDelete.items.map((item) => item.id).filter(Boolean);
+    if (ids.length === 0) {
+      toast.error(t("table.deletePaymentError"));
+      return;
+    }
+
+    setDeleting(true);
+    try {
+      const [, error] = await deletePaiementAction({ ids });
+      if (error) {
+        toast.error(error.message || t("table.deletePaymentError"));
+        return;
+      }
+      toast.success(t("table.deletePaymentSuccess"));
+      setPaiements((current) => current.filter((p) => !ids.includes(p.id)));
+      setPendingDelete(null);
+      onChanged?.();
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : t("table.deletePaymentError"),
+      );
+    } finally {
+      setDeleting(false);
+    }
   };
 
   const formatStudents = (students: string[]) => {
@@ -484,6 +533,14 @@ const PaiementsTable = ({ refreshKey }: { refreshKey?: string }) => {
               <Eye className="mr-2 h-4 w-4" />
               {t("table.viewReceipt")}
             </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              className="text-destructive focus:text-destructive"
+              onClick={() => setPendingDelete(g)}
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              {t("table.deletePayment")}
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       ),
@@ -500,7 +557,19 @@ const PaiementsTable = ({ refreshKey }: { refreshKey?: string }) => {
         value: formatReportAmount(g.total, baseCurrency),
       },
     ],
-    actions: () => [],
+    actions: (g: GroupedPaiement) => [
+      {
+        label: t("table.viewReceipt"),
+        icon: Eye,
+        onClick: () => openReceipt(g),
+      },
+      {
+        label: t("table.deletePayment"),
+        icon: Trash2,
+        onClick: () => setPendingDelete(g),
+        variant: "destructive" as const,
+      },
+    ],
   };
 
   return (
@@ -551,6 +620,41 @@ const PaiementsTable = ({ refreshKey }: { refreshKey?: string }) => {
         title={t("table.receiptTitle")}
         issuedAt={receiptIssuedAt}
       />
+
+      <Dialog
+        open={pendingDelete != null}
+        onOpenChange={(open) => {
+          if (!open && !deleting) setPendingDelete(null);
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t("table.deletePaymentTitle")}</DialogTitle>
+            <DialogDescription>
+              {t("table.deletePaymentDescription")}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:space-x-0">
+            <Button
+              type="button"
+              variant="outline"
+              disabled={deleting}
+              onClick={() => setPendingDelete(null)}
+            >
+              {tCommon("cancel")}
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              disabled={deleting}
+              onClick={() => void confirmDelete()}
+            >
+              {deleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {deleting ? t("table.deleting") : t("table.deletePayment")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <ResponsiveDataTable
         data={filtered}

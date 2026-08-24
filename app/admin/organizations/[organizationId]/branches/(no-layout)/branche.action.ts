@@ -81,6 +81,7 @@ export async function createBranchAction(
       data: {
         organizationId,
         name: parsed.data.name,
+        description: parsed.data.description?.trim() || null,
         code,
         adresse: parsed.data.adresse?.trim() || null,
         note: parsed.data.note?.trim() || null,
@@ -178,6 +179,7 @@ export async function getBranchByIdAction(branchId: string) {
     select: {
       id: true,
       name: true,
+      description: true,
       code: true,
       adresse: true,
       note: true,
@@ -271,6 +273,7 @@ export async function updateBranchAction(
     where: { id: branchId },
     data: {
       name: parsed.data.name,
+      description: parsed.data.description?.trim() || null,
       code,
       adresse: parsed.data.adresse?.trim() || null,
       note: parsed.data.note?.trim() || null,

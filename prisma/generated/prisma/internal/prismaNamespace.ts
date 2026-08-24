@@ -6491,6 +6491,7 @@ export const BranchScalarFieldEnum = {
   name: 'name',
   code: 'code',
   image: 'image',
+  description: 'description',
   note: 'note',
   adresse: 'adresse',
   province: 'province',

@@ -4,9 +4,15 @@ import {
   Plus,
   School,
 } from "lucide-react";
+import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { BackLink } from "@/components/ui/back-link";
 import { enforceOrganizationManagerPage } from "@/lib/auth/require-organization-permission";
+import { BRANCH_TYPES } from "@/lib/academic-structure";
+import {
+  getAnyUserBranchMemberships,
+  isGestionnaireBranchLandingRole,
+} from "@/lib/auth/user-branch-access";
 import { prisma } from "@/lib/prisma";
 import { BranchCard } from "./branchCard";
 import { BranchTypeBadge } from "@/components/branch/branch-type-badge";
@@ -20,10 +26,11 @@ type BranchesPageProps = {
 async function getOrganizationBranches(organizationId: string) {
   const branches = await prisma.branch.findMany({
     where: { organizationId },
-    orderBy: { createdAt: "desc" },
+    orderBy: [{ typebranch: "asc" }, { name: "asc" }],
     select: {
       id: true,
       name: true,
+      description: true,
       typebranch: true,
       isActive: true,
       branchemembers: {
@@ -36,31 +43,65 @@ async function getOrganizationBranches(organizationId: string) {
     },
   });
 
-  return branches.map((branch) => ({
-    id: branch.id,
-    name: branch.name,
-    typebranch: branch.typebranch,
-    isActive: branch.isActive,
-    studentsCount: branch.branchemembers.reduce(
-      (total, member) => total + member._count.student,
-      0,
-    ),
-  }));
+  const typeOrder = Object.fromEntries(
+    BRANCH_TYPES.map((type, index) => [type, index]),
+  ) as Record<string, number>;
+
+  return branches
+    .map((branch) => ({
+      id: branch.id,
+      name: branch.name,
+      description: branch.description,
+      typebranch: branch.typebranch,
+      isActive: branch.isActive,
+      studentsCount: branch.branchemembers.reduce(
+        (total, member) => total + member._count.student,
+        0,
+      ),
+    }))
+    .sort((left, right) => {
+      const leftOrder = typeOrder[left.typebranch] ?? 99;
+      const rightOrder = typeOrder[right.typebranch] ?? 99;
+      if (leftOrder !== rightOrder) return leftOrder - rightOrder;
+      return left.name.localeCompare(right.name, "fr", {
+        sensitivity: "base",
+      });
+    });
 }
 
 export default async function BranchesPage({ params }: BranchesPageProps) {
   const { organizationId } = await params;
-  await enforceOrganizationManagerPage(organizationId);
-  const branches = await getOrganizationBranches(organizationId);
+  const context = await enforceOrganizationManagerPage(organizationId);
+  let branches = await getOrganizationBranches(organizationId);
+
+  const isGestionnaire = isGestionnaireBranchLandingRole(
+    context.membership?.role,
+  );
+  const assigned = isGestionnaire
+    ? await getAnyUserBranchMemberships(context.userId, organizationId)
+    : [];
 
   const base = `/admin/organizations/${organizationId}/branches`;
 
+  if (isGestionnaire && assigned.length === 1) {
+    redirect(`${base}/${assigned[0].branchId}`);
+  }
+
+  const isScoped = isGestionnaire && assigned.length > 0;
+
+  if (isScoped) {
+    const assignedIds = new Set(assigned.map((row) => row.branchId));
+    branches = branches.filter((branch) => assignedIds.has(branch.id));
+  }
+
   return (
-    <div className="mx-auto flex w-full max-w-7xl flex-col gap-5 px-4 py-6 sm:px-6 lg:px-8">
-      <BackLink
-        href={`/admin/organizations/${organizationId}`}
-        label="Retour organisation"
-      />
+    <div className="mx-auto flex w-full max-w-5xl flex-col gap-5 px-4 py-6 sm:px-6 lg:px-8">
+      {isGestionnaire ? null : (
+        <BackLink
+          href={`/admin/organizations/${organizationId}`}
+          label="Retour organisation"
+        />
+      )}
 
       <section className="rounded-2xl bg-primary p-5 text-primary-foreground shadow-lg shadow-primary/10 sm:p-6">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
@@ -75,27 +116,31 @@ export default async function BranchesPage({ params }: BranchesPageProps) {
             </h1>
 
             <p className="mt-2 text-sm leading-6 text-primary-foreground/90">
-              Consultez, créez et administrez les établissements, campus ou
-              antennes liés à cette organisation.
+              {isScoped
+                ? "Consultez et administrez les établissements qui vous sont attribués."
+                : "Consultez, créez et administrez les établissements, campus ou antennes liés à cette organisation."}
             </p>
           </div>
 
-          <Button
-            size="sm"
-            variant="secondary"
-            className="rounded-full bg-card text-foreground hover:bg-muted"
-            asChild
-          >
-            <Link href={`${base}/new`}>
-              <Plus className="mr-1.5 size-3.5" />
-              Créer un établissement
-            </Link>
-          </Button>
+          {isScoped ? null : (
+            <Button
+              size="sm"
+              variant="secondary"
+              className="rounded-full bg-card text-foreground hover:bg-muted"
+              asChild
+            >
+              <Link href={`${base}/new`}>
+                <Plus className="mr-1.5 size-3.5" />
+                Créer un établissement
+              </Link>
+            </Button>
+          )}
         </div>
       </section>
 
       {branches.length > 0 ? (
-        <section className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+        <section className="overflow-hidden rounded-[1.5rem] border border-border/70 bg-card shadow-sm">
+          <div className="grid grid-cols-1 gap-2 p-3 sm:grid-cols-2 sm:p-4 lg:grid-cols-3">
           {branches.map((branch) => (
             <BranchCard
               key={branch.id}
@@ -104,7 +149,7 @@ export default async function BranchesPage({ params }: BranchesPageProps) {
               editHref={`${base}/edit?branchId=${branch.id}`}
               isActive={branch.isActive}
             >
-              <div className="group flex items-center gap-2.5 rounded-xl border bg-card py-2.5 pl-3 pr-20 shadow-sm transition hover:border-primary/30 hover:bg-muted/40 hover:shadow-sm">
+              <div className="group flex h-full min-w-0 items-start gap-2.5 overflow-hidden rounded-xl border border-border/80 bg-card py-2.5 pl-3 pr-20 transition hover:border-primary/30 hover:bg-muted/40 hover:shadow-sm">
                 <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
                   <School className="size-3.5" />
                 </span>
@@ -116,6 +161,11 @@ export default async function BranchesPage({ params }: BranchesPageProps) {
                     </span>
                     <ArrowRight className="size-3.5 shrink-0 text-muted-foreground opacity-0 transition group-hover:translate-x-0.5 group-hover:opacity-100" />
                   </span>
+                  {branch.description ? (
+                    <span className="mt-0.5 block truncate text-xs leading-snug text-muted-foreground">
+                      {branch.description}
+                    </span>
+                  ) : null}
 
                   <span className="mt-0.5 flex flex-wrap items-center gap-1.5">
                     <BranchTypeBadge
@@ -136,6 +186,7 @@ export default async function BranchesPage({ params }: BranchesPageProps) {
               </div>
             </BranchCard>
           ))}
+          </div>
         </section>
       ) : (
         <section className="rounded-2xl border border-dashed bg-card p-5 text-sm text-muted-foreground shadow-sm">

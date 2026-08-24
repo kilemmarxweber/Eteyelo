@@ -1,3 +1,4 @@
+import { branchDocumentName } from "@/lib/branch-document-name";
 import { prisma } from "@/lib/prisma";
 import {
   computeScopedDiscountAmount,
@@ -443,7 +444,7 @@ export async function getFinanceReport(params: {
       params.scope.scope === "branch" && params.scope.branchId
         ? { id: params.scope.branchId }
         : { organizationId: params.scope.organizationId, isActive: true },
-    select: { id: true, name: true },
+    select: { id: true, name: true, description: true },
     orderBy: { name: "asc" },
   });
   const branchIds = branches.map((b) => b.id);
@@ -607,7 +608,7 @@ export async function getFinanceReport(params: {
     const paidBranch = invoiceBudget > 0 ? paid : bRecoltes;
     return {
       branchId: b.id,
-      branchName: b.name,
+      branchName: branchDocumentName(b),
       budget,
       recoltes: bRecoltes,
       reste: Math.max(0, budget - paidBranch),

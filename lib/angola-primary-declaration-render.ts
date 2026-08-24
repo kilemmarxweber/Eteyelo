@@ -453,18 +453,24 @@ export function renderAngolaPrimaryStudyDeclarations(
     y += 6;
     doc.setFont("helvetica", "bold");
     doc.setFontSize(10);
-    doc.text(school.toUpperCase(), pageWidth / 2, y, { align: "center" });
-    const schoolWidth = doc.getTextWidth(school.toUpperCase());
+    const schoolLines = doc.splitTextToSize(
+      school.toUpperCase(),
+      textWidth,
+    ) as string[];
+    doc.text(schoolLines, pageWidth / 2, y, { align: "center" });
+    const lastSchoolLine = schoolLines[schoolLines.length - 1] ?? "";
+    const schoolWidth = doc.getTextWidth(lastSchoolLine);
     doc.setDrawColor(...INK);
     doc.setLineWidth(0.35);
+    const schoolLineY = y + (schoolLines.length - 1) * 4.4;
     doc.line(
       pageWidth / 2 - schoolWidth / 2,
-      y + 1.1,
+      schoolLineY + 1.1,
       pageWidth / 2 + schoolWidth / 2,
-      y + 1.1,
+      schoolLineY + 1.1,
     );
 
-    y += 10;
+    y += 6 + (schoolLines.length - 1) * 4.4;
     doc.setFontSize(14);
     doc.text("DECLARAÇÃO DE ESTUDO", pageWidth / 2, y, { align: "center" });
     const titleWidth = doc.getTextWidth("DECLARAÇÃO DE ESTUDO");

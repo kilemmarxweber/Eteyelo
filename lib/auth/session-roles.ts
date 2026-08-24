@@ -266,6 +266,34 @@ export function isOrganizationOwnerSession(
   );
 }
 
+export const PERMANENT_DELETE_DENIED_MESSAGE =
+  "Le gestionnaire ne peut pas supprimer une information. Archivez-la ou modifiez-la.";
+
+/**
+ * Suppression physique d'une information.
+ * Le gestionnaire (org ou app) peut créer / modifier / archiver, jamais supprimer.
+ */
+export function canPermanentlyDeleteInformation(
+  session: any,
+  ...extraRoles: unknown[]
+): boolean {
+  if (isOrganizationOwnerSession(session, ...extraRoles)) {
+    return true;
+  }
+
+  if (
+    hasSessionRole(
+      session,
+      [ORG_ROLE.GESTIONNAIRE, APP_ROLE.ADMIN],
+      ...extraRoles,
+    )
+  ) {
+    return false;
+  }
+
+  return canManageOrganization(session, ...extraRoles);
+}
+
 /**
  * Paramètres branche avancés (types de frais, taux, horaires, présences) :
  * owner plateforme, admin app, propriétaire org ou gestionnaire.

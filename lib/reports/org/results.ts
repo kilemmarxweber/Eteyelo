@@ -2,6 +2,7 @@ import {
   calculateBulletinPercentage,
   sumBulletinMaxima,
 } from "@/lib/bulletin-maxima";
+import { branchDocumentName } from "@/lib/branch-document-name";
 import { prisma } from "@/lib/prisma";
 import { SUCCESS_THRESHOLD_PERCENT } from "./definitions";
 import { buildBranchIdFilter, pct, type BranchScopeInput } from "./scope";
@@ -102,7 +103,7 @@ export async function getResultsReport(params: {
         params.scope.scope === "branch" && params.scope.branchId
           ? { id: params.scope.branchId }
           : { organizationId: params.scope.organizationId, isActive: true },
-      select: { id: true, name: true },
+      select: { id: true, name: true, description: true },
       orderBy: { name: "asc" },
     }),
   ]);
@@ -230,7 +231,7 @@ export async function getResultsReport(params: {
     const branch = branches.find((b) => b.name === row.name || b.id === row.name);
     return {
       branchId: branch?.id ?? row.name,
-      branchName: branch?.name ?? row.name,
+      branchName: branch ? branchDocumentName(branch) : row.name,
       average: row.average,
       successRate: row.successRate,
       count: row.count,

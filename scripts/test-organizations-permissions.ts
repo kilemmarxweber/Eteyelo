@@ -76,14 +76,15 @@ test("canDeleteOrganization reserve la suppression au owner plateforme", () => {
   assert.equal(canDeleteOrganization(APP_ROLE.USER, ORG_ROLE.OWNER), false);
 });
 
-test("canArchiveOrganization autorise owner plateforme et proprietaire org", () => {
+test("canArchiveOrganization autorise owner plateforme, proprietaire et gestionnaire", () => {
   assert.equal(canArchiveOrganization(APP_ROLE.OWNER), true);
   assert.equal(canArchiveOrganization(APP_ROLE.USER, ORG_ROLE.OWNER), true);
   assert.equal(
     canArchiveOrganization(APP_ROLE.ADMIN, ORG_ROLE.GESTIONNAIRE),
-    false,
+    true,
   );
-  assert.equal(canArchiveOrganization(APP_ROLE.USER, ORG_ROLE.GESTIONNAIRE), false);
+  assert.equal(canArchiveOrganization(APP_ROLE.USER, ORG_ROLE.GESTIONNAIRE), true);
+  assert.equal(canArchiveOrganization(APP_ROLE.USER, ORG_ROLE.PREFET), false);
 });
 
 test("canAccessOrganizationOwnerSections reserve aux owners", () => {
@@ -234,7 +235,7 @@ test("canArchiveSpecificOrganization verifie l'appartenance org", () => {
       organizationId: "org-a",
       role: ORG_ROLE.GESTIONNAIRE,
     }),
-    false,
+    true,
   );
 });
 

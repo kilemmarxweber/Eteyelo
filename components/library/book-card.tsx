@@ -58,7 +58,7 @@ type BookCardProps = {
     busy?: boolean;
     onEdit: () => void;
     onToggleActive: () => void;
-    onDelete: () => void;
+    onDelete?: () => void;
   };
 };
 
@@ -114,14 +114,18 @@ export function BookCard({ book, href, className, manage }: BookCardProps) {
                 <EyeOff className="mr-2 size-3.5" />
                 {book.isActive ? "Désactiver" : "Activer"}
               </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                className="text-destructive focus:text-destructive"
-                onClick={manage.onDelete}
-              >
-                <Trash2 className="mr-2 size-3.5" />
-                Supprimer
-              </DropdownMenuItem>
+              {manage.onDelete ? (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    className="text-destructive focus:text-destructive"
+                    onClick={manage.onDelete}
+                  >
+                    <Trash2 className="mr-2 size-3.5" />
+                    Supprimer
+                  </DropdownMenuItem>
+                </>
+              ) : null}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

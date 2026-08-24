@@ -16,10 +16,24 @@ import { IconAlertCircle, IconSchool } from "@tabler/icons-react";
 import { useRefresh } from "@/src/hooks/RefreshContext";
 import { isPrimaryBranch } from "@/lib/class-structure";
 import { ManagedBranchType } from "@/lib/academic-structure";
+import { useSession } from "@/lib/auth-client";
+import { canManageOrganization } from "@/lib/auth/session-roles";
 import { UpdateClasseDialog } from "./edit-Classe-dialog";
 import { DeleteClassesDialog } from "./delete-Classe-dialog";
 
-const ClassesList = ({ refreshKey = 0 }: { refreshKey?: number }) => {
+type ClasseStats = {
+  total: number;
+  active: number;
+  inactive: number;
+};
+
+const ClassesList = ({
+  refreshKey = 0,
+  onStats,
+}: {
+  refreshKey?: number;
+  onStats?: (stats: ClasseStats) => void;
+}) => {
   const [classes, setClasses] = useState<IClasse[]>([]);
   const [branchType, setBranchType] = useState<ManagedBranchType>("SECONDAIRE");
   const [loading, setLoading] = useState(true);
@@ -29,6 +43,8 @@ const ClassesList = ({ refreshKey = 0 }: { refreshKey?: number }) => {
   const [archivingClasse, setArchivingClasse] = useState<IClasse | null>(null);
   const hasLoadedOnce = useRef(false);
   const { refreshKey: contextRefreshKey } = useRefresh();
+  const { data: session } = useSession();
+  const canManage = canManageOrganization(session);
 
   const showOption = !isPrimaryBranch(branchType);
 
@@ -41,8 +57,8 @@ const ClassesList = ({ refreshKey = 0 }: { refreshKey?: number }) => {
   );
 
   const columns = useMemo(
-    () => getClasseColumns(showOption, tableActions),
-    [showOption, tableActions],
+    () => getClasseColumns(showOption, tableActions, canManage),
+    [showOption, tableActions, canManage],
   );
 
   const fetchClasses = useCallback(async () => {
@@ -68,6 +84,12 @@ const ClassesList = ({ refreshKey = 0 }: { refreshKey?: number }) => {
       setClasses(rawClasses);
       setBranchType(branchResult.typebranch as ManagedBranchType);
       hasLoadedOnce.current = true;
+      const active = rawClasses.filter((item) => item.statusClasse !== false).length;
+      onStats?.({
+        total: rawClasses.length,
+        active,
+        inactive: rawClasses.length - active,
+      });
     } catch (fetchError: unknown) {
       console.error("Echec de recuperer les classes", fetchError);
       setError(
@@ -79,7 +101,7 @@ const ClassesList = ({ refreshKey = 0 }: { refreshKey?: number }) => {
       setLoading(false);
       setIsRefreshing(false);
     }
-  }, []);
+  }, [onStats]);
 
   useEffect(() => {
     void fetchClasses();

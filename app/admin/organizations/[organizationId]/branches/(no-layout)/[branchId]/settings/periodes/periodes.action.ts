@@ -5,7 +5,11 @@ import { z } from "zod";
 import { action } from "@/lib/zsa";
 import { prisma } from "@/lib/prisma";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
-import { canAccessSchoolOpsSettings } from "@/lib/auth/session-roles";
+import {
+  canAccessSchoolOpsSettings,
+  canPermanentlyDeleteInformation,
+  PERMANENT_DELETE_DENIED_MESSAGE,
+} from "@/lib/auth/session-roles";
 import { ensureAcademicPeriodsForBranch } from "@/lib/academic-periods";
 import {
   getAcademicStructure,
@@ -85,7 +89,9 @@ function revalidatePeriodsPath(
 }
 
 export const listPeriodsSettingsAction = action.handler(async () => {
-  const { branchId, typebranch, educationSystem } = await requireBranchContext();
+  const { branchId, typebranch, educationSystem, session } =
+    await requireBranchContext();
+  const canHardDelete = canPermanentlyDeleteInformation(session);
   const structure = getAcademicStructure(typebranch, educationSystem);
 
   const [semesters, periods] = await Promise.all([
@@ -138,7 +144,10 @@ export const listPeriodsSettingsAction = action.handler(async () => {
       semesterId: period.semesterId,
       semesterLabel: period.semester?.label ?? "—",
       gradesGenerated: period.gradesGenerated,
-      canDelete: period._count.fiche === 0 && period._count.grades === 0,
+      canDelete:
+        canHardDelete &&
+        period._count.fiche === 0 &&
+        period._count.grades === 0,
     })),
   };
 });
@@ -249,6 +258,9 @@ export const deletePeriodSettingsAction = action
   .handler(async ({ input }) => {
     const context = await requireBranchContext();
     assertCanManage(context.session);
+    if (!canPermanentlyDeleteInformation(context.session)) {
+      throw new Error(PERMANENT_DELETE_DENIED_MESSAGE);
+    }
 
     const existing = await prisma.period.findFirst({
       where: { id: input.id, branchId: context.branchId },

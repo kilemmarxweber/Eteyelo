@@ -148,12 +148,40 @@ test("roles ecodim sans branche route vers /ecodim", () => {
   }
 });
 
-test("gestionnaire org route vers accueil organisation", () => {
+test("gestionnaire org route vers les etablissements geres", () => {
   assert.equal(
     resolveMembershipPostLoginPath({
       organizationId: ORG_ID,
       membershipRole: ORG_ROLE.GESTIONNAIRE,
       branchCount: 0,
+    }),
+    `/admin/organizations/${ORG_ID}/branches`,
+  );
+  assert.equal(
+    resolveMembershipPostLoginPath({
+      organizationId: ORG_ID,
+      membershipRole: ORG_ROLE.GESTIONNAIRE,
+      branchId: BRANCH_ID,
+      branchCount: 1,
+    }),
+    `/admin/organizations/${ORG_ID}/branches/${BRANCH_ID}`,
+  );
+  assert.equal(
+    resolveMembershipPostLoginPath({
+      organizationId: ORG_ID,
+      membershipRole: ORG_ROLE.GESTIONNAIRE,
+      branchCount: 2,
+    }),
+    `/admin/organizations/${ORG_ID}/branches`,
+  );
+});
+
+test("proprietaire org reste sur l accueil organisation", () => {
+  assert.equal(
+    resolveMembershipPostLoginPath({
+      organizationId: ORG_ID,
+      membershipRole: ORG_ROLE.OWNER,
+      branchCount: 2,
     }),
     `/admin/organizations/${ORG_ID}`,
   );

@@ -114,6 +114,7 @@ export default async function ClassFichePage() {
       },
       select: {
         name: true,
+        description: true,
         code: true,
         adresse: true,
         province: true,

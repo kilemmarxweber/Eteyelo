@@ -136,7 +136,7 @@ export function OrganizationHomeView({
   const base = `/admin/organizations/${organizationId}`;
 
   return (
-    <div className="relative mx-auto flex w-full max-w-7xl flex-col gap-5 px-4 py-6 sm:px-6 lg:px-8">
+    <div className="relative mx-auto flex w-full max-w-5xl flex-col gap-5 px-4 py-6 sm:px-6 lg:px-8">
       <div
         aria-hidden
         className="pointer-events-none absolute inset-x-0 -top-6 h-64 bg-[radial-gradient(ellipse_at_top,_oklch(0.72_0.12_250_/_0.16),_transparent_65%)]"
@@ -205,7 +205,7 @@ export function OrganizationHomeView({
         </div>
       </section>
 
-      <section className="grid gap-2 sm:grid-cols-2">
+      <section className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
         {sections
           .filter((section) => !section.ownerOnly || canListAll)
           .map(({ icon: Icon, ...section }) => {
@@ -217,7 +217,7 @@ export function OrganizationHomeView({
               key={section.path}
               href={`${base}/${section.path}`}
               className={cn(
-                "group relative flex items-center gap-2.5 overflow-hidden rounded-xl border px-3 py-2.5 shadow-sm transition",
+                "group relative flex min-w-0 w-full items-center gap-2.5 overflow-hidden rounded-xl border px-3 py-2.5 shadow-sm transition",
                 "hover:shadow-sm",
                 section.tone.border,
                 section.tone.gradient,

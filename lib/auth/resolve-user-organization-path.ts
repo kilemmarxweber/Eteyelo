@@ -5,7 +5,9 @@ import {
 import { ORGANIZATION_PICKER_PATH } from "@/lib/auth/post-login-redirect";
 import {
   buildBranchPickerPath,
+  buildGestionnaireLandingPath,
   getUserBranchMembershipsForLogin,
+  isGestionnaireBranchLandingRole,
   resolveActiveBranchId,
 } from "@/lib/auth/user-branch-access";
 import { APP_ROLE, ORG_ROLE } from "@/lib/permissions";
@@ -17,10 +19,7 @@ const ECODIM_ORG_ROLES = new Set<string>([
   ORG_ROLE.SUPERVISEUR,
 ]);
 
-const ORG_HOME_ROLES = new Set<string>([
-  ORG_ROLE.OWNER,
-  ORG_ROLE.GESTIONNAIRE,
-]);
+const ORG_HOME_ROLES = new Set<string>([ORG_ROLE.OWNER]);
 
 const SUPPORT_ORG_ROLES = new Set<string>([ORG_ROLE.SUPPORT]);
 
@@ -89,6 +88,10 @@ export async function resolveUserOrganizationFallbackPath(
 
   if (branchId) {
     return `${base}/branches/${branchId}`;
+  }
+
+  if (isGestionnaireBranchLandingRole(membership.role)) {
+    return buildGestionnaireLandingPath(membership.organizationId);
   }
 
   if (branchMemberships.length > 1) {

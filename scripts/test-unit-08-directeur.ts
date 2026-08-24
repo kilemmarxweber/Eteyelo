@@ -202,7 +202,19 @@ test("hub org OK ; post-login → branche d’affectation (sinon /ecodim)", () =
     organizationId: "org-test",
     membershipRole: ORG_ROLE.GESTIONNAIRE,
   });
-  assert.equal(gestionnairePath, "/admin/organizations/org-test");
+  assert.equal(
+    gestionnairePath,
+    "/admin/organizations/org-test/branches",
+  );
+  assert.equal(
+    resolveMembershipPostLoginPath({
+      organizationId: "org-test",
+      membershipRole: ORG_ROLE.GESTIONNAIRE,
+      branchId: "branch-primaire",
+      branchCount: 1,
+    }),
+    "/admin/organizations/org-test/branches/branch-primaire",
+  );
   assert.equal(canManageOrganization(sessionGestionnaire), true);
 });
 

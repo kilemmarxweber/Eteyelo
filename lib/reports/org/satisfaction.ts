@@ -1,3 +1,4 @@
+import { branchDocumentName } from "@/lib/branch-document-name";
 import { prisma } from "@/lib/prisma";
 import { SATISFACTION_POSITIVE_MIN } from "./definitions";
 import { buildBranchIdFilter, pct, type BranchScopeInput } from "./scope";
@@ -58,7 +59,7 @@ export async function getSatisfactionReport(params: {
         params.scope.scope === "branch" && params.scope.branchId
           ? { id: params.scope.branchId }
           : { organizationId: params.scope.organizationId, isActive: true },
-      select: { id: true, name: true },
+      select: { id: true, name: true, description: true },
       orderBy: { name: "asc" },
     }),
   ]);
@@ -99,7 +100,7 @@ export async function getSatisfactionReport(params: {
     ).length;
     return {
       branchId: b.id,
-      branchName: b.name,
+      branchName: branchDocumentName(b),
       average: avg,
       positiveRate: pct(positive, count),
       count,

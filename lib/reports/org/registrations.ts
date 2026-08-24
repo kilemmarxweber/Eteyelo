@@ -1,3 +1,4 @@
+import { branchDocumentName } from "@/lib/branch-document-name";
 import { prisma } from "@/lib/prisma";
 import { buildBranchIdFilter, monthKey, monthLabelFr, pct, type BranchScopeInput } from "./scope";
 
@@ -56,7 +57,7 @@ export async function getRegistrationReport(params: {
         params.scope.scope === "branch" && params.scope.branchId
           ? { id: params.scope.branchId }
           : { organizationId: params.scope.organizationId, isActive: true },
-      select: { id: true, name: true },
+      select: { id: true, name: true, description: true },
       orderBy: { name: "asc" },
     }),
   ]);
@@ -112,7 +113,7 @@ export async function getRegistrationReport(params: {
       const list = rows.filter((r) => r.branchId === b.id);
       return {
         branchId: b.id,
-        branchName: b.name,
+      branchName: branchDocumentName(b),
         total: list.length,
         registered: list.filter((r) => r.status === "REGISTERED").length,
         rejected: list.filter((r) => r.status === "REJECTED").length,

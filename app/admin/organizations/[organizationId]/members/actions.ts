@@ -224,6 +224,7 @@ export async function createOrganizationMemberAction(
     postnom,
     dateOfBirth,
     statusUser,
+    image,
   } = parsed.data;
   const telephone = parsed.data.telephone?.trim() || undefined;
   const address = parsed.data.address?.trim() || undefined;
@@ -314,6 +315,14 @@ export async function createOrganizationMemberAction(
     }
     userId = user.id;
 
+    const imageUrl = image?.trim();
+    if (imageUrl) {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { image: imageUrl },
+      });
+    }
+
     // addMember est server-only ; headers utiles pour le contexte org, pas pour
     // autoriser la création de compte (déjà couverte par la garde + createUser).
     const member = await auth.api.addMember({
@@ -371,7 +380,17 @@ export async function updateOrganizationMemberAction(
   if (!parsed.success) {
     return { ok: false, message: zodFirstMessage(parsed.error) };
   }
-  const { organizationId, memberId, orgRole, branchIds } = parsed.data;
+  const {
+    organizationId,
+    memberId,
+    orgRole,
+    branchIds,
+    email,
+    nom,
+    postnom,
+    prenom,
+    image,
+  } = parsed.data;
   const guard = await guardOrganizationMemberPermission(organizationId, {
     member: ["update"],
   });
@@ -404,6 +423,53 @@ export async function updateOrganizationMemberAction(
     if (!synced.ok) {
       return synced;
     }
+
+    const memberRow = await prisma.member.findFirst({
+      where: { id: memberId, organizationId },
+      select: { userId: true, user: { select: { email: true } } },
+    });
+    if (!memberRow) {
+      return { ok: false, message: "Membre introuvable." };
+    }
+
+    const emailLower = email.trim().toLowerCase();
+    const taken = await prisma.user.findFirst({
+      where: {
+        email: emailLower,
+        id: { not: memberRow.userId },
+      },
+      select: { id: true },
+    });
+    if (taken) {
+      return {
+        ok: false,
+        message: "Cet email est déjà utilisé par un autre compte.",
+      };
+    }
+
+    const imageUrl = image?.trim();
+    const previousEmail = memberRow.user.email?.trim().toLowerCase() ?? "";
+    await prisma.user.update({
+      where: { id: memberRow.userId },
+      data: {
+        email: emailLower,
+        ...(nom ? { name: nom.trim() } : {}),
+        ...(postnom ? { postnom: postnom.trim() } : {}),
+        ...(prenom ? { prenom: prenom.trim() } : {}),
+        ...(imageUrl ? { image: imageUrl } : {}),
+      },
+    });
+    if (previousEmail && previousEmail !== emailLower) {
+      await prisma.account.updateMany({
+        where: {
+          userId: memberRow.userId,
+          providerId: "credential",
+          accountId: previousEmail,
+        },
+        data: { accountId: emailLower },
+      });
+    }
+
     revalidatePath(`/admin/organizations/${organizationId}/members`, "page");
     revalidatePath(
       `/admin/organizations/${organizationId}/members/${memberId}/edit`,
@@ -574,10 +640,68 @@ export type OrganizationMemberListItem = {
     id: string;
     email: string | null;
     name: string;
+    postnom: string | null;
+    prenom: string | null;
     image: string | null;
   };
   branches: { id: string; name: string }[];
 };
+
+export type OrganizationMemberDetail = {
+  id: string;
+  userId: string;
+  role: string;
+  user: {
+    id: string;
+    email: string | null;
+    name: string;
+    postnom: string | null;
+    prenom: string | null;
+    image: string | null;
+  };
+};
+
+export async function getOrganizationMemberAction(
+  organizationId: string,
+  memberId: string,
+): Promise<
+  | { ok: true; member: OrganizationMemberDetail }
+  | { ok: false; message: string }
+> {
+  const guard = await guardOrganizationMemberPermission(organizationId, {
+    member: ["read"],
+  });
+  if (!guard.ok) {
+    return { ok: false, message: guard.message };
+  }
+
+  try {
+    const member = await prisma.member.findFirst({
+      where: { id: memberId, organizationId },
+      select: {
+        id: true,
+        userId: true,
+        role: true,
+        user: {
+          select: {
+            id: true,
+            email: true,
+            name: true,
+            postnom: true,
+            prenom: true,
+            image: true,
+          },
+        },
+      },
+    });
+    if (!member) {
+      return { ok: false, message: "Membre introuvable." };
+    }
+    return { ok: true, member };
+  } catch (e) {
+    return { ok: false, message: errMessage(e) };
+  }
+}
 
 export type MemberBranchOption = {
   id: string;
@@ -668,6 +792,8 @@ export async function listOrganizationMembersAction(
             id: true,
             email: true,
             name: true,
+            postnom: true,
+            prenom: true,
             image: true,
           },
         },

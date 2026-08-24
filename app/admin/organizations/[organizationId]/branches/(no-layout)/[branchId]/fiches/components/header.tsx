@@ -2,6 +2,7 @@
 
 import jsPDF from "jspdf";
 import type { BulletinBranchContext } from "@/lib/bulletin-context";
+import { drawCenteredWrappedText } from "@/lib/pdf/wrap-centered-text";
 
 interface HeaderProps {
   doc: jsPDF;
@@ -43,13 +44,15 @@ export function drawHeader({
   doc.roundedRect(boxX, headerY + 2, boxW, 22, 3, 3);
 
   doc.setFont("times", "bold");
-  doc.setFontSize(13);
+  doc.setFontSize(11);
 
-  doc.text(
+  drawCenteredWrappedText(
+    doc,
     branchContext.branchName || branchContext.organizationName || "-",
     margin + frameWidth / 2,
-    headerY + 8,
-    { align: "center" },
+    headerY + 7,
+    boxW - 4,
+    4.4,
   );
 
   doc.setFontSize(11);

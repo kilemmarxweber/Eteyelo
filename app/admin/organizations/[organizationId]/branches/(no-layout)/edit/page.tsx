@@ -66,6 +66,7 @@ export default async function EditBranchPage({
         organizationId={organizationId}
         defaultValues={{
           name: branch.name,
+          description: branch.description ?? "",
           code: branch.code ?? "",
           image: normalizeBranchImages(branch.image),
           adresse: branch.adresse ?? "",

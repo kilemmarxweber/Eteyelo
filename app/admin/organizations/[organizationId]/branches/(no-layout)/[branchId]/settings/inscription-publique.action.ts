@@ -4,7 +4,11 @@ import { revalidatePath } from "next/cache";
 import { Prisma } from "@/prisma/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
-import { canAccessSchoolOpsSettings } from "@/lib/auth/session-roles";
+import {
+  canAccessSchoolOpsSettings,
+  canPermanentlyDeleteInformation,
+  PERMANENT_DELETE_DENIED_MESSAGE,
+} from "@/lib/auth/session-roles";
 import { parseRentreeProgram } from "@/lib/registration-public-info";
 import {
   branchRegistrationInfoFormSchema,
@@ -271,7 +275,11 @@ export async function saveBranchRegistrationSettingsAction(input: unknown) {
 export async function deleteBranchRegistrationInfoAction(input: {
   id: string;
 }) {
-  const { branchId, organizationId } = await requireBranchRegistrationAccess();
+  const { branchId, organizationId, session } =
+    await requireBranchRegistrationAccess();
+  if (!canPermanentlyDeleteInformation(session)) {
+    return { ok: false as const, message: PERMANENT_DELETE_DENIED_MESSAGE };
+  }
   const id = typeof input?.id === "string" ? input.id.trim() : "";
   if (!id) {
     return { ok: false as const, message: "Fiche invalide." };

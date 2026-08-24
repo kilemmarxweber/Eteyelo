@@ -28,6 +28,11 @@ export const SCHOOL_LEADERSHIP_LOGIN_ORG_ROLES = new Set<string>([
   ORG_ROLE.DIRECTEUR_ETUDES,
 ]);
 
+/** Gestionnaire : entre dans les établissements BranchMember qu’il gère (sans fallback 1ʳᵉ branche org). */
+export const GESTIONNAIRE_LOGIN_ORG_ROLES = new Set<string>([
+  ORG_ROLE.GESTIONNAIRE,
+]);
+
 export type UserBranchMembership = {
   branchId: string;
   branchName: string;
@@ -39,6 +44,25 @@ function splitRoles(value: string | null | undefined) {
     .split(",")
     .map((role) => role.trim().toLowerCase())
     .filter(Boolean);
+}
+
+/** Gestionnaire (pas propriétaire) : landing sur les branches gérées. */
+export function isGestionnaireBranchLandingRole(
+  membershipRole?: string | null,
+) {
+  const roles = splitRoles(membershipRole);
+  return (
+    roles.some((role) => GESTIONNAIRE_LOGIN_ORG_ROLES.has(role)) &&
+    !roles.includes(ORG_ROLE.OWNER)
+  );
+}
+
+export function buildGestionnaireLandingPath(
+  organizationId: string,
+  branchId?: string | null,
+) {
+  const base = `/admin/organizations/${organizationId}/branches`;
+  return branchId ? `${base}/${branchId}` : base;
 }
 
 function mapBranchMemberships(
@@ -143,8 +167,11 @@ export async function getUserBranchMembershipsForLogin(
   const isSchoolLeadershipRole = roles.some((role) =>
     SCHOOL_LEADERSHIP_LOGIN_ORG_ROLES.has(role),
   );
+  const isGestionnaireRole = roles.some((role) =>
+    GESTIONNAIRE_LOGIN_ORG_ROLES.has(role),
+  );
 
-  if (!isBranchLoginRole && !isSchoolLeadershipRole) {
+  if (!isBranchLoginRole && !isSchoolLeadershipRole && !isGestionnaireRole) {
     return [];
   }
 

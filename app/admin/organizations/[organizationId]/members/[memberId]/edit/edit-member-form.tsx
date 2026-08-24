@@ -4,20 +4,35 @@ import { useCallback, useEffect, useState } from "react";
 import { useAppTransition as useTransition } from "@/hooks/use-app-transition";
 import Link from "next/link";
 import { useAppRouter as useRouter } from "@/hooks/use-app-router";
+import { Building2, KeyRound, Shield, UserRound } from "lucide-react";
 import { toast } from "sonner";
-import { authClient } from "@/lib/auth-client";
 import { ALL_ORG_ROLE_SLUGS } from "@/lib/permissions";
 import { orgRoleLabel } from "@/lib/org-role-labels";
+import { formatPersonFullName } from "@/lib/person-full-name";
+import { MAX_IMAGE_UPLOAD_BYTES, uploadFile } from "@/lib/upload-file";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import {
+  getOrganizationMemberAction,
   listOrganizationMemberAssignedBranchesAction,
   removeOrganizationMemberAction,
   updateOrganizationMemberAction,
@@ -26,13 +41,27 @@ import {
   MemberBranchPicker,
   type MemberBranchOption,
 } from "../../branch-picker";
+import {
+  MemberFormLayout,
+  MemberFormSection,
+  MemberFormSummaryRow,
+  memberFieldClass,
+} from "../../member-form-section";
+import { MemberPhotoField } from "../../member-photo-field";
 import { ResetUsersDialog } from "../../../branches/(no-layout)/[branchId]/student/components/reset-users-dialog";
 
 type MemberRow = {
   id: string;
   userId: string;
   role: string;
-  user: { id: string; email: string; name: string };
+  user: {
+    id: string;
+    email: string | null;
+    name: string;
+    postnom: string | null;
+    prenom: string | null;
+    image: string | null;
+  };
 };
 
 type Props = {
@@ -45,43 +74,54 @@ export function EditMemberForm({ organizationId, memberId, branches }: Props) {
   const router = useRouter();
   const [member, setMember] = useState<MemberRow | null | undefined>(undefined);
   const [role, setRole] = useState<string>(ALL_ORG_ROLE_SLUGS[2]);
+  const [email, setEmail] = useState("");
+  const [emailError, setEmailError] = useState<string | undefined>();
   const [branchIds, setBranchIds] = useState<string[]>([]);
   const [branchError, setBranchError] = useState<string | undefined>();
+  const [nom, setNom] = useState("");
+  const [postnom, setPostnom] = useState("");
+  const [prenom, setPrenom] = useState("");
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [nameError, setNameError] = useState<string | undefined>();
   const [pending, startTransition] = useTransition();
   const [pendingRemove, startRemove] = useTransition();
   const [showResetDialog, setShowResetDialog] = useState(false);
+  const [confirmRemove, setConfirmRemove] = useState(false);
 
   const load = useCallback(async () => {
     try {
-      const [res, assignedRes] = await Promise.all([
-        authClient.organization.listMembers({
-          query: { organizationId, limit: 200 },
-        }),
+      const [memberRes, assignedRes] = await Promise.all([
+        getOrganizationMemberAction(organizationId, memberId),
         listOrganizationMemberAssignedBranchesAction(organizationId, memberId),
       ]);
-      if (res.error) {
-        toast.error(res.error.message ?? "Impossible de charger le membre.");
+      if (!memberRes.ok) {
+        toast.error(memberRes.message);
         setMember(null);
         return;
       }
-      const raw = res.data?.members;
-      const list = Array.isArray(raw) ? (raw as MemberRow[]) : [];
-      const found = list.find((m) => m.id === memberId) ?? null;
+      const found = memberRes.member;
       setMember(found);
+      setNom(found.user.name ?? "");
+      setPostnom(found.user.postnom ?? "");
+      setPrenom(found.user.prenom ?? "");
+      setPhotoFile(null);
+      setPhotoPreview(found.user.image);
+      setEmail(found.user.email ?? "");
+      setEmailError(undefined);
+      setNameError(undefined);
       if (assignedRes.ok) {
         setBranchIds(assignedRes.branchIds);
       } else {
         toast.error(assignedRes.message);
       }
-      if (found) {
-        const primary =
-          found.role.split(",")[0]?.trim() ?? ALL_ORG_ROLE_SLUGS[2];
-        setRole(
-          (ALL_ORG_ROLE_SLUGS as readonly string[]).includes(primary)
-            ? primary
-            : ALL_ORG_ROLE_SLUGS[2],
-        );
-      }
+      const primary =
+        found.role.split(",")[0]?.trim() ?? ALL_ORG_ROLE_SLUGS[2];
+      setRole(
+        (ALL_ORG_ROLE_SLUGS as readonly string[]).includes(primary)
+          ? primary
+          : ALL_ORG_ROLE_SLUGS[2],
+      );
     } catch {
       toast.error("Erreur réseau.");
       setMember(null);
@@ -92,19 +132,64 @@ export function EditMemberForm({ organizationId, memberId, branches }: Props) {
     void load();
   }, [load]);
 
+  const listHref = `/admin/organizations/${organizationId}/members`;
+  const busy = pending || pendingRemove;
+  const fullName = formatPersonFullName({ name: nom, postnom, prenom });
+
+  function handlePickPhoto(file: File) {
+    if (!file.type.startsWith("image/")) {
+      toast.error("Choisissez une image (JPEG, PNG, WebP…).");
+      return;
+    }
+    if (file.size > MAX_IMAGE_UPLOAD_BYTES) {
+      toast.error("Image trop volumineuse (max. 5 Mo).");
+      return;
+    }
+    setPhotoPreview((current) => {
+      if (current?.startsWith("blob:")) URL.revokeObjectURL(current);
+      return URL.createObjectURL(file);
+    });
+    setPhotoFile(file);
+  }
+
   function onSave(e: React.FormEvent) {
     e.preventDefault();
+    const nextEmail = email.trim().toLowerCase();
+    if (!nextEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(nextEmail)) {
+      setEmailError("Adresse email invalide.");
+      return;
+    }
+    if (nom.trim().length < 2 || postnom.trim().length < 2 || prenom.trim().length < 2) {
+      setNameError("Nom, postnom et prénom sont requis (2 caractères min.).");
+      return;
+    }
     if (branchIds.length === 0) {
       setBranchError("Sélectionnez au moins une branche.");
       return;
     }
+    setEmailError(undefined);
+    setNameError(undefined);
     setBranchError(undefined);
     startTransition(async () => {
+      let image = member?.user.image ?? "";
+      if (photoFile) {
+        const uploaded = await uploadFile(photoFile);
+        if (!uploaded.ok) {
+          toast.error(uploaded.message);
+          return;
+        }
+        image = uploaded.url;
+      }
       const res = await updateOrganizationMemberAction({
         organizationId,
         memberId,
         orgRole: role,
         branchIds,
+        email: nextEmail,
+        nom: nom.trim(),
+        postnom: postnom.trim(),
+        prenom: prenom.trim(),
+        image,
       });
       if (!res.ok) {
         toast.error(res.message);
@@ -118,8 +203,6 @@ export function EditMemberForm({ organizationId, memberId, branches }: Props) {
 
   function onRemove() {
     if (!member) return;
-    if (!window.confirm(`Retirer ${member.user.name} de l’organisation ?`))
-      return;
     startRemove(async () => {
       const res = await removeOrganizationMemberAction({
         organizationId,
@@ -130,13 +213,22 @@ export function EditMemberForm({ organizationId, memberId, branches }: Props) {
         return;
       }
       toast.success("Membre retiré.");
-      router.push(`/admin/organizations/${organizationId}/members`);
+      router.push(listHref);
       router.refresh();
     });
   }
 
   if (member === undefined) {
-    return <p className="text-sm text-muted-foreground">Chargement…</p>;
+    return (
+      <div className="space-y-2">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <div
+            key={i}
+            className="h-36 animate-pulse rounded-2xl border border-border bg-muted/40"
+          />
+        ))}
+      </div>
+    );
   }
 
   if (member === null) {
@@ -144,115 +236,244 @@ export function EditMemberForm({ organizationId, memberId, branches }: Props) {
       <div className="flex flex-col gap-4">
         <p className="text-sm text-muted-foreground">Membre introuvable.</p>
         <Button variant="outline" asChild>
-          <Link href={`/admin/organizations/${organizationId}/members`}>
-            Retour à la liste
-          </Link>
+          <Link href={listHref}>Retour à la liste</Link>
         </Button>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="space-y-1">
-        <p className="font-medium leading-snug break-words">
-          {member.user.name}
-        </p>
-        <p className="break-all text-sm text-muted-foreground">
-          {member.user.email}
-        </p>
-      </div>
+    <>
+      <form onSubmit={onSave}>
+        <MemberFormLayout
+          aside={
+            <>
+              <Card className="gap-0 py-0 shadow-sm">
+                <CardHeader className="border-b border-border/80 py-4">
+                  <CardTitle className="leading-snug break-words">
+                    {fullName || member.user.name}
+                  </CardTitle>
+                  <CardDescription className="flex flex-wrap gap-1.5 pt-1">
+                    <Badge variant="secondary">{orgRoleLabel(role)}</Badge>
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3 py-4 text-sm">
+                  <MemberFormSummaryRow
+                    label="Email"
+                    value={email.trim() || "—"}
+                  />
+                  <MemberFormSummaryRow
+                    label="Établissements"
+                    value={
+                      branchIds.length === 0
+                        ? "Aucun"
+                        : `${branchIds.length} sélectionné${branchIds.length > 1 ? "s" : ""}`
+                    }
+                  />
+                </CardContent>
+              </Card>
+              <div className="flex flex-col gap-2">
+                <Button
+                  type="submit"
+                  disabled={busy || branches.length === 0}
+                  className="h-11 w-full"
+                >
+                  {pending ? "Enregistrement…" : "Enregistrer"}
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="h-11 w-full"
+                  disabled={busy}
+                  asChild
+                >
+                  <Link href={listHref}>Annuler</Link>
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="h-11 w-full"
+                  disabled={busy}
+                  onClick={() => setShowResetDialog(true)}
+                >
+                  <KeyRound className="size-4" />
+                  Réinitialiser le mot de passe
+                </Button>
+                <Button
+                  type="button"
+                  variant="destructive"
+                  className="h-11 w-full"
+                  disabled={busy}
+                  onClick={() => setConfirmRemove(true)}
+                >
+                  {pendingRemove ? "…" : "Retirer de l’organisation"}
+                </Button>
+              </div>
+            </>
+          }
+        >
+          <MemberFormSection
+            icon={UserRound}
+            title="Identité"
+            description="Nom, postnom, prénom et photo, comme pour un élève. L’email de connexion doit rester unique."
+          >
+            <div className="grid gap-4">
+              <MemberPhotoField
+                previewUrl={photoPreview}
+                onPickFile={handlePickPhoto}
+                disabled={busy}
+                fullName={fullName}
+              />
+              <div className="grid gap-4 sm:grid-cols-3">
+                <div className="flex flex-col gap-2">
+                  <Label htmlFor="edit-nom">Nom</Label>
+                  <Input
+                    id="edit-nom"
+                    value={nom}
+                    onChange={(e) => {
+                      setNom(e.target.value);
+                      if (nameError) setNameError(undefined);
+                    }}
+                    autoComplete="family-name"
+                    placeholder="Ex. Kabila"
+                    disabled={busy}
+                    className={memberFieldClass}
+                  />
+                </div>
+                <div className="flex flex-col gap-2">
+                  <Label htmlFor="edit-postnom">Postnom</Label>
+                  <Input
+                    id="edit-postnom"
+                    value={postnom}
+                    onChange={(e) => {
+                      setPostnom(e.target.value);
+                      if (nameError) setNameError(undefined);
+                    }}
+                    placeholder="Ex. Kabange"
+                    disabled={busy}
+                    className={memberFieldClass}
+                  />
+                </div>
+                <div className="flex flex-col gap-2">
+                  <Label htmlFor="edit-prenom">Prénom</Label>
+                  <Input
+                    id="edit-prenom"
+                    value={prenom}
+                    onChange={(e) => {
+                      setPrenom(e.target.value);
+                      if (nameError) setNameError(undefined);
+                    }}
+                    autoComplete="given-name"
+                    placeholder="Ex. Marie"
+                    disabled={busy}
+                    className={memberFieldClass}
+                  />
+                </div>
+              </div>
+              {nameError ? (
+                <p className="text-xs text-destructive">{nameError}</p>
+              ) : null}
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="edit-email">Email</Label>
+                <Input
+                  id="edit-email"
+                  type="email"
+                  inputMode="email"
+                  autoComplete="email"
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                  value={email}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    if (emailError) setEmailError(undefined);
+                  }}
+                  disabled={busy}
+                  className={memberFieldClass}
+                />
+                {emailError ? (
+                  <p className="text-xs text-destructive">{emailError}</p>
+                ) : (
+                  <p className="text-xs text-muted-foreground">
+                    Sert à la connexion et à l’envoi du mot de passe.
+                  </p>
+                )}
+              </div>
+            </div>
+          </MemberFormSection>
 
-      <form className="flex flex-col gap-4" onSubmit={onSave}>
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="edit-role">Rôle dans l’organisation</Label>
-          <Select
-            value={role}
-            onValueChange={setRole}
-            disabled={pending || pendingRemove}
+          <MemberFormSection
+            icon={Shield}
+            title="Accès"
+            description="Le rôle détermine les droits dans l’organisation."
           >
-            <SelectTrigger className="h-12 min-h-[48px] text-base sm:h-11 sm:min-h-0 sm:text-sm">
-              <SelectValue placeholder="Sélectionner un rôle" />
-            </SelectTrigger>
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="edit-role">Rôle dans l’organisation</Label>
+              <select
+                id="edit-role"
+                value={role}
+                onChange={(e) => setRole(e.target.value)}
+                disabled={busy}
+                className={memberFieldClass + " border bg-background px-3"}
+              >
+                {ALL_ORG_ROLE_SLUGS.map((slug) => (
+                  <option key={slug} value={slug}>
+                    {orgRoleLabel(slug)}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </MemberFormSection>
 
-            <SelectContent>
-              {[...ALL_ORG_ROLE_SLUGS].map((slug) => (
-                <SelectItem key={slug} value={slug}>
-                  {orgRoleLabel(slug)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="flex flex-col gap-2">
-          <Label>Branches autorisées</Label>
-          <p className="text-xs text-muted-foreground">
-            Cochez les établissements auxquels ce membre peut accéder.
-          </p>
-          <MemberBranchPicker
-            branches={branches}
-            value={branchIds}
-            onChange={(ids) => {
-              setBranchIds(ids);
-              if (ids.length > 0) setBranchError(undefined);
-            }}
-            disabled={pending || pendingRemove}
-            error={branchError}
-          />
-        </div>
-        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-          <Button
-            type="submit"
-            disabled={pending || pendingRemove || branches.length === 0}
-            className="h-12 min-h-[48px] touch-manipulation sm:h-11 sm:min-h-0"
+          <MemberFormSection
+            icon={Building2}
+            title="Affectation"
+            description="Cochez les établissements auxquels ce membre peut accéder."
           >
-            {pending ? "Enregistrement…" : "Enregistrer"}
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            className="h-12 min-h-[48px] touch-manipulation sm:h-11 sm:min-h-0"
-            disabled={pending || pendingRemove}
-            asChild
-          >
-            <Link href={`/admin/organizations/${organizationId}/members`}>
-              Annuler
-            </Link>
-          </Button>
-        </div>
+            <MemberBranchPicker
+              branches={branches}
+              value={branchIds}
+              onChange={(ids) => {
+                setBranchIds(ids);
+                if (ids.length > 0) setBranchError(undefined);
+              }}
+              disabled={busy}
+              error={branchError}
+            />
+          </MemberFormSection>
+        </MemberFormLayout>
       </form>
-
-      <div className="border-t border-border pt-4">
-        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-          <Button
-            type="button"
-            variant="outline"
-            className="h-12 min-h-[48px] touch-manipulation sm:h-11 sm:min-h-0"
-            disabled={pending || pendingRemove}
-            onClick={() => setShowResetDialog(true)}
-          >
-            Réinitialiser le mot de passe
-          </Button>
-
-          <Button
-            type="button"
-            variant="destructive"
-            className="h-12 min-h-[48px] touch-manipulation sm:h-11 sm:min-h-0"
-            disabled={pending || pendingRemove}
-            onClick={onRemove}
-          >
-            {pendingRemove ? "…" : "Retirer de l’organisation"}
-          </Button>
-        </div>
-      </div>
 
       <ResetUsersDialog
         open={showResetDialog}
         onOpenChange={setShowResetDialog}
-        email={member.user.email}
+        email={email.trim() || member.user.email}
         organizationId={organizationId}
         showTrigger={false}
       />
-    </div>
+
+      <AlertDialog open={confirmRemove} onOpenChange={setConfirmRemove}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              Retirer {fullName || member.user.name} de l’organisation ?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Le compte sera retiré de cette organisation. Cette action est
+              irréversible.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={pendingRemove}>Annuler</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={pendingRemove}
+              onClick={onRemove}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {pendingRemove ? "…" : "Retirer"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }

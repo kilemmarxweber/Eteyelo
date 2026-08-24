@@ -33,11 +33,10 @@ import {
   isUniversiteBranch,
 } from "@/lib/branch-capabilities";
 
-import { BranchLoadingFallback as Loading } from "@/components/branch-loading-fallback";
 import { getStudentPageContextAction } from "../brevets/brevet.action";
 import Classes from "./components/ClassesClient";
 import { ClasseUpForm } from "./components/classe-form";
-import { getClassesAction, importClassCatalogAction } from "./classe.action";
+import { importClassCatalogAction } from "./classe.action";
 
 export default function Page() {
   const t = useTranslations("classes");
@@ -58,24 +57,10 @@ export default function Page() {
     });
   }, [refreshKey]);
 
-  useEffect(() => {
-    void (async () => {
-      const [items] = await getClassesAction();
-      if (!items) return;
-      const active = items.filter((item) => item.statusClasse !== false).length;
-      setStats({
-        total: items.length,
-        active,
-        inactive: items.length - active,
-      });
-    })();
-  }, [refreshKey]);
-
-  if (isPending) {
-    return <Loading />;
-  }
-
-  if (!session || !canAccessBranchArea("school_admin", session)) {
+  if (
+    !isPending &&
+    (!session || !canAccessBranchArea("school_admin", session))
+  ) {
     return <NotFoundView />;
   }
 
@@ -191,7 +176,7 @@ export default function Page() {
       </div>
 
       <Card variant="elevated" padding="none">
-        <Classes refreshKey={refreshKey} />
+        <Classes refreshKey={refreshKey} onStats={setStats} />
       </Card>
     </BranchPageShell>
   );

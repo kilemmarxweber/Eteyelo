@@ -26,7 +26,6 @@ import {
   canAccessPedagogyArea,
   canManageOrganization,
 } from "@/lib/auth/session-roles";
-import { BranchLoadingFallback as Loading } from "@/components/branch-loading-fallback";
 
 export default function RootLayout({
   children,
@@ -65,11 +64,8 @@ export default function RootLayout({
 
   const hasClasse = !!classeId;
   const peopleLabels = useBranchPeopleLabels();
-  if (isPending) {
-    return <Loading />;
-  }
 
-  if (!canAccessPedagogyArea(session)) {
+  if (!isPending && !canAccessPedagogyArea(session)) {
     return <NotFoundView />;
   }
   const canCreateEnrollment = canManageOrganization(session);

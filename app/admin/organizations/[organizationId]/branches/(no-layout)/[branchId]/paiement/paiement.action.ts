@@ -1457,25 +1457,76 @@ export const updatePaiementAction = action
   });
 
 /* ======================================================
-   DELETE (SOFT CANCEL)
+   DELETE (erreur de saisie)
 ====================================================== */
 export const deletePaiementAction = action
-  .input(z.object({ id: z.string() }))
+  .input(z.object({ ids: z.array(z.string().min(1)).min(1).max(100) }))
   .handler(async ({ input }) => {
-    const { branchId, organizationId } = await requireFinanceBranchContext();
-    const existing = await prisma.familyPayment.findFirst({
-      where: { id: input.id, branchId },
-      select: { id: true },
+    const { branchId, organizationId, userId, session } =
+      await requireFinanceBranchContext();
+    const cashierScope = resolveCashierSelfScope(session, userId);
+    const uniqueIds = Array.from(new Set(input.ids));
+
+    const existing = await prisma.familyPayment.findMany({
+      where: {
+        id: { in: uniqueIds },
+        branchId,
+        ...(cashierScope ? { createdByUserId: cashierScope } : {}),
+      },
+      select: { id: true, batchId: true },
     });
 
-    if (!existing) throw new Error("Paiement non trouvÃ©");
+    if (existing.length === 0) {
+      throw new Error("Paiement introuvable");
+    }
+    if (existing.length !== uniqueIds.length) {
+      throw new Error("Certains paiements n'ont pas pu être supprimés");
+    }
 
-    const cancelled = await prisma.familyPayment.update({
-      where: { id: input.id },
-      data: { status: StatusPaiement.ANNULE },
+    const paymentIds = existing.map((p) => p.id);
+    const batchIds = Array.from(
+      new Set(
+        existing
+          .map((p) => p.batchId)
+          .filter((id): id is number => id != null),
+      ),
+    );
+
+    await prisma.$transaction(async (tx) => {
+      await tx.paymentAllocation.deleteMany({
+        where: { familyPaymentId: { in: paymentIds }, branchId },
+      });
+      await tx.paymentEvent.deleteMany({
+        where: { paymentId: { in: paymentIds }, branchId },
+      });
+      await tx.mobileMoneyTransaction.deleteMany({
+        where: { paymentId: { in: paymentIds }, branchId },
+      });
+      await tx.familyPayment.deleteMany({
+        where: { id: { in: paymentIds }, branchId },
+      });
+
+      if (batchIds.length === 0) return;
+
+      const remaining = await tx.familyPayment.findMany({
+        where: { batchId: { in: batchIds }, branchId },
+        select: { batchId: true },
+      });
+      const remainingBatchIds = new Set(
+        remaining
+          .map((row) => row.batchId)
+          .filter((id): id is number => id != null),
+      );
+      const emptyBatchIds = batchIds.filter((id) => !remainingBatchIds.has(id));
+      if (emptyBatchIds.length) {
+        await tx.paymentBatch.deleteMany({
+          where: { id: { in: emptyBatchIds }, branchId },
+        });
+      }
     });
+
     revalidatePaiementPages(organizationId, branchId);
-    return cancelled;
+    return { deleted: paymentIds.length };
   });
 
 /* ======================================================

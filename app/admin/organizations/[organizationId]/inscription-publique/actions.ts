@@ -4,6 +4,10 @@ import { revalidatePath } from "next/cache";
 import { Prisma } from "@/prisma/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 import { guardOrganizationManager } from "@/lib/auth/require-organization-permission";
+import {
+  canPermanentlyDeleteInformation,
+  PERMANENT_DELETE_DENIED_MESSAGE,
+} from "@/lib/auth/session-roles";
 import { fetchPublishedBranchRegistrationInfo } from "@/lib/fetch-published-branch-registration-info";
 import { branchRegistrationInfoFormSchema } from "./schema";
 
@@ -16,7 +20,7 @@ async function requireOrgManager(organizationId: string) {
   if (!guard.ok) {
     return { ok: false as const, message: guard.message };
   }
-  return { ok: true as const, organizationId };
+  return { ok: true as const, organizationId, context: guard.context };
 }
 
 export async function listOrganizationRegistrationInfos(
@@ -215,6 +219,15 @@ export async function deleteBranchRegistrationInfoAction(
   const access = await requireOrgManager(organizationId);
   if (!access.ok) {
     return { ok: false as const, message: access.message };
+  }
+
+  if (
+    !canPermanentlyDeleteInformation(
+      access.context.session,
+      access.context.membership?.role,
+    )
+  ) {
+    return { ok: false as const, message: PERMANENT_DELETE_DENIED_MESSAGE };
   }
 
   const existing = await prisma.branchRegistrationInfo.findFirst({

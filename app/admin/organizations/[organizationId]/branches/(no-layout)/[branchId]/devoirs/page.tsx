@@ -1,7 +1,10 @@
 import { notFound } from "next/navigation";
 
 import { listAccessibleCursusStudents } from "@/lib/auth/cursus-scope";
-import { canManageOrganization } from "@/lib/auth/session-roles";
+import {
+  canManageOrganization,
+  canPermanentlyDeleteInformation,
+} from "@/lib/auth/session-roles";
 import {
   enforceOnlineAssignmentAccess,
   listTeacherTeachingsForDevoirs,
@@ -204,8 +207,11 @@ export default async function DevoirsPage({
         assignments={rows.map((a) =>
           mapRow(a, {
             canDelete:
-              a.status === "DRAFT" ||
-              (!a.resultsPublished && !a.fiche && a.submissions.length === 0),
+              canPermanentlyDeleteInformation(access.session) &&
+              (a.status === "DRAFT" ||
+                (!a.resultsPublished &&
+                  !a.fiche &&
+                  a.submissions.length === 0)),
           }),
         )}
       />

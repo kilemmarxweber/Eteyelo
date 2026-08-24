@@ -44,7 +44,10 @@ import { scheduleSchema } from "@/src/interfaces/Schedule";
 import { genererCreneaux } from "@/src/hooks/getCourseHours";
 import { toast } from "sonner";
 import { useSession } from "@/lib/auth-client";
-import { canManageOrganization } from "@/lib/auth/session-roles";
+import {
+  canManageOrganization,
+  canPermanentlyDeleteInformation,
+} from "@/lib/auth/session-roles";
 import {
   exportSchedulePdf,
   findScheduleConflicts,
@@ -138,7 +141,7 @@ export default function Schedule({
   const { data: session } = useSession();
   const canManageSchedules = canManageOrganization(session);
   const canCreateSchedule = canManageSchedules;
-  const canDeleteSchedule = canManageSchedules;
+  const canDeleteSchedule = canPermanentlyDeleteInformation(session);
 
   const vacationHref = `/admin/organizations/${params.organizationId}/branches/${params.branchId}/creneau`;
 

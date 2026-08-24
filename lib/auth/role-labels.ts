@@ -58,3 +58,29 @@ export function isOrganizationOwnerMember(
 ): boolean {
   return normalizeMemberRole(memberRole) === ORG_ROLE.OWNER;
 }
+
+function memberRolesInclude(
+  memberRole: string | null | undefined,
+  expected: string,
+): boolean {
+  return (memberRole ?? "")
+    .split(",")
+    .map((role) => role.trim().toLowerCase())
+    .includes(expected);
+}
+
+export function isOrganizationGestionnaireMember(
+  memberRole: string | null | undefined,
+): boolean {
+  return memberRolesInclude(memberRole, ORG_ROLE.GESTIONNAIRE);
+}
+
+/** Propriétaire ou gestionnaire : archiver / modifier, pas supprimer. */
+export function canArchiveOrganizationAsMember(
+  memberRole: string | null | undefined,
+): boolean {
+  return (
+    memberRolesInclude(memberRole, ORG_ROLE.OWNER) ||
+    memberRolesInclude(memberRole, ORG_ROLE.GESTIONNAIRE)
+  );
+}

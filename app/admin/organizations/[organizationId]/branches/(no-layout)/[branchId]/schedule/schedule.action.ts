@@ -3,7 +3,11 @@
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth";
-import { canManageOrganization } from "@/lib/auth/session-roles";
+import {
+  canManageOrganization,
+  canPermanentlyDeleteInformation,
+  PERMANENT_DELETE_DENIED_MESSAGE,
+} from "@/lib/auth/session-roles";
 import { prisma } from "@/lib/prisma";
 import { action } from "@/lib/zsa";
 import { ISchedule, scheduleSchema } from "@/src/interfaces/Schedule";
@@ -47,7 +51,11 @@ function assertScheduleWriteAccess(
   }[actionName];
 
   if (!allowed) {
-    throw new Error("Action non autorisee");
+    throw new Error(
+      actionName === "DELETE"
+        ? PERMANENT_DELETE_DENIED_MESSAGE
+        : "Action non autorisee",
+    );
   }
 }
 
@@ -110,7 +118,10 @@ async function getScheduleContext(): Promise<ScheduleContext> {
     canManageSchedules,
     canCreateSchedules: canManageSchedules,
     canUpdateSchedules: canManageSchedules,
-    canDeleteSchedules: canManageSchedules,
+    canDeleteSchedules: canPermanentlyDeleteInformation(
+      session,
+      branchMember?.role,
+    ),
   };
 }
 
