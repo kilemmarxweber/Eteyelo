@@ -1,10 +1,11 @@
+# pnpm 11+ reads project settings from this file, not package.json#pnpm or .npmrc.
+nodeLinker: hoisted
+shamefullyHoist: true
+
+overrides:
+  ioredis: 5.10.1
+
+# Only packages that currently need a native install script on Linux.
 allowBuilds:
-  '@prisma/engines': true
-  bcrypt: false
-  core-js: false
-  es5-ext: false
-  esbuild: false
-  msgpackr-extract: false
-  prisma: true
-  sharp: false
-  unrs-resolver: false
+  "@parcel/watcher": true
+  "@swc/core": true

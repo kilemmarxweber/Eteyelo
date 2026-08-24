@@ -203,10 +203,5 @@
     "tw-animate-css": "^1.3.4",
     "typescript": "^5.8.3",
     "ua-parser-js": "^2.0.4"
-  },
-  "pnpm": {
-    "overrides": {
-      "ioredis": "5.10.1"
-    }
   }
 }
