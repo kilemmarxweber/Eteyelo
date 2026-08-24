@@ -1,15 +1,11 @@
 import nextDynamic from "next/dynamic";
-import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { createTranslator } from "next-intl";
 import { Badge } from "@/components/ui/badge";
 import { BranchPageShell } from "@/components/layout/branch-page-shell";
 import { IconUserCheck } from "@tabler/icons-react";
-import { auth } from "@/lib/auth";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
 import { requiresStudentImport } from "@/lib/branch-capabilities";
-import { loadMessages } from "@/lib/i18n";
-import { resolvePreferredLocale } from "@/lib/resolve-preferred-locale";
+import { getServerTranslator } from "@/lib/i18n-server";
 
 export const dynamic = "force-dynamic";
 
@@ -41,16 +37,7 @@ export default async function RegistrationPage({
     );
   }
 
-  const session = await auth.api.getSession({ headers: await headers() });
-  const locale = await resolvePreferredLocale(
-    (session?.user as { locale?: string | null } | undefined)?.locale,
-  );
-  const messages = await loadMessages(locale);
-  const t = createTranslator({
-    locale,
-    messages,
-    namespace: "registration",
-  });
+  const t = await getServerTranslator("registration");
 
   return (
     <BranchPageShell

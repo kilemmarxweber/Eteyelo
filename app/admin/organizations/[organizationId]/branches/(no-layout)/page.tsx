@@ -95,7 +95,7 @@ export default async function BranchesPage({ params }: BranchesPageProps) {
       </section>
 
       {branches.length > 0 ? (
-        <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+        <section className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
           {branches.map((branch) => (
             <BranchCard
               key={branch.id}
@@ -104,33 +104,33 @@ export default async function BranchesPage({ params }: BranchesPageProps) {
               editHref={`${base}/edit?branchId=${branch.id}`}
               isActive={branch.isActive}
             >
-              <div className="group flex flex-col gap-3 rounded-2xl border bg-card p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md">
-                <span className="flex items-start justify-between gap-3">
-                  <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-                    <School className="size-4" />
-                  </span>
-
-                  <ArrowRight className="size-4 text-muted-foreground transition group-hover:translate-x-1 group-hover:text-foreground" />
+              <div className="group flex items-center gap-2.5 rounded-xl border bg-card py-2.5 pl-3 pr-20 shadow-sm transition hover:border-primary/30 hover:bg-muted/40 hover:shadow-sm">
+                <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+                  <School className="size-3.5" />
                 </span>
 
-                <span>
-                  <span className="block text-base font-semibold text-foreground">
-                    {branch.name}
+                <span className="min-w-0 flex-1">
+                  <span className="flex items-center gap-1.5">
+                    <span className="truncate text-sm font-semibold text-foreground">
+                      {branch.name}
+                    </span>
+                    <ArrowRight className="size-3.5 shrink-0 text-muted-foreground opacity-0 transition group-hover:translate-x-0.5 group-hover:opacity-100" />
                   </span>
 
-                  <span className="mt-2 flex flex-wrap items-center gap-2">
-                    <BranchTypeBadge typebranch={branch.typebranch} />
-                  </span>
-
-                  <span className="mt-0.5 block text-sm leading-5 text-muted-foreground">
-                    {branch.studentsCount} élève
-                    {branch.studentsCount > 1 ? "s" : ""} inscrit
-                    {branch.studentsCount > 1 ? "s" : ""}
-                  </span>
-                  <span
-                    className={`mt-2 inline-flex rounded-full px-2 py-0.5 text-xs font-semibold ${branch.isActive ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-muted-foreground"}`}
-                  >
-                    {branch.isActive ? "Actif" : "Archive"}
+                  <span className="mt-0.5 flex flex-wrap items-center gap-1.5">
+                    <BranchTypeBadge
+                      typebranch={branch.typebranch}
+                      className="h-5 px-1.5 text-[10px]"
+                    />
+                    <span className="text-[11px] text-muted-foreground">
+                      {branch.studentsCount} élève
+                      {branch.studentsCount > 1 ? "s" : ""}
+                    </span>
+                    <span
+                      className={`rounded px-1.5 py-px text-[10px] font-semibold ${branch.isActive ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300" : "bg-muted text-muted-foreground"}`}
+                    >
+                      {branch.isActive ? "Actif" : "Archive"}
+                    </span>
                   </span>
                 </span>
               </div>

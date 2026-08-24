@@ -151,7 +151,8 @@ function SearchableCombobox({
         onOpenAutoFocus={(event) => {
           markRadixPortalInteraction();
           event.preventDefault();
-          const input = event.currentTarget.querySelector("input");
+          const target = event.currentTarget as HTMLElement | null;
+          const input = target?.querySelector("input");
           input?.focus();
         }}
         onCloseAutoFocus={(event) => {

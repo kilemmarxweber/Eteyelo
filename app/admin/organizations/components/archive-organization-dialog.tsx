@@ -162,7 +162,7 @@ export function ArchiveOrganizationButton({
           type="button"
           variant="ghost"
           size="icon"
-          className="size-9 shrink-0 rounded-full text-muted-foreground hover:bg-amber-50 hover:text-amber-700"
+          className="size-7 shrink-0 rounded-md text-muted-foreground hover:bg-amber-50 hover:text-amber-700"
           aria-label={
             isArchived
               ? `Reactiver ${organizationName}`
@@ -175,9 +175,9 @@ export function ArchiveOrganizationButton({
           }}
         >
           {isArchived ? (
-            <RotateCcw className="size-4" />
+            <RotateCcw className="size-3.5" />
           ) : (
-            <Archive className="size-4" />
+            <Archive className="size-3.5" />
           )}
         </Button>
       )}

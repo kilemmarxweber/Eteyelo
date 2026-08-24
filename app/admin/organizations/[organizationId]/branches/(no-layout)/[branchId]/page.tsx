@@ -289,7 +289,7 @@ export default function AdminDashboard() {
               studentProfileId:
                 variant === "student" ? (student?.studentId ?? null) : null,
             },
-            (key, values) => t(key as never, values),
+            (key, values) => t(key as never, values as never),
           )
         : [],
     [
@@ -318,7 +318,7 @@ export default function AdminDashboard() {
         variant,
         branchTypeLabel,
         capabilities.isSchoolBranch,
-        (key, values) => t(key as never, values),
+        (key, values) => t(key as never, values as never),
       )
     : t("loading");
 

@@ -127,7 +127,7 @@ export function DeleteOrganizationButton({
           type="button"
           variant="ghost"
           size="icon"
-          className="size-9 shrink-0 rounded-full text-muted-foreground hover:bg-red-50 hover:text-red-600"
+          className="size-7 shrink-0 rounded-md text-muted-foreground hover:bg-red-50 hover:text-red-600"
           aria-label={`Supprimer ${organizationName}`}
           onClick={(event) => {
             event.preventDefault();
@@ -135,7 +135,7 @@ export function DeleteOrganizationButton({
             setOpen(true);
           }}
         >
-          <Trash2 className="size-4" />
+          <Trash2 className="size-3.5" />
         </Button>
       )}
 

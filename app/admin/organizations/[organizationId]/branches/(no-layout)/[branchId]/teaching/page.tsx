@@ -650,6 +650,7 @@ function TeacherPicker({
   allowAll?: boolean;
   allowClear?: boolean;
 }) {
+  const t = useTranslations("teaching");
   const [open, setOpen] = useState(false);
   const selected = teachers.find((teacher) => teacher.id === value);
   const displayValue =

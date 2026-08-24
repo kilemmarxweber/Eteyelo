@@ -64,7 +64,7 @@ export function BranchCard({
       </Link>
 
       <div
-        className="absolute bottom-5 right-5 z-20 flex items-center gap-2"
+        className="absolute top-1/2 right-2 z-20 flex -translate-y-1/2 items-center gap-1"
         onClick={(e) => {
           e.preventDefault();
           e.stopPropagation();
@@ -74,10 +74,10 @@ export function BranchCard({
           asChild
           size="icon"
           variant="outline"
-          className="rounded-full"
+          className="size-7 rounded-md"
         >
           <Link href={editHref}>
-            <Pencil className="h-4 w-4" />
+            <Pencil className="size-3.5" />
           </Link>
         </Button>
 
@@ -86,10 +86,14 @@ export function BranchCard({
             <Button
               size="icon"
               variant={isActive ? "destructive" : "outline"}
-              className="rounded-full"
+              className="size-7 rounded-md"
               title={isActive ? "Archiver" : "Reactiver"}
             >
-              {isActive ? <Archive className="h-4 w-4" /> : <RotateCcw className="h-4 w-4" />}
+              {isActive ? (
+                <Archive className="size-3.5" />
+              ) : (
+                <RotateCcw className="size-3.5" />
+              )}
             </Button>
           </DialogTrigger>
           <DialogContent>

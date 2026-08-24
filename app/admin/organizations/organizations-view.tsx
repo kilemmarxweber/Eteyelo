@@ -160,11 +160,11 @@ export function OrganizationsView() {
         </div>
 
         {isPending ? (
-          <div className="grid gap-3 p-4 md:grid-cols-2 xl:grid-cols-3 sm:p-5">
+          <div className="grid gap-2 p-3 md:grid-cols-2 xl:grid-cols-3 sm:p-4">
             {Array.from({ length: 6 }).map((_, index) => (
               <div
                 key={index}
-                className="h-[5.25rem] animate-pulse rounded-2xl border border-border/60 bg-muted/60"
+                className="h-14 animate-pulse rounded-xl border border-border/60 bg-muted/60"
               />
             ))}
           </div>
@@ -187,68 +187,63 @@ export function OrganizationsView() {
             Aucune organisation ne correspond à « {query.trim()} ».
           </div>
         ) : (
-          <div className="grid gap-3 p-4 md:grid-cols-2 xl:grid-cols-3 sm:p-5">
+          <div className="grid gap-2 p-3 md:grid-cols-2 xl:grid-cols-3 sm:p-4">
             {filteredOrgs.map((org) => (
               <div
                 key={org.id}
                 className={cn(
-                  "group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-border/80 bg-gradient-to-b from-muted/50 via-card to-card p-4 transition duration-300",
-                  "hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md hover:shadow-primary/10",
+                  "group relative flex items-center gap-2.5 overflow-hidden rounded-xl border border-border/80 bg-card px-3 py-2.5 transition",
+                  "hover:border-primary/30 hover:bg-muted/40 hover:shadow-sm",
                   org.isArchived && "opacity-80",
                 )}
               >
-                <div
-                  aria-hidden
-                  className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-transparent via-primary/50 to-transparent opacity-0 transition group-hover:opacity-100"
-                />
-
-                <div className="flex items-start justify-between gap-3">
-                  <Link
-                    href={`/admin/organizations/${org.id}`}
-                    className="flex min-w-0 flex-1 items-start gap-3"
-                  >
-                    <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-primary text-sm font-bold tracking-wide text-primary-foreground shadow-sm transition duration-300 group-hover:scale-105">
-                      {orgInitials(org.name)}
-                    </span>
-                    <span className="min-w-0 flex-1 pt-0.5">
-                      <span className="block truncate text-sm font-semibold text-foreground">
+                <Link
+                  href={`/admin/organizations/${org.id}`}
+                  className="flex min-w-0 flex-1 items-center gap-2.5"
+                >
+                  <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary text-[11px] font-bold tracking-wide text-primary-foreground">
+                    {orgInitials(org.name)}
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="flex items-center gap-1.5">
+                      <span className="truncate text-sm font-semibold text-foreground">
                         {org.name}
                       </span>
-                      <span className="mt-1 inline-flex max-w-full items-center rounded-md border border-primary/15 bg-primary/5 px-1.5 py-0.5 font-mono text-[11px] text-primary/90">
-                        <span className="truncate">{org.slug}</span>
-                      </span>
                       {org.isArchived ? (
-                        <span className="mt-2 inline-flex rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-700 dark:text-amber-300">
+                        <span className="shrink-0 rounded bg-amber-500/15 px-1.5 py-px text-[10px] font-semibold uppercase tracking-wide text-amber-700 dark:text-amber-300">
                           Archivée
                         </span>
                       ) : null}
                     </span>
-                  </Link>
+                    <span className="mt-0.5 block truncate font-mono text-[11px] text-muted-foreground">
+                      {org.slug}
+                    </span>
+                  </span>
+                </Link>
 
-                  <div className="flex items-center gap-0.5">
-                    {org.canArchive ? (
-                      <ArchiveOrganizationButton
-                        organizationId={org.id}
-                        organizationName={org.name}
-                        isArchived={Boolean(org.isArchived)}
-                        onDone={() => void reload()}
-                      />
-                    ) : null}
-                    {org.canDelete ? (
-                      <DeleteOrganizationButton
-                        organizationId={org.id}
-                        organizationName={org.name}
-                        onDeleted={() => void reload()}
-                      />
-                    ) : null}
-                    <Link
-                      href={`/admin/organizations/${org.id}`}
-                      className="flex size-8 items-center justify-center rounded-lg text-muted-foreground transition hover:bg-muted hover:text-foreground"
-                      aria-label={`Ouvrir ${org.name}`}
-                    >
-                      <ArrowRight className="size-4 transition group-hover:translate-x-0.5" />
-                    </Link>
-                  </div>
+                <div className="flex shrink-0 items-center gap-0.5">
+                  {org.canArchive ? (
+                    <ArchiveOrganizationButton
+                      organizationId={org.id}
+                      organizationName={org.name}
+                      isArchived={Boolean(org.isArchived)}
+                      onDone={() => void reload()}
+                    />
+                  ) : null}
+                  {org.canDelete ? (
+                    <DeleteOrganizationButton
+                      organizationId={org.id}
+                      organizationName={org.name}
+                      onDeleted={() => void reload()}
+                    />
+                  ) : null}
+                  <Link
+                    href={`/admin/organizations/${org.id}`}
+                    className="flex size-7 items-center justify-center rounded-md text-muted-foreground transition hover:bg-muted hover:text-foreground"
+                    aria-label={`Ouvrir ${org.name}`}
+                  >
+                    <ArrowRight className="size-3.5 transition group-hover:translate-x-0.5" />
+                  </Link>
                 </div>
               </div>
             ))}

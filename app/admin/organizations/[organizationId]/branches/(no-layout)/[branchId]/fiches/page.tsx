@@ -94,7 +94,7 @@ export default async function ClassFichePage() {
                   include: {
                     member: {
                       include: {
-                        user: { select: { name: true, userId: true } },
+                        user: { select: { name: true } },
                       },
                     },
                   },

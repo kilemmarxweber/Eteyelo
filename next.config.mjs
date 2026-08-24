@@ -1,5 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Permet `NEXT_DIST_DIR=.next-prod pnpm build` en parallèle de `pnpm dev`.
+  distDir: process.env.NEXT_DIST_DIR || ".next",
   // Redis / BullMQ : non bundlés (évite warning child-processor).
   // exceljs (+ unzipper/fstream/rimraf) : externalisés pour éviter le warning
   // Turbopack « Package rimraf can't be external » sur les pages qui exportent Excel.

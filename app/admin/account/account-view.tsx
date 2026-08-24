@@ -240,11 +240,12 @@ export function AccountView({
   }
 
   function handleLocaleChange(value: string) {
-    if (!isUserLocale(value)) return;
+    if (!user?.id || !isUserLocale(value)) return;
+    const userId = user.id;
     const next = value;
     const previous = locale;
     setLocale(next);
-    writeUserLocalePreference(next, user.id);
+    writeUserLocalePreference(next, userId);
     document.documentElement.lang = intlLocaleFromUserLocale(next);
     startLocaleTransition(() => {
       void updateUserLocaleAction(next)
@@ -254,7 +255,7 @@ export function AccountView({
         })
         .catch(() => {
           setLocale(previous);
-          writeUserLocalePreference(previous, user.id);
+          writeUserLocalePreference(previous, userId);
           document.documentElement.lang = intlLocaleFromUserLocale(previous);
           toast.error(tCommon("errorGeneric"));
         });

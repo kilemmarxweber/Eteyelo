@@ -205,7 +205,7 @@ export function OrganizationHomeView({
         </div>
       </section>
 
-      <section className="grid gap-3 sm:grid-cols-2">
+      <section className="grid gap-2 sm:grid-cols-2">
         {sections
           .filter((section) => !section.ownerOnly || canListAll)
           .map(({ icon: Icon, ...section }) => {
@@ -217,46 +217,39 @@ export function OrganizationHomeView({
               key={section.path}
               href={`${base}/${section.path}`}
               className={cn(
-                "group relative flex flex-col gap-3 overflow-hidden rounded-2xl border p-4 shadow-sm transition duration-300",
-                "hover:-translate-y-0.5 hover:shadow-md",
+                "group relative flex items-center gap-2.5 overflow-hidden rounded-xl border px-3 py-2.5 shadow-sm transition",
+                "hover:shadow-sm",
                 section.tone.border,
                 section.tone.gradient,
                 section.tone.hover,
               )}
             >
-              <span className="flex items-start justify-between gap-3">
-                <span
-                  className={cn(
-                    "flex size-10 shrink-0 items-center justify-center rounded-xl transition duration-300 group-hover:scale-105",
-                    section.tone.iconBox,
-                  )}
-                >
-                  <Icon className="size-4" />
-                </span>
-                <ArrowRight className="size-4 text-muted-foreground transition duration-300 group-hover:translate-x-1 group-hover:text-foreground" />
+              <span
+                className={cn(
+                  "flex size-8 shrink-0 items-center justify-center rounded-lg",
+                  section.tone.iconBox,
+                )}
+              >
+                <Icon className="size-3.5" />
               </span>
 
-              <span>
-                <span
-                  className={cn(
-                    "mb-1 block text-[10px] font-bold uppercase tracking-[0.12em]",
-                    section.tone.label,
-                  )}
-                >
-                  Section
+              <span className="min-w-0 flex-1">
+                <span className="flex items-center gap-1.5">
+                  <span className="truncate text-sm font-semibold text-foreground">
+                    {section.title}
+                  </span>
+                  {count != null && section.countLabel ? (
+                    <span className="shrink-0 rounded bg-background/70 px-1.5 py-px text-[10px] font-semibold text-foreground ring-1 ring-border/70">
+                      {section.countLabel(count)}
+                    </span>
+                  ) : null}
                 </span>
-                <span className="block text-base font-semibold text-foreground">
-                  {section.title}
-                </span>
-                <span className="mt-1 block text-sm leading-5 text-muted-foreground">
+                <span className="mt-0.5 line-clamp-1 text-[11px] leading-4 text-muted-foreground">
                   {section.description}
                 </span>
-                {count != null && section.countLabel ? (
-                  <span className="mt-3 inline-flex rounded-full bg-background/70 px-2.5 py-1 text-[11px] font-semibold text-foreground ring-1 ring-border/70">
-                    {section.countLabel(count)}
-                  </span>
-                ) : null}
               </span>
+
+              <ArrowRight className="size-3.5 shrink-0 text-muted-foreground transition group-hover:translate-x-0.5 group-hover:text-foreground" />
             </Link>
           );
         })}

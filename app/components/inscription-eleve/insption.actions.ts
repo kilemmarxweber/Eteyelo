@@ -191,10 +191,10 @@ function createReference() {
 }
 
 function studentDisplayName(student: {
-  prenom: string;
+  prenom?: string;
   name: string;
 }) {
-  return `${student.prenom} ${student.name}`.trim() || "Élève";
+  return `${student.prenom ?? ""} ${student.name}`.trim() || "Élève";
 }
 
 /**
