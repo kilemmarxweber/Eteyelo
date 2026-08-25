@@ -6,6 +6,7 @@ import {
 } from "@/lib/branch-capabilities";
 import { normalizeBranchType } from "@/lib/academic-structure";
 import { assertImportableSchoolStudent } from "@/lib/atelier-student-access";
+import { appendStudentToOpenClassFiches } from "@/lib/sync-fiche-students";
 
 export type ImportSearchResult = {
   id: string;
@@ -272,6 +273,13 @@ export async function enrollStudentInBranchClass(params: {
       classeId: params.classeId,
       statusEnrollment: true,
     },
+  });
+
+  await appendStudentToOpenClassFiches({
+    branchId: params.branchId,
+    classId: params.classeId,
+    schoolYearId: schoolYear.id,
+    studentId: params.studentId,
   });
 }
 

@@ -23,6 +23,7 @@ import {
   resolveCoursePonderation,
 } from "@/lib/course-ponderation";
 import { isAllowedFicheType } from "@/lib/fiche-type-options";
+import { syncClassStudentsAcrossOpenFiches } from "@/lib/sync-fiche-students";
 
 export async function getSchoolYear() {
   return getCurrentSchoolYear();
@@ -45,58 +46,12 @@ async function syncClassStudentsAcrossFiches({
   schoolYearId: string;
   currentStudents: CreateFicheParams["notes"];
 }) {
-  const studentsById = new Map(
-    currentStudents
-      .filter((student) => Boolean(student.studentId))
-      .map((student) => [student.studentId, student]),
-  );
-
-  if (!studentsById.size) return;
-
-  const fiches = await prisma.fiche.findMany({
-    where: {
-      branchId,
-      classSectionId: classId,
-      anneeId: schoolYearId,
-    },
-    select: { id: true, notes: true },
+  await syncClassStudentsAcrossOpenFiches({
+    branchId,
+    classId,
+    schoolYearId,
+    currentStudents,
   });
-
-  const updates = fiches.flatMap((fiche) => {
-    let existingNotes: Array<Record<string, unknown>> = [];
-    try {
-      const parsed = fiche.notes ? JSON.parse(fiche.notes) : [];
-      existingNotes = Array.isArray(parsed) ? parsed : [];
-    } catch {
-      existingNotes = [];
-    }
-
-    const existingStudentIds = new Set(
-      existingNotes.map((note) => String(note.studentId ?? "")).filter(Boolean),
-    );
-    const ficheMaxScore = Number(existingNotes[0]?.maxScore ?? 0);
-    const missingStudents = Array.from(studentsById.values())
-      .filter((student) => !existingStudentIds.has(student.studentId))
-      .map((student) => ({
-        ...student,
-        score: 0,
-        maxScore: ficheMaxScore || student.maxScore,
-      }));
-
-    if (!missingStudents.length) return [];
-
-    return [
-      prisma.fiche.update({
-        where: { id: fiche.id },
-        data: {
-          notes: JSON.stringify([...existingNotes, ...missingStudents]),
-          dateUpdated: new Date(),
-        },
-      }),
-    ];
-  });
-
-  if (updates.length) await prisma.$transaction(updates);
 }
 // récupère toutes les périodes / sessions selon le type de branche
 export async function getPeriods() {
@@ -161,6 +116,27 @@ export async function checkExistingFiche(params: {
     console.error("Error checking existing fiche:", error);
     return { exists: false };
   }
+}
+
+export async function syncOpenFichesWithClassStudents(params: {
+  classId: string;
+  schoolYearId: string;
+  students: CreateFicheParams["notes"];
+}) {
+  const { session, userId, branchId } = await requireBranchContext();
+  await assertClassRosterAccess({
+    session,
+    userId,
+    branchId,
+    classId: params.classId,
+  });
+
+  await syncClassStudentsAcrossOpenFiches({
+    branchId,
+    classId: params.classId,
+    schoolYearId: params.schoolYearId,
+    currentStudents: params.students,
+  });
 }
 export async function createFiche(
   data: CreateFicheParams,
@@ -329,20 +305,17 @@ export async function createFiche(
 
     const isFicheCote = data.typeFiche === "ficheCote";
 
-    // 🔎 Vérifie si fiche existe déjà
-    const existing = isFicheCote
-      ? await prisma.fiche.findFirst({
-          where: {
-            classSectionId: data.classId,
-            lessonId: data.lessonId,
-            periodId: data.periodId,
-            anneeId: annees.id, // ✅ FIX
-            teacherId: data.teacherId,
-            typeFiche: data.typeFiche,
-            branchId,
-          },
-        })
-      : null;
+    // 🔎 Vérifie si fiche existe déjà (évaluation, devoir, TP, ficheCote, …)
+    const existing = await prisma.fiche.findFirst({
+      where: {
+        classSectionId: data.classId,
+        lessonId: data.lessonId,
+        periodId: data.periodId,
+        anneeId: annees.id,
+        typeFiche: data.typeFiche,
+        branchId,
+      },
+    });
 
     // 🔁 UPDATE
     // Compter les scores différents de 0
@@ -353,6 +326,30 @@ export async function createFiche(
     data.status = false;
 
     if (existing) {
+      if (!isFicheCote) {
+        const lockedFicheCote = await prisma.fiche.findFirst({
+          where: {
+            classSectionId: data.classId,
+            lessonId: data.lessonId,
+            periodId: data.periodId,
+            anneeId: annees.id,
+            typeFiche: "ficheCote",
+            status: true,
+            branchId,
+          },
+          select: { id: true },
+        });
+
+        if (lockedFicheCote) {
+          return {
+            success: false,
+            error: true,
+            message:
+              "La fiche de cote est déjà validée. Les notes ne peuvent plus être modifiées.",
+          };
+        }
+      }
+
       await prisma.fiche.update({
         where: { id: existing.id },
         data: {

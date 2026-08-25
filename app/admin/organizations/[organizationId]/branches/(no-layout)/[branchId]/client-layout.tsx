@@ -9,15 +9,16 @@ import { Search } from "@/components/search";
 import { NotificationBell } from "@/components/notification-bell";
 import { MobileNav } from "@/components/layout/mobile-nav";
 import { OwnerBranchesLink } from "@/components/owner-branches-link";
+import { AppIntlProvider } from "@/components/app-intl-provider";
 import { authClient } from "@/lib/auth-client";
-import { useAppLoading } from "@/hooks/use-app-loading";
 import { BranchSessionResume } from "@/components/branch-session-resume";
+import { hideRouteLoader } from "@/lib/route-loader";
 import { RefreshProvider, useRefresh } from "@/src/hooks/RefreshContext";
+import type { UserLocale } from "@/lib/user-locale";
 import { cn } from "@/lib/utils";
 
 function BranchShell({ children }: { children: React.ReactNode }) {
   const { data: session, isPending } = authClient.useSession();
-  const { resetLoading } = useAppLoading();
   const { refreshKey } = useRefresh();
   const [isCollapsed, setIsCollapsed] = useState(false);
 
@@ -26,12 +27,12 @@ function BranchShell({ children }: { children: React.ReactNode }) {
 
     // Ne démonte plus le shell si la session clignote — redirection douce seulement.
     const timeout = window.setTimeout(() => {
-      resetLoading();
+      hideRouteLoader();
       window.location.assign("/auth/sign-in");
     }, 2500);
 
     return () => window.clearTimeout(timeout);
-  }, [session, isPending, resetLoading]);
+  }, [session, isPending]);
 
   return (
     <div className="relative h-dvh overflow-hidden bg-background">
@@ -73,10 +74,20 @@ function BranchShell({ children }: { children: React.ReactNode }) {
   );
 }
 
-export default function Layout({ children }: { children: React.ReactNode }) {
+export default function Layout({
+  children,
+  locale,
+  messages,
+}: {
+  children: React.ReactNode;
+  locale: UserLocale;
+  messages: Record<string, unknown>;
+}) {
   return (
-    <RefreshProvider>
-      <BranchShell>{children}</BranchShell>
-    </RefreshProvider>
+    <AppIntlProvider locale={locale} messages={messages}>
+      <RefreshProvider>
+        <BranchShell>{children}</BranchShell>
+      </RefreshProvider>
+    </AppIntlProvider>
   );
 }

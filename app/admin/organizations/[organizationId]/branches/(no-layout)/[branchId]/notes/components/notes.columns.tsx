@@ -5,6 +5,39 @@ import { StudentRow } from "./types";
 import { ApplicationValue } from "./types";
 import { Input } from "@/components/ui/input";
 import React from "react";
+
+const SCORE_INPUT_ATTR = "data-score-input";
+const SCORE_TEXT_PATTERN = /^\d*[.,]?\d*$/;
+
+function scoreToText(score: number | null): string {
+  return score === null ? "" : String(score);
+}
+
+function parseScoreText(raw: string, maxScore: number): number | null {
+  const normalized = raw.trim().replace(",", ".");
+  if (normalized === "" || normalized === "." || normalized === ",") {
+    return null;
+  }
+
+  const parsed = Number(normalized);
+  if (!Number.isFinite(parsed) || parsed < 0) return null;
+
+  return Math.min(parsed, maxScore);
+}
+
+function focusNextScoreInput(current: HTMLInputElement) {
+  const inputs = Array.from(
+    document.querySelectorAll<HTMLInputElement>(`input[${SCORE_INPUT_ATTR}]`),
+  );
+  const index = inputs.indexOf(current);
+  const next = inputs[index + 1];
+
+  if (!next) return;
+
+  next.focus();
+  next.select();
+}
+
 function ScoreCell({
   row,
   onScoreChange,
@@ -13,28 +46,53 @@ function ScoreCell({
   onScoreChange: (id: string, value: number | null) => void;
 }) {
   const s = row.original;
-
-  const [localValue, setLocalValue] = React.useState<string>(
-    s.score === null ? "" : String(s.score),
+  const focusedRef = React.useRef(false);
+  const [localValue, setLocalValue] = React.useState<string>(() =>
+    scoreToText(s.score),
   );
 
   React.useEffect(() => {
-    setLocalValue(s.score === null ? "" : String(s.score));
+    if (focusedRef.current) return;
+    setLocalValue(scoreToText(s.score));
   }, [s.score]);
+
+  const commitText = (raw: string) => {
+    if (raw !== "" && !SCORE_TEXT_PATTERN.test(raw)) return;
+
+    const parsed = parseScoreText(raw, s.maxScore);
+    const nextText =
+      parsed !== null && parsed < Number(raw.replace(",", "."))
+        ? String(parsed)
+        : raw;
+
+    setLocalValue(nextText);
+    if (parsed !== s.score) {
+      onScoreChange(s.studentId, parsed);
+    }
+  };
 
   return (
     <div className="flex items-center gap-1 whitespace-nowrap">
       <Input
-        type="number"
-        min={0}
-        max={s.maxScore}
+        type="text"
+        inputMode="decimal"
+        enterKeyHint="next"
+        autoComplete="off"
+        data-score-input=""
         value={localValue}
-        onChange={(e) => setLocalValue(e.target.value)}
+        onFocus={(e) => {
+          focusedRef.current = true;
+          e.currentTarget.select();
+        }}
+        onChange={(e) => commitText(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key !== "Enter") return;
+          e.preventDefault();
+          e.stopPropagation();
+          focusNextScoreInput(e.currentTarget);
+        }}
         onBlur={() => {
-          const parsed =
-            localValue === "" ? null : Math.min(Number(localValue), s.maxScore);
-
-          onScoreChange(s.studentId, isNaN(parsed as any) ? null : parsed);
+          focusedRef.current = false;
         }}
         className="w-16 h-8 px-2"
       />

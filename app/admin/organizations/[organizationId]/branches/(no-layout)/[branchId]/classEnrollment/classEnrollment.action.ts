@@ -11,6 +11,7 @@ import z from "zod";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
 import { findAvailableClassForLevel } from "@/lib/class-enrollment/find-available-class";
 import { Prisma } from "@/prisma/generated/prisma/client";
+import { appendStudentToOpenClassFiches } from "@/lib/sync-fiche-students";
 
 function revalidateClassEnrollmentPages(organizationId: string, branchId: string) {
   revalidatePath(
@@ -116,6 +117,12 @@ export const createClassEnrollmentAction = action
     if (!classEnrollment) {
       throw new Error("L'inscription n'a pas pu être finalisée. Réessayez.");
     }
+    await appendStudentToOpenClassFiches({
+      branchId,
+      classId: classEnrollment.classeId,
+      schoolYearId,
+      studentId,
+    });
     revalidateClassEnrollmentPages(organizationId, branchId);
     return classEnrollment;
   });

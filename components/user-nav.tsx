@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAppRouter as useRouter } from "@/hooks/use-app-router";
 import { authClient } from "@/lib/auth-client";
-import { useAppLoading } from "@/hooks/use-app-loading";
+import { hideRouteLoader } from "@/lib/route-loader";
 import { getPrimaryRoleLabel } from "@/lib/sidebar-menu";
 import { cn, normalizeImageSrc } from "@/lib/utils";
 import {
@@ -28,7 +28,6 @@ import { ChevronDown, LogOut, Settings, UserRound } from "lucide-react";
 export function UserNav() {
   const tNav = useTranslations("nav");
   const router = useRouter();
-  const { resetLoading } = useAppLoading();
   const { data: session } = authClient.useSession();
   const user = session?.user as SessionUserDisplay | undefined;
   const displayName = resolveUserDisplayName(user);
@@ -133,7 +132,7 @@ export function UserNav() {
                   await authClient.signOut();
                   window.location.assign("/auth/sign-in");
                 } finally {
-                  resetLoading();
+                  hideRouteLoader();
                 }
               })();
             }}

@@ -20,8 +20,10 @@ import { Badge } from "@/components/ui/badge";
 import { DataTable } from "@/components/ui/data-table";
 import { Button } from "@/components/ui/button";
 import { Combobox } from "@/components/ui/combox";
+import { FaFileExcel } from "react-icons/fa";
 import BulletinPDF from "./useBulletinPDF";
 import { SubjectMultiSelect } from "./SubjectMultiSelect";
+import { downloadCotationExcel } from "./export-cotation-excel";
 import {
   ClassType,
   Fiche,
@@ -166,6 +168,7 @@ export default function ClassFicheClient({
   const [selectedPeriod, setSelectedPeriod] = useState("");
   const [selectedAnnee, setSelectedAnnee] = useState("");
   const [selectedSubjects, setSelectedSubjects] = useState<string[]>([]);
+  const [exportingExcel, setExportingExcel] = useState(false);
   const [totalPeriods, setTotalPeriods] = useState(0);
   const [families, setFamilies] = useState<
     Record<string, { fatherName: string; motherName: string; placeOfBirth: string }>
@@ -1086,6 +1089,70 @@ export default function ClassFicheClient({
     rankingData,
   ]);
 
+  const exportCotationExcel = useCallback(async () => {
+    if (!selectedClass || !selectedPeriod || !selectedAnnee) return;
+    if (ficheRecapSorted.length === 0 || visibleSubjects.length === 0) {
+      toast.error("Aucun tableau à exporter pour ces filtres.");
+      return;
+    }
+    if (exportingExcel) return;
+
+    setExportingExcel(true);
+    try {
+      await downloadCotationExcel({
+        schoolName: branchContext.organizationName,
+        branchName: branchContext.branchName,
+        classLabel: selectedClass.codename || selectedClass.name || "",
+        schoolYearLabel,
+        schoolYearValue: selectedAnnee,
+        period: selectedPeriod,
+        subjects: visibleSubjects,
+        rows: ficheRecapSorted.map((student) => {
+          const notes = getNotesForPeriods(student.periods, selectedPeriod);
+          const { pct } = computePeriodPercentage(
+            student.periods,
+            selectedPeriod,
+          );
+          const studentPct = rankingData.find(
+            (entry) => entry.studentId === student.studentId,
+          );
+          const place = studentPct
+            ? rankingData.filter((entry) => entry.pct > studentPct.pct).length +
+              1
+            : "";
+
+          return {
+            nom: student.nom,
+            scores: visibleSubjects.map((subject) => {
+              const score = notes[subject]?.score;
+              return score !== undefined && score !== null ? score : null;
+            }),
+            percentage: pct,
+            place,
+          };
+        }),
+      });
+    } catch (error) {
+      console.error(error);
+      toast.error("Impossible de générer le fichier Excel.");
+    } finally {
+      setExportingExcel(false);
+    }
+  }, [
+    selectedClass,
+    selectedPeriod,
+    selectedAnnee,
+    ficheRecapSorted,
+    visibleSubjects,
+    getNotesForPeriods,
+    computePeriodPercentage,
+    rankingData,
+    schoolYearLabel,
+    branchContext.organizationName,
+    branchContext.branchName,
+    exportingExcel,
+  ]);
+
   // const ficheTableall = useReactTable({
   //   data: fiches,
   //   columns: ficheColumns,
@@ -1240,6 +1307,23 @@ export default function ClassFicheClient({
                     onSelectAll={() => setSelectedSubjects(availableSubjects)}
                     onReset={() => setSelectedSubjects([])}
                   />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="gap-2"
+                    onClick={() => {
+                      void exportCotationExcel();
+                    }}
+                    disabled={
+                      exportingExcel ||
+                      studentCount === 0 ||
+                      visibleSubjects.length === 0
+                    }
+                  >
+                    <FaFileExcel className="size-3.5 text-emerald-600" />
+                    {exportingExcel ? "Excel…" : "Excel"}
+                  </Button>
                 </div>
               )}
             </div>

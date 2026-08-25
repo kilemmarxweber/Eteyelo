@@ -28,6 +28,7 @@ import {
   getPeriods,
   getSchoolYear,
   getStudentsByClass,
+  syncOpenFichesWithClassStudents,
 } from "./note.action";
 import { useNotesLabels } from "@/hooks/use-notes-labels";
 import { getAcademicPeriodOrder } from "@/lib/academic-structure";
@@ -193,16 +194,42 @@ export default function FicheSaisieClient({
 
       if (
         existingFiche.exists &&
-        existingFiche.data &&
-        typeFiche === "ficheCote"
+        existingFiche.data
       ) {
         const notes = existingFiche.data.notes;
+        const ficheCoteValidated = Boolean(
+          lesson.fiches?.some(
+            (f) =>
+              f.typeFiche === "ficheCote" &&
+              f.status === true &&
+              f.periodId === selectedPeriodId &&
+              f.anneeId === selectedYearId,
+          ),
+        );
+
+        if (!ficheCoteValidated) {
+          await syncOpenFichesWithClassStudents({
+            classId: lesson.classId,
+            schoolYearId: selectedYearId!,
+            students: initialStudents.map((s) => ({
+              studentId: s.studentId,
+              nom: s.name,
+              studentSurname: s.lastname,
+              studentusername: s.firstname,
+              studentSexe: s.sex === "Male" ? "M" : "F",
+              score: 0,
+              maxScore: s.maxScore,
+            })),
+          });
+        }
 
         initialStudents = initialStudents.map((s) => {
           const found = notes.find((n: any) => n.studentId === s.studentId);
           return {
             ...s,
-            score: found ? found.score : null,
+            score: found ? found.score : ficheCoteValidated ? null : 0,
+            application: found?.application || undefined,
+            comment: found?.comment ?? s.comment,
           };
         });
       }

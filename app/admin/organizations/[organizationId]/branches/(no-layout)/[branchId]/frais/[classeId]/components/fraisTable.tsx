@@ -4,7 +4,7 @@ import { getFraisByClassAction, getFraisAction } from "../../frais.action";
 import { ResponsiveDataTable } from "@/components/ui/responsive-data-table";
 import { SearchAndFilter } from "@/components/ui/search-and-filter";
 import { Button } from "@/components/ui/button";
-import { Edit, Trash2, MoreHorizontal } from "lucide-react";
+import { Edit, Trash2, MoreHorizontal, Copy } from "lucide-react";
 import { IconChevronLeft, IconChevronRight } from "@tabler/icons-react";
 import {
   DropdownMenu,
@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { UpdateFraisDialog } from "./edit-Frais-dialog";
 import { DeleteFraissDialog } from "./delete-Frais-dialog";
+import { ReplicateFraisDialog } from "./replicate-Frais-dialog";
 
 const FraissList = ({ params }: { params: { classeId: string } }) => {
   const [fraiss, setFraiss] = useState<IFrais[]>([]);
@@ -24,6 +25,7 @@ const FraissList = ({ params }: { params: { classeId: string } }) => {
   const ITEMS_PER_PAGE = 5;
   const [showUpdateDialog, setShowUpdateDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showReplicateDialog, setShowReplicateDialog] = useState(false);
   const [selectedFrais, setSelectedFrais] = useState<IFrais | null>(null);
 
   useEffect(() => {
@@ -71,6 +73,11 @@ const FraissList = ({ params }: { params: { classeId: string } }) => {
   const handleDelete = (frais: IFrais) => {
     setSelectedFrais(frais);
     setShowDeleteDialog(true);
+  };
+
+  const handleReplicate = (frais: IFrais) => {
+    setSelectedFrais(frais);
+    setShowReplicateDialog(true);
   };
 
   // Colonnes pour desktop
@@ -123,6 +130,10 @@ const FraissList = ({ params }: { params: { classeId: string } }) => {
               <Edit className="mr-2 h-4 w-4" />
               Modifier
             </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleReplicate(frais)}>
+              <Copy className="mr-2 h-4 w-4" />
+              Reconduire
+            </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
               onClick={() => handleDelete(frais)}
@@ -159,6 +170,12 @@ const FraissList = ({ params }: { params: { classeId: string } }) => {
         label: "Modifier",
         icon: Edit,
         onClick: () => handleEdit(frais),
+        variant: "outline" as const,
+      },
+      {
+        label: "Reconduire",
+        icon: Copy,
+        onClick: () => handleReplicate(frais),
         variant: "outline" as const,
       },
       {
@@ -256,6 +273,13 @@ const FraissList = ({ params }: { params: { classeId: string } }) => {
             onOpenChange={setShowDeleteDialog}
             Frais={[selectedFrais]}
             showTrigger={false}
+          />
+          <ReplicateFraisDialog
+            open={showReplicateDialog}
+            onOpenChange={setShowReplicateDialog}
+            sourceClasseId={params.classeId}
+            fraisIds={[selectedFrais.id]}
+            feeLabel={selectedFrais.nameFrais}
           />
         </>
       )}

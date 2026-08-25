@@ -20,7 +20,7 @@ import {
 } from "lucide-react";
 import { cn, normalizeImageSrc } from "@/lib/utils";
 import { authClient } from "@/lib/auth-client";
-import { useAppLoading } from "@/hooks/use-app-loading";
+import { hideRouteLoader } from "@/lib/route-loader";
 import {
   canAccessResultsArea,
   canAccessTeachingArea,
@@ -156,7 +156,6 @@ function MobileNavBar({ items }: { items: NavItem[] }) {
 function MobileNavMoreMenu() {
   const pathname = usePathname();
   const router = useRouter();
-  const { resetLoading } = useAppLoading();
   const { data: session } = authClient.useSession();
   const user = session?.user as (SessionUserDisplay & { image?: string | null }) | undefined;
   const displayName = resolveUserDisplayName(user);
@@ -174,7 +173,7 @@ function MobileNavMoreMenu() {
     } catch {
       toast.error("Deconnexion impossible.");
     } finally {
-      resetLoading();
+      hideRouteLoader();
     }
   }
 

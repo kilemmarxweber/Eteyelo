@@ -2,6 +2,8 @@ import ClientLayout from "./client-layout";
 import AttendanceGuard from "./attendance/component/AttendanceGuard";
 import { enforceOrganizationBranchPage } from "@/lib/auth/require-organization-permission";
 import { switchActiveBranch } from "@/lib/auth/switch-branch";
+import { loadMessages } from "@/lib/i18n";
+import { resolvePreferredLocale } from "@/lib/resolve-preferred-locale";
 
 export default async function Layout({
   children,
@@ -22,8 +24,13 @@ export default async function Layout({
     console.error("[BranchLayout] switchActiveBranch:", switched.message);
   }
 
+  const locale = await resolvePreferredLocale(
+    (context.session.user as { locale?: string | null }).locale,
+  );
+  const messages = await loadMessages(locale);
+
   return (
-    <ClientLayout>
+    <ClientLayout locale={locale} messages={messages}>
       <AttendanceGuard />
       {children}
     </ClientLayout>

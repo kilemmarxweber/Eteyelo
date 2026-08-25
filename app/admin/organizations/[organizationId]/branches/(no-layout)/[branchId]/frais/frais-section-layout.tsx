@@ -4,7 +4,7 @@ import { Layout, LayoutBody } from "@/components/custom/layout";
 import { PageHeader } from "@/components/ui/page-header";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { IconPlus, IconReportMoney, IconSchool } from "@tabler/icons-react";
+import { IconCopy, IconPlus, IconReportMoney, IconSchool } from "@tabler/icons-react";
 import {
   Sheet,
   SheetContent,
@@ -14,6 +14,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { FraisUpForm } from "./[classeId]/components/frais-form";
+import { ReplicateFraisDialog } from "./[classeId]/components/replicate-Frais-dialog";
 import { Button } from "@/components/custom/button";
 import { getClassesByIdAction } from "../classe/classe.action";
 import { useEffect, useState } from "react";
@@ -35,6 +36,7 @@ export default function RootLayout({
 function FraisLayoutContent({ children }: { children: React.ReactNode }) {
   const { refresh } = useRefresh();
   const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [replicateDialogOpen, setReplicateDialogOpen] = useState(false);
   const handleFraisAction = () => {
     refresh();
     setAddDialogOpen(false);
@@ -107,40 +109,58 @@ function FraisLayoutContent({ children }: { children: React.ReactNode }) {
             canCreateFrais ? (
               <div className="flex flex-wrap items-center gap-2">
                 {hasClasse ? (
-                  <Sheet open={addDialogOpen} onOpenChange={setAddDialogOpen}>
-                    <SheetTrigger asChild>
-                      <Button
-                        size="sm"
-                        variant="default"
-                        leftSection={<IconPlus size={16} />}
-                      >
-                        Ajouter un frais
-                      </Button>
-                    </SheetTrigger>
-                    <SheetContent
-                      side="right"
-                      className="flex h-dvh max-h-dvh w-[min(100vw,40rem)] max-w-full flex-col gap-0 overflow-hidden p-0 sm:max-w-[40rem]"
+                  <>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      leftSection={<IconCopy size={16} />}
+                      onClick={() => setReplicateDialogOpen(true)}
                     >
-                      <SheetHeader className="shrink-0 space-y-1.5 border-b px-5 py-4 pr-12 text-left sm:px-6">
-                        <SheetTitle>Ajouter un frais</SheetTitle>
-                        <SheetDescription>
-                          Créez un nouveau frais scolaire pour{" "}
-                          {classes?.nameClasse ||
-                            classes?.codeClasse ||
-                            "cette classe"}
-                          .
-                        </SheetDescription>
-                      </SheetHeader>
-                      <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4 sm:px-6">
-                        <FraisUpForm
-                          mode="create"
-                          layout="dialog"
-                          onCreated={handleFraisAction}
-                          classeId={classeId}
-                        />
-                      </div>
-                    </SheetContent>
-                  </Sheet>
+                      Reconduire
+                    </Button>
+                    <Sheet open={addDialogOpen} onOpenChange={setAddDialogOpen}>
+                      <SheetTrigger asChild>
+                        <Button
+                          size="sm"
+                          variant="default"
+                          leftSection={<IconPlus size={16} />}
+                        >
+                          Ajouter un frais
+                        </Button>
+                      </SheetTrigger>
+                      <SheetContent
+                        side="right"
+                        className="flex h-dvh max-h-dvh w-[min(100vw,40rem)] max-w-full flex-col gap-0 overflow-hidden p-0 sm:max-w-[40rem]"
+                      >
+                        <SheetHeader className="shrink-0 space-y-1.5 border-b px-5 py-4 pr-12 text-left sm:px-6">
+                          <SheetTitle>Ajouter un frais</SheetTitle>
+                          <SheetDescription>
+                            Créez un nouveau frais scolaire pour{" "}
+                            {classes?.nameClasse ||
+                              classes?.codeClasse ||
+                              "cette classe"}
+                            .
+                          </SheetDescription>
+                        </SheetHeader>
+                        <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4 sm:px-6">
+                          <FraisUpForm
+                            mode="create"
+                            layout="dialog"
+                            onCreated={handleFraisAction}
+                            classeId={classeId}
+                          />
+                        </div>
+                      </SheetContent>
+                    </Sheet>
+                    <ReplicateFraisDialog
+                      open={replicateDialogOpen}
+                      onOpenChange={setReplicateDialogOpen}
+                      sourceClasseId={classeId}
+                      sourceClassLabel={
+                        classes?.nameClasse || classes?.codeClasse
+                      }
+                    />
+                  </>
                 ) : null}
               </div>
             ) : null

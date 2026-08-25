@@ -11,6 +11,7 @@ import {
   typeFraisSchema,
   ITypeFrais,
   deleteFraisSchema,
+  replicateFraisSchema,
 } from "@/src/interfaces/Frais";
 import { z } from "zod";
 import {
@@ -638,3 +639,101 @@ export const getFraisClassSidebarAction = action.handler(async () => {
     })),
   };
 });
+
+export const replicateFraisAction = action
+  .input(replicateFraisSchema)
+  .handler(async ({ input }) => {
+    const { branchId, organizationId } = await requireFinanceBranchContext();
+    const { sourceClasseId, fraisIds, targetClasseIds, allOtherClasses } =
+      input;
+
+    const currentYear = await getCurrentBranchSchoolYear(branchId);
+    const sourceClasse = await requireClasseInBranch(sourceClasseId, branchId);
+
+    const sourceFrais = await prisma.frais.findMany({
+      where: {
+        branchId,
+        classeId: sourceClasse.id,
+        schoolYearId: currentYear.id,
+        ...(fraisIds?.length ? { id: { in: fraisIds } } : {}),
+      },
+    });
+
+    if (sourceFrais.length === 0) {
+      throw new Error("Aucun frais à reconduire pour cette classe");
+    }
+
+    const requestedTargetIds = allOtherClasses
+      ? undefined
+      : Array.from(
+          new Set(
+            (targetClasseIds ?? []).filter((id) => id !== sourceClasse.id),
+          ),
+        );
+
+    if (!allOtherClasses && (!requestedTargetIds || requestedTargetIds.length === 0)) {
+      throw new Error("Aucune autre classe sélectionnée");
+    }
+
+    const otherClasses = await prisma.classe.findMany({
+      where: {
+        branchId,
+        id: allOtherClasses
+          ? { not: sourceClasse.id }
+          : { in: requestedTargetIds ?? [] },
+      },
+      select: { id: true },
+    });
+
+    const validTargetIds = otherClasses.map((classe) => classe.id);
+
+    if (validTargetIds.length === 0) {
+      throw new Error("Aucune autre classe sélectionnée");
+    }
+
+    const existing = await prisma.frais.findMany({
+      where: {
+        branchId,
+        schoolYearId: currentYear.id,
+        classeId: { in: validTargetIds },
+        nameFrais: { in: sourceFrais.map((frais) => frais.nameFrais) },
+      },
+      select: { classeId: true, nameFrais: true },
+    });
+
+    const existingKeys = new Set(
+      existing.map((row) => `${row.classeId}::${row.nameFrais}`),
+    );
+
+    const toCreate = validTargetIds.flatMap((classeId) =>
+      sourceFrais
+        .filter((frais) => !existingKeys.has(`${classeId}::${frais.nameFrais}`))
+        .map((frais) => ({
+          nameFrais: frais.nameFrais,
+          montantFrais: frais.montantFrais,
+          statusFrais: frais.statusFrais,
+          classeId,
+          typeFraisId: frais.typeFraisId,
+          echeance: frais.echeance,
+          schoolYearId: currentYear.id,
+          priority: frais.priority,
+          branchId,
+        })),
+    );
+
+    if (toCreate.length > 0) {
+      await prisma.frais.createMany({ data: toCreate });
+    }
+
+    const skipped =
+      validTargetIds.length * sourceFrais.length - toCreate.length;
+
+    revalidateFraisPages(organizationId, branchId);
+
+    return {
+      created: toCreate.length,
+      skipped,
+      classCount: validTargetIds.length,
+      feeCount: sourceFrais.length,
+    };
+  });

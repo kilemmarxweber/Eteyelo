@@ -56,3 +56,17 @@ export const fraisSchema = z.object({
 export const deleteFraisSchema = z.object({
   id: z.string(),
 });
+
+export const replicateFraisSchema = z
+  .object({
+    sourceClasseId: z.string().min(1),
+    fraisIds: z.array(z.string().min(1)).optional(),
+    targetClasseIds: z.array(z.string().min(1)).optional(),
+    allOtherClasses: z.boolean().optional(),
+  })
+  .refine(
+    (value) =>
+      value.allOtherClasses === true ||
+      (value.targetClasseIds && value.targetClasseIds.length > 0),
+    { message: "Sélectionnez au moins une classe" },
+  );

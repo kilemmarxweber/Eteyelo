@@ -25,7 +25,19 @@ type AppLoadingContextValue = {
   withLoading: <T>(fn: () => Promise<T>) => Promise<T>;
 };
 
-const AppLoadingContext = createContext<AppLoadingContextValue | null>(null);
+const noop = () => {};
+
+const FALLBACK_APP_LOADING: AppLoadingContextValue = {
+  isLoading: false,
+  startLoading: noop,
+  stopLoading: noop,
+  startNavigationLoading: noop,
+  resetLoading: noop,
+  withLoading: async (fn) => fn(),
+};
+
+const AppLoadingContext =
+  createContext<AppLoadingContextValue>(FALLBACK_APP_LOADING);
 const MAX_LOADER_MS = 12_000;
 const MUTATING_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
 
@@ -241,11 +253,5 @@ export function AppLoadingProvider({ children }: { children: ReactNode }) {
 }
 
 export function useAppLoading() {
-  const context = useContext(AppLoadingContext);
-
-  if (!context) {
-    throw new Error("useAppLoading must be used within AppLoadingProvider");
-  }
-
-  return context;
+  return useContext(AppLoadingContext);
 }

@@ -8,6 +8,7 @@ import { requireBranchContext } from "@/lib/auth/require-branch-context";
 import { canAccessRegistrationArea } from "@/lib/auth/session-roles";
 import { Prisma } from "@/prisma/generated/prisma/client";
 import { findAvailableClassForLevel } from "@/lib/class-enrollment/find-available-class";
+import { appendStudentToOpenClassFiches } from "@/lib/sync-fiche-students";
 import { matchesClassForLevel } from "@/lib/class-enrollment/match-class-for-level";
 import { getClassLevelsForBranch, requiresOptionForClass, allowsOptionForBranch } from "@/lib/class-structure";
 import { ensureAngolaSecondaryStructure } from "@/lib/angola-secondary-bootstrap";
@@ -1508,6 +1509,13 @@ export const createRegistrationFlowAction = action
 
         return { enrollmentId: enrollment.id, studentId, parentId, classeId: classe.id, classeName: classe.nameClasse, studentCode, studentEmail: generatedStudentEmail, studentSearchName };
       }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
+
+      await appendStudentToOpenClassFiches({
+        branchId,
+        classId: result.classeId,
+        schoolYearId: input.schoolYearId,
+        studentId: result.studentId,
+      });
 
       const base = `/admin/organizations/${organizationId}/branches/${branchId}`;
       revalidatePath(`${base}/registration`);

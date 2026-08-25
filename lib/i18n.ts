@@ -1,3 +1,5 @@
+import { cache } from "react";
+
 import {
   normalizeUserLocale,
   type UserLocale,
@@ -22,7 +24,7 @@ export const I18N_NAMESPACES = [
 
 export type I18nNamespace = (typeof I18N_NAMESPACES)[number];
 
-export async function loadMessages(locale: UserLocale) {
+export const loadMessages = cache(async (locale: UserLocale) => {
   const safe = normalizeUserLocale(locale);
   const entries = await Promise.all(
     I18N_NAMESPACES.map(async (ns) => {
@@ -30,5 +32,8 @@ export async function loadMessages(locale: UserLocale) {
       return [ns, mod.default] as const;
     }),
   );
-  return Object.fromEntries(entries) as Record<I18nNamespace, Record<string, unknown>>;
-}
+  return Object.fromEntries(entries) as Record<
+    I18nNamespace,
+    Record<string, unknown>
+  >;
+});
