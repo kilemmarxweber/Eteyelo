@@ -5,7 +5,17 @@ shamefullyHoist: true
 overrides:
   ioredis: 5.10.1
 
-# Only packages that currently need a native install script on Linux.
+# pnpm 11 fails the install until every package with a build script is listed.
+# true = run the native/postinstall script; false = skip it but stop ERR_PNPM_IGNORED_BUILDS.
 allowBuilds:
   "@parcel/watcher": true
+  "@prisma/engines": true
   "@swc/core": true
+  bcrypt: true
+  core-js: false
+  es5-ext: false
+  esbuild: true
+  msgpackr-extract: true
+  prisma: true
+  sharp: true
+  unrs-resolver: true
