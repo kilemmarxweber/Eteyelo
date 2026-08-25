@@ -335,9 +335,10 @@ export function getAcademicStructure(
   typebranch: unknown,
   educationSystem?: unknown,
 ): AcademicStructure {
-  const type = normalizeBranchType(typebranch);
+  const type =
+    typebranch === "MATERNELLE" ? "PRIMAIRE" : normalizeBranchType(typebranch);
   const system = normalizeEducationSystem(educationSystem);
-  if (usesTermPeriodCalendar(type, system)) {
+  if (usesTermPeriodCalendar(typebranch, system)) {
     return buildTermPeriodStructure(
       type,
       system === "ANGLAIS" ? "ANGLAIS" : "ANGOLAIS",

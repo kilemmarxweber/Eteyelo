@@ -64,7 +64,7 @@ export function BranchStickyHeader({
                 {badge}
               </div>
               {description ? (
-                <p className="truncate text-xs leading-snug text-muted-foreground md:text-sm">
+                <p className="line-clamp-2 text-xs leading-snug text-muted-foreground md:text-sm">
                   {description}
                 </p>
               ) : null}

@@ -5,11 +5,16 @@ import {
   getAcademicPeriodOrderForSemester,
   getAcademicStructure,
   normalizeAcademicPeriodLabel,
-  normalizeBranchType,
   resolveAcademicPeriodConfig,
 } from "@/lib/academic-structure";
 import { UNIVERSITY_LMD_LABELS } from "@/lib/university-lmd-labels";
 import { usesTermPeriodCalendar } from "@/lib/education-system";
+import {
+  cycleToManagedType,
+  getBranchCycles,
+  normalizeCycle,
+  type Cycle,
+} from "@/lib/cycle";
 
 function addDays(date: Date, days: number) {
   const next = new Date(date);
@@ -27,19 +32,16 @@ function getDefaultAcademicYearRange() {
   };
 }
 
-export async function ensureAcademicPeriodsForBranch(params: {
+async function ensureAcademicPeriodsForCycle(params: {
   branchId: string;
-  typebranch: unknown;
+  cycle: Cycle;
   educationSystem?: unknown;
-  startDate?: Date;
-  endDate?: Date;
+  startDate: Date;
+  endDate: Date;
 }) {
-  const typebranch = normalizeBranchType(params.typebranch);
-  const structure = getAcademicStructure(typebranch, params.educationSystem);
-  const range = {
-    ...getDefaultAcademicYearRange(),
-    ...params,
-  };
+  const typebranch = cycleToManagedType(params.cycle);
+  const structure = getAcademicStructure(params.cycle, params.educationSystem);
+  const range = { startDate: params.startDate, endDate: params.endDate };
 
   const totalDays = Math.max(
     1,
@@ -56,8 +58,9 @@ export async function ensureAcademicPeriodsForBranch(params: {
 
     const semester = await prisma.semester.upsert({
       where: {
-        branchId_label: {
+        branchId_cycle_label: {
           branchId: params.branchId,
+          cycle: params.cycle,
           label: group.label,
         },
       },
@@ -70,6 +73,7 @@ export async function ensureAcademicPeriodsForBranch(params: {
         startDate: groupStart,
         endDate: groupEnd,
         branchId: params.branchId,
+        cycle: params.cycle,
       },
     });
 
@@ -92,6 +96,7 @@ export async function ensureAcademicPeriodsForBranch(params: {
       const existing = await prisma.period.findFirst({
         where: {
           branchId: params.branchId,
+          cycle: params.cycle,
           semesterId: semester.id,
           label: {
             in: [period.label, ...getAcademicPeriodAliases(period.label)],
@@ -106,6 +111,7 @@ export async function ensureAcademicPeriodsForBranch(params: {
             label: period.label,
             startDate: periodStart,
             endDate: periodEnd,
+            cycle: params.cycle,
           },
         });
         continue;
@@ -119,6 +125,7 @@ export async function ensureAcademicPeriodsForBranch(params: {
         const staleFirstSession = await prisma.period.findFirst({
           where: {
             branchId: params.branchId,
+            cycle: params.cycle,
             semesterId: semester.id,
             label: {
               in: [
@@ -136,6 +143,7 @@ export async function ensureAcademicPeriodsForBranch(params: {
               label: period.label,
               startDate: periodStart,
               endDate: periodEnd,
+              cycle: params.cycle,
             },
           });
           continue;
@@ -149,9 +157,37 @@ export async function ensureAcademicPeriodsForBranch(params: {
           endDate: periodEnd,
           semesterId: semester.id,
           branchId: params.branchId,
+          cycle: params.cycle,
         },
       });
     }
+  }
+}
+
+export async function ensureAcademicPeriodsForBranch(params: {
+  branchId: string;
+  typebranch: unknown;
+  educationSystem?: unknown;
+  cycles?: unknown[];
+  startDate?: Date;
+  endDate?: Date;
+}) {
+  const defaults = getDefaultAcademicYearRange();
+  const startDate = params.startDate ?? defaults.startDate;
+  const endDate = params.endDate ?? defaults.endDate;
+
+  const cycles: Cycle[] = params.cycles?.length
+    ? params.cycles.map((cycle) => normalizeCycle(cycle))
+    : [normalizeCycle(params.typebranch)];
+
+  for (const cycle of cycles) {
+    await ensureAcademicPeriodsForCycle({
+      branchId: params.branchId,
+      cycle,
+      educationSystem: params.educationSystem,
+      startDate,
+      endDate,
+    });
   }
 }
 
@@ -161,6 +197,7 @@ export type BranchPeriodOption = {
   rawLabel: string;
   semesterLabel: string | null;
   kind: "PERIOD" | "EXAM" | null;
+  cycle?: Cycle | null;
 };
 
 function isKnownAcademicPeriod(
@@ -195,49 +232,58 @@ export async function listBranchPeriodOptions(params: {
   branchId: string;
   typebranch: unknown;
   educationSystem?: unknown;
+  cycle?: unknown;
   ensure?: boolean;
   /** Universite : ne retourner que Premiere session et Deuxieme session. */
   sessionsOnly?: boolean;
 }): Promise<BranchPeriodOption[]> {
-  const typebranch = normalizeBranchType(params.typebranch);
+  const cycle = params.cycle
+    ? normalizeCycle(params.cycle)
+    : normalizeCycle(params.typebranch);
+  const typebranch = cycleToManagedType(cycle);
 
   if (
     params.ensure !== false &&
     (isUniversiteBranch(typebranch) ||
-      usesTermPeriodCalendar(typebranch, params.educationSystem))
+      usesTermPeriodCalendar(cycle, params.educationSystem))
   ) {
     await ensureAcademicPeriodsForBranch({
       branchId: params.branchId,
       typebranch,
       educationSystem: params.educationSystem,
+      cycles: [cycle],
     });
   }
 
   const periods = await prisma.period.findMany({
-    where: { branchId: params.branchId },
+    where: {
+      branchId: params.branchId,
+      ...(params.cycle ? { cycle } : {}),
+    },
     include: {
       semester: {
-        select: { label: true },
+        select: { label: true, cycle: true },
       },
     },
   });
 
   const mapped = periods
     .map((period) => {
+      const periodCycle = normalizeCycle(period.cycle ?? period.semester?.cycle ?? cycle);
       const rawLabel = normalizeAcademicPeriodLabel(period.label);
       const semesterLabel = period.semester?.label ?? null;
       const config = resolveAcademicPeriodConfig(
         rawLabel,
-        typebranch,
+        periodCycle,
         semesterLabel,
         params.educationSystem,
       );
       const kind = config?.kind ?? null;
       const isUniversitySession =
-        isUniversiteBranch(typebranch) && kind === "EXAM";
+        isUniversiteBranch(periodCycle) && kind === "EXAM";
       const label = isUniversitySession
         ? rawLabel
-        : isUniversiteBranch(typebranch) && semesterLabel
+        : isUniversiteBranch(periodCycle) && semesterLabel
           ? `${rawLabel} · ${semesterLabel}`
           : rawLabel;
 
@@ -247,12 +293,13 @@ export async function listBranchPeriodOptions(params: {
         rawLabel,
         semesterLabel,
         kind,
+        cycle: periodCycle,
       };
     })
     .filter((period) =>
       isKnownAcademicPeriod(
         period.rawLabel,
-        typebranch,
+        period.cycle,
         period.semesterLabel,
         params.educationSystem,
       ),
@@ -267,13 +314,13 @@ export async function listBranchPeriodOptions(params: {
       (left, right) =>
         getAcademicPeriodOrderForSemester(
           left.rawLabel,
-          typebranch,
+          left.cycle,
           left.semesterLabel,
           params.educationSystem,
         ) -
         getAcademicPeriodOrderForSemester(
           right.rawLabel,
-          typebranch,
+          right.cycle,
           right.semesterLabel,
           params.educationSystem,
         ),
@@ -284,4 +331,12 @@ export async function listBranchPeriodOptions(params: {
   }
 
   return mapped;
+}
+
+export async function listActivatedBranchCycles(branchId: string, typebranch: unknown) {
+  const rows = await prisma.branchCycle.findMany({
+    where: { branchId, isActive: true },
+    orderBy: { sortOrder: "asc" },
+  });
+  return getBranchCycles({ typebranch, cycles: rows });
 }

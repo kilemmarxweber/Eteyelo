@@ -32,7 +32,10 @@ export function BranchPickerClient({
                 <span className="font-semibold text-foreground">
                   {branch.branchName}
                 </span>
-                <BranchTypeBadge typebranch={branch.typebranch} />
+                <BranchTypeBadge
+                  typebranch={branch.typebranch}
+                  cycles={branch.cycles}
+                />
               </span>
               <span className="mt-1 block text-xs text-muted-foreground">
                 Ouvrir cet etablissement

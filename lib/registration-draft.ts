@@ -30,6 +30,7 @@ export type AdminRegistrationDraftPayload = {
   familyExtra: Record<string, unknown>;
   historyOutcome: string;
   schoolYearId: string;
+  cycle?: string;
   level: string;
   sectionId: string;
   optionId: string;

@@ -15,6 +15,7 @@ import React from "react";
 import { IClasse } from "@/src/interfaces/Classe";
 import { DataTableColumnHeader } from "@/components/data-table-column-header";
 import { openOverlayAfterMenuDismiss } from "@/lib/radix-portal-dismiss";
+import { cycleLabel } from "@/lib/cycle";
 
 export type ClasseTableActions = {
   onEdit: (classe: IClasse) => void;
@@ -45,6 +46,11 @@ export function getClasseColumns(
                 <Badge variant="secondary" size="xs">
                   {classe.codeClasse}
                 </Badge>
+                {classe.cycle ? (
+                  <Badge variant="outline" size="xs">
+                    {cycleLabel(classe.cycle)}
+                  </Badge>
+                ) : null}
                 {classe.createdAt ? (
                   <span className="text-xs text-muted-foreground">
                     {new Date(classe.createdAt).toLocaleDateString("fr-FR")}

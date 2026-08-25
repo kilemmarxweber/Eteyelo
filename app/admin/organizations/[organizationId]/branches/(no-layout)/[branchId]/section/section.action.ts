@@ -6,7 +6,8 @@ import { action } from "@/lib/zsa";
 import { ISection, sectionSchema } from "@/src/interfaces/Section";
 import { Prisma } from "@/prisma/generated/prisma/client";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
-import { assertSectionOptionBranchFeatures } from "@/lib/branch-capabilities";
+import { assertSectionOptionBranchFeatures, usesSectionOptionForBranch } from "@/lib/branch-capabilities";
+import { anyCycle } from "@/lib/cycle";
 import {
   ensureUniqueIdentifier,
   generateCode,
@@ -20,8 +21,10 @@ export const createSectionAction = action
   .input(sectionSchema)
   .handler(async ({ input }) => {
     try {
-      const { branchId, organizationId, typebranch } = await requireBranchContext();
-      assertSectionOptionBranchFeatures(typebranch);
+      const { branchId, organizationId, typebranch, cycles } = await requireBranchContext();
+      if (!anyCycle(cycles, usesSectionOptionForBranch)) {
+        assertSectionOptionBranchFeatures(typebranch);
+      }
       const { nameSection } = input;
       const codeSection = await ensureUniqueIdentifier({
         base: generateCode(nameSection, "SEC", 16),
@@ -46,7 +49,7 @@ export const createSectionAction = action
       }
 
       const section = await prisma.section.create({
-        data: { ...input, codeSection, statusSection: true, branchId },
+        data: { ...input, codeSection, statusSection: true, branchId, cycle: "SECONDAIRE" },
       });
       revalidateSectionPages(organizationId, branchId);
       return section;

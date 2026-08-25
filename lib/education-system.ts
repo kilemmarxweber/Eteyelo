@@ -20,7 +20,11 @@ export function isCongoleseEducationSystem(value: unknown): boolean {
 }
 
 export function isSchoolBranchType(typebranch: unknown): boolean {
-  return typebranch === "PRIMAIRE" || typebranch === "SECONDAIRE";
+  return (
+    typebranch === "PRIMAIRE" ||
+    typebranch === "SECONDAIRE" ||
+    typebranch === "MATERNELLE"
+  );
 }
 
 /** Calendrier 3 trimestres × 1 période : primaire/secondaire angolais ou anglais. */

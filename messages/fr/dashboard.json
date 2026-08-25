@@ -21,6 +21,7 @@
     "default": "Tableau de bord — {branchType}"
   },
   "branchTypes": {
+    "MATERNELLE": "Maternelle",
     "PRIMAIRE": "Primaire",
     "SECONDAIRE": "Secondaire",
     "ATELIER": "Atelier",

@@ -18,6 +18,7 @@ import { Button as UiButton } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { CalendarIcon, X } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { fr as frDayPicker } from "react-day-picker/locale";
@@ -163,6 +164,8 @@ export function FraisUpForm({
       typeFraisId: "",
       echeance: undefined,
       priority: undefined,
+      applyToCycle: false,
+      applyToLevel: false,
     },
   });
 
@@ -217,6 +220,8 @@ export function FraisUpForm({
           typeFraisId: "",
           echeance: undefined,
           priority: undefined,
+          applyToCycle: false,
+          applyToLevel: false,
         });
         onCreated?.();
       } else {
@@ -449,6 +454,49 @@ export function FraisUpForm({
                 )}
               />
             )}
+
+            {mode === "create" ? (
+              <div className="grid gap-2 sm:col-span-2">
+                <FormField
+                  control={form.control}
+                  name="applyToCycle"
+                  render={({ field }) => (
+                    <FormItem className="flex items-center gap-2 space-y-0">
+                      <FormControl>
+                        <Checkbox
+                          checked={Boolean(field.value)}
+                          onCheckedChange={(value) =>
+                            field.onChange(Boolean(value))
+                          }
+                        />
+                      </FormControl>
+                      <FormLabel className="text-xs font-normal">
+                        Appliquer à toutes les classes de ce cycle
+                      </FormLabel>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="applyToLevel"
+                  render={({ field }) => (
+                    <FormItem className="flex items-center gap-2 space-y-0">
+                      <FormControl>
+                        <Checkbox
+                          checked={Boolean(field.value)}
+                          onCheckedChange={(value) =>
+                            field.onChange(Boolean(value))
+                          }
+                        />
+                      </FormControl>
+                      <FormLabel className="text-xs font-normal">
+                        Appliquer à toutes les classes de ce niveau
+                      </FormLabel>
+                    </FormItem>
+                  )}
+                />
+              </div>
+            ) : null}
 
             <FormField
               control={form.control}

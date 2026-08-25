@@ -29,11 +29,13 @@ export type AggregateFrais = {
 export type FraisAvgAggregateOutputType = {
   montantFrais: runtime.Decimal | null
   priority: number | null
+  semesterId: number | null
 }
 
 export type FraisSumAggregateOutputType = {
   montantFrais: runtime.Decimal | null
   priority: number | null
+  semesterId: number | null
 }
 
 export type FraisMinAggregateOutputType = {
@@ -46,6 +48,8 @@ export type FraisMinAggregateOutputType = {
   echeance: Date | null
   schoolYearId: string | null
   priority: number | null
+  semesterId: number | null
+  fraisGroupKey: string | null
   createdAt: Date | null
   updatedAt: Date | null
   branchId: string | null
@@ -61,6 +65,8 @@ export type FraisMaxAggregateOutputType = {
   echeance: Date | null
   schoolYearId: string | null
   priority: number | null
+  semesterId: number | null
+  fraisGroupKey: string | null
   createdAt: Date | null
   updatedAt: Date | null
   branchId: string | null
@@ -76,6 +82,8 @@ export type FraisCountAggregateOutputType = {
   echeance: number
   schoolYearId: number
   priority: number
+  semesterId: number
+  fraisGroupKey: number
   createdAt: number
   updatedAt: number
   branchId: number
@@ -86,11 +94,13 @@ export type FraisCountAggregateOutputType = {
 export type FraisAvgAggregateInputType = {
   montantFrais?: true
   priority?: true
+  semesterId?: true
 }
 
 export type FraisSumAggregateInputType = {
   montantFrais?: true
   priority?: true
+  semesterId?: true
 }
 
 export type FraisMinAggregateInputType = {
@@ -103,6 +113,8 @@ export type FraisMinAggregateInputType = {
   echeance?: true
   schoolYearId?: true
   priority?: true
+  semesterId?: true
+  fraisGroupKey?: true
   createdAt?: true
   updatedAt?: true
   branchId?: true
@@ -118,6 +130,8 @@ export type FraisMaxAggregateInputType = {
   echeance?: true
   schoolYearId?: true
   priority?: true
+  semesterId?: true
+  fraisGroupKey?: true
   createdAt?: true
   updatedAt?: true
   branchId?: true
@@ -133,6 +147,8 @@ export type FraisCountAggregateInputType = {
   echeance?: true
   schoolYearId?: true
   priority?: true
+  semesterId?: true
+  fraisGroupKey?: true
   createdAt?: true
   updatedAt?: true
   branchId?: true
@@ -235,6 +251,8 @@ export type FraisGroupByOutputType = {
   echeance: Date | null
   schoolYearId: string | null
   priority: number
+  semesterId: number | null
+  fraisGroupKey: string | null
   createdAt: Date
   updatedAt: Date
   branchId: string
@@ -273,6 +291,8 @@ export type FraisWhereInput = {
   echeance?: Prisma.DateTimeNullableFilter<"Frais"> | Date | string | null
   schoolYearId?: Prisma.StringNullableFilter<"Frais"> | string | null
   priority?: Prisma.IntFilter<"Frais"> | number
+  semesterId?: Prisma.IntNullableFilter<"Frais"> | number | null
+  fraisGroupKey?: Prisma.StringNullableFilter<"Frais"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Frais"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Frais"> | Date | string
   branchId?: Prisma.StringFilter<"Frais"> | string
@@ -280,6 +300,7 @@ export type FraisWhereInput = {
   classe?: Prisma.XOR<Prisma.ClasseScalarRelationFilter, Prisma.ClasseWhereInput>
   typeFrais?: Prisma.XOR<Prisma.TypeFraisScalarRelationFilter, Prisma.TypeFraisWhereInput>
   schoolYear?: Prisma.XOR<Prisma.SchoolYearNullableScalarRelationFilter, Prisma.SchoolYearWhereInput> | null
+  semester?: Prisma.XOR<Prisma.SemesterNullableScalarRelationFilter, Prisma.semesterWhereInput> | null
   branch?: Prisma.XOR<Prisma.BranchScalarRelationFilter, Prisma.BranchWhereInput>
 }
 
@@ -293,6 +314,8 @@ export type FraisOrderByWithRelationInput = {
   echeance?: Prisma.SortOrderInput | Prisma.SortOrder
   schoolYearId?: Prisma.SortOrderInput | Prisma.SortOrder
   priority?: Prisma.SortOrder
+  semesterId?: Prisma.SortOrderInput | Prisma.SortOrder
+  fraisGroupKey?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   branchId?: Prisma.SortOrder
@@ -300,6 +323,7 @@ export type FraisOrderByWithRelationInput = {
   classe?: Prisma.ClasseOrderByWithRelationInput
   typeFrais?: Prisma.TypeFraisOrderByWithRelationInput
   schoolYear?: Prisma.SchoolYearOrderByWithRelationInput
+  semester?: Prisma.semesterOrderByWithRelationInput
   branch?: Prisma.BranchOrderByWithRelationInput
 }
 
@@ -316,6 +340,8 @@ export type FraisWhereUniqueInput = Prisma.AtLeast<{
   echeance?: Prisma.DateTimeNullableFilter<"Frais"> | Date | string | null
   schoolYearId?: Prisma.StringNullableFilter<"Frais"> | string | null
   priority?: Prisma.IntFilter<"Frais"> | number
+  semesterId?: Prisma.IntNullableFilter<"Frais"> | number | null
+  fraisGroupKey?: Prisma.StringNullableFilter<"Frais"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Frais"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Frais"> | Date | string
   branchId?: Prisma.StringFilter<"Frais"> | string
@@ -323,6 +349,7 @@ export type FraisWhereUniqueInput = Prisma.AtLeast<{
   classe?: Prisma.XOR<Prisma.ClasseScalarRelationFilter, Prisma.ClasseWhereInput>
   typeFrais?: Prisma.XOR<Prisma.TypeFraisScalarRelationFilter, Prisma.TypeFraisWhereInput>
   schoolYear?: Prisma.XOR<Prisma.SchoolYearNullableScalarRelationFilter, Prisma.SchoolYearWhereInput> | null
+  semester?: Prisma.XOR<Prisma.SemesterNullableScalarRelationFilter, Prisma.semesterWhereInput> | null
   branch?: Prisma.XOR<Prisma.BranchScalarRelationFilter, Prisma.BranchWhereInput>
 }, "id">
 
@@ -336,6 +363,8 @@ export type FraisOrderByWithAggregationInput = {
   echeance?: Prisma.SortOrderInput | Prisma.SortOrder
   schoolYearId?: Prisma.SortOrderInput | Prisma.SortOrder
   priority?: Prisma.SortOrder
+  semesterId?: Prisma.SortOrderInput | Prisma.SortOrder
+  fraisGroupKey?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   branchId?: Prisma.SortOrder
@@ -359,6 +388,8 @@ export type FraisScalarWhereWithAggregatesInput = {
   echeance?: Prisma.DateTimeNullableWithAggregatesFilter<"Frais"> | Date | string | null
   schoolYearId?: Prisma.StringNullableWithAggregatesFilter<"Frais"> | string | null
   priority?: Prisma.IntWithAggregatesFilter<"Frais"> | number
+  semesterId?: Prisma.IntNullableWithAggregatesFilter<"Frais"> | number | null
+  fraisGroupKey?: Prisma.StringNullableWithAggregatesFilter<"Frais"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Frais"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Frais"> | Date | string
   branchId?: Prisma.StringWithAggregatesFilter<"Frais"> | string
@@ -371,12 +402,14 @@ export type FraisCreateInput = {
   statusFrais?: boolean
   echeance?: Date | string | null
   priority?: number
+  fraisGroupKey?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   paiement?: Prisma.FamilyPaymentCreateNestedManyWithoutFraisInput
   classe: Prisma.ClasseCreateNestedOneWithoutFraisInput
   typeFrais: Prisma.TypeFraisCreateNestedOneWithoutFraisInput
   schoolYear?: Prisma.SchoolYearCreateNestedOneWithoutFraisInput
+  semester?: Prisma.semesterCreateNestedOneWithoutFraisInput
   branch: Prisma.BranchCreateNestedOneWithoutFraisInput
 }
 
@@ -390,6 +423,8 @@ export type FraisUncheckedCreateInput = {
   echeance?: Date | string | null
   schoolYearId?: string | null
   priority?: number
+  semesterId?: number | null
+  fraisGroupKey?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   branchId: string
@@ -403,12 +438,14 @@ export type FraisUpdateInput = {
   statusFrais?: Prisma.BoolFieldUpdateOperationsInput | boolean
   echeance?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   priority?: Prisma.IntFieldUpdateOperationsInput | number
+  fraisGroupKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   paiement?: Prisma.FamilyPaymentUpdateManyWithoutFraisNestedInput
   classe?: Prisma.ClasseUpdateOneRequiredWithoutFraisNestedInput
   typeFrais?: Prisma.TypeFraisUpdateOneRequiredWithoutFraisNestedInput
   schoolYear?: Prisma.SchoolYearUpdateOneWithoutFraisNestedInput
+  semester?: Prisma.semesterUpdateOneWithoutFraisNestedInput
   branch?: Prisma.BranchUpdateOneRequiredWithoutFraisNestedInput
 }
 
@@ -422,6 +459,8 @@ export type FraisUncheckedUpdateInput = {
   echeance?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   schoolYearId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   priority?: Prisma.IntFieldUpdateOperationsInput | number
+  semesterId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  fraisGroupKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -438,6 +477,8 @@ export type FraisCreateManyInput = {
   echeance?: Date | string | null
   schoolYearId?: string | null
   priority?: number
+  semesterId?: number | null
+  fraisGroupKey?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   branchId: string
@@ -450,6 +491,7 @@ export type FraisUpdateManyMutationInput = {
   statusFrais?: Prisma.BoolFieldUpdateOperationsInput | boolean
   echeance?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   priority?: Prisma.IntFieldUpdateOperationsInput | number
+  fraisGroupKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -464,6 +506,8 @@ export type FraisUncheckedUpdateManyInput = {
   echeance?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   schoolYearId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   priority?: Prisma.IntFieldUpdateOperationsInput | number
+  semesterId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  fraisGroupKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -479,6 +523,8 @@ export type FraisCountOrderByAggregateInput = {
   echeance?: Prisma.SortOrder
   schoolYearId?: Prisma.SortOrder
   priority?: Prisma.SortOrder
+  semesterId?: Prisma.SortOrder
+  fraisGroupKey?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   branchId?: Prisma.SortOrder
@@ -487,6 +533,7 @@ export type FraisCountOrderByAggregateInput = {
 export type FraisAvgOrderByAggregateInput = {
   montantFrais?: Prisma.SortOrder
   priority?: Prisma.SortOrder
+  semesterId?: Prisma.SortOrder
 }
 
 export type FraisMaxOrderByAggregateInput = {
@@ -499,6 +546,8 @@ export type FraisMaxOrderByAggregateInput = {
   echeance?: Prisma.SortOrder
   schoolYearId?: Prisma.SortOrder
   priority?: Prisma.SortOrder
+  semesterId?: Prisma.SortOrder
+  fraisGroupKey?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   branchId?: Prisma.SortOrder
@@ -514,6 +563,8 @@ export type FraisMinOrderByAggregateInput = {
   echeance?: Prisma.SortOrder
   schoolYearId?: Prisma.SortOrder
   priority?: Prisma.SortOrder
+  semesterId?: Prisma.SortOrder
+  fraisGroupKey?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   branchId?: Prisma.SortOrder
@@ -522,6 +573,7 @@ export type FraisMinOrderByAggregateInput = {
 export type FraisSumOrderByAggregateInput = {
   montantFrais?: Prisma.SortOrder
   priority?: Prisma.SortOrder
+  semesterId?: Prisma.SortOrder
 }
 
 export type FraisListRelationFilter = {
@@ -545,6 +597,14 @@ export type DecimalFieldUpdateOperationsInput = {
   decrement?: runtime.Decimal | runtime.DecimalJsLike | number | string
   multiply?: runtime.Decimal | runtime.DecimalJsLike | number | string
   divide?: runtime.Decimal | runtime.DecimalJsLike | number | string
+}
+
+export type NullableIntFieldUpdateOperationsInput = {
+  set?: number | null
+  increment?: number
+  decrement?: number
+  multiply?: number
+  divide?: number
 }
 
 export type FraisCreateNestedManyWithoutTypeFraisInput = {
@@ -673,6 +733,48 @@ export type FraisUncheckedUpdateManyWithoutSchoolYearNestedInput = {
   deleteMany?: Prisma.FraisScalarWhereInput | Prisma.FraisScalarWhereInput[]
 }
 
+export type FraisCreateNestedManyWithoutSemesterInput = {
+  create?: Prisma.XOR<Prisma.FraisCreateWithoutSemesterInput, Prisma.FraisUncheckedCreateWithoutSemesterInput> | Prisma.FraisCreateWithoutSemesterInput[] | Prisma.FraisUncheckedCreateWithoutSemesterInput[]
+  connectOrCreate?: Prisma.FraisCreateOrConnectWithoutSemesterInput | Prisma.FraisCreateOrConnectWithoutSemesterInput[]
+  createMany?: Prisma.FraisCreateManySemesterInputEnvelope
+  connect?: Prisma.FraisWhereUniqueInput | Prisma.FraisWhereUniqueInput[]
+}
+
+export type FraisUncheckedCreateNestedManyWithoutSemesterInput = {
+  create?: Prisma.XOR<Prisma.FraisCreateWithoutSemesterInput, Prisma.FraisUncheckedCreateWithoutSemesterInput> | Prisma.FraisCreateWithoutSemesterInput[] | Prisma.FraisUncheckedCreateWithoutSemesterInput[]
+  connectOrCreate?: Prisma.FraisCreateOrConnectWithoutSemesterInput | Prisma.FraisCreateOrConnectWithoutSemesterInput[]
+  createMany?: Prisma.FraisCreateManySemesterInputEnvelope
+  connect?: Prisma.FraisWhereUniqueInput | Prisma.FraisWhereUniqueInput[]
+}
+
+export type FraisUpdateManyWithoutSemesterNestedInput = {
+  create?: Prisma.XOR<Prisma.FraisCreateWithoutSemesterInput, Prisma.FraisUncheckedCreateWithoutSemesterInput> | Prisma.FraisCreateWithoutSemesterInput[] | Prisma.FraisUncheckedCreateWithoutSemesterInput[]
+  connectOrCreate?: Prisma.FraisCreateOrConnectWithoutSemesterInput | Prisma.FraisCreateOrConnectWithoutSemesterInput[]
+  upsert?: Prisma.FraisUpsertWithWhereUniqueWithoutSemesterInput | Prisma.FraisUpsertWithWhereUniqueWithoutSemesterInput[]
+  createMany?: Prisma.FraisCreateManySemesterInputEnvelope
+  set?: Prisma.FraisWhereUniqueInput | Prisma.FraisWhereUniqueInput[]
+  disconnect?: Prisma.FraisWhereUniqueInput | Prisma.FraisWhereUniqueInput[]
+  delete?: Prisma.FraisWhereUniqueInput | Prisma.FraisWhereUniqueInput[]
+  connect?: Prisma.FraisWhereUniqueInput | Prisma.FraisWhereUniqueInput[]
+  update?: Prisma.FraisUpdateWithWhereUniqueWithoutSemesterInput | Prisma.FraisUpdateWithWhereUniqueWithoutSemesterInput[]
+  updateMany?: Prisma.FraisUpdateManyWithWhereWithoutSemesterInput | Prisma.FraisUpdateManyWithWhereWithoutSemesterInput[]
+  deleteMany?: Prisma.FraisScalarWhereInput | Prisma.FraisScalarWhereInput[]
+}
+
+export type FraisUncheckedUpdateManyWithoutSemesterNestedInput = {
+  create?: Prisma.XOR<Prisma.FraisCreateWithoutSemesterInput, Prisma.FraisUncheckedCreateWithoutSemesterInput> | Prisma.FraisCreateWithoutSemesterInput[] | Prisma.FraisUncheckedCreateWithoutSemesterInput[]
+  connectOrCreate?: Prisma.FraisCreateOrConnectWithoutSemesterInput | Prisma.FraisCreateOrConnectWithoutSemesterInput[]
+  upsert?: Prisma.FraisUpsertWithWhereUniqueWithoutSemesterInput | Prisma.FraisUpsertWithWhereUniqueWithoutSemesterInput[]
+  createMany?: Prisma.FraisCreateManySemesterInputEnvelope
+  set?: Prisma.FraisWhereUniqueInput | Prisma.FraisWhereUniqueInput[]
+  disconnect?: Prisma.FraisWhereUniqueInput | Prisma.FraisWhereUniqueInput[]
+  delete?: Prisma.FraisWhereUniqueInput | Prisma.FraisWhereUniqueInput[]
+  connect?: Prisma.FraisWhereUniqueInput | Prisma.FraisWhereUniqueInput[]
+  update?: Prisma.FraisUpdateWithWhereUniqueWithoutSemesterInput | Prisma.FraisUpdateWithWhereUniqueWithoutSemesterInput[]
+  updateMany?: Prisma.FraisUpdateManyWithWhereWithoutSemesterInput | Prisma.FraisUpdateManyWithWhereWithoutSemesterInput[]
+  deleteMany?: Prisma.FraisScalarWhereInput | Prisma.FraisScalarWhereInput[]
+}
+
 export type FraisCreateNestedOneWithoutPaiementInput = {
   create?: Prisma.XOR<Prisma.FraisCreateWithoutPaiementInput, Prisma.FraisUncheckedCreateWithoutPaiementInput>
   connectOrCreate?: Prisma.FraisCreateOrConnectWithoutPaiementInput
@@ -738,11 +840,13 @@ export type FraisCreateWithoutTypeFraisInput = {
   statusFrais?: boolean
   echeance?: Date | string | null
   priority?: number
+  fraisGroupKey?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   paiement?: Prisma.FamilyPaymentCreateNestedManyWithoutFraisInput
   classe: Prisma.ClasseCreateNestedOneWithoutFraisInput
   schoolYear?: Prisma.SchoolYearCreateNestedOneWithoutFraisInput
+  semester?: Prisma.semesterCreateNestedOneWithoutFraisInput
   branch: Prisma.BranchCreateNestedOneWithoutFraisInput
 }
 
@@ -755,6 +859,8 @@ export type FraisUncheckedCreateWithoutTypeFraisInput = {
   echeance?: Date | string | null
   schoolYearId?: string | null
   priority?: number
+  semesterId?: number | null
+  fraisGroupKey?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   branchId: string
@@ -800,6 +906,8 @@ export type FraisScalarWhereInput = {
   echeance?: Prisma.DateTimeNullableFilter<"Frais"> | Date | string | null
   schoolYearId?: Prisma.StringNullableFilter<"Frais"> | string | null
   priority?: Prisma.IntFilter<"Frais"> | number
+  semesterId?: Prisma.IntNullableFilter<"Frais"> | number | null
+  fraisGroupKey?: Prisma.StringNullableFilter<"Frais"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Frais"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Frais"> | Date | string
   branchId?: Prisma.StringFilter<"Frais"> | string
@@ -812,11 +920,13 @@ export type FraisCreateWithoutClasseInput = {
   statusFrais?: boolean
   echeance?: Date | string | null
   priority?: number
+  fraisGroupKey?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   paiement?: Prisma.FamilyPaymentCreateNestedManyWithoutFraisInput
   typeFrais: Prisma.TypeFraisCreateNestedOneWithoutFraisInput
   schoolYear?: Prisma.SchoolYearCreateNestedOneWithoutFraisInput
+  semester?: Prisma.semesterCreateNestedOneWithoutFraisInput
   branch: Prisma.BranchCreateNestedOneWithoutFraisInput
 }
 
@@ -829,6 +939,8 @@ export type FraisUncheckedCreateWithoutClasseInput = {
   echeance?: Date | string | null
   schoolYearId?: string | null
   priority?: number
+  semesterId?: number | null
+  fraisGroupKey?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   branchId: string
@@ -868,11 +980,13 @@ export type FraisCreateWithoutSchoolYearInput = {
   statusFrais?: boolean
   echeance?: Date | string | null
   priority?: number
+  fraisGroupKey?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   paiement?: Prisma.FamilyPaymentCreateNestedManyWithoutFraisInput
   classe: Prisma.ClasseCreateNestedOneWithoutFraisInput
   typeFrais: Prisma.TypeFraisCreateNestedOneWithoutFraisInput
+  semester?: Prisma.semesterCreateNestedOneWithoutFraisInput
   branch: Prisma.BranchCreateNestedOneWithoutFraisInput
 }
 
@@ -885,6 +999,8 @@ export type FraisUncheckedCreateWithoutSchoolYearInput = {
   typeFraisId: string
   echeance?: Date | string | null
   priority?: number
+  semesterId?: number | null
+  fraisGroupKey?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   branchId: string
@@ -917,6 +1033,66 @@ export type FraisUpdateManyWithWhereWithoutSchoolYearInput = {
   data: Prisma.XOR<Prisma.FraisUpdateManyMutationInput, Prisma.FraisUncheckedUpdateManyWithoutSchoolYearInput>
 }
 
+export type FraisCreateWithoutSemesterInput = {
+  id?: string
+  nameFrais: string
+  montantFrais: runtime.Decimal | runtime.DecimalJsLike | number | string
+  statusFrais?: boolean
+  echeance?: Date | string | null
+  priority?: number
+  fraisGroupKey?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  paiement?: Prisma.FamilyPaymentCreateNestedManyWithoutFraisInput
+  classe: Prisma.ClasseCreateNestedOneWithoutFraisInput
+  typeFrais: Prisma.TypeFraisCreateNestedOneWithoutFraisInput
+  schoolYear?: Prisma.SchoolYearCreateNestedOneWithoutFraisInput
+  branch: Prisma.BranchCreateNestedOneWithoutFraisInput
+}
+
+export type FraisUncheckedCreateWithoutSemesterInput = {
+  id?: string
+  nameFrais: string
+  montantFrais: runtime.Decimal | runtime.DecimalJsLike | number | string
+  statusFrais?: boolean
+  classeId: string
+  typeFraisId: string
+  echeance?: Date | string | null
+  schoolYearId?: string | null
+  priority?: number
+  fraisGroupKey?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  branchId: string
+  paiement?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutFraisInput
+}
+
+export type FraisCreateOrConnectWithoutSemesterInput = {
+  where: Prisma.FraisWhereUniqueInput
+  create: Prisma.XOR<Prisma.FraisCreateWithoutSemesterInput, Prisma.FraisUncheckedCreateWithoutSemesterInput>
+}
+
+export type FraisCreateManySemesterInputEnvelope = {
+  data: Prisma.FraisCreateManySemesterInput | Prisma.FraisCreateManySemesterInput[]
+  skipDuplicates?: boolean
+}
+
+export type FraisUpsertWithWhereUniqueWithoutSemesterInput = {
+  where: Prisma.FraisWhereUniqueInput
+  update: Prisma.XOR<Prisma.FraisUpdateWithoutSemesterInput, Prisma.FraisUncheckedUpdateWithoutSemesterInput>
+  create: Prisma.XOR<Prisma.FraisCreateWithoutSemesterInput, Prisma.FraisUncheckedCreateWithoutSemesterInput>
+}
+
+export type FraisUpdateWithWhereUniqueWithoutSemesterInput = {
+  where: Prisma.FraisWhereUniqueInput
+  data: Prisma.XOR<Prisma.FraisUpdateWithoutSemesterInput, Prisma.FraisUncheckedUpdateWithoutSemesterInput>
+}
+
+export type FraisUpdateManyWithWhereWithoutSemesterInput = {
+  where: Prisma.FraisScalarWhereInput
+  data: Prisma.XOR<Prisma.FraisUpdateManyMutationInput, Prisma.FraisUncheckedUpdateManyWithoutSemesterInput>
+}
+
 export type FraisCreateWithoutPaiementInput = {
   id?: string
   nameFrais: string
@@ -924,11 +1100,13 @@ export type FraisCreateWithoutPaiementInput = {
   statusFrais?: boolean
   echeance?: Date | string | null
   priority?: number
+  fraisGroupKey?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   classe: Prisma.ClasseCreateNestedOneWithoutFraisInput
   typeFrais: Prisma.TypeFraisCreateNestedOneWithoutFraisInput
   schoolYear?: Prisma.SchoolYearCreateNestedOneWithoutFraisInput
+  semester?: Prisma.semesterCreateNestedOneWithoutFraisInput
   branch: Prisma.BranchCreateNestedOneWithoutFraisInput
 }
 
@@ -942,6 +1120,8 @@ export type FraisUncheckedCreateWithoutPaiementInput = {
   echeance?: Date | string | null
   schoolYearId?: string | null
   priority?: number
+  semesterId?: number | null
+  fraisGroupKey?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   branchId: string
@@ -970,11 +1150,13 @@ export type FraisUpdateWithoutPaiementInput = {
   statusFrais?: Prisma.BoolFieldUpdateOperationsInput | boolean
   echeance?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   priority?: Prisma.IntFieldUpdateOperationsInput | number
+  fraisGroupKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   classe?: Prisma.ClasseUpdateOneRequiredWithoutFraisNestedInput
   typeFrais?: Prisma.TypeFraisUpdateOneRequiredWithoutFraisNestedInput
   schoolYear?: Prisma.SchoolYearUpdateOneWithoutFraisNestedInput
+  semester?: Prisma.semesterUpdateOneWithoutFraisNestedInput
   branch?: Prisma.BranchUpdateOneRequiredWithoutFraisNestedInput
 }
 
@@ -988,6 +1170,8 @@ export type FraisUncheckedUpdateWithoutPaiementInput = {
   echeance?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   schoolYearId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   priority?: Prisma.IntFieldUpdateOperationsInput | number
+  semesterId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  fraisGroupKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1000,12 +1184,14 @@ export type FraisCreateWithoutBranchInput = {
   statusFrais?: boolean
   echeance?: Date | string | null
   priority?: number
+  fraisGroupKey?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   paiement?: Prisma.FamilyPaymentCreateNestedManyWithoutFraisInput
   classe: Prisma.ClasseCreateNestedOneWithoutFraisInput
   typeFrais: Prisma.TypeFraisCreateNestedOneWithoutFraisInput
   schoolYear?: Prisma.SchoolYearCreateNestedOneWithoutFraisInput
+  semester?: Prisma.semesterCreateNestedOneWithoutFraisInput
 }
 
 export type FraisUncheckedCreateWithoutBranchInput = {
@@ -1018,6 +1204,8 @@ export type FraisUncheckedCreateWithoutBranchInput = {
   echeance?: Date | string | null
   schoolYearId?: string | null
   priority?: number
+  semesterId?: number | null
+  fraisGroupKey?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   paiement?: Prisma.FamilyPaymentUncheckedCreateNestedManyWithoutFraisInput
@@ -1058,6 +1246,8 @@ export type FraisCreateManyTypeFraisInput = {
   echeance?: Date | string | null
   schoolYearId?: string | null
   priority?: number
+  semesterId?: number | null
+  fraisGroupKey?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   branchId: string
@@ -1070,11 +1260,13 @@ export type FraisUpdateWithoutTypeFraisInput = {
   statusFrais?: Prisma.BoolFieldUpdateOperationsInput | boolean
   echeance?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   priority?: Prisma.IntFieldUpdateOperationsInput | number
+  fraisGroupKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   paiement?: Prisma.FamilyPaymentUpdateManyWithoutFraisNestedInput
   classe?: Prisma.ClasseUpdateOneRequiredWithoutFraisNestedInput
   schoolYear?: Prisma.SchoolYearUpdateOneWithoutFraisNestedInput
+  semester?: Prisma.semesterUpdateOneWithoutFraisNestedInput
   branch?: Prisma.BranchUpdateOneRequiredWithoutFraisNestedInput
 }
 
@@ -1087,6 +1279,8 @@ export type FraisUncheckedUpdateWithoutTypeFraisInput = {
   echeance?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   schoolYearId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   priority?: Prisma.IntFieldUpdateOperationsInput | number
+  semesterId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  fraisGroupKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1102,6 +1296,8 @@ export type FraisUncheckedUpdateManyWithoutTypeFraisInput = {
   echeance?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   schoolYearId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   priority?: Prisma.IntFieldUpdateOperationsInput | number
+  semesterId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  fraisGroupKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1116,6 +1312,8 @@ export type FraisCreateManyClasseInput = {
   echeance?: Date | string | null
   schoolYearId?: string | null
   priority?: number
+  semesterId?: number | null
+  fraisGroupKey?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   branchId: string
@@ -1128,11 +1326,13 @@ export type FraisUpdateWithoutClasseInput = {
   statusFrais?: Prisma.BoolFieldUpdateOperationsInput | boolean
   echeance?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   priority?: Prisma.IntFieldUpdateOperationsInput | number
+  fraisGroupKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   paiement?: Prisma.FamilyPaymentUpdateManyWithoutFraisNestedInput
   typeFrais?: Prisma.TypeFraisUpdateOneRequiredWithoutFraisNestedInput
   schoolYear?: Prisma.SchoolYearUpdateOneWithoutFraisNestedInput
+  semester?: Prisma.semesterUpdateOneWithoutFraisNestedInput
   branch?: Prisma.BranchUpdateOneRequiredWithoutFraisNestedInput
 }
 
@@ -1145,6 +1345,8 @@ export type FraisUncheckedUpdateWithoutClasseInput = {
   echeance?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   schoolYearId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   priority?: Prisma.IntFieldUpdateOperationsInput | number
+  semesterId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  fraisGroupKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1160,6 +1362,8 @@ export type FraisUncheckedUpdateManyWithoutClasseInput = {
   echeance?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   schoolYearId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   priority?: Prisma.IntFieldUpdateOperationsInput | number
+  semesterId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  fraisGroupKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1174,6 +1378,8 @@ export type FraisCreateManySchoolYearInput = {
   typeFraisId: string
   echeance?: Date | string | null
   priority?: number
+  semesterId?: number | null
+  fraisGroupKey?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   branchId: string
@@ -1186,11 +1392,13 @@ export type FraisUpdateWithoutSchoolYearInput = {
   statusFrais?: Prisma.BoolFieldUpdateOperationsInput | boolean
   echeance?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   priority?: Prisma.IntFieldUpdateOperationsInput | number
+  fraisGroupKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   paiement?: Prisma.FamilyPaymentUpdateManyWithoutFraisNestedInput
   classe?: Prisma.ClasseUpdateOneRequiredWithoutFraisNestedInput
   typeFrais?: Prisma.TypeFraisUpdateOneRequiredWithoutFraisNestedInput
+  semester?: Prisma.semesterUpdateOneWithoutFraisNestedInput
   branch?: Prisma.BranchUpdateOneRequiredWithoutFraisNestedInput
 }
 
@@ -1203,6 +1411,8 @@ export type FraisUncheckedUpdateWithoutSchoolYearInput = {
   typeFraisId?: Prisma.StringFieldUpdateOperationsInput | string
   echeance?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   priority?: Prisma.IntFieldUpdateOperationsInput | number
+  semesterId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  fraisGroupKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1218,6 +1428,74 @@ export type FraisUncheckedUpdateManyWithoutSchoolYearInput = {
   typeFraisId?: Prisma.StringFieldUpdateOperationsInput | string
   echeance?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   priority?: Prisma.IntFieldUpdateOperationsInput | number
+  semesterId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  fraisGroupKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  branchId?: Prisma.StringFieldUpdateOperationsInput | string
+}
+
+export type FraisCreateManySemesterInput = {
+  id?: string
+  nameFrais: string
+  montantFrais: runtime.Decimal | runtime.DecimalJsLike | number | string
+  statusFrais?: boolean
+  classeId: string
+  typeFraisId: string
+  echeance?: Date | string | null
+  schoolYearId?: string | null
+  priority?: number
+  fraisGroupKey?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  branchId: string
+}
+
+export type FraisUpdateWithoutSemesterInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  nameFrais?: Prisma.StringFieldUpdateOperationsInput | string
+  montantFrais?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  statusFrais?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  echeance?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  priority?: Prisma.IntFieldUpdateOperationsInput | number
+  fraisGroupKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  paiement?: Prisma.FamilyPaymentUpdateManyWithoutFraisNestedInput
+  classe?: Prisma.ClasseUpdateOneRequiredWithoutFraisNestedInput
+  typeFrais?: Prisma.TypeFraisUpdateOneRequiredWithoutFraisNestedInput
+  schoolYear?: Prisma.SchoolYearUpdateOneWithoutFraisNestedInput
+  branch?: Prisma.BranchUpdateOneRequiredWithoutFraisNestedInput
+}
+
+export type FraisUncheckedUpdateWithoutSemesterInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  nameFrais?: Prisma.StringFieldUpdateOperationsInput | string
+  montantFrais?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  statusFrais?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  classeId?: Prisma.StringFieldUpdateOperationsInput | string
+  typeFraisId?: Prisma.StringFieldUpdateOperationsInput | string
+  echeance?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  schoolYearId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  priority?: Prisma.IntFieldUpdateOperationsInput | number
+  fraisGroupKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  branchId?: Prisma.StringFieldUpdateOperationsInput | string
+  paiement?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutFraisNestedInput
+}
+
+export type FraisUncheckedUpdateManyWithoutSemesterInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  nameFrais?: Prisma.StringFieldUpdateOperationsInput | string
+  montantFrais?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  statusFrais?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  classeId?: Prisma.StringFieldUpdateOperationsInput | string
+  typeFraisId?: Prisma.StringFieldUpdateOperationsInput | string
+  echeance?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  schoolYearId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  priority?: Prisma.IntFieldUpdateOperationsInput | number
+  fraisGroupKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1233,6 +1511,8 @@ export type FraisCreateManyBranchInput = {
   echeance?: Date | string | null
   schoolYearId?: string | null
   priority?: number
+  semesterId?: number | null
+  fraisGroupKey?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -1244,12 +1524,14 @@ export type FraisUpdateWithoutBranchInput = {
   statusFrais?: Prisma.BoolFieldUpdateOperationsInput | boolean
   echeance?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   priority?: Prisma.IntFieldUpdateOperationsInput | number
+  fraisGroupKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   paiement?: Prisma.FamilyPaymentUpdateManyWithoutFraisNestedInput
   classe?: Prisma.ClasseUpdateOneRequiredWithoutFraisNestedInput
   typeFrais?: Prisma.TypeFraisUpdateOneRequiredWithoutFraisNestedInput
   schoolYear?: Prisma.SchoolYearUpdateOneWithoutFraisNestedInput
+  semester?: Prisma.semesterUpdateOneWithoutFraisNestedInput
 }
 
 export type FraisUncheckedUpdateWithoutBranchInput = {
@@ -1262,6 +1544,8 @@ export type FraisUncheckedUpdateWithoutBranchInput = {
   echeance?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   schoolYearId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   priority?: Prisma.IntFieldUpdateOperationsInput | number
+  semesterId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  fraisGroupKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   paiement?: Prisma.FamilyPaymentUncheckedUpdateManyWithoutFraisNestedInput
@@ -1277,6 +1561,8 @@ export type FraisUncheckedUpdateManyWithoutBranchInput = {
   echeance?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   schoolYearId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   priority?: Prisma.IntFieldUpdateOperationsInput | number
+  semesterId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  fraisGroupKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1322,6 +1608,8 @@ export type FraisSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   echeance?: boolean
   schoolYearId?: boolean
   priority?: boolean
+  semesterId?: boolean
+  fraisGroupKey?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   branchId?: boolean
@@ -1329,6 +1617,7 @@ export type FraisSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   classe?: boolean | Prisma.ClasseDefaultArgs<ExtArgs>
   typeFrais?: boolean | Prisma.TypeFraisDefaultArgs<ExtArgs>
   schoolYear?: boolean | Prisma.Frais$schoolYearArgs<ExtArgs>
+  semester?: boolean | Prisma.Frais$semesterArgs<ExtArgs>
   branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
   _count?: boolean | Prisma.FraisCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["frais"]>
@@ -1343,12 +1632,15 @@ export type FraisSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   echeance?: boolean
   schoolYearId?: boolean
   priority?: boolean
+  semesterId?: boolean
+  fraisGroupKey?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   branchId?: boolean
   classe?: boolean | Prisma.ClasseDefaultArgs<ExtArgs>
   typeFrais?: boolean | Prisma.TypeFraisDefaultArgs<ExtArgs>
   schoolYear?: boolean | Prisma.Frais$schoolYearArgs<ExtArgs>
+  semester?: boolean | Prisma.Frais$semesterArgs<ExtArgs>
   branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["frais"]>
 
@@ -1362,12 +1654,15 @@ export type FraisSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   echeance?: boolean
   schoolYearId?: boolean
   priority?: boolean
+  semesterId?: boolean
+  fraisGroupKey?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   branchId?: boolean
   classe?: boolean | Prisma.ClasseDefaultArgs<ExtArgs>
   typeFrais?: boolean | Prisma.TypeFraisDefaultArgs<ExtArgs>
   schoolYear?: boolean | Prisma.Frais$schoolYearArgs<ExtArgs>
+  semester?: boolean | Prisma.Frais$semesterArgs<ExtArgs>
   branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["frais"]>
 
@@ -1381,17 +1676,20 @@ export type FraisSelectScalar = {
   echeance?: boolean
   schoolYearId?: boolean
   priority?: boolean
+  semesterId?: boolean
+  fraisGroupKey?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   branchId?: boolean
 }
 
-export type FraisOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "nameFrais" | "montantFrais" | "statusFrais" | "classeId" | "typeFraisId" | "echeance" | "schoolYearId" | "priority" | "createdAt" | "updatedAt" | "branchId", ExtArgs["result"]["frais"]>
+export type FraisOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "nameFrais" | "montantFrais" | "statusFrais" | "classeId" | "typeFraisId" | "echeance" | "schoolYearId" | "priority" | "semesterId" | "fraisGroupKey" | "createdAt" | "updatedAt" | "branchId", ExtArgs["result"]["frais"]>
 export type FraisInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   paiement?: boolean | Prisma.Frais$paiementArgs<ExtArgs>
   classe?: boolean | Prisma.ClasseDefaultArgs<ExtArgs>
   typeFrais?: boolean | Prisma.TypeFraisDefaultArgs<ExtArgs>
   schoolYear?: boolean | Prisma.Frais$schoolYearArgs<ExtArgs>
+  semester?: boolean | Prisma.Frais$semesterArgs<ExtArgs>
   branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
   _count?: boolean | Prisma.FraisCountOutputTypeDefaultArgs<ExtArgs>
 }
@@ -1399,12 +1697,14 @@ export type FraisIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extens
   classe?: boolean | Prisma.ClasseDefaultArgs<ExtArgs>
   typeFrais?: boolean | Prisma.TypeFraisDefaultArgs<ExtArgs>
   schoolYear?: boolean | Prisma.Frais$schoolYearArgs<ExtArgs>
+  semester?: boolean | Prisma.Frais$semesterArgs<ExtArgs>
   branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
 }
 export type FraisIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   classe?: boolean | Prisma.ClasseDefaultArgs<ExtArgs>
   typeFrais?: boolean | Prisma.TypeFraisDefaultArgs<ExtArgs>
   schoolYear?: boolean | Prisma.Frais$schoolYearArgs<ExtArgs>
+  semester?: boolean | Prisma.Frais$semesterArgs<ExtArgs>
   branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
 }
 
@@ -1415,6 +1715,7 @@ export type $FraisPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     classe: Prisma.$ClassePayload<ExtArgs>
     typeFrais: Prisma.$TypeFraisPayload<ExtArgs>
     schoolYear: Prisma.$SchoolYearPayload<ExtArgs> | null
+    semester: Prisma.$semesterPayload<ExtArgs> | null
     branch: Prisma.$BranchPayload<ExtArgs>
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
@@ -1427,6 +1728,14 @@ export type $FraisPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     echeance: Date | null
     schoolYearId: string | null
     priority: number
+    /**
+     * Tranche du calendrier (T1 / S1…) — optionnel.
+     */
+    semesterId: number | null
+    /**
+     * Clé commune pour édition groupée (ciblage cycle / niveau).
+     */
+    fraisGroupKey: string | null
     createdAt: Date
     updatedAt: Date
     branchId: string
@@ -1828,6 +2137,7 @@ export interface Prisma__FraisClient<T, Null = never, ExtArgs extends runtime.Ty
   classe<T extends Prisma.ClasseDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ClasseDefaultArgs<ExtArgs>>): Prisma.Prisma__ClasseClient<runtime.Types.Result.GetResult<Prisma.$ClassePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   typeFrais<T extends Prisma.TypeFraisDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.TypeFraisDefaultArgs<ExtArgs>>): Prisma.Prisma__TypeFraisClient<runtime.Types.Result.GetResult<Prisma.$TypeFraisPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   schoolYear<T extends Prisma.Frais$schoolYearArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Frais$schoolYearArgs<ExtArgs>>): Prisma.Prisma__SchoolYearClient<runtime.Types.Result.GetResult<Prisma.$SchoolYearPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  semester<T extends Prisma.Frais$semesterArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Frais$semesterArgs<ExtArgs>>): Prisma.Prisma__semesterClient<runtime.Types.Result.GetResult<Prisma.$semesterPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   branch<T extends Prisma.BranchDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.BranchDefaultArgs<ExtArgs>>): Prisma.Prisma__BranchClient<runtime.Types.Result.GetResult<Prisma.$BranchPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -1867,6 +2177,8 @@ export interface FraisFieldRefs {
   readonly echeance: Prisma.FieldRef<"Frais", 'DateTime'>
   readonly schoolYearId: Prisma.FieldRef<"Frais", 'String'>
   readonly priority: Prisma.FieldRef<"Frais", 'Int'>
+  readonly semesterId: Prisma.FieldRef<"Frais", 'Int'>
+  readonly fraisGroupKey: Prisma.FieldRef<"Frais", 'String'>
   readonly createdAt: Prisma.FieldRef<"Frais", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Frais", 'DateTime'>
   readonly branchId: Prisma.FieldRef<"Frais", 'String'>
@@ -2311,6 +2623,25 @@ export type Frais$schoolYearArgs<ExtArgs extends runtime.Types.Extensions.Intern
    */
   include?: Prisma.SchoolYearInclude<ExtArgs> | null
   where?: Prisma.SchoolYearWhereInput
+}
+
+/**
+ * Frais.semester
+ */
+export type Frais$semesterArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the semester
+   */
+  select?: Prisma.semesterSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the semester
+   */
+  omit?: Prisma.semesterOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.semesterInclude<ExtArgs> | null
+  where?: Prisma.semesterWhereInput
 }
 
 /**

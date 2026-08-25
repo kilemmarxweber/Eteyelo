@@ -18,6 +18,13 @@ import { Button } from "@/components/custom/button";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { createTypeFraisAction, updateTypeFraisAction } from "../frais.action";
 import { typeFraisSchema } from "@/src/interfaces/Frais";
 
@@ -51,6 +58,7 @@ export function TypeFraisUpForm({
       nameType: "",
       description: "",
       statusType: true,
+      cycle: null,
     },
   });
 
@@ -156,6 +164,37 @@ export function TypeFraisUpForm({
                       {...field}
                     />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="cycle"
+              render={({ field }) => (
+                <FormItem className={fieldClass}>
+                  <FormLabel className={labelClass}>
+                    Cycle (optionnel)
+                  </FormLabel>
+                  <Select
+                    value={field.value ?? "ALL"}
+                    onValueChange={(value) =>
+                      field.onChange(value === "ALL" ? null : value)
+                    }
+                  >
+                    <FormControl>
+                      <SelectTrigger className={inputClass}>
+                        <SelectValue placeholder="Tous les cycles" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="ALL">Tous les cycles</SelectItem>
+                      <SelectItem value="MATERNELLE">Maternelle</SelectItem>
+                      <SelectItem value="PRIMAIRE">Primaire</SelectItem>
+                      <SelectItem value="SECONDAIRE">Secondaire</SelectItem>
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}

@@ -224,6 +224,7 @@ export const createTeacherAction = action
         email: emailLower,
         address: input.address,
         dateOfBirth: input.dateOfBirth ?? new Date(),
+        image: input.image?.trim() || undefined,
         organizationId,
         branchId,
         orgRole: "teacher",
@@ -480,6 +481,7 @@ export const getTeachersAction = action.handler(
         createdAt: teacher.createdAt,
         updatedAt: teacher.updatedAt,
         address: user?.address || "",
+        image: user?.image || "",
         assignmentStatus:
           teacher.teaching.length > 0
             ? ("assigned" as const)
@@ -656,6 +658,7 @@ export const updateTeacherAction = action
         sexe: userData.sexe ? sexeMap[userData.sexe] : undefined,
         telephone: userData.telephone,
         address: userData.address,
+        ...(userData.image?.trim() ? { image: userData.image.trim() } : {}),
       },
     });
 

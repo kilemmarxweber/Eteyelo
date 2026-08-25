@@ -137,7 +137,28 @@ export const SCHOOL_BRANCH_TYPES = ["PRIMAIRE", "SECONDAIRE"] as const satisfies
 
 export type SchoolBranchType = (typeof SCHOOL_BRANCH_TYPES)[number];
 
+const MATERNELLE_CAPABILITY: BranchCapability = {
+  typebranch: "PRIMAIRE",
+  label: "Maternelle",
+  shortLabel: "Maternelle",
+  studentPolicy: "CREATE_OR_LINK",
+  usesSectionOption: false,
+  classLabel: "Classe",
+  classLabelPlural: "Classes",
+  usesBulletin: true,
+  usesReleve: false,
+  usesBrevet: false,
+  usesAttestation: false,
+  usesPonderation: true,
+  usesFinance: true,
+  academicStructureKey: "primary",
+  isSchoolBranch: true,
+};
+
 export function getBranchCapabilities(typebranch: unknown): BranchCapability {
+  if (typebranch === "MATERNELLE") {
+    return MATERNELLE_CAPABILITY;
+  }
   const normalized = normalizeBranchType(typebranch);
   return BRANCH_CAPABILITIES[normalized];
 }
@@ -233,7 +254,7 @@ export function hidesProvenanceEcole(typebranch: unknown): boolean {
 }
 
 export function isPrimaryBranch(typebranch: unknown): boolean {
-  return normalizeBranchType(typebranch) === "PRIMAIRE";
+  return typebranch === "PRIMAIRE";
 }
 
 export function isSecondaryBranch(typebranch: unknown): boolean {

@@ -447,6 +447,7 @@ export const ModelName = {
   Member: 'Member',
   Invitation: 'Invitation',
   Branch: 'Branch',
+  BranchCycle: 'BranchCycle',
   BranchPrimaryDomain: 'BranchPrimaryDomain',
   BranchRegistrationInfo: 'BranchRegistrationInfo',
   RegistrationRequest: 'RegistrationRequest',
@@ -482,7 +483,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "parent" | "student" | "attendanceSession" | "studentAttendance" | "teacherAttendance" | "personnelAttendance" | "parentFeedback" | "studentGrade" | "personnel" | "frais" | "typeFrais" | "classe" | "creneau" | "option" | "section" | "schoolYear" | "classEnrollment" | "teacher" | "teaching" | "cours" | "coursOptionPonderation" | "schedule" | "calendarEvent" | "eventType" | "semester" | "period" | "periodResultLock" | "fiche" | "invoice" | "paymentBatch" | "familyPayment" | "cashierExpense" | "cashierOpeningBalance" | "exchangeRate" | "paymentAllocation" | "mobileMoneyTransaction" | "paymentEvent" | "discountRule" | "transaction" | "absenceCase" | "appNotification" | "session" | "account" | "verification" | "organization" | "organizationRole" | "member" | "invitation" | "branch" | "branchPrimaryDomain" | "branchRegistrationInfo" | "registrationRequest" | "jobApplication" | "partnaire" | "branchMember" | "studentBranchLink" | "issuedDocument" | "branchInvitation" | "libraryBook" | "platformSupportAgent" | "organizationSupportAgent" | "organizationSupportBranchScope" | "platformSupportEscalation" | "onlineAssignment" | "onlineQuestion" | "onlineQuestionOption" | "onlineSubmission" | "onlineAnswer" | "onlineSubmissionFile"
+    modelProps: "user" | "parent" | "student" | "attendanceSession" | "studentAttendance" | "teacherAttendance" | "personnelAttendance" | "parentFeedback" | "studentGrade" | "personnel" | "frais" | "typeFrais" | "classe" | "creneau" | "option" | "section" | "schoolYear" | "classEnrollment" | "teacher" | "teaching" | "cours" | "coursOptionPonderation" | "schedule" | "calendarEvent" | "eventType" | "semester" | "period" | "periodResultLock" | "fiche" | "invoice" | "paymentBatch" | "familyPayment" | "cashierExpense" | "cashierOpeningBalance" | "exchangeRate" | "paymentAllocation" | "mobileMoneyTransaction" | "paymentEvent" | "discountRule" | "transaction" | "absenceCase" | "appNotification" | "session" | "account" | "verification" | "organization" | "organizationRole" | "member" | "invitation" | "branch" | "branchCycle" | "branchPrimaryDomain" | "branchRegistrationInfo" | "registrationRequest" | "jobApplication" | "partnaire" | "branchMember" | "studentBranchLink" | "issuedDocument" | "branchInvitation" | "libraryBook" | "platformSupportAgent" | "organizationSupportAgent" | "organizationSupportBranchScope" | "platformSupportEscalation" | "onlineAssignment" | "onlineQuestion" | "onlineQuestionOption" | "onlineSubmission" | "onlineAnswer" | "onlineSubmissionFile"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -4186,6 +4187,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    BranchCycle: {
+      payload: Prisma.$BranchCyclePayload<ExtArgs>
+      fields: Prisma.BranchCycleFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.BranchCycleFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BranchCyclePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.BranchCycleFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BranchCyclePayload>
+        }
+        findFirst: {
+          args: Prisma.BranchCycleFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BranchCyclePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.BranchCycleFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BranchCyclePayload>
+        }
+        findMany: {
+          args: Prisma.BranchCycleFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BranchCyclePayload>[]
+        }
+        create: {
+          args: Prisma.BranchCycleCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BranchCyclePayload>
+        }
+        createMany: {
+          args: Prisma.BranchCycleCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.BranchCycleCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BranchCyclePayload>[]
+        }
+        delete: {
+          args: Prisma.BranchCycleDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BranchCyclePayload>
+        }
+        update: {
+          args: Prisma.BranchCycleUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BranchCyclePayload>
+        }
+        deleteMany: {
+          args: Prisma.BranchCycleDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.BranchCycleUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.BranchCycleUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BranchCyclePayload>[]
+        }
+        upsert: {
+          args: Prisma.BranchCycleUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BranchCyclePayload>
+        }
+        aggregate: {
+          args: Prisma.BranchCycleAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateBranchCycle>
+        }
+        groupBy: {
+          args: Prisma.BranchCycleGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.BranchCycleGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.BranchCycleCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.BranchCycleCountAggregateOutputType> | number
+        }
+      }
+    }
     BranchPrimaryDomain: {
       payload: Prisma.$BranchPrimaryDomainPayload<ExtArgs>
       fields: Prisma.BranchPrimaryDomainFieldRefs
@@ -5897,6 +5972,8 @@ export const FraisScalarFieldEnum = {
   echeance: 'echeance',
   schoolYearId: 'schoolYearId',
   priority: 'priority',
+  semesterId: 'semesterId',
+  fraisGroupKey: 'fraisGroupKey',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   branchId: 'branchId'
@@ -5911,6 +5988,7 @@ export const TypeFraisScalarFieldEnum = {
   nameType: 'nameType',
   description: 'description',
   statusType: 'statusType',
+  cycle: 'cycle',
   branchId: 'branchId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -5930,6 +6008,7 @@ export const ClasseScalarFieldEnum = {
   statusClasse: 'statusClasse',
   creneauId: 'creneauId',
   horaireType: 'horaireType',
+  cycle: 'cycle',
   branchId: 'branchId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -5965,6 +6044,7 @@ export const OptionScalarFieldEnum = {
   statusOption: 'statusOption',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
+  cycle: 'cycle',
   branchId: 'branchId'
 } as const
 
@@ -5978,6 +6058,7 @@ export const SectionScalarFieldEnum = {
   statusSection: 'statusSection',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
+  cycle: 'cycle',
   branchId: 'branchId'
 } as const
 
@@ -6133,6 +6214,7 @@ export const SemesterScalarFieldEnum = {
   label: 'label',
   startDate: 'startDate',
   endDate: 'endDate',
+  cycle: 'cycle',
   branchId: 'branchId'
 } as const
 
@@ -6147,6 +6229,7 @@ export const PeriodScalarFieldEnum = {
   semesterId: 'semesterId',
   gradesGenerated: 'gradesGenerated',
   gradesGeneratedAt: 'gradesGeneratedAt',
+  cycle: 'cycle',
   branchId: 'branchId'
 } as const
 
@@ -6528,6 +6611,17 @@ export const BranchScalarFieldEnum = {
 } as const
 
 export type BranchScalarFieldEnum = (typeof BranchScalarFieldEnum)[keyof typeof BranchScalarFieldEnum]
+
+
+export const BranchCycleScalarFieldEnum = {
+  id: 'id',
+  branchId: 'branchId',
+  cycle: 'cycle',
+  sortOrder: 'sortOrder',
+  isActive: 'isActive'
+} as const
+
+export type BranchCycleScalarFieldEnum = (typeof BranchCycleScalarFieldEnum)[keyof typeof BranchCycleScalarFieldEnum]
 
 
 export const BranchPrimaryDomainScalarFieldEnum = {
@@ -7102,6 +7196,20 @@ export type DecimalFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel,
  * Reference to a field of type 'Decimal[]'
  */
 export type ListDecimalFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Decimal[]'>
+    
+
+
+/**
+ * Reference to a field of type 'Cycle'
+ */
+export type EnumCycleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Cycle'>
+    
+
+
+/**
+ * Reference to a field of type 'Cycle[]'
+ */
+export type ListEnumCycleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Cycle[]'>
     
 
 
@@ -7725,6 +7833,7 @@ export type GlobalOmitConfig = {
   member?: Prisma.MemberOmit
   invitation?: Prisma.InvitationOmit
   branch?: Prisma.BranchOmit
+  branchCycle?: Prisma.BranchCycleOmit
   branchPrimaryDomain?: Prisma.BranchPrimaryDomainOmit
   branchRegistrationInfo?: Prisma.BranchRegistrationInfoOmit
   registrationRequest?: Prisma.RegistrationRequestOmit

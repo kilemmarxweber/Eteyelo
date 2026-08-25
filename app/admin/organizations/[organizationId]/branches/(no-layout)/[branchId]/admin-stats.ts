@@ -28,6 +28,13 @@ import {
   type DiscountInfo,
 } from "@/lib/payment-discount";
 import { buildStudentAnnouncementsData } from "@/lib/student-announcements";
+import { getBranchCycles, buildDashboardCycleStats } from "@/lib/cycle";
+
+const BRANCH_CYCLE_SELECT = {
+  where: { isActive: true },
+  orderBy: { sortOrder: "asc" as const },
+  select: { cycle: true, isActive: true, sortOrder: true },
+};
 
 const EMPTY_METRICS = {
   attendance: 0,
@@ -207,7 +214,7 @@ export async function getAdminStats({
         id: branchId,
         organizationId,
       },
-      select: { id: true, typebranch: true },
+      select: { id: true, typebranch: true, cycles: BRANCH_CYCLE_SELECT },
     });
 
     if (!branch) {
@@ -245,9 +252,25 @@ export async function getAdminStats({
           isSelected: true,
         },
       });
+      const activatedCycles = getBranchCycles(branch);
+      const classRows =
+        activatedCycles.length > 1
+          ? await prisma.classe.findMany({
+              where: { branchId: branch.id },
+              select: { cycle: true },
+            })
+          : [];
 
       return {
         typebranch: branch.typebranch,
+        cycles: activatedCycles,
+        byCycle: buildDashboardCycleStats({
+          cycles: activatedCycles,
+          typebranch: branch.typebranch,
+          classes: classRows,
+          enrollments: [],
+          teachings: [],
+        }),
         baseCurrency:
           selectedExchangeRate?.fromCurrency ?? getBaseCurrency(exchangeRates),
         quoteCurrency: selectedExchangeRate?.toCurrency ?? null,
@@ -392,6 +415,71 @@ export async function getAdminStats({
       }),
     ]);
 
+    const activatedCycles = getBranchCycles(branch);
+    const [classCycleRows, enrollmentCycleRows, teachingCycleRows, paymentCycleRows] =
+      activatedCycles.length > 1
+        ? await Promise.all([
+            prisma.classe.findMany({
+              where: { branchId: branch.id },
+              select: { cycle: true },
+            }),
+            prisma.classEnrollment.findMany({
+              where: {
+                schoolYearId: currentYear.id,
+                branchId: branch.id,
+                statusEnrollment: true,
+                createdAt: { lte: endCurrent },
+              },
+              select: {
+                studentId: true,
+                classe: { select: { cycle: true } },
+              },
+            }),
+            prisma.teaching.findMany({
+              where: {
+                schoolYearId: currentYear.id,
+                branchId: branch.id,
+              },
+              select: {
+                teacherId: true,
+                classe: { select: { cycle: true } },
+              },
+            }),
+            includeRevenue
+              ? prisma.familyPayment.findMany({
+                  where: {
+                    branchId: branch.id,
+                    status: "VALIDE",
+                    createdAt: { lte: endCurrent },
+                  },
+                  select: {
+                    amount: true,
+                    classEnrollment: {
+                      select: { classe: { select: { cycle: true } } },
+                    },
+                    frais: {
+                      select: { classe: { select: { cycle: true } } },
+                    },
+                  },
+                })
+              : Promise.resolve([]),
+          ])
+        : [[], [], [], []];
+
+    const byCycle = buildDashboardCycleStats({
+      cycles: activatedCycles,
+      typebranch: branch.typebranch,
+      classes: classCycleRows,
+      enrollments: enrollmentCycleRows,
+      teachings: teachingCycleRows,
+      payments: paymentCycleRows.map((payment) => ({
+        amount: Number(payment.amount),
+        cycle:
+          payment.classEnrollment?.classe?.cycle ??
+          payment.frais?.classe?.cycle,
+      })),
+    });
+
     // =========================
     // DERIVED VALUES
     // =========================
@@ -448,6 +536,8 @@ export async function getAdminStats({
     // =========================
     return {
       typebranch: branch.typebranch,
+      cycles: activatedCycles,
+      byCycle,
       baseCurrency,
       quoteCurrency,
       selectedRatePair: selectedExchangeRate
@@ -525,6 +615,8 @@ export async function getAdminStats({
 
     return {
       typebranch: null,
+      cycles: [] as const,
+      byCycle: [] as const,
       baseCurrency: "USD",
       quoteCurrency: null,
       selectedRatePair: null,
@@ -1386,7 +1478,7 @@ export async function getBranchDashboardData(params: {
       id: params.branchId,
       organizationId: params.organizationId,
     },
-    select: { id: true, typebranch: true },
+    select: { id: true, typebranch: true, cycles: BRANCH_CYCLE_SELECT },
   });
   if (!branch) {
     throw new Error("Branche introuvable dans cette organisation");
@@ -1396,6 +1488,7 @@ export async function getBranchDashboardData(params: {
   const branchId = params.branchId;
   const organizationId = params.organizationId;
   const typebranch = branch.typebranch;
+  const cycles = getBranchCycles(branch);
 
   const variant: DashboardVariant = resolveDashboardVariant(session);
   const blocks = getDashboardDataBlocks(variant);
@@ -1414,6 +1507,7 @@ export async function getBranchDashboardData(params: {
       ? getAdminStats(params)
       : Promise.resolve({
           typebranch,
+          cycles,
           error: null,
         }),
     blocks.pedagogyMetrics
@@ -1455,6 +1549,10 @@ export async function getBranchDashboardData(params: {
     canAccessFinance: canAccessFinanceArea(session),
     typebranch:
       (statsRecord.typebranch as string | null | undefined) ?? typebranch,
+    cycles:
+      Array.isArray(statsRecord.cycles) && statsRecord.cycles.length > 0
+        ? (statsRecord.cycles as typeof cycles)
+        : cycles,
     stats: blocks.schoolStats ? stats : null,
     metrics:
       blocks.pedagogyMetrics &&

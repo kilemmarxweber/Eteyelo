@@ -40,10 +40,16 @@ export async function ensureSecondaryCtebStructure(
         codeSection: sectionMeta.codeSection,
         nameSection: sectionMeta.nameSection,
         statusSection: true,
+        cycle: "SECONDAIRE",
       },
       select: { id: true, codeSection: true, nameSection: true },
     });
     sectionCreated = true;
+  } else {
+    await db.section.update({
+      where: { id: section.id },
+      data: { statusSection: true, cycle: "SECONDAIRE" },
+    });
   }
 
   let option = await db.option.findFirst({
@@ -66,6 +72,7 @@ export async function ensureSecondaryCtebStructure(
         codeOption: optionMeta.codeOption,
         nameOption: optionMeta.nameOption,
         statusOption: true,
+        cycle: "SECONDAIRE",
       },
       select: { id: true, codeOption: true, nameOption: true },
     });
@@ -73,7 +80,7 @@ export async function ensureSecondaryCtebStructure(
   } else {
     await db.option.update({
       where: { id: option.id },
-      data: { sectionId: section.id, statusOption: true },
+      data: { sectionId: section.id, statusOption: true, cycle: "SECONDAIRE" },
     });
   }
 

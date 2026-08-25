@@ -16,6 +16,7 @@ import {
   normalizeBranchType,
 } from "@/lib/academic-structure";
 import { usesTermPeriodCalendar } from "@/lib/education-system";
+import { cycleLabel } from "@/lib/cycle";
 
 function assertCanManage(
   session: Awaited<ReturnType<typeof requireBranchContext>>["session"],
@@ -25,7 +26,14 @@ function assertCanManage(
   }
 }
 
-function structureBadgeLabel(typebranch: unknown, educationSystem?: unknown) {
+function structureBadgeLabel(
+  typebranch: unknown,
+  educationSystem?: unknown,
+  cycles?: unknown[],
+) {
+  if (cycles && cycles.length > 1) {
+    return cycles.map((cycle) => cycleLabel(cycle)).join(" + ");
+  }
   const type = normalizeBranchType(typebranch);
   if (usesTermPeriodCalendar(type, educationSystem)) {
     return type === "PRIMAIRE"
@@ -89,7 +97,7 @@ function revalidatePeriodsPath(
 }
 
 export const listPeriodsSettingsAction = action.handler(async () => {
-  const { branchId, typebranch, educationSystem, session } =
+  const { branchId, typebranch, educationSystem, session, cycles } =
     await requireBranchContext();
   const canHardDelete = canPermanentlyDeleteInformation(session);
   const structure = getAcademicStructure(typebranch, educationSystem);
@@ -103,6 +111,7 @@ export const listPeriodsSettingsAction = action.handler(async () => {
         label: true,
         startDate: true,
         endDate: true,
+        cycle: true,
       },
     }),
     prisma.period.findMany({
@@ -115,7 +124,8 @@ export const listPeriodsSettingsAction = action.handler(async () => {
         endDate: true,
         semesterId: true,
         gradesGenerated: true,
-        semester: { select: { label: true } },
+        cycle: true,
+        semester: { select: { label: true, cycle: true } },
         _count: {
           select: {
             fiche: true,
@@ -128,11 +138,13 @@ export const listPeriodsSettingsAction = action.handler(async () => {
 
   return {
     typebranch: normalizeBranchType(typebranch),
-    structureLabel: structureBadgeLabel(typebranch, educationSystem),
+    cycles,
+    structureLabel: structureBadgeLabel(typebranch, educationSystem, cycles),
     groupLabels: structure.groups.map((group) => group.label),
     semesters: semesters.map((semester) => ({
       id: semester.id,
       label: semester.label,
+      cycle: semester.cycle,
       startDate: toDateInputValue(semester.startDate),
       endDate: toDateInputValue(semester.endDate),
     })),
@@ -143,6 +155,7 @@ export const listPeriodsSettingsAction = action.handler(async () => {
       endDate: toDateInputValue(period.endDate),
       semesterId: period.semesterId,
       semesterLabel: period.semester?.label ?? "—",
+      cycle: period.cycle ?? period.semester?.cycle ?? null,
       gradesGenerated: period.gradesGenerated,
       canDelete:
         canHardDelete &&
@@ -166,7 +179,7 @@ export const createPeriodSettingsAction = action
 
     const semester = await prisma.semester.findFirst({
       where: { id: input.semesterId, branchId: context.branchId },
-      select: { id: true },
+      select: { id: true, cycle: true },
     });
     if (!semester) {
       throw new Error("Semestre / trimestre introuvable dans cette branche.");
@@ -191,6 +204,7 @@ export const createPeriodSettingsAction = action
         endDate,
         semesterId: input.semesterId,
         branchId: context.branchId,
+        cycle: semester.cycle,
       },
     });
 
@@ -291,6 +305,7 @@ export const ensurePeriodsFromTemplateAction = action.handler(async () => {
     branchId: context.branchId,
     typebranch: context.typebranch,
     educationSystem: context.educationSystem,
+    cycles: context.cycles,
   });
 
   revalidatePeriodsPath(context.organizationId, context.branchId);

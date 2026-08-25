@@ -60,6 +60,7 @@ import {
   getSchoolYearDisplayLabelLower,
 } from "@/lib/university-lmd";
 import type { BulletinBranchContext } from "@/lib/bulletin-context";
+import { resolveCycle } from "@/lib/cycle";
 import {
   calculateBulletinPercentage,
   resolveBulletinMaxScore,
@@ -173,13 +174,18 @@ export default function ClassFicheClient({
   const [families, setFamilies] = useState<
     Record<string, { fatherName: string; motherName: string; placeOfBirth: string }>
   >({});
+  const selectedClass = classes.find((c) => c.id === selectedClassId);
+  const academicCycle = resolveCycle(
+    { cycle: selectedClass?.cycle },
+    { typebranch: branchContext.branchType },
+  );
   const schoolYearLabel = useMemo(
-    () => getSchoolYearDisplayLabel(branchContext.branchType),
-    [branchContext.branchType],
+    () => getSchoolYearDisplayLabel(academicCycle),
+    [academicCycle],
   );
   const schoolYearLabelLower = useMemo(
-    () => getSchoolYearDisplayLabelLower(branchContext.branchType),
-    [branchContext.branchType],
+    () => getSchoolYearDisplayLabelLower(academicCycle),
+    [academicCycle],
   );
   // ================= PERIOD AGGREGATION RULES =================
   // Retourne toutes les périodes à inclure selon selectedPeriod
@@ -188,7 +194,7 @@ export default function ClassFicheClient({
     (selectedPeriod: string): string[] => {
       if (
         usesTermPeriodCalendar(
-          branchContext.branchType,
+          academicCycle,
           branchContext.educationSystem,
         )
       ) {
@@ -196,7 +202,7 @@ export default function ClassFicheClient({
       }
       const selectedOrder = getAcademicPeriodOrder(
         selectedPeriod,
-        branchContext.branchType,
+        academicCycle,
         branchContext.educationSystem,
       );
       if (selectedOrder === Number.MAX_SAFE_INTEGER) return [selectedPeriod];
@@ -206,7 +212,7 @@ export default function ClassFicheClient({
           (periodName) =>
             getAcademicPeriodOrder(
               periodName,
-              branchContext.branchType,
+              academicCycle,
               branchContext.educationSystem,
             ) <= selectedOrder,
         )
@@ -214,17 +220,17 @@ export default function ClassFicheClient({
           (a, b) =>
             getAcademicPeriodOrder(
               a,
-              branchContext.branchType,
+              academicCycle,
               branchContext.educationSystem,
             ) -
             getAcademicPeriodOrder(
               b,
-              branchContext.branchType,
+              academicCycle,
               branchContext.educationSystem,
             ),
         );
     },
-    [fiches, branchContext.branchType, branchContext.educationSystem],
+    [fiches, academicCycle, branchContext.educationSystem],
   );
   const availablePeriodsOrdered = useMemo(() => {
     const uniquePeriods = Array.from(new Set(fiches.map((f) => f.periodName)));
@@ -247,7 +253,7 @@ export default function ClassFicheClient({
 
       const isExam = isAcademicExamPeriodName(
         selectedPeriod,
-        branchContext.branchType,
+        academicCycle,
       );
       let periodsToInclude: RecapPeriod[];
 
@@ -273,7 +279,7 @@ export default function ClassFicheClient({
 
       return notesPerSubject;
     },
-    [branchContext.branchType, getAggregatedPeriods],
+    [academicCycle, getAggregatedPeriods],
   );
 
   /**
@@ -346,7 +352,7 @@ export default function ClassFicheClient({
   useEffect(() => {
     async function loadPeriods() {
       try {
-        const data = await getPeriods();
+        const data = await getPeriods(selectedClassId ?? undefined);
         setTotalPeriods(data.length);
       } catch (error) {
         console.error(error);
@@ -355,9 +361,7 @@ export default function ClassFicheClient({
     }
 
     loadPeriods();
-  }, []);
-
-  const selectedClass = classes.find((c) => c.id === selectedClassId);
+  }, [selectedClassId]);
 
   const availableAnnees = useMemo(() => {
     const annees = new Set(fiches.map((f) => f.anneeName));
@@ -640,7 +644,7 @@ export default function ClassFicheClient({
   }, [ficheRecap, selectedPeriod, getNotesForPeriods, computePeriodPercentage]);
 
   const bulletinDataForPDF: RecapRow[] = useMemo(() => {
-    const branchType = branchContext.branchType;
+    const branchType = academicCycle;
     const academicStructure = getAcademicStructure(
       branchType,
       branchContext.educationSystem,
@@ -930,7 +934,7 @@ export default function ClassFicheClient({
 
       return { ...student, periods: periodsWithTotals };
     });
-  }, [ficheRecappdf, branchContext.branchType]);
+  }, [ficheRecappdf, academicCycle]);
 
   const rankingData = useMemo(() => {
     return ficheRecap
@@ -1037,7 +1041,7 @@ export default function ClassFicheClient({
                 s.studentId === row.original.studentId &&
                 s.studentclasse === row.original.studentclasse,
             )}
-            branchContext={branchContext}
+            branchContext={{ ...branchContext, cycle: academicCycle }}
             classCode={selectedClass?.codename}
             classLevel={selectedClass?.level}
             classOptionName={selectedClass?.optionName}
@@ -1263,7 +1267,7 @@ export default function ClassFicheClient({
             <div className="flex shrink-0 flex-wrap items-center gap-2">
               <BulletinPDF
                 data={bulletinDataForPDF}
-                branchContext={branchContext}
+                branchContext={{ ...branchContext, cycle: academicCycle }}
                 classCode={selectedClass?.codename}
                 classLevel={selectedClass?.level}
                 classOptionName={selectedClass?.optionName}

@@ -6,6 +6,7 @@ import z from "zod";
 import { paiementSchema, StatusPaiement } from "@/src/interfaces/Paiement";
 import { requireFinanceBranchContext } from "@/lib/auth/require-branch-context";
 import { resolveCashierSelfScope } from "@/lib/auth/session-roles";
+import { cycleLabel } from "@/lib/cycle";
 import { randomUUID } from "node:crypto";
 import { Prisma, CurrencyCode } from "@/prisma/generated/prisma/client";
 import {
@@ -200,6 +201,10 @@ type ReceiptPayload = {
     receivedAmount?: number;
     classe?: string;
     codeClasse?: string;
+    cycle?: string;
+    section?: string;
+    option?: string;
+    tranche?: string;
   }[];
   logoUrl: string;
   exchangeRateUsdCdf: number;
@@ -930,8 +935,13 @@ export const createPaiementAction = action
             include: {
               frais: {
                 include: {
-                  classe: true,
+                  classe: {
+                    include: {
+                      option: { include: { section: true } },
+                    },
+                  },
                   schoolYear: true,
+                  semester: true,
                 },
               },
               classEnrollment: {
@@ -944,7 +954,11 @@ export const createPaiementAction = action
                       },
                     },
                   },
-                  classe: true,
+                  classe: {
+                    include: {
+                      option: { include: { section: true } },
+                    },
+                  },
                   schoolYear: true,
                 },
               },
@@ -1014,6 +1028,21 @@ export const createPaiementAction = action
             payment.classEnrollment?.classe?.codeClasse ??
             payment.frais?.classe?.codeClasse ??
             "",
+          cycle: (() => {
+            const raw =
+              payment.classEnrollment?.classe?.cycle ??
+              payment.frais?.classe?.cycle;
+            return raw ? cycleLabel(raw) : "";
+          })(),
+          section:
+            payment.classEnrollment?.classe?.option?.section?.nameSection ??
+            payment.frais?.classe?.option?.section?.nameSection ??
+            "",
+          option:
+            payment.classEnrollment?.classe?.option?.nameOption ??
+            payment.frais?.classe?.option?.nameOption ??
+            "",
+          tranche: payment.frais?.semester?.label ?? "",
         })),
         logoUrl: branding.logoUrl,
         exchangeRateUsdCdf:
@@ -1250,6 +1279,20 @@ export const getCashierReportAction = action
       outflowTotal,
       periodBalance: incomeTotal - outflowTotal,
       balance: openingBalance + incomeTotal - outflowTotal,
+      byCycle: (() => {
+        const map = new Map<string, number>();
+        for (const payment of payments) {
+          const cycle =
+            payment.classEnrollment?.classe?.cycle ??
+            payment.frais?.classe?.cycle ??
+            "AUTRE";
+          map.set(cycle, (map.get(cycle) ?? 0) + Number(payment.amount));
+        }
+        return Array.from(map.entries()).map(([cycle, amount]) => ({
+          cycle,
+          amount,
+        }));
+      })(),
       payments: payments.map((payment) => ({
         id: payment.id,
         amount: Number(payment.amount),
@@ -1889,6 +1932,7 @@ export type UnpaidReportRow = {
   studentName: string;
   classeId: string;
   classeName: string;
+  cycle: string | null;
   /** Montant dû brut (somme des frais). */
   montantDuBrut: number;
   /** Remise appliquée (scopée au type de frais si défini). */
@@ -1942,12 +1986,14 @@ export const getUnpaidReportAction = action
     z.object({
       classeId: z.string().optional().nullable(),
       schoolYearId: z.string().optional().nullable(),
+      cycle: z.string().optional().nullable(),
     }),
   )
   .handler(async ({ input }) => {
     const { branchId, organizationId } = await requireFinanceBranchContext();
 
     const classeId = input.classeId?.trim() || null;
+    const cycleFilter = input.cycle?.trim() || null;
     let schoolYearId = input.schoolYearId?.trim() || null;
     let schoolYearLabel: string | null = null;
 
@@ -1988,13 +2034,14 @@ export const getUnpaidReportAction = action
         branchId,
         ...(schoolYearId ? { schoolYearId } : {}),
         ...(classeId ? { classeId } : {}),
+        ...(cycleFilter ? { classe: { cycle: cycleFilter as never } } : {}),
         OR: [{ statusEnrollment: true }, { statusEnrollment: null }],
       },
       include: {
         student: {
           include: linkedUserInclude,
         },
-        classe: { select: { id: true, nameClasse: true } },
+        classe: { select: { id: true, nameClasse: true, cycle: true } },
       },
       orderBy: [{ classe: { nameClasse: "asc" } }, { createdAt: "asc" }],
     });
@@ -2115,6 +2162,7 @@ export const getUnpaidReportAction = action
         studentName,
         classeId: enrollment.classeId,
         classeName: enrollment.classe?.nameClasse ?? "-",
+        cycle: enrollment.classe?.cycle ?? null,
         montantDuBrut,
         remise,
         remisePercent: discount.percentage,
@@ -2127,10 +2175,30 @@ export const getUnpaidReportAction = action
     });
 
     rows.sort((a, b) => {
+      const byCycle = (a.cycle ?? "").localeCompare(b.cycle ?? "", "fr");
+      if (byCycle !== 0) return byCycle;
       const byClass = a.classeName.localeCompare(b.classeName, "fr");
       if (byClass !== 0) return byClass;
       return a.studentName.localeCompare(b.studentName, "fr");
     });
+
+    const byCycleMap = new Map<
+      string,
+      { cycle: string; totalDu: number; totalPaye: number; totalReste: number }
+    >();
+    for (const row of rows) {
+      const key = row.cycle ?? "AUTRE";
+      const current = byCycleMap.get(key) ?? {
+        cycle: key,
+        totalDu: 0,
+        totalPaye: 0,
+        totalReste: 0,
+      };
+      current.totalDu += row.montantDu;
+      current.totalPaye += row.montantPaye;
+      current.totalReste += row.reste;
+      byCycleMap.set(key, current);
+    }
 
     const counts = {
       aJour: rows.filter((r) => r.status === "A_JOUR").length,
@@ -2148,5 +2216,6 @@ export const getUnpaidReportAction = action
       totalPaye: rows.reduce((sum, r) => sum + r.montantPaye, 0),
       totalReste: rows.reduce((sum, r) => sum + r.reste, 0),
       totalRemise: rows.reduce((sum, r) => sum + r.remise, 0),
+      byCycle: Array.from(byCycleMap.values()),
     };
   });

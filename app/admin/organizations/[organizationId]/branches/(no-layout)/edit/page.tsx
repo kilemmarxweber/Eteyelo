@@ -2,6 +2,7 @@ import { CreateBranchForm } from "../new/components/create-branch-form";
 import { BackLink } from "@/components/ui/back-link";
 import { getBranchByIdAction } from "../branche.action";
 import { enforceOrganizationManagerPage } from "@/lib/auth/require-organization-permission";
+import { isSchoolCycle } from "@/lib/cycle";
 
 type EditBranchPageProps = {
   params: Promise<{ organizationId: string }>;
@@ -81,6 +82,13 @@ export default async function EditBranchPage({
           longitude: branch.longitude,
           attendanceRadius: branch.attendanceRadius,
           typebranch: branch.typebranch,
+          schoolCycles: (() => {
+            const cycles = (branch.cycles ?? [])
+              .map((row) => row.cycle)
+              .filter(isSchoolCycle);
+            if (cycles.length > 0) return cycles;
+            return isSchoolCycle(branch.typebranch) ? [branch.typebranch] : [];
+          })(),
           educationSystem: branch.educationSystem ?? "CONGOLAIS",
         }}
       />

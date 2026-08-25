@@ -62,7 +62,10 @@
     "test:phase7-prod": "tsx scripts/test-phase7-prod-readiness.ts",
     "test:bulletin-visual-secondary": "tsx scripts/test-bulletin-visual-secondary.ts",
     "test:bulletin-visual-primary": "tsx scripts/test-bulletin-visual-primary.ts",
-    "test:bulletin": "pnpm test:bulletin-maxima && pnpm test:bulletin-context && pnpm test:bulletin-academic-groups && pnpm test:bulletin-extended-data && pnpm test:bulletin-layouts && pnpm test:bulletin-calculations && pnpm test:bulletin-isolation && pnpm test:bulletin-visual-secondary && pnpm test:bulletin-visual-primary"
+    "test:bulletin": "pnpm test:bulletin-maxima && pnpm test:bulletin-context && pnpm test:bulletin-academic-groups && pnpm test:bulletin-extended-data && pnpm test:bulletin-layouts && pnpm test:bulletin-calculations && pnpm test:bulletin-isolation && pnpm test:bulletin-visual-secondary && pnpm test:bulletin-visual-primary",
+    "test:cycle": "tsx scripts/test-cycle.ts",
+    "merge:branches": "tsx scripts/merge-branches.ts",
+    "merge:branches:dry-run": "tsx scripts/merge-branches.ts --dry-run"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.10.0",

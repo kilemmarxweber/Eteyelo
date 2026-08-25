@@ -6,6 +6,7 @@ export interface IClasse {
   id: string;
   codeClasse: string;
   nameClasse: string;
+  cycle?: string | null;
   level?: string | null;
   parallel?: string | null;
   capacity?: number | null;
@@ -33,12 +34,19 @@ export const classeSchema = z.object({
   optionId: z.string().optional(),
   creneauId: z.string().optional(),
   statusClasse: z.boolean().optional(),
+  cycle: z
+    .enum(["MATERNELLE", "PRIMAIRE", "SECONDAIRE", "ATELIER", "CENTRE_FORMATION", "UNIVERSITE"])
+    .optional()
+    .nullable(),
 });
 
 export const classeCreateSchema = z.object({
   id: z.string().optional(),
   codeClasse: z.string().trim().optional().or(z.literal("")),
   nameClasse: z.string().trim().optional(),
+  cycle: z
+    .enum(["MATERNELLE", "PRIMAIRE", "SECONDAIRE", "ATELIER", "CENTRE_FORMATION", "UNIVERSITE"])
+    .optional(),
   level: z.string().trim().min(1, {
     message: "Veuillez selectionner un niveau",
   }),

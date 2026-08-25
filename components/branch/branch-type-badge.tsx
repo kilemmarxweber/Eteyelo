@@ -1,9 +1,16 @@
 import { Badge } from "@/components/ui/badge";
 import { getBranchTypeShortLabel } from "@/lib/branch-capabilities";
 import { normalizeBranchType, type ManagedBranchType } from "@/lib/academic-structure";
+import {
+  cycleCompactLabel,
+  cycleLabel,
+  getBranchCycles,
+  type Cycle,
+} from "@/lib/cycle";
 import { cn } from "@/lib/utils";
 
-const BADGE_VARIANTS: Record<ManagedBranchType, string> = {
+export const CYCLE_BADGE_CLASS: Record<string, string> = {
+  MATERNELLE: "bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-200",
   PRIMAIRE: "bg-sky-100 text-sky-800 dark:bg-sky-950 dark:text-sky-200",
   SECONDAIRE: "bg-indigo-100 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-200",
   ATELIER: "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-200",
@@ -14,22 +21,106 @@ const BADGE_VARIANTS: Record<ManagedBranchType, string> = {
 
 type BranchTypeBadgeProps = {
   typebranch: unknown;
+  cycles?: Array<{ cycle: unknown; isActive?: boolean; sortOrder?: number }> | Cycle[] | null;
   className?: string;
+  /** Libellé complet (Maternelle) au lieu du compact (MAT). */
+  fullLabel?: boolean;
 };
 
-export function BranchTypeBadge({ typebranch, className }: BranchTypeBadgeProps) {
-  const normalized = normalizeBranchType(typebranch);
+function badgeClass(cycle: string, className?: string) {
+  return cn(
+    "rounded-full border-0 font-semibold",
+    CYCLE_BADGE_CLASS[cycle] ?? CYCLE_BADGE_CLASS[normalizeBranchType(cycle)],
+    className,
+  );
+}
 
+export function BranchTypeBadge({
+  typebranch,
+  cycles,
+  className,
+  fullLabel = false,
+}: BranchTypeBadgeProps) {
+  const resolved = getBranchCycles({
+    typebranch,
+    cycles: Array.isArray(cycles)
+      ? cycles.map((item) =>
+          typeof item === "string" ? { cycle: item, isActive: true } : item,
+        )
+      : undefined,
+  });
+
+  if (resolved.length > 1) {
+    return (
+      <span className="inline-flex max-w-full flex-wrap items-center gap-1">
+        {resolved.map((cycle) => (
+          <Badge
+            key={cycle}
+            variant="secondary"
+            title={cycleLabel(cycle)}
+            className={badgeClass(cycle, cn("shrink-0 whitespace-nowrap", className))}
+          >
+            {fullLabel ? cycleLabel(cycle) : cycleCompactLabel(cycle)}
+          </Badge>
+        ))}
+      </span>
+    );
+  }
+
+  const cycle = resolved[0] ?? normalizeBranchType(typebranch);
+  const singleLabel =
+    cycle === "MATERNELLE"
+      ? cycleLabel(cycle)
+      : getBranchTypeShortLabel(cycle as ManagedBranchType);
   return (
     <Badge
       variant="secondary"
-      className={cn(
-        "rounded-full border-0 font-semibold",
-        BADGE_VARIANTS[normalized],
-        className,
-      )}
+      title={cycleLabel(cycle)}
+      className={badgeClass(cycle, cn("whitespace-nowrap", className))}
     >
-      {getBranchTypeShortLabel(normalized)}
+      {singleLabel}
     </Badge>
+  );
+}
+
+function cycleStatShortLabel(cycle: Cycle) {
+  if (cycle === "MATERNELLE") return "Mat";
+  if (cycle === "PRIMAIRE") return "Prim";
+  if (cycle === "SECONDAIRE") return "Sec";
+  return cycleCompactLabel(cycle);
+}
+
+export function CycleStatChips({
+  items,
+  compact = false,
+  formatCount,
+}: {
+  items: Array<{ cycle: Cycle; count: number }>;
+  compact?: boolean;
+  formatCount?: (count: number) => string;
+}) {
+  if (items.length < 2) return null;
+
+  return (
+    <div className="mt-2 flex flex-wrap gap-1">
+      {items.map(({ cycle, count }) => (
+        <span
+          key={cycle}
+          title={cycleLabel(cycle)}
+          className={cn(
+            "inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] font-semibold",
+            CYCLE_BADGE_CLASS[cycle] ??
+              CYCLE_BADGE_CLASS[normalizeBranchType(cycle)],
+          )}
+        >
+          <span>
+            {compact ? cycleStatShortLabel(cycle) : cycleLabel(cycle)}
+          </span>
+          <span className="tabular-nums">
+            {formatCount ? formatCount(count) : count}
+          </span>
+        </span>
+      ))}
+    </div>
   );
 }

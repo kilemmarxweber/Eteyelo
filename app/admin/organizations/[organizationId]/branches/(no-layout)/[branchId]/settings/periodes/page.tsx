@@ -25,6 +25,7 @@ import {
   ensurePeriodsFromTemplateAction,
   listPeriodsSettingsAction,
 } from "./periodes.action";
+import { cycleLabel } from "@/lib/cycle";
 
 type ListResult = Awaited<ReturnType<typeof listPeriodsSettingsAction>>;
 type PeriodsSettingsData = NonNullable<ListResult[0]>;
@@ -74,17 +75,18 @@ export default function PeriodesSettingsPage() {
     const periods = data?.periods ?? [];
     const groups = new Map<
       string,
-      { semesterLabel: string; periods: PeriodItem[] }
+      { semesterLabel: string; cycle: string | null; periods: PeriodItem[] }
     >();
 
     for (const period of periods) {
-      const key = String(period.semesterId);
+      const key = `${period.cycle ?? ""}:${period.semesterId}`;
       const current = groups.get(key);
       if (current) {
         current.periods.push(period);
       } else {
         groups.set(key, {
           semesterLabel: period.semesterLabel,
+          cycle: period.cycle ?? null,
           periods: [period],
         });
       }
@@ -190,6 +192,7 @@ export default function PeriodesSettingsPage() {
           <thead className="bg-muted/50 text-left">
             <tr>
               <th className="px-3 py-2 font-medium">Libellé</th>
+              <th className="px-3 py-2 font-medium">Cycle</th>
               <th className="px-3 py-2 font-medium">Groupe</th>
               <th className="px-3 py-2 font-medium">Début</th>
               <th className="px-3 py-2 font-medium">Fin</th>
@@ -202,6 +205,9 @@ export default function PeriodesSettingsPage() {
               group.periods.map((period, index) => (
                 <tr key={period.id} className="border-t">
                   <td className="px-3 py-2 font-medium">{period.label}</td>
+                  <td className="px-3 py-2 text-muted-foreground">
+                    {index === 0 && group.cycle ? cycleLabel(group.cycle) : ""}
+                  </td>
                   <td className="px-3 py-2 text-muted-foreground">
                     {index === 0 ? group.semesterLabel : ""}
                   </td>

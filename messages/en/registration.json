@@ -6,6 +6,7 @@
   "fourSteps": "Four steps.",
   "requiredHint": "* = required",
   "chooseClassHint": "Choose the requested {classLabel}.",
+  "chooseCycleHint": "Choose the branch type first (kindergarten, primary or secondary).",
   "steps": {
     "student": "Student",
     "parent": "Parent",
@@ -50,6 +51,7 @@
     "classCapacityRequired": "{classLabel} capacity *",
     "schoolYearRequired": "{yearLabel} *",
     "classLevelRequired": "{classLabel} / requested level *",
+    "cycleRequired": "Branch type *",
     "sectionTrackRequired": "Section (track) *",
     "optionRequired": "Option *",
     "option": "Option",
@@ -64,6 +66,7 @@
     "chooseVacation": "Choose a time slot",
     "searchParent": "Parent name, email or phone…",
     "chooseYear": "Choose the year",
+    "chooseCycle": "Choose the type",
     "chooseClass": "Choose the {classLabel}",
     "chooseSection": "Choose a section",
     "chooseOptionFirst": "Choose a section first",

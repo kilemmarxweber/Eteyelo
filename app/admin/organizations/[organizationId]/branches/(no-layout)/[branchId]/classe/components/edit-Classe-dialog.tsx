@@ -56,6 +56,7 @@ export function UpdateClasseDialog({
               initialData={{
                 id: classe.id,
                 nameClasse: classe.nameClasse,
+                cycle: classe.cycle ?? undefined,
                 level: classe.level ?? undefined,
                 parallel: classe.parallel ?? undefined,
                 capacity: classe.capacity ?? undefined,

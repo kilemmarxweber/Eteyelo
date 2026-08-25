@@ -423,15 +423,18 @@ function mapMenuItem(
   roles: string[],
   branchBasePath?: string,
   typebranch?: unknown,
+  cycles?: unknown,
 ): SideLink | null {
   if (!canSeeMenu(item, roles)) return null;
 
-  if (shouldHideSidebarHref(item.href, typebranch)) {
+  if (shouldHideSidebarHref(item.href, cycles ?? typebranch)) {
     return null;
   }
 
   const sub = item.sub
-    ?.map((child) => mapMenuItem(child, roles, branchBasePath, typebranch))
+    ?.map((child) =>
+      mapMenuItem(child, roles, branchBasePath, typebranch, cycles),
+    )
     .filter(Boolean) as SideLink[] | undefined;
 
   if (item.sub?.length && !sub?.length) return null;
@@ -497,6 +500,7 @@ export function buildStaticSideLinks(
   session: any,
   pathname: string,
   typebranch?: unknown,
+  cycles?: unknown,
 ): SideLink[] {
   const context = resolveNavigationContext(pathname);
   const roles = filterRolesForContext(
@@ -505,9 +509,12 @@ export function buildStaticSideLinks(
   );
   const branchBasePath = resolveBranchBasePath(pathname);
   const resolvedTypebranch = typebranch ?? session?.branch?.typebranch;
+  const resolvedCycles = cycles ?? resolvedTypebranch;
 
   return staticSidebarMenu
-    .map((item) => mapMenuItem(item, roles, branchBasePath, resolvedTypebranch))
+    .map((item) =>
+      mapMenuItem(item, roles, branchBasePath, resolvedTypebranch, resolvedCycles),
+    )
     .filter(Boolean) as SideLink[];
 }
 

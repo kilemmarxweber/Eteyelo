@@ -24,6 +24,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ITeacher } from "@/src/interfaces/Teacher";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { normalizeImageSrc } from "@/lib/utils";
 
 import { ResetUsersDialog } from "../../student/components/reset-users-dialog";
 import { DeleteTeacherDialog } from "./delete-teacher-dialog";
@@ -67,18 +69,34 @@ export const createTeacherColumns = (
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Nom" />
     ),
-    cell: ({ row }) => (
-      <div className="min-w-44">
-        <p className="font-medium">
-          {[row.original.nom, row.original.postnom, row.original.prenom]
-            .filter(Boolean)
-            .join(" ") || "N/A"}
-        </p>
-        <p className="text-xs text-muted-foreground">
-          {row.original.username || row.original.email || "Enseignant"}
-        </p>
-      </div>
-    ),
+    cell: ({ row }) => {
+      const fullName =
+        [row.original.nom, row.original.postnom, row.original.prenom]
+          .filter(Boolean)
+          .join(" ") || "N/A";
+      const initials =
+        `${row.original.nom?.[0] ?? ""}${row.original.prenom?.[0] ?? ""}`.toUpperCase() ||
+        "EN";
+      return (
+        <div className="flex min-w-44 items-center gap-2.5">
+          <Avatar className="size-9 shrink-0">
+            {row.original.image ? (
+              <AvatarImage
+                src={normalizeImageSrc(row.original.image)}
+                alt={fullName}
+              />
+            ) : null}
+            <AvatarFallback className="text-xs">{initials}</AvatarFallback>
+          </Avatar>
+          <div className="min-w-0">
+            <p className="truncate font-medium">{fullName}</p>
+            <p className="truncate text-xs text-muted-foreground">
+              {row.original.username || row.original.email || "Enseignant"}
+            </p>
+          </div>
+        </div>
+      );
+    },
     filterFn: (row, id, value) => {
       const search = String(value).toLowerCase().trim();
       const nom = String(row.getValue(id) ?? "").toLowerCase();

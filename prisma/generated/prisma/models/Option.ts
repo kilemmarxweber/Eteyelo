@@ -32,6 +32,7 @@ export type OptionMinAggregateOutputType = {
   statusOption: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
+  cycle: $Enums.Cycle | null
   branchId: string | null
 }
 
@@ -43,6 +44,7 @@ export type OptionMaxAggregateOutputType = {
   statusOption: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
+  cycle: $Enums.Cycle | null
   branchId: string | null
 }
 
@@ -54,6 +56,7 @@ export type OptionCountAggregateOutputType = {
   statusOption: number
   createdAt: number
   updatedAt: number
+  cycle: number
   branchId: number
   _all: number
 }
@@ -67,6 +70,7 @@ export type OptionMinAggregateInputType = {
   statusOption?: true
   createdAt?: true
   updatedAt?: true
+  cycle?: true
   branchId?: true
 }
 
@@ -78,6 +82,7 @@ export type OptionMaxAggregateInputType = {
   statusOption?: true
   createdAt?: true
   updatedAt?: true
+  cycle?: true
   branchId?: true
 }
 
@@ -89,6 +94,7 @@ export type OptionCountAggregateInputType = {
   statusOption?: true
   createdAt?: true
   updatedAt?: true
+  cycle?: true
   branchId?: true
   _all?: true
 }
@@ -173,6 +179,7 @@ export type OptionGroupByOutputType = {
   statusOption: boolean | null
   createdAt: Date
   updatedAt: Date
+  cycle: $Enums.Cycle | null
   branchId: string
   _count: OptionCountAggregateOutputType | null
   _min: OptionMinAggregateOutputType | null
@@ -205,6 +212,7 @@ export type OptionWhereInput = {
   statusOption?: Prisma.BoolNullableFilter<"Option"> | boolean | null
   createdAt?: Prisma.DateTimeFilter<"Option"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Option"> | Date | string
+  cycle?: Prisma.EnumCycleNullableFilter<"Option"> | $Enums.Cycle | null
   branchId?: Prisma.StringFilter<"Option"> | string
   section?: Prisma.XOR<Prisma.SectionNullableScalarRelationFilter, Prisma.SectionWhereInput> | null
   classe?: Prisma.ClasseListRelationFilter
@@ -220,6 +228,7 @@ export type OptionOrderByWithRelationInput = {
   statusOption?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  cycle?: Prisma.SortOrderInput | Prisma.SortOrder
   branchId?: Prisma.SortOrder
   section?: Prisma.SectionOrderByWithRelationInput
   classe?: Prisma.ClasseOrderByRelationAggregateInput
@@ -240,6 +249,7 @@ export type OptionWhereUniqueInput = Prisma.AtLeast<{
   statusOption?: Prisma.BoolNullableFilter<"Option"> | boolean | null
   createdAt?: Prisma.DateTimeFilter<"Option"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Option"> | Date | string
+  cycle?: Prisma.EnumCycleNullableFilter<"Option"> | $Enums.Cycle | null
   branchId?: Prisma.StringFilter<"Option"> | string
   section?: Prisma.XOR<Prisma.SectionNullableScalarRelationFilter, Prisma.SectionWhereInput> | null
   classe?: Prisma.ClasseListRelationFilter
@@ -255,6 +265,7 @@ export type OptionOrderByWithAggregationInput = {
   statusOption?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  cycle?: Prisma.SortOrderInput | Prisma.SortOrder
   branchId?: Prisma.SortOrder
   _count?: Prisma.OptionCountOrderByAggregateInput
   _max?: Prisma.OptionMaxOrderByAggregateInput
@@ -272,6 +283,7 @@ export type OptionScalarWhereWithAggregatesInput = {
   statusOption?: Prisma.BoolNullableWithAggregatesFilter<"Option"> | boolean | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Option"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Option"> | Date | string
+  cycle?: Prisma.EnumCycleNullableWithAggregatesFilter<"Option"> | $Enums.Cycle | null
   branchId?: Prisma.StringWithAggregatesFilter<"Option"> | string
 }
 
@@ -282,6 +294,7 @@ export type OptionCreateInput = {
   statusOption?: boolean | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  cycle?: $Enums.Cycle | null
   section?: Prisma.SectionCreateNestedOneWithoutOptionInput
   classe?: Prisma.ClasseCreateNestedManyWithoutOptionInput
   coursPonderations?: Prisma.CoursOptionPonderationCreateNestedManyWithoutOptionInput
@@ -296,6 +309,7 @@ export type OptionUncheckedCreateInput = {
   statusOption?: boolean | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  cycle?: $Enums.Cycle | null
   branchId: string
   classe?: Prisma.ClasseUncheckedCreateNestedManyWithoutOptionInput
   coursPonderations?: Prisma.CoursOptionPonderationUncheckedCreateNestedManyWithoutOptionInput
@@ -308,6 +322,7 @@ export type OptionUpdateInput = {
   statusOption?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  cycle?: Prisma.NullableEnumCycleFieldUpdateOperationsInput | $Enums.Cycle | null
   section?: Prisma.SectionUpdateOneWithoutOptionNestedInput
   classe?: Prisma.ClasseUpdateManyWithoutOptionNestedInput
   coursPonderations?: Prisma.CoursOptionPonderationUpdateManyWithoutOptionNestedInput
@@ -322,6 +337,7 @@ export type OptionUncheckedUpdateInput = {
   statusOption?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  cycle?: Prisma.NullableEnumCycleFieldUpdateOperationsInput | $Enums.Cycle | null
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
   classe?: Prisma.ClasseUncheckedUpdateManyWithoutOptionNestedInput
   coursPonderations?: Prisma.CoursOptionPonderationUncheckedUpdateManyWithoutOptionNestedInput
@@ -335,6 +351,7 @@ export type OptionCreateManyInput = {
   statusOption?: boolean | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  cycle?: $Enums.Cycle | null
   branchId: string
 }
 
@@ -345,6 +362,7 @@ export type OptionUpdateManyMutationInput = {
   statusOption?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  cycle?: Prisma.NullableEnumCycleFieldUpdateOperationsInput | $Enums.Cycle | null
 }
 
 export type OptionUncheckedUpdateManyInput = {
@@ -355,6 +373,7 @@ export type OptionUncheckedUpdateManyInput = {
   statusOption?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  cycle?: Prisma.NullableEnumCycleFieldUpdateOperationsInput | $Enums.Cycle | null
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
 }
 
@@ -381,6 +400,7 @@ export type OptionCountOrderByAggregateInput = {
   statusOption?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  cycle?: Prisma.SortOrder
   branchId?: Prisma.SortOrder
 }
 
@@ -392,6 +412,7 @@ export type OptionMaxOrderByAggregateInput = {
   statusOption?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  cycle?: Prisma.SortOrder
   branchId?: Prisma.SortOrder
 }
 
@@ -403,6 +424,7 @@ export type OptionMinOrderByAggregateInput = {
   statusOption?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  cycle?: Prisma.SortOrder
   branchId?: Prisma.SortOrder
 }
 
@@ -542,6 +564,7 @@ export type OptionCreateWithoutClasseInput = {
   statusOption?: boolean | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  cycle?: $Enums.Cycle | null
   section?: Prisma.SectionCreateNestedOneWithoutOptionInput
   coursPonderations?: Prisma.CoursOptionPonderationCreateNestedManyWithoutOptionInput
   branch: Prisma.BranchCreateNestedOneWithoutOptionInput
@@ -555,6 +578,7 @@ export type OptionUncheckedCreateWithoutClasseInput = {
   statusOption?: boolean | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  cycle?: $Enums.Cycle | null
   branchId: string
   coursPonderations?: Prisma.CoursOptionPonderationUncheckedCreateNestedManyWithoutOptionInput
 }
@@ -582,6 +606,7 @@ export type OptionUpdateWithoutClasseInput = {
   statusOption?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  cycle?: Prisma.NullableEnumCycleFieldUpdateOperationsInput | $Enums.Cycle | null
   section?: Prisma.SectionUpdateOneWithoutOptionNestedInput
   coursPonderations?: Prisma.CoursOptionPonderationUpdateManyWithoutOptionNestedInput
   branch?: Prisma.BranchUpdateOneRequiredWithoutOptionNestedInput
@@ -595,6 +620,7 @@ export type OptionUncheckedUpdateWithoutClasseInput = {
   statusOption?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  cycle?: Prisma.NullableEnumCycleFieldUpdateOperationsInput | $Enums.Cycle | null
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
   coursPonderations?: Prisma.CoursOptionPonderationUncheckedUpdateManyWithoutOptionNestedInput
 }
@@ -606,6 +632,7 @@ export type OptionCreateWithoutSectionInput = {
   statusOption?: boolean | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  cycle?: $Enums.Cycle | null
   classe?: Prisma.ClasseCreateNestedManyWithoutOptionInput
   coursPonderations?: Prisma.CoursOptionPonderationCreateNestedManyWithoutOptionInput
   branch: Prisma.BranchCreateNestedOneWithoutOptionInput
@@ -618,6 +645,7 @@ export type OptionUncheckedCreateWithoutSectionInput = {
   statusOption?: boolean | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  cycle?: $Enums.Cycle | null
   branchId: string
   classe?: Prisma.ClasseUncheckedCreateNestedManyWithoutOptionInput
   coursPonderations?: Prisma.CoursOptionPonderationUncheckedCreateNestedManyWithoutOptionInput
@@ -660,6 +688,7 @@ export type OptionScalarWhereInput = {
   statusOption?: Prisma.BoolNullableFilter<"Option"> | boolean | null
   createdAt?: Prisma.DateTimeFilter<"Option"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Option"> | Date | string
+  cycle?: Prisma.EnumCycleNullableFilter<"Option"> | $Enums.Cycle | null
   branchId?: Prisma.StringFilter<"Option"> | string
 }
 
@@ -670,6 +699,7 @@ export type OptionCreateWithoutCoursPonderationsInput = {
   statusOption?: boolean | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  cycle?: $Enums.Cycle | null
   section?: Prisma.SectionCreateNestedOneWithoutOptionInput
   classe?: Prisma.ClasseCreateNestedManyWithoutOptionInput
   branch: Prisma.BranchCreateNestedOneWithoutOptionInput
@@ -683,6 +713,7 @@ export type OptionUncheckedCreateWithoutCoursPonderationsInput = {
   statusOption?: boolean | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  cycle?: $Enums.Cycle | null
   branchId: string
   classe?: Prisma.ClasseUncheckedCreateNestedManyWithoutOptionInput
 }
@@ -710,6 +741,7 @@ export type OptionUpdateWithoutCoursPonderationsInput = {
   statusOption?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  cycle?: Prisma.NullableEnumCycleFieldUpdateOperationsInput | $Enums.Cycle | null
   section?: Prisma.SectionUpdateOneWithoutOptionNestedInput
   classe?: Prisma.ClasseUpdateManyWithoutOptionNestedInput
   branch?: Prisma.BranchUpdateOneRequiredWithoutOptionNestedInput
@@ -723,6 +755,7 @@ export type OptionUncheckedUpdateWithoutCoursPonderationsInput = {
   statusOption?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  cycle?: Prisma.NullableEnumCycleFieldUpdateOperationsInput | $Enums.Cycle | null
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
   classe?: Prisma.ClasseUncheckedUpdateManyWithoutOptionNestedInput
 }
@@ -734,6 +767,7 @@ export type OptionCreateWithoutBranchInput = {
   statusOption?: boolean | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  cycle?: $Enums.Cycle | null
   section?: Prisma.SectionCreateNestedOneWithoutOptionInput
   classe?: Prisma.ClasseCreateNestedManyWithoutOptionInput
   coursPonderations?: Prisma.CoursOptionPonderationCreateNestedManyWithoutOptionInput
@@ -747,6 +781,7 @@ export type OptionUncheckedCreateWithoutBranchInput = {
   statusOption?: boolean | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  cycle?: $Enums.Cycle | null
   classe?: Prisma.ClasseUncheckedCreateNestedManyWithoutOptionInput
   coursPonderations?: Prisma.CoursOptionPonderationUncheckedCreateNestedManyWithoutOptionInput
 }
@@ -784,6 +819,7 @@ export type OptionCreateManySectionInput = {
   statusOption?: boolean | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  cycle?: $Enums.Cycle | null
   branchId: string
 }
 
@@ -794,6 +830,7 @@ export type OptionUpdateWithoutSectionInput = {
   statusOption?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  cycle?: Prisma.NullableEnumCycleFieldUpdateOperationsInput | $Enums.Cycle | null
   classe?: Prisma.ClasseUpdateManyWithoutOptionNestedInput
   coursPonderations?: Prisma.CoursOptionPonderationUpdateManyWithoutOptionNestedInput
   branch?: Prisma.BranchUpdateOneRequiredWithoutOptionNestedInput
@@ -806,6 +843,7 @@ export type OptionUncheckedUpdateWithoutSectionInput = {
   statusOption?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  cycle?: Prisma.NullableEnumCycleFieldUpdateOperationsInput | $Enums.Cycle | null
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
   classe?: Prisma.ClasseUncheckedUpdateManyWithoutOptionNestedInput
   coursPonderations?: Prisma.CoursOptionPonderationUncheckedUpdateManyWithoutOptionNestedInput
@@ -818,6 +856,7 @@ export type OptionUncheckedUpdateManyWithoutSectionInput = {
   statusOption?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  cycle?: Prisma.NullableEnumCycleFieldUpdateOperationsInput | $Enums.Cycle | null
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
 }
 
@@ -829,6 +868,7 @@ export type OptionCreateManyBranchInput = {
   statusOption?: boolean | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  cycle?: $Enums.Cycle | null
 }
 
 export type OptionUpdateWithoutBranchInput = {
@@ -838,6 +878,7 @@ export type OptionUpdateWithoutBranchInput = {
   statusOption?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  cycle?: Prisma.NullableEnumCycleFieldUpdateOperationsInput | $Enums.Cycle | null
   section?: Prisma.SectionUpdateOneWithoutOptionNestedInput
   classe?: Prisma.ClasseUpdateManyWithoutOptionNestedInput
   coursPonderations?: Prisma.CoursOptionPonderationUpdateManyWithoutOptionNestedInput
@@ -851,6 +892,7 @@ export type OptionUncheckedUpdateWithoutBranchInput = {
   statusOption?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  cycle?: Prisma.NullableEnumCycleFieldUpdateOperationsInput | $Enums.Cycle | null
   classe?: Prisma.ClasseUncheckedUpdateManyWithoutOptionNestedInput
   coursPonderations?: Prisma.CoursOptionPonderationUncheckedUpdateManyWithoutOptionNestedInput
 }
@@ -863,6 +905,7 @@ export type OptionUncheckedUpdateManyWithoutBranchInput = {
   statusOption?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  cycle?: Prisma.NullableEnumCycleFieldUpdateOperationsInput | $Enums.Cycle | null
 }
 
 
@@ -913,6 +956,7 @@ export type OptionSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   statusOption?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  cycle?: boolean
   branchId?: boolean
   section?: boolean | Prisma.Option$sectionArgs<ExtArgs>
   classe?: boolean | Prisma.Option$classeArgs<ExtArgs>
@@ -929,6 +973,7 @@ export type OptionSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extens
   statusOption?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  cycle?: boolean
   branchId?: boolean
   section?: boolean | Prisma.Option$sectionArgs<ExtArgs>
   branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
@@ -942,6 +987,7 @@ export type OptionSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extens
   statusOption?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  cycle?: boolean
   branchId?: boolean
   section?: boolean | Prisma.Option$sectionArgs<ExtArgs>
   branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
@@ -955,10 +1001,11 @@ export type OptionSelectScalar = {
   statusOption?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  cycle?: boolean
   branchId?: boolean
 }
 
-export type OptionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "codeOption" | "nameOption" | "sectionId" | "statusOption" | "createdAt" | "updatedAt" | "branchId", ExtArgs["result"]["option"]>
+export type OptionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "codeOption" | "nameOption" | "sectionId" | "statusOption" | "createdAt" | "updatedAt" | "cycle" | "branchId", ExtArgs["result"]["option"]>
 export type OptionInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   section?: boolean | Prisma.Option$sectionArgs<ExtArgs>
   classe?: boolean | Prisma.Option$classeArgs<ExtArgs>
@@ -991,6 +1038,7 @@ export type $OptionPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     statusOption: boolean | null
     createdAt: Date
     updatedAt: Date
+    cycle: $Enums.Cycle | null
     branchId: string
   }, ExtArgs["result"]["option"]>
   composites: {}
@@ -1426,6 +1474,7 @@ export interface OptionFieldRefs {
   readonly statusOption: Prisma.FieldRef<"Option", 'Boolean'>
   readonly createdAt: Prisma.FieldRef<"Option", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Option", 'DateTime'>
+  readonly cycle: Prisma.FieldRef<"Option", 'Cycle'>
   readonly branchId: Prisma.FieldRef<"Option", 'String'>
 }
     

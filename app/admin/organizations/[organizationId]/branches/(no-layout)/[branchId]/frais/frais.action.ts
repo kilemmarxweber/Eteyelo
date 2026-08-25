@@ -22,6 +22,8 @@ import {
   getSchoolYearForBranch,
   requireCurrentSchoolYear,
 } from "@/lib/school-year";
+import { resolveCycle } from "@/lib/cycle";
+import { randomUUID } from "crypto";
 
 type FraisWithRelations = Prisma.FraisGetPayload<{
   include: {
@@ -152,6 +154,7 @@ export const createTypeFraisAction = action
         nameType,
         description,
         statusType: statusType ?? true,
+        cycle: input.cycle ?? null,
         branch: {
           connect: { id: branchId },
         },
@@ -199,6 +202,7 @@ export const updateTypeFraisAction = action
         nameType,
         description,
         statusType: statusType ?? true,
+        cycle: input.cycle ?? null,
       },
     });
     revalidateFraisPages(organizationId, branchId);
@@ -221,6 +225,7 @@ export const getTypeFraisAction = action.handler(
       codeType: type.codeType,
       nameType: type.nameType,
       description: type.description || undefined,
+      cycle: type.cycle ?? null,
       statusType: type.statusType,
       createdAt: type.createdAt,
       updatedAt: type.updatedAt,
@@ -243,6 +248,7 @@ export const getTypeFraisSettingsAction = action.handler(
       codeType: type.codeType,
       nameType: type.nameType,
       description: type.description || undefined,
+      cycle: type.cycle ?? null,
       statusType: type.statusType,
       createdAt: type.createdAt,
       updatedAt: type.updatedAt,
@@ -253,7 +259,8 @@ export const getTypeFraisSettingsAction = action.handler(
 export const createFraisAction = action
   .input(fraisSchema)
   .handler(async ({ input }) => {
-    const { branchId, organizationId } = await requireFinanceBranchContext();
+    const { branchId, organizationId, typebranch } =
+      await requireFinanceBranchContext();
     const {
       nameFrais,
       montantFrais,
@@ -262,6 +269,9 @@ export const createFraisAction = action
       typeFraisId,
       echeance,
       priority,
+      semesterId,
+      applyToCycle,
+      applyToLevel,
     } = input;
 
     const [currentYear, classe, typeFrais] = await Promise.all([
@@ -270,48 +280,69 @@ export const createFraisAction = action
       requireTypeFraisInBranch(typeFraisId, branchId),
     ]);
 
-    const existFrais = await prisma.frais.findFirst({
-      where: {
-        branchId,
-        nameFrais,
-        classeId: classe.id,
-        schoolYearId: currentYear.id,
-      },
-    });
+    const sourceCycle = resolveCycle(classe, { typebranch });
+    let targets = [classe];
+    if (applyToCycle || applyToLevel) {
+      const allClasses = await prisma.classe.findMany({
+        where: { branchId },
+        select: { id: true, cycle: true, level: true },
+      });
+      targets = allClasses.filter((item) => {
+        if (
+          applyToCycle &&
+          resolveCycle(item, { typebranch }) !== sourceCycle
+        ) {
+          return false;
+        }
+        if (applyToLevel && (item.level ?? "") !== (classe.level ?? "")) {
+          return false;
+        }
+        return true;
+      }) as typeof targets;
+    }
 
-    if (existFrais) {
+    const groupKey = targets.length > 1 ? randomUUID() : null;
+    let created = null;
+
+    for (const target of targets) {
+      const existFrais = await prisma.frais.findFirst({
+        where: {
+          branchId,
+          nameFrais,
+          classeId: target.id,
+          schoolYearId: currentYear.id,
+        },
+      });
+      if (existFrais) continue;
+
+      created = await prisma.frais.create({
+        data: {
+          nameFrais,
+          montantFrais,
+          statusFrais: statusFrais ?? true,
+          echeance,
+          priority: priority ?? 99,
+          semesterId: semesterId ?? null,
+          fraisGroupKey: groupKey,
+          classe: { connect: { id: target.id } },
+          typeFrais: { connect: { id: typeFrais.id } },
+          schoolYear: { connect: { id: currentYear.id } },
+          branch: { connect: { id: branchId } },
+        },
+        include: {
+          classe: true,
+          typeFrais: true,
+          schoolYear: true,
+        },
+      });
+    }
+
+    if (!created) {
       throw new Error("Ce frais existe deja pour cette classe");
     }
 
-    const frais = await prisma.frais.create({
-      data: {
-        nameFrais,
-        montantFrais,
-        statusFrais: statusFrais ?? true,
-        echeance,
-        priority: priority ?? 99,
-        classe: {
-          connect: { id: classe.id },
-        },
-        typeFrais: {
-          connect: { id: typeFrais.id },
-        },
-        schoolYear: {
-          connect: { id: currentYear.id },
-        },
-        branch: {
-          connect: { id: branchId },
-        },
-      },
-      include: {
-        classe: true,
-        typeFrais: true,
-        schoolYear: true,
-      },
-    });
-
     revalidateFraisPages(organizationId, branchId);
-    return mapFrais(frais);
+    return mapFrais(created);
   });
 
 export const archiveFrais = action
@@ -633,6 +664,8 @@ export const getFraisClassSidebarAction = action.handler(async () => {
       id: classe.id,
       nameClasse: classe.nameClasse,
       codeClasse: classe.codeClasse,
+      cycle: classe.cycle,
+      level: classe.level,
       optionName: classe.option?.nameOption ?? "",
       sectionName: classe.option?.section?.nameSection ?? "",
       activeFraisCount: countMap.get(classe.id) ?? 0,

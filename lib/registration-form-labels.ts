@@ -1,5 +1,6 @@
 import { normalizeBranchType, type ManagedBranchType } from "@/lib/academic-structure";
 import { usesBulletinForBranch } from "@/lib/branch-capabilities";
+import { isSchoolCycle } from "@/lib/cycle";
 import { getBranchTypeDescription } from "@/lib/branch-route-guard";
 
 export type RegistrationFormLabels = {
@@ -142,12 +143,69 @@ const ESTABLISHMENT_WORDING: Record<ManagedBranchType, EstablishmentWording> = {
   },
 };
 
-export function getRegistrationFormLabels(typebranch: unknown): RegistrationFormLabels {
-  const normalized = normalizeBranchType(typebranch);
-  const wording = ESTABLISHMENT_WORDING[normalized];
-  const codeLabel = usesBulletinForBranch(normalized)
+const MATERNELLE_WORDING: EstablishmentWording = {
+  badgePrefix: "école maternelle",
+  titleRequest: "Demandez l'inscription de votre école maternelle",
+  titleCreate: "Ajoutez votre école maternelle",
+  descriptionRequest:
+    "Remplissez le formulaire avec les informations de votre école. Klambocore examinera votre demande avant publication sur la plateforme.",
+  descriptionCreate:
+    "Créez la fiche de votre école maternelle, indiquez ses coordonnées et positionnez-la sur la carte.",
+  sectionTitle: "Informations de l'école",
+  sectionDescriptionRequest:
+    "Renseignez les informations de votre école pour votre demande.",
+  nameLabel: "Nom de l'école",
+  namePlaceholder: "Nom de l'école *",
+  mapTitle: "Emplacement de l'école",
+  mapDescription:
+    "Cliquez sur la carte pour pointer l'emplacement exact de l'école.",
+  submitCreate: "Créer l'école",
+  locationAudience: "les enfants et les parents",
+};
+
+const COMBINED_SCHOOL_WORDING: EstablishmentWording = {
+  badgePrefix: "école",
+  titleRequest: "Demandez l'inscription de votre école",
+  titleCreate: "Ajoutez votre école",
+  descriptionRequest:
+    "Remplissez le formulaire avec les informations de votre école. Klambocore examinera votre demande avant publication sur la plateforme.",
+  descriptionCreate:
+    "Créez une seule fiche pour maternelle, primaire et/ou secondaire : caisse et année scolaire communes.",
+  sectionTitle: "Informations de l'école",
+  sectionDescriptionRequest:
+    "Renseignez les informations de votre école pour votre demande.",
+  nameLabel: "Nom de l'école",
+  namePlaceholder: "Nom de l'école *",
+  mapTitle: "Emplacement de l'école",
+  mapDescription:
+    "Cliquez sur la carte pour pointer l'emplacement exact de l'école.",
+  submitCreate: "Créer l'école",
+  locationAudience: "les élèves et les parents",
+};
+
+export function getRegistrationFormLabels(
+  typebranch: unknown,
+  schoolCycles?: readonly string[],
+): RegistrationFormLabels {
+  const school = (schoolCycles ?? []).filter(isSchoolCycle);
+  const wording =
+    school.length > 1
+      ? COMBINED_SCHOOL_WORDING
+      : school[0] === "MATERNELLE"
+        ? MATERNELLE_WORDING
+        : ESTABLISHMENT_WORDING[normalizeBranchType(typebranch)];
+  const codeLabel = usesBulletinForBranch(
+    school[0] === "MATERNELLE" ? "MATERNELLE" : normalizeBranchType(typebranch),
+  )
     ? "Code école (bulletin)"
     : "Code établissement (optionnel)";
+
+  const typeDescription =
+    school.length > 1
+      ? "Une caisse et une année scolaire communes. Calendriers, classes et bulletins distincts par cycle."
+      : school[0] === "MATERNELLE"
+        ? "École maternelle : 4 niveaux (Crèche, 1è, 2è, 3è), calendrier à 9 évaluations et bulletin de type primaire."
+        : getBranchTypeDescription(normalizeBranchType(typebranch));
 
   return {
     badge: `Inscription ${wording.badgePrefix}`,
@@ -169,7 +227,7 @@ export function getRegistrationFormLabels(typebranch: unknown): RegistrationForm
     namePlaceholder: wording.namePlaceholder,
     codeLabel,
     typeLabel: "Type d'établissement",
-    typeDescription: getBranchTypeDescription(normalized),
+    typeDescription,
     mapTitle: wording.mapTitle,
     mapDescription: wording.mapDescription,
     mapBenefit1: "Une fiche claire pour présenter votre établissement.",

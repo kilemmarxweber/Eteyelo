@@ -75,13 +75,16 @@ export default function FicheSaisieClient({
   const [lessonSearch, setLessonSearch] = useState("");
 
   const selectedTeacher = teachers.find((t) => t.id === selectedTeacherId);
+  const selectedLesson = selectedTeacher?.lessons.find(
+    (l) => l.id === selectedLessonId,
+  );
   const filled = students.filter((s) => s.score !== null).length;
   const percentage = students.length > 0 ? (filled / students.length) * 100 : 0;
   /* ===== LOAD PERIODS ===== */
 
   useEffect(() => {
-    getPeriods().then(setPeriods);
-  }, []);
+    getPeriods(selectedLesson?.classId).then(setPeriods);
+  }, [selectedLesson?.classId]);
   const isExamPeriod = (period?: Period | null) => {
     if (!period) return false;
     return period.kind === "EXAM";

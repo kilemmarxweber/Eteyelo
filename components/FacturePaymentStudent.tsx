@@ -31,6 +31,10 @@ export type FacturePaymentStudentData = {
     classe?: string;
     /** Code classe. */
     codeClasse?: string;
+    cycle?: string | null;
+    section?: string | null;
+    option?: string | null;
+    tranche?: string | null;
   }[];
   /** Data URL (ou URL déjà convertie côté client) pour jsPDF. */
   logoUrl?: string;
@@ -50,9 +54,30 @@ export type FacturePaymentStudentData = {
 };
 
 export function formatReceiptClasseCode(
-  codeClasse?: string | null,
+  item:
+    | string
+    | null
+    | undefined
+    | {
+        codeClasse?: string | null;
+        classe?: string | null;
+        cycle?: string | null;
+        section?: string | null;
+        option?: string | null;
+        tranche?: string | null;
+      },
 ): string {
-  return codeClasse?.trim() || "-";
+  if (typeof item === "string" || item == null) {
+    return item?.trim() || "-";
+  }
+  const parts = [
+    item.cycle,
+    item.classe || item.codeClasse,
+    item.section,
+    item.option,
+    item.tranche,
+  ].filter((part) => Boolean(part && String(part).trim()));
+  return parts.length ? parts.join(" · ") : "-";
 }
 
 function formatBaseCell(amount: number, currency: ReceiptCurrency): string {
@@ -141,7 +166,7 @@ export function generateFacturePaymentStudentPDF({
         [
           "Description",
           "Mode",
-          "Classe",
+          "Cycle / Classe",
           `Mnt a payer ${base}`,
           `Mnt payer ${base}`,
           `Mnt ${secondary}`,
@@ -151,7 +176,7 @@ export function generateFacturePaymentStudentPDF({
         [
           "Description",
           "Mode",
-          "Classe",
+          "Cycle / Classe",
           `Mnt a payer ${base}`,
           `Mnt payer ${base}`,
         ],
@@ -188,7 +213,7 @@ export function generateFacturePaymentStudentPDF({
       const row = [
         item.description,
         formatModePaiementLabel(item.mode ?? item.statut),
-        formatReceiptClasseCode(item.codeClasse),
+        formatReceiptClasseCode(item),
         formatBaseCell(item.price, base),
         formatBaseCell(item.montant, base),
       ];

@@ -39,6 +39,11 @@ import { CTEB_OPTION_CODE, CTEB_SECTION_CODE } from "@/lib/class-catalog";
 import { ManagedBranchType } from "@/lib/academic-structure";
 import type { EducationSystem } from "@/lib/education-system";
 import {
+  cycleLabel,
+  isMaternelleCycle,
+  type Cycle,
+} from "@/lib/cycle";
+import {
   ANGOLA_CICLO1_SECTION_CODE,
   isAngolaNucleoComumOption,
   angolaHoraireHelp,
@@ -55,6 +60,7 @@ import { getOptionsAction } from "../../option/option.action";
 const formSchema = z.object({
   id: z.string().optional(),
   nameClasse: z.string().trim().optional(),
+  cycle: z.string().trim().optional(),
   level: z.string().trim().optional(),
   parallel: z.string().trim().optional(),
   capacity: z.coerce.number().int().positive().optional().nullable(),
@@ -95,6 +101,7 @@ export function ClasseUpForm({
   const [selectedSectionId, setSelectedSectionId] = useState("");
   const [creneaux, setCreneaux] = useState<ICreneau[]>([]);
   const [branchType, setBranchType] = useState<ManagedBranchType>("SECONDAIRE");
+  const [activatedCycles, setActivatedCycles] = useState<Cycle[]>(["SECONDAIRE"]);
   const [educationSystem, setEducationSystem] =
     useState<EducationSystem>("CONGOLAIS");
 
@@ -110,6 +117,7 @@ export function ClasseUpForm({
         }
       : {
           id: initialData?.id,
+          cycle: initialData?.cycle ?? "",
           level: initialData?.level ?? "",
           parallel: initialData?.parallel ?? "",
           capacity: initialData?.capacity ?? undefined,
@@ -135,6 +143,13 @@ export function ClasseUpForm({
       if (creneauxErr) throw creneauxErr;
 
       setBranchType(branchResult.typebranch as ManagedBranchType);
+      const cycles = (branchResult.cycles?.length
+        ? branchResult.cycles
+        : [branchResult.typebranch]) as Cycle[];
+      setActivatedCycles(cycles);
+      if (mode === "create" && cycles.length === 1) {
+        form.setValue("cycle", cycles[0]);
+      }
       setEducationSystem(
         (branchResult.educationSystem as EducationSystem) ?? "CONGOLAIS",
       );
@@ -160,6 +175,7 @@ export function ClasseUpForm({
           }
         : {
             id: initialData?.id,
+            cycle: initialData?.cycle ?? "",
             level: initialData?.level ?? "",
             parallel: initialData?.parallel ?? "",
             capacity: initialData?.capacity ?? undefined,
@@ -172,15 +188,18 @@ export function ClasseUpForm({
   const watchedLevel = form.watch("level");
   const watchedParallel = form.watch("parallel");
   const watchedOptionId = form.watch("optionId");
+  const watchedCycle = form.watch("cycle");
 
-  const angolaSecondary = isAngolaSecondarySystem(branchType, educationSystem);
-  const classLevels = getClassLevelsForBranch(branchType, educationSystem);
+  const classCycle = (watchedCycle || activatedCycles[0] || branchType) as Cycle;
+  const multiCycle = activatedCycles.length > 1;
+  const angolaSecondary = isAngolaSecondarySystem(classCycle, educationSystem);
+  const classLevels = getClassLevelsForBranch(classCycle, educationSystem);
   const showOptionField =
-    branchType === "PRIMAIRE" ||
-    (allowsOptionForBranch(branchType) &&
+    classCycle === "PRIMAIRE" ||
+    (allowsOptionForBranch(classCycle) &&
       (isLegacyUpdate ||
         requiresOptionForClass(
-          branchType,
+          classCycle,
           watchedLevel ?? "",
           educationSystem,
         )));
@@ -192,9 +211,19 @@ export function ClasseUpForm({
     : "";
   const horaireType = getAngolaHoraireType(watchedLevel);
 
+  const cycleOptions = useMemo(
+    () =>
+      options.filter((option) => {
+        const optionCycle = (option as { cycle?: string | null }).cycle;
+        if (!optionCycle) return classCycle === "SECONDAIRE" || classCycle === "PRIMAIRE";
+        return optionCycle === classCycle;
+      }),
+    [classCycle, options],
+  );
+
   const sections = useMemo(() => {
     const map = new Map<string, { id: string; name: string; code: string }>();
-    for (const option of options) {
+    for (const option of cycleOptions) {
       if (!option.sectionId) continue;
       if (!map.has(option.sectionId)) {
         map.set(option.sectionId, {
@@ -207,10 +236,10 @@ export function ClasseUpForm({
     return Array.from(map.values()).sort((a, b) =>
       a.name.localeCompare(b.name, "fr"),
     );
-  }, [options]);
+  }, [cycleOptions]);
 
   const sectionsForLevel = useMemo(() => {
-    if (!watchedLevel || branchType !== "SECONDAIRE") return sections;
+    if (!watchedLevel || classCycle !== "SECONDAIRE") return sections;
     if (angolaSecondary && isAngolaFirstCycleLevel(watchedLevel)) {
       return sections.filter((s) => s.code === ANGOLA_CICLO1_SECTION_CODE);
     }
@@ -226,21 +255,21 @@ export function ClasseUpForm({
       return sections.filter((s) => s.code !== CTEB_SECTION_CODE);
     }
     return sections;
-  }, [angolaSecondary, branchType, sections, watchedLevel]);
+  }, [angolaSecondary, classCycle, sections, watchedLevel]);
 
   const optionsForSection = useMemo(() => {
-    if (branchType === "PRIMAIRE") {
-      if (!watchedLevel) return options;
+    if (classCycle === "PRIMAIRE") {
+      if (!watchedLevel) return cycleOptions;
       const code = primaryLevelOptionCode(watchedLevel);
-      const match = options.filter(
+      const match = cycleOptions.filter(
         (o) =>
           o.codeOption === code ||
           o.nameOption === watchedLevel,
       );
-      return match.length ? match : options;
+      return match.length ? match : cycleOptions;
     }
     if (!selectedSectionId) return [];
-    const inSection = options.filter((o) => o.sectionId === selectedSectionId);
+    const inSection = cycleOptions.filter((o) => o.sectionId === selectedSectionId);
     if (isAngolaFirstCycleLevel(watchedLevel ?? "")) {
       return inSection.filter(
         (o) =>
@@ -255,10 +284,10 @@ export function ClasseUpForm({
       );
     }
     return inSection;
-  }, [branchType, options, selectedSectionId, watchedLevel]);
+  }, [classCycle, cycleOptions, selectedSectionId, watchedLevel]);
 
   useEffect(() => {
-    if (branchType !== "PRIMAIRE" || !watchedLevel) return;
+    if (classCycle !== "PRIMAIRE" || !watchedLevel) return;
     const code = primaryLevelOptionCode(watchedLevel);
     const levelOption = options.find(
       (option) =>
@@ -267,11 +296,11 @@ export function ClasseUpForm({
     if (levelOption && form.getValues("optionId") !== levelOption.id) {
       form.setValue("optionId", levelOption.id);
     }
-  }, [branchType, form, options, watchedLevel]);
+  }, [classCycle, form, cycleOptions, watchedLevel]);
 
   // 7è / 8è : section CTEB + option Tronc commun obligatoires (RDC)
   useEffect(() => {
-    if (branchType !== "SECONDAIRE" || angolaSecondary) return;
+    if (classCycle !== "SECONDAIRE" || angolaSecondary) return;
     if (!isCtebLevel(watchedLevel ?? "")) return;
 
     const ctebSection = sections.find((s) => s.code === CTEB_SECTION_CODE);
@@ -289,7 +318,7 @@ export function ClasseUpForm({
     }
   }, [
     angolaSecondary,
-    branchType,
+    classCycle,
     watchedLevel,
     sections,
     options,
@@ -322,7 +351,7 @@ export function ClasseUpForm({
   ]);
 
   useEffect(() => {
-    if (branchType !== "SECONDAIRE" || !watchedLevel) return;
+    if (classCycle !== "SECONDAIRE" || !watchedLevel) return;
     if (angolaCycle1 || (!angolaSecondary && isCtebLevel(watchedLevel))) return;
 
     // Réinitialise section/option si elles ne correspondent plus au niveau
@@ -334,7 +363,7 @@ export function ClasseUpForm({
       form.setValue("optionId", "");
     }
   }, [
-    branchType,
+    classCycle,
     watchedLevel,
     sectionsForLevel,
     selectedSectionId,
@@ -357,14 +386,14 @@ export function ClasseUpForm({
       ?.nameOption;
 
     return buildClassName({
-      typebranch: branchType,
+      typebranch: classCycle,
       educationSystem,
       level,
       parallel: watchedParallel,
       optionName,
     });
   }, [
-    branchType,
+    classCycle,
     educationSystem,
     isLegacyUpdate,
     options,
@@ -383,6 +412,7 @@ export function ClasseUpForm({
           throw new Error("Veuillez selectionner un niveau");
         }
         const [, err] = await createClasseAction({
+          cycle: classCycle,
           level: data.level,
           parallel: data.parallel,
           capacity: data.capacity,
@@ -392,6 +422,7 @@ export function ClasseUpForm({
         if (err) throw new Error(err.message);
         toast.success("Classe creee avec succes");
         form.reset({
+          cycle: multiCycle ? "" : classCycle,
           level: "",
           parallel: "",
           capacity: undefined,
@@ -450,6 +481,7 @@ export function ClasseUpForm({
           <div className="flex items-center justify-between gap-2">
             <p className="text-xs text-muted-foreground">
               Branche {getBranchTypeLabel(branchType)}
+              {multiCycle ? ` · ${cycleLabel(classCycle)}` : ""}
             </p>
             {previewName ? (
               <p className="truncate text-xs">
@@ -479,6 +511,37 @@ export function ClasseUpForm({
               />
             ) : (
               <>
+                {multiCycle || isMaternelleCycle(classCycle) ? (
+                  <FormField
+                    control={form.control}
+                    name="cycle"
+                    render={({ field }) => (
+                      <FormItem className={multiCycle ? "sm:col-span-2" : undefined}>
+                        <FormLabel>Cycle</FormLabel>
+                        <FormControl>
+                          <SearchableSelect
+                            searchable="auto"
+                            options={activatedCycles.map((cycle) => ({
+                              value: cycle,
+                              label: cycleLabel(cycle),
+                            }))}
+                            value={field.value ?? ""}
+                            onValueChange={(value) => {
+                              field.onChange(value);
+                              form.setValue("level", "");
+                              form.setValue("optionId", "");
+                              setSelectedSectionId("");
+                            }}
+                            placeholder="Selectionner un cycle"
+                            searchPlaceholder="Rechercher un cycle…"
+                            triggerClassName="h-9"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                ) : null}
                 <FormField
                   control={form.control}
                   name="level"
@@ -491,7 +554,7 @@ export function ClasseUpForm({
                           options={classLevels.map((level) => ({
                             value: level,
                             label: getClassLevelLabel(
-                              branchType,
+                              classCycle,
                               level,
                               educationSystem,
                             ),
@@ -558,7 +621,7 @@ export function ClasseUpForm({
               </p>
             ) : null}
 
-            {showOptionField && branchType === "SECONDAIRE" && !angolaCycle1 ? (
+            {showOptionField && classCycle === "SECONDAIRE" && !angolaCycle1 ? (
               <FormItem>
                 <FormLabel>Section (filiere)</FormLabel>
                 <SearchableSelect
@@ -596,7 +659,7 @@ export function ClasseUpForm({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
-                      {branchType === "PRIMAIRE"
+                      {classCycle === "PRIMAIRE"
                         ? "Niveau de pondération"
                         : "Option"}
                     </FormLabel>
@@ -610,12 +673,12 @@ export function ClasseUpForm({
                         value={field.value ?? ""}
                         onValueChange={field.onChange}
                         disabled={
-                          branchType === "PRIMAIRE" ||
+                          classCycle === "PRIMAIRE" ||
                           troncCommunLevel ||
-                          (branchType === "SECONDAIRE" && !selectedSectionId)
+                          (classCycle === "SECONDAIRE" && !selectedSectionId)
                         }
                         placeholder={
-                          branchType === "PRIMAIRE"
+                          classCycle === "PRIMAIRE"
                             ? watchedLevel
                               ? `${watchedLevel} année`
                               : "Selon le niveau"
@@ -624,7 +687,7 @@ export function ClasseUpForm({
                                 ? "Núcleo comum"
                                 : "Tronc commun"
                               : !selectedSectionId &&
-                                  branchType === "SECONDAIRE"
+                                  classCycle === "SECONDAIRE"
                                 ? "Choisir d'abord une section"
                                 : "Selectionner une option"
                         }

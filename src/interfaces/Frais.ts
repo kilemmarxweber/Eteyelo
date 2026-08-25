@@ -6,6 +6,7 @@ export interface ITypeFrais {
   codeType: string;
   nameType: string;
   description?: string;
+  cycle?: string | null;
   statusType: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -37,6 +38,10 @@ export const typeFraisSchema = z.object({
   nameType: z.string().min(3, { message: "Nom requis (min 3 caracteres)" }),
   description: z.string().optional(),
   statusType: z.boolean().optional(),
+  cycle: z
+    .enum(["MATERNELLE", "PRIMAIRE", "SECONDAIRE"])
+    .optional()
+    .nullable(),
 });
 
 export const fraisSchema = z.object({
@@ -51,6 +56,9 @@ export const fraisSchema = z.object({
   echeance: z.date().optional(),
   priority: z.number().optional(),
   schoolYearId: z.string().optional(),
+  semesterId: z.coerce.number().int().positive().optional().nullable(),
+  applyToCycle: z.boolean().optional(),
+  applyToLevel: z.boolean().optional(),
 });
 
 export const deleteFraisSchema = z.object({

@@ -28,8 +28,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { BranchTypeSelect } from "@/components/branch/branch-type-select";
+import { BranchTypeCards } from "@/components/branch/branch-type-cards";
+import {
+  isSchoolCycle,
+  principalTypebranchFromSchoolCycles,
+} from "@/lib/cycle";
 import type { ManagedBranchType } from "@/lib/academic-structure";
+import { isExtendedBranch } from "@/lib/branch-capabilities";
 import {
   EDUCATION_SYSTEMS,
   educationSystemLabel,
@@ -155,6 +160,11 @@ export function CreateBranchForm({
       longitude: defaultValues?.longitude ?? 15.2663,
       attendanceRadius: defaultValues?.attendanceRadius ?? 10,
       typebranch: defaultValues?.typebranch ?? "SECONDAIRE",
+      schoolCycles: defaultValues?.schoolCycles ??
+        (defaultValues?.typebranch === "PRIMAIRE" ||
+        defaultValues?.typebranch === "SECONDAIRE"
+          ? [defaultValues.typebranch]
+          : ["SECONDAIRE"]),
       educationSystem: defaultValues?.educationSystem ?? "CONGOLAIS",
     },
     mode: "onSubmit",
@@ -163,8 +173,17 @@ export function CreateBranchForm({
 
   const { isSubmitting } = form.formState;
   const selectedTypebranch = form.watch("typebranch") as ManagedBranchType;
-  const showEducationSystem = isSchoolBranchType(selectedTypebranch);
-  const labels = getRegistrationFormLabels(selectedTypebranch);
+  const selectedSchoolCycles = (form.watch("schoolCycles") ?? []).filter(
+    isSchoolCycle,
+  );
+  const showEducationSystem =
+    selectedSchoolCycles.length > 0 ||
+    (!isExtendedBranch(selectedTypebranch) &&
+      isSchoolBranchType(selectedTypebranch));
+  const labels = getRegistrationFormLabels(
+    selectedTypebranch,
+    selectedSchoolCycles,
+  );
 
   async function reverseGeocode(lat: number, lng: number) {
     try {
@@ -262,9 +281,15 @@ export function CreateBranchForm({
       const image = isRequestMode
         ? emptyBranchImages()
         : await buildFinalImages();
+      const schoolCycles = selectedSchoolCycles;
       const payload: CreateBranchFormValues = {
         ...values,
         image,
+        schoolCycles,
+        typebranch:
+          schoolCycles.length > 0
+            ? principalTypebranchFromSchoolCycles(schoolCycles)
+            : values.typebranch,
       };
 
       const result =
@@ -523,33 +548,43 @@ export function CreateBranchForm({
                     />
                   </div>
 
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <FormField
-                      control={form.control}
-                      name="typebranch"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>{labels.typeLabel}</FormLabel>
-                          <FormControl>
-                            <BranchTypeSelect
-                              value={field.value as ManagedBranchType}
-                              onValueChange={(value) => {
-                                field.onChange(value);
-                                if (!isSchoolBranchType(value)) {
-                                  form.setValue("educationSystem", "CONGOLAIS");
-                                }
-                              }}
-                              disabled={isSubmitting}
-                              excludeTypes={
-                                isRequestMode ? (["ATELIER"] as const) : undefined
+                  <FormField
+                    control={form.control}
+                    name="schoolCycles"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{labels.typeLabel}</FormLabel>
+                        <FormDescription>
+                          Combinez maternelle, primaire et secondaire sur une
+                          seule branche, ou choisissez un autre type
+                          d&apos;établissement.
+                        </FormDescription>
+                        <FormControl>
+                          <BranchTypeCards
+                            typebranch={selectedTypebranch}
+                            schoolCycles={selectedSchoolCycles}
+                            disabled={isSubmitting}
+                            hideTypes={
+                              isRequestMode ? (["ATELIER"] as const) : undefined
+                            }
+                            onChange={({ typebranch, schoolCycles }) => {
+                              field.onChange(schoolCycles);
+                              form.setValue("typebranch", typebranch, {
+                                shouldValidate: true,
+                                shouldDirty: true,
+                              });
+                              if (isExtendedBranch(typebranch)) {
+                                form.setValue("educationSystem", "CONGOLAIS");
                               }
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                            }}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
+                  <div className="grid gap-4 sm:grid-cols-2">
                     <FormField
                       control={form.control}
                       name="tel"
@@ -581,44 +616,44 @@ export function CreateBranchForm({
                         </FormItem>
                       )}
                     />
-                  </div>
 
-                  {showEducationSystem ? (
-                    <FormField
-                      control={form.control}
-                      name="educationSystem"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Système d'enseignement</FormLabel>
-                          <Select
-                            value={field.value ?? "CONGOLAIS"}
-                            onValueChange={(value) =>
-                              field.onChange(value as EducationSystem)
-                            }
-                            disabled={isSubmitting}
-                          >
-                            <FormControl>
-                              <SelectTrigger className="h-9 rounded-xl">
-                                <SelectValue placeholder="Choisir le système" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {EDUCATION_SYSTEMS.map((system) => (
-                                <SelectItem key={system} value={system}>
-                                  {educationSystemLabel(system)}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormDescription>
-                            Congolais : calendrier actuel. Angolais / anglais :
-                            3 trimestres et 3 périodes, pondération inchangée.
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  ) : null}
+                    {showEducationSystem ? (
+                      <FormField
+                        control={form.control}
+                        name="educationSystem"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Système d'enseignement</FormLabel>
+                            <Select
+                              value={field.value ?? "CONGOLAIS"}
+                              onValueChange={(value) =>
+                                field.onChange(value as EducationSystem)
+                              }
+                              disabled={isSubmitting}
+                            >
+                              <FormControl>
+                                <SelectTrigger className="h-9 rounded-xl">
+                                  <SelectValue placeholder="Choisir le système" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {EDUCATION_SYSTEMS.map((system) => (
+                                  <SelectItem key={system} value={system}>
+                                    {educationSystemLabel(system)}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormDescription>
+                              Congolais : calendrier actuel. Angolais / anglais :
+                              3 trimestres et 3 périodes, pondération inchangée.
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    ) : null}
+                  </div>
 
                   <Alert className="rounded-xl border-primary/20 bg-primary/5">
                     <AlertDescription className="text-sm leading-6">

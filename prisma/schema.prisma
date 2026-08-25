@@ -287,10 +287,15 @@ model Frais {
   echeance     DateTime?
   schoolYearId String? // 👈 TEMPORAIRE (optionnel)
   priority     Int             @default(99) // 🔥 AJOUT (1 = haute priorité)
+  /// Tranche du calendrier (T1 / S1…) — optionnel.
+  semesterId   Int?
+  /// Clé commune pour édition groupée (ciblage cycle / niveau).
+  fraisGroupKey String?
   paiement     FamilyPayment[]
   classe       Classe          @relation(fields: [classeId], references: [id])
   typeFrais    TypeFrais       @relation(fields: [typeFraisId], references: [id])
   schoolYear   SchoolYear?     @relation(fields: [schoolYearId], references: [id]) // ✅ RELATION
+  semester     semester?       @relation(fields: [semesterId], references: [id])
   createdAt    DateTime        @default(now())
   updatedAt    DateTime        @updatedAt
   branchId             String
@@ -303,6 +308,8 @@ model Frais {
   @@index([branchId])
   @@index([branchId, schoolYearId])
   @@index([branchId, classeId])
+  @@index([semesterId])
+  @@index([branchId, fraisGroupKey])
 }
 
 model TypeFrais {
@@ -311,6 +318,8 @@ model TypeFrais {
   nameType    String
   description String?
   statusType  Boolean @default(true)
+  /// null = type commun à tous les cycles (ex. Transport).
+  cycle       Cycle?
   branchId             String
   branch               Branch             @relation(fields: [branchId], references: [id], onDelete: Cascade)
 
@@ -319,6 +328,7 @@ model TypeFrais {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   @@index([branchId])
+  @@index([branchId, cycle])
 }
 
 model Classe {
@@ -333,6 +343,8 @@ model Classe {
   creneauId       String?
   /// COMPLET = présence tous les jours (2.º Ciclo 10ª–12ª). REDUIT = ciclo longo 13ª.
   horaireType     HoraireType     @default(COMPLET)
+  /// null = Branch.typebranch (branche mono-cycle).
+  cycle           Cycle?
   branchId        String
   branch          Branch            @relation(fields: [branchId], references: [id], onDelete: Cascade)
   classEnrollment ClassEnrollment[]
@@ -351,6 +363,8 @@ model Classe {
   @@unique([branchId, codeClasse])
   @@unique([branchId, nameClasse])
   @@index([branchId, level])
+  @@index([branchId, cycle])
+  @@index([branchId, cycle, level])
 }
 
 model Creneau {
@@ -385,11 +399,13 @@ model Option {
   statusOption Boolean?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+  cycle                Cycle?
   branchId             String
   branch               Branch             @relation(fields: [branchId], references: [id], onDelete: Cascade)
   @@index([branchId])
   @@index([sectionId])
   @@index([branchId, sectionId])
+  @@index([branchId, cycle])
   @@unique([branchId, codeOption])
   @@unique([branchId, nameOption])
 }
@@ -402,9 +418,11 @@ model Section {
   statusSection Boolean
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+  cycle                Cycle?
   branchId             String
   branch               Branch             @relation(fields: [branchId], references: [id], onDelete: Cascade)
   @@index([branchId])
+  @@index([branchId, cycle])
   @@unique([branchId, codeSection])
   @@unique([branchId, nameSection])
 }
@@ -649,10 +667,13 @@ model semester {
   startDate DateTime
   endDate   DateTime
   period    period[]
+  frais     Frais[]
+  cycle                Cycle
   branchId             String
   branch               Branch             @relation(fields: [branchId], references: [id], onDelete: Cascade)
   @@index([branchId])
-  @@unique([branchId, label])
+  @@index([branchId, cycle])
+  @@unique([branchId, cycle, label])
 }
 
 model period {
@@ -667,13 +688,15 @@ model period {
   semester          semester       @relation(fields: [semesterId], references: [id])
   subject           Cours[]        @relation("PeriodSubjects")
   grades            StudentGrade[]
+  cycle                Cycle
   branchId             String
   branch               Branch             @relation(fields: [branchId], references: [id], onDelete: Cascade)
 
   @@index([semesterId], map: "Period_semesterId_fkey")
   @@index([branchId])
   @@index([branchId, semesterId])
-  @@unique([branchId, semesterId, label])
+  @@index([branchId, cycle])
+  @@unique([branchId, cycle, semesterId, label])
 }
 
 model PeriodResultLock {
@@ -1306,6 +1329,7 @@ model Branch {
   typebranch      TypeBrache
   educationSystem EducationSystem @default(CONGOLAIS)
   organization     Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  cycles           BranchCycle[]
 
   isActive Boolean @default(true)
 
@@ -1368,6 +1392,20 @@ model Branch {
   @@index([organizationId, typebranch])
   @@index([code])
   @@unique([organizationId, code])
+}
+
+/// Cycles scolaires activés sur une branche. Aucune ligne = mono-cycle (= typebranch).
+model BranchCycle {
+  id        String   @id @default(cuid())
+  branchId  String
+  cycle     Cycle
+  /// Ordre d'affichage (maternelle → primaire → secondaire).
+  sortOrder Int      @default(0)
+  isActive  Boolean  @default(true)
+  branch    Branch   @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  @@unique([branchId, cycle])
+  @@index([branchId, isActive])
 }
 
 /// Domaines du bulletin primaire (par branche) — créables / modifiables
@@ -1605,6 +1643,16 @@ enum BranchRole {
   STUDENT
 }
 enum TypeBrache {
+  PRIMAIRE
+  SECONDAIRE
+  ATELIER
+  CENTRE_FORMATION
+  UNIVERSITE
+}
+
+/// Cycle pédagogique (orthogonal à TypeBrache). MATERNELLE n'est pas un TypeBrache.
+enum Cycle {
+  MATERNELLE
   PRIMAIRE
   SECONDAIRE
   ATELIER

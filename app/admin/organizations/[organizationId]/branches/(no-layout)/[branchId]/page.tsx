@@ -1,11 +1,10 @@
 "use client";
 
 import { BranchPageShell } from "@/components/layout/branch-page-shell";
-import { Badge } from "@/components/ui/badge";
+import { BranchTypeBadge } from "@/components/branch/branch-type-badge";
 import { BranchLoadingFallback } from "@/components/branch-loading-fallback";
 import { useParams } from "next/navigation";
-import { useTranslations } from "next-intl";
-import { IconChartBar } from "@tabler/icons-react";
+import { useLocale, useTranslations } from "next-intl";
 import {
   createParentFeedback,
   getBranchDashboardData,
@@ -18,6 +17,7 @@ import {
   hidesParentManagement,
   usesFinanceForBranch,
 } from "@/lib/branch-capabilities";
+import { getBranchCycles, type Cycle, type DashboardCycleStat } from "@/lib/cycle";
 import { cn } from "@/lib/utils";
 import type { DashboardVariant } from "@/lib/auth/dashboard-variant";
 import {
@@ -40,6 +40,8 @@ import { AbsenceDashboardSection } from "@/components/absence-dashboard-card";
 
 type AdminStats = {
   typebranch?: string | null;
+  cycles?: Cycle[] | null;
+  byCycle?: DashboardCycleStat[] | null;
   baseCurrency?: string | null;
   quoteCurrency?: string | null;
   selectedRatePair?: string | null;
@@ -99,6 +101,7 @@ export default function AdminDashboard() {
   const t = useTranslations("dashboard");
   const tPeopleAll = useTranslations("people");
   const tReg = useTranslations("registration");
+  const locale = useLocale();
   const params = useParams();
   const organizationId = params.organizationId as string;
   const branchId = params.branchId as string;
@@ -167,6 +170,7 @@ export default function AdminDashboard() {
     }[];
   } | null>(null);
   const [typebranchState, setTypebranchState] = useState<string | null>(null);
+  const [cyclesState, setCyclesState] = useState<Cycle[] | null>(null);
 
   const typebranch = stats?.typebranch ?? typebranchState ?? null;
   const peopleVariant = getPeopleVariant(typebranch);
@@ -182,8 +186,23 @@ export default function AdminDashboard() {
   const capabilities = getBranchCapabilities(typebranch);
   const rawClassPlural = getClassDisplayLabelPlural(typebranch);
   const classLabelPlural = tReg(`classLabelsPlural.${rawClassPlural}` as never);
-  const branchTypeKey = capabilities.typebranch;
-  const branchTypeLabel = t(`branchTypes.${branchTypeKey}` as never);
+  const resolvedCycles = getBranchCycles({
+    typebranch,
+    cycles: (cyclesState ?? stats?.cycles ?? []).map((cycle) => ({
+      cycle,
+      isActive: true,
+    })),
+  });
+  const cycleLabels = resolvedCycles.map((cycle) =>
+    t(`branchTypes.${cycle}` as never),
+  );
+  const branchTypeLabel =
+    cycleLabels.length === 0
+      ? ""
+      : new Intl.ListFormat(locale, {
+          style: "long",
+          type: "conjunction",
+        }).format(cycleLabels);
   const showFinanceCapability = usesFinanceForBranch(typebranch);
   const showParents = !hidesParentManagement(typebranch);
   const showRevenue =
@@ -207,6 +226,9 @@ export default function AdminDashboard() {
         setVariant(data.variant);
         setCanAccessFinance(Boolean(data.canAccessFinance));
         setTypebranchState(data.typebranch ?? null);
+        setCyclesState(
+          Array.isArray(data.cycles) ? (data.cycles as Cycle[]) : null,
+        );
         setStats(
           data.stats && typeof data.stats === "object"
             ? (data.stats as AdminStats)
@@ -455,9 +477,11 @@ export default function AdminDashboard() {
         title={t("title")}
         description={overviewDescription}
         badge={
-          <Badge variant="outline-primary" icon={<IconChartBar size={14} />}>
-            {branchTypeLabel}
-          </Badge>
+          <BranchTypeBadge
+            typebranch={typebranch}
+            cycles={resolvedCycles}
+            fullLabel
+          />
         }
         contentClassName="space-y-4"
       >
@@ -486,6 +510,7 @@ export default function AdminDashboard() {
               revenueChange={stats?.revenue?.percentageChange}
               selectedRatePair={stats?.selectedRatePair}
               baseCurrency={stats?.baseCurrency}
+              byCycle={stats?.byCycle}
             />
           ) : null}
 

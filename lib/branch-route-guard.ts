@@ -13,6 +13,7 @@ import {
   usesReleveForBranch,
   usesSectionOptionForBranch,
 } from "@/lib/branch-capabilities";
+import { anyCycle, everyCycle } from "@/lib/cycle";
 import { usesTrainingLabels } from "@/lib/training-labels";
 
 export type BranchRouteRule = {
@@ -118,30 +119,32 @@ export function findBranchRouteRule(
 
 export function isBranchRouteAllowed(
   pathnameOrSuffix: string,
-  typebranch: unknown,
+  typebranchOrCycles: unknown,
 ): boolean {
   const rule = findBranchRouteRule(pathnameOrSuffix);
   if (!rule) return true;
-  return rule.isAllowed(typebranch);
+  return anyCycle(typebranchOrCycles, (cycle) => rule.isAllowed(cycle));
 }
 
 export function getBranchRouteRedirect(
   pathnameOrSuffix: string,
-  typebranch: unknown,
+  typebranchOrCycles: unknown,
   organizationId: string,
   branchId: string,
 ): string | null {
   const rule = findBranchRouteRule(pathnameOrSuffix);
-  if (!rule || rule.isAllowed(typebranch)) return null;
+  if (!rule || isBranchRouteAllowed(pathnameOrSuffix, typebranchOrCycles)) {
+    return null;
+  }
 
   return `/admin/organizations/${organizationId}/branches/${branchId}${rule.redirectTo}`;
 }
 
-export function isFinanceRouteAllowed(typebranch: unknown): boolean {
-  return usesFinanceForBranch(typebranch);
+export function isFinanceRouteAllowed(typebranchOrCycles: unknown): boolean {
+  return anyCycle(typebranchOrCycles, (cycle) => usesFinanceForBranch(cycle));
 }
 
-export function shouldHideSidebarHref(
+function shouldHideSidebarHrefForCycle(
   href: string,
   typebranch: unknown,
 ): boolean {
@@ -222,6 +225,15 @@ export function shouldHideSidebarHref(
   }
 
   return false;
+}
+
+export function shouldHideSidebarHref(
+  href: string,
+  typebranchOrCycles: unknown,
+): boolean {
+  return everyCycle(typebranchOrCycles, (cycle) =>
+    shouldHideSidebarHrefForCycle(href, cycle),
+  );
 }
 
 export function getBranchTypeDescription(typebranch: unknown): string {

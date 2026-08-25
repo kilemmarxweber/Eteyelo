@@ -427,6 +427,7 @@ export type ClassType = {
   id: string;
   name: string;
   codename: string;
+  cycle?: string | null;
   level?: string | null;
   optionName?: string | null;
   parallel?: string | null;

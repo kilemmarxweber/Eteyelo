@@ -240,6 +240,7 @@ export default async function NotesPage({
         codeClasse: true,
         nameClasse: true,
         optionId: true,
+        cycle: true,
       },
     }),
   ]);
@@ -307,6 +308,8 @@ export default async function NotesPage({
 
         codeclasse: classe?.codeClasse || "N/A",
 
+        classCycle: classe?.cycle ?? null,
+
         subjectId: teaching?.coursId || "N/A",
 
         subjectName: cours?.nameCours || "Cours non defini",
@@ -342,6 +345,7 @@ export default async function NotesPage({
           classId: teaching.classeId || "N/A",
           className: classe?.nameClasse || undefinedClassLabel,
           codeclasse: classe?.codeClasse || "N/A",
+          classCycle: classe?.cycle ?? null,
           subjectId: teaching.coursId || "N/A",
           subjectName: cours?.nameCours || "Cours non défini",
           maxScore:

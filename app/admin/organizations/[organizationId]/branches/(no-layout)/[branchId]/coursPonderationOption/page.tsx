@@ -33,6 +33,7 @@ import {
   deleteCoursOptionPonderationAction,
 } from "./cours-ponderation-option.action";
 import { useBranchRouteGuard } from "@/hooks/use-branch-route-guard";
+import { cycleLabel, type Cycle } from "@/lib/cycle";
 
 type PageData = NonNullable<
   Awaited<ReturnType<typeof getCoursPonderationOptionPageDataAction>>[0]
@@ -46,6 +47,7 @@ export default function CoursPonderationOptionPage() {
 
   const [data, setData] = useState<PageData | null>(null);
   const [selectedOptionId, setSelectedOptionId] = useState("");
+  const [selectedCycle, setSelectedCycle] = useState<Cycle | "">("");
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("all");
   const [sort, setSort] = useState("name");
@@ -61,14 +63,30 @@ export default function CoursPonderationOptionPage() {
           return;
         }
         setData(result);
-        setSelectedOptionId(result.options[0]?.id ?? "");
+        const first = result.options[0];
+        setSelectedOptionId(first?.id ?? "");
+        setSelectedCycle(first?.cycle ?? result.cycles[0] ?? "");
       }),
     [],
   );
 
-  const selectedOption = data?.options.find(
+  const cycleOptions = useMemo(() => {
+    if (!data) return [];
+    if (selectedCycle) {
+      const filtered = data.options.filter(
+        (option) => option.cycle === selectedCycle,
+      );
+      if (filtered.length) return filtered;
+    }
+    return data.options;
+  }, [data, selectedCycle]);
+
+  const selectedOption = cycleOptions.find(
     (option) => option.id === selectedOptionId,
-  );
+  ) ?? cycleOptions[0];
+  const activeOptionId = selectedOption?.id ?? selectedOptionId;
+  const isLevelWeighted = selectedOption?.isLevelWeighted ?? false;
+  const activeCycle = selectedOption?.cycle ?? selectedCycle;
   const map = useMemo(
     () =>
       new Map(
@@ -82,7 +100,7 @@ export default function CoursPonderationOptionPage() {
   const rows = useMemo(() => {
     const values = (data?.cours ?? []).map((course) => ({
       course,
-      ponderation: map.get(`${selectedOptionId}:${course.id}`),
+      ponderation: map.get(`${activeOptionId}:${course.id}`),
     }));
     const filtered = values.filter(({ course, ponderation }) => {
       const matchesSearch = `${course.codeCours} ${course.nameCours}`
@@ -99,15 +117,15 @@ export default function CoursPonderationOptionPage() {
           (a.ponderation?.ponderation ?? -1)
         : a.course.nameCours.localeCompare(b.course.nameCours),
     );
-  }, [data, map, search, selectedOptionId, sort, status]);
+  }, [data, map, search, activeOptionId, sort, status]);
 
   const configured =
     data?.cours.filter((course) =>
-      map.has(`${selectedOptionId}:${course.id}`),
+      map.has(`${activeOptionId}:${course.id}`),
     ).length ?? 0;
   const missing = (data?.cours.length ?? 0) - configured;
   const weights = (data?.ponderations ?? [])
-    .filter((item) => item.optionId === selectedOptionId)
+    .filter((item) => item.optionId === activeOptionId)
     .map((item) => item.ponderation);
   const average = weights.length
     ? weights.reduce((sum, value) => sum + value, 0) / weights.length
@@ -123,12 +141,12 @@ export default function CoursPonderationOptionPage() {
       );
       return;
     }
-    const key = `${selectedOptionId}:${courseId}`;
+    const key = `${activeOptionId}:${courseId}`;
     const previous = map.get(key);
     const optimistic: Ponderation = {
       id: previous?.id ?? `temp-${courseId}`,
       coursId: courseId,
-      optionId: selectedOptionId,
+      optionId: activeOptionId,
       ponderation: value,
       updatedAt: new Date(),
     };
@@ -150,12 +168,12 @@ export default function CoursPonderationOptionPage() {
         ? await updateCoursOptionPonderationAction({
             id: previous.id,
             coursId: courseId,
-            optionId: selectedOptionId,
+            optionId: activeOptionId,
             ponderation: value,
           })
         : await createCoursOptionPonderationAction({
             coursId: courseId,
-            optionId: selectedOptionId,
+            optionId: activeOptionId,
             ponderation: value,
           });
       setSavingId(null);
@@ -167,7 +185,7 @@ export default function CoursPonderationOptionPage() {
                 ponderations: previous
                   ? current.ponderations.map((item) =>
                       item.coursId === courseId &&
-                      item.optionId === selectedOptionId
+                      item.optionId === activeOptionId
                         ? previous
                         : item,
                     )
@@ -196,7 +214,7 @@ export default function CoursPonderationOptionPage() {
 
   function cancel(courseId: string) {
     if (!data) return;
-    const key = `${selectedOptionId}:${courseId}`;
+    const key = `${activeOptionId}:${courseId}`;
     const previous = map.get(key);
     if (!previous || previous.id.startsWith("temp-")) {
       toast.error("Aucune pondération configurée à annuler");
@@ -268,30 +286,61 @@ export default function CoursPonderationOptionPage() {
           }
     >
       <Card className="space-y-4 p-4">
-          <div className="grid gap-4 lg:grid-cols-[1fr_1fr]">
+          <div
+            className={`grid gap-4 ${
+              data.cycles.length > 1
+                ? "lg:grid-cols-[1fr_1fr_1fr]"
+                : "lg:grid-cols-[1fr_1fr]"
+            }`}
+          >
+            {data.cycles.length > 1 ? (
+              <div>
+                <label className="text-sm font-medium">Cycle</label>
+                <Select
+                  value={selectedCycle || undefined}
+                  onValueChange={(value) => {
+                    const cycle = value as Cycle;
+                    setSelectedCycle(cycle);
+                    const first = data.options.find(
+                      (option) => option.cycle === cycle,
+                    );
+                    setSelectedOptionId(first?.id ?? "");
+                  }}
+                >
+                  <SelectTrigger className="mt-2">
+                    <SelectValue placeholder="Sélectionner un cycle" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {data.cycles.map((cycle) => (
+                      <SelectItem key={cycle} value={cycle}>
+                        {cycleLabel(cycle)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            ) : null}
             <div>
               <label className="text-sm font-medium">
-                {data.isPrimary ? "Niveau" : "Option active"}
+                {isLevelWeighted ? "Niveau" : "Option active"}
               </label>
               <Select
-                value={selectedOptionId}
+                value={activeOptionId || undefined}
                 onValueChange={setSelectedOptionId}
               >
                 <SelectTrigger className="mt-2">
                   <SelectValue
                     placeholder={
-                      data.isPrimary
+                      isLevelWeighted
                         ? "Sélectionner un niveau"
                         : "Sélectionner une option"
                     }
                   />
                 </SelectTrigger>
                 <SelectContent>
-                  {data.options.map((option) => (
+                  {cycleOptions.map((option) => (
                     <SelectItem key={option.id} value={option.id}>
-                      {data.isPrimary
-                        ? `${option.nameOption} année`
-                        : option.nameOption}
+                      {option.displayName}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -307,7 +356,11 @@ export default function CoursPonderationOptionPage() {
                 {selectedOption?.classe.map((item) => item.nameClasse).join(", ") ||
                   "Aucune classe"}
               </p>
-              {data.isPrimary ? (
+              {activeCycle === "MATERNELLE" ? (
+                <p className="mt-1 text-muted-foreground">
+                  Les pondérations sont définies par niveau (Crèche, 1è–3è).
+                </p>
+              ) : activeCycle === "PRIMAIRE" ? (
                 <p className="mt-1 text-muted-foreground">
                   Les pondérations sont définies par niveau (1è–6è).
                 </p>
@@ -374,7 +427,7 @@ export default function CoursPonderationOptionPage() {
                     Cours
                   </th>
                   <th className="whitespace-nowrap px-3 py-2.5 font-medium">
-                    {data.isPrimary ? "Niveau / classes" : "Option / classes"}
+                    {isLevelWeighted ? "Niveau / classes" : "Option / classes"}
                   </th>
                   <th className="whitespace-nowrap px-3 py-2.5 font-medium">
                     Pondération
@@ -393,7 +446,6 @@ export default function CoursPonderationOptionPage() {
                     key={course.id}
                     course={course}
                     option={selectedOption}
-                    isPrimary={data.isPrimary}
                     ponderation={ponderation}
                     saving={savingId === course.id}
                     onSave={save}
@@ -528,7 +580,6 @@ function WeightEditor({
 function PonderationRow({
   course,
   option,
-  isPrimary,
   ponderation,
   saving,
   onSave,
@@ -536,7 +587,6 @@ function PonderationRow({
 }: {
   course: CourseRow;
   option?: OptionRow;
-  isPrimary: boolean;
   ponderation?: Ponderation;
   saving: boolean;
   onSave: (id: string, value: number) => void;
@@ -544,9 +594,7 @@ function PonderationRow({
 }) {
   const classesLabel =
     option?.classe.map((item) => item.nameClasse).join(", ") || "Aucune classe";
-  const optionLabel = isPrimary
-    ? `${option?.nameOption ?? "—"} année`
-    : (option?.nameOption ?? "—");
+  const optionLabel = option?.displayName ?? option?.nameOption ?? "—";
 
   return (
     <tr

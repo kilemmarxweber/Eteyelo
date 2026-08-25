@@ -29,6 +29,16 @@ export const registrationSchema = z
   .object({
     requestId: z.string().optional(),
     schoolYearId: z.string().min(1, "Année scolaire requise"),
+    cycle: z
+      .enum([
+        "MATERNELLE",
+        "PRIMAIRE",
+        "SECONDAIRE",
+        "ATELIER",
+        "CENTRE_FORMATION",
+        "UNIVERSITE",
+      ])
+      .optional(),
     level: z.string().min(1, "Niveau requis"),
     optionId: z.string().optional(),
     studentMode: z.enum(["existing", "new"]),

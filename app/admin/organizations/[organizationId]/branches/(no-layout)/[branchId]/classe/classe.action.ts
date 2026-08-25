@@ -25,6 +25,10 @@ import {
   ensurePrimaryAcademicStructure,
   getPrimaryOptionForLevel,
 } from "@/lib/primary-academic-structure";
+import {
+  ensureMaternelleAcademicStructure,
+  getMaternelleOptionForLevel,
+} from "@/lib/maternelle-academic-structure";
 import { ensureSecondaryCtebStructure } from "@/lib/secondary-cteb-structure";
 import { ensureAngolaSecondaryStructure } from "@/lib/angola-secondary-bootstrap";
 import {
@@ -38,10 +42,32 @@ import {
 } from "@/lib/generated-identifiers";
 import { upsertClassCatalogForBranch } from "@/lib/class-catalog-sync";
 import { normalizeBranchType } from "@/lib/academic-structure";
+import {
+  isMaternelleCycle,
+  normalizeCycle,
+  type Cycle,
+} from "@/lib/cycle";
 
 function revalidateClassePages(organizationId: string, branchId: string) {
   revalidatePath(`/admin/organizations/${organizationId}/branches/${branchId}/classe`);
   revalidatePath(`/admin/organizations/${organizationId}/branches/${branchId}/schedule`);
+}
+
+function resolveActivatedCycle(
+  requested: unknown,
+  typebranch: unknown,
+  cycles: Cycle[],
+): Cycle {
+  const activated = cycles.length ? cycles : [normalizeCycle(typebranch)];
+  if (requested != null && requested !== "") {
+    const cycle = normalizeCycle(requested);
+    if (!activated.includes(cycle)) {
+      throw new Error("Ce cycle n'est pas activé sur cette branche");
+    }
+    return cycle;
+  }
+  if (activated.length === 1) return activated[0];
+  throw new Error("Veuillez sélectionner un cycle");
 }
 
 async function resolveClassIdentity(params: {
@@ -55,14 +81,16 @@ async function resolveClassIdentity(params: {
   isLegacy?: boolean;
 }) {
   const primary = isPrimaryBranch(params.typebranch);
+  const maternelle = isMaternelleCycle(params.typebranch);
+  const skipOption = primary || maternelle;
   const angola = isAngolaSecondarySystem(
     params.typebranch,
     params.educationSystem,
   );
 
-  let optionId = primary ? undefined : params.optionId;
+  let optionId = skipOption ? undefined : params.optionId;
   if (
-    !primary &&
+    !skipOption &&
     !params.isLegacy &&
     angola &&
     isAngolaFirstCycleLevel(params.level ?? "")
@@ -72,7 +100,7 @@ async function resolveClassIdentity(params: {
       params.branchId,
     );
     optionId = angolaStructure.option.id;
-  } else if (!primary && !params.isLegacy && isCtebLevel(params.level ?? "")) {
+  } else if (!skipOption && !params.isLegacy && isCtebLevel(params.level ?? "")) {
     const cteb = await ensureSecondaryCtebStructure(prisma, params.branchId);
     optionId = cteb.option.id;
   }
@@ -100,6 +128,9 @@ async function resolveClassIdentity(params: {
   const primaryStructure = primary
     ? await ensurePrimaryAcademicStructure(prisma, params.branchId)
     : null;
+  const maternelleStructure = maternelle
+    ? await ensureMaternelleAcademicStructure(prisma, params.branchId)
+    : null;
 
   let option: {
     id: string;
@@ -111,6 +142,11 @@ async function resolveClassIdentity(params: {
     option = getPrimaryOptionForLevel(primaryStructure!, validated.level);
     if (!option) {
       throw new Error("Niveau primaire invalide pour la pondération");
+    }
+  } else if (maternelle) {
+    option = getMaternelleOptionForLevel(maternelleStructure!, validated.level);
+    if (!option) {
+      throw new Error("Niveau maternelle invalide pour la pondération");
     }
   } else if (
     angola &&
@@ -159,20 +195,21 @@ async function resolveClassIdentity(params: {
 }
 
 export const getBranchTypeAction = action.handler(async () => {
-  const { typebranch, educationSystem } = await requireBranchContext();
-  return { typebranch, educationSystem };
+  const { typebranch, educationSystem, cycles } = await requireBranchContext();
+  return { typebranch, educationSystem, cycles };
 });
 
 export const createClasseAction = action
   .input(classeCreateSchema)
   .handler(async ({ input }) => {
     try {
-      const { branchId, organizationId, typebranch, educationSystem } =
+      const { branchId, organizationId, typebranch, educationSystem, cycles } =
         await requireBranchContext();
       const { statusClasse, creneauId, capacity } = input;
+      const cycle = resolveActivatedCycle(input.cycle, typebranch, cycles);
 
       const identity = await resolveClassIdentity({
-        typebranch,
+        typebranch: cycle,
         educationSystem,
         level: input.level,
         parallel: input.parallel,
@@ -194,10 +231,14 @@ export const createClasseAction = action
 
       const duplicate = await prisma.classe.findFirst({
         where: { branchId, nameClasse: identity.nameClasse },
-        select: { id: true },
+        select: { id: true, cycle: true, nameClasse: true },
       });
       if (duplicate) {
-        throw new Error("La classe existe deja dans cette branche");
+        throw new Error(
+          duplicate.cycle && duplicate.cycle !== cycle
+            ? `Le nom « ${identity.nameClasse} » est déjà utilisé par une classe ${duplicate.cycle.toLowerCase()}.`
+            : "La classe existe deja dans cette branche",
+        );
       }
 
       if (creneauId) {
@@ -214,6 +255,7 @@ export const createClasseAction = action
         data: {
           nameClasse: identity.nameClasse,
           codeClasse,
+          cycle,
           level: identity.level,
           parallel: identity.parallel,
           capacity: capacity ?? null,
@@ -227,24 +269,19 @@ export const createClasseAction = action
       revalidateClassePages(organizationId, branchId);
       return classe;
     } catch (error) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        if (error.code === "P2002") {
-          console.error(
-            "Erreur : la contrainte d'unicite a echoue sur les champs suivants :",
-            error.meta?.target,
-          );
-          return {
-            status: "error",
-            message: `Une entree avec ce ${
-              Array.isArray(error.meta?.target)
-                ? error.meta.target[0]
-                : "champ inconnu"
-            } existe deja. Veuillez utiliser une autre valeur.`,
-          };
-        }
-      } else {
-        throw error;
+      const prismaCode =
+        error && typeof error === "object" && "code" in error
+          ? String((error as { code: unknown }).code)
+          : "";
+      if (
+        prismaCode === "P2002" ||
+        error instanceof Prisma.PrismaClientKnownRequestError
+      ) {
+        throw new Error(
+          "Une classe avec ce nom ou ce code existe déjà dans cet établissement.",
+        );
       }
+      throw error;
     }
   });
 
@@ -338,21 +375,26 @@ export const getClassesByIdAction = action
 export const updateClasseAction = action
   .input(classeSchema)
   .handler(async ({ input }) => {
-    const { branchId, organizationId, typebranch, educationSystem } =
+    const { branchId, organizationId, typebranch, educationSystem, cycles } =
       await requireBranchContext();
     const { id, statusClasse, creneauId, capacity } = input;
     if (!id) throw new Error("Identifiant de classe manquant");
 
     const existing = await prisma.classe.findFirst({
       where: { id, branchId },
-      select: { id: true, level: true },
+      select: { id: true, level: true, cycle: true },
     });
     if (!existing) throw new Error("Classe introuvable dans cette branche");
 
     const isLegacy = !existing.level && !input.level;
+    const cycle = resolveActivatedCycle(
+      input.cycle ?? existing.cycle,
+      typebranch,
+      cycles,
+    );
 
     const identity = await resolveClassIdentity({
-      typebranch,
+      typebranch: cycle,
       educationSystem,
       level: input.level?.trim() || existing.level,
       parallel: input.parallel,
@@ -395,6 +437,7 @@ export const updateClasseAction = action
       data: {
         nameClasse: identity.nameClasse,
         codeClasse,
+        cycle,
         level: identity.level ?? null,
         parallel: identity.parallel ?? null,
         capacity: capacity ?? null,

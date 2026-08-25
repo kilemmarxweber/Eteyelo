@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 
+import { MemberPhotoField } from "@/app/admin/organizations/[organizationId]/members/member-photo-field";
 import { Button } from "@/components/custom/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -29,6 +30,7 @@ import { useBranchPeopleLabels } from "@/hooks/use-branch-people-labels";
 import { useSession } from "@/lib/auth-client";
 import { getClassDisplayLabel } from "@/lib/branch-capabilities";
 import { cn } from "@/lib/utils";
+import { MAX_IMAGE_UPLOAD_BYTES, uploadFile } from "@/lib/upload-file";
 import generateUsername from "@/src/hooks/generateUsername";
 import { IClasse } from "@/src/interfaces/Classe";
 import { ICours } from "@/src/interfaces/Cours";
@@ -60,6 +62,10 @@ export function TeacherUpForm({
   const [errorMessage, setErrorMessage] = useState("");
   const [classes, setClasses] = useState<IClasse[]>([]);
   const [courses, setCourses] = useState<ICours[]>([]);
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(
+    initialData?.image?.trim() || null,
+  );
   const peopleLabels = useBranchPeopleLabels();
   const { data: session } = useSession();
   const classLabel = getClassDisplayLabel(session?.branch?.typebranch);
@@ -93,6 +99,7 @@ export function TeacherUpForm({
           estTitulaire: initialData.estTitulaire ?? false,
           classeId: initialData.classeId ?? "",
           coursId: initialData.coursId ?? "",
+          image: initialData.image ?? "",
         }
       : {
           username: "",
@@ -107,12 +114,37 @@ export function TeacherUpForm({
           estTitulaire: false,
           classeId: "",
           coursId: "",
+          image: "",
         },
   });
 
   const nom = form.watch("nom");
   const prenom = form.watch("prenom");
+  const postnom = form.watch("postnom");
   const estTitulaire = form.watch("estTitulaire");
+  const fullName = [nom, postnom, prenom].filter(Boolean).join(" ");
+
+  useEffect(() => {
+    return () => {
+      if (photoPreview?.startsWith("blob:")) URL.revokeObjectURL(photoPreview);
+    };
+  }, [photoPreview]);
+
+  function handlePickPhoto(file: File) {
+    if (!file.type.startsWith("image/")) {
+      toast.error("Choisissez une image (JPEG, PNG, WebP…).");
+      return;
+    }
+    if (file.size > MAX_IMAGE_UPLOAD_BYTES) {
+      toast.error("Image trop volumineuse (max. 5 Mo).");
+      return;
+    }
+    setPhotoPreview((current) => {
+      if (current?.startsWith("blob:")) URL.revokeObjectURL(current);
+      return URL.createObjectURL(file);
+    });
+    setPhotoFile(file);
+  }
 
   useEffect(() => {
     if (!nom || !prenom) return;
@@ -154,8 +186,20 @@ export function TeacherUpForm({
     setErrorMessage("");
 
     const estTitulaire = Boolean(data.estTitulaire);
+    let image = data.image?.trim() || "";
+    if (photoFile) {
+      const uploaded = await uploadFile(photoFile);
+      if (!uploaded.ok) {
+        setIsLoading(false);
+        setErrorMessage(uploaded.message);
+        toast.error(uploaded.message);
+        return;
+      }
+      image = uploaded.url;
+    }
     const payload = {
       ...data,
+      image,
       dateOfBirth:
         mode === "create"
           ? new Date()
@@ -356,6 +400,15 @@ export function TeacherUpForm({
                 </FormItem>
               )}
             />
+
+            <div className="sm:col-span-2">
+              <MemberPhotoField
+                previewUrl={photoPreview}
+                onPickFile={handlePickPhoto}
+                disabled={isLoading}
+                fullName={fullName}
+              />
+            </div>
 
             <FormField
               control={form.control}

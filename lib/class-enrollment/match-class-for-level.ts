@@ -3,11 +3,13 @@ import {
   isAngolaFirstCycleLevel,
   normalizeAngolaSecondaryLevel,
 } from "@/lib/angola-secondary-structure";
+import { normalizeCycle, type Cycle } from "@/lib/cycle";
 
 export type ClassForLevelMatch = {
   level: string | null;
   optionId: string | null;
   nameClasse: string;
+  cycle?: string | null;
   option?: { id: string; nameOption: string } | null;
 };
 
@@ -52,6 +54,26 @@ function classMatchesOption(
     .includes(resolvedOptionName.toLowerCase());
 }
 
+function classMatchesCycle(
+  classe: ClassForLevelMatch,
+  cycle?: Cycle | null,
+): boolean {
+  if (!cycle) return true;
+  if (classe.cycle) return normalizeCycle(classe.cycle) === cycle;
+
+  const name = classe.nameClasse ?? "";
+  if (cycle === "MATERNELLE") {
+    return /(-MATE\b|Crèche|Creche)/i.test(name);
+  }
+  if (cycle === "PRIMAIRE") {
+    return /-PR\b/i.test(name);
+  }
+  if (cycle === "SECONDAIRE") {
+    return !/(-MATE\b|-PR\b|Crèche|Creche)/i.test(name);
+  }
+  return true;
+}
+
 export function matchesClassForLevel(
   classe: ClassForLevelMatch,
   params: {
@@ -60,16 +82,23 @@ export function matchesClassForLevel(
     optionId?: string | null;
     optionName?: string | null;
     educationSystem?: unknown;
+    cycle?: unknown;
   },
 ): boolean {
   const level = params.level.trim();
   if (!level) return false;
+
+  const cycle = params.cycle != null && params.cycle !== ""
+    ? normalizeCycle(params.cycle)
+    : undefined;
+  if (!classMatchesCycle(classe, cycle ?? null)) return false;
   if (!classMatchesLevel(classe, level)) return false;
 
   if (isAngolaFirstCycleLevel(level)) return true;
 
+  const structureType = cycle ?? params.typebranch;
   const optionRequired = requiresOptionForClass(
-    params.typebranch,
+    structureType,
     level,
     params.educationSystem,
   );
@@ -77,9 +106,7 @@ export function matchesClassForLevel(
   const optionName = params.optionName?.trim() || null;
 
   if (!optionRequired) {
-    if (!optionId && !optionName) return true;
-    if (optionId) return !classe.optionId || classe.optionId === optionId;
-    return classMatchesOption(classe, null, optionName);
+    return true;
   }
 
   if (!optionId && !optionName) return false;

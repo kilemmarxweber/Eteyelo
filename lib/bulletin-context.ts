@@ -3,6 +3,7 @@ import {
   normalizeBranchType,
 } from "@/lib/academic-structure";
 import { usesBulletinForBranch } from "@/lib/branch-capabilities";
+import { type Cycle } from "@/lib/cycle";
 import { KLAMBOCORE_DEFAULT_IMAGE_PATH } from "@/lib/brand/klambocore-image";
 import { branchDocumentName } from "@/lib/branch-document-name";
 import {
@@ -26,7 +27,11 @@ export function resolveBulletinLayoutKind(
     return "secondary";
   }
 
-  return normalizeBranchType(branchType) === "PRIMAIRE" ? "primary" : "secondary";
+  if (branchType === "MATERNELLE" || normalizeBranchType(branchType) === "PRIMAIRE") {
+    return "primary";
+  }
+
+  return "secondary";
 }
 
 export type BulletinBranchContext = {
@@ -40,6 +45,8 @@ export type BulletinBranchContext = {
   country: string;
   logoUrl: string;
   branchType: ManagedBranchType;
+  /** Cycle pédagogique de la classe (maternelle / primaire / secondaire). */
+  cycle?: Cycle;
   educationSystem: EducationSystem;
   directorName?: string;
   directorTitle?: string;

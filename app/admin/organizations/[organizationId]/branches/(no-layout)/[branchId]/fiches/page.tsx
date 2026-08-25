@@ -14,6 +14,7 @@ import {
   resolveScopedCursusStudent,
 } from "@/lib/auth/cursus-scope";
 import { usesBulletinForBranch } from "@/lib/branch-capabilities";
+import { anyCycle, isPrimaryLikeCycle } from "@/lib/cycle";
 import {
   buildBulletinBranchContext,
   type BulletinBranchContext,
@@ -24,10 +25,10 @@ import { getSchoolYearForBranch } from "@/lib/school-year";
 export const dynamic = "force-dynamic";
 
 export default async function ClassFichePage() {
-  const { session, userId, branchId, organizationId, typebranch } =
+  const { session, userId, branchId, organizationId, typebranch, cycles } =
     await requireBranchContext();
 
-  if (!usesBulletinForBranch(typebranch)) {
+  if (!anyCycle(cycles, usesBulletinForBranch)) {
     redirect(
       `/admin/organizations/${organizationId}/branches/${branchId}/results`,
     );
@@ -145,7 +146,7 @@ export default async function ClassFichePage() {
   branchContext.directorName = director.directorName;
   branchContext.directorTitle = director.directorTitle;
 
-  if (branchContext.branchType === "PRIMAIRE") {
+  if (anyCycle(cycles, isPrimaryLikeCycle)) {
     const { listBranchPrimaryDomains } = await import(
       "@/lib/branch-primary-domains"
     );
@@ -171,6 +172,7 @@ export default async function ClassFichePage() {
       id: c.id,
       name: c.nameClasse || "N/A",
       codename: c.codeClasse || "N/A",
+      cycle: c.cycle ?? null,
       level: c.level ?? null,
       optionName: c.option?.nameOption ?? null,
       parallel: c.parallel ?? null,

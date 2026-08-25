@@ -7,6 +7,8 @@ import {
 } from "@/lib/auth/session-roles";
 import { prisma } from "@/lib/prisma";
 
+import { getBranchCycles } from "@/lib/cycle";
+
 type RequireBranchContextOptions = {
   /**
    * En RSC, préférer redirect plutôt qu'un throw brut
@@ -40,17 +42,34 @@ export async function requireBranchContext(
   const sessionEducationSystem = (
     session.branch as { educationSystem?: string } | null | undefined
   )?.educationSystem;
+  const sessionCycles = (
+    session.branch as { cycles?: Array<{ cycle: string; isActive?: boolean; sortOrder?: number }> } | null | undefined
+  )?.cycles;
+
+  const loadCycles = async (branchId: string, typebranch: unknown) => {
+    if (sessionCycles && session.branch?.id === branchId) {
+      return getBranchCycles({ typebranch, cycles: sessionCycles });
+    }
+    const rows = await prisma.branchCycle.findMany({
+      where: { branchId, isActive: true },
+      orderBy: { sortOrder: "asc" },
+    });
+    return getBranchCycles({ typebranch, cycles: rows });
+  };
+
   if (
     session.branch?.id === branchId &&
     session.branch.typebranch != null &&
     sessionEducationSystem
   ) {
+    const cycles = await loadCycles(branchId, session.branch.typebranch);
     return {
       userId,
       organizationId,
       branchId,
       typebranch: session.branch.typebranch,
       educationSystem: sessionEducationSystem,
+      cycles,
       session,
     };
   }
@@ -64,6 +83,10 @@ export async function requireBranchContext(
       id: true,
       typebranch: true,
       educationSystem: true,
+      cycles: {
+        where: { isActive: true },
+        orderBy: { sortOrder: "asc" },
+      },
     },
   });
 
@@ -78,6 +101,7 @@ export async function requireBranchContext(
     branchId,
     typebranch: branch.typebranch,
     educationSystem: branch.educationSystem,
+    cycles: getBranchCycles(branch),
     session,
   };
 }

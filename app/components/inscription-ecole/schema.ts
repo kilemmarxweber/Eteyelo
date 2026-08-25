@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { createBranchFormSchema } from "@/app/admin/organizations/[organizationId]/branches/(no-layout)/schema";
+import { createBranchFormObjectSchema, refineBranchSchoolCycles } from "@/app/admin/organizations/[organizationId]/branches/(no-layout)/schema";
 import { listBranchTypesForPublicRegistration } from "@/lib/branch-capabilities";
 import type { ManagedBranchType } from "@/lib/academic-structure";
 
@@ -10,7 +10,7 @@ const publicRegistrationBranchTypes =
     ...ManagedBranchType[],
   ];
 
-export const schoolRegistrationRequestSchema = createBranchFormSchema
+export const schoolRegistrationRequestSchema = createBranchFormObjectSchema
   .extend({
     contactEmail: z
       .string()
@@ -22,7 +22,8 @@ export const schoolRegistrationRequestSchema = createBranchFormSchema
       invalid_type_error:
         "Ce type d'établissement ne peut pas être inscrit via ce formulaire.",
     }),
-  });
+  })
+  .superRefine(refineBranchSchoolCycles);
 
 export type SchoolRegistrationRequestValues = z.infer<
   typeof schoolRegistrationRequestSchema

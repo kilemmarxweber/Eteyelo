@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { Prisma } from "@/prisma/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 import { createBranchFormSchema, type CreateBranchFormValues } from "./schema";
 import {
@@ -14,10 +15,19 @@ import {
   generateCode,
 } from "@/lib/generated-identifiers";
 import { ensurePrimaryAcademicStructure } from "@/lib/primary-academic-structure";
+import { ensureMaternelleAcademicStructure } from "@/lib/maternelle-academic-structure";
 import { ensureSecondaryCtebStructure } from "@/lib/secondary-cteb-structure";
 import { ensureAngolaSecondaryStructure } from "@/lib/angola-secondary-bootstrap";
 import { ensureDefaultCreneaux } from "@/lib/default-creneaux";
 import { ensureExtendedBranchStructure } from "@/lib/extended-branch-bootstrap";
+import { persistActivatedBranchCycles } from "@/lib/persist-branch-cycles";
+import { upsertClassCatalogForBranch } from "@/lib/class-catalog-sync";
+import { purgeBranchCompletely } from "@/lib/purge-branch";
+import {
+  isSchoolCycle,
+  principalTypebranchFromSchoolCycles,
+  resolveActivatedCycles,
+} from "@/lib/cycle";
 import { usesTermPeriodCalendar } from "@/lib/education-system";
 
 export async function getBranchNameAction(branchId: string) {
@@ -25,7 +35,7 @@ export async function getBranchNameAction(branchId: string) {
 
   const branch = await prisma.branch.findFirst({
     where: { id: branchId },
-    select: { name: true, image: true, typebranch: true },
+    select: { name: true, image: true, typebranch: true, cycles: { where: { isActive: true }, orderBy: { sortOrder: "asc" } } },
   });
 
   return branch;
@@ -75,6 +85,15 @@ export async function createBranchAction(
   });
 
   const academicYear = getAcademicYearForDate();
+  const schoolCycles = (parsed.data.schoolCycles ?? []).filter(isSchoolCycle);
+  const typebranch =
+    schoolCycles.length > 0
+      ? principalTypebranchFromSchoolCycles(schoolCycles)
+      : parsed.data.typebranch;
+  const activatedCycles = resolveActivatedCycles({
+    typebranch,
+    schoolCycles,
+  });
 
   const branch = await prisma.$transaction(async (tx) => {
     const createdBranch = await tx.branch.create({
@@ -100,9 +119,9 @@ export async function createBranchAction(
         latitude: parsed.data.latitude,
         longitude: parsed.data.longitude,
         attendanceRadius: parsed.data.attendanceRadius,
-        typebranch: parsed.data.typebranch,
+        typebranch,
         educationSystem: usesTermPeriodCalendar(
-          parsed.data.typebranch,
+          typebranch,
           parsed.data.educationSystem,
         )
           ? parsed.data.educationSystem
@@ -121,11 +140,14 @@ export async function createBranchAction(
       },
     });
 
-    if (parsed.data.typebranch === "PRIMAIRE") {
+    if (activatedCycles.includes("MATERNELLE")) {
+      await ensureMaternelleAcademicStructure(tx, createdBranch.id);
+    }
+    if (activatedCycles.includes("PRIMAIRE")) {
       await ensurePrimaryAcademicStructure(tx, createdBranch.id);
     }
 
-    if (parsed.data.typebranch === "SECONDAIRE") {
+    if (activatedCycles.includes("SECONDAIRE")) {
       if (parsed.data.educationSystem === "ANGOLAIS") {
         await ensureAngolaSecondaryStructure(tx, createdBranch.id);
       } else {
@@ -133,21 +155,26 @@ export async function createBranchAction(
       }
     }
 
-    await ensureExtendedBranchStructure(
-      tx,
-      createdBranch.id,
-      parsed.data.typebranch,
-    );
+    await ensureExtendedBranchStructure(tx, createdBranch.id, typebranch);
     await ensureDefaultCreneaux(tx, createdBranch.id);
+    await persistActivatedBranchCycles(tx, createdBranch.id, activatedCycles);
 
     return createdBranch;
   });
 
   await ensureAcademicPeriodsForBranch({
     branchId: branch.id,
-    typebranch: parsed.data.typebranch,
+    typebranch,
     educationSystem: parsed.data.educationSystem,
+    cycles: activatedCycles,
   });
+
+  if (activatedCycles.some(isSchoolCycle)) {
+    await upsertClassCatalogForBranch(branch.id, {
+      cycles: activatedCycles,
+      importSectionsAndOptions: activatedCycles.includes("SECONDAIRE"),
+    });
+  }
 
   revalidatePath(`/admin/organizations/${organizationId}/branches`);
 
@@ -196,6 +223,11 @@ export async function getBranchByIdAction(branchId: string) {
       typebranch: true,
       educationSystem: true,
       organizationId: true,
+      cycles: {
+        where: { isActive: true },
+        select: { cycle: true },
+        orderBy: { sortOrder: "asc" },
+      },
     },
   });
 }
@@ -230,8 +262,18 @@ export async function updateBranchAction(
     };
   }
 
+  const schoolCycles = (parsed.data.schoolCycles ?? []).filter(isSchoolCycle);
+  const typebranch =
+    schoolCycles.length > 0
+      ? principalTypebranchFromSchoolCycles(schoolCycles)
+      : parsed.data.typebranch;
+  const activatedCycles = resolveActivatedCycles({
+    typebranch,
+    schoolCycles,
+  });
+
   const nextEducationSystem = usesTermPeriodCalendar(
-    parsed.data.typebranch,
+    typebranch,
     parsed.data.educationSystem,
   )
     ? parsed.data.educationSystem
@@ -292,22 +334,44 @@ export async function updateBranchAction(
       latitude: parsed.data.latitude,
       longitude: parsed.data.longitude,
       attendanceRadius: parsed.data.attendanceRadius,
-      typebranch: parsed.data.typebranch,
+      typebranch,
       educationSystem: nextEducationSystem,
     },
     select: { id: true, typebranch: true, educationSystem: true },
   });
 
+  try {
+    await persistActivatedBranchCycles(prisma, branchId, activatedCycles);
+  } catch (error) {
+    return {
+      data: null,
+      error:
+        error instanceof Error
+          ? error.message
+          : "Impossible de mettre à jour les cycles de la branche.",
+    };
+  }
+
   await ensureAcademicPeriodsForBranch({
     branchId,
-    typebranch: branch.typebranch,
+    typebranch,
     educationSystem: branch.educationSystem,
+    cycles: activatedCycles,
   });
-  if (branch.typebranch === "PRIMAIRE") {
+  if (activatedCycles.some(isSchoolCycle)) {
+    await upsertClassCatalogForBranch(branchId, {
+      cycles: activatedCycles,
+      importSectionsAndOptions: activatedCycles.includes("SECONDAIRE"),
+    });
+  }
+  if (activatedCycles.includes("MATERNELLE")) {
+    await ensureMaternelleAcademicStructure(prisma, branchId);
+  }
+  if (activatedCycles.includes("PRIMAIRE")) {
     await ensurePrimaryAcademicStructure(prisma, branchId);
   }
 
-  if (branch.typebranch === "SECONDAIRE") {
+  if (activatedCycles.includes("SECONDAIRE")) {
     if (branch.educationSystem === "ANGOLAIS") {
       await ensureAngolaSecondaryStructure(prisma, branchId);
     } else {
@@ -358,4 +422,49 @@ export async function setBranchActiveAction(
   revalidatePath("/");
 
   return { data: { id: branchId, isActive }, error: null };
+}
+
+export async function deleteBranchAction(branchId: string) {
+  const branch = await prisma.branch.findFirst({
+    where: { id: branchId },
+    select: { id: true, organizationId: true, name: true },
+  });
+
+  if (!branch) {
+    return { data: null, error: "Etablissement introuvable." };
+  }
+
+  const guard = await guardOrganizationManager(branch.organizationId);
+  if (!guard.ok) {
+    return { data: null, error: guard.message };
+  }
+
+  try {
+    await prisma.$transaction(
+      async (tx) => {
+        await purgeBranchCompletely(tx, branchId);
+      },
+      { timeout: 120_000, maxWait: 15_000 },
+    );
+  } catch (error) {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      (error.code === "P2003" || error.code === "P2014")
+    ) {
+      return {
+        data: null,
+        error:
+          "Impossible de supprimer cet établissement : une donnée liée bloque encore le nettoyage.",
+      };
+    }
+
+    const message =
+      error instanceof Error ? error.message : "Suppression impossible.";
+    return { data: null, error: message };
+  }
+
+  revalidatePath(`/admin/organizations/${branch.organizationId}/branches`);
+  revalidatePath("/");
+
+  return { data: { id: branchId, name: branch.name }, error: null };
 }

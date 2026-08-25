@@ -37,6 +37,7 @@ export const teacherSchema = z
       .max(14, { message: "Le numéro ne doit pas dépasser 14 caractères" }),
     email: z.string().optional(),
     address: z.string().trim().min(1, { message: "Veuillez saisir l'adresse" }),
+    image: z.string().trim().max(2000).optional().or(z.literal("")),
     /** Titulaire / superviseur de classe (crée une affectation Teaching). */
     estTitulaire: z.boolean().optional(),
     classeId: z.string().optional(),

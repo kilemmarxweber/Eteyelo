@@ -308,6 +308,11 @@ export const auth = betterAuth({
             isActive: true,
             organizationId: true,
             image: true,
+            cycles: {
+              where: { isActive: true },
+              orderBy: { sortOrder: "asc" },
+              select: { cycle: true, isActive: true, sortOrder: true },
+            },
           },
         });
       }
@@ -329,6 +334,11 @@ export const auth = betterAuth({
             isActive: true,
             organizationId: true,
             image: true,
+            cycles: {
+              where: { isActive: true },
+              orderBy: { sortOrder: "asc" },
+              select: { cycle: true, isActive: true, sortOrder: true },
+            },
           },
         });
       }

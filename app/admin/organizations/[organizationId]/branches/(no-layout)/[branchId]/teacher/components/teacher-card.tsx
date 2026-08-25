@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import {
   Table,
@@ -26,6 +26,7 @@ import { ITeacher } from "@/src/interfaces/Teacher";
 import { ITeaching } from "@/src/interfaces/Teaching";
 import { getTeachingByTeacherAction } from "../../teaching/teaching.action";
 import { getSchedulesByTeacherAction } from "../../schedule/schedule.action";
+import { normalizeImageSrc } from "@/lib/utils";
 
 /* =========================
    DAYS FIXE
@@ -118,6 +119,12 @@ export function CarteEnseignantComplete({ teacher }: Props) {
         <CardHeader className="bg-muted/50 p-6 gap-4">
           <div className="flex flex-col sm:flex-row items-center sm:items-start space-y-4 sm:space-y-0 sm:space-x-4">
             <Avatar className="h-24 w-24">
+              {teacher.image ? (
+                <AvatarImage
+                  src={normalizeImageSrc(teacher.image)}
+                  alt={`${teacher.prenom ?? ""} ${teacher.nom ?? ""}`.trim()}
+                />
+              ) : null}
               <AvatarFallback>{teacher.nom?.[0]}</AvatarFallback>
             </Avatar>
 

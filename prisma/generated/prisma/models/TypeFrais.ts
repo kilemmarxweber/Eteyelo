@@ -30,6 +30,7 @@ export type TypeFraisMinAggregateOutputType = {
   nameType: string | null
   description: string | null
   statusType: boolean | null
+  cycle: $Enums.Cycle | null
   branchId: string | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -41,6 +42,7 @@ export type TypeFraisMaxAggregateOutputType = {
   nameType: string | null
   description: string | null
   statusType: boolean | null
+  cycle: $Enums.Cycle | null
   branchId: string | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -52,6 +54,7 @@ export type TypeFraisCountAggregateOutputType = {
   nameType: number
   description: number
   statusType: number
+  cycle: number
   branchId: number
   createdAt: number
   updatedAt: number
@@ -65,6 +68,7 @@ export type TypeFraisMinAggregateInputType = {
   nameType?: true
   description?: true
   statusType?: true
+  cycle?: true
   branchId?: true
   createdAt?: true
   updatedAt?: true
@@ -76,6 +80,7 @@ export type TypeFraisMaxAggregateInputType = {
   nameType?: true
   description?: true
   statusType?: true
+  cycle?: true
   branchId?: true
   createdAt?: true
   updatedAt?: true
@@ -87,6 +92,7 @@ export type TypeFraisCountAggregateInputType = {
   nameType?: true
   description?: true
   statusType?: true
+  cycle?: true
   branchId?: true
   createdAt?: true
   updatedAt?: true
@@ -171,6 +177,7 @@ export type TypeFraisGroupByOutputType = {
   nameType: string
   description: string | null
   statusType: boolean
+  cycle: $Enums.Cycle | null
   branchId: string
   createdAt: Date
   updatedAt: Date
@@ -203,6 +210,7 @@ export type TypeFraisWhereInput = {
   nameType?: Prisma.StringFilter<"TypeFrais"> | string
   description?: Prisma.StringNullableFilter<"TypeFrais"> | string | null
   statusType?: Prisma.BoolFilter<"TypeFrais"> | boolean
+  cycle?: Prisma.EnumCycleNullableFilter<"TypeFrais"> | $Enums.Cycle | null
   branchId?: Prisma.StringFilter<"TypeFrais"> | string
   createdAt?: Prisma.DateTimeFilter<"TypeFrais"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"TypeFrais"> | Date | string
@@ -217,6 +225,7 @@ export type TypeFraisOrderByWithRelationInput = {
   nameType?: Prisma.SortOrder
   description?: Prisma.SortOrderInput | Prisma.SortOrder
   statusType?: Prisma.SortOrder
+  cycle?: Prisma.SortOrderInput | Prisma.SortOrder
   branchId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -234,6 +243,7 @@ export type TypeFraisWhereUniqueInput = Prisma.AtLeast<{
   nameType?: Prisma.StringFilter<"TypeFrais"> | string
   description?: Prisma.StringNullableFilter<"TypeFrais"> | string | null
   statusType?: Prisma.BoolFilter<"TypeFrais"> | boolean
+  cycle?: Prisma.EnumCycleNullableFilter<"TypeFrais"> | $Enums.Cycle | null
   branchId?: Prisma.StringFilter<"TypeFrais"> | string
   createdAt?: Prisma.DateTimeFilter<"TypeFrais"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"TypeFrais"> | Date | string
@@ -248,6 +258,7 @@ export type TypeFraisOrderByWithAggregationInput = {
   nameType?: Prisma.SortOrder
   description?: Prisma.SortOrderInput | Prisma.SortOrder
   statusType?: Prisma.SortOrder
+  cycle?: Prisma.SortOrderInput | Prisma.SortOrder
   branchId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -265,6 +276,7 @@ export type TypeFraisScalarWhereWithAggregatesInput = {
   nameType?: Prisma.StringWithAggregatesFilter<"TypeFrais"> | string
   description?: Prisma.StringNullableWithAggregatesFilter<"TypeFrais"> | string | null
   statusType?: Prisma.BoolWithAggregatesFilter<"TypeFrais"> | boolean
+  cycle?: Prisma.EnumCycleNullableWithAggregatesFilter<"TypeFrais"> | $Enums.Cycle | null
   branchId?: Prisma.StringWithAggregatesFilter<"TypeFrais"> | string
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"TypeFrais"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"TypeFrais"> | Date | string
@@ -276,6 +288,7 @@ export type TypeFraisCreateInput = {
   nameType: string
   description?: string | null
   statusType?: boolean
+  cycle?: $Enums.Cycle | null
   createdAt?: Date | string
   updatedAt?: Date | string
   branch: Prisma.BranchCreateNestedOneWithoutTypeFraisInput
@@ -289,6 +302,7 @@ export type TypeFraisUncheckedCreateInput = {
   nameType: string
   description?: string | null
   statusType?: boolean
+  cycle?: $Enums.Cycle | null
   branchId: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -302,6 +316,7 @@ export type TypeFraisUpdateInput = {
   nameType?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusType?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  cycle?: Prisma.NullableEnumCycleFieldUpdateOperationsInput | $Enums.Cycle | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branch?: Prisma.BranchUpdateOneRequiredWithoutTypeFraisNestedInput
@@ -315,6 +330,7 @@ export type TypeFraisUncheckedUpdateInput = {
   nameType?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusType?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  cycle?: Prisma.NullableEnumCycleFieldUpdateOperationsInput | $Enums.Cycle | null
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -328,6 +344,7 @@ export type TypeFraisCreateManyInput = {
   nameType: string
   description?: string | null
   statusType?: boolean
+  cycle?: $Enums.Cycle | null
   branchId: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -339,6 +356,7 @@ export type TypeFraisUpdateManyMutationInput = {
   nameType?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusType?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  cycle?: Prisma.NullableEnumCycleFieldUpdateOperationsInput | $Enums.Cycle | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -349,6 +367,7 @@ export type TypeFraisUncheckedUpdateManyInput = {
   nameType?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusType?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  cycle?: Prisma.NullableEnumCycleFieldUpdateOperationsInput | $Enums.Cycle | null
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -365,6 +384,7 @@ export type TypeFraisCountOrderByAggregateInput = {
   nameType?: Prisma.SortOrder
   description?: Prisma.SortOrder
   statusType?: Prisma.SortOrder
+  cycle?: Prisma.SortOrder
   branchId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -376,6 +396,7 @@ export type TypeFraisMaxOrderByAggregateInput = {
   nameType?: Prisma.SortOrder
   description?: Prisma.SortOrder
   statusType?: Prisma.SortOrder
+  cycle?: Prisma.SortOrder
   branchId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -387,6 +408,7 @@ export type TypeFraisMinOrderByAggregateInput = {
   nameType?: Prisma.SortOrder
   description?: Prisma.SortOrder
   statusType?: Prisma.SortOrder
+  cycle?: Prisma.SortOrder
   branchId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -419,6 +441,10 @@ export type TypeFraisUpdateOneRequiredWithoutFraisNestedInput = {
   upsert?: Prisma.TypeFraisUpsertWithoutFraisInput
   connect?: Prisma.TypeFraisWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.TypeFraisUpdateToOneWithWhereWithoutFraisInput, Prisma.TypeFraisUpdateWithoutFraisInput>, Prisma.TypeFraisUncheckedUpdateWithoutFraisInput>
+}
+
+export type NullableEnumCycleFieldUpdateOperationsInput = {
+  set?: $Enums.Cycle | null
 }
 
 export type TypeFraisCreateNestedOneWithoutDiscountRulesInput = {
@@ -485,6 +511,7 @@ export type TypeFraisCreateWithoutFraisInput = {
   nameType: string
   description?: string | null
   statusType?: boolean
+  cycle?: $Enums.Cycle | null
   createdAt?: Date | string
   updatedAt?: Date | string
   branch: Prisma.BranchCreateNestedOneWithoutTypeFraisInput
@@ -497,6 +524,7 @@ export type TypeFraisUncheckedCreateWithoutFraisInput = {
   nameType: string
   description?: string | null
   statusType?: boolean
+  cycle?: $Enums.Cycle | null
   branchId: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -525,6 +553,7 @@ export type TypeFraisUpdateWithoutFraisInput = {
   nameType?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusType?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  cycle?: Prisma.NullableEnumCycleFieldUpdateOperationsInput | $Enums.Cycle | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branch?: Prisma.BranchUpdateOneRequiredWithoutTypeFraisNestedInput
@@ -537,6 +566,7 @@ export type TypeFraisUncheckedUpdateWithoutFraisInput = {
   nameType?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusType?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  cycle?: Prisma.NullableEnumCycleFieldUpdateOperationsInput | $Enums.Cycle | null
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -549,6 +579,7 @@ export type TypeFraisCreateWithoutDiscountRulesInput = {
   nameType: string
   description?: string | null
   statusType?: boolean
+  cycle?: $Enums.Cycle | null
   createdAt?: Date | string
   updatedAt?: Date | string
   branch: Prisma.BranchCreateNestedOneWithoutTypeFraisInput
@@ -561,6 +592,7 @@ export type TypeFraisUncheckedCreateWithoutDiscountRulesInput = {
   nameType: string
   description?: string | null
   statusType?: boolean
+  cycle?: $Enums.Cycle | null
   branchId: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -589,6 +621,7 @@ export type TypeFraisUpdateWithoutDiscountRulesInput = {
   nameType?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusType?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  cycle?: Prisma.NullableEnumCycleFieldUpdateOperationsInput | $Enums.Cycle | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branch?: Prisma.BranchUpdateOneRequiredWithoutTypeFraisNestedInput
@@ -601,6 +634,7 @@ export type TypeFraisUncheckedUpdateWithoutDiscountRulesInput = {
   nameType?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusType?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  cycle?: Prisma.NullableEnumCycleFieldUpdateOperationsInput | $Enums.Cycle | null
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -613,6 +647,7 @@ export type TypeFraisCreateWithoutBranchInput = {
   nameType: string
   description?: string | null
   statusType?: boolean
+  cycle?: $Enums.Cycle | null
   createdAt?: Date | string
   updatedAt?: Date | string
   frais?: Prisma.FraisCreateNestedManyWithoutTypeFraisInput
@@ -625,6 +660,7 @@ export type TypeFraisUncheckedCreateWithoutBranchInput = {
   nameType: string
   description?: string | null
   statusType?: boolean
+  cycle?: $Enums.Cycle | null
   createdAt?: Date | string
   updatedAt?: Date | string
   frais?: Prisma.FraisUncheckedCreateNestedManyWithoutTypeFraisInput
@@ -666,6 +702,7 @@ export type TypeFraisScalarWhereInput = {
   nameType?: Prisma.StringFilter<"TypeFrais"> | string
   description?: Prisma.StringNullableFilter<"TypeFrais"> | string | null
   statusType?: Prisma.BoolFilter<"TypeFrais"> | boolean
+  cycle?: Prisma.EnumCycleNullableFilter<"TypeFrais"> | $Enums.Cycle | null
   branchId?: Prisma.StringFilter<"TypeFrais"> | string
   createdAt?: Prisma.DateTimeFilter<"TypeFrais"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"TypeFrais"> | Date | string
@@ -677,6 +714,7 @@ export type TypeFraisCreateManyBranchInput = {
   nameType: string
   description?: string | null
   statusType?: boolean
+  cycle?: $Enums.Cycle | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -687,6 +725,7 @@ export type TypeFraisUpdateWithoutBranchInput = {
   nameType?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusType?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  cycle?: Prisma.NullableEnumCycleFieldUpdateOperationsInput | $Enums.Cycle | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   frais?: Prisma.FraisUpdateManyWithoutTypeFraisNestedInput
@@ -699,6 +738,7 @@ export type TypeFraisUncheckedUpdateWithoutBranchInput = {
   nameType?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusType?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  cycle?: Prisma.NullableEnumCycleFieldUpdateOperationsInput | $Enums.Cycle | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   frais?: Prisma.FraisUncheckedUpdateManyWithoutTypeFraisNestedInput
@@ -711,6 +751,7 @@ export type TypeFraisUncheckedUpdateManyWithoutBranchInput = {
   nameType?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusType?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  cycle?: Prisma.NullableEnumCycleFieldUpdateOperationsInput | $Enums.Cycle | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -761,6 +802,7 @@ export type TypeFraisSelect<ExtArgs extends runtime.Types.Extensions.InternalArg
   nameType?: boolean
   description?: boolean
   statusType?: boolean
+  cycle?: boolean
   branchId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -776,6 +818,7 @@ export type TypeFraisSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ext
   nameType?: boolean
   description?: boolean
   statusType?: boolean
+  cycle?: boolean
   branchId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -788,6 +831,7 @@ export type TypeFraisSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ext
   nameType?: boolean
   description?: boolean
   statusType?: boolean
+  cycle?: boolean
   branchId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -800,12 +844,13 @@ export type TypeFraisSelectScalar = {
   nameType?: boolean
   description?: boolean
   statusType?: boolean
+  cycle?: boolean
   branchId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type TypeFraisOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "codeType" | "nameType" | "description" | "statusType" | "branchId" | "createdAt" | "updatedAt", ExtArgs["result"]["typeFrais"]>
+export type TypeFraisOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "codeType" | "nameType" | "description" | "statusType" | "cycle" | "branchId" | "createdAt" | "updatedAt", ExtArgs["result"]["typeFrais"]>
 export type TypeFraisInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
   frais?: boolean | Prisma.TypeFrais$fraisArgs<ExtArgs>
@@ -832,6 +877,10 @@ export type $TypeFraisPayload<ExtArgs extends runtime.Types.Extensions.InternalA
     nameType: string
     description: string | null
     statusType: boolean
+    /**
+     * null = type commun à tous les cycles (ex. Transport).
+     */
+    cycle: $Enums.Cycle | null
     branchId: string
     createdAt: Date
     updatedAt: Date
@@ -1266,6 +1315,7 @@ export interface TypeFraisFieldRefs {
   readonly nameType: Prisma.FieldRef<"TypeFrais", 'String'>
   readonly description: Prisma.FieldRef<"TypeFrais", 'String'>
   readonly statusType: Prisma.FieldRef<"TypeFrais", 'Boolean'>
+  readonly cycle: Prisma.FieldRef<"TypeFrais", 'Cycle'>
   readonly branchId: Prisma.FieldRef<"TypeFrais", 'String'>
   readonly createdAt: Prisma.FieldRef<"TypeFrais", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"TypeFrais", 'DateTime'>

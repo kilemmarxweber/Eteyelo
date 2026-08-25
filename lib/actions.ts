@@ -428,12 +428,21 @@ export async function getBranchDirectorForBulletin() {
 }
 
 // récupère toutes les périodes / sessions selon le type de branche
-export async function getPeriods() {
+export async function getPeriods(classId?: string) {
   const { branchId, typebranch, educationSystem } = await requireBranchContext();
+  let cycle: unknown = undefined;
+  if (classId) {
+    const classe = await prisma.classe.findFirst({
+      where: { id: classId, branchId },
+      select: { cycle: true },
+    });
+    cycle = classe?.cycle ?? typebranch;
+  }
   const periods = await listBranchPeriodOptions({
     branchId,
     typebranch,
     educationSystem,
+    cycle,
   });
 
   return periods.map((period) => ({
@@ -441,6 +450,7 @@ export async function getPeriods() {
     label: period.label,
     rawLabel: period.rawLabel,
     kind: period.kind,
+    cycle: period.cycle,
   }));
 }
 

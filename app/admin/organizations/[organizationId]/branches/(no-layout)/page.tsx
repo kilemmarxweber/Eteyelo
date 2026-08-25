@@ -32,6 +32,11 @@ async function getOrganizationBranches(organizationId: string) {
       name: true,
       description: true,
       typebranch: true,
+      cycles: {
+        where: { isActive: true },
+        select: { cycle: true, isActive: true, sortOrder: true },
+        orderBy: { sortOrder: "asc" },
+      },
       isActive: true,
       branchemembers: {
         select: {
@@ -53,6 +58,7 @@ async function getOrganizationBranches(organizationId: string) {
       name: branch.name,
       description: branch.description,
       typebranch: branch.typebranch,
+      cycles: branch.cycles,
       isActive: branch.isActive,
       studentsCount: branch.branchemembers.reduce(
         (total, member) => total + member._count.student,
@@ -145,11 +151,12 @@ export default async function BranchesPage({ params }: BranchesPageProps) {
             <BranchCard
               key={branch.id}
               branchId={branch.id}
+              branchName={branch.name}
               enterHref={`${base}/${branch.id}`}
               editHref={`${base}/edit?branchId=${branch.id}`}
               isActive={branch.isActive}
             >
-              <div className="group flex h-full min-w-0 items-start gap-2.5 overflow-hidden rounded-xl border border-border/80 bg-card py-2.5 pl-3 pr-20 transition hover:border-primary/30 hover:bg-muted/40 hover:shadow-sm">
+              <div className="group flex h-full min-w-0 items-start gap-2.5 overflow-hidden rounded-xl border border-border/80 bg-card py-2.5 pl-3 pr-28 transition hover:border-primary/30 hover:bg-muted/40 hover:shadow-sm">
                 <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
                   <School className="size-3.5" />
                 </span>
@@ -167,19 +174,22 @@ export default async function BranchesPage({ params }: BranchesPageProps) {
                     </span>
                   ) : null}
 
-                  <span className="mt-0.5 flex flex-wrap items-center gap-1.5">
+                  <span className="mt-1 flex min-w-0 flex-col gap-1">
                     <BranchTypeBadge
                       typebranch={branch.typebranch}
+                      cycles={branch.cycles}
                       className="h-5 px-1.5 text-[10px]"
                     />
-                    <span className="text-[11px] text-muted-foreground">
-                      {branch.studentsCount} élève
-                      {branch.studentsCount > 1 ? "s" : ""}
-                    </span>
-                    <span
-                      className={`rounded px-1.5 py-px text-[10px] font-semibold ${branch.isActive ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300" : "bg-muted text-muted-foreground"}`}
-                    >
-                      {branch.isActive ? "Actif" : "Archive"}
+                    <span className="flex flex-nowrap items-center gap-1.5">
+                      <span className="truncate text-[11px] text-muted-foreground">
+                        {branch.studentsCount} élève
+                        {branch.studentsCount > 1 ? "s" : ""}
+                      </span>
+                      <span
+                        className={`shrink-0 rounded px-1.5 py-px text-[10px] font-semibold ${branch.isActive ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300" : "bg-muted text-muted-foreground"}`}
+                      >
+                        {branch.isActive ? "Actif" : "Archive"}
+                      </span>
                     </span>
                   </span>
                 </span>

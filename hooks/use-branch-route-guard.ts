@@ -27,7 +27,7 @@ export function useBranchRouteGuard({ routeSuffix }: UseBranchRouteGuardOptions)
 
         const redirectPath = getBranchRouteRedirect(
           routeSuffix,
-          result.typebranch,
+          result.cycles?.length ? result.cycles : result.typebranch,
           params.organizationId,
           params.branchId,
         );

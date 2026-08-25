@@ -8,6 +8,11 @@ import { z } from "zod";
 import { coursOptionPonderationSchema } from "./schema";
 import { ensurePrimaryAcademicStructure } from "@/lib/primary-academic-structure";
 import {
+  ensureMaternelleAcademicStructure,
+  maternelleOptionDisplayName,
+} from "@/lib/maternelle-academic-structure";
+import { type Cycle } from "@/lib/cycle";
+import {
   canManageOrganization,
   canPermanentlyDeleteInformation,
   PERMANENT_DELETE_DENIED_MESSAGE,
@@ -53,22 +58,33 @@ function revalidateCoursPonderationOptionPages(
   );
 }
 
+const PONDERATION_CYCLES = [
+  "MATERNELLE",
+  "PRIMAIRE",
+  "SECONDAIRE",
+] as const satisfies readonly Cycle[];
+
 export const getCoursPonderationOptionPageDataAction = action.handler(
   async () => {
-    const { branchId, typebranch } = await requireBranchContext();
-    const primaryStructure =
-      typebranch === "PRIMAIRE"
-        ? await ensurePrimaryAcademicStructure(prisma, branchId)
-        : null;
+    const { branchId, cycles } = await requireBranchContext();
+    const activated = cycles.filter((cycle): cycle is Cycle =>
+      (PONDERATION_CYCLES as readonly string[]).includes(cycle),
+    );
+
+    const [maternelleStructure, primaryStructure] = await Promise.all([
+      activated.includes("MATERNELLE")
+        ? ensureMaternelleAcademicStructure(prisma, branchId)
+        : null,
+      activated.includes("PRIMAIRE")
+        ? ensurePrimaryAcademicStructure(prisma, branchId)
+        : null,
+    ]);
 
     const [options, cours, ponderations, schoolYear] = await Promise.all([
       prisma.option.findMany({
         where: {
           branchId,
           statusOption: true,
-          ...(primaryStructure
-            ? { id: { in: primaryStructure.options.map((o) => o.id) } }
-            : {}),
         },
         orderBy: { nameOption: "asc" },
         select: {
@@ -76,6 +92,7 @@ export const getCoursPonderationOptionPageDataAction = action.handler(
           nameOption: true,
           codeOption: true,
           statusOption: true,
+          cycle: true,
           section: { select: { id: true, nameSection: true } },
           classe: {
             where: { statusClasse: true },
@@ -104,19 +121,81 @@ export const getCoursPonderationOptionPageDataAction = action.handler(
       }),
     ]);
 
-    const orderedOptions = primaryStructure
-      ? primaryStructure.options
-          .map((levelOption) =>
-            options.find((option) => option.id === levelOption.id),
-          )
-          .filter((option): option is (typeof options)[number] => Boolean(option))
-      : options;
+    type OptionRow = (typeof options)[number];
+    type TaggedOption = OptionRow & {
+      cycle: Cycle;
+      displayName: string;
+      isLevelWeighted: boolean;
+    };
+
+    const byId = new Map(options.map((option) => [option.id, option]));
+    const levelWeightedIds = new Set<string>();
+
+    const maternelleOptions: TaggedOption[] = [];
+    if (maternelleStructure) {
+      for (const levelOption of maternelleStructure.options) {
+        const row = byId.get(levelOption.id);
+        if (!row) continue;
+        levelWeightedIds.add(row.id);
+        maternelleOptions.push({
+          ...row,
+          cycle: "MATERNELLE",
+          displayName: maternelleOptionDisplayName(levelOption.level),
+          isLevelWeighted: true,
+        });
+      }
+    }
+
+    const primaryOptions: TaggedOption[] = [];
+    if (primaryStructure) {
+      for (const levelOption of primaryStructure.options) {
+        const row = byId.get(levelOption.id);
+        if (!row) continue;
+        levelWeightedIds.add(row.id);
+        primaryOptions.push({
+          ...row,
+          cycle: "PRIMAIRE",
+          displayName: `${levelOption.level} année`,
+          isLevelWeighted: true,
+        });
+      }
+    }
+
+    const secondaryOptions: TaggedOption[] = activated.includes("SECONDAIRE")
+      ? options
+          .filter((option) => {
+            if (levelWeightedIds.has(option.id)) return false;
+            if (option.cycle === "MATERNELLE" || option.cycle === "PRIMAIRE") {
+              return false;
+            }
+            return true;
+          })
+          .map((option) => ({
+            ...option,
+            cycle: "SECONDAIRE" as const,
+            displayName: option.nameOption,
+            isLevelWeighted: false,
+          }))
+      : [];
+
+    const orderedOptions = [
+      ...maternelleOptions,
+      ...primaryOptions,
+      ...secondaryOptions,
+    ];
+
+    const ponderationCycles = activated.filter((cycle) => {
+      if (cycle === "MATERNELLE") return maternelleOptions.length > 0;
+      if (cycle === "PRIMAIRE") return primaryOptions.length > 0;
+      return true;
+    });
 
     return {
       options: orderedOptions,
       cours,
       ponderations,
-      isPrimary: typebranch === "PRIMAIRE",
+      cycles: ponderationCycles,
+      isPrimary: activated.length === 1 && activated[0] === "PRIMAIRE",
       primaryOptionId: orderedOptions[0]?.id ?? null,
       schoolYear,
     };

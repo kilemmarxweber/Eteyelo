@@ -34,6 +34,7 @@ import {
 } from "@/lib/academic-structure";
 import type { BulletinBranchContext } from "@/lib/bulletin-context";
 import { resolveBulletinLayoutKind } from "@/lib/bulletin-context";
+import { cycleSectionLabel } from "@/lib/cycle";
 import { renderTermPeriodBulletins } from "@/lib/bulletin-term-period-render";
 import {
   aggregateBulletinPeriodMaxima,
@@ -188,8 +189,9 @@ export default function BulletinPDF({
   }, []);
 
   const generatePDF = useCallback(() => {
+    const academicCycle = branchContext.cycle ?? branchContext.branchType;
     const layoutKind = resolveBulletinLayoutKind(
-      branchContext.branchType,
+      academicCycle,
       branchContext.educationSystem,
     );
 
@@ -545,6 +547,14 @@ export default function BulletinPDF({
             wrap: true,
           },
         );
+        if (branchContext.cycle) {
+          drawLabel(
+            cycleSectionLabel(branchContext.cycle),
+            12,
+            schoolLabelYs[3] + 3.2,
+            { size: 6.5, align: "left", maxWidth: leftColMaxWidth },
+          );
+        }
         drawLabel("CODE :", 12, schoolLabelYs[4], {
           size: 7.5,
           bold: true,
@@ -780,7 +790,7 @@ export default function BulletinPDF({
       }
       const activePeriodKeys = getActivePeriodKeys(
         selectedPeriod,
-        branchContext.branchType,
+        academicCycle,
       );
 
       if (activePeriodKeys.length === 0) {
@@ -809,7 +819,7 @@ export default function BulletinPDF({
         return "";
       }
       const emptyGroupScores = buildEmptySubjectGroupScores(
-        branchContext.branchType,
+        academicCycle,
       );
 
       const ensureSubject = (
@@ -1220,7 +1230,7 @@ export default function BulletinPDF({
               primaryLayout!,
               row.subjects,
               activePeriodKeys,
-              branchContext.branchType,
+              academicCycle,
             );
             drawPrimarySousTotalRow(
               drawCell,
@@ -1301,7 +1311,7 @@ export default function BulletinPDF({
             subject,
             activePeriodKeys,
             getColorText,
-            branchContext.branchType,
+            academicCycle,
             maximaTot1,
             maximaTot2,
             maximaTot3,
@@ -1537,7 +1547,7 @@ export default function BulletinPDF({
               subject,
               activePeriodKeys,
               getColorText,
-              branchContext.branchType,
+              academicCycle,
               maximaTot1,
               maximaTot2,
               maximaTot3,

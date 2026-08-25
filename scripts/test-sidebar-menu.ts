@@ -35,7 +35,7 @@ function hasMenuTitle(
 
 function cursusSubTitles(session: ReturnType<typeof sessionWithOrgRole>) {
   const cursus = buildStaticSideLinks(session, BRANCH_PATH, "PRIMAIRE").find(
-    (item) => item.title === "Cursus",
+    (item) => item.title === "cursus",
   );
   return (cursus?.sub ?? []).map((item) => item.title);
 }
@@ -52,131 +52,131 @@ function assertExcludes(actual: string[], forbidden: string[], label: string) {
   }
 }
 
-test("caissier : Tableau de bord, Inscription, Finance, Utilisateurs/Élève, Aide — pas Classes / Enseignement / Cursus", () => {
+test("caissier : dashboard, registration, finance, users/student, help — pas classes / teaching / cursus", () => {
   const session = sessionWithOrgRole(ORG_ROLE.CAISSIER);
   const titles = menuTitles(session);
   const users = buildStaticSideLinks(session, BRANCH_PATH, "PRIMAIRE").find(
-    (item) => item.title === "Utilisateurs",
+    (item) => item.title === "users",
   );
   const usersSubs = (users?.sub ?? []).map((item) => item.title);
 
   assertIncludes(
     titles,
-    ["Tableau de bord", "Inscription", "Finance", "Utilisateurs", "Aide"],
+    ["dashboard", "registration", "finance", "users", "help"],
     "caissier",
   );
   assertExcludes(
     titles,
-    ["Présences", "Candidatures", "Classes", "Enseignement", "Cursus"],
+    ["attendance", "candidatures", "classes", "teaching", "cursus"],
     "caissier",
   );
-  assertIncludes(usersSubs, ["Élève"], "caissier utilisateurs");
-  assertExcludes(usersSubs, ["Personnel", "Enseignant", "Parent"], "caissier utilisateurs");
-  assert.equal(hasMenuTitle(session, "Finance"), true);
+  assertIncludes(usersSubs, ["student"], "caissier utilisateurs");
+  assertExcludes(usersSubs, ["staff", "teacher", "parent"], "caissier utilisateurs");
+  assert.equal(hasMenuTitle(session, "finance"), true);
 });
 
-test("élève : Tableau de bord, Résultats, Bibliothèque — pas Notes/Horaire/Fiches / Finance", () => {
+test("élève : dashboard, results, library — pas grades/schedule/sheets / finance", () => {
   const session = sessionWithOrgRole(ORG_ROLE.STUDENT);
   const titles = menuTitles(session);
   const cursus = cursusSubTitles(session);
 
-  assertIncludes(titles, ["Tableau de bord", "Cursus", "Aide"], "élève");
+  assertIncludes(titles, ["dashboard", "cursus", "help"], "élève");
   assertExcludes(
     titles,
-    ["Finance", "Utilisateurs", "Classes", "Inscription", "Enseignement", "Candidatures"],
+    ["finance", "users", "classes", "registration", "teaching", "candidatures"],
     "élève",
   );
-  assertIncludes(cursus, ["Résultats", "Bibliothèque"], "élève cursus");
+  assertIncludes(cursus, ["results", "library"], "élève cursus");
   assertExcludes(
     cursus,
     [
-      "Notes",
-      "Horaire",
-      "Fiches",
-      "Attestations",
-      "Brevets",
-      "Relevés de notes",
-      "Fiche Centrale",
+      "grades",
+      "schedule",
+      "sheets",
+      "attestations",
+      "certificates",
+      "transcripts",
+      "centralSheet",
     ],
     "élève cursus",
   );
 });
 
-test("parent : Tableau de bord + Résultats — pas Notes/Horaire/Devoirs/Bibliothèque / Finance / admin", () => {
+test("parent : dashboard + results — pas grades/schedule/homework/library / finance / admin", () => {
   const session = sessionWithOrgRole(ORG_ROLE.PARENT);
   const titles = menuTitles(session);
   const cursus = cursusSubTitles(session);
 
-  assertIncludes(titles, ["Tableau de bord", "Cursus", "Aide"], "parent");
+  assertIncludes(titles, ["dashboard", "cursus", "help"], "parent");
   assertExcludes(
     titles,
-    ["Finance", "Utilisateurs", "Classes", "Inscription", "Enseignement"],
+    ["finance", "users", "classes", "registration", "teaching"],
     "parent",
   );
-  assertIncludes(cursus, ["Résultats"], "parent cursus");
+  assertIncludes(cursus, ["results"], "parent cursus");
   assertExcludes(
     cursus,
-    ["Notes", "Horaire", "Devoirs", "Bibliothèque", "Fiches"],
+    ["grades", "schedule", "homework", "library", "sheets"],
     "parent cursus",
   );
 });
 
-test("enseignant : pas Enseignement / Utilisateurs ; Cursus Notes/Résultats/Bibliothèque ; Horaire via Tableau de bord", () => {
+test("enseignant : pas teaching / users ; cursus grades/results/library ; horaire via dashboard", () => {
   const session = sessionWithOrgRole(ORG_ROLE.TEACHER);
   const titles = menuTitles(session);
   const cursus = cursusSubTitles(session);
 
-  assertIncludes(titles, ["Tableau de bord", "Cursus", "Présences", "Aide"], "enseignant");
+  assertIncludes(titles, ["dashboard", "cursus", "attendance", "help"], "enseignant");
   assertExcludes(
     titles,
     [
-      "Finance",
-      "Classes",
-      "Inscription",
-      "Candidatures",
-      "Enseignement",
-      "Utilisateurs",
+      "finance",
+      "classes",
+      "registration",
+      "candidatures",
+      "teaching",
+      "users",
     ],
     "enseignant",
   );
   assertIncludes(
     cursus,
-    ["Notes", "Résultats", "Bibliothèque"],
+    ["grades", "results", "library"],
     "enseignant cursus",
   );
-  assertExcludes(cursus, ["Horaire"], "enseignant cursus");
+  assertExcludes(cursus, ["schedule"], "enseignant cursus");
 });
 
-test("préfet / directeur : pédagogie complète — pas Finance", () => {
+test("préfet / directeur : pédagogie complète — pas finance", () => {
   for (const role of [ORG_ROLE.PREFET, ORG_ROLE.DIRECTEUR] as const) {
     const titles = menuTitles(sessionWithOrgRole(role));
     assertIncludes(
       titles,
       [
-        "Tableau de bord",
-        "Inscription",
-        "Utilisateurs",
-        "Enseignement",
-        "Classes",
-        "Cursus",
-        "Aide",
+        "dashboard",
+        "registration",
+        "users",
+        "teaching",
+        "classes",
+        "cursus",
+        "help",
       ],
       role,
     );
-    assertExcludes(titles, ["Finance"], role);
+    assertExcludes(titles, ["finance"], role);
   }
 });
 
-test("directeur des études : pédagogie — pas Finance", () => {
+test("directeur des études : pédagogie — pas finance", () => {
   const session = sessionWithOrgRole(ORG_ROLE.DIRECTEUR_ETUDES);
   const titles = menuTitles(session);
 
   assertIncludes(
     titles,
-    ["Tableau de bord", "Inscription", "Utilisateurs", "Enseignement", "Classes", "Cursus", "Aide"],
+    ["dashboard", "registration", "users", "teaching", "classes", "cursus", "help"],
     "directeur des études",
   );
-  assertExcludes(titles, ["Finance"], "directeur des études");
+  assertExcludes(titles, ["finance"], "directeur des études");
 });
 
 test("owner / gestionnaire gardent le large (pas de régression)", () => {
@@ -185,28 +185,28 @@ test("owner / gestionnaire gardent le large (pas de régression)", () => {
     assertIncludes(
       titles,
       [
-        "Tableau de bord",
-        "Inscription",
-        "Présences",
-        "Candidatures",
-        "Utilisateurs",
-        "Enseignement",
-        "Classes",
-        "Finance",
-        "Cursus",
-        "Aide",
+        "dashboard",
+        "registration",
+        "attendance",
+        "candidatures",
+        "users",
+        "teaching",
+        "classes",
+        "finance",
+        "cursus",
+        "help",
       ],
       role,
     );
   }
 });
 
-test("enseignant titulaire voit Fiche Centrale / Fiches", () => {
+test("enseignant titulaire voit centralSheet / sheets", () => {
   const session = sessionWithOrgRole(ORG_ROLE.TEACHER, {
     teacherContext: { isTitulaire: true },
   });
   const cursus = cursusSubTitles(session);
-  assertIncludes(cursus, ["Fiche Centrale", "Fiches", "Notes", "Résultats"], "titulaire");
+  assertIncludes(cursus, ["centralSheet", "sheets", "grades", "results"], "titulaire");
 });
 
 console.log("\nAll sidebar-menu smoke tests passed.");

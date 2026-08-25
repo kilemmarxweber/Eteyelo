@@ -28,6 +28,7 @@ import {
 } from "../paiement.action";
 import { exportUnpaidReportPdf } from "./export-unpaid-pdf";
 import { formatReportAmount } from "@/lib/reports/format-amount";
+import { cycleLabel } from "@/lib/cycle";
 import { useTranslations } from "next-intl";
 import { useBranchPeopleLabels } from "@/hooks/use-branch-people-labels";
 
@@ -53,6 +54,10 @@ export default function UnpaidReport({ refreshKey = 0 }: UnpaidReportProps) {
   const [classes, setClasses] = useState<ClassOption[]>([]);
   const [schoolYearId, setSchoolYearId] = useState<string>("");
   const [classeId, setClasseId] = useState<string>("all");
+  const [cycle, setCycle] = useState<string>("all");
+  const [byCycle, setByCycle] = useState<
+    Array<{ cycle: string; totalDu: number; totalPaye: number; totalReste: number }>
+  >([]);
   const [rows, setRows] = useState<UnpaidReportRow[]>([]);
   const [schoolYearLabel, setSchoolYearLabel] = useState<string | null>(null);
   const [counts, setCounts] = useState({
@@ -139,6 +144,7 @@ export default function UnpaidReport({ refreshKey = 0 }: UnpaidReportProps) {
       const [data, err] = await getUnpaidReportAction({
         schoolYearId,
         classeId: classeId === "all" ? null : classeId,
+        cycle: cycle === "all" ? null : cycle,
       });
 
       if (err || !data) {
@@ -149,6 +155,7 @@ export default function UnpaidReport({ refreshKey = 0 }: UnpaidReportProps) {
         setCounts({ aJour: 0, partiel: 0, enRetard: 0 });
         setTotals({ totalDu: 0, totalPaye: 0, totalReste: 0, totalRemise: 0 });
         setSchoolYearLabel(null);
+        setByCycle([]);
       } else {
         setRows(data.rows);
         setCounts(data.counts);
@@ -159,13 +166,14 @@ export default function UnpaidReport({ refreshKey = 0 }: UnpaidReportProps) {
           totalRemise: data.totalRemise ?? 0,
         });
         setSchoolYearLabel(data.schoolYearLabel);
+        setByCycle(data.byCycle ?? []);
       }
 
       setLoading(false);
     };
 
     void fetchReport();
-  }, [filtersReady, schoolYearId, classeId, refreshKey]);
+  }, [filtersReady, schoolYearId, classeId, cycle, refreshKey]);
 
   const selectedClasseName =
     classeId === "all"
@@ -249,6 +257,20 @@ export default function UnpaidReport({ refreshKey = 0 }: UnpaidReportProps) {
             </SelectContent>
           </Select>
 
+          <Select value={cycle} onValueChange={setCycle}>
+            <SelectTrigger className="w-[160px]">
+              <SelectValue placeholder="Cycle" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectItem value="all">Tous les cycles</SelectItem>
+                <SelectItem value="MATERNELLE">Maternelle</SelectItem>
+                <SelectItem value="PRIMAIRE">Primaire</SelectItem>
+                <SelectItem value="SECONDAIRE">Secondaire</SelectItem>
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+
           <Button
             variant="outline"
             size="sm"
@@ -308,6 +330,24 @@ export default function UnpaidReport({ refreshKey = 0 }: UnpaidReportProps) {
                 </div>
               </div>
             </div>
+
+            {byCycle.length > 1 ? (
+              <div className="grid gap-3 md:grid-cols-3">
+                {byCycle.map((item) => (
+                  <div
+                    key={item.cycle}
+                    className="rounded-xl border border-border bg-muted/40 p-3"
+                  >
+                    <div className="text-xs font-medium text-muted-foreground">
+                      {cycleLabel(item.cycle)}
+                    </div>
+                    <div className="mt-1 text-sm font-semibold tabular-nums">
+                      {formatReportAmount(item.totalReste, baseCurrency)}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : null}
 
             {rows.length === 0 ? (
               <p className="py-2 text-sm text-muted-foreground">

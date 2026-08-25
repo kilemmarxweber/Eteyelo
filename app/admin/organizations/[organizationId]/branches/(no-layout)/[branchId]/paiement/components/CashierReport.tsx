@@ -19,6 +19,7 @@ import { toast } from "sonner";
 import { IconFileTypePdf, IconRefresh } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
 import { formatReportAmount } from "@/lib/reports/format-amount";
+import { cycleLabel } from "@/lib/cycle";
 import { useTranslations } from "next-intl";
 
 type CashierReportData = {
@@ -33,6 +34,7 @@ type CashierReportData = {
   outflowTotal: number;
   periodBalance: number;
   balance: number;
+  byCycle?: Array<{ cycle: string; amount: number }>;
   payments: Array<{
     id: string;
     amount: number;
@@ -289,6 +291,7 @@ export default function CashierReport({
             {error}
           </div>
         ) : report ? (
+          <>
           <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
             <MetricCard
               label={t("cashier.openingBalance")}
@@ -324,6 +327,24 @@ export default function CashierReport({
               delayClass="animate-delay-225"
             />
           </div>
+          {report.byCycle && report.byCycle.length > 1 ? (
+            <div className="grid gap-2 md:grid-cols-3">
+              {report.byCycle.map((item) => (
+                <div
+                  key={item.cycle}
+                  className="rounded-xl border bg-muted/40 px-3 py-2"
+                >
+                  <p className="text-xs text-muted-foreground">
+                    {cycleLabel(item.cycle)}
+                  </p>
+                  <p className="text-sm font-semibold tabular-nums">
+                    {formatReportAmount(item.amount, baseCurrency)}
+                  </p>
+                </div>
+              ))}
+            </div>
+          ) : null}
+          </>
         ) : (
           <div className="py-4 text-sm text-muted-foreground">
             {t("cashier.noData")}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { IconChevronsLeft, IconMenu2, IconX } from "@tabler/icons-react";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
@@ -13,6 +13,7 @@ import Nav from "./nav";
 import { cn, getBranchImage, normalizeImageSrc } from "@/lib/utils";
 import { authClient } from "@/lib/auth-client";
 import { buildStaticSideLinks } from "@/lib/sidebar-menu";
+import { getBranchCycles, type Cycle } from "@/lib/cycle";
 import { getBranchNameAction } from "@/app/admin/organizations/[organizationId]/branches/(no-layout)/branche.action";
 import { NotificationBell } from "@/components/notification-bell";
 import { OwnerBranchesLink } from "@/components/owner-branches-link";
@@ -37,10 +38,18 @@ export default function Sidebar({
   const [branchName, setBranchName] = useState<string | null>(null);
   const [branchLogo, setBranchLogo] = useState<string | null>(null);
   const [branchType, setBranchType] = useState<unknown>(undefined);
+  const [branchCycles, setBranchCycles] = useState<Cycle[] | undefined>(
+    undefined,
+  );
   const [branchLoaded, setBranchLoaded] = useState(false);
   const { data: session } = authClient.useSession();
   const tNav = useTranslations("nav");
-  const rawLinks = buildStaticSideLinks(session, pathname, branchType);
+  const rawLinks = buildStaticSideLinks(
+    session,
+    pathname,
+    branchType,
+    branchCycles ?? branchType,
+  );
   const links = useMemo(() => {
     const translate = (items: SideLink[]): SideLink[] =>
       items.map((item) => ({
@@ -53,18 +62,23 @@ export default function Sidebar({
   const branchId = pathname.match(
     /^\/admin\/organizations\/[^/]+\/branches\/([^/]+)/,
   )?.[1];
+  const previousBranchId = useRef<string | undefined>(undefined);
 
   useEffect(() => {
     if (!branchId) {
+      previousBranchId.current = undefined;
       setBranchName(null);
       setBranchLogo(null);
       setBranchType(undefined);
+      setBranchCycles(undefined);
       setBranchLoaded(true);
       return;
     }
 
     let ignore = false;
-    setBranchLoaded(false);
+    const switchedBranch = previousBranchId.current !== branchId;
+    previousBranchId.current = branchId;
+    if (switchedBranch) setBranchLoaded(false);
 
     getBranchNameAction(branchId)
       .then((branch) => {
@@ -73,6 +87,7 @@ export default function Sidebar({
         setBranchLogo(images.logo ?? null);
         setBranchName(branch?.name ?? null);
         setBranchType(branch?.typebranch);
+        setBranchCycles(branch ? getBranchCycles(branch) : undefined);
         setBranchLoaded(true);
       })
       .catch(() => {
@@ -80,13 +95,14 @@ export default function Sidebar({
         setBranchName(null);
         setBranchLogo(null);
         setBranchType(undefined);
+        setBranchCycles(undefined);
         setBranchLoaded(true);
       });
 
     return () => {
       ignore = true;
     };
-  }, [branchId]);
+  }, [branchId, pathname]);
 
   useEffect(() => {
     setNavOpened(false);

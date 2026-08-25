@@ -5,10 +5,12 @@ import { revalidatePath } from "next/cache";
 import { action } from "@/lib/zsa";
 import { IOption, optionSchema } from "@/src/interfaces/Option";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
-import { assertSectionOptionBranchFeatures } from "@/lib/branch-capabilities";
+import { assertSectionOptionBranchFeatures, usesSectionOptionForBranch } from "@/lib/branch-capabilities";
+import { anyCycle } from "@/lib/cycle";
 import { normalizeBranchType } from "@/lib/academic-structure";
 import { ensureSecondaryCtebStructure } from "@/lib/secondary-cteb-structure";
 import { ensurePrimaryAcademicStructure } from "@/lib/primary-academic-structure";
+import { ensureMaternelleAcademicStructure } from "@/lib/maternelle-academic-structure";
 import { z } from "zod";
 import {
   ensureUniqueIdentifier,
@@ -27,8 +29,10 @@ function revalidateOptionPages(organizationId: string, branchId: string) {
 export const createOptionAction = action
   .input(optionSchema)
   .handler(async ({ input }) => {
-    const { branchId, organizationId, typebranch } = await requireBranchContext();
-    assertSectionOptionBranchFeatures(typebranch);
+    const { branchId, organizationId, typebranch, cycles } = await requireBranchContext();
+    if (!anyCycle(cycles, usesSectionOptionForBranch)) {
+      assertSectionOptionBranchFeatures(typebranch);
+    }
     const { nameOption, sectionId } = input;
     const codeOption = await ensureUniqueIdentifier({
       base: generateCode(nameOption, "OPT", 16),
@@ -68,6 +72,7 @@ export const createOptionAction = action
         sectionId: sectionId ?? null,
         statusOption: true,
         branchId,
+        cycle: "SECONDAIRE",
       },
     });
 
@@ -179,13 +184,16 @@ export const deleteOptionAction = archiveOptionAction;
 /* ================= GET OPTIONS ================= */
 export const getOptionsAction = action.handler(async (): Promise<IOption[]> => {
   try {
-    const { branchId, typebranch } = await requireBranchContext();
+    const { branchId, typebranch, cycles } = await requireBranchContext();
     const normalized = normalizeBranchType(typebranch);
-    if (normalized === "SECONDAIRE") {
+    if (cycles.includes("SECONDAIRE") || normalized === "SECONDAIRE") {
       await ensureSecondaryCtebStructure(prisma, branchId);
     }
-    if (normalized === "PRIMAIRE") {
+    if (cycles.includes("PRIMAIRE")) {
       await ensurePrimaryAcademicStructure(prisma, branchId);
+    }
+    if (cycles.includes("MATERNELLE")) {
+      await ensureMaternelleAcademicStructure(prisma, branchId);
     }
     const options = await prisma.option.findMany({
       where: {

@@ -9,7 +9,8 @@ const branchImagesSchema = z.object({
   gallery: z.array(z.string()),
   ecole: z.array(z.string()),
 });
-export const createBranchFormSchema = z.object({
+
+export const createBranchFormObjectSchema = z.object({
   name: z
     .string()
     .trim()
@@ -59,6 +60,10 @@ export const createBranchFormSchema = z.object({
     .min(10, "Le rayon doit être au moins 10 mètres.")
     .max(10000, "Le rayon est trop grand."),
   typebranch: branchTypeSchema,
+  schoolCycles: z
+    .array(z.enum(["MATERNELLE", "PRIMAIRE", "SECONDAIRE"] as const))
+    .optional()
+    .default([]),
   educationSystem: z.enum(EDUCATION_SYSTEMS).default("CONGOLAIS"),
   image: branchImagesSchema.default({
     logo: "",
@@ -67,5 +72,27 @@ export const createBranchFormSchema = z.object({
     ecole: [],
   }),
 });
-export type CreateBranchFormValues = z.input<typeof createBranchFormSchema>;
-//export type CreateBranchFormValues = z.infer<typeof createBranchFormSchema>;
+
+export function refineBranchSchoolCycles(
+  data: { typebranch: string; schoolCycles?: string[] },
+  ctx: z.RefinementCtx,
+) {
+  const isExtended =
+    data.typebranch === "ATELIER" ||
+    data.typebranch === "CENTRE_FORMATION" ||
+    data.typebranch === "UNIVERSITE";
+  if (isExtended) return;
+  if (!data.schoolCycles?.length) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["schoolCycles"],
+      message:
+        "Choisissez au moins un cycle : maternelle, primaire ou secondaire.",
+    });
+  }
+}
+
+export const createBranchFormSchema = createBranchFormObjectSchema.superRefine(
+  refineBranchSchoolCycles,
+);
+export type CreateBranchFormValues = z.input<typeof createBranchFormObjectSchema>;

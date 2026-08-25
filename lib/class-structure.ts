@@ -32,6 +32,15 @@ export const PRIMARY_CLASS_LEVELS = [
   "6è",
 ] as const;
 
+/** Maternelle : Crèche + 1è–3è (name/code = Crèche | 1è-MATE …).
+ *  Suffixe MATE (pas MAT) : MAT est déjà l’abréviation Humanités Mathématiques-Physique. */
+export const MATERNELLE_CLASS_LEVELS = [
+  "Crèche",
+  "1è",
+  "2è",
+  "3è",
+] as const;
+
 /** Éducation de Base (CTEB) — option Tronc commun obligatoire. */
 export const SECONDARY_CTEB_LEVELS = ["7è", "8è"] as const;
 
@@ -68,12 +77,14 @@ export const SECONDARY_CLASS_LEVELS = [
 ] as const;
 
 export type PrimaryClassLevel = (typeof PRIMARY_CLASS_LEVELS)[number];
+export type MaternelleClassLevel = (typeof MATERNELLE_CLASS_LEVELS)[number];
 export type SecondaryClassLevel = (typeof SECONDARY_CLASS_LEVELS)[number];
 export type UniversityClassLevel = (typeof UNIVERSITY_CLASS_LEVELS)[number];
 export type TrainingClassLevel = (typeof TRAINING_CLASS_LEVELS)[number];
 export type WorkshopClassLevel = (typeof WORKSHOP_CLASS_LEVELS)[number];
 export type ClassLevel =
   | PrimaryClassLevel
+  | MaternelleClassLevel
   | SecondaryClassLevel
   | UniversityClassLevel
   | TrainingClassLevel
@@ -91,6 +102,9 @@ export function getClassLevelsForBranch(
   typebranch: unknown,
   educationSystem?: unknown,
 ): readonly string[] {
+  if (typebranch === "MATERNELLE") {
+    return MATERNELLE_CLASS_LEVELS;
+  }
   const branchType = normalizeBranchType(typebranch);
 
   switch (branchType) {
@@ -121,6 +135,9 @@ export function getClassLevelLabel(
   level: string,
   educationSystem?: unknown,
 ): string {
+  if (typebranch === "MATERNELLE") {
+    return level === "Crèche" ? "Crèche" : `${level}-MATE`;
+  }
   const branchType = normalizeBranchType(typebranch);
 
   if (isAngolaSecondarySystem(branchType, educationSystem)) {
@@ -166,6 +183,7 @@ export function requiresOptionForClass(
   level: string,
   educationSystem?: unknown,
 ): boolean {
+  if (typebranch === "MATERNELLE") return false;
   const branchType = normalizeBranchType(typebranch);
 
   if (isAngolaSecondarySystem(branchType, educationSystem)) {
@@ -191,6 +209,9 @@ export function requiresSectionForClass(
   level: string,
   educationSystem?: unknown,
 ): boolean {
+  if (typebranch === "MATERNELLE") {
+    return false;
+  }
   const branchType = normalizeBranchType(typebranch);
   if (branchType === "CENTRE_FORMATION" || branchType === "UNIVERSITE") {
     return Boolean(level?.trim());
@@ -202,6 +223,7 @@ export function requiresSectionForClass(
 }
 
 export function allowsOptionForBranch(typebranch: unknown): boolean {
+  if (typebranch === "MATERNELLE") return false;
   const branchType = normalizeBranchType(typebranch);
   return (
     branchType === "SECONDAIRE" ||
@@ -240,9 +262,17 @@ export type BuildClassIdentityInput = {
 };
 
 export function buildClassName(input: BuildClassIdentityInput): string {
-  const branchType = normalizeBranchType(input.typebranch);
+  const branchType =
+    input.typebranch === "MATERNELLE"
+      ? "MATERNELLE"
+      : normalizeBranchType(input.typebranch);
   const parallel = normalizeParallel(input.parallel);
   const level = input.level.trim();
+
+  if (branchType === "MATERNELLE") {
+    const base = level === "Crèche" ? "Crèche" : `${level}-MATE`;
+    return parallel ? `${base} ${parallel}` : base;
+  }
 
   if (branchType === "PRIMAIRE") {
     if (isAngolaPrimarySystem(branchType, input.educationSystem)) {
@@ -280,9 +310,18 @@ export function buildClassName(input: BuildClassIdentityInput): string {
 }
 
 export function buildClassCode(input: BuildClassIdentityInput): string {
-  const branchType = normalizeBranchType(input.typebranch);
+  const branchType =
+    input.typebranch === "MATERNELLE"
+      ? "MATERNELLE"
+      : normalizeBranchType(input.typebranch);
   const parallel = normalizeParallel(input.parallel);
   const level = input.level.trim();
+
+  if (branchType === "MATERNELLE") {
+    const parts = [level === "Crèche" ? "CRECHE" : `${level}-MATE`];
+    if (parallel) parts.push(parallel);
+    return parts.join("-");
+  }
 
   if (branchType === "PRIMAIRE") {
     if (isAngolaPrimarySystem(branchType, input.educationSystem)) {
@@ -347,7 +386,10 @@ export function validateClassInput(params: {
   optionId?: string;
   nameClasse?: string;
 } {
-  const branchType = normalizeBranchType(params.typebranch);
+  const branchType =
+    params.typebranch === "MATERNELLE"
+      ? "MATERNELLE"
+      : normalizeBranchType(params.typebranch);
 
   if (params.isLegacy) {
     const nameClasse = params.nameClasse?.trim();
@@ -357,9 +399,14 @@ export function validateClassInput(params: {
       );
     }
 
-    if (branchType === "PRIMAIRE" && params.optionId) {
+    if (
+      (branchType === "PRIMAIRE" || branchType === "MATERNELLE") &&
+      params.optionId
+    ) {
       throw new Error(
-        "Les classes primaires ne peuvent pas avoir d'option",
+        branchType === "MATERNELLE"
+          ? "Les classes maternelles ne peuvent pas avoir d'option"
+          : "Les classes primaires ne peuvent pas avoir d'option",
       );
     }
 
@@ -372,7 +419,9 @@ export function validateClassInput(params: {
     return {
       nameClasse,
       optionId:
-        branchType === "PRIMAIRE" || branchType === "ATELIER"
+        branchType === "PRIMAIRE" ||
+        branchType === "MATERNELLE" ||
+        branchType === "ATELIER"
           ? undefined
           : params.optionId ?? undefined,
     };
@@ -389,12 +438,19 @@ export function validateClassInput(params: {
       ? (normalizeAngolaPrimaryLevel(rawLevel) ?? rawLevel)
       : rawLevel;
 
-  if (!isValidClassLevel(branchType, level, params.educationSystem)) {
+  if (!isValidClassLevel(params.typebranch, level, params.educationSystem)) {
     throw new Error("Niveau de classe invalide pour cette branche");
   }
 
-  if (branchType === "PRIMAIRE" && params.optionId) {
-    throw new Error("Les classes primaires ne peuvent pas avoir d'option");
+  if (
+    (branchType === "PRIMAIRE" || branchType === "MATERNELLE") &&
+    params.optionId
+  ) {
+    throw new Error(
+      branchType === "MATERNELLE"
+        ? "Les classes maternelles ne peuvent pas avoir d'option"
+        : "Les classes primaires ne peuvent pas avoir d'option",
+    );
   }
 
   if (branchType === "ATELIER" && params.optionId) {
@@ -402,7 +458,7 @@ export function validateClassInput(params: {
   }
 
   if (
-    requiresOptionForClass(branchType, level, params.educationSystem) &&
+    requiresOptionForClass(params.typebranch, level, params.educationSystem) &&
     !params.optionId
   ) {
     throw new Error("Une option est requise pour ce niveau");

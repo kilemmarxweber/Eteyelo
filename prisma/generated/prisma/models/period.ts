@@ -44,6 +44,7 @@ export type PeriodMinAggregateOutputType = {
   semesterId: number | null
   gradesGenerated: boolean | null
   gradesGeneratedAt: Date | null
+  cycle: $Enums.Cycle | null
   branchId: string | null
 }
 
@@ -55,6 +56,7 @@ export type PeriodMaxAggregateOutputType = {
   semesterId: number | null
   gradesGenerated: boolean | null
   gradesGeneratedAt: Date | null
+  cycle: $Enums.Cycle | null
   branchId: string | null
 }
 
@@ -66,6 +68,7 @@ export type PeriodCountAggregateOutputType = {
   semesterId: number
   gradesGenerated: number
   gradesGeneratedAt: number
+  cycle: number
   branchId: number
   _all: number
 }
@@ -89,6 +92,7 @@ export type PeriodMinAggregateInputType = {
   semesterId?: true
   gradesGenerated?: true
   gradesGeneratedAt?: true
+  cycle?: true
   branchId?: true
 }
 
@@ -100,6 +104,7 @@ export type PeriodMaxAggregateInputType = {
   semesterId?: true
   gradesGenerated?: true
   gradesGeneratedAt?: true
+  cycle?: true
   branchId?: true
 }
 
@@ -111,6 +116,7 @@ export type PeriodCountAggregateInputType = {
   semesterId?: true
   gradesGenerated?: true
   gradesGeneratedAt?: true
+  cycle?: true
   branchId?: true
   _all?: true
 }
@@ -209,6 +215,7 @@ export type PeriodGroupByOutputType = {
   semesterId: number
   gradesGenerated: boolean
   gradesGeneratedAt: Date | null
+  cycle: $Enums.Cycle
   branchId: string
   _count: PeriodCountAggregateOutputType | null
   _avg: PeriodAvgAggregateOutputType | null
@@ -243,6 +250,7 @@ export type periodWhereInput = {
   semesterId?: Prisma.IntFilter<"period"> | number
   gradesGenerated?: Prisma.BoolFilter<"period"> | boolean
   gradesGeneratedAt?: Prisma.DateTimeNullableFilter<"period"> | Date | string | null
+  cycle?: Prisma.EnumCycleFilter<"period"> | $Enums.Cycle
   branchId?: Prisma.StringFilter<"period"> | string
   fiche?: Prisma.FicheListRelationFilter
   semester?: Prisma.XOR<Prisma.SemesterScalarRelationFilter, Prisma.semesterWhereInput>
@@ -259,6 +267,7 @@ export type periodOrderByWithRelationInput = {
   semesterId?: Prisma.SortOrder
   gradesGenerated?: Prisma.SortOrder
   gradesGeneratedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  cycle?: Prisma.SortOrder
   branchId?: Prisma.SortOrder
   fiche?: Prisma.ficheOrderByRelationAggregateInput
   semester?: Prisma.semesterOrderByWithRelationInput
@@ -269,7 +278,7 @@ export type periodOrderByWithRelationInput = {
 
 export type periodWhereUniqueInput = Prisma.AtLeast<{
   id?: number
-  branchId_semesterId_label?: Prisma.periodBranchIdSemesterIdLabelCompoundUniqueInput
+  branchId_cycle_semesterId_label?: Prisma.periodBranchIdCycleSemesterIdLabelCompoundUniqueInput
   AND?: Prisma.periodWhereInput | Prisma.periodWhereInput[]
   OR?: Prisma.periodWhereInput[]
   NOT?: Prisma.periodWhereInput | Prisma.periodWhereInput[]
@@ -279,13 +288,14 @@ export type periodWhereUniqueInput = Prisma.AtLeast<{
   semesterId?: Prisma.IntFilter<"period"> | number
   gradesGenerated?: Prisma.BoolFilter<"period"> | boolean
   gradesGeneratedAt?: Prisma.DateTimeNullableFilter<"period"> | Date | string | null
+  cycle?: Prisma.EnumCycleFilter<"period"> | $Enums.Cycle
   branchId?: Prisma.StringFilter<"period"> | string
   fiche?: Prisma.FicheListRelationFilter
   semester?: Prisma.XOR<Prisma.SemesterScalarRelationFilter, Prisma.semesterWhereInput>
   subject?: Prisma.CoursListRelationFilter
   grades?: Prisma.StudentGradeListRelationFilter
   branch?: Prisma.XOR<Prisma.BranchScalarRelationFilter, Prisma.BranchWhereInput>
-}, "id" | "branchId_semesterId_label">
+}, "id" | "branchId_cycle_semesterId_label">
 
 export type periodOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
@@ -295,6 +305,7 @@ export type periodOrderByWithAggregationInput = {
   semesterId?: Prisma.SortOrder
   gradesGenerated?: Prisma.SortOrder
   gradesGeneratedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  cycle?: Prisma.SortOrder
   branchId?: Prisma.SortOrder
   _count?: Prisma.periodCountOrderByAggregateInput
   _avg?: Prisma.periodAvgOrderByAggregateInput
@@ -314,6 +325,7 @@ export type periodScalarWhereWithAggregatesInput = {
   semesterId?: Prisma.IntWithAggregatesFilter<"period"> | number
   gradesGenerated?: Prisma.BoolWithAggregatesFilter<"period"> | boolean
   gradesGeneratedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"period"> | Date | string | null
+  cycle?: Prisma.EnumCycleWithAggregatesFilter<"period"> | $Enums.Cycle
   branchId?: Prisma.StringWithAggregatesFilter<"period"> | string
 }
 
@@ -323,6 +335,7 @@ export type periodCreateInput = {
   endDate: Date | string
   gradesGenerated?: boolean
   gradesGeneratedAt?: Date | string | null
+  cycle: $Enums.Cycle
   fiche?: Prisma.ficheCreateNestedManyWithoutPeriodInput
   semester: Prisma.semesterCreateNestedOneWithoutPeriodInput
   subject?: Prisma.CoursCreateNestedManyWithoutPeriodInput
@@ -338,6 +351,7 @@ export type periodUncheckedCreateInput = {
   semesterId: number
   gradesGenerated?: boolean
   gradesGeneratedAt?: Date | string | null
+  cycle: $Enums.Cycle
   branchId: string
   fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutPeriodInput
   subject?: Prisma.CoursUncheckedCreateNestedManyWithoutPeriodInput
@@ -350,6 +364,7 @@ export type periodUpdateInput = {
   endDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   gradesGenerated?: Prisma.BoolFieldUpdateOperationsInput | boolean
   gradesGeneratedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cycle?: Prisma.EnumCycleFieldUpdateOperationsInput | $Enums.Cycle
   fiche?: Prisma.ficheUpdateManyWithoutPeriodNestedInput
   semester?: Prisma.semesterUpdateOneRequiredWithoutPeriodNestedInput
   subject?: Prisma.CoursUpdateManyWithoutPeriodNestedInput
@@ -365,6 +380,7 @@ export type periodUncheckedUpdateInput = {
   semesterId?: Prisma.IntFieldUpdateOperationsInput | number
   gradesGenerated?: Prisma.BoolFieldUpdateOperationsInput | boolean
   gradesGeneratedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cycle?: Prisma.EnumCycleFieldUpdateOperationsInput | $Enums.Cycle
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
   fiche?: Prisma.ficheUncheckedUpdateManyWithoutPeriodNestedInput
   subject?: Prisma.CoursUncheckedUpdateManyWithoutPeriodNestedInput
@@ -379,6 +395,7 @@ export type periodCreateManyInput = {
   semesterId: number
   gradesGenerated?: boolean
   gradesGeneratedAt?: Date | string | null
+  cycle: $Enums.Cycle
   branchId: string
 }
 
@@ -388,6 +405,7 @@ export type periodUpdateManyMutationInput = {
   endDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   gradesGenerated?: Prisma.BoolFieldUpdateOperationsInput | boolean
   gradesGeneratedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cycle?: Prisma.EnumCycleFieldUpdateOperationsInput | $Enums.Cycle
 }
 
 export type periodUncheckedUpdateManyInput = {
@@ -398,6 +416,7 @@ export type periodUncheckedUpdateManyInput = {
   semesterId?: Prisma.IntFieldUpdateOperationsInput | number
   gradesGenerated?: Prisma.BoolFieldUpdateOperationsInput | boolean
   gradesGeneratedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cycle?: Prisma.EnumCycleFieldUpdateOperationsInput | $Enums.Cycle
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
 }
 
@@ -416,8 +435,9 @@ export type periodOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
 }
 
-export type periodBranchIdSemesterIdLabelCompoundUniqueInput = {
+export type periodBranchIdCycleSemesterIdLabelCompoundUniqueInput = {
   branchId: string
+  cycle: $Enums.Cycle
   semesterId: number
   label: string
 }
@@ -430,6 +450,7 @@ export type periodCountOrderByAggregateInput = {
   semesterId?: Prisma.SortOrder
   gradesGenerated?: Prisma.SortOrder
   gradesGeneratedAt?: Prisma.SortOrder
+  cycle?: Prisma.SortOrder
   branchId?: Prisma.SortOrder
 }
 
@@ -446,6 +467,7 @@ export type periodMaxOrderByAggregateInput = {
   semesterId?: Prisma.SortOrder
   gradesGenerated?: Prisma.SortOrder
   gradesGeneratedAt?: Prisma.SortOrder
+  cycle?: Prisma.SortOrder
   branchId?: Prisma.SortOrder
 }
 
@@ -457,6 +479,7 @@ export type periodMinOrderByAggregateInput = {
   semesterId?: Prisma.SortOrder
   gradesGenerated?: Prisma.SortOrder
   gradesGeneratedAt?: Prisma.SortOrder
+  cycle?: Prisma.SortOrder
   branchId?: Prisma.SortOrder
 }
 
@@ -621,6 +644,7 @@ export type periodCreateWithoutGradesInput = {
   endDate: Date | string
   gradesGenerated?: boolean
   gradesGeneratedAt?: Date | string | null
+  cycle: $Enums.Cycle
   fiche?: Prisma.ficheCreateNestedManyWithoutPeriodInput
   semester: Prisma.semesterCreateNestedOneWithoutPeriodInput
   subject?: Prisma.CoursCreateNestedManyWithoutPeriodInput
@@ -635,6 +659,7 @@ export type periodUncheckedCreateWithoutGradesInput = {
   semesterId: number
   gradesGenerated?: boolean
   gradesGeneratedAt?: Date | string | null
+  cycle: $Enums.Cycle
   branchId: string
   fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutPeriodInput
   subject?: Prisma.CoursUncheckedCreateNestedManyWithoutPeriodInput
@@ -662,6 +687,7 @@ export type periodUpdateWithoutGradesInput = {
   endDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   gradesGenerated?: Prisma.BoolFieldUpdateOperationsInput | boolean
   gradesGeneratedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cycle?: Prisma.EnumCycleFieldUpdateOperationsInput | $Enums.Cycle
   fiche?: Prisma.ficheUpdateManyWithoutPeriodNestedInput
   semester?: Prisma.semesterUpdateOneRequiredWithoutPeriodNestedInput
   subject?: Prisma.CoursUpdateManyWithoutPeriodNestedInput
@@ -676,6 +702,7 @@ export type periodUncheckedUpdateWithoutGradesInput = {
   semesterId?: Prisma.IntFieldUpdateOperationsInput | number
   gradesGenerated?: Prisma.BoolFieldUpdateOperationsInput | boolean
   gradesGeneratedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cycle?: Prisma.EnumCycleFieldUpdateOperationsInput | $Enums.Cycle
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
   fiche?: Prisma.ficheUncheckedUpdateManyWithoutPeriodNestedInput
   subject?: Prisma.CoursUncheckedUpdateManyWithoutPeriodNestedInput
@@ -687,6 +714,7 @@ export type periodCreateWithoutSubjectInput = {
   endDate: Date | string
   gradesGenerated?: boolean
   gradesGeneratedAt?: Date | string | null
+  cycle: $Enums.Cycle
   fiche?: Prisma.ficheCreateNestedManyWithoutPeriodInput
   semester: Prisma.semesterCreateNestedOneWithoutPeriodInput
   grades?: Prisma.StudentGradeCreateNestedManyWithoutPeriodInput
@@ -701,6 +729,7 @@ export type periodUncheckedCreateWithoutSubjectInput = {
   semesterId: number
   gradesGenerated?: boolean
   gradesGeneratedAt?: Date | string | null
+  cycle: $Enums.Cycle
   branchId: string
   fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutPeriodInput
   grades?: Prisma.StudentGradeUncheckedCreateNestedManyWithoutPeriodInput
@@ -738,6 +767,7 @@ export type periodScalarWhereInput = {
   semesterId?: Prisma.IntFilter<"period"> | number
   gradesGenerated?: Prisma.BoolFilter<"period"> | boolean
   gradesGeneratedAt?: Prisma.DateTimeNullableFilter<"period"> | Date | string | null
+  cycle?: Prisma.EnumCycleFilter<"period"> | $Enums.Cycle
   branchId?: Prisma.StringFilter<"period"> | string
 }
 
@@ -747,6 +777,7 @@ export type periodCreateWithoutSemesterInput = {
   endDate: Date | string
   gradesGenerated?: boolean
   gradesGeneratedAt?: Date | string | null
+  cycle: $Enums.Cycle
   fiche?: Prisma.ficheCreateNestedManyWithoutPeriodInput
   subject?: Prisma.CoursCreateNestedManyWithoutPeriodInput
   grades?: Prisma.StudentGradeCreateNestedManyWithoutPeriodInput
@@ -760,6 +791,7 @@ export type periodUncheckedCreateWithoutSemesterInput = {
   endDate: Date | string
   gradesGenerated?: boolean
   gradesGeneratedAt?: Date | string | null
+  cycle: $Enums.Cycle
   branchId: string
   fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutPeriodInput
   subject?: Prisma.CoursUncheckedCreateNestedManyWithoutPeriodInput
@@ -798,6 +830,7 @@ export type periodCreateWithoutFicheInput = {
   endDate: Date | string
   gradesGenerated?: boolean
   gradesGeneratedAt?: Date | string | null
+  cycle: $Enums.Cycle
   semester: Prisma.semesterCreateNestedOneWithoutPeriodInput
   subject?: Prisma.CoursCreateNestedManyWithoutPeriodInput
   grades?: Prisma.StudentGradeCreateNestedManyWithoutPeriodInput
@@ -812,6 +845,7 @@ export type periodUncheckedCreateWithoutFicheInput = {
   semesterId: number
   gradesGenerated?: boolean
   gradesGeneratedAt?: Date | string | null
+  cycle: $Enums.Cycle
   branchId: string
   subject?: Prisma.CoursUncheckedCreateNestedManyWithoutPeriodInput
   grades?: Prisma.StudentGradeUncheckedCreateNestedManyWithoutPeriodInput
@@ -839,6 +873,7 @@ export type periodUpdateWithoutFicheInput = {
   endDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   gradesGenerated?: Prisma.BoolFieldUpdateOperationsInput | boolean
   gradesGeneratedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cycle?: Prisma.EnumCycleFieldUpdateOperationsInput | $Enums.Cycle
   semester?: Prisma.semesterUpdateOneRequiredWithoutPeriodNestedInput
   subject?: Prisma.CoursUpdateManyWithoutPeriodNestedInput
   grades?: Prisma.StudentGradeUpdateManyWithoutPeriodNestedInput
@@ -853,6 +888,7 @@ export type periodUncheckedUpdateWithoutFicheInput = {
   semesterId?: Prisma.IntFieldUpdateOperationsInput | number
   gradesGenerated?: Prisma.BoolFieldUpdateOperationsInput | boolean
   gradesGeneratedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cycle?: Prisma.EnumCycleFieldUpdateOperationsInput | $Enums.Cycle
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
   subject?: Prisma.CoursUncheckedUpdateManyWithoutPeriodNestedInput
   grades?: Prisma.StudentGradeUncheckedUpdateManyWithoutPeriodNestedInput
@@ -864,6 +900,7 @@ export type periodCreateWithoutBranchInput = {
   endDate: Date | string
   gradesGenerated?: boolean
   gradesGeneratedAt?: Date | string | null
+  cycle: $Enums.Cycle
   fiche?: Prisma.ficheCreateNestedManyWithoutPeriodInput
   semester: Prisma.semesterCreateNestedOneWithoutPeriodInput
   subject?: Prisma.CoursCreateNestedManyWithoutPeriodInput
@@ -878,6 +915,7 @@ export type periodUncheckedCreateWithoutBranchInput = {
   semesterId: number
   gradesGenerated?: boolean
   gradesGeneratedAt?: Date | string | null
+  cycle: $Enums.Cycle
   fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutPeriodInput
   subject?: Prisma.CoursUncheckedCreateNestedManyWithoutPeriodInput
   grades?: Prisma.StudentGradeUncheckedCreateNestedManyWithoutPeriodInput
@@ -915,6 +953,7 @@ export type periodUpdateWithoutSubjectInput = {
   endDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   gradesGenerated?: Prisma.BoolFieldUpdateOperationsInput | boolean
   gradesGeneratedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cycle?: Prisma.EnumCycleFieldUpdateOperationsInput | $Enums.Cycle
   fiche?: Prisma.ficheUpdateManyWithoutPeriodNestedInput
   semester?: Prisma.semesterUpdateOneRequiredWithoutPeriodNestedInput
   grades?: Prisma.StudentGradeUpdateManyWithoutPeriodNestedInput
@@ -929,6 +968,7 @@ export type periodUncheckedUpdateWithoutSubjectInput = {
   semesterId?: Prisma.IntFieldUpdateOperationsInput | number
   gradesGenerated?: Prisma.BoolFieldUpdateOperationsInput | boolean
   gradesGeneratedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cycle?: Prisma.EnumCycleFieldUpdateOperationsInput | $Enums.Cycle
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
   fiche?: Prisma.ficheUncheckedUpdateManyWithoutPeriodNestedInput
   grades?: Prisma.StudentGradeUncheckedUpdateManyWithoutPeriodNestedInput
@@ -942,6 +982,7 @@ export type periodUncheckedUpdateManyWithoutSubjectInput = {
   semesterId?: Prisma.IntFieldUpdateOperationsInput | number
   gradesGenerated?: Prisma.BoolFieldUpdateOperationsInput | boolean
   gradesGeneratedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cycle?: Prisma.EnumCycleFieldUpdateOperationsInput | $Enums.Cycle
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
 }
 
@@ -952,6 +993,7 @@ export type periodCreateManySemesterInput = {
   endDate: Date | string
   gradesGenerated?: boolean
   gradesGeneratedAt?: Date | string | null
+  cycle: $Enums.Cycle
   branchId: string
 }
 
@@ -961,6 +1003,7 @@ export type periodUpdateWithoutSemesterInput = {
   endDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   gradesGenerated?: Prisma.BoolFieldUpdateOperationsInput | boolean
   gradesGeneratedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cycle?: Prisma.EnumCycleFieldUpdateOperationsInput | $Enums.Cycle
   fiche?: Prisma.ficheUpdateManyWithoutPeriodNestedInput
   subject?: Prisma.CoursUpdateManyWithoutPeriodNestedInput
   grades?: Prisma.StudentGradeUpdateManyWithoutPeriodNestedInput
@@ -974,6 +1017,7 @@ export type periodUncheckedUpdateWithoutSemesterInput = {
   endDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   gradesGenerated?: Prisma.BoolFieldUpdateOperationsInput | boolean
   gradesGeneratedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cycle?: Prisma.EnumCycleFieldUpdateOperationsInput | $Enums.Cycle
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
   fiche?: Prisma.ficheUncheckedUpdateManyWithoutPeriodNestedInput
   subject?: Prisma.CoursUncheckedUpdateManyWithoutPeriodNestedInput
@@ -987,6 +1031,7 @@ export type periodUncheckedUpdateManyWithoutSemesterInput = {
   endDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   gradesGenerated?: Prisma.BoolFieldUpdateOperationsInput | boolean
   gradesGeneratedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cycle?: Prisma.EnumCycleFieldUpdateOperationsInput | $Enums.Cycle
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
 }
 
@@ -998,6 +1043,7 @@ export type periodCreateManyBranchInput = {
   semesterId: number
   gradesGenerated?: boolean
   gradesGeneratedAt?: Date | string | null
+  cycle: $Enums.Cycle
 }
 
 export type periodUpdateWithoutBranchInput = {
@@ -1006,6 +1052,7 @@ export type periodUpdateWithoutBranchInput = {
   endDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   gradesGenerated?: Prisma.BoolFieldUpdateOperationsInput | boolean
   gradesGeneratedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cycle?: Prisma.EnumCycleFieldUpdateOperationsInput | $Enums.Cycle
   fiche?: Prisma.ficheUpdateManyWithoutPeriodNestedInput
   semester?: Prisma.semesterUpdateOneRequiredWithoutPeriodNestedInput
   subject?: Prisma.CoursUpdateManyWithoutPeriodNestedInput
@@ -1020,6 +1067,7 @@ export type periodUncheckedUpdateWithoutBranchInput = {
   semesterId?: Prisma.IntFieldUpdateOperationsInput | number
   gradesGenerated?: Prisma.BoolFieldUpdateOperationsInput | boolean
   gradesGeneratedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cycle?: Prisma.EnumCycleFieldUpdateOperationsInput | $Enums.Cycle
   fiche?: Prisma.ficheUncheckedUpdateManyWithoutPeriodNestedInput
   subject?: Prisma.CoursUncheckedUpdateManyWithoutPeriodNestedInput
   grades?: Prisma.StudentGradeUncheckedUpdateManyWithoutPeriodNestedInput
@@ -1033,6 +1081,7 @@ export type periodUncheckedUpdateManyWithoutBranchInput = {
   semesterId?: Prisma.IntFieldUpdateOperationsInput | number
   gradesGenerated?: Prisma.BoolFieldUpdateOperationsInput | boolean
   gradesGeneratedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cycle?: Prisma.EnumCycleFieldUpdateOperationsInput | $Enums.Cycle
 }
 
 
@@ -1092,6 +1141,7 @@ export type periodSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   semesterId?: boolean
   gradesGenerated?: boolean
   gradesGeneratedAt?: boolean
+  cycle?: boolean
   branchId?: boolean
   fiche?: boolean | Prisma.period$ficheArgs<ExtArgs>
   semester?: boolean | Prisma.semesterDefaultArgs<ExtArgs>
@@ -1109,6 +1159,7 @@ export type periodSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extens
   semesterId?: boolean
   gradesGenerated?: boolean
   gradesGeneratedAt?: boolean
+  cycle?: boolean
   branchId?: boolean
   semester?: boolean | Prisma.semesterDefaultArgs<ExtArgs>
   branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
@@ -1122,6 +1173,7 @@ export type periodSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extens
   semesterId?: boolean
   gradesGenerated?: boolean
   gradesGeneratedAt?: boolean
+  cycle?: boolean
   branchId?: boolean
   semester?: boolean | Prisma.semesterDefaultArgs<ExtArgs>
   branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
@@ -1135,10 +1187,11 @@ export type periodSelectScalar = {
   semesterId?: boolean
   gradesGenerated?: boolean
   gradesGeneratedAt?: boolean
+  cycle?: boolean
   branchId?: boolean
 }
 
-export type periodOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "label" | "startDate" | "endDate" | "semesterId" | "gradesGenerated" | "gradesGeneratedAt" | "branchId", ExtArgs["result"]["period"]>
+export type periodOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "label" | "startDate" | "endDate" | "semesterId" | "gradesGenerated" | "gradesGeneratedAt" | "cycle" | "branchId", ExtArgs["result"]["period"]>
 export type periodInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   fiche?: boolean | Prisma.period$ficheArgs<ExtArgs>
   semester?: boolean | Prisma.semesterDefaultArgs<ExtArgs>
@@ -1173,6 +1226,7 @@ export type $periodPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     semesterId: number
     gradesGenerated: boolean
     gradesGeneratedAt: Date | null
+    cycle: $Enums.Cycle
     branchId: string
   }, ExtArgs["result"]["period"]>
   composites: {}
@@ -1609,6 +1663,7 @@ export interface periodFieldRefs {
   readonly semesterId: Prisma.FieldRef<"period", 'Int'>
   readonly gradesGenerated: Prisma.FieldRef<"period", 'Boolean'>
   readonly gradesGeneratedAt: Prisma.FieldRef<"period", 'DateTime'>
+  readonly cycle: Prisma.FieldRef<"period", 'Cycle'>
   readonly branchId: Prisma.FieldRef<"period", 'String'>
 }
     

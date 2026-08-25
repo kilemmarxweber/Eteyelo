@@ -3,38 +3,35 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import {
-  IconChevronLeft,
-  IconChevronRight,
   IconSearch,
 } from "@tabler/icons-react";
 import { toast } from "sonner";
 
 import { useAppRouter as useRouter } from "@/hooks/use-app-router";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useRefresh } from "@/src/hooks/RefreshContext";
 
 import { getFraisClassSidebarAction } from "../frais.action";
+import { cycleLabel } from "@/lib/cycle";
 
 type SidebarClass = {
   id: string;
   nameClasse: string;
   codeClasse: string;
+  cycle?: string | null;
+  level?: string | null;
   optionName: string;
   sectionName: string;
   activeFraisCount: number;
 };
-
-const PAGE_SIZE = 8;
 
 export function OptionSidebar() {
   const [classes, setClasses] = useState<SidebarClass[]>([]);
   const [schoolYearName, setSchoolYearName] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [page, setPage] = useState(0);
   const router = useRouter();
   const { refreshKey } = useRefresh();
   const params = useParams<{
@@ -71,12 +68,18 @@ export function OptionSidebar() {
     [classes, search],
   );
 
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  const safePage = Math.min(page, totalPages - 1);
-  const paginated = filtered.slice(
-    safePage * PAGE_SIZE,
-    safePage * PAGE_SIZE + PAGE_SIZE,
-  );
+  const grouped = useMemo(() => {
+    const map = new Map<string, SidebarClass[]>();
+    for (const classe of filtered) {
+      const key = classe.cycle ?? "";
+      const current = map.get(key) ?? [];
+      current.push(classe);
+      map.set(key, current);
+    }
+    return Array.from(map.entries()).sort(([a], [b]) =>
+      cycleLabel(a || "SECONDAIRE").localeCompare(cycleLabel(b || "SECONDAIRE"), "fr"),
+    );
+  }, [filtered]);
 
   function selectClass(classId: string) {
     router.push(
@@ -103,7 +106,6 @@ export function OptionSidebar() {
             value={search}
             onChange={(event) => {
               setSearch(event.target.value);
-              setPage(0);
             }}
             placeholder="Rechercher une classe..."
             className="h-9 pl-9"
@@ -116,81 +118,67 @@ export function OptionSidebar() {
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto p-2">
-        {paginated.map((classe) => {
-          const active = params.classeId === classe.id;
-          const hasFees = classe.activeFraisCount > 0;
+        {grouped.map(([cycle, items]) => (
+          <div key={cycle || "default"} className="mb-3">
+            {grouped.length > 1 ? (
+              <p className="mb-1 px-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                {cycle ? cycleLabel(cycle) : "Autres"}
+              </p>
+            ) : null}
+            {items.map((classe) => {
+              const active = params.classeId === classe.id;
+              const hasFees = classe.activeFraisCount > 0;
 
-          return (
-            <button
-              key={classe.id}
-              type="button"
-              onClick={() => selectClass(classe.id)}
-              className={`mb-1.5 w-full rounded-xl border p-3 text-left transition ${
-                active
-                  ? "border-primary bg-primary/5 shadow-sm"
-                  : "border-border/80 hover:border-blue-200 hover:bg-muted/60"
-              }`}
-            >
-              <div className="flex items-start justify-between gap-2">
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-semibold text-foreground">
-                    {classe.nameClasse}
-                  </p>
-                  <p className="mt-0.5 truncate text-xs text-muted-foreground">
-                    {classe.codeClasse}
-                    {classe.sectionName || classe.optionName
-                      ? ` · ${[classe.sectionName, classe.optionName].filter(Boolean).join(" · ")}`
-                      : ""}
-                  </p>
-                </div>
-
-                <Badge
-                  variant={hasFees ? "success" : "secondary"}
-                  className="shrink-0"
+              return (
+                <button
+                  key={classe.id}
+                  type="button"
+                  onClick={() => selectClass(classe.id)}
+                  className={`mb-1.5 w-full rounded-xl border p-3 text-left transition ${
+                    active
+                      ? "border-primary bg-primary/5 shadow-sm"
+                      : "border-border/80 hover:border-blue-200 hover:bg-muted/60"
+                  }`}
                 >
-                  {classe.activeFraisCount} frais
-                </Badge>
-              </div>
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold text-foreground">
+                        {classe.nameClasse}
+                      </p>
+                      <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                        {classe.codeClasse}
+                        {classe.sectionName || classe.optionName
+                          ? ` · ${[classe.sectionName, classe.optionName].filter(Boolean).join(" · ")}`
+                          : ""}
+                      </p>
+                    </div>
 
-              {active ? (
-                <p className="mt-2 text-[11px] font-medium text-primary">
-                  Classe sélectionnée
-                </p>
-              ) : null}
-            </button>
-          );
-        })}
+                    <Badge
+                      variant={hasFees ? "success" : "secondary"}
+                      className="shrink-0"
+                    >
+                      {classe.activeFraisCount} frais
+                    </Badge>
+                  </div>
 
-        {!paginated.length ? (
+                  {active ? (
+                    <p className="mt-2 text-[11px] font-medium text-primary">
+                      Classe sélectionnée
+                    </p>
+                  ) : null}
+                </button>
+              );
+            })}
+          </div>
+        ))}
+
+        {!filtered.length ? (
           <p className="p-4 text-center text-sm text-muted-foreground">
             Aucune classe trouvée.
           </p>
         ) : null}
       </div>
-
-      <div className="flex items-center justify-between border-t p-2">
-        <Button
-          type="button"
-          size="icon"
-          variant="ghost"
-          disabled={safePage === 0}
-          onClick={() => setPage((value) => Math.max(0, value - 1))}
-        >
-          <IconChevronLeft className="size-4" />
-        </Button>
-        <span className="text-xs text-muted-foreground">
-          Page {safePage + 1}/{totalPages}
-        </span>
-        <Button
-          type="button"
-          size="icon"
-          variant="ghost"
-          disabled={safePage + 1 >= totalPages}
-          onClick={() => setPage((value) => value + 1)}
-        >
-          <IconChevronRight className="size-4" />
-        </Button>
-      </div>
     </div>
   );
 }
+

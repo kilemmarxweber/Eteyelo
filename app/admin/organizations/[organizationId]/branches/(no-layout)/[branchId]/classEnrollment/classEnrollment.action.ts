@@ -34,6 +34,7 @@ export const createClassEnrollmentAction = action
           id: true,
           level: true,
           optionId: true,
+          cycle: true,
           option: { select: { nameOption: true } },
         },
       }),
@@ -74,6 +75,7 @@ export const createClassEnrollmentAction = action
               optionId: requestedClass.optionId,
               typebranch,
               optionName: requestedClass.option?.nameOption ?? null,
+              cycle: requestedClass.cycle,
             });
 
             if (!availableClass) {

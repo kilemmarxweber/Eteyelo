@@ -9,6 +9,8 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { BranchStatCard } from "@/components/ui/branch-stat-card";
+import { CycleStatChips } from "@/components/branch/branch-type-badge";
+import type { DashboardCycleStat } from "@/lib/cycle";
 import {
   IconUsers,
   IconSchool,
@@ -27,7 +29,7 @@ import {
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
-import { formatReportAmountCurrencyFirst } from "@/lib/reports/format-amount";
+import { formatReportAmountCurrencyFirst, formatReportNumber } from "@/lib/reports/format-amount";
 import { cn } from "@/lib/utils";
 import type { DashboardShortcut } from "./dashboard-shortcuts";
 
@@ -158,6 +160,7 @@ type SchoolStatsProps = {
   revenueChange?: number;
   selectedRatePair?: string | null;
   baseCurrency?: string | null;
+  byCycle?: DashboardCycleStat[] | null;
 };
 
 export function SchoolStatsSection({
@@ -180,8 +183,10 @@ export function SchoolStatsSection({
   revenueChange,
   selectedRatePair,
   baseCurrency,
+  byCycle,
 }: SchoolStatsProps) {
   const t = useTranslations("dashboard");
+  const cycleBreakdown = (byCycle ?? []).length > 1 ? byCycle : null;
   return (
     <div
       className={cn(
@@ -197,6 +202,16 @@ export function SchoolStatsSection({
           change: formatSignedPercent(studentChange),
         })}
         icon={IconUsers}
+        footer={
+          !loading && cycleBreakdown ? (
+            <CycleStatChips
+              items={cycleBreakdown.map((item) => ({
+                cycle: item.cycle,
+                count: item.students,
+              }))}
+            />
+          ) : null
+        }
       />
       <BranchStatCard
         label={teacherLabel}
@@ -206,6 +221,16 @@ export function SchoolStatsSection({
           change: formatSignedPercent(teacherChange),
         })}
         icon={IconChalkboardTeacher}
+        footer={
+          !loading && cycleBreakdown ? (
+            <CycleStatChips
+              items={cycleBreakdown.map((item) => ({
+                cycle: item.cycle,
+                count: item.teachers,
+              }))}
+            />
+          ) : null
+        }
       />
       <BranchStatCard
         label={classLabelPlural}
@@ -215,6 +240,16 @@ export function SchoolStatsSection({
           change: formatSignedPercent(classChange),
         })}
         icon={IconSchool}
+        footer={
+          !loading && cycleBreakdown ? (
+            <CycleStatChips
+              items={cycleBreakdown.map((item) => ({
+                cycle: item.cycle,
+                count: item.classes,
+              }))}
+            />
+          ) : null
+        }
       />
       {showRevenue ? (
         <BranchStatCard
@@ -238,6 +273,23 @@ export function SchoolStatsSection({
               : `${formatSignedPercent(revenueChange)} ${t("vsLastMonth")}`
           }
           icon={IconCurrencyDollar}
+          footer={
+            !loading && cycleBreakdown ? (
+              <CycleStatChips
+                compact
+                items={cycleBreakdown.map((item) => ({
+                  cycle: item.cycle,
+                  count: item.revenue,
+                }))}
+                formatCount={(count) =>
+                  formatReportNumber(
+                    count,
+                    revenueCurrency ?? baseCurrency ?? "USD",
+                  )
+                }
+              />
+            ) : null
+          }
         />
       ) : null}
     </div>

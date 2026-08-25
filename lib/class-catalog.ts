@@ -152,6 +152,48 @@ export const CLASS_CATALOG_OPTIONS: ClassCatalogOption[] = [
 export const CTEB_OPTION_CODE = "TRONC-COM";
 export const CTEB_SECTION_CODE = "CTEB";
 
+function foldLatin(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+}
+
+export function isCtebSection(section: {
+  codeSection?: string | null;
+  nameSection?: string | null;
+}): boolean {
+  const code = (section.codeSection ?? "").trim().toUpperCase();
+  if (code === CTEB_SECTION_CODE || code === "EB" || code === "EDB") {
+    return true;
+  }
+  const name = foldLatin(section.nameSection ?? "");
+  return (
+    name.includes("cteb") ||
+    name.includes("education de base") ||
+    name.includes("educacao de base")
+  );
+}
+
+export function isCtebOption(option: {
+  codeOption?: string | null;
+  nameOption?: string | null;
+}): boolean {
+  const code = (option.codeOption ?? "").trim().toUpperCase();
+  if (
+    code === CTEB_OPTION_CODE ||
+    code === "TC" ||
+    code === "TRONC" ||
+    code === "TRONC_COM" ||
+    code === "TRONCCOM"
+  ) {
+    return true;
+  }
+  const name = foldLatin(option.nameOption ?? "");
+  return name.includes("tronc commun") || name.includes("tronco comum");
+}
+
 export function getCatalogOptionByCode(code: string) {
   return CLASS_CATALOG_OPTIONS.find((o) => o.codeOption === code);
 }

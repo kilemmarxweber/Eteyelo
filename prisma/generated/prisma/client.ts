@@ -292,6 +292,11 @@ export type Invitation = Prisma.InvitationModel
  */
 export type Branch = Prisma.BranchModel
 /**
+ * Model BranchCycle
+ * Cycles scolaires activés sur une branche. Aucune ligne = mono-cycle (= typebranch).
+ */
+export type BranchCycle = Prisma.BranchCycleModel
+/**
  * Model BranchPrimaryDomain
  * Domaines du bulletin primaire (par branche) — créables / modifiables
  */

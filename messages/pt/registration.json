@@ -6,6 +6,7 @@
   "fourSteps": "Quatro etapas.",
   "requiredHint": "* = obrigatório",
   "chooseClassHint": "Escolha o(a) {classLabel} pedido(a).",
+  "chooseCycleHint": "Escolha primeiro o tipo de estabelecimento (maternal, primário ou secundário).",
   "steps": {
     "student": "Aluno",
     "parent": "Encarregado",
@@ -50,6 +51,7 @@
     "classCapacityRequired": "Capacidade do(a) {classLabel} *",
     "schoolYearRequired": "{yearLabel} *",
     "classLevelRequired": "{classLabel} / nível pedido *",
+    "cycleRequired": "Tipo de estabelecimento *",
     "sectionTrackRequired": "Secção (filiação) *",
     "optionRequired": "Opção *",
     "option": "Opção",
@@ -64,6 +66,7 @@
     "chooseVacation": "Escolher um horário",
     "searchParent": "Nome, email ou telemóvel do encarregado…",
     "chooseYear": "Escolher o ano",
+    "chooseCycle": "Escolher o tipo",
     "chooseClass": "Escolher o(a) {classLabel}",
     "chooseSection": "Escolher uma secção",
     "chooseOptionFirst": "Escolher primeiro uma secção",

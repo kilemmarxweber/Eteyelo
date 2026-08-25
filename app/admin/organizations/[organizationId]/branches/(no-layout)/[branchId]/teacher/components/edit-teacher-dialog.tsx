@@ -66,6 +66,7 @@ export function UpdateTeacherDialog({
                 email: teacher.email ?? "",
                 dateOfBirth: teacher.dateOfBirth,
                 address: teacher.address ?? "",
+                image: teacher.image ?? "",
                 estTitulaire: teacher.estTitulaire ?? false,
                 classeId: teacher.classeId ?? "",
                 coursId: teacher.coursId ?? "",

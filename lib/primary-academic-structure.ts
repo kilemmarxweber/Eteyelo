@@ -65,7 +65,7 @@ export async function ensurePrimaryAcademicStructure(
 ): Promise<PrimaryAcademicStructure> {
   let section = await db.section.findFirst({
     where: { branchId, nameSection: { equals: "PRIMAIRE", mode: "insensitive" } },
-    select: { id: true, nameSection: true },
+    select: { id: true, nameSection: true, cycle: true },
   });
   if (!section) {
     section = await db.section.create({
@@ -74,8 +74,15 @@ export async function ensurePrimaryAcademicStructure(
         codeSection: "PRIMAIRE",
         nameSection: "PRIMAIRE",
         statusSection: true,
+        cycle: "PRIMAIRE",
       },
-      select: { id: true, nameSection: true },
+      select: { id: true, nameSection: true, cycle: true },
+    });
+  } else if (section.cycle !== "PRIMAIRE") {
+    section = await db.section.update({
+      where: { id: section.id },
+      data: { cycle: "PRIMAIRE" },
+      select: { id: true, nameSection: true, cycle: true },
     });
   }
 
@@ -105,6 +112,7 @@ export async function ensurePrimaryAcademicStructure(
           codeOption,
           nameOption,
           statusOption: true,
+          cycle: "PRIMAIRE",
         },
         select: {
           id: true,
@@ -125,6 +133,7 @@ export async function ensurePrimaryAcademicStructure(
           codeOption,
           nameOption,
           statusOption: true,
+          cycle: "PRIMAIRE",
         },
         select: {
           id: true,
@@ -168,11 +177,15 @@ export async function ensurePrimaryAcademicStructure(
 
   // Réassigne chaque classe au niveau correspondant.
   const classes = await db.classe.findMany({
-    where: { branchId },
-    select: { id: true, level: true, nameClasse: true, optionId: true },
+    where: {
+      branchId,
+      OR: [{ cycle: "PRIMAIRE" }, { cycle: null, nameClasse: { contains: "-PR" } }],
+    },
+    select: { id: true, level: true, nameClasse: true, optionId: true, cycle: true },
   });
 
   for (const classe of classes) {
+    if (classe.cycle === "SECONDAIRE" || classe.cycle === "MATERNELLE") continue;
     const level = resolvePrimaryClassLevel({
       level: classe.level,
       nameClasse: classe.nameClasse,

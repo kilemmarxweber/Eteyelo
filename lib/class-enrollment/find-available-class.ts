@@ -8,6 +8,7 @@ type FindAvailableClassInput = {
   optionId: string | null;
   typebranch: unknown;
   optionName?: string | null;
+  cycle?: unknown;
 };
 
 /** Must run in the same transaction as the enrollment insert. */
@@ -20,6 +21,7 @@ export async function findAvailableClassForLevel(
     optionId,
     typebranch,
     optionName,
+    cycle,
   }: FindAvailableClassInput,
 ) {
   const classes = await tx.classe.findMany({
@@ -35,6 +37,7 @@ export async function findAvailableClassForLevel(
       level: true,
       parallel: true,
       optionId: true,
+      cycle: true,
       capacity: true,
       option: { select: { id: true, nameOption: true } },
       _count: {
@@ -48,7 +51,13 @@ export async function findAvailableClassForLevel(
   });
 
   const matchingClasses = classes.filter((classe) =>
-    matchesClassForLevel(classe, { typebranch, level, optionId, optionName }),
+    matchesClassForLevel(classe, {
+      typebranch,
+      level,
+      optionId,
+      optionName,
+      cycle,
+    }),
   );
 
   matchingClasses.sort((left, right) =>

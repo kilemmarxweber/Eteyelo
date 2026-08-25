@@ -42,6 +42,7 @@ export type TeacherLesson = {
   classId: string;
   className: string;
   codeclasse: string;
+  classCycle?: string | null;
   subjectId: string;
   subjectName: string;
   maxScore: number;
@@ -58,6 +59,7 @@ export type Period = {
   label: string;
   rawLabel?: string;
   kind?: "PERIOD" | "EXAM" | null;
+  cycle?: string | null;
 };
 export type FicheTypes = "ficheCote" | "evaluations";
 /* ===== ÉLÈVES ===== */

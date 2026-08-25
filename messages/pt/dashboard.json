@@ -21,6 +21,7 @@
     "default": "Painel — {branchType}"
   },
   "branchTypes": {
+    "MATERNELLE": "Maternal",
     "PRIMAIRE": "Primário",
     "SECONDAIRE": "Secundário",
     "ATELIER": "Oficina",

@@ -101,6 +101,7 @@ export const ModelName = {
   Member: 'Member',
   Invitation: 'Invitation',
   Branch: 'Branch',
+  BranchCycle: 'BranchCycle',
   BranchPrimaryDomain: 'BranchPrimaryDomain',
   BranchRegistrationInfo: 'BranchRegistrationInfo',
   RegistrationRequest: 'RegistrationRequest',
@@ -331,6 +332,8 @@ export const FraisScalarFieldEnum = {
   echeance: 'echeance',
   schoolYearId: 'schoolYearId',
   priority: 'priority',
+  semesterId: 'semesterId',
+  fraisGroupKey: 'fraisGroupKey',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   branchId: 'branchId'
@@ -345,6 +348,7 @@ export const TypeFraisScalarFieldEnum = {
   nameType: 'nameType',
   description: 'description',
   statusType: 'statusType',
+  cycle: 'cycle',
   branchId: 'branchId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -364,6 +368,7 @@ export const ClasseScalarFieldEnum = {
   statusClasse: 'statusClasse',
   creneauId: 'creneauId',
   horaireType: 'horaireType',
+  cycle: 'cycle',
   branchId: 'branchId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -399,6 +404,7 @@ export const OptionScalarFieldEnum = {
   statusOption: 'statusOption',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
+  cycle: 'cycle',
   branchId: 'branchId'
 } as const
 
@@ -412,6 +418,7 @@ export const SectionScalarFieldEnum = {
   statusSection: 'statusSection',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
+  cycle: 'cycle',
   branchId: 'branchId'
 } as const
 
@@ -567,6 +574,7 @@ export const SemesterScalarFieldEnum = {
   label: 'label',
   startDate: 'startDate',
   endDate: 'endDate',
+  cycle: 'cycle',
   branchId: 'branchId'
 } as const
 
@@ -581,6 +589,7 @@ export const PeriodScalarFieldEnum = {
   semesterId: 'semesterId',
   gradesGenerated: 'gradesGenerated',
   gradesGeneratedAt: 'gradesGeneratedAt',
+  cycle: 'cycle',
   branchId: 'branchId'
 } as const
 
@@ -962,6 +971,17 @@ export const BranchScalarFieldEnum = {
 } as const
 
 export type BranchScalarFieldEnum = (typeof BranchScalarFieldEnum)[keyof typeof BranchScalarFieldEnum]
+
+
+export const BranchCycleScalarFieldEnum = {
+  id: 'id',
+  branchId: 'branchId',
+  cycle: 'cycle',
+  sortOrder: 'sortOrder',
+  isActive: 'isActive'
+} as const
+
+export type BranchCycleScalarFieldEnum = (typeof BranchCycleScalarFieldEnum)[keyof typeof BranchCycleScalarFieldEnum]
 
 
 export const BranchPrimaryDomainScalarFieldEnum = {

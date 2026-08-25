@@ -8,16 +8,18 @@ import {
   getCatalogOptionByCode,
 } from "@/lib/class-catalog";
 import {
+  MATERNELLE_CLASS_LEVELS,
   PRIMARY_CLASS_LEVELS,
   SECONDARY_CTEB_LEVELS,
   SECONDARY_HUMANITES_LEVELS,
   buildClassCode,
   buildClassName,
 } from "@/lib/class-structure";
+import { getBranchCycles, isSchoolCycle, normalizeCycle, type Cycle } from "@/lib/cycle";
 import { ensurePrimaryAcademicStructure } from "@/lib/primary-academic-structure";
+import { ensureMaternelleAcademicStructure } from "@/lib/maternelle-academic-structure";
 import { ensureSecondaryCtebStructure } from "@/lib/secondary-cteb-structure";
 import { ensureUniqueIdentifier } from "@/lib/generated-identifiers";
-import { normalizeBranchType } from "@/lib/academic-structure";
 
 export type UpsertClassCatalogResult = {
   branchId: string;
@@ -25,11 +27,6 @@ export type UpsertClassCatalogResult = {
   skipped: number;
   sectionsCreated: number;
   optionsCreated: number;
-};
-
-export type UpsertClassCatalogOptions = {
-  /** D3=A/C : upsert toutes les sections/options du catalogue. D3=B : false. */
-  importSectionsAndOptions?: boolean;
 };
 
 async function ensureSection(
@@ -52,6 +49,7 @@ async function ensureSection(
       codeSection,
       nameSection,
       statusSection: true,
+      cycle: "SECONDAIRE",
     },
     select: { id: true },
   });
@@ -74,7 +72,7 @@ async function ensureOption(
   if (existing) {
     await Prisma.option.update({
       where: { id: existing.id },
-      data: { sectionId, statusOption: true },
+      data: { sectionId, statusOption: true, cycle: "SECONDAIRE" },
     });
     return { id: existing.id, created: false };
   }
@@ -86,6 +84,7 @@ async function ensureOption(
       codeOption,
       nameOption,
       statusOption: true,
+      cycle: "SECONDAIRE",
     },
     select: { id: true },
   });
@@ -94,11 +93,12 @@ async function ensureOption(
 
 async function upsertClasseRow(params: {
   branchId: string;
-  typebranch: "PRIMAIRE" | "SECONDAIRE";
+  typebranch: unknown;
   level: string;
   optionId: string | null;
   optionName: string | null;
   optionAbbrev?: string | null;
+  cycle: Cycle;
 }): Promise<"created" | "skipped"> {
   const nameClasse = buildClassName({
     typebranch: params.typebranch,
@@ -114,15 +114,55 @@ async function upsertClasseRow(params: {
 
   const byName = await Prisma.classe.findFirst({
     where: { branchId: params.branchId, nameClasse },
-    select: { id: true },
+    select: { id: true, cycle: true },
   });
-  if (byName) return "skipped";
+  if (byName) {
+    const sameCycle =
+      !byName.cycle || normalizeCycle(byName.cycle) === params.cycle;
+    if (sameCycle) {
+      await Prisma.classe.update({
+        where: { id: byName.id },
+        data: {
+          cycle: params.cycle,
+          ...(params.optionId ? { optionId: params.optionId } : {}),
+        },
+      });
+      return "skipped";
+    }
+  }
 
   const byCode = await Prisma.classe.findFirst({
     where: { branchId: params.branchId, codeClasse: codeBase },
-    select: { id: true },
+    select: { id: true, cycle: true },
   });
-  if (byCode) return "skipped";
+  if (byCode) {
+    const sameCycle =
+      !byCode.cycle || normalizeCycle(byCode.cycle) === params.cycle;
+    if (sameCycle) {
+      await Prisma.classe.update({
+        where: { id: byCode.id },
+        data: {
+          cycle: params.cycle,
+          ...(params.optionId ? { optionId: params.optionId } : {}),
+        },
+      });
+      return "skipped";
+    }
+  }
+
+  const uniqueName = byName
+    ? await ensureUniqueIdentifier({
+        base: nameClasse,
+        separator: " ",
+        exists: async (value) =>
+          Boolean(
+            await Prisma.classe.findFirst({
+              where: { branchId: params.branchId, nameClasse: value },
+              select: { id: true },
+            }),
+          ),
+      })
+    : nameClasse;
 
   const codeClasse = await ensureUniqueIdentifier({
     base: codeBase,
@@ -139,42 +179,76 @@ async function upsertClasseRow(params: {
   await Prisma.classe.create({
     data: {
       branchId: params.branchId,
-      nameClasse,
+      nameClasse: uniqueName,
       codeClasse,
       level: params.level,
       parallel: null,
       optionId: params.optionId,
       capacity: 30,
       statusClasse: true,
+      cycle: params.cycle,
     },
   });
   return "created";
 }
 
+export type UpsertClassCatalogOptions = {
+  /** D3=A/C : upsert toutes les sections/options du catalogue. D3=B : false. */
+  importSectionsAndOptions?: boolean;
+  cycles?: Cycle[];
+};
+
 /**
- * Import catalogue classes pour une branche (D3=B par défaut + CTEB forcé).
+ * Importe le catalogue de classes pour les cycles activés (maternelle, primaire, secondaire).
  */
 export async function upsertClassCatalogForBranch(
   branchId: string,
   options: UpsertClassCatalogOptions = {},
 ): Promise<UpsertClassCatalogResult> {
-  const importAll = options.importSectionsAndOptions ?? false;
-
   const branch = await Prisma.branch.findUnique({
     where: { id: branchId },
-    select: { id: true, typebranch: true },
+    select: {
+      id: true,
+      typebranch: true,
+      cycles: { where: { isActive: true }, select: { cycle: true, isActive: true, sortOrder: true } },
+    },
   });
   if (!branch) {
     throw new Error("Branche introuvable");
   }
 
-  const typebranch = normalizeBranchType(branch.typebranch);
+  const cycles = (options.cycles?.length
+    ? options.cycles
+    : getBranchCycles(branch)
+  ).filter((cycle) => isSchoolCycle(cycle) || cycle === branch.typebranch);
+
+  const importAll = options.importSectionsAndOptions ?? cycles.includes("SECONDAIRE");
   let created = 0;
   let skipped = 0;
   let sectionsCreated = 0;
   let optionsCreated = 0;
 
-  if (typebranch === "PRIMAIRE") {
+  if (cycles.includes("MATERNELLE")) {
+    const { optionsByLevel } = await ensureMaternelleAcademicStructure(
+      Prisma,
+      branchId,
+    );
+    for (const level of MATERNELLE_CLASS_LEVELS) {
+      const option = optionsByLevel[level];
+      const result = await upsertClasseRow({
+        branchId,
+        typebranch: "MATERNELLE",
+        level,
+        optionId: option.id,
+        optionName: null,
+        cycle: "MATERNELLE",
+      });
+      if (result === "created") created += 1;
+      else skipped += 1;
+    }
+  }
+
+  if (cycles.includes("PRIMAIRE")) {
     const { optionsByLevel } = await ensurePrimaryAcademicStructure(
       Prisma,
       branchId,
@@ -187,14 +261,17 @@ export async function upsertClassCatalogForBranch(
         level,
         optionId: option.id,
         optionName: null,
+        cycle: "PRIMAIRE",
       });
       if (result === "created") created += 1;
       else skipped += 1;
     }
+  }
+
+  if (!cycles.includes("SECONDAIRE")) {
     return { branchId, created, skipped, sectionsCreated, optionsCreated };
   }
 
-  // —— SECONDAIRE ——
   if (importAll) {
     for (const section of CLASS_CATALOG_SECTIONS) {
       const s = await ensureSection(
@@ -217,7 +294,6 @@ export async function upsertClassCatalogForBranch(
     }
   }
 
-  // Toujours garantir CTEB + Tronc commun (7è / 8è)
   const cteb = await ensureSecondaryCtebStructure(Prisma, branchId);
   if (cteb.sectionCreated) sectionsCreated += 1;
   if (cteb.optionCreated) optionsCreated += 1;
@@ -232,16 +308,17 @@ export async function upsertClassCatalogForBranch(
       optionId: cteb.option.id,
       optionName: ctebOptMeta.nameOption,
       optionAbbrev: ctebOptMeta.abbrev,
+      cycle: "SECONDAIRE",
     });
     if (result === "created") created += 1;
     else skipped += 1;
   }
 
-  // Humanités : options actives hors Tronc commun
   const activeOptions = await Prisma.option.findMany({
     where: {
       branchId,
       statusOption: { not: false },
+      cycle: "SECONDAIRE",
       codeOption: { not: CTEB_OPTION_CODE },
       NOT: { nameOption: ctebOptMeta.nameOption },
     },
@@ -254,7 +331,6 @@ export async function upsertClassCatalogForBranch(
   });
 
   for (const opt of activeOptions) {
-    // Ignorer options rattachées à CTEB
     if (opt.section?.codeSection === CTEB_SECTION_CODE) continue;
 
     const abbrev =
@@ -270,6 +346,7 @@ export async function upsertClassCatalogForBranch(
         optionId: opt.id,
         optionName: opt.nameOption,
         optionAbbrev: abbrev,
+        cycle: "SECONDAIRE",
       });
       if (result === "created") created += 1;
       else skipped += 1;
@@ -278,3 +355,4 @@ export async function upsertClassCatalogForBranch(
 
   return { branchId, created, skipped, sectionsCreated, optionsCreated };
 }
+

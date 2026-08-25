@@ -11,6 +11,7 @@ import { findAvailableClassForLevel } from "@/lib/class-enrollment/find-availabl
 import { appendStudentToOpenClassFiches } from "@/lib/sync-fiche-students";
 import { matchesClassForLevel } from "@/lib/class-enrollment/match-class-for-level";
 import { getClassLevelsForBranch, requiresOptionForClass, allowsOptionForBranch } from "@/lib/class-structure";
+import { ensureSecondaryCtebStructure } from "@/lib/secondary-cteb-structure";
 import { ensureAngolaSecondaryStructure } from "@/lib/angola-secondary-bootstrap";
 import {
   isAngolaFirstCycleLevel,
@@ -25,10 +26,15 @@ import {
   ensurePrimaryAcademicStructure,
   getPrimaryOptionForLevel,
 } from "@/lib/primary-academic-structure";
+import {
+  ensureMaternelleAcademicStructure,
+  getMaternelleOptionForLevel,
+} from "@/lib/maternelle-academic-structure";
 import { getPeopleLabels } from "@/lib/people-labels";
 import { isCentreFormationBranch } from "@/lib/branch-capabilities";
 import { ensureCentreDefaultParent } from "@/lib/centre-default-parent";
 import { validateRegistrationParentInput } from "@/src/interfaces/registration";
+import { resolveCycle, resolveRequestedCycle } from "@/lib/cycle";
 import {
   familyExtraToDb,
   pickFamilyExtraFromUnknown,
@@ -165,6 +171,7 @@ async function findLatestStudentEnrollment(
           nameClasse: true,
           level: true,
           optionId: true,
+          cycle: true,
           option: { select: { sectionId: true } },
         },
       },
@@ -652,11 +659,22 @@ export const findParentForRegistrationAction = action
   });
 
 export const getRegistrationOptionsAction = action.handler(async () => {
-  const { branchId, typebranch, educationSystem } = await requireRegistrationContext();
-  const primaryStructure =
-    typebranch === "PRIMAIRE"
-      ? await ensurePrimaryAcademicStructure(prisma, branchId)
-      : null;
+  const { branchId, typebranch, educationSystem, cycles } =
+    await requireRegistrationContext();
+  const hasSecondaire =
+    cycles.includes("SECONDAIRE") || typebranch === "SECONDAIRE";
+  if (
+    hasSecondaire &&
+    !isAngolaSecondarySystem("SECONDAIRE", educationSystem)
+  ) {
+    await ensureSecondaryCtebStructure(prisma, branchId);
+  }
+  const primaryStructure = cycles.includes("PRIMAIRE")
+    ? await ensurePrimaryAcademicStructure(prisma, branchId)
+    : null;
+  const maternelleStructure = cycles.includes("MATERNELLE")
+    ? await ensureMaternelleAcademicStructure(prisma, branchId)
+    : null;
   const [schoolYears, classes, options, sections, branch, annualCounts, creneaux, typeFrais] = await Promise.all([
     prisma.schoolYear.findMany({
       where: { branchId, isArchived: false },
@@ -675,6 +693,7 @@ export const getRegistrationOptionsAction = action.handler(async () => {
         level: true,
         parallel: true,
         optionId: true,
+        cycle: true,
         capacity: true,
         option: { select: { id: true, nameOption: true } },
         classEnrollment: {
@@ -691,6 +710,7 @@ export const getRegistrationOptionsAction = action.handler(async () => {
         nameOption: true,
         codeOption: true,
         sectionId: true,
+        cycle: true,
         section: {
           select: { id: true, nameSection: true, codeSection: true },
         },
@@ -699,7 +719,7 @@ export const getRegistrationOptionsAction = action.handler(async () => {
     prisma.section.findMany({
       where: { branchId, statusSection: true },
       orderBy: { nameSection: "asc" },
-      select: { id: true, nameSection: true, codeSection: true },
+      select: { id: true, nameSection: true, codeSection: true, cycle: true },
     }),
     prisma.branch.findUniqueOrThrow({
       where: { id: branchId },
@@ -729,10 +749,12 @@ export const getRegistrationOptionsAction = action.handler(async () => {
     creneaux,
     typeFrais,
     levels: [...getClassLevelsForBranch(typebranch, educationSystem)],
+    cycles,
     typebranch,
     educationSystem,
     allowsOption: allowsOptionForBranch(typebranch),
     primaryStructure,
+    maternelleStructure,
     branchName: branch.name,
     annualStudentCounts: Object.fromEntries(
       annualCounts.map((item) => [item.schoolYearId, item._count.studentId]),
@@ -786,32 +808,53 @@ export const createNextParallelForRegistrationAction = action
     z.object({
       schoolYearId: z.string().min(1),
       level: z.string().min(1),
+      cycle: z
+        .enum([
+          "MATERNELLE",
+          "PRIMAIRE",
+          "SECONDAIRE",
+          "ATELIER",
+          "CENTRE_FORMATION",
+          "UNIVERSITE",
+        ])
+        .optional(),
       optionId: z.string().optional(),
       creneauId: z.string().min(1, "La vacation est obligatoire."),
       capacity: z.number().int().positive().optional(),
     }),
   )
   .handler(async ({ input }) => {
-    const { branchId, organizationId, typebranch, educationSystem } =
+    const { branchId, organizationId, typebranch, educationSystem, cycles } =
       await requireRegistrationContext();
+    const academicCycle = resolveRequestedCycle({
+      cycle: input.cycle,
+      branchCycles: cycles,
+      typebranch,
+    });
     let optionId = input.optionId;
     if (
-      isAngolaSecondarySystem(typebranch, educationSystem) &&
+      isAngolaSecondarySystem(academicCycle, educationSystem) &&
       isAngolaFirstCycleLevel(input.level)
     ) {
       optionId = (await ensureAngolaSecondaryStructure(prisma, branchId)).option
         .id;
     }
+    const isPrimaire = academicCycle === "PRIMAIRE";
+    const isMaternelle = academicCycle === "MATERNELLE";
     const validated = validateClassInput({
-      typebranch,
+      typebranch: academicCycle,
       educationSystem,
       level: input.level,
-      optionId: typebranch === "PRIMAIRE" ? undefined : optionId || undefined,
+      optionId: isPrimaire || isMaternelle ? undefined : optionId || undefined,
     });
-    const option =
-      typebranch === "PRIMAIRE"
-        ? getPrimaryOptionForLevel(
-            await ensurePrimaryAcademicStructure(prisma, branchId),
+    const option = isPrimaire
+      ? getPrimaryOptionForLevel(
+          await ensurePrimaryAcademicStructure(prisma, branchId),
+          validated.level ?? input.level,
+        )
+      : isMaternelle
+        ? getMaternelleOptionForLevel(
+            await ensureMaternelleAcademicStructure(prisma, branchId),
             validated.level ?? input.level,
           )
         : validated.optionId
@@ -822,9 +865,11 @@ export const createNextParallelForRegistrationAction = action
           : null;
     if (!option) {
       throw new Error(
-        typebranch === "PRIMAIRE"
+        isPrimaire
           ? "Niveau primaire invalide pour la pondération."
-          : "Option introuvable dans cette branche.",
+          : isMaternelle
+            ? "Niveau maternelle invalide pour la pondération."
+            : "Option introuvable dans cette branche.",
       );
     }
 
@@ -837,7 +882,6 @@ export const createNextParallelForRegistrationAction = action
     const existingClasses = await prisma.classe.findMany({
       where: {
         branchId,
-        OR: [{ statusClasse: true }, { statusClasse: null }],
       },
       select: {
         id: true,
@@ -846,6 +890,7 @@ export const createNextParallelForRegistrationAction = action
         capacity: true,
         level: true,
         optionId: true,
+        cycle: true,
         nameClasse: true,
         option: { select: { id: true, nameOption: true } },
         classEnrollment: {
@@ -857,11 +902,12 @@ export const createNextParallelForRegistrationAction = action
     });
     const existing = existingClasses.filter((classe) =>
       matchesClassForLevel(classe, {
-        typebranch,
+        typebranch: academicCycle,
         educationSystem,
         level: validated.level!,
         optionId: option?.id ?? null,
         optionName: option?.nameOption ?? null,
+        cycle: academicCycle,
       }),
     );
 
@@ -937,13 +983,24 @@ export const createNextParallelForRegistrationAction = action
     }
 
     const nameClasse = buildClassName({
-      typebranch,
+      typebranch: academicCycle,
       level: validated.level!,
       parallel,
       optionName: option?.nameOption,
     });
+    const nameTaken = await prisma.classe.findFirst({
+      where: { branchId, nameClasse },
+      select: { id: true, cycle: true },
+    });
+    if (nameTaken && !simpleClassToPromote) {
+      throw new Error(
+        nameTaken.cycle && nameTaken.cycle !== academicCycle
+          ? `Le nom « ${nameClasse} » est déjà utilisé par une classe ${nameTaken.cycle.toLowerCase()}.`
+          : "La classe existe déjà dans cette branche.",
+      );
+    }
     const codeBase = buildClassCode({
-      typebranch,
+      typebranch: academicCycle,
       level: validated.level!,
       parallel,
       optionName: option?.nameOption,
@@ -962,13 +1019,13 @@ export const createNextParallelForRegistrationAction = action
     const classe = await prisma.$transaction(async (tx) => {
       if (simpleClassToPromote) {
         const promotedName = buildClassName({
-          typebranch,
+          typebranch: academicCycle,
           level: validated.level!,
           parallel: "A",
           optionName: option?.nameOption,
         });
         const promotedCodeBase = buildClassCode({
-          typebranch,
+          typebranch: academicCycle,
           level: validated.level!,
           parallel: "A",
           optionName: option?.nameOption,
@@ -995,15 +1052,45 @@ export const createNextParallelForRegistrationAction = action
             nameClasse: promotedName,
             codeClasse: promotedCode,
           },
-        });
-      }
+      });
+    }
 
-      return tx.classe.create({
+    const already = await tx.classe.findFirst({
+      where: { branchId, nameClasse },
+      select: {
+        id: true,
+        nameClasse: true,
+        capacity: true,
+        parallel: true,
+      },
+    });
+    if (already) {
+      return tx.classe.update({
+        where: { id: already.id },
+        data: {
+          statusClasse: true,
+          cycle: academicCycle,
+          level: validated.level,
+          parallel: parallel ?? already.parallel,
+          ...(option?.id ? { optionId: option.id } : {}),
+          capacity:
+            already.capacity && already.capacity > 0
+              ? already.capacity
+              : nextCapacity,
+          creneauId: input.creneauId,
+        },
+        select: { id: true, nameClasse: true, capacity: true, parallel: true },
+      });
+    }
+
+    try {
+      return await tx.classe.create({
         data: {
           branchId,
           level: validated.level,
           parallel: parallel ?? null,
           optionId: option?.id ?? null,
+          cycle: academicCycle,
           capacity: nextCapacity,
           nameClasse,
           codeClasse,
@@ -1012,6 +1099,30 @@ export const createNextParallelForRegistrationAction = action
         },
         select: { id: true, nameClasse: true, capacity: true, parallel: true },
       });
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === "P2002"
+      ) {
+        const fallback = await tx.classe.findFirst({
+          where: {
+            branchId,
+            OR: [{ nameClasse }, { codeClasse }],
+          },
+          select: {
+            id: true,
+            nameClasse: true,
+            capacity: true,
+            parallel: true,
+          },
+        });
+        if (fallback) return fallback;
+        throw new Error(
+          "Cette classe existe déjà dans l'établissement. Actualisez la page.",
+        );
+      }
+      throw error;
+    }
     });
     const base = `/admin/organizations/${organizationId}/branches/${branchId}`;
     revalidatePath(`${base}/registration`);
@@ -1087,7 +1198,13 @@ export const suggestNextClassAction = action
     const { branchId, typebranch, educationSystem } = await requireRegistrationContext();
     if (input.outcome === "returning") {
       if (!input.manualLevel) throw new Error("Choisissez manuellement le niveau de retour.");
-      return { level: input.manualLevel, optionId: null as string | null, sectionId: null as string | null, reason: "Niveau de retour choisi manuellement" };
+      return {
+        level: input.manualLevel,
+        optionId: null as string | null,
+        sectionId: null as string | null,
+        cycle: null as string | null,
+        reason: "Niveau de retour choisi manuellement",
+      };
     }
     const previous = await findLatestStudentEnrollment(
       branchId,
@@ -1097,32 +1214,47 @@ export const suggestNextClassAction = action
     if (!previous || !currentLevel) {
       throw new Error("Aucun historique de niveau exploitable.");
     }
+    const classCycle = resolveCycle(previous.classe, { typebranch });
 
     if (input.outcome === "failed") {
       return {
         level: currentLevel,
         optionId: previous.classe?.optionId ?? null,
         sectionId: previous.classe?.option?.sectionId ?? null,
+        cycle: classCycle,
         reason: "Même niveau après échec — année actuelle",
       };
     }
 
     await assertEnrollmentFeesSettledForPromotion(branchId, previous);
 
-    const levels = [...getClassLevelsForBranch(typebranch, educationSystem)];
+    const levels = [...getClassLevelsForBranch(classCycle, educationSystem)];
     const index = levels.indexOf(currentLevel);
     if (index < 0 || index === levels.length - 1) {
-      throw new Error("Aucun niveau supérieur n'est configuré pour cette branche.");
+      throw new Error("Aucun niveau supérieur n'est configuré pour ce cycle.");
     }
     const nextLevel = levels[index + 1];
 
-    if (typebranch === "PRIMAIRE") {
+    if (classCycle === "PRIMAIRE") {
       const structure = await ensurePrimaryAcademicStructure(prisma, branchId);
       const primaryOption = getPrimaryOptionForLevel(structure, nextLevel);
       return {
         level: nextLevel,
         optionId: primaryOption?.id ?? null,
         sectionId: structure.section.id,
+        cycle: classCycle,
+        reason: "Niveau supérieur après réussite — année actuelle",
+      };
+    }
+
+    if (classCycle === "MATERNELLE") {
+      const structure = await ensureMaternelleAcademicStructure(prisma, branchId);
+      const maternelleOption = getMaternelleOptionForLevel(structure, nextLevel);
+      return {
+        level: nextLevel,
+        optionId: maternelleOption?.id ?? null,
+        sectionId: structure.section.id,
+        cycle: classCycle,
         reason: "Niveau supérieur après réussite — année actuelle",
       };
     }
@@ -1131,6 +1263,7 @@ export const suggestNextClassAction = action
       level: nextLevel,
       optionId: previous.classe?.optionId ?? null,
       sectionId: previous.classe?.option?.sectionId ?? null,
+      cycle: classCycle,
       reason: "Niveau supérieur après réussite — année actuelle",
     };
   });
@@ -1138,7 +1271,7 @@ export const suggestNextClassAction = action
 export const createRegistrationFlowAction = action
   .input(registrationSchema)
   .handler(async ({ input }) => {
-    const { branchId, organizationId, typebranch, educationSystem, userId } = await requireRegistrationContext();
+    const { branchId, organizationId, typebranch, educationSystem, userId, cycles } = await requireRegistrationContext();
     const peopleLabels = getPeopleLabels(typebranch);
     const parentValidationError = validateRegistrationParentInput(typebranch, input);
     if (parentValidationError) {
@@ -1165,9 +1298,14 @@ export const createRegistrationFlowAction = action
         `))[0] ?? null
       : null;
     if (input.requestId && !request) throw new Error("Cette demande a deja ete traitee ou n'est plus disponible.");
+    const academicCycle = resolveRequestedCycle({
+      cycle: input.cycle,
+      branchCycles: cycles,
+      typebranch,
+    });
     let enrollmentOptionId = input.optionId;
     if (
-      isAngolaSecondarySystem(typebranch, educationSystem) &&
+      isAngolaSecondarySystem(academicCycle, educationSystem) &&
       isAngolaFirstCycleLevel(input.level)
     ) {
       enrollmentOptionId = (
@@ -1175,26 +1313,34 @@ export const createRegistrationFlowAction = action
       ).option.id;
     }
     if (
-      requiresOptionForClass(typebranch, input.level, educationSystem) &&
+      requiresOptionForClass(academicCycle, input.level, educationSystem) &&
       !enrollmentOptionId
     ) {
       throw new Error("Une option est requise pour ce niveau.");
     }
 
     const selectedOption =
-      typebranch === "PRIMAIRE"
+      academicCycle === "PRIMAIRE"
         ? getPrimaryOptionForLevel(
             await ensurePrimaryAcademicStructure(prisma, branchId),
             input.level,
           )
-        : enrollmentOptionId
-          ? await prisma.option.findFirst({
-          where: { id: enrollmentOptionId, branchId, statusOption: true },
-          select: { id: true, nameOption: true },
-            })
-          : null;
-    if (typebranch === "PRIMAIRE" && !selectedOption) {
+        : academicCycle === "MATERNELLE"
+          ? getMaternelleOptionForLevel(
+              await ensureMaternelleAcademicStructure(prisma, branchId),
+              input.level,
+            )
+          : enrollmentOptionId
+            ? await prisma.option.findFirst({
+                where: { id: enrollmentOptionId, branchId, statusOption: true },
+                select: { id: true, nameOption: true },
+              })
+            : null;
+    if (academicCycle === "PRIMAIRE" && !selectedOption) {
       throw new Error("Niveau primaire invalide pour la pondération.");
+    }
+    if (academicCycle === "MATERNELLE" && !selectedOption) {
+      throw new Error("Niveau maternelle invalide pour la pondération.");
     }
 
     const createdUserIds: string[] = [];
@@ -1465,8 +1611,9 @@ export const createRegistrationFlowAction = action
           schoolYearId: input.schoolYearId,
           level: input.level,
           optionId: selectedOption?.id ?? null,
-          typebranch,
+          typebranch: academicCycle,
           optionName: selectedOption?.nameOption ?? null,
+          cycle: academicCycle,
         });
         if (!classe) throw new Error(`Aucune classe disponible pour le niveau ${input.level}. Créez la prochaine parallèle.`);
         const enrollment = await tx.classEnrollment.create({ data: { branchId, schoolYearId: input.schoolYearId, studentId, classeId: classe.id, statusEnrollment: true } });

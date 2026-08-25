@@ -37,6 +37,7 @@ export type UserBranchMembership = {
   branchId: string;
   branchName: string;
   typebranch: TypeBrache;
+  cycles?: Array<{ cycle: string; isActive?: boolean; sortOrder?: number }>;
 };
 
 function splitRoles(value: string | null | undefined) {
@@ -68,13 +69,18 @@ export function buildGestionnaireLandingPath(
 function mapBranchMemberships(
   memberships: Array<{
     branchId: string;
-    branch: { name: string; typebranch: TypeBrache };
+    branch: {
+      name: string;
+      typebranch: TypeBrache;
+      cycles?: Array<{ cycle: string; isActive?: boolean; sortOrder?: number }>;
+    };
   }>,
 ): UserBranchMembership[] {
   return memberships.map((membership) => ({
     branchId: membership.branchId,
     branchName: membership.branch.name,
     typebranch: membership.branch.typebranch,
+    cycles: membership.branch.cycles,
   }));
 }
 
@@ -101,6 +107,11 @@ export async function getUserBranchMemberships(
         select: {
           name: true,
           typebranch: true,
+          cycles: {
+            where: { isActive: true },
+            select: { cycle: true, isActive: true, sortOrder: true },
+            orderBy: { sortOrder: "asc" },
+          },
         },
       },
     },
@@ -134,6 +145,11 @@ export async function getAnyUserBranchMemberships(
         select: {
           name: true,
           typebranch: true,
+          cycles: {
+            where: { isActive: true },
+            select: { cycle: true, isActive: true, sortOrder: true },
+            orderBy: { sortOrder: "asc" },
+          },
         },
       },
     },
@@ -191,7 +207,16 @@ export async function getUserBranchMembershipsForLogin(
   const fallbackBranch = await prisma.branch.findFirst({
     where: { organizationId, isActive: true },
     orderBy: { createdAt: "asc" },
-    select: { id: true, name: true, typebranch: true },
+    select: {
+      id: true,
+      name: true,
+      typebranch: true,
+      cycles: {
+        where: { isActive: true },
+        select: { cycle: true, isActive: true, sortOrder: true },
+        orderBy: { sortOrder: "asc" },
+      },
+    },
   });
 
   if (!fallbackBranch) {
@@ -203,6 +228,7 @@ export async function getUserBranchMembershipsForLogin(
       branchId: fallbackBranch.id,
       branchName: fallbackBranch.name,
       typebranch: fallbackBranch.typebranch,
+      cycles: fallbackBranch.cycles,
     },
   ];
 }

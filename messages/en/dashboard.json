@@ -21,6 +21,7 @@
     "default": "Dashboard — {branchType}"
   },
   "branchTypes": {
+    "MATERNELLE": "Kindergarten",
     "PRIMAIRE": "Primary",
     "SECONDAIRE": "Secondary",
     "ATELIER": "Workshop",

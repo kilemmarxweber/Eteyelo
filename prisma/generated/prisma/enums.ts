@@ -231,6 +231,18 @@ export const TypeBrache = {
 export type TypeBrache = (typeof TypeBrache)[keyof typeof TypeBrache]
 
 
+export const Cycle = {
+  MATERNELLE: 'MATERNELLE',
+  PRIMAIRE: 'PRIMAIRE',
+  SECONDAIRE: 'SECONDAIRE',
+  ATELIER: 'ATELIER',
+  CENTRE_FORMATION: 'CENTRE_FORMATION',
+  UNIVERSITE: 'UNIVERSITE'
+} as const
+
+export type Cycle = (typeof Cycle)[keyof typeof Cycle]
+
+
 export const EducationSystem = {
   CONGOLAIS: 'CONGOLAIS',
   ANGOLAIS: 'ANGOLAIS',
