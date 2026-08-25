@@ -14,7 +14,10 @@ import { headers } from "next/headers";
 import { FicheTypes } from "./types";
 import { auth } from "@/lib/auth";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
-import { listBranchPeriodOptions } from "@/lib/academic-periods";
+import {
+  listBranchPeriodOptions,
+  uniquePeriodOptions,
+} from "@/lib/academic-periods";
 import { canManageOrganization } from "@/lib/auth/session-roles";
 import {
   assertClassRosterAccess,
@@ -445,13 +448,15 @@ export async function getPeriods(classId?: string) {
     cycle,
   });
 
-  return periods.map((period) => ({
-    id: period.id,
-    label: period.label,
-    rawLabel: period.rawLabel,
-    kind: period.kind,
-    cycle: period.cycle,
-  }));
+  return uniquePeriodOptions(
+    periods.map((period) => ({
+      id: period.id,
+      label: period.label,
+      rawLabel: period.rawLabel,
+      kind: period.kind,
+      cycle: period.cycle,
+    })),
+  );
 }
 
 export type FicheResultBase = {

@@ -20,6 +20,13 @@ import {
   buildSchoolReportContext,
   schoolReportBranchSelect,
 } from "@/lib/reports/resolve-school-branding";
+import { scheduleHourToMinutes } from "@/lib/timezone";
+import {
+  CYCLE_SORT_ORDER,
+  cycleLabel,
+  normalizeCycle,
+  type Cycle,
+} from "@/lib/cycle";
 
 type ScheduleContext = {
   branchId: string;
@@ -142,33 +149,151 @@ function parseScheduleHour(hour: string) {
   return new Date(Date.UTC(2000, 1, 1, heures, minutes));
 }
 
+const activeTeachingStatus = {
+  OR: [{ statusTeaching: true }, { statusTeaching: null }],
+} as const;
+
 function scopedTeachingWhere(
   ctx: ScheduleContext,
   extra: Record<string, unknown> = {},
 ) {
   return {
-    ...extra,
-    OR: [{ branchId: ctx.branchId }, { branchId: null }],
-    classe: {
-      branchId: ctx.branchId,
-      branch: { organizationId: ctx.organizationId },
+    AND: [
+      extra,
+      activeTeachingStatus,
+      { OR: [{ branchId: ctx.branchId }, { branchId: null }] },
+      {
+        classe: {
+          branchId: ctx.branchId,
+          branch: { organizationId: ctx.organizationId },
+        },
+        cours: {
+          branchId: ctx.branchId,
+          branch: { organizationId: ctx.organizationId },
+        },
+        schoolYear: {
+          branchId: ctx.branchId,
+          isCurrentYear: true,
+          isArchived: false,
+          branch: { organizationId: ctx.organizationId },
+        },
+        teacher: {
+          branchMember: {
+            branchId: ctx.branchId,
+            member: { organizationId: ctx.organizationId },
+          },
+        },
+      },
+    ],
+  };
+}
+
+function formatHourLabel(hour: Date) {
+  const minutes = scheduleHourToMinutes(hour);
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+}
+
+async function findActiveTeachingForSlot(
+  ctx: ScheduleContext,
+  classeId: string,
+  coursId: string,
+) {
+  return prisma.teaching.findFirst({
+    where: scopedTeachingWhere(ctx, { classeId, coursId }),
+    select: {
+      id: true,
+      teacherId: true,
+      classeId: true,
+      coursId: true,
     },
-    cours: {
-      branchId: ctx.branchId,
-      branch: { organizationId: ctx.organizationId },
-    },
-    schoolYear: {
-      branchId: ctx.branchId,
-      isCurrentYear: true,
-      branch: { organizationId: ctx.organizationId },
-    },
-    teacher: {
-      branchMember: {
-        branchId: ctx.branchId,
-        member: { organizationId: ctx.organizationId },
+  });
+}
+
+/**
+ * Un créneau est libre si :
+ * - la classe n'a pas déjà un cours à cette heure ;
+ * - l'enseignant n'a pas déjà un cours à cette heure (n'importe quelle classe).
+ * Le même cours peut être donné à la même heure dans d'autres classes
+ * tant que l'enseignant est différent.
+ */
+async function assertScheduleSlotAvailable(params: {
+  ctx: ScheduleContext;
+  classeId: string;
+  teacherId: string;
+  day: string;
+  hour: Date;
+  excludeScheduleId?: string;
+}) {
+  const { ctx, classeId, teacherId, day, hour, excludeScheduleId } = params;
+  const slotMinutes = scheduleHourToMinutes(hour);
+
+  const candidates = await prisma.schedule.findMany({
+    where: {
+      day,
+      isArchived: false,
+      ...(excludeScheduleId ? { id: { not: excludeScheduleId } } : {}),
+      teaching: {
+        AND: [
+          activeTeachingStatus,
+          {
+            schoolYear: {
+              branchId: ctx.branchId,
+              isCurrentYear: true,
+              isArchived: false,
+            },
+            classe: { branchId: ctx.branchId },
+          },
+          {
+            OR: [{ teacherId }, { classeId }],
+          },
+        ],
       },
     },
-  };
+    select: {
+      id: true,
+      hour: true,
+      teaching: {
+        select: {
+          teacherId: true,
+          classeId: true,
+          classe: { select: { nameClasse: true } },
+          cours: { select: { nameCours: true } },
+        },
+      },
+    },
+  });
+
+  const atThisHour = candidates.filter(
+    (row) => scheduleHourToMinutes(row.hour) === slotMinutes,
+  );
+  const hourLabel = formatHourLabel(hour);
+
+  const classBusy = atThisHour.find(
+    (row) => row.teaching?.classeId === classeId,
+  );
+  if (classBusy) {
+    const courseName = classBusy.teaching?.cours?.nameCours;
+    throw new Error(
+      courseName
+        ? `Conflit d'horaire : cette classe a déjà ${courseName} le ${day} à ${hourLabel}.`
+        : `Conflit d'horaire : cette classe a déjà un cours le ${day} à ${hourLabel}.`,
+    );
+  }
+
+  const teacherBusy = atThisHour.find(
+    (row) => row.teaching?.teacherId === teacherId,
+  );
+  if (teacherBusy) {
+    const otherClass = teacherBusy.teaching?.classe?.nameClasse ?? "une autre classe";
+    const courseName = teacherBusy.teaching?.cours?.nameCours;
+    throw new Error(
+      courseName
+        ? `Conflit d'horaire : l'enseignant a déjà ${courseName} en ${otherClass} le ${day} à ${hourLabel}. Un enseignant ne peut pas donner deux cours à la même heure.`
+        : `Conflit d'horaire : l'enseignant a déjà un cours en ${otherClass} le ${day} à ${hourLabel}.`,
+    );
+  }
 }
 
 function teacherAssignmentFilter(ctx: ScheduleContext) {
@@ -218,19 +343,12 @@ export const createScheduleAction = action
 
     await assertClasseInBranch(ctx, classeId);
 
-    const teaching = await prisma.teaching.findFirst({
-      where: scopedTeachingWhere(ctx, {
-        coursId,
-        classeId,
-      }),
-      select: {
-        id: true,
-        teacherId: true,
-      },
-    });
+    const teaching = await findActiveTeachingForSlot(ctx, classeId, coursId);
 
-    if (!teaching) {
-      throw new Error("Impossible de trouver l'enseignement pour ce cours.");
+    if (!teaching?.teacherId) {
+      throw new Error(
+        "Impossible de trouver l'enseignement pour ce cours. Affectez d'abord un enseignant à ce cours dans cette classe.",
+      );
     }
 
     const scheduleHour = parseScheduleHour(hour);
@@ -245,21 +363,13 @@ export const createScheduleAction = action
       },
     });
 
-    const conflictExists = await prisma.schedule.findFirst({
-      where: {
-        day,
-        hour: scheduleHour,
-        isArchived: false,
-        teaching: scopedTeachingWhere(ctx, { teacherId: teaching.teacherId }),
-      },
-      select: { id: true },
+    await assertScheduleSlotAvailable({
+      ctx,
+      classeId,
+      teacherId: teaching.teacherId,
+      day,
+      hour: scheduleHour,
     });
-
-    if (conflictExists) {
-      throw new Error(
-        "Conflit d'horaire detecte : l'enseignant a deja un cours a cette heure.",
-      );
-    }
 
     const schedule = await prisma.schedule.create({
       data: {
@@ -303,38 +413,23 @@ export const updateScheduleAction = action
       throw new Error("Horaire introuvable dans cette branche");
     }
 
-    const teaching = await prisma.teaching.findFirst({
-      where: scopedTeachingWhere(ctx, {
-        coursId,
-        classeId,
-      }),
-      select: {
-        id: true,
-        teacherId: true,
-      },
-    });
+    const teaching = await findActiveTeachingForSlot(ctx, classeId, coursId);
 
-    if (!teaching) {
-      throw new Error("Impossible de trouver l'enseignement pour ce cours.");
+    if (!teaching?.teacherId) {
+      throw new Error(
+        "Impossible de trouver l'enseignement pour ce cours. Affectez d'abord un enseignant à ce cours dans cette classe.",
+      );
     }
 
     const scheduleHour = parseScheduleHour(hour);
-    const conflictExists = await prisma.schedule.findFirst({
-      where: {
-        id: { not: id },
-        day,
-        hour: scheduleHour,
-        isArchived: false,
-        teaching: scopedTeachingWhere(ctx, { teacherId: teaching.teacherId }),
-      },
-      select: { id: true },
+    await assertScheduleSlotAvailable({
+      ctx,
+      classeId,
+      teacherId: teaching.teacherId,
+      day,
+      hour: scheduleHour,
+      excludeScheduleId: id,
     });
-
-    if (conflictExists) {
-      throw new Error(
-        "Conflit d'horaire detecte : l'enseignant a deja un cours a cette heure.",
-      );
-    }
 
     const schedule = await prisma.schedule.update({
       data: {
@@ -647,55 +742,119 @@ export const getScheduleOptionsAction = action.handler(
   async (): Promise<IOption[]> => {
     const ctx = await getScheduleContext();
 
-    // Enseignant non-manager : pas de teacherId → aucune classe (pas tout le catalogue).
     if (!ctx.canManageSchedules && !ctx.teacherId) {
       return [];
     }
 
-    const options = await prisma.option.findMany({
+    const classes = await prisma.classe.findMany({
       where: {
         branchId: ctx.branchId,
         branch: { organizationId: ctx.organizationId },
+        OR: [{ statusClasse: true }, { statusClasse: null }],
+        ...teacherAssignmentFilter(ctx),
       },
       include: {
-        section: true,
-        classe: {
-          where: {
-            branchId: ctx.branchId,
-            branch: { organizationId: ctx.organizationId },
-            ...teacherAssignmentFilter(ctx),
-          },
-          orderBy: { nameClasse: "asc" },
+        option: {
+          include: { section: true },
         },
       },
-      orderBy: { nameOption: "asc" },
+      orderBy: { nameClasse: "asc" },
     });
 
-    return options
-      .map((option) => ({
-        id: option.id,
-        nameOption: option.nameOption,
-        codeOption: option.codeOption ?? "",
-        sectionId: option.sectionId ?? "",
-        statusOption: option.statusOption ?? true,
-        module: option.section?.codeSection ?? "",
-        createdAt: option.createdAt,
-        updatedAt: option.updatedAt,
-        codeSection: option.section?.codeSection ?? "",
-        nameSection: option.section?.nameSection ?? "",
-        statuSection: option.section?.statusSection ?? true,
-        classes: option.classe.map((classe) => ({
+    type Group = {
+      id: string;
+      nameOption: string;
+      nameSection: string;
+      codeSection: string;
+      cycle: Cycle;
+      sort: number;
+      classes: IClasse[];
+    };
+    const groups = new Map<string, Group>();
+
+    for (const classe of classes) {
+      const cycle = normalizeCycle(classe.cycle);
+      const optionCode = classe.option?.codeOption ?? "";
+      const isLevelOption =
+        optionCode.startsWith("PRI-") || optionCode.startsWith("MAT-");
+      const groupCycle: Cycle =
+        cycle === "MATERNELLE" || optionCode.startsWith("MAT-")
+          ? "MATERNELLE"
+          : cycle === "PRIMAIRE" || optionCode.startsWith("PRI-")
+            ? "PRIMAIRE"
+            : cycle;
+
+      const groupedByCycle = isLevelOption || groupCycle !== "SECONDAIRE";
+      const groupId =
+        groupedByCycle && groupCycle !== "SECONDAIRE"
+          ? `cycle:${groupCycle}`
+          : classe.optionId
+            ? `option:${classe.optionId}`
+            : `cycle:${groupCycle}`;
+
+      const existing = groups.get(groupId);
+      const mappedClasse: IClasse = {
+        ...classe,
+        optionId: classe.optionId ?? "",
+        creneauId: classe.creneauId ?? "",
+        statusClasse: classe.statusClasse ?? true,
+        cycle: classe.cycle,
+        codeClasse: classe.codeClasse ?? "",
+        nameClasse: classe.nameClasse ?? "",
+      };
+
+      if (existing) {
+        existing.classes.push(mappedClasse);
+        continue;
+      }
+
+      const nameOption =
+        groupedByCycle && groupCycle !== "SECONDAIRE"
+          ? cycleLabel(groupCycle)
+          : (classe.option?.nameOption ?? cycleLabel(groupCycle));
+      groups.set(groupId, {
+        id: groupId,
+        nameOption,
+        nameSection:
+          groupedByCycle && groupCycle !== "SECONDAIRE"
+            ? cycleLabel(groupCycle)
+            : (classe.option?.section?.nameSection ?? ""),
+        codeSection:
+          groupedByCycle && groupCycle !== "SECONDAIRE"
+            ? groupCycle
+            : (classe.option?.section?.codeSection ?? ""),
+        cycle: groupCycle,
+        sort:
+          groupCycle === "SECONDAIRE" && classe.optionId
+            ? 100 + CYCLE_SORT_ORDER.SECONDAIRE
+            : CYCLE_SORT_ORDER[groupCycle],
+        classes: [mappedClasse],
+      });
+    }
+
+    const now = new Date();
+    return [...groups.values()]
+      .sort((a, b) => a.sort - b.sort || a.nameOption.localeCompare(b.nameOption))
+      .map((group) => ({
+        id: group.id,
+        nameOption: group.nameOption,
+        codeOption: group.id,
+        sectionId: "",
+        statusOption: true,
+        module: group.codeSection,
+        createdAt: now,
+        updatedAt: now,
+        codeSection: group.codeSection,
+        nameSection: group.nameSection,
+        statuSection: true,
+        classes: group.classes.map((classe) => ({
           ...classe,
-          optionId: classe.optionId ?? "",
-          creneauId: classe.creneauId ?? "",
-          statusClasse: classe.statusClasse ?? true,
-          nameOption: option.nameOption,
-          codeOption: option.codeOption ?? "",
-          codeSection: option.section?.codeSection ?? "",
-          nameSection: option.section?.nameSection ?? "",
+          nameOption: group.nameOption,
+          codeOption: group.id,
+          codeSection: group.codeSection,
+          nameSection: group.nameSection,
         })),
-      }))
-      .filter((option) => option.classes.length > 0);
+      }));
   },
 );
 

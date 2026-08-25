@@ -1,82 +1,57 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
 import { IconReportMoney, IconSchool } from "@tabler/icons-react";
-import { OptionSidebar } from "./components/CourseSidebar";
+
 import { BranchPageShell } from "@/components/layout/branch-page-shell";
 import { Badge } from "@/components/ui/badge";
-import { useParams } from "next/navigation";
-import { NotFoundView } from "@/components/not-found-view";
-import { useEffect, useState } from "react";
-import { IClasse } from "@/src/interfaces/Classe";
-import { useSession } from "@/lib/auth-client";
 import { Card } from "@/components/ui/card";
-import { getScheduleClasseByIdAction } from "./schedule.action";
-import {
-  canAccessTeachingArea,
-  canReadScheduleArea,
-  hasSessionRole,
-} from "@/lib/auth/session-roles";
-import { ORG_ROLE } from "@/lib/permissions";
+import { IClasse } from "@/src/interfaces/Classe";
 
-export default function RootLayout({
+import { OptionSidebar } from "./components/CourseSidebar";
+import { getScheduleClasseByIdAction } from "./schedule.action";
+
+export default function ScheduleSectionLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { data: session, isPending } = useSession();
-  const [classes, setClasses] = useState<IClasse | null>(null);
+  const [classe, setClasse] = useState<IClasse | null>(null);
   const params = useParams();
   const classeId = params?.classeId as string | undefined;
 
-  const isCursusReader =
-    hasSessionRole(session, [
-      ORG_ROLE.STUDENT,
-      "STUDENT",
-      "student",
-      ORG_ROLE.PARENT,
-      "PARENT",
-      "parent",
-    ]) && !canAccessTeachingArea(session);
-
   useEffect(() => {
-    if (!classeId || isCursusReader) return;
+    if (!classeId) {
+      setClasse(null);
+      return;
+    }
 
-    const fetchClasses = async () => {
+    let cancelled = false;
+    void (async () => {
       try {
         const [rawClasses, err] = await getScheduleClasseByIdAction({
           id: classeId,
         });
-
-        if (err) throw new Error("Failed");
-
-        setClasses(rawClasses[0]);
+        if (cancelled || err) return;
+        setClasse(rawClasses[0] ?? null);
       } catch (error) {
         console.error(error);
       }
+    })();
+
+    return () => {
+      cancelled = true;
     };
-
-    void fetchClasses();
-  }, [classeId, isCursusReader]);
-
-  const hasClasse = Boolean(classeId);
-
-  if (isPending) return null;
-  if (!canReadScheduleArea(session)) {
-    return <NotFoundView />;
-  }
-
-  // Élève / parent : lecture année via page index (sans sidebar admin).
-  if (isCursusReader) {
-    return <>{children}</>;
-  }
+  }, [classeId]);
 
   return (
     <BranchPageShell
       fixedHeight
       fadedBelow
       title={
-        hasClasse
-          ? ` Horaire des cours - ${classes?.codeClasse || ""}`
+        classeId
+          ? `Horaire des cours${classe?.codeClasse ? ` - ${classe.codeClasse}` : ""}`
           : "Planifier horaire des cours"
       }
       badge={

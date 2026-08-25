@@ -16,7 +16,10 @@ import {
   CreateFicheResult,
   typeFichesDefault,
 } from "./components/types";
-import { listBranchPeriodOptions } from "@/lib/academic-periods";
+import {
+  listBranchPeriodOptions,
+  uniquePeriodOptions,
+} from "@/lib/academic-periods";
 import { isUniversiteBranch } from "@/lib/branch-capabilities";
 import {
   getCoursePonderationMap,
@@ -72,13 +75,15 @@ export async function getPeriods(classId?: string) {
     sessionsOnly: isUniversiteBranch(typebranch),
   });
 
-  return periods.map((period) => ({
-    id: period.id,
-    label: period.label,
-    rawLabel: period.rawLabel,
-    kind: period.kind,
-    cycle: period.cycle,
-  }));
+  return uniquePeriodOptions(
+    periods.map((period) => ({
+      id: period.id,
+      label: period.label,
+      rawLabel: period.rawLabel,
+      kind: period.kind,
+      cycle: period.cycle,
+    })),
+  );
 }
 export async function checkExistingFiche(params: {
   teacherId: string;

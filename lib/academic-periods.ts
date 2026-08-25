@@ -227,6 +227,31 @@ function dedupeUniversitySessions(
   });
 }
 
+function periodDisplayKey(period: {
+  rawLabel?: string | null;
+  label: string;
+  kind?: "PERIOD" | "EXAM" | null;
+}) {
+  return `${period.rawLabel ?? period.label}::${period.kind ?? ""}`;
+}
+
+/** Une entrée par libellé pédagogique, même si plusieurs cycles / classes existent. */
+export function uniquePeriodOptions<
+  T extends {
+    rawLabel?: string | null;
+    label: string;
+    kind?: "PERIOD" | "EXAM" | null;
+  },
+>(periods: T[]): T[] {
+  const seen = new Set<string>();
+  return periods.filter((period) => {
+    const key = periodDisplayKey(period);
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
 /** Periodes / sessions de la branche, synchronisees sur le calendrier du type. */
 export async function listBranchPeriodOptions(params: {
   branchId: string;

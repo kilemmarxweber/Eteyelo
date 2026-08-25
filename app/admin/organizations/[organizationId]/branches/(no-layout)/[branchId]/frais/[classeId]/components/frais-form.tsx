@@ -257,16 +257,54 @@ export function FraisUpForm({
     >
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
-          <div className={cn("grid", isDialog ? "gap-y-2" : "gap-4")}>
+          <div className={cn("grid", isDialog ? "gap-y-3" : "gap-4")}>
+            <FormField
+              control={form.control}
+              name="id"
+              render={({ field }) => <input type="hidden" {...field} />}
+            />
+
+            <FormField
+              control={form.control}
+              name="nameFrais"
+              render={({ field }) => (
+                <FormItem className={isDialog ? "space-y-0.5" : "space-y-1"}>
+                  <FormLabel
+                    className={
+                      isDialog
+                        ? "text-xs font-medium text-muted-foreground"
+                        : undefined
+                    }
+                  >
+                    Nom du frais
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Ex: Frais d'inscription"
+                      className={
+                        isDialog
+                          ? "h-9 rounded-md px-3 text-sm font-normal"
+                          : undefined
+                      }
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             <div
               className={cn(
-                "grid grid-cols-1 sm:grid-cols-2",
-                isDialog ? "gap-x-4 gap-y-2" : "gap-4",
+                "grid",
+                isDialog
+                  ? "grid-cols-3 gap-x-3 gap-y-2"
+                  : "grid-cols-1 gap-4 sm:grid-cols-3",
               )}
             >
               <FormField
                 control={form.control}
-                name="nameFrais"
+                name="montantFrais"
                 render={({ field }) => (
                   <FormItem className={isDialog ? "space-y-0.5" : "space-y-1"}>
                     <FormLabel
@@ -276,23 +314,22 @@ export function FraisUpForm({
                           : undefined
                       }
                     >
-                      Nom du frais
+                      Montant
                     </FormLabel>
                     <FormControl>
-                      <Input
-                        placeholder="Ex: Frais d'inscription"
-                        className={
-                          isDialog
-                            ? "h-9 rounded-md px-3 text-sm font-normal"
-                            : undefined
-                        }
-                        {...field}
+                      <MontantInput
+                        name={field.name}
+                        ref={field.ref}
+                        value={field.value}
+                        onChange={field.onChange}
+                        onBlur={field.onBlur}
                       />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
+
               <FormField
                 control={form.control}
                 name="priority"
@@ -319,45 +356,6 @@ export function FraisUpForm({
                             ? "h-9 rounded-md px-3 text-sm font-normal"
                             : undefined
                         }
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="id"
-                render={({ field }) => <input type="hidden" {...field} />}
-              />
-            </div>
-            <div
-              className={cn(
-                "grid grid-cols-1 sm:grid-cols-2",
-                isDialog ? "gap-x-4 gap-y-2" : "gap-4",
-              )}
-            >
-              <FormField
-                control={form.control}
-                name="montantFrais"
-                render={({ field }) => (
-                  <FormItem className={isDialog ? "space-y-0.5" : "space-y-1"}>
-                    <FormLabel
-                      className={
-                        isDialog
-                          ? "text-xs font-medium text-muted-foreground"
-                          : undefined
-                      }
-                    >
-                      Montant
-                    </FormLabel>
-                    <FormControl>
-                      <MontantInput
-                        name={field.name}
-                        ref={field.ref}
-                        value={field.value}
-                        onChange={field.onChange}
-                        onBlur={field.onBlur}
                       />
                     </FormControl>
                     <FormMessage />
@@ -454,49 +452,6 @@ export function FraisUpForm({
                 )}
               />
             )}
-
-            {mode === "create" ? (
-              <div className="grid gap-2 sm:col-span-2">
-                <FormField
-                  control={form.control}
-                  name="applyToCycle"
-                  render={({ field }) => (
-                    <FormItem className="flex items-center gap-2 space-y-0">
-                      <FormControl>
-                        <Checkbox
-                          checked={Boolean(field.value)}
-                          onCheckedChange={(value) =>
-                            field.onChange(Boolean(value))
-                          }
-                        />
-                      </FormControl>
-                      <FormLabel className="text-xs font-normal">
-                        Appliquer à toutes les classes de ce cycle
-                      </FormLabel>
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="applyToLevel"
-                  render={({ field }) => (
-                    <FormItem className="flex items-center gap-2 space-y-0">
-                      <FormControl>
-                        <Checkbox
-                          checked={Boolean(field.value)}
-                          onCheckedChange={(value) =>
-                            field.onChange(Boolean(value))
-                          }
-                        />
-                      </FormControl>
-                      <FormLabel className="text-xs font-normal">
-                        Appliquer à toutes les classes de ce niveau
-                      </FormLabel>
-                    </FormItem>
-                  )}
-                />
-              </div>
-            ) : null}
 
             <FormField
               control={form.control}
@@ -610,6 +565,49 @@ export function FraisUpForm({
                 </FormItem>
               )}
             />
+
+            {mode === "create" ? (
+              <div className="grid gap-2">
+                <FormField
+                  control={form.control}
+                  name="applyToCycle"
+                  render={({ field }) => (
+                    <FormItem className="flex items-center gap-2 space-y-0">
+                      <FormControl>
+                        <Checkbox
+                          checked={Boolean(field.value)}
+                          onCheckedChange={(value) =>
+                            field.onChange(Boolean(value))
+                          }
+                        />
+                      </FormControl>
+                      <FormLabel className="text-xs font-normal">
+                        Appliquer à toutes les classes de ce cycle
+                      </FormLabel>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="applyToLevel"
+                  render={({ field }) => (
+                    <FormItem className="flex items-center gap-2 space-y-0">
+                      <FormControl>
+                        <Checkbox
+                          checked={Boolean(field.value)}
+                          onCheckedChange={(value) =>
+                            field.onChange(Boolean(value))
+                          }
+                        />
+                      </FormControl>
+                      <FormLabel className="text-xs font-normal">
+                        Appliquer à toutes les classes de ce niveau
+                      </FormLabel>
+                    </FormItem>
+                  )}
+                />
+              </div>
+            ) : null}
 
             <Button
               type="submit"

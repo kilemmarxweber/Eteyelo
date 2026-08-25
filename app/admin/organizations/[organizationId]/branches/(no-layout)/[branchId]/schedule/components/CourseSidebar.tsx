@@ -21,7 +21,7 @@ type OptionsData = NonNullable<
   Awaited<ReturnType<typeof getScheduleOptionsAction>>[0]
 >;
 
-const PAGE_SIZE = 8;
+const PAGE_SIZE = 16;
 
 export function OptionSidebar() {
   const [options, setOptions] = useState<OptionsData>([]);
@@ -56,6 +56,7 @@ export function OptionSidebar() {
           codeClasse: classe.codeClasse,
           optionName: option.nameOption,
           sectionName: option.nameSection ?? "",
+          cycle: classe.cycle ?? "",
         })),
       ),
     [options],
@@ -64,7 +65,7 @@ export function OptionSidebar() {
   const filtered = useMemo(
     () =>
       classes.filter((classe) =>
-        `${classe.nameClasse} ${classe.codeClasse} ${classe.optionName} ${classe.sectionName}`
+          `${classe.nameClasse} ${classe.codeClasse} ${classe.optionName} ${classe.sectionName} ${classe.cycle}`
           .toLowerCase()
           .includes(search.toLowerCase()),
       ),
@@ -135,9 +136,7 @@ export function OptionSidebar() {
               </div>
               <p className="mt-1 text-xs text-muted-foreground">
                 {classe.codeClasse}
-                {classe.sectionName || classe.optionName
-                  ? ` · ${[classe.sectionName, classe.optionName].filter(Boolean).join(" · ")}`
-                  : ""}
+                {classe.optionName ? ` · ${classe.optionName}` : ""}
               </p>
             </button>
           );

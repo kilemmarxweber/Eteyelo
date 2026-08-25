@@ -2,7 +2,7 @@
 
 import { BranchPageShell } from "@/components/layout/branch-page-shell";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -44,6 +44,16 @@ const TeacherCombobox = dynamic(
   { ssr: false },
 );
 
+function uniquePeriodsByLabel(periods: Period[]): Period[] {
+  const seen = new Set<string>();
+  return periods.filter((period) => {
+    const key = `${period.rawLabel ?? period.label}::${period.kind ?? ""}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
 /* ===== COMPONENT ===== */
 export default function FicheSaisieClient({
   teachers,
@@ -82,8 +92,34 @@ export default function FicheSaisieClient({
   const percentage = students.length > 0 ? (filled / students.length) * 100 : 0;
   /* ===== LOAD PERIODS ===== */
 
+  const selectedPeriodKeyRef = useRef<string | null>(null);
+  selectedPeriodKeyRef.current =
+    periods.find((p) => p.id === selectedPeriodId)?.rawLabel ??
+    periods.find((p) => p.id === selectedPeriodId)?.label ??
+    null;
+
   useEffect(() => {
-    getPeriods(selectedLesson?.classId).then(setPeriods);
+    let ignore = false;
+
+    getPeriods(selectedLesson?.classId).then((next) => {
+      if (ignore) return;
+      const unique = uniquePeriodsByLabel(next);
+      setPeriods(unique);
+      setSelectedPeriodId((prev) => {
+        if (prev == null) return prev;
+        if (unique.some((period) => period.id === prev)) return prev;
+        const key = selectedPeriodKeyRef.current;
+        if (!key) return null;
+        return (
+          unique.find((period) => (period.rawLabel ?? period.label) === key)
+            ?.id ?? null
+        );
+      });
+    });
+
+    return () => {
+      ignore = true;
+    };
   }, [selectedLesson?.classId]);
   const isExamPeriod = (period?: Period | null) => {
     if (!period) return false;
@@ -608,25 +644,27 @@ export default function FicheSaisieClient({
                 onChange={(value) => setSelectedYearId(value || null)}
               />
               {(() => {
-                const orderedPeriods = [...periods]
-                  .filter((p) => {
-                    if (notesLabels.isUniversite) return true;
-                    if (isAdmin) return true;
-                    return p.kind !== "EXAM";
-                  })
-                  .sort(
-                    (a, b) =>
-                      getAcademicPeriodOrder(
-                        a.rawLabel ?? a.label,
-                        notesLabels.typebranch,
-                        notesLabels.educationSystem,
-                      ) -
-                      getAcademicPeriodOrder(
-                        b.rawLabel ?? b.label,
-                        notesLabels.typebranch,
-                        notesLabels.educationSystem,
-                      ),
-                  );
+                const orderedPeriods = uniquePeriodsByLabel(
+                  [...periods]
+                    .filter((p) => {
+                      if (notesLabels.isUniversite) return true;
+                      if (isAdmin) return true;
+                      return p.kind !== "EXAM";
+                    })
+                    .sort(
+                      (a, b) =>
+                        getAcademicPeriodOrder(
+                          a.rawLabel ?? a.label,
+                          notesLabels.typebranch,
+                          notesLabels.educationSystem,
+                        ) -
+                        getAcademicPeriodOrder(
+                          b.rawLabel ?? b.label,
+                          notesLabels.typebranch,
+                          notesLabels.educationSystem,
+                        ),
+                    ),
+                );
                 return (
                   <Combobox
                     label={notesLabels.sessionLabel}

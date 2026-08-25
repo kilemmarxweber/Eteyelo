@@ -8,6 +8,7 @@ import { ITeaching, teachingSchema } from "@/src/interfaces/Teaching";
 import { z } from "zod";
 import { canManageOrganization } from "@/lib/auth/session-roles";
 import { activeCoursStatusFilter } from "@/lib/active-cours";
+import { scheduleHourToMinutes } from "@/lib/timezone";
 
 const teachingInclude = {
   teacher: {
@@ -132,7 +133,14 @@ export const saveQuickAssignmentsAction = action.input(quickAssignmentSchema).ha
   });
   for (const item of existing) {
     if (item.teacherId === input.teacherId) continue;
-    const conflict = item.Schedule.find(slot => targetSchedules.some(target => target.day === slot.day && target.hour.getTime() === slot.hour.getTime()));
+    const conflict = item.Schedule.find((slot) =>
+      targetSchedules.some(
+        (target) =>
+          target.day === slot.day &&
+          scheduleHourToMinutes(target.hour) ===
+            scheduleHourToMinutes(slot.hour),
+      ),
+    );
     if (conflict) throw new Error(`Conflit d'horaire détecté le ${conflict.day}. L'enseignant est déjà occupé à cette heure.`);
   }
 
