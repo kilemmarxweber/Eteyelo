@@ -140,6 +140,7 @@ function mapGroupedToReceipt(
     baseCurrency: branding.baseCurrency ?? "USD",
     quoteCurrency: branding.quoteCurrency,
     selectedRate: branding.selectedRate,
+    showConversion: branding.showConversion !== false,
   };
 }
 
@@ -452,6 +453,7 @@ const PaiementsTable = ({
   const exchangeRate =
     branding?.exchangeRateUsdCdf ?? DEFAULT_EXCHANGE_RATE_USD_CDF;
   const baseCurrency = branding?.baseCurrency ?? "USD";
+  const showConversion = branding?.showConversion !== false;
   const quoteCurrency =
     branding?.quoteCurrency ??
     (baseCurrency === "AOA" || baseCurrency === "CDF" ? "USD" : "CDF");
@@ -546,6 +548,10 @@ const PaiementsTable = ({
       ),
     },
   ];
+
+  const visibleColumns = showConversion
+    ? columns
+    : columns.filter((c) => c.key !== "total");
 
   const cardConfig = {
     title: (g: GroupedPaiement) => g.reference,
@@ -658,7 +664,7 @@ const PaiementsTable = ({
 
       <ResponsiveDataTable
         data={filtered}
-        columns={columns}
+        columns={visibleColumns}
         cardConfig={cardConfig}
         loading={loading}
       />

@@ -868,8 +868,10 @@ export default function PaymentsForm({
         : t("amountPaidPlaceholder", { currency: receivedCurrency }),
     disabled: !hasNoSelection && isSolded,
     className: cn(
-      "h-9 text-sm",
-      !hasNoSelection && isSolded && "opacity-50 cursor-not-allowed",
+      "h-9 text-sm border-2 border-primary ring-2 ring-primary/25 hover:border-primary hover:ring-primary/40 focus-visible:border-primary focus-visible:ring-primary/50",
+      !hasNoSelection &&
+        isSolded &&
+        "cursor-not-allowed border-input opacity-50 ring-0 hover:border-input hover:ring-0",
     ),
   };
 

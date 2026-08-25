@@ -236,3 +236,44 @@ export const selectExchangeRateAction = action
       await prisma.exchangeRate.findUniqueOrThrow({ where: { id: target.id } }),
     );
   });
+
+const financeDisplaySchema = z.object({
+  showReceiptConversion: z.boolean(),
+  notifyParentOnPayment: z.boolean(),
+});
+
+export const getFinanceDisplaySettingsAction = action.handler(async () => {
+  const { organizationId, session } = await requireBranchContext();
+  assertCanManage(session);
+  const org = await prisma.organization.findUnique({
+    where: { id: organizationId },
+    select: {
+      showReceiptConversion: true,
+      notifyParentOnPayment: true,
+    },
+  });
+  return {
+    showReceiptConversion: org?.showReceiptConversion ?? true,
+    notifyParentOnPayment: org?.notifyParentOnPayment ?? true,
+  };
+});
+
+export const updateFinanceDisplaySettingsAction = action
+  .input(financeDisplaySchema)
+  .handler(async ({ input }) => {
+    const { organizationId, session, branchId } = await requireBranchContext();
+    assertCanManage(session);
+    const org = await prisma.organization.update({
+      where: { id: organizationId },
+      data: {
+        showReceiptConversion: input.showReceiptConversion,
+        notifyParentOnPayment: input.notifyParentOnPayment,
+      },
+      select: {
+        showReceiptConversion: true,
+        notifyParentOnPayment: true,
+      },
+    });
+    revalidateRatePaths(organizationId, branchId);
+    return org;
+  });

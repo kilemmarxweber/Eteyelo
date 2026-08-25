@@ -34,6 +34,8 @@ export type OrganizationMinAggregateOutputType = {
   isArchived: boolean | null
   archivedAt: Date | null
   archivedById: string | null
+  showReceiptConversion: boolean | null
+  notifyParentOnPayment: boolean | null
 }
 
 export type OrganizationMaxAggregateOutputType = {
@@ -46,6 +48,8 @@ export type OrganizationMaxAggregateOutputType = {
   isArchived: boolean | null
   archivedAt: Date | null
   archivedById: string | null
+  showReceiptConversion: boolean | null
+  notifyParentOnPayment: boolean | null
 }
 
 export type OrganizationCountAggregateOutputType = {
@@ -58,6 +62,8 @@ export type OrganizationCountAggregateOutputType = {
   isArchived: number
   archivedAt: number
   archivedById: number
+  showReceiptConversion: number
+  notifyParentOnPayment: number
   _all: number
 }
 
@@ -72,6 +78,8 @@ export type OrganizationMinAggregateInputType = {
   isArchived?: true
   archivedAt?: true
   archivedById?: true
+  showReceiptConversion?: true
+  notifyParentOnPayment?: true
 }
 
 export type OrganizationMaxAggregateInputType = {
@@ -84,6 +92,8 @@ export type OrganizationMaxAggregateInputType = {
   isArchived?: true
   archivedAt?: true
   archivedById?: true
+  showReceiptConversion?: true
+  notifyParentOnPayment?: true
 }
 
 export type OrganizationCountAggregateInputType = {
@@ -96,6 +106,8 @@ export type OrganizationCountAggregateInputType = {
   isArchived?: true
   archivedAt?: true
   archivedById?: true
+  showReceiptConversion?: true
+  notifyParentOnPayment?: true
   _all?: true
 }
 
@@ -181,6 +193,8 @@ export type OrganizationGroupByOutputType = {
   isArchived: boolean
   archivedAt: Date | null
   archivedById: string | null
+  showReceiptConversion: boolean
+  notifyParentOnPayment: boolean
   _count: OrganizationCountAggregateOutputType | null
   _min: OrganizationMinAggregateOutputType | null
   _max: OrganizationMaxAggregateOutputType | null
@@ -214,6 +228,8 @@ export type OrganizationWhereInput = {
   isArchived?: Prisma.BoolFilter<"Organization"> | boolean
   archivedAt?: Prisma.DateTimeNullableFilter<"Organization"> | Date | string | null
   archivedById?: Prisma.StringNullableFilter<"Organization"> | string | null
+  showReceiptConversion?: Prisma.BoolFilter<"Organization"> | boolean
+  notifyParentOnPayment?: Prisma.BoolFilter<"Organization"> | boolean
   organizationroles?: Prisma.OrganizationRoleListRelationFilter
   members?: Prisma.MemberListRelationFilter
   branches?: Prisma.BranchListRelationFilter
@@ -233,6 +249,8 @@ export type OrganizationOrderByWithRelationInput = {
   isArchived?: Prisma.SortOrder
   archivedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   archivedById?: Prisma.SortOrderInput | Prisma.SortOrder
+  showReceiptConversion?: Prisma.SortOrder
+  notifyParentOnPayment?: Prisma.SortOrder
   organizationroles?: Prisma.OrganizationRoleOrderByRelationAggregateInput
   members?: Prisma.MemberOrderByRelationAggregateInput
   branches?: Prisma.BranchOrderByRelationAggregateInput
@@ -255,6 +273,8 @@ export type OrganizationWhereUniqueInput = Prisma.AtLeast<{
   isArchived?: Prisma.BoolFilter<"Organization"> | boolean
   archivedAt?: Prisma.DateTimeNullableFilter<"Organization"> | Date | string | null
   archivedById?: Prisma.StringNullableFilter<"Organization"> | string | null
+  showReceiptConversion?: Prisma.BoolFilter<"Organization"> | boolean
+  notifyParentOnPayment?: Prisma.BoolFilter<"Organization"> | boolean
   organizationroles?: Prisma.OrganizationRoleListRelationFilter
   members?: Prisma.MemberListRelationFilter
   branches?: Prisma.BranchListRelationFilter
@@ -274,6 +294,8 @@ export type OrganizationOrderByWithAggregationInput = {
   isArchived?: Prisma.SortOrder
   archivedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   archivedById?: Prisma.SortOrderInput | Prisma.SortOrder
+  showReceiptConversion?: Prisma.SortOrder
+  notifyParentOnPayment?: Prisma.SortOrder
   _count?: Prisma.OrganizationCountOrderByAggregateInput
   _max?: Prisma.OrganizationMaxOrderByAggregateInput
   _min?: Prisma.OrganizationMinOrderByAggregateInput
@@ -292,6 +314,8 @@ export type OrganizationScalarWhereWithAggregatesInput = {
   isArchived?: Prisma.BoolWithAggregatesFilter<"Organization"> | boolean
   archivedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Organization"> | Date | string | null
   archivedById?: Prisma.StringNullableWithAggregatesFilter<"Organization"> | string | null
+  showReceiptConversion?: Prisma.BoolWithAggregatesFilter<"Organization"> | boolean
+  notifyParentOnPayment?: Prisma.BoolWithAggregatesFilter<"Organization"> | boolean
 }
 
 export type OrganizationCreateInput = {
@@ -304,6 +328,8 @@ export type OrganizationCreateInput = {
   isArchived?: boolean
   archivedAt?: Date | string | null
   archivedById?: string | null
+  showReceiptConversion?: boolean
+  notifyParentOnPayment?: boolean
   organizationroles?: Prisma.OrganizationRoleCreateNestedManyWithoutOrganizationInput
   members?: Prisma.MemberCreateNestedManyWithoutOrganizationInput
   branches?: Prisma.BranchCreateNestedManyWithoutOrganizationInput
@@ -323,6 +349,8 @@ export type OrganizationUncheckedCreateInput = {
   isArchived?: boolean
   archivedAt?: Date | string | null
   archivedById?: string | null
+  showReceiptConversion?: boolean
+  notifyParentOnPayment?: boolean
   organizationroles?: Prisma.OrganizationRoleUncheckedCreateNestedManyWithoutOrganizationInput
   members?: Prisma.MemberUncheckedCreateNestedManyWithoutOrganizationInput
   branches?: Prisma.BranchUncheckedCreateNestedManyWithoutOrganizationInput
@@ -342,6 +370,8 @@ export type OrganizationUpdateInput = {
   isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  showReceiptConversion?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  notifyParentOnPayment?: Prisma.BoolFieldUpdateOperationsInput | boolean
   organizationroles?: Prisma.OrganizationRoleUpdateManyWithoutOrganizationNestedInput
   members?: Prisma.MemberUpdateManyWithoutOrganizationNestedInput
   branches?: Prisma.BranchUpdateManyWithoutOrganizationNestedInput
@@ -361,6 +391,8 @@ export type OrganizationUncheckedUpdateInput = {
   isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  showReceiptConversion?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  notifyParentOnPayment?: Prisma.BoolFieldUpdateOperationsInput | boolean
   organizationroles?: Prisma.OrganizationRoleUncheckedUpdateManyWithoutOrganizationNestedInput
   members?: Prisma.MemberUncheckedUpdateManyWithoutOrganizationNestedInput
   branches?: Prisma.BranchUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -380,6 +412,8 @@ export type OrganizationCreateManyInput = {
   isArchived?: boolean
   archivedAt?: Date | string | null
   archivedById?: string | null
+  showReceiptConversion?: boolean
+  notifyParentOnPayment?: boolean
 }
 
 export type OrganizationUpdateManyMutationInput = {
@@ -392,6 +426,8 @@ export type OrganizationUpdateManyMutationInput = {
   isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  showReceiptConversion?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  notifyParentOnPayment?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
 export type OrganizationUncheckedUpdateManyInput = {
@@ -404,6 +440,8 @@ export type OrganizationUncheckedUpdateManyInput = {
   isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  showReceiptConversion?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  notifyParentOnPayment?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
 export type OrganizationScalarRelationFilter = {
@@ -421,6 +459,8 @@ export type OrganizationCountOrderByAggregateInput = {
   isArchived?: Prisma.SortOrder
   archivedAt?: Prisma.SortOrder
   archivedById?: Prisma.SortOrder
+  showReceiptConversion?: Prisma.SortOrder
+  notifyParentOnPayment?: Prisma.SortOrder
 }
 
 export type OrganizationMaxOrderByAggregateInput = {
@@ -433,6 +473,8 @@ export type OrganizationMaxOrderByAggregateInput = {
   isArchived?: Prisma.SortOrder
   archivedAt?: Prisma.SortOrder
   archivedById?: Prisma.SortOrder
+  showReceiptConversion?: Prisma.SortOrder
+  notifyParentOnPayment?: Prisma.SortOrder
 }
 
 export type OrganizationMinOrderByAggregateInput = {
@@ -445,6 +487,8 @@ export type OrganizationMinOrderByAggregateInput = {
   isArchived?: Prisma.SortOrder
   archivedAt?: Prisma.SortOrder
   archivedById?: Prisma.SortOrder
+  showReceiptConversion?: Prisma.SortOrder
+  notifyParentOnPayment?: Prisma.SortOrder
 }
 
 export type OrganizationCreateNestedOneWithoutExchangeRatesInput = {
@@ -555,6 +599,8 @@ export type OrganizationCreateWithoutExchangeRatesInput = {
   isArchived?: boolean
   archivedAt?: Date | string | null
   archivedById?: string | null
+  showReceiptConversion?: boolean
+  notifyParentOnPayment?: boolean
   organizationroles?: Prisma.OrganizationRoleCreateNestedManyWithoutOrganizationInput
   members?: Prisma.MemberCreateNestedManyWithoutOrganizationInput
   branches?: Prisma.BranchCreateNestedManyWithoutOrganizationInput
@@ -573,6 +619,8 @@ export type OrganizationUncheckedCreateWithoutExchangeRatesInput = {
   isArchived?: boolean
   archivedAt?: Date | string | null
   archivedById?: string | null
+  showReceiptConversion?: boolean
+  notifyParentOnPayment?: boolean
   organizationroles?: Prisma.OrganizationRoleUncheckedCreateNestedManyWithoutOrganizationInput
   members?: Prisma.MemberUncheckedCreateNestedManyWithoutOrganizationInput
   branches?: Prisma.BranchUncheckedCreateNestedManyWithoutOrganizationInput
@@ -607,6 +655,8 @@ export type OrganizationUpdateWithoutExchangeRatesInput = {
   isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  showReceiptConversion?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  notifyParentOnPayment?: Prisma.BoolFieldUpdateOperationsInput | boolean
   organizationroles?: Prisma.OrganizationRoleUpdateManyWithoutOrganizationNestedInput
   members?: Prisma.MemberUpdateManyWithoutOrganizationNestedInput
   branches?: Prisma.BranchUpdateManyWithoutOrganizationNestedInput
@@ -625,6 +675,8 @@ export type OrganizationUncheckedUpdateWithoutExchangeRatesInput = {
   isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  showReceiptConversion?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  notifyParentOnPayment?: Prisma.BoolFieldUpdateOperationsInput | boolean
   organizationroles?: Prisma.OrganizationRoleUncheckedUpdateManyWithoutOrganizationNestedInput
   members?: Prisma.MemberUncheckedUpdateManyWithoutOrganizationNestedInput
   branches?: Prisma.BranchUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -643,6 +695,8 @@ export type OrganizationCreateWithoutOrganizationrolesInput = {
   isArchived?: boolean
   archivedAt?: Date | string | null
   archivedById?: string | null
+  showReceiptConversion?: boolean
+  notifyParentOnPayment?: boolean
   members?: Prisma.MemberCreateNestedManyWithoutOrganizationInput
   branches?: Prisma.BranchCreateNestedManyWithoutOrganizationInput
   invitations?: Prisma.InvitationCreateNestedManyWithoutOrganizationInput
@@ -661,6 +715,8 @@ export type OrganizationUncheckedCreateWithoutOrganizationrolesInput = {
   isArchived?: boolean
   archivedAt?: Date | string | null
   archivedById?: string | null
+  showReceiptConversion?: boolean
+  notifyParentOnPayment?: boolean
   members?: Prisma.MemberUncheckedCreateNestedManyWithoutOrganizationInput
   branches?: Prisma.BranchUncheckedCreateNestedManyWithoutOrganizationInput
   invitations?: Prisma.InvitationUncheckedCreateNestedManyWithoutOrganizationInput
@@ -695,6 +751,8 @@ export type OrganizationUpdateWithoutOrganizationrolesInput = {
   isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  showReceiptConversion?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  notifyParentOnPayment?: Prisma.BoolFieldUpdateOperationsInput | boolean
   members?: Prisma.MemberUpdateManyWithoutOrganizationNestedInput
   branches?: Prisma.BranchUpdateManyWithoutOrganizationNestedInput
   invitations?: Prisma.InvitationUpdateManyWithoutOrganizationNestedInput
@@ -713,6 +771,8 @@ export type OrganizationUncheckedUpdateWithoutOrganizationrolesInput = {
   isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  showReceiptConversion?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  notifyParentOnPayment?: Prisma.BoolFieldUpdateOperationsInput | boolean
   members?: Prisma.MemberUncheckedUpdateManyWithoutOrganizationNestedInput
   branches?: Prisma.BranchUncheckedUpdateManyWithoutOrganizationNestedInput
   invitations?: Prisma.InvitationUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -731,6 +791,8 @@ export type OrganizationCreateWithoutMembersInput = {
   isArchived?: boolean
   archivedAt?: Date | string | null
   archivedById?: string | null
+  showReceiptConversion?: boolean
+  notifyParentOnPayment?: boolean
   organizationroles?: Prisma.OrganizationRoleCreateNestedManyWithoutOrganizationInput
   branches?: Prisma.BranchCreateNestedManyWithoutOrganizationInput
   invitations?: Prisma.InvitationCreateNestedManyWithoutOrganizationInput
@@ -749,6 +811,8 @@ export type OrganizationUncheckedCreateWithoutMembersInput = {
   isArchived?: boolean
   archivedAt?: Date | string | null
   archivedById?: string | null
+  showReceiptConversion?: boolean
+  notifyParentOnPayment?: boolean
   organizationroles?: Prisma.OrganizationRoleUncheckedCreateNestedManyWithoutOrganizationInput
   branches?: Prisma.BranchUncheckedCreateNestedManyWithoutOrganizationInput
   invitations?: Prisma.InvitationUncheckedCreateNestedManyWithoutOrganizationInput
@@ -783,6 +847,8 @@ export type OrganizationUpdateWithoutMembersInput = {
   isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  showReceiptConversion?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  notifyParentOnPayment?: Prisma.BoolFieldUpdateOperationsInput | boolean
   organizationroles?: Prisma.OrganizationRoleUpdateManyWithoutOrganizationNestedInput
   branches?: Prisma.BranchUpdateManyWithoutOrganizationNestedInput
   invitations?: Prisma.InvitationUpdateManyWithoutOrganizationNestedInput
@@ -801,6 +867,8 @@ export type OrganizationUncheckedUpdateWithoutMembersInput = {
   isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  showReceiptConversion?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  notifyParentOnPayment?: Prisma.BoolFieldUpdateOperationsInput | boolean
   organizationroles?: Prisma.OrganizationRoleUncheckedUpdateManyWithoutOrganizationNestedInput
   branches?: Prisma.BranchUncheckedUpdateManyWithoutOrganizationNestedInput
   invitations?: Prisma.InvitationUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -819,6 +887,8 @@ export type OrganizationCreateWithoutInvitationsInput = {
   isArchived?: boolean
   archivedAt?: Date | string | null
   archivedById?: string | null
+  showReceiptConversion?: boolean
+  notifyParentOnPayment?: boolean
   organizationroles?: Prisma.OrganizationRoleCreateNestedManyWithoutOrganizationInput
   members?: Prisma.MemberCreateNestedManyWithoutOrganizationInput
   branches?: Prisma.BranchCreateNestedManyWithoutOrganizationInput
@@ -837,6 +907,8 @@ export type OrganizationUncheckedCreateWithoutInvitationsInput = {
   isArchived?: boolean
   archivedAt?: Date | string | null
   archivedById?: string | null
+  showReceiptConversion?: boolean
+  notifyParentOnPayment?: boolean
   organizationroles?: Prisma.OrganizationRoleUncheckedCreateNestedManyWithoutOrganizationInput
   members?: Prisma.MemberUncheckedCreateNestedManyWithoutOrganizationInput
   branches?: Prisma.BranchUncheckedCreateNestedManyWithoutOrganizationInput
@@ -871,6 +943,8 @@ export type OrganizationUpdateWithoutInvitationsInput = {
   isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  showReceiptConversion?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  notifyParentOnPayment?: Prisma.BoolFieldUpdateOperationsInput | boolean
   organizationroles?: Prisma.OrganizationRoleUpdateManyWithoutOrganizationNestedInput
   members?: Prisma.MemberUpdateManyWithoutOrganizationNestedInput
   branches?: Prisma.BranchUpdateManyWithoutOrganizationNestedInput
@@ -889,6 +963,8 @@ export type OrganizationUncheckedUpdateWithoutInvitationsInput = {
   isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  showReceiptConversion?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  notifyParentOnPayment?: Prisma.BoolFieldUpdateOperationsInput | boolean
   organizationroles?: Prisma.OrganizationRoleUncheckedUpdateManyWithoutOrganizationNestedInput
   members?: Prisma.MemberUncheckedUpdateManyWithoutOrganizationNestedInput
   branches?: Prisma.BranchUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -907,6 +983,8 @@ export type OrganizationCreateWithoutBranchesInput = {
   isArchived?: boolean
   archivedAt?: Date | string | null
   archivedById?: string | null
+  showReceiptConversion?: boolean
+  notifyParentOnPayment?: boolean
   organizationroles?: Prisma.OrganizationRoleCreateNestedManyWithoutOrganizationInput
   members?: Prisma.MemberCreateNestedManyWithoutOrganizationInput
   invitations?: Prisma.InvitationCreateNestedManyWithoutOrganizationInput
@@ -925,6 +1003,8 @@ export type OrganizationUncheckedCreateWithoutBranchesInput = {
   isArchived?: boolean
   archivedAt?: Date | string | null
   archivedById?: string | null
+  showReceiptConversion?: boolean
+  notifyParentOnPayment?: boolean
   organizationroles?: Prisma.OrganizationRoleUncheckedCreateNestedManyWithoutOrganizationInput
   members?: Prisma.MemberUncheckedCreateNestedManyWithoutOrganizationInput
   invitations?: Prisma.InvitationUncheckedCreateNestedManyWithoutOrganizationInput
@@ -959,6 +1039,8 @@ export type OrganizationUpdateWithoutBranchesInput = {
   isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  showReceiptConversion?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  notifyParentOnPayment?: Prisma.BoolFieldUpdateOperationsInput | boolean
   organizationroles?: Prisma.OrganizationRoleUpdateManyWithoutOrganizationNestedInput
   members?: Prisma.MemberUpdateManyWithoutOrganizationNestedInput
   invitations?: Prisma.InvitationUpdateManyWithoutOrganizationNestedInput
@@ -977,6 +1059,8 @@ export type OrganizationUncheckedUpdateWithoutBranchesInput = {
   isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  showReceiptConversion?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  notifyParentOnPayment?: Prisma.BoolFieldUpdateOperationsInput | boolean
   organizationroles?: Prisma.OrganizationRoleUncheckedUpdateManyWithoutOrganizationNestedInput
   members?: Prisma.MemberUncheckedUpdateManyWithoutOrganizationNestedInput
   invitations?: Prisma.InvitationUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -995,6 +1079,8 @@ export type OrganizationCreateWithoutOrganizationSupportAgentsInput = {
   isArchived?: boolean
   archivedAt?: Date | string | null
   archivedById?: string | null
+  showReceiptConversion?: boolean
+  notifyParentOnPayment?: boolean
   organizationroles?: Prisma.OrganizationRoleCreateNestedManyWithoutOrganizationInput
   members?: Prisma.MemberCreateNestedManyWithoutOrganizationInput
   branches?: Prisma.BranchCreateNestedManyWithoutOrganizationInput
@@ -1013,6 +1099,8 @@ export type OrganizationUncheckedCreateWithoutOrganizationSupportAgentsInput = {
   isArchived?: boolean
   archivedAt?: Date | string | null
   archivedById?: string | null
+  showReceiptConversion?: boolean
+  notifyParentOnPayment?: boolean
   organizationroles?: Prisma.OrganizationRoleUncheckedCreateNestedManyWithoutOrganizationInput
   members?: Prisma.MemberUncheckedCreateNestedManyWithoutOrganizationInput
   branches?: Prisma.BranchUncheckedCreateNestedManyWithoutOrganizationInput
@@ -1047,6 +1135,8 @@ export type OrganizationUpdateWithoutOrganizationSupportAgentsInput = {
   isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  showReceiptConversion?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  notifyParentOnPayment?: Prisma.BoolFieldUpdateOperationsInput | boolean
   organizationroles?: Prisma.OrganizationRoleUpdateManyWithoutOrganizationNestedInput
   members?: Prisma.MemberUpdateManyWithoutOrganizationNestedInput
   branches?: Prisma.BranchUpdateManyWithoutOrganizationNestedInput
@@ -1065,6 +1155,8 @@ export type OrganizationUncheckedUpdateWithoutOrganizationSupportAgentsInput = {
   isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  showReceiptConversion?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  notifyParentOnPayment?: Prisma.BoolFieldUpdateOperationsInput | boolean
   organizationroles?: Prisma.OrganizationRoleUncheckedUpdateManyWithoutOrganizationNestedInput
   members?: Prisma.MemberUncheckedUpdateManyWithoutOrganizationNestedInput
   branches?: Prisma.BranchUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -1083,6 +1175,8 @@ export type OrganizationCreateWithoutPlatformSupportEscalationsInput = {
   isArchived?: boolean
   archivedAt?: Date | string | null
   archivedById?: string | null
+  showReceiptConversion?: boolean
+  notifyParentOnPayment?: boolean
   organizationroles?: Prisma.OrganizationRoleCreateNestedManyWithoutOrganizationInput
   members?: Prisma.MemberCreateNestedManyWithoutOrganizationInput
   branches?: Prisma.BranchCreateNestedManyWithoutOrganizationInput
@@ -1101,6 +1195,8 @@ export type OrganizationUncheckedCreateWithoutPlatformSupportEscalationsInput = 
   isArchived?: boolean
   archivedAt?: Date | string | null
   archivedById?: string | null
+  showReceiptConversion?: boolean
+  notifyParentOnPayment?: boolean
   organizationroles?: Prisma.OrganizationRoleUncheckedCreateNestedManyWithoutOrganizationInput
   members?: Prisma.MemberUncheckedCreateNestedManyWithoutOrganizationInput
   branches?: Prisma.BranchUncheckedCreateNestedManyWithoutOrganizationInput
@@ -1135,6 +1231,8 @@ export type OrganizationUpdateWithoutPlatformSupportEscalationsInput = {
   isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  showReceiptConversion?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  notifyParentOnPayment?: Prisma.BoolFieldUpdateOperationsInput | boolean
   organizationroles?: Prisma.OrganizationRoleUpdateManyWithoutOrganizationNestedInput
   members?: Prisma.MemberUpdateManyWithoutOrganizationNestedInput
   branches?: Prisma.BranchUpdateManyWithoutOrganizationNestedInput
@@ -1153,6 +1251,8 @@ export type OrganizationUncheckedUpdateWithoutPlatformSupportEscalationsInput = 
   isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  showReceiptConversion?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  notifyParentOnPayment?: Prisma.BoolFieldUpdateOperationsInput | boolean
   organizationroles?: Prisma.OrganizationRoleUncheckedUpdateManyWithoutOrganizationNestedInput
   members?: Prisma.MemberUncheckedUpdateManyWithoutOrganizationNestedInput
   branches?: Prisma.BranchUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -1256,6 +1356,8 @@ export type OrganizationSelect<ExtArgs extends runtime.Types.Extensions.Internal
   isArchived?: boolean
   archivedAt?: boolean
   archivedById?: boolean
+  showReceiptConversion?: boolean
+  notifyParentOnPayment?: boolean
   organizationroles?: boolean | Prisma.Organization$organizationrolesArgs<ExtArgs>
   members?: boolean | Prisma.Organization$membersArgs<ExtArgs>
   branches?: boolean | Prisma.Organization$branchesArgs<ExtArgs>
@@ -1276,6 +1378,8 @@ export type OrganizationSelectCreateManyAndReturn<ExtArgs extends runtime.Types.
   isArchived?: boolean
   archivedAt?: boolean
   archivedById?: boolean
+  showReceiptConversion?: boolean
+  notifyParentOnPayment?: boolean
 }, ExtArgs["result"]["organization"]>
 
 export type OrganizationSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -1288,6 +1392,8 @@ export type OrganizationSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.
   isArchived?: boolean
   archivedAt?: boolean
   archivedById?: boolean
+  showReceiptConversion?: boolean
+  notifyParentOnPayment?: boolean
 }, ExtArgs["result"]["organization"]>
 
 export type OrganizationSelectScalar = {
@@ -1300,9 +1406,11 @@ export type OrganizationSelectScalar = {
   isArchived?: boolean
   archivedAt?: boolean
   archivedById?: boolean
+  showReceiptConversion?: boolean
+  notifyParentOnPayment?: boolean
 }
 
-export type OrganizationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "slug" | "logo" | "createdAt" | "metadata" | "isArchived" | "archivedAt" | "archivedById", ExtArgs["result"]["organization"]>
+export type OrganizationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "slug" | "logo" | "createdAt" | "metadata" | "isArchived" | "archivedAt" | "archivedById" | "showReceiptConversion" | "notifyParentOnPayment", ExtArgs["result"]["organization"]>
 export type OrganizationInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   organizationroles?: boolean | Prisma.Organization$organizationrolesArgs<ExtArgs>
   members?: boolean | Prisma.Organization$membersArgs<ExtArgs>
@@ -1337,6 +1445,14 @@ export type $OrganizationPayload<ExtArgs extends runtime.Types.Extensions.Intern
     isArchived: boolean
     archivedAt: Date | null
     archivedById: string | null
+    /**
+     * Afficher la 2e devise (conversion) sur les reçus. Désactiver pour AOA sans conversion.
+     */
+    showReceiptConversion: boolean
+    /**
+     * Notifier le parent (e-mail + WhatsApp + compte) à l'encaissement / modification / suppression.
+     */
+    notifyParentOnPayment: boolean
   }, ExtArgs["result"]["organization"]>
   composites: {}
 }
@@ -1776,6 +1892,8 @@ export interface OrganizationFieldRefs {
   readonly isArchived: Prisma.FieldRef<"Organization", 'Boolean'>
   readonly archivedAt: Prisma.FieldRef<"Organization", 'DateTime'>
   readonly archivedById: Prisma.FieldRef<"Organization", 'String'>
+  readonly showReceiptConversion: Prisma.FieldRef<"Organization", 'Boolean'>
+  readonly notifyParentOnPayment: Prisma.FieldRef<"Organization", 'Boolean'>
 }
     
 

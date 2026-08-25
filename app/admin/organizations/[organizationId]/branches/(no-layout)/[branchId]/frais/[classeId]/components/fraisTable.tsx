@@ -173,6 +173,14 @@ const FraissList = ({ params }: { params: { classeId: string } }) => {
   const end = start + ITEMS_PER_PAGE;
 
   const paginatedFraiss = filteredFraiss.slice(start, end);
+  const classTotal = fraiss.reduce(
+    (sum, frais) => sum + Number(frais.montantFrais || 0),
+    0,
+  );
+  const formattedClassTotal = classTotal.toLocaleString("fr-FR", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
   return (
     <div className="space-y-4">
       <SearchAndFilter
@@ -187,6 +195,20 @@ const FraissList = ({ params }: { params: { classeId: string } }) => {
         loading={loading}
         emptyMessage="Pas de frais pour cette classe"
         searchTerm={searchTerm}
+        footer={
+          fraiss.length > 0
+            ? {
+                cells: [
+                  { content: "Total", className: "font-semibold" },
+                  {
+                    content: formattedClassTotal,
+                    className: "font-bold tabular-nums text-green-700",
+                  },
+                  { colSpan: 3 },
+                ],
+              }
+            : undefined
+        }
       />
       {filteredFraiss.length > ITEMS_PER_PAGE && (
         <div className="flex items-center justify-between px-2 py-3 border-t">

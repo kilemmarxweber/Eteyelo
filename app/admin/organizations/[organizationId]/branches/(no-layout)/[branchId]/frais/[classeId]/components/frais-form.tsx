@@ -1,5 +1,5 @@
 "use client";
-import { HTMLAttributes, useState, useEffect } from "react";
+import { HTMLAttributes, useState, useEffect, type Ref } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -44,20 +44,84 @@ import { fraisSchema, ITypeFrais } from "@/src/interfaces/Frais";
 import { IClasse } from "@/src/interfaces/Classe";
 import { getClassesAction } from "../../../classe/classe.action";
 
-const numberInputClassName =
-  "[appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none";
+function PriorityInput({
+  value,
+  onChange,
+  onBlur,
+  name,
+  inputRef,
+  className,
+}: {
+  value: number | undefined;
+  onChange: (value: number | undefined) => void;
+  onBlur?: () => void;
+  name?: string;
+  inputRef?: Ref<HTMLInputElement>;
+  className?: string;
+}) {
+  const [isFocused, setIsFocused] = useState(false);
+  const [text, setText] = useState("");
 
-function formatNumberInputValue(value: number | undefined) {
-  return value === undefined || value === null || value === 0 ? "" : value;
-}
+  useEffect(() => {
+    if (!isFocused) {
+      setText(value === undefined || value === null ? "" : String(value));
+    }
+  }, [value, isFocused]);
 
-function clearZeroOnFocus(
-  value: number | undefined,
-  onChange: (value: number | undefined) => void,
-) {
-  if (value === 0) {
-    onChange(undefined);
-  }
+  return (
+    <Input
+      type="text"
+      inputMode="numeric"
+      placeholder="0"
+      name={name}
+      ref={inputRef}
+      className={className}
+      value={
+        isFocused
+          ? text
+          : value === undefined || value === null
+            ? ""
+            : String(value)
+      }
+      onFocus={(event) => {
+        const input = event.currentTarget;
+        const next =
+          value === undefined || value === null ? "" : String(value);
+        setIsFocused(true);
+        setText(next);
+        requestAnimationFrame(() => input.select());
+      }}
+      onClick={(event) => {
+        event.currentTarget?.select();
+      }}
+      onBlur={() => {
+        setIsFocused(false);
+        if (text === "") {
+          onChange(undefined);
+        } else {
+          const parsed = Number(text);
+          onChange(
+            Number.isFinite(parsed)
+              ? Math.min(100, Math.max(0, parsed))
+              : undefined,
+          );
+        }
+        onBlur?.();
+      }}
+      onChange={(event) => {
+        const raw = event.target.value.replace(/\D/g, "").slice(0, 3);
+        if (raw === "") {
+          setText("");
+          onChange(undefined);
+          return;
+        }
+        const parsed = Number(raw);
+        if (parsed > 100) return;
+        setText(raw);
+        onChange(parsed);
+      }}
+    />
+  );
 }
 
 interface FraisUpFormProps extends HTMLAttributes<HTMLDivElement> {
@@ -126,10 +190,9 @@ export function FraisUpForm({
     fetchData();
   }, []);
   useEffect(() => {
-    if (initialData && mode === "update") {
-      form.reset(initialData); // 🔥 TRÈS IMPORTANT
-    }
-  }, [initialData, mode]);
+    if (!initialData || mode !== "update") return;
+    form.reset(initialData);
+  }, [form, initialData?.id, mode]);
   async function onSubmit(data: z.infer<typeof fraisSchema>) {
     setIsLoading(true);
     setErrorMessage("");
@@ -240,29 +303,17 @@ export function FraisUpForm({
                       Priorité (0-100)
                     </FormLabel>
                     <FormControl>
-                      <Input
-                        placeholder="0"
-                        type="number"
-                        min={0}
-                        max={100}
-                        step={1}
-                        className={cn(
-                          numberInputClassName,
-                          isDialog && "h-9 rounded-md px-3 text-sm font-normal",
-                        )}
+                      <PriorityInput
                         name={field.name}
-                        ref={field.ref}
+                        inputRef={field.ref}
+                        value={field.value}
+                        onChange={field.onChange}
                         onBlur={field.onBlur}
-                        value={formatNumberInputValue(field.value)}
-                        onFocus={() =>
-                          clearZeroOnFocus(field.value, field.onChange)
+                        className={
+                          isDialog
+                            ? "h-9 rounded-md px-3 text-sm font-normal"
+                            : undefined
                         }
-                        onChange={(e) => {
-                          const value = e.target.value;
-                          field.onChange(
-                            value === "" ? undefined : Number(value),
-                          );
-                        }}
                       />
                     </FormControl>
                     <FormMessage />

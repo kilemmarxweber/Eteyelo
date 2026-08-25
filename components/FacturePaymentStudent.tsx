@@ -45,6 +45,8 @@ export type FacturePaymentStudentData = {
   quoteCurrency?: ReceiptCurrency | null;
   /** Taux sélectionné : 1 base = selectedRate quote. */
   selectedRate?: number | null;
+  /** Si false, pas de colonne de conversion (2e devise) sur le reçu. */
+  showConversion?: boolean;
 };
 
 export function formatReceiptClasseCode(
@@ -76,6 +78,7 @@ export function generateFacturePaymentStudentPDF({
   baseCurrency = "USD",
   quoteCurrency,
   selectedRate,
+  showConversion = true,
 }: FacturePaymentStudentData) {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
@@ -84,11 +87,13 @@ export function generateFacturePaymentStudentPDF({
   const schoolName = sender.name || "Établissement";
   const placeLabel = issuedPlace?.trim() || undefined;
   const base = baseCurrency;
-  const secondary = resolveReceiptSecondaryCurrency(
-    receivedCurrency,
-    base,
-    quoteCurrency,
-  );
+  const secondary = showConversion
+    ? resolveReceiptSecondaryCurrency(
+        receivedCurrency,
+        base,
+        quoteCurrency,
+      )
+    : null;
   const showSecondaryColumn = secondary != null && secondary !== base;
 
   const secondaryOpts = {

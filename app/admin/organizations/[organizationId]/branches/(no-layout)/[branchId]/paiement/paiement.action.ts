@@ -23,6 +23,7 @@ import {
 } from "@/lib/exchange-rate";
 import { DEFAULT_EXCHANGE_RATE_USD_CDF } from "@/lib/reports/types";
 import { getSchoolYearForBranch } from "@/lib/school-year";
+import { notifyParentOfPayment, notifyParentOfPaymentNow } from "@/lib/payments/notify-parent-payment";
 import {
   computeScopedDiscountAmount,
   EMPTY_DISCOUNT,
@@ -63,11 +64,22 @@ async function loadOrgExchangeRates(organizationId: string): Promise<{
   baseCurrency: CurrencyCode;
   quoteCurrency: CurrencyCode | null;
   selectedRate: number | null;
+  showReceiptConversion: boolean;
+  notifyParentOnPayment: boolean;
 }> {
-  const rows = await prisma.exchangeRate.findMany({
-    where: { organizationId, isActive: true },
-    orderBy: [{ fromCurrency: "asc" }, { toCurrency: "asc" }],
-  });
+  const [rows, org] = await Promise.all([
+    prisma.exchangeRate.findMany({
+      where: { organizationId, isActive: true },
+      orderBy: [{ fromCurrency: "asc" }, { toCurrency: "asc" }],
+    }),
+    prisma.organization.findUnique({
+      where: { id: organizationId },
+      select: {
+        showReceiptConversion: true,
+        notifyParentOnPayment: true,
+      },
+    }),
+  ]);
   const rates: ExchangeRatePair[] = rows.map((row) => ({
     fromCurrency: row.fromCurrency,
     toCurrency: row.toCurrency,
@@ -81,6 +93,8 @@ async function loadOrgExchangeRates(organizationId: string): Promise<{
     baseCurrency: getBaseCurrency(rates),
     quoteCurrency: getQuoteCurrency(rates),
     selectedRate: selected?.rate ?? null,
+    showReceiptConversion: org?.showReceiptConversion ?? true,
+    notifyParentOnPayment: org?.notifyParentOnPayment ?? true,
   };
 }
 
@@ -194,6 +208,8 @@ type ReceiptPayload = {
   baseCurrency?: "USD" | "CDF" | "AOA";
   quoteCurrency?: "USD" | "CDF" | "AOA" | null;
   selectedRate?: number | null;
+  /** Si false, le PDF / aperçu n'affiche pas la 2e devise. */
+  showConversion?: boolean;
 };
 
 /* ======================================================
@@ -534,6 +550,7 @@ export const createPaiementAction = action
       baseCurrency,
       quoteCurrency,
       selectedRate,
+      showReceiptConversion,
     } = await loadOrgExchangeRates(organizationId);
     const usdCdfRate = resolveUsdCdfRate(exchangeRates);
 
@@ -960,6 +977,7 @@ export const createPaiementAction = action
         exchangeRateUsdCdf: usdCdfRate,
         baseCurrency,
         quoteCurrency: quoteCurrency ?? undefined,
+        showConversion: showReceiptConversion,
       });
 
       const receiptCurrency =
@@ -1003,8 +1021,9 @@ export const createPaiementAction = action
         issuedPlace: branding.city,
         receivedCurrency: receiptCurrency,
         baseCurrency,
-        quoteCurrency,
+        quoteCurrency: showReceiptConversion ? quoteCurrency : undefined,
         selectedRate,
+        showConversion: showReceiptConversion,
       };
 
       /* ======================================================
@@ -1040,6 +1059,7 @@ export const createPaiementAction = action
         // 🔥 BONUS
         wasCapped,
         receipt,
+        createdPaymentIds,
       };
     }).catch((error: unknown) => {
       if (
@@ -1055,6 +1075,13 @@ export const createPaiementAction = action
 
     if (result.success) {
       revalidatePaiementPages(organizationId, branchId);
+      notifyParentOfPayment({
+        organizationId,
+        branchId,
+        kind: "created",
+        paymentIds: result.createdPaymentIds ?? [],
+        currency: baseCurrency,
+      });
     }
     return result;
   });
@@ -1285,7 +1312,7 @@ export const getCashierReportContextAction = action.handler(async () => {
 export const getPaymentReportContextAction = action.handler(async () => {
   const { branchId, organizationId } = await requireFinanceBranchContext();
 
-  const [branch, { rates, baseCurrency, quoteCurrency, selectedRate }] =
+  const [branch, { rates, baseCurrency, quoteCurrency, selectedRate, showReceiptConversion }] =
     await Promise.all([
       prisma.branch.findFirst({
         where: { id: branchId, organizationId },
@@ -1303,8 +1330,10 @@ export const getPaymentReportContextAction = action.handler(async () => {
       exchangeRateUsdCdf: resolveUsdCdfRate(rates),
       baseCurrency,
       quoteCurrency: quoteCurrency ?? undefined,
+      showConversion: showReceiptConversion,
     }),
     selectedRate,
+    showConversion: showReceiptConversion,
   };
 });
 
@@ -1450,6 +1479,12 @@ export const updatePaiementAction = action
     });
 
     revalidatePaiementPages(organizationId, branchId);
+    notifyParentOfPayment({
+      organizationId,
+      branchId,
+      kind: "updated",
+      paymentIds: [id],
+    });
     return {
       ...updated,
       amount: Number(updated.amount),
@@ -1491,6 +1526,13 @@ export const deletePaiementAction = action
           .filter((id): id is number => id != null),
       ),
     );
+
+    await notifyParentOfPaymentNow({
+      organizationId,
+      branchId,
+      kind: "deleted",
+      paymentIds,
+    });
 
     await prisma.$transaction(async (tx) => {
       await tx.paymentAllocation.deleteMany({

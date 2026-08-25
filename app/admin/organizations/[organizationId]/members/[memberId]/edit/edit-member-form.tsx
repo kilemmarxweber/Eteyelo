@@ -196,8 +196,8 @@ export function EditMemberForm({ organizationId, memberId, branches }: Props) {
         return;
       }
       toast.success("Membre mis à jour.");
+      router.push(listHref);
       router.refresh();
-      await load();
     });
   }
 
@@ -278,7 +278,7 @@ export function EditMemberForm({ organizationId, memberId, branches }: Props) {
                   disabled={busy || branches.length === 0}
                   className="h-11 w-full"
                 >
-                  {pending ? "Enregistrement…" : "Enregistrer"}
+                  {pending ? "Mise à jour…" : "Mettre à jour"}
                 </Button>
                 <Button
                   type="button"

@@ -1064,6 +1064,7 @@ enum AppNotificationType {
   JUSTIFICATION_SUBMITTED
   JUSTIFICATION_DECISION
   RETURN
+  PAYMENT
 }
 
 /// Absence auto (aucun scan / pointage) + justification / retour.
@@ -1213,6 +1214,10 @@ model Organization {
   organizationSupportAgents OrganizationSupportAgent[]
   platformSupportEscalations PlatformSupportEscalation[]
   exchangeRates     ExchangeRate[]
+  /// Afficher la 2e devise (conversion) sur les reçus. Désactiver pour AOA sans conversion.
+  showReceiptConversion Boolean @default(true)
+  /// Notifier le parent (e-mail + WhatsApp + compte) à l'encaissement / modification / suppression.
+  notifyParentOnPayment Boolean @default(true)
 
   @@unique([name])
   @@unique([slug])

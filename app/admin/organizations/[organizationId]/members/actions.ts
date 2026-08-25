@@ -34,6 +34,7 @@ import {
 import { buildIsArchivedUpdate } from "@/lib/archive";
 import { orgRoleLabel } from "@/lib/org-role-labels";
 import { orgRoleToBranchRole } from "@/lib/auth/org-role-to-branch-role";
+import { ensureBranchMemberRoleProfiles } from "@/lib/auth/ensure-branch-member-profile";
 import type { BranchRole } from "@/prisma/generated/prisma/enums";
 
 function errMessage(err: unknown): string {
@@ -167,6 +168,27 @@ async function syncMemberBranches(params: {
       });
     }
   });
+
+  try {
+    await ensureBranchMemberRoleProfiles({ memberId, organizationId });
+  } catch (e) {
+    return { ok: false, message: errMessage(e) };
+  }
+
+  for (const branchId of branchIds) {
+    revalidatePath(
+      `/admin/organizations/${organizationId}/branches/${branchId}/teacher`,
+    );
+    revalidatePath(
+      `/admin/organizations/${organizationId}/branches/${branchId}/student`,
+    );
+    revalidatePath(
+      `/admin/organizations/${organizationId}/branches/${branchId}/personnel`,
+    );
+    revalidatePath(
+      `/admin/organizations/${organizationId}/branches/${branchId}/parent`,
+    );
+  }
 
   return { ok: true };
 }

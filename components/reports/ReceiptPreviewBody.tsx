@@ -47,11 +47,13 @@ export function ReceiptPreviewBody({
     data.exchangeRateUsdCdf ?? DEFAULT_EXCHANGE_RATE_USD_CDF;
   const baseCurrency = data.baseCurrency ?? "USD";
   const receivedCurrency = data.receivedCurrency ?? baseCurrency;
-  const secondary = resolveReceiptSecondaryCurrency(
-    receivedCurrency,
-    baseCurrency,
-    data.quoteCurrency,
-  );
+  const secondary = data.showConversion === false
+    ? null
+    : resolveReceiptSecondaryCurrency(
+        receivedCurrency,
+        baseCurrency,
+        data.quoteCurrency,
+      );
   const showSecondaryColumn = secondary != null && secondary !== baseCurrency;
   const secondaryOpts = {
     exchangeRateUsdCdf: exchangeRate,

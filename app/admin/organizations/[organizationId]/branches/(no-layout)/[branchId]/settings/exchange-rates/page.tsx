@@ -13,6 +13,8 @@ import {
   listExchangeRatesAction,
   selectExchangeRateAction,
   upsertExchangeRateAction,
+  getFinanceDisplaySettingsAction,
+  updateFinanceDisplaySettingsAction,
 } from "../exchange-rate.action";
 import { CURRENCY_LABELS, getBaseCurrency } from "@/lib/exchange-rate";
 import type { CurrencyCode } from "@/prisma/generated/prisma/enums";
@@ -39,6 +41,9 @@ export default function ExchangeRatesSettingsPage() {
   const [loading, setLoading] = useState(true);
   const [savingId, setSavingId] = useState<string | null>(null);
   const [selectingId, setSelectingId] = useState<string | null>(null);
+  const [showReceiptConversion, setShowReceiptConversion] = useState(true);
+  const [notifyParentOnPayment, setNotifyParentOnPayment] = useState(true);
+  const [savingDisplay, setSavingDisplay] = useState(false);
   const [, startTransition] = useTransition();
 
   const baseCurrency = useMemo(() => getBaseCurrency(rows), [rows]);
@@ -50,11 +55,18 @@ export default function ExchangeRatesSettingsPage() {
   const loadRates = useCallback(() => {
     startTransition(async () => {
       setLoading(true);
-      const [data, err] = await listExchangeRatesAction();
+      const [[data, err], [display, displayErr]] = await Promise.all([
+        listExchangeRatesAction(),
+        getFinanceDisplaySettingsAction(),
+      ]);
       if (err) {
         toast.error(err.message);
         setLoading(false);
         return;
+      }
+      if (!displayErr && display) {
+        setShowReceiptConversion(display.showReceiptConversion);
+        setNotifyParentOnPayment(display.notifyParentOnPayment);
       }
       const list = data ?? [];
       setRows(list);
@@ -155,6 +167,36 @@ export default function ExchangeRatesSettingsPage() {
     }
   }
 
+  async function saveDisplaySettings(patch: {
+    showReceiptConversion?: boolean;
+    notifyParentOnPayment?: boolean;
+  }) {
+    const nextConversion = patch.showReceiptConversion ?? showReceiptConversion;
+    const nextNotify = patch.notifyParentOnPayment ?? notifyParentOnPayment;
+    setSavingDisplay(true);
+    try {
+      const [saved, err] = await updateFinanceDisplaySettingsAction({
+        showReceiptConversion: nextConversion,
+        notifyParentOnPayment: nextNotify,
+      });
+      if (err) {
+        toast.error(err.message);
+        return;
+      }
+      if (saved) {
+        setShowReceiptConversion(saved.showReceiptConversion);
+        setNotifyParentOnPayment(saved.notifyParentOnPayment);
+      }
+      toast.success("Option enregistrée.");
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Enregistrement impossible.",
+      );
+    } finally {
+      setSavingDisplay(false);
+    }
+  }
+
   return (
     <RequireBranchOrgSettingsAccess>
       <div className="space-y-5">
@@ -173,6 +215,44 @@ export default function ExchangeRatesSettingsPage() {
             AOA → USD ⇒ base = AOA, convertible en USD. Ces taux
             s&apos;appliquent à toutes les branches.
           </p>
+        </div>
+
+        <div className="space-y-3 rounded-xl border p-4">
+          <div className="flex items-start justify-between gap-4">
+            <div className="space-y-1">
+              <p className="font-medium">Conversion sur le reçu</p>
+              <p className="text-sm text-muted-foreground">
+                Afficher la deuxième devise (taux de change) sur les reçus. Désactivez
+                si vous encaissez uniquement en AOA, sans conversion.
+              </p>
+            </div>
+            <Switch
+              checked={showReceiptConversion}
+              disabled={savingDisplay}
+              onCheckedChange={(checked) => {
+                setShowReceiptConversion(checked);
+                void saveDisplaySettings({ showReceiptConversion: checked });
+              }}
+            />
+          </div>
+          <div className="flex items-start justify-between gap-4 border-t pt-3">
+            <div className="space-y-1">
+              <p className="font-medium">Notifier le parent</p>
+              <p className="text-sm text-muted-foreground">
+                Envoyer un e-mail et un WhatsApp (si le numéro est renseigné) au
+                parent lors d’un paiement, d’une modification ou d’une suppression.
+                Une notification apparaît aussi dans son compte.
+              </p>
+            </div>
+            <Switch
+              checked={notifyParentOnPayment}
+              disabled={savingDisplay}
+              onCheckedChange={(checked) => {
+                setNotifyParentOnPayment(checked);
+                void saveDisplaySettings({ notifyParentOnPayment: checked });
+              }}
+            />
+          </div>
         </div>
 
         <div className="rounded-xl border bg-muted/30 px-4 py-3 text-sm">

@@ -21,4 +21,6 @@ export type SchoolReportContext = {
   quoteCurrency?: "USD" | "CDF" | "AOA";
   /** Taux sélectionné : 1 base = selectedRate quote. */
   selectedRate?: number | null;
+  /** Si false, le reçu / PDF n'affiche pas la 2e devise. */
+  showConversion?: boolean;
 };

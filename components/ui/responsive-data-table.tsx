@@ -17,6 +17,12 @@ import {
 import { TableSkeleton } from "./table-skeleton";
 import { EmptyTableState } from "./empty-table-state";
 
+interface ResponsiveDataTableFooterCell {
+  content?: React.ReactNode;
+  colSpan?: number;
+  className?: string;
+}
+
 interface ResponsiveDataTableProps<TData> {
   data: TData[];
   columns: {
@@ -38,15 +44,42 @@ interface ResponsiveDataTableProps<TData> {
       variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
     }>;
   };
+  footer?: {
+    cells: ResponsiveDataTableFooterCell[];
+    summary?: React.ReactNode;
+  };
   loading?: boolean;
   emptyMessage?: string;
   searchTerm?: string;
+}
+
+function TableFooterRow({
+  cells,
+}: {
+  cells: ResponsiveDataTableFooterCell[];
+}) {
+  return (
+    <tfoot className="sticky bottom-0 bg-muted/90 text-sm backdrop-blur-sm">
+      <tr className="border-t-2 border-border">
+        {cells.map((cell, index) => (
+          <td
+            key={index}
+            colSpan={cell.colSpan}
+            className={`p-4 align-middle font-medium ${cell.className ?? ""}`}
+          >
+            {cell.content}
+          </td>
+        ))}
+      </tr>
+    </tfoot>
+  );
 }
 
 export function ResponsiveDataTable<TData>({
   data,
   columns,
   cardConfig,
+  footer,
   loading = false,
   emptyMessage = "Aucune donnée trouvée",
   searchTerm = ""
@@ -141,6 +174,18 @@ export function ResponsiveDataTable<TData>({
             </CardContent>
           </Card>
         ))}
+        {footer?.summary ??
+          (footer?.cells.length ? (
+            <div className="flex items-center justify-between rounded-md border bg-muted/40 px-4 py-3">
+              {footer.cells.map((cell, index) =>
+                cell.content ? (
+                  <span key={index} className={cell.className}>
+                    {cell.content}
+                  </span>
+                ) : null,
+              )}
+            </div>
+          ) : null)}
       </div>
     );
   }
@@ -170,6 +215,7 @@ export function ResponsiveDataTable<TData>({
               </tr>
             ))}
           </tbody>
+          {footer?.cells.length ? <TableFooterRow cells={footer.cells} /> : null}
         </table>
       </div>
     </div>

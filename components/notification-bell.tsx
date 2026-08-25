@@ -16,6 +16,7 @@ import {
   XCircle,
   ClipboardList,
   Undo2,
+  Banknote,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -46,7 +47,10 @@ import {
   rejectNotificationRequestAction,
 } from "@/lib/actions/notification.actions";
 import { reviewJobApplicationAction } from "@/app/components/depot-candidature/job-application.actions";
-import { getAbsenceInboxAction } from "@/lib/actions/absence.actions";
+import {
+  getAbsenceInboxAction,
+  markAbsenceNotificationReadAction,
+} from "@/lib/actions/absence.actions";
 import {
   AbsenceCaseDialog,
   type AbsenceCaseDialogData,
@@ -288,8 +292,10 @@ function AbsenceNotificationRow({
 }) {
   const createdAt =
     item.createdAt instanceof Date ? item.createdAt : new Date(item.createdAt);
-  const actionLabel =
-    item.type === "ABSENCE"
+  const isPayment = item.type === "PAYMENT";
+  const actionLabel = isPayment
+    ? "Vu"
+    : item.type === "ABSENCE"
       ? "Justifier"
       : item.type === "JUSTIFICATION_SUBMITTED"
         ? "Examiner"
@@ -297,8 +303,16 @@ function AbsenceNotificationRow({
 
   return (
     <div className="group flex items-start gap-3 border-b border-border/50 px-4 py-3 last:border-0 transition-colors hover:bg-accent/50">
-      <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-rose-500/10 text-rose-600">
-        {item.type === "RETURN" ? (
+      <div
+        className={
+          isPayment
+            ? "flex size-9 shrink-0 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-600"
+            : "flex size-9 shrink-0 items-center justify-center rounded-full bg-rose-500/10 text-rose-600"
+        }
+      >
+        {isPayment ? (
+          <Banknote className="size-4" />
+        ) : item.type === "RETURN" ? (
           <Undo2 className="size-4" />
         ) : (
           <ClipboardList className="size-4" />
@@ -671,6 +685,12 @@ export function NotificationBell() {
                       key={`${item.kind}-${item.id}`}
                       item={item}
                       onOpen={(row) => {
+                        if (row.type === "PAYMENT") {
+                          void markAbsenceNotificationReadAction({
+                            notificationId: row.id,
+                          }).then(() => void loadRequests());
+                          return;
+                        }
                         if (!row.case) return;
                         const mode =
                           row.type === "ABSENCE" &&

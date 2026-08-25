@@ -158,7 +158,8 @@ export const AppNotificationType = {
   ABSENCE: 'ABSENCE',
   JUSTIFICATION_SUBMITTED: 'JUSTIFICATION_SUBMITTED',
   JUSTIFICATION_DECISION: 'JUSTIFICATION_DECISION',
-  RETURN: 'RETURN'
+  RETURN: 'RETURN',
+  PAYMENT: 'PAYMENT'
 } as const
 
 export type AppNotificationType = (typeof AppNotificationType)[keyof typeof AppNotificationType]

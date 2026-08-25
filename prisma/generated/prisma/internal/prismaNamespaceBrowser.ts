@@ -887,7 +887,9 @@ export const OrganizationScalarFieldEnum = {
   metadata: 'metadata',
   isArchived: 'isArchived',
   archivedAt: 'archivedAt',
-  archivedById: 'archivedById'
+  archivedById: 'archivedById',
+  showReceiptConversion: 'showReceiptConversion',
+  notifyParentOnPayment: 'notifyParentOnPayment'
 } as const
 
 export type OrganizationScalarFieldEnum = (typeof OrganizationScalarFieldEnum)[keyof typeof OrganizationScalarFieldEnum]
