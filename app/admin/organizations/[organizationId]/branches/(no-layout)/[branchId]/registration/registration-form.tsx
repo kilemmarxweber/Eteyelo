@@ -78,7 +78,7 @@ import {
   isHumanitesLevel,
   allowsOptionForBranch,
 } from "@/lib/class-structure";
-import { cycleLabel, type Cycle } from "@/lib/cycle";
+import { cycleLabel, isCycle, type Cycle } from "@/lib/cycle";
 import {
   maternelleOptionDisplayName,
   isMaternelleClassLevel,
@@ -1422,7 +1422,7 @@ export function RegistrationForm({
     const [result, error] = await createRegistrationFlowAction({
       requestId: requestId || undefined,
       schoolYearId,
-      cycle: academicCycle || undefined,
+      cycle: isCycle(academicCycle) ? academicCycle : undefined,
       level,
       optionId: allowsOption ? optionId || undefined : undefined,
       studentMode,
@@ -1564,7 +1564,7 @@ export function RegistrationForm({
     const [classe, error] = await createNextParallelForRegistrationAction({
       schoolYearId,
       level,
-      cycle: academicCycle || undefined,
+      cycle: isCycle(academicCycle) ? academicCycle : undefined,
       optionId: allowsOption ? optionId || undefined : undefined,
       creneauId,
       capacity,

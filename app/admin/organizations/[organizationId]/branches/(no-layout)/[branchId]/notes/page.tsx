@@ -31,6 +31,7 @@ type LessonType = {
   classId: string;
   className: string;
   codeclasse: string;
+  classCycle?: string | null;
   subjectId: string;
   subjectName: string;
   maxScore: number;

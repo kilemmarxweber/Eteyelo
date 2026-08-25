@@ -9,6 +9,7 @@ import {
   PERMANENT_DELETE_DENIED_MESSAGE,
 } from "@/lib/auth/session-roles";
 import { prisma } from "@/lib/prisma";
+import { Prisma, type Day } from "@/prisma/generated/prisma/client";
 import { action } from "@/lib/zsa";
 import { ISchedule, scheduleSchema } from "@/src/interfaces/Schedule";
 import { IOption } from "@/src/interfaces/Option";
@@ -149,14 +150,14 @@ function parseScheduleHour(hour: string) {
   return new Date(Date.UTC(2000, 1, 1, heures, minutes));
 }
 
-const activeTeachingStatus = {
+const activeTeachingStatus: Prisma.TeachingWhereInput = {
   OR: [{ statusTeaching: true }, { statusTeaching: null }],
-} as const;
+};
 
 function scopedTeachingWhere(
   ctx: ScheduleContext,
-  extra: Record<string, unknown> = {},
-) {
+  extra: Prisma.TeachingWhereInput = {},
+): Prisma.TeachingWhereInput {
   return {
     AND: [
       extra,
@@ -222,7 +223,7 @@ async function assertScheduleSlotAvailable(params: {
   ctx: ScheduleContext;
   classeId: string;
   teacherId: string;
-  day: string;
+  day: Day;
   hour: Date;
   excludeScheduleId?: string;
 }) {
@@ -801,6 +802,21 @@ export const getScheduleOptionsAction = action.handler(
         cycle: classe.cycle,
         codeClasse: classe.codeClasse ?? "",
         nameClasse: classe.nameClasse ?? "",
+        option: classe.option
+          ? {
+              id: classe.option.id,
+              codeOption: classe.option.codeOption,
+              nameOption: classe.option.nameOption,
+              sectionId: classe.option.sectionId ?? undefined,
+              nameSection: classe.option.section?.nameSection,
+              codeSection: classe.option.section?.codeSection,
+              statuSection: classe.option.section?.statusSection,
+              statusOption: classe.option.statusOption ?? true,
+              module: "",
+              createdAt: classe.option.createdAt,
+              updatedAt: classe.option.updatedAt,
+            }
+          : undefined,
       };
 
       if (existing) {

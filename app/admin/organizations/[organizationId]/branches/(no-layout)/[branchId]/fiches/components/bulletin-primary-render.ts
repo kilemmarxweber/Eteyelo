@@ -1,5 +1,4 @@
 import type { jsPDF } from "jspdf";
-import type { ManagedBranchType } from "@/lib/academic-structure";
 import {
   calculateBulletinYearMaxima,
   getBulletinGroupMaxima,
@@ -303,7 +302,7 @@ export function drawPrimaryMatiere(
   subject: Subject & { maxima?: Record<string, number> },
   activePeriodKeys: string[],
   getColor: GetColorFn,
-  branchType: ManagedBranchType,
+  branchType: unknown,
   maximaTot1: number,
   maximaTot2: number,
   maximaTot3: number,
@@ -616,7 +615,7 @@ export function buildPrimaryDomainPtsByCell(
   layout: PrimaryBulletinLayout,
   subjects: (Subject & { maxima?: Record<string, number> })[],
   activePeriodKeys: string[],
-  branchType: ManagedBranchType,
+  branchType?: unknown,
 ): Partial<Record<string, string>> {
   const values: Partial<Record<string, string>> = {};
 
