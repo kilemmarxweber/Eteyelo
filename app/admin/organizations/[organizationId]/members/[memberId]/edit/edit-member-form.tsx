@@ -446,7 +446,7 @@ export function EditMemberForm({ organizationId, memberId, branches }: Props) {
       <ResetUsersDialog
         open={showResetDialog}
         onOpenChange={setShowResetDialog}
-        email={email.trim() || member.user.email}
+        email={email.trim() || member.user.email || ""}
         organizationId={organizationId}
         showTrigger={false}
       />

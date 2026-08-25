@@ -34,6 +34,7 @@ const THIN_BORDER: ExcelJS.Borders = {
   left: { style: "thin", color: { argb: `FF${BRAND.border}` } },
   bottom: { style: "thin", color: { argb: `FF${BRAND.border}` } },
   right: { style: "thin", color: { argb: `FF${BRAND.border}` } },
+  diagonal: {},
 };
 
 const TITLE_ROW = 1;
