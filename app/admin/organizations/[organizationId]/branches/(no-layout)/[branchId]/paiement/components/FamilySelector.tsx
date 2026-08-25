@@ -18,57 +18,10 @@ import { cn } from "@/lib/utils";
 import { useSession } from "@/lib/auth-client";
 import { useTranslations } from "next-intl";
 import { useBranchPeopleLabels } from "@/hooks/use-branch-people-labels";
-
-const PAIEMENT_BOOTSTRAP_TTL_MS = 5 * 60 * 1000;
-
-function readPaiementBootstrap(
-  branchId: string | undefined,
-  options?: { consume?: boolean },
-): {
-  q: string;
-  enrollmentId: string;
-} {
-  if (typeof window === "undefined") {
-    return { q: "", enrollmentId: "" };
-  }
-
-  const fromUrl = new URLSearchParams(window.location.search);
-  const urlQ = (fromUrl.get("q") ?? "").trim();
-  const urlEnrollmentId = (fromUrl.get("enrollmentId") ?? "").trim();
-
-  let storageQ = "";
-  let storageEnrollmentId = "";
-  if (branchId) {
-    try {
-      const key = `eteyelo:paiement-bootstrap:${branchId}`;
-      const raw = sessionStorage.getItem(key);
-      if (raw) {
-        const parsed = JSON.parse(raw) as {
-          q?: string;
-          enrollmentId?: string;
-          at?: number;
-        };
-        const fresh =
-          typeof parsed.at === "number" &&
-          Date.now() - parsed.at < PAIEMENT_BOOTSTRAP_TTL_MS;
-        if (fresh) {
-          storageQ = (parsed.q ?? "").trim();
-          storageEnrollmentId = (parsed.enrollmentId ?? "").trim();
-        }
-        if (options?.consume) {
-          sessionStorage.removeItem(key);
-        }
-      }
-    } catch {
-      // ignore
-    }
-  }
-
-  return {
-    q: urlQ || storageQ,
-    enrollmentId: urlEnrollmentId || storageEnrollmentId,
-  };
-}
+import {
+  consumePaiementBootstrap,
+  readPaiementBootstrap,
+} from "@/lib/paiement-bootstrap";
 
 interface Props {
   onChange: (data: {
@@ -110,31 +63,22 @@ export default function FamilySelector({
 
   const querySearch = (searchParams.get("q") ?? "").trim();
   const queryEnrollmentId = (searchParams.get("enrollmentId") ?? "").trim();
-
-  const [bootstrap] = useState(() => {
-    const fromWindow = readPaiementBootstrap(branchIdFromPath);
-    return {
-      q: (fromWindow.q || querySearch || initialSearch).trim(),
-      enrollmentId: (
-        fromWindow.enrollmentId ||
-        queryEnrollmentId ||
-        initialEnrollmentId
-      ).trim(),
-    };
-  });
-
+  const storedBootstrap = readPaiementBootstrap(branchIdFromPath);
   const bootstrapSearch = (
-    bootstrap.q ||
     querySearch ||
-    initialSearch
+    initialSearch ||
+    storedBootstrap.q
   ).trim();
   const bootstrapEnrollmentId = (
-    bootstrap.enrollmentId ||
     queryEnrollmentId ||
-    initialEnrollmentId
+    initialEnrollmentId ||
+    storedBootstrap.enrollmentId
   ).trim();
 
-  const [search, setSearch] = useState(() => bootstrapSearch);
+  const [search, setSearch] = useState(bootstrapSearch);
+  const [selectEnrollmentId, setSelectEnrollmentId] = useState(
+    bootstrapEnrollmentId,
+  );
   const [results, setResults] = useState<Family[]>([]);
   const [selected, setSelected] = useState<string[]>([]);
   const [selectedDetails, setSelectedDetails] = useState<
@@ -206,24 +150,30 @@ export default function FamilySelector({
   };
 
   useLayoutEffect(() => {
-    if (bootstrappedSearchRef.current) return;
-    const fromWindow = readPaiementBootstrap(branchIdFromPath, {
-      consume: true,
-    });
-    const next = (
-      fromWindow.q ||
-      querySearch ||
-      initialSearch ||
-      bootstrap.q
+    const stored = readPaiementBootstrap(branchIdFromPath);
+    const nextQ = (querySearch || initialSearch || stored.q).trim();
+    const nextEnrollment = (
+      queryEnrollmentId ||
+      initialEnrollmentId ||
+      stored.enrollmentId
     ).trim();
-    if (!next) return;
-    bootstrappedSearchRef.current = true;
-    setSearch(next);
+    if (nextQ && search.trim() !== nextQ) {
+      setSearch(nextQ);
+    }
+    if (nextEnrollment) {
+      setSelectEnrollmentId((current) => current || nextEnrollment);
+    }
+    if ((nextQ || nextEnrollment) && !bootstrappedSearchRef.current) {
+      bootstrappedSearchRef.current = true;
+      consumePaiementBootstrap(branchIdFromPath);
+    }
   }, [
     branchIdFromPath,
     querySearch,
+    queryEnrollmentId,
     initialSearch,
-    bootstrap.q,
+    initialEnrollmentId,
+    search,
   ]);
 
   useEffect(() => {
@@ -236,11 +186,11 @@ export default function FamilySelector({
 
   useEffect(() => {
     if (autoSelectedRef.current) return;
-    if (!bootstrapEnrollmentId || !results.length) return;
+    if (!selectEnrollmentId || !results.length) return;
 
     for (const family of results) {
       const child = family.students.find((s) => {
-        if (s.classEnrollId !== bootstrapEnrollmentId) return false;
+        if (s.classEnrollId !== selectEnrollmentId) return false;
         if (schoolYear && s.schoolYearId && s.schoolYearId !== schoolYear) {
           return false;
         }
@@ -263,7 +213,7 @@ export default function FamilySelector({
       });
       break;
     }
-  }, [results, schoolYear, bootstrapEnrollmentId]);
+  }, [results, schoolYear, selectEnrollmentId]);
 
   const toggleStudent = (parentId: string, child: StudentItem, family: Family) => {
     const id = child.classEnrollId;
@@ -394,6 +344,8 @@ export default function FamilySelector({
     setPinnedFamily(null);
     setSearching(false);
     autoSelectedRef.current = false;
+    bootstrappedSearchRef.current = false;
+    setSelectEnrollmentId("");
 
     emitChange({
       parentId: "",

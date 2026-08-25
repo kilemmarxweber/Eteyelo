@@ -16,6 +16,7 @@ import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { useParams } from "next/navigation";
 import { useAppRouter as useRouter } from "@/hooks/use-app-router";
+import { writePaiementBootstrap } from "@/lib/paiement-bootstrap";
 import { toast } from "sonner";
 import {
   IconArrowLeft,
@@ -66,6 +67,7 @@ import {
   suggestNextClassAction,
 } from "./registration.action";
 import { generateSlug } from "@/lib/generated-identifiers";
+import { cn } from "@/lib/utils";
 import { matchesClassForLevel } from "@/lib/class-enrollment/match-class-for-level";
 import {
   getClassLevelLabel,
@@ -171,8 +173,44 @@ const emptyParent: ParentForm = {
   profession: "",
 };
 
-function userOf(item: any) {
+function userOf(item?: any) {
+  if (item == null) return undefined;
   return item.branchMember?.member?.user;
+}
+
+function stubPersonItem(
+  id: string,
+  person: {
+    name?: string;
+    postnom?: string;
+    prenom?: string;
+    email?: string;
+    telephone?: string;
+    profession?: string;
+  },
+) {
+  return {
+    id,
+    profession: person.profession ?? "",
+    branchMember: {
+      member: {
+        user: {
+          name: person.name ?? "",
+          postnom: person.postnom ?? "",
+          prenom: person.prenom ?? "",
+          email: person.email ?? "",
+          telephone: person.telephone ?? "",
+        },
+      },
+    },
+  };
+}
+
+function personDisplayName(
+  user?: { name?: string | null; postnom?: string | null; prenom?: string | null } | null,
+  fallback?: { name?: string; postnom?: string; prenom?: string },
+) {
+  return `${user?.name ?? fallback?.name ?? ""} ${user?.postnom ?? fallback?.postnom ?? ""} ${user?.prenom ?? fallback?.prenom ?? ""}`.trim();
 }
 
 function previewStudentEmail(prenom: string, name: string) {
@@ -278,6 +316,10 @@ export function RegistrationForm({
   const [studentResults, setStudentResults] = useState<any[]>([]);
   const [parentResults, setParentResults] = useState<any[]>([]);
   const parentNameSearchTimerRef = useRef<number | null>(null);
+  const studentIdRef = useRef(studentId);
+  const parentIdRef = useRef(parentId);
+  studentIdRef.current = studentId;
+  parentIdRef.current = parentId;
   const [historyOutcome, setHistoryOutcome] = useState<
     "new" | "passed" | "failed" | "returning"
   >("new");
@@ -518,8 +560,12 @@ export function RegistrationForm({
 
   const peopleVariant = getPeopleVariant(options.typebranch);
   const peopleLabels = useMemo(() => {
-    const tp = (key: string) =>
-      tPeopleAll(`${peopleVariant}.${key}` as "school.student");
+    const tp = (key: string) => {
+      const full = `${peopleVariant}.${key}`;
+      return tPeopleAll.has(full as never)
+        ? tPeopleAll(full as "school.student")
+        : key;
+    };
     return {
       student: tp("student"),
       studentPlural: tp("studentPlural"),
@@ -535,9 +581,15 @@ export function RegistrationForm({
     };
   }, [peopleVariant, tPeopleAll]);
   const rawClass = getClassDisplayLabel(options.typebranch);
-  const classLabel = tReg(`classLabels.${rawClass}`);
   const rawClassPlural = getClassDisplayLabelPlural(options.typebranch);
-  const classLabelPlural = tReg(`classLabelsPlural.${rawClassPlural}`);
+  const classLabelKey = `classLabels.${rawClass}`;
+  const classLabelPluralKey = `classLabelsPlural.${rawClassPlural}`;
+  const classLabel = tReg.has(classLabelKey)
+    ? tReg(classLabelKey)
+    : rawClass;
+  const classLabelPlural = tReg.has(classLabelPluralKey)
+    ? tReg(classLabelPluralKey)
+    : rawClassPlural;
   const classLabelLower = classLabel.toLowerCase();
   const classLabelPluralLower = classLabelPlural.toLowerCase();
   const schoolYearLabel = isUniversiteBranch(options.typebranch)
@@ -935,14 +987,20 @@ export function RegistrationForm({
     [classStats],
   );
   const needsClassAction = Boolean(level) && !predictedClass;
-  const selectedStudent = useMemo(
-    () => studentResults.find((item) => item.id === studentId),
-    [studentResults, studentId],
-  );
-  const selectedParent = useMemo(
-    () => parentResults.find((item) => item.id === parentId),
-    [parentResults, parentId],
-  );
+  const selectedStudent = useMemo(() => {
+    if (!studentId) return null;
+    return (
+      studentResults.find((item) => item?.id === studentId) ??
+      stubPersonItem(studentId, student)
+    );
+  }, [studentResults, studentId, student]);
+  const selectedParent = useMemo(() => {
+    if (!parentId) return null;
+    return (
+      parentResults.find((item) => item?.id === parentId) ??
+      stubPersonItem(parentId, parent)
+    );
+  }, [parentResults, parentId, parent]);
   const hasCreneaux = (options.creneaux?.length ?? 0) > 0;
 
   useEffect(() => {
@@ -988,7 +1046,11 @@ export function RegistrationForm({
   const searchStudents = useCallback(async (query: string) => {
     const trimmed = query.trim();
     if (trimmed.length < 2) {
-      setStudentResults([]);
+      setStudentResults((prev) =>
+        studentIdRef.current
+          ? prev.filter((item) => item?.id === studentIdRef.current)
+          : [],
+      );
       return;
     }
     const [data, error] = await findStudentHistoryAction({ query: trimmed });
@@ -999,7 +1061,11 @@ export function RegistrationForm({
   const searchParents = useCallback(async (query: string) => {
     const trimmed = query.trim();
     if (trimmed.length < 2) {
-      setParentResults([]);
+      setParentResults((prev) =>
+        parentIdRef.current
+          ? prev.filter((item) => item?.id === parentIdRef.current)
+          : [],
+      );
       return;
     }
     const [data, error] = await findParentForRegistrationAction({
@@ -1322,8 +1388,12 @@ export function RegistrationForm({
       (typeof result.studentSearchName === "string"
         ? result.studentSearchName.trim()
         : "") ||
-      [childUser?.name, childUser?.prenom]
+      [childUser?.name, childUser?.postnom, childUser?.prenom]
         .map((part) => (typeof part === "string" ? part.trim() : ""))
+        .filter(Boolean)
+        .join(" ") ||
+      [parent.name, parent.postnom, parent.prenom]
+        .map((part) => part.trim())
         .filter(Boolean)
         .join(" ");
 
@@ -1333,21 +1403,12 @@ export function RegistrationForm({
       if (result.enrollmentId) {
         params.set("enrollmentId", String(result.enrollmentId));
       }
-      try {
-        sessionStorage.setItem(
-          `eteyelo:paiement-bootstrap:${branchId}`,
-          JSON.stringify({
-            q: searchName,
-            enrollmentId: result.enrollmentId ?? "",
-            at: Date.now(),
-          }),
-        );
-      } catch {
-        // ignore quota / private mode
-      }
+      writePaiementBootstrap(branchId, {
+        q: searchName,
+        enrollmentId: result.enrollmentId ?? "",
+      });
       const query = params.toString();
-      // Navigation pleine page : garantit que ?q= est bien lu au chargement
-      window.location.assign(
+      router.replace(
         `/admin/organizations/${organizationId}/branches/${branchId}/paiement${query ? `?${query}` : ""}`,
       );
       return;
@@ -2067,7 +2128,11 @@ export function RegistrationForm({
 
       <Card
         padding="none"
-        className="flex flex-col overflow-hidden border-border/80 shadow-sm"
+        className={cn(
+          "flex flex-col overflow-hidden border-border/80 shadow-sm",
+          currentStepKey === "confirm" &&
+            "max-h-[calc(100dvh-12.5rem)] md:max-h-[calc(100dvh-8.5rem)]",
+        )}
       >
         <CardHeader className="shrink-0 gap-0 space-y-0 border-b border-sky-100/80 bg-gradient-to-r from-sky-50/60 via-transparent to-transparent !px-3 !py-1.5 !pb-1.5 dark:border-sky-900/30 dark:from-sky-950/20">
           <div className="flex items-center justify-between gap-2">
@@ -2091,7 +2156,12 @@ export function RegistrationForm({
         </CardHeader>
         <CardContent
           key={currentStepKey}
-          className="animate-fade-in flex-1 space-y-2.5 p-3 pb-16 sm:p-4 sm:pb-16"
+          className={cn(
+            "animate-fade-in flex-1 space-y-2.5 p-3 sm:p-4",
+            currentStepKey === "confirm"
+              ? "min-h-0 overflow-y-auto pb-3 sm:pb-4"
+              : "pb-16 sm:pb-16",
+          )}
         >
           {currentStepKey === "student" && (
             <>
@@ -2723,7 +2793,7 @@ export function RegistrationForm({
                           photoPreview ? tReg("summary.photoAdded") : tReg("summary.photoMissing"),
                         ]
                       : [
-                          `${userOf(selectedStudent)?.name ?? ""} ${userOf(selectedStudent)?.postnom ?? ""} ${userOf(selectedStudent)?.prenom ?? ""}`.trim() ||
+                          personDisplayName(userOf(selectedStudent), student) ||
                             tReg("summary.existingStudent", { student: peopleLabels.student }),
                           tReg("summary.situation", { value: historyLabels[historyOutcome] }),
                           selectedStudent?.classEnrollment?.[0]?.classe
@@ -2784,16 +2854,21 @@ export function RegistrationForm({
                               : tReg("summary.noDiscount"),
                           ]
                         : [
-                            `${userOf(selectedParent)?.name ?? ""} ${userOf(selectedParent)?.postnom ?? ""} ${userOf(selectedParent)?.prenom ?? ""}`.trim() ||
+                            personDisplayName(userOf(selectedParent), parent) ||
                               tReg("summary.existingParent"),
-                            userOf(selectedParent)?.telephone
+                            (userOf(selectedParent)?.telephone ||
+                            parent.telephone.trim())
                               ? tReg("summary.phone", {
-                                  value: userOf(selectedParent)?.telephone,
+                                  value:
+                                    userOf(selectedParent)?.telephone ||
+                                    parent.telephone,
                                 })
                               : tReg("summary.noPhone"),
-                            userOf(selectedParent)?.email
+                            (userOf(selectedParent)?.email || parent.email.trim())
                               ? tReg("summary.email", {
-                                  value: userOf(selectedParent)?.email,
+                                  value:
+                                    userOf(selectedParent)?.email ||
+                                    parent.email,
                                 })
                               : tReg("summary.noEmail"),
                             ...(selectedParent?.profession
@@ -2862,7 +2937,7 @@ export function RegistrationForm({
             </div>
           )}
         </CardContent>
-        <div className="sticky bottom-0 z-20 mt-auto flex items-center justify-between gap-2 border-t bg-card/95 px-3 py-2.5 shadow-[0_-8px_24px_-12px_rgba(0,0,0,0.18)] backdrop-blur supports-[backdrop-filter]:bg-card/80">
+        <div className="sticky bottom-0 z-20 mt-auto flex shrink-0 items-center justify-between gap-2 border-t bg-card/95 px-3 py-2.5 shadow-[0_-8px_24px_-12px_rgba(0,0,0,0.18)] backdrop-blur supports-[backdrop-filter]:bg-card/80">
           <Button
             variant="outline"
             disabled={step === 0 || loading}

@@ -20,6 +20,11 @@ export function AppIntlProvider({ locale, messages, children }: Props) {
       locale={intlLocaleFromUserLocale(locale)}
       messages={messages}
       timeZone="Africa/Kinshasa"
+      onError={(error) => {
+        if (error.code === "MISSING_MESSAGE") return;
+        console.error(error);
+      }}
+      getMessageFallback={({ key }) => key.split(".").pop() ?? key}
     >
       {children}
     </NextIntlClientProvider>
