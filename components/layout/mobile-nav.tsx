@@ -20,7 +20,6 @@ import {
 } from "lucide-react";
 import { cn, normalizeImageSrc } from "@/lib/utils";
 import { authClient } from "@/lib/auth-client";
-import { hideRouteLoader } from "@/lib/route-loader";
 import {
   canAccessResultsArea,
   canAccessTeachingArea,
@@ -172,8 +171,6 @@ function MobileNavMoreMenu() {
       window.location.assign("/auth/sign-in");
     } catch {
       toast.error("Deconnexion impossible.");
-    } finally {
-      hideRouteLoader();
     }
   }
 

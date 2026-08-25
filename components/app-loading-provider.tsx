@@ -13,9 +13,6 @@ import {
 } from "react";
 import { usePathname } from "next/navigation";
 
-import { RouteChangeLoader } from "@/components/ui/route-change-loader";
-import { startRouteLoader } from "@/lib/route-loader";
-
 type AppLoadingContextValue = {
   isLoading: boolean;
   startLoading: () => void;
@@ -161,7 +158,6 @@ export function AppLoadingProvider({ children }: { children: ReactNode }) {
 
   const startNavigationLoading = useCallback(() => {
     navigationCountRef.current += 1;
-    startRouteLoader();
     pendingCountRef.current += 1;
     flushPendingCount();
     scheduleSafetyReset();
@@ -246,7 +242,6 @@ export function AppLoadingProvider({ children }: { children: ReactNode }) {
 
   return (
     <AppLoadingContext.Provider value={value}>
-      <RouteChangeLoader />
       {children}
     </AppLoadingContext.Provider>
   );

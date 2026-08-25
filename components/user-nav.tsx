@@ -15,7 +15,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAppRouter as useRouter } from "@/hooks/use-app-router";
 import { authClient } from "@/lib/auth-client";
-import { hideRouteLoader } from "@/lib/route-loader";
 import { getPrimaryRoleLabel } from "@/lib/sidebar-menu";
 import { cn, normalizeImageSrc } from "@/lib/utils";
 import {
@@ -131,8 +130,8 @@ export function UserNav() {
                 try {
                   await authClient.signOut();
                   window.location.assign("/auth/sign-in");
-                } finally {
-                  hideRouteLoader();
+                } catch {
+                  window.location.assign("/auth/sign-in");
                 }
               })();
             }}
