@@ -1,6 +1,10 @@
 import "dotenv/config";
 import { PrismaClient } from "@/prisma/generated/prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
+import {
+  applyUserEmailWhere,
+  normalizeUserEmailData,
+} from "@/lib/prisma-user-email";
 
 const adapter = new PrismaPg({
   connectionString: process.env.DATABASE_URL!,
@@ -10,7 +14,7 @@ const adapter = new PrismaPg({
  * Bump when Prisma schema fields change so the cached client is rebuilt in dev.
  * Also used to bust Turbopack module cache after `prisma generate`.
  */
-const PRISMA_CLIENT_VERSION = "branch-document-description-1";
+const PRISMA_CLIENT_VERSION = "user-email-insensitive-1";
 
 const globalForPrisma = globalThis as unknown as {
   prisma?: PrismaClient;
@@ -18,9 +22,55 @@ const globalForPrisma = globalThis as unknown as {
 };
 
 function createPrismaClient() {
-  return new PrismaClient({
+  const client = new PrismaClient({
     adapter: adapter as any, // 👈 important workaround TS/Prisma 7
+  }).$extends({
+    query: {
+      user: {
+        async findFirst({ args, query }) {
+          applyUserEmailWhere(args.where, { insensitive: true });
+          return query(args);
+        },
+        async findFirstOrThrow({ args, query }) {
+          applyUserEmailWhere(args.where, { insensitive: true });
+          return query(args);
+        },
+        async findMany({ args, query }) {
+          applyUserEmailWhere(args.where, { insensitive: true });
+          return query(args);
+        },
+        async findUnique({ args, query }) {
+          applyUserEmailWhere(args.where, { insensitive: false });
+          return query(args);
+        },
+        async findUniqueOrThrow({ args, query }) {
+          applyUserEmailWhere(args.where, { insensitive: false });
+          return query(args);
+        },
+        async create({ args, query }) {
+          normalizeUserEmailData(args.data);
+          return query(args);
+        },
+        async update({ args, query }) {
+          applyUserEmailWhere(args.where, { insensitive: false });
+          normalizeUserEmailData(args.data);
+          return query(args);
+        },
+        async updateMany({ args, query }) {
+          applyUserEmailWhere(args.where, { insensitive: true });
+          normalizeUserEmailData(args.data);
+          return query(args);
+        },
+        async upsert({ args, query }) {
+          applyUserEmailWhere(args.where, { insensitive: false });
+          normalizeUserEmailData(args.create);
+          normalizeUserEmailData(args.update);
+          return query(args);
+        },
+      },
+    },
   });
+  return client as unknown as PrismaClient;
 }
 
 function modelHasField(
