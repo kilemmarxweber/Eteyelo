@@ -15,6 +15,11 @@ export interface ITeacher
   courseCount?: number;
   classNames?: string[];
   courseNames?: string[];
+  /** Cycles des affectations actives (classe.cycle ?? type de branche). */
+  assignmentCycles?: string[];
+  cycleAssignmentCount?: Record<string, number>;
+  classesByCycle?: Record<string, string[]>;
+  coursesByCycle?: Record<string, string[]>;
   estTitulaire?: boolean;
   classeId?: string;
   coursId?: string;

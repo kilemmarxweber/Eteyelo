@@ -15,6 +15,7 @@ import { useRefresh } from "@/src/hooks/RefreshContext";
 import { UpdateTeacherDialog } from "./edit-teacher-dialog";
 import { useBranchPeopleLabels } from "@/hooks/use-branch-people-labels";
 import { sortActiveStatusUserFirst } from "@/lib/archive";
+import { cycleLabel, type SchoolCycle } from "@/lib/cycle";
 
 type TeacherAssignmentFilter =
   | "all"
@@ -22,12 +23,32 @@ type TeacherAssignmentFilter =
   | "assigned"
   | "unassigned";
 
+type TeacherCycleFilter = "all" | SchoolCycle;
+
+function teacherForCycle(teacher: ITeacher, cycle: SchoolCycle): ITeacher {
+  const assignmentCount = teacher.cycleAssignmentCount?.[cycle] ?? 0;
+  const classNames = teacher.classesByCycle?.[cycle] ?? [];
+  const courseNames = teacher.coursesByCycle?.[cycle] ?? [];
+  return {
+    ...teacher,
+    assignmentStatus: "assigned",
+    assignmentCount,
+    classNames,
+    courseNames,
+    classCount: classNames.length,
+    courseCount: courseNames.length,
+  };
+}
+
 const TeachersList = ({
   refreshKey,
   onRefresh,
   canManageTeachers,
   canPurgePermanently = false,
   assignmentFilter,
+  cycleFilter = "all",
+  cycles = [],
+  onCycleFilterChange,
   supportsStaffImport = false,
   onOpenImport,
 }: {
@@ -36,6 +57,9 @@ const TeachersList = ({
   canManageTeachers: boolean;
   canPurgePermanently?: boolean;
   assignmentFilter: TeacherAssignmentFilter;
+  cycleFilter?: TeacherCycleFilter;
+  cycles?: SchoolCycle[];
+  onCycleFilterChange?: (cycle: TeacherCycleFilter) => void;
   supportsStaffImport?: boolean;
   onOpenImport?: () => void;
 }) => {
@@ -75,34 +99,54 @@ const TeachersList = ({
           supportsStaffImport={supportsStaffImport}
           onOpenImport={onOpenImport}
           peopleLabels={peopleLabels}
+          cycles={cycles}
+          cycleFilter={cycleFilter}
+          onCycleFilterChange={onCycleFilterChange}
         />
       );
     }
 
     return Toolbar;
-  }, [canManageTeachers, onOpenImport, peopleLabels, supportsStaffImport]);
+  }, [
+    canManageTeachers,
+    cycleFilter,
+    cycles,
+    onCycleFilterChange,
+    onOpenImport,
+    peopleLabels,
+    supportsStaffImport,
+  ]);
 
   const displayedTeachers = useMemo(
     () =>
       sortActiveStatusUserFirst(
-        teachers.filter((teacher) => {
-          if (assignmentFilter === "active") return teacher.statusUser !== false;
-          if (assignmentFilter === "assigned") {
-            return (
-              teacher.statusUser !== false &&
-              teacher.assignmentStatus === "assigned"
-            );
-          }
-          if (assignmentFilter === "unassigned") {
-            return (
-              teacher.statusUser !== false &&
-              teacher.assignmentStatus === "unassigned"
-            );
-          }
-          return true;
-        }),
+        teachers
+          .filter((teacher) => {
+            if (cycleFilter !== "all") {
+              if (!(teacher.assignmentCycles ?? []).includes(cycleFilter)) {
+                return false;
+              }
+            }
+            if (assignmentFilter === "active") return teacher.statusUser !== false;
+            if (assignmentFilter === "assigned") {
+              return (
+                teacher.statusUser !== false &&
+                teacher.assignmentStatus === "assigned"
+              );
+            }
+            if (assignmentFilter === "unassigned") {
+              return (
+                teacher.statusUser !== false &&
+                teacher.assignmentStatus === "unassigned"
+              );
+            }
+            return true;
+          })
+          .map((teacher) =>
+            cycleFilter === "all" ? teacher : teacherForCycle(teacher, cycleFilter),
+          ),
       ),
-    [assignmentFilter, teachers],
+    [assignmentFilter, cycleFilter, teachers],
   );
 
   const fetchTeachers = useCallback(async () => {
@@ -226,7 +270,11 @@ const TeachersList = ({
           columns={columns}
           ToolbarComponent={TeacherToolbar}
           data={displayedTeachers}
-          emptyText={`Aucun ${peopleLabels.teacherLower} ajouté`}
+          emptyText={
+            cycleFilter === "all"
+              ? `Aucun ${peopleLabels.teacherLower} ajouté`
+              : `Aucun ${peopleLabels.teacherLower} avec un cours en ${cycleLabel(cycleFilter)}`
+          }
           mobileCardTitle={(row) => `${row.nom} ${row.postnom} ${row.prenom}`}
           mobileCardSubtitle={(row) => row.username ?? ""}
           mobileCardBadges={(row) =>

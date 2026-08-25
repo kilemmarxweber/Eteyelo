@@ -59,6 +59,9 @@ export type StudentProfileData = {
   enrollmentDateLabel: string;
   image: string | null;
   canManageStudents: boolean;
+  showExamCodes?: boolean;
+  e13?: string | null;
+  e80?: string | null;
   /** Onglet finances : rôles finance, parent de l'élève, ou élève lui-même. */
   canViewFinance: boolean;
   parentFullName: string;

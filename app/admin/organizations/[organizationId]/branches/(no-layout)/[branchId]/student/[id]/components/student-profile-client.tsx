@@ -536,6 +536,28 @@ export function StudentProfileClient({ profile }: { profile: StudentProfileData 
                           label="Annee scolaire"
                           value={profile.schoolYearLabel}
                         />
+                        {profile.showExamCodes ? (
+                          <>
+                            <InfoField
+                              variant="school"
+                              label="E13"
+                              value={
+                                <span className="font-mono">
+                                  {profile.e13?.trim() || "—"}
+                                </span>
+                              }
+                            />
+                            <InfoField
+                              variant="school"
+                              label="E80"
+                              value={
+                                <span className="font-mono">
+                                  {profile.e80?.trim() || "—"}
+                                </span>
+                              }
+                            />
+                          </>
+                        ) : null}
                         <InfoField
                           variant="school"
                           label="Titulaire"

@@ -26,6 +26,8 @@ export interface IStudent extends Omit<
   langue?: string | null;
   classCode?: string | null;
   className?: string | null;
+  classLevel?: string | null;
+  classCycle?: string | null;
   schoolYearId?: string | null;
   schoolYearName?: string | null;
   /** Codes examen (année préférée / courante). */
@@ -37,6 +39,8 @@ export interface IStudent extends Omit<
     schoolYearName: string;
     classCode: string | null;
     className: string | null;
+    classLevel?: string | null;
+    classCycle?: string | null;
     e13?: string | null;
     e80?: string | null;
     /** Date d'inscription (ClassEnrollment.createdAt). */

@@ -18,6 +18,8 @@ import { useRefresh } from "@/src/hooks/RefreshContext";
 import { UpdateStudentDialog } from "./edit-student-dialog";
 import { useBranchPeopleLabels } from "@/hooks/use-branch-people-labels";
 import { getClassDisplayLabel, isSchoolBranch } from "@/lib/branch-capabilities";
+import { getBranchCycles } from "@/lib/cycle";
+import { examCodesExistForCycle } from "@/lib/exam-export-meta";
 import { sortActiveStatusUserFirst } from "@/lib/archive";
 import { useSession } from "@/lib/auth-client";
 
@@ -88,6 +90,28 @@ const StudentsList = ({
     [],
   );
 
+  const examCodesContext = useMemo(() => {
+    const typebranch = session?.branch?.typebranch;
+    const educationSystem = (
+      session?.branch as { educationSystem?: string } | undefined
+    )?.educationSystem;
+    const cycles = getBranchCycles({
+      typebranch,
+      cycles: (
+        session?.branch as
+          | { cycles?: Array<{ cycle: string; isActive?: boolean; sortOrder?: number }> }
+          | undefined
+      )?.cycles,
+    });
+    return {
+      typebranch,
+      educationSystem,
+      showExamCodeColumns: cycles.some((cycle) =>
+        examCodesExistForCycle(cycle, educationSystem),
+      ),
+    };
+  }, [session?.branch]);
+
   const columns = useMemo(
     () =>
       createStudentColumns(
@@ -95,8 +119,9 @@ const StudentsList = ({
         canManageStudents,
         tableActions,
         canPurgePermanently,
+        examCodesContext,
       ),
-    [canManageStudents, canPurgePermanently, onRefresh, tableActions],
+    [canManageStudents, canPurgePermanently, examCodesContext, onRefresh, tableActions],
   );
 
   const StudentToolbar = useMemo(() => {
@@ -110,13 +135,15 @@ const StudentsList = ({
           importScope={importScope}
           peopleLabels={peopleLabels}
           classLabel={classLabel}
+          typebranch={examCodesContext.typebranch}
+          educationSystem={examCodesContext.educationSystem}
           onOpenImport={() => setImportOpen(true)}
         />
       );
     }
 
     return Toolbar;
-  }, [canManageStudents, classLabel, importScope, peopleLabels, requiresImport, supportsImport]);
+  }, [canManageStudents, classLabel, examCodesContext, importScope, peopleLabels, requiresImport, supportsImport]);
 
   const fetchStudents = useCallback(async () => {
     const isInitialLoad = !hasLoadedOnce.current;
@@ -278,8 +305,9 @@ const StudentsList = ({
           onRowClick={handleStudentRowClick}
           initialColumnVisibility={{
             registeredPeriod: false,
-            e13: false,
-            e80: false,
+            ...(examCodesContext.showExamCodeColumns
+              ? { e13: false, e80: false }
+              : {}),
           }}
           onFilteredRowsChange={onVisibleStudentsChange}
         />

@@ -23,6 +23,8 @@ import {
 } from "@/components/ui/select";
 import { IStudent } from "@/src/interfaces/Student";
 import { saveStudentExamCodesAction } from "../student.action";
+import { isExamCodesClass } from "@/lib/exam-export-meta";
+import { useSession } from "@/lib/auth-client";
 
 type E13E80DialogProps = {
   open: boolean;
@@ -48,9 +50,28 @@ export function E13E80Dialog({
   student,
   onSuccess,
 }: E13E80DialogProps) {
-  const enrollments = student.enrollments ?? [];
+  const { data: session } = useSession();
+  const typebranch = session?.branch?.typebranch;
+  const educationSystem = (
+    session?.branch as { educationSystem?: string } | undefined
+  )?.educationSystem;
+  const enrollments = React.useMemo(
+    () =>
+      (student.enrollments ?? []).filter((enrollment) =>
+        isExamCodesClass({
+          cycle: enrollment.classCycle,
+          typebranch,
+          level: enrollment.classLevel,
+          className: enrollment.className,
+          classCode: enrollment.classCode,
+          educationSystem,
+        }),
+      ),
+    [educationSystem, student.enrollments, typebranch],
+  );
   const defaultYearId =
-    student.schoolYearId ??
+    enrollments.find((item) => item.schoolYearId === student.schoolYearId)
+      ?.schoolYearId ??
     enrollments.find((item) => item.schoolYearId)?.schoolYearId ??
     "";
 
@@ -62,7 +83,8 @@ export function E13E80Dialog({
   React.useEffect(() => {
     if (!open) return;
     const yearId =
-      student.schoolYearId ??
+      enrollments.find((item) => item.schoolYearId === student.schoolYearId)
+        ?.schoolYearId ??
       enrollments.find((item) => item.schoolYearId)?.schoolYearId ??
       "";
     setSchoolYearId(yearId);
@@ -92,8 +114,8 @@ export function E13E80Dialog({
     .join(" ");
 
   async function handleSave() {
-    if (!schoolYearId) {
-      toast.error("Sélectionnez une année scolaire");
+    if (!schoolYearId || !currentEnrollment) {
+      toast.error("Sélectionnez une année scolaire de classe terminale");
       return;
     }
     if (!e13.trim() && !e80.trim()) {

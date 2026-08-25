@@ -33,6 +33,12 @@ import {
 import { matchesClassForLevel } from "../lib/class-enrollment/match-class-for-level";
 import { shouldHideSidebarHref } from "../lib/branch-route-guard";
 import {
+  examCodesExistForCycle,
+  getExamCodeLevels,
+  getStudentExamCodesActionState,
+  isExamCodesClass,
+} from "../lib/exam-export-meta";
+import {
   maternelleLevelOptionCode,
   maternelleLevelOptionName,
   maternelleOptionDisplayName,
@@ -361,6 +367,85 @@ test("buildDashboardCycleStats : branche mono-cycle → vide", () => {
     }),
     [],
   );
+});
+
+test("E13/E80 : maternelle n'existe pas, terminal uniquement", () => {
+  assert.deepEqual(getExamCodeLevels("MATERNELLE"), []);
+  assert.equal(examCodesExistForCycle("MATERNELLE"), false);
+  assert.equal(
+    isExamCodesClass({
+      cycle: "MATERNELLE",
+      typebranch: "PRIMAIRE",
+      level: "3è",
+      className: "3è-MATE",
+    }),
+    false,
+  );
+  assert.equal(
+    getStudentExamCodesActionState(
+      {
+        classLevel: "1è",
+        classCycle: "MATERNELLE",
+        className: "1è-MATE",
+        classCode: "1è-MATE",
+      },
+      { typebranch: "PRIMAIRE" },
+    ),
+    "hidden",
+  );
+
+  assert.deepEqual(getExamCodeLevels("PRIMAIRE"), ["6è"]);
+  assert.equal(
+    isExamCodesClass({ cycle: "PRIMAIRE", typebranch: "PRIMAIRE", level: "5è" }),
+    false,
+  );
+  assert.equal(
+    isExamCodesClass({ cycle: "PRIMAIRE", typebranch: "PRIMAIRE", level: "6è" }),
+    true,
+  );
+  assert.equal(
+    getStudentExamCodesActionState(
+      { classLevel: "2è", classCycle: "PRIMAIRE", className: "2è-PR" },
+      { typebranch: "PRIMAIRE" },
+    ),
+    "disabled",
+  );
+  assert.equal(
+    getStudentExamCodesActionState(
+      { classLevel: "6è", classCycle: "PRIMAIRE", className: "6è-PR" },
+      { typebranch: "PRIMAIRE" },
+    ),
+    "enabled",
+  );
+
+  assert.deepEqual(getExamCodeLevels("SECONDAIRE"), ["4è"]);
+  assert.equal(
+    isExamCodesClass({
+      cycle: "SECONDAIRE",
+      typebranch: "SECONDAIRE",
+      level: "8è",
+    }),
+    false,
+  );
+  assert.equal(
+    isExamCodesClass({
+      cycle: "SECONDAIRE",
+      typebranch: "SECONDAIRE",
+      level: "4è",
+    }),
+    true,
+  );
+  assert.equal(
+    isExamCodesClass({
+      cycle: "SECONDAIRE",
+      typebranch: "SECONDAIRE",
+      level: "12ª",
+      educationSystem: "ANGOLAIS",
+    }),
+    true,
+  );
+  assert.equal(examCodesExistForCycle("ATELIER"), false);
+  assert.equal(examCodesExistForCycle("CENTRE_FORMATION"), false);
 });
 
 console.log("Cycle tests passed.");

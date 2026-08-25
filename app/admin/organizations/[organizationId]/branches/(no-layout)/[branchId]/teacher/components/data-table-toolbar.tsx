@@ -11,6 +11,14 @@ import { DataTableViewOptions } from "@/components/data-table-view-options";
 import { DataTableFacetedFilter } from "@/components/data-table-faceted-filter";
 import type { ITeacher } from "@/src/interfaces/Teacher";
 import type { PeopleLabels } from "@/lib/people-labels";
+import { cycleLabel, type SchoolCycle } from "@/lib/cycle";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   exportTeachersReportPdf,
   type TeacherAssignmentStatus,
@@ -25,6 +33,9 @@ interface DataTableToolbarProps<TData> {
   onOpenImport?: () => void;
   /** Conservé pour compatibilité avec l’appelant. */
   peopleLabels?: PeopleLabels;
+  cycles?: SchoolCycle[];
+  cycleFilter?: "all" | SchoolCycle;
+  onCycleFilterChange?: (cycle: "all" | SchoolCycle) => void;
 }
 
 const assignmentStatuses = [
@@ -72,6 +83,9 @@ export function DataTableToolbar<TData>({
   canManageTeachers = false,
   supportsStaffImport = false,
   onOpenImport,
+  cycles = [],
+  cycleFilter = "all",
+  onCycleFilterChange,
 }: DataTableToolbarProps<TData>) {
   const [exportingPdf, setExportingPdf] = useState(false);
   const isFiltered = table.getState().columnFilters.length > 0;
@@ -128,6 +142,26 @@ export function DataTableToolbar<TData>({
       </div>
 
       <div className="flex flex-wrap items-center justify-end gap-2">
+        {cycles.length > 0 ? (
+          <Select
+            value={cycleFilter}
+            onValueChange={(value) =>
+              onCycleFilterChange?.(value as "all" | SchoolCycle)
+            }
+          >
+            <SelectTrigger className="h-8 w-[170px]">
+              <SelectValue placeholder="Cycle" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tous les cycles</SelectItem>
+              {cycles.map((cycle) => (
+                <SelectItem key={cycle} value={cycle}>
+                  {cycleLabel(cycle)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        ) : null}
         {table.getColumn("assignmentStatus") ? (
           <DataTableFacetedFilter
             column={table.getColumn("assignmentStatus")}

@@ -45,9 +45,10 @@ import {
   studentExtraToDb,
 } from "@/lib/registration-extra-info";
 import { purgeStudentPermanently } from "@/lib/purge-branch-person";
+import { isExamCodesClass } from "@/lib/exam-export-meta";
 
 export async function getCurrentBranch() {
-  const { branchId, organizationId, userId, typebranch, session } =
+  const { branchId, organizationId, userId, typebranch, educationSystem, session } =
     await requireBranchContext();
 
   const branchMember = await prisma.branchMember.findFirst({
@@ -70,6 +71,7 @@ export async function getCurrentBranch() {
     organizationId,
     userId,
     typebranch,
+    educationSystem,
     branchMemberId: branchMember?.id ?? null,
     branchMemberRole: branchMember?.role ?? null,
     roles,
@@ -323,7 +325,12 @@ function mapStudentRecord(
       createdAt?: Date;
       e13?: string | null;
       e80?: string | null;
-      classe: { codeClasse: string; nameClasse: string } | null;
+      classe: {
+        codeClasse: string;
+        nameClasse: string;
+        level?: string | null;
+        cycle?: string | null;
+      } | null;
       schoolYear?: {
         id: string;
         nameYear: string;
@@ -350,6 +357,8 @@ function mapStudentRecord(
         isCurrentYear: year.isCurrentYear,
         classCode: enrollment.classe?.codeClasse ?? null,
         className: enrollment.classe?.nameClasse ?? null,
+        classLevel: enrollment.classe?.level ?? null,
+        classCycle: enrollment.classe?.cycle ?? null,
         e13: enrollment.e13 ?? null,
         e80: enrollment.e80 ?? null,
         createdAt: enrollment.createdAt ?? null,
@@ -364,6 +373,8 @@ function mapStudentRecord(
         isCurrentYear: boolean;
         classCode: string | null;
         className: string | null;
+        classLevel: string | null;
+        classCycle: string | null;
         e13: string | null;
         e80: string | null;
         createdAt: Date | null;
@@ -398,6 +409,8 @@ function mapStudentRecord(
     langue: student.langue,
     classCode: preferredEnrollment?.classCode ?? null,
     className: preferredEnrollment?.className ?? null,
+    classLevel: preferredEnrollment?.classLevel ?? null,
+    classCycle: preferredEnrollment?.classCycle ?? null,
     schoolYearId: preferredEnrollment?.schoolYearId ?? null,
     schoolYearName: preferredEnrollment?.schoolYearName ?? null,
     e13: preferredEnrollment?.e13 ?? null,
@@ -408,6 +421,8 @@ function mapStudentRecord(
       schoolYearName: enrollment.schoolYearName,
       classCode: enrollment.classCode,
       className: enrollment.className,
+      classLevel: enrollment.classLevel,
+      classCycle: enrollment.classCycle,
       e13: enrollment.e13,
       e80: enrollment.e80,
       createdAt: enrollment.createdAt,
@@ -1043,7 +1058,7 @@ const studentExamCodesSchema = z.object({
 export const saveStudentExamCodesAction = action
   .input(studentExamCodesSchema)
   .handler(async ({ input }) => {
-    const { branchId, organizationId, canManageStudents } =
+    const { branchId, organizationId, canManageStudents, typebranch, educationSystem } =
       await getCurrentBranch();
     if (!canManageStudents) {
       throw new Error("Permission insuffisante pour modifier les codes E13/E80.");
@@ -1056,12 +1071,39 @@ export const saveStudentExamCodesAction = action
         branchId,
         statusEnrollment: true,
       },
-      select: { id: true, e13: true, e80: true },
+      select: {
+        id: true,
+        e13: true,
+        e80: true,
+        classe: {
+          select: {
+            level: true,
+            cycle: true,
+            nameClasse: true,
+            codeClasse: true,
+          },
+        },
+      },
     });
 
     if (!enrollment) {
       throw new Error(
         "Aucune inscription active trouvée pour cet élève et cette année.",
+      );
+    }
+
+    if (
+      !isExamCodesClass({
+        cycle: enrollment.classe?.cycle,
+        typebranch,
+        level: enrollment.classe?.level,
+        className: enrollment.classe?.nameClasse,
+        classCode: enrollment.classe?.codeClasse,
+        educationSystem,
+      })
+    ) {
+      throw new Error(
+        "Les codes E13 et E80 ne sont disponibles que pour les classes terminales.",
       );
     }
 

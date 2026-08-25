@@ -26,6 +26,7 @@ import { buildStudentAnnouncementsData } from "@/lib/student-announcements";
 import { getBaseCurrency } from "@/lib/exchange-rate";
 import { getPeopleLabels } from "@/lib/people-labels";
 import { getBranchImage } from "@/lib/utils";
+import { isExamCodesClass } from "@/lib/exam-export-meta";
 import { StudentProfileClient } from "./components/student-profile-client";
 import type {
   StudentProfileData,
@@ -633,6 +634,16 @@ const SingleStudentPage = async ({
     enrollmentDateLabel: formatStudentBadgeDate(enrollment?.createdAt),
     image: user.image,
     canManageStudents: canReadAll,
+    showExamCodes: isExamCodesClass({
+      cycle: classe?.cycle,
+      typebranch: branch.typebranch,
+      level: classe?.level,
+      className: classe?.nameClasse,
+      classCode: classe?.codeClasse,
+      educationSystem: branch.educationSystem,
+    }),
+    e13: enrollment?.e13 ?? null,
+    e80: enrollment?.e80 ?? null,
     canViewFinance,
     parentFullName,
     parentPhone: parentUser?.telephone ?? "-",

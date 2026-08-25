@@ -39,12 +39,15 @@ import { ImportStaffDialog } from "../components/import-staff-dialog";
 import { getStaffPageContextAction } from "../staff-import.action";
 import { useBranchPeopleLabels } from "@/hooks/use-branch-people-labels";
 import { IconUpload } from "@tabler/icons-react";
+import { cycleLabel, type SchoolCycle } from "@/lib/cycle";
 
 export type TeacherAssignmentFilter =
   | "all"
   | "active"
   | "assigned"
   | "unassigned";
+
+export type TeacherCycleFilter = "all" | SchoolCycle;
 
 type TeacherDashboardStats = {
   totalActive: number;
@@ -54,6 +57,7 @@ type TeacherDashboardStats = {
   coveredClasses: number;
   coveredCourses: number;
   averageAssignments: number;
+  cycles: SchoolCycle[];
 };
 
 export default function Teachers() {
@@ -64,6 +68,8 @@ export default function Teachers() {
   const [supportsStaffImport, setSupportsStaffImport] = useState(false);
   const peopleLabels = useBranchPeopleLabels();
   const [stats, setStats] = useState<TeacherDashboardStats | null>(null);
+  const [cycles, setCycles] = useState<SchoolCycle[]>([]);
+  const [cycleFilter, setCycleFilter] = useState<TeacherCycleFilter>("all");
   const [assignmentFilter, setAssignmentFilter] =
     useState<TeacherAssignmentFilter>("all");
   const { data: session, isPending } = useSession();
@@ -77,17 +83,31 @@ export default function Teachers() {
     setRefreshKey((prev) => prev + 1);
   };
 
+  const applyCycleFilter = (cycle: TeacherCycleFilter) => {
+    setCycleFilter(cycle);
+    setAssignmentFilter("all");
+    setStats(null);
+  };
+
+  const cycleDescription =
+    cycleFilter === "all" ? null : cycleLabel(cycleFilter);
+
   useEffect(() => {
     setHasMounted(true);
   }, []);
 
   useEffect(() => {
     async function loadStats() {
-      const [data, error] = await getTeacherDashboardStatsAction();
-      if (!error && data) setStats(data);
+      const [data, error] = await getTeacherDashboardStatsAction(
+        cycleFilter === "all" ? {} : { cycle: cycleFilter },
+      );
+      if (!error && data) {
+        setStats(data);
+        setCycles(data.cycles);
+      }
     }
     if (sessionReady && session) void loadStats();
-  }, [refreshKey, session, sessionReady]);
+  }, [cycleFilter, refreshKey, session, sessionReady]);
 
   useEffect(() => {
     void getStaffPageContextAction().then((context) => {
@@ -173,28 +193,36 @@ export default function Teachers() {
               value: stats?.totalActive,
               icon: IconUsers,
               filter: "active" as const,
-              description: "Comptes actifs",
+              description: cycleDescription
+                ? `Comptes actifs · ${cycleDescription}`
+                : "Comptes actifs",
             },
             {
               label: "Affectes",
               value: stats?.assigned,
               icon: IconUserCheck,
               filter: "assigned" as const,
-              description: "Avec classe et cours",
+              description: cycleDescription
+                ? `Avec cours · ${cycleDescription}`
+                : "Avec classe et cours",
             },
             {
               label: "Non affectes",
               value: stats?.unassigned,
               icon: IconUserQuestion,
               filter: "unassigned" as const,
-              description: "A traiter",
+              description: cycleDescription
+                ? `Sans cours · ${cycleDescription}`
+                : "A traiter",
             },
             {
               label: "Affectations",
               value: stats?.totalAssignments,
               icon: IconChalkboardTeacher,
               filter: "assigned" as const,
-              description: "Cours-classe actifs",
+              description: cycleDescription
+                ? `Cours-classe · ${cycleDescription}`
+                : "Cours-classe actifs",
             },
             {
               label: "Charge moyenne",
@@ -248,6 +276,9 @@ export default function Teachers() {
             canManageTeachers={canManage}
             canPurgePermanently={canPurgePermanently}
             assignmentFilter={assignmentFilter}
+            cycleFilter={cycleFilter}
+            cycles={cycles}
+            onCycleFilterChange={applyCycleFilter}
             supportsStaffImport={supportsStaffImport}
             onOpenImport={() => setImportOpen(true)}
           />

@@ -36,6 +36,8 @@ interface DataTableToolbarProps<TData> {
   peopleLabels?: PeopleLabels;
   classLabel?: string;
   onOpenImport?: () => void;
+  typebranch?: unknown;
+  educationSystem?: unknown;
 }
 
 const sexes = [
@@ -158,6 +160,8 @@ export function DataTableToolbar<TData>({
   peopleLabels = DEFAULT_PEOPLE_LABELS,
   classLabel = "Classe",
   onOpenImport,
+  typebranch,
+  educationSystem,
 }: DataTableToolbarProps<TData>) {
   const [exportingPdf, setExportingPdf] = useState(false);
   const isFiltered = table.getState().columnFilters.length > 0;
@@ -247,7 +251,11 @@ export function DataTableToolbar<TData>({
     const filteredStudents = table
       .getSortedRowModel()
       .rows.map((row) => row.original as IStudent);
-    const options = resolveReportOptions(table as Table<unknown>);
+    const options: StudentReportOptions = {
+      ...resolveReportOptions(table as Table<unknown>),
+      typebranch,
+      educationSystem,
+    };
     const [context, error] = await getStudentReportContextAction();
     if (error || !context) {
       throw new Error(

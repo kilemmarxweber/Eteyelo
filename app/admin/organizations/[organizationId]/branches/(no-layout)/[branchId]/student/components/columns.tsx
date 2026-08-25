@@ -23,10 +23,27 @@ import { E13E80Dialog } from "./e13-e80-dialog";
 import { ResetUsersDialog } from "./reset-users-dialog";
 import { StudentListPhotoCell } from "./student-list-photo-cell";
 import { openOverlayAfterMenuDismiss } from "@/lib/radix-portal-dismiss";
+import {
+  getStudentExamCodesActionState,
+  studentAllowsExamCodes,
+} from "@/lib/exam-export-meta";
 
 export type StudentTableActions = {
   onEdit: (student: IStudent) => void;
 };
+
+export type StudentExamCodesColumnContext = {
+  typebranch?: unknown;
+  educationSystem?: unknown;
+  showExamCodeColumns?: boolean;
+};
+
+function selectedSchoolYearIds(table: {
+  getColumn: (id: string) => { getFilterValue: () => unknown } | undefined;
+}): string[] {
+  const yearFilter = table.getColumn("schoolYearId")?.getFilterValue();
+  return Array.isArray(yearFilter) ? yearFilter.map(String) : [];
+}
 
 function calculateAge(dateOfBirth: Date | string | null | undefined) {
   if (!dateOfBirth) return null;
@@ -46,7 +63,9 @@ export const createStudentColumns = (
   canManageStudents = true,
   actions?: StudentTableActions,
   canPurgePermanently = false,
+  examCodes?: StudentExamCodesColumnContext,
 ): ColumnDef<IStudent>[] => [
+
   {
     id: "select",
     header: ({ table }) => (
@@ -296,10 +315,17 @@ export const createStudentColumns = (
       <DataTableColumnHeader column={column} title="E13" />
     ),
     cell: ({ row, table }) => {
-      const yearFilter = table.getColumn("schoolYearId")?.getFilterValue();
-      const selectedYears = Array.isArray(yearFilter)
-        ? yearFilter.map(String)
-        : [];
+      const selectedYears = selectedSchoolYearIds(table);
+      const allowed = studentAllowsExamCodes(row.original, {
+        typebranch: examCodes?.typebranch,
+        educationSystem: examCodes?.educationSystem,
+        schoolYearIds: selectedYears,
+      });
+      if (!allowed) {
+        return (
+          <span className="font-mono text-xs text-muted-foreground">—</span>
+        );
+      }
       const enrollment =
         selectedYears.length === 1
           ? row.original.enrollments?.find(
@@ -322,10 +348,17 @@ export const createStudentColumns = (
       <DataTableColumnHeader column={column} title="E80" />
     ),
     cell: ({ row, table }) => {
-      const yearFilter = table.getColumn("schoolYearId")?.getFilterValue();
-      const selectedYears = Array.isArray(yearFilter)
-        ? yearFilter.map(String)
-        : [];
+      const selectedYears = selectedSchoolYearIds(table);
+      const allowed = studentAllowsExamCodes(row.original, {
+        typebranch: examCodes?.typebranch,
+        educationSystem: examCodes?.educationSystem,
+        schoolYearIds: selectedYears,
+      });
+      if (!allowed) {
+        return (
+          <span className="font-mono text-xs text-muted-foreground">—</span>
+        );
+      }
       const enrollment =
         selectedYears.length === 1
           ? row.original.enrollments?.find(
@@ -343,7 +376,7 @@ export const createStudentColumns = (
   },
   {
     id: "actions",
-    cell: function Cell({ row }) {
+    cell: function Cell({ row, table }) {
       const [showDeleteTaskDialog, setShowDeleteTaskDialog] =
         React.useState(false);
       const [showPurgeTaskDialog, setShowPurgeTaskDialog] =
@@ -356,6 +389,12 @@ export const createStudentColumns = (
 
       const params = useParams<{ organizationId: string; branchId: string }>();
       const isArchived = row.original.statusUser === false;
+      const examCodesState = getStudentExamCodesActionState(row.original, {
+        typebranch: examCodes?.typebranch,
+        educationSystem: examCodes?.educationSystem,
+        schoolYearIds: selectedSchoolYearIds(table),
+      });
+      const examCodesEnabled = examCodesState === "enabled";
 
       const handleSuccess = () => {
         row.toggleSelected(false);
@@ -372,12 +411,14 @@ export const createStudentColumns = (
 
           {canManageStudents ? (
             <>
-              <E13E80Dialog
-                open={showE13E80Dialog}
-                onOpenChange={setShowE13E80Dialog}
-                student={row.original}
-                onSuccess={handleSuccess}
-              />
+              {examCodesEnabled ? (
+                <E13E80Dialog
+                  open={showE13E80Dialog}
+                  onOpenChange={setShowE13E80Dialog}
+                  student={row.original}
+                  onSuccess={handleSuccess}
+                />
+              ) : null}
               <DeleteStudentsDialog
                 open={showDeleteTaskDialog}
                 onOpenChange={setShowDeleteTaskDialog}
@@ -437,16 +478,20 @@ export const createStudentColumns = (
                     Modifier
                   </DropdownMenuItem>
 
-                  <DropdownMenuItem
-                    onSelect={(event) => {
-                      event.preventDefault();
-                      openOverlayAfterMenuDismiss(() =>
-                        setShowE13E80Dialog(true),
-                      );
-                    }}
-                  >
-                    E13 &amp; E80
-                  </DropdownMenuItem>
+                  {examCodesState !== "hidden" ? (
+                    <DropdownMenuItem
+                      disabled={!examCodesEnabled}
+                      onSelect={(event) => {
+                        event.preventDefault();
+                        if (!examCodesEnabled) return;
+                        openOverlayAfterMenuDismiss(() =>
+                          setShowE13E80Dialog(true),
+                        );
+                      }}
+                    >
+                      E13 &amp; E80
+                    </DropdownMenuItem>
+                  ) : null}
 
                   <DropdownMenuItem
                     onSelect={() => setShowResetTaskDialog(true)}
@@ -483,6 +528,11 @@ export const createStudentColumns = (
       );
     },
   },
-];
+].filter((column) => {
+  if (column.id === "e13" || column.id === "e80") {
+    return examCodes?.showExamCodeColumns !== false;
+  }
+  return true;
+});
 
 export const columns = createStudentColumns();

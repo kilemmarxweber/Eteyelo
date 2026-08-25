@@ -7,6 +7,7 @@ import {
   drawReportHeader,
 } from "@/lib/reports/pdf-header-footer";
 import type { SchoolReportContext } from "@/lib/reports/types";
+import { studentAllowsExamCodes } from "@/lib/exam-export-meta";
 
 export type StudentReportSexe = "M" | "F";
 export type StudentReportStatus = "active" | "inactive";
@@ -26,6 +27,8 @@ export type StudentReportOptions = {
   schoolYearIds?: string[] | null;
   /** Texte de recherche actif. */
   search?: string | null;
+  typebranch?: unknown;
+  educationSystem?: unknown;
 };
 
 function safeFilePart(value: string) {
@@ -221,6 +224,14 @@ export async function buildStudentsReportPdf(
     (!options.period || options.period === "all") &&
     !options.search;
   const showBirthColumns = !isClassYearOnlyReport;
+  const examCodesContext = {
+    typebranch: options.typebranch,
+    educationSystem: options.educationSystem,
+    schoolYearIds: options.schoolYearIds,
+  };
+  const showExamCodes = students.some((student) =>
+    studentAllowsExamCodes(student, examCodesContext),
+  );
   const title = buildStudentsReportTitle(options);
   const filterLabels = buildStudentsReportFilterLabels(options);
   // Landscape : place pour E13 / E80 (comme Liste finalistes / Cursus).
@@ -252,8 +263,7 @@ export async function buildStudentsReportPdf(
     "Prénom",
     "Sexe",
     ...(!isClassReport ? (["Classe"] as const) : []),
-    "E13",
-    "E80",
+    ...(showExamCodes ? (["E13", "E80"] as const) : []),
     ...(showBirthColumns
       ? (["Date n.", "Âge", "Lieu de naissance"] as const)
       : []),
@@ -261,6 +271,7 @@ export async function buildStudentsReportPdf(
 
   const body = students.map((student, index) => {
     const exam = resolveStudentExamCodes(student, options.schoolYearIds);
+    const allowed = studentAllowsExamCodes(student, examCodesContext);
     const row: (string | number)[] = [
       index + 1,
       student.username || "-",
@@ -272,7 +283,9 @@ export async function buildStudentsReportPdf(
     if (!isClassReport) {
       row.push(resolveStudentClassLabel(student, options.schoolYearIds));
     }
-    row.push(exam.e13, exam.e80);
+    if (showExamCodes) {
+      row.push(allowed ? exam.e13 : "—", allowed ? exam.e80 : "—");
+    }
     if (showBirthColumns) {
       const age = calculateAge(student.dateOfBirth);
       row.push(
@@ -284,64 +297,37 @@ export async function buildStudentsReportPdf(
     return row;
   });
 
-  // Largeurs proportionnelles (E13 / E80 inclus).
+  // Largeurs proportionnelles — E13 / E80 seulement si au moins un élève terminal.
   type PdfColumnStyle = { cellWidth: number; halign: "center" | "left" };
   const columnStyles: Record<number, PdfColumnStyle> = (() => {
-    if (isClassReport && !showBirthColumns) {
-      return {
-        0: { cellWidth: usableWidth * 0.05, halign: "center" as const },
-        1: { cellWidth: usableWidth * 0.16, halign: "left" as const },
-        2: { cellWidth: usableWidth * 0.14, halign: "left" as const },
-        3: { cellWidth: usableWidth * 0.14, halign: "left" as const },
-        4: { cellWidth: usableWidth * 0.14, halign: "left" as const },
-        5: { cellWidth: usableWidth * 0.07, halign: "center" as const },
-        6: { cellWidth: usableWidth * 0.15, halign: "center" as const },
-        7: { cellWidth: usableWidth * 0.15, halign: "center" as const },
-      };
+    const styles: Record<number, PdfColumnStyle> = {};
+    const fractions: Array<{ width: number; align: "center" | "left" }> = [
+      { width: 0.04, align: "center" }, // #
+      { width: 0.12, align: "left" }, // Matricule
+      { width: 0.11, align: "left" }, // Nom
+      { width: 0.11, align: "left" }, // Postnom
+      { width: 0.11, align: "left" }, // Prénom
+      { width: 0.05, align: "center" }, // Sexe
+    ];
+    if (!isClassReport) fractions.push({ width: 0.12, align: "left" });
+    if (showExamCodes) {
+      fractions.push({ width: 0.1, align: "center" });
+      fractions.push({ width: 0.1, align: "center" });
     }
-    if (isClassReport && showBirthColumns) {
-      return {
-        0: { cellWidth: usableWidth * 0.035, halign: "center" as const },
-        1: { cellWidth: usableWidth * 0.1, halign: "left" as const },
-        2: { cellWidth: usableWidth * 0.09, halign: "left" as const },
-        3: { cellWidth: usableWidth * 0.09, halign: "left" as const },
-        4: { cellWidth: usableWidth * 0.09, halign: "left" as const },
-        5: { cellWidth: usableWidth * 0.045, halign: "center" as const },
-        6: { cellWidth: usableWidth * 0.09, halign: "center" as const },
-        7: { cellWidth: usableWidth * 0.09, halign: "center" as const },
-        8: { cellWidth: usableWidth * 0.09, halign: "center" as const },
-        9: { cellWidth: usableWidth * 0.05, halign: "center" as const },
-        10: { cellWidth: usableWidth * 0.14, halign: "left" as const },
-      };
+    if (showBirthColumns) {
+      fractions.push({ width: 0.08, align: "center" });
+      fractions.push({ width: 0.04, align: "center" });
+      fractions.push({ width: 0.12, align: "left" });
     }
-    if (!isClassReport && !showBirthColumns) {
-      return {
-        0: { cellWidth: usableWidth * 0.04, halign: "center" as const },
-        1: { cellWidth: usableWidth * 0.12, halign: "left" as const },
-        2: { cellWidth: usableWidth * 0.11, halign: "left" as const },
-        3: { cellWidth: usableWidth * 0.11, halign: "left" as const },
-        4: { cellWidth: usableWidth * 0.11, halign: "left" as const },
-        5: { cellWidth: usableWidth * 0.05, halign: "center" as const },
-        6: { cellWidth: usableWidth * 0.16, halign: "left" as const },
-        7: { cellWidth: usableWidth * 0.15, halign: "center" as const },
-        8: { cellWidth: usableWidth * 0.15, halign: "center" as const },
+    const total = fractions.reduce((sum, item) => sum + item.width, 0);
+    fractions.forEach((item, index) => {
+      styles[index] = {
+        cellWidth: usableWidth * (item.width / total),
+        halign: item.align,
       };
-    }
-    return {
-      0: { cellWidth: usableWidth * 0.03, halign: "center" as const },
-      1: { cellWidth: usableWidth * 0.09, halign: "left" as const },
-      2: { cellWidth: usableWidth * 0.08, halign: "left" as const },
-      3: { cellWidth: usableWidth * 0.08, halign: "left" as const },
-      4: { cellWidth: usableWidth * 0.08, halign: "left" as const },
-      5: { cellWidth: usableWidth * 0.04, halign: "center" as const },
-      6: { cellWidth: usableWidth * 0.1, halign: "left" as const },
-      7: { cellWidth: usableWidth * 0.08, halign: "center" as const },
-      8: { cellWidth: usableWidth * 0.08, halign: "center" as const },
-      9: { cellWidth: usableWidth * 0.08, halign: "center" as const },
-      10: { cellWidth: usableWidth * 0.04, halign: "center" as const },
-      11: { cellWidth: usableWidth * 0.12, halign: "left" as const },
-    };
-  })() as Record<number, PdfColumnStyle>;
+    });
+    return styles;
+  })();
 
   autoTable(doc, {
     startY: contentTop,
