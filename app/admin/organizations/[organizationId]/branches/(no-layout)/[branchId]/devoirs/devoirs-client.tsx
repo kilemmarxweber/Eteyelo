@@ -93,6 +93,7 @@ type FilterOptions = {
     courseName: string;
   }>;
   scopedToTeacher?: boolean;
+  scopeTeacherId?: string;
   defaultSchoolYearId: string;
 };
 
@@ -181,6 +182,7 @@ export function DevoirsClient({
 
   const teachings = filterOptions.teachings ?? [];
   const scopedToTeacher = Boolean(filterOptions.scopedToTeacher);
+  const scopeTeacherId = filterOptions.scopeTeacherId;
 
   const initialClassId = (() => {
     if (!scopedToTeacher || teachings.length === 0) return "all";
@@ -302,7 +304,10 @@ export function DevoirsClient({
         toast.error(optsErr?.message ?? "Impossible de charger les options.");
         return;
       }
-      if (!opts.teachings.length) {
+      const pool = scopeTeacherId
+        ? opts.teachings.filter((t) => t.teacherId === scopeTeacherId)
+        : opts.teachings;
+      if (!pool.length) {
         toast.error("Aucune affectation cours/classe disponible.");
         return;
       }
@@ -311,11 +316,11 @@ export function DevoirsClient({
         return;
       }
       const preferred =
-        opts.teachings.find(
+        pool.find(
           (t) =>
             (classId === "all" || t.classId === classId) &&
             (courseId === "all" || t.courseId === courseId),
-        ) ?? opts.teachings[0];
+        ) ?? pool[0];
       const [res, err] = await createAssignmentAction({
         title: `Devoir du vendredi — ${preferred.courseName}`,
         description: "Travail à faire pendant le weekend.",
@@ -431,7 +436,7 @@ export function DevoirsClient({
               }
             >
               <Link
-                href={`${base}/new`}
+                href={`${base}/new${scopeTeacherId ? `?teacherId=${scopeTeacherId}` : ""}`}
                 aria-disabled={scopedToTeacher && teachings.length === 0}
                 className={
                   scopedToTeacher && teachings.length === 0

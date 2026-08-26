@@ -16,6 +16,11 @@ import {
 import { prisma } from "@/lib/prisma";
 import { BranchCard } from "./branchCard";
 import { BranchTypeBadge } from "@/components/branch/branch-type-badge";
+import {
+  BranchMergeCardButton,
+  BranchMergeHeaderButton,
+  BranchStructureMergeProvider,
+} from "./branch-structure-merge-host";
 
 export const dynamic = "force-dynamic";
 
@@ -38,6 +43,15 @@ async function getOrganizationBranches(organizationId: string) {
         orderBy: { sortOrder: "asc" },
       },
       isActive: true,
+      _count: {
+        select: {
+          section: true,
+          option: true,
+          cours: true,
+          coursPonderations: true,
+          classes: true,
+        },
+      },
       branchemembers: {
         select: {
           _count: {
@@ -64,6 +78,13 @@ async function getOrganizationBranches(organizationId: string) {
         (total, member) => total + member._count.student,
         0,
       ),
+      counts: {
+        sections: branch._count.section,
+        options: branch._count.option,
+        cours: branch._count.cours,
+        ponderations: branch._count.coursPonderations,
+        classes: branch._count.classes,
+      },
     }))
     .sort((left, right) => {
       const leftOrder = typeOrder[left.typebranch] ?? 99;
@@ -100,7 +121,13 @@ export default async function BranchesPage({ params }: BranchesPageProps) {
     branches = branches.filter((branch) => assignedIds.has(branch.id));
   }
 
+  const showMerge = !isScoped && branches.length > 1;
+
   return (
+    <BranchStructureMergeProvider
+      organizationId={organizationId}
+      branches={branches}
+    >
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-5 px-4 py-6 sm:px-6 lg:px-8">
       {isGestionnaire ? null : (
         <BackLink
@@ -110,7 +137,7 @@ export default async function BranchesPage({ params }: BranchesPageProps) {
       )}
 
       <section className="rounded-2xl bg-primary p-5 text-primary-foreground shadow-lg shadow-primary/10 sm:p-6">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div className="max-w-3xl">
             <div className="inline-flex items-center gap-2 rounded-full bg-primary-foreground/15 px-3 py-1 text-xs font-semibold text-primary-foreground/90">
               <School className="size-3.5" />
@@ -129,24 +156,27 @@ export default async function BranchesPage({ params }: BranchesPageProps) {
           </div>
 
           {isScoped ? null : (
-            <Button
-              size="sm"
-              variant="secondary"
-              className="rounded-full bg-card text-foreground hover:bg-muted"
-              asChild
-            >
-              <Link href={`${base}/new`}>
-                <Plus className="mr-1.5 size-3.5" />
-                Créer un établissement
-              </Link>
-            </Button>
+            <div className="flex shrink-0 flex-nowrap items-center gap-2">
+              {showMerge ? <BranchMergeHeaderButton /> : null}
+              <Button
+                size="sm"
+                variant="secondary"
+                className="rounded-full bg-card text-foreground hover:bg-muted"
+                asChild
+              >
+                <Link href={`${base}/new`}>
+                  <Plus className="mr-1.5 size-3.5" />
+                  Créer un établissement
+                </Link>
+              </Button>
+            </div>
           )}
         </div>
       </section>
 
       {branches.length > 0 ? (
         <section className="overflow-hidden rounded-[1.5rem] border border-border/70 bg-card shadow-sm">
-          <div className="grid grid-cols-1 gap-2 p-3 sm:grid-cols-2 sm:p-4 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-2 p-2 sm:grid-cols-2 sm:p-3 lg:grid-cols-3">
           {branches.map((branch) => (
             <BranchCard
               key={branch.id}
@@ -155,21 +185,26 @@ export default async function BranchesPage({ params }: BranchesPageProps) {
               enterHref={`${base}/${branch.id}`}
               editHref={`${base}/edit?branchId=${branch.id}`}
               isActive={branch.isActive}
+              extraActions={
+                showMerge ? (
+                  <BranchMergeCardButton sourceId={branch.id} />
+                ) : null
+              }
             >
-              <div className="group flex h-full min-w-0 items-start gap-2.5 overflow-hidden rounded-xl border border-border/80 bg-card py-2.5 pl-3 pr-28 transition hover:border-primary/30 hover:bg-muted/40 hover:shadow-sm">
+              <div className="group flex h-full min-w-0 items-start gap-2 overflow-hidden rounded-xl border border-border/80 bg-card px-2.5 py-2.5 transition hover:border-primary/30 hover:bg-muted/40 hover:shadow-sm">
                 <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
                   <School className="size-3.5" />
                 </span>
 
                 <span className="min-w-0 flex-1">
-                  <span className="flex items-center gap-1.5">
+                  <span className="flex items-center gap-1.5 pr-[7.25rem]">
                     <span className="truncate text-sm font-semibold text-foreground">
                       {branch.name}
                     </span>
                     <ArrowRight className="size-3.5 shrink-0 text-muted-foreground opacity-0 transition group-hover:translate-x-0.5 group-hover:opacity-100" />
                   </span>
                   {branch.description ? (
-                    <span className="mt-0.5 block whitespace-normal break-words text-xs leading-snug text-muted-foreground">
+                    <span className="mt-0.5 block w-full whitespace-normal break-words text-xs leading-snug text-muted-foreground">
                       {branch.description}
                     </span>
                   ) : null}
@@ -204,5 +239,6 @@ export default async function BranchesPage({ params }: BranchesPageProps) {
         </section>
       )}
     </div>
+    </BranchStructureMergeProvider>
   );
 }

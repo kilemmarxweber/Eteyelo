@@ -98,7 +98,9 @@ export function EnrollmentUpForm({
     };
     fecthSchoolYears();
     const fecthCours = async () => {
-      const [rawCours, err] = await getCoursAction({});
+      const [rawCours, err] = await getCoursAction(
+        classeId ? { classeId } : {},
+      );
       if (err) {
         throw err.message;
       }
@@ -113,7 +115,7 @@ export function EnrollmentUpForm({
       setTeachers(rawTeachers);
     };
     fecthTeachers();
-  }, [branchId]);
+  }, [branchId, classeId]);
   async function onSubmit(data: z.infer<typeof teachingSchema>) {
     setIsLoading(true);
     setErrorMessage("");

@@ -9,6 +9,8 @@ export {
   DEFAULT_PONDERATION_LEVEL,
   normalizePonderationLevel,
   ponderationMapKey,
+  ponderationAppliesToClass,
+  configuredCoursIdsForClass,
   resolveCoursePonderation,
 } from "@/lib/course-ponderation-shared";
 
@@ -85,4 +87,27 @@ export async function getCoursePonderationMap(params: {
       record.ponderation,
     ]),
   );
+}
+
+/** Cours ayant une pondération configurée pour l'option / niveau de la classe. */
+export async function getConfiguredCoursIdsForClasse(params: {
+  branchId: string;
+  optionId?: string | null;
+  level?: string | null;
+}): Promise<string[]> {
+  if (!params.optionId) return [];
+
+  const classLevel = normalizePonderationLevel(params.level);
+  const records = await prisma.coursOptionPonderation.findMany({
+    where: {
+      branchId: params.branchId,
+      optionId: params.optionId,
+      ...(classLevel
+        ? { level: { in: [classLevel, DEFAULT_PONDERATION_LEVEL] } }
+        : { level: DEFAULT_PONDERATION_LEVEL }),
+    },
+    select: { coursId: true },
+  });
+
+  return Array.from(new Set(records.map((record) => record.coursId)));
 }

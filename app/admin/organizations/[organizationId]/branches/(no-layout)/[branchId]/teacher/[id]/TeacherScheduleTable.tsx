@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useMemo } from "react";
-import { Card } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -49,10 +48,7 @@ function formatHour(hour: Date) {
 ========================= */
 function getEndHour(start: string, duration = 60) {
   const [h, m] = start.split(":").map(Number);
-
   const totalMinutes = h * 60 + m + duration;
-  console.log(totalMinutes);
-
   const hh = String(Math.floor(totalMinutes / 60)).padStart(2, "0");
   const mm = String(totalMinutes % 60).padStart(2, "0");
 
@@ -85,7 +81,7 @@ export default function TeacherScheduleTable({
       t.Schedule?.forEach((s) => {
         const start = formatHour(s.hour);
 
-        const end = getEndHour(start, COURSE_DURATION); // 👈 TU PEUX METTRE duration dynamique plus tard
+        const end = getEndHour(start, COURSE_DURATION);
 
         list.push({
           day: s.day,
@@ -106,8 +102,9 @@ export default function TeacherScheduleTable({
   const hours = useMemo(() => {
     const set = new Set<string>();
     schedules.forEach((s) => set.add(s.hourStart));
+    if (set.size === 0 && hoursFromProps.length) return hoursFromProps;
     return Array.from(set).sort();
-  }, [schedules]);
+  }, [schedules, hoursFromProps]);
 
   /* =========================
      GET CELL
@@ -116,7 +113,7 @@ export default function TeacherScheduleTable({
     schedules.find((s) => s.day === day && s.hourStart === hour);
 
   return (
-    <Card className="p-4 rounded-xl overflow-auto">
+    <div className="overflow-auto rounded-xl border">
       <Table>
         {/* HEADER */}
         <TableHeader>
@@ -171,6 +168,6 @@ export default function TeacherScheduleTable({
           )}
         </TableBody>
       </Table>
-    </Card>
+    </div>
   );
 }

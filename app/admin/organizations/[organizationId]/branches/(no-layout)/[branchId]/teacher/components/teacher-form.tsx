@@ -122,6 +122,7 @@ export function TeacherUpForm({
   const prenom = form.watch("prenom");
   const postnom = form.watch("postnom");
   const estTitulaire = form.watch("estTitulaire");
+  const selectedClasseId = form.watch("classeId");
   const fullName = [nom, postnom, prenom].filter(Boolean).join(" ");
 
   useEffect(() => {
@@ -158,28 +159,52 @@ export function TeacherUpForm({
   useEffect(() => {
     let cancelled = false;
 
-    async function loadOptions() {
-      const [[rawClasses, classErr], [rawCourses, courseErr]] =
-        await Promise.all([getClassesAction(), getCoursAction({})]);
-
+    async function loadClasses() {
+      const [rawClasses, classErr] = await getClassesAction();
       if (cancelled) return;
-
       if (!classErr && rawClasses) {
-        setClasses(
-          rawClasses.filter((classe) => classe.statusClasse !== false),
-        );
-      }
-      if (!courseErr && rawCourses) {
-        setCourses(rawCourses);
+        setClasses(rawClasses.filter((classe) => classe.statusClasse !== false));
       }
     }
 
-    void loadOptions();
+    void loadClasses();
 
     return () => {
       cancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    if (!estTitulaire) {
+      setCourses([]);
+      return;
+    }
+
+    let cancelled = false;
+
+    async function loadCourses() {
+      const [rawCourses, courseErr] = await getCoursAction(
+        selectedClasseId ? { classeId: selectedClasseId } : {},
+      );
+      if (cancelled) return;
+      if (!courseErr && rawCourses) {
+        setCourses(rawCourses);
+        const currentCoursId = form.getValues("coursId");
+        if (
+          currentCoursId &&
+          !rawCourses.some((cours) => cours.id === currentCoursId)
+        ) {
+          form.setValue("coursId", "");
+        }
+      }
+    }
+
+    void loadCourses();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [estTitulaire, selectedClasseId, form]);
 
   async function onSubmit(data: z.infer<typeof teacherSchema>) {
     setIsLoading(true);
@@ -451,7 +476,10 @@ export function TeacherUpForm({
                     <FormItem className={fieldClass}>
                       <FormLabel className={labelClass}>{classLabel}</FormLabel>
                       <Select
-                        onValueChange={field.onChange}
+                        onValueChange={(value) => {
+                          field.onChange(value);
+                          form.setValue("coursId", "");
+                        }}
                         value={field.value || undefined}
                       >
                         <FormControl>
@@ -499,6 +527,11 @@ export function TeacherUpForm({
                           ))}
                         </SelectContent>
                       </Select>
+                      {selectedClasseId && courses.length === 0 ? (
+                        <p className="text-xs text-muted-foreground">
+                          Aucun cours pondéré pour cette classe.
+                        </p>
+                      ) : null}
                       <FormMessage />
                     </FormItem>
                   )}

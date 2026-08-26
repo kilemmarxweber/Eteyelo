@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+
 import { NewDevoirClient } from "../new-devoir-client";
 
 export const dynamic = "force-dynamic";
@@ -9,6 +11,8 @@ export default async function NewDevoirPage({
 }) {
   const { organizationId, branchId } = await params;
   return (
-    <NewDevoirClient organizationId={organizationId} branchId={branchId} />
+    <Suspense fallback={null}>
+      <NewDevoirClient organizationId={organizationId} branchId={branchId} />
+    </Suspense>
   );
 }

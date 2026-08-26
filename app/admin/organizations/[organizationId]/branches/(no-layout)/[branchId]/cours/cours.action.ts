@@ -21,6 +21,7 @@ import {
   supportsCourseImport,
 } from "@/lib/extended-course-import";
 import { activeCoursStatusFilter } from "@/lib/active-cours";
+import { getConfiguredCoursIdsForClasse } from "@/lib/course-ponderation";
 
 function requireCoursManagement(session: unknown) {
   if (!canManageOrganization(session as Parameters<typeof canManageOrganization>[0])) {
@@ -307,6 +308,7 @@ export const getCoursAction = action
     z
       .object({
         includeInactive: z.boolean().optional(),
+        classeId: z.string().optional(),
       })
       .optional(),
   )
@@ -314,10 +316,27 @@ export const getCoursAction = action
   try {
     const { branchId } = await requireBranchContext();
     const includeInactive = input?.includeInactive ?? false;
+    let configuredIds: string[] | null = null;
+    if (input?.classeId) {
+      const classe = await prisma.classe.findFirst({
+        where: { id: input.classeId, branchId },
+        select: { optionId: true, level: true },
+      });
+      if (!classe) {
+        throw new Error("Classe introuvable dans cette branche");
+      }
+      configuredIds = await getConfiguredCoursIdsForClasse({
+        branchId,
+        optionId: classe.optionId,
+        level: classe.level,
+      });
+      if (!configuredIds.length) return [];
+    }
     const Cours = await prisma.cours.findMany({
       where: {
         branchId,
         ...(includeInactive ? {} : activeCoursStatusFilter),
+        ...(configuredIds ? { id: { in: configuredIds } } : {}),
       },
       include: { _count: { select: { teaching: true } } },
     });

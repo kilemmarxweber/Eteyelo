@@ -1,56 +1,89 @@
 import { BranchPageShell } from "@/components/layout/branch-page-shell";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { headers } from "next/headers";
-import Image from "next/image";
-import Link from "next/link";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
 import { getPeopleLabels } from "@/lib/people-labels";
+import {
+  canAccessPedagogyArea,
+  canManageOrganization,
+  hasSessionRole,
+} from "@/lib/auth/session-roles";
+import { ORG_ROLE } from "@/lib/permissions";
 
-import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { IconUser } from "@tabler/icons-react";
 
-import { CalendarDays, Mail, Phone } from "lucide-react";
-
-import { normalizeImageSrc } from "@/lib/utils";
-import TeacherScheduleTable, {
-  TeacherScheduleUI,
-} from "./TeacherScheduleTable";
-import { genererCreneaux } from "../components/type";
-import StudentAttendanceTable from "../../attendance/component/StudentAttendanceTable";
 import { getTeacherCurrentSessions } from "../../attendance/attendance.action";
-import { getAttendanceSessionById } from "../../attendance/attendance.action";
-import { StaffBadgeSection } from "../../components/staff-badge-section";
 import { getStaffBadgeAction } from "../../staff-badge.action";
+import { genererCreneaux } from "../components/type";
+import { TeacherProfileClient } from "./teacher-profile-client";
+import type { TeacherScheduleUI } from "./TeacherScheduleTable";
+import type {
+  TeacherAttendanceStatus,
+  TeacherProfileClass,
+  TeacherProfileCourse,
+  TeacherProfileData,
+} from "./teacher-profile-types";
 
 export const dynamic = "force-dynamic";
+
+function uniqueById<T extends { id: string }>(items: T[]) {
+  const map = new Map<string, T>();
+  for (const item of items) map.set(item.id, item);
+  return [...map.values()];
+}
+
+function formatBirthDate(date: Date | string | null | undefined) {
+  if (!date) return "—";
+  const value = new Date(date);
+  if (Number.isNaN(value.getTime())) return "—";
+  return value.toLocaleDateString("fr-FR", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  });
+}
+
+function sexeLabel(sexe: string | null | undefined) {
+  if (!sexe) return "—";
+  const value = sexe.toUpperCase();
+  if (value === "M" || value === "MASCULIN") return "Masculin";
+  if (value === "F" || value === "FEMININ") return "Féminin";
+  return sexe;
+}
 
 const SingleTeacherPage = async ({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{ organizationId: string; branchId: string; id: string }>;
 }) => {
-  /* ================= AUTH ================= */
   const session = await auth.api.getSession({ headers: await headers() });
-  if (!session) notFound();
+  if (!session?.user?.id) notFound();
 
-  const { typebranch } = await requireBranchContext();
+  const { typebranch, branchId, organizationId, userId } =
+    await requireBranchContext();
   const peopleLabels = getPeopleLabels(typebranch);
-
   const { id } = await params;
+  const baseHref = `/admin/organizations/${organizationId}/branches/${branchId}`;
 
-  /* ================= TEACHER FETCH ================= */
+  const currentYear = await prisma.schoolYear.findFirst({
+    where: { branchId, isCurrentYear: true, isArchived: false },
+    select: { id: true, nameYear: true },
+  });
+
   const teacher = await prisma.teacher.findFirst({
     where: {
+      branchMember: {
+        branchId,
+        member: { organizationId },
+      },
       OR: [
         { id },
         {
           branchMember: {
-            member: {
-              userId: id,
-            },
+            member: { userId: id },
           },
         },
       ],
@@ -59,16 +92,28 @@ const SingleTeacherPage = async ({
       branchMember: {
         include: {
           member: {
-            include: {
-              user: true,
-            },
+            include: { user: true },
           },
         },
       },
       teaching: {
+        where: {
+          OR: [{ statusTeaching: true }, { statusTeaching: null }],
+          ...(currentYear ? { schoolYearId: currentYear.id } : {}),
+          AND: [
+            {
+              OR: [
+                { branchId },
+                { branchId: null, classe: { branchId } },
+              ],
+            },
+          ],
+        },
         include: {
-          cours: true,
-          classe: true,
+          cours: { select: { id: true, nameCours: true } },
+          classe: {
+            select: { id: true, nameClasse: true, codeClasse: true },
+          },
           Schedule: true,
         },
       },
@@ -77,26 +122,129 @@ const SingleTeacherPage = async ({
 
   if (!teacher) return notFound();
 
-  /* 👇 AJOUT IMPORTANT */
-  const user = teacher.branchMember?.member?.user;
+  const canManage = canManageOrganization(session);
+  const canReadPedagogy = canAccessPedagogyArea(session);
+  const isTeacherRole = hasSessionRole(session, [ORG_ROLE.TEACHER, "TEACHER"]);
+  const isSelf = teacher.branchMember?.member?.userId === userId;
 
-  /* ================= CLASSE ID ================= */
+  if (!canManage && !canReadPedagogy && !(isTeacherRole && isSelf)) {
+    notFound();
+  }
+
+  const user = teacher.branchMember?.member?.user;
   const firstClasseId = teacher.teaching.find((t) => t.classeId)?.classeId;
 
-  /* ================= CRENEAU ================= */
-  const creneau = await prisma.creneau.findFirst({
-    where: {
-      classe: {
-        some: {
-          id: firstClasseId ?? "",
+  const [
+    creneau,
+    attendanceSession,
+    teacherBadge,
+    attendanceRows,
+    fiches,
+    assignmentCount,
+    meetings,
+  ] = await Promise.all([
+    firstClasseId
+      ? prisma.creneau.findFirst({
+          where: { classe: { some: { id: firstClasseId } } },
+        })
+      : Promise.resolve(null),
+    getTeacherCurrentSessions(teacher.id),
+    getStaffBadgeAction("teacher", teacher.id),
+    prisma.teacherAttendance.findMany({
+      where: { teacherId: teacher.id, branchId },
+      orderBy: { date: "desc" },
+      take: 24,
+      include: {
+        session: {
+          include: {
+            teaching: {
+              include: {
+                cours: { select: { nameCours: true } },
+                classe: { select: { nameClasse: true, codeClasse: true } },
+              },
+            },
+          },
         },
       },
-    },
-  });
+    }),
+    prisma.fiche.findMany({
+      where: {
+        teacherId: teacher.id,
+        branchId,
+        ...(currentYear ? { anneeId: currentYear.id } : {}),
+      },
+      orderBy: { dateCreated: "desc" },
+      take: 80,
+      select: {
+        id: true,
+        classSectionId: true,
+        classeName: true,
+        coursName: true,
+        typeFiche: true,
+        periodeName: true,
+        anneeName: true,
+        status: true,
+        dateCreated: true,
+      },
+    }),
+    prisma.onlineAssignment.count({
+      where: {
+        teacherId: teacher.id,
+        branchId,
+        ...(currentYear ? { schoolYearId: currentYear.id } : {}),
+      },
+    }),
+    prisma.calendarEvent.findMany({
+      where: {
+        branchId,
+        isArchived: false,
+        ...(currentYear ? { schoolYearId: currentYear.id } : {}),
+        OR: [
+          ...(teacher.teaching.length
+            ? [{ teachingId: { in: teacher.teaching.map((t) => t.id) } }]
+            : []),
+          ...(teacher.teaching.some((t) => t.classeId)
+            ? [
+                {
+                  classeId: {
+                    in: teacher.teaching
+                      .map((t) => t.classeId)
+                      .filter((value): value is string => Boolean(value)),
+                  },
+                },
+              ]
+            : []),
+          {
+            eventType: {
+              name: { contains: "reunion", mode: "insensitive" },
+            },
+          },
+          {
+            eventType: {
+              name: { contains: "réunion", mode: "insensitive" },
+            },
+          },
+          {
+            title: { contains: "reunion", mode: "insensitive" },
+          },
+          {
+            title: { contains: "réunion", mode: "insensitive" },
+          },
+        ],
+      },
+      include: {
+        eventType: { select: { name: true } },
+        classe: { select: { nameClasse: true } },
+        teaching: {
+          select: { cours: { select: { nameCours: true } } },
+        },
+      },
+      orderBy: { dateStart: "desc" },
+      take: 30,
+    }),
+  ]);
 
-  /* ================= HOURS GENERATION ================= */
   let heuresDebut: string[] = [];
-
   if (creneau) {
     heuresDebut = genererCreneaux(
       new Date(`2000-01-01T${creneau.startTime}`),
@@ -107,207 +255,154 @@ const SingleTeacherPage = async ({
     );
   }
 
-  /* ================= FORMATTED DATA ================= */
-  const courses = teacher.teaching.map((t) => ({
-    id: t.id,
-    cours: t.cours?.nameCours,
-    classe: t.classe?.codeClasse,
+  const courses: TeacherProfileCourse[] = teacher.teaching.map((item) => ({
+    id: item.id,
+    teachingId: item.id,
+    courseName: item.cours?.nameCours ?? "Cours",
+    classId: item.classe?.id ?? item.classeId,
+    className: item.classe?.nameClasse ?? "Classe",
+    classCode: item.classe?.codeClasse ?? "",
+    titulaire: Boolean(item.titulaire),
   }));
 
-  const classeIds = teacher.teaching.map((t) => t.classe?.id).filter(Boolean);
+  const classes: TeacherProfileClass[] = uniqueById(
+    courses.map((course) => ({
+      id: course.classId,
+      name: course.className,
+      code: course.classCode,
+    })),
+  ).sort((a, b) => a.name.localeCompare(b.name, "fr"));
 
-  const attendanceSession = await getTeacherCurrentSessions(teacher.id);
-  const teacherBadge = await getStaffBadgeAction("teacher", teacher.id);
+  const present = attendanceRows.filter((row) => row.status === "PRESENT").length;
+  const absent = attendanceRows.filter((row) => row.status === "ABSENT").length;
+  const late = attendanceRows.filter((row) => row.status === "LATE").length;
+  const excused = attendanceRows.filter((row) => row.status === "EXCUSED").length;
+  const attendanceTotal = attendanceRows.length;
+  const presenceRate =
+    attendanceTotal > 0
+      ? Math.round(((present + excused) / attendanceTotal) * 100)
+      : 0;
+  const punctualityRate =
+    present + late > 0 ? Math.round((present / (present + late)) * 100) : 0;
+  const engagementScore = Math.min(
+    100,
+    fiches.length * 6 + assignmentCount * 8 + courses.length * 4,
+  );
+  const score =
+    attendanceTotal > 0
+      ? Math.round(
+          presenceRate * 0.45 + punctualityRate * 0.2 + engagementScore * 0.35,
+        )
+      : Math.round(Math.max(engagementScore, courses.length ? 55 : 0));
 
-  /* ================= UI ================= */
+  const now = Date.now();
+  const fullName =
+    [user?.name, user?.postnom, user?.prenom].filter(Boolean).join(" ") ||
+    peopleLabels.teacher;
+
+  const profile: TeacherProfileData = {
+    teacherId: teacher.id,
+    teacherLabel: peopleLabels.teacher,
+    teacherLabelLower: peopleLabels.teacherLower,
+    fullName,
+    nom: user?.name ?? "",
+    prenom: user?.prenom ?? "",
+    postnom: user?.postnom ?? "",
+    email: user?.email ?? "—",
+    telephone: user?.telephone ?? "—",
+    address: user?.address ?? "—",
+    username: user?.username ?? "",
+    sexe: sexeLabel(user?.sexe),
+    dateOfBirthLabel: formatBirthDate(user?.dateOfBirth),
+    image: user?.image ?? null,
+    statusActive: user?.statusUser !== false,
+    statusLabel: user?.statusUser === false ? "Inactif" : "Actif",
+    isTitulaire: teacher.teaching.some((item) => item.titulaire),
+    schoolYearLabel: currentYear?.nameYear ?? null,
+    baseHref,
+    listHref: `${baseHref}/teacher`,
+    notesHref: `${baseHref}/notes?teacherId=${teacher.id}`,
+    notesListHref: `${baseHref}/notes?teacherId=${teacher.id}&view=list`,
+    devoirsHref: `${baseHref}/devoirs?teacherId=${teacher.id}`,
+    attendanceHref: `${baseHref}/attendance/teacher-attendance`,
+    calendarHref: `${baseHref}/settings/calendar`,
+    courses,
+    classes,
+    notes: fiches.map((fiche) => ({
+      id: fiche.id,
+      classId: fiche.classSectionId,
+      className: fiche.classeName,
+      courseName: fiche.coursName,
+      typeFiche: fiche.typeFiche,
+      periodName: fiche.periodeName,
+      yearName: fiche.anneeName,
+      status: fiche.status,
+      createdAt: fiche.dateCreated.toISOString(),
+    })),
+    attendances: attendanceRows.map((row) => ({
+      id: row.id,
+      date: row.date.toISOString(),
+      status: row.status as TeacherAttendanceStatus,
+      checkIn: row.checkIn?.toISOString() ?? null,
+      checkOut: row.checkOut?.toISOString() ?? null,
+      remark: row.remark,
+      courseName: row.session?.teaching?.cours?.nameCours ?? "Cours",
+      className:
+        row.session?.teaching?.classe?.nameClasse ??
+        row.session?.teaching?.classe?.codeClasse ??
+        "",
+    })),
+    meetings: meetings
+      .map((event) => ({
+        id: event.id,
+        title: event.title?.trim() || event.eventType?.name || "Réunion",
+        dateStart: event.dateStart.toISOString(),
+        dateEnd: event.dateEnd?.toISOString() ?? null,
+        location: event.location,
+        typeName: event.eventType?.name ?? null,
+        className: event.classe?.nameClasse ?? null,
+        courseName: event.teaching?.cours?.nameCours ?? null,
+        upcoming: event.dateStart.getTime() >= now,
+      }))
+      .sort((a, b) => {
+        if (a.upcoming !== b.upcoming) return a.upcoming ? -1 : 1;
+        return a.upcoming
+          ? a.dateStart.localeCompare(b.dateStart)
+          : b.dateStart.localeCompare(a.dateStart);
+      }),
+    stats: {
+      present,
+      absent,
+      late,
+      excused,
+      attendanceTotal,
+      presenceRate,
+      notesCount: fiches.length,
+      assignmentsCount: assignmentCount,
+      courseCount: courses.length,
+      classCount: classes.length,
+      score,
+    },
+    badge: teacherBadge,
+    currentSessions: JSON.parse(JSON.stringify(attendanceSession)) as unknown[],
+  };
+
   return (
     <BranchPageShell
-      title={peopleLabels.teacher}
-          description={`Vue d'ensemble des informations et activités du ${peopleLabels.teacherLower}.`}
-          badge={
-            <Badge variant="outline-primary" icon={<IconUser size={14} />}>
-              {peopleLabels.teacher}
-            </Badge>
-          }
+      title={`Dossier ${peopleLabels.teacherLower}`}
+      description={`Présences, réunions, notes, devoirs et performance du ${peopleLabels.teacherLower}.`}
+      badge={
+        <Badge variant="outline-primary" icon={<IconUser size={14} />}>
+          {peopleLabels.teacher}
+        </Badge>
+      }
+      contentClassName="space-y-4"
     >
-      <Card className="flex-1 p-8 flex flex-col xl:flex-row gap-6 rounded-2xl">
-          {/* ================= LEFT ================= */}
-          <div className="flex-1 min-w-0 flex flex-col gap-6">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-              {/* PROFILE */}
-              <Card className="bg-kalasa-sky py-6 px-4 flex gap-4 rounded-2xl lg:col-span-7">
-                <div className="w-1/3 flex justify-center">
-                  <Image
-                    src={normalizeImageSrc(user?.image)}
-                    alt="teacher"
-                    width={144}
-                    height={144}
-                    className="w-32 h-32 rounded-full object-cover border-4 border-white shadow-md"
-                  />
-                </div>
-
-                <div className="w-2/3 flex flex-col justify-between gap-4">
-                  <div>
-                    <h1 className="text-2xl font-semibold">
-                      {user?.name} {user?.prenom}
-                    </h1>
-
-                    <p className="text-sm text-gray-500 mt-2">
-                      {peopleLabels.teacher} de l&apos;établissement
-                    </p>
-                  </div>
-
-                  <div className="flex flex-wrap gap-y-3 text-sm">
-                    <div className="w-full md:w-1/2 flex items-center gap-2">
-                      <Mail size={15} />
-                      <span>{user?.email || "-"}</span>
-                    </div>
-
-                    <div className="w-full md:w-1/2 flex items-center gap-2">
-                      <Phone size={15} />
-                      <span>{user?.telephone || "-"}</span>
-                    </div>
-                  </div>
-                </div>
-              </Card>
-
-              {/* SMALL CARDS */}
-              <div className="grid grid-cols-2 gap-4 xl:col-span-5">
-                {/* ATTENDANCE */}
-                <Card className="bg-kalasa-sky-light p-4 rounded-xl flex gap-4 items-center min-h-[100px]">
-                  <div className="text-2xl">📋</div>
-
-                  <div>
-                    <h1 className="text-xl font-semibold">42</h1>
-
-                    <span className="text-sm text-gray-400">Présences</span>
-                  </div>
-                </Card>
-
-                {/* BRANCH */}
-                <Card className="bg-kalasa-sky-light p-4 rounded-xl flex gap-4 items-center min-h-[100px]">
-                  <div className="text-2xl">🌿</div>
-
-                  <div>
-                    <h1 className="text-xl font-semibold">4</h1>
-
-                    <span className="text-sm text-gray-400">Branche</span>
-                  </div>
-                </Card>
-
-                {/* LESSONS */}
-                <Card className="bg-kalasa-sky-light p-4 rounded-xl flex gap-4 items-center min-h-[100px]">
-                  <div className="text-2xl">📚</div>
-
-                  <div>
-                    <h1 className="text-xl font-semibold">{courses.length}</h1>
-
-                    <span className="text-sm text-gray-400">Cours</span>
-                  </div>
-                </Card>
-
-                {/* CLASSES */}
-                <Card className="bg-kalasa-sky-light p-4 rounded-xl flex gap-4 items-center min-h-[100px]">
-                  <div className="text-2xl">🏫</div>
-
-                  <div>
-                    <h1 className="text-xl font-semibold">
-                      {classeIds.length}
-                    </h1>
-
-                    <span className="text-sm text-gray-400">Classes</span>
-                  </div>
-                </Card>
-              </div>
-            </div>
-
-            {/* SCHEDULE */}
-            <Card className="p-6 rounded-2xl">
-              <h2 className="flex items-center gap-2 text-lg font-semibold mb-4">
-                <CalendarDays size={18} />
-                Emploi du temps
-              </h2>
-
-              <TeacherScheduleTable
-                teaching={teacher.teaching as TeacherScheduleUI[]}
-                hoursFromProps={heuresDebut}
-              />
-            </Card>
-            <Card className="p-6 rounded-2xl">
-              <h2 className="flex items-center gap-2 text-lg font-semibold mb-4">
-                <CalendarDays size={18} />
-                Attendance
-              </h2>
-              {attendanceSession.length > 0 ? (
-                attendanceSession.map((session) => (
-                  <StudentAttendanceTable key={session.id} session={session} />
-                ))
-              ) : (
-                <p className="text-muted-foreground">
-                  Aucun cours programmé actuellement.
-                </p>
-              )}
-            </Card>
-          </div>
-
-          {/* ================= RIGHT ================= */}
-          <div className="w-full xl:w-[320px] flex-shrink-0 flex flex-col gap-6">
-            {teacherBadge ? <StaffBadgeSection badge={teacherBadge} /> : null}
-
-            {/* SHORTCUTS */}
-            <Card className="p-5 rounded-2xl">
-              <h2 className="font-semibold mb-4">Raccourcis</h2>
-
-              <div className="space-y-2 text-sm">
-                <Link
-                  className="block p-3 rounded-lg bg-sky-50 hover:bg-sky-100 transition"
-                  href={`/list/teachers/${teacher.id}`}
-                >
-                  📚 Mes cours
-                </Link>
-
-                <Link
-                  className="block p-3 rounded-lg bg-purple-50 hover:bg-purple-100 transition"
-                  href={`/list/classes?teacherId=${teacher.id}`}
-                >
-                  🏫 Mes classes
-                </Link>
-
-                <Link
-                  className="block p-3 rounded-lg bg-yellow-50 hover:bg-yellow-100 transition"
-                  href={`/list/schedule?teacherId=${teacher.id}`}
-                >
-                  📅 Mon planning
-                </Link>
-              </div>
-            </Card>
-
-            {/* COURSES (MOVED HERE) */}
-            <Card className="p-5 rounded-2xl">
-              <h2 className="font-semibold mb-4 flex items-center gap-2">
-                📘 Cours assignés
-              </h2>
-
-              {courses.length > 0 ? (
-                <div className="space-y-2">
-                  {courses.map((c) => (
-                    <div
-                      key={c.id}
-                      className="p-3 rounded-lg border bg-white hover:shadow-sm transition"
-                    >
-                      <p className="font-medium text-gray-800">{c.cours}</p>
-                      <p className="text-sm text-gray-500">
-                        Classe: {c.classe}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-gray-500 text-sm">Aucun cours assigné</p>
-              )}
-            </Card>
-          </div>
-        </Card>
+      <TeacherProfileClient
+        profile={profile}
+        teaching={teacher.teaching as TeacherScheduleUI[]}
+        hours={heuresDebut}
+      />
     </BranchPageShell>
   );
 };

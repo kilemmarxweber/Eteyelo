@@ -102,16 +102,54 @@ export const deleteSectionPermanentlyAction = action
     });
     if (!section) throw new Error("Section introuvable dans cette branche");
 
-    const optionsCount = await prisma.option.count({
-      where: { sectionId: input.id, branchId },
-    });
-    if (optionsCount > 0) {
-      throw new Error(
-        `Impossible de supprimer cette section : ${optionsCount} option${optionsCount > 1 ? "s" : ""} y ${optionsCount > 1 ? "sont encore liées" : "est encore liée"}. Supprimez d'abord ${optionsCount > 1 ? "ces options" : "cette option"}.`,
-      );
+    try {
+      await prisma.$transaction(async (tx) => {
+        const options = await tx.option.findMany({
+          where: { sectionId: input.id, branchId },
+          select: {
+            id: true,
+            _count: { select: { classe: true } },
+          },
+        });
+
+        const linkedClasses = options.reduce(
+          (sum, option) => sum + option._count.classe,
+          0,
+        );
+        if (linkedClasses > 0) {
+          throw new Error(
+            `Impossible de supprimer cette section : ${linkedClasses} classe${linkedClasses > 1 ? "s" : ""} ${linkedClasses > 1 ? "sont encore liées" : "est encore liée"} à ses options. Supprimez d'abord ${linkedClasses > 1 ? "ces classes" : "cette classe"}.`,
+          );
+        }
+
+        const optionIds = options.map((option) => option.id);
+        if (optionIds.length > 0) {
+          await tx.coursOptionPonderation.deleteMany({
+            where: { optionId: { in: optionIds }, branchId },
+          });
+          await tx.option.deleteMany({
+            where: { id: { in: optionIds }, branchId },
+          });
+        }
+
+        await tx.section.delete({ where: { id: input.id } });
+      });
+    } catch (error) {
+      if (error instanceof Error && error.message.startsWith("Impossible")) {
+        throw error;
+      }
+      const prismaCode =
+        error && typeof error === "object" && "code" in error
+          ? String((error as { code: unknown }).code)
+          : "";
+      if (prismaCode === "P2003" || prismaCode === "P2014") {
+        throw new Error(
+          "Impossible de supprimer cette section : des données y sont encore liées.",
+        );
+      }
+      throw error;
     }
 
-    await prisma.section.delete({ where: { id: input.id } });
     revalidateSectionPages(organizationId, branchId);
     return { ok: true as const };
   });
@@ -164,11 +202,21 @@ export const getSectionsAction = action.handler(
       const { branchId } = await requireBranchContext();
       const Sections = await prisma.section.findMany({
         where: { branchId },
-        include: { _count: { select: { option: true } } },
+        include: {
+          option: {
+            select: {
+              _count: { select: { classe: true } },
+            },
+          },
+        },
       });
-      return Sections.map(({ _count, ...section }) => ({
+      return Sections.map(({ option, ...section }) => ({
         ...section,
-        optionsCount: _count.option,
+        optionsCount: option.length,
+        classesCount: option.reduce(
+          (sum, row) => sum + row._count.classe,
+          0,
+        ),
       }));
     } catch (error: any) {
       throw new Error(error.message);

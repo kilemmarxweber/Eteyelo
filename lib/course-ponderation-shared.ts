@@ -41,3 +41,31 @@ export function resolveCoursePonderation(
     ) ?? 1
   );
 }
+
+/** Une pondération s'applique à la classe si l'option correspond, et si le niveau est commun ou identique. */
+export function ponderationAppliesToClass(
+  record: { optionId: string; level?: string | null },
+  classe: { optionId?: string | null; level?: string | null },
+): boolean {
+  if (!classe.optionId || record.optionId !== classe.optionId) return false;
+  const recordLevel = normalizePonderationLevel(record.level);
+  if (!recordLevel) return true;
+  return recordLevel === normalizePonderationLevel(classe.level);
+}
+
+export function configuredCoursIdsForClass(
+  ponderations: Array<{
+    coursId: string;
+    optionId: string;
+    level?: string | null;
+  }>,
+  classe: { optionId?: string | null; level?: string | null },
+): string[] {
+  return Array.from(
+    new Set(
+      ponderations
+        .filter((record) => ponderationAppliesToClass(record, classe))
+        .map((record) => record.coursId),
+    ),
+  );
+}

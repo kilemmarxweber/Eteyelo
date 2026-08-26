@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -41,6 +41,8 @@ type Props = {
 
 export function NewDevoirClient({ organizationId, branchId }: Props) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const scopedTeacherId = searchParams.get("teacherId");
   const [pending, startTransition] = useTransition();
   const [loaded, setLoaded] = useState(false);
   const [teachings, setTeachings] = useState<TeachingOpt[]>([]);
@@ -69,7 +71,11 @@ export function NewDevoirClient({ organizationId, branchId }: Props) {
         setLoaded(true);
         return;
       }
-      setTeachings(opts.teachings);
+      setTeachings(
+        scopedTeacherId
+          ? opts.teachings.filter((t) => t.teacherId === scopedTeacherId)
+          : opts.teachings,
+      );
       setPeriods(opts.periods);
       setSchoolYearId(opts.schoolYear.id);
       setFriday(opts.friday);
@@ -87,7 +93,7 @@ export function NewDevoirClient({ organizationId, branchId }: Props) {
       setCourseId(nextCourse);
       setLoaded(true);
     });
-  }, []);
+  }, [scopedTeacherId]);
 
   const classOptions = useMemo(() => {
     const map = new Map<string, string>();
@@ -125,7 +131,9 @@ export function NewDevoirClient({ organizationId, branchId }: Props) {
     );
   };
 
-  const listHref = `/admin/organizations/${organizationId}/branches/${branchId}/devoirs`;
+  const listHref = `/admin/organizations/${organizationId}/branches/${branchId}/devoirs${
+    scopedTeacherId ? `?teacherId=${scopedTeacherId}` : ""
+  }`;
 
   const submit = () => {
     const t = selectedTeaching;

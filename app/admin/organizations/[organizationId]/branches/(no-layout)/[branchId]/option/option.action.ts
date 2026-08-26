@@ -8,9 +8,6 @@ import { requireBranchContext } from "@/lib/auth/require-branch-context";
 import { assertSectionOptionBranchFeatures, usesSectionOptionForBranch } from "@/lib/branch-capabilities";
 import { anyCycle } from "@/lib/cycle";
 import { normalizeBranchType } from "@/lib/academic-structure";
-import { ensureSecondaryCtebStructure } from "@/lib/secondary-cteb-structure";
-import { ensurePrimaryAcademicStructure } from "@/lib/primary-academic-structure";
-import { ensureMaternelleAcademicStructure } from "@/lib/maternelle-academic-structure";
 import { z } from "zod";
 import {
   ensureUniqueIdentifier,
@@ -200,16 +197,35 @@ export const deleteOptionPermanentlyAction = action
       );
     }
 
-    await prisma.$transaction(async (tx) => {
-      await tx.coursOptionPonderation.deleteMany({
-        where: { optionId: input.id, branchId },
+    try {
+      await prisma.$transaction(async (tx) => {
+        await tx.coursOptionPonderation.deleteMany({
+          where: { optionId: input.id, branchId },
+        });
+        await tx.option.delete({ where: { id: input.id } });
       });
-      await tx.option.delete({ where: { id: input.id } });
-    });
+    } catch (error) {
+      if (error instanceof Error && error.message.startsWith("Impossible")) {
+        throw error;
+      }
+      const prismaCode =
+        error && typeof error === "object" && "code" in error
+          ? String((error as { code: unknown }).code)
+          : "";
+      if (prismaCode === "P2003" || prismaCode === "P2014") {
+        throw new Error(
+          "Impossible de supprimer cette option : des données y sont encore liées.",
+        );
+      }
+      throw error;
+    }
 
     revalidateOptionPages(organizationId, branchId);
     revalidatePath(
       `/admin/organizations/${organizationId}/branches/${branchId}/classe`,
+    );
+    revalidatePath(
+      `/admin/organizations/${organizationId}/branches/${branchId}/section`,
     );
     return { ok: true as const };
   });
@@ -217,17 +233,8 @@ export const deleteOptionPermanentlyAction = action
 /* ================= GET OPTIONS ================= */
 export const getOptionsAction = action.handler(async (): Promise<IOption[]> => {
   try {
-    const { branchId, typebranch, cycles } = await requireBranchContext();
+    const { branchId, typebranch } = await requireBranchContext();
     const normalized = normalizeBranchType(typebranch);
-    if (cycles.includes("SECONDAIRE") || normalized === "SECONDAIRE") {
-      await ensureSecondaryCtebStructure(prisma, branchId);
-    }
-    if (cycles.includes("PRIMAIRE")) {
-      await ensurePrimaryAcademicStructure(prisma, branchId);
-    }
-    if (cycles.includes("MATERNELLE")) {
-      await ensureMaternelleAcademicStructure(prisma, branchId);
-    }
     const options = await prisma.option.findMany({
       where: {
         branchId,

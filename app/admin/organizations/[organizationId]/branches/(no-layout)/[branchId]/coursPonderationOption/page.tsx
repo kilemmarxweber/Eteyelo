@@ -12,6 +12,7 @@ import {
   IconSettings,
   IconAlertTriangle,
   IconTrash,
+  IconGitMerge,
 } from "@tabler/icons-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
@@ -30,6 +31,7 @@ import {
   getCoursPonderationOptionPageDataAction,
   saveCoursOptionPonderationAction,
   deleteCoursOptionPonderationAction,
+  mergeCoursOptionPonderationAction,
 } from "./cours-ponderation-option.action";
 import { useBranchRouteGuard } from "@/hooks/use-branch-route-guard";
 import { cycleLabel, type Cycle } from "@/lib/cycle";
@@ -204,6 +206,42 @@ export default function CoursPonderationOptionPage() {
     ? weights.reduce((sum, value) => sum + value, 0) / weights.length
     : 0;
 
+  const mergePlan = useMemo(() => {
+    if (!data || ponderationTargets.length < 2) return null;
+    const courseCount = data.cours.length;
+    if (!courseCount) return null;
+
+    const ranked = ponderationTargets.map((target) => {
+      const configuredCount = data.cours.filter((course) =>
+        map.has(`${target.optionId}:${course.id}:${target.level}`),
+      ).length;
+      const option = cycleOptions.find((item) => item.id === target.optionId);
+      const label = usesLevelOptionGroup
+        ? (option?.displayName ?? "Niveau")
+        : target.level
+          ? getClassLevelLabel("SECONDAIRE", target.level, data.educationSystem)
+          : "Tous les niveaux";
+      return { ...target, configuredCount, label };
+    });
+    const source = [...ranked].sort(
+      (a, b) => b.configuredCount - a.configuredCount,
+    )[0];
+    if (!source || source.configuredCount === 0) return null;
+    const destinations = ranked.filter(
+      (target) =>
+        (target.optionId !== source.optionId || target.level !== source.level) &&
+        target.configuredCount < source.configuredCount,
+    );
+    if (!destinations.length) return null;
+    return { source, destinations };
+  }, [
+    data,
+    ponderationTargets,
+    map,
+    cycleOptions,
+    usesLevelOptionGroup,
+  ]);
+
   function save(courseId: string, value: number) {
     const isHalfStep =
       Number.isFinite(value) &&
@@ -300,7 +338,7 @@ export default function CoursPonderationOptionPage() {
       .map(({ optionId, level }) =>
         map.get(`${optionId}:${courseId}:${level}`),
       )
-      .filter((row): row is Ponderation => Boolean(row) && !row.id.startsWith("temp-"));
+      .filter((row): row is Ponderation => row != null && !row.id.startsWith("temp-"));
     if (!previousRows.length) {
       toast.error("Aucune pondération configurée à annuler");
       return;
@@ -341,6 +379,101 @@ export default function CoursPonderationOptionPage() {
     });
   }
 
+  function mergeFromConfigured() {
+    if (!data || !mergePlan) return;
+    const { source, destinations } = mergePlan;
+    const sourceRows = (data.cours ?? [])
+      .map((course) =>
+        map.get(`${source.optionId}:${course.id}:${source.level}`),
+      )
+      .filter((row): row is Ponderation => Boolean(row));
+    if (!sourceRows.length) {
+      toast.error("Aucune pondération source à fusionner.");
+      return;
+    }
+
+    const previousRows = destinations.flatMap((target) =>
+      sourceRows.map((row) =>
+        map.get(`${target.optionId}:${row.coursId}:${target.level}`),
+      ),
+    );
+    const optimisticRows: Ponderation[] = destinations.flatMap((target) =>
+      sourceRows.map((row) => {
+        const existing = map.get(
+          `${target.optionId}:${row.coursId}:${target.level}`,
+        );
+        return {
+          id:
+            existing?.id ??
+            `temp-merge-${row.coursId}-${target.optionId}-${target.level || "all"}`,
+          coursId: row.coursId,
+          optionId: target.optionId,
+          level: target.level,
+          ponderation: row.ponderation,
+          updatedAt: new Date(),
+        };
+      }),
+    );
+
+    setData((current) => {
+      if (!current) return current;
+      const without = current.ponderations.filter(
+        (item) =>
+          !optimisticRows.some(
+            (row) =>
+              item.coursId === row.coursId &&
+              item.optionId === row.optionId &&
+              (item.level ?? DEFAULT_PONDERATION_LEVEL) === row.level,
+          ),
+      );
+      return { ...current, ponderations: [...without, ...optimisticRows] };
+    });
+    setSavingId("merge");
+    startTransition(async () => {
+      const [saved, error] = await mergeCoursOptionPonderationAction({
+        sourceOptionId: source.optionId,
+        sourceLevel: source.level,
+        targets: destinations.map((target) => ({
+          optionId: target.optionId,
+          level: target.level,
+        })),
+      });
+      setSavingId(null);
+      if (error || !saved) {
+        setData((current) => {
+          if (!current) return current;
+          const withoutOptimistic = current.ponderations.filter(
+            (item) => !optimisticRows.some((row) => row.id === item.id),
+          );
+          return {
+            ...current,
+            ponderations: [
+              ...withoutOptimistic,
+              ...previousRows.filter((row): row is Ponderation => Boolean(row)),
+            ],
+          };
+        });
+        toast.error(error?.message ?? "Fusion impossible");
+        return;
+      }
+      setData((current) => {
+        if (!current) return current;
+        const withoutOptimistic = current.ponderations.filter(
+          (item) => !optimisticRows.some((row) => row.id === item.id),
+        );
+        return {
+          ...current,
+          ponderations: [...withoutOptimistic, ...saved],
+        };
+      });
+      toast.success(
+        `Pondérations de ${source.label} copiées vers ${destinations
+          .map((target) => target.label)
+          .join(", ")}`,
+      );
+    });
+  }
+
   if (!data) {
     return (
       <Layout>
@@ -367,10 +500,28 @@ export default function CoursPonderationOptionPage() {
             </Badge>
           }
           actions={
-            <Button variant="outline" onClick={() => setStatus("missing")}>
-              <IconSettings className="mr-2 size-4" />
-              Configurer les manquants
-            </Button>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                disabled={!mergePlan || savingId === "merge"}
+                onClick={mergeFromConfigured}
+                title={
+                  mergePlan
+                    ? `Copier les pondérations de ${mergePlan.source.label} vers ${mergePlan.destinations
+                        .map((target) => target.label)
+                        .join(", ")}`
+                    : "Sélectionnez un niveau déjà pondéré avec un niveau non pondéré"
+                }
+              >
+                <IconGitMerge className="mr-2 size-4" />
+                {mergePlan
+                  ? `Fusionner depuis ${mergePlan.source.label}`
+                  : "Fusionner"}
+              </Button>
+              <Button variant="outline" onClick={() => setStatus("missing")}>
+                <IconSettings className="mr-2 size-4" />
+                Configurer les manquants
+              </Button>
+            </div>
           }
     >
       <Card className="space-y-4 p-4">
@@ -536,6 +687,16 @@ export default function CoursPonderationOptionPage() {
                         )
                         .join(", ")}.`
                     : "Pondération commune à tous les niveaux de cette option."}
+                </p>
+              ) : null}
+              {mergePlan ? (
+                <p className="mt-2 text-xs text-primary">
+                  Fusion proposée : copier {mergePlan.source.label} (
+                  {mergePlan.source.configuredCount} cours) vers{" "}
+                  {mergePlan.destinations
+                    .map((target) => target.label)
+                    .join(", ")}
+                  .
                 </p>
               ) : null}
             </div>

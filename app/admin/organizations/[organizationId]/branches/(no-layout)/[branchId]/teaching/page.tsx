@@ -47,6 +47,7 @@ import {
 import { cn } from "@/lib/utils";
 import {
   getTeachingWorkspaceAction,
+  getTeachingClassCoursesAction,
   removeQuickAssignmentsAction,
   saveQuickAssignmentsAction,
 } from "./teaching.action";
@@ -54,11 +55,18 @@ import {
 type Workspace = NonNullable<
   Awaited<ReturnType<typeof getTeachingWorkspaceAction>>[0]
 >;
+type ClassCourses = NonNullable<
+  Awaited<ReturnType<typeof getTeachingClassCoursesAction>>[0]
+>;
 const PAGE_SIZE = 8;
 
 export default function TeachingWorkspacePage() {
   const t = useTranslations("teaching");
   const [data, setData] = useState<Workspace | null>(null);
+  const [classCourses, setClassCourses] = useState<ClassCourses | null>(null);
+  const [classCache, setClassCache] = useState<Record<string, ClassCourses>>(
+    {},
+  );
   const [selectedClassId, setSelectedClassId] = useState("");
   const [classSearch, setClassSearch] = useState("");
   const [courseSearch, setCourseSearch] = useState("");
@@ -84,30 +92,58 @@ export default function TeachingWorkspacePage() {
     [],
   );
 
+  useEffect(() => {
+    if (!selectedClassId) {
+      setClassCourses(null);
+      return;
+    }
+    const cached = classCache[selectedClassId];
+    if (cached) {
+      setClassCourses(cached);
+      return;
+    }
+    setClassCourses(null);
+    let cancelled = false;
+    startTransition(async () => {
+      const [result, error] = await getTeachingClassCoursesAction({
+        classeId: selectedClassId,
+      });
+      if (cancelled) return;
+      if (error || !result) {
+        toast.error(error?.message ?? "Chargement des cours impossible");
+        return;
+      }
+      setClassCache((current) => ({ ...current, [selectedClassId]: result }));
+      setClassCourses(result);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedClassId]);
+
+  const courses = classCourses?.courses ?? [];
+  const teachings = classCourses?.teachings ?? [];
   const visibleCourseIds = useMemo(
-    () => new Set((data?.courses ?? []).map((course) => course.id)),
-    [data?.courses],
+    () => new Set(courses.map((course) => course.id)),
+    [courses],
   );
   const currentTeachings = useMemo(
     () =>
-      (data?.teachings ?? []).filter(
+      teachings.filter(
         (item) =>
           item.classeId === selectedClassId &&
           item.schoolYearId === data?.schoolYear?.id &&
           item.statusTeaching !== false &&
           visibleCourseIds.has(item.coursId),
       ),
-    [data, selectedClassId, visibleCourseIds],
+    [data?.schoolYear?.id, selectedClassId, teachings, visibleCourseIds],
   );
   const assignmentMap = useMemo(
     () => new Map(currentTeachings.map((item) => [item.coursId, item])),
     [currentTeachings],
   );
   const assignedCount = assignmentMap.size;
-  const unassignedCount = Math.max(
-    0,
-    (data?.courses.length ?? 0) - assignedCount,
-  );
+  const unassignedCount = Math.max(0, courses.length - assignedCount);
   const filteredClasses = useMemo(
     () =>
       (data?.classes ?? []).filter((item) =>
@@ -123,7 +159,7 @@ export default function TeachingWorkspacePage() {
   );
   const rows = useMemo(
     () =>
-      (data?.courses ?? []).filter((course) => {
+      courses.filter((course) => {
         const assignment = assignmentMap.get(course.id);
         return (
           `${course.codeCours} ${course.nameCours}`
@@ -134,7 +170,7 @@ export default function TeachingWorkspacePage() {
             (assignmentFilter === "assigned" ? !!assignment : !assignment))
         );
       }),
-    [assignmentFilter, assignmentMap, courseSearch, data, teacherFilter],
+    [assignmentFilter, assignmentMap, courseSearch, courses, teacherFilter],
   );
   const selectedAssignedCourses = selectedCourses.filter((id) =>
     assignmentMap.has(id),
@@ -157,26 +193,49 @@ export default function TeachingWorkspacePage() {
     });
   }
 
-  const totalUnassigned = (data?.classes ?? []).reduce((sum, classe) => {
-    const assignedCourseIds = new Set(
-      data?.teachings
-        .filter(
-          (item) =>
-            item.classeId === classe.id &&
-            item.schoolYearId === data.schoolYear?.id &&
-            item.statusTeaching !== false &&
-            visibleCourseIds.has(item.coursId),
-        )
+  const totalUnassigned = (data?.classes ?? []).reduce(
+    (sum, classe) =>
+      sum + Math.max(0, classe.configuredCount - classe.assignedCount),
+    0,
+  );
+
+  function updateClassTeachings(
+    classeId: string,
+    nextTeachings: ClassCourses["teachings"],
+  ) {
+    const assignedCount = new Set(
+      nextTeachings
+        .filter((item) => item.statusTeaching !== false)
         .map((item) => item.coursId),
+    ).size;
+    setData((current) =>
+      current
+        ? {
+            ...current,
+            classes: current.classes.map((classe) =>
+              classe.id === classeId
+                ? { ...classe, assignedCount }
+                : classe,
+            ),
+          }
+        : current,
     );
-    return (
-      sum + Math.max(0, (data?.courses.length ?? 0) - assignedCourseIds.size)
+    setClassCourses((current) =>
+      current?.classeId === classeId
+        ? { ...current, teachings: nextTeachings }
+        : current,
     );
-  }, 0);
+    setClassCache((current) => {
+      const cached = current[classeId];
+      if (!cached) return current;
+      return { ...current, [classeId]: { ...cached, teachings: nextTeachings } };
+    });
+  }
 
   function applyAssignments(courseIds: string[], teacherId: string) {
-    if (!data || !selectedClassId || !teacherId || !courseIds.length) return;
-    const previous = data.teachings;
+    if (!data || !classCourses || !selectedClassId || !teacherId || !courseIds.length)
+      return;
+    const previous = classCourses.teachings;
     const tempRows = courseIds.map((coursId) => ({
       id: `temp-${coursId}`,
       classeId: selectedClassId,
@@ -187,24 +246,16 @@ export default function TeachingWorkspacePage() {
       titulaire: false,
       updatedAt: new Date(),
     }));
-    setData((current) =>
-      current
-        ? {
-            ...current,
-            teachings: [
-              ...current.teachings.filter(
-                (item) =>
-                  !(
-                    item.classeId === selectedClassId &&
-                    courseIds.includes(item.coursId) &&
-                    item.schoolYearId === current.schoolYear?.id
-                  ),
-              ),
-              ...tempRows,
-            ],
-          }
-        : current,
-    );
+    updateClassTeachings(selectedClassId, [
+      ...previous.filter(
+        (item) =>
+          !(
+            courseIds.includes(item.coursId) &&
+            item.schoolYearId === data.schoolYear?.id
+          ),
+      ),
+      ...tempRows,
+    ]);
     setSavingCourseId(courseIds.length === 1 ? courseIds[0] : "bulk");
     startTransition(async () => {
       const [saved, error] = await saveQuickAssignmentsAction({
@@ -214,25 +265,20 @@ export default function TeachingWorkspacePage() {
       });
       setSavingCourseId(null);
       if (error || !saved) {
-        setData((current) =>
-          current ? { ...current, teachings: previous } : current,
-        );
+        updateClassTeachings(selectedClassId, previous);
         toast.error(error?.message ?? "Affectation impossible");
         return;
       }
-      setData((current) =>
-        current
-          ? {
-              ...current,
-              teachings: [
-                ...current.teachings.filter(
-                  (item) => !tempRows.some((temp) => temp.id === item.id),
-                ),
-                ...saved,
-              ],
-            }
-          : current,
-      );
+      updateClassTeachings(selectedClassId, [
+        ...previous.filter(
+          (item) =>
+            !(
+              courseIds.includes(item.coursId) &&
+              item.schoolYearId === data.schoolYear?.id
+            ),
+        ),
+        ...saved,
+      ]);
       setSelectedCourses([]);
       setBulkTeacherId("");
       toast.success(
@@ -244,22 +290,17 @@ export default function TeachingWorkspacePage() {
   }
 
   function removeAssignments(courseIds: string[]) {
-    if (!data || !selectedClassId || !courseIds.length) return;
-    const previous = data.teachings;
-    setData((current) =>
-      current
-        ? {
-            ...current,
-            teachings: current.teachings.map((item) =>
-              item.classeId === selectedClassId &&
-              courseIds.includes(item.coursId) &&
-              item.schoolYearId === current.schoolYear?.id &&
-              item.statusTeaching !== false
-                ? { ...item, statusTeaching: false }
-                : item,
-            ),
-          }
-        : current,
+    if (!data || !classCourses || !selectedClassId || !courseIds.length) return;
+    const previous = classCourses.teachings;
+    updateClassTeachings(
+      selectedClassId,
+      previous.map((item) =>
+        courseIds.includes(item.coursId) &&
+        item.schoolYearId === data.schoolYear?.id &&
+        item.statusTeaching !== false
+          ? { ...item, statusTeaching: false }
+          : item,
+      ),
     );
     setSavingCourseId(courseIds.length === 1 ? courseIds[0] : "bulk");
     startTransition(async () => {
@@ -269,9 +310,7 @@ export default function TeachingWorkspacePage() {
       });
       setSavingCourseId(null);
       if (error || !result) {
-        setData((current) =>
-          current ? { ...current, teachings: previous } : current,
-        );
+        updateClassTeachings(selectedClassId, previous);
         toast.error(error?.message ?? "Retrait impossible");
         return;
       }
@@ -338,17 +377,8 @@ export default function TeachingWorkspacePage() {
             </div>
             <div className="min-h-0 flex-1 overflow-y-auto p-2">
               {paginatedClasses.map((classe) => {
-                const count = new Set(
-                  data.teachings
-                    .filter(
-                      (item) =>
-                        item.classeId === classe.id &&
-                        item.schoolYearId === data.schoolYear?.id &&
-                        item.statusTeaching !== false &&
-                        visibleCourseIds.has(item.coursId),
-                    )
-                    .map((item) => item.coursId),
-                ).size;
+                const count = classe.assignedCount;
+                const configured = classe.configuredCount;
                 return (
                   <button
                     key={classe.id}
@@ -362,10 +392,12 @@ export default function TeachingWorkspacePage() {
                       <span className="font-medium">{classe.nameClasse}</span>
                       <Badge
                         variant={
-                          count === data.courses.length ? "success" : "warning"
+                          configured > 0 && count === configured
+                            ? "success"
+                            : "warning"
                         }
                       >
-                        {count}/{data.courses.length}
+                        {count}/{configured}
                       </Badge>
                     </div>
                     <p className="mt-1 text-xs text-muted-foreground">
@@ -415,6 +447,9 @@ export default function TeachingWorkspacePage() {
                   <p className="text-sm text-muted-foreground">
                     {assignedCount} cours affecté(s) · {unassignedCount} sans
                     enseignant
+                    {selectedClass
+                      ? ` · ${selectedClass.configuredCount} cours pondéré(s)`
+                      : ""}
                   </p>
                 </div>
                 {selectedCourses.length > 0 && (
@@ -621,7 +656,11 @@ export default function TeachingWorkspacePage() {
               {!rows.length && (
                 <div className="p-10 text-center text-muted-foreground">
                   <IconBooks className="mx-auto mb-2 size-8" />
-                  Aucun cours correspondant
+                  {!classCourses && selectedClassId
+                    ? "Chargement des cours pondérés..."
+                    : selectedClass && selectedClass.configuredCount === 0
+                      ? "Aucun cours pondéré pour cette classe. Configurez d'abord les pondérations."
+                      : "Aucun cours correspondant"}
                 </div>
               )}
             </div>

@@ -55,7 +55,11 @@ type TeacherType = {
 export default async function NotesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ studentId?: string }>;
+  searchParams: Promise<{
+    studentId?: string;
+    teacherId?: string;
+    classId?: string;
+  }>;
 }) {
   const { session, userId, branchId, organizationId, typebranch } =
     await requireBranchContext();
@@ -380,6 +384,8 @@ export default async function NotesPage({
       isAdmin={canManage}
       teachers={teachers}
       typebranch={typebranch}
+      initialTeacherId={sp.teacherId ?? null}
+      initialClassId={sp.classId ?? null}
     />
   );
 }

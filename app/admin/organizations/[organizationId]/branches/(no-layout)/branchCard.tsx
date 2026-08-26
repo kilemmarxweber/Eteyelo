@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { useAppTransition as useTransition } from "@/hooks/use-app-transition";
 import { useAppRouter as useRouter } from "@/hooks/use-app-router";
 import { Archive, Loader2, Pencil, RotateCcw, Trash2 } from "lucide-react";
@@ -26,7 +26,8 @@ interface BranchCardProps {
   enterHref: string;
   editHref: string;
   isActive: boolean;
-  children: React.ReactNode;
+  extraActions?: ReactNode;
+  children: ReactNode;
 }
 
 export function BranchCard({
@@ -35,6 +36,7 @@ export function BranchCard({
   isActive,
   branchId,
   branchName,
+  extraActions,
   children,
 }: BranchCardProps) {
   const router = useRouter();
@@ -80,7 +82,7 @@ export function BranchCard({
       </Link>
 
       <div
-        className="absolute top-2 right-2 z-20 flex flex-nowrap items-center gap-1"
+        className="absolute top-1.5 right-1.5 z-20 flex flex-nowrap items-center gap-1"
         onClick={(e) => {
           e.preventDefault();
           e.stopPropagation();
@@ -96,6 +98,7 @@ export function BranchCard({
             <Pencil className="size-3.5" />
           </Link>
         </Button>
+        {extraActions}
 
         <Dialog open={archiveOpen} onOpenChange={setArchiveOpen}>
           <DialogTrigger asChild>

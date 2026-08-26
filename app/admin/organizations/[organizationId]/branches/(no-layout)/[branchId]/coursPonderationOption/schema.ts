@@ -21,3 +21,16 @@ export const coursOptionPonderationSchema = z.object({
 export type CoursOptionPonderationValues = z.infer<
   typeof coursOptionPonderationSchema
 >;
+
+export const mergeCoursOptionPonderationSchema = z.object({
+  sourceOptionId: z.string().min(1, "La source est requise."),
+  sourceLevel: z.string().trim().optional(),
+  targets: z
+    .array(
+      z.object({
+        optionId: z.string().min(1),
+        level: z.string().trim().optional(),
+      }),
+    )
+    .min(1, "Au moins un niveau cible est requis."),
+});

@@ -60,17 +60,27 @@ export default function FicheSaisieClient({
   teachers,
   isAdmin,
   typebranch,
+  initialTeacherId,
+  initialClassId,
 }: {
   teachers: Teacher[];
   isAdmin: boolean;
   typebranch?: unknown;
+  initialTeacherId?: string | null;
+  initialClassId?: string | null;
 }) {
   const router = useRouter();
   const { label: schoolYearLabel } = useSchoolYearLabels(typebranch);
   const notesLabels = useNotesLabels(typebranch);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const preselectedTeacherId =
+    initialTeacherId && teachers.some((teacher) => teacher.id === initialTeacherId)
+      ? initialTeacherId
+      : !isAdmin && teachers.length > 0
+        ? teachers[0].id
+        : null;
   const [selectedTeacherId, setSelectedTeacherId] = useState<string | null>(
-    !isAdmin && teachers.length > 0 ? teachers[0].id : null,
+    preselectedTeacherId,
   );
   const [selectedLessonId, setSelectedLessonId] = useState<string | null>(null);
   const [selectedPeriodId, setSelectedPeriodId] = useState<number | null>(null);
@@ -303,6 +313,17 @@ export default function FicheSaisieClient({
       setSelectedYearId(current?.id ?? null);
     });
   }, []);
+
+  const didPrefillLesson = useRef(false);
+  useEffect(() => {
+    if (didPrefillLesson.current || !initialClassId || !selectedTeacher) return;
+    const lesson = selectedTeacher.lessons.find(
+      (item) => item.classId === initialClassId,
+    );
+    if (!lesson) return;
+    didPrefillLesson.current = true;
+    setSelectedLessonId(lesson.id);
+  }, [initialClassId, selectedTeacher]);
   /* ====-- RESET FORM ON TEACHER CHANGE ===== */
   const resetForm = () => {
     setSelectedLessonId(null);

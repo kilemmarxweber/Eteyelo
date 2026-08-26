@@ -21,10 +21,13 @@ export const dynamic = "force-dynamic";
 
 export default async function DevoirsPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ organizationId: string; branchId: string }>;
+  searchParams: Promise<{ teacherId?: string }>;
 }) {
   const { organizationId, branchId } = await params;
+  const { teacherId: scopedTeacherIdParam } = await searchParams;
   let access;
   try {
     access = await enforceOnlineAssignmentAccess();
@@ -56,6 +59,7 @@ export default async function DevoirsPage({
     courseName: string;
   }> = [];
   let scopedToTeacher = false;
+  let scopeTeacherId: string | undefined;
 
   if (access.mode === "manage" && !isAdmin) {
     scopedToTeacher = true;
@@ -65,6 +69,7 @@ export default async function DevoirsPage({
       access.teacherId,
     );
     if (teacherId) {
+      scopeTeacherId = teacherId;
       const rows = await listTeacherTeachingsForDevoirs({
         branchId,
         teacherId,
@@ -89,6 +94,32 @@ export default async function DevoirsPage({
         .map(([id, label]) => ({ id, label }))
         .sort((a, b) => a.label.localeCompare(b.label, "fr"));
     }
+  } else if (access.mode === "manage" && isAdmin && scopedTeacherIdParam) {
+    scopedToTeacher = true;
+    scopeTeacherId = scopedTeacherIdParam;
+    const rows = await listTeacherTeachingsForDevoirs({
+      branchId,
+      teacherId: scopedTeacherIdParam,
+    });
+    teachings = rows.map((t) => ({
+      schoolYearId: t.schoolYearId,
+      classId: t.classeId,
+      className: t.classe?.nameClasse ?? "",
+      courseId: t.coursId,
+      courseName: t.cours?.nameCours ?? "",
+    }));
+    const classMap = new Map<string, string>();
+    const courseMap = new Map<string, string>();
+    for (const t of teachings) {
+      classMap.set(t.classId, t.className);
+      courseMap.set(t.courseId, t.courseName);
+    }
+    classes = [...classMap.entries()]
+      .map(([id, label]) => ({ id, label }))
+      .sort((a, b) => a.label.localeCompare(b.label, "fr"));
+    courses = [...courseMap.entries()]
+      .map(([id, label]) => ({ id, label }))
+      .sort((a, b) => a.label.localeCompare(b.label, "fr"));
   } else {
     const [allClasses, allCourses] = await Promise.all([
       prisma.classe.findMany({
@@ -116,6 +147,7 @@ export default async function DevoirsPage({
     courses,
     teachings,
     scopedToTeacher,
+    scopeTeacherId,
     defaultSchoolYearId: currentYear?.id ?? schoolYears[0]?.id ?? "all",
   };
 
@@ -166,7 +198,7 @@ export default async function DevoirsPage({
 
   if (access.mode === "manage") {
     const teacherId = isAdmin
-      ? null
+      ? (scopedTeacherIdParam ?? null)
       : await resolveTeacherIdForUser(
           access.userId,
           branchId,
@@ -176,7 +208,8 @@ export default async function DevoirsPage({
       where: {
         ...assignmentBranchWhere(branchId),
         // Enseignant : uniquement ses devoirs (jamais toute la branche)
-        ...(!isAdmin ? { teacherId: teacherId ?? "__none__" } : {}),
+        // Admin + teacherId : devoirs de cet enseignant, cours déjà filtrés
+        ...(teacherId ? { teacherId } : !isAdmin ? { teacherId: "__none__" } : {}),
       },
       orderBy: [{ dueAt: "desc" }],
       include: {

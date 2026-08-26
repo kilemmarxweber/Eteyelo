@@ -15,6 +15,7 @@ import {
   IconCurrencyDollar,
   IconCalendarEvent,
   IconSchool,
+  IconGitMerge,
 } from "@tabler/icons-react";
 
 import { Layout, LayoutBody } from "@/components/custom/layout";
@@ -167,6 +168,12 @@ export default function Settings({ children }: { children: React.ReactNode }) {
         icon: <IconUserCheck size={18} />,
         href: `${settingsBasePath}/attendance`,
         access: "org",
+      },
+      {
+        title: t("structureMerge"),
+        icon: <IconGitMerge size={18} />,
+        href: `${settingsBasePath}/structure-merge`,
+        access: "school_ops",
       },
       {
         title: t("primaryDomains"),

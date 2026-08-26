@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
 import type { Table } from "@tanstack/react-table";
 import { createTeacherColumns } from "./columns";
 import { ResponsiveDataTable } from "@/components/custom";
@@ -71,6 +72,17 @@ const TeachersList = ({
   const hasLoadedOnce = useRef(false);
   const { refreshKey: contextRefreshKey } = useRefresh();
   const peopleLabels = useBranchPeopleLabels();
+  const params = useParams<{ organizationId: string; branchId: string }>();
+  const router = useRouter();
+
+  const handleTeacherRowClick = useCallback(
+    (teacher: ITeacher) => {
+      router.push(
+        `/admin/organizations/${params.organizationId}/branches/${params.branchId}/teacher/${teacher.id}`,
+      );
+    },
+    [params.branchId, params.organizationId, router],
+  );
 
   const tableActions = useMemo(
     () => ({
@@ -277,6 +289,7 @@ const TeachersList = ({
           }
           mobileCardTitle={(row) => `${row.nom} ${row.postnom} ${row.prenom}`}
           mobileCardSubtitle={(row) => row.username ?? ""}
+          onRowClick={handleTeacherRowClick}
           mobileCardBadges={(row) =>
             [
               {

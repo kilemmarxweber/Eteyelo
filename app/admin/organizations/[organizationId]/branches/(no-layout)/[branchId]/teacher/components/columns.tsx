@@ -225,7 +225,6 @@ export const createTeacherColumns = (
       const [showResetTaskDialog, setShowResetTaskDialog] =
         React.useState(false);
       const params = useParams<{ organizationId: string; branchId: string }>();
-      const teacherHref = `/admin/organizations/${params.organizationId}/branches/${params.branchId}/teacher/${row.original.id}`;
       const isArchived = row.original.statusUser === false;
 
       const handleSuccess = () => {
@@ -281,9 +280,6 @@ export const createTeacherColumns = (
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-40">
-              <DropdownMenuItem asChild>
-                <Link href={teacherHref}>Voir</Link>
-              </DropdownMenuItem>
               <DropdownMenuItem onSelect={() => setShowDetailsTaskDialog(true)}>
                 Details
               </DropdownMenuItem>

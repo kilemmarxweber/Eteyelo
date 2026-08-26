@@ -5,12 +5,15 @@ import { revalidatePath } from "next/cache";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
 import { action } from "@/lib/zsa";
 import { z } from "zod";
-import { coursOptionPonderationSchema } from "./schema";
-import { ensurePrimaryAcademicStructure } from "@/lib/primary-academic-structure";
+import { coursOptionPonderationSchema, mergeCoursOptionPonderationSchema } from "./schema";
 import {
-  ensureMaternelleAcademicStructure,
   maternelleOptionDisplayName,
+  resolveMaternelleClassLevel,
 } from "@/lib/maternelle-academic-structure";
+import {
+  isPrimaryClassLevel,
+  resolvePrimaryClassLevel,
+} from "@/lib/primary-academic-structure";
 import { type Cycle } from "@/lib/cycle";
 import { DEFAULT_PONDERATION_LEVEL, normalizePonderationLevel } from "@/lib/course-ponderation";
 import {
@@ -55,6 +58,18 @@ async function requireCoursAndOptionInBranch(params: {
   }
 }
 
+async function requireOptionsInBranch(branchId: string, optionIds: string[]) {
+  const unique = Array.from(new Set(optionIds.filter(Boolean)));
+  if (!unique.length) throw new Error("Option introuvable dans cette branche");
+  const options = await prisma.option.findMany({
+    where: { id: { in: unique }, branchId },
+    select: { id: true },
+  });
+  if (options.length !== unique.length) {
+    throw new Error("Option introuvable dans cette branche");
+  }
+}
+
 function revalidateCoursPonderationOptionPages(
   organizationId: string,
   branchId: string,
@@ -76,15 +91,6 @@ export const getCoursPonderationOptionPageDataAction = action.handler(
     const activated = cycles.filter((cycle): cycle is Cycle =>
       (PONDERATION_CYCLES as readonly string[]).includes(cycle),
     );
-
-    const [maternelleStructure, primaryStructure] = await Promise.all([
-      activated.includes("MATERNELLE")
-        ? ensureMaternelleAcademicStructure(prisma, branchId)
-        : null,
-      activated.includes("PRIMAIRE")
-        ? ensurePrimaryAcademicStructure(prisma, branchId)
-        : null,
-    ]);
 
     const [options, cours, ponderations, schoolYear] = await Promise.all([
       prisma.option.findMany({
@@ -135,38 +141,55 @@ export const getCoursPonderationOptionPageDataAction = action.handler(
       isLevelWeighted: boolean;
     };
 
-    const byId = new Map(options.map((option) => [option.id, option]));
     const levelWeightedIds = new Set<string>();
 
-    const maternelleOptions: TaggedOption[] = [];
-    if (maternelleStructure) {
-      for (const levelOption of maternelleStructure.options) {
-        const row = byId.get(levelOption.id);
-        if (!row) continue;
-        levelWeightedIds.add(row.id);
-        maternelleOptions.push({
-          ...row,
-          cycle: "MATERNELLE",
-          displayName: maternelleOptionDisplayName(levelOption.level),
-          isLevelWeighted: true,
-        });
-      }
-    }
+    const maternelleOptions: TaggedOption[] = activated.includes("MATERNELLE")
+      ? options
+          .filter(
+            (option) =>
+              option.cycle === "MATERNELLE" ||
+              option.section?.nameSection?.toUpperCase() === "MATERNELLE",
+          )
+          .map((row) => {
+            const level = resolveMaternelleClassLevel({
+              level: row.nameOption,
+              nameClasse: `${row.nameOption} ${row.codeOption}`,
+            });
+            levelWeightedIds.add(row.id);
+            return {
+              ...row,
+              cycle: "MATERNELLE" as const,
+              displayName: level
+                ? maternelleOptionDisplayName(level)
+                : row.nameOption,
+              isLevelWeighted: true,
+            };
+          })
+      : [];
 
-    const primaryOptions: TaggedOption[] = [];
-    if (primaryStructure) {
-      for (const levelOption of primaryStructure.options) {
-        const row = byId.get(levelOption.id);
-        if (!row) continue;
-        levelWeightedIds.add(row.id);
-        primaryOptions.push({
-          ...row,
-          cycle: "PRIMAIRE",
-          displayName: `${levelOption.level} année`,
-          isLevelWeighted: true,
-        });
-      }
-    }
+    const primaryOptions: TaggedOption[] = activated.includes("PRIMAIRE")
+      ? options
+          .filter(
+            (option) =>
+              option.cycle === "PRIMAIRE" ||
+              option.section?.nameSection?.toUpperCase() === "PRIMAIRE",
+          )
+          .map((row) => {
+            const level = isPrimaryClassLevel(row.nameOption)
+              ? row.nameOption
+              : resolvePrimaryClassLevel({
+                  level: row.nameOption,
+                  nameClasse: row.codeOption,
+                });
+            levelWeightedIds.add(row.id);
+            return {
+              ...row,
+              cycle: "PRIMAIRE" as const,
+              displayName: level ? `${level} année` : row.nameOption,
+              isLevelWeighted: true,
+            };
+          })
+      : [];
 
     const secondaryOptions: TaggedOption[] = activated.includes("SECONDAIRE")
       ? options
@@ -413,6 +436,81 @@ export const deleteCoursOptionPonderationAction = action
     });
     revalidateCoursPonderationOptionPages(organizationId, branchId);
     return { ok: true as const };
+  });
+
+export const mergeCoursOptionPonderationAction = action
+  .input(mergeCoursOptionPonderationSchema)
+  .handler(async ({ input }) => {
+    const { branchId, organizationId, session } = await requireBranchContext();
+    requireManagePermission(session);
+
+    const sourceLevel = normalizePonderationLevel(input.sourceLevel);
+    const targets = Array.from(
+      new Map(
+        input.targets
+          .map((target) => ({
+            optionId: target.optionId,
+            level: normalizePonderationLevel(target.level),
+          }))
+          .filter(
+            (target) =>
+              target.optionId !== input.sourceOptionId ||
+              target.level !== sourceLevel,
+          )
+          .map((target) => [`${target.optionId}:${target.level}`, target] as const),
+      ).values(),
+    );
+
+    if (!targets.length) {
+      throw new Error("Sélectionnez un niveau non pondéré à fusionner.");
+    }
+
+    await requireOptionsInBranch(branchId, [
+      input.sourceOptionId,
+      ...targets.map((target) => target.optionId),
+    ]);
+
+    const sourceRows = await prisma.coursOptionPonderation.findMany({
+      where: {
+        branchId,
+        optionId: input.sourceOptionId,
+        level: sourceLevel,
+      },
+      select: { coursId: true, ponderation: true },
+    });
+
+    if (!sourceRows.length) {
+      throw new Error("Aucune pondération source à fusionner.");
+    }
+
+    const saved = [];
+    for (const source of sourceRows) {
+      for (const target of targets) {
+        saved.push(
+          await prisma.coursOptionPonderation.upsert({
+            where: {
+              branchId_coursId_optionId_level: {
+                branchId,
+                coursId: source.coursId,
+                optionId: target.optionId,
+                level: target.level,
+              },
+            },
+            create: {
+              branchId,
+              coursId: source.coursId,
+              optionId: target.optionId,
+              level: target.level,
+              ponderation: source.ponderation,
+            },
+            update: { ponderation: source.ponderation },
+          }),
+        );
+      }
+    }
+
+    revalidateCoursPonderationOptionPages(organizationId, branchId);
+    return saved;
   });
 
 

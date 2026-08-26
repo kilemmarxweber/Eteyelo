@@ -9,6 +9,10 @@ import { z } from "zod";
 import { canManageOrganization } from "@/lib/auth/session-roles";
 import { activeCoursStatusFilter } from "@/lib/active-cours";
 import { scheduleHourToMinutes } from "@/lib/timezone";
+import {
+  configuredCoursIdsForClass,
+  getConfiguredCoursIdsForClasse,
+} from "@/lib/course-ponderation";
 
 const teachingInclude = {
   teacher: {
@@ -43,68 +47,256 @@ function requireManageTeaching(session: unknown) {
   }
 }
 
+async function requireConfiguredCoursesForClasse(params: {
+  branchId: string;
+  organizationId: string;
+  classeId: string;
+  coursIds: string[];
+}) {
+  const classe = await prisma.classe.findFirst({
+    where: {
+      id: params.classeId,
+      branchId: params.branchId,
+      branch: { organizationId: params.organizationId },
+      OR: [{ statusClasse: true }, { statusClasse: null }],
+    },
+    select: { id: true, optionId: true, level: true },
+  });
+  if (!classe) throw new Error("Classe introuvable dans cette branche");
+
+  const configured = new Set(
+    await getConfiguredCoursIdsForClasse({
+      branchId: params.branchId,
+      optionId: classe.optionId,
+      level: classe.level,
+    }),
+  );
+  if (!configured.size) {
+    throw new Error(
+      "Aucun cours pondéré pour cette classe. Configurez d'abord les pondérations.",
+    );
+  }
+  if (params.coursIds.some((coursId) => !configured.has(coursId))) {
+    throw new Error(
+      "Un ou plusieurs cours n'ont pas de pondération pour cette classe.",
+    );
+  }
+
+  const activeCourses = await prisma.cours.findMany({
+    where: {
+      id: { in: params.coursIds },
+      branchId: params.branchId,
+      ...activeCoursStatusFilter,
+    },
+    select: { id: true },
+  });
+  if (activeCourses.length !== new Set(params.coursIds).size) {
+    throw new Error("Ce cours est désactivé et ne peut plus être affecté.");
+  }
+
+  return classe;
+}
+
 export const getTeachingWorkspaceAction = action.handler(async () => {
   const { branchId, organizationId } = await requireBranchContext();
-  const [classes, courses, teachers, schoolYear, teachings] = await Promise.all([
-    prisma.classe.findMany({
-      where: {
-        branchId,
-        branch: { organizationId },
-        OR: [{ statusClasse: true }, { statusClasse: null }],
-      },
-      orderBy: { nameClasse: "asc" },
-      select: { id: true, nameClasse: true, codeClasse: true, option: { select: { nameOption: true, section: { select: { nameSection: true } } } } },
-    }),
-    prisma.cours.findMany({
-      where: {
-        branchId,
-        branch: { organizationId },
-        ...activeCoursStatusFilter,
-      },
-      orderBy: { nameCours: "asc" },
-      select: { id: true, nameCours: true, codeCours: true },
-    }),
-    prisma.teacher.findMany({
-      where: {
-        branchMember: {
+  const [classes, teachers, schoolYear, ponderations, teachings] =
+    await Promise.all([
+      prisma.classe.findMany({
+        where: {
           branchId,
           branch: { organizationId },
+          OR: [{ statusClasse: true }, { statusClasse: null }],
         },
-      },
-      orderBy: { createdAt: "asc" },
-      select: { id: true, branchMember: { select: { member: { select: { user: { select: { name: true, postnom: true, prenom: true, username: true } } } } } } },
+        orderBy: { nameClasse: "asc" },
+        select: {
+          id: true,
+          nameClasse: true,
+          codeClasse: true,
+          optionId: true,
+          level: true,
+          option: {
+            select: {
+              nameOption: true,
+              section: { select: { nameSection: true } },
+            },
+          },
+        },
+      }),
+      prisma.teacher.findMany({
+        where: {
+          branchMember: {
+            branchId,
+            branch: { organizationId },
+          },
+        },
+        orderBy: { createdAt: "asc" },
+        select: {
+          id: true,
+          branchMember: {
+            select: {
+              member: {
+                select: {
+                  user: {
+                    select: {
+                      name: true,
+                      postnom: true,
+                      prenom: true,
+                      username: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      }),
+      prisma.schoolYear.findFirst({
+        where: {
+          branchId,
+          branch: { organizationId },
+          isCurrentYear: true,
+          isArchived: false,
+        },
+        select: { id: true, nameYear: true },
+      }),
+      prisma.coursOptionPonderation.findMany({
+        where: { branchId },
+        select: { coursId: true, optionId: true, level: true },
+      }),
+      prisma.teaching.findMany({
+        where: {
+          branchId,
+          branch: { organizationId },
+          classe: { branchId, branch: { organizationId } },
+          cours: {
+            branchId,
+            branch: { organizationId },
+            ...activeCoursStatusFilter,
+          },
+        },
+        select: {
+          classeId: true,
+          coursId: true,
+          schoolYearId: true,
+          statusTeaching: true,
+        },
+      }),
+    ]);
+
+  const assignedByClass = new Map<string, Set<string>>();
+  for (const item of teachings) {
+    if (item.schoolYearId !== schoolYear?.id || item.statusTeaching === false) {
+      continue;
+    }
+    const current = assignedByClass.get(item.classeId) ?? new Set<string>();
+    current.add(item.coursId);
+    assignedByClass.set(item.classeId, current);
+  }
+
+  return {
+    classes: classes.map((classe) => {
+      const configuredIds = new Set(
+        configuredCoursIdsForClass(ponderations, classe),
+      );
+      const assignedIds = assignedByClass.get(classe.id);
+      const assignedCount = assignedIds
+        ? [...assignedIds].filter((coursId) => configuredIds.has(coursId)).length
+        : 0;
+      return {
+        ...classe,
+        configuredCount: configuredIds.size,
+        assignedCount,
+      };
     }),
-    prisma.schoolYear.findFirst({
-      where: {
-        branchId,
-        branch: { organizationId },
-        isCurrentYear: true,
-        isArchived: false,
-      },
-      select: { id: true, nameYear: true },
-    }),
-    prisma.teaching.findMany({
-      where: {
-        branchId,
-        branch: { organizationId },
-        classe: { branchId, branch: { organizationId } },
-        cours: {
+    teachers: teachers.map((teacher) => ({
+      id: teacher.id,
+      name:
+        [
+          teacher.branchMember?.member.user.name,
+          teacher.branchMember?.member.user.postnom,
+          teacher.branchMember?.member.user.prenom,
+        ]
+          .filter(Boolean)
+          .join(" ") ||
+        teacher.branchMember?.member.user.username ||
+        "Enseignant",
+    })),
+    schoolYear,
+  };
+});
+
+export const getTeachingClassCoursesAction = action
+  .input(z.object({ classeId: z.string().min(1) }))
+  .handler(async ({ input }) => {
+    const { branchId, organizationId } = await requireBranchContext();
+    const [classe, schoolYear] = await Promise.all([
+      prisma.classe.findFirst({
+        where: {
+          id: input.classeId,
+          branchId,
+          branch: { organizationId },
+          OR: [{ statusClasse: true }, { statusClasse: null }],
+        },
+        select: { id: true, optionId: true, level: true },
+      }),
+      prisma.schoolYear.findFirst({
+        where: {
+          branchId,
+          branch: { organizationId },
+          isCurrentYear: true,
+          isArchived: false,
+        },
+        select: { id: true },
+      }),
+    ]);
+    if (!classe) throw new Error("Classe introuvable dans cette branche");
+
+    const configuredIds = await getConfiguredCoursIdsForClasse({
+      branchId,
+      optionId: classe.optionId,
+      level: classe.level,
+    });
+
+    if (!configuredIds.length) {
+      return { classeId: classe.id, courses: [], teachings: [] };
+    }
+
+    const [courses, teachings] = await Promise.all([
+      prisma.cours.findMany({
+        where: {
+          id: { in: configuredIds },
           branchId,
           branch: { organizationId },
           ...activeCoursStatusFilter,
         },
-      },
-      select: { id: true, classeId: true, coursId: true, teacherId: true, schoolYearId: true, statusTeaching: true, titulaire: true, updatedAt: true },
-    }),
-  ]);
-  return {
-    classes,
-    courses,
-    teachers: teachers.map(teacher => ({ id: teacher.id, name: [teacher.branchMember?.member.user.name, teacher.branchMember?.member.user.postnom, teacher.branchMember?.member.user.prenom].filter(Boolean).join(" ") || teacher.branchMember?.member.user.username || "Enseignant" })),
-    schoolYear,
-    teachings,
-  };
-});
+        orderBy: { nameCours: "asc" },
+        select: { id: true, nameCours: true, codeCours: true },
+      }),
+      schoolYear
+        ? prisma.teaching.findMany({
+            where: {
+              branchId,
+              branch: { organizationId },
+              classeId: classe.id,
+              schoolYearId: schoolYear.id,
+              coursId: { in: configuredIds },
+            },
+            select: {
+              id: true,
+              classeId: true,
+              coursId: true,
+              teacherId: true,
+              schoolYearId: true,
+              statusTeaching: true,
+              titulaire: true,
+              updatedAt: true,
+            },
+          })
+        : Promise.resolve([]),
+    ]);
+
+    return { classeId: classe.id, courses, teachings };
+  });
 
 const quickAssignmentSchema = z.object({
   classeId: z.string().min(1),
@@ -115,6 +307,12 @@ const quickAssignmentSchema = z.object({
 export const saveQuickAssignmentsAction = action.input(quickAssignmentSchema).handler(async ({ input }) => {
   const { branchId, organizationId, session } = await requireBranchContext();
   requireManageTeaching(session);
+  await requireConfiguredCoursesForClasse({
+    branchId,
+    organizationId,
+    classeId: input.classeId,
+    coursIds: input.coursIds,
+  });
   const [classe, teacher, courses, schoolYear] = await Promise.all([
     prisma.classe.findFirst({ where: { id: input.classeId, branchId, branch: { organizationId }, OR: [{ statusClasse: true }, { statusClasse: null }] }, select: { id: true } }),
     prisma.teacher.findFirst({ where: { id: input.teacherId, branchMember: { branchId, branch: { organizationId } } }, select: { id: true } }),
@@ -285,15 +483,12 @@ export const createTeachingAction = action
     const { branchId, organizationId } = await requireBranchContext();
     const { teacherId, classeId, coursId, schoolYearId, titulaire } = input;
 
-    await requireClasseInBranch(classeId, branchId);
-
-    const activeCours = await prisma.cours.findFirst({
-      where: { id: coursId, branchId, ...activeCoursStatusFilter },
-      select: { id: true },
+    await requireConfiguredCoursesForClasse({
+      branchId,
+      organizationId,
+      classeId,
+      coursIds: [coursId],
     });
-    if (!activeCours) {
-      throw new Error("Ce cours est désactivé et ne peut plus être affecté.");
-    }
 
     try {
       const teaching = await prisma.teaching.create({
@@ -351,15 +546,12 @@ export const updateTeachingAction = action
     if (!id) throw new Error("ID requis");
 
     await requireTeachingInBranch(id, branchId);
-    await requireClasseInBranch(classeId, branchId);
-
-    const activeCours = await prisma.cours.findFirst({
-      where: { id: coursId, branchId, ...activeCoursStatusFilter },
-      select: { id: true },
+    await requireConfiguredCoursesForClasse({
+      branchId,
+      organizationId,
+      classeId,
+      coursIds: [coursId],
     });
-    if (!activeCours) {
-      throw new Error("Ce cours est désactivé et ne peut plus être affecté.");
-    }
 
     const teaching = await prisma.teaching.update({
       data: {

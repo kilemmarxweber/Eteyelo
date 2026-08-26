@@ -15,6 +15,7 @@ import {
 import { generateSecurePassword } from "@/lib/generate-password";
 import { ORG_ROLE } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
+import { getConfiguredCoursIdsForClasse } from "@/lib/course-ponderation";
 import {
   buildSchoolReportContext,
   schoolReportBranchSelect,
@@ -65,7 +66,7 @@ async function syncTeacherTitulaire(input: {
   const [classe, cours] = await Promise.all([
     prisma.classe.findFirst({
       where: { id: input.classeId, branchId: input.branchId },
-      select: { id: true },
+      select: { id: true, optionId: true, level: true },
     }),
     prisma.cours.findFirst({
       where: { id: input.coursId, branchId: input.branchId },
@@ -78,6 +79,17 @@ async function syncTeacherTitulaire(input: {
   }
   if (!cours) {
     throw new Error("Cours introuvable dans cette branche");
+  }
+
+  const configuredIds = await getConfiguredCoursIdsForClasse({
+    branchId: input.branchId,
+    optionId: classe.optionId,
+    level: classe.level,
+  });
+  if (!configuredIds.includes(input.coursId)) {
+    throw new Error(
+      "Ce cours n'a pas de pondération pour cette classe. Configurez d'abord les pondérations.",
+    );
   }
 
   // Un seul titulaire par classe / année.

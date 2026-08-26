@@ -33,6 +33,10 @@ interface DeleteSectionsDialogProps
   permanent?: boolean;
 }
 
+function sectionClassesCount(section: ISection) {
+  return section.classesCount ?? 0;
+}
+
 function sectionOptionsCount(section: ISection) {
   return section.optionsCount ?? section.option?.length ?? 0;
 }
@@ -49,6 +53,10 @@ export function DeleteSectionsDialog({
 
   const count = Sections.length;
   const blockedCount = Sections.reduce(
+    (total, section) => total + sectionClassesCount(section),
+    0,
+  );
+  const linkedOptionsCount = Sections.reduce(
     (total, section) => total + sectionOptionsCount(section),
     0,
   );
@@ -126,12 +134,14 @@ export function DeleteSectionsDialog({
           <DialogDescription>
             {blocked
               ? count === 1
-                ? `Cette section a encore ${blockedCount} option${blockedCount > 1 ? "s" : ""}. Supprimez d'abord ${blockedCount > 1 ? "ces options" : "cette option"} avant de supprimer la section.`
-                : `Ces sections ont encore ${blockedCount} option${blockedCount > 1 ? "s" : ""} liée${blockedCount > 1 ? "s" : ""}. Supprimez d'abord ces options avant de supprimer les sections.`
+                ? `Cette section a encore ${blockedCount} classe${blockedCount > 1 ? "s" : ""} liée${blockedCount > 1 ? "s" : ""} à ses options. Supprimez d'abord ${blockedCount > 1 ? "ces classes" : "cette classe"} avant de supprimer la section.`
+                : `Ces sections ont encore ${blockedCount} classe${blockedCount > 1 ? "s" : ""} liée${blockedCount > 1 ? "s" : ""}. Supprimez d'abord ces classes avant de supprimer les sections.`
               : permanent
                 ? count === 1
-                  ? "Cette action est irréversible. La section sera effacée définitivement."
-                  : "Cette action est irréversible. Ces sections seront effacées définitivement."
+                  ? linkedOptionsCount > 0
+                    ? `Cette action est irréversible. La section et ${linkedOptionsCount} option${linkedOptionsCount > 1 ? "s" : ""} seront effacées définitivement.`
+                    : "Cette action est irréversible. La section sera effacée définitivement."
+                  : "Cette action est irréversible. Ces sections et leurs options sans classe seront effacées définitivement."
                 : count === 1
                   ? "La section sera masquée des listes actives mais l'historique sera conservé."
                   : "Ces sections seront masquées des listes actives mais l'historique sera conservé."}
