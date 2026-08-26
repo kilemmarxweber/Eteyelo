@@ -64,7 +64,8 @@ export const createStudentColumns = (
   actions?: StudentTableActions,
   canPurgePermanently = false,
   examCodes?: StudentExamCodesColumnContext,
-): ColumnDef<IStudent>[] => [
+): ColumnDef<IStudent>[] => {
+  const columns: ColumnDef<IStudent>[] = [
 
   {
     id: "select",
@@ -528,11 +529,13 @@ export const createStudentColumns = (
       );
     },
   },
-].filter((column) => {
-  if (column.id === "e13" || column.id === "e80") {
-    return examCodes?.showExamCodeColumns !== false;
-  }
-  return true;
-});
+  ];
+  return columns.filter((column) => {
+    if (column.id === "e13" || column.id === "e80") {
+      return examCodes?.showExamCodeColumns !== false;
+    }
+    return true;
+  });
+};
 
 export const columns = createStudentColumns();
