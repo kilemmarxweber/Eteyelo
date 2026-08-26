@@ -29,6 +29,7 @@ export const UNIVERSITY_ATTESTATION_LABELS: Record<
 export type UniversityAttestationPdfInput = {
   organizationName: string;
   branchName: string;
+  address?: string | null;
   schoolYearName?: string | null;
   studentName: string;
   username?: string | null;
@@ -83,11 +84,16 @@ export function buildUniversityAttestationPdfDoc(input: UniversityAttestationPdf
   doc.setTextColor(15, 23, 42);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(14);
-  doc.text(input.organizationName, pageWidth / 2, 24, { align: "center" });
+  doc.text(input.branchName, pageWidth / 2, 24, { align: "center" });
 
   doc.setFontSize(11);
   doc.setFont("helvetica", "normal");
-  doc.text(input.branchName, pageWidth / 2, 31, { align: "center" });
+  let titleY = 31;
+  if (input.address?.trim()) {
+    const addressLines = doc.splitTextToSize(input.address.trim(), 170) as string[];
+    doc.text(addressLines, pageWidth / 2, 31, { align: "center" });
+    titleY = 31 + addressLines.length * 5;
+  }
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(16);
@@ -95,7 +101,7 @@ export function buildUniversityAttestationPdfDoc(input: UniversityAttestationPdf
   doc.text(
     UNIVERSITY_ATTESTATION_LABELS[input.kind].toUpperCase(),
     pageWidth / 2,
-    48,
+    titleY + 10,
     { align: "center", maxWidth: 170 },
   );
 
@@ -104,7 +110,7 @@ export function buildUniversityAttestationPdfDoc(input: UniversityAttestationPdf
   doc.setFontSize(12);
 
   const lines = buildBodyLines(input);
-  let y = 68;
+  let y = titleY + 22;
 
   for (const line of lines) {
     const isName = line === input.studentName.toUpperCase();

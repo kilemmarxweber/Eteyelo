@@ -48,7 +48,7 @@ export function drawHeader({
 
   drawCenteredWrappedText(
     doc,
-    branchContext.branchName || branchContext.organizationName || "-",
+    branchContext.branchName || "-",
     margin + frameWidth / 2,
     headerY + 7,
     boxW - 4,
@@ -68,7 +68,7 @@ export function drawHeader({
   doc.setFontSize(9);
   doc.setTextColor(0, 0, 0);
 
-  const text = [branchContext.city, branchContext.country]
+  const text = [branchContext.phone, branchContext.city, branchContext.country]
     .filter(Boolean)
     .join(" / ") || "-";
   const x = margin + frameWidth / 2;
@@ -84,7 +84,7 @@ export function drawHeader({
   const baseY = headerY + 22;
   const centerX = margin + frameWidth / 2;
 
-  const part1 = branchContext.organizationName || branchContext.branchName;
+  const part1 = branchContext.branchName;
   const part2 = branchContext.branchCode
     ? ` / Code : ${branchContext.branchCode}`
     : "";

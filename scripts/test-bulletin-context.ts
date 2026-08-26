@@ -55,6 +55,7 @@ test("nom, code et adresse correspondent à la branche sélectionnée", () => {
     branchName: "Institut Central",
     branchCode: "IC-2026",
     address: "15, Avenue Centrale",
+    phone: "",
     province: "",
     city: "Matadi",
     commune: "",
@@ -63,6 +64,15 @@ test("nom, code et adresse correspondent à la branche sélectionnée", () => {
     branchType: "SECONDAIRE",
     educationSystem: "CONGOLAIS",
   });
+});
+
+test("description officielle prioritaire sur le nom court", () => {
+  const context = buildBulletinBranchContext({
+    name: "EPP Gombe",
+    description: "  École Primaire Publique de Gombe  ",
+    organization: { name: "Organisation" },
+  });
+  assert.equal(context.branchName, "École Primaire Publique de Gombe");
 });
 
 test("branche PRIMAIRE : branchType normalisé", () => {

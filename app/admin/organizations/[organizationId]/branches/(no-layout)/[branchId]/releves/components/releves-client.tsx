@@ -194,8 +194,7 @@ export function RelevesClient() {
                 {context?.branchName}
               </p>
               <p className="mt-1 text-xs text-muted-foreground">
-                {context?.organizationName} · {schoolYearLabel} :{" "}
-                {context?.schoolYearName}
+                {schoolYearLabel} : {context?.schoolYearName}
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-3">

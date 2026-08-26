@@ -13,6 +13,7 @@ import {
 } from "@/lib/auth/session-roles";
 import { ORG_ROLE } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
+import { branchDocumentName } from "@/lib/branch-document-name";
 import {
   buildStudentBadgeQrCode,
   formatStudentBadgeDate,
@@ -329,7 +330,7 @@ const SingleStudentPage = async ({
     nationality: student.nationalite?.trim() || branch.pays || "Congolaise",
     matricule,
     className: classLabel,
-    schoolName: branch.name,
+    schoolName: branchDocumentName(branch),
     yearCode,
     yearId,
     branchId,
@@ -501,8 +502,8 @@ const SingleStudentPage = async ({
       id: period.id,
       label: period.label,
     })),
-    organizationName: branch.organization.name,
-    branchName: branch.name,
+    organizationName: branchDocumentName(branch),
+    branchName: branchDocumentName(branch),
     schoolYear: yearCode,
     schoolYearId: currentYear?.id ?? enrollment?.schoolYearId ?? "",
     className: classe?.nameClasse ?? classLabel,
@@ -622,7 +623,7 @@ const SingleStudentPage = async ({
     bloodGroup: "-",
     allergies: "Aucune",
     vulnerability: "Aucune",
-    schoolName: branch.name,
+    schoolName: branchDocumentName(branch),
     matricule,
     schoolYearLabel: yearCode,
     classLabel,

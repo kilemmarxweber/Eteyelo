@@ -11,6 +11,7 @@ export type SchoolReportContext = {
   /** Ville de la branche (ex. « Fait à … » sur le reçu). */
   city?: string;
   phone?: string;
+  email?: string;
   logoUrl: string;
   academicYearLabel?: string;
   generatedAt: string;

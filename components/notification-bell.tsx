@@ -35,14 +35,10 @@ import {
   dispatchCandidaturePrefill,
   dispatchRegistrationPrefill,
 } from "@/lib/prefill-events";
-import { authClient } from "@/lib/auth-client";
-import {
-  canSeeBranchNotifications,
-  canSeeCandidatureNotifications,
-  canSeeInscriptionNotifications,
-} from "@/lib/auth/session-roles";
+import { NOTIFICATIONS_REFRESH_EVENT } from "@/lib/notification-events";
 import {
   confirmNotificationRequestAction,
+  getNotificationCountAction,
   getNotificationRequestsAction,
   rejectNotificationRequestAction,
 } from "@/lib/actions/notification.actions";
@@ -347,10 +343,10 @@ export function NotificationBell() {
   const params = useParams<{ organizationId: string; branchId: string }>();
   const router = useRouter();
   const pathname = usePathname();
-  const { data: session } = authClient.useSession();
 
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState<NotificationItem[]>([]);
+  const [pendingCount, setPendingCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -360,20 +356,25 @@ export function NotificationBell() {
     caseRow: AbsenceCaseDialogData;
   } | null>(null);
 
-  const canSeeInscriptions = canSeeInscriptionNotifications(session);
-  const canSeeCandidatures = canSeeCandidatureNotifications(session);
-  const canSeeLegacyNotifications = canSeeBranchNotifications(session);
-
-  const pendingCount = items.filter((item) => {
-    if (item.kind === "absence") return true;
-    if (item.kind === "registration") return item.status === "PENDING";
-    return item.status === "PENDING" || item.status === "REVIEWED";
-  }).length;
-
   const branchBase =
     params.organizationId && params.branchId
       ? `/admin/organizations/${params.organizationId}/branches/${params.branchId}`
       : "";
+
+  const loadCount = useCallback(async () => {
+    if (!params.branchId) {
+      setPendingCount(0);
+      return;
+    }
+    try {
+      const [data] = await getNotificationCountAction();
+      if (typeof data?.count === "number") {
+        setPendingCount(data.count);
+      }
+    } catch {
+      // Conserver le dernier compteur connu.
+    }
+  }, [params.branchId]);
 
   const loadRequests = useCallback(async () => {
     if (!params.branchId) {
@@ -383,10 +384,12 @@ export function NotificationBell() {
     setLoading(true);
     setError(null);
     try {
-      const [absenceData] = await getAbsenceInboxAction();
-      const [legacyData] = canSeeLegacyNotifications
-        ? await getNotificationRequestsAction()
-        : [null, null];
+      const [absenceResult, legacyResult] = await Promise.all([
+        getAbsenceInboxAction(),
+        getNotificationRequestsAction(),
+      ]);
+      const [absenceData] = absenceResult;
+      const [legacyData] = legacyResult;
 
       const absenceItems: AbsenceRow[] = (absenceData?.notifications ?? []).map(
         (row) => ({
@@ -400,28 +403,24 @@ export function NotificationBell() {
         }),
       );
 
-      const registrationItems: RegistrationRow[] = canSeeInscriptions
-        ? (legacyData?.registrations ?? [])
-            .filter(
-              (row) => row.status === "PENDING" || row.status === "CONFIRMED",
-            )
-            .map((row) => ({
-              ...row,
-              studentData:
-                row.studentData && typeof row.studentData === "object"
-                  ? (row.studentData as RegistrationRow["studentData"])
-                  : null,
-              kind: "registration" as const,
-            }))
-        : [];
+      const registrationItems: RegistrationRow[] = (
+        legacyData?.registrations ?? []
+      )
+        .filter(
+          (row) => row.status === "PENDING" || row.status === "CONFIRMED",
+        )
+        .map((row) => ({
+          ...row,
+          studentData:
+            row.studentData && typeof row.studentData === "object"
+              ? (row.studentData as RegistrationRow["studentData"])
+              : null,
+          kind: "registration" as const,
+        }));
 
-      const jobItems: JobRow[] = canSeeCandidatures
-        ? (legacyData?.jobApplications ?? [])
-            .filter((row) =>
-              ["PENDING", "REVIEWED"].includes(row.status),
-            )
-            .map((row) => ({ ...row, kind: "job" as const }))
-        : [];
+      const jobItems: JobRow[] = (legacyData?.jobApplications ?? [])
+        .filter((row) => ["PENDING", "REVIEWED"].includes(row.status))
+        .map((row) => ({ ...row, kind: "job" as const }));
 
       const merged = [...absenceItems, ...registrationItems, ...jobItems].sort(
         (a, b) => {
@@ -431,33 +430,45 @@ export function NotificationBell() {
         },
       );
       setItems(merged.slice(0, 40));
+      await loadCount();
     } catch {
       setError("Erreur inattendue.");
     } finally {
       setLoading(false);
     }
-  }, [
-    canSeeCandidatures,
-    canSeeInscriptions,
-    canSeeLegacyNotifications,
-    params.branchId,
-  ]);
+  }, [params.branchId, loadCount]);
+
+  useEffect(() => {
+    void loadCount();
+  }, [loadCount, pathname]);
 
   useEffect(() => {
     if (open) void loadRequests();
   }, [open, loadRequests]);
 
   useEffect(() => {
-    void loadRequests();
-  }, [loadRequests]);
+    function onRefresh() {
+      void loadCount();
+    }
+    window.addEventListener(NOTIFICATIONS_REFRESH_EVENT, onRefresh);
+    function onVisible() {
+      if (document.visibilityState === "visible") onRefresh();
+    }
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      window.removeEventListener(NOTIFICATIONS_REFRESH_EVENT, onRefresh);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+  }, [loadCount]);
 
   useEffect(() => {
     if (!params.branchId) return;
-    const interval = setInterval(() => {
-      if (!open) void loadRequests();
+    const interval = window.setInterval(() => {
+      void loadCount();
+      if (open) void loadRequests();
     }, 15_000);
-    return () => clearInterval(interval);
-  }, [open, params.branchId, loadRequests]);
+    return () => window.clearInterval(interval);
+  }, [open, params.branchId, loadCount, loadRequests]);
 
   const openRegistration = useCallback(
     (requestId: string) => {
@@ -514,6 +525,7 @@ export function NotificationBell() {
                 requestId: item.id,
               });
               if (err) return;
+              void loadCount();
             }
             openRegistration(item.id);
             return;
@@ -524,6 +536,7 @@ export function NotificationBell() {
               applicationId: item.id,
             });
             if (err) return;
+            void loadCount();
           }
           openCandidature(item.id);
         } finally {
@@ -531,7 +544,7 @@ export function NotificationBell() {
         }
       });
     },
-    [openCandidature, openRegistration],
+    [loadCount, openCandidature, openRegistration],
   );
 
   const handleReject = useCallback(
@@ -548,12 +561,13 @@ export function NotificationBell() {
               (row) => !(row.kind === "registration" && row.id === item.id),
             ),
           );
+          void loadCount();
         } finally {
           setBusyId(null);
         }
       });
     },
-    [],
+    [loadCount],
   );
 
   if (!params.branchId) return null;

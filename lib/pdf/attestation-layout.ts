@@ -11,6 +11,7 @@ import {
 export type AttestationPdfInput = {
   organizationName: string;
   branchName: string;
+  address?: string | null;
   schoolYearName?: string | null;
   studentName: string;
   username?: string | null;
@@ -29,17 +30,22 @@ export function buildAttestationPdfDoc(input: AttestationPdfInput) {
   doc.setTextColor(15, 23, 42);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(14);
-  doc.text(input.organizationName, pageWidth / 2, 24, { align: "center" });
+  doc.text(input.branchName, pageWidth / 2, 24, { align: "center" });
 
   doc.setFontSize(11);
   doc.setFont("helvetica", "normal");
-  const branchLines = doc.splitTextToSize(input.branchName, 170) as string[];
-  doc.text(branchLines, pageWidth / 2, 31, { align: "center" });
+  const addressLine = input.address?.trim();
+  let titleY = 31;
+  if (addressLine) {
+    const addressLines = doc.splitTextToSize(addressLine, 170) as string[];
+    doc.text(addressLines, pageWidth / 2, 31, { align: "center" });
+    titleY = 31 + addressLines.length * 5;
+  }
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(18);
   doc.setTextColor(30, 64, 175);
-  doc.text("ATTESTATION DE PARTICIPATION", pageWidth / 2, 48, {
+  doc.text("ATTESTATION DE PARTICIPATION", pageWidth / 2, titleY + 10, {
     align: "center",
   });
 
@@ -62,7 +68,7 @@ export function buildAttestationPdfDoc(input: AttestationPdfInput) {
     "a participe aux activites pratiques organisees par notre atelier.",
   ].filter(Boolean) as string[];
 
-  let y = 68;
+  let y = titleY + 22;
   for (const line of lines) {
     const isName = line === input.studentName.toUpperCase();
     doc.setFont("helvetica", isName ? "bold" : "normal");

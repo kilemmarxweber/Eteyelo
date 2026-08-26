@@ -9,7 +9,7 @@ import type { SchoolReportContext } from "@/lib/reports/types";
 export type SchoolBrandHeaderProps = {
   context: Pick<
     SchoolReportContext,
-    "schoolName" | "address" | "logoUrl" | "academicYearLabel"
+    "schoolName" | "address" | "phone" | "email" | "logoUrl" | "academicYearLabel"
   >;
   /** Titre du document sous le branding. */
   title?: string;
@@ -39,7 +39,10 @@ export function SchoolBrandHeader({
   meta,
   className,
 }: SchoolBrandHeaderProps) {
-  const contactLine = context.address?.trim() || "";
+  const contactLine = [context.address, context.phone, context.email]
+    .map((part) => part?.trim())
+    .filter(Boolean)
+    .join(" · ");
   const initials = schoolInitials(context.schoolName || "É");
   const logoSrc = context.logoUrl?.trim() || undefined;
 
@@ -63,7 +66,7 @@ export function SchoolBrandHeader({
           <p className="text-base font-semibold tracking-tight text-foreground sm:text-lg">
             {context.schoolName}
           </p>
-          {subtitle?.trim() ? (
+          {subtitle?.trim() && subtitle.trim() !== context.schoolName.trim() ? (
             <p className="text-sm font-medium text-muted-foreground">
               {subtitle.trim()}
             </p>

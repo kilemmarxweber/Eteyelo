@@ -13,6 +13,7 @@ import {
 export type ReleveNotesPdfInput = ReleveNotesData & {
   organizationName: string;
   branchName: string;
+  address?: string | null;
   releveNumber: string;
   issuedAt?: Date;
 };
@@ -26,17 +27,21 @@ export function buildReleveNotesPdfDoc(input: ReleveNotesPdfInput) {
   doc.setTextColor(15, 23, 42);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(14);
-  doc.text(input.organizationName, pageWidth / 2, 18, { align: "center" });
+  doc.text(input.branchName, pageWidth / 2, 18, { align: "center" });
 
-  doc.setFontSize(11);
+  doc.setFontSize(10);
   doc.setFont("helvetica", "normal");
-  const branchLines = doc.splitTextToSize(input.branchName, 180) as string[];
-  doc.text(branchLines, pageWidth / 2, 25, { align: "center" });
+  let titleY = 25;
+  if (input.address?.trim()) {
+    const addressLines = doc.splitTextToSize(input.address.trim(), 180) as string[];
+    doc.text(addressLines, pageWidth / 2, 25, { align: "center" });
+    titleY = 25 + addressLines.length * 4.5;
+  }
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(16);
   doc.setTextColor(30, 64, 175);
-  doc.text("RELEVE DE NOTES", pageWidth / 2, 36, { align: "center" });
+  doc.text("RELEVE DE NOTES", pageWidth / 2, titleY + 6, { align: "center" });
 
   doc.setTextColor(15, 23, 42);
   doc.setFont("helvetica", "normal");
@@ -52,7 +57,7 @@ export function buildReleveNotesPdfDoc(input: ReleveNotesPdfInput) {
     `Numero : ${input.releveNumber}`,
   ].filter(Boolean) as string[];
 
-  let y = 44;
+  let y = titleY + 14;
   for (const line of infoLines) {
     doc.text(line, 14, y);
     y += 5;

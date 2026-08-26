@@ -4,6 +4,7 @@ import {
   angolaPrimaryLevelLabel,
   extractAngolaPrimaryLevelFromLabel,
 } from "@/lib/angola-primary-structure";
+import { angolaStudyDeclarationClassPhrase } from "@/lib/angola-secondary-structure";
 import type { BulletinBranchContext } from "@/lib/bulletin-context";
 import { numberToWords } from "@/lib/number-to-words";
 import { declarationBlankName } from "@/lib/person-full-name";
@@ -387,9 +388,11 @@ export function renderAngolaPrimaryStudyDeclarations(
     extractAngolaPrimaryLevelFromLabel(params.classLabel) ||
     params.classLevel ||
     "";
-  const classPhrase = angolaPrimaryLevelLabel(
-    classLevel || params.classLabel || "________",
-  );
+  const classPhrase = extractAngolaPrimaryLevelFromLabel(classLevel)
+    ? angolaPrimaryLevelLabel(classLevel)
+    : angolaStudyDeclarationClassPhrase(
+        params.classLevel || params.classLabel || classLevel,
+      );
   const turma = extractTurma(
     params.classParallel,
     params.classLabel || params.classLevel || "",

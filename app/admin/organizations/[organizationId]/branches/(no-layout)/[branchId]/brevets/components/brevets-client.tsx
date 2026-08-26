@@ -230,7 +230,7 @@ export function BrevetsClient() {
                 {context?.branchName}
               </p>
               <p className="mt-1 text-xs text-muted-foreground">
-                {context?.organizationName} · {context?.schoolYearName}
+                {context?.schoolYearName}
               </p>
               <p className="mt-2 text-xs text-muted-foreground">
                 Un brevet peut etre emis par programme et session. Un apprenant

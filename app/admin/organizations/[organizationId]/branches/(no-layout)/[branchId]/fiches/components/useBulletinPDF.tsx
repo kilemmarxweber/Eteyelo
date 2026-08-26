@@ -508,13 +508,11 @@ export default function BulletinPDF({
       drawHorizontalSquares(25, 35, 4, 27, 0);
       drawTwoColumnBox(startX, infoStartY, width, infoHeight, infoRowH);
 
-      const schoolName = branchContext.branchName || branchContext.organizationName;
+      const schoolName = branchContext.branchName || "………………";
       const branchLocation = [branchContext.city, branchContext.country]
         .filter(Boolean)
         .join(" / ");
-      const schoolNameSecondary = branchContext.organizationName
-        ? `${branchContext.branchName} — ${branchContext.organizationName}`
-        : branchContext.branchName;
+      const schoolNameSecondary = branchContext.branchName;
 
       if (isPrimaryLayout) {
         drawLabel(

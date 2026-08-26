@@ -1104,7 +1104,7 @@ export default function ClassFicheClient({
     setExportingExcel(true);
     try {
       await downloadCotationExcel({
-        schoolName: branchContext.organizationName,
+        schoolName: branchContext.branchName,
         branchName: branchContext.branchName,
         classLabel: selectedClass.codename || selectedClass.name || "",
         schoolYearLabel,
@@ -1152,7 +1152,6 @@ export default function ClassFicheClient({
     computePeriodPercentage,
     rankingData,
     schoolYearLabel,
-    branchContext.organizationName,
     branchContext.branchName,
     exportingExcel,
   ]);

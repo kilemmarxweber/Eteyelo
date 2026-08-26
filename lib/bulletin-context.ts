@@ -39,6 +39,7 @@ export type BulletinBranchContext = {
   branchName: string;
   branchCode: string;
   address: string;
+  phone: string;
   province: string;
   city: string;
   commune: string;
@@ -68,6 +69,7 @@ export type BulletinBranchRecord = {
   ville?: string | null;
   commune?: string | null;
   pays?: string | null;
+  tel?: string | null;
   image?: unknown;
   typebranch?: unknown;
   educationSystem?: unknown;
@@ -135,6 +137,7 @@ export function buildBulletinBranchContext(
     branchName: branchDocumentName(branch),
     branchCode: branch.code?.trim() ?? "",
     address: branch.adresse?.trim() ?? "",
+    phone: branch.tel?.trim() ?? "",
     province: branch.province?.trim() ?? "",
     city: branch.ville?.trim() ?? "",
     commune: branch.commune?.trim() ?? "",

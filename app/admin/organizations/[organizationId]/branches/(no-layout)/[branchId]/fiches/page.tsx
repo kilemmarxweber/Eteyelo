@@ -122,6 +122,7 @@ export default async function ClassFichePage() {
         ville: true,
         commune: true,
         pays: true,
+        tel: true,
         image: true,
         typebranch: true,
         educationSystem: true,

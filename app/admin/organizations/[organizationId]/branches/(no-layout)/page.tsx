@@ -169,7 +169,7 @@ export default async function BranchesPage({ params }: BranchesPageProps) {
                     <ArrowRight className="size-3.5 shrink-0 text-muted-foreground opacity-0 transition group-hover:translate-x-0.5 group-hover:opacity-100" />
                   </span>
                   {branch.description ? (
-                    <span className="mt-0.5 block truncate text-xs leading-snug text-muted-foreground">
+                    <span className="mt-0.5 block whitespace-normal break-words text-xs leading-snug text-muted-foreground">
                       {branch.description}
                     </span>
                   ) : null}

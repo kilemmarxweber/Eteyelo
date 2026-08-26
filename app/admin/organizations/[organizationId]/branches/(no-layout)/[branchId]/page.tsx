@@ -37,6 +37,7 @@ import {
   TeacherSpaceSection,
 } from "./dashboard-sections";
 import { AbsenceDashboardSection } from "@/components/absence-dashboard-card";
+import { refreshNotificationBell } from "@/lib/notification-events";
 
 type AdminStats = {
   typebranch?: string | null;
@@ -215,6 +216,7 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     let cancelled = false;
+    refreshNotificationBell();
 
     const load = async () => {
       setLoading(true);
@@ -244,6 +246,8 @@ export default function AdminDashboard() {
         setTeacher(data.teacher ?? null);
         setStudent(data.student ?? null);
         setParent(data.parent ?? null);
+
+        refreshNotificationBell();
 
         const type = data.typebranch ?? (data.stats as AdminStats | null)?.typebranch;
         const feedback = data.feedbackStatus as

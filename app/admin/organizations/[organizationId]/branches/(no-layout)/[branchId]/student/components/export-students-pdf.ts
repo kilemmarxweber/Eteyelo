@@ -216,7 +216,7 @@ export async function buildStudentsReportPdf(
   const selectedClass = options.selectedClass ?? null;
   const isClassReport = Boolean(selectedClass);
   const hasYearFilter = Boolean(options.schoolYearIds?.length);
-  // Liste classe + année uniquement : pas de Date n. / Âge / Lieu de naissance.
+  // Liste classe + année uniquement : pas de Date n. / Lieu de naissance.
   const isClassYearOnlyReport =
     isClassReport &&
     hasYearFilter &&
@@ -262,16 +262,16 @@ export async function buildStudentsReportPdf(
     "Postnom",
     "Prénom",
     "Sexe",
+    "Âge",
     ...(!isClassReport ? (["Classe"] as const) : []),
     ...(showExamCodes ? (["E13", "E80"] as const) : []),
-    ...(showBirthColumns
-      ? (["Date n.", "Âge", "Lieu de naissance"] as const)
-      : []),
+    ...(showBirthColumns ? (["Date n.", "Lieu de naissance"] as const) : []),
   ];
 
   const body = students.map((student, index) => {
     const exam = resolveStudentExamCodes(student, options.schoolYearIds);
     const allowed = studentAllowsExamCodes(student, examCodesContext);
+    const age = calculateAge(student.dateOfBirth);
     const row: (string | number)[] = [
       index + 1,
       student.username || "-",
@@ -279,6 +279,7 @@ export async function buildStudentsReportPdf(
       student.postnom || "-",
       student.prenom || "-",
       student.sexe || "-",
+      age === null ? "-" : String(age),
     ];
     if (!isClassReport) {
       row.push(resolveStudentClassLabel(student, options.schoolYearIds));
@@ -287,10 +288,8 @@ export async function buildStudentsReportPdf(
       row.push(allowed ? exam.e13 : "—", allowed ? exam.e80 : "—");
     }
     if (showBirthColumns) {
-      const age = calculateAge(student.dateOfBirth);
       row.push(
         formatDateOfBirth(student.dateOfBirth),
-        age === null ? "-" : String(age),
         student.placeOfBirth?.trim() || "-",
       );
     }
@@ -308,6 +307,7 @@ export async function buildStudentsReportPdf(
       { width: 0.11, align: "left" }, // Postnom
       { width: 0.11, align: "left" }, // Prénom
       { width: 0.05, align: "center" }, // Sexe
+      { width: 0.05, align: "center" }, // Âge
     ];
     if (!isClassReport) fractions.push({ width: 0.12, align: "left" });
     if (showExamCodes) {
@@ -316,7 +316,6 @@ export async function buildStudentsReportPdf(
     }
     if (showBirthColumns) {
       fractions.push({ width: 0.08, align: "center" });
-      fractions.push({ width: 0.04, align: "center" });
       fractions.push({ width: 0.12, align: "left" });
     }
     const total = fractions.reduce((sum, item) => sum + item.width, 0);

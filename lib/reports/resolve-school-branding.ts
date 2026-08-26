@@ -1,9 +1,11 @@
 import { extractBulletinBranchLogo } from "@/lib/bulletin-context";
+import { branchDocumentName } from "@/lib/branch-document-name";
 import type { SchoolReportContext } from "@/lib/reports/types";
 
 export type SchoolBrandingBranchRecord = {
   id: string;
   name: string;
+  description?: string | null;
   organizationId: string;
   adresse?: string | null;
   commune?: string | null;
@@ -84,21 +86,21 @@ export type BuildSchoolReportContextOptions = {
 
 /**
  * Construit le contexte branding partagé pour PDF / aperçus HTML.
- * `schoolName` = nom d'organisation (établissement), adresse / téléphone = branche.
+ * `schoolName` = description officielle de la branche, sinon son nom.
+ * Pas le nom de l’organisation. Adresse / téléphone = branche.
  */
 export function buildSchoolReportContext(
   branch: SchoolBrandingBranchRecord,
   options: BuildSchoolReportContextOptions = {},
 ): SchoolReportContext {
-  const organizationName = branch.organization.name.trim();
-  const branchName = branch.name.trim();
+  const documentName = branchDocumentName(branch) || "Établissement";
   const academicYearFromBranch = branch.schoolYear?.[0]?.nameYear?.trim();
 
   return {
     organizationId: branch.organization.id ?? branch.organizationId,
     branchId: branch.id,
-    schoolName: organizationName || branchName || "Établissement",
-    branchName: branchName || undefined,
+    schoolName: documentName,
+    branchName: documentName,
     address: formatSchoolAddress(branch),
     city: branch.ville?.trim() || undefined,
     phone: branch.tel?.trim() || undefined,
@@ -117,6 +119,7 @@ export function buildSchoolReportContext(
 export const schoolReportBranchSelect = {
   id: true,
   name: true,
+  description: true,
   organizationId: true,
   adresse: true,
   commune: true,

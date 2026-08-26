@@ -111,7 +111,7 @@ export function drawReportHeader(
   });
   textY += 5;
 
-  if (subtitle?.trim()) {
+  if (subtitle?.trim() && subtitle.trim() !== (context.schoolName || "").trim()) {
     doc.setFont("helvetica", "normal");
     doc.setFontSize(9);
     doc.setTextColor(71, 85, 105);
@@ -121,7 +121,10 @@ export function drawReportHeader(
     textY += 4;
   }
 
-  const contactLine = context.address?.trim() || "";
+  const contactLine = [context.address, context.phone, context.email]
+    .map((part) => part?.trim())
+    .filter(Boolean)
+    .join(" · ");
 
   if (contactLine) {
     doc.setFont("helvetica", "normal");

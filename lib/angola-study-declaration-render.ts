@@ -1,6 +1,10 @@
 import type { jsPDF } from "jspdf";
 
 import {
+  angolaPrimaryLevelLabel,
+  extractAngolaPrimaryLevelFromLabel,
+} from "@/lib/angola-primary-structure";
+import {
   angolaStudyDeclarationClassPhrase,
   shouldUseAngolaStudyDeclaration,
 } from "@/lib/angola-secondary-structure";
@@ -258,9 +262,14 @@ export function renderAngolaStudyDeclarations(
   const city = params.branchContext.city.trim();
   const directorName = params.branchContext.directorName?.trim() ?? "";
   const directorTitle = "Directora";
-  const classPhrase = angolaStudyDeclarationClassPhrase(
-    params.classLevel || params.classLabel,
-  );
+  const primaryLevel =
+    extractAngolaPrimaryLevelFromLabel(params.classLevel) ||
+    extractAngolaPrimaryLevelFromLabel(params.classLabel);
+  const classPhrase = primaryLevel
+    ? angolaPrimaryLevelLabel(primaryLevel)
+    : angolaStudyDeclarationClassPhrase(
+        params.classLevel || params.classLabel,
+      );
   const turma = extractTurma(
     params.classParallel,
     params.classLabel || params.classLevel || "",

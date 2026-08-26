@@ -111,23 +111,31 @@ export function renderTermPeriodBulletins(
     classParallel?: string | null;
   },
 ) {
+  const academicCycle =
+    params.branchContext.cycle ?? params.branchContext.branchType;
+  const classLabel =
+    params.classLabel ?? params.students[0]?.studentclasse;
+  const declarationParams = {
+    students: params.students,
+    branchContext: params.branchContext,
+    periodLabel: params.periodLabel,
+    schoolYear: params.schoolYear,
+    classLabel: params.classLabel,
+    classLevel: params.classLevel,
+    classParallel: params.classParallel,
+  };
+
+  // Angola : le modèle « primaire » (tableau L. Port / Mat. / E. Meio)
+  // et le modèle « secondaire » (liste des disciplines) étaient inversés.
   if (
     shouldUseAngolaPrimaryStudyDeclaration(
       params.branchContext.educationSystem,
-      params.branchContext.branchType,
+      academicCycle,
       params.classLevel,
-      params.classLabel ?? params.students[0]?.studentclasse,
+      classLabel,
     )
   ) {
-    renderAngolaPrimaryStudyDeclarations(doc, {
-      students: params.students,
-      branchContext: params.branchContext,
-      periodLabel: params.periodLabel,
-      schoolYear: params.schoolYear,
-      classLabel: params.classLabel,
-      classLevel: params.classLevel,
-      classParallel: params.classParallel,
-    });
+    renderAngolaStudyDeclarations(doc, declarationParams);
     return;
   }
 
@@ -135,18 +143,10 @@ export function renderTermPeriodBulletins(
     shouldUseAngolaStudyDeclaration(
       params.branchContext.educationSystem,
       params.classLevel,
-      params.classLabel ?? params.students[0]?.studentclasse,
+      classLabel,
     )
   ) {
-    renderAngolaStudyDeclarations(doc, {
-      students: params.students,
-      branchContext: params.branchContext,
-      periodLabel: params.periodLabel,
-      schoolYear: params.schoolYear,
-      classLabel: params.classLabel,
-      classLevel: params.classLevel,
-      classParallel: params.classParallel,
-    });
+    renderAngolaPrimaryStudyDeclarations(doc, declarationParams);
     return;
   }
 
