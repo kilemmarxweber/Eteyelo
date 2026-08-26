@@ -78,13 +78,15 @@ import {
   isHumanitesLevel,
   allowsOptionForBranch,
 } from "@/lib/class-structure";
-import { cycleLabel, isCycle, type Cycle } from "@/lib/cycle";
+import { cycleLabel, isCycle, getBranchCycles, type Cycle } from "@/lib/cycle";
 import {
   maternelleOptionDisplayName,
   isMaternelleClassLevel,
 } from "@/lib/maternelle-academic-structure";
 import {
   CTEB_SECTION_CODE,
+  findCtebOption,
+  findCtebSection,
   isCtebOption,
   isCtebSection,
 } from "@/lib/class-catalog";
@@ -236,6 +238,13 @@ function requiresOptionForLevel(
   level: string,
   educationSystem?: string,
 ) {
+  if (isCtebLevel(level)) return false;
+  if (
+    isAngolaSecondarySystem(typebranch, educationSystem) &&
+    isAngolaFirstCycleLevel(level)
+  ) {
+    return false;
+  }
   return requiresOptionForClass(typebranch, level, educationSystem);
 }
 
@@ -424,6 +433,7 @@ export function RegistrationForm({
     setHistoryOutcome("new");
     setFeeDebtMessage("");
     setSchoolYearId("");
+    setAcademicCycle("");
     setLevel("");
     setSectionId("");
     setOptionId("");
@@ -611,29 +621,34 @@ export function RegistrationForm({
   const schoolYearLabelLower = schoolYearLabel.toLowerCase();
   const hidesParent = hidesParentManagement(options.typebranch);
   const hidesProvenance = hidesProvenanceEcole(options.typebranch);
-  const branchCycles: Cycle[] = (() => {
-    const raw = options.cycles;
-    if (Array.isArray(raw) && raw.length > 0) {
-      return raw
-        .map((item: unknown) =>
-          typeof item === "string"
-            ? item
-            : item &&
-                typeof item === "object" &&
-                "cycle" in item &&
-                typeof (item as { cycle: unknown }).cycle === "string"
-              ? (item as { cycle: Cycle }).cycle
-              : "",
-        )
-        .filter((item: string): item is Cycle => Boolean(item));
+  const branchCycles: Cycle[] = useMemo(() => {
+    const fromBranch = getBranchCycles({
+      typebranch: options.typebranch,
+      cycles: Array.isArray(options.cycles) ? options.cycles : undefined,
+    });
+    if (fromBranch.length > 1) return fromBranch;
+    const fromClasses = [
+      ...new Set(
+        ((options.classes ?? []) as Array<{ cycle?: unknown }>)
+          .map((classe) => classe.cycle)
+          .filter(isCycle),
+      ),
+    ];
+    if (fromClasses.length > 1) {
+      return getBranchCycles({
+        typebranch: options.typebranch,
+        cycles: fromClasses,
+      });
     }
-    return options.typebranch ? [options.typebranch as Cycle] : [];
-  })();
+    return fromBranch;
+  }, [options.classes, options.cycles, options.typebranch]);
   const isMultiCycle = branchCycles.length > 1;
-  const structureType =
-    academicCycle ||
-    (!isMultiCycle ? (branchCycles[0] ?? options.typebranch ?? "") : "");
-  const allowsOption = allowsOptionForBranch(structureType);
+  const structureType = isCycle(academicCycle)
+    ? academicCycle
+    : !isMultiCycle
+      ? (branchCycles[0] ?? "")
+      : "";
+  const allowsOption = Boolean(structureType) && allowsOptionForBranch(structureType);
   const classLevels = structureType
     ? [...getClassLevelsForBranch(structureType, options.educationSystem)]
     : [];
@@ -817,10 +832,8 @@ export function RegistrationForm({
     options.educationSystem,
   );
   const angolaNucleoLevel =
-    structureType === "SECONDAIRE" && isAngolaFirstCycleLevel(level);
-  const angolaAreaLevel =
-    (angolaSecondary || structureType === "SECONDAIRE") &&
-    angolaRequiresArea(level);
+    angolaSecondary && isAngolaFirstCycleLevel(level);
+  const angolaAreaLevel = angolaSecondary && angolaRequiresArea(level);
 
   const sectionsForLevel = useMemo(() => {
     const sections = (options.sections ?? []).filter(
@@ -866,15 +879,6 @@ export function RegistrationForm({
         !item.cycle || !structureType || item.cycle === structureType,
     );
     if (structureType !== "SECONDAIRE") return branchOptions;
-    if (!sectionId) return [];
-    const inSection = branchOptions.filter(
-      (item: { sectionId?: string | null }) => item.sectionId === sectionId,
-    );
-    if (angolaNucleoLevel) {
-      return inSection.filter((item: { codeOption?: string; nameOption?: string }) =>
-        isAngolaNucleoComumOption(item),
-      );
-    }
     if (isCtebLevel(level)) {
       const ctebOptions = branchOptions.filter((item: {
         codeOption?: string;
@@ -886,6 +890,15 @@ export function RegistrationForm({
         (item: { sectionId?: string | null }) => item.sectionId === sectionId,
       );
       return inLockedSection.length > 0 ? inLockedSection : ctebOptions;
+    }
+    if (!sectionId) return [];
+    const inSection = branchOptions.filter(
+      (item: { sectionId?: string | null }) => item.sectionId === sectionId,
+    );
+    if (angolaNucleoLevel) {
+      return inSection.filter((item: { codeOption?: string; nameOption?: string }) =>
+        isAngolaNucleoComumOption(item),
+      );
     }
     return inSection;
   }, [angolaNucleoLevel, level, options.options, sectionId, structureType]);
@@ -899,43 +912,71 @@ export function RegistrationForm({
     ) &&
     !angolaNucleoLevel;
 
+  const optionChoices = useMemo(() => {
+    if (structureType !== "SECONDAIRE") {
+      return (options.options ?? []) as Array<{ id: string; nameOption: string }>;
+    }
+    if (secondaryHumanitesLevel || isCtebLevel(level) || angolaNucleoLevel) {
+      return optionsForSection;
+    }
+    return (options.options ?? []).filter(
+      (item: { cycle?: string | null }) =>
+        !item.cycle || !structureType || item.cycle === structureType,
+    );
+  }, [
+    angolaNucleoLevel,
+    level,
+    options.options,
+    optionsForSection,
+    secondaryHumanitesLevel,
+    structureType,
+  ]);
+  const optionSelectValue = optionChoices.some(
+    (item: { id: string }) => item.id === optionId,
+  )
+    ? optionId
+    : undefined;
+
   useEffect(() => {
-    if (!academicCycle && branchCycles.length === 1) {
+    if (academicCycle || isMultiCycle || !options.typebranch) return;
+    if (branchCycles.length === 1) {
       setAcademicCycle(branchCycles[0]);
     }
-  }, [academicCycle, options.cycles, options.typebranch]);
+  }, [
+    academicCycle,
+    branchCycles,
+    isMultiCycle,
+    options.typebranch,
+  ]);
 
   useEffect(() => {
-    if (structureType !== "SECONDAIRE") return;
     if (!isCtebLevel(level) && !angolaNucleoLevel) return;
 
-    const lockedSection = (options.sections ?? []).find(
-      (section: { codeSection: string; id: string; nameSection?: string; cycle?: string | null }) =>
-        (!section.cycle || section.cycle === structureType) &&
-        (angolaNucleoLevel
-          ? section.codeSection === ANGOLA_CICLO1_SECTION_CODE
-          : isCtebSection(section)),
+    const lockedSection = findCtebSection(options.sections ?? [])
+      ?? findCtebSection(options.sections ?? [], "SECONDAIRE");
+    const lockedOption = findCtebOption(options.options ?? [])
+      ?? findCtebOption(options.options ?? [], "SECONDAIRE");
+    const nucleoSection = (options.sections ?? []).find(
+      (section: { codeSection: string; id: string; cycle?: string | null }) =>
+        section.codeSection === ANGOLA_CICLO1_SECTION_CODE,
     );
-    const lockedOption = (options.options ?? []).find(
+    const nucleoOption = (options.options ?? []).find(
       (item: {
         codeOption?: string;
         nameOption?: string;
         id: string;
         sectionId?: string | null;
-        cycle?: string | null;
-      }) =>
-        (!item.cycle || item.cycle === structureType) &&
-        (angolaNucleoLevel
-          ? isAngolaNucleoComumOption(item)
-          : isCtebOption(item)),
+      }) => isAngolaNucleoComumOption(item),
     );
 
-    const nextSectionId = lockedSection?.id ?? lockedOption?.sectionId ?? "";
+    const section = angolaNucleoLevel ? nucleoSection : lockedSection;
+    const option = angolaNucleoLevel ? nucleoOption : lockedOption;
+    const nextSectionId = section?.id ?? option?.sectionId ?? "";
     if (nextSectionId && sectionId !== nextSectionId) {
       setSectionId(nextSectionId);
     }
-    if (lockedOption && optionId !== lockedOption.id) {
-      setOptionId(lockedOption.id);
+    if (option && optionId !== option.id) {
+      setOptionId(option.id);
     }
   }, [
     angolaNucleoLevel,
@@ -966,10 +1007,10 @@ export function RegistrationForm({
   }, [angolaNucleoLevel, level, sectionId, sectionsForLevel, structureType]);
 
   const selectedClasses = useMemo(() => {
-    const optionName = options.options.find(
+    const optionName = (options.options ?? []).find(
       (item: any) => item.id === optionId,
     )?.nameOption;
-    return options.classes.filter((classe: any) =>
+    return (options.classes ?? []).filter((classe: any) =>
       matchesClassForLevel(classe, {
         typebranch: structureType || options.typebranch,
         educationSystem: options.educationSystem,
@@ -2542,7 +2583,7 @@ export function RegistrationForm({
                     ) : null}
                     <Field label={tReg("fields.schoolYearRequired", { yearLabel: schoolYearLabel })}>
                       <Select
-                        value={schoolYearId}
+                        value={schoolYearId || undefined}
                         onValueChange={setSchoolYearId}
                       >
                         <SelectTrigger>
@@ -2560,9 +2601,48 @@ export function RegistrationForm({
                     </Field>
                     <Field label={tReg("fields.classLevelRequired", { classLabel })}>
                       <Select
-                        value={level}
+                        key={structureType || "no-cycle"}
+                        value={level || undefined}
                         onValueChange={(value: string) => {
                           setLevel(value);
+                          const lockCteb = isCtebLevel(value);
+                          const lockNucleo =
+                            angolaSecondary && isAngolaFirstCycleLevel(value);
+                          if (lockCteb || lockNucleo) {
+                            const lockedSection = lockNucleo
+                              ? (options.sections ?? []).find(
+                                  (section: {
+                                    codeSection: string;
+                                    id: string;
+                                  }) =>
+                                    section.codeSection ===
+                                    ANGOLA_CICLO1_SECTION_CODE,
+                                )
+                              : findCtebSection(options.sections ?? []) ??
+                                findCtebSection(
+                                  options.sections ?? [],
+                                  "SECONDAIRE",
+                                );
+                            const lockedOption = lockNucleo
+                              ? (options.options ?? []).find(
+                                  (item: {
+                                    codeOption?: string;
+                                    nameOption?: string;
+                                    id: string;
+                                    sectionId?: string | null;
+                                  }) => isAngolaNucleoComumOption(item),
+                                )
+                              : findCtebOption(options.options ?? []) ??
+                                findCtebOption(
+                                  options.options ?? [],
+                                  "SECONDAIRE",
+                                );
+                            setSectionId(
+                              lockedSection?.id ?? lockedOption?.sectionId ?? "",
+                            );
+                            setOptionId(lockedOption?.id ?? "");
+                            return;
+                          }
                           setSectionId("");
                           setOptionId("");
                         }}
@@ -2596,7 +2676,15 @@ export function RegistrationForm({
                           {secondaryHumanitesLevel ? (
                             <Field label={tReg("fields.sectionTrackRequired")}>
                               <Select
-                                value={sectionId || undefined}
+                                key={`section-${structureType}-${level}`}
+                                value={
+                                  sectionsForLevel.some(
+                                    (section: { id: string }) =>
+                                      section.id === sectionId,
+                                  )
+                                    ? sectionId
+                                    : undefined
+                                }
                                 onValueChange={(value: string) => {
                                   setSectionId(value);
                                   setOptionId("");
@@ -2636,7 +2724,8 @@ export function RegistrationForm({
                             }
                           >
                             <Select
-                              value={optionId || undefined}
+                              key={`option-${structureType}-${level}-${sectionId}`}
+                              value={optionSelectValue}
                               onValueChange={setOptionId}
                               disabled={
                                 !level ||
@@ -2657,17 +2746,7 @@ export function RegistrationForm({
                                 />
                               </SelectTrigger>
                               <SelectContent>
-                                {(secondaryHumanitesLevel ||
-                                isCtebLevel(level) ||
-                                angolaNucleoLevel
-                                  ? optionsForSection
-                                  : (options.options ?? []).filter(
-                                      (item: { cycle?: string | null }) =>
-                                        !item.cycle ||
-                                        !structureType ||
-                                        item.cycle === structureType,
-                                    )
-                                ).map((item: any) => (
+                                {optionChoices.map((item: any) => (
                                   <SelectItem key={item.id} value={item.id}>
                                     {item.nameOption}
                                   </SelectItem>
@@ -2780,8 +2859,11 @@ export function RegistrationForm({
                       <p className="rounded-md border border-dashed px-3 py-4 text-center text-sm text-muted-foreground">
                         {tReg("selectClassForParallels", { classLabel })}
                       </p>
-                    ) : requiresOptionForLevel(structureType, level, options.educationSystem) &&
-                      !optionId ? (
+                    ) : requiresOptionForLevel(
+                        structureType,
+                        level,
+                        options.educationSystem,
+                      ) && !optionId ? (
                       <p className="rounded-md border border-dashed px-3 py-4 text-center text-sm text-muted-foreground">
                         {tReg("chooseOptionForClasses", { classLabelPlural })}
                       </p>

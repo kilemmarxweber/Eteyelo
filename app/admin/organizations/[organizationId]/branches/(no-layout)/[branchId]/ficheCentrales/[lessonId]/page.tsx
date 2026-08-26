@@ -8,7 +8,6 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { BackLink } from "@/components/ui/back-link";
 import { PageHeader } from "@/components/ui/page-header";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { IconClipboardCheck } from "@tabler/icons-react";
@@ -87,9 +86,8 @@ export default async function FicheCentraleDetailPage({
             Centrale
           </Badge>
         }
-        breadcrumbs={
-          <BackLink href={listHref} label="Fiches centrales" />
-        }
+        backHref={listHref}
+        backLabel="Retour aux fiches centrales"
         actions={
           <div className="flex flex-wrap items-center gap-2">
             {summary.ficheCoteValidated ? (
@@ -123,14 +121,17 @@ export default async function FicheCentraleDetailPage({
               listHref={listHref}
             />
 
-            <ValidateFicheButton
-              lessonId={lessonId}
-              classId={classId}
-              periodId={Number(periodId)}
-              anneeId={anneeId}
-              disabled={!summary.ficheCoteId}
-              isValidated={summary.ficheCoteValidated}
-            />
+            {summary.ficheCoteValidated ? null : (
+              <ValidateFicheButton
+                lessonId={lessonId}
+                classId={classId}
+                periodId={Number(periodId)}
+                anneeId={anneeId}
+                disabled={!summary.ficheCoteId}
+                isValidated={summary.ficheCoteValidated}
+                listHref={listHref}
+              />
+            )}
           </div>
         }
       />

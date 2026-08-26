@@ -14,6 +14,7 @@ type Props = {
   anneeId: string;
   disabled?: boolean;
   isValidated?: boolean;
+  listHref: string;
 };
 
 export default function ValidateFicheButton({
@@ -23,6 +24,7 @@ export default function ValidateFicheButton({
   anneeId,
   disabled = false,
   isValidated = false,
+  listHref,
 }: Props) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -48,7 +50,7 @@ export default function ValidateFicheButton({
           }
 
           toast.success(result.message);
-          router.refresh();
+          router.push(listHref);
         })
       }
     >

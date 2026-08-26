@@ -223,7 +223,7 @@ export function requiresSectionForClass(
 }
 
 export function allowsOptionForBranch(typebranch: unknown): boolean {
-  if (typebranch === "MATERNELLE") return false;
+  if (!typebranch || typebranch === "MATERNELLE") return false;
   const branchType = normalizeBranchType(typebranch);
   return (
     branchType === "SECONDAIRE" ||

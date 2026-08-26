@@ -39,6 +39,11 @@ import {
   isExamCodesClass,
 } from "../lib/exam-export-meta";
 import {
+  findCtebOption,
+  findCtebSection,
+  getCtebLockDefaults,
+} from "../lib/class-catalog";
+import {
   maternelleLevelOptionCode,
   maternelleLevelOptionName,
   maternelleOptionDisplayName,
@@ -73,6 +78,13 @@ test("getBranchCycles vide = [typebranch]", () => {
         { cycle: "PRIMAIRE", isActive: true, sortOrder: 1 },
         { cycle: "SECONDAIRE", isActive: true, sortOrder: 2 },
       ],
+    }),
+    ["MATERNELLE", "PRIMAIRE", "SECONDAIRE"],
+  );
+  assert.deepEqual(
+    getBranchCycles({
+      typebranch: "SECONDAIRE",
+      cycles: ["MATERNELLE", "PRIMAIRE", "SECONDAIRE"],
     }),
     ["MATERNELLE", "PRIMAIRE", "SECONDAIRE"],
   );
@@ -217,6 +229,7 @@ test("allowsOptionForBranch : maternelle n'expose pas d'option", () => {
   assert.equal(allowsOptionForBranch("MATERNELLE"), false);
   assert.equal(allowsOptionForBranch("PRIMAIRE"), false);
   assert.equal(allowsOptionForBranch("SECONDAIRE"), true);
+  assert.equal(allowsOptionForBranch(""), false);
 });
 
 test("1è : matching isolé par cycle", () => {
@@ -283,6 +296,46 @@ test("1è : matching isolé par cycle", () => {
       },
     ),
     true,
+  );
+});
+
+test("7è CTEB : classes visibles sans optionId (multi-cycle)", () => {
+  const cteb = {
+    level: "7è",
+    optionId: "tronc",
+    nameClasse: "7è Tronc commun",
+    cycle: "SECONDAIRE",
+    option: { id: "tronc", nameOption: "Tronc commun" },
+  };
+  const primaire = {
+    level: "1è",
+    optionId: "pri-1",
+    nameClasse: "1è-PR",
+    cycle: "PRIMAIRE",
+  };
+  assert.equal(
+    matchesClassForLevel(cteb, {
+      typebranch: "SECONDAIRE",
+      level: "7è",
+      cycle: "SECONDAIRE",
+    }),
+    true,
+  );
+  assert.equal(
+    matchesClassForLevel(primaire, {
+      typebranch: "SECONDAIRE",
+      level: "1è",
+      cycle: "PRIMAIRE",
+    }),
+    true,
+  );
+  assert.equal(
+    matchesClassForLevel(cteb, {
+      typebranch: "SECONDAIRE",
+      level: "7è",
+      cycle: "PRIMAIRE",
+    }),
+    false,
   );
 });
 
@@ -446,6 +499,22 @@ test("E13/E80 : maternelle n'existe pas, terminal uniquement", () => {
   );
   assert.equal(examCodesExistForCycle("ATELIER"), false);
   assert.equal(examCodesExistForCycle("CENTRE_FORMATION"), false);
+});
+
+test("7è / 8è : Tronc commun CTEB par défaut", () => {
+  const defaults = getCtebLockDefaults();
+  assert.equal(defaults.optionName, "Tronc commun");
+  assert.equal(defaults.sectionName, "Éducation de Base (CTEB)");
+  const sections = [
+    { id: "s1", codeSection: "SCIE", nameSection: "Scientifique", cycle: "SECONDAIRE" },
+    { id: "s2", codeSection: "CTEB", nameSection: "Éducation de Base (CTEB)", cycle: "SECONDAIRE" },
+  ];
+  const options = [
+    { id: "o1", codeOption: "BIO", nameOption: "Biologie", sectionId: "s1", cycle: "SECONDAIRE" },
+    { id: "o2", codeOption: "TRONC-COM", nameOption: "Tronc commun", sectionId: "s2", cycle: "SECONDAIRE" },
+  ];
+  assert.equal(findCtebSection(sections, "SECONDAIRE")?.id, "s2");
+  assert.equal(findCtebOption(options, "SECONDAIRE")?.id, "o2");
 });
 
 console.log("Cycle tests passed.");

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -20,6 +20,7 @@ import {
 } from "@/lib/class-structure";
 import {
   CTEB_SECTION_CODE,
+  getCtebLockDefaults,
   getOrganizedSectionOptionTree,
 } from "@/lib/class-catalog";
 import { normalizeBranchType } from "@/lib/academic-structure";
@@ -114,19 +115,32 @@ export function LevelSectionOptionFields({
       return;
     }
     if (secondary && isCtebLevel(level)) {
-      const cteb = getOrganizedSectionOptionTree({
-        includeCteb: true,
-        includeFilieres: false,
-      })[0];
+      const defaults = getCtebLockDefaults();
       onChange({
         level,
-        sectionName: cteb?.nameSection ?? "Éducation de Base (CTEB)",
-        optionName: cteb?.options[0]?.nameOption ?? "Tronc commun",
+        sectionName: defaults.sectionName,
+        optionName: defaults.optionName,
       });
       return;
     }
     onChange({ level, sectionName: "", optionName: "" });
   }
+
+  useEffect(() => {
+    if (!secondary || !isCtebLevel(value.level)) return;
+    const defaults = getCtebLockDefaults();
+    if (
+      value.sectionName === defaults.sectionName &&
+      value.optionName === defaults.optionName
+    ) {
+      return;
+    }
+    onChange({
+      level: value.level,
+      sectionName: defaults.sectionName,
+      optionName: defaults.optionName,
+    });
+  }, [onChange, secondary, value.level, value.optionName, value.sectionName]);
 
   return (
     <div className="grid gap-4 md:grid-cols-2">

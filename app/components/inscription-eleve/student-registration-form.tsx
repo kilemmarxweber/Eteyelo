@@ -57,7 +57,8 @@ import {
 } from "@/lib/registration-public-info";
 import { LevelSectionOptionFields } from "@/components/level-section-option-fields";
 import type { ManagedBranchType } from "@/lib/academic-structure";
-import { isPrimaryBranch, requiresOptionForClass, requiresSectionForClass } from "@/lib/class-structure";
+import { isPrimaryBranch, isCtebLevel, requiresOptionForClass, requiresSectionForClass } from "@/lib/class-structure";
+import { getCtebLockDefaults } from "@/lib/class-catalog";
 import { isCentreFormationBranch, hidesProvenanceEcole } from "@/lib/branch-capabilities";
 import { getPeopleLabels } from "@/lib/people-labels";
 import {
@@ -683,6 +684,11 @@ export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
     if (requireLevel && !form.requestedLevel) {
       return null;
     }
+    const locked = applyCtebDefaults(
+      form.requestedLevel,
+      form.requestedSection,
+      form.requestedOption,
+    );
     return {
       name: form.name,
       postnom: form.postnom,
@@ -694,8 +700,8 @@ export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
       email: form.email.trim(),
       provenanceEcole: form.provenanceEcole,
       requestedLevel: form.requestedLevel,
-      requestedSection: form.requestedSection,
-      requestedOption: form.requestedOption,
+      requestedSection: locked.section,
+      requestedOption: locked.option,
       photo,
       extra: studentExtra,
     };
@@ -749,22 +755,45 @@ export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
     return true;
   }
 
+  function applyCtebDefaults(level: string, section: string, option: string) {
+    if (!isCtebLevel(level)) {
+      return { section, option };
+    }
+    const defaults = getCtebLockDefaults();
+    return {
+      section: section || defaults.sectionName,
+      option: option || defaults.optionName,
+    };
+  }
+
   function validateCurrentLevel(): boolean {
     const levelLabels = getPublicLevelFieldLabels(branchType);
     if (!form.requestedLevel) {
       toast.error(`Indiquez ${levelLabels.level.toLowerCase()} souhaite(e).`);
       return false;
     }
+    const locked = applyCtebDefaults(
+      form.requestedLevel,
+      form.requestedSection,
+      form.requestedOption,
+    );
+    if (locked.section !== form.requestedSection || locked.option !== form.requestedOption) {
+      setForm((current) => ({
+        ...current,
+        requestedSection: locked.section,
+        requestedOption: locked.option,
+      }));
+    }
     if (
       requiresSectionForClass(branchType, form.requestedLevel) &&
-      !form.requestedSection
+      !locked.section
     ) {
       toast.error(`Choisissez ${levelLabels.section.toLowerCase()}.`);
       return false;
     }
     if (
       requiresOptionForClass(branchType, form.requestedLevel) &&
-      !form.requestedOption
+      !locked.option
     ) {
       toast.error(`Choisissez ${levelLabels.option.toLowerCase()}.`);
       return false;
@@ -898,10 +927,18 @@ export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
       toast.error(`Indiquez ${levelLabels.level.toLowerCase()} souhaite(e).`);
       return false;
     }
+    const lockedLevel =
+      stepKind === "level"
+        ? applyCtebDefaults(
+            form.requestedLevel,
+            form.requestedSection,
+            form.requestedOption,
+          )
+        : null;
     if (
       stepKind === "level" &&
       requiresSectionForClass(branchType, form.requestedLevel) &&
-      !form.requestedSection
+      !lockedLevel?.section
     ) {
       toast.error(`Choisissez ${levelLabels.section.toLowerCase()}.`);
       return false;
@@ -909,7 +946,7 @@ export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
     if (
       stepKind === "level" &&
       requiresOptionForClass(branchType, form.requestedLevel) &&
-      !form.requestedOption
+      !lockedLevel?.option
     ) {
       toast.error(`Choisissez ${levelLabels.option.toLowerCase()}.`);
       return false;

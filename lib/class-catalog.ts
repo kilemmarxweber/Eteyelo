@@ -194,6 +194,40 @@ export function isCtebOption(option: {
   return name.includes("tronc commun") || name.includes("tronco comum");
 }
 
+export function findCtebSection<
+  T extends { codeSection?: string | null; nameSection?: string | null; cycle?: string | null },
+>(sections: T[], cycle?: string | null): T | undefined {
+  return sections.find(
+    (section) =>
+      (!cycle || !section.cycle || section.cycle === cycle) &&
+      isCtebSection(section),
+  );
+}
+
+export function findCtebOption<
+  T extends {
+    codeOption?: string | null;
+    nameOption?: string | null;
+    sectionId?: string | null;
+    cycle?: string | null;
+  },
+>(options: T[], cycle?: string | null): T | undefined {
+  return options.find(
+    (option) =>
+      (!cycle || !option.cycle || option.cycle === cycle) &&
+      isCtebOption(option),
+  );
+}
+
+export function getCtebLockDefaults() {
+  const section = getCtebSection();
+  const option = getCatalogOptionByCode(CTEB_OPTION_CODE);
+  return {
+    sectionName: section.nameSection,
+    optionName: option?.nameOption ?? "Tronc commun",
+  };
+}
+
 export function getCatalogOptionByCode(code: string) {
   return CLASS_CATALOG_OPTIONS.find((o) => o.codeOption === code);
 }

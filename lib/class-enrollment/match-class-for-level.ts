@@ -1,4 +1,4 @@
-import { requiresOptionForClass } from "@/lib/class-structure";
+import { requiresOptionForClass, isCtebLevel } from "@/lib/class-structure";
 import {
   isAngolaFirstCycleLevel,
   normalizeAngolaSecondaryLevel,
@@ -94,6 +94,7 @@ export function matchesClassForLevel(
   if (!classMatchesCycle(classe, cycle ?? null)) return false;
   if (!classMatchesLevel(classe, level)) return false;
 
+  if (isCtebLevel(level)) return true;
   if (isAngolaFirstCycleLevel(level)) return true;
 
   const structureType = cycle ?? params.typebranch;

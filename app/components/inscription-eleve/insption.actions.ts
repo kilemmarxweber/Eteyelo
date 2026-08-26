@@ -2,7 +2,8 @@
 
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { isPrimaryBranch } from "@/lib/class-structure";
+import { isPrimaryBranch, isCtebLevel } from "@/lib/class-structure";
+import { getCtebLockDefaults } from "@/lib/class-catalog";
 import { isAtelierBranch, isCentreFormationBranch } from "@/lib/branch-capabilities";
 import { fetchPublishedBranchRegistrationInfo } from "@/lib/fetch-published-branch-registration-info";
 import { getBranchManagerEmails } from "@/lib/email/get-branch-manager-emails";
@@ -290,6 +291,8 @@ export async function registerStudentsOnline(
         extra,
         ...identity
       } = student;
+      const cteb =
+        isCtebLevel(requestedLevel) ? getCtebLockDefaults() : null;
       return prisma.registrationRequest.create({
         data: {
           reference,
@@ -305,8 +308,8 @@ export async function registerStudentsOnline(
           },
           guardiansData: data.guardians,
           requestedLevel,
-          requestedSection: requestedSection || null,
-          requestedOption: requestedOption || null,
+          requestedSection: requestedSection || cteb?.sectionName || null,
+          requestedOption: requestedOption || cteb?.optionName || null,
           photoUrl: photoUrl || null,
           consentAccepted: true,
           termsAcceptedAt,

@@ -10,7 +10,7 @@ import { Prisma } from "@/prisma/generated/prisma/client";
 import { findAvailableClassForLevel } from "@/lib/class-enrollment/find-available-class";
 import { appendStudentToOpenClassFiches } from "@/lib/sync-fiche-students";
 import { matchesClassForLevel } from "@/lib/class-enrollment/match-class-for-level";
-import { getClassLevelsForBranch, requiresOptionForClass, allowsOptionForBranch } from "@/lib/class-structure";
+import { getClassLevelsForBranch, requiresOptionForClass, allowsOptionForBranch, isCtebLevel } from "@/lib/class-structure";
 import { ensureSecondaryCtebStructure } from "@/lib/secondary-cteb-structure";
 import { ensureAngolaSecondaryStructure } from "@/lib/angola-secondary-bootstrap";
 import {
@@ -838,6 +838,8 @@ export const createNextParallelForRegistrationAction = action
     ) {
       optionId = (await ensureAngolaSecondaryStructure(prisma, branchId)).option
         .id;
+    } else if (academicCycle === "SECONDAIRE" && isCtebLevel(input.level)) {
+      optionId = (await ensureSecondaryCtebStructure(prisma, branchId)).option.id;
     }
     const isPrimaire = academicCycle === "PRIMAIRE";
     const isMaternelle = academicCycle === "MATERNELLE";
@@ -1310,6 +1312,10 @@ export const createRegistrationFlowAction = action
     ) {
       enrollmentOptionId = (
         await ensureAngolaSecondaryStructure(prisma, branchId)
+      ).option.id;
+    } else if (academicCycle === "SECONDAIRE" && isCtebLevel(input.level)) {
+      enrollmentOptionId = (
+        await ensureSecondaryCtebStructure(prisma, branchId)
       ).option.id;
     }
     if (

@@ -178,11 +178,22 @@ export type BranchCycleRecord = {
   sortOrder?: number;
 };
 
+export type BranchCycleInput = BranchCycleRecord | Cycle | string;
+
+function coerceBranchCycleRecord(item: BranchCycleInput): BranchCycleRecord {
+  if (typeof item === "string") {
+    return { cycle: item, isActive: true };
+  }
+  return item;
+}
+
 export function getBranchCycles(branch: {
   typebranch?: unknown;
-  cycles?: BranchCycleRecord[] | null;
+  cycles?: BranchCycleInput[] | null;
 }): Cycle[] {
-  const rows = (branch.cycles ?? []).filter((row) => row.isActive !== false);
+  const rows = (branch.cycles ?? [])
+    .map(coerceBranchCycleRecord)
+    .filter((row) => row.isActive !== false);
   if (rows.length > 0) {
     return [...rows]
       .sort(
@@ -197,7 +208,7 @@ export function getBranchCycles(branch: {
 
 export function isMultiCycleBranch(branch: {
   typebranch?: unknown;
-  cycles?: BranchCycleRecord[] | null;
+  cycles?: BranchCycleInput[] | null;
 }): boolean {
   return getBranchCycles(branch).length > 1;
 }
