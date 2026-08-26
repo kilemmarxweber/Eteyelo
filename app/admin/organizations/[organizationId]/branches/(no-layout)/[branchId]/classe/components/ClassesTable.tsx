@@ -41,6 +41,7 @@ const ClassesList = ({
   const [error, setError] = useState<string | null>(null);
   const [editingClasse, setEditingClasse] = useState<IClasse | null>(null);
   const [archivingClasse, setArchivingClasse] = useState<IClasse | null>(null);
+  const [deletingClasse, setDeletingClasse] = useState<IClasse | null>(null);
   const hasLoadedOnce = useRef(false);
   const { refreshKey: contextRefreshKey } = useRefresh();
   const { data: session } = useSession();
@@ -52,6 +53,7 @@ const ClassesList = ({
     () => ({
       onEdit: (classe: IClasse) => setEditingClasse(classe),
       onArchive: (classe: IClasse) => setArchivingClasse(classe),
+      onDelete: (classe: IClasse) => setDeletingClasse(classe),
     }),
     [],
   );
@@ -128,6 +130,19 @@ const ClassesList = ({
           Classes={[archivingClasse]}
           showTrigger={false}
           onSuccess={() => setArchivingClasse(null)}
+        />
+      ) : null}
+
+      {deletingClasse ? (
+        <DeleteClassesDialog
+          open
+          permanent
+          onOpenChange={(open) => {
+            if (!open) setDeletingClasse(null);
+          }}
+          Classes={[deletingClasse]}
+          showTrigger={false}
+          onSuccess={() => setDeletingClasse(null)}
         />
       ) : null}
     </>

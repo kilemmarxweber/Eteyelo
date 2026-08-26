@@ -40,6 +40,7 @@ type LessonType = {
     id: string;
     status: boolean;
     periodId: number;
+    periodeName: string;
     typeFiche: string;
     anneeId: string;
   }[];
@@ -180,6 +181,7 @@ export default async function NotesPage({
               id: true,
               status: true,
               periodId: true,
+              periodeName: true,
               typeFiche: true,
               anneeId: true,
             },
@@ -326,6 +328,7 @@ export default async function NotesPage({
             id: f.id,
             status: f.status,
             periodId: f.periodId,
+            periodeName: f.periodeName,
             typeFiche: f.typeFiche,
             anneeId: f.anneeId,
           })) || [],
@@ -358,6 +361,7 @@ export default async function NotesPage({
             id: f.id,
             status: f.status,
             periodId: f.periodId,
+            periodeName: f.periodeName,
             typeFiche: f.typeFiche,
             anneeId: f.anneeId,
           })),

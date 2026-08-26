@@ -335,6 +335,7 @@ function transformClasse(classe: any): IClasse {
           statusOption: classe.option.statusOption ?? true,
         }
       : undefined,
+    studentsCount: classe._count?.classEnrollment ?? classe.studentsCount ?? 0,
   };
 }
 
@@ -346,6 +347,7 @@ export const getClassesAction = action.handler(async (): Promise<IClasse[]> => {
       include: {
         option: true,
         creneau: true,
+        _count: { select: { classEnrollment: true } },
       },
     });
     return classes.map(transformClasse);
@@ -495,6 +497,122 @@ export const archiveClasseAction = action
 
 /** @deprecated Utiliser archiveClasseAction */
 export const deleteClasseAction = archiveClasseAction;
+
+export const deleteClassePermanentlyAction = action
+  .input(z.object({ id: z.string().min(1) }))
+  .handler(async ({ input }) => {
+    const { branchId, organizationId } = await requireBranchContext();
+    const { id } = input;
+
+    const existClass = await prisma.classe.findFirst({
+      where: { id, branchId },
+      select: { id: true },
+    });
+    if (!existClass) {
+      throw new Error("La classe n'existe pas");
+    }
+
+    const studentsCount = await prisma.classEnrollment.count({
+      where: { classeId: id, branchId },
+    });
+    if (studentsCount > 0) {
+      throw new Error(
+        "Impossible de supprimer cette classe : des élèves y sont inscrits.",
+      );
+    }
+
+    try {
+      await prisma.$transaction(async (tx) => {
+        await tx.onlineAssignment.deleteMany({
+          where: { classId: id, branchId },
+        });
+
+        const teachings = await tx.teaching.findMany({
+          where: { classeId: id },
+          select: { id: true },
+        });
+        const teachingIds = teachings.map((teaching) => teaching.id);
+
+        if (teachingIds.length > 0) {
+          const sessions = await tx.attendanceSession.findMany({
+            where: { teachingId: { in: teachingIds } },
+            select: { id: true },
+          });
+          const sessionIds = sessions.map((session) => session.id);
+          if (sessionIds.length > 0) {
+            await tx.absenceCase.deleteMany({
+              where: { sessionId: { in: sessionIds } },
+            });
+            await tx.studentAttendance.deleteMany({
+              where: { sessionId: { in: sessionIds } },
+            });
+            await tx.teacherAttendance.deleteMany({
+              where: { sessionId: { in: sessionIds } },
+            });
+            await tx.attendanceSession.deleteMany({
+              where: { id: { in: sessionIds } },
+            });
+          }
+          await tx.schedule.deleteMany({
+            where: { teachingId: { in: teachingIds } },
+          });
+          await tx.calendarEvent.deleteMany({
+            where: { teachingId: { in: teachingIds } },
+          });
+          await tx.fiche.deleteMany({
+            where: { lessonId: { in: teachingIds } },
+          });
+          await tx.teaching.deleteMany({
+            where: { id: { in: teachingIds } },
+          });
+        }
+
+        await tx.fiche.deleteMany({
+          where: { classSectionId: id, branchId },
+        });
+        await tx.calendarEvent.updateMany({
+          where: { classeId: id, branchId },
+          data: { classeId: null },
+        });
+
+        const frais = await tx.frais.findMany({
+          where: { classeId: id, branchId },
+          select: { id: true },
+        });
+        const fraisIds = frais.map((item) => item.id);
+        if (fraisIds.length > 0) {
+          const payments = await tx.familyPayment.count({
+            where: { fraisId: { in: fraisIds } },
+          });
+          if (payments > 0) {
+            throw new Error(
+              "Impossible de supprimer cette classe : des paiements y sont liés.",
+            );
+          }
+          await tx.frais.deleteMany({ where: { id: { in: fraisIds } } });
+        }
+
+        await tx.classe.delete({ where: { id } });
+      });
+    } catch (error) {
+      if (error instanceof Error && error.message.startsWith("Impossible")) {
+        throw error;
+      }
+      const prismaCode =
+        error && typeof error === "object" && "code" in error
+          ? String((error as { code: unknown }).code)
+          : "";
+      if (prismaCode === "P2003" || prismaCode === "P2014") {
+        throw new Error(
+          "Impossible de supprimer cette classe : des données y sont encore liées.",
+        );
+      }
+      throw error;
+    }
+
+    revalidateClassePages(organizationId, branchId);
+    return { ok: true as const };
+  });
 
 export const statusClasseAction = action
   .input(classeSchema)

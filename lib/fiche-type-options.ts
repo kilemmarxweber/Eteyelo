@@ -83,6 +83,35 @@ export function getFicheTypeComboboxItems(params: {
   return intermediate;
 }
 
+export type FicheCoteLockInput = {
+  typeFiche: string;
+  status: boolean;
+  periodId: number;
+  anneeId: string;
+  periodeName?: string | null;
+};
+
+/** Fiche de cotation validée (status true) pour cette période / année. */
+export function isValidatedFicheCote(
+  fiches: FicheCoteLockInput[] | undefined,
+  params: {
+    periodId: number;
+    anneeId: string;
+    periodLabel?: string | null;
+  },
+): boolean {
+  if (!fiches?.length || !params.anneeId) return false;
+  const labels = [params.periodLabel].filter(Boolean) as string[];
+  return fiches.some(
+    (fiche) =>
+      fiche.typeFiche === "ficheCote" &&
+      fiche.status === true &&
+      fiche.anneeId === params.anneeId &&
+      (fiche.periodId === params.periodId ||
+        (fiche.periodeName != null && labels.includes(fiche.periodeName))),
+  );
+}
+
 /** Libelles du recapitulatif resultats par type de fiche. */
 export function getResultSummaryTypeLabels(typebranch: unknown): string[] {
   if (isUniversiteBranch(typebranch)) {

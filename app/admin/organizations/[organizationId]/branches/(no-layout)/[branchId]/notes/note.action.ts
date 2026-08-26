@@ -102,6 +102,10 @@ export async function checkExistingFiche(params: {
       classId: params.classId,
     });
 
+    if (params.typeFiche !== "ficheCote") {
+      return { exists: false };
+    }
+
     const existing = await prisma.fiche.findFirst({
       where: {
         branchId,
@@ -110,7 +114,7 @@ export async function checkExistingFiche(params: {
         lessonId: params.lessonId,
         periodId: params.periodId,
         anneeId: params.anneeId,
-        typeFiche: params.typeFiche,
+        typeFiche: "ficheCote",
       },
     });
 
@@ -320,70 +324,64 @@ export async function createFiche(
 
     const isFicheCote = data.typeFiche === "ficheCote";
 
-    // 🔎 Vérifie si fiche existe déjà (évaluation, devoir, TP, ficheCote, …)
-    const existing = await prisma.fiche.findFirst({
+    const lockedFicheCote = await prisma.fiche.findFirst({
       where: {
         classSectionId: data.classId,
         lessonId: data.lessonId,
         periodId: data.periodId,
         anneeId: annees.id,
-        typeFiche: data.typeFiche,
+        typeFiche: "ficheCote",
+        status: true,
         branchId,
       },
+      select: { id: true },
     });
 
-    // 🔁 UPDATE
-    // Compter les scores différents de 0
+    if (lockedFicheCote) {
+      return {
+        success: false,
+        error: true,
+        message:
+          "La fiche de cote est déjà validée. Cette période n'accepte plus de notes.",
+      };
+    }
 
-    // Vérifier s'il y en a au moins 2
-
-    // Définir le status
     data.status = false;
 
-    if (existing) {
-      if (!isFicheCote) {
-        const lockedFicheCote = await prisma.fiche.findFirst({
-          where: {
-            classSectionId: data.classId,
-            lessonId: data.lessonId,
-            periodId: data.periodId,
-            anneeId: annees.id,
-            typeFiche: "ficheCote",
-            status: true,
-            branchId,
-          },
-          select: { id: true },
-        });
-
-        if (lockedFicheCote) {
-          return {
-            success: false,
-            error: true,
-            message:
-              "La fiche de cote est déjà validée. Les notes ne peuvent plus être modifiées.",
-          };
-        }
-      }
-
-      await prisma.fiche.update({
-        where: { id: existing.id },
-        data: {
-          notes: JSON.stringify(data.notes),
-          autres:
-            JSON.stringify(data.autres) || JSON.stringify(typeFichesDefault),
-          status: false,
-          dateUpdated: new Date(),
+    // Une seule fiche de cote par cours / période : mise à jour si elle existe déjà.
+    if (isFicheCote) {
+      const existingFicheCote = await prisma.fiche.findFirst({
+        where: {
+          classSectionId: data.classId,
+          lessonId: data.lessonId,
+          periodId: data.periodId,
+          anneeId: annees.id,
+          typeFiche: "ficheCote",
+          branchId,
         },
       });
 
-      await syncClassStudentsAcrossFiches({
-        branchId,
-        classId: data.classId,
-        schoolYearId: annees.id,
-        currentStudents: data.notes,
-      });
+      if (existingFicheCote) {
+        await prisma.fiche.update({
+          where: { id: existingFicheCote.id },
+          data: {
+            notes: JSON.stringify(data.notes),
+            autres:
+              JSON.stringify(data.autres) || JSON.stringify(typeFichesDefault),
+            status: false,
+            dateUpdated: new Date(),
+          },
+        });
 
-      return { success: true };
+        await syncClassStudentsAcrossFiches({
+          branchId,
+          classId: data.classId,
+          schoolYearId: annees.id,
+          currentStudents: data.notes,
+        });
+
+        return { success: true };
+      }
     }
 
     // 🔧 Builder propre (100% Prisma safe)
@@ -503,7 +501,7 @@ export async function createFiche(
         });
       }
     } else {
-      // 🆕 autres types → toujours UNE fiche
+      // Devoir, évaluation, TP, … : une nouvelle fiche à chaque enregistrement
       await prisma.fiche.create({
         data: buildFicheData({
           lessonId: data.lessonId,

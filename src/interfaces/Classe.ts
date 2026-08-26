@@ -17,6 +17,7 @@ export interface IClasse {
   creneau?: ICreneau;
   createdAt: Date;
   updatedAt: Date;
+  studentsCount?: number;
 }
 
 export const classeSchema = z.object({

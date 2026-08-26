@@ -1,7 +1,7 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import { IconDots, IconSchool } from "@tabler/icons-react";
+import { IconDots, IconSchool, IconTrash } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -20,6 +20,7 @@ import { cycleLabel } from "@/lib/cycle";
 export type ClasseTableActions = {
   onEdit: (classe: IClasse) => void;
   onArchive: (classe: IClasse) => void;
+  onDelete: (classe: IClasse) => void;
 };
 
 export function getClasseColumns(
@@ -130,7 +131,10 @@ export function getClasseColumns(
     },
     {
       id: "actions",
-      cell: ({ row }) => (
+      cell: ({ row }) => {
+        const classe = row.original;
+        const hasStudents = (classe.studentsCount ?? 0) > 0;
+        return (
         <DropdownMenu modal={false}>
           <DropdownMenuTrigger asChild>
             <Button
@@ -143,14 +147,14 @@ export function getClasseColumns(
               <IconDots className="size-4" aria-hidden="true" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-40">
+          <DropdownMenuContent align="end" className="w-44">
             <DropdownMenuItem
               disabled={!canManage || !actions}
               onSelect={(event) => {
                 event.preventDefault();
                 if (!actions) return;
                 openOverlayAfterMenuDismiss(() =>
-                  actions.onEdit(row.original),
+                  actions.onEdit(classe),
                 );
               }}
             >
@@ -164,15 +168,35 @@ export function getClasseColumns(
                 event.preventDefault();
                 if (!actions) return;
                 openOverlayAfterMenuDismiss(() =>
-                  actions.onArchive(row.original),
+                  actions.onArchive(classe),
                 );
               }}
             >
               Archiver
             </DropdownMenuItem>
+            <DropdownMenuItem
+              disabled={!canManage || !actions || hasStudents}
+              title={
+                hasStudents
+                  ? "Impossible : des élèves sont inscrits dans cette classe"
+                  : "Supprimer définitivement"
+              }
+              className="text-destructive focus:bg-destructive/10 focus:text-destructive"
+              onSelect={(event) => {
+                event.preventDefault();
+                if (!actions || hasStudents) return;
+                openOverlayAfterMenuDismiss(() =>
+                  actions.onDelete(classe),
+                );
+              }}
+            >
+              <IconTrash className="mr-2 size-4" />
+              Supprimer
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-      ),
+        );
+      },
     },
   );
 

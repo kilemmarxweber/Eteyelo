@@ -35,6 +35,7 @@ import { getAcademicPeriodOrder } from "@/lib/academic-structure";
 import {
   getFicheTypeComboboxItems,
   isStandardFicheType,
+  isValidatedFicheCote,
 } from "@/lib/fiche-type-options";
 
 /* ===== DYNAMIC ===== */
@@ -214,14 +215,17 @@ export default function FicheSaisieClient({
           _scoreInput: "",
         }));
 
-      const existingFiche = await checkExistingFiche({
-        teacherId: selectedTeacherId!,
-        classId: lesson.classId,
-        lessonId: selectedLessonId,
-        periodId: selectedPeriodId,
-        anneeId: selectedYearId!,
-        typeFiche,
-      });
+      const existingFiche =
+        typeFiche === "ficheCote"
+          ? await checkExistingFiche({
+              teacherId: selectedTeacherId!,
+              classId: lesson.classId,
+              lessonId: selectedLessonId,
+              periodId: selectedPeriodId,
+              anneeId: selectedYearId!,
+              typeFiche,
+            })
+          : { exists: false as const };
 
       if (ignore) return;
 
@@ -391,9 +395,20 @@ export default function FicheSaisieClient({
         return;
       }
 
-      toast.success("Fiche créée/mise à jour avec succès");
-      resetForm();
-      setStudents((prev) => prev.map((s) => ({ ...s, score: 0 })));
+      const isFicheCote = typeFiche === "ficheCote";
+      toast.success(
+        isFicheCote
+          ? "Fiche enregistrée"
+          : "Notes enregistrées. Vous pouvez en ajouter d'autres.",
+      );
+      router.refresh();
+      if (isFicheCote) {
+        resetForm();
+      } else {
+        setStudents((prev) =>
+          prev.map((s) => ({ ...s, score: null, _scoreInput: "" })),
+        );
+      }
     } catch (error) {
       console.error(error);
       toast.error("Erreur serveur ❌");
@@ -507,19 +522,75 @@ export default function FicheSaisieClient({
   const period = periods.find((p) => p.id === selectedPeriodId);
   const isExam = isExamPeriod(period);
   const canFilter = Boolean(selectedPeriodId && typeFiche && selectedYearId);
-  const isLocked = (l: any) =>
-    canFilter &&
-    l.fiches?.some((f: any) => {
-      if (!f.status) return false;
+  const periodLockParams = (p: Period) => ({
+    periodId: p.id,
+    anneeId: selectedYearId ?? "",
+    periodLabel: p.rawLabel ?? p.label,
+  });
+  const isLocked = (l: (typeof teachers)[number]["lessons"][number]) =>
+    Boolean(
+      canFilter &&
+        selectedPeriodId &&
+        selectedYearId &&
+        isValidatedFicheCote(l.fiches, {
+          periodId: selectedPeriodId,
+          anneeId: selectedYearId,
+          periodLabel: period?.rawLabel ?? period?.label,
+        }),
+    );
 
-      const sameContext =
-        f.periodId === selectedPeriodId && f.anneeId === selectedYearId;
+  const visiblePeriods = useMemo(() => {
+    const ordered = uniquePeriodsByLabel(
+      [...periods]
+        .filter((p) => {
+          if (notesLabels.isUniversite) return true;
+          if (isAdmin) return true;
+          return p.kind !== "EXAM";
+        })
+        .sort(
+          (a, b) =>
+            getAcademicPeriodOrder(
+              a.rawLabel ?? a.label,
+              notesLabels.typebranch,
+              notesLabels.educationSystem,
+            ) -
+            getAcademicPeriodOrder(
+              b.rawLabel ?? b.label,
+              notesLabels.typebranch,
+              notesLabels.educationSystem,
+            ),
+        ),
+    );
 
-      return (
-        sameContext &&
-        (f.typeFiche === "ficheCote" || f.typeFiche === typeFiche)
+    if (!selectedYearId) return ordered;
+
+    return ordered.filter((p) => {
+      const params = periodLockParams(p);
+      if (selectedLesson) {
+        return !isValidatedFicheCote(selectedLesson.fiches, params);
+      }
+      if (!selectedTeacher?.lessons.length) return true;
+      return !selectedTeacher.lessons.every((lesson) =>
+        isValidatedFicheCote(lesson.fiches, params),
       );
     });
+  }, [
+    periods,
+    notesLabels.isUniversite,
+    notesLabels.typebranch,
+    notesLabels.educationSystem,
+    isAdmin,
+    selectedYearId,
+    selectedLesson,
+    selectedTeacher,
+  ]);
+
+  useEffect(() => {
+    if (selectedPeriodId == null || periods.length === 0) return;
+    if (!visiblePeriods.some((p) => p.id === selectedPeriodId)) {
+      setSelectedPeriodId(null);
+    }
+  }, [selectedPeriodId, visiblePeriods, periods.length]);
 
   const visibleLessons = useMemo(() => {
     if (!selectedTeacher) return [];
@@ -643,44 +714,19 @@ export default function FicheSaisieClient({
                 value={selectedYearId ?? ""}
                 onChange={(value) => setSelectedYearId(value || null)}
               />
-              {(() => {
-                const orderedPeriods = uniquePeriodsByLabel(
-                  [...periods]
-                    .filter((p) => {
-                      if (notesLabels.isUniversite) return true;
-                      if (isAdmin) return true;
-                      return p.kind !== "EXAM";
-                    })
-                    .sort(
-                      (a, b) =>
-                        getAcademicPeriodOrder(
-                          a.rawLabel ?? a.label,
-                          notesLabels.typebranch,
-                          notesLabels.educationSystem,
-                        ) -
-                        getAcademicPeriodOrder(
-                          b.rawLabel ?? b.label,
-                          notesLabels.typebranch,
-                          notesLabels.educationSystem,
-                        ),
-                    ),
-                );
-                return (
-                  <Combobox
-                    label={notesLabels.sessionLabel}
-                    placeholder={notesLabels.sessionPlaceholder}
-                    items={orderedPeriods.map((p) => ({
-                      value: String(p.id),
-                      label: p.rawLabel ?? p.label,
-                      search: p.rawLabel ?? p.label,
-                    }))}
-                    value={selectedPeriodId ? String(selectedPeriodId) : ""}
-                    onChange={(value) =>
-                      setSelectedPeriodId(value ? Number(value) : null)
-                    }
-                  />
-                );
-              })()}
+              <Combobox
+                label={notesLabels.sessionLabel}
+                placeholder={notesLabels.sessionPlaceholder}
+                items={visiblePeriods.map((p) => ({
+                  value: String(p.id),
+                  label: p.rawLabel ?? p.label,
+                  search: p.rawLabel ?? p.label,
+                }))}
+                value={selectedPeriodId ? String(selectedPeriodId) : ""}
+                onChange={(value) =>
+                  setSelectedPeriodId(value ? Number(value) : null)
+                }
+              />
 
               <Combobox
                 label="Type de fiche"
@@ -776,6 +822,17 @@ export default function FicheSaisieClient({
                   <ul className="divide-y rounded-xl border bg-background">
                     {visibleLessons.map((lesson) => {
                       const selected = selectedLessonId === lesson.id;
+                      const existingOfType =
+                        canFilter && typeFiche
+                          ? (lesson.fiches?.filter(
+                              (f) =>
+                                f.typeFiche === typeFiche &&
+                                f.anneeId === selectedYearId &&
+                                (f.periodId === selectedPeriodId ||
+                                  f.periodeName ===
+                                    (period?.rawLabel ?? period?.label)),
+                            ).length ?? 0)
+                          : 0;
                       return (
                         <li key={lesson.id}>
                           <button
@@ -797,12 +854,19 @@ export default function FicheSaisieClient({
                                   : ""}
                               </p>
                             </div>
-                            <Badge
-                              variant={selected ? "default" : "secondary"}
-                              className="w-fit shrink-0"
-                            >
-                              {selected ? "Sélectionné" : "Choisir"}
-                            </Badge>
+                            <div className="flex w-fit shrink-0 items-center gap-1.5">
+                              {existingOfType > 0 && typeFiche !== "ficheCote" ? (
+                                <Badge variant="outline" className="font-normal">
+                                  {existingOfType}
+                                </Badge>
+                              ) : null}
+                              <Badge
+                                variant={selected ? "default" : "secondary"}
+                                className="w-fit shrink-0"
+                              >
+                                {selected ? "Sélectionné" : "Choisir"}
+                              </Badge>
+                            </div>
                           </button>
                         </li>
                       );

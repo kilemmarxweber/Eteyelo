@@ -33,6 +33,7 @@ export type Fiche = {
   id: string;
   status: boolean;
   periodId: number;
+  periodeName?: string;
   typeFiche: string;
   anneeId: string;
 };
@@ -61,7 +62,14 @@ export type Period = {
   kind?: "PERIOD" | "EXAM" | null;
   cycle?: string | null;
 };
-export type FicheTypes = "ficheCote" | "evaluations";
+export type FicheTypes =
+  | "ficheCote"
+  | "Devoir"
+  | "Evaluation"
+  | "TP"
+  | "TFC"
+  | "Memoire"
+  | "evaluations";
 /* ===== ÉLÈVES ===== */
 
 export type Note = {

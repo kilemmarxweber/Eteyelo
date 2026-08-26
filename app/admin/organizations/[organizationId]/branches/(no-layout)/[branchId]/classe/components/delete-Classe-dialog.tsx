@@ -3,7 +3,7 @@
 import { useAppTransition as useTransition } from "@/hooks/use-app-transition";
 
 import * as React from "react";
-import { IconArchive, IconReload } from "@tabler/icons-react";
+import { IconArchive, IconReload, IconTrash } from "@tabler/icons-react";
 import { type Row } from "@tanstack/react-table";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -18,7 +18,10 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { IClasse } from "@/src/interfaces/Classe";
-import { archiveClasseAction } from "../classe.action";
+import {
+  archiveClasseAction,
+  deleteClassePermanentlyAction,
+} from "../classe.action";
 import { useRefresh } from "@/src/hooks/RefreshContext";
 
 interface DeleteClassesDialogProps
@@ -26,34 +29,49 @@ interface DeleteClassesDialogProps
   showTrigger?: boolean;
   onSuccess?: () => void;
   Classes: Row<IClasse>["original"][];
+  permanent?: boolean;
 }
 
 export function DeleteClassesDialog({
   showTrigger = true,
   onSuccess,
   Classes,
+  permanent = false,
   ...props
 }: DeleteClassesDialogProps) {
-  const [isArchivePending, startArchiveTransition] = useTransition();
-
+  const [isPending, startTransition] = useTransition();
   const { refresh } = useRefresh();
-  const handleArchive = () => {
-    startArchiveTransition(async () => {
+
+  const handleConfirm = () => {
+    startTransition(async () => {
       let hasError = false;
       for (const classe of Classes) {
-        const [, err] = await archiveClasseAction({
-          id: classe.id,
-          codeClasse: classe.codeClasse,
-          nameClasse: classe.nameClasse,
-        });
+        const [, err] = permanent
+          ? await deleteClassePermanentlyAction({ id: classe.id })
+          : await archiveClasseAction({
+              id: classe.id,
+              codeClasse: classe.codeClasse,
+              nameClasse: classe.nameClasse,
+            });
         if (err) {
-          toast.error(err.message ?? "Erreur lors de l'archivage");
+          toast.error(
+            err.message ??
+              (permanent
+                ? "Erreur lors de la suppression"
+                : "Erreur lors de l'archivage"),
+          );
           hasError = true;
         }
       }
       if (!hasError) {
         toast.success(
-          Classes.length === 1 ? "Classe archivée" : "Classes archivées",
+          permanent
+            ? Classes.length === 1
+              ? "Classe supprimée"
+              : "Classes supprimées"
+            : Classes.length === 1
+              ? "Classe archivée"
+              : "Classes archivées",
         );
         refresh();
         onSuccess?.();
@@ -69,8 +87,12 @@ export function DeleteClassesDialog({
       {showTrigger ? (
         <DialogTrigger asChild>
           <Button variant="outline" size="sm">
-            <IconArchive className="mr-2 size-4" aria-hidden="true" />
-            Archiver ({count})
+            {permanent ? (
+              <IconTrash className="mr-2 size-4" aria-hidden="true" />
+            ) : (
+              <IconArchive className="mr-2 size-4" aria-hidden="true" />
+            )}
+            {permanent ? `Supprimer (${count})` : `Archiver (${count})`}
           </Button>
         </DialogTrigger>
       ) : null}
@@ -80,14 +102,22 @@ export function DeleteClassesDialog({
       >
         <DialogHeader>
           <DialogTitle>
-            {count === 1
-              ? "Archiver la classe ?"
-              : `Archiver ${count} classes ?`}
+            {permanent
+              ? count === 1
+                ? "Supprimer la classe ?"
+                : `Supprimer ${count} classes ?`
+              : count === 1
+                ? "Archiver la classe ?"
+                : `Archiver ${count} classes ?`}
           </DialogTitle>
           <DialogDescription>
-            {count === 1
-              ? "La classe sera masquée des listes actives mais l'historique sera conservé."
-              : "Ces classes seront masquées des listes actives mais l'historique sera conservé."}
+            {permanent
+              ? count === 1
+                ? "Cette action est irréversible. La classe sera effacée définitivement."
+                : "Cette action est irréversible. Ces classes seront effacées définitivement."
+              : count === 1
+                ? "La classe sera masquée des listes actives mais l'historique sera conservé."
+                : "Ces classes seront masquées des listes actives mais l'historique sera conservé."}
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="gap-2 sm:space-x-0">
@@ -95,20 +125,22 @@ export function DeleteClassesDialog({
             <Button variant="outline">Annuler</Button>
           </DialogClose>
           <Button
-            aria-label="Archiver la sélection"
+            aria-label={permanent ? "Supprimer la sélection" : "Archiver la sélection"}
             variant="destructive"
-            onClick={handleArchive}
-            disabled={isArchivePending}
+            onClick={handleConfirm}
+            disabled={isPending}
           >
-            {isArchivePending ? (
+            {isPending ? (
               <IconReload
                 className="mr-2 size-4 animate-spin"
                 aria-hidden="true"
               />
+            ) : permanent ? (
+              <IconTrash className="mr-2 size-4" aria-hidden="true" />
             ) : (
               <IconArchive className="mr-2 size-4" aria-hidden="true" />
             )}
-            Archiver
+            {permanent ? "Supprimer" : "Archiver"}
           </Button>
         </DialogFooter>
       </DialogContent>
