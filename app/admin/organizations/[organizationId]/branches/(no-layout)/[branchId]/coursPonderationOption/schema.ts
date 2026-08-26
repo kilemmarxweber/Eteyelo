@@ -5,6 +5,7 @@ export const coursOptionPonderationSchema = z.object({
   id: z.string().optional(),
   coursId: z.string().min(1, "Le cours est requis."),
   optionId: z.string().min(1, "L'option est requise."),
+  optionIds: z.array(z.string().min(1)).optional(),
   level: z.string().trim().optional(),
   levels: z.array(z.string().trim()).optional(),
   ponderation: z.coerce

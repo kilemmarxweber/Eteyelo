@@ -52,6 +52,7 @@ export default function CoursPonderationOptionPage() {
 
   const [data, setData] = useState<PageData | null>(null);
   const [selectedOptionId, setSelectedOptionId] = useState("");
+  const [selectedOptionIds, setSelectedOptionIds] = useState<string[]>([]);
   const [selectedCycle, setSelectedCycle] = useState<Cycle | "">("");
   const [selectedLevels, setSelectedLevels] = useState<string[]>([]);
   const [search, setSearch] = useState("");
@@ -71,6 +72,7 @@ export default function CoursPonderationOptionPage() {
         setData(result);
         const first = result.options[0];
         setSelectedOptionId(first?.id ?? "");
+        setSelectedOptionIds(first?.id ? [first.id] : []);
         setSelectedCycle(first?.cycle ?? result.cycles[0] ?? "");
       }),
     [],
@@ -94,6 +96,11 @@ export default function CoursPonderationOptionPage() {
   const isLevelWeighted = selectedOption?.isLevelWeighted ?? false;
   const activeCycle = selectedOption?.cycle ?? selectedCycle;
   const isSecondary = activeCycle === "SECONDAIRE";
+  const usesLevelOptionGroup =
+    !isSecondary &&
+    (isLevelWeighted ||
+      activeCycle === "PRIMAIRE" ||
+      activeCycle === "MATERNELLE");
   const secondaryLevels = useMemo(() => {
     if (!isSecondary) return [];
     return getSecondaryPonderationLevels({
@@ -101,10 +108,32 @@ export default function CoursPonderationOptionPage() {
       option: selectedOption,
     });
   }, [data?.educationSystem, isSecondary, selectedOption]);
+  const activeOptionIds = useMemo(() => {
+    if (usesLevelOptionGroup) {
+      const valid = selectedOptionIds.filter((id) =>
+        cycleOptions.some((option) => option.id === id),
+      );
+      if (valid.length) return valid;
+      return cycleOptions[0] ? [cycleOptions[0].id] : [];
+    }
+    return activeOptionId ? [activeOptionId] : [];
+  }, [usesLevelOptionGroup, selectedOptionIds, cycleOptions, activeOptionId]);
+  const selectedOptions = useMemo(
+    () =>
+      cycleOptions.filter((option) => activeOptionIds.includes(option.id)),
+    [cycleOptions, activeOptionIds],
+  );
   const activeLevels =
     isSecondary && selectedLevels.length > 0
       ? selectedLevels
       : [DEFAULT_PONDERATION_LEVEL];
+  const ponderationTargets = useMemo(
+    () =>
+      activeOptionIds.flatMap((optionId) =>
+        activeLevels.map((level) => ({ optionId, level })),
+      ),
+    [activeOptionIds, activeLevels],
+  );
   const map = useMemo(
     () =>
       new Map(
@@ -117,24 +146,25 @@ export default function CoursPonderationOptionPage() {
   );
   const rows = useMemo(() => {
     const values = (data?.cours ?? []).map((course) => {
-      const byLevel = activeLevels.map(
-        (level) => map.get(`${activeOptionId}:${course.id}:${level}`),
+      const byTarget = ponderationTargets.map(({ optionId, level }) =>
+        map.get(`${optionId}:${course.id}:${level}`),
       );
-      const inherited =
-        map.get(`${activeOptionId}:${course.id}:${DEFAULT_PONDERATION_LEVEL}`);
-      const specifics = byLevel.filter(Boolean);
+      const inherited = map.get(
+        `${activeOptionId}:${course.id}:${DEFAULT_PONDERATION_LEVEL}`,
+      );
+      const specifics = byTarget.filter(Boolean);
       const configured =
-        activeLevels[0] === DEFAULT_PONDERATION_LEVEL
-          ? Boolean(inherited)
-          : specifics.length === activeLevels.length;
-      const ponderation =
-        specifics[0] ??
-        (activeLevels[0] === DEFAULT_PONDERATION_LEVEL ? inherited : inherited);
+        ponderationTargets.length > 0 &&
+        specifics.length === ponderationTargets.length;
+      const ponderation = specifics[0] ?? inherited;
       return {
         course,
         ponderation,
         configured,
-        inherited: Boolean(inherited) && specifics.length === 0 && activeLevels[0] !== DEFAULT_PONDERATION_LEVEL,
+        inherited:
+          Boolean(inherited) &&
+          specifics.length === 0 &&
+          activeLevels[0] !== DEFAULT_PONDERATION_LEVEL,
       };
     });
     const filtered = values.filter(({ course, configured }) => {
@@ -152,20 +182,22 @@ export default function CoursPonderationOptionPage() {
           (a.ponderation?.ponderation ?? -1)
         : a.course.nameCours.localeCompare(b.course.nameCours),
     );
-  }, [data, map, search, activeOptionId, activeLevels, sort, status]);
+  }, [data, map, search, ponderationTargets, activeOptionId, activeLevels, sort, status]);
 
   const configured =
     data?.cours.filter((course) =>
-      activeLevels.every((level) =>
-        map.has(`${activeOptionId}:${course.id}:${level}`),
+      ponderationTargets.every(({ optionId, level }) =>
+        map.has(`${optionId}:${course.id}:${level}`),
       ),
     ).length ?? 0;
   const missing = (data?.cours.length ?? 0) - configured;
   const weights = (data?.ponderations ?? [])
-    .filter(
-      (item) =>
-        item.optionId === activeOptionId &&
-        activeLevels.includes(item.level ?? DEFAULT_PONDERATION_LEVEL),
+    .filter((item) =>
+      ponderationTargets.some(
+        ({ optionId, level }) =>
+          item.optionId === optionId &&
+          (item.level ?? DEFAULT_PONDERATION_LEVEL) === level,
+      ),
     )
     .map((item) => item.ponderation);
   const average = weights.length
@@ -182,25 +214,36 @@ export default function CoursPonderationOptionPage() {
       );
       return;
     }
-    const previousRows = activeLevels.map((level) =>
-      map.get(`${activeOptionId}:${courseId}:${level}`),
+    if (!ponderationTargets.length) {
+      toast.error("Sélectionnez au moins un niveau.");
+      return;
+    }
+    const previousRows = ponderationTargets.map(({ optionId, level }) =>
+      map.get(`${optionId}:${courseId}:${level}`),
     );
-    const optimisticRows: Ponderation[] = activeLevels.map((level, index) => ({
-      id: previousRows[index]?.id ?? `temp-${courseId}-${level || "all"}`,
-      coursId: courseId,
-      optionId: activeOptionId,
-      level,
-      ponderation: value,
-      updatedAt: new Date(),
-    }));
+    const optimisticRows: Ponderation[] = ponderationTargets.map(
+      ({ optionId, level }, index) => ({
+        id:
+          previousRows[index]?.id ??
+          `temp-${courseId}-${optionId}-${level || "all"}`,
+        coursId: courseId,
+        optionId,
+        level,
+        ponderation: value,
+        updatedAt: new Date(),
+      }),
+    );
     setData((current) => {
       if (!current) return current;
       const without = current.ponderations.filter(
         (item) =>
           !(
-            item.optionId === activeOptionId &&
             item.coursId === courseId &&
-            activeLevels.includes(item.level ?? DEFAULT_PONDERATION_LEVEL)
+            ponderationTargets.some(
+              ({ optionId, level }) =>
+                item.optionId === optionId &&
+                (item.level ?? DEFAULT_PONDERATION_LEVEL) === level,
+            )
           ),
       );
       return { ...current, ponderations: [...without, ...optimisticRows] };
@@ -209,7 +252,8 @@ export default function CoursPonderationOptionPage() {
     startTransition(async () => {
       const [saved, error] = await saveCoursOptionPonderationAction({
         coursId: courseId,
-        optionId: activeOptionId,
+        optionId: activeOptionIds[0],
+        optionIds: activeOptionIds,
         ponderation: value,
         levels: activeLevels,
       });
@@ -242,14 +286,20 @@ export default function CoursPonderationOptionPage() {
           ponderations: [...withoutOptimistic, ...saved],
         };
       });
-      toast.success("Pondération enregistrée");
+      toast.success(
+        activeOptionIds.length > 1
+          ? `Pondération enregistrée pour ${activeOptionIds.length} niveaux`
+          : "Pondération enregistrée",
+      );
     });
   }
 
   function cancel(courseId: string) {
     if (!data) return;
-    const previousRows = activeLevels
-      .map((level) => map.get(`${activeOptionId}:${courseId}:${level}`))
+    const previousRows = ponderationTargets
+      .map(({ optionId, level }) =>
+        map.get(`${optionId}:${courseId}:${level}`),
+      )
       .filter((row): row is Ponderation => Boolean(row) && !row.id.startsWith("temp-"));
     if (!previousRows.length) {
       toast.error("Aucune pondération configurée à annuler");
@@ -270,7 +320,8 @@ export default function CoursPonderationOptionPage() {
     startTransition(async () => {
       const [, error] = await deleteCoursOptionPonderationAction({
         coursId: courseId,
-        optionId: activeOptionId,
+        optionId: activeOptionIds[0],
+        optionIds: activeOptionIds,
         levels: activeLevels,
       });
       setSavingId(null);
@@ -346,6 +397,7 @@ export default function CoursPonderationOptionPage() {
                       (option) => option.cycle === cycle,
                     );
                     setSelectedOptionId(first?.id ?? "");
+                    setSelectedOptionIds(first?.id ? [first.id] : []);
                     setSelectedLevels([]);
                   }}
                 >
@@ -362,35 +414,67 @@ export default function CoursPonderationOptionPage() {
                 </Select>
               </div>
             ) : null}
-            <div>
-              <label className="text-sm font-medium">
-                {isLevelWeighted ? "Niveau" : "Option active"}
-              </label>
-              <Select
-                value={activeOptionId || undefined}
-                onValueChange={(value) => {
-                  setSelectedOptionId(value);
-                  setSelectedLevels([]);
-                }}
-              >
-                <SelectTrigger className="mt-2">
-                  <SelectValue
-                    placeholder={
-                      isLevelWeighted
-                        ? "Sélectionner un niveau"
-                        : "Sélectionner une option"
-                    }
+            {usesLevelOptionGroup ? (
+              <div>
+                <label className="text-sm font-medium">Niveaux</label>
+                <div className="mt-2">
+                  <MultiSelect
+                    options={cycleOptions.map((option) => ({
+                      value: option.id,
+                      label: option.displayName,
+                    }))}
+                    value={activeOptionIds}
+                    onValueChange={(ids) => {
+                      const next = ids.length
+                        ? ids
+                        : cycleOptions[0]
+                          ? [cycleOptions[0].id]
+                          : [];
+                      setSelectedOptionIds(next);
+                      setSelectedOptionId(next[0] ?? "");
+                    }}
+                    placeholder="Sélectionner un ou plusieurs niveaux"
+                    searchable
+                    maxCount={2}
                   />
-                </SelectTrigger>
-                <SelectContent>
-                  {cycleOptions.map((option) => (
-                    <SelectItem key={option.id} value={option.id}>
-                      {option.displayName}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+                </div>
+                <p className="mt-1.5 text-xs text-muted-foreground">
+                  Sélectionnez plusieurs niveaux pour appliquer la même
+                  pondération en une fois.
+                </p>
+              </div>
+            ) : (
+              <div>
+                <label className="text-sm font-medium">
+                  {isLevelWeighted ? "Niveau" : "Option active"}
+                </label>
+                <Select
+                  value={activeOptionId || undefined}
+                  onValueChange={(value) => {
+                    setSelectedOptionId(value);
+                    setSelectedOptionIds([value]);
+                    setSelectedLevels([]);
+                  }}
+                >
+                  <SelectTrigger className="mt-2">
+                    <SelectValue
+                      placeholder={
+                        isLevelWeighted
+                          ? "Sélectionner un niveau"
+                          : "Sélectionner une option"
+                      }
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {cycleOptions.map((option) => (
+                      <SelectItem key={option.id} value={option.id}>
+                        {option.displayName}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             {isSecondary ? (
               <div>
                 <label className="text-sm font-medium">Niveaux</label>
@@ -424,16 +508,20 @@ export default function CoursPonderationOptionPage() {
               </p>
               <p className="truncate text-muted-foreground">
                 Classes :{" "}
-                {selectedOption?.classe.map((item) => item.nameClasse).join(", ") ||
-                  "Aucune classe"}
+                {selectedOptions
+                  .flatMap((option) => option.classe.map((item) => item.nameClasse))
+                  .filter((name, index, names) => names.indexOf(name) === index)
+                  .join(", ") || "Aucune classe"}
               </p>
-              {activeCycle === "MATERNELLE" ? (
+              {usesLevelOptionGroup ? (
                 <p className="mt-1 text-muted-foreground">
-                  Les pondérations sont définies par niveau (Crèche, 1è–3è).
-                </p>
-              ) : activeCycle === "PRIMAIRE" ? (
-                <p className="mt-1 text-muted-foreground">
-                  Les pondérations sont définies par niveau (1è–6è).
+                  {activeOptionIds.length > 1
+                    ? `Niveaux ciblés : ${selectedOptions
+                        .map((option) => option.displayName)
+                        .join(", ")}.`
+                    : activeCycle === "MATERNELLE"
+                      ? "Les pondérations sont définies par niveau (Crèche, 1è–3è)."
+                      : "Les pondérations sont définies par niveau (1è–6è)."}
                 </p>
               ) : isSecondary ? (
                 <p className="mt-1 text-muted-foreground">
@@ -531,6 +619,21 @@ export default function CoursPonderationOptionPage() {
                     key={course.id}
                     course={course}
                     option={selectedOption}
+                    optionLabel={
+                      selectedOptions
+                        .map((option) => option.displayName)
+                        .join(", ") || undefined
+                    }
+                    classesLabel={
+                      selectedOptions
+                        .flatMap((option) =>
+                          option.classe.map((item) => item.nameClasse),
+                        )
+                        .filter(
+                          (name, index, names) => names.indexOf(name) === index,
+                        )
+                        .join(", ") || undefined
+                    }
                     ponderation={ponderation}
                     configured={configured}
                     inherited={inherited}
@@ -669,6 +772,8 @@ function WeightEditor({
 function PonderationRow({
   course,
   option,
+  optionLabel: optionLabelProp,
+  classesLabel: classesLabelProp,
   ponderation,
   configured,
   inherited,
@@ -678,6 +783,8 @@ function PonderationRow({
 }: {
   course: CourseRow;
   option?: OptionRow;
+  optionLabel?: string;
+  classesLabel?: string;
   ponderation?: Ponderation;
   configured: boolean;
   inherited: boolean;
@@ -686,8 +793,11 @@ function PonderationRow({
   onCancel: (id: string) => void;
 }) {
   const classesLabel =
-    option?.classe.map((item) => item.nameClasse).join(", ") || "Aucune classe";
-  const optionLabel = option?.displayName ?? option?.nameOption ?? "—";
+    classesLabelProp ||
+    option?.classe.map((item) => item.nameClasse).join(", ") ||
+    "Aucune classe";
+  const optionLabel =
+    optionLabelProp || option?.displayName || option?.nameOption || "—";
 
   return (
     <tr

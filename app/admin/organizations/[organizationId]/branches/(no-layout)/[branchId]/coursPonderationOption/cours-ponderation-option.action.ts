@@ -29,9 +29,10 @@ function requireManagePermission(session: unknown) {
 async function requireCoursAndOptionInBranch(params: {
   branchId: string;
   coursId: string;
-  optionId: string;
+  optionIds: string[];
 }) {
-  const [cours, option] = await Promise.all([
+  const optionIds = Array.from(new Set(params.optionIds.filter(Boolean)));
+  const [cours, options] = await Promise.all([
     prisma.cours.findFirst({
       where: {
         id: params.coursId,
@@ -40,14 +41,18 @@ async function requireCoursAndOptionInBranch(params: {
       },
       select: { id: true },
     }),
-    prisma.option.findFirst({
-      where: { id: params.optionId, branchId: params.branchId },
-      select: { id: true },
-    }),
+    optionIds.length
+      ? prisma.option.findMany({
+          where: { id: { in: optionIds }, branchId: params.branchId },
+          select: { id: true },
+        })
+      : Promise.resolve([]),
   ]);
 
   if (!cours) throw new Error("Cours introuvable dans cette branche");
-  if (!option) throw new Error("Option introuvable dans cette branche");
+  if (!optionIds.length || options.length !== optionIds.length) {
+    throw new Error("Option introuvable dans cette branche");
+  }
 }
 
 function revalidateCoursPonderationOptionPages(
@@ -205,6 +210,14 @@ export const getCoursPonderationOptionPageDataAction = action.handler(
   },
 );
 
+function resolvePonderationOptionIds(input: {
+  optionId: string;
+  optionIds?: string[];
+}): string[] {
+  const ids = [input.optionId, ...(input.optionIds ?? [])].filter(Boolean);
+  return Array.from(new Set(ids));
+}
+
 function resolvePonderationLevels(input: {
   level?: string;
   levels?: string[];
@@ -223,46 +236,47 @@ export const createCoursOptionPonderationAction = action
   .handler(async ({ input }) => {
     const { branchId, organizationId, session } = await requireBranchContext();
     requireManagePermission(session);
+    const optionIds = resolvePonderationOptionIds(input);
     await requireCoursAndOptionInBranch({
       branchId,
       coursId: input.coursId,
-      optionId: input.optionId,
+      optionIds,
     });
 
     const levels = resolvePonderationLevels(input);
     const saved = [];
-    for (const level of levels) {
-      const existing = await prisma.coursOptionPonderation.findUnique({
-        where: {
-          branchId_coursId_optionId_level: {
-            branchId,
-            coursId: input.coursId,
-            optionId: input.optionId,
-            level,
+    for (const optionId of optionIds) {
+      for (const level of levels) {
+        const existing = await prisma.coursOptionPonderation.findUnique({
+          where: {
+            branchId_coursId_optionId_level: {
+              branchId,
+              coursId: input.coursId,
+              optionId,
+              level,
+            },
           },
-        },
-        select: { id: true },
-      });
+          select: { id: true },
+        });
 
-      if (existing) {
-        throw new Error(
-          level
-            ? `Cette pondération existe déjà pour le niveau ${level}.`
-            : "Cette ponderation existe deja pour ce cours et cette option",
+        if (existing) {
+          throw new Error(
+            "Cette ponderation existe deja pour ce cours et cette option",
+          );
+        }
+
+        saved.push(
+          await prisma.coursOptionPonderation.create({
+            data: {
+              branchId,
+              coursId: input.coursId,
+              optionId,
+              level,
+              ponderation: input.ponderation,
+            },
+          }),
         );
       }
-
-      saved.push(
-        await prisma.coursOptionPonderation.create({
-          data: {
-            branchId,
-            coursId: input.coursId,
-            optionId: input.optionId,
-            level,
-            ponderation: input.ponderation,
-          },
-        }),
-      );
     }
     revalidateCoursPonderationOptionPages(organizationId, branchId);
     return saved[0];
@@ -273,35 +287,38 @@ export const saveCoursOptionPonderationAction = action
   .handler(async ({ input }) => {
     const { branchId, organizationId, session } = await requireBranchContext();
     requireManagePermission(session);
+    const optionIds = resolvePonderationOptionIds(input);
     await requireCoursAndOptionInBranch({
       branchId,
       coursId: input.coursId,
-      optionId: input.optionId,
+      optionIds,
     });
 
     const levels = resolvePonderationLevels(input);
     const saved = [];
-    for (const level of levels) {
-      saved.push(
-        await prisma.coursOptionPonderation.upsert({
-          where: {
-            branchId_coursId_optionId_level: {
+    for (const optionId of optionIds) {
+      for (const level of levels) {
+        saved.push(
+          await prisma.coursOptionPonderation.upsert({
+            where: {
+              branchId_coursId_optionId_level: {
+                branchId,
+                coursId: input.coursId,
+                optionId,
+                level,
+              },
+            },
+            create: {
               branchId,
               coursId: input.coursId,
-              optionId: input.optionId,
+              optionId,
               level,
+              ponderation: input.ponderation,
             },
-          },
-          create: {
-            branchId,
-            coursId: input.coursId,
-            optionId: input.optionId,
-            level,
-            ponderation: input.ponderation,
-          },
-          update: { ponderation: input.ponderation },
-        }),
-      );
+            update: { ponderation: input.ponderation },
+          }),
+        );
+      }
     }
     revalidateCoursPonderationOptionPages(organizationId, branchId);
     return saved;
@@ -315,7 +332,7 @@ export const updateCoursOptionPonderationAction = action
     await requireCoursAndOptionInBranch({
       branchId,
       coursId: input.coursId,
-      optionId: input.optionId,
+      optionIds: [input.optionId],
     });
 
     if (!input.id) {
@@ -350,6 +367,7 @@ export const deleteCoursOptionPonderationAction = action
       id: z.string().optional(),
       coursId: z.string().optional(),
       optionId: z.string().optional(),
+      optionIds: z.array(z.string()).optional(),
       levels: z.array(z.string()).optional(),
     }),
   )
@@ -376,21 +394,26 @@ export const deleteCoursOptionPonderationAction = action
       return { ok: true as const };
     }
 
-    if (!input.coursId || !input.optionId) {
+    if (!input.coursId || (!input.optionId && !input.optionIds?.length)) {
       throw new Error("ID requis");
     }
 
+    const optionIds = resolvePonderationOptionIds({
+      optionId: input.optionId ?? "",
+      optionIds: input.optionIds,
+    });
     const levels = resolvePonderationLevels({ levels: input.levels });
     await prisma.coursOptionPonderation.deleteMany({
       where: {
         branchId,
         coursId: input.coursId,
-        optionId: input.optionId,
+        optionId: { in: optionIds },
         level: { in: levels },
       },
     });
     revalidateCoursPonderationOptionPages(organizationId, branchId);
     return { ok: true as const };
   });
+
 
 
