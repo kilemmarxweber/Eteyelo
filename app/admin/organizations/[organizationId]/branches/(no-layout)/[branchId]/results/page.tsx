@@ -17,6 +17,13 @@ import {
 
 export const dynamic = "force-dynamic";
 
+function toIsoStringSafe(value: Date | string | null | undefined): string {
+  if (!value) return "";
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return date.toISOString();
+}
+
 const ResultListPage = async () => {
   const t = await getServerTranslator("cursus");
   const { session, userId: currentUserId, branchId } =
@@ -382,9 +389,9 @@ const ResultListPage = async () => {
         nom: sa.student.branchMember?.member?.user?.name ?? "",
         surname: sa.student.branchMember?.member?.user?.postnom ?? "",
         username: sa.student.branchMember?.member?.user?.prenom ?? "",
-        naissance:
-          sa.student.branchMember?.member?.user?.dateOfBirth?.toISOString() ??
-          "",
+        naissance: toIsoStringSafe(
+          sa.student.branchMember?.member?.user?.dateOfBirth,
+        ),
         sexe: sa.student.branchMember?.member?.user?.sexe ?? "",
         classid: c.id,
         classe: c.nameClasse,
