@@ -6,6 +6,7 @@ export interface ISection {
   codeSection: string;
   nameSection: string;
   option?: IOption[];
+  optionsCount?: number;
   statusSection: boolean;
   createdAt: Date;
   updatedAt: Date;

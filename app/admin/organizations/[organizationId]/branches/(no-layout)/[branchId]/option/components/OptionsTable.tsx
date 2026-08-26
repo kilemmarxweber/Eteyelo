@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Edit, Archive, MoreHorizontal, Settings2 } from "lucide-react";
+import { Edit, Archive, MoreHorizontal, Settings2, Trash2 } from "lucide-react";
 
 import { ResponsiveDataTable } from "@/components/ui/responsive-data-table";
 import { SearchAndFilter } from "@/components/ui/search-and-filter";
@@ -20,6 +20,7 @@ import { IOption } from "@/src/interfaces/Option";
 import { getOptionsAction } from "../option.action";
 import { DeleteOptionsDialog } from "./delete-Option-dialog";
 import { UpdateOptionDialog } from "./edit-Option-dialog";
+import { openOverlayAfterMenuDismiss } from "@/lib/radix-portal-dismiss";
 
 interface OptionsTableProps {
   refreshKey?: string;
@@ -32,6 +33,7 @@ const OptionsTable: React.FC<OptionsTableProps> = ({ refreshKey }) => {
   const [statusFilter, setStatusFilter] = useState<string>("active");
 
   const [showUpdateDialog, setShowUpdateDialog] = useState(false);
+  const [showArchiveDialog, setShowArchiveDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [selectedOption, setSelectedOption] = useState<IOption | null>(null);
   const [localRefreshKey, setLocalRefreshKey] = useState(0);
@@ -72,16 +74,22 @@ const OptionsTable: React.FC<OptionsTableProps> = ({ refreshKey }) => {
 
   const handleEdit = (option: IOption) => {
     setSelectedOption(option);
-    setShowUpdateDialog(true);
+    openOverlayAfterMenuDismiss(() => setShowUpdateDialog(true));
+  };
+
+  const handleArchive = (option: IOption) => {
+    setSelectedOption(option);
+    openOverlayAfterMenuDismiss(() => setShowArchiveDialog(true));
   };
 
   const handleDelete = (option: IOption) => {
     setSelectedOption(option);
-    setShowDeleteDialog(true);
+    openOverlayAfterMenuDismiss(() => setShowDeleteDialog(true));
   };
 
   const handleActionSuccess = () => {
     setShowUpdateDialog(false);
+    setShowArchiveDialog(false);
     setShowDeleteDialog(false);
     setSelectedOption(null);
     setLocalRefreshKey((value) => value + 1);
@@ -147,20 +155,25 @@ const OptionsTable: React.FC<OptionsTableProps> = ({ refreshKey }) => {
               <span className="sr-only">Actions</span>
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-40">
+          <DropdownMenuContent align="end" className="w-44">
             <DropdownMenuItem onClick={() => handleEdit(option)}>
               <Edit className="mr-2 h-4 w-4" />
               Modifier
             </DropdownMenuItem>
+            <DropdownMenuSeparator />
             {option.statusOption ? (
-              <>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => handleDelete(option)}>
-                  <Archive className="mr-2 h-4 w-4" />
-                  Archiver
-                </DropdownMenuItem>
-              </>
+              <DropdownMenuItem onClick={() => handleArchive(option)}>
+                <Archive className="mr-2 h-4 w-4" />
+                Archiver
+              </DropdownMenuItem>
             ) : null}
+            <DropdownMenuItem
+              className="text-destructive focus:bg-destructive/10 focus:text-destructive"
+              onClick={() => handleDelete(option)}
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              Supprimer
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       ),
@@ -201,11 +214,17 @@ const OptionsTable: React.FC<OptionsTableProps> = ({ refreshKey }) => {
             {
               label: "Archiver",
               icon: Archive,
-              onClick: () => handleDelete(option),
+              onClick: () => handleArchive(option),
               variant: "outline" as const,
             },
           ]
         : []),
+      {
+        label: "Supprimer",
+        icon: Trash2,
+        onClick: () => handleDelete(option),
+        variant: "outline" as const,
+      },
     ],
   };
 
@@ -244,10 +263,18 @@ const OptionsTable: React.FC<OptionsTableProps> = ({ refreshKey }) => {
             onSuccess={handleActionSuccess}
           />
           <DeleteOptionsDialog
+            open={showArchiveDialog}
+            onOpenChange={setShowArchiveDialog}
+            Options={[selectedOption]}
+            showTrigger={false}
+            onSuccess={handleActionSuccess}
+          />
+          <DeleteOptionsDialog
             open={showDeleteDialog}
             onOpenChange={setShowDeleteDialog}
             Options={[selectedOption]}
             showTrigger={false}
+            permanent
             onSuccess={handleActionSuccess}
           />
         </>

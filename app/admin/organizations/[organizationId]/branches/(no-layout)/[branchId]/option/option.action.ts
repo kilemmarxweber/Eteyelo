@@ -181,6 +181,39 @@ export const archiveOptionAction = action
 /** @deprecated Utiliser archiveOptionAction */
 export const deleteOptionAction = archiveOptionAction;
 
+export const deleteOptionPermanentlyAction = action
+  .input(z.object({ id: z.string().min(1) }))
+  .handler(async ({ input }) => {
+    const { branchId, organizationId } = await requireBranchContext();
+    const exist = await prisma.option.findFirst({
+      where: { id: input.id, branchId },
+      select: { id: true },
+    });
+    if (!exist) throw new Error("Option introuvable");
+
+    const classesCount = await prisma.classe.count({
+      where: { optionId: input.id, branchId },
+    });
+    if (classesCount > 0) {
+      throw new Error(
+        `Impossible de supprimer cette option : ${classesCount} classe${classesCount > 1 ? "s" : ""} y ${classesCount > 1 ? "sont encore liées" : "est encore liée"}. Supprimez d'abord ${classesCount > 1 ? "ces classes" : "cette classe"}.`,
+      );
+    }
+
+    await prisma.$transaction(async (tx) => {
+      await tx.coursOptionPonderation.deleteMany({
+        where: { optionId: input.id, branchId },
+      });
+      await tx.option.delete({ where: { id: input.id } });
+    });
+
+    revalidateOptionPages(organizationId, branchId);
+    revalidatePath(
+      `/admin/organizations/${organizationId}/branches/${branchId}/classe`,
+    );
+    return { ok: true as const };
+  });
+
 /* ================= GET OPTIONS ================= */
 export const getOptionsAction = action.handler(async (): Promise<IOption[]> => {
   try {
@@ -225,23 +258,22 @@ export const getOptionsAction = action.handler(async (): Promise<IOption[]> => {
       nameSection: option.section?.nameSection ?? "",
       statuSection: option.section?.statusSection ?? true,
 
-      classes: option.classe
-        ? option.classe.map((classe) => ({
-            id: classe.id,
-            nameClasse: classe.nameClasse ?? "",
-            optionId: classe.optionId ?? undefined, // ✅ FIX ICI
-            codeClasse: classe.codeClasse ?? "",
-            createdAt: classe.createdAt,
-            updatedAt: classe.updatedAt,
+      classesCount: option.classe.length,
+      classes: option.classe.map((classe) => ({
+        id: classe.id,
+        nameClasse: classe.nameClasse ?? "",
+        optionId: classe.optionId ?? undefined,
+        codeClasse: classe.codeClasse ?? "",
+        createdAt: classe.createdAt,
+        updatedAt: classe.updatedAt,
 
-            codeOption: option.codeOption ?? "",
-            nameOption: option.nameOption,
-            codeSection: option.section?.codeSection ?? "",
-            nameSection: option.section?.nameSection ?? "",
-            creneauId: classe.creneauId ?? "",
-            statusClasse: classe.statusClasse ?? true,
-          }))
-        : [],
+        codeOption: option.codeOption ?? "",
+        nameOption: option.nameOption,
+        codeSection: option.section?.codeSection ?? "",
+        nameSection: option.section?.nameSection ?? "",
+        creneauId: classe.creneauId ?? "",
+        statusClasse: classe.statusClasse ?? true,
+      })),
     }));
 
     return transformedOptions;

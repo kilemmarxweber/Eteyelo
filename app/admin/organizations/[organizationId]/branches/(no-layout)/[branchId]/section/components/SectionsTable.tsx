@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Edit, Archive, MoreHorizontal, Layers } from "lucide-react";
+import { Edit, Archive, MoreHorizontal, Layers, Trash2 } from "lucide-react";
 
 import { ResponsiveDataTable } from "@/components/ui/responsive-data-table";
 import { SearchAndFilter } from "@/components/ui/search-and-filter";
@@ -20,6 +20,7 @@ import { ISection } from "@/src/interfaces/Section";
 import { getSectionsAction } from "../section.action";
 import { DeleteSectionsDialog } from "./delete-Section-dialog";
 import { UpdateSectionDialog } from "./edit-Section-dialog";
+import { openOverlayAfterMenuDismiss } from "@/lib/radix-portal-dismiss";
 
 interface SectionsTableProps {
   refreshKey?: string;
@@ -33,6 +34,7 @@ const SectionsTable: React.FC<SectionsTableProps> = ({ refreshKey }) => {
   const [statusFilter, setStatusFilter] = useState<string>("active");
 
   const [showUpdateDialog, setShowUpdateDialog] = useState(false);
+  const [showArchiveDialog, setShowArchiveDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [selectedSection, setSelectedSection] = useState<ISection | null>(null);
 
@@ -70,16 +72,22 @@ const SectionsTable: React.FC<SectionsTableProps> = ({ refreshKey }) => {
 
   const handleEdit = (section: ISection) => {
     setSelectedSection(section);
-    setShowUpdateDialog(true);
+    openOverlayAfterMenuDismiss(() => setShowUpdateDialog(true));
+  };
+
+  const handleArchive = (section: ISection) => {
+    setSelectedSection(section);
+    openOverlayAfterMenuDismiss(() => setShowArchiveDialog(true));
   };
 
   const handleDelete = (section: ISection) => {
     setSelectedSection(section);
-    setShowDeleteDialog(true);
+    openOverlayAfterMenuDismiss(() => setShowDeleteDialog(true));
   };
 
   const handleActionSuccess = () => {
     setShowUpdateDialog(false);
+    setShowArchiveDialog(false);
     setShowDeleteDialog(false);
     setSelectedSection(null);
     setLocalRefreshKey((value) => value + 1);
@@ -129,20 +137,25 @@ const SectionsTable: React.FC<SectionsTableProps> = ({ refreshKey }) => {
               <span className="sr-only">Actions</span>
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-40">
+          <DropdownMenuContent align="end" className="w-44">
             <DropdownMenuItem onClick={() => handleEdit(section)}>
               <Edit className="mr-2 h-4 w-4" />
               Modifier
             </DropdownMenuItem>
+            <DropdownMenuSeparator />
             {section.statusSection ? (
-              <>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => handleDelete(section)}>
-                  <Archive className="mr-2 h-4 w-4" />
-                  Archiver
-                </DropdownMenuItem>
-              </>
+              <DropdownMenuItem onClick={() => handleArchive(section)}>
+                <Archive className="mr-2 h-4 w-4" />
+                Archiver
+              </DropdownMenuItem>
             ) : null}
+            <DropdownMenuItem
+              className="text-destructive focus:bg-destructive/10 focus:text-destructive"
+              onClick={() => handleDelete(section)}
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              Supprimer
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       ),
@@ -179,11 +192,17 @@ const SectionsTable: React.FC<SectionsTableProps> = ({ refreshKey }) => {
             {
               label: "Archiver",
               icon: Archive,
-              onClick: () => handleDelete(section),
+              onClick: () => handleArchive(section),
               variant: "outline" as const,
             },
           ]
         : []),
+      {
+        label: "Supprimer",
+        icon: Trash2,
+        onClick: () => handleDelete(section),
+        variant: "outline" as const,
+      },
     ],
   };
 
@@ -222,10 +241,18 @@ const SectionsTable: React.FC<SectionsTableProps> = ({ refreshKey }) => {
             onSuccess={handleActionSuccess}
           />
           <DeleteSectionsDialog
+            open={showArchiveDialog}
+            onOpenChange={setShowArchiveDialog}
+            Sections={[selectedSection]}
+            showTrigger={false}
+            onSuccess={handleActionSuccess}
+          />
+          <DeleteSectionsDialog
             open={showDeleteDialog}
             onOpenChange={setShowDeleteDialog}
             Sections={[selectedSection]}
             showTrigger={false}
+            permanent
             onSuccess={handleActionSuccess}
           />
         </>

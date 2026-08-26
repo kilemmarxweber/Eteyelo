@@ -6,6 +6,7 @@ import { action } from "@/lib/zsa";
 import { ISection, sectionSchema } from "@/src/interfaces/Section";
 import { Prisma } from "@/prisma/generated/prisma/client";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
+import { z } from "zod";
 import { assertSectionOptionBranchFeatures, usesSectionOptionForBranch } from "@/lib/branch-capabilities";
 import { anyCycle } from "@/lib/cycle";
 import {
@@ -15,6 +16,7 @@ import {
 
 function revalidateSectionPages(organizationId: string, branchId: string) {
   revalidatePath(`/admin/organizations/${organizationId}/branches/${branchId}/section`);
+  revalidatePath(`/admin/organizations/${organizationId}/branches/${branchId}/option`);
 }
 
 export const createSectionAction = action
@@ -90,6 +92,30 @@ export const archiveSectionAction = action
 /** @deprecated Utiliser archiveSectionAction */
 export const deleteSectionAction = archiveSectionAction;
 
+export const deleteSectionPermanentlyAction = action
+  .input(z.object({ id: z.string().min(1) }))
+  .handler(async ({ input }) => {
+    const { branchId, organizationId } = await requireBranchContext();
+    const section = await prisma.section.findFirst({
+      where: { id: input.id, branchId },
+      select: { id: true },
+    });
+    if (!section) throw new Error("Section introuvable dans cette branche");
+
+    const optionsCount = await prisma.option.count({
+      where: { sectionId: input.id, branchId },
+    });
+    if (optionsCount > 0) {
+      throw new Error(
+        `Impossible de supprimer cette section : ${optionsCount} option${optionsCount > 1 ? "s" : ""} y ${optionsCount > 1 ? "sont encore liées" : "est encore liée"}. Supprimez d'abord ${optionsCount > 1 ? "ces options" : "cette option"}.`,
+      );
+    }
+
+    await prisma.section.delete({ where: { id: input.id } });
+    revalidateSectionPages(organizationId, branchId);
+    return { ok: true as const };
+  });
+
 export const updateSectionAction = action
   .input(sectionSchema)
   .handler(async ({ input }) => {
@@ -138,8 +164,12 @@ export const getSectionsAction = action.handler(
       const { branchId } = await requireBranchContext();
       const Sections = await prisma.section.findMany({
         where: { branchId },
+        include: { _count: { select: { option: true } } },
       });
-      return Sections;
+      return Sections.map(({ _count, ...section }) => ({
+        ...section,
+        optionsCount: _count.option,
+      }));
     } catch (error: any) {
       throw new Error(error.message);
     }

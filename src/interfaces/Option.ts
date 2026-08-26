@@ -10,6 +10,7 @@ export interface IOption {
   codeSection?: string;
   statuSection?: boolean;
   classes?: IClasse[] | null;
+  classesCount?: number;
   statusOption: boolean;
   module: string;
   createdAt: Date;

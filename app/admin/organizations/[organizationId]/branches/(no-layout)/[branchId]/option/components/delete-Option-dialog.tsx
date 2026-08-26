@@ -3,7 +3,7 @@
 import { useAppTransition as useTransition } from "@/hooks/use-app-transition";
 
 import * as React from "react";
-import { IconArchive, IconReload } from "@tabler/icons-react";
+import { IconArchive, IconReload, IconTrash } from "@tabler/icons-react";
 import { type Row } from "@tanstack/react-table";
 import { toast } from "sonner";
 
@@ -19,7 +19,10 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { IOption } from "@/src/interfaces/Option";
-import { archiveOptionAction } from "../option.action";
+import {
+  archiveOptionAction,
+  deleteOptionPermanentlyAction,
+} from "../option.action";
 import { useRefresh } from "@/src/hooks/RefreshContext";
 
 interface DeleteOptionsDialogProps
@@ -27,34 +30,61 @@ interface DeleteOptionsDialogProps
   showTrigger?: boolean;
   onSuccess?: () => void;
   Options: Row<IOption>["original"][];
+  permanent?: boolean;
+}
+
+function optionClassesCount(option: IOption) {
+  return option.classesCount ?? option.classes?.length ?? 0;
 }
 
 export function DeleteOptionsDialog({
   showTrigger = true,
   onSuccess,
   Options,
+  permanent = false,
   ...props
 }: DeleteOptionsDialogProps) {
-  const [isArchivePending, startArchiveTransition] = useTransition();
-
+  const [isPending, startTransition] = useTransition();
   const { refresh } = useRefresh();
-  const handleArchive = () => {
-    startArchiveTransition(async () => {
+
+  const count = Options.length;
+  const blockedCount = Options.reduce(
+    (total, option) => total + optionClassesCount(option),
+    0,
+  );
+  const blocked = permanent && blockedCount > 0;
+
+  const handleConfirm = () => {
+    if (blocked) return;
+    startTransition(async () => {
       let hasError = false;
       for (const option of Options) {
-        const [, err] = await archiveOptionAction({
-          id: option.id,
-          codeOption: option.codeOption,
-          nameOption: option.nameOption,
-        });
+        const [, err] = permanent
+          ? await deleteOptionPermanentlyAction({ id: option.id })
+          : await archiveOptionAction({
+              id: option.id,
+              codeOption: option.codeOption,
+              nameOption: option.nameOption,
+            });
         if (err) {
-          toast.error(err.message ?? "Erreur lors de l'archivage");
+          toast.error(
+            err.message ??
+              (permanent
+                ? "Erreur lors de la suppression"
+                : "Erreur lors de l'archivage"),
+          );
           hasError = true;
         }
       }
       if (!hasError) {
         toast.success(
-          Options.length === 1 ? "Option archivée" : "Options archivées",
+          permanent
+            ? count === 1
+              ? "Option supprimée"
+              : "Options supprimées"
+            : count === 1
+              ? "Option archivée"
+              : "Options archivées",
         );
         refresh();
         onSuccess?.();
@@ -63,49 +93,76 @@ export function DeleteOptionsDialog({
     });
   };
 
-  const count = Options.length;
-
   return (
     <Dialog {...props}>
       {showTrigger ? (
         <DialogTrigger asChild>
           <Button variant="outline" size="sm">
-            <IconArchive className="mr-2 size-4" aria-hidden="true" />
-            Archiver ({count})
+            {permanent ? (
+              <IconTrash className="mr-2 size-4" aria-hidden="true" />
+            ) : (
+              <IconArchive className="mr-2 size-4" aria-hidden="true" />
+            )}
+            {permanent ? `Supprimer (${count})` : `Archiver (${count})`}
           </Button>
         </DialogTrigger>
       ) : null}
-      <DialogContent>
+      <DialogContent
+        onOpenAutoFocus={(event) => event.preventDefault()}
+        onCloseAutoFocus={(event) => event.preventDefault()}
+      >
         <DialogHeader>
           <DialogTitle>
-            {count === 1
-              ? "Archiver l'option ?"
-              : `Archiver ${count} options ?`}
+            {blocked
+              ? "Impossible de supprimer"
+              : permanent
+                ? count === 1
+                  ? "Supprimer l'option ?"
+                  : `Supprimer ${count} options ?`
+                : count === 1
+                  ? "Archiver l'option ?"
+                  : `Archiver ${count} options ?`}
           </DialogTitle>
           <DialogDescription>
-            {count === 1
-              ? "L'option sera masquée des listes actives mais l'historique sera conservé."
-              : "Ces options seront masquées des listes actives mais l'historique sera conservé."}
+            {blocked
+              ? count === 1
+                ? `Cette option a encore ${blockedCount} classe${blockedCount > 1 ? "s" : ""}. Supprimez d'abord ${blockedCount > 1 ? "ces classes" : "cette classe"} avant de supprimer l'option.`
+                : `Ces options ont encore ${blockedCount} classe${blockedCount > 1 ? "s" : ""} liée${blockedCount > 1 ? "s" : ""}. Supprimez d'abord ces classes avant de supprimer les options.`
+              : permanent
+                ? count === 1
+                  ? "Cette action est irréversible. L'option sera effacée définitivement."
+                  : "Cette action est irréversible. Ces options seront effacées définitivement."
+                : count === 1
+                  ? "L'option sera masquée des listes actives mais l'historique sera conservé."
+                  : "Ces options seront masquées des listes actives mais l'historique sera conservé."}
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="gap-2 sm:space-x-0">
           <DialogClose asChild>
-            <Button variant="outline">Annuler</Button>
+            <Button variant="outline">{blocked ? "Fermer" : "Annuler"}</Button>
           </DialogClose>
-          <Button
-            aria-label="Archiver la sélection"
-            variant="outline"
-            onClick={handleArchive}
-            disabled={isArchivePending}
-          >
-            {isArchivePending && (
-              <IconReload
-                className="mr-2 size-4 animate-spin"
-                aria-hidden="true"
-              />
-            )}
-            Archiver
-          </Button>
+          {blocked ? null : (
+            <Button
+              aria-label={
+                permanent ? "Supprimer la sélection" : "Archiver la sélection"
+              }
+              variant="destructive"
+              onClick={handleConfirm}
+              disabled={isPending}
+            >
+              {isPending ? (
+                <IconReload
+                  className="mr-2 size-4 animate-spin"
+                  aria-hidden="true"
+                />
+              ) : permanent ? (
+                <IconTrash className="mr-2 size-4" aria-hidden="true" />
+              ) : (
+                <IconArchive className="mr-2 size-4" aria-hidden="true" />
+              )}
+              {permanent ? "Supprimer" : "Archiver"}
+            </Button>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>
