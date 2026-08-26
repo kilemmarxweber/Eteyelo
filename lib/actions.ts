@@ -763,6 +763,7 @@ export async function getLessonsWithFichesByClass(
     pairs: lessons.map((lesson) => ({
       coursId: lesson.coursId,
       optionId: lesson.classe?.optionId,
+      level: lesson.classe?.level,
     })),
   });
 
@@ -786,6 +787,7 @@ export async function getLessonsWithFichesByClass(
         coursePonderation: resolveCoursePonderation(ponderationMap, {
           coursId: lesson.coursId,
           optionId: lesson.classe?.optionId,
+          level: lesson.classe?.level,
         }),
       })),
   );

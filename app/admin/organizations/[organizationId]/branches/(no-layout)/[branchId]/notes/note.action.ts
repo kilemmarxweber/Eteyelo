@@ -463,6 +463,7 @@ export async function createFiche(
           pairs: lessons.map((lesson) => ({
             coursId: lesson.coursId,
             optionId: lesson.classe?.optionId,
+            level: lesson.classe?.level,
           })),
         });
 
@@ -481,6 +482,7 @@ export async function createFiche(
                       resolveCoursePonderation(ponderationMap, {
                         coursId: lesson.coursId,
                         optionId: lesson.classe?.optionId,
+                        level: lesson.classe?.level,
                       }) * 10,
                   })),
           }),

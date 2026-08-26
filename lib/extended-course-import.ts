@@ -162,16 +162,18 @@ export async function importCourseToBranch(params: {
 
         await tx.coursOptionPonderation.upsert({
           where: {
-            branchId_coursId_optionId: {
+            branchId_coursId_optionId_level: {
               branchId: params.targetBranchId,
               coursId: created.id,
               optionId: targetOption.id,
+              level: ponderation.level ?? "",
             },
           },
           create: {
             branchId: params.targetBranchId,
             coursId: created.id,
             optionId: targetOption.id,
+            level: ponderation.level ?? "",
             ponderation: ponderation.ponderation,
           },
           update: {

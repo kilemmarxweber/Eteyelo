@@ -12,6 +12,7 @@ import {
   maternelleOptionDisplayName,
 } from "@/lib/maternelle-academic-structure";
 import { type Cycle } from "@/lib/cycle";
+import { DEFAULT_PONDERATION_LEVEL, normalizePonderationLevel } from "@/lib/course-ponderation";
 import {
   canManageOrganization,
   canPermanentlyDeleteInformation,
@@ -66,7 +67,7 @@ const PONDERATION_CYCLES = [
 
 export const getCoursPonderationOptionPageDataAction = action.handler(
   async () => {
-    const { branchId, cycles } = await requireBranchContext();
+    const { branchId, cycles, educationSystem } = await requireBranchContext();
     const activated = cycles.filter((cycle): cycle is Cycle =>
       (PONDERATION_CYCLES as readonly string[]).includes(cycle),
     );
@@ -111,6 +112,7 @@ export const getCoursPonderationOptionPageDataAction = action.handler(
           id: true,
           coursId: true,
           optionId: true,
+          level: true,
           ponderation: true,
           updatedAt: true,
         },
@@ -195,12 +197,26 @@ export const getCoursPonderationOptionPageDataAction = action.handler(
       cours,
       ponderations,
       cycles: ponderationCycles,
+      educationSystem,
       isPrimary: activated.length === 1 && activated[0] === "PRIMAIRE",
       primaryOptionId: orderedOptions[0]?.id ?? null,
       schoolYear,
     };
   },
 );
+
+function resolvePonderationLevels(input: {
+  level?: string;
+  levels?: string[];
+}): string[] {
+  if (input.levels?.length) {
+    const unique = Array.from(
+      new Set(input.levels.map((level) => normalizePonderationLevel(level))),
+    );
+    return unique.length ? unique : [DEFAULT_PONDERATION_LEVEL];
+  }
+  return [normalizePonderationLevel(input.level)];
+}
 
 export const createCoursOptionPonderationAction = action
   .input(coursOptionPonderationSchema)
@@ -213,31 +229,82 @@ export const createCoursOptionPonderationAction = action
       optionId: input.optionId,
     });
 
-    const existing = await prisma.coursOptionPonderation.findUnique({
-      where: {
-        branchId_coursId_optionId: {
-          branchId,
-          coursId: input.coursId,
-          optionId: input.optionId,
+    const levels = resolvePonderationLevels(input);
+    const saved = [];
+    for (const level of levels) {
+      const existing = await prisma.coursOptionPonderation.findUnique({
+        where: {
+          branchId_coursId_optionId_level: {
+            branchId,
+            coursId: input.coursId,
+            optionId: input.optionId,
+            level,
+          },
         },
-      },
-      select: { id: true },
-    });
+        select: { id: true },
+      });
 
-    if (existing) {
-      throw new Error("Cette ponderation existe deja pour ce cours et cette option");
+      if (existing) {
+        throw new Error(
+          level
+            ? `Cette pondération existe déjà pour le niveau ${level}.`
+            : "Cette ponderation existe deja pour ce cours et cette option",
+        );
+      }
+
+      saved.push(
+        await prisma.coursOptionPonderation.create({
+          data: {
+            branchId,
+            coursId: input.coursId,
+            optionId: input.optionId,
+            level,
+            ponderation: input.ponderation,
+          },
+        }),
+      );
     }
-
-    const ponderation = await prisma.coursOptionPonderation.create({
-      data: {
-        branchId,
-        coursId: input.coursId,
-        optionId: input.optionId,
-        ponderation: input.ponderation,
-      },
-    });
     revalidateCoursPonderationOptionPages(organizationId, branchId);
-    return ponderation;
+    return saved[0];
+  });
+
+export const saveCoursOptionPonderationAction = action
+  .input(coursOptionPonderationSchema)
+  .handler(async ({ input }) => {
+    const { branchId, organizationId, session } = await requireBranchContext();
+    requireManagePermission(session);
+    await requireCoursAndOptionInBranch({
+      branchId,
+      coursId: input.coursId,
+      optionId: input.optionId,
+    });
+
+    const levels = resolvePonderationLevels(input);
+    const saved = [];
+    for (const level of levels) {
+      saved.push(
+        await prisma.coursOptionPonderation.upsert({
+          where: {
+            branchId_coursId_optionId_level: {
+              branchId,
+              coursId: input.coursId,
+              optionId: input.optionId,
+              level,
+            },
+          },
+          create: {
+            branchId,
+            coursId: input.coursId,
+            optionId: input.optionId,
+            level,
+            ponderation: input.ponderation,
+          },
+          update: { ponderation: input.ponderation },
+        }),
+      );
+    }
+    revalidateCoursPonderationOptionPages(organizationId, branchId);
+    return saved;
   });
 
 export const updateCoursOptionPonderationAction = action
@@ -280,7 +347,10 @@ export const updateCoursOptionPonderationAction = action
 export const deleteCoursOptionPonderationAction = action
   .input(
     z.object({
-      id: z.string().min(1, "ID requis"),
+      id: z.string().optional(),
+      coursId: z.string().optional(),
+      optionId: z.string().optional(),
+      levels: z.array(z.string()).optional(),
     }),
   )
   .handler(async ({ input }) => {
@@ -290,18 +360,37 @@ export const deleteCoursOptionPonderationAction = action
       throw new Error(PERMANENT_DELETE_DENIED_MESSAGE);
     }
 
-    const existing = await prisma.coursOptionPonderation.findFirst({
-      where: { id: input.id, branchId },
-      select: { id: true },
-    });
-    if (!existing) {
-      throw new Error("Ponderation introuvable dans cette branche");
+    if (input.id) {
+      const existing = await prisma.coursOptionPonderation.findFirst({
+        where: { id: input.id, branchId },
+        select: { id: true },
+      });
+      if (!existing) {
+        throw new Error("Ponderation introuvable dans cette branche");
+      }
+
+      await prisma.coursOptionPonderation.delete({
+        where: { id: input.id },
+      });
+      revalidateCoursPonderationOptionPages(organizationId, branchId);
+      return { ok: true as const };
     }
 
-    await prisma.coursOptionPonderation.delete({
-      where: { id: input.id },
+    if (!input.coursId || !input.optionId) {
+      throw new Error("ID requis");
+    }
+
+    const levels = resolvePonderationLevels({ levels: input.levels });
+    await prisma.coursOptionPonderation.deleteMany({
+      where: {
+        branchId,
+        coursId: input.coursId,
+        optionId: input.optionId,
+        level: { in: levels },
+      },
     });
     revalidateCoursPonderationOptionPages(organizationId, branchId);
     return { ok: true as const };
   });
+
 

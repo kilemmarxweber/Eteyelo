@@ -41,7 +41,13 @@ export async function upsertSecondaryCatalogCoursesForBranch(
     }),
     Prisma.coursOptionPonderation.findMany({
       where: { branchId },
-      select: { id: true, coursId: true, optionId: true, ponderation: true },
+      select: {
+        id: true,
+        coursId: true,
+        optionId: true,
+        ponderation: true,
+        level: true,
+      },
     }),
   ]);
 
@@ -49,7 +55,9 @@ export async function upsertSecondaryCatalogCoursesForBranch(
     branchOptions.map((o) => [o.codeOption, o.id]),
   );
   const ponderationByPair = new Map(
-    existingPonderations.map((p) => [`${p.coursId}:${p.optionId}`, p]),
+    existingPonderations
+      .filter((p) => !p.level)
+      .map((p) => [`${p.coursId}:${p.optionId}`, p]),
   );
 
   const byNormalizedName = new Map(
@@ -148,8 +156,15 @@ export async function upsertSecondaryCatalogCoursesForBranch(
             coursId,
             optionId,
             ponderation,
+            level: "",
           },
-          select: { id: true, coursId: true, optionId: true, ponderation: true },
+          select: {
+            id: true,
+            coursId: true,
+            optionId: true,
+            ponderation: true,
+            level: true,
+          },
         });
         ponderationByPair.set(pairKey, created);
         ponderationsCreated += 1;

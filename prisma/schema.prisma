@@ -568,15 +568,18 @@ model CoursOptionPonderation {
   option      Option   @relation(fields: [optionId], references: [id], onDelete: Cascade)
   /** Unités de max période : max = ponderation × 10 (ex. 1 → 10, 0.5 → 5). */
   ponderation Float
+  /** Niveau secondaire (7è, 1è…). Vide = tous les niveaux de l'option. */
+  level       String   @default("")
   branchId    String
   branch      Branch   @relation(fields: [branchId], references: [id], onDelete: Cascade)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  @@unique([branchId, coursId, optionId])
+  @@unique([branchId, coursId, optionId, level])
   @@index([branchId])
   @@index([coursId])
   @@index([optionId])
+  @@index([branchId, optionId, level])
 }
 model Schedule {
   id           String    @id @default(cuid())

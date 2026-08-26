@@ -28,12 +28,17 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   getCoursPonderationOptionPageDataAction,
-  createCoursOptionPonderationAction,
-  updateCoursOptionPonderationAction,
+  saveCoursOptionPonderationAction,
   deleteCoursOptionPonderationAction,
 } from "./cours-ponderation-option.action";
 import { useBranchRouteGuard } from "@/hooks/use-branch-route-guard";
 import { cycleLabel, type Cycle } from "@/lib/cycle";
+import {
+  getClassLevelLabel,
+  getSecondaryPonderationLevels,
+} from "@/lib/class-structure";
+import { DEFAULT_PONDERATION_LEVEL } from "@/lib/course-ponderation-shared";
+import { MultiSelect } from "../paiement/components/MultiSelect";
 
 type PageData = NonNullable<
   Awaited<ReturnType<typeof getCoursPonderationOptionPageDataAction>>[0]
@@ -48,6 +53,7 @@ export default function CoursPonderationOptionPage() {
   const [data, setData] = useState<PageData | null>(null);
   const [selectedOptionId, setSelectedOptionId] = useState("");
   const [selectedCycle, setSelectedCycle] = useState<Cycle | "">("");
+  const [selectedLevels, setSelectedLevels] = useState<string[]>([]);
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("all");
   const [sort, setSort] = useState("name");
@@ -87,28 +93,57 @@ export default function CoursPonderationOptionPage() {
   const activeOptionId = selectedOption?.id ?? selectedOptionId;
   const isLevelWeighted = selectedOption?.isLevelWeighted ?? false;
   const activeCycle = selectedOption?.cycle ?? selectedCycle;
+  const isSecondary = activeCycle === "SECONDAIRE";
+  const secondaryLevels = useMemo(() => {
+    if (!isSecondary) return [];
+    return getSecondaryPonderationLevels({
+      educationSystem: data?.educationSystem,
+      option: selectedOption,
+    });
+  }, [data?.educationSystem, isSecondary, selectedOption]);
+  const activeLevels =
+    isSecondary && selectedLevels.length > 0
+      ? selectedLevels
+      : [DEFAULT_PONDERATION_LEVEL];
   const map = useMemo(
     () =>
       new Map(
         (data?.ponderations ?? []).map((item) => [
-          `${item.optionId}:${item.coursId}`,
+          `${item.optionId}:${item.coursId}:${item.level ?? ""}`,
           item,
         ]),
       ),
     [data],
   );
   const rows = useMemo(() => {
-    const values = (data?.cours ?? []).map((course) => ({
-      course,
-      ponderation: map.get(`${activeOptionId}:${course.id}`),
-    }));
-    const filtered = values.filter(({ course, ponderation }) => {
+    const values = (data?.cours ?? []).map((course) => {
+      const byLevel = activeLevels.map(
+        (level) => map.get(`${activeOptionId}:${course.id}:${level}`),
+      );
+      const inherited =
+        map.get(`${activeOptionId}:${course.id}:${DEFAULT_PONDERATION_LEVEL}`);
+      const specifics = byLevel.filter(Boolean);
+      const configured =
+        activeLevels[0] === DEFAULT_PONDERATION_LEVEL
+          ? Boolean(inherited)
+          : specifics.length === activeLevels.length;
+      const ponderation =
+        specifics[0] ??
+        (activeLevels[0] === DEFAULT_PONDERATION_LEVEL ? inherited : inherited);
+      return {
+        course,
+        ponderation,
+        configured,
+        inherited: Boolean(inherited) && specifics.length === 0 && activeLevels[0] !== DEFAULT_PONDERATION_LEVEL,
+      };
+    });
+    const filtered = values.filter(({ course, configured }) => {
       const matchesSearch = `${course.codeCours} ${course.nameCours}`
         .toLowerCase()
         .includes(search.toLowerCase());
       const matchesStatus =
         status === "all" ||
-        (status === "configured" ? !!ponderation : !ponderation);
+        (status === "configured" ? configured : !configured);
       return matchesSearch && matchesStatus;
     });
     return filtered.sort((a, b) =>
@@ -117,15 +152,21 @@ export default function CoursPonderationOptionPage() {
           (a.ponderation?.ponderation ?? -1)
         : a.course.nameCours.localeCompare(b.course.nameCours),
     );
-  }, [data, map, search, activeOptionId, sort, status]);
+  }, [data, map, search, activeOptionId, activeLevels, sort, status]);
 
   const configured =
     data?.cours.filter((course) =>
-      map.has(`${activeOptionId}:${course.id}`),
+      activeLevels.every((level) =>
+        map.has(`${activeOptionId}:${course.id}:${level}`),
+      ),
     ).length ?? 0;
   const missing = (data?.cours.length ?? 0) - configured;
   const weights = (data?.ponderations ?? [])
-    .filter((item) => item.optionId === activeOptionId)
+    .filter(
+      (item) =>
+        item.optionId === activeOptionId &&
+        activeLevels.includes(item.level ?? DEFAULT_PONDERATION_LEVEL),
+    )
     .map((item) => item.ponderation);
   const average = weights.length
     ? weights.reduce((sum, value) => sum + value, 0) / weights.length
@@ -141,82 +182,76 @@ export default function CoursPonderationOptionPage() {
       );
       return;
     }
-    const key = `${activeOptionId}:${courseId}`;
-    const previous = map.get(key);
-    const optimistic: Ponderation = {
-      id: previous?.id ?? `temp-${courseId}`,
+    const previousRows = activeLevels.map((level) =>
+      map.get(`${activeOptionId}:${courseId}:${level}`),
+    );
+    const optimisticRows: Ponderation[] = activeLevels.map((level, index) => ({
+      id: previousRows[index]?.id ?? `temp-${courseId}-${level || "all"}`,
       coursId: courseId,
       optionId: activeOptionId,
+      level,
       ponderation: value,
       updatedAt: new Date(),
-    };
-    setData((current) =>
-      current
-        ? {
-            ...current,
-            ponderations: previous
-              ? current.ponderations.map((item) =>
-                  item.id === previous.id ? optimistic : item,
-                )
-              : [...current.ponderations, optimistic],
-          }
-        : current,
-    );
+    }));
+    setData((current) => {
+      if (!current) return current;
+      const without = current.ponderations.filter(
+        (item) =>
+          !(
+            item.optionId === activeOptionId &&
+            item.coursId === courseId &&
+            activeLevels.includes(item.level ?? DEFAULT_PONDERATION_LEVEL)
+          ),
+      );
+      return { ...current, ponderations: [...without, ...optimisticRows] };
+    });
     setSavingId(courseId);
     startTransition(async () => {
-      const [saved, error] = previous
-        ? await updateCoursOptionPonderationAction({
-            id: previous.id,
-            coursId: courseId,
-            optionId: activeOptionId,
-            ponderation: value,
-          })
-        : await createCoursOptionPonderationAction({
-            coursId: courseId,
-            optionId: activeOptionId,
-            ponderation: value,
-          });
+      const [saved, error] = await saveCoursOptionPonderationAction({
+        coursId: courseId,
+        optionId: activeOptionId,
+        ponderation: value,
+        levels: activeLevels,
+      });
       setSavingId(null);
       if (error || !saved) {
-        setData((current) =>
-          current
-            ? {
-                ...current,
-                ponderations: previous
-                  ? current.ponderations.map((item) =>
-                      item.coursId === courseId &&
-                      item.optionId === activeOptionId
-                        ? previous
-                        : item,
-                    )
-                  : current.ponderations.filter(
-                      (item) => item.id !== optimistic.id,
-                    ),
-              }
-            : current,
-        );
+        setData((current) => {
+          if (!current) return current;
+          const withoutOptimistic = current.ponderations.filter(
+            (item) =>
+              !optimisticRows.some((row) => row.id === item.id),
+          );
+          return {
+            ...current,
+            ponderations: [
+              ...withoutOptimistic,
+              ...previousRows.filter((row): row is Ponderation => Boolean(row)),
+            ],
+          };
+        });
         toast.error(error?.message ?? "Enregistrement impossible");
         return;
       }
-      setData((current) =>
-        current
-          ? {
-              ...current,
-              ponderations: current.ponderations.map((item) =>
-                item.id === optimistic.id ? saved : item,
-              ),
-            }
-          : current,
-      );
+      setData((current) => {
+        if (!current) return current;
+        const withoutOptimistic = current.ponderations.filter(
+          (item) => !optimisticRows.some((row) => row.id === item.id),
+        );
+        return {
+          ...current,
+          ponderations: [...withoutOptimistic, ...saved],
+        };
+      });
       toast.success("Pondération enregistrée");
     });
   }
 
   function cancel(courseId: string) {
     if (!data) return;
-    const key = `${activeOptionId}:${courseId}`;
-    const previous = map.get(key);
-    if (!previous || previous.id.startsWith("temp-")) {
+    const previousRows = activeLevels
+      .map((level) => map.get(`${activeOptionId}:${courseId}:${level}`))
+      .filter((row): row is Ponderation => Boolean(row) && !row.id.startsWith("temp-"));
+    if (!previousRows.length) {
       toast.error("Aucune pondération configurée à annuler");
       return;
     }
@@ -226,7 +261,7 @@ export default function CoursPonderationOptionPage() {
         ? {
             ...current,
             ponderations: current.ponderations.filter(
-              (item) => item.id !== previous.id,
+              (item) => !previousRows.some((row) => row.id === item.id),
             ),
           }
         : current,
@@ -234,7 +269,9 @@ export default function CoursPonderationOptionPage() {
     setSavingId(courseId);
     startTransition(async () => {
       const [, error] = await deleteCoursOptionPonderationAction({
-        id: previous.id,
+        coursId: courseId,
+        optionId: activeOptionId,
+        levels: activeLevels,
       });
       setSavingId(null);
       if (error) {
@@ -242,7 +279,7 @@ export default function CoursPonderationOptionPage() {
           current
             ? {
                 ...current,
-                ponderations: [...current.ponderations, previous],
+                ponderations: [...current.ponderations, ...previousRows],
               }
             : current,
         );
@@ -289,8 +326,12 @@ export default function CoursPonderationOptionPage() {
           <div
             className={`grid gap-4 ${
               data.cycles.length > 1
-                ? "lg:grid-cols-[1fr_1fr_1fr]"
-                : "lg:grid-cols-[1fr_1fr]"
+                ? isSecondary
+                  ? "lg:grid-cols-2 xl:grid-cols-4"
+                  : "lg:grid-cols-[1fr_1fr_1fr]"
+                : isSecondary
+                  ? "lg:grid-cols-3"
+                  : "lg:grid-cols-[1fr_1fr]"
             }`}
           >
             {data.cycles.length > 1 ? (
@@ -305,6 +346,7 @@ export default function CoursPonderationOptionPage() {
                       (option) => option.cycle === cycle,
                     );
                     setSelectedOptionId(first?.id ?? "");
+                    setSelectedLevels([]);
                   }}
                 >
                   <SelectTrigger className="mt-2">
@@ -326,7 +368,10 @@ export default function CoursPonderationOptionPage() {
               </label>
               <Select
                 value={activeOptionId || undefined}
-                onValueChange={setSelectedOptionId}
+                onValueChange={(value) => {
+                  setSelectedOptionId(value);
+                  setSelectedLevels([]);
+                }}
               >
                 <SelectTrigger className="mt-2">
                   <SelectValue
@@ -346,6 +391,32 @@ export default function CoursPonderationOptionPage() {
                 </SelectContent>
               </Select>
             </div>
+            {isSecondary ? (
+              <div>
+                <label className="text-sm font-medium">Niveaux</label>
+                <div className="mt-2">
+                  <MultiSelect
+                    options={secondaryLevels.map((level) => ({
+                      value: level,
+                      label: getClassLevelLabel(
+                        "SECONDAIRE",
+                        level,
+                        data.educationSystem,
+                      ),
+                    }))}
+                    value={selectedLevels}
+                    onValueChange={setSelectedLevels}
+                    placeholder="Tous les niveaux"
+                    searchable
+                    maxCount={2}
+                  />
+                </div>
+                <p className="mt-1.5 text-xs text-muted-foreground">
+                  Vide = pondération commune. Choisissez un ou plusieurs
+                  niveaux pour une pondération propre.
+                </p>
+              </div>
+            ) : null}
             <div className="rounded-lg border bg-muted/30 p-3 text-sm">
               <p className="font-medium">Contexte actif</p>
               <p className="text-muted-foreground">
@@ -363,6 +434,20 @@ export default function CoursPonderationOptionPage() {
               ) : activeCycle === "PRIMAIRE" ? (
                 <p className="mt-1 text-muted-foreground">
                   Les pondérations sont définies par niveau (1è–6è).
+                </p>
+              ) : isSecondary ? (
+                <p className="mt-1 text-muted-foreground">
+                  {selectedLevels.length
+                    ? `Niveaux ciblés : ${selectedLevels
+                        .map((level) =>
+                          getClassLevelLabel(
+                            "SECONDAIRE",
+                            level,
+                            data.educationSystem,
+                          ),
+                        )
+                        .join(", ")}.`
+                    : "Pondération commune à tous les niveaux de cette option."}
                 </p>
               ) : null}
             </div>
@@ -441,12 +526,14 @@ export default function CoursPonderationOptionPage() {
                 </tr>
               </thead>
               <tbody>
-                {rows.map(({ course, ponderation }) => (
+                {rows.map(({ course, ponderation, configured, inherited }) => (
                   <PonderationRow
                     key={course.id}
                     course={course}
                     option={selectedOption}
                     ponderation={ponderation}
+                    configured={configured}
+                    inherited={inherited}
                     saving={savingId === course.id}
                     onSave={save}
                     onCancel={cancel}
@@ -457,11 +544,13 @@ export default function CoursPonderationOptionPage() {
           </div>
 
           <div className="grid gap-3 p-3 md:hidden">
-            {rows.map(({ course, ponderation }) => (
+            {rows.map(({ course, ponderation, configured, inherited }) => (
               <PonderationCard
                 key={course.id}
                 course={course}
                 ponderation={ponderation}
+                configured={configured}
+                inherited={inherited}
                 saving={savingId === course.id}
                 onSave={save}
                 onCancel={cancel}
@@ -581,6 +670,8 @@ function PonderationRow({
   course,
   option,
   ponderation,
+  configured,
+  inherited,
   saving,
   onSave,
   onCancel,
@@ -588,6 +679,8 @@ function PonderationRow({
   course: CourseRow;
   option?: OptionRow;
   ponderation?: Ponderation;
+  configured: boolean;
+  inherited: boolean;
   saving: boolean;
   onSave: (id: string, value: number) => void;
   onCancel: (id: string) => void;
@@ -599,7 +692,7 @@ function PonderationRow({
   return (
     <tr
       className={`border-t ${
-        !ponderation ? "bg-amber-50/40 dark:bg-amber-950/10" : ""
+        !configured ? "bg-amber-50/40 dark:bg-amber-950/10" : ""
       }`}
     >
       <td className="px-3 py-2 align-middle">
@@ -624,15 +717,17 @@ function PonderationRow({
         <WeightEditor
           courseId={course.id}
           value={ponderation?.ponderation}
-          configured={!!ponderation}
+          configured={configured}
           saving={saving}
           onSave={onSave}
           onCancel={onCancel}
         />
       </td>
       <td className="px-3 py-2 align-middle whitespace-nowrap">
-        <Badge variant={ponderation ? "success" : "warning"}>
-          {ponderation ? "Configuré" : "Manquant"}
+        <Badge
+          variant={configured ? "success" : inherited ? "secondary" : "warning"}
+        >
+          {configured ? "Configuré" : inherited ? "Héritée" : "Manquant"}
         </Badge>
       </td>
       <td className="px-3 py-2 align-middle whitespace-nowrap text-muted-foreground">
@@ -653,31 +748,37 @@ function PonderationRow({
 function PonderationCard({
   course,
   ponderation,
+  configured,
+  inherited,
   saving,
   onSave,
   onCancel,
 }: {
   course: CourseRow;
   ponderation?: Ponderation;
+  configured: boolean;
+  inherited: boolean;
   saving: boolean;
   onSave: (id: string, value: number) => void;
   onCancel: (id: string) => void;
 }) {
   return (
-    <Card className={`space-y-3 p-4 ${!ponderation ? "border-amber-300" : ""}`}>
+    <Card className={`space-y-3 p-4 ${!configured ? "border-amber-300" : ""}`}>
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
           <p className="truncate font-medium">{course.nameCours}</p>
           <p className="text-xs text-muted-foreground">{course.codeCours}</p>
         </div>
-        <Badge variant={ponderation ? "success" : "warning"}>
-          {ponderation ? "Configuré" : "Manquant"}
+        <Badge
+          variant={configured ? "success" : inherited ? "secondary" : "warning"}
+        >
+          {configured ? "Configuré" : inherited ? "Héritée" : "Manquant"}
         </Badge>
       </div>
       <WeightEditor
         courseId={course.id}
         value={ponderation?.ponderation}
-        configured={!!ponderation}
+        configured={configured}
         saving={saving}
         onSave={onSave}
         onCancel={onCancel}

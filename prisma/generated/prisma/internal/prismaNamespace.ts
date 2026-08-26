@@ -6146,6 +6146,7 @@ export const CoursOptionPonderationScalarFieldEnum = {
   coursId: 'coursId',
   optionId: 'optionId',
   ponderation: 'ponderation',
+  level: 'level',
   branchId: 'branchId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'

@@ -4,8 +4,12 @@ import {
 } from "@/lib/academic-structure";
 import {
   ANGOLA_SECONDARY_LEVELS,
+  ANGOLA_FIRST_CYCLE_LEVELS,
+  ANGOLA_SECOND_CYCLE_LEVELS,
+  ANGOLA_REDUCED_LEVEL,
   angolaSecondaryLevelLabel,
   isAngolaFirstCycleLevel,
+  isAngolaNucleoComumOption,
   isAngolaReducedHoursLevel,
   isAngolaSecondarySystem,
   angolaRequiresArea,
@@ -21,6 +25,7 @@ import {
   getBranchTypeLabel as getBranchTypeLabelFromCapabilities,
   isPrimaryBranch as isPrimaryBranchFromCapabilities,
 } from "@/lib/branch-capabilities";
+import { isCtebOption } from "@/lib/class-catalog";
 
 /** Primaire : levels internes 1è–6è (name/code = 1è-PR …). */
 export const PRIMARY_CLASS_LEVELS = [
@@ -127,6 +132,26 @@ export function getClassLevelsForBranch(
     default:
       return SECONDARY_CLASS_LEVELS;
   }
+}
+
+/** Niveaux proposés pour une pondération secondaire (multi-choix). */
+export function getSecondaryPonderationLevels(params: {
+  educationSystem?: unknown;
+  option?: {
+    codeOption?: string | null;
+    nameOption?: string | null;
+  } | null;
+}): string[] {
+  if (isAngolaSecondarySystem("SECONDAIRE", params.educationSystem)) {
+    if (params.option && isAngolaNucleoComumOption(params.option)) {
+      return [...ANGOLA_FIRST_CYCLE_LEVELS];
+    }
+    return [...ANGOLA_SECOND_CYCLE_LEVELS, ANGOLA_REDUCED_LEVEL];
+  }
+  if (params.option && isCtebOption(params.option)) {
+    return [...SECONDARY_CTEB_LEVELS];
+  }
+  return [...SECONDARY_HUMANITES_LEVELS];
 }
 
 /** Libellés UI (niveau + aide historique). */

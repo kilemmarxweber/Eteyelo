@@ -363,10 +363,11 @@ export const upsertOptionPonderationAction = action
 
     const ponderation = await prisma.coursOptionPonderation.upsert({
       where: {
-        branchId_coursId_optionId: {
+        branchId_coursId_optionId_level: {
           branchId,
           coursId: input.coursId,
           optionId: input.optionId,
+          level: "",
         },
       },
       update: {
@@ -376,6 +377,7 @@ export const upsertOptionPonderationAction = action
         branchId,
         coursId: input.coursId,
         optionId: input.optionId,
+        level: "",
         ponderation: input.ponderation,
       },
     });

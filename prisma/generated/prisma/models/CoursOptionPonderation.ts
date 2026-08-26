@@ -39,6 +39,7 @@ export type CoursOptionPonderationMinAggregateOutputType = {
   coursId: string | null
   optionId: string | null
   ponderation: number | null
+  level: string | null
   branchId: string | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -49,6 +50,7 @@ export type CoursOptionPonderationMaxAggregateOutputType = {
   coursId: string | null
   optionId: string | null
   ponderation: number | null
+  level: string | null
   branchId: string | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -59,6 +61,7 @@ export type CoursOptionPonderationCountAggregateOutputType = {
   coursId: number
   optionId: number
   ponderation: number
+  level: number
   branchId: number
   createdAt: number
   updatedAt: number
@@ -79,6 +82,7 @@ export type CoursOptionPonderationMinAggregateInputType = {
   coursId?: true
   optionId?: true
   ponderation?: true
+  level?: true
   branchId?: true
   createdAt?: true
   updatedAt?: true
@@ -89,6 +93,7 @@ export type CoursOptionPonderationMaxAggregateInputType = {
   coursId?: true
   optionId?: true
   ponderation?: true
+  level?: true
   branchId?: true
   createdAt?: true
   updatedAt?: true
@@ -99,6 +104,7 @@ export type CoursOptionPonderationCountAggregateInputType = {
   coursId?: true
   optionId?: true
   ponderation?: true
+  level?: true
   branchId?: true
   createdAt?: true
   updatedAt?: true
@@ -196,6 +202,7 @@ export type CoursOptionPonderationGroupByOutputType = {
   coursId: string
   optionId: string
   ponderation: number
+  level: string
   branchId: string
   createdAt: Date
   updatedAt: Date
@@ -229,6 +236,7 @@ export type CoursOptionPonderationWhereInput = {
   coursId?: Prisma.StringFilter<"CoursOptionPonderation"> | string
   optionId?: Prisma.StringFilter<"CoursOptionPonderation"> | string
   ponderation?: Prisma.FloatFilter<"CoursOptionPonderation"> | number
+  level?: Prisma.StringFilter<"CoursOptionPonderation"> | string
   branchId?: Prisma.StringFilter<"CoursOptionPonderation"> | string
   createdAt?: Prisma.DateTimeFilter<"CoursOptionPonderation"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"CoursOptionPonderation"> | Date | string
@@ -242,6 +250,7 @@ export type CoursOptionPonderationOrderByWithRelationInput = {
   coursId?: Prisma.SortOrder
   optionId?: Prisma.SortOrder
   ponderation?: Prisma.SortOrder
+  level?: Prisma.SortOrder
   branchId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -252,26 +261,28 @@ export type CoursOptionPonderationOrderByWithRelationInput = {
 
 export type CoursOptionPonderationWhereUniqueInput = Prisma.AtLeast<{
   id?: string
-  branchId_coursId_optionId?: Prisma.CoursOptionPonderationBranchIdCoursIdOptionIdCompoundUniqueInput
+  branchId_coursId_optionId_level?: Prisma.CoursOptionPonderationBranchIdCoursIdOptionIdLevelCompoundUniqueInput
   AND?: Prisma.CoursOptionPonderationWhereInput | Prisma.CoursOptionPonderationWhereInput[]
   OR?: Prisma.CoursOptionPonderationWhereInput[]
   NOT?: Prisma.CoursOptionPonderationWhereInput | Prisma.CoursOptionPonderationWhereInput[]
   coursId?: Prisma.StringFilter<"CoursOptionPonderation"> | string
   optionId?: Prisma.StringFilter<"CoursOptionPonderation"> | string
   ponderation?: Prisma.FloatFilter<"CoursOptionPonderation"> | number
+  level?: Prisma.StringFilter<"CoursOptionPonderation"> | string
   branchId?: Prisma.StringFilter<"CoursOptionPonderation"> | string
   createdAt?: Prisma.DateTimeFilter<"CoursOptionPonderation"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"CoursOptionPonderation"> | Date | string
   cours?: Prisma.XOR<Prisma.CoursScalarRelationFilter, Prisma.CoursWhereInput>
   option?: Prisma.XOR<Prisma.OptionScalarRelationFilter, Prisma.OptionWhereInput>
   branch?: Prisma.XOR<Prisma.BranchScalarRelationFilter, Prisma.BranchWhereInput>
-}, "id" | "branchId_coursId_optionId">
+}, "id" | "branchId_coursId_optionId_level">
 
 export type CoursOptionPonderationOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   coursId?: Prisma.SortOrder
   optionId?: Prisma.SortOrder
   ponderation?: Prisma.SortOrder
+  level?: Prisma.SortOrder
   branchId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -290,6 +301,7 @@ export type CoursOptionPonderationScalarWhereWithAggregatesInput = {
   coursId?: Prisma.StringWithAggregatesFilter<"CoursOptionPonderation"> | string
   optionId?: Prisma.StringWithAggregatesFilter<"CoursOptionPonderation"> | string
   ponderation?: Prisma.FloatWithAggregatesFilter<"CoursOptionPonderation"> | number
+  level?: Prisma.StringWithAggregatesFilter<"CoursOptionPonderation"> | string
   branchId?: Prisma.StringWithAggregatesFilter<"CoursOptionPonderation"> | string
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"CoursOptionPonderation"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"CoursOptionPonderation"> | Date | string
@@ -298,6 +310,7 @@ export type CoursOptionPonderationScalarWhereWithAggregatesInput = {
 export type CoursOptionPonderationCreateInput = {
   id?: string
   ponderation: number
+  level?: string
   createdAt?: Date | string
   updatedAt?: Date | string
   cours: Prisma.CoursCreateNestedOneWithoutCoursPonderationsInput
@@ -310,6 +323,7 @@ export type CoursOptionPonderationUncheckedCreateInput = {
   coursId: string
   optionId: string
   ponderation: number
+  level?: string
   branchId: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -318,6 +332,7 @@ export type CoursOptionPonderationUncheckedCreateInput = {
 export type CoursOptionPonderationUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   ponderation?: Prisma.FloatFieldUpdateOperationsInput | number
+  level?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   cours?: Prisma.CoursUpdateOneRequiredWithoutCoursPonderationsNestedInput
@@ -330,6 +345,7 @@ export type CoursOptionPonderationUncheckedUpdateInput = {
   coursId?: Prisma.StringFieldUpdateOperationsInput | string
   optionId?: Prisma.StringFieldUpdateOperationsInput | string
   ponderation?: Prisma.FloatFieldUpdateOperationsInput | number
+  level?: Prisma.StringFieldUpdateOperationsInput | string
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -340,6 +356,7 @@ export type CoursOptionPonderationCreateManyInput = {
   coursId: string
   optionId: string
   ponderation: number
+  level?: string
   branchId: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -348,6 +365,7 @@ export type CoursOptionPonderationCreateManyInput = {
 export type CoursOptionPonderationUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   ponderation?: Prisma.FloatFieldUpdateOperationsInput | number
+  level?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -357,6 +375,7 @@ export type CoursOptionPonderationUncheckedUpdateManyInput = {
   coursId?: Prisma.StringFieldUpdateOperationsInput | string
   optionId?: Prisma.StringFieldUpdateOperationsInput | string
   ponderation?: Prisma.FloatFieldUpdateOperationsInput | number
+  level?: Prisma.StringFieldUpdateOperationsInput | string
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -372,10 +391,11 @@ export type CoursOptionPonderationOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
 }
 
-export type CoursOptionPonderationBranchIdCoursIdOptionIdCompoundUniqueInput = {
+export type CoursOptionPonderationBranchIdCoursIdOptionIdLevelCompoundUniqueInput = {
   branchId: string
   coursId: string
   optionId: string
+  level: string
 }
 
 export type CoursOptionPonderationCountOrderByAggregateInput = {
@@ -383,6 +403,7 @@ export type CoursOptionPonderationCountOrderByAggregateInput = {
   coursId?: Prisma.SortOrder
   optionId?: Prisma.SortOrder
   ponderation?: Prisma.SortOrder
+  level?: Prisma.SortOrder
   branchId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -397,6 +418,7 @@ export type CoursOptionPonderationMaxOrderByAggregateInput = {
   coursId?: Prisma.SortOrder
   optionId?: Prisma.SortOrder
   ponderation?: Prisma.SortOrder
+  level?: Prisma.SortOrder
   branchId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -407,6 +429,7 @@ export type CoursOptionPonderationMinOrderByAggregateInput = {
   coursId?: Prisma.SortOrder
   optionId?: Prisma.SortOrder
   ponderation?: Prisma.SortOrder
+  level?: Prisma.SortOrder
   branchId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -545,6 +568,7 @@ export type CoursOptionPonderationUncheckedUpdateManyWithoutBranchNestedInput = 
 export type CoursOptionPonderationCreateWithoutOptionInput = {
   id?: string
   ponderation: number
+  level?: string
   createdAt?: Date | string
   updatedAt?: Date | string
   cours: Prisma.CoursCreateNestedOneWithoutCoursPonderationsInput
@@ -555,6 +579,7 @@ export type CoursOptionPonderationUncheckedCreateWithoutOptionInput = {
   id?: string
   coursId: string
   ponderation: number
+  level?: string
   branchId: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -594,6 +619,7 @@ export type CoursOptionPonderationScalarWhereInput = {
   coursId?: Prisma.StringFilter<"CoursOptionPonderation"> | string
   optionId?: Prisma.StringFilter<"CoursOptionPonderation"> | string
   ponderation?: Prisma.FloatFilter<"CoursOptionPonderation"> | number
+  level?: Prisma.StringFilter<"CoursOptionPonderation"> | string
   branchId?: Prisma.StringFilter<"CoursOptionPonderation"> | string
   createdAt?: Prisma.DateTimeFilter<"CoursOptionPonderation"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"CoursOptionPonderation"> | Date | string
@@ -602,6 +628,7 @@ export type CoursOptionPonderationScalarWhereInput = {
 export type CoursOptionPonderationCreateWithoutCoursInput = {
   id?: string
   ponderation: number
+  level?: string
   createdAt?: Date | string
   updatedAt?: Date | string
   option: Prisma.OptionCreateNestedOneWithoutCoursPonderationsInput
@@ -612,6 +639,7 @@ export type CoursOptionPonderationUncheckedCreateWithoutCoursInput = {
   id?: string
   optionId: string
   ponderation: number
+  level?: string
   branchId: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -646,6 +674,7 @@ export type CoursOptionPonderationUpdateManyWithWhereWithoutCoursInput = {
 export type CoursOptionPonderationCreateWithoutBranchInput = {
   id?: string
   ponderation: number
+  level?: string
   createdAt?: Date | string
   updatedAt?: Date | string
   cours: Prisma.CoursCreateNestedOneWithoutCoursPonderationsInput
@@ -657,6 +686,7 @@ export type CoursOptionPonderationUncheckedCreateWithoutBranchInput = {
   coursId: string
   optionId: string
   ponderation: number
+  level?: string
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -691,6 +721,7 @@ export type CoursOptionPonderationCreateManyOptionInput = {
   id?: string
   coursId: string
   ponderation: number
+  level?: string
   branchId: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -699,6 +730,7 @@ export type CoursOptionPonderationCreateManyOptionInput = {
 export type CoursOptionPonderationUpdateWithoutOptionInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   ponderation?: Prisma.FloatFieldUpdateOperationsInput | number
+  level?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   cours?: Prisma.CoursUpdateOneRequiredWithoutCoursPonderationsNestedInput
@@ -709,6 +741,7 @@ export type CoursOptionPonderationUncheckedUpdateWithoutOptionInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   coursId?: Prisma.StringFieldUpdateOperationsInput | string
   ponderation?: Prisma.FloatFieldUpdateOperationsInput | number
+  level?: Prisma.StringFieldUpdateOperationsInput | string
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -718,6 +751,7 @@ export type CoursOptionPonderationUncheckedUpdateManyWithoutOptionInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   coursId?: Prisma.StringFieldUpdateOperationsInput | string
   ponderation?: Prisma.FloatFieldUpdateOperationsInput | number
+  level?: Prisma.StringFieldUpdateOperationsInput | string
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -727,6 +761,7 @@ export type CoursOptionPonderationCreateManyCoursInput = {
   id?: string
   optionId: string
   ponderation: number
+  level?: string
   branchId: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -735,6 +770,7 @@ export type CoursOptionPonderationCreateManyCoursInput = {
 export type CoursOptionPonderationUpdateWithoutCoursInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   ponderation?: Prisma.FloatFieldUpdateOperationsInput | number
+  level?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   option?: Prisma.OptionUpdateOneRequiredWithoutCoursPonderationsNestedInput
@@ -745,6 +781,7 @@ export type CoursOptionPonderationUncheckedUpdateWithoutCoursInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   optionId?: Prisma.StringFieldUpdateOperationsInput | string
   ponderation?: Prisma.FloatFieldUpdateOperationsInput | number
+  level?: Prisma.StringFieldUpdateOperationsInput | string
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -754,6 +791,7 @@ export type CoursOptionPonderationUncheckedUpdateManyWithoutCoursInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   optionId?: Prisma.StringFieldUpdateOperationsInput | string
   ponderation?: Prisma.FloatFieldUpdateOperationsInput | number
+  level?: Prisma.StringFieldUpdateOperationsInput | string
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -764,6 +802,7 @@ export type CoursOptionPonderationCreateManyBranchInput = {
   coursId: string
   optionId: string
   ponderation: number
+  level?: string
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -771,6 +810,7 @@ export type CoursOptionPonderationCreateManyBranchInput = {
 export type CoursOptionPonderationUpdateWithoutBranchInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   ponderation?: Prisma.FloatFieldUpdateOperationsInput | number
+  level?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   cours?: Prisma.CoursUpdateOneRequiredWithoutCoursPonderationsNestedInput
@@ -782,6 +822,7 @@ export type CoursOptionPonderationUncheckedUpdateWithoutBranchInput = {
   coursId?: Prisma.StringFieldUpdateOperationsInput | string
   optionId?: Prisma.StringFieldUpdateOperationsInput | string
   ponderation?: Prisma.FloatFieldUpdateOperationsInput | number
+  level?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -791,6 +832,7 @@ export type CoursOptionPonderationUncheckedUpdateManyWithoutBranchInput = {
   coursId?: Prisma.StringFieldUpdateOperationsInput | string
   optionId?: Prisma.StringFieldUpdateOperationsInput | string
   ponderation?: Prisma.FloatFieldUpdateOperationsInput | number
+  level?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -802,6 +844,7 @@ export type CoursOptionPonderationSelect<ExtArgs extends runtime.Types.Extension
   coursId?: boolean
   optionId?: boolean
   ponderation?: boolean
+  level?: boolean
   branchId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -815,6 +858,7 @@ export type CoursOptionPonderationSelectCreateManyAndReturn<ExtArgs extends runt
   coursId?: boolean
   optionId?: boolean
   ponderation?: boolean
+  level?: boolean
   branchId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -828,6 +872,7 @@ export type CoursOptionPonderationSelectUpdateManyAndReturn<ExtArgs extends runt
   coursId?: boolean
   optionId?: boolean
   ponderation?: boolean
+  level?: boolean
   branchId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -841,12 +886,13 @@ export type CoursOptionPonderationSelectScalar = {
   coursId?: boolean
   optionId?: boolean
   ponderation?: boolean
+  level?: boolean
   branchId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type CoursOptionPonderationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "coursId" | "optionId" | "ponderation" | "branchId" | "createdAt" | "updatedAt", ExtArgs["result"]["coursOptionPonderation"]>
+export type CoursOptionPonderationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "coursId" | "optionId" | "ponderation" | "level" | "branchId" | "createdAt" | "updatedAt", ExtArgs["result"]["coursOptionPonderation"]>
 export type CoursOptionPonderationInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   cours?: boolean | Prisma.CoursDefaultArgs<ExtArgs>
   option?: boolean | Prisma.OptionDefaultArgs<ExtArgs>
@@ -878,6 +924,10 @@ export type $CoursOptionPonderationPayload<ExtArgs extends runtime.Types.Extensi
      * * Unités de max période : max = ponderation × 10 (ex. 1 → 10, 0.5 → 5).
      */
     ponderation: number
+    /**
+     * * Niveau secondaire (7è, 1è…). Vide = tous les niveaux de l'option.
+     */
+    level: string
     branchId: string
     createdAt: Date
     updatedAt: Date
@@ -1311,6 +1361,7 @@ export interface CoursOptionPonderationFieldRefs {
   readonly coursId: Prisma.FieldRef<"CoursOptionPonderation", 'String'>
   readonly optionId: Prisma.FieldRef<"CoursOptionPonderation", 'String'>
   readonly ponderation: Prisma.FieldRef<"CoursOptionPonderation", 'Float'>
+  readonly level: Prisma.FieldRef<"CoursOptionPonderation", 'String'>
   readonly branchId: Prisma.FieldRef<"CoursOptionPonderation", 'String'>
   readonly createdAt: Prisma.FieldRef<"CoursOptionPonderation", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"CoursOptionPonderation", 'DateTime'>

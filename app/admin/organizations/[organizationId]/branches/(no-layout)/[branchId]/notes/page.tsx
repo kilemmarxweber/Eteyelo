@@ -244,6 +244,7 @@ export default async function NotesPage({
         nameClasse: true,
         optionId: true,
         cycle: true,
+        level: true,
       },
     }),
   ]);
@@ -264,6 +265,7 @@ export default async function NotesPage({
         return {
           coursId: teaching.coursId,
           optionId: classe?.optionId,
+          level: classe?.level,
         };
       }),
     ),
@@ -321,6 +323,7 @@ export default async function NotesPage({
           resolveCoursePonderation(ponderationMap, {
             coursId: teaching.coursId,
             optionId: classe?.optionId,
+            level: classe?.level,
           }) * 10,
 
         fiches:
@@ -356,6 +359,7 @@ export default async function NotesPage({
             resolveCoursePonderation(ponderationMap, {
               coursId: teaching.coursId,
               optionId: classe?.optionId,
+              level: classe?.level,
             }) * 10,
           fiches: teaching.fiche.map((f) => ({
             id: f.id,
