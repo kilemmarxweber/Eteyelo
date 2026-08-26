@@ -44,7 +44,7 @@ export function UpdateClasseDialog({
         <SheetHeader className="shrink-0 space-y-1.5 border-b px-5 py-4 pr-12 text-left sm:px-6">
           <SheetTitle>Modifier la classe</SheetTitle>
           <SheetDescription>
-            Niveau, filière, vacation et capacité.
+            Niveau, nom, filière, vacation et capacité.
           </SheetDescription>
         </SheetHeader>
         <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4 sm:px-6">

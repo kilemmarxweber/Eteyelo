@@ -4,7 +4,7 @@
   "importCatalog": "Import catalog",
   "importDisabled": "The catalog can no longer be imported: classes already exist.",
   "create": "Create a {class}",
-  "createDesc": "Level, section, option and time slot of the {class}.",
+  "createDesc": "Level, name, section, option and time slot of the {class}.",
   "total": "Total",
   "active": "Active",
   "inactive": "Inactive",

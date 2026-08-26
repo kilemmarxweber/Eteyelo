@@ -4,7 +4,7 @@
   "importCatalog": "Importer catalogue",
   "importDisabled": "Le catalogue ne peut plus être importé : des classes existent déjà.",
   "create": "Créer une {class}",
-  "createDesc": "Niveau, section, option et vacation de la {class}.",
+  "createDesc": "Niveau, nom, section, option et vacation de la {class}.",
   "total": "Total",
   "active": "Actives",
   "inactive": "Inactives",

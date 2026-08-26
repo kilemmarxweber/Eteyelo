@@ -1,6 +1,6 @@
 "use client";
 
-import { HTMLAttributes, useEffect, useMemo, useState } from "react";
+import { HTMLAttributes, useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -117,6 +117,7 @@ export function ClasseUpForm({
         }
       : {
           id: initialData?.id,
+          nameClasse: initialData?.nameClasse ?? "",
           cycle: initialData?.cycle ?? "",
           level: initialData?.level ?? "",
           parallel: initialData?.parallel ?? "",
@@ -125,6 +126,9 @@ export function ClasseUpForm({
           optionId: initialData?.optionId ?? "",
         },
   });
+  const nameTouchedRef = useRef(
+    mode === "update" && Boolean(initialData?.nameClasse),
+  );
 
   useEffect(() => {
     const fetchData = async () => {
@@ -175,6 +179,7 @@ export function ClasseUpForm({
           }
         : {
             id: initialData?.id,
+            nameClasse: initialData?.nameClasse ?? "",
             cycle: initialData?.cycle ?? "",
             level: initialData?.level ?? "",
             parallel: initialData?.parallel ?? "",
@@ -183,7 +188,9 @@ export function ClasseUpForm({
             optionId: initialData?.optionId ?? "",
           },
     );
-  }, [initialData, isLegacyUpdate, form]);
+    nameTouchedRef.current =
+      mode === "update" && Boolean(initialData?.nameClasse);
+  }, [initialData, isLegacyUpdate, form, mode]);
 
   const watchedLevel = form.watch("level");
   const watchedParallel = form.watch("parallel");
@@ -402,6 +409,13 @@ export function ClasseUpForm({
     watchedParallel,
   ]);
 
+  useEffect(() => {
+    if (isLegacyUpdate || !previewName) return;
+    if (!nameTouchedRef.current) {
+      form.setValue("nameClasse", previewName);
+    }
+  }, [form, isLegacyUpdate, previewName]);
+
   async function onSubmit(data: FormValues) {
     setIsLoading(true);
     setErrorMessage("");
@@ -415,16 +429,19 @@ export function ClasseUpForm({
           cycle: classCycle,
           level: data.level,
           parallel: data.parallel,
+          nameClasse: data.nameClasse,
           capacity: data.capacity,
           optionId: data.optionId,
           creneauId: data.creneauId,
         });
         if (err) throw new Error(err.message);
         toast.success("Classe creee avec succes");
+        nameTouchedRef.current = false;
         form.reset({
           cycle: multiCycle ? "" : classCycle,
           level: "",
           parallel: "",
+          nameClasse: "",
           capacity: undefined,
           creneauId: "",
           optionId: "",
@@ -442,6 +459,7 @@ export function ClasseUpForm({
             }
           : {
               id: data.id,
+              nameClasse: data.nameClasse,
               level: data.level,
               parallel: data.parallel,
               capacity: data.capacity,
@@ -483,12 +501,6 @@ export function ClasseUpForm({
               Branche {getBranchTypeLabel(branchType)}
               {multiCycle ? ` · ${cycleLabel(classCycle)}` : ""}
             </p>
-            {previewName ? (
-              <p className="truncate text-xs">
-                <span className="text-muted-foreground">Nom : </span>
-                <span className="font-medium">{previewName}</span>
-              </p>
-            ) : null}
           </div>
 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -530,6 +542,8 @@ export function ClasseUpForm({
                               field.onChange(value);
                               form.setValue("level", "");
                               form.setValue("optionId", "");
+                              form.setValue("nameClasse", "");
+                              nameTouchedRef.current = false;
                               setSelectedSectionId("");
                             }}
                             placeholder="Selectionner un cycle"
@@ -563,6 +577,8 @@ export function ClasseUpForm({
                           onValueChange={(value) => {
                             field.onChange(value);
                             form.setValue("optionId", "");
+                            form.setValue("nameClasse", "");
+                            nameTouchedRef.current = false;
                             setSelectedSectionId("");
                           }}
                           placeholder="Selectionner un niveau"
@@ -574,6 +590,35 @@ export function ClasseUpForm({
                     </FormItem>
                   )}
                 />
+
+                {watchedLevel ? (
+                  <FormField
+                    control={form.control}
+                    name="nameClasse"
+                    render={({ field }) => (
+                      <FormItem className="sm:col-span-2">
+                        <FormLabel>Nom de la classe</FormLabel>
+                        <FormControl>
+                          <Input
+                            className="h-9"
+                            placeholder={previewName || "Nom de la classe"}
+                            {...field}
+                            value={field.value ?? ""}
+                            onChange={(event) => {
+                              nameTouchedRef.current = true;
+                              field.onChange(event.target.value);
+                            }}
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          Prérempli d&apos;après le niveau. Vous pouvez le
+                          modifier.
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                ) : null}
 
                 {horaireHelp ? (
                   <div className="rounded-md border bg-muted/40 px-3 py-2 text-[11px] leading-snug text-muted-foreground sm:col-span-2">

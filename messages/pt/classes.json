@@ -4,7 +4,7 @@
   "importCatalog": "Importar catálogo",
   "importDisabled": "O catálogo já não pode ser importado: já existem turmas.",
   "create": "Criar uma {class}",
-  "createDesc": "Nível, secção, opção e horário da {class}.",
+  "createDesc": "Nível, nome, secção, opção e horário da {class}.",
   "total": "Total",
   "active": "Ativas",
   "inactive": "Inativas",

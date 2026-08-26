@@ -168,13 +168,18 @@ async function resolveClassIdentity(params: {
     throw new Error("Option introuvable dans cette branche");
   }
 
-  const nameClasse = buildClassName({
+  const generatedName = buildClassName({
     typebranch: params.typebranch,
     educationSystem: params.educationSystem,
     level: validated.level!,
     parallel: validated.parallel,
     optionName: option?.nameOption,
   });
+  const customName = params.nameClasse?.trim();
+  const nameClasse = customName || generatedName;
+  if (!nameClasse) {
+    throw new Error("Veuillez saisir le nom de la classe");
+  }
 
   const codeBase = buildClassCode({
     typebranch: params.typebranch,
@@ -214,6 +219,7 @@ export const createClasseAction = action
         level: input.level,
         parallel: input.parallel,
         optionId: input.optionId,
+        nameClasse: input.nameClasse,
         branchId,
       });
 
