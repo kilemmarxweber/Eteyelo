@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Coffee, Edit, Archive, MoreHorizontal, Clock } from "lucide-react";
+import { Coffee, Edit, Archive, MoreHorizontal, Clock, Trash2 } from "lucide-react";
 
 import { ResponsiveDataTable } from "@/components/ui/responsive-data-table";
 import { SearchAndFilter } from "@/components/ui/search-and-filter";
@@ -24,6 +24,7 @@ import { ICreneau } from "@/src/interfaces/creneau";
 import { getCreneauxAction } from "../creneau.action";
 import { DeleteCreneausDialog } from "./delete-Creneau-dialog";
 import { UpdateCreneauDialog } from "./edit-Creneau-dialog";
+import { openOverlayAfterMenuDismiss } from "@/lib/radix-portal-dismiss";
 
 interface CreneausTableProps {
   refreshKey?: string;
@@ -62,6 +63,7 @@ const CreneausTable: React.FC<CreneausTableProps> = ({ refreshKey }) => {
     useState<ActiveArchiveFilter>("active");
 
   const [showUpdateDialog, setShowUpdateDialog] = useState(false);
+  const [showArchiveDialog, setShowArchiveDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [selectedCreneau, setSelectedCreneau] = useState<ICreneau | null>(null);
   const [localRefreshKey, setLocalRefreshKey] = useState(0);
@@ -103,16 +105,22 @@ const CreneausTable: React.FC<CreneausTableProps> = ({ refreshKey }) => {
 
   const handleEdit = (creneau: ICreneau) => {
     setSelectedCreneau(creneau);
-    setShowUpdateDialog(true);
+    openOverlayAfterMenuDismiss(() => setShowUpdateDialog(true));
+  };
+
+  const handleArchive = (creneau: ICreneau) => {
+    setSelectedCreneau(creneau);
+    openOverlayAfterMenuDismiss(() => setShowArchiveDialog(true));
   };
 
   const handleDelete = (creneau: ICreneau) => {
     setSelectedCreneau(creneau);
-    setShowDeleteDialog(true);
+    openOverlayAfterMenuDismiss(() => setShowDeleteDialog(true));
   };
 
   const handleActionSuccess = () => {
     setShowUpdateDialog(false);
+    setShowArchiveDialog(false);
     setShowDeleteDialog(false);
     setSelectedCreneau(null);
     setLocalRefreshKey((value) => value + 1);
@@ -194,20 +202,25 @@ const CreneausTable: React.FC<CreneausTableProps> = ({ refreshKey }) => {
               <span className="sr-only">Actions</span>
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-40">
+          <DropdownMenuContent align="end" className="w-44">
             <DropdownMenuItem onClick={() => handleEdit(creneau)}>
               <Edit className="mr-2 h-4 w-4" />
               Modifier
             </DropdownMenuItem>
+            <DropdownMenuSeparator />
             {!creneau.isArchived ? (
-              <>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => handleDelete(creneau)}>
-                  <Archive className="mr-2 h-4 w-4" />
-                  Archiver
-                </DropdownMenuItem>
-              </>
+              <DropdownMenuItem onClick={() => handleArchive(creneau)}>
+                <Archive className="mr-2 h-4 w-4" />
+                Archiver
+              </DropdownMenuItem>
             ) : null}
+            <DropdownMenuItem
+              className="text-destructive focus:bg-destructive/10 focus:text-destructive"
+              onClick={() => handleDelete(creneau)}
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              Supprimer
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       ),
@@ -257,10 +270,16 @@ const CreneausTable: React.FC<CreneausTableProps> = ({ refreshKey }) => {
             {
               label: "Archiver",
               icon: Archive,
-              onClick: () => handleDelete(creneau),
+              onClick: () => handleArchive(creneau),
               variant: "outline" as const,
             },
           ]),
+      {
+        label: "Supprimer",
+        icon: Trash2,
+        onClick: () => handleDelete(creneau),
+        variant: "outline" as const,
+      },
     ],
   };
 
@@ -303,10 +322,18 @@ const CreneausTable: React.FC<CreneausTableProps> = ({ refreshKey }) => {
             onSuccess={handleActionSuccess}
           />
           <DeleteCreneausDialog
+            open={showArchiveDialog}
+            onOpenChange={setShowArchiveDialog}
+            Creneaus={[selectedCreneau]}
+            showTrigger={false}
+            onSuccess={handleActionSuccess}
+          />
+          <DeleteCreneausDialog
             open={showDeleteDialog}
             onOpenChange={setShowDeleteDialog}
             Creneaus={[selectedCreneau]}
             showTrigger={false}
+            permanent
             onSuccess={handleActionSuccess}
           />
         </>

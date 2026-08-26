@@ -4,7 +4,7 @@ import { useAppTransition as useTransition } from "@/hooks/use-app-transition";
 
 import React from "react";
 import { type ColumnDef } from "@tanstack/react-table";
-import { IconDots } from "@tabler/icons-react";
+import { IconDots, IconTrash } from "@tabler/icons-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -25,6 +25,7 @@ import { PRIMARY_DOMAIN_SHORT_LABELS, type SystemPrimaryDomainCode } from "@/lib
 import { setCoursStatusAction } from "../cours.action";
 import { DeleteCoursDialog } from "./delete-Cours-dialog";
 import { UpdateCoursDialog } from "./edit-Cours-dialog";
+import { openOverlayAfterMenuDismiss } from "@/lib/radix-portal-dismiss";
 
 export function getCoursColumns(isPrimary = false): ColumnDef<ICours>[] {
   const cols: ColumnDef<ICours>[] = [
@@ -126,6 +127,7 @@ export function getCoursColumns(isPrimary = false): ColumnDef<ICours>[] {
         const canManage = canManageOrganization(session);
         const [editOpen, setEditOpen] = React.useState(false);
         const [archiveOpen, setArchiveOpen] = React.useState(false);
+        const [deleteOpen, setDeleteOpen] = React.useState(false);
         const [pending, startTransition] = useTransition();
 
         return (
@@ -144,6 +146,14 @@ export function getCoursColumns(isPrimary = false): ColumnDef<ICours>[] {
               showTrigger={false}
               onSuccess={() => row.toggleSelected(false)}
             />
+            <DeleteCoursDialog
+              open={deleteOpen}
+              onOpenChange={setDeleteOpen}
+              Cours={[row.original]}
+              showTrigger={false}
+              permanent
+              onSuccess={() => row.toggleSelected(false)}
+            />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
@@ -154,9 +164,14 @@ export function getCoursColumns(isPrimary = false): ColumnDef<ICours>[] {
                   <IconDots className="size-4" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-40">
+              <DropdownMenuContent align="end" className="w-44">
                 {canManage && (
-                  <DropdownMenuItem onSelect={() => setEditOpen(true)}>
+                  <DropdownMenuItem
+                    onSelect={(event) => {
+                      event.preventDefault();
+                      openOverlayAfterMenuDismiss(() => setEditOpen(true));
+                    }}
+                  >
                     Modifier
                   </DropdownMenuItem>
                 )}
@@ -183,10 +198,27 @@ export function getCoursColumns(isPrimary = false): ColumnDef<ICours>[] {
                       {pending ? "Réactivation..." : "Réactiver"}
                     </DropdownMenuItem>
                   ) : (
-                    <DropdownMenuItem onSelect={() => setArchiveOpen(true)}>
+                    <DropdownMenuItem
+                      onSelect={(event) => {
+                        event.preventDefault();
+                        openOverlayAfterMenuDismiss(() => setArchiveOpen(true));
+                      }}
+                    >
                       Désactiver
                     </DropdownMenuItem>
                   ))}
+                {canManage ? (
+                  <DropdownMenuItem
+                    className="text-destructive focus:bg-destructive/10 focus:text-destructive"
+                    onSelect={(event) => {
+                      event.preventDefault();
+                      openOverlayAfterMenuDismiss(() => setDeleteOpen(true));
+                    }}
+                  >
+                    <IconTrash className="mr-2 size-4" />
+                    Supprimer
+                  </DropdownMenuItem>
+                ) : null}
               </DropdownMenuContent>
             </DropdownMenu>
           </>

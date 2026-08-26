@@ -9,6 +9,7 @@ export interface ICreneau {
   recreationHour: string;
   recreationDuration: number;
   isArchived?: boolean;
+  classesCount?: number;
   createdAt: Date;
   updatedAt: Date;
 }

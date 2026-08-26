@@ -240,6 +240,42 @@ export const archiveCoursAction = action
 /** @deprecated Utiliser archiveCoursAction */
 export const deleteCoursAction = archiveCoursAction;
 
+export const deleteCoursPermanentlyAction = action
+  .input(z.object({ id: z.string().min(1) }))
+  .handler(async ({ input }) => {
+    const { branchId, organizationId, session } = await requireBranchContext();
+    requireCoursManagement(session);
+
+    const existing = await prisma.cours.findFirst({
+      where: { id: input.id, branchId },
+      select: { id: true },
+    });
+    if (!existing) throw new Error("Cours introuvable dans cette branche");
+
+    const teachingsCount = await prisma.teaching.count({
+      where: { coursId: input.id, OR: [{ branchId }, { branchId: null }] },
+    });
+    if (teachingsCount > 0) {
+      throw new Error(
+        `Impossible de supprimer ce cours : ${teachingsCount} affectation${teachingsCount > 1 ? "s" : ""} y ${teachingsCount > 1 ? "sont encore liées" : "est encore liée"}. Supprimez d'abord ${teachingsCount > 1 ? "ces affectations" : "cette affectation"}.`,
+      );
+    }
+
+    await prisma.$transaction(async (tx) => {
+      await tx.coursOptionPonderation.deleteMany({
+        where: { coursId: input.id, branchId },
+      });
+      await tx.cours.update({
+        where: { id: input.id },
+        data: { period: { set: [] } },
+      });
+      await tx.cours.delete({ where: { id: input.id } });
+    });
+
+    revalidateCoursPages(organizationId, branchId);
+    return { ok: true as const };
+  });
+
 export const setCoursStatusAction = action
   .input(z.object({ id: z.string().min(1), active: z.boolean() }))
   .handler(async ({ input }) => {
@@ -283,12 +319,14 @@ export const getCoursAction = action
         branchId,
         ...(includeInactive ? {} : activeCoursStatusFilter),
       },
+      include: { _count: { select: { teaching: true } } },
     });
 
     const transformedCourses: ICours[] = Cours.map(
-      (cours: (typeof Cours)[number]) => ({
+      ({ _count, ...cours }) => ({
         ...cours,
         description: cours.description || "",
+        teachingsCount: _count.teaching,
       }),
     );
     return transformedCourses;

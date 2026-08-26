@@ -11,6 +11,7 @@ export interface ICours {
   primaryDomain?: PrimaryDomainFormValue | null;
   primarySection?: string | null;
   domainOrder?: number | null;
+  teachingsCount?: number;
   createdAt?: Date;
   updatedAt?: Date;
 }

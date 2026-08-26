@@ -52,3 +52,6 @@ next-env.d.ts
 /build-log.txt
 /docs/
 /tmp/
+
+# local database dumps
+/backups/

@@ -138,6 +138,30 @@ export const archiveCreneauAction = action
 /** @deprecated Utiliser archiveCreneauAction */
 export const deleteCreneauAction = archiveCreneauAction;
 
+export const deleteCreneauPermanentlyAction = action
+  .input(z.object({ id: z.string().min(1) }))
+  .handler(async ({ input }) => {
+    const { branchId, organizationId } = await requireBranchContext();
+    const existCreneau = await prisma.creneau.findFirst({
+      where: { id: input.id, branchId },
+      select: { id: true },
+    });
+    if (!existCreneau) throw new Error("Vacation introuvable dans cette branche");
+
+    const classesCount = await prisma.classe.count({
+      where: { creneauId: input.id, branchId },
+    });
+    if (classesCount > 0) {
+      throw new Error(
+        `Impossible de supprimer cette vacation : ${classesCount} classe${classesCount > 1 ? "s" : ""} y ${classesCount > 1 ? "sont encore liées" : "est encore liée"}. Supprimez d'abord ${classesCount > 1 ? "ces classes" : "cette classe"}.`,
+      );
+    }
+
+    await prisma.creneau.delete({ where: { id: input.id } });
+    revalidateCreneauPages(organizationId, branchId);
+    return { ok: true as const };
+  });
+
 // ACTION POUR RÉCUPÉRER LES CRENEAUX PAR CLASSE
 export const getCreneauByClasseAction = action
   .input(
@@ -226,6 +250,7 @@ export const getCreneauxAction = action
           ? creneau.recreationHour.toISOString().split("T")[1].slice(0, 5)
           : "",
         durationCourse: creneau.durationCourse || 0,
+        classesCount: creneau.classe.length,
         classes: creneau.classe
           ? creneau.classe.map((classe) => ({
               ...classe,
