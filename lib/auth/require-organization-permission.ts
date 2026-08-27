@@ -429,8 +429,16 @@ export async function enforceOrganizationListPage() {
     redirect("/auth/sign-in");
   }
 
-  if (isPlatformOwnerRole(context.appRole) || isAppAdminRole(context.appRole)) {
+  if (isPlatformOwnerRole(context.appRole)) {
     return context;
+  }
+
+  if (isAppAdminRole(context.appRole)) {
+    const orgId = context.membership?.organizationId;
+    if (orgId) {
+      redirect(`/admin/organizations/${orgId}`);
+    }
+    redirect("/admin/no-organization");
   }
 
   notFound();

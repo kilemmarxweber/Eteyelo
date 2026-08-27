@@ -425,17 +425,9 @@ export function validateClassInput(params: {
     }
 
     if (
-      (branchType === "PRIMAIRE" || branchType === "MATERNELLE") &&
+      branchType === "ATELIER" &&
       params.optionId
     ) {
-      throw new Error(
-        branchType === "MATERNELLE"
-          ? "Les classes maternelles ne peuvent pas avoir d'option"
-          : "Les classes primaires ne peuvent pas avoir d'option",
-      );
-    }
-
-    if (branchType === "ATELIER" && params.optionId) {
       throw new Error(
         "Les groupes d'atelier ne peuvent pas avoir d'option",
       );
@@ -444,8 +436,6 @@ export function validateClassInput(params: {
     return {
       nameClasse,
       optionId:
-        branchType === "PRIMAIRE" ||
-        branchType === "MATERNELLE" ||
         branchType === "ATELIER"
           ? undefined
           : params.optionId ?? undefined,
@@ -465,17 +455,6 @@ export function validateClassInput(params: {
 
   if (!isValidClassLevel(params.typebranch, level, params.educationSystem)) {
     throw new Error("Niveau de classe invalide pour cette branche");
-  }
-
-  if (
-    (branchType === "PRIMAIRE" || branchType === "MATERNELLE") &&
-    params.optionId
-  ) {
-    throw new Error(
-      branchType === "MATERNELLE"
-        ? "Les classes maternelles ne peuvent pas avoir d'option"
-        : "Les classes primaires ne peuvent pas avoir d'option",
-    );
   }
 
   if (branchType === "ATELIER" && params.optionId) {

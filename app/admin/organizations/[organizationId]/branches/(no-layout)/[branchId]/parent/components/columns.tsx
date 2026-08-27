@@ -28,6 +28,7 @@ export type ParentTableActions = {
 
 export const createParentColumns = (
   actions?: ParentTableActions,
+  canPurgePermanently = false,
 ): ColumnDef<IParent>[] => [
   {
     id: "select",
@@ -174,11 +175,14 @@ export const createParentColumns = (
     cell: function Cell({ row }) {
       const [showDeleteTaskDialog, setShowDeleteTaskDialog] =
         React.useState(false);
+      const [showPurgeTaskDialog, setShowPurgeTaskDialog] =
+        React.useState(false);
       const [showDetailsTaskDialog, setShowDetailsTaskDialog] =
         React.useState(false);
       const [showResetTaskDialog, setShowResetTaskDialog] =
         React.useState(false);
       const params = useParams<{ organizationId: string; branchId: string }>();
+      const hasStudents = (row.original.students?.length ?? 0) > 0;
 
       return (
         <>
@@ -195,6 +199,16 @@ export const createParentColumns = (
             showTrigger={false}
             onSuccess={() => row.toggleSelected(false)}
           />
+          {canPurgePermanently ? (
+            <DeleteParentDialog
+              open={showPurgeTaskDialog}
+              onOpenChange={setShowPurgeTaskDialog}
+              parents={[row.original]}
+              showTrigger={false}
+              permanent
+              onSuccess={() => row.toggleSelected(false)}
+            />
+          ) : null}
 
           <ResetUsersDialog
             open={showResetTaskDialog}
@@ -215,8 +229,7 @@ export const createParentColumns = (
                 <IconDots className="size-4" aria-hidden="true" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-40">
-              {/* Ajout de l'option Edit */}
+            <DropdownMenuContent align="end" className="w-44">
               <DropdownMenuItem onSelect={() => setShowDetailsTaskDialog(true)}>
                 Détails
               </DropdownMenuItem>
@@ -235,10 +248,30 @@ export const createParentColumns = (
               </DropdownMenuItem>
 
               <DropdownMenuSeparator />
-              <DropdownMenuItem onSelect={() => setShowDeleteTaskDialog(true)}>
-                Archiver
-                <DropdownMenuShortcut>⌘⌫</DropdownMenuShortcut>
-              </DropdownMenuItem>
+              {row.original.statusUser !== false ? (
+                <DropdownMenuItem onSelect={() => setShowDeleteTaskDialog(true)}>
+                  Archiver
+                  <DropdownMenuShortcut>⌘⌫</DropdownMenuShortcut>
+                </DropdownMenuItem>
+              ) : null}
+              {canPurgePermanently ? (
+                <DropdownMenuItem
+                  className="text-destructive focus:bg-destructive/10 focus:text-destructive"
+                  disabled={hasStudents}
+                  title={
+                    hasStudents
+                      ? "Impossible : des élèves sont encore liés à ce parent"
+                      : "Supprimer définitivement"
+                  }
+                  onSelect={() => {
+                    if (hasStudents) return;
+                    setShowPurgeTaskDialog(true);
+                  }}
+                >
+                  Supprimer
+                  <DropdownMenuShortcut>⇧Del</DropdownMenuShortcut>
+                </DropdownMenuItem>
+              ) : null}
             </DropdownMenuContent>
           </DropdownMenu>
         </>

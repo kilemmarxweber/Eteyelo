@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Edit, Archive, MoreHorizontal, Settings2, Trash2 } from "lucide-react";
+import { Edit, Archive, MoreHorizontal, RotateCcw, Settings2, Trash2 } from "lucide-react";
 
 import { ResponsiveDataTable } from "@/components/ui/responsive-data-table";
 import { SearchAndFilter } from "@/components/ui/search-and-filter";
@@ -17,10 +17,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { IOption } from "@/src/interfaces/Option";
 
-import { getOptionsAction } from "../option.action";
+import { getOptionsAction, statusOptionAction } from "../option.action";
 import { DeleteOptionsDialog } from "./delete-Option-dialog";
 import { UpdateOptionDialog } from "./edit-Option-dialog";
 import { openOverlayAfterMenuDismiss } from "@/lib/radix-portal-dismiss";
+import { toast } from "sonner";
 
 interface OptionsTableProps {
   refreshKey?: string;
@@ -33,7 +34,6 @@ const OptionsTable: React.FC<OptionsTableProps> = ({ refreshKey }) => {
   const [statusFilter, setStatusFilter] = useState<string>("active");
 
   const [showUpdateDialog, setShowUpdateDialog] = useState(false);
-  const [showArchiveDialog, setShowArchiveDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [selectedOption, setSelectedOption] = useState<IOption | null>(null);
   const [localRefreshKey, setLocalRefreshKey] = useState(0);
@@ -64,10 +64,11 @@ const OptionsTable: React.FC<OptionsTableProps> = ({ refreshKey }) => {
       option.nameSection?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       option.codeSection?.toLowerCase().includes(searchTerm.toLowerCase());
 
+    const isActive = option.statusOption !== false;
     const matchesStatus =
       statusFilter === "all" ||
-      (statusFilter === "active" && option.statusOption) ||
-      (statusFilter === "inactive" && !option.statusOption);
+      (statusFilter === "active" && isActive) ||
+      (statusFilter === "inactive" && !isActive);
 
     return matchesSearch && matchesStatus;
   });
@@ -77,9 +78,18 @@ const OptionsTable: React.FC<OptionsTableProps> = ({ refreshKey }) => {
     openOverlayAfterMenuDismiss(() => setShowUpdateDialog(true));
   };
 
-  const handleArchive = (option: IOption) => {
-    setSelectedOption(option);
-    openOverlayAfterMenuDismiss(() => setShowArchiveDialog(true));
+  const handleToggleStatus = async (option: IOption) => {
+    const next = option.statusOption === false;
+    const [, err] = await statusOptionAction({
+      id: option.id,
+      statusOption: next,
+    });
+    if (err) {
+      toast.error(err.message ?? "Impossible de modifier le statut");
+      return;
+    }
+    toast.success(next ? "Option activée" : "Option désactivée");
+    setLocalRefreshKey((value) => value + 1);
   };
 
   const handleDelete = (option: IOption) => {
@@ -89,7 +99,6 @@ const OptionsTable: React.FC<OptionsTableProps> = ({ refreshKey }) => {
 
   const handleActionSuccess = () => {
     setShowUpdateDialog(false);
-    setShowArchiveDialog(false);
     setShowDeleteDialog(false);
     setSelectedOption(null);
     setLocalRefreshKey((value) => value + 1);
@@ -139,8 +148,8 @@ const OptionsTable: React.FC<OptionsTableProps> = ({ refreshKey }) => {
       header: "Statut",
       cell: (option: IOption) => (
         <StatusBadge
-          status={option.statusOption ? "active" : "inactive"}
-          label={option.statusOption ? "Active" : "Inactive"}
+          status={option.statusOption !== false ? "active" : "inactive"}
+          label={option.statusOption !== false ? "Active" : "Inactive"}
         />
       ),
     },
@@ -161,12 +170,17 @@ const OptionsTable: React.FC<OptionsTableProps> = ({ refreshKey }) => {
               Modifier
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            {option.statusOption ? (
-              <DropdownMenuItem onClick={() => handleArchive(option)}>
+            {option.statusOption !== false ? (
+              <DropdownMenuItem onClick={() => handleToggleStatus(option)}>
                 <Archive className="mr-2 h-4 w-4" />
-                Archiver
+                Désactiver
               </DropdownMenuItem>
-            ) : null}
+            ) : (
+              <DropdownMenuItem onClick={() => handleToggleStatus(option)}>
+                <RotateCcw className="mr-2 h-4 w-4" />
+                Activer
+              </DropdownMenuItem>
+            )}
             <DropdownMenuItem
               className="text-destructive focus:bg-destructive/10 focus:text-destructive"
               onClick={() => handleDelete(option)}
@@ -192,8 +206,8 @@ const OptionsTable: React.FC<OptionsTableProps> = ({ refreshKey }) => {
         label: "Statut",
         value: (
           <StatusBadge
-            status={option.statusOption ? "active" : "inactive"}
-            label={option.statusOption ? "Active" : "Inactive"}
+            status={option.statusOption !== false ? "active" : "inactive"}
+            label={option.statusOption !== false ? "Active" : "Inactive"}
           />
         ),
       },
@@ -209,16 +223,12 @@ const OptionsTable: React.FC<OptionsTableProps> = ({ refreshKey }) => {
         onClick: () => handleEdit(option),
         variant: "outline" as const,
       },
-      ...(option.statusOption
-        ? [
-            {
-              label: "Archiver",
-              icon: Archive,
-              onClick: () => handleArchive(option),
-              variant: "outline" as const,
-            },
-          ]
-        : []),
+      {
+        label: option.statusOption !== false ? "Désactiver" : "Activer",
+        icon: option.statusOption !== false ? Archive : RotateCcw,
+        onClick: () => handleToggleStatus(option),
+        variant: "outline" as const,
+      },
       {
         label: "Supprimer",
         icon: Trash2,
@@ -260,13 +270,6 @@ const OptionsTable: React.FC<OptionsTableProps> = ({ refreshKey }) => {
             open={showUpdateDialog}
             onOpenChange={setShowUpdateDialog}
             option={selectedOption}
-            onSuccess={handleActionSuccess}
-          />
-          <DeleteOptionsDialog
-            open={showArchiveDialog}
-            onOpenChange={setShowArchiveDialog}
-            Options={[selectedOption]}
-            showTrigger={false}
             onSuccess={handleActionSuccess}
           />
           <DeleteOptionsDialog

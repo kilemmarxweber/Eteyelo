@@ -294,3 +294,70 @@ export async function purgePersonnelPermanently(params: {
     message: "Personnel supprimé et données liées nettoyées.",
   };
 }
+
+export async function purgeParentPermanently(params: {
+  parentId: string;
+  branchId: string;
+}) {
+  const parent = await prisma.parent.findFirst({
+    where: {
+      id: params.parentId,
+      branchMember: { branchId: params.branchId },
+    },
+    include: {
+      branchMember: {
+        include: {
+          member: { include: { user: { select: { id: true } } } },
+        },
+      },
+      _count: { select: { students: true } },
+    },
+  });
+
+  if (!parent?.branchMember) {
+    return { ok: false as const, message: "Parent introuvable" };
+  }
+
+  if (parent._count.students > 0) {
+    const count = parent._count.students;
+    return {
+      ok: false as const,
+      message: `Impossible de supprimer ce parent : ${count} élève${count > 1 ? "s" : ""} y ${count > 1 ? "sont encore liés" : "est encore lié"}. Supprimez d'abord ${count > 1 ? "ces élèves" : "cet élève"}.`,
+    };
+  }
+
+  await prisma.$transaction(async (tx) => {
+    const payments = await tx.familyPayment.findMany({
+      where: { parentId: parent.id },
+      select: { id: true },
+    });
+    const paymentIds = payments.map((payment) => payment.id);
+    if (paymentIds.length > 0) {
+      await tx.paymentAllocation.deleteMany({
+        where: { familyPaymentId: { in: paymentIds } },
+      });
+      await tx.mobileMoneyTransaction.deleteMany({
+        where: { paymentId: { in: paymentIds } },
+      });
+      await tx.paymentEvent.deleteMany({
+        where: { paymentId: { in: paymentIds } },
+      });
+      await tx.familyPayment.deleteMany({
+        where: { id: { in: paymentIds } },
+      });
+    }
+
+    await tx.paymentBatch.deleteMany({ where: { parentId: parent.id } });
+    await tx.discountRule.deleteMany({ where: { parentId: parent.id } });
+    await tx.parentFeedback.deleteMany({ where: { parentId: parent.id } });
+
+    const branchMemberId = parent.branchMemberId;
+    await tx.parent.delete({ where: { id: parent.id } });
+    await deleteBranchMemberAndOrphanUser(tx, branchMemberId);
+  });
+
+  return {
+    ok: true as const,
+    message: "Parent supprimé et données liées nettoyées.",
+  };
+}

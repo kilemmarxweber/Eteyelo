@@ -23,6 +23,7 @@ import { ensureExtendedBranchStructure } from "@/lib/extended-branch-bootstrap";
 import { persistActivatedBranchCycles } from "@/lib/persist-branch-cycles";
 import { upsertClassCatalogForBranch } from "@/lib/class-catalog-sync";
 import { purgeBranchCompletely } from "@/lib/purge-branch";
+import { isRestrictedGestionnaire } from "@/lib/auth/role-labels";
 import {
   isSchoolCycle,
   principalTypebranchFromSchoolCycles,
@@ -437,6 +438,17 @@ export async function deleteBranchAction(branchId: string) {
   const guard = await guardOrganizationManager(branch.organizationId);
   if (!guard.ok) {
     return { data: null, error: guard.message };
+  }
+  if (
+    isRestrictedGestionnaire(
+      guard.context.appRole,
+      guard.context.membership?.role,
+    )
+  ) {
+    return {
+      data: null,
+      error: "Le gestionnaire ne peut pas supprimer un établissement.",
+    };
   }
 
   try {

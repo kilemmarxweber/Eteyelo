@@ -10,6 +10,7 @@ import { IClasse } from "@/src/interfaces/Classe";
 import {
   getBranchTypeAction,
   getClassesAction,
+  statusClasseAction,
 } from "../classe.action";
 import { DataTableToolbar } from "./data-table-toolbar";
 import { IconAlertCircle, IconSchool } from "@tabler/icons-react";
@@ -20,6 +21,7 @@ import { useSession } from "@/lib/auth-client";
 import { canManageOrganization } from "@/lib/auth/session-roles";
 import { UpdateClasseDialog } from "./edit-Classe-dialog";
 import { DeleteClassesDialog } from "./delete-Classe-dialog";
+import { toast } from "sonner";
 
 type ClasseStats = {
   total: number;
@@ -40,7 +42,6 @@ const ClassesList = ({
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [editingClasse, setEditingClasse] = useState<IClasse | null>(null);
-  const [archivingClasse, setArchivingClasse] = useState<IClasse | null>(null);
   const [deletingClasse, setDeletingClasse] = useState<IClasse | null>(null);
   const hasLoadedOnce = useRef(false);
   const { refreshKey: contextRefreshKey } = useRefresh();
@@ -48,20 +49,6 @@ const ClassesList = ({
   const canManage = canManageOrganization(session);
 
   const showOption = !isPrimaryBranch(branchType);
-
-  const tableActions = useMemo(
-    () => ({
-      onEdit: (classe: IClasse) => setEditingClasse(classe),
-      onArchive: (classe: IClasse) => setArchivingClasse(classe),
-      onDelete: (classe: IClasse) => setDeletingClasse(classe),
-    }),
-    [],
-  );
-
-  const columns = useMemo(
-    () => getClasseColumns(showOption, tableActions, canManage),
-    [showOption, tableActions, canManage],
-  );
 
   const fetchClasses = useCallback(async () => {
     const isInitialLoad = !hasLoadedOnce.current;
@@ -105,6 +92,37 @@ const ClassesList = ({
     }
   }, [onStats]);
 
+  const handleToggleStatus = useCallback(
+    async (classe: IClasse) => {
+      const next = classe.statusClasse === false;
+      const [, err] = await statusClasseAction({
+        id: classe.id,
+        statusClasse: next,
+      });
+      if (err) {
+        toast.error(err.message ?? "Impossible de modifier le statut");
+        return;
+      }
+      toast.success(next ? "Classe activée" : "Classe désactivée");
+      void fetchClasses();
+    },
+    [fetchClasses],
+  );
+
+  const tableActions = useMemo(
+    () => ({
+      onEdit: (classe: IClasse) => setEditingClasse(classe),
+      onToggleStatus: handleToggleStatus,
+      onDelete: (classe: IClasse) => setDeletingClasse(classe),
+    }),
+    [handleToggleStatus],
+  );
+
+  const columns = useMemo(
+    () => getClasseColumns(showOption, tableActions, canManage),
+    [showOption, tableActions, canManage],
+  );
+
   useEffect(() => {
     void fetchClasses();
   }, [fetchClasses, refreshKey, contextRefreshKey]);
@@ -118,18 +136,6 @@ const ClassesList = ({
             if (!open) setEditingClasse(null);
           }}
           classe={editingClasse}
-        />
-      ) : null}
-
-      {archivingClasse ? (
-        <DeleteClassesDialog
-          open
-          onOpenChange={(open) => {
-            if (!open) setArchivingClasse(null);
-          }}
-          Classes={[archivingClasse]}
-          showTrigger={false}
-          onSuccess={() => setArchivingClasse(null)}
         />
       ) : null}
 
@@ -223,6 +229,13 @@ const ClassesList = ({
             {
               label: row.creneau?.nameCreneau || "Aucune vacation",
               variant: "outline" as const,
+            },
+            {
+              label: row.statusClasse !== false ? "Active" : "Inactive",
+              variant:
+                row.statusClasse !== false
+                  ? ("default" as const)
+                  : ("secondary" as const),
             },
           ]}
         />

@@ -15,11 +15,13 @@ import {
   Plus,
   RefreshCcw,
   Search,
+  Trash2,
   Users,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
   archiveOrganizationMemberAction,
+  deleteOrganizationMemberPermanentlyAction,
   listOrganizationMembersAction,
   type OrganizationMemberListItem,
 } from "@/app/admin/organizations/[organizationId]/members/actions";
@@ -27,6 +29,14 @@ import { BackLink } from "@/components/ui/back-link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { orgRoleLabel } from "@/lib/org-role-labels";
 import { formatPersonFullName } from "@/lib/person-full-name";
 import { ORG_ROLE } from "@/lib/permissions";
@@ -39,6 +49,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ResetUsersDialog } from "../branches/(no-layout)/[branchId]/student/components/reset-users-dialog";
 import { cn, normalizeImageSrc } from "@/lib/utils";
+import { useSession } from "@/lib/auth-client";
+import { isOrganizationOwnerSession } from "@/lib/auth/session-roles";
 
 const PAGE_SIZE = 8;
 
@@ -88,12 +100,17 @@ export function OrganizationMembersView({
   invitePanel,
 }: Props) {
   const router = useRouter();
+  const { data: session } = useSession();
+  const canDeletePermanently = isOrganizationOwnerSession(session);
   const [members, setMembers] = useState<OrganizationMemberListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [resetEmail, setResetEmail] = useState<string | null>(null);
   const [archivingId, setArchivingId] = useState<string | null>(null);
+  const [deletingMember, setDeletingMember] =
+    useState<OrganizationMemberListItem | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const loadMembers = useCallback(async () => {
     setLoading(true);
@@ -164,6 +181,26 @@ export function OrganizationMembersView({
       await loadMembers();
     } finally {
       setArchivingId(null);
+    }
+  }
+
+  async function confirmPermanentDelete() {
+    if (!deletingMember) return;
+    setDeleting(true);
+    try {
+      const res = await deleteOrganizationMemberPermanentlyAction({
+        organizationId,
+        memberId: deletingMember.id,
+      });
+      if (!res.ok) {
+        toast.error(res.message);
+        return;
+      }
+      toast.success("Membre supprimé définitivement.");
+      setDeletingMember(null);
+      await loadMembers();
+    } finally {
+      setDeleting(false);
     }
   }
 
@@ -267,6 +304,42 @@ export function OrganizationMembersView({
             organizationId={organizationId}
             showTrigger={false}
           />
+
+          <Dialog
+            open={deletingMember !== null}
+            onOpenChange={(open) => {
+              if (!open && !deleting) setDeletingMember(null);
+            }}
+          >
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Supprimer définitivement le membre ?</DialogTitle>
+                <DialogDescription>
+                  {deletingMember
+                    ? `Cette action est irréversible : ${formatPersonFullName(deletingMember.user) || deletingMember.user.email} sera retiré de l’organisation. S’il n’a plus d’autre organisation, son compte sera aussi effacé.`
+                    : "Cette action est irréversible."}
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter className="gap-2 sm:space-x-0">
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={deleting}
+                  onClick={() => setDeletingMember(null)}
+                >
+                  Annuler
+                </Button>
+                <Button
+                  type="button"
+                  variant="destructive"
+                  disabled={deleting}
+                  onClick={() => void confirmPermanentDelete()}
+                >
+                  {deleting ? "Suppression…" : "Supprimer définitivement"}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
 
           <ul
             className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm"
@@ -384,6 +457,16 @@ export function OrganizationMembersView({
                           </>
                         )}
                       </DropdownMenuItem>
+                      {canDeletePermanently ? (
+                        <DropdownMenuItem
+                          className="gap-2 text-destructive focus:bg-destructive/10 focus:text-destructive"
+                          disabled={deleting}
+                          onSelect={() => setDeletingMember(member)}
+                        >
+                          <Trash2 className="size-4" />
+                          Supprimer définitivement
+                        </DropdownMenuItem>
+                      ) : null}
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </li>

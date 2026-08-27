@@ -7,7 +7,6 @@ import { IOption, optionSchema } from "@/src/interfaces/Option";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
 import { assertSectionOptionBranchFeatures, usesSectionOptionForBranch } from "@/lib/branch-capabilities";
 import { anyCycle } from "@/lib/cycle";
-import { normalizeBranchType } from "@/lib/academic-structure";
 import { z } from "zod";
 import {
   ensureUniqueIdentifier,
@@ -105,7 +104,7 @@ export const updateOptionAction = action
     if (!id) throw new Error("ID requis");
     const option = await prisma.option.findFirst({
       where: { id, branchId },
-      select: { id: true },
+      select: { id: true, statusOption: true },
     });
     if (!option) throw new Error("Option introuvable dans cette branche");
     const codeOption = await ensureUniqueIdentifier({
@@ -143,7 +142,7 @@ export const updateOptionAction = action
         nameOption,
         codeOption: codeOption ?? null,
         sectionId: sectionId ?? null,
-        statusOption: statusOption ?? true,
+        statusOption: statusOption ?? option.statusOption ?? true,
       },
     });
     revalidateOptionPages(organizationId, branchId);
@@ -233,12 +232,10 @@ export const deleteOptionPermanentlyAction = action
 /* ================= GET OPTIONS ================= */
 export const getOptionsAction = action.handler(async (): Promise<IOption[]> => {
   try {
-    const { branchId, typebranch } = await requireBranchContext();
-    const normalized = normalizeBranchType(typebranch);
+    const { branchId } = await requireBranchContext();
     const options = await prisma.option.findMany({
       where: {
         branchId,
-        ...(normalized === "PRIMAIRE" ? { statusOption: true } : {}),
       },
       include: {
         section: true,
@@ -254,6 +251,7 @@ export const getOptionsAction = action.handler(async (): Promise<IOption[]> => {
       codeOption: option.codeOption ?? "",
       sectionId: option.sectionId ?? "",
       statusOption: option.statusOption ?? true,
+      cycle: option.cycle ?? null,
 
       // ⚠️ AJOUT DES CHAMPS MANQUANTS OBLIGATOIRES
       module: option.section?.codeSection ?? "",
@@ -291,12 +289,16 @@ export const getOptionsAction = action.handler(async (): Promise<IOption[]> => {
 
 /* ================= STATUS OPTION ================= */
 export const statusOptionAction = action
-  .input(optionSchema)
+  .input(
+    z.object({
+      id: z.string().min(1),
+      statusOption: z.boolean(),
+    }),
+  )
   .handler(async ({ input }) => {
     const { branchId, organizationId } = await requireBranchContext();
     const { id, statusOption } = input;
 
-    if (!id) throw new Error("ID requis");
     const option = await prisma.option.findFirst({
       where: { id, branchId },
       select: { id: true },
@@ -305,9 +307,7 @@ export const statusOptionAction = action
 
     const updatedOption = await prisma.option.update({
       where: { id },
-      data: {
-        statusOption: statusOption ?? false,
-      },
+      data: { statusOption },
     });
     revalidateOptionPages(organizationId, branchId);
     return updatedOption;

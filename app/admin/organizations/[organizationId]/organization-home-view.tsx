@@ -33,6 +33,7 @@ const sections = [
       hover: "hover:border-sky-400/40 hover:shadow-sky-500/10",
     },
     ownerOnly: false,
+    hideForGestionnaire: false,
   },
   {
     title: "Membres",
@@ -49,6 +50,7 @@ const sections = [
       hover: "hover:border-amber-400/40 hover:shadow-amber-500/10",
     },
     ownerOnly: false,
+    hideForGestionnaire: true,
   },
   {
     title: "Invitations",
@@ -66,6 +68,7 @@ const sections = [
       hover: "hover:border-teal-400/40 hover:shadow-teal-500/10",
     },
     ownerOnly: true,
+    hideForGestionnaire: true,
   },
   {
     title: "Support établissement",
@@ -82,6 +85,7 @@ const sections = [
       hover: "hover:border-emerald-400/40 hover:shadow-emerald-500/10",
     },
     ownerOnly: false,
+    hideForGestionnaire: false,
   },
   {
     title: "Rapports et statistiques",
@@ -98,6 +102,7 @@ const sections = [
       hover: "hover:border-indigo-400/40 hover:shadow-indigo-500/10",
     },
     ownerOnly: false,
+    hideForGestionnaire: false,
   },
 ];
 
@@ -118,6 +123,7 @@ export type OrganizationHomeViewProps = {
   canDelete: boolean;
   /** Owner plateforme uniquement — lien vers /admin/organizations */
   canListAll: boolean;
+  canViewMembers: boolean;
   roleLabel: string | null;
   counts?: {
     branches: number;
@@ -130,6 +136,7 @@ export function OrganizationHomeView({
   organization: org,
   canDelete,
   canListAll,
+  canViewMembers,
   roleLabel,
   counts = { branches: 0, members: 0 },
 }: OrganizationHomeViewProps) {
@@ -187,10 +194,12 @@ export function OrganizationHomeView({
                   {counts.branches} établissement
                   {counts.branches > 1 ? "s" : ""}
                 </span>
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/20 bg-amber-500/10 px-2.5 py-1 text-[11px] font-semibold text-amber-800 dark:text-amber-300">
-                  <Users className="size-3" />
-                  {counts.members} membre{counts.members > 1 ? "s" : ""}
-                </span>
+                {canViewMembers ? (
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/20 bg-amber-500/10 px-2.5 py-1 text-[11px] font-semibold text-amber-800 dark:text-amber-300">
+                    <Users className="size-3" />
+                    {counts.members} membre{counts.members > 1 ? "s" : ""}
+                  </span>
+                ) : null}
               </div>
             </div>
           </div>
@@ -207,7 +216,11 @@ export function OrganizationHomeView({
 
       <section className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
         {sections
-          .filter((section) => !section.ownerOnly || canListAll)
+          .filter((section) => {
+            if (section.hideForGestionnaire && !canViewMembers) return false;
+            if (section.ownerOnly && !canListAll) return false;
+            return true;
+          })
           .map(({ icon: Icon, ...section }) => {
           const count =
             section.countKey != null ? counts[section.countKey] : null;

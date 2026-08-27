@@ -225,7 +225,12 @@ export const getSectionsAction = action.handler(
 );
 
 export const statuSectionAction = action
-  .input(sectionSchema)
+  .input(
+    z.object({
+      id: z.string().min(1),
+      statusSection: z.boolean(),
+    }),
+  )
   .handler(async ({ input }) => {
     const { branchId, organizationId } = await requireBranchContext();
     const { id, statusSection } = input;
@@ -236,12 +241,8 @@ export const statuSectionAction = action
     if (!section) throw new Error("Section introuvable dans cette branche");
 
     const updateStatuSection = await prisma.section.update({
-      where: {
-        id,
-      },
-      data: {
-        statusSection,
-      },
+      where: { id },
+      data: { statusSection },
     });
     revalidateSectionPages(organizationId, branchId);
     return updateStatuSection;

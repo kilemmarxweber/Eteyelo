@@ -107,7 +107,9 @@ export const getCoursPonderationOptionPageDataAction = action.handler(
           cycle: true,
           section: { select: { id: true, nameSection: true } },
           classe: {
-            where: { statusClasse: true },
+            where: {
+              OR: [{ statusClasse: true }, { statusClasse: null }],
+            },
             select: { id: true, nameClasse: true, level: true },
           },
         },

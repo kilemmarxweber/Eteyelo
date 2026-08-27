@@ -29,12 +29,10 @@ import {
   getClassLevelsForBranch,
   getClassLevelLabel,
   getBranchTypeLabel,
-  requiresOptionForClass,
-  allowsOptionForBranch,
   isCtebLevel,
   isHumanitesLevel,
 } from "@/lib/class-structure";
-import { primaryLevelOptionCode, isPrimaryClassLevel } from "@/lib/primary-academic-structure";
+import { primaryLevelOptionCode } from "@/lib/primary-academic-structure";
 import { CTEB_OPTION_CODE, CTEB_SECTION_CODE } from "@/lib/class-catalog";
 import { ManagedBranchType } from "@/lib/academic-structure";
 import type { EducationSystem } from "@/lib/education-system";
@@ -157,7 +155,7 @@ export function ClasseUpForm({
       setEducationSystem(
         (branchResult.educationSystem as EducationSystem) ?? "CONGOLAIS",
       );
-      setOptions(rawOptions);
+      setOptions(rawOptions.filter((option) => option.statusOption !== false));
       setCreneaux(rawCreneaux);
     };
 
@@ -201,18 +199,8 @@ export function ClasseUpForm({
   const multiCycle = activatedCycles.length > 1;
   const angolaSecondary = isAngolaSecondarySystem(classCycle, educationSystem);
   const classLevels = getClassLevelsForBranch(classCycle, educationSystem);
-  const showOptionField =
-    classCycle === "PRIMAIRE" ||
-    (allowsOptionForBranch(classCycle) &&
-      (isLegacyUpdate ||
-        requiresOptionForClass(
-          classCycle,
-          watchedLevel ?? "",
-          educationSystem,
-        )));
+  const showOptionField = classCycle !== "ATELIER";
   const angolaCycle1 = angolaSecondary && isAngolaFirstCycleLevel(watchedLevel);
-  const troncCommunLevel =
-    angolaCycle1 || (!angolaSecondary && isCtebLevel(watchedLevel ?? ""));
   const horaireHelp = angolaSecondary
     ? angolaHoraireHelp(watchedLevel)
     : "";
@@ -221,8 +209,15 @@ export function ClasseUpForm({
   const cycleOptions = useMemo(
     () =>
       options.filter((option) => {
-        const optionCycle = (option as { cycle?: string | null }).cycle;
-        if (!optionCycle) return classCycle === "SECONDAIRE" || classCycle === "PRIMAIRE";
+        if (option.statusOption === false) return false;
+        const optionCycle = option.cycle;
+        if (!optionCycle) {
+          return (
+            classCycle === "SECONDAIRE" ||
+            classCycle === "PRIMAIRE" ||
+            classCycle === "MATERNELLE"
+          );
+        }
         return optionCycle === classCycle;
       }),
     [classCycle, options],
@@ -265,33 +260,15 @@ export function ClasseUpForm({
   }, [angolaSecondary, classCycle, sections, watchedLevel]);
 
   const optionsForSection = useMemo(() => {
-    if (classCycle === "PRIMAIRE") {
-      if (!watchedLevel) return cycleOptions;
-      const code = primaryLevelOptionCode(watchedLevel);
-      const match = cycleOptions.filter(
-        (o) =>
-          o.codeOption === code ||
-          o.nameOption === watchedLevel,
-      );
-      return match.length ? match : cycleOptions;
+    if (classCycle === "PRIMAIRE" || classCycle === "MATERNELLE") {
+      return cycleOptions;
     }
-    if (!selectedSectionId) return [];
-    const inSection = cycleOptions.filter((o) => o.sectionId === selectedSectionId);
-    if (isAngolaFirstCycleLevel(watchedLevel ?? "")) {
-      return inSection.filter(
-        (o) =>
-          isAngolaNucleoComumOption(o),
-      );
-    }
-    if (isCtebLevel(watchedLevel ?? "")) {
-      return inSection.filter(
-        (o) =>
-          o.codeOption === CTEB_OPTION_CODE ||
-          o.nameOption.toLowerCase() === "tronc commun",
-      );
-    }
-    return inSection;
-  }, [classCycle, cycleOptions, selectedSectionId, watchedLevel]);
+    if (!selectedSectionId) return cycleOptions;
+    const inSection = cycleOptions.filter(
+      (option) => option.sectionId === selectedSectionId,
+    );
+    return inSection.length ? inSection : cycleOptions;
+  }, [classCycle, cycleOptions, selectedSectionId]);
 
   useEffect(() => {
     if (classCycle !== "PRIMAIRE" || !watchedLevel) return;
@@ -300,7 +277,7 @@ export function ClasseUpForm({
       (option) =>
         option.codeOption === code || option.nameOption === watchedLevel,
     );
-    if (levelOption && form.getValues("optionId") !== levelOption.id) {
+    if (levelOption && !form.getValues("optionId")) {
       form.setValue("optionId", levelOption.id);
     }
   }, [classCycle, form, cycleOptions, watchedLevel]);
@@ -320,7 +297,7 @@ export function ClasseUpForm({
     if (ctebSection && selectedSectionId !== ctebSection.id) {
       setSelectedSectionId(ctebSection.id);
     }
-    if (troncCommun && form.getValues("optionId") !== troncCommun.id) {
+    if (troncCommun && !form.getValues("optionId")) {
       form.setValue("optionId", troncCommun.id);
     }
   }, [
@@ -345,7 +322,7 @@ export function ClasseUpForm({
     if (cicloSection && selectedSectionId !== cicloSection.id) {
       setSelectedSectionId(cicloSection.id);
     }
-    if (cicloOption && form.getValues("optionId") !== cicloOption.id) {
+    if (cicloOption && !form.getValues("optionId")) {
       form.setValue("optionId", cicloOption.id);
     }
   }, [
@@ -364,6 +341,7 @@ export function ClasseUpForm({
     // Réinitialise section/option si elles ne correspondent plus au niveau
     if (
       selectedSectionId &&
+      sectionsForLevel.length > 0 &&
       !sectionsForLevel.some((s) => s.id === selectedSectionId)
     ) {
       setSelectedSectionId("");
@@ -661,12 +639,15 @@ export function ClasseUpForm({
 
             {angolaCycle1 ? (
               <p className="text-[11px] leading-snug text-muted-foreground sm:col-span-2">
-                7ª–9ª : Núcleo comum (comme le tronc commun). Choisissez seulement
-                le niveau et le parallèle — pas de filière.
+                7ª–9ª : Núcleo comum est proposé par défaut. Vous pouvez choisir
+                une autre option.
               </p>
             ) : null}
 
-            {showOptionField && classCycle === "SECONDAIRE" && !angolaCycle1 ? (
+            {showOptionField &&
+            classCycle !== "PRIMAIRE" &&
+            classCycle !== "MATERNELLE" &&
+            sectionsForLevel.length > 0 ? (
               <FormItem>
                 <FormLabel>Section (filiere)</FormLabel>
                 <SearchableSelect
@@ -680,31 +661,26 @@ export function ClasseUpForm({
                     setSelectedSectionId(value);
                     form.setValue("optionId", "");
                   }}
-                      disabled={troncCommunLevel}
-                      placeholder="Selectionner une section"
-                      searchPlaceholder="Rechercher une section…"
-                      triggerClassName="h-9"
-                    />
-                    {angolaCycle1 ? (
-                      <FormDescription className="text-[11px] leading-snug">
-                        7ª–9ª — Núcleo comum (comme le tronc commun). Pas d'option à choisir.
-                      </FormDescription>
-                    ) : isCtebLevel(watchedLevel ?? "") && !angolaSecondary ? (
-                      <FormDescription className="text-[11px] leading-snug">
-                        CTEB — Tronc commun obligatoire (7ᵉ / 8ᵉ).
-                      </FormDescription>
-                    ) : null}
+                  placeholder="Selectionner une section"
+                  searchPlaceholder="Rechercher une section…"
+                  triggerClassName="h-9"
+                />
+                {isCtebLevel(watchedLevel ?? "") && !angolaSecondary ? (
+                  <FormDescription className="text-[11px] leading-snug">
+                    CTEB (7ᵉ / 8ᵉ) : Tronc commun proposé par défaut, modifiable.
+                  </FormDescription>
+                ) : null}
               </FormItem>
             ) : null}
 
-            {showOptionField && !angolaCycle1 ? (
+            {showOptionField ? (
               <FormField
                 control={form.control}
                 name="optionId"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
-                      {classCycle === "PRIMAIRE"
+                      {classCycle === "PRIMAIRE" || classCycle === "MATERNELLE"
                         ? "Niveau de pondération"
                         : "Option"}
                     </FormLabel>
@@ -713,28 +689,23 @@ export function ClasseUpForm({
                         searchable="auto"
                         options={optionsForSection.map((option) => ({
                           value: option.id,
-                          label: option.nameOption,
+                          label: option.nameSection
+                            ? `${option.nameOption} · ${option.nameSection}`
+                            : option.nameOption,
+                          search: `${option.nameOption} ${option.codeOption} ${option.nameSection ?? ""}`,
                         }))}
                         value={field.value ?? ""}
-                        onValueChange={field.onChange}
-                        disabled={
-                          classCycle === "PRIMAIRE" ||
-                          troncCommunLevel ||
-                          (classCycle === "SECONDAIRE" && !selectedSectionId)
-                        }
+                        onValueChange={(value) => {
+                          field.onChange(value);
+                          const picked = options.find((option) => option.id === value);
+                          if (picked?.sectionId) {
+                            setSelectedSectionId(picked.sectionId);
+                          }
+                        }}
                         placeholder={
-                          classCycle === "PRIMAIRE"
-                            ? watchedLevel
-                              ? `${watchedLevel} année`
-                              : "Selon le niveau"
-                            : troncCommunLevel
-                              ? angolaCycle1
-                                ? "Núcleo comum"
-                                : "Tronc commun"
-                              : !selectedSectionId &&
-                                  classCycle === "SECONDAIRE"
-                                ? "Choisir d'abord une section"
-                                : "Selectionner une option"
+                          optionsForSection.length
+                            ? "Selectionner une option"
+                            : "Aucune option disponible"
                         }
                         searchPlaceholder="Rechercher une option…"
                         triggerClassName="h-9"

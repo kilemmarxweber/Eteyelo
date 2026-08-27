@@ -27,6 +27,7 @@ interface BranchCardProps {
   editHref: string;
   isActive: boolean;
   extraActions?: ReactNode;
+  canDelete?: boolean;
   children: ReactNode;
 }
 
@@ -37,6 +38,7 @@ export function BranchCard({
   branchId,
   branchName,
   extraActions,
+  canDelete = true,
   children,
 }: BranchCardProps) {
   const router = useRouter();
@@ -138,6 +140,7 @@ export function BranchCard({
           </DialogContent>
         </Dialog>
 
+        {canDelete ? (
         <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
           <DialogTrigger asChild>
             <Button
@@ -172,6 +175,7 @@ export function BranchCard({
             </DialogFooter>
           </DialogContent>
         </Dialog>
+        ) : null}
       </div>
     </div>
   );

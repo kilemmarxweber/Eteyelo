@@ -13,7 +13,11 @@ import {
   stashAdminCreatedUserPlainPassword,
 } from "@/lib/admin-created-user-password";
 import { generateSecurePassword } from "@/lib/generate-password";
-import { canManageParentRecords } from "@/lib/auth/session-roles";
+import {
+  canManageParentRecords,
+  isOrganizationOwnerSession,
+} from "@/lib/auth/session-roles";
+import { purgeParentPermanently } from "@/lib/purge-branch-person";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
 import {
   buildSchoolReportContext,
@@ -45,6 +49,7 @@ export async function getCurrentBranch() {
     organizationId,
     userId,
     canManageParents: canManageParentRecords(session, branchMember?.role),
+    canPurgePermanently: isOrganizationOwnerSession(session, branchMember?.role),
   };
 }
 
@@ -257,6 +262,35 @@ export const archiveParentAction = action
       message: "Parent archivé avec succès",
       parentId: parent.id,
     };
+  });
+
+export const deleteParentPermanentlyAction = action
+  .input(deleteParentSchema)
+  .handler(async ({ input }) => {
+    const { branchId, organizationId, canPurgePermanently } =
+      await getCurrentBranch();
+    if (!canPurgePermanently) {
+      return {
+        ok: false as const,
+        message: "Seul le propriétaire peut supprimer définitivement.",
+      };
+    }
+
+    try {
+      const result = await purgeParentPermanently({
+        parentId: input.id,
+        branchId,
+      });
+      if (result.ok) {
+        revalidateParentPages(organizationId, branchId);
+      }
+      return result;
+    } catch (error: unknown) {
+      return {
+        ok: false as const,
+        message: errMessage(error) || "Erreur lors de la suppression du parent",
+      };
+    }
   });
 
 /** @deprecated Utiliser archiveParentAction */

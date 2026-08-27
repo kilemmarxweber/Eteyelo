@@ -1,4 +1,6 @@
 import { enforceOrganizationManagerPage } from "@/lib/auth/require-organization-permission";
+import { isRestrictedGestionnaire } from "@/lib/auth/role-labels";
+import { notFound } from "next/navigation";
 
 export default async function OrganizationManagerLayout({
   children,
@@ -8,6 +10,9 @@ export default async function OrganizationManagerLayout({
   params: Promise<{ organizationId: string }>;
 }) {
   const { organizationId } = await params;
-  await enforceOrganizationManagerPage(organizationId);
+  const context = await enforceOrganizationManagerPage(organizationId);
+  if (isRestrictedGestionnaire(context.appRole, context.membership?.role)) {
+    notFound();
+  }
   return children;
 }

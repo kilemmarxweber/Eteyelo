@@ -1,4 +1,4 @@
-import { APP_ROLE, ORG_ROLE } from "@/lib/permissions";
+import { APP_ROLE, ORG_ROLE, isAppAdminRole, isPlatformOwnerRole } from "@/lib/permissions";
 import { orgRoleLabel } from "@/lib/org-role-labels";
 
 const APP_ROLE_LABEL: Record<string, string> = {
@@ -73,6 +73,20 @@ export function isOrganizationGestionnaireMember(
   memberRole: string | null | undefined,
 ): boolean {
   return memberRolesInclude(memberRole, ORG_ROLE.GESTIONNAIRE);
+}
+
+/**
+ * Gestionnaire (compte applicatif `admin` ou rôle org `gestionnaire`),
+ * sans être propriétaire plateforme ni propriétaire d’organisation.
+ */
+export function isRestrictedGestionnaire(
+  appRole?: string | null,
+  memberRole?: string | null,
+): boolean {
+  if (isPlatformOwnerRole(appRole)) return false;
+  if (isOrganizationOwnerMember(memberRole)) return false;
+  if (isAppAdminRole(appRole)) return true;
+  return isOrganizationGestionnaireMember(memberRole);
 }
 
 /** Propriétaire ou gestionnaire : archiver / modifier, pas supprimer. */

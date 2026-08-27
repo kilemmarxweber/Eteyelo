@@ -99,6 +99,7 @@ export default async function AdminOrganizationHomePage({
       }}
       canDelete={access.canDelete}
       canListAll={access.canListAll}
+      canViewMembers={access.canViewMembers}
       roleLabel={access.roleLabel}
       counts={{
         branches: branchesCount,

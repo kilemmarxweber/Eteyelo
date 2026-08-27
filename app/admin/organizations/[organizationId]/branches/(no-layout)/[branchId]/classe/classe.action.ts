@@ -82,27 +82,23 @@ async function resolveClassIdentity(params: {
 }) {
   const primary = isPrimaryBranch(params.typebranch);
   const maternelle = isMaternelleCycle(params.typebranch);
-  const skipOption = primary || maternelle;
   const angola = isAngolaSecondarySystem(
     params.typebranch,
     params.educationSystem,
   );
 
-  let optionId = skipOption ? undefined : params.optionId;
-  if (
-    !skipOption &&
-    !params.isLegacy &&
-    angola &&
-    isAngolaFirstCycleLevel(params.level ?? "")
-  ) {
-    const angolaStructure = await ensureAngolaSecondaryStructure(
-      prisma,
-      params.branchId,
-    );
-    optionId = angolaStructure.option.id;
-  } else if (!skipOption && !params.isLegacy && isCtebLevel(params.level ?? "")) {
-    const cteb = await ensureSecondaryCtebStructure(prisma, params.branchId);
-    optionId = cteb.option.id;
+  let optionId = params.optionId?.trim() || undefined;
+  if (!optionId && !params.isLegacy) {
+    if (angola && isAngolaFirstCycleLevel(params.level ?? "")) {
+      const angolaStructure = await ensureAngolaSecondaryStructure(
+        prisma,
+        params.branchId,
+      );
+      optionId = angolaStructure.option.id;
+    } else if (isCtebLevel(params.level ?? "")) {
+      const cteb = await ensureSecondaryCtebStructure(prisma, params.branchId);
+      optionId = cteb.option.id;
+    }
   }
 
   const validated = validateClassInput({
@@ -125,43 +121,47 @@ async function resolveClassIdentity(params: {
     };
   }
 
-  const primaryStructure = primary
-    ? await ensurePrimaryAcademicStructure(prisma, params.branchId)
-    : null;
-  const maternelleStructure = maternelle
-    ? await ensureMaternelleAcademicStructure(prisma, params.branchId)
-    : null;
-
   let option: {
     id: string;
     nameOption: string;
     codeOption?: string | null;
   } | null = null;
 
-  if (primary) {
-    option = getPrimaryOptionForLevel(primaryStructure!, validated.level);
+  if (validated.optionId) {
+    option = await prisma.option.findFirst({
+      where: { id: validated.optionId, branchId: params.branchId },
+      select: { id: true, nameOption: true, codeOption: true },
+    });
+  }
+
+  if (!option && primary) {
+    const primaryStructure = await ensurePrimaryAcademicStructure(
+      prisma,
+      params.branchId,
+    );
+    option = getPrimaryOptionForLevel(primaryStructure, validated.level);
     if (!option) {
       throw new Error("Niveau primaire invalide pour la pondération");
     }
-  } else if (maternelle) {
-    option = getMaternelleOptionForLevel(maternelleStructure!, validated.level);
+  } else if (!option && maternelle) {
+    const maternelleStructure = await ensureMaternelleAcademicStructure(
+      prisma,
+      params.branchId,
+    );
+    option = getMaternelleOptionForLevel(maternelleStructure, validated.level);
     if (!option) {
       throw new Error("Niveau maternelle invalide pour la pondération");
     }
   } else if (
+    !option &&
     angola &&
     isAngolaFirstCycleLevel(validated.level ?? "")
   ) {
     option = (await ensureAngolaSecondaryStructure(prisma, params.branchId))
       .option;
-  } else if (isCtebLevel(validated.level ?? "")) {
+  } else if (!option && isCtebLevel(validated.level ?? "")) {
     option = (await ensureSecondaryCtebStructure(prisma, params.branchId))
       .option;
-  } else if (validated.optionId) {
-    option = await prisma.option.findFirst({
-      where: { id: validated.optionId, branchId: params.branchId },
-      select: { id: true, nameOption: true, codeOption: true },
-    });
   }
 
   if (validated.optionId && !option) {
@@ -210,7 +210,7 @@ export const createClasseAction = action
     try {
       const { branchId, organizationId, typebranch, educationSystem, cycles } =
         await requireBranchContext();
-      const { statusClasse, creneauId, capacity } = input;
+      const { creneauId, capacity } = input;
       const cycle = resolveActivatedCycle(input.cycle, typebranch, cycles);
 
       const identity = await resolveClassIdentity({
@@ -266,7 +266,7 @@ export const createClasseAction = action
           parallel: identity.parallel,
           capacity: capacity ?? null,
           optionId: identity.optionId,
-          statusClasse,
+          statusClasse: true,
           creneauId: creneauId || null,
           horaireType: getAngolaHoraireType(identity.level),
           branchId,
@@ -390,7 +390,7 @@ export const updateClasseAction = action
 
     const existing = await prisma.classe.findFirst({
       where: { id, branchId },
-      select: { id: true, level: true, cycle: true },
+      select: { id: true, level: true, cycle: true, statusClasse: true },
     });
     if (!existing) throw new Error("Classe introuvable dans cette branche");
 
@@ -450,7 +450,7 @@ export const updateClasseAction = action
         parallel: identity.parallel ?? null,
         capacity: capacity ?? null,
         optionId: identity.optionId,
-        statusClasse,
+        statusClasse: statusClasse ?? existing.statusClasse ?? true,
         creneauId: creneauId || null,
         horaireType: getAngolaHoraireType(identity.level),
       },
@@ -615,7 +615,12 @@ export const deleteClassePermanentlyAction = action
   });
 
 export const statusClasseAction = action
-  .input(classeSchema)
+  .input(
+    z.object({
+      id: z.string().min(1),
+      statusClasse: z.boolean(),
+    }),
+  )
   .handler(async ({ input }) => {
     const { branchId, organizationId } = await requireBranchContext();
     const { statusClasse, id } = input;
@@ -625,13 +630,24 @@ export const statusClasseAction = action
     });
     if (!existing) throw new Error("Classe introuvable dans cette branche");
 
+    if (!statusClasse) {
+      const activeEnrollments = await prisma.classEnrollment.count({
+        where: {
+          classeId: id,
+          branchId,
+          statusEnrollment: true,
+        },
+      });
+      if (activeEnrollments > 0) {
+        throw new Error(
+          "Impossible de désactiver cette classe : des inscriptions actives existent.",
+        );
+      }
+    }
+
     const updateStatusClasse = await prisma.classe.update({
-      where: {
-        id,
-      },
-      data: {
-        statusClasse,
-      },
+      where: { id },
+      data: { statusClasse },
     });
     revalidateClassePages(organizationId, branchId);
     return updateStatusClasse;

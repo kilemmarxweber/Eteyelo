@@ -35,6 +35,7 @@ import { buildIsArchivedUpdate } from "@/lib/archive";
 import { orgRoleLabel } from "@/lib/org-role-labels";
 import { orgRoleToBranchRole } from "@/lib/auth/org-role-to-branch-role";
 import { ensureBranchMemberRoleProfiles } from "@/lib/auth/ensure-branch-member-profile";
+import { ORG_ROLE } from "@/lib/permissions";
 import type { BranchRole } from "@/prisma/generated/prisma/enums";
 
 function errMessage(err: unknown): string {
@@ -582,6 +583,124 @@ export async function removeOrganizationMemberAction(
       },
       h,
     );
+    revalidatePath(`/admin/organizations/${organizationId}/members`, "page");
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, message: errMessage(e) };
+  }
+}
+
+function memberHasOwnerRole(role: string) {
+  return role
+    .split(",")
+    .map((item) => item.trim().toLowerCase())
+    .includes(ORG_ROLE.OWNER);
+}
+
+export async function deleteOrganizationMemberPermanentlyAction(
+  input: RemoveOrgMemberInput,
+): Promise<{ ok: true } | { ok: false; message: string }> {
+  const parsed = removeOrgMemberSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false, message: zodFirstMessage(parsed.error) };
+  }
+  const { organizationId, memberId } = parsed.data;
+  const guard = await guardOrganizationMemberPermission(organizationId, {
+    member: ["delete"],
+  });
+  if (!guard.ok) {
+    return { ok: false, message: guard.message };
+  }
+
+  try {
+    const member = await prisma.member.findFirst({
+      where: { id: memberId, organizationId },
+      select: {
+        id: true,
+        userId: true,
+        role: true,
+        branchMember: {
+          select: {
+            branch: { select: { name: true } },
+            _count: {
+              select: {
+                teacher: true,
+                parent: true,
+                student: true,
+                personel: true,
+                schedule: true,
+              },
+            },
+          },
+        },
+      },
+    });
+    if (!member) {
+      return { ok: false, message: "Membre introuvable." };
+    }
+
+    if (member.userId === guard.context.userId) {
+      return {
+        ok: false,
+        message: "Vous ne pouvez pas supprimer définitivement votre propre compte.",
+      };
+    }
+
+    if (memberHasOwnerRole(member.role)) {
+      const otherOwners = await prisma.member.findMany({
+        where: {
+          organizationId,
+          id: { not: member.id },
+          isArchived: false,
+        },
+        select: { role: true },
+      });
+      const hasOtherOwner = otherOwners.some((row) =>
+        memberHasOwnerRole(row.role),
+      );
+      if (!hasOtherOwner) {
+        return {
+          ok: false,
+          message: "Impossible de supprimer le dernier propriétaire de l’organisation.",
+        };
+      }
+    }
+
+    const blocked = member.branchMember.filter((row) =>
+      branchMemberHasLinkedProfile(row._count),
+    );
+    if (blocked.length > 0) {
+      const names = blocked.map((row) => row.branch.name).join(", ");
+      return {
+        ok: false,
+        message: `Impossible de supprimer définitivement ce membre : un profil (élève, enseignant, parent ou personnel) existe encore dans : ${names}. Supprimez d’abord ces profils.`,
+      };
+    }
+
+    await prisma.$transaction(async (tx) => {
+      await tx.session.updateMany({
+        where: {
+          userId: member.userId,
+          activeOrganizationId: organizationId,
+        },
+        data: {
+          activeOrganizationId: null,
+          activeBranchId: null,
+        },
+      });
+      await tx.branchMember.deleteMany({
+        where: { memberId: member.id },
+      });
+      await tx.member.delete({ where: { id: member.id } });
+
+      const remainingMembers = await tx.member.count({
+        where: { userId: member.userId },
+      });
+      if (remainingMembers === 0) {
+        await tx.user.delete({ where: { id: member.userId } });
+      }
+    });
+
     revalidatePath(`/admin/organizations/${organizationId}/members`, "page");
     return { ok: true };
   } catch (e) {

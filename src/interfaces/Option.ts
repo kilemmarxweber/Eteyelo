@@ -13,6 +13,7 @@ export interface IOption {
   classesCount?: number;
   statusOption: boolean;
   module: string;
+  cycle?: string | null;
   createdAt: Date;
   updatedAt: Date;
 }

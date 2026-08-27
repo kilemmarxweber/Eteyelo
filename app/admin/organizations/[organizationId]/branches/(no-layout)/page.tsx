@@ -13,6 +13,7 @@ import {
   getAnyUserBranchMemberships,
   isGestionnaireBranchLandingRole,
 } from "@/lib/auth/user-branch-access";
+import { isRestrictedGestionnaire } from "@/lib/auth/role-labels";
 import { prisma } from "@/lib/prisma";
 import { BranchCard } from "./branchCard";
 import { BranchTypeBadge } from "@/components/branch/branch-type-badge";
@@ -104,6 +105,10 @@ export default async function BranchesPage({ params }: BranchesPageProps) {
   const isGestionnaire = isGestionnaireBranchLandingRole(
     context.membership?.role,
   );
+  const canDeleteBranch = !isRestrictedGestionnaire(
+    context.appRole,
+    context.membership?.role,
+  );
   const assigned = isGestionnaire
     ? await getAnyUserBranchMemberships(context.userId, organizationId)
     : [];
@@ -190,6 +195,7 @@ export default async function BranchesPage({ params }: BranchesPageProps) {
                   <BranchMergeCardButton sourceId={branch.id} />
                 ) : null
               }
+              canDelete={canDeleteBranch}
             >
               <div className="group flex h-full min-w-0 items-start gap-2 overflow-hidden rounded-xl border border-border/80 bg-card px-2.5 py-2.5 transition hover:border-primary/30 hover:bg-muted/40 hover:shadow-sm">
                 <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">

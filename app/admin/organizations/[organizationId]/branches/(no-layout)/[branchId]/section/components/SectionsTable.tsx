@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Edit, Archive, MoreHorizontal, Layers, Trash2 } from "lucide-react";
+import { Edit, Archive, MoreHorizontal, Layers, RotateCcw, Trash2 } from "lucide-react";
 
 import { ResponsiveDataTable } from "@/components/ui/responsive-data-table";
 import { SearchAndFilter } from "@/components/ui/search-and-filter";
@@ -17,10 +17,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ISection } from "@/src/interfaces/Section";
 
-import { getSectionsAction } from "../section.action";
+import { getSectionsAction, statuSectionAction } from "../section.action";
 import { DeleteSectionsDialog } from "./delete-Section-dialog";
 import { UpdateSectionDialog } from "./edit-Section-dialog";
 import { openOverlayAfterMenuDismiss } from "@/lib/radix-portal-dismiss";
+import { toast } from "sonner";
 
 interface SectionsTableProps {
   refreshKey?: string;
@@ -34,7 +35,6 @@ const SectionsTable: React.FC<SectionsTableProps> = ({ refreshKey }) => {
   const [statusFilter, setStatusFilter] = useState<string>("active");
 
   const [showUpdateDialog, setShowUpdateDialog] = useState(false);
-  const [showArchiveDialog, setShowArchiveDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [selectedSection, setSelectedSection] = useState<ISection | null>(null);
 
@@ -62,10 +62,11 @@ const SectionsTable: React.FC<SectionsTableProps> = ({ refreshKey }) => {
       section.nameSection.toLowerCase().includes(searchTerm.toLowerCase()) ||
       section.codeSection.toLowerCase().includes(searchTerm.toLowerCase());
 
+    const isActive = section.statusSection !== false;
     const matchesStatus =
       statusFilter === "all" ||
-      (statusFilter === "active" && section.statusSection) ||
-      (statusFilter === "inactive" && !section.statusSection);
+      (statusFilter === "active" && isActive) ||
+      (statusFilter === "inactive" && !isActive);
 
     return matchesSearch && matchesStatus;
   });
@@ -75,9 +76,18 @@ const SectionsTable: React.FC<SectionsTableProps> = ({ refreshKey }) => {
     openOverlayAfterMenuDismiss(() => setShowUpdateDialog(true));
   };
 
-  const handleArchive = (section: ISection) => {
-    setSelectedSection(section);
-    openOverlayAfterMenuDismiss(() => setShowArchiveDialog(true));
+  const handleToggleStatus = async (section: ISection) => {
+    const next = section.statusSection === false;
+    const [, err] = await statuSectionAction({
+      id: section.id,
+      statusSection: next,
+    });
+    if (err) {
+      toast.error(err.message ?? "Impossible de modifier le statut");
+      return;
+    }
+    toast.success(next ? "Section activée" : "Section désactivée");
+    setLocalRefreshKey((value) => value + 1);
   };
 
   const handleDelete = (section: ISection) => {
@@ -87,7 +97,6 @@ const SectionsTable: React.FC<SectionsTableProps> = ({ refreshKey }) => {
 
   const handleActionSuccess = () => {
     setShowUpdateDialog(false);
-    setShowArchiveDialog(false);
     setShowDeleteDialog(false);
     setSelectedSection(null);
     setLocalRefreshKey((value) => value + 1);
@@ -121,8 +130,8 @@ const SectionsTable: React.FC<SectionsTableProps> = ({ refreshKey }) => {
       header: "Statut",
       cell: (section: ISection) => (
         <StatusBadge
-          status={section.statusSection ? "active" : "inactive"}
-          label={section.statusSection ? "Active" : "Inactive"}
+          status={section.statusSection !== false ? "active" : "inactive"}
+          label={section.statusSection !== false ? "Active" : "Inactive"}
         />
       ),
     },
@@ -143,12 +152,17 @@ const SectionsTable: React.FC<SectionsTableProps> = ({ refreshKey }) => {
               Modifier
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            {section.statusSection ? (
-              <DropdownMenuItem onClick={() => handleArchive(section)}>
+            {section.statusSection !== false ? (
+              <DropdownMenuItem onClick={() => handleToggleStatus(section)}>
                 <Archive className="mr-2 h-4 w-4" />
-                Archiver
+                Désactiver
               </DropdownMenuItem>
-            ) : null}
+            ) : (
+              <DropdownMenuItem onClick={() => handleToggleStatus(section)}>
+                <RotateCcw className="mr-2 h-4 w-4" />
+                Activer
+              </DropdownMenuItem>
+            )}
             <DropdownMenuItem
               className="text-destructive focus:bg-destructive/10 focus:text-destructive"
               onClick={() => handleDelete(section)}
@@ -170,8 +184,8 @@ const SectionsTable: React.FC<SectionsTableProps> = ({ refreshKey }) => {
         label: "Statut",
         value: (
           <StatusBadge
-            status={section.statusSection ? "active" : "inactive"}
-            label={section.statusSection ? "Active" : "Inactive"}
+            status={section.statusSection !== false ? "active" : "inactive"}
+            label={section.statusSection !== false ? "Active" : "Inactive"}
           />
         ),
       },
@@ -187,16 +201,12 @@ const SectionsTable: React.FC<SectionsTableProps> = ({ refreshKey }) => {
         onClick: () => handleEdit(section),
         variant: "outline" as const,
       },
-      ...(section.statusSection
-        ? [
-            {
-              label: "Archiver",
-              icon: Archive,
-              onClick: () => handleArchive(section),
-              variant: "outline" as const,
-            },
-          ]
-        : []),
+      {
+        label: section.statusSection !== false ? "Désactiver" : "Activer",
+        icon: section.statusSection !== false ? Archive : RotateCcw,
+        onClick: () => handleToggleStatus(section),
+        variant: "outline" as const,
+      },
       {
         label: "Supprimer",
         icon: Trash2,
@@ -238,13 +248,6 @@ const SectionsTable: React.FC<SectionsTableProps> = ({ refreshKey }) => {
             open={showUpdateDialog}
             onOpenChange={setShowUpdateDialog}
             section={selectedSection}
-            onSuccess={handleActionSuccess}
-          />
-          <DeleteSectionsDialog
-            open={showArchiveDialog}
-            onOpenChange={setShowArchiveDialog}
-            Sections={[selectedSection]}
-            showTrigger={false}
             onSuccess={handleActionSuccess}
           />
           <DeleteSectionsDialog

@@ -12,6 +12,8 @@ import { DataTableToolbar } from "./data-table-toolbar";
 import { IconAlertCircle, IconUsers } from "@tabler/icons-react";
 import { useRefresh } from "@/src/hooks/RefreshContext";
 import { UpdateParentDialog } from "./edit-parent-dialog";
+import { useSession } from "@/lib/auth-client";
+import { isOrganizationOwnerSession } from "@/lib/auth/session-roles";
 
 const ParentsList = ({ refreshKey }: { refreshKey: number }) => {
   const [parents, setParents] = useState<IParent[]>([]);
@@ -21,6 +23,8 @@ const ParentsList = ({ refreshKey }: { refreshKey: number }) => {
   const [editingParent, setEditingParent] = useState<IParent | null>(null);
   const hasLoadedOnce = useRef(false);
   const { refreshKey: contextRefreshKey } = useRefresh();
+  const { data: session } = useSession();
+  const canPurgePermanently = isOrganizationOwnerSession(session);
 
   const tableActions = useMemo(
     () => ({
@@ -30,8 +34,8 @@ const ParentsList = ({ refreshKey }: { refreshKey: number }) => {
   );
 
   const columns = useMemo(
-    () => createParentColumns(tableActions),
-    [tableActions],
+    () => createParentColumns(tableActions, canPurgePermanently),
+    [tableActions, canPurgePermanently],
   );
 
   const fetchParents = useCallback(async () => {

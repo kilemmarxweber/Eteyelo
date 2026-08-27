@@ -290,7 +290,7 @@ async function mergeBranchStructure(params: {
               branchId: params.targetBranchId,
               codeSection,
               nameSection,
-              statusSection: section.statusSection,
+              statusSection: true,
               cycle: section.cycle,
             },
           });
@@ -330,7 +330,7 @@ async function mergeBranchStructure(params: {
               branchId: params.targetBranchId,
               codeOption,
               nameOption,
-              statusOption: option.statusOption,
+              statusOption: true,
               cycle: option.cycle,
               sectionId: option.sectionId
                 ? (sectionIdBySource.get(option.sectionId) ?? null)
@@ -483,7 +483,7 @@ async function mergeBranchStructure(params: {
               level: classe.level,
               parallel: classe.parallel,
               capacity: classe.capacity,
-              statusClasse: classe.statusClasse,
+              statusClasse: true,
               horaireType: classe.horaireType,
               cycle: classe.cycle,
               optionId: classe.optionId

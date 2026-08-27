@@ -9,7 +9,7 @@ import {
   canListAllOrganizations,
   getOrganizationByIdForUser,
 } from "@/lib/auth/organization-access";
-import { getOrganizationAccessRoleLabel } from "@/lib/auth/role-labels";
+import { getOrganizationAccessRoleLabel, isRestrictedGestionnaire } from "@/lib/auth/role-labels";
 import {
   getOrganizationAuthContext,
   guardOrganizationArchive,
@@ -181,6 +181,10 @@ export async function getOrganizationAccessAction(organizationId: string) {
     canUpdate: isPlatformOwnerRole(context.appRole) || isAppAdminRole(context.appRole),
     /** Retour vers la liste complète : owner plateforme uniquement. */
     canListAll: canListAllOrganizations(context.appRole),
+    canViewMembers: !isRestrictedGestionnaire(
+      context.appRole,
+      membership?.role,
+    ),
     roleLabel: getOrganizationAccessRoleLabel(
       context.appRole,
       membership?.role,

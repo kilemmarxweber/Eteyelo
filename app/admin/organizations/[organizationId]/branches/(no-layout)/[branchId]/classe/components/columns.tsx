@@ -16,10 +16,11 @@ import { IClasse } from "@/src/interfaces/Classe";
 import { DataTableColumnHeader } from "@/components/data-table-column-header";
 import { openOverlayAfterMenuDismiss } from "@/lib/radix-portal-dismiss";
 import { cycleLabel } from "@/lib/cycle";
+import { StatusBadge } from "@/components/ui/status-badge";
 
 export type ClasseTableActions = {
   onEdit: (classe: IClasse) => void;
-  onArchive: (classe: IClasse) => void;
+  onToggleStatus: (classe: IClasse) => void;
   onDelete: (classe: IClasse) => void;
 };
 
@@ -130,6 +131,21 @@ export function getClasseColumns(
       ),
     },
     {
+      accessorKey: "statusClasse",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Statut" />
+      ),
+      cell: ({ row }) => {
+        const active = row.original.statusClasse !== false;
+        return (
+          <StatusBadge
+            status={active ? "active" : "inactive"}
+            label={active ? "Active" : "Inactive"}
+          />
+        );
+      },
+    },
+    {
       id: "actions",
       cell: ({ row }) => {
         const classe = row.original;
@@ -163,16 +179,13 @@ export function getClasseColumns(
             <DropdownMenuSeparator />
             <DropdownMenuItem
               disabled={!canManage || !actions}
-              className="text-destructive focus:bg-destructive/10 focus:text-destructive"
               onSelect={(event) => {
                 event.preventDefault();
                 if (!actions) return;
-                openOverlayAfterMenuDismiss(() =>
-                  actions.onArchive(classe),
-                );
+                actions.onToggleStatus(classe);
               }}
             >
-              Archiver
+              {classe.statusClasse !== false ? "Désactiver" : "Activer"}
             </DropdownMenuItem>
             <DropdownMenuItem
               disabled={!canManage || !actions || hasStudents}
