@@ -117,7 +117,16 @@
     "loadFailed": "Unable to load the cash report.",
     "pdfSuccess": "PDF report generated successfully.",
     "pdfError": "Error generating the PDF",
-    "contextFailed": "Unable to load the context"
+    "contextFailed": "Unable to load the context",
+    "incomeDetail": "Collections by payment method",
+    "sequenceTotal": "Subtotal {mode}",
+    "grandTotal": "Grand total",
+    "noPayments": "No collections in this period.",
+    "colTime": "Time",
+    "colRef": "Reference",
+    "colStudent": "Student",
+    "colReason": "Reason",
+    "colAmount": "Amount"
   },
   "expense": {
     "title": "Expense or cash outflow",

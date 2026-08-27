@@ -117,7 +117,16 @@
     "loadFailed": "Não foi possível carregar o relatório de caixa.",
     "pdfSuccess": "Relatório PDF gerado com êxito.",
     "pdfError": "Erro na geração do PDF",
-    "contextFailed": "Não foi possível carregar o contexto"
+    "contextFailed": "Não foi possível carregar o contexto",
+    "incomeDetail": "Cobranças por modo de pagamento",
+    "sequenceTotal": "Subtotal {mode}",
+    "grandTotal": "Total geral",
+    "noPayments": "Nenhuma cobrança neste período.",
+    "colTime": "Hora",
+    "colRef": "Referência",
+    "colStudent": "Aluno",
+    "colReason": "Motivo",
+    "colAmount": "Montante"
   },
   "expense": {
     "title": "Despesa ou saída de fundos",

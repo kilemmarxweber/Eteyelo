@@ -117,7 +117,16 @@
     "loadFailed": "Impossible de charger le rapport de caisse.",
     "pdfSuccess": "Rapport PDF généré avec succès.",
     "pdfError": "Erreur lors de la génération du PDF",
-    "contextFailed": "Impossible de charger le contexte"
+    "contextFailed": "Impossible de charger le contexte",
+    "incomeDetail": "Détail des encaissements",
+    "sequenceTotal": "Sous-total {mode}",
+    "grandTotal": "Total général",
+    "noPayments": "Aucun encaissement sur la période.",
+    "colTime": "Heure",
+    "colRef": "Référence",
+    "colStudent": "Élève",
+    "colReason": "Motif",
+    "colAmount": "Montant"
   },
   "expense": {
     "title": "Dépense ou sortie de fond",

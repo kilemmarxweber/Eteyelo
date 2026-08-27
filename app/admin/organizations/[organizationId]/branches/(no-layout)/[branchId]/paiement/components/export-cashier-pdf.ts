@@ -1,5 +1,6 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { formatModePaiementLabel } from "@/components/reports/receipt-format";
 import { imageUrlToDataUrl } from "@/lib/reports/image-to-data-url";
 import {
   drawReportFooterOnAllPages,
@@ -8,6 +9,7 @@ import {
 } from "@/lib/reports/pdf-header-footer";
 import type { SchoolReportContext } from "@/lib/reports/types";
 import { formatReportAmount } from "@/lib/reports/format-amount";
+import { groupCashierPaymentsByMethod } from "./group-cashier-payments";
 
 export type CashierReportPdfOptions = {
   dateStart: string;
@@ -49,6 +51,11 @@ function safeFilePart(value: string) {
     .toLowerCase();
 }
 
+function pdfMethodLabel(method: string) {
+  if (method === "AUTRE") return "Autre";
+  return formatModePaiementLabel(method);
+}
+
 function buildPeriodDetail(dateStart: string, dateEnd?: string): string {
   const formattedStart = new Date(dateStart).toLocaleDateString("fr-FR");
   const formattedEnd = dateEnd
@@ -85,26 +92,61 @@ export async function buildCashierReportPdf(
     });
   };
 
-  // 1. Table des encaissements
+  // 1. Encaissements groupés par mode (rupture de séquence)
   const incomeHead = [
     "Heure",
     "Référence",
     "Élève",
     "Motif",
-    "Mode",
     `Montant (${currency})`,
   ];
-  const incomeBody = data.payments.map((p) => [
-    new Date(p.createdAt).toLocaleTimeString("fr-FR", {
-      hour: "2-digit",
-      minute: "2-digit",
-    }),
-    p.transactionRef || "-",
-    p.studentName || "-",
-    p.frais?.nameFrais || "-",
-    p.method || "-",
-    money(p.amount),
-  ]);
+  type IncomeRowKind = "sequence" | "item" | "subtotal" | "grand" | "empty";
+  const incomeBody: string[][] = [];
+  const incomeRowKinds: IncomeRowKind[] = [];
+  const methodGroups = groupCashierPaymentsByMethod(data.payments);
+
+  if (methodGroups.length === 0) {
+    incomeBody.push(["Aucun encaissement sur la période.", "", "", "", ""]);
+    incomeRowKinds.push("empty");
+  } else {
+    for (const group of methodGroups) {
+      const label = pdfMethodLabel(group.method);
+      incomeBody.push([label, "", "", "", ""]);
+      incomeRowKinds.push("sequence");
+
+      for (const payment of group.payments) {
+        incomeBody.push([
+          new Date(payment.createdAt).toLocaleTimeString("fr-FR", {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+          payment.transactionRef || "-",
+          payment.studentName || "-",
+          payment.frais?.nameFrais || "-",
+          money(payment.amount),
+        ]);
+        incomeRowKinds.push("item");
+      }
+
+      incomeBody.push([
+        `Sous-total ${label}`,
+        "",
+        "",
+        "",
+        money(group.total),
+      ]);
+      incomeRowKinds.push("subtotal");
+    }
+
+    incomeBody.push([
+      "Total général",
+      "",
+      "",
+      "",
+      money(data.incomeTotal),
+    ]);
+    incomeRowKinds.push("grand");
+  }
 
   const incomeFirstPageTop = REPORT_HEADER_CONTENT_TOP_MM + 5;
 
@@ -135,12 +177,69 @@ export async function buildCashierReportPdf(
       halign: "center",
     },
     columnStyles: {
-      0: { cellWidth: usableWidth * 0.1, halign: "center" },
-      1: { cellWidth: usableWidth * 0.18 },
-      2: { cellWidth: usableWidth * 0.22 },
-      3: { cellWidth: usableWidth * 0.22 },
-      4: { cellWidth: usableWidth * 0.12, halign: "center" },
-      5: { cellWidth: usableWidth * 0.16, halign: "right" },
+      0: { cellWidth: usableWidth * 0.12, halign: "center" },
+      1: { cellWidth: usableWidth * 0.2 },
+      2: { cellWidth: usableWidth * 0.26 },
+      3: { cellWidth: usableWidth * 0.24 },
+      4: { cellWidth: usableWidth * 0.18, halign: "right" },
+    },
+    didParseCell: (data) => {
+      if (data.section !== "body") return;
+      const kind = incomeRowKinds[data.row.index];
+      if (kind === "sequence") {
+        if (data.column.index === 0) {
+          data.cell.colSpan = 5;
+          data.cell.styles.fillColor = [16, 185, 129];
+          data.cell.styles.textColor = 255;
+          data.cell.styles.fontStyle = "bold";
+          data.cell.styles.halign = "left";
+        } else {
+          data.cell.styles.cellWidth = 0;
+          data.cell.text = [];
+        }
+        return;
+      }
+      if (kind === "subtotal") {
+        data.cell.styles.fillColor = [241, 245, 249];
+        data.cell.styles.fontStyle = "bold";
+        data.cell.styles.textColor = [15, 23, 42];
+        if (data.column.index === 0) {
+          data.cell.colSpan = 4;
+          data.cell.styles.halign = "right";
+        } else if (data.column.index < 4) {
+          data.cell.styles.cellWidth = 0;
+          data.cell.text = [];
+        } else {
+          data.cell.styles.halign = "right";
+        }
+        return;
+      }
+      if (kind === "grand") {
+        data.cell.styles.fillColor = [15, 23, 42];
+        data.cell.styles.fontStyle = "bold";
+        data.cell.styles.textColor = 255;
+        if (data.column.index === 0) {
+          data.cell.colSpan = 4;
+          data.cell.styles.halign = "right";
+        } else if (data.column.index < 4) {
+          data.cell.styles.cellWidth = 0;
+          data.cell.text = [];
+        } else {
+          data.cell.styles.halign = "right";
+        }
+        return;
+      }
+      if (kind === "empty") {
+        if (data.column.index === 0) {
+          data.cell.colSpan = 5;
+          data.cell.styles.halign = "center";
+          data.cell.styles.fontStyle = "italic";
+          data.cell.styles.textColor = [100, 116, 139];
+        } else {
+          data.cell.styles.cellWidth = 0;
+          data.cell.text = [];
+        }
+      }
     },
     didDrawPage: (hookData) => {
       drawHeader();

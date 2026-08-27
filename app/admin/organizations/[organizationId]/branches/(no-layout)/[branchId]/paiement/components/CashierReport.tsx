@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import {
   ArrowDownRight,
   ArrowUpRight,
@@ -15,12 +15,32 @@ import {
   getCashierReportContextAction,
 } from "../paiement.action";
 import { exportCashierReportPdf } from "./export-cashier-pdf";
+import {
+  groupCashierPaymentsByMethod,
+  PAYMENT_METHOD_ORDER,
+} from "./group-cashier-payments";
 import { toast } from "sonner";
-import { IconFileTypePdf, IconRefresh } from "@tabler/icons-react";
+import { IconFileTypePdf, IconListDetails, IconRefresh } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
 import { formatReportAmount } from "@/lib/reports/format-amount";
 import { cycleLabel } from "@/lib/cycle";
 import { useTranslations } from "next-intl";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableFooter,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 type CashierReportData = {
   date: string;
@@ -145,12 +165,20 @@ export default function CashierReport({
   const [error, setError] = useState<string | null>(null);
   const [baseCurrency, setBaseCurrency] = useState<string>("USD");
 
+  const [showIncomeDetail, setShowIncomeDetail] = useState(false);
   const [startDate, setStartDate] = useState<string>(
     new Date().toISOString().slice(0, 10),
   );
   const [endDate, setEndDate] = useState<string>(
     new Date().toISOString().slice(0, 10),
   );
+
+  const methodLabel = (method: string) => {
+    if ((PAYMENT_METHOD_ORDER as readonly string[]).includes(method)) {
+      return t(`modes.${method}` as "modes.ESPECES");
+    }
+    return t("modes.unknown");
+  };
 
   const fetchReport = async () => {
     setLoading(true);
@@ -209,6 +237,7 @@ export default function CashierReport({
   }, []);
 
   return (
+    <>
     <Card className="mx-auto w-full max-w-7xl overflow-hidden rounded-2xl border-border/70 shadow-sm ring-1 ring-black/[0.02]">
       <CardHeader className="flex flex-col gap-4 border-b border-border/60 bg-gradient-to-r from-muted/40 via-background to-background px-4 py-4 sm:px-5 md:flex-row md:items-start md:justify-between">
         <div className="w-full max-w-4xl">
@@ -259,6 +288,20 @@ export default function CashierReport({
           >
             <IconFileTypePdf size={16} className="mr-2" />
             {exporting ? t("cashier.generating") : t("cashier.printPdf")}
+          </Button>
+
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setShowIncomeDetail(true)}
+            disabled={!report || loading}
+            aria-label={t("cashier.incomeDetail")}
+            title={t("cashier.incomeDetail")}
+            className="transition-transform active:scale-[0.98]"
+          >
+            <IconListDetails size={16} className="sm:mr-2" />
+            <span className="hidden sm:inline">{t("cashier.incomeDetail")}</span>
           </Button>
 
           <Button
@@ -352,5 +395,108 @@ export default function CashierReport({
         )}
       </CardContent>
     </Card>
+    <Sheet open={showIncomeDetail} onOpenChange={setShowIncomeDetail}>
+      <SheetContent
+        side="right"
+        className="flex h-dvh max-h-dvh w-[min(100vw,56rem)] max-w-full flex-col gap-0 overflow-hidden p-0 sm:max-w-[56rem]"
+      >
+        <SheetHeader className="shrink-0 space-y-1.5 border-b px-5 py-4 pr-12 text-left sm:px-6">
+          <SheetTitle className="flex items-center gap-2">
+            <IconListDetails className="size-5 text-emerald-700 dark:text-emerald-400" />
+            {t("cashier.incomeDetail")}
+          </SheetTitle>
+          <SheetDescription>
+            {report
+              ? t("cashier.incomeHint", { count: report.payments.length })
+              : t("cashier.noPayments")}
+          </SheetDescription>
+        </SheetHeader>
+        <div className="min-h-0 flex-1 overflow-auto">
+          {!report || report.payments.length === 0 ? (
+            <p className="px-5 py-8 text-center text-sm text-muted-foreground">
+              {t("cashier.noPayments")}
+            </p>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow className="hover:bg-transparent">
+                  <TableHead className="h-9 px-3">{t("cashier.colTime")}</TableHead>
+                  <TableHead className="h-9 px-3">{t("cashier.colRef")}</TableHead>
+                  <TableHead className="h-9 px-3">{t("cashier.colStudent")}</TableHead>
+                  <TableHead className="h-9 px-3">{t("cashier.colReason")}</TableHead>
+                  <TableHead className="h-9 px-3 text-right">
+                    {t("cashier.colAmount")}
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {groupCashierPaymentsByMethod(report.payments).map((group) => {
+                  const label = methodLabel(group.method);
+                  return (
+                    <Fragment key={group.method}>
+                      <TableRow className="bg-emerald-50 hover:bg-emerald-50 dark:bg-emerald-950/40 dark:hover:bg-emerald-950/40">
+                        <TableCell
+                          colSpan={5}
+                          className="px-3 py-2 text-sm font-semibold text-emerald-800 dark:text-emerald-300"
+                        >
+                          {label}
+                        </TableCell>
+                      </TableRow>
+                      {group.payments.map((payment) => (
+                        <TableRow key={payment.id}>
+                          <TableCell className="px-3 py-2 tabular-nums text-muted-foreground">
+                            {new Date(payment.createdAt).toLocaleTimeString(
+                              undefined,
+                              { hour: "2-digit", minute: "2-digit" },
+                            )}
+                          </TableCell>
+                          <TableCell className="px-3 py-2 font-medium">
+                            {payment.transactionRef || "—"}
+                          </TableCell>
+                          <TableCell className="px-3 py-2">
+                            {payment.studentName || "—"}
+                          </TableCell>
+                          <TableCell className="px-3 py-2 text-muted-foreground">
+                            {payment.frais?.nameFrais || "—"}
+                          </TableCell>
+                          <TableCell className="px-3 py-2 text-right tabular-nums">
+                            {formatReportAmount(payment.amount, baseCurrency)}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                      <TableRow className="bg-muted/60 hover:bg-muted/60">
+                        <TableCell
+                          colSpan={4}
+                          className="px-3 py-2 text-right text-sm font-semibold"
+                        >
+                          {t("cashier.sequenceTotal", { mode: label })}
+                        </TableCell>
+                        <TableCell className="px-3 py-2 text-right text-sm font-semibold tabular-nums">
+                          {formatReportAmount(group.total, baseCurrency)}
+                        </TableCell>
+                      </TableRow>
+                    </Fragment>
+                  );
+                })}
+              </TableBody>
+              <TableFooter className="border-0 bg-foreground text-background">
+                <TableRow className="bg-foreground text-background hover:bg-foreground">
+                  <TableCell
+                    colSpan={4}
+                    className="px-3 py-2.5 text-right text-sm font-semibold"
+                  >
+                    {t("cashier.grandTotal")}
+                  </TableCell>
+                  <TableCell className="px-3 py-2.5 text-right text-sm font-semibold tabular-nums">
+                    {formatReportAmount(report.incomeTotal, baseCurrency)}
+                  </TableCell>
+                </TableRow>
+              </TableFooter>
+            </Table>
+          )}
+        </div>
+      </SheetContent>
+    </Sheet>
+    </>
   );
 }
