@@ -56,8 +56,8 @@ function shortcutLabel(key: string) {
       "shortcuts.enterGrades": "Saisir",
       "shortcuts.attendance": "Présences",
       "shortcuts.attendanceMyClasses": "Mes classes",
-      "shortcuts.schedule": "Horaire",
-      "shortcuts.mySchedule": "Mon horaire",
+      "shortcuts.myDossier": "Mon dossier",
+      "shortcuts.myDossierDesc": "Mon profil",
       "shortcuts.results": "Résultats",
       "shortcuts.classResults": "Mes classes",
       "shortcuts.registration": "Inscription",
@@ -109,7 +109,7 @@ test("setup Classes / Cours / Inscription / Affectations : pedagogy, pas teachin
   assert.equal(canAccessTeachingArea(sessionTeacher), true);
 });
 
-test("dashboard enseignant : raccourcis pointage + rapport de présence", () => {
+test("dashboard enseignant : pointage + dossier ; pas de carte Horaire", () => {
   const shortcuts = getDashboardShortcuts(
     "teacher",
     {
@@ -118,14 +118,20 @@ test("dashboard enseignant : raccourcis pointage + rapport de présence", () => 
       studentPluralLower: "élèves",
       classLabelPlural: "Classes",
       showFinance: false,
+      teacherProfileId: "teacher-1",
     },
     shortcutLabel,
   );
   const titles = shortcuts.map((item) => item.title);
   assert.ok(titles.includes("Mon pointage"));
   assert.ok(titles.includes("Mon rapport de présence"));
+  assert.ok(titles.includes("Mon dossier"));
+  assert.ok(!titles.includes("Horaire"));
   assert.ok(
     shortcuts.some((item) => item.href.endsWith("/ma-presence")),
+  );
+  assert.ok(
+    shortcuts.some((item) => item.href.endsWith("/teacher/teacher-1")),
   );
 });
 
@@ -142,7 +148,7 @@ test("dashboard caissier / direction : aussi pointage + rapport perso", () => {
   }
 });
 
-test("menu enseignant : pas Finance / Enseignement / Utilisateurs ; Horaire via Tableau de bord", () => {
+test("menu enseignant : pas Finance / Enseignement / Utilisateurs ; dossier via Tableau de bord", () => {
   const links = buildStaticSideLinks(sessionTeacher, BRANCH_PATH, "PRIMAIRE");
   const titles = links.map((item) => item.title);
   const cursus = links.find((item) => item.title === "cursus");

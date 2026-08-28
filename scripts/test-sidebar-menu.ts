@@ -128,7 +128,7 @@ test("parent : dashboard + results — pas grades/schedule/homework/library / fi
   );
 });
 
-test("enseignant : pas teaching / users ; cursus grades/results/library ; horaire via dashboard", () => {
+test("enseignant : pas teaching / users ; cursus grades/results/library ; dossier via dashboard", () => {
   const session = sessionWithOrgRole(ORG_ROLE.TEACHER);
   const titles = menuTitles(session);
   const cursus = cursusSubTitles(session);

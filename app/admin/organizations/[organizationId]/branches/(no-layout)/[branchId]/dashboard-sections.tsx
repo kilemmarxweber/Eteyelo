@@ -27,6 +27,7 @@ import {
   IconSpeakerphone,
 } from "@tabler/icons-react";
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { useParams } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { formatReportAmountCurrencyFirst, formatReportNumber } from "@/lib/reports/format-amount";
@@ -298,17 +299,26 @@ export function SchoolStatsSection({
 
 export function ShortcutsSection({
   actions,
+  endSlot,
 }: {
   actions: DashboardShortcut[];
+  endSlot?: ReactNode;
 }) {
   const t = useTranslations("dashboard");
-  if (actions.length === 0) return null;
+  if (actions.length === 0 && !endSlot) return null;
+
+  const cellCount = actions.length + (endSlot ? 2 : 0);
 
   return (
     <div
       className={cn(
-        "grid gap-4 md:grid-cols-2",
-        actions.length >= 4 ? "lg:grid-cols-4" : "lg:grid-cols-3",
+        "grid items-stretch gap-4",
+        cellCount <= 1
+          ? "grid-cols-1"
+          : cn(
+              "md:grid-cols-2",
+              cellCount >= 4 ? "lg:grid-cols-4" : "lg:grid-cols-3",
+            ),
       )}
     >
       {actions.map((action) => {
@@ -445,6 +455,11 @@ export function ShortcutsSection({
           </Link>
         );
       })}
+      {endSlot ? (
+        <div className="h-full min-w-0 md:col-span-1 lg:col-span-2">
+          {endSlot}
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -611,7 +626,7 @@ export function EventsSection({
     .slice(0, 5);
 
   return (
-    <Card className="overflow-hidden border-blue-500/25 bg-gradient-to-br from-blue-500/[0.07] via-card to-card dark:border-blue-400/20 dark:from-blue-400/[0.08]">
+    <Card className="h-full overflow-hidden border-blue-500/25 bg-gradient-to-br from-blue-500/[0.07] via-card to-card dark:border-blue-400/20 dark:from-blue-400/[0.08]">
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between gap-3">
           <div className="flex min-w-0 items-center gap-2.5">

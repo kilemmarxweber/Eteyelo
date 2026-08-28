@@ -1049,6 +1049,7 @@ async function getTeacherDashboardData(branchId: string, userId: string) {
 
   if (!teacher) {
     return {
+      teacherId: null as string | null,
       classes: [] as { id: string; name: string }[],
       todayCourses: [] as {
         id: string;
@@ -1106,6 +1107,7 @@ async function getTeacherDashboardData(branchId: string, userId: string) {
   }
 
   return {
+    teacherId: teacher.id,
     classes: Array.from(classMap.entries()).map(([id, name]) => ({ id, name })),
     todayCourses: todaySchedules.map((slot) => ({
       id: slot.id,

@@ -68,6 +68,8 @@
     "collectPayments": "Cobrar e acompanhar os pagamentos",
     "myFile": "A minha ficha",
     "myFileDesc": "O meu dossier e documentos escolares",
+    "myDossier": "O meu dossier",
+    "myDossierDesc": "Consultar o meu perfil e documentos",
     "homework": "Trabalhos",
     "weekendHomework": "Os meus trabalhos de fim de semana",
     "library": "Biblioteca",

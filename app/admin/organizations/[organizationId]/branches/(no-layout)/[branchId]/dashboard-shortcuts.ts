@@ -45,6 +45,7 @@ type ShortcutContext = {
   /** Propriétaire : pas de cards « Mon pointage » / rapport perso. */
   showMyPresence?: boolean;
   studentProfileId?: string | null;
+  teacherProfileId?: string | null;
   parentFinance?: {
     totalDue: number;
     totalRemaining: number;
@@ -165,8 +166,18 @@ export function getDashboardShortcuts(
         },
       ]);
 
-    case "teacher":
+    case "teacher": {
+      const dossierHref = ctx.teacherProfileId
+        ? href(`/teacher/${ctx.teacherProfileId}`)
+        : href("/");
       return withMyPresence(ctx, href, t, [
+        {
+          title: t("shortcuts.myDossier"),
+          description: t("shortcuts.myDossierDesc"),
+          href: dossierHref,
+          color: "bg-violet-500",
+          iconKey: "users",
+        },
         {
           title: t("shortcuts.grades"),
           description: t("shortcuts.enterGrades"),
@@ -182,13 +193,6 @@ export function getDashboardShortcuts(
           iconKey: "attendance",
         },
         {
-          title: t("shortcuts.schedule"),
-          description: t("shortcuts.mySchedule"),
-          href: href("/schedule"),
-          color: "bg-blue-500",
-          iconKey: "calendar",
-        },
-        {
           title: t("shortcuts.results"),
           description: t("shortcuts.classResults"),
           href: href("/results"),
@@ -196,6 +200,7 @@ export function getDashboardShortcuts(
           iconKey: "results",
         },
       ]);
+    }
 
     case "caissier":
       return withMyPresence(ctx, href, t, [

@@ -131,6 +131,7 @@ export default function AdminDashboard() {
     scopedToSelf?: boolean;
   } | null>(null);
   const [teacher, setTeacher] = useState<{
+    teacherId: string | null;
     classes: { id: string; name: string }[];
     todayCourses: {
       id: string;
@@ -324,6 +325,8 @@ export default function AdminDashboard() {
                     : null,
               studentProfileId:
                 variant === "student" ? (student?.studentId ?? null) : null,
+              teacherProfileId:
+                variant === "teacher" ? (teacher?.teacherId ?? null) : null,
             },
             (key, values) => t(key as never, values as never),
           )
@@ -339,6 +342,7 @@ export default function AdminDashboard() {
       showMyPresence,
       parent,
       student,
+      teacher,
       t,
     ],
   );
@@ -581,22 +585,25 @@ export default function AdminDashboard() {
             </div>
           ) : null}
 
-          <ShortcutsSection actions={quickActions} />
+          <ShortcutsSection
+            actions={quickActions}
+            endSlot={
+              showEvents && !showPedagogyMetrics ? (
+                <EventsSection
+                  branchTypeLabel={branchTypeLabel}
+                  events={events}
+                />
+              ) : null
+            }
+          />
 
-          <div
-            className={cn(
-              "grid gap-4",
-              showPedagogyMetrics ? "md:grid-cols-2" : "md:grid-cols-1",
-            )}
-          >
-            {showEvents ? (
-              <EventsSection
-                branchTypeLabel={branchTypeLabel}
-                events={events}
-              />
-            ) : null}
-
-            {showPedagogyMetrics ? (
+          {showPedagogyMetrics ? (
+            <div
+              className={cn(
+                "grid gap-4",
+                showEvents ? "md:grid-cols-2" : "md:grid-cols-1",
+              )}
+            >
               <PedagogyMetricsSection
                 branchTypeLabel={branchTypeLabel}
                 showParents={showParents}
@@ -607,8 +614,15 @@ export default function AdminDashboard() {
                     : peopleLabels.studentPluralLower
                 }
               />
-            ) : null}
-          </div>
+
+              {showEvents ? (
+                <EventsSection
+                  branchTypeLabel={branchTypeLabel}
+                  events={events}
+                />
+              ) : null}
+            </div>
+          ) : null}
 
           {showParentAnnouncements ? (
             <ParentAnnouncementsSection
