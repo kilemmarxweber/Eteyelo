@@ -18,7 +18,6 @@ import { prisma } from "@/lib/prisma";
 import { BranchCard } from "./branchCard";
 import { BranchTypeBadge, EducationSystemBadge } from "@/components/branch/branch-type-badge";
 import {
-  BranchMergeCardButton,
   BranchMergeHeaderButton,
   BranchStructureMergeProvider,
 } from "./branch-structure-merge-host";
@@ -192,11 +191,6 @@ export default async function BranchesPage({ params }: BranchesPageProps) {
               enterHref={`${base}/${branch.id}`}
               editHref={`${base}/edit?branchId=${branch.id}`}
               isActive={branch.isActive}
-              extraActions={
-                showMerge ? (
-                  <BranchMergeCardButton sourceId={branch.id} />
-                ) : null
-              }
               canDelete={canDeleteBranch}
             >
               <div className="group flex h-full min-w-0 items-start gap-2 overflow-hidden rounded-xl border border-border/80 bg-card px-2.5 py-2.5 transition hover:border-primary/30 hover:bg-muted/40 hover:shadow-sm">
@@ -205,7 +199,7 @@ export default async function BranchesPage({ params }: BranchesPageProps) {
                 </span>
 
                 <span className="min-w-0 flex-1">
-                  <span className="flex items-center gap-1.5 pr-[7.25rem]">
+                  <span className="flex items-center gap-1.5 pr-[6.5rem]">
                     <span className="truncate text-sm font-semibold text-foreground">
                       {branch.name}
                     </span>

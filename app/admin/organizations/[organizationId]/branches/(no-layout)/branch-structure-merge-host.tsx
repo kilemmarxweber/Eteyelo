@@ -82,25 +82,3 @@ export function BranchMergeHeaderButton() {
     </Button>
   );
 }
-
-export function BranchMergeCardButton({ sourceId }: { sourceId: string }) {
-  const { openMerge } = useBranchMerge();
-
-  return (
-    <Button
-      type="button"
-      size="icon"
-      variant="outline"
-      className="size-7 shrink-0 rounded-md"
-      title="Copier vers d'autres branches"
-      onPointerDown={(event) => event.stopPropagation()}
-      onClick={(event) => {
-        event.preventDefault();
-        event.stopPropagation();
-        openMerge(sourceId);
-      }}
-    >
-      <GitMerge className="size-3.5" />
-    </Button>
-  );
-}
