@@ -42,6 +42,8 @@ type ShortcutContext = {
   studentPluralLower: string;
   classLabelPlural: string;
   showFinance: boolean;
+  /** Propriétaire : pas de cards « Mon pointage » / rapport perso. */
+  showMyPresence?: boolean;
   studentProfileId?: string | null;
   parentFinance?: {
     totalDue: number;
@@ -73,6 +75,16 @@ function myPresenceShortcuts(
   ];
 }
 
+function withMyPresence(
+  ctx: ShortcutContext,
+  href: (path: string) => string,
+  t: Translate,
+  rest: DashboardShortcut[],
+): DashboardShortcut[] {
+  if (ctx.showMyPresence === false) return rest;
+  return [...myPresenceShortcuts(href, t), ...rest];
+}
+
 export function getDashboardShortcuts(
   variant: DashboardVariant,
   ctx: ShortcutContext,
@@ -85,8 +97,7 @@ export function getDashboardShortcuts(
 
   switch (variant) {
     case "directeur":
-      return [
-        ...myPresenceShortcuts(href, t),
+      return withMyPresence(ctx, href, t, [
         {
           title: t("shortcuts.registration"),
           description: t("shortcuts.enrollStudents", { students }),
@@ -119,12 +130,11 @@ export function getDashboardShortcuts(
           color: "bg-violet-500",
           iconKey: "users",
         },
-      ];
+      ]);
 
     case "directeur_etudes":
     case "prefet":
-      return [
-        ...myPresenceShortcuts(href, t),
+      return withMyPresence(ctx, href, t, [
         {
           title: t("shortcuts.registration"),
           description: t("shortcuts.enrollStudents", { students }),
@@ -153,11 +163,10 @@ export function getDashboardShortcuts(
           color: "bg-purple-500",
           iconKey: "results",
         },
-      ];
+      ]);
 
     case "teacher":
-      return [
-        ...myPresenceShortcuts(href, t),
+      return withMyPresence(ctx, href, t, [
         {
           title: t("shortcuts.grades"),
           description: t("shortcuts.enterGrades"),
@@ -186,11 +195,10 @@ export function getDashboardShortcuts(
           color: "bg-indigo-500",
           iconKey: "results",
         },
-      ];
+      ]);
 
     case "caissier":
-      return [
-        ...myPresenceShortcuts(href, t),
+      return withMyPresence(ctx, href, t, [
         {
           title: t("shortcuts.registration"),
           description: t("shortcuts.registerStudents", { students }),
@@ -205,7 +213,7 @@ export function getDashboardShortcuts(
           color: "bg-emerald-500",
           iconKey: "currency",
         },
-      ];
+      ]);
 
     case "student": {
       const ficheHref = ctx.studentProfileId
@@ -294,8 +302,7 @@ export function getDashboardShortcuts(
 
     case "minimal":
     default:
-      return [
-        ...myPresenceShortcuts(href, t),
+      return withMyPresence(ctx, href, t, [
         {
           title: t("shortcuts.help"),
           description: t("shortcuts.helpCenter"),
@@ -303,7 +310,7 @@ export function getDashboardShortcuts(
           color: "bg-slate-500",
           iconKey: "book",
         },
-      ];
+      ]);
   }
 }
 

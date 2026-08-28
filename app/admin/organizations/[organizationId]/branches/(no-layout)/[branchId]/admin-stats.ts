@@ -15,7 +15,7 @@ import { getBaseCurrency } from "@/lib/exchange-rate";
 import { prisma } from "@/lib/prisma";
 import { getCachedSession } from "@/lib/auth/get-session-cached";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
-import { canAccessFinanceArea, resolveCashierSelfScope } from "@/lib/auth/session-roles";
+import { canAccessFinanceArea, isOrganizationOwnerSession, resolveCashierSelfScope } from "@/lib/auth/session-roles";
 import { switchActiveBranch } from "@/lib/auth/switch-branch";
 import { action } from "@/lib/zsa";
 import { Day } from "@/prisma/generated/prisma/client";
@@ -1558,6 +1558,7 @@ export async function getBranchDashboardData(params: {
   return {
     variant,
     canAccessFinance: canAccessFinanceArea(session),
+    showMyPresence: !isOrganizationOwnerSession(session),
     typebranch:
       (statsRecord.typebranch as string | null | undefined) ?? typebranch,
     educationSystem,

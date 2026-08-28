@@ -54,19 +54,45 @@ export type TeacherProfileMeeting = {
 };
 
 export type TeacherProfileApplication = {
+  id: string;
   reference: string;
   submittedAt: string;
   yearsOfExperience: number | null;
   assignmentYearLabels: string[];
+  /** Matières affichées (affectation actuelle ou dépôt). */
   desiredSubjects: string | null;
+  subjectsSource: "assignment" | "deposit" | "none";
+  /** Matières d’origine au dépôt (toujours conservées). */
+  depositSubjects: string | null;
   desiredLevels: string | null;
+  levelsSource: "assignment" | "deposit" | "none";
+  depositLevels: string | null;
+  /** Actif / Renvoyé / N'est plus actif (auto). */
   availability: string | null;
+  availabilitySource: "auto";
   experienceSummary: string | null;
   educationSummary: string | null;
   skills: string | null;
   motivation: string | null;
   cvUrl: string;
   coverLetterUrl: string;
+  parcours: TeacherParcoursYear[];
+};
+
+export type TeacherParcoursYear = {
+  yearId: string;
+  yearLabel: string;
+  startYear: string;
+  isCurrent: boolean;
+  items: {
+    courseName: string;
+    className: string;
+    classCode: string;
+    level: string | null;
+    titulaire: boolean;
+  }[];
+  subjects: string[];
+  levels: string[];
 };
 
 export type TeacherProfileStats = {
@@ -112,6 +138,8 @@ export type TeacherProfileData = {
   branchType: string;
   assignmentYearCount: number;
   assignmentYearLabels: string[];
+  /** Propriétaire : peut remplacer CV / lettre. */
+  canEditApplicationDocuments: boolean;
   courses: TeacherProfileCourse[];
   classes: TeacherProfileClass[];
   application: TeacherProfileApplication | null;

@@ -187,27 +187,46 @@ test("directeur des études : pédagogie — pas finance", () => {
   assertExcludes(titles, ["finance"], "directeur des études");
 });
 
-test("owner / gestionnaire gardent le large (pas de régression)", () => {
-  for (const role of [ORG_ROLE.OWNER, ORG_ROLE.GESTIONNAIRE]) {
-    const titles = menuTitles(sessionWithOrgRole(role));
-    assertIncludes(
-      titles,
-      [
-        "dashboard",
-        "myPresence",
-        "registration",
-        "attendance",
-        "candidatures",
-        "users",
-        "teaching",
-        "classes",
-        "finance",
-        "cursus",
-        "help",
-      ],
-      role,
-    );
-  }
+test("owner : large accès — sans Ma présence / pointage perso", () => {
+  const titles = menuTitles(sessionWithOrgRole(ORG_ROLE.OWNER));
+  assertIncludes(
+    titles,
+    [
+      "dashboard",
+      "registration",
+      "attendance",
+      "candidatures",
+      "users",
+      "teaching",
+      "classes",
+      "finance",
+      "cursus",
+      "help",
+    ],
+    "owner",
+  );
+  assertExcludes(titles, ["myPresence"], "owner");
+});
+
+test("gestionnaire garde le large (y compris Ma présence)", () => {
+  const titles = menuTitles(sessionWithOrgRole(ORG_ROLE.GESTIONNAIRE));
+  assertIncludes(
+    titles,
+    [
+      "dashboard",
+      "myPresence",
+      "registration",
+      "attendance",
+      "candidatures",
+      "users",
+      "teaching",
+      "classes",
+      "finance",
+      "cursus",
+      "help",
+    ],
+    "gestionnaire",
+  );
 });
 
 test("enseignant titulaire voit centralSheet / sheets", () => {

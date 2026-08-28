@@ -110,6 +110,7 @@ export default function AdminDashboard() {
   /** null tant que la session n'a pas résolu le rôle — évite le flash « minimal ». */
   const [variant, setVariant] = useState<DashboardVariant | null>(null);
   const [canAccessFinance, setCanAccessFinance] = useState(false);
+  const [showMyPresence, setShowMyPresence] = useState(true);
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -231,6 +232,7 @@ export default function AdminDashboard() {
 
         setVariant(data.variant);
         setCanAccessFinance(Boolean(data.canAccessFinance));
+        setShowMyPresence(data.showMyPresence !== false);
         setTypebranchState(data.typebranch ?? null);
         setEducationSystemState(
           typeof data.educationSystem === "string" ? data.educationSystem : null,
@@ -303,6 +305,7 @@ export default function AdminDashboard() {
                 showFinanceCapability &&
                 ((variant === "directeur" && canAccessFinance) ||
                   variant === "parent"),
+              showMyPresence,
               parentFinance:
                 variant === "parent" && parent?.finance
                   ? {
@@ -333,6 +336,7 @@ export default function AdminDashboard() {
       classLabelPlural,
       showFinanceCapability,
       canAccessFinance,
+      showMyPresence,
       parent,
       student,
       t,

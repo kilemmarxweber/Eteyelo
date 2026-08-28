@@ -107,11 +107,15 @@ const COURSE_ROLES = [...SCHOOL_ADMIN_ROLES];
 /** Présences : school admin + enseignant (ses classes — unit-06/10). */
 const PRESENCE_ROLES = [...SCHOOL_ADMIN_ROLES, ...TEACHER_ROLES];
 
-/** Pointage / rapport perso : staff école + enseignant + caissier (hors élève/parent). */
+/** Pointage / rapport perso : staff école + enseignant + caissier (hors élève/parent/propriétaire). */
 const MY_PRESENCE_ROLES = [
-  ...SCHOOL_ADMIN_ROLES,
+  APP_ROLE.ADMIN,
+  ORG_ROLE.GESTIONNAIRE,
+  ...ORG_LEADERSHIP_ROLES,
   ...TEACHER_ROLES,
   ...CAISSIER_ROLES,
+  "ADMIN",
+  "admin",
 ];
 
 /** Notes : saisie admin/teacher (pas parent ni élève dans le menu Cursus). */

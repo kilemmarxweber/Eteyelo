@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Smoke tests — unit-06 périmètre enseignant (teaching area, pas admin/caisse).
  */
 import assert from "node:assert/strict";

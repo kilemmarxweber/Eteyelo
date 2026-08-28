@@ -17,6 +17,7 @@ import {
 import { toast } from "sonner";
 import Image from "next/image";
 
+import { DocumentReadViewer } from "@/components/documents/document-read-viewer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -149,6 +150,7 @@ export function CandidaturesView({
   const [rejectTargetId, setRejectTargetId] = useState("");
   const [detailOpen, setDetailOpen] = useState(false);
   const [detail, setDetail] = useState<any>(null);
+  const [docViewer, setDocViewer] = useState<"cv" | "coverLetter" | null>(null);
   const [isPending, startTransition] = useTransition();
 
   const counts = useMemo(() => {
@@ -654,21 +656,49 @@ export function CandidaturesView({
               PDF dossier
             </Button>
             {detail?.cvUrl ? (
-              <Button asChild variant="outline" className="w-full sm:w-auto">
-                <a href={detail.cvUrl} target="_blank" rel="noopener noreferrer">
-                  <FileText className="mr-2 size-4" />
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full sm:w-auto"
+                onClick={() => setDocViewer("cv")}
+              >
+                <Eye className="mr-2 size-4" />
+                Lire CV
+              </Button>
+            ) : null}
+            {detail?.coverLetterUrl ? (
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full sm:w-auto"
+                onClick={() => setDocViewer("coverLetter")}
+              >
+                <Eye className="mr-2 size-4" />
+                Lire lettre
+              </Button>
+            ) : null}
+            {detail?.cvUrl ? (
+              <Button asChild variant="ghost" className="w-full sm:w-auto">
+                <a
+                  href={detail.cvUrl}
+                  download
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <Download className="mr-2 size-4" />
                   CV
                 </a>
               </Button>
             ) : null}
             {detail?.coverLetterUrl ? (
-              <Button asChild variant="outline" className="w-full sm:w-auto">
+              <Button asChild variant="ghost" className="w-full sm:w-auto">
                 <a
                   href={detail.coverLetterUrl}
+                  download
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  <FileText className="mr-2 size-4" />
+                  <Download className="mr-2 size-4" />
                   Lettre
                 </a>
               </Button>
@@ -735,6 +765,27 @@ export function CandidaturesView({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {detail?.cvUrl && docViewer === "cv" ? (
+        <DocumentReadViewer
+          open
+          onOpenChange={(open) => {
+            if (!open) setDocViewer(null);
+          }}
+          title="CV"
+          fileUrl={detail.cvUrl}
+        />
+      ) : null}
+      {detail?.coverLetterUrl && docViewer === "coverLetter" ? (
+        <DocumentReadViewer
+          open
+          onOpenChange={(open) => {
+            if (!open) setDocViewer(null);
+          }}
+          title="Lettre de motivation"
+          fileUrl={detail.coverLetterUrl}
+        />
+      ) : null}
     </div>
   );
 }

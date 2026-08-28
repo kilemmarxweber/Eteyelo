@@ -9,6 +9,8 @@ import {
   CalendarClock,
   CalendarDays,
   ClipboardList,
+  Download,
+  Eye,
   FilePlus2,
   FileText,
   GraduationCap,
@@ -20,6 +22,7 @@ import {
   UserRound,
   Users,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -35,12 +38,16 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn, normalizeImageSrc } from "@/lib/utils";
+import { DocumentReadViewer } from "@/components/documents/document-read-viewer";
 import { StaffBadgeSection } from "../../components/staff-badge-section";
 import StudentAttendanceTable from "../../attendance/component/StudentAttendanceTable";
 import TeacherScheduleTable, {
   type TeacherScheduleUI,
 } from "./TeacherScheduleTable";
 import { TeacherApplicationCompleteForm } from "./teacher-application-form";
+import { replaceTeacherApplicationDocumentAction } from "./teacher-application.action";
+import { uploadDocument } from "@/lib/upload-file";
+import { toast } from "sonner";
 import type {
   TeacherAttendanceStatus,
   TeacherProfileApplication,
@@ -477,7 +484,11 @@ export function TeacherProfileClient({
               </div>
 
               {profile.application ? (
-                <ApplicationDossierCard application={profile.application} />
+                <ApplicationDossierCard
+                  application={profile.application}
+                  teacherId={profile.teacherId}
+                  canEditDocuments={profile.canEditApplicationDocuments}
+                />
               ) : (
                 <TeacherApplicationCompleteForm
                   teacherId={profile.teacherId}
@@ -738,41 +749,83 @@ export function TeacherProfileClient({
   );
 }
 
-function fileNameFromUrl(url: string, fallback: string) {
-  try {
-    const path = url.split("?")[0] ?? url;
-    const name = path.split("/").pop();
-    if (!name) return fallback;
-    return decodeURIComponent(name);
-  } catch {
-    return fallback;
-  }
-}
-
 function ApplicationDossierCard({
   application,
+  teacherId,
+  canEditDocuments,
 }: {
   application: TeacherProfileApplication;
+  teacherId: string;
+  canEditDocuments: boolean;
 }) {
+  const router = useRouter();
+  const [viewer, setViewer] = React.useState<"cv" | "coverLetter" | null>(null);
+  const [replacing, setReplacing] = React.useState(false);
+  const [cvUrl, setCvUrl] = React.useState(application.cvUrl);
+  const [coverLetterUrl, setCoverLetterUrl] = React.useState(
+    application.coverLetterUrl,
+  );
+
+  React.useEffect(() => {
+    setCvUrl(application.cvUrl);
+    setCoverLetterUrl(application.coverLetterUrl);
+  }, [application.cvUrl, application.coverLetterUrl]);
+
   const years = application.yearsOfExperience ?? 0;
   const yearHint = application.assignmentYearLabels.length
     ? application.assignmentYearLabels.join(", ")
     : "aucune affectation de classe pour le moment";
+  const subjectsHint =
+    application.subjectsSource === "assignment"
+      ? "selon les cours actuellement affectés"
+      : application.subjectsSource === "deposit"
+        ? "selon le dépôt de candidature"
+        : null;
+  const levelsHint =
+    application.levelsSource === "assignment"
+      ? "selon les classes actuellement affectées"
+      : application.levelsSource === "deposit"
+        ? "selon le dépôt de candidature"
+        : null;
+  const availabilityHint =
+    application.availability === "Actif"
+      ? "engagé et affecté à l'année en cours"
+      : application.availability === "Renvoyé"
+        ? "compte inactif"
+        : application.availability === "N'est plus actif"
+          ? "sans affectation sur l'année en cours"
+          : null;
   const facts = [
     {
       label: "Années d'expérience",
       value: `${years} an${years > 1 ? "s" : ""} · ${yearHint}`,
     },
     application.desiredSubjects
-      ? { label: "Matières", value: application.desiredSubjects }
+      ? {
+          label: "Matières",
+          value: application.desiredSubjects,
+          hint: subjectsHint,
+        }
       : null,
     application.desiredLevels
-      ? { label: "Niveaux", value: application.desiredLevels }
+      ? {
+          label: "Niveaux",
+          value: application.desiredLevels,
+          hint: levelsHint,
+        }
       : null,
     application.availability
-      ? { label: "Disponibilité", value: application.availability }
+      ? {
+          label: "Disponibilité",
+          value: application.availability,
+          hint: availabilityHint,
+        }
       : null,
-  ].filter(Boolean) as { label: string; value: string }[];
+  ].filter(Boolean) as {
+    label: string;
+    value: string;
+    hint?: string | null;
+  }[];
 
   const texts = (
     [
@@ -784,13 +837,68 @@ function ApplicationDossierCard({
   ).filter(([, value]) => Boolean(value));
 
   const documents = [
-    application.cvUrl
-      ? { label: "CV", href: application.cvUrl }
+    cvUrl ? { key: "cv" as const, label: "CV", href: cvUrl } : null,
+    coverLetterUrl
+      ? {
+          key: "coverLetter" as const,
+          label: "Lettre de motivation",
+          href: coverLetterUrl,
+        }
       : null,
-    application.coverLetterUrl
-      ? { label: "Lettre de motivation", href: application.coverLetterUrl }
-      : null,
-  ].filter(Boolean) as { label: string; href: string }[];
+  ].filter(Boolean) as {
+    key: "cv" | "coverLetter";
+    label: string;
+    href: string;
+  }[];
+
+  const showDepositSubjects =
+    application.subjectsSource === "assignment" &&
+    Boolean(application.depositSubjects?.trim()) &&
+    application.depositSubjects !== application.desiredSubjects;
+
+  async function replaceDocument(
+    document: "cv" | "coverLetter",
+    file: File,
+  ) {
+    setReplacing(true);
+    try {
+      const uploaded = await uploadDocument(file);
+      if (!uploaded.ok) {
+        toast.error(uploaded.message);
+        return;
+      }
+      const [, err] = await replaceTeacherApplicationDocumentAction({
+        teacherId,
+        document,
+        url: uploaded.url,
+      });
+      if (err) {
+        toast.error(err.message || "Remplacement impossible.");
+        return;
+      }
+      if (document === "cv") setCvUrl(uploaded.url);
+      else setCoverLetterUrl(uploaded.url);
+      toast.success("Document remplacé.");
+      router.refresh();
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Remplacement impossible.",
+      );
+    } finally {
+      setReplacing(false);
+    }
+  }
+
+  const activeDoc =
+    viewer === "cv"
+      ? { title: "CV", url: cvUrl, kind: "cv" as const }
+      : viewer === "coverLetter"
+        ? {
+            title: "Lettre de motivation",
+            url: coverLetterUrl,
+            kind: "coverLetter" as const,
+          }
+        : null;
 
   return (
     <Card className="overflow-hidden rounded-xl border-violet-200/80 bg-gradient-to-b from-violet-500/[0.07] via-card to-card p-0 shadow-sm dark:border-violet-900/40">
@@ -812,18 +920,47 @@ function ApplicationDossierCard({
       </div>
       <div className="space-y-4 p-4">
         {documents.length ? (
-          <div className="flex flex-wrap gap-2">
-            {documents.map((doc) => (
-              <Button key={doc.href} asChild variant="outline" size="sm">
-                <a href={doc.href} target="_blank" rel="noopener noreferrer">
-                  <FileText className="mr-2 size-4" />
-                  {doc.label}
-                  <span className="ml-1.5 max-w-[12rem] truncate text-xs font-normal text-muted-foreground">
-                    {fileNameFromUrl(doc.href, doc.label)}
-                  </span>
-                </a>
-              </Button>
-            ))}
+          <div className="space-y-2">
+            <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-violet-700/85 dark:text-violet-400">
+              Documents · lecture seule
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {documents.map((doc) => (
+                <div key={doc.href} className="flex flex-wrap gap-1.5">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setViewer(doc.key)}
+                  >
+                    <Eye className="mr-2 size-4" />
+                    Lire {doc.label}
+                  </Button>
+                  <Button asChild variant="ghost" size="sm">
+                    <a
+                      href={doc.href}
+                      download
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <Download className="mr-2 size-4" />
+                      Télécharger
+                    </a>
+                  </Button>
+                </div>
+              ))}
+            </div>
+            {!canEditDocuments ? (
+              <p className="text-xs text-muted-foreground">
+                Consultation et téléchargement uniquement. Seul le propriétaire
+                peut remplacer ces fichiers.
+              </p>
+            ) : (
+              <p className="text-xs text-muted-foreground">
+                Vous êtes propriétaire : ouvrez un document pour le remplacer si
+                besoin.
+              </p>
+            )}
           </div>
         ) : null}
 
@@ -838,8 +975,69 @@ function ApplicationDossierCard({
                   {item.label}
                 </p>
                 <p className="mt-0.5 text-sm font-medium">{item.value}</p>
+                {item.hint ? (
+                  <p className="mt-1 text-[11px] text-muted-foreground">
+                    {item.hint}
+                  </p>
+                ) : null}
               </div>
             ))}
+          </div>
+        ) : null}
+
+        {showDepositSubjects ? (
+          <div className="rounded-lg border border-dashed border-violet-500/20 bg-muted/20 px-3 py-2.5">
+            <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground">
+              Matières au dépôt (conservées)
+            </p>
+            <p className="mt-0.5 text-sm text-muted-foreground">
+              {application.depositSubjects}
+            </p>
+          </div>
+        ) : null}
+
+        {application.parcours.length ? (
+          <div className="space-y-2">
+            <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-violet-700/85 dark:text-violet-400">
+              Parcours d&apos;affectation
+            </p>
+            <div className="space-y-2">
+              {application.parcours.map((year) => (
+                <div
+                  key={year.yearId}
+                  className="rounded-lg border border-violet-500/15 bg-violet-500/[0.06] px-3 py-2.5"
+                >
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="text-sm font-semibold">{year.yearLabel}</p>
+                    {year.isCurrent ? (
+                      <Badge variant="secondary" className="text-[10px]">
+                        Année en cours
+                      </Badge>
+                    ) : null}
+                  </div>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {year.subjects.join(", ")}
+                    {year.levels.length
+                      ? ` · ${year.levels.join(", ")}`
+                      : ""}
+                  </p>
+                  <ul className="mt-2 space-y-1">
+                    {year.items.map((item, index) => (
+                      <li
+                        key={`${year.yearId}-${item.courseName}-${item.className}-${index}`}
+                        className="text-xs text-foreground/90"
+                      >
+                        {item.courseName}
+                        {" · "}
+                        {item.className}
+                        {item.classCode ? ` (${item.classCode})` : ""}
+                        {item.titulaire ? " · Titulaire" : ""}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
           </div>
         ) : null}
 
@@ -857,6 +1055,20 @@ function ApplicationDossierCard({
           </div>
         ))}
       </div>
+
+      {activeDoc?.url ? (
+        <DocumentReadViewer
+          open={Boolean(viewer)}
+          onOpenChange={(open) => {
+            if (!open) setViewer(null);
+          }}
+          title={activeDoc.title}
+          fileUrl={activeDoc.url}
+          canReplace={canEditDocuments}
+          replacing={replacing}
+          onReplaceFile={(file) => void replaceDocument(activeDoc.kind, file)}
+        />
+      ) : null}
     </Card>
   );
 }

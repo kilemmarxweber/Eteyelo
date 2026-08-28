@@ -10,9 +10,10 @@ import {
   canAccessPedagogyArea,
   canManageOrganization,
   hasSessionRole,
+  isOrganizationOwnerSession,
 } from "@/lib/auth/session-roles";
 import { ORG_ROLE } from "@/lib/permissions";
-import { countTeacherClassAssignmentYears } from "@/lib/teacher-assignment-years";
+import { getTeacherAssignmentSnapshot, resolveDossierAvailability } from "@/lib/teacher-assignment-years";
 
 const completeTeacherApplicationSchema = z.object({
   teacherId: z.string().min(1),
@@ -21,11 +22,16 @@ const completeTeacherApplicationSchema = z.object({
   experienceSummary: z.string().trim().optional(),
   educationSummary: z.string().trim().optional(),
   skills: z.string().trim().optional(),
-  availability: z.string().trim().optional(),
   motivation: z.string().trim().optional(),
   dateOfBirth: z.string().trim().optional(),
   cvUrl: z.string().trim().min(1, "CV requis"),
   coverLetterUrl: z.string().trim().min(1, "Lettre de motivation requise"),
+});
+
+const replaceTeacherDocumentSchema = z.object({
+  teacherId: z.string().min(1),
+  document: z.enum(["cv", "coverLetter"]),
+  url: z.string().trim().min(1, "Fichier requis"),
 });
 
 function createDossierReference() {
@@ -121,10 +127,14 @@ export const completeTeacherApplicationAction = action
       throw new Error("Indiquez la date de naissance pour compléter le dossier.");
     }
 
-    const { count: assignmentYears } = await countTeacherClassAssignmentYears({
+    const assignmentSnapshot = await getTeacherAssignmentSnapshot({
       teacherId: teacher.id,
       branchId,
     });
+    const availability = resolveDossierAvailability({
+      isUserActive: user.statusUser !== false,
+      assignedToCurrentYear: assignmentSnapshot.assignedToCurrentYear,
+    }).value;
 
     const application = await prisma.jobApplication.create({
       data: {
@@ -144,11 +154,11 @@ export const completeTeacherApplicationAction = action
         photoUrl: user.image || null,
         desiredSubjects: input.desiredSubjects,
         desiredLevels: input.desiredLevels,
-        yearsOfExperience: assignmentYears,
+        yearsOfExperience: assignmentSnapshot.count,
         experienceSummary: input.experienceSummary || null,
         educationSummary: input.educationSummary || null,
         skills: input.skills || null,
-        availability: input.availability || null,
+        availability,
         motivation: input.motivation || null,
         cvUrl: input.cvUrl,
         coverLetterUrl: input.coverLetterUrl,
@@ -165,4 +175,46 @@ export const completeTeacherApplicationAction = action
     );
 
     return { ok: true as const, reference: application.reference };
+  });
+
+/** Remplacement CV / lettre — propriétaire uniquement. */
+export const replaceTeacherApplicationDocumentAction = action
+  .input(replaceTeacherDocumentSchema)
+  .handler(async ({ input }) => {
+    const { branchId, organizationId, session } = await requireBranchContext();
+
+    if (!isOrganizationOwnerSession(session)) {
+      throw new Error(
+        "Seul le propriétaire peut modifier les documents du dossier.",
+      );
+    }
+
+    const application = await prisma.jobApplication.findFirst({
+      where: {
+        branchId,
+        organizationId,
+        applicationType: "TEACHER",
+        teacherId: input.teacherId,
+      },
+      orderBy: { createdAt: "desc" },
+      select: { id: true },
+    });
+
+    if (!application) {
+      throw new Error("Dossier de candidature introuvable.");
+    }
+
+    await prisma.jobApplication.update({
+      where: { id: application.id },
+      data:
+        input.document === "cv"
+          ? { cvUrl: input.url }
+          : { coverLetterUrl: input.url },
+    });
+
+    revalidatePath(
+      `/admin/organizations/${organizationId}/branches/${branchId}/teacher/${input.teacherId}`,
+    );
+
+    return { ok: true as const };
   });

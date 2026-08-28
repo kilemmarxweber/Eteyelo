@@ -9,6 +9,7 @@ import {
   canAccessPedagogyArea,
   canManageOrganization,
   hasSessionRole,
+  isOrganizationOwnerSession,
 } from "@/lib/auth/session-roles";
 import { ORG_ROLE } from "@/lib/permissions";
 
@@ -21,7 +22,10 @@ import { genererCreneaux } from "../components/type";
 import { TeacherProfileClient } from "./teacher-profile-client";
 import type { TeacherScheduleUI } from "./TeacherScheduleTable";
 import {
-  countTeacherClassAssignmentYears,
+  getTeacherAssignmentSnapshot,
+  resolveDossierAvailability,
+  resolveDossierLevels,
+  resolveDossierSubjects,
   syncTeacherDossierExperienceYears,
 } from "@/lib/teacher-assignment-years";
 import type {
@@ -147,7 +151,7 @@ const SingleTeacherPage = async ({
     assignmentCount,
     meetings,
     jobApplication,
-    assignmentYears,
+    assignmentSnapshot,
   ] = await Promise.all([
     firstClasseId
       ? prisma.creneau.findFirst({
@@ -262,6 +266,7 @@ const SingleTeacherPage = async ({
       },
       orderBy: { createdAt: "desc" },
       select: {
+        id: true,
         reference: true,
         createdAt: true,
         yearsOfExperience: true,
@@ -276,7 +281,7 @@ const SingleTeacherPage = async ({
         coverLetterUrl: true,
       },
     }),
-    countTeacherClassAssignmentYears({
+    getTeacherAssignmentSnapshot({
       teacherId: teacher.id,
       branchId,
     }),
@@ -289,6 +294,7 @@ const SingleTeacherPage = async ({
     });
   }
 
+  const assignmentYears = assignmentSnapshot;
   let heuresDebut: string[] = [];
   if (creneau) {
     heuresDebut = genererCreneaux(
@@ -374,27 +380,49 @@ const SingleTeacherPage = async ({
     branchType: typebranch ?? "",
     assignmentYearCount: assignmentYears.count,
     assignmentYearLabels: assignmentYears.yearLabels,
+    canEditApplicationDocuments: isOrganizationOwnerSession(session),
     courses,
     classes,
     application: jobApplication
-      ? {
-          reference: jobApplication.reference,
-          submittedAt: jobApplication.createdAt.toISOString(),
-          yearsOfExperience: Math.max(
-            jobApplication.yearsOfExperience ?? 0,
-            assignmentYears.count,
-          ),
-          assignmentYearLabels: assignmentYears.yearLabels,
-          desiredSubjects: jobApplication.desiredSubjects,
-          desiredLevels: jobApplication.desiredLevels,
-          availability: jobApplication.availability,
-          experienceSummary: jobApplication.experienceSummary,
-          educationSummary: jobApplication.educationSummary,
-          skills: jobApplication.skills,
-          motivation: jobApplication.motivation,
-          cvUrl: jobApplication.cvUrl,
-          coverLetterUrl: jobApplication.coverLetterUrl,
-        }
+      ? (() => {
+          const subjects = resolveDossierSubjects(
+            jobApplication.desiredSubjects,
+            assignmentYears.currentSubjects,
+          );
+          const levels = resolveDossierLevels(
+            jobApplication.desiredLevels,
+            assignmentYears.currentLevels,
+          );
+          const availability = resolveDossierAvailability({
+            isUserActive: user?.statusUser !== false,
+            assignedToCurrentYear: assignmentYears.assignedToCurrentYear,
+          });
+          return {
+            id: jobApplication.id,
+            reference: jobApplication.reference,
+            submittedAt: jobApplication.createdAt.toISOString(),
+            yearsOfExperience: Math.max(
+              jobApplication.yearsOfExperience ?? 0,
+              assignmentYears.count,
+            ),
+            assignmentYearLabels: assignmentYears.yearLabels,
+            desiredSubjects: subjects.value,
+            subjectsSource: subjects.source,
+            depositSubjects: jobApplication.desiredSubjects,
+            desiredLevels: levels.value,
+            levelsSource: levels.source,
+            depositLevels: jobApplication.desiredLevels,
+            availability: availability.value,
+            availabilitySource: availability.source,
+            experienceSummary: jobApplication.experienceSummary,
+            educationSummary: jobApplication.educationSummary,
+            skills: jobApplication.skills,
+            motivation: jobApplication.motivation,
+            cvUrl: jobApplication.cvUrl,
+            coverLetterUrl: jobApplication.coverLetterUrl,
+            parcours: assignmentYears.parcours,
+          };
+        })()
       : null,
     notes: fiches.map((fiche) => ({
       id: fiche.id,

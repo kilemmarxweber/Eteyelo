@@ -37,7 +37,6 @@ export function TeacherApplicationCompleteForm({
   const [desiredLevels, setDesiredLevels] = useState("");
   const [desiredSection, setDesiredSection] = useState("");
   const [desiredOption, setDesiredOption] = useState("");
-  const [availability, setAvailability] = useState("");
   const [educationSummary, setEducationSummary] = useState("");
   const [skills, setSkills] = useState("");
   const [experienceSummary, setExperienceSummary] = useState("");
@@ -89,7 +88,6 @@ export function TeacherApplicationCompleteForm({
           teacherId,
           desiredSubjects: desiredSubjects.trim(),
           desiredLevels: levelsLabel || desiredLevels.trim(),
-          availability: availability.trim() || undefined,
           educationSummary: educationSummary.trim() || undefined,
           skills: skills.trim() || undefined,
           experienceSummary: experienceSummary.trim() || undefined,
@@ -178,14 +176,14 @@ export function TeacherApplicationCompleteForm({
               . Le dossier évolue à chaque nouvelle année scolaire.
             </p>
           </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="teacher-availability">Disponibilité</Label>
-            <Input
-              id="teacher-availability"
-              value={availability}
-              onChange={(event) => setAvailability(event.target.value)}
-              placeholder="Immédiate, rentrée…"
-            />
+          <div className="md:col-span-2 rounded-md border border-dashed bg-muted/30 px-3 py-2.5 text-sm text-muted-foreground">
+            <p className="font-medium text-foreground">Disponibilité</p>
+            <p className="mt-1 text-xs leading-relaxed">
+              Calculée automatiquement : <strong>Actif</strong> si le compte est
+              engagé et affecté à l&apos;année en cours,{" "}
+              <strong>Renvoyé</strong> si le compte est inactif, sinon{" "}
+              <strong>N&apos;est plus actif</strong>.
+            </p>
           </div>
 
           {needsBirthDate ? (
