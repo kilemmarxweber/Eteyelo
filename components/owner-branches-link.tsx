@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import { Building2 } from "lucide-react";
@@ -12,16 +13,25 @@ import { cn } from "@/lib/utils";
 /**
  * Lien vers la liste des branches — visible pour le propriétaire
  * afin de changer d'établissement depuis le header.
+ *
+ * Rendu différé après montage : useSession() peut différer SSR vs client
+ * (hydratation).
  */
 export function OwnerBranchesLink({
   className,
 }: {
   className?: string;
 }) {
-  const { data: session } = authClient.useSession();
+  const { data: session, isPending } = authClient.useSession();
   const params = useParams();
   const pathname = usePathname();
+  const [mounted, setMounted] = useState(false);
 
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted || isPending) return null;
   if (!isOrganizationOwnerSession(session)) return null;
 
   const organizationId =

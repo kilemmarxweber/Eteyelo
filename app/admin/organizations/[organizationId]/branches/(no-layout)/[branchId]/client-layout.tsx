@@ -12,6 +12,8 @@ import { OwnerBranchesLink } from "@/components/owner-branches-link";
 import { AppIntlProvider } from "@/components/app-intl-provider";
 import { authClient } from "@/lib/auth-client";
 import { BranchSessionResume } from "@/components/branch-session-resume";
+import { RouteChangeLoader } from "@/components/ui/route-change-loader";
+import { hideRouteLoader } from "@/lib/route-loader";
 import { RefreshProvider, useRefresh } from "@/src/hooks/RefreshContext";
 import type { UserLocale } from "@/lib/user-locale";
 import { cn } from "@/lib/utils";
@@ -26,6 +28,7 @@ function BranchShell({ children }: { children: React.ReactNode }) {
 
     // Ne démonte plus le shell si la session clignote — redirection douce seulement.
     const timeout = window.setTimeout(() => {
+      hideRouteLoader();
       window.location.assign("/auth/sign-in");
     }, 2500);
 
@@ -34,6 +37,8 @@ function BranchShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="relative h-dvh overflow-hidden bg-background">
+      {/* Loader navigation uniquement dans le périmètre branche. */}
+      <RouteChangeLoader />
       <BranchSessionResume />
       <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
 
