@@ -451,7 +451,7 @@ export default function CashierReport({
                           <TableCell className="whitespace-nowrap px-3 py-2 tabular-nums text-muted-foreground">
                             {formatCashierDateTime(payment.createdAt)}
                           </TableCell>
-                          <TableCell className="px-3 py-2 font-medium">
+                          <TableCell className="whitespace-nowrap px-3 py-2 font-medium">
                             {payment.transactionRef || "—"}
                           </TableCell>
                           <TableCell className="px-3 py-2">

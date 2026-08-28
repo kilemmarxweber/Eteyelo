@@ -66,11 +66,13 @@ interface Props {
 
 function buildTransactionRef() {
   const now = new Date();
-  const year = now.getFullYear().toString().slice(-2);
-  const day = now.getDate().toString().padStart(2, "0");
-  const rand = Math.random().toString(36).substring(2, 6).toUpperCase();
-
-  return `TRNS-${year}-${day}-${rand}`;
+  const date = [
+    now.getFullYear().toString().slice(-2),
+    String(now.getMonth() + 1).padStart(2, "0"),
+    String(now.getDate()).padStart(2, "0"),
+  ].join("");
+  const rand = crypto.randomUUID().replace(/-/g, "").slice(0, 8).toUpperCase();
+  return `TRNS-${date}-${rand}`;
 }
 
 const emptyAmount = undefined as unknown as number;

@@ -173,8 +173,12 @@ async function getAutomaticOpeningBalance(
   );
 }
 
+function shortRefToken(length = 8) {
+  return randomUUID().replace(/-/g, "").slice(0, length).toUpperCase();
+}
+
 function buildFamilyPaymentRef(baseRef: string, lineIndex: number) {
-  return `${baseRef}-${String(lineIndex + 1).padStart(2, "0")}-${randomUUID().slice(0, 8).toUpperCase()}`;
+  return `${baseRef}-${String(lineIndex + 1).padStart(2, "0")}`;
 }
 
 function buildUniqueReference(prefix: string) {
@@ -184,7 +188,7 @@ function buildUniqueReference(prefix: string) {
     String(now.getMonth() + 1).padStart(2, "0"),
     String(now.getDate()).padStart(2, "0"),
   ].join("");
-  return `${prefix}-${date}-${randomUUID().slice(0, 12).toUpperCase()}`;
+  return `${prefix}-${date}-${shortRefToken()}`;
 }
 
 type ReceiptPayload = {
