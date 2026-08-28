@@ -39,6 +39,7 @@ import {
   createOrgMemberFormSchema,
   type CreateOrgMemberFormInput,
 } from "../schema";
+import { DateOfBirthPicker } from "@/components/date-of-birth-picker";
 
 type Props = {
   organizationId: string;
@@ -59,6 +60,7 @@ export function CreateMemberForm({ organizationId, branches }: Props) {
       nom: "",
       postnom: "",
       prenom: "",
+      dateOfBirth: undefined,
       orgRole: ALL_ORG_ROLE_SLUGS[2],
       branchIds: branches.length === 1 ? [branches[0]!.id] : [],
     },
@@ -240,6 +242,21 @@ export function CreateMemberForm({ organizationId, branches }: Props) {
                 />
                 <FormError message={form.formState.errors.prenom?.message} />
               </div>
+            </div>
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="create-dob">Date de naissance</Label>
+              <DateOfBirthPicker
+                id="create-dob"
+                value={form.watch("dateOfBirth")}
+                onChange={(date) =>
+                  form.setValue("dateOfBirth", date as Date, {
+                    shouldValidate: true,
+                  })
+                }
+                disabled={pending}
+                className={memberFieldClass}
+              />
+              <FormError message={form.formState.errors.dateOfBirth?.message} />
             </div>
             <div className="flex flex-col gap-2">
               <Label htmlFor="create-email">Email</Label>

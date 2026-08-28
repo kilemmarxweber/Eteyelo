@@ -413,6 +413,7 @@ export async function updateOrganizationMemberAction(
     postnom,
     prenom,
     image,
+    dateOfBirth,
   } = parsed.data;
   const guard = await guardOrganizationMemberPermission(organizationId, {
     member: ["update"],
@@ -480,6 +481,7 @@ export async function updateOrganizationMemberAction(
         ...(postnom ? { postnom: postnom.trim() } : {}),
         ...(prenom ? { prenom: prenom.trim() } : {}),
         ...(imageUrl ? { image: imageUrl } : {}),
+        dateOfBirth,
       },
     });
     if (previousEmail && previousEmail !== emailLower) {
@@ -799,6 +801,7 @@ export type OrganizationMemberDetail = {
     postnom: string | null;
     prenom: string | null;
     image: string | null;
+    dateOfBirth: Date | null;
   };
 };
 
@@ -831,6 +834,7 @@ export async function getOrganizationMemberAction(
             postnom: true,
             prenom: true,
             image: true,
+            dateOfBirth: true,
           },
         },
       },

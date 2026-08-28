@@ -49,6 +49,7 @@ import {
 } from "../../member-form-section";
 import { MemberPhotoField } from "../../member-photo-field";
 import { ResetUsersDialog } from "../../../branches/(no-layout)/[branchId]/student/components/reset-users-dialog";
+import { DateOfBirthPicker } from "@/components/date-of-birth-picker";
 
 type MemberRow = {
   id: string;
@@ -61,6 +62,7 @@ type MemberRow = {
     postnom: string | null;
     prenom: string | null;
     image: string | null;
+    dateOfBirth: Date | null;
   };
 };
 
@@ -81,6 +83,8 @@ export function EditMemberForm({ organizationId, memberId, branches }: Props) {
   const [nom, setNom] = useState("");
   const [postnom, setPostnom] = useState("");
   const [prenom, setPrenom] = useState("");
+  const [dateOfBirth, setDateOfBirth] = useState<Date | undefined>(undefined);
+  const [dobError, setDobError] = useState<string | undefined>();
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [nameError, setNameError] = useState<string | undefined>();
@@ -105,6 +109,10 @@ export function EditMemberForm({ organizationId, memberId, branches }: Props) {
       setNom(found.user.name ?? "");
       setPostnom(found.user.postnom ?? "");
       setPrenom(found.user.prenom ?? "");
+      setDateOfBirth(
+        found.user.dateOfBirth ? new Date(found.user.dateOfBirth) : undefined,
+      );
+      setDobError(undefined);
       setPhotoFile(null);
       setPhotoPreview(found.user.image);
       setEmail(found.user.email ?? "");
@@ -163,12 +171,17 @@ export function EditMemberForm({ organizationId, memberId, branches }: Props) {
       setNameError("Nom, postnom et prénom sont requis (2 caractères min.).");
       return;
     }
+    if (!dateOfBirth || Number.isNaN(dateOfBirth.getTime())) {
+      setDobError("Veuillez saisir la date de naissance.");
+      return;
+    }
     if (branchIds.length === 0) {
       setBranchError("Sélectionnez au moins une branche.");
       return;
     }
     setEmailError(undefined);
     setNameError(undefined);
+    setDobError(undefined);
     setBranchError(undefined);
     startTransition(async () => {
       let image = member?.user.image ?? "";
@@ -190,6 +203,7 @@ export function EditMemberForm({ organizationId, memberId, branches }: Props) {
         postnom: postnom.trim(),
         prenom: prenom.trim(),
         image,
+        dateOfBirth,
       });
       if (!res.ok) {
         toast.error(res.message);
@@ -373,6 +387,22 @@ export function EditMemberForm({ organizationId, memberId, branches }: Props) {
               {nameError ? (
                 <p className="text-xs text-destructive">{nameError}</p>
               ) : null}
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="edit-dob">Date de naissance</Label>
+                <DateOfBirthPicker
+                  id="edit-dob"
+                  value={dateOfBirth}
+                  onChange={(date) => {
+                    setDateOfBirth(date);
+                    if (dobError) setDobError(undefined);
+                  }}
+                  disabled={busy}
+                  className={memberFieldClass}
+                />
+                {dobError ? (
+                  <p className="text-xs text-destructive">{dobError}</p>
+                ) : null}
+              </div>
               <div className="flex flex-col gap-2">
                 <Label htmlFor="edit-email">Email</Label>
                 <Input

@@ -290,7 +290,7 @@ export const createTeacherAction = action
         telephone: input.telephone,
         email: emailLower,
         address: input.address,
-        dateOfBirth: input.dateOfBirth ?? new Date(),
+        dateOfBirth: input.dateOfBirth,
         image: input.image?.trim() || undefined,
         organizationId,
         branchId,

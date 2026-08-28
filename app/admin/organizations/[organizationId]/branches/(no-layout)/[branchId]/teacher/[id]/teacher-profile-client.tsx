@@ -432,6 +432,7 @@ export function TeacherProfileClient({
                     <div className="grid grid-cols-2 gap-2.5">
                       <MiniField label="Sexe" value={profile.sexe} />
                       <MiniField label="Naissance" value={profile.dateOfBirthLabel} />
+                      <MiniField label="Âge" value={profile.ageLabel} />
                     </div>
                   </div>
                 </Card>

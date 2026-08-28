@@ -35,6 +35,7 @@ import { parentSchema } from "@/src/interfaces/Parent";
 import generateUsername from "@/src/hooks/generateUsername";
 import type { ITypeFrais } from "@/src/interfaces/Frais";
 import { RegistrationExtraInfoFields } from "@/components/registration-extra-info-fields";
+import { DateOfBirthPicker } from "@/components/date-of-birth-picker";
 import {
   emptyFamilyExtraInfo,
   emptyStudentExtraInfo,
@@ -84,6 +85,9 @@ export function ParentUpForm({
       ? {
           ...initialData,
           sexe: sexeToUi[initialData.sexe], // 👈 conversion DB → UI
+          dateOfBirth: initialData.dateOfBirth
+            ? new Date(initialData.dateOfBirth as Date)
+            : undefined,
           discount: {
             scope: initialData.discount?.scope ?? "PARENT",
             percentage: initialData.discount?.percentage ?? 0,
@@ -100,6 +104,7 @@ export function ParentUpForm({
           telephone: "",
           email: "",
           address: "",
+          dateOfBirth: undefined,
           discount: {
             scope: "PARENT",
             percentage: 0,
@@ -295,6 +300,23 @@ export function ParentUpForm({
                       <SelectItem value="feminin">Féminin</SelectItem>
                     </SelectContent>
                   </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="dateOfBirth"
+              render={({ field }) => (
+                <FormItem className={fieldClass}>
+                  <FormLabel>Date de naissance</FormLabel>
+                  <FormControl>
+                    <DateOfBirthPicker
+                      value={field.value}
+                      onChange={field.onChange}
+                    />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}

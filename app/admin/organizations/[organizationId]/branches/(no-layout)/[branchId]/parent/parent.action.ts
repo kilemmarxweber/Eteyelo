@@ -113,7 +113,7 @@ export const createParentAction = action
         branchId,
         orgRole: "parent",
         email: emailLower,
-        dateOfBirth: new Date(),
+        dateOfBirth: data.dateOfBirth,
       });
 
       if (!result.ok) {

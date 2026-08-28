@@ -54,7 +54,10 @@ export const parentSchema = z.object({
   name: z.string().min(3, { message: "Veuillez saisir le nom" }),
   postnom: z.string().min(3, { message: "Veuillez saisir le postnom" }),
   prenom: z.string().min(3, { message: "Veuillez saisir le prenom" }),
-  dateOfBirth: z.date().optional(),
+  dateOfBirth: z.date({
+    required_error: "Veuillez saisir la date de naissance",
+    invalid_type_error: "Veuillez saisir la date de naissance",
+  }),
   sexe: z.string().min(4, { message: "Veuillez saisir le sexe" }),
   telephone: z.string().regex(phoneRegex, "Invalid Number!"),
   address: z.string().trim().min(1, { message: "Veuillez saisir l'adresse" }),

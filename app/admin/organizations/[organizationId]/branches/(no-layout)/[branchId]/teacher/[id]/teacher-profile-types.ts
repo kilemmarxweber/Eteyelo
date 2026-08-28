@@ -123,6 +123,7 @@ export type TeacherProfileData = {
   username: string;
   sexe: string;
   dateOfBirthLabel: string;
+  ageLabel: string;
   image: string | null;
   statusActive: boolean;
   statusLabel: string;

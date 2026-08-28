@@ -32,6 +32,7 @@ import { cn } from "@/lib/utils";
 import { MAX_IMAGE_UPLOAD_BYTES, uploadFile } from "@/lib/upload-file";
 import generateUsername from "@/src/hooks/generateUsername";
 import { updatePersonnelSchema, userSchema } from "@/src/interfaces/Personnel";
+import { DateOfBirthPicker } from "@/components/date-of-birth-picker";
 
 import {
   createPersonnelAction,
@@ -64,7 +65,7 @@ const emptyValues: PersonnelFormValues = {
   email: "",
   address: "",
   orgRole: "",
-  dateOfBirth: new Date(),
+  dateOfBirth: undefined as unknown as Date,
   image: "",
 };
 
@@ -107,7 +108,7 @@ export function PersonnelUpForm({
             : "",
           dateOfBirth: initialData.dateOfBirth
             ? new Date(initialData.dateOfBirth)
-            : new Date(),
+            : (undefined as unknown as Date),
           image: initialData.image ?? "",
         }
       : emptyValues,
@@ -176,12 +177,7 @@ export function PersonnelUpForm({
     const payload = {
       ...data,
       image,
-      dateOfBirth:
-        mode === "create"
-          ? new Date()
-          : data.dateOfBirth
-            ? new Date(data.dateOfBirth)
-            : new Date(),
+      dateOfBirth: new Date(data.dateOfBirth),
     };
 
     try {
@@ -193,7 +189,7 @@ export function PersonnelUpForm({
         }
 
         toast.success("Personnel créé avec succès");
-        form.reset({ ...emptyValues, dateOfBirth: new Date() });
+        form.reset(emptyValues);
         setPhotoFile(null);
         setPhotoPreview((current) => {
           if (current?.startsWith("blob:")) URL.revokeObjectURL(current);
@@ -318,6 +314,24 @@ export function PersonnelUpForm({
                       <SelectItem value="feminin">Féminin</SelectItem>
                     </SelectContent>
                   </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="dateOfBirth"
+              render={({ field }) => (
+                <FormItem className={fieldClass}>
+                  <FormLabel className={labelClass}>Date de naissance</FormLabel>
+                  <FormControl>
+                    <DateOfBirthPicker
+                      value={field.value}
+                      onChange={field.onChange}
+                      className={controlClass}
+                    />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}

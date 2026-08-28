@@ -28,6 +28,7 @@ import {
   resolveDossierSubjects,
   syncTeacherDossierExperienceYears,
 } from "@/lib/teacher-assignment-years";
+import { formatAgeLabel, formatBirthDate } from "@/lib/person-age";
 import type {
   TeacherAttendanceStatus,
   TeacherProfileClass,
@@ -41,17 +42,6 @@ function uniqueById<T extends { id: string }>(items: T[]) {
   const map = new Map<string, T>();
   for (const item of items) map.set(item.id, item);
   return [...map.values()];
-}
-
-function formatBirthDate(date: Date | string | null | undefined) {
-  if (!date) return "—";
-  const value = new Date(date);
-  if (Number.isNaN(value.getTime())) return "—";
-  return value.toLocaleDateString("fr-FR", {
-    day: "2-digit",
-    month: "long",
-    year: "numeric",
-  });
 }
 
 function sexeLabel(sexe: string | null | undefined) {
@@ -365,6 +355,7 @@ const SingleTeacherPage = async ({
     username: user?.username ?? "",
     sexe: sexeLabel(user?.sexe),
     dateOfBirthLabel: formatBirthDate(user?.dateOfBirth),
+    ageLabel: formatAgeLabel(user?.dateOfBirth),
     image: user?.image ?? null,
     statusActive: user?.statusUser !== false,
     statusLabel: user?.statusUser === false ? "Inactif" : "Actif",

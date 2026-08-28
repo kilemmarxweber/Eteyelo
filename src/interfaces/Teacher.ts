@@ -33,7 +33,10 @@ export const teacherSchema = z
     nom: z.string(),
     postnom: z.string(),
     prenom: z.string(),
-    dateOfBirth: z.date().optional(),
+    dateOfBirth: z.date({
+      required_error: "Veuillez saisir la date de naissance",
+      invalid_type_error: "Veuillez saisir la date de naissance",
+    }),
     sexe: z.string().min(1, { message: "Veuillez selectionner le sexe" }),
     telephone: z
       .string()

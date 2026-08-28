@@ -67,6 +67,10 @@ export const updateOrgMemberSchema = z.object({
   postnom: namePart,
   prenom: namePart,
   image: z.string().trim().max(2000).optional().or(z.literal("")),
+  dateOfBirth: z.date({
+    required_error: "Veuillez saisir la date de naissance",
+    invalid_type_error: "Veuillez saisir la date de naissance",
+  }),
 });
 
 /** Schéma du formulaire d’ajout membre (identité séparée comme un élève). */
@@ -76,6 +80,10 @@ export const createOrgMemberFormSchema = createOrgMemberSchema
     nom: namePart,
     postnom: namePart,
     prenom: namePart,
+    dateOfBirth: z.date({
+      required_error: "Veuillez saisir la date de naissance",
+      invalid_type_error: "Veuillez saisir la date de naissance",
+    }),
   });
 
 export const removeOrgMemberSchema = z.object({

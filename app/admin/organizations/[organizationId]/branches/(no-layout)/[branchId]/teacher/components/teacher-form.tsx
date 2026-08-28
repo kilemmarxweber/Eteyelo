@@ -35,6 +35,7 @@ import generateUsername from "@/src/hooks/generateUsername";
 import { IClasse } from "@/src/interfaces/Classe";
 import { ICours } from "@/src/interfaces/Cours";
 import { teacherSchema } from "@/src/interfaces/Teacher";
+import { DateOfBirthPicker } from "@/components/date-of-birth-picker";
 
 import { getClassesAction } from "../../classe/classe.action";
 import { getCoursAction } from "../../cours/cours.action";
@@ -95,7 +96,7 @@ export function TeacherUpForm({
           sexe: sexeToUi[initialData.sexe] ?? initialData.sexe,
           dateOfBirth: initialData.dateOfBirth
             ? new Date(initialData.dateOfBirth)
-            : new Date(),
+            : undefined,
           estTitulaire: initialData.estTitulaire ?? false,
           classeId: initialData.classeId ?? "",
           coursId: initialData.coursId ?? "",
@@ -110,7 +111,7 @@ export function TeacherUpForm({
           telephone: "",
           email: "",
           address: "",
-          dateOfBirth: new Date(),
+          dateOfBirth: undefined,
           estTitulaire: false,
           classeId: "",
           coursId: "",
@@ -225,12 +226,7 @@ export function TeacherUpForm({
     const payload = {
       ...data,
       image,
-      dateOfBirth:
-        mode === "create"
-          ? new Date()
-          : data.dateOfBirth
-            ? new Date(data.dateOfBirth)
-            : new Date(),
+      dateOfBirth: new Date(data.dateOfBirth),
       estTitulaire,
       classeId: estTitulaire ? data.classeId : undefined,
       coursId: estTitulaire ? data.coursId : undefined,
@@ -370,9 +366,27 @@ export function TeacherUpForm({
 
             <FormField
               control={form.control}
+              name="dateOfBirth"
+              render={({ field }) => (
+                <FormItem className={fieldClass}>
+                  <FormLabel className={labelClass}>Date de naissance</FormLabel>
+                  <FormControl>
+                    <DateOfBirthPicker
+                      value={field.value}
+                      onChange={field.onChange}
+                      className={controlClass}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
               name="telephone"
               render={({ field }) => (
-                <FormItem className={cn(fieldClass, "sm:col-span-2")}>
+                <FormItem className={fieldClass}>
                   <FormLabel className={labelClass}>Téléphone</FormLabel>
                   <FormControl>
                     <PhoneInput
