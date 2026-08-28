@@ -24,7 +24,11 @@ function todayIso(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
-export default function TeacherAttendanceReport() {
+export default function TeacherAttendanceReport({
+  selfOnly = false,
+}: {
+  selfOnly?: boolean;
+}) {
   const [startDate, setStartDate] = useState(firstDayOfMonthIso);
   const [endDate, setEndDate] = useState(todayIso);
   const [report, setReport] = useState<TeacherAttendanceReport | null>(null);
@@ -39,6 +43,7 @@ export default function TeacherAttendanceReport() {
     const [data, err] = await getTeacherAttendanceReportAction({
       startDate: new Date(startDate),
       endDate: new Date(endDate),
+      selfOnly,
     });
 
     if (err || !data) {
@@ -56,8 +61,8 @@ export default function TeacherAttendanceReport() {
 
   useEffect(() => {
     void fetchReport();
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- refetch on filter changes only
-  }, [startDate, endDate]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- refetch on filter / scope changes only
+  }, [startDate, endDate, selfOnly]);
 
   const handleExportPdf = async () => {
     if (!report) return;
@@ -92,7 +97,9 @@ export default function TeacherAttendanceReport() {
     <Card className="rounded-xl border p-4">
       <CardHeader className="flex flex-col gap-4 px-0 pt-0 md:flex-row md:items-start md:justify-between">
         <div>
-          <CardTitle>Présences enseignants</CardTitle>
+          <CardTitle>
+            {selfOnly ? "Mon rapport de présence" : "Présences enseignants"}
+          </CardTitle>
           <p className="text-sm text-muted-foreground">
             Synthèse présents / absents / retards / excusés sur une période.
           </p>

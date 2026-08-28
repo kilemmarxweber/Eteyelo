@@ -62,7 +62,7 @@ test("caissier : dashboard, registration, finance, users/student, help — pas c
 
   assertIncludes(
     titles,
-    ["dashboard", "registration", "finance", "users", "help"],
+    ["dashboard", "myPresence", "registration", "finance", "users", "help"],
     "caissier",
   );
   assertExcludes(
@@ -90,7 +90,7 @@ test("élève : dashboard, results, library — pas grades/schedule/sheets / fin
   assertIncludes(titles, ["dashboard", "cursus", "help"], "élève");
   assertExcludes(
     titles,
-    ["finance", "users", "classes", "registration", "teaching", "candidatures"],
+    ["finance", "users", "classes", "registration", "teaching", "candidatures", "myPresence"],
     "élève",
   );
   assertIncludes(cursus, ["results", "library"], "élève cursus");
@@ -117,7 +117,7 @@ test("parent : dashboard + results — pas grades/schedule/homework/library / fi
   assertIncludes(titles, ["dashboard", "cursus", "help"], "parent");
   assertExcludes(
     titles,
-    ["finance", "users", "classes", "registration", "teaching"],
+    ["finance", "users", "classes", "registration", "teaching", "myPresence"],
     "parent",
   );
   assertIncludes(cursus, ["results"], "parent cursus");
@@ -133,7 +133,7 @@ test("enseignant : pas teaching / users ; cursus grades/results/library ; horair
   const titles = menuTitles(session);
   const cursus = cursusSubTitles(session);
 
-  assertIncludes(titles, ["dashboard", "cursus", "attendance", "help"], "enseignant");
+  assertIncludes(titles, ["dashboard", "cursus", "attendance", "myPresence", "help"], "enseignant");
   assertExcludes(
     titles,
     [
@@ -161,6 +161,7 @@ test("préfet / directeur : pédagogie complète — pas finance", () => {
       titles,
       [
         "dashboard",
+        "myPresence",
         "registration",
         "users",
         "teaching",
@@ -180,7 +181,7 @@ test("directeur des études : pédagogie — pas finance", () => {
 
   assertIncludes(
     titles,
-    ["dashboard", "registration", "users", "teaching", "classes", "cursus", "help"],
+    ["dashboard", "myPresence", "registration", "users", "teaching", "classes", "cursus", "help"],
     "directeur des études",
   );
   assertExcludes(titles, ["finance"], "directeur des études");
@@ -193,6 +194,7 @@ test("owner / gestionnaire gardent le large (pas de régression)", () => {
       titles,
       [
         "dashboard",
+        "myPresence",
         "registration",
         "attendance",
         "candidatures",

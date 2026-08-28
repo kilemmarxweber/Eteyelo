@@ -16,6 +16,7 @@ import { generateSecurePassword } from "@/lib/generate-password";
 import { ORG_ROLE } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 import { getConfiguredCoursIdsForClasse } from "@/lib/course-ponderation";
+import { syncTeacherDossierExperienceYears } from "@/lib/teacher-assignment-years";
 import {
   buildSchoolReportContext,
   schoolReportBranchSelect,
@@ -122,19 +123,23 @@ async function syncTeacherTitulaire(input: {
         branchId: input.branchId,
       },
     });
-    return;
+  } else {
+    await prisma.teaching.create({
+      data: {
+        branchId: input.branchId,
+        teacherId: input.teacherId,
+        classeId: input.classeId,
+        schoolYearId: schoolYear.id,
+        coursId: input.coursId,
+        statusTeaching: true,
+        titulaire: true,
+      },
+    });
   }
 
-  await prisma.teaching.create({
-    data: {
-      branchId: input.branchId,
-      teacherId: input.teacherId,
-      classeId: input.classeId,
-      schoolYearId: schoolYear.id,
-      coursId: input.coursId,
-      statusTeaching: true,
-      titulaire: true,
-    },
+  await syncTeacherDossierExperienceYears({
+    teacherId: input.teacherId,
+    branchId: input.branchId,
   });
 }
 

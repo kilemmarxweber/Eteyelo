@@ -22,6 +22,7 @@ import {
   buildSchoolReportContext,
   schoolReportBranchSelect,
 } from "@/lib/reports/resolve-school-branding";
+import { syncTeacherDossierExperienceYears } from "@/lib/teacher-assignment-years";
 
 function parseDesiredClassTarget(desiredLevels: string | null | undefined) {
   if (!desiredLevels?.trim()) return null;
@@ -206,6 +207,11 @@ async function assignHiredTeacherToDesiredClass(params: {
     });
     assigned += 1;
   }
+
+  await syncTeacherDossierExperienceYears({
+    teacherId: params.teacherId,
+    branchId: params.branchId,
+  });
 
   return {
     assigned,

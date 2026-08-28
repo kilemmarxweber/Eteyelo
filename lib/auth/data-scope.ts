@@ -44,6 +44,22 @@ export async function getTeacherIdForUser(
   return teacher?.id ?? null;
 }
 
+export async function getPersonnelIdForUser(
+  userId: string,
+  branchId: string,
+): Promise<string | null> {
+  const personnel = await prisma.personnel.findFirst({
+    where: {
+      branchMember: {
+        branchId,
+        member: { userId },
+      },
+    },
+    select: { id: true },
+  });
+  return personnel?.id ?? null;
+}
+
 export async function getTeacherAssignedTeachingIds(
   userId: string,
   branchId: string,

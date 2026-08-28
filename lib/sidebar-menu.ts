@@ -107,6 +107,13 @@ const COURSE_ROLES = [...SCHOOL_ADMIN_ROLES];
 /** Présences : school admin + enseignant (ses classes — unit-06/10). */
 const PRESENCE_ROLES = [...SCHOOL_ADMIN_ROLES, ...TEACHER_ROLES];
 
+/** Pointage / rapport perso : staff école + enseignant + caissier (hors élève/parent). */
+const MY_PRESENCE_ROLES = [
+  ...SCHOOL_ADMIN_ROLES,
+  ...TEACHER_ROLES,
+  ...CAISSIER_ROLES,
+];
+
 /** Notes : saisie admin/teacher (pas parent ni élève dans le menu Cursus). */
 const NOTES_ROLES = [...SCHOOL_ADMIN_ROLES, ...TEACHER_ROLES];
 
@@ -143,6 +150,12 @@ const staticSidebarMenu: StaticMenuItem[] = [
     href: "/admin",
     icon: "dashboard",
     roles: ["*"],
+  },
+  {
+    title: "myPresence",
+    href: "/admin/ma-presence",
+    icon: "attendance",
+    roles: MY_PRESENCE_ROLES,
   },
   {
     title: "registration",

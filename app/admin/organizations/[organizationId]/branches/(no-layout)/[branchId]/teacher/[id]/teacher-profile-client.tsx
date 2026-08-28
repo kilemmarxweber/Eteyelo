@@ -5,6 +5,7 @@ import Link from "next/link";
 import {
   ArrowLeft,
   BookOpen,
+  Briefcase,
   CalendarClock,
   CalendarDays,
   ClipboardList,
@@ -39,8 +40,10 @@ import StudentAttendanceTable from "../../attendance/component/StudentAttendance
 import TeacherScheduleTable, {
   type TeacherScheduleUI,
 } from "./TeacherScheduleTable";
+import { TeacherApplicationCompleteForm } from "./teacher-application-form";
 import type {
   TeacherAttendanceStatus,
+  TeacherProfileApplication,
   TeacherProfileData,
   TeacherProfileNote,
 } from "./teacher-profile-types";
@@ -472,6 +475,19 @@ export function TeacherProfileClient({
                   </div>
                 </Card>
               </div>
+
+              {profile.application ? (
+                <ApplicationDossierCard application={profile.application} />
+              ) : (
+                <TeacherApplicationCompleteForm
+                  teacherId={profile.teacherId}
+                  branchType={profile.branchType}
+                  teacherLabelLower={profile.teacherLabelLower}
+                  needsBirthDate={profile.dateOfBirthLabel === "—"}
+                  assignmentYearCount={profile.assignmentYearCount}
+                  assignmentYearLabels={profile.assignmentYearLabels}
+                />
+              )}
             </TabsContent>
 
             <TabsContent value="presences" className="space-y-4">
@@ -719,6 +735,129 @@ export function TeacherProfileClient({
         </aside>
       </div>
     </div>
+  );
+}
+
+function fileNameFromUrl(url: string, fallback: string) {
+  try {
+    const path = url.split("?")[0] ?? url;
+    const name = path.split("/").pop();
+    if (!name) return fallback;
+    return decodeURIComponent(name);
+  } catch {
+    return fallback;
+  }
+}
+
+function ApplicationDossierCard({
+  application,
+}: {
+  application: TeacherProfileApplication;
+}) {
+  const years = application.yearsOfExperience ?? 0;
+  const yearHint = application.assignmentYearLabels.length
+    ? application.assignmentYearLabels.join(", ")
+    : "aucune affectation de classe pour le moment";
+  const facts = [
+    {
+      label: "Années d'expérience",
+      value: `${years} an${years > 1 ? "s" : ""} · ${yearHint}`,
+    },
+    application.desiredSubjects
+      ? { label: "Matières", value: application.desiredSubjects }
+      : null,
+    application.desiredLevels
+      ? { label: "Niveaux", value: application.desiredLevels }
+      : null,
+    application.availability
+      ? { label: "Disponibilité", value: application.availability }
+      : null,
+  ].filter(Boolean) as { label: string; value: string }[];
+
+  const texts = (
+    [
+      ["Expérience", application.experienceSummary],
+      ["Formation", application.educationSummary],
+      ["Compétences", application.skills],
+      ["Motivation", application.motivation],
+    ] as const
+  ).filter(([, value]) => Boolean(value));
+
+  const documents = [
+    application.cvUrl
+      ? { label: "CV", href: application.cvUrl }
+      : null,
+    application.coverLetterUrl
+      ? { label: "Lettre de motivation", href: application.coverLetterUrl }
+      : null,
+  ].filter(Boolean) as { label: string; href: string }[];
+
+  return (
+    <Card className="overflow-hidden rounded-xl border-violet-200/80 bg-gradient-to-b from-violet-500/[0.07] via-card to-card p-0 shadow-sm dark:border-violet-900/40">
+      <div className="border-b border-violet-500/10 bg-violet-500/[0.06] px-4 py-3">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="flex items-center gap-2.5">
+            <div className="flex size-9 items-center justify-center rounded-lg bg-violet-500/15 text-violet-600 dark:text-violet-400">
+              <Briefcase className="size-4" />
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold">Dossier de candidature</h3>
+              <p className="text-xs text-muted-foreground">
+                {application.reference} · déposé le{" "}
+                {formatDate(application.submittedAt)}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="space-y-4 p-4">
+        {documents.length ? (
+          <div className="flex flex-wrap gap-2">
+            {documents.map((doc) => (
+              <Button key={doc.href} asChild variant="outline" size="sm">
+                <a href={doc.href} target="_blank" rel="noopener noreferrer">
+                  <FileText className="mr-2 size-4" />
+                  {doc.label}
+                  <span className="ml-1.5 max-w-[12rem] truncate text-xs font-normal text-muted-foreground">
+                    {fileNameFromUrl(doc.href, doc.label)}
+                  </span>
+                </a>
+              </Button>
+            ))}
+          </div>
+        ) : null}
+
+        {facts.length ? (
+          <div className="grid gap-2.5 sm:grid-cols-2">
+            {facts.map((item) => (
+              <div
+                key={item.label}
+                className="rounded-lg border border-violet-500/15 bg-violet-500/[0.06] px-3 py-2.5"
+              >
+                <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-violet-700/85 dark:text-violet-400">
+                  {item.label}
+                </p>
+                <p className="mt-0.5 text-sm font-medium">{item.value}</p>
+              </div>
+            ))}
+          </div>
+        ) : null}
+
+        {texts.map(([label, value]) => (
+          <div
+            key={label}
+            className="rounded-lg border border-violet-500/15 bg-violet-500/[0.06] px-3 py-2.5"
+          >
+            <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-violet-700/85 dark:text-violet-400">
+              {label}
+            </p>
+            <p className="mt-1.5 whitespace-pre-wrap text-sm leading-relaxed">
+              {value}
+            </p>
+          </div>
+        ))}
+      </div>
+    </Card>
   );
 }
 

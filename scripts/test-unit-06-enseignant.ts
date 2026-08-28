@@ -14,6 +14,7 @@ import {
 } from "../lib/auth/session-roles";
 import { ORG_ROLE } from "../lib/permissions";
 import { buildStaticSideLinks } from "../lib/sidebar-menu";
+import { getDashboardShortcuts } from "../app/admin/organizations/[organizationId]/branches/(no-layout)/[branchId]/dashboard-shortcuts";
 
 function test(name: string, assertion: () => void) {
   assertion();
@@ -44,6 +45,49 @@ const sessionNonTitulaire = sessionWithOrgRole(ORG_ROLE.TEACHER, {
 const sessionCaissier = sessionWithOrgRole(ORG_ROLE.CAISSIER);
 const sessionDirecteur = sessionWithOrgRole(ORG_ROLE.DIRECTEUR);
 
+function shortcutLabel(key: string) {
+  return (
+    {
+      "shortcuts.myCheckIn": "Mon pointage",
+      "shortcuts.myCheckInDesc": "Pointer",
+      "shortcuts.myAttendanceReport": "Mon rapport de présence",
+      "shortcuts.myAttendanceReportDesc": "Rapport",
+      "shortcuts.grades": "Notes",
+      "shortcuts.enterGrades": "Saisir",
+      "shortcuts.attendance": "Présences",
+      "shortcuts.attendanceMyClasses": "Mes classes",
+      "shortcuts.schedule": "Horaire",
+      "shortcuts.mySchedule": "Mon horaire",
+      "shortcuts.results": "Résultats",
+      "shortcuts.classResults": "Mes classes",
+      "shortcuts.registration": "Inscription",
+      "shortcuts.registerStudents": "Enregistrer",
+      "shortcuts.payment": "Paiement",
+      "shortcuts.collectPayments": "Encaisser",
+      "shortcuts.enrollStudents": "Inscrire",
+      "shortcuts.attendanceToday": "Aujourd'hui",
+      "shortcuts.users": "Utilisateurs",
+      "shortcuts.managePeople": "Gérer",
+    }[key] ?? key
+  );
+}
+
+function presenceShortcutTitles(
+  variant: "teacher" | "caissier" | "directeur" | "prefet" | "directeur_etudes",
+) {
+  return getDashboardShortcuts(
+    variant,
+    {
+      organizationId: "org-test",
+      branchId: "branch-primaire",
+      studentPluralLower: "élèves",
+      classLabelPlural: "Classes",
+      showFinance: false,
+    },
+    shortcutLabel,
+  ).map((item) => item.title);
+}
+
 test("enseignant : teaching oui, finance / pedagogy / manage non", () => {
   assert.equal(canAccessTeachingArea(sessionTeacher), true);
   assert.equal(canAccessResultsArea(sessionTeacher), true);
@@ -65,24 +109,58 @@ test("setup Classes / Cours / Inscription / Affectations : pedagogy, pas teachin
   assert.equal(canAccessTeachingArea(sessionTeacher), true);
 });
 
+test("dashboard enseignant : raccourcis pointage + rapport de présence", () => {
+  const shortcuts = getDashboardShortcuts(
+    "teacher",
+    {
+      organizationId: "org-test",
+      branchId: "branch-primaire",
+      studentPluralLower: "élèves",
+      classLabelPlural: "Classes",
+      showFinance: false,
+    },
+    shortcutLabel,
+  );
+  const titles = shortcuts.map((item) => item.title);
+  assert.ok(titles.includes("Mon pointage"));
+  assert.ok(titles.includes("Mon rapport de présence"));
+  assert.ok(
+    shortcuts.some((item) => item.href.endsWith("/ma-presence")),
+  );
+});
+
+test("dashboard caissier / direction : aussi pointage + rapport perso", () => {
+  for (const variant of [
+    "caissier",
+    "directeur",
+    "prefet",
+    "directeur_etudes",
+  ] as const) {
+    const titles = presenceShortcutTitles(variant);
+    assert.ok(titles.includes("Mon pointage"), variant);
+    assert.ok(titles.includes("Mon rapport de présence"), variant);
+  }
+});
+
 test("menu enseignant : pas Finance / Enseignement / Utilisateurs ; Horaire via Tableau de bord", () => {
   const links = buildStaticSideLinks(sessionTeacher, BRANCH_PATH, "PRIMAIRE");
   const titles = links.map((item) => item.title);
-  const cursus = links.find((item) => item.title === "Cursus");
+  const cursus = links.find((item) => item.title === "cursus");
   const cursusSubs = (cursus?.sub ?? []).map((item) => item.title);
 
-  assert.ok(titles.includes("Tableau de bord"));
-  assert.ok(titles.includes("Cursus"));
-  assert.ok(titles.includes("Présences"));
-  assert.ok(!titles.includes("Finance"), "enseignant ne doit pas voir Finance");
-  assert.ok(!titles.includes("Classes"), "enseignant ne doit pas voir Classes");
-  assert.ok(!titles.includes("Inscription"));
-  assert.ok(!titles.includes("Enseignement"), "enseignant : Enseignement retiré");
-  assert.ok(!titles.includes("Utilisateurs"), "enseignant : Utilisateurs retiré");
-  assert.ok(cursusSubs.includes("Notes"));
-  assert.ok(cursusSubs.includes("Résultats"));
-  assert.ok(!cursusSubs.includes("Fiche Centrale"));
-  assert.ok(!cursusSubs.includes("Fiches"));
+  assert.ok(titles.includes("dashboard"));
+  assert.ok(titles.includes("myPresence"));
+  assert.ok(titles.includes("cursus"));
+  assert.ok(titles.includes("attendance"));
+  assert.ok(!titles.includes("finance"), "enseignant ne doit pas voir Finance");
+  assert.ok(!titles.includes("classes"), "enseignant ne doit pas voir Classes");
+  assert.ok(!titles.includes("registration"));
+  assert.ok(!titles.includes("teaching"), "enseignant : Enseignement retiré");
+  assert.ok(!titles.includes("users"), "enseignant : Utilisateurs retiré");
+  assert.ok(cursusSubs.includes("grades"));
+  assert.ok(cursusSubs.includes("results"));
+  assert.ok(!cursusSubs.includes("centralSheet"));
+  assert.ok(!cursusSubs.includes("sheets"));
 });
 
 test("titulaire voit Fiches / Fiche Centrale ; non-titulaire non", () => {
@@ -93,19 +171,19 @@ test("titulaire voit Fiches / Fiche Centrale ; non-titulaire non", () => {
 
   const titulaireCursus = (
     buildStaticSideLinks(sessionTitulaire, BRANCH_PATH, "PRIMAIRE").find(
-      (item) => item.title === "Cursus",
+      (item) => item.title === "cursus",
     )?.sub ?? []
   ).map((item) => item.title);
-  assert.ok(titulaireCursus.includes("Fiche Centrale"));
-  assert.ok(titulaireCursus.includes("Fiches"));
+  assert.ok(titulaireCursus.includes("centralSheet"));
+  assert.ok(titulaireCursus.includes("sheets"));
 
   const nonTitulaireCursus = (
     buildStaticSideLinks(sessionNonTitulaire, BRANCH_PATH, "PRIMAIRE").find(
-      (item) => item.title === "Cursus",
+      (item) => item.title === "cursus",
     )?.sub ?? []
   ).map((item) => item.title);
-  assert.ok(!nonTitulaireCursus.includes("Fiche Centrale"));
-  assert.ok(!nonTitulaireCursus.includes("Fiches"));
+  assert.ok(!nonTitulaireCursus.includes("centralSheet"));
+  assert.ok(!nonTitulaireCursus.includes("sheets"));
 });
 
 test("Tableau de bord = variante enseignant (pas revenus école)", () => {
@@ -121,8 +199,9 @@ test("TEACHING_ROLES non élargi via caissier (caissier hors teaching)", () => {
     BRANCH_PATH,
     "PRIMAIRE",
   ).map((item) => item.title);
-  assert.ok(!titles.includes("Enseignement"));
-  assert.ok(!titles.includes("Présences"));
+  assert.ok(!titles.includes("teaching"));
+  assert.ok(!titles.includes("attendance"));
+  assert.ok(titles.includes("myPresence"));
 });
 
 console.log("\nAll unit-06 enseignant smoke tests passed.");

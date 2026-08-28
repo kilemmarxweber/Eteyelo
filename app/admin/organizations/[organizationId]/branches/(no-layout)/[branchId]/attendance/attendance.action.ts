@@ -18,11 +18,14 @@ import { personnelAttendanceSchema } from "./interface/Attendance";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
+import { canManageOrganization } from "@/lib/auth/session-roles";
 import {
   assertClassRosterAccess,
   assertStudentAttendanceWriteAccess,
   assertTeacherAttendanceWriteAccess,
   getTeacherAttendanceReadScope,
+  getTeacherIdForUser,
+  getPersonnelIdForUser,
 } from "@/lib/auth/data-scope";
 import { assertWithinBranchAttendanceRadius } from "@/lib/attendance-geo.server";
 import {
@@ -787,7 +790,14 @@ export async function autoMarkTeacherAbsent() {
 export const markPersonnelAttendance = action
   .input(personnelAttendanceSchema)
   .handler(async ({ input }) => {
-    const { branchId, organizationId } = await requireBranchContext();
+    const { branchId, organizationId, session, userId } =
+      await requireBranchContext();
+    const isManager = canManageOrganization(session);
+    const myPersonnelId = await getPersonnelIdForUser(userId, branchId);
+    if (!isManager && myPersonnelId !== input.personnelId) {
+      throw new Error("Vous ne pouvez pointer que votre propre présence.");
+    }
+
     const personnel = await prisma.personnel.findFirst({
       where: {
         id: input.personnelId,
@@ -1523,15 +1533,21 @@ export const getTeacherAttendanceReportAction = action
     z.object({
       startDate: z.coerce.date(),
       endDate: z.coerce.date(),
+      selfOnly: z.boolean().optional(),
     }),
   )
   .handler(async ({ input }): Promise<TeacherAttendanceReport> => {
     const { branchId, session, userId } = await requireBranchContext();
-    const teacherScope = await getTeacherAttendanceReadScope({
-      session,
-      userId,
-      branchId,
-    });
+    const teacherScope = input.selfOnly
+      ? await (async () => {
+          const teacherId = await getTeacherIdForUser(userId, branchId);
+          return teacherId ? { teacherId } : { teacherId: "__none__" };
+        })()
+      : await getTeacherAttendanceReadScope({
+          session,
+          userId,
+          branchId,
+        });
 
     const start = new Date(input.startDate);
     start.setHours(0, 0, 0, 0);
@@ -1647,10 +1663,18 @@ export const getPersonnelAttendanceReportAction = action
     z.object({
       startDate: z.coerce.date(),
       endDate: z.coerce.date(),
+      selfOnly: z.boolean().optional(),
     }),
   )
   .handler(async ({ input }): Promise<PersonnelAttendanceReport> => {
-    const { branchId } = await requireBranchContext();
+    const { branchId, session, userId } = await requireBranchContext();
+    const myPersonnelId = await getPersonnelIdForUser(userId, branchId);
+    const personnelFilter =
+      input.selfOnly || !canManageOrganization(session)
+        ? myPersonnelId
+          ? { personnelId: myPersonnelId }
+          : { personnelId: "__none__" }
+        : {};
 
     const start = new Date(input.startDate);
     start.setHours(0, 0, 0, 0);
@@ -1666,6 +1690,7 @@ export const getPersonnelAttendanceReportAction = action
       where: {
         branchId,
         date: { gte: start, lte: end },
+        ...personnelFilter,
       },
       include: {
         personnel: {

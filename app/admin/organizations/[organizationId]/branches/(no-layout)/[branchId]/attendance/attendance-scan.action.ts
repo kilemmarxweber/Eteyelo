@@ -7,6 +7,7 @@ import {
   assertTeacherAttendanceWriteAccess,
   getTeacherAttendanceReadScope,
   getTeacherIdForUser,
+  getPersonnelIdForUser,
 } from "@/lib/auth/data-scope";
 import {
   canManageOrganization,
@@ -546,6 +547,10 @@ async function authorizeScanActor(params: {
   }
 
   if (params.personType === "personnel") {
+    const personnelId = await getPersonnelIdForUser(userId, branchId);
+    if (personnelId && params.personId === personnelId) {
+      return;
+    }
     throw new Error(
       "Seuls les responsables peuvent pointer le personnel.",
     );
@@ -881,11 +886,15 @@ async function performPersonnelCheckIn(
   personnel: NonNullable<Awaited<ReturnType<typeof findPersonnelByScan>>>,
   coords: AttendanceGeoCoords,
 ): Promise<AttendanceCheckInResult> {
-  const { branchId, session } = await requireBranchContext();
+  const { branchId, session, userId } = await requireBranchContext();
 
   const lookup = mapPersonnelLookup(personnel);
 
-  if (!canManageOrganization(session)) {
+  const myPersonnelId = await getPersonnelIdForUser(userId, branchId);
+  if (
+    !canManageOrganization(session) &&
+    myPersonnelId !== personnel.id
+  ) {
     return {
       ok: false,
       message: "Seuls les responsables peuvent pointer le personnel.",

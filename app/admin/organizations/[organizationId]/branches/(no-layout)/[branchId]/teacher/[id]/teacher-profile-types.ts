@@ -53,6 +53,22 @@ export type TeacherProfileMeeting = {
   upcoming: boolean;
 };
 
+export type TeacherProfileApplication = {
+  reference: string;
+  submittedAt: string;
+  yearsOfExperience: number | null;
+  assignmentYearLabels: string[];
+  desiredSubjects: string | null;
+  desiredLevels: string | null;
+  availability: string | null;
+  experienceSummary: string | null;
+  educationSummary: string | null;
+  skills: string | null;
+  motivation: string | null;
+  cvUrl: string;
+  coverLetterUrl: string;
+};
+
 export type TeacherProfileStats = {
   present: number;
   absent: number;
@@ -93,8 +109,12 @@ export type TeacherProfileData = {
   devoirsHref: string;
   attendanceHref: string;
   calendarHref: string;
+  branchType: string;
+  assignmentYearCount: number;
+  assignmentYearLabels: string[];
   courses: TeacherProfileCourse[];
   classes: TeacherProfileClass[];
+  application: TeacherProfileApplication | null;
   notes: TeacherProfileNote[];
   attendances: TeacherProfileAttendance[];
   meetings: TeacherProfileMeeting[];

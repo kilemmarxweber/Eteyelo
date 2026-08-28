@@ -13,6 +13,7 @@ import {
   configuredCoursIdsForClass,
   getConfiguredCoursIdsForClasse,
 } from "@/lib/course-ponderation";
+import { syncTeacherDossierExperienceYears } from "@/lib/teacher-assignment-years";
 
 const teachingInclude = {
   teacher: {
@@ -349,6 +350,10 @@ export const saveQuickAssignmentsAction = action.input(quickAssignmentSchema).ha
       ? prisma.teaching.update({ where: { id: current.id }, data: { teacherId: input.teacherId, statusTeaching: true, branchId }, select: { id: true, classeId: true, coursId: true, teacherId: true, schoolYearId: true, statusTeaching: true, titulaire: true, updatedAt: true } })
       : prisma.teaching.create({ data: { branchId, classeId: input.classeId, coursId, teacherId: input.teacherId, schoolYearId: schoolYear.id, statusTeaching: true }, select: { id: true, classeId: true, coursId: true, teacherId: true, schoolYearId: true, statusTeaching: true, titulaire: true, updatedAt: true } });
   }));
+  await syncTeacherDossierExperienceYears({
+    teacherId: input.teacherId,
+    branchId,
+  });
   revalidateTeachingPages(organizationId, branchId);
   return saved;
 });
@@ -386,7 +391,7 @@ export const removeQuickAssignmentsAction = action
         coursId: { in: input.coursIds },
         statusTeaching: { not: false },
       },
-      select: { id: true },
+      select: { id: true, teacherId: true },
     });
 
     if (teachings.length === 0) {
@@ -397,6 +402,19 @@ export const removeQuickAssignmentsAction = action
       where: { id: { in: teachings.map((t) => t.id) } },
       data: { statusTeaching: false },
     });
+
+    const teacherIds = [
+      ...new Set(
+        teachings
+          .map((item) => item.teacherId)
+          .filter((value): value is string => Boolean(value)),
+      ),
+    ];
+    await Promise.all(
+      teacherIds.map((teacherId) =>
+        syncTeacherDossierExperienceYears({ teacherId, branchId }),
+      ),
+    );
 
     revalidateTeachingPages(organizationId, branchId);
     return { removed: teachings.length, ids: teachings.map((t) => t.id) };
@@ -502,6 +520,7 @@ export const createTeachingAction = action
         },
       });
 
+      await syncTeacherDossierExperienceYears({ teacherId, branchId });
       revalidateTeachingPages(organizationId, branchId);
       return teaching;
     } catch (error: any) {
@@ -529,6 +548,10 @@ export const archiveTeachingAction = action
     const archivedTeaching = await prisma.teaching.update({
       where: { id },
       data: { statusTeaching: false },
+    });
+    await syncTeacherDossierExperienceYears({
+      teacherId: archivedTeaching.teacherId,
+      branchId,
     });
     revalidateTeachingPages(organizationId, branchId);
     return archivedTeaching;
@@ -567,6 +590,7 @@ export const updateTeachingAction = action
       },
     });
 
+    await syncTeacherDossierExperienceYears({ teacherId, branchId });
     revalidateTeachingPages(organizationId, branchId);
     return teaching;
   });

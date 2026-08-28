@@ -51,7 +51,28 @@ type ShortcutContext = {
   } | null;
 };
 
-/** CTA dashboard alignés sur la matrice menus (unit-00 §3 / unit-03b). */
+function myPresenceShortcuts(
+  href: (path: string) => string,
+  t: Translate,
+): DashboardShortcut[] {
+  return [
+    {
+      title: t("shortcuts.myCheckIn"),
+      description: t("shortcuts.myCheckInDesc"),
+      href: href("/ma-presence"),
+      color: "bg-teal-500",
+      iconKey: "attendance",
+    },
+    {
+      title: t("shortcuts.myAttendanceReport"),
+      description: t("shortcuts.myAttendanceReportDesc"),
+      href: href("/ma-presence"),
+      color: "bg-emerald-500",
+      iconKey: "chart",
+    },
+  ];
+}
+
 export function getDashboardShortcuts(
   variant: DashboardVariant,
   ctx: ShortcutContext,
@@ -65,6 +86,7 @@ export function getDashboardShortcuts(
   switch (variant) {
     case "directeur":
       return [
+        ...myPresenceShortcuts(href, t),
         {
           title: t("shortcuts.registration"),
           description: t("shortcuts.enrollStudents", { students }),
@@ -102,6 +124,7 @@ export function getDashboardShortcuts(
     case "directeur_etudes":
     case "prefet":
       return [
+        ...myPresenceShortcuts(href, t),
         {
           title: t("shortcuts.registration"),
           description: t("shortcuts.enrollStudents", { students }),
@@ -134,6 +157,7 @@ export function getDashboardShortcuts(
 
     case "teacher":
       return [
+        ...myPresenceShortcuts(href, t),
         {
           title: t("shortcuts.grades"),
           description: t("shortcuts.enterGrades"),
@@ -166,6 +190,7 @@ export function getDashboardShortcuts(
 
     case "caissier":
       return [
+        ...myPresenceShortcuts(href, t),
         {
           title: t("shortcuts.registration"),
           description: t("shortcuts.registerStudents", { students }),
@@ -270,6 +295,7 @@ export function getDashboardShortcuts(
     case "minimal":
     default:
       return [
+        ...myPresenceShortcuts(href, t),
         {
           title: t("shortcuts.help"),
           description: t("shortcuts.helpCenter"),

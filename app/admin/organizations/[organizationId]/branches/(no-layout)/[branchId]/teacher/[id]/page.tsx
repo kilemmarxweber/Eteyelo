@@ -20,6 +20,10 @@ import { getStaffBadgeAction } from "../../staff-badge.action";
 import { genererCreneaux } from "../components/type";
 import { TeacherProfileClient } from "./teacher-profile-client";
 import type { TeacherScheduleUI } from "./TeacherScheduleTable";
+import {
+  countTeacherClassAssignmentYears,
+  syncTeacherDossierExperienceYears,
+} from "@/lib/teacher-assignment-years";
 import type {
   TeacherAttendanceStatus,
   TeacherProfileClass,
@@ -142,6 +146,8 @@ const SingleTeacherPage = async ({
     fiches,
     assignmentCount,
     meetings,
+    jobApplication,
+    assignmentYears,
   ] = await Promise.all([
     firstClasseId
       ? prisma.creneau.findFirst({
@@ -242,7 +248,46 @@ const SingleTeacherPage = async ({
       orderBy: { dateStart: "desc" },
       take: 30,
     }),
+    prisma.jobApplication.findFirst({
+      where: {
+        branchId,
+        organizationId,
+        applicationType: "TEACHER",
+        OR: [
+          { teacherId: teacher.id },
+          ...(user?.email
+            ? [{ email: user.email.toLowerCase() }]
+            : []),
+        ],
+      },
+      orderBy: { createdAt: "desc" },
+      select: {
+        reference: true,
+        createdAt: true,
+        yearsOfExperience: true,
+        desiredSubjects: true,
+        desiredLevels: true,
+        availability: true,
+        experienceSummary: true,
+        educationSummary: true,
+        skills: true,
+        motivation: true,
+        cvUrl: true,
+        coverLetterUrl: true,
+      },
+    }),
+    countTeacherClassAssignmentYears({
+      teacherId: teacher.id,
+      branchId,
+    }),
   ]);
+
+  if (jobApplication) {
+    await syncTeacherDossierExperienceYears({
+      teacherId: teacher.id,
+      branchId,
+    });
+  }
 
   let heuresDebut: string[] = [];
   if (creneau) {
@@ -326,8 +371,31 @@ const SingleTeacherPage = async ({
     devoirsHref: `${baseHref}/devoirs?teacherId=${teacher.id}`,
     attendanceHref: `${baseHref}/attendance/teacher-attendance`,
     calendarHref: `${baseHref}/settings/calendar`,
+    branchType: typebranch ?? "",
+    assignmentYearCount: assignmentYears.count,
+    assignmentYearLabels: assignmentYears.yearLabels,
     courses,
     classes,
+    application: jobApplication
+      ? {
+          reference: jobApplication.reference,
+          submittedAt: jobApplication.createdAt.toISOString(),
+          yearsOfExperience: Math.max(
+            jobApplication.yearsOfExperience ?? 0,
+            assignmentYears.count,
+          ),
+          assignmentYearLabels: assignmentYears.yearLabels,
+          desiredSubjects: jobApplication.desiredSubjects,
+          desiredLevels: jobApplication.desiredLevels,
+          availability: jobApplication.availability,
+          experienceSummary: jobApplication.experienceSummary,
+          educationSummary: jobApplication.educationSummary,
+          skills: jobApplication.skills,
+          motivation: jobApplication.motivation,
+          cvUrl: jobApplication.cvUrl,
+          coverLetterUrl: jobApplication.coverLetterUrl,
+        }
+      : null,
     notes: fiches.map((fiche) => ({
       id: fiche.id,
       classId: fiche.classSectionId,
