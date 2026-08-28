@@ -7,6 +7,11 @@ import {
   getBranchCycles,
   type Cycle,
 } from "@/lib/cycle";
+import {
+  educationSystemLabel,
+  educationSystemShortLabel,
+  isEducationSystem,
+} from "@/lib/education-system";
 import { cn } from "@/lib/utils";
 
 export const CYCLE_BADGE_CLASS: Record<string, string> = {
@@ -18,6 +23,36 @@ export const CYCLE_BADGE_CLASS: Record<string, string> = {
     "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200",
   UNIVERSITE: "bg-violet-100 text-violet-800 dark:bg-violet-950 dark:text-violet-200",
 };
+
+const EDUCATION_SYSTEM_BADGE_CLASS: Record<string, string> = {
+  CONGOLAIS: "bg-sky-100 text-sky-800 dark:bg-sky-950 dark:text-sky-200",
+  ANGOLAIS: "bg-orange-100 text-orange-800 dark:bg-orange-950 dark:text-orange-200",
+  ANGLAIS: "bg-violet-100 text-violet-800 dark:bg-violet-950 dark:text-violet-200",
+};
+
+export function EducationSystemBadge({
+  educationSystem,
+  className,
+}: {
+  educationSystem?: unknown;
+  className?: string;
+}) {
+  if (!isEducationSystem(educationSystem)) return null;
+  const system = educationSystem;
+  return (
+    <Badge
+      variant="secondary"
+      title={educationSystemLabel(system)}
+      className={cn(
+        "shrink-0 rounded-full border-0 font-semibold",
+        EDUCATION_SYSTEM_BADGE_CLASS[system],
+        className,
+      )}
+    >
+      {educationSystemShortLabel(system)}
+    </Badge>
+  );
+}
 
 type BranchTypeBadgeProps = {
   typebranch: unknown;

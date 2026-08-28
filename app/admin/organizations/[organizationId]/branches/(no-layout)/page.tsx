@@ -16,7 +16,7 @@ import {
 import { isRestrictedGestionnaire } from "@/lib/auth/role-labels";
 import { prisma } from "@/lib/prisma";
 import { BranchCard } from "./branchCard";
-import { BranchTypeBadge } from "@/components/branch/branch-type-badge";
+import { BranchTypeBadge, EducationSystemBadge } from "@/components/branch/branch-type-badge";
 import {
   BranchMergeCardButton,
   BranchMergeHeaderButton,
@@ -38,6 +38,7 @@ async function getOrganizationBranches(organizationId: string) {
       name: true,
       description: true,
       typebranch: true,
+      educationSystem: true,
       cycles: {
         where: { isActive: true },
         select: { cycle: true, isActive: true, sortOrder: true },
@@ -73,6 +74,7 @@ async function getOrganizationBranches(organizationId: string) {
       name: branch.name,
       description: branch.description,
       typebranch: branch.typebranch,
+      educationSystem: branch.educationSystem,
       cycles: branch.cycles,
       isActive: branch.isActive,
       studentsCount: branch.branchemembers.reduce(
@@ -226,6 +228,10 @@ export default async function BranchesPage({ params }: BranchesPageProps) {
                         {branch.studentsCount} élève
                         {branch.studentsCount > 1 ? "s" : ""}
                       </span>
+                      <EducationSystemBadge
+                        educationSystem={branch.educationSystem}
+                        className="h-5 px-1.5 text-[10px]"
+                      />
                       <span
                         className={`shrink-0 rounded px-1.5 py-px text-[10px] font-semibold ${branch.isActive ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300" : "bg-muted text-muted-foreground"}`}
                       >

@@ -1,7 +1,7 @@
 "use client";
 
 import { BranchPageShell } from "@/components/layout/branch-page-shell";
-import { BranchTypeBadge } from "@/components/branch/branch-type-badge";
+import { BranchTypeBadge, EducationSystemBadge } from "@/components/branch/branch-type-badge";
 import { BranchLoadingFallback } from "@/components/branch-loading-fallback";
 import { useParams } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
@@ -171,9 +171,13 @@ export default function AdminDashboard() {
     }[];
   } | null>(null);
   const [typebranchState, setTypebranchState] = useState<string | null>(null);
+  const [educationSystemState, setEducationSystemState] = useState<string | null>(
+    null,
+  );
   const [cyclesState, setCyclesState] = useState<Cycle[] | null>(null);
 
   const typebranch = stats?.typebranch ?? typebranchState ?? null;
+  const educationSystem = educationSystemState;
   const peopleVariant = getPeopleVariant(typebranch);
   const peopleLabels = {
     student: tPeopleAll(`${peopleVariant}.student` as "school.student"),
@@ -228,6 +232,9 @@ export default function AdminDashboard() {
         setVariant(data.variant);
         setCanAccessFinance(Boolean(data.canAccessFinance));
         setTypebranchState(data.typebranch ?? null);
+        setEducationSystemState(
+          typeof data.educationSystem === "string" ? data.educationSystem : null,
+        );
         setCyclesState(
           Array.isArray(data.cycles) ? (data.cycles as Cycle[]) : null,
         );
@@ -481,11 +488,14 @@ export default function AdminDashboard() {
         title={t("title")}
         description={overviewDescription}
         badge={
-          <BranchTypeBadge
-            typebranch={typebranch}
-            cycles={resolvedCycles}
-            fullLabel
-          />
+          <span className="inline-flex flex-wrap items-center gap-1.5">
+            <BranchTypeBadge
+              typebranch={typebranch}
+              cycles={resolvedCycles}
+              fullLabel
+            />
+            <EducationSystemBadge educationSystem={educationSystem} />
+          </span>
         }
         contentClassName="space-y-4"
       >

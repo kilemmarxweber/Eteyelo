@@ -214,7 +214,12 @@ export async function getAdminStats({
         id: branchId,
         organizationId,
       },
-      select: { id: true, typebranch: true, cycles: BRANCH_CYCLE_SELECT },
+      select: {
+        id: true,
+        typebranch: true,
+        educationSystem: true,
+        cycles: BRANCH_CYCLE_SELECT,
+      },
     });
 
     if (!branch) {
@@ -1478,7 +1483,12 @@ export async function getBranchDashboardData(params: {
       id: params.branchId,
       organizationId: params.organizationId,
     },
-    select: { id: true, typebranch: true, cycles: BRANCH_CYCLE_SELECT },
+    select: {
+      id: true,
+      typebranch: true,
+      educationSystem: true,
+      cycles: BRANCH_CYCLE_SELECT,
+    },
   });
   if (!branch) {
     throw new Error("Branche introuvable dans cette organisation");
@@ -1488,6 +1498,7 @@ export async function getBranchDashboardData(params: {
   const branchId = params.branchId;
   const organizationId = params.organizationId;
   const typebranch = branch.typebranch;
+  const educationSystem = branch.educationSystem;
   const cycles = getBranchCycles(branch);
 
   const variant: DashboardVariant = resolveDashboardVariant(session);
@@ -1549,6 +1560,7 @@ export async function getBranchDashboardData(params: {
     canAccessFinance: canAccessFinanceArea(session),
     typebranch:
       (statsRecord.typebranch as string | null | undefined) ?? typebranch,
+    educationSystem,
     cycles:
       Array.isArray(statsRecord.cycles) && statsRecord.cycles.length > 0
         ? (statsRecord.cycles as typeof cycles)

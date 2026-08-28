@@ -56,6 +56,17 @@ export function educationSystemLabel(system: EducationSystem): string {
   }
 }
 
+export function educationSystemShortLabel(value: unknown): string {
+  switch (normalizeEducationSystem(value)) {
+    case "ANGOLAIS":
+      return "Angolais";
+    case "ANGLAIS":
+      return "Anglais";
+    default:
+      return "Congolais";
+  }
+}
+
 export function bulletinLocaleForEducationSystem(
   educationSystem: unknown,
 ): "fr" | "pt" | "en" {
