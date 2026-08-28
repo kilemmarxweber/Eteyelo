@@ -100,21 +100,26 @@ function formatBaseCell(amount: number, currency: ReceiptCurrency): string {
   )}`;
 }
 
-export function generateFacturePaymentStudentPDF({
-  invoiceNumber,
-  sender,
-  recipient,
-  items,
-  logoUrl = "",
-  exchangeRateUsdCdf = DEFAULT_EXCHANGE_RATE_USD_CDF,
-  issuedPlace,
-  receivedCurrency = "USD",
-  baseCurrency = "USD",
-  quoteCurrency,
-  selectedRate,
-  showConversion = true,
-  settlementStatus,
-}: FacturePaymentStudentData) {
+export function generateFacturePaymentStudentPDF(
+  data: FacturePaymentStudentData,
+  options?: { copies?: number },
+) {
+  const {
+    invoiceNumber,
+    sender,
+    recipient,
+    items,
+    logoUrl = "",
+    exchangeRateUsdCdf = DEFAULT_EXCHANGE_RATE_USD_CDF,
+    issuedPlace,
+    receivedCurrency = "USD",
+    baseCurrency = "USD",
+    quoteCurrency,
+    selectedRate,
+    showConversion = true,
+    settlementStatus,
+  } = data;
+  const copies = Math.max(1, Math.round(options?.copies ?? 2));
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
   const primaryColor = "#000000";
@@ -138,189 +143,187 @@ export function generateFacturePaymentStudentPDF({
     selectedRate,
   };
 
-  // --- LOGO À GAUCHE + NOM AU MÊME NIVEAU ---
-  const logoSize = 20;
-  const logoX = 14;
-  const logoY = 12;
-  let textX = logoX;
+  const drawCopy = () => {
+    const logoSize = 20;
+    const logoX = 14;
+    const logoY = 12;
+    let textX = logoX;
 
-  if (logoUrl) {
-    try {
-      doc.addImage(logoUrl, logoX, logoY, logoSize, logoSize);
-      textX = logoX + logoSize + 6;
-    } catch {
-      // Un logo invalide ne doit pas empêcher le téléchargement du reçu.
+    if (logoUrl) {
+      try {
+        doc.addImage(logoUrl, logoX, logoY, logoSize, logoSize);
+        textX = logoX + logoSize + 6;
+      } catch {
+        // Un logo invalide ne doit pas empêcher le téléchargement du reçu.
+      }
     }
-  }
 
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(13);
-  doc.setTextColor(primaryColor);
-  const nameY = logoY + logoSize / 2 + 1.5;
-  doc.text(schoolName, textX, nameY);
-  const textWidth = doc.getTextWidth(schoolName);
-  doc.setLineWidth(0.3);
-  doc.line(textX, nameY + 1.5, textX + textWidth, nameY + 1.5);
-
-  // --- INFOS FACTURE + PARENT ---
-  doc.setFontSize(9);
-  doc.setFont("helvetica", "normal");
-  doc.setTextColor(primaryColor);
-  doc.text(`Facture N°: ${invoiceNumber}`, 14, 40);
-  const overallStatus =
-    settlementStatus ?? resolveOverallReceiptSettlementStatus(items);
-  const statusLabel = formatReceiptSettlementStatus(overallStatus);
-  if (statusLabel) {
     doc.setFont("helvetica", "bold");
-    doc.text(`Statut : ${statusLabel}`, 14, 46);
+    doc.setFontSize(13);
+    doc.setTextColor(primaryColor);
+    const nameY = logoY + logoSize / 2 + 1.5;
+    doc.text(schoolName, textX, nameY);
+    const textWidth = doc.getTextWidth(schoolName);
+    doc.setLineWidth(0.3);
+    doc.line(textX, nameY + 1.5, textX + textWidth, nameY + 1.5);
+
+    doc.setFontSize(9);
     doc.setFont("helvetica", "normal");
-    doc.text(`Parent : ${recipient.name || "-"}`, 14, 52);
-  } else {
-    doc.text(`Parent : ${recipient.name || "-"}`, 14, 46);
+    doc.setTextColor(primaryColor);
+    doc.text(`Facture N°: ${invoiceNumber}`, 14, 40);
+    const overallStatus =
+      settlementStatus ?? resolveOverallReceiptSettlementStatus(items);
+    const statusLabel = formatReceiptSettlementStatus(overallStatus);
+    if (statusLabel) {
+      doc.setFont("helvetica", "bold");
+      doc.text(`Statut : ${statusLabel}`, 14, 46);
+      doc.setFont("helvetica", "normal");
+      doc.text(`Parent : ${recipient.name || "-"}`, 14, 52);
+    } else {
+      doc.text(`Parent : ${recipient.name || "-"}`, 14, 46);
+    }
+
+    const startY = statusLabel ? 58 : 52;
+    const head = showSecondaryColumn
+      ? [
+          [
+            "Description",
+            "Mode",
+            "Cycle / Classe",
+            `Mnt a payer ${base}`,
+            `Mnt payer ${base}`,
+            `Mnt ${secondary}`,
+            "Statut",
+          ],
+        ]
+      : [
+          [
+            "Description",
+            "Mode",
+            "Cycle / Classe",
+            `Mnt a payer ${base}`,
+            `Mnt payer ${base}`,
+            "Statut",
+          ],
+        ];
+
+    autoTable(doc, {
+      startY,
+      margin: { left: 14, right: 14 },
+      theme: "plain",
+      styles: { fontSize: 5, cellPadding: 4, textColor: "#000" },
+      headStyles: {
+        fillColor: [0, 0, 0],
+        textColor: [255, 255, 255],
+        fontStyle: "bold",
+      },
+      columnStyles: showSecondaryColumn
+        ? {
+            0: { cellWidth: 44 },
+            1: { halign: "right", cellWidth: 20 },
+            2: { cellWidth: 30 },
+            3: { halign: "right", cellWidth: 22 },
+            4: { halign: "right", cellWidth: 22 },
+            5: { halign: "right", cellWidth: 20 },
+            6: { cellWidth: 22 },
+          }
+        : {
+            0: { cellWidth: 52 },
+            1: { halign: "right", cellWidth: 24 },
+            2: { cellWidth: 35 },
+            3: { halign: "right", cellWidth: 26 },
+            4: { halign: "right", cellWidth: 26 },
+            5: { cellWidth: 24 },
+          },
+      head,
+      body: items.map((item) => {
+        const row = [
+          item.description,
+          formatModePaiementLabel(item.mode ?? item.statut),
+          formatReceiptClasseCode(item),
+          formatBaseCell(item.price, base),
+          formatBaseCell(item.montant, base),
+        ];
+        if (showSecondaryColumn && secondary) {
+          const secondaryAmount = resolveItemSecondaryAmount(
+            item,
+            secondary,
+            secondaryOpts,
+          );
+          row.push(formatReceiptCurrency(secondaryAmount, secondary));
+        }
+        row.push(receiptItemStatusLabel(item));
+        return row;
+      }),
+      didDrawCell: (cellData) => {
+        if (cellData.section === "body" || cellData.section === "head") {
+          const x = cellData.cell.x;
+          const y = cellData.cell.y;
+          const height = cellData.cell.height;
+          if (cellData.column.index !== cellData.table.columns.length - 1) {
+            doc.setDrawColor(0);
+            doc.setLineWidth(0.1);
+            doc.line(x + cellData.cell.width, y, x + cellData.cell.width, y + height);
+          }
+        }
+      },
+    });
+
+    const yAfterTable = (doc as any).lastAutoTable.finalY + 5;
+    const totalBase = sumReceiptBase(items);
+    const totalSecondary =
+      showSecondaryColumn && secondary
+        ? sumReceiptSecondary(items, secondary, secondaryOpts)
+        : 0;
+    const tableRightX = showSecondaryColumn
+      ? 14 + 44 + 20 + 30 + 22 + 22 + 20
+      : 14 + 52 + 24 + 35 + 26 + 26;
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9);
+    doc.text(`Total ${base} :`, tableRightX - 45, yAfterTable);
+    doc.text(formatReceiptCurrency(totalBase, base), tableRightX, yAfterTable, {
+      align: "right",
+    });
+
+    let nextY = yAfterTable + 6;
+    if (showSecondaryColumn && secondary) {
+      doc.text(`Total ${secondary} :`, tableRightX - 45, nextY);
+      doc.text(
+        formatReceiptCurrency(totalSecondary, secondary),
+        tableRightX,
+        nextY,
+        { align: "right" },
+      );
+      nextY += 6;
+    }
+
+    const currentDate = new Date().toLocaleDateString("fr-FR");
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+    const issuedLine = placeLabel
+      ? `Fait à ${placeLabel}, le ${currentDate}`
+      : `Fait le ${currentDate}`;
+    doc.text(issuedLine, tableRightX, nextY + 6, {
+      align: "right",
+    });
+
+    doc.setFont("helvetica", "bold");
+    doc.text("", tableRightX, nextY + 14, { align: "right" });
+
+    doc.setLineWidth(0.3);
+    doc.line(tableRightX - 45, nextY + 16, tableRightX, nextY + 16);
+
+    doc.setDrawColor(0);
+    doc.setLineWidth(0.3);
+    doc.rect(10, 10, pageWidth - 20, nextY + 23 - 10);
+  };
+
+  for (let copy = 0; copy < copies; copy++) {
+    if (copy > 0) doc.addPage();
+    drawCopy();
   }
 
-  // --- TABLEAU DES ARTICLES ---
-  const startY = statusLabel ? 58 : 52;
-  const head = showSecondaryColumn
-    ? [
-        [
-          "Description",
-          "Mode",
-          "Cycle / Classe",
-          `Mnt a payer ${base}`,
-          `Mnt payer ${base}`,
-          `Mnt ${secondary}`,
-          "Statut",
-        ],
-      ]
-    : [
-        [
-          "Description",
-          "Mode",
-          "Cycle / Classe",
-          `Mnt a payer ${base}`,
-          `Mnt payer ${base}`,
-          "Statut",
-        ],
-      ];
-
-  autoTable(doc, {
-    startY,
-    margin: { left: 14, right: 14 },
-    theme: "plain",
-    styles: { fontSize: 5, cellPadding: 4, textColor: "#000" },
-    headStyles: {
-      fillColor: [0, 0, 0],
-      textColor: [255, 255, 255],
-      fontStyle: "bold",
-    },
-    columnStyles: showSecondaryColumn
-      ? {
-          0: { cellWidth: 44 },
-          1: { halign: "right", cellWidth: 20 },
-          2: { cellWidth: 30 },
-          3: { halign: "right", cellWidth: 22 },
-          4: { halign: "right", cellWidth: 22 },
-          5: { halign: "right", cellWidth: 20 },
-          6: { cellWidth: 22 },
-        }
-      : {
-          0: { cellWidth: 52 },
-          1: { halign: "right", cellWidth: 24 },
-          2: { cellWidth: 35 },
-          3: { halign: "right", cellWidth: 26 },
-          4: { halign: "right", cellWidth: 26 },
-          5: { cellWidth: 24 },
-        },
-    head,
-    body: items.map((item) => {
-      const row = [
-        item.description,
-        formatModePaiementLabel(item.mode ?? item.statut),
-        formatReceiptClasseCode(item),
-        formatBaseCell(item.price, base),
-        formatBaseCell(item.montant, base),
-      ];
-      if (showSecondaryColumn && secondary) {
-        const secondaryAmount = resolveItemSecondaryAmount(
-          item,
-          secondary,
-          secondaryOpts,
-        );
-        row.push(formatReceiptCurrency(secondaryAmount, secondary));
-      }
-      row.push(receiptItemStatusLabel(item));
-      return row;
-    }),
-    didDrawCell: (data) => {
-      if (data.section === "body" || data.section === "head") {
-        const x = data.cell.x;
-        const y = data.cell.y;
-        const height = data.cell.height;
-        if (data.column.index !== data.table.columns.length - 1) {
-          doc.setDrawColor(0);
-          doc.setLineWidth(0.1);
-          doc.line(x + data.cell.width, y, x + data.cell.width, y + height);
-        }
-      }
-    },
-  });
-
-  const yAfterTable = (doc as any).lastAutoTable.finalY + 5;
-
-  // --- TOTALS ---
-  const totalBase = sumReceiptBase(items);
-  const totalSecondary =
-    showSecondaryColumn && secondary
-      ? sumReceiptSecondary(items, secondary, secondaryOpts)
-      : 0;
-  const tableRightX = showSecondaryColumn
-    ? 14 + 44 + 20 + 30 + 22 + 22 + 20
-    : 14 + 52 + 24 + 35 + 26 + 26;
-
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(9);
-  doc.text(`Total ${base} :`, tableRightX - 45, yAfterTable);
-  doc.text(formatReceiptCurrency(totalBase, base), tableRightX, yAfterTable, {
-    align: "right",
-  });
-
-  let nextY = yAfterTable + 6;
-  if (showSecondaryColumn && secondary) {
-    doc.text(`Total ${secondary} :`, tableRightX - 45, nextY);
-    doc.text(
-      formatReceiptCurrency(totalSecondary, secondary),
-      tableRightX,
-      nextY,
-      { align: "right" },
-    );
-    nextY += 6;
-  }
-
-  // --- LIEU + DATE (aligné avec tableau) ---
-  const currentDate = new Date().toLocaleDateString("fr-FR");
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(9);
-  const issuedLine = placeLabel
-    ? `Fait à ${placeLabel}, le ${currentDate}`
-    : `Fait le ${currentDate}`;
-  doc.text(issuedLine, tableRightX, nextY + 6, {
-    align: "right",
-  });
-
-  // --- VÉRIFICATEUR ALIGNÉ ---
-  doc.setFont("helvetica", "bold");
-  doc.text("", tableRightX, nextY + 14, { align: "right" });
-
-  doc.setLineWidth(0.3);
-  doc.line(tableRightX - 45, nextY + 16, tableRightX, nextY + 16);
-
-  // --- CADRE GLOBAL ---
-  doc.setDrawColor(0);
-  doc.setLineWidth(0.3);
-  doc.rect(10, 10, pageWidth - 20, nextY + 23 - 10);
-
-  // --- SAUVEGARDE ---
   doc.save(`facture-${invoiceNumber}.pdf`);
 }
 

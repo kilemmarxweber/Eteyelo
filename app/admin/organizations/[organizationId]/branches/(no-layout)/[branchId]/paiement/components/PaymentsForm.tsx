@@ -1267,6 +1267,8 @@ export default function PaymentsForm({
       open={receiptDialogOpen}
       onOpenChange={setReceiptDialogOpen}
       data={receiptData}
+      autoPrint
+      printCopies={2}
       title={t("receiptTitle")}
       description={
         receiptData

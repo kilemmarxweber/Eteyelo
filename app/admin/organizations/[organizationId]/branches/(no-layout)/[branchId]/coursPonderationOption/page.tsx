@@ -151,22 +151,15 @@ export default function CoursPonderationOptionPage() {
       const byTarget = ponderationTargets.map(({ optionId, level }) =>
         map.get(`${optionId}:${course.id}:${level}`),
       );
-      const inherited = map.get(
-        `${activeOptionId}:${course.id}:${DEFAULT_PONDERATION_LEVEL}`,
-      );
       const specifics = byTarget.filter(Boolean);
       const configured =
         ponderationTargets.length > 0 &&
         specifics.length === ponderationTargets.length;
-      const ponderation = specifics[0] ?? inherited;
+      const ponderation = specifics[0];
       return {
         course,
         ponderation,
         configured,
-        inherited:
-          Boolean(inherited) &&
-          specifics.length === 0 &&
-          activeLevels[0] !== DEFAULT_PONDERATION_LEVEL,
       };
     });
     const filtered = values.filter(({ course, configured }) => {
@@ -184,7 +177,7 @@ export default function CoursPonderationOptionPage() {
           (a.ponderation?.ponderation ?? -1)
         : a.course.nameCours.localeCompare(b.course.nameCours),
     );
-  }, [data, map, search, ponderationTargets, activeOptionId, activeLevels, sort, status]);
+  }, [data, map, search, ponderationTargets, sort, status]);
 
   const configured =
     data?.cours.filter((course) =>
@@ -775,7 +768,7 @@ export default function CoursPonderationOptionPage() {
                 </tr>
               </thead>
               <tbody>
-                {rows.map(({ course, ponderation, configured, inherited }) => (
+                {rows.map(({ course, ponderation, configured }) => (
                   <PonderationRow
                     key={course.id}
                     course={course}
@@ -797,7 +790,6 @@ export default function CoursPonderationOptionPage() {
                     }
                     ponderation={ponderation}
                     configured={configured}
-                    inherited={inherited}
                     saving={savingId === course.id}
                     onSave={save}
                     onCancel={cancel}
@@ -808,13 +800,12 @@ export default function CoursPonderationOptionPage() {
           </div>
 
           <div className="grid gap-3 p-3 md:hidden">
-            {rows.map(({ course, ponderation, configured, inherited }) => (
+            {rows.map(({ course, ponderation, configured }) => (
               <PonderationCard
                 key={course.id}
                 course={course}
                 ponderation={ponderation}
                 configured={configured}
-                inherited={inherited}
                 saving={savingId === course.id}
                 onSave={save}
                 onCancel={cancel}
@@ -937,7 +928,6 @@ function PonderationRow({
   classesLabel: classesLabelProp,
   ponderation,
   configured,
-  inherited,
   saving,
   onSave,
   onCancel,
@@ -948,7 +938,6 @@ function PonderationRow({
   classesLabel?: string;
   ponderation?: Ponderation;
   configured: boolean;
-  inherited: boolean;
   saving: boolean;
   onSave: (id: string, value: number) => void;
   onCancel: (id: string) => void;
@@ -995,10 +984,8 @@ function PonderationRow({
         />
       </td>
       <td className="px-3 py-2 align-middle whitespace-nowrap">
-        <Badge
-          variant={configured ? "success" : inherited ? "secondary" : "warning"}
-        >
-          {configured ? "Configuré" : inherited ? "Héritée" : "Manquant"}
+        <Badge variant={configured ? "success" : "warning"}>
+          {configured ? "Configuré" : "Manquant"}
         </Badge>
       </td>
       <td className="px-3 py-2 align-middle whitespace-nowrap text-muted-foreground">
@@ -1020,7 +1007,6 @@ function PonderationCard({
   course,
   ponderation,
   configured,
-  inherited,
   saving,
   onSave,
   onCancel,
@@ -1028,7 +1014,6 @@ function PonderationCard({
   course: CourseRow;
   ponderation?: Ponderation;
   configured: boolean;
-  inherited: boolean;
   saving: boolean;
   onSave: (id: string, value: number) => void;
   onCancel: (id: string) => void;
@@ -1040,10 +1025,8 @@ function PonderationCard({
           <p className="truncate font-medium">{course.nameCours}</p>
           <p className="text-xs text-muted-foreground">{course.codeCours}</p>
         </div>
-        <Badge
-          variant={configured ? "success" : inherited ? "secondary" : "warning"}
-        >
-          {configured ? "Configuré" : inherited ? "Héritée" : "Manquant"}
+        <Badge variant={configured ? "success" : "warning"}>
+          {configured ? "Configuré" : "Manquant"}
         </Badge>
       </div>
       <WeightEditor

@@ -41,7 +41,13 @@ export type ReceiptPreviewDialogProps = {
   /** Bandeau optionnel (ex. succès post-paiement). */
   banner?: React.ReactNode;
   issuedAt?: Date;
+  /** Lance l'impression dès l'ouverture (après validation du paiement). */
+  autoPrint?: boolean;
+  /** Nombre d'exemplaires à imprimer (2 par défaut : parent + établissement). */
+  printCopies?: number;
 };
+
+const DEFAULT_PRINT_COPIES = 2;
 
 async function waitForImages(root: HTMLElement) {
   const images = Array.from(root.querySelectorAll("img"));
@@ -122,11 +128,15 @@ export function ReceiptPreviewDialog({
   description,
   banner,
   issuedAt,
+  autoPrint = false,
+  printCopies = DEFAULT_PRINT_COPIES,
 }: ReceiptPreviewDialogProps) {
   const [mounted, setMounted] = React.useState(false);
   const [downloading, setDownloading] = React.useState(false);
   const [printing, setPrinting] = React.useState(false);
   const captureRef = React.useRef<HTMLDivElement>(null);
+  const autoPrintedRef = React.useRef<string | null>(null);
+  const copies = Math.max(1, Math.round(printCopies));
 
   React.useEffect(() => {
     setMounted(true);
@@ -152,23 +162,49 @@ export function ReceiptPreviewDialog({
   }
 
   async function handlePrint() {
-    if (!data || !captureRef.current) return;
+    if (!data) return;
 
     setPrinting(true);
     try {
+      let tries = 0;
+      while (!captureRef.current && tries < 25) {
+        await new Promise((resolve) => setTimeout(resolve, 80));
+        tries += 1;
+      }
+
       const capture = await captureReceiptImage();
       if (!capture) return;
 
       const { dataUrl, width, height } = capture;
-      const printWindow = window.open("", "_blank", "width=900,height=1100");
+      const copiesHtml = Array.from({ length: copies }, (_, index) => `
+        <section class="copy">
+          <img src="${dataUrl}" alt="Reçu de paiement ${index + 1}/${copies}" />
+        </section>
+      `).join("");
 
-      if (!printWindow) {
+      const iframe = document.createElement("iframe");
+      iframe.setAttribute("aria-hidden", "true");
+      iframe.style.position = "fixed";
+      iframe.style.right = "0";
+      iframe.style.bottom = "0";
+      iframe.style.width = "0";
+      iframe.style.height = "0";
+      iframe.style.border = "0";
+      document.body.appendChild(iframe);
+
+      const frameWindow = iframe.contentWindow;
+      if (!frameWindow) {
+        iframe.remove();
         toast.error("Impossible d'ouvrir la fenêtre d'impression.");
         return;
       }
 
-      printWindow.document.open();
-      printWindow.document.write(`<!DOCTYPE html>
+      const cleanup = () => {
+        iframe.remove();
+      };
+
+      frameWindow.document.open();
+      frameWindow.document.write(`<!DOCTYPE html>
 <html lang="fr">
   <head>
     <meta charset="utf-8" />
@@ -186,12 +222,17 @@ export function ReceiptPreviewDialog({
         padding: 0;
         background: #ffffff;
       }
-      body {
-        min-height: 100vh;
+      .copy {
         display: flex;
         align-items: flex-start;
         justify-content: center;
         padding: 8mm;
+        page-break-after: always;
+        break-after: page;
+      }
+      .copy:last-child {
+        page-break-after: auto;
+        break-after: auto;
       }
       img {
         display: block;
@@ -201,36 +242,51 @@ export function ReceiptPreviewDialog({
         object-fit: contain;
       }
       @media print {
-        body {
-          min-height: auto;
+        .copy {
           padding: 0;
         }
         img {
-          width: ${width}px;
-          height: ${height}px;
           page-break-inside: avoid;
         }
       }
     </style>
   </head>
   <body>
-    <img id="receipt-print" src="${dataUrl}" alt="Reçu de paiement" />
+    ${copiesHtml}
     <script>
-      const image = document.getElementById("receipt-print");
       function launchPrint() {
         window.focus();
         window.print();
       }
-      image.addEventListener("load", launchPrint);
-      if (image.complete) launchPrint();
-      window.addEventListener("afterprint", function () {
-        window.close();
-      });
+      const images = Array.from(document.images);
+      let remaining = images.length;
+      function onReady() {
+        remaining -= 1;
+        if (remaining <= 0) launchPrint();
+      }
+      if (!images.length) {
+        launchPrint();
+      } else {
+        images.forEach(function (image) {
+          if (image.complete) {
+            onReady();
+            return;
+          }
+          image.addEventListener("load", onReady);
+          image.addEventListener("error", onReady);
+        });
+      }
     </script>
   </body>
 </html>`);
-      printWindow.document.close();
-      toast.success("Impression du reçu lancée.");
+      frameWindow.document.close();
+      frameWindow.addEventListener("afterprint", cleanup);
+      window.setTimeout(cleanup, 60_000);
+      toast.success(
+        copies > 1
+          ? `Impression de ${copies} reçus lancée.`
+          : "Impression du reçu lancée.",
+      );
     } catch (error) {
       console.error("Receipt print failed:", error);
       toast.error("Impossible d'imprimer le reçu.");
@@ -239,6 +295,17 @@ export function ReceiptPreviewDialog({
     }
   }
 
+  React.useEffect(() => {
+    if (!open || !autoPrint || !data || !mounted) return;
+    const invoiceNumber = data.invoiceNumber;
+    if (autoPrintedRef.current === invoiceNumber) return;
+    const timer = window.setTimeout(() => {
+      autoPrintedRef.current = invoiceNumber;
+      void handlePrint();
+    }, 600);
+    return () => window.clearTimeout(timer);
+  }, [open, autoPrint, data?.invoiceNumber, mounted, copies]);
+
   const handleDownloadPdf = async () => {
     if (!data) return;
     setDownloading(true);
@@ -246,10 +313,13 @@ export function ReceiptPreviewDialog({
       const logoDataUrl = data.logoUrl
         ? await imageUrlToDataUrl(data.logoUrl)
         : null;
-      generateFacturePaymentStudentPDF({
-        ...data,
-        logoUrl: logoDataUrl ?? "",
-      });
+      generateFacturePaymentStudentPDF(
+        {
+          ...data,
+          logoUrl: logoDataUrl ?? "",
+        },
+        { copies },
+      );
       toast.success("Reçu PDF généré avec succès");
     } catch {
       toast.error("Impossible de générer le PDF du reçu");
@@ -283,7 +353,7 @@ export function ReceiptPreviewDialog({
                 onClick={() => void handlePrint()}
               >
                 <Printer data-icon="inline-start" />
-                {printing ? "Préparation..." : "Imprimer"}
+                {printing ? "Préparation..." : copies > 1 ? `Imprimer (${copies})` : "Imprimer"}
               </Button>
               <Button
                 type="button"
