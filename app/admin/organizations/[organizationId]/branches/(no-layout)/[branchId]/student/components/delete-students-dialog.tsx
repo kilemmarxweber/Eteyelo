@@ -32,7 +32,7 @@ interface DeleteStudentsDialogProps extends React.ComponentPropsWithoutRef<
   showTrigger?: boolean;
   onSuccess?: () => void;
   students: Row<IStudent>["original"][];
-  /** Si true : suppression définitive (propriétaire uniquement). */
+  /** Si true : retire de la branche (garde le membre org). */
   permanent?: boolean;
 }
 
@@ -77,8 +77,8 @@ export function DeleteStudentsDialog({
         toast.success(
           permanent
             ? students.length === 1
-              ? `${peopleLabels.student} supprimé`
-              : `${peopleLabels.studentPlural} supprimés`
+              ? `${peopleLabels.student} désactivé dans la branche`
+              : `${peopleLabels.studentPlural} désactivés dans la branche`
             : students.length === 1
               ? `${peopleLabels.student} archivé`
               : `${peopleLabels.studentPlural} archivés`,
@@ -111,8 +111,8 @@ export function DeleteStudentsDialog({
           <DialogTitle>
             {permanent
               ? count === 1
-                ? `Supprimer définitivement ${peopleLabels.studentLower} ?`
-                : `Supprimer définitivement ${count} ${peopleLabels.studentPluralLower} ?`
+                ? `Désactiver ${peopleLabels.studentLower} dans cette branche ?`
+                : `Désactiver ${count} ${peopleLabels.studentPluralLower} dans cette branche ?`
               : count === 1
                 ? peopleLabels.archiveTitle
                 : `Archiver ${count} ${peopleLabels.studentPluralLower} ?`}
@@ -120,8 +120,8 @@ export function DeleteStudentsDialog({
           <DialogDescription>
             {permanent
               ? count === 1
-                ? "Cette action est irréversible : présences, notes, inscriptions, paiements liés et le compte seront effacés."
-                : "Cette action est irréversible : toutes les données liées et les comptes seront effacés."
+                ? "Il ne sera plus visible dans cette branche, mais restera membre de l'organisation. Présences, notes et inscriptions restent pour les rapports. Ses autres branches ne sont pas affectées."
+                : "Ils ne seront plus visibles dans cette branche, mais resteront membres de l'organisation. L'historique est conservé pour les rapports."
               : count === 1
                 ? peopleLabels.archiveDescriptionSingular
                 : peopleLabels.archiveDescriptionPlural}
@@ -133,7 +133,7 @@ export function DeleteStudentsDialog({
           </DialogClose>
           <Button
             aria-label={
-              permanent ? "Supprimer définitivement" : "Archiver la sélection"
+              permanent ? "Désactiver dans la branche" : "Archiver la sélection"
             }
             variant={permanent ? "destructive" : "outline"}
             onClick={handleConfirm}
@@ -145,7 +145,7 @@ export function DeleteStudentsDialog({
                 aria-hidden="true"
               />
             )}
-            {permanent ? "Supprimer définitivement" : "Archiver"}
+            {permanent ? "Désactiver" : "Archiver"}
           </Button>
         </DialogFooter>
       </DialogContent>

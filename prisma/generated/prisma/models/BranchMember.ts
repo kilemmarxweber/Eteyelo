@@ -29,6 +29,8 @@ export type BranchMemberMinAggregateOutputType = {
   branchId: string | null
   memberId: string | null
   role: $Enums.BranchRole | null
+  isActive: boolean | null
+  deactivatedAt: Date | null
   createdAt: Date | null
 }
 
@@ -37,6 +39,8 @@ export type BranchMemberMaxAggregateOutputType = {
   branchId: string | null
   memberId: string | null
   role: $Enums.BranchRole | null
+  isActive: boolean | null
+  deactivatedAt: Date | null
   createdAt: Date | null
 }
 
@@ -45,6 +49,8 @@ export type BranchMemberCountAggregateOutputType = {
   branchId: number
   memberId: number
   role: number
+  isActive: number
+  deactivatedAt: number
   createdAt: number
   _all: number
 }
@@ -55,6 +61,8 @@ export type BranchMemberMinAggregateInputType = {
   branchId?: true
   memberId?: true
   role?: true
+  isActive?: true
+  deactivatedAt?: true
   createdAt?: true
 }
 
@@ -63,6 +71,8 @@ export type BranchMemberMaxAggregateInputType = {
   branchId?: true
   memberId?: true
   role?: true
+  isActive?: true
+  deactivatedAt?: true
   createdAt?: true
 }
 
@@ -71,6 +81,8 @@ export type BranchMemberCountAggregateInputType = {
   branchId?: true
   memberId?: true
   role?: true
+  isActive?: true
+  deactivatedAt?: true
   createdAt?: true
   _all?: true
 }
@@ -152,6 +164,8 @@ export type BranchMemberGroupByOutputType = {
   branchId: string
   memberId: string
   role: $Enums.BranchRole
+  isActive: boolean
+  deactivatedAt: Date | null
   createdAt: Date
   _count: BranchMemberCountAggregateOutputType | null
   _min: BranchMemberMinAggregateOutputType | null
@@ -181,6 +195,8 @@ export type BranchMemberWhereInput = {
   branchId?: Prisma.StringFilter<"BranchMember"> | string
   memberId?: Prisma.StringFilter<"BranchMember"> | string
   role?: Prisma.EnumBranchRoleFilter<"BranchMember"> | $Enums.BranchRole
+  isActive?: Prisma.BoolFilter<"BranchMember"> | boolean
+  deactivatedAt?: Prisma.DateTimeNullableFilter<"BranchMember"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"BranchMember"> | Date | string
   teacher?: Prisma.TeacherListRelationFilter
   parent?: Prisma.ParentListRelationFilter
@@ -196,6 +212,8 @@ export type BranchMemberOrderByWithRelationInput = {
   branchId?: Prisma.SortOrder
   memberId?: Prisma.SortOrder
   role?: Prisma.SortOrder
+  isActive?: Prisma.SortOrder
+  deactivatedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   teacher?: Prisma.TeacherOrderByRelationAggregateInput
   parent?: Prisma.ParentOrderByRelationAggregateInput
@@ -215,6 +233,8 @@ export type BranchMemberWhereUniqueInput = Prisma.AtLeast<{
   branchId?: Prisma.StringFilter<"BranchMember"> | string
   memberId?: Prisma.StringFilter<"BranchMember"> | string
   role?: Prisma.EnumBranchRoleFilter<"BranchMember"> | $Enums.BranchRole
+  isActive?: Prisma.BoolFilter<"BranchMember"> | boolean
+  deactivatedAt?: Prisma.DateTimeNullableFilter<"BranchMember"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"BranchMember"> | Date | string
   teacher?: Prisma.TeacherListRelationFilter
   parent?: Prisma.ParentListRelationFilter
@@ -230,6 +250,8 @@ export type BranchMemberOrderByWithAggregationInput = {
   branchId?: Prisma.SortOrder
   memberId?: Prisma.SortOrder
   role?: Prisma.SortOrder
+  isActive?: Prisma.SortOrder
+  deactivatedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   _count?: Prisma.BranchMemberCountOrderByAggregateInput
   _max?: Prisma.BranchMemberMaxOrderByAggregateInput
@@ -244,12 +266,16 @@ export type BranchMemberScalarWhereWithAggregatesInput = {
   branchId?: Prisma.StringWithAggregatesFilter<"BranchMember"> | string
   memberId?: Prisma.StringWithAggregatesFilter<"BranchMember"> | string
   role?: Prisma.EnumBranchRoleWithAggregatesFilter<"BranchMember"> | $Enums.BranchRole
+  isActive?: Prisma.BoolWithAggregatesFilter<"BranchMember"> | boolean
+  deactivatedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"BranchMember"> | Date | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"BranchMember"> | Date | string
 }
 
 export type BranchMemberCreateInput = {
   id?: string
   role: $Enums.BranchRole
+  isActive?: boolean
+  deactivatedAt?: Date | string | null
   createdAt?: Date | string
   teacher?: Prisma.TeacherCreateNestedManyWithoutBranchMemberInput
   parent?: Prisma.ParentCreateNestedManyWithoutBranchMemberInput
@@ -265,6 +291,8 @@ export type BranchMemberUncheckedCreateInput = {
   branchId: string
   memberId: string
   role: $Enums.BranchRole
+  isActive?: boolean
+  deactivatedAt?: Date | string | null
   createdAt?: Date | string
   teacher?: Prisma.TeacherUncheckedCreateNestedManyWithoutBranchMemberInput
   parent?: Prisma.ParentUncheckedCreateNestedManyWithoutBranchMemberInput
@@ -276,6 +304,8 @@ export type BranchMemberUncheckedCreateInput = {
 export type BranchMemberUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumBranchRoleFieldUpdateOperationsInput | $Enums.BranchRole
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   teacher?: Prisma.TeacherUpdateManyWithoutBranchMemberNestedInput
   parent?: Prisma.ParentUpdateManyWithoutBranchMemberNestedInput
@@ -291,6 +321,8 @@ export type BranchMemberUncheckedUpdateInput = {
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
   memberId?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumBranchRoleFieldUpdateOperationsInput | $Enums.BranchRole
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   teacher?: Prisma.TeacherUncheckedUpdateManyWithoutBranchMemberNestedInput
   parent?: Prisma.ParentUncheckedUpdateManyWithoutBranchMemberNestedInput
@@ -304,12 +336,16 @@ export type BranchMemberCreateManyInput = {
   branchId: string
   memberId: string
   role: $Enums.BranchRole
+  isActive?: boolean
+  deactivatedAt?: Date | string | null
   createdAt?: Date | string
 }
 
 export type BranchMemberUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumBranchRoleFieldUpdateOperationsInput | $Enums.BranchRole
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -318,6 +354,8 @@ export type BranchMemberUncheckedUpdateManyInput = {
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
   memberId?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumBranchRoleFieldUpdateOperationsInput | $Enums.BranchRole
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -351,6 +389,8 @@ export type BranchMemberCountOrderByAggregateInput = {
   branchId?: Prisma.SortOrder
   memberId?: Prisma.SortOrder
   role?: Prisma.SortOrder
+  isActive?: Prisma.SortOrder
+  deactivatedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
@@ -359,6 +399,8 @@ export type BranchMemberMaxOrderByAggregateInput = {
   branchId?: Prisma.SortOrder
   memberId?: Prisma.SortOrder
   role?: Prisma.SortOrder
+  isActive?: Prisma.SortOrder
+  deactivatedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
@@ -367,6 +409,8 @@ export type BranchMemberMinOrderByAggregateInput = {
   branchId?: Prisma.SortOrder
   memberId?: Prisma.SortOrder
   role?: Prisma.SortOrder
+  isActive?: Prisma.SortOrder
+  deactivatedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
@@ -539,6 +583,8 @@ export type EnumBranchRoleFieldUpdateOperationsInput = {
 export type BranchMemberCreateWithoutParentInput = {
   id?: string
   role: $Enums.BranchRole
+  isActive?: boolean
+  deactivatedAt?: Date | string | null
   createdAt?: Date | string
   teacher?: Prisma.TeacherCreateNestedManyWithoutBranchMemberInput
   schedule?: Prisma.ScheduleCreateNestedManyWithoutBranchMemberInput
@@ -553,6 +599,8 @@ export type BranchMemberUncheckedCreateWithoutParentInput = {
   branchId: string
   memberId: string
   role: $Enums.BranchRole
+  isActive?: boolean
+  deactivatedAt?: Date | string | null
   createdAt?: Date | string
   teacher?: Prisma.TeacherUncheckedCreateNestedManyWithoutBranchMemberInput
   schedule?: Prisma.ScheduleUncheckedCreateNestedManyWithoutBranchMemberInput
@@ -579,6 +627,8 @@ export type BranchMemberUpdateToOneWithWhereWithoutParentInput = {
 export type BranchMemberUpdateWithoutParentInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumBranchRoleFieldUpdateOperationsInput | $Enums.BranchRole
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   teacher?: Prisma.TeacherUpdateManyWithoutBranchMemberNestedInput
   schedule?: Prisma.ScheduleUpdateManyWithoutBranchMemberNestedInput
@@ -593,6 +643,8 @@ export type BranchMemberUncheckedUpdateWithoutParentInput = {
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
   memberId?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumBranchRoleFieldUpdateOperationsInput | $Enums.BranchRole
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   teacher?: Prisma.TeacherUncheckedUpdateManyWithoutBranchMemberNestedInput
   schedule?: Prisma.ScheduleUncheckedUpdateManyWithoutBranchMemberNestedInput
@@ -603,6 +655,8 @@ export type BranchMemberUncheckedUpdateWithoutParentInput = {
 export type BranchMemberCreateWithoutStudentInput = {
   id?: string
   role: $Enums.BranchRole
+  isActive?: boolean
+  deactivatedAt?: Date | string | null
   createdAt?: Date | string
   teacher?: Prisma.TeacherCreateNestedManyWithoutBranchMemberInput
   parent?: Prisma.ParentCreateNestedManyWithoutBranchMemberInput
@@ -617,6 +671,8 @@ export type BranchMemberUncheckedCreateWithoutStudentInput = {
   branchId: string
   memberId: string
   role: $Enums.BranchRole
+  isActive?: boolean
+  deactivatedAt?: Date | string | null
   createdAt?: Date | string
   teacher?: Prisma.TeacherUncheckedCreateNestedManyWithoutBranchMemberInput
   parent?: Prisma.ParentUncheckedCreateNestedManyWithoutBranchMemberInput
@@ -643,6 +699,8 @@ export type BranchMemberUpdateToOneWithWhereWithoutStudentInput = {
 export type BranchMemberUpdateWithoutStudentInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumBranchRoleFieldUpdateOperationsInput | $Enums.BranchRole
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   teacher?: Prisma.TeacherUpdateManyWithoutBranchMemberNestedInput
   parent?: Prisma.ParentUpdateManyWithoutBranchMemberNestedInput
@@ -657,6 +715,8 @@ export type BranchMemberUncheckedUpdateWithoutStudentInput = {
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
   memberId?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumBranchRoleFieldUpdateOperationsInput | $Enums.BranchRole
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   teacher?: Prisma.TeacherUncheckedUpdateManyWithoutBranchMemberNestedInput
   parent?: Prisma.ParentUncheckedUpdateManyWithoutBranchMemberNestedInput
@@ -667,6 +727,8 @@ export type BranchMemberUncheckedUpdateWithoutStudentInput = {
 export type BranchMemberCreateWithoutPersonelInput = {
   id?: string
   role: $Enums.BranchRole
+  isActive?: boolean
+  deactivatedAt?: Date | string | null
   createdAt?: Date | string
   teacher?: Prisma.TeacherCreateNestedManyWithoutBranchMemberInput
   parent?: Prisma.ParentCreateNestedManyWithoutBranchMemberInput
@@ -681,6 +743,8 @@ export type BranchMemberUncheckedCreateWithoutPersonelInput = {
   branchId: string
   memberId: string
   role: $Enums.BranchRole
+  isActive?: boolean
+  deactivatedAt?: Date | string | null
   createdAt?: Date | string
   teacher?: Prisma.TeacherUncheckedCreateNestedManyWithoutBranchMemberInput
   parent?: Prisma.ParentUncheckedCreateNestedManyWithoutBranchMemberInput
@@ -707,6 +771,8 @@ export type BranchMemberUpdateToOneWithWhereWithoutPersonelInput = {
 export type BranchMemberUpdateWithoutPersonelInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumBranchRoleFieldUpdateOperationsInput | $Enums.BranchRole
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   teacher?: Prisma.TeacherUpdateManyWithoutBranchMemberNestedInput
   parent?: Prisma.ParentUpdateManyWithoutBranchMemberNestedInput
@@ -721,6 +787,8 @@ export type BranchMemberUncheckedUpdateWithoutPersonelInput = {
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
   memberId?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumBranchRoleFieldUpdateOperationsInput | $Enums.BranchRole
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   teacher?: Prisma.TeacherUncheckedUpdateManyWithoutBranchMemberNestedInput
   parent?: Prisma.ParentUncheckedUpdateManyWithoutBranchMemberNestedInput
@@ -731,6 +799,8 @@ export type BranchMemberUncheckedUpdateWithoutPersonelInput = {
 export type BranchMemberCreateWithoutTeacherInput = {
   id?: string
   role: $Enums.BranchRole
+  isActive?: boolean
+  deactivatedAt?: Date | string | null
   createdAt?: Date | string
   parent?: Prisma.ParentCreateNestedManyWithoutBranchMemberInput
   schedule?: Prisma.ScheduleCreateNestedManyWithoutBranchMemberInput
@@ -745,6 +815,8 @@ export type BranchMemberUncheckedCreateWithoutTeacherInput = {
   branchId: string
   memberId: string
   role: $Enums.BranchRole
+  isActive?: boolean
+  deactivatedAt?: Date | string | null
   createdAt?: Date | string
   parent?: Prisma.ParentUncheckedCreateNestedManyWithoutBranchMemberInput
   schedule?: Prisma.ScheduleUncheckedCreateNestedManyWithoutBranchMemberInput
@@ -771,6 +843,8 @@ export type BranchMemberUpdateToOneWithWhereWithoutTeacherInput = {
 export type BranchMemberUpdateWithoutTeacherInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumBranchRoleFieldUpdateOperationsInput | $Enums.BranchRole
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   parent?: Prisma.ParentUpdateManyWithoutBranchMemberNestedInput
   schedule?: Prisma.ScheduleUpdateManyWithoutBranchMemberNestedInput
@@ -785,6 +859,8 @@ export type BranchMemberUncheckedUpdateWithoutTeacherInput = {
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
   memberId?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumBranchRoleFieldUpdateOperationsInput | $Enums.BranchRole
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   parent?: Prisma.ParentUncheckedUpdateManyWithoutBranchMemberNestedInput
   schedule?: Prisma.ScheduleUncheckedUpdateManyWithoutBranchMemberNestedInput
@@ -795,6 +871,8 @@ export type BranchMemberUncheckedUpdateWithoutTeacherInput = {
 export type BranchMemberCreateWithoutScheduleInput = {
   id?: string
   role: $Enums.BranchRole
+  isActive?: boolean
+  deactivatedAt?: Date | string | null
   createdAt?: Date | string
   teacher?: Prisma.TeacherCreateNestedManyWithoutBranchMemberInput
   parent?: Prisma.ParentCreateNestedManyWithoutBranchMemberInput
@@ -809,6 +887,8 @@ export type BranchMemberUncheckedCreateWithoutScheduleInput = {
   branchId: string
   memberId: string
   role: $Enums.BranchRole
+  isActive?: boolean
+  deactivatedAt?: Date | string | null
   createdAt?: Date | string
   teacher?: Prisma.TeacherUncheckedCreateNestedManyWithoutBranchMemberInput
   parent?: Prisma.ParentUncheckedCreateNestedManyWithoutBranchMemberInput
@@ -835,6 +915,8 @@ export type BranchMemberUpdateToOneWithWhereWithoutScheduleInput = {
 export type BranchMemberUpdateWithoutScheduleInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumBranchRoleFieldUpdateOperationsInput | $Enums.BranchRole
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   teacher?: Prisma.TeacherUpdateManyWithoutBranchMemberNestedInput
   parent?: Prisma.ParentUpdateManyWithoutBranchMemberNestedInput
@@ -849,6 +931,8 @@ export type BranchMemberUncheckedUpdateWithoutScheduleInput = {
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
   memberId?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumBranchRoleFieldUpdateOperationsInput | $Enums.BranchRole
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   teacher?: Prisma.TeacherUncheckedUpdateManyWithoutBranchMemberNestedInput
   parent?: Prisma.ParentUncheckedUpdateManyWithoutBranchMemberNestedInput
@@ -859,6 +943,8 @@ export type BranchMemberUncheckedUpdateWithoutScheduleInput = {
 export type BranchMemberCreateWithoutMemberInput = {
   id?: string
   role: $Enums.BranchRole
+  isActive?: boolean
+  deactivatedAt?: Date | string | null
   createdAt?: Date | string
   teacher?: Prisma.TeacherCreateNestedManyWithoutBranchMemberInput
   parent?: Prisma.ParentCreateNestedManyWithoutBranchMemberInput
@@ -872,6 +958,8 @@ export type BranchMemberUncheckedCreateWithoutMemberInput = {
   id?: string
   branchId: string
   role: $Enums.BranchRole
+  isActive?: boolean
+  deactivatedAt?: Date | string | null
   createdAt?: Date | string
   teacher?: Prisma.TeacherUncheckedCreateNestedManyWithoutBranchMemberInput
   parent?: Prisma.ParentUncheckedCreateNestedManyWithoutBranchMemberInput
@@ -914,12 +1002,16 @@ export type BranchMemberScalarWhereInput = {
   branchId?: Prisma.StringFilter<"BranchMember"> | string
   memberId?: Prisma.StringFilter<"BranchMember"> | string
   role?: Prisma.EnumBranchRoleFilter<"BranchMember"> | $Enums.BranchRole
+  isActive?: Prisma.BoolFilter<"BranchMember"> | boolean
+  deactivatedAt?: Prisma.DateTimeNullableFilter<"BranchMember"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"BranchMember"> | Date | string
 }
 
 export type BranchMemberCreateWithoutBranchInput = {
   id?: string
   role: $Enums.BranchRole
+  isActive?: boolean
+  deactivatedAt?: Date | string | null
   createdAt?: Date | string
   teacher?: Prisma.TeacherCreateNestedManyWithoutBranchMemberInput
   parent?: Prisma.ParentCreateNestedManyWithoutBranchMemberInput
@@ -933,6 +1025,8 @@ export type BranchMemberUncheckedCreateWithoutBranchInput = {
   id?: string
   memberId: string
   role: $Enums.BranchRole
+  isActive?: boolean
+  deactivatedAt?: Date | string | null
   createdAt?: Date | string
   teacher?: Prisma.TeacherUncheckedCreateNestedManyWithoutBranchMemberInput
   parent?: Prisma.ParentUncheckedCreateNestedManyWithoutBranchMemberInput
@@ -971,12 +1065,16 @@ export type BranchMemberCreateManyMemberInput = {
   id?: string
   branchId: string
   role: $Enums.BranchRole
+  isActive?: boolean
+  deactivatedAt?: Date | string | null
   createdAt?: Date | string
 }
 
 export type BranchMemberUpdateWithoutMemberInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumBranchRoleFieldUpdateOperationsInput | $Enums.BranchRole
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   teacher?: Prisma.TeacherUpdateManyWithoutBranchMemberNestedInput
   parent?: Prisma.ParentUpdateManyWithoutBranchMemberNestedInput
@@ -990,6 +1088,8 @@ export type BranchMemberUncheckedUpdateWithoutMemberInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumBranchRoleFieldUpdateOperationsInput | $Enums.BranchRole
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   teacher?: Prisma.TeacherUncheckedUpdateManyWithoutBranchMemberNestedInput
   parent?: Prisma.ParentUncheckedUpdateManyWithoutBranchMemberNestedInput
@@ -1002,6 +1102,8 @@ export type BranchMemberUncheckedUpdateManyWithoutMemberInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumBranchRoleFieldUpdateOperationsInput | $Enums.BranchRole
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -1009,12 +1111,16 @@ export type BranchMemberCreateManyBranchInput = {
   id?: string
   memberId: string
   role: $Enums.BranchRole
+  isActive?: boolean
+  deactivatedAt?: Date | string | null
   createdAt?: Date | string
 }
 
 export type BranchMemberUpdateWithoutBranchInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumBranchRoleFieldUpdateOperationsInput | $Enums.BranchRole
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   teacher?: Prisma.TeacherUpdateManyWithoutBranchMemberNestedInput
   parent?: Prisma.ParentUpdateManyWithoutBranchMemberNestedInput
@@ -1028,6 +1134,8 @@ export type BranchMemberUncheckedUpdateWithoutBranchInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   memberId?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumBranchRoleFieldUpdateOperationsInput | $Enums.BranchRole
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   teacher?: Prisma.TeacherUncheckedUpdateManyWithoutBranchMemberNestedInput
   parent?: Prisma.ParentUncheckedUpdateManyWithoutBranchMemberNestedInput
@@ -1040,6 +1148,8 @@ export type BranchMemberUncheckedUpdateManyWithoutBranchInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   memberId?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumBranchRoleFieldUpdateOperationsInput | $Enums.BranchRole
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -1115,6 +1225,8 @@ export type BranchMemberSelect<ExtArgs extends runtime.Types.Extensions.Internal
   branchId?: boolean
   memberId?: boolean
   role?: boolean
+  isActive?: boolean
+  deactivatedAt?: boolean
   createdAt?: boolean
   teacher?: boolean | Prisma.BranchMember$teacherArgs<ExtArgs>
   parent?: boolean | Prisma.BranchMember$parentArgs<ExtArgs>
@@ -1131,6 +1243,8 @@ export type BranchMemberSelectCreateManyAndReturn<ExtArgs extends runtime.Types.
   branchId?: boolean
   memberId?: boolean
   role?: boolean
+  isActive?: boolean
+  deactivatedAt?: boolean
   createdAt?: boolean
   branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
   member?: boolean | Prisma.MemberDefaultArgs<ExtArgs>
@@ -1141,6 +1255,8 @@ export type BranchMemberSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.
   branchId?: boolean
   memberId?: boolean
   role?: boolean
+  isActive?: boolean
+  deactivatedAt?: boolean
   createdAt?: boolean
   branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
   member?: boolean | Prisma.MemberDefaultArgs<ExtArgs>
@@ -1151,10 +1267,12 @@ export type BranchMemberSelectScalar = {
   branchId?: boolean
   memberId?: boolean
   role?: boolean
+  isActive?: boolean
+  deactivatedAt?: boolean
   createdAt?: boolean
 }
 
-export type BranchMemberOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "branchId" | "memberId" | "role" | "createdAt", ExtArgs["result"]["branchMember"]>
+export type BranchMemberOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "branchId" | "memberId" | "role" | "isActive" | "deactivatedAt" | "createdAt", ExtArgs["result"]["branchMember"]>
 export type BranchMemberInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   teacher?: boolean | Prisma.BranchMember$teacherArgs<ExtArgs>
   parent?: boolean | Prisma.BranchMember$parentArgs<ExtArgs>
@@ -1190,6 +1308,11 @@ export type $BranchMemberPayload<ExtArgs extends runtime.Types.Extensions.Intern
     branchId: string
     memberId: string
     role: $Enums.BranchRole
+    /**
+     * * Actif dans cette branche uniquement (multi-branches indépendant).
+     */
+    isActive: boolean
+    deactivatedAt: Date | null
     createdAt: Date
   }, ExtArgs["result"]["branchMember"]>
   composites: {}
@@ -1625,6 +1748,8 @@ export interface BranchMemberFieldRefs {
   readonly branchId: Prisma.FieldRef<"BranchMember", 'String'>
   readonly memberId: Prisma.FieldRef<"BranchMember", 'String'>
   readonly role: Prisma.FieldRef<"BranchMember", 'BranchRole'>
+  readonly isActive: Prisma.FieldRef<"BranchMember", 'Boolean'>
+  readonly deactivatedAt: Prisma.FieldRef<"BranchMember", 'DateTime'>
   readonly createdAt: Prisma.FieldRef<"BranchMember", 'DateTime'>
 }
     

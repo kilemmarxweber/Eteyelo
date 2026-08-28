@@ -618,6 +618,8 @@ model CalendarEvent {
   dateEnd      DateTime?
   image        String?
   allDay       Boolean   @default(false)
+  /// Si true : établissement fermé ce jour (pas d'alertes / pointage présence).
+  closesAttendance Boolean @default(false)
   location     String?
   description  String?
   /// Traductions titre: { fr?, en?, pt?, ln? }
@@ -649,6 +651,7 @@ model CalendarEvent {
   @@index([branchId])
   @@index([branchId, schoolYearId])
   @@index([branchId, dateStart])
+  @@index([branchId, closesAttendance, dateStart])
 }
 
 model EventType {
@@ -1626,6 +1629,9 @@ model BranchMember {
   branchId String
   memberId String
   role BranchRole
+  /** Actif dans cette branche uniquement (multi-branches indépendant). */
+  isActive Boolean @default(true)
+  deactivatedAt DateTime?
   teacher Teacher[]
   parent Parent[]
   schedule Schedule[]
@@ -1641,6 +1647,7 @@ model BranchMember {
   @@index([memberId])
   @@index([branchId, role])
   @@index([memberId, role])
+  @@index([branchId, isActive])
 }
 
 enum BranchRole {

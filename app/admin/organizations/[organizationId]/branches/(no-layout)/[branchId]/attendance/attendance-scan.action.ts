@@ -17,6 +17,10 @@ import type { AttendanceGeoCoords } from "@/lib/attendance-geo";
 import { assertWithinBranchAttendanceRadius } from "@/lib/attendance-geo.server";
 import { formatExpectedSessionLabel } from "@/lib/attendance-schedule-label";
 import {
+  isBranchClosedOn,
+  resolvePersonnelStatusFromSchedule,
+} from "@/lib/branch-closed-days";
+import {
   findStudentCheckInSession,
   getExpectedStudentSessionLabel,
 } from "@/lib/attendance-student-session";
@@ -417,13 +421,6 @@ function resolveStatusFromTime(reference: Date) {
   const now = nowLocal();
   const lateThreshold = scheduleHourToMinutes(reference) + 10;
   return toMinutes(now) > lateThreshold ? ("LATE" as const) : ("PRESENT" as const);
-}
-
-function resolvePersonnelStatus() {
-  const now = nowLocal();
-  const start = new Date(now);
-  start.setHours(8, 0, 0, 0);
-  return resolveStatusFromTime(start);
 }
 
 function sessionInclude() {
@@ -911,9 +908,19 @@ async function performPersonnelCheckIn(
   });
   if (geoError) return geoError;
 
+  if (await isBranchClosedOn(branchId)) {
+    return {
+      ok: false,
+      message:
+        "Établissement fermé aujourd'hui (jour férié) — pas de pointage.",
+      personType: "personnel",
+      person: lookup,
+    };
+  }
+
   const now = nowLocal();
   const today = startOfTodayParis(now);
-  const status = resolvePersonnelStatus();
+  const status = await resolvePersonnelStatusFromSchedule(branchId, now);
 
   const existingAttendance = await prisma.personnelAttendance.findUnique({
     where: {

@@ -29,7 +29,7 @@ import {
   ITeacher,
   teacherSchema,
 } from "@/src/interfaces/Teacher";
-import { purgeTeacherPermanently } from "@/lib/purge-branch-person";
+import { deactivatePersonInBranch, ensureActiveBranchMember } from "@/lib/branch-member-status";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import {
@@ -312,19 +312,22 @@ export const createTeacherAction = action
         data: { username },
       });
 
-      const branchMember = await prisma.branchMember.create({
-        data: {
-          memberId: result.memberId,
-          branchId,
-          role: "TEACHER",
-        },
+      const branchMemberId = await ensureActiveBranchMember({
+        memberId: result.memberId,
+        branchId,
+        role: "TEACHER",
       });
 
-      const teacher = await prisma.teacher.create({
-        data: {
-          branchMemberId: branchMember.id,
-        },
+      let teacher = await prisma.teacher.findUnique({
+        where: { branchMemberId },
       });
+      if (!teacher) {
+        teacher = await prisma.teacher.create({
+          data: {
+            branchMemberId,
+          },
+        });
+      }
 
       if (input.estTitulaire && input.classeId && input.coursId) {
         await syncTeacherTitulaire({
@@ -373,20 +376,13 @@ export const archiveTeacherAction = action
           branchId,
         },
       },
-      include: {
-        branchMember: {
-          include: {
-            member: {
-              include: {
-                user: true,
-              },
-            },
-          },
-        },
+      select: {
+        id: true,
+        branchMemberId: true,
       },
     });
 
-    if (!teacher) {
+    if (!teacher?.branchMemberId) {
       return {
         success: false,
         message: "Enseignant introuvable",
@@ -394,58 +390,70 @@ export const archiveTeacherAction = action
     }
 
     try {
-      const userId = teacher.branchMember?.member?.user?.id;
-
-      if (userId) {
-        await prisma.user.update({
-          where: { id: userId },
-          data: { statusUser: false },
-        });
-      }
+      await deactivatePersonInBranch({
+        branchMemberId: teacher.branchMemberId,
+      });
 
       return {
         success: true,
-        message: "Enseignant archivé avec succès",
+        message:
+          "Enseignant désactivé dans cette branche. L'historique est conservé.",
       };
     } catch (error) {
       return {
         success: false,
         message:
-          errMessage(error) || "Erreur lors de l'archivage de l'enseignant",
+          errMessage(error) || "Erreur lors de la désactivation de l'enseignant",
       };
     }
   });
 
-/** Suppression définitive uniquement après archivage — nettoie toutes les données liées. */
+/** Désactive dans la branche — historique conservé, membre org intact. */
 export const deleteTeacherPermanentlyAction = action
   .input(deleteTeacherSchema)
   .handler(async ({ input }) => {
-    const { branchId, organizationId, canPurgePermanently } =
+    const { branchId, organizationId, canManageTeachers } =
       await getCurrentBranch();
 
-    if (!canPurgePermanently) {
+    if (!canManageTeachers) {
       return {
         ok: false as const,
-        message: "Seul le propriétaire peut supprimer définitivement.",
+        message: "Action non autorisée",
       };
     }
 
     try {
-      const result = await purgeTeacherPermanently({
-        teacherId: input.id,
-        branchId,
+      const teacher = await prisma.teacher.findFirst({
+        where: {
+          id: input.id,
+          branchMember: { branchId },
+        },
+        select: { id: true, branchMemberId: true },
       });
-      if (result.ok) {
-        revalidatePath(
-          `/admin/organizations/${organizationId}/branches/${branchId}/teacher`,
-        );
+
+      if (!teacher?.branchMemberId) {
+        return {
+          ok: false as const,
+          message: "Enseignant introuvable",
+        };
       }
-      return result;
+
+      await deactivatePersonInBranch({
+        branchMemberId: teacher.branchMemberId,
+      });
+      revalidatePath(
+        `/admin/organizations/${organizationId}/branches/${branchId}/teacher`,
+      );
+      return {
+        ok: true as const,
+        message:
+          "Enseignant désactivé dans cette branche. Il reste membre de l'organisation ; l'historique est conservé.",
+      };
     } catch (error: unknown) {
       return {
         ok: false as const,
         message:
-          errMessage(error) || "Erreur lors de la suppression de l'enseignant",
+          errMessage(error) || "Erreur lors de la désactivation de l'enseignant",
       };
     }
   });
@@ -473,6 +481,7 @@ export const getTeachersAction = action.handler(
       where: {
         branchMember: {
           branchId,
+          isActive: true,
           member: {
             organizationId,
             ...(canManageTeachers ? {} : { userId: sessionUserId }),
@@ -564,7 +573,7 @@ export const getTeachersAction = action.handler(
         email: user?.email || "",
         username: user?.username || "",
         telephone: user?.telephone || "",
-        statusUser: user?.statusUser ?? true,
+        statusUser: teacher.branchMember?.isActive ?? true,
         createdAt: teacher.createdAt,
         updatedAt: teacher.updatedAt,
         address: user?.address || "",
@@ -631,12 +640,10 @@ export const getTeacherDashboardStatsAction = action
     const teacherScope = {
       branchMember: {
         branchId,
+        isActive: true,
         member: {
           organizationId,
           ...(canManageTeachers ? {} : { userId }),
-          user: {
-            OR: [{ statusUser: true }, { statusUser: null }],
-          },
         },
       },
     };

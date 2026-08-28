@@ -30,7 +30,7 @@ interface DeleteTeacherDialogProps extends React.ComponentPropsWithoutRef<
   showTrigger?: boolean;
   onSuccess?: () => void;
   teachers: Row<ITeacher>["original"][];
-  /** Si true : suppression définitive (propriétaire uniquement). */
+  /** Si true : retire de la branche (garde le membre org). */
   permanent?: boolean;
 }
 
@@ -67,7 +67,9 @@ export function DeleteTeacherDialog({
             hasDone = true;
             toast.success(
               result.message ??
-                (permanent ? "Enseignant supprimé" : "Enseignant archivé"),
+                (permanent
+                  ? "Enseignant désactivé dans la branche"
+                  : "Enseignant archivé"),
             );
           } else {
             toast.error(
@@ -112,8 +114,8 @@ export function DeleteTeacherDialog({
           <DialogTitle>
             {permanent
               ? count === 1
-                ? "Supprimer définitivement l'enseignant ?"
-                : `Supprimer définitivement ${count} enseignants ?`
+                ? "Désactiver l'enseignant dans cette branche ?"
+                : `Désactiver ${count} enseignants dans cette branche ?`
               : count === 1
                 ? "Archiver l'enseignant ?"
                 : `Archiver ${count} enseignants ?`}
@@ -121,11 +123,11 @@ export function DeleteTeacherDialog({
           <DialogDescription>
             {permanent
               ? count === 1
-                ? "Cette action est irréversible : cours, pointages, fiches, devoirs en ligne et le compte seront effacés."
-                : "Cette action est irréversible : toutes les données liées et les comptes seront effacés."
+                ? "Il ne sera plus visible dans cette branche, mais restera membre de l'organisation. Cours, pointages et fiches restent pour les rapports. Ses autres branches ne sont pas affectées."
+                : "Ils ne seront plus visibles dans cette branche, mais resteront membres de l'organisation. L'historique est conservé pour les rapports."
               : count === 1
-                ? "L'enseignant sera masqué des listes actives mais l'historique sera conservé."
-                : "Ces enseignants seront masqués des listes actives mais l'historique sera conservé."}
+                ? "L'enseignant sera désactivé dans cette branche seulement. L'historique reste disponible pour les rapports."
+                : "Ces enseignants seront désactivés dans cette branche seulement. L'historique reste disponible pour les rapports."}
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="gap-2 sm:space-x-0">
@@ -134,7 +136,7 @@ export function DeleteTeacherDialog({
           </DialogClose>
           <Button
             aria-label={
-              permanent ? "Supprimer définitivement" : "Archiver la sélection"
+              permanent ? "Désactiver dans la branche" : "Archiver la sélection"
             }
             variant={permanent ? "destructive" : "outline"}
             onClick={handleConfirm}
@@ -146,7 +148,7 @@ export function DeleteTeacherDialog({
                 aria-hidden="true"
               />
             )}
-            {permanent ? "Supprimer définitivement" : "Archiver"}
+            {permanent ? "Désactiver" : "Archiver"}
           </Button>
         </DialogFooter>
       </DialogContent>

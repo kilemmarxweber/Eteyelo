@@ -31,7 +31,7 @@ interface DeleteParentDialogProps extends React.ComponentPropsWithoutRef<
   showTrigger?: boolean;
   onSuccess?: () => void;
   parents: Row<IParent>["original"][];
-  /** Si true : suppression définitive (propriétaire uniquement). */
+  /** Si true : retire de la branche (garde le membre org). */
   permanent?: boolean;
 }
 
@@ -71,7 +71,9 @@ export function DeleteParentDialog({
             hasDone = true;
             toast.success(
               result.message ??
-                (permanent ? "Parent supprimé" : "Parent archivé"),
+                (permanent
+                  ? "Parent désactivé dans la branche"
+                  : "Parent archivé"),
             );
           } else {
             toast.error(
@@ -117,8 +119,8 @@ export function DeleteParentDialog({
           <DialogTitle>
             {permanent
               ? count === 1
-                ? "Supprimer définitivement le parent ?"
-                : `Supprimer définitivement ${count} parents ?`
+                ? "Désactiver le parent dans cette branche ?"
+                : `Désactiver ${count} parents dans cette branche ?`
               : count === 1
                 ? "Archiver le parent ?"
                 : `Archiver ${count} parents ?`}
@@ -126,11 +128,11 @@ export function DeleteParentDialog({
           <DialogDescription>
             {permanent
               ? count === 1
-                ? "Cette action est irréversible : remises, paiements liés et le compte seront effacés. Impossible si des élèves y sont encore liés."
-                : "Cette action est irréversible : toutes les données liées et les comptes seront effacés. Impossible si des élèves y sont encore liés."
+                ? "Il ne sera plus visible dans cette branche, mais restera membre de l'organisation. Tout l'historique (paiements, etc.) est conservé pour les rapports. Ses autres branches ne sont pas affectées."
+                : "Ils ne seront plus visibles dans cette branche, mais resteront membres de l'organisation. L'historique est conservé pour les rapports."
               : count === 1
-                ? "Le parent sera masqué des listes actives mais l'historique sera conservé."
-                : "Ces parents seront masqués des listes actives mais l'historique sera conservé."}
+                ? "Le parent sera désactivé dans cette branche seulement. L'historique reste disponible pour les rapports ; les autres branches ne sont pas affectées."
+                : "Ces parents seront désactivés dans cette branche seulement. L'historique reste disponible pour les rapports."}
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="gap-2 sm:space-x-0">
@@ -139,7 +141,7 @@ export function DeleteParentDialog({
           </DialogClose>
           <Button
             aria-label={
-              permanent ? "Supprimer définitivement" : "Archiver la sélection"
+              permanent ? "Désactiver dans la branche" : "Archiver la sélection"
             }
             variant={permanent ? "destructive" : "outline"}
             onClick={handleConfirm}
@@ -151,7 +153,7 @@ export function DeleteParentDialog({
                 aria-hidden="true"
               />
             )}
-            {permanent ? "Supprimer définitivement" : "Archiver"}
+            {permanent ? "Désactiver" : "Archiver"}
           </Button>
         </DialogFooter>
       </DialogContent>

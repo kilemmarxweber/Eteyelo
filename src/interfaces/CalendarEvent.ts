@@ -21,6 +21,7 @@ export interface ICalendarEvent {
   dateEnd?: Date;
   image?: string | null;
   allDay: boolean;
+  closesAttendance?: boolean;
   createdBy: string;
   createdAt: Date;
   updatedAt: Date;
@@ -55,6 +56,7 @@ export const calendarEventSchema = z.object({
   dateStart: z.coerce.date(),
   dateEnd: z.coerce.date().optional().nullable(),
   allDay: z.boolean().default(false),
+  closesAttendance: z.boolean().default(false),
   location: z.string().nullish().transform((value) => value ?? ""),
   description: z.string().nullish().transform((value) => value ?? ""),
   image: z.string().nullish().transform((value) => value ?? ""),

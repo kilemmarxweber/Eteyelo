@@ -11,7 +11,11 @@ import {
 } from "@/lib/auth/data-scope";
 import { assertWithinBranchAttendanceRadius } from "@/lib/attendance-geo.server";
 import { afterPersonnelAttendanceWrite } from "@/lib/attendance-absence";
-import { nowLocal, startOfTodayParis, toMinutes } from "@/lib/timezone";
+import {
+  isBranchClosedOn,
+  resolvePersonnelStatusFromSchedule,
+} from "@/lib/branch-closed-days";
+import { nowLocal, startOfTodayParis } from "@/lib/timezone";
 import { checkTeacherAttendanceNeeded } from "./attendance/attendance.action";
 
 const geoSchema = z.object({
@@ -70,10 +74,6 @@ function monthRange() {
   const end = new Date(now);
   end.setHours(23, 59, 59, 999);
   return { start, end };
-}
-
-function personnelStatusNow() {
-  return toMinutes(nowLocal()) > 8 * 60 + 10 ? "LATE" : "PRESENT";
 }
 
 export const getMyDashboardPresenceAction = action.handler(
@@ -173,6 +173,12 @@ export const checkInMyPersonnelAction = action
       longitude: input.longitude,
     });
 
+    if (await isBranchClosedOn(branchId)) {
+      throw new Error(
+        "Établissement fermé aujourd'hui (jour férié) — pas de pointage.",
+      );
+    }
+
     const now = nowLocal();
     const today = startOfTodayParis(now);
     const existing = await prisma.personnelAttendance.findUnique({
@@ -189,7 +195,7 @@ export const checkInMyPersonnelAction = action
       throw new Error("Vous avez déjà pointé votre arrivée aujourd'hui.");
     }
 
-    const status = personnelStatusNow();
+    const status = await resolvePersonnelStatusFromSchedule(branchId, now);
     const attendance = await prisma.personnelAttendance.upsert({
       where: {
         personnelId_date_branchId: {

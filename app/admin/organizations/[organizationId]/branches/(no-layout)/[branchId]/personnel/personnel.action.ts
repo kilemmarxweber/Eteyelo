@@ -15,12 +15,11 @@ import {
 } from "@/lib/admin-created-user-password";
 import { generateSecurePassword } from "@/lib/generate-password";
 import { requireBranchContext, requireHrWriteBranchContext } from "@/lib/auth/require-branch-context";
-import { isOrganizationOwnerSession } from "@/lib/auth/session-roles";
 import {
   buildSchoolReportContext,
   schoolReportBranchSelect,
 } from "@/lib/reports/resolve-school-branding";
-import { purgePersonnelPermanently } from "@/lib/purge-branch-person";
+import { deactivatePersonInBranch, ensureActiveBranchMember } from "@/lib/branch-member-status";
 import { revalidatePath } from "next/cache";
 
 function errMessage(err: unknown): string {
@@ -151,24 +150,27 @@ export const createPersonnelAction = action
       });
 
       // =========================
-      // 2. CREATE BRANCH MEMBER
+      // 2. CREATE / RÉACTIVER BRANCH MEMBER
       // =========================
-      const branchMember = await prisma.branchMember.create({
-        data: {
-          memberId: result.memberId,
-          branchId,
-          role: "DIRECTOR", // ou "PERSONNEL"
-        },
+      const branchMemberId = await ensureActiveBranchMember({
+        memberId: result.memberId,
+        branchId,
+        role: "DIRECTOR",
       });
 
       // =========================
-      // 3. CREATE PERSONNEL
+      // 3. CREATE PERSONNEL (si besoin)
       // =========================
-      const personnel = await prisma.personnel.create({
-        data: {
-          branchMemberId: branchMember.id,
-        },
+      let personnel = await prisma.personnel.findUnique({
+        where: { branchMemberId },
       });
+      if (!personnel) {
+        personnel = await prisma.personnel.create({
+          data: {
+            branchMemberId,
+          },
+        });
+      }
 
       return {
         ok: true,
@@ -187,36 +189,27 @@ export const createPersonnelAction = action
     }
   });
 
-//archivePersonal
+//archivePersonal — désactive dans la branche uniquement
 export const archivePersonalAction = action
   .input(z.object({ ids: z.array(z.string()) }))
   .handler(async ({ input }) => {
-    const { branchId, organizationId } = await requireHrWriteBranchContext();
+    const { branchId } = await requireHrWriteBranchContext();
 
     const personnels = await prisma.personnel.findMany({
       where: {
         id: { in: input.ids },
         branchMember: { branchId },
       },
-      include: {
-        branchMember: {
-          include: {
-            member: {
-              include: { user: true },
-            },
-          },
-        },
+      select: {
+        id: true,
+        branchMemberId: true,
       },
     });
 
     for (const personnel of personnels) {
-      const userId = personnel.branchMember?.member?.user?.id;
-      if (userId) {
-        await prisma.user.update({
-          where: { id: userId },
-          data: { statusUser: false },
-        });
-      }
+      await deactivatePersonInBranch({
+        branchMemberId: personnel.branchMemberId,
+      });
     }
 
     return true;
@@ -225,33 +218,41 @@ export const archivePersonalAction = action
 /** @deprecated Utiliser archivePersonalAction */
 export const deletePersonalAction = archivePersonalAction;
 
-/** Suppression définitive uniquement après archivage — nettoie toutes les données liées. */
+/** Désactive dans la branche — historique conservé, membre org intact. */
 export const deletePersonnelPermanentlyAction = action
   .input(z.object({ ids: z.array(z.string()).min(1) }))
   .handler(async ({ input }) => {
-    const { branchId, organizationId, session } =
-      await requireHrWriteBranchContext();
-
-    if (!isOrganizationOwnerSession(session)) {
-      return {
-        ok: false as const,
-        message: "Seul le propriétaire peut supprimer définitivement.",
-        results: [],
-      };
-    }
+    const { branchId, organizationId } = await requireHrWriteBranchContext();
 
     const results: Array<{ id: string; ok: boolean; message: string }> = [];
 
     for (const personnelId of input.ids) {
       try {
-        const result = await purgePersonnelPermanently({
-          personnelId,
-          branchId,
+        const personnel = await prisma.personnel.findFirst({
+          where: {
+            id: personnelId,
+            branchMember: { branchId },
+          },
+          select: { id: true, branchMemberId: true },
+        });
+
+        if (!personnel) {
+          results.push({
+            id: personnelId,
+            ok: false,
+            message: "Personnel introuvable",
+          });
+          continue;
+        }
+
+        await deactivatePersonInBranch({
+          branchMemberId: personnel.branchMemberId,
         });
         results.push({
           id: personnelId,
-          ok: result.ok,
-          message: result.message,
+          ok: true,
+          message:
+            "Personnel désactivé dans cette branche. Historique conservé.",
         });
       } catch (error: unknown) {
         results.push({
@@ -270,7 +271,7 @@ export const deletePersonnelPermanentlyAction = action
     if (failed.length === input.ids.length) {
       return {
         ok: false as const,
-        message: failed[0]?.message ?? "Suppression impossible",
+        message: failed[0]?.message ?? "Désactivation impossible",
         results,
       };
     }
@@ -279,8 +280,8 @@ export const deletePersonnelPermanentlyAction = action
       ok: true as const,
       message:
         failed.length === 0
-          ? "Personnel supprimé et données liées nettoyées."
-          : `${input.ids.length - failed.length} supprimé(s), ${failed.length} en échec.`,
+          ? "Personnel désactivé dans cette branche. Il reste membre de l'organisation ; l'historique est conservé."
+          : `${input.ids.length - failed.length} désactivé(s), ${failed.length} en échec.`,
       results,
     };
   });
@@ -392,6 +393,7 @@ export const getPersonnelsAction = action.handler(
       where: {
         branchMember: {
           branchId,
+          isActive: true,
           branch: {
             organizationId,
           },
@@ -432,7 +434,7 @@ export const getPersonnelsAction = action.handler(
         telephone: user?.telephone ?? "",
         address: user?.address ?? "",
         image: user?.image ?? "",
-        statusUser: user?.statusUser ?? true,
+        statusUser: personnel.branchMember?.isActive ?? true,
 
         // metadata
         createdAt: personnel.createdAt,

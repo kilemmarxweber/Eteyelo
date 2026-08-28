@@ -21,6 +21,7 @@ export function buildStudentAccessWhere(branchId: string, organizationId: string
       {
         branchMember: {
           branchId,
+          isActive: true,
           member: { organizationId },
         },
       },

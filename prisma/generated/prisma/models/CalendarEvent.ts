@@ -31,6 +31,7 @@ export type CalendarEventMinAggregateOutputType = {
   dateEnd: Date | null
   image: string | null
   allDay: boolean | null
+  closesAttendance: boolean | null
   location: string | null
   description: string | null
   createdBy: string | null
@@ -54,6 +55,7 @@ export type CalendarEventMaxAggregateOutputType = {
   dateEnd: Date | null
   image: string | null
   allDay: boolean | null
+  closesAttendance: boolean | null
   location: string | null
   description: string | null
   createdBy: string | null
@@ -77,6 +79,7 @@ export type CalendarEventCountAggregateOutputType = {
   dateEnd: number
   image: number
   allDay: number
+  closesAttendance: number
   location: number
   description: number
   titleI18n: number
@@ -104,6 +107,7 @@ export type CalendarEventMinAggregateInputType = {
   dateEnd?: true
   image?: true
   allDay?: true
+  closesAttendance?: true
   location?: true
   description?: true
   createdBy?: true
@@ -127,6 +131,7 @@ export type CalendarEventMaxAggregateInputType = {
   dateEnd?: true
   image?: true
   allDay?: true
+  closesAttendance?: true
   location?: true
   description?: true
   createdBy?: true
@@ -150,6 +155,7 @@ export type CalendarEventCountAggregateInputType = {
   dateEnd?: true
   image?: true
   allDay?: true
+  closesAttendance?: true
   location?: true
   description?: true
   titleI18n?: true
@@ -248,6 +254,7 @@ export type CalendarEventGroupByOutputType = {
   dateEnd: Date | null
   image: string | null
   allDay: boolean
+  closesAttendance: boolean
   location: string | null
   description: string | null
   titleI18n: runtime.JsonValue | null
@@ -294,6 +301,7 @@ export type CalendarEventWhereInput = {
   dateEnd?: Prisma.DateTimeNullableFilter<"CalendarEvent"> | Date | string | null
   image?: Prisma.StringNullableFilter<"CalendarEvent"> | string | null
   allDay?: Prisma.BoolFilter<"CalendarEvent"> | boolean
+  closesAttendance?: Prisma.BoolFilter<"CalendarEvent"> | boolean
   location?: Prisma.StringNullableFilter<"CalendarEvent"> | string | null
   description?: Prisma.StringNullableFilter<"CalendarEvent"> | string | null
   titleI18n?: Prisma.JsonNullableFilter<"CalendarEvent">
@@ -324,6 +332,7 @@ export type CalendarEventOrderByWithRelationInput = {
   dateEnd?: Prisma.SortOrderInput | Prisma.SortOrder
   image?: Prisma.SortOrderInput | Prisma.SortOrder
   allDay?: Prisma.SortOrder
+  closesAttendance?: Prisma.SortOrder
   location?: Prisma.SortOrderInput | Prisma.SortOrder
   description?: Prisma.SortOrderInput | Prisma.SortOrder
   titleI18n?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -357,6 +366,7 @@ export type CalendarEventWhereUniqueInput = Prisma.AtLeast<{
   dateEnd?: Prisma.DateTimeNullableFilter<"CalendarEvent"> | Date | string | null
   image?: Prisma.StringNullableFilter<"CalendarEvent"> | string | null
   allDay?: Prisma.BoolFilter<"CalendarEvent"> | boolean
+  closesAttendance?: Prisma.BoolFilter<"CalendarEvent"> | boolean
   location?: Prisma.StringNullableFilter<"CalendarEvent"> | string | null
   description?: Prisma.StringNullableFilter<"CalendarEvent"> | string | null
   titleI18n?: Prisma.JsonNullableFilter<"CalendarEvent">
@@ -387,6 +397,7 @@ export type CalendarEventOrderByWithAggregationInput = {
   dateEnd?: Prisma.SortOrderInput | Prisma.SortOrder
   image?: Prisma.SortOrderInput | Prisma.SortOrder
   allDay?: Prisma.SortOrder
+  closesAttendance?: Prisma.SortOrder
   location?: Prisma.SortOrderInput | Prisma.SortOrder
   description?: Prisma.SortOrderInput | Prisma.SortOrder
   titleI18n?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -418,6 +429,7 @@ export type CalendarEventScalarWhereWithAggregatesInput = {
   dateEnd?: Prisma.DateTimeNullableWithAggregatesFilter<"CalendarEvent"> | Date | string | null
   image?: Prisma.StringNullableWithAggregatesFilter<"CalendarEvent"> | string | null
   allDay?: Prisma.BoolWithAggregatesFilter<"CalendarEvent"> | boolean
+  closesAttendance?: Prisma.BoolWithAggregatesFilter<"CalendarEvent"> | boolean
   location?: Prisma.StringNullableWithAggregatesFilter<"CalendarEvent"> | string | null
   description?: Prisma.StringNullableWithAggregatesFilter<"CalendarEvent"> | string | null
   titleI18n?: Prisma.JsonNullableWithAggregatesFilter<"CalendarEvent">
@@ -443,6 +455,7 @@ export type CalendarEventCreateInput = {
   dateEnd?: Date | string | null
   image?: string | null
   allDay?: boolean
+  closesAttendance?: boolean
   location?: string | null
   description?: string | null
   titleI18n?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -468,6 +481,7 @@ export type CalendarEventUncheckedCreateInput = {
   dateEnd?: Date | string | null
   image?: string | null
   allDay?: boolean
+  closesAttendance?: boolean
   location?: string | null
   description?: string | null
   titleI18n?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -493,6 +507,7 @@ export type CalendarEventUpdateInput = {
   dateEnd?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   allDay?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  closesAttendance?: Prisma.BoolFieldUpdateOperationsInput | boolean
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   titleI18n?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -518,6 +533,7 @@ export type CalendarEventUncheckedUpdateInput = {
   dateEnd?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   allDay?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  closesAttendance?: Prisma.BoolFieldUpdateOperationsInput | boolean
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   titleI18n?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -543,6 +559,7 @@ export type CalendarEventCreateManyInput = {
   dateEnd?: Date | string | null
   image?: string | null
   allDay?: boolean
+  closesAttendance?: boolean
   location?: string | null
   description?: string | null
   titleI18n?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -568,6 +585,7 @@ export type CalendarEventUpdateManyMutationInput = {
   dateEnd?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   allDay?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  closesAttendance?: Prisma.BoolFieldUpdateOperationsInput | boolean
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   titleI18n?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -588,6 +606,7 @@ export type CalendarEventUncheckedUpdateManyInput = {
   dateEnd?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   allDay?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  closesAttendance?: Prisma.BoolFieldUpdateOperationsInput | boolean
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   titleI18n?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -623,6 +642,7 @@ export type CalendarEventCountOrderByAggregateInput = {
   dateEnd?: Prisma.SortOrder
   image?: Prisma.SortOrder
   allDay?: Prisma.SortOrder
+  closesAttendance?: Prisma.SortOrder
   location?: Prisma.SortOrder
   description?: Prisma.SortOrder
   titleI18n?: Prisma.SortOrder
@@ -648,6 +668,7 @@ export type CalendarEventMaxOrderByAggregateInput = {
   dateEnd?: Prisma.SortOrder
   image?: Prisma.SortOrder
   allDay?: Prisma.SortOrder
+  closesAttendance?: Prisma.SortOrder
   location?: Prisma.SortOrder
   description?: Prisma.SortOrder
   createdBy?: Prisma.SortOrder
@@ -671,6 +692,7 @@ export type CalendarEventMinOrderByAggregateInput = {
   dateEnd?: Prisma.SortOrder
   image?: Prisma.SortOrder
   allDay?: Prisma.SortOrder
+  closesAttendance?: Prisma.SortOrder
   location?: Prisma.SortOrder
   description?: Prisma.SortOrder
   createdBy?: Prisma.SortOrder
@@ -908,6 +930,7 @@ export type CalendarEventCreateWithoutClasseInput = {
   dateEnd?: Date | string | null
   image?: string | null
   allDay?: boolean
+  closesAttendance?: boolean
   location?: string | null
   description?: string | null
   titleI18n?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -932,6 +955,7 @@ export type CalendarEventUncheckedCreateWithoutClasseInput = {
   dateEnd?: Date | string | null
   image?: string | null
   allDay?: boolean
+  closesAttendance?: boolean
   location?: string | null
   description?: string | null
   titleI18n?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -985,6 +1009,7 @@ export type CalendarEventScalarWhereInput = {
   dateEnd?: Prisma.DateTimeNullableFilter<"CalendarEvent"> | Date | string | null
   image?: Prisma.StringNullableFilter<"CalendarEvent"> | string | null
   allDay?: Prisma.BoolFilter<"CalendarEvent"> | boolean
+  closesAttendance?: Prisma.BoolFilter<"CalendarEvent"> | boolean
   location?: Prisma.StringNullableFilter<"CalendarEvent"> | string | null
   description?: Prisma.StringNullableFilter<"CalendarEvent"> | string | null
   titleI18n?: Prisma.JsonNullableFilter<"CalendarEvent">
@@ -1010,6 +1035,7 @@ export type CalendarEventCreateWithoutSchoolYearInput = {
   dateEnd?: Date | string | null
   image?: string | null
   allDay?: boolean
+  closesAttendance?: boolean
   location?: string | null
   description?: string | null
   titleI18n?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1034,6 +1060,7 @@ export type CalendarEventUncheckedCreateWithoutSchoolYearInput = {
   dateEnd?: Date | string | null
   image?: string | null
   allDay?: boolean
+  closesAttendance?: boolean
   location?: string | null
   description?: string | null
   titleI18n?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1084,6 +1111,7 @@ export type CalendarEventCreateWithoutTeachingInput = {
   dateEnd?: Date | string | null
   image?: string | null
   allDay?: boolean
+  closesAttendance?: boolean
   location?: string | null
   description?: string | null
   titleI18n?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1108,6 +1136,7 @@ export type CalendarEventUncheckedCreateWithoutTeachingInput = {
   dateEnd?: Date | string | null
   image?: string | null
   allDay?: boolean
+  closesAttendance?: boolean
   location?: string | null
   description?: string | null
   titleI18n?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1158,6 +1187,7 @@ export type CalendarEventCreateWithoutEventTypeInput = {
   dateEnd?: Date | string | null
   image?: string | null
   allDay?: boolean
+  closesAttendance?: boolean
   location?: string | null
   description?: string | null
   titleI18n?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1182,6 +1212,7 @@ export type CalendarEventUncheckedCreateWithoutEventTypeInput = {
   dateEnd?: Date | string | null
   image?: string | null
   allDay?: boolean
+  closesAttendance?: boolean
   location?: string | null
   description?: string | null
   titleI18n?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1232,6 +1263,7 @@ export type CalendarEventCreateWithoutBranchInput = {
   dateEnd?: Date | string | null
   image?: string | null
   allDay?: boolean
+  closesAttendance?: boolean
   location?: string | null
   description?: string | null
   titleI18n?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1256,6 +1288,7 @@ export type CalendarEventUncheckedCreateWithoutBranchInput = {
   dateEnd?: Date | string | null
   image?: string | null
   allDay?: boolean
+  closesAttendance?: boolean
   location?: string | null
   description?: string | null
   titleI18n?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1306,6 +1339,7 @@ export type CalendarEventCreateManyClasseInput = {
   dateEnd?: Date | string | null
   image?: string | null
   allDay?: boolean
+  closesAttendance?: boolean
   location?: string | null
   description?: string | null
   titleI18n?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1330,6 +1364,7 @@ export type CalendarEventUpdateWithoutClasseInput = {
   dateEnd?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   allDay?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  closesAttendance?: Prisma.BoolFieldUpdateOperationsInput | boolean
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   titleI18n?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1354,6 +1389,7 @@ export type CalendarEventUncheckedUpdateWithoutClasseInput = {
   dateEnd?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   allDay?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  closesAttendance?: Prisma.BoolFieldUpdateOperationsInput | boolean
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   titleI18n?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1378,6 +1414,7 @@ export type CalendarEventUncheckedUpdateManyWithoutClasseInput = {
   dateEnd?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   allDay?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  closesAttendance?: Prisma.BoolFieldUpdateOperationsInput | boolean
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   titleI18n?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1402,6 +1439,7 @@ export type CalendarEventCreateManySchoolYearInput = {
   dateEnd?: Date | string | null
   image?: string | null
   allDay?: boolean
+  closesAttendance?: boolean
   location?: string | null
   description?: string | null
   titleI18n?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1426,6 +1464,7 @@ export type CalendarEventUpdateWithoutSchoolYearInput = {
   dateEnd?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   allDay?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  closesAttendance?: Prisma.BoolFieldUpdateOperationsInput | boolean
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   titleI18n?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1450,6 +1489,7 @@ export type CalendarEventUncheckedUpdateWithoutSchoolYearInput = {
   dateEnd?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   allDay?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  closesAttendance?: Prisma.BoolFieldUpdateOperationsInput | boolean
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   titleI18n?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1474,6 +1514,7 @@ export type CalendarEventUncheckedUpdateManyWithoutSchoolYearInput = {
   dateEnd?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   allDay?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  closesAttendance?: Prisma.BoolFieldUpdateOperationsInput | boolean
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   titleI18n?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1498,6 +1539,7 @@ export type CalendarEventCreateManyTeachingInput = {
   dateEnd?: Date | string | null
   image?: string | null
   allDay?: boolean
+  closesAttendance?: boolean
   location?: string | null
   description?: string | null
   titleI18n?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1522,6 +1564,7 @@ export type CalendarEventUpdateWithoutTeachingInput = {
   dateEnd?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   allDay?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  closesAttendance?: Prisma.BoolFieldUpdateOperationsInput | boolean
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   titleI18n?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1546,6 +1589,7 @@ export type CalendarEventUncheckedUpdateWithoutTeachingInput = {
   dateEnd?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   allDay?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  closesAttendance?: Prisma.BoolFieldUpdateOperationsInput | boolean
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   titleI18n?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1570,6 +1614,7 @@ export type CalendarEventUncheckedUpdateManyWithoutTeachingInput = {
   dateEnd?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   allDay?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  closesAttendance?: Prisma.BoolFieldUpdateOperationsInput | boolean
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   titleI18n?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1594,6 +1639,7 @@ export type CalendarEventCreateManyEventTypeInput = {
   dateEnd?: Date | string | null
   image?: string | null
   allDay?: boolean
+  closesAttendance?: boolean
   location?: string | null
   description?: string | null
   titleI18n?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1618,6 +1664,7 @@ export type CalendarEventUpdateWithoutEventTypeInput = {
   dateEnd?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   allDay?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  closesAttendance?: Prisma.BoolFieldUpdateOperationsInput | boolean
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   titleI18n?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1642,6 +1689,7 @@ export type CalendarEventUncheckedUpdateWithoutEventTypeInput = {
   dateEnd?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   allDay?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  closesAttendance?: Prisma.BoolFieldUpdateOperationsInput | boolean
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   titleI18n?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1666,6 +1714,7 @@ export type CalendarEventUncheckedUpdateManyWithoutEventTypeInput = {
   dateEnd?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   allDay?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  closesAttendance?: Prisma.BoolFieldUpdateOperationsInput | boolean
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   titleI18n?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1690,6 +1739,7 @@ export type CalendarEventCreateManyBranchInput = {
   dateEnd?: Date | string | null
   image?: string | null
   allDay?: boolean
+  closesAttendance?: boolean
   location?: string | null
   description?: string | null
   titleI18n?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1714,6 +1764,7 @@ export type CalendarEventUpdateWithoutBranchInput = {
   dateEnd?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   allDay?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  closesAttendance?: Prisma.BoolFieldUpdateOperationsInput | boolean
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   titleI18n?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1738,6 +1789,7 @@ export type CalendarEventUncheckedUpdateWithoutBranchInput = {
   dateEnd?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   allDay?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  closesAttendance?: Prisma.BoolFieldUpdateOperationsInput | boolean
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   titleI18n?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1762,6 +1814,7 @@ export type CalendarEventUncheckedUpdateManyWithoutBranchInput = {
   dateEnd?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   allDay?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  closesAttendance?: Prisma.BoolFieldUpdateOperationsInput | boolean
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   titleI18n?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1788,6 +1841,7 @@ export type CalendarEventSelect<ExtArgs extends runtime.Types.Extensions.Interna
   dateEnd?: boolean
   image?: boolean
   allDay?: boolean
+  closesAttendance?: boolean
   location?: boolean
   description?: boolean
   titleI18n?: boolean
@@ -1818,6 +1872,7 @@ export type CalendarEventSelectCreateManyAndReturn<ExtArgs extends runtime.Types
   dateEnd?: boolean
   image?: boolean
   allDay?: boolean
+  closesAttendance?: boolean
   location?: boolean
   description?: boolean
   titleI18n?: boolean
@@ -1848,6 +1903,7 @@ export type CalendarEventSelectUpdateManyAndReturn<ExtArgs extends runtime.Types
   dateEnd?: boolean
   image?: boolean
   allDay?: boolean
+  closesAttendance?: boolean
   location?: boolean
   description?: boolean
   titleI18n?: boolean
@@ -1878,6 +1934,7 @@ export type CalendarEventSelectScalar = {
   dateEnd?: boolean
   image?: boolean
   allDay?: boolean
+  closesAttendance?: boolean
   location?: boolean
   description?: boolean
   titleI18n?: boolean
@@ -1896,7 +1953,7 @@ export type CalendarEventSelectScalar = {
   recurrence?: boolean
 }
 
-export type CalendarEventOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "title" | "dateStart" | "dateEnd" | "image" | "allDay" | "location" | "description" | "titleI18n" | "descriptionI18n" | "createdBy" | "isArchived" | "archivedAt" | "archivedById" | "createdAt" | "updatedAt" | "schoolYearId" | "teachingId" | "typeId" | "classeId" | "branchId" | "recurrence", ExtArgs["result"]["calendarEvent"]>
+export type CalendarEventOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "title" | "dateStart" | "dateEnd" | "image" | "allDay" | "closesAttendance" | "location" | "description" | "titleI18n" | "descriptionI18n" | "createdBy" | "isArchived" | "archivedAt" | "archivedById" | "createdAt" | "updatedAt" | "schoolYearId" | "teachingId" | "typeId" | "classeId" | "branchId" | "recurrence", ExtArgs["result"]["calendarEvent"]>
 export type CalendarEventInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
   teaching?: boolean | Prisma.CalendarEvent$teachingArgs<ExtArgs>
@@ -1935,6 +1992,10 @@ export type $CalendarEventPayload<ExtArgs extends runtime.Types.Extensions.Inter
     dateEnd: Date | null
     image: string | null
     allDay: boolean
+    /**
+     * Si true : établissement fermé ce jour (pas d'alertes / pointage présence).
+     */
+    closesAttendance: boolean
     location: string | null
     description: string | null
     /**
@@ -2391,6 +2452,7 @@ export interface CalendarEventFieldRefs {
   readonly dateEnd: Prisma.FieldRef<"CalendarEvent", 'DateTime'>
   readonly image: Prisma.FieldRef<"CalendarEvent", 'String'>
   readonly allDay: Prisma.FieldRef<"CalendarEvent", 'Boolean'>
+  readonly closesAttendance: Prisma.FieldRef<"CalendarEvent", 'Boolean'>
   readonly location: Prisma.FieldRef<"CalendarEvent", 'String'>
   readonly description: Prisma.FieldRef<"CalendarEvent", 'String'>
   readonly titleI18n: Prisma.FieldRef<"CalendarEvent", 'Json'>

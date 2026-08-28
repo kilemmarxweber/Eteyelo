@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { Day, type Prisma } from "@/prisma/generated/prisma/client";
 import { formatExpectedSessionLabel } from "@/lib/attendance-schedule-label";
+import { isBranchClosedOn } from "@/lib/branch-closed-days";
 import {
   getParisWeekday,
   isTeacherCheckInWindow,
@@ -94,6 +95,8 @@ export async function listTeacherScheduleCandidates(
   branchId: string,
   now = nowLocal(),
 ) {
+  if (await isBranchClosedOn(branchId, now)) return [];
+
   const currentMinutes = toMinutes(now);
   const courseDurationMinutes = await getBranchCourseDurationMinutes(branchId);
   const today = getTodayDay(now);

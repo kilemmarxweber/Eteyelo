@@ -6,6 +6,7 @@ import {
   getBranchCourseDurationMinutes,
 } from "@/lib/attendance-teacher-session";
 import { formatExpectedSessionLabel } from "@/lib/attendance-schedule-label";
+import { isBranchClosedOn } from "@/lib/branch-closed-days";
 import {
   getParisWeekday,
   nowLocal,
@@ -694,6 +695,9 @@ async function signalPersonnelDayAbsences(branchId: string) {
 }
 
 export async function signalEndedAbsencesForBranch(branchId: string) {
+  if (await isBranchClosedOn(branchId)) {
+    return { created: 0 };
+  }
   const [sessions, personnel] = await Promise.all([
     signalEndedSessionAbsences(branchId),
     signalPersonnelDayAbsences(branchId),

@@ -538,6 +538,7 @@ export const CalendarEventScalarFieldEnum = {
   dateEnd: 'dateEnd',
   image: 'image',
   allDay: 'allDay',
+  closesAttendance: 'closesAttendance',
   location: 'location',
   description: 'description',
   titleI18n: 'titleI18n',
@@ -1137,6 +1138,8 @@ export const BranchMemberScalarFieldEnum = {
   branchId: 'branchId',
   memberId: 'memberId',
   role: 'role',
+  isActive: 'isActive',
+  deactivatedAt: 'deactivatedAt',
   createdAt: 'createdAt'
 } as const
 

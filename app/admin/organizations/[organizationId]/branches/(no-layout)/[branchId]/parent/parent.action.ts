@@ -17,7 +17,7 @@ import {
   canManageParentRecords,
   isOrganizationOwnerSession,
 } from "@/lib/auth/session-roles";
-import { purgeParentPermanently } from "@/lib/purge-branch-person";
+import { deactivatePersonInBranch, ensureActiveBranchMember } from "@/lib/branch-member-status";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
 import {
   buildSchoolReportContext,
@@ -133,26 +133,29 @@ export const createParentAction = action
       });
 
       // =========================
-      // 2. CREATE BRANCH MEMBER
+      // 2. CREATE / RÉACTIVER BRANCH MEMBER
       // =========================
 
-      const branchMember = await prisma.branchMember.create({
-        data: {
-          memberId: result.memberId,
-          branchId,
-          role: "PARENT",
-        },
+      const branchMemberId = await ensureActiveBranchMember({
+        memberId: result.memberId,
+        branchId,
+        role: "PARENT",
       });
 
       // =========================
-      // 3. CREATE PARENT
+      // 3. CREATE PARENT (si besoin)
       // =========================
 
-      const parent = await prisma.parent.create({
-        data: {
-          branchMemberId: branchMember.id,
-        },
+      let parent = await prisma.parent.findUnique({
+        where: { branchMemberId },
       });
+      if (!parent) {
+        parent = await prisma.parent.create({
+          data: {
+            branchMemberId,
+          },
+        });
+      }
 
       // =========================
       // 4. CREATE DISCOUNT RULE
@@ -230,16 +233,9 @@ export const archiveParentAction = action
           },
         },
       },
-      include: {
-        branchMember: {
-          include: {
-            member: {
-              include: {
-                user: true,
-              },
-            },
-          },
-        },
+      select: {
+        id: true,
+        branchMemberId: true,
       },
     });
 
@@ -247,48 +243,57 @@ export const archiveParentAction = action
       throw new Error("Parent introuvable");
     }
 
-    const userId = parent.branchMember?.member?.user?.id;
-
-    if (userId) {
-      await prisma.user.update({
-        where: { id: userId },
-        data: { statusUser: false },
-      });
-    }
+    await deactivatePersonInBranch({
+      branchMemberId: parent.branchMemberId,
+    });
 
     revalidateParentPages(organizationId, branchId);
     return {
       success: true,
-      message: "Parent archivé avec succès",
+      message:
+        "Parent désactivé dans cette branche. L'historique est conservé.",
       parentId: parent.id,
     };
   });
 
+/** Retire (désactive) de la branche — historique conservé, membre org intact. */
 export const deleteParentPermanentlyAction = action
   .input(deleteParentSchema)
   .handler(async ({ input }) => {
-    const { branchId, organizationId, canPurgePermanently } =
-      await getCurrentBranch();
-    if (!canPurgePermanently) {
-      return {
-        ok: false as const,
-        message: "Seul le propriétaire peut supprimer définitivement.",
-      };
-    }
+    const { branchId, organizationId } = await getCurrentBranch();
 
     try {
-      const result = await purgeParentPermanently({
-        parentId: input.id,
-        branchId,
+      const parent = await prisma.parent.findFirst({
+        where: {
+          id: input.id,
+          branchMember: {
+            branchId,
+            member: { organizationId },
+          },
+        },
+        select: { id: true, branchMemberId: true },
       });
-      if (result.ok) {
-        revalidateParentPages(organizationId, branchId);
+
+      if (!parent) {
+        return {
+          ok: false as const,
+          message: "Parent introuvable",
+        };
       }
-      return result;
+
+      await deactivatePersonInBranch({
+        branchMemberId: parent.branchMemberId,
+      });
+      revalidateParentPages(organizationId, branchId);
+      return {
+        ok: true as const,
+        message:
+          "Parent désactivé dans cette branche. Il reste membre de l'organisation ; l'historique est conservé.",
+      };
     } catch (error: unknown) {
       return {
         ok: false as const,
-        message: errMessage(error) || "Erreur lors de la suppression du parent",
+        message: errMessage(error) || "Erreur lors de la désactivation du parent",
       };
     }
   });
@@ -379,6 +384,7 @@ export const getParentsAction = action.handler(async (): Promise<IParent[]> => {
     where: {
       branchMember: {
         branchId,
+        isActive: true,
         member: {
           organizationId,
         },
@@ -398,6 +404,7 @@ export const getParentsAction = action.handler(async (): Promise<IParent[]> => {
         where: {
           branchMember: {
             branchId,
+            isActive: true,
           },
         },
         include: {
@@ -452,7 +459,7 @@ export const getParentsAction = action.handler(async (): Promise<IParent[]> => {
       telephone: user?.telephone || "",
       createdAt: parent.createdAt,
       updatedAt: parent.updatedAt,
-      statusUser: user?.statusUser ?? true,
+      statusUser: parent.branchMember?.isActive ?? true,
       address: user?.address || "",
       nomMere: parent.nomMere,
       professionMere: parent.professionMere,

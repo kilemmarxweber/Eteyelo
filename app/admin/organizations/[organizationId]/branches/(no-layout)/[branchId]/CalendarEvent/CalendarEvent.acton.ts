@@ -123,6 +123,7 @@ function buildEventData(
     location: input.location || null,
     image: toStoredImageFileName(input.image),
     allDay: input.allDay,
+    closesAttendance: input.closesAttendance,
     dateStart: input.dateStart,
     dateEnd: input.dateEnd || null,
     recurrence: input.recurrence,
@@ -144,6 +145,7 @@ function mapEvent(event: {
   dateEnd: Date | null;
   image: string | null;
   allDay: boolean;
+  closesAttendance?: boolean;
   location: string | null;
   description: string | null;
   titleI18n: unknown;
@@ -168,6 +170,7 @@ function mapEvent(event: {
     dateEnd: event.dateEnd || undefined,
     image: toStoredImageFileName(event.image),
     allDay: event.allDay,
+    closesAttendance: Boolean(event.closesAttendance),
     location: event.location || "",
     description: event.description || "",
     titleI18n: normalizeLocaleMap(event.titleI18n),

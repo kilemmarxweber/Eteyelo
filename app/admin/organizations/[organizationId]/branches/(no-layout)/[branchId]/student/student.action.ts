@@ -44,7 +44,7 @@ import {
   studentExtraInfoSchema,
   studentExtraToDb,
 } from "@/lib/registration-extra-info";
-import { purgeStudentPermanently } from "@/lib/purge-branch-person";
+import { deactivatePersonInBranch, ensureActiveBranchMember } from "@/lib/branch-member-status";
 import { isExamCodesClass } from "@/lib/exam-export-meta";
 
 export async function getCurrentBranch() {
@@ -211,27 +211,41 @@ export const createStudentAction = action
       });
 
       // =========================
-      // 2. CREATE BRANCH MEMBER
+      // 2. CREATE / RÉACTIVER BRANCH MEMBER
       // =========================
-      const branchMember = await prisma.branchMember.create({
-        data: {
-          memberId: result.memberId,
-          branchId,
-          role: "STUDENT",
-        },
+      const branchMemberId = await ensureActiveBranchMember({
+        memberId: result.memberId,
+        branchId,
+        role: "STUDENT",
       });
 
       // =========================
-      // 3. CREATE STUDENT
+      // 3. CREATE STUDENT (si besoin)
       // =========================
-      const student = await prisma.student.create({
-        data: {
-          branchMemberId: branchMember.id,
-          parentId,
-          category: parseCategory(category),
-          placeOfBirth: placeOfBirth || null,
-        },
+      let student = await prisma.student.findUnique({
+        where: { branchMemberId },
       });
+      if (!student) {
+        student = await prisma.student.create({
+          data: {
+            branchMemberId,
+            parentId,
+            category: parseCategory(category),
+            placeOfBirth: placeOfBirth || null,
+            statusStudent: true,
+          },
+        });
+      } else {
+        student = await prisma.student.update({
+          where: { id: student.id },
+          data: {
+            parentId,
+            category: parseCategory(category),
+            placeOfBirth: placeOfBirth || null,
+            statusStudent: true,
+          },
+        });
+      }
 
       revalidateStudentPages(organizationId, branchId);
       return {
@@ -273,6 +287,7 @@ function mapStudentRecord(
     updatedAt: Date;
     branchMember: {
       memberId: string;
+      isActive?: boolean | null;
       member: {
         user: {
           id: string;
@@ -399,7 +414,7 @@ function mapStudentRecord(
     image: user?.image?.trim() || undefined,
     createdAt: student.createdAt,
     updatedAt: student.updatedAt,
-    statusUser: user?.statusUser ?? true,
+    statusUser: student.branchMember?.isActive ?? user?.statusUser ?? true,
     address: user?.address || "",
     category: student.category || "NORMAL",
     placeOfBirth: student.placeOfBirth,
@@ -566,7 +581,13 @@ export const getStudentsAction = action.handler(
       const [nativeStudents, links] = await Promise.all([
         prisma.student.findMany({
           where: canListAllStudents
-            ? { branchMember: { branchId, member: { organizationId } } }
+            ? {
+                branchMember: {
+                  branchId,
+                  isActive: true,
+                  member: { organizationId },
+                },
+              }
             : { id: "__no_student_access__" },
           include: {
             ...studentListInclude,
@@ -842,7 +863,7 @@ export const updateStudentExtraInfoAction = action
   });
 
 /* ======================================================
-   ARCHIVE
+   ARCHIVE / DÉSACTIVER DANS LA BRANCHE
 ====================================================== */
 export const archiveStudentAction = action
   .input(deleteStudentSchema)
@@ -857,16 +878,10 @@ export const archiveStudentAction = action
 
     const student = await prisma.student.findUnique({
       where: { id: input.id },
-      include: {
-        branchMember: {
-          include: {
-            member: {
-              include: {
-                user: true,
-              },
-            },
-          },
-        },
+      select: {
+        id: true,
+        branchMemberId: true,
+        branchMember: { select: { branchId: true } },
       },
     });
 
@@ -901,29 +916,21 @@ export const archiveStudentAction = action
     }
 
     try {
-      const userId = student.branchMember?.member?.user?.id;
-
-      await prisma.student.update({
-        where: { id: student.id },
-        data: { statusStudent: false },
+      await deactivatePersonInBranch({
+        branchMemberId: student.branchMemberId,
+        studentId: student.id,
       });
-
-      if (userId) {
-        await prisma.user.update({
-          where: { id: userId },
-          data: { statusUser: false },
-        });
-      }
 
       revalidateStudentPages(organizationId, branchId);
       return {
         ok: true,
-        message: "Étudiant archivé avec succès",
+        message:
+          "Élève désactivé dans cette branche. L'historique est conservé.",
       };
     } catch (error: any) {
       return {
         success: false,
-        message: error.message || "Erreur lors de l'archivage",
+        message: error.message || "Erreur lors de la désactivation",
       };
     }
   });
@@ -1014,32 +1021,49 @@ export const updateStudentPhotoAction = action
     }
   });
 
-/** Suppression définitive uniquement après archivage — nettoie toutes les données liées. */
+/** Désactive dans la branche — historique conservé, membre org intact. */
 export const deleteStudentPermanentlyAction = action
   .input(deleteStudentSchema)
   .handler(async ({ input }) => {
-    const { branchId, organizationId, canPurgePermanently } =
+    const { branchId, organizationId, canManageStudents } =
       await getCurrentBranch();
-    if (!canPurgePermanently) {
+    if (!canManageStudents) {
       return {
         ok: false as const,
-        message: "Seul le propriétaire peut supprimer définitivement.",
+        message: "Action non autorisée",
       };
     }
 
     try {
-      const result = await purgeStudentPermanently({
-        studentId: input.id,
-        branchId,
+      const student = await prisma.student.findFirst({
+        where: {
+          id: input.id,
+          branchMember: { branchId },
+        },
+        select: { id: true, branchMemberId: true },
       });
-      if (result.ok) {
-        revalidateStudentPages(organizationId, branchId);
+
+      if (!student) {
+        return {
+          ok: false as const,
+          message: "Élève introuvable dans cette branche",
+        };
       }
-      return result;
+
+      await deactivatePersonInBranch({
+        branchMemberId: student.branchMemberId,
+        studentId: student.id,
+      });
+      revalidateStudentPages(organizationId, branchId);
+      return {
+        ok: true as const,
+        message:
+          "Élève désactivé dans cette branche. Il reste membre de l'organisation ; l'historique est conservé.",
+      };
     } catch (error: unknown) {
       return {
         ok: false as const,
-        message: errMessage(error) || "Erreur lors de la suppression",
+        message: errMessage(error) || "Erreur lors de la désactivation",
       };
     }
   });

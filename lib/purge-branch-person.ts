@@ -88,7 +88,31 @@ async function deleteTeachingTree(tx: Tx, teachingIds: string[]) {
 }
 
 /**
+ * Retire uniquement le rattachement à la branche.
+ * Conserve Member (organisation) et User.
+ */
+export async function removeBranchMemberKeepOrg(
+  tx: Tx,
+  branchMemberId: string,
+) {
+  const branchMember = await tx.branchMember.findUnique({
+    where: { id: branchMemberId },
+    select: { id: true },
+  });
+
+  if (!branchMember) return;
+
+  await tx.schedule.updateMany({
+    where: { createdBy: branchMember.id },
+    data: { createdBy: null },
+  });
+
+  await tx.branchMember.delete({ where: { id: branchMember.id } });
+}
+
+/**
  * Supprime BranchMember, puis Member / User s'ils n'ont plus d'autres rattachements.
+ * Réservé aux purges complètes (ex. suppression d'une branche entière).
  */
 export async function deleteBranchMemberAndOrphanUser(
   tx: Tx,
@@ -105,12 +129,7 @@ export async function deleteBranchMemberAndOrphanUser(
 
   if (!branchMember) return;
 
-  await tx.schedule.updateMany({
-    where: { createdBy: branchMember.id },
-    data: { createdBy: null },
-  });
-
-  await tx.branchMember.delete({ where: { id: branchMember.id } });
+  await removeBranchMemberKeepOrg(tx, branchMember.id);
 
   const remainingBranchMembers = await tx.branchMember.count({
     where: { memberId: branchMember.memberId },
@@ -193,10 +212,14 @@ export async function purgeStudentPermanently(params: {
 
     const branchMemberId = student.branchMemberId;
     await tx.student.delete({ where: { id: student.id } });
-    await deleteBranchMemberAndOrphanUser(tx, branchMemberId);
+    await removeBranchMemberKeepOrg(tx, branchMemberId);
   });
 
-  return { ok: true as const, message: "Élève supprimé et données liées nettoyées." };
+  return {
+    ok: true as const,
+    message:
+      "Élève retiré de cette branche. Il reste membre de l'organisation.",
+  };
 }
 
 export async function purgeTeacherPermanently(params: {
@@ -243,12 +266,13 @@ export async function purgeTeacherPermanently(params: {
 
     const branchMemberId = teacher.branchMemberId!;
     await tx.teacher.delete({ where: { id: teacher.id } });
-    await deleteBranchMemberAndOrphanUser(tx, branchMemberId);
+    await removeBranchMemberKeepOrg(tx, branchMemberId);
   });
 
   return {
     ok: true as const,
-    message: "Enseignant supprimé et données liées nettoyées.",
+    message:
+      "Enseignant retiré de cette branche. Il reste membre de l'organisation.",
   };
 }
 
@@ -286,12 +310,13 @@ export async function purgePersonnelPermanently(params: {
 
     const branchMemberId = personnel.branchMemberId;
     await tx.personnel.delete({ where: { id: personnel.id } });
-    await deleteBranchMemberAndOrphanUser(tx, branchMemberId);
+    await removeBranchMemberKeepOrg(tx, branchMemberId);
   });
 
   return {
     ok: true as const,
-    message: "Personnel supprimé et données liées nettoyées.",
+    message:
+      "Personnel retiré de cette branche. Il reste membre de l'organisation.",
   };
 }
 
@@ -353,11 +378,12 @@ export async function purgeParentPermanently(params: {
 
     const branchMemberId = parent.branchMemberId;
     await tx.parent.delete({ where: { id: parent.id } });
-    await deleteBranchMemberAndOrphanUser(tx, branchMemberId);
+    await removeBranchMemberKeepOrg(tx, branchMemberId);
   });
 
   return {
     ok: true as const,
-    message: "Parent supprimé et données liées nettoyées.",
+    message:
+      "Parent retiré de cette branche. Il reste membre de l'organisation.",
   };
 }

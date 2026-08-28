@@ -31,7 +31,7 @@ interface DeletePersonalDialogProps extends React.ComponentPropsWithoutRef<
   showTrigger?: boolean;
   onSuccess?: () => void;
   personals: Row<IPersonnel>["original"][];
-  /** Si true : suppression définitive (propriétaire uniquement). */
+  /** Si true : retire de la branche (garde le membre org). */
   permanent?: boolean;
 }
 
@@ -62,8 +62,8 @@ export function DeletePersonalDialog({
           }
           toast.success(
             personals.length === 1
-              ? "Personnel supprimé"
-              : "Personnels supprimés",
+              ? "Personnel désactivé dans la branche"
+              : "Personnels désactivés dans la branche",
           );
         } else {
           await archivePersonalAction({
@@ -110,8 +110,8 @@ export function DeletePersonalDialog({
           <DialogTitle>
             {permanent
               ? count === 1
-                ? "Supprimer définitivement le personnel ?"
-                : `Supprimer définitivement ${count} personnels ?`
+                ? "Désactiver le personnel dans cette branche ?"
+                : `Désactiver ${count} personnels dans cette branche ?`
               : count === 1
                 ? "Archiver le personnel ?"
                 : `Archiver ${count} personnels ?`}
@@ -119,11 +119,11 @@ export function DeletePersonalDialog({
           <DialogDescription>
             {permanent
               ? count === 1
-                ? "Cette action est irréversible : pointages, absences et le compte seront effacés."
-                : "Cette action est irréversible : toutes les données liées et les comptes seront effacés."
+                ? "Il ne sera plus visible dans cette branche, mais restera membre de l'organisation. Pointages et absences restent pour les rapports. Ses autres branches ne sont pas affectées."
+                : "Ils ne seront plus visibles dans cette branche, mais resteront membres de l'organisation. L'historique est conservé pour les rapports."
               : count === 1
-                ? "Le personnel sera masqué des listes actives mais l'historique sera conservé."
-                : "Ces personnels seront masqués des listes actives mais l'historique sera conservé."}
+                ? "Le personnel sera désactivé dans cette branche seulement. L'historique reste disponible pour les rapports."
+                : "Ces personnels seront désactivés dans cette branche seulement. L'historique reste disponible pour les rapports."}
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="gap-2 sm:space-x-0">
@@ -132,7 +132,7 @@ export function DeletePersonalDialog({
           </DialogClose>
           <Button
             aria-label={
-              permanent ? "Supprimer définitivement" : "Archiver la sélection"
+              permanent ? "Désactiver dans la branche" : "Archiver la sélection"
             }
             variant={permanent ? "destructive" : "outline"}
             onClick={handleConfirm}
@@ -144,7 +144,7 @@ export function DeletePersonalDialog({
                 aria-hidden="true"
               />
             )}
-            {permanent ? "Supprimer définitivement" : "Archiver"}
+            {permanent ? "Désactiver" : "Archiver"}
           </Button>
         </DialogFooter>
       </DialogContent>

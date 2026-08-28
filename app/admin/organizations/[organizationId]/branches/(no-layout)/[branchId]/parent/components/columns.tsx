@@ -182,7 +182,6 @@ export const createParentColumns = (
       const [showResetTaskDialog, setShowResetTaskDialog] =
         React.useState(false);
       const params = useParams<{ organizationId: string; branchId: string }>();
-      const hasStudents = (row.original.students?.length ?? 0) > 0;
 
       return (
         <>
@@ -257,16 +256,8 @@ export const createParentColumns = (
               {canPurgePermanently ? (
                 <DropdownMenuItem
                   className="text-destructive focus:bg-destructive/10 focus:text-destructive"
-                  disabled={hasStudents}
-                  title={
-                    hasStudents
-                      ? "Impossible : des élèves sont encore liés à ce parent"
-                      : "Supprimer définitivement"
-                  }
-                  onSelect={() => {
-                    if (hasStudents) return;
-                    setShowPurgeTaskDialog(true);
-                  }}
+                  title="Désactiver dans cette branche (historique conservé)"
+                  onSelect={() => setShowPurgeTaskDialog(true)}
                 >
                   Supprimer
                   <DropdownMenuShortcut>⇧Del</DropdownMenuShortcut>

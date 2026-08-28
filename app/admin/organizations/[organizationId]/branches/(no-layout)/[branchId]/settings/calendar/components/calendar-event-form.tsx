@@ -107,6 +107,7 @@ function buildDefaultValues(
     location: initialEvent?.location ?? "",
     image: toStoredImageFileName(initialEvent?.image),
     allDay: initialEvent?.allDay ?? false,
+    closesAttendance: initialEvent?.closesAttendance ?? false,
     createdBy: userId,
     recurrence: initialEvent?.recurrence ?? Recurrence.HEBDOMADAIRE,
     dateStart: initialEvent?.dateStart
@@ -664,6 +665,27 @@ export function CalendarEventForm({
           </label>
         </div>
       </div>
+
+      <label className="flex flex-col gap-1 rounded-lg border border-amber-500/30 bg-amber-500/5 px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between">
+        <span className="text-sm">
+          <span className="font-medium text-foreground">
+            Jour férié / établissement fermé
+          </span>
+          <span className="mt-0.5 block text-xs text-muted-foreground">
+            Aucune alerte ni pointage de présence ce jour-là.
+          </span>
+        </span>
+        <Switch
+          className="mt-2 sm:mt-0"
+          checked={Boolean(form.watch("closesAttendance"))}
+          onCheckedChange={(checked) => {
+            form.setValue("closesAttendance", checked, { shouldDirty: true });
+            if (checked) {
+              form.setValue("allDay", true, { shouldDirty: true });
+            }
+          }}
+        />
+      </label>
 
       <div className="flex justify-end gap-2 border-t pt-4">
         <Button type="submit" disabled={pending || translating}>

@@ -204,8 +204,12 @@ export default function CalendarSettingsPage() {
             </Badge>
           </div>
           <p className="mt-1 text-sm text-muted-foreground">
-            Creez les evenements, ajoutez une image et traduisez le titre et la
-            description.
+            Créez les événements, ajoutez une image et traduisez le titre et la
+            description. Pour un jour férié, activez{" "}
+            <span className="font-medium text-foreground">
+              Jour férié / établissement fermé
+            </span>{" "}
+            afin de couper les alertes de présence.
           </p>
         </div>
 
@@ -285,6 +289,9 @@ export default function CalendarSettingsPage() {
                         </h3>
                         {event.eventType?.name ? (
                           <Badge variant="secondary">{event.eventType.name}</Badge>
+                        ) : null}
+                        {event.closesAttendance ? (
+                          <Badge variant="warning">Férié / fermé</Badge>
                         ) : null}
                         {event.classe ? (
                           <Badge variant="outline">

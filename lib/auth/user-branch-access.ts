@@ -91,6 +91,7 @@ export async function getUserBranchMemberships(
 ): Promise<UserBranchMembership[]> {
   const memberships = await prisma.branchMember.findMany({
     where: {
+      isActive: true,
       role: { in: [...BRANCH_USER_ROLES] },
       member: {
         userId,
@@ -130,6 +131,7 @@ export async function getAnyUserBranchMemberships(
 ): Promise<UserBranchMembership[]> {
   const memberships = await prisma.branchMember.findMany({
     where: {
+      isActive: true,
       member: {
         userId,
         organizationId,
