@@ -57,12 +57,12 @@ export function receiptItemStatusLabel(item: {
 
 export function resolveOverallReceiptSettlementStatus(
   items: Array<{ settlementStatus?: ReceiptSettlementStatus | null }>,
-): ReceiptSettlementStatus | null {
+): ReceiptSettlementStatus | undefined {
   const statuses = items
     .map((item) => item.settlementStatus)
     .filter((status): status is ReceiptSettlementStatus => Boolean(status));
 
-  if (!statuses.length) return null;
+  if (!statuses.length) return undefined;
   if (statuses.every((status) => status === "SOLDE")) return "SOLDE";
   if (statuses.some((status) => status === "COMPLEMENT")) return "COMPLEMENT";
   if (statuses.some((status) => status === "ACOMPTE")) return "ACOMPTE";
