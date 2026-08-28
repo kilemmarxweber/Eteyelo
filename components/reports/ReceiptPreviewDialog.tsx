@@ -43,11 +43,14 @@ export type ReceiptPreviewDialogProps = {
   issuedAt?: Date;
   /** Lance l'impression dès l'ouverture (après validation du paiement). */
   autoPrint?: boolean;
-  /** Nombre d'exemplaires à imprimer (2 par défaut : parent + établissement). */
+  /** Exemplaires pour l'impression auto après validation (2 par défaut). */
+  autoPrintCopies?: number;
+  /** Exemplaires du bouton Imprimer / PDF (1 par défaut). */
   printCopies?: number;
 };
 
-const DEFAULT_PRINT_COPIES = 2;
+const DEFAULT_PRINT_COPIES = 1;
+const DEFAULT_AUTO_PRINT_COPIES = 2;
 
 async function waitForImages(root: HTMLElement) {
   const images = Array.from(root.querySelectorAll("img"));
@@ -129,6 +132,7 @@ export function ReceiptPreviewDialog({
   banner,
   issuedAt,
   autoPrint = false,
+  autoPrintCopies = DEFAULT_AUTO_PRINT_COPIES,
   printCopies = DEFAULT_PRINT_COPIES,
 }: ReceiptPreviewDialogProps) {
   const [mounted, setMounted] = React.useState(false);
@@ -136,7 +140,8 @@ export function ReceiptPreviewDialog({
   const [printing, setPrinting] = React.useState(false);
   const captureRef = React.useRef<HTMLDivElement>(null);
   const autoPrintedRef = React.useRef<string | null>(null);
-  const copies = Math.max(1, Math.round(printCopies));
+  const buttonCopies = Math.max(1, Math.round(printCopies));
+  const automaticCopies = Math.max(1, Math.round(autoPrintCopies));
 
   React.useEffect(() => {
     setMounted(true);
@@ -161,50 +166,52 @@ export function ReceiptPreviewDialog({
     return { dataUrl, width, height };
   }
 
-  async function handlePrint() {
-    if (!data) return;
+  const printReceipt = React.useCallback(
+    async (copyCount: number) => {
+      if (!data) return;
+      const count = Math.max(1, Math.round(copyCount));
 
-    setPrinting(true);
-    try {
-      let tries = 0;
-      while (!captureRef.current && tries < 25) {
-        await new Promise((resolve) => setTimeout(resolve, 80));
-        tries += 1;
-      }
+      setPrinting(true);
+      try {
+        let tries = 0;
+        while (!captureRef.current && tries < 25) {
+          await new Promise((resolve) => setTimeout(resolve, 80));
+          tries += 1;
+        }
 
-      const capture = await captureReceiptImage();
-      if (!capture) return;
+        const capture = await captureReceiptImage();
+        if (!capture) return;
 
-      const { dataUrl, width, height } = capture;
-      const copiesHtml = Array.from({ length: copies }, (_, index) => `
+        const { dataUrl, width, height } = capture;
+        const copiesHtml = Array.from({ length: count }, (_, index) => `
         <section class="copy">
-          <img src="${dataUrl}" alt="Reçu de paiement ${index + 1}/${copies}" />
+          <img src="${dataUrl}" alt="Reçu de paiement ${index + 1}/${count}" />
         </section>
       `).join("");
 
-      const iframe = document.createElement("iframe");
-      iframe.setAttribute("aria-hidden", "true");
-      iframe.style.position = "fixed";
-      iframe.style.right = "0";
-      iframe.style.bottom = "0";
-      iframe.style.width = "0";
-      iframe.style.height = "0";
-      iframe.style.border = "0";
-      document.body.appendChild(iframe);
+        const iframe = document.createElement("iframe");
+        iframe.setAttribute("aria-hidden", "true");
+        iframe.style.position = "fixed";
+        iframe.style.right = "0";
+        iframe.style.bottom = "0";
+        iframe.style.width = "0";
+        iframe.style.height = "0";
+        iframe.style.border = "0";
+        document.body.appendChild(iframe);
 
-      const frameWindow = iframe.contentWindow;
-      if (!frameWindow) {
-        iframe.remove();
-        toast.error("Impossible d'ouvrir la fenêtre d'impression.");
-        return;
-      }
+        const frameWindow = iframe.contentWindow;
+        if (!frameWindow) {
+          iframe.remove();
+          toast.error("Impossible d'ouvrir la fenêtre d'impression.");
+          return;
+        }
 
-      const cleanup = () => {
-        iframe.remove();
-      };
+        const cleanup = () => {
+          iframe.remove();
+        };
 
-      frameWindow.document.open();
-      frameWindow.document.write(`<!DOCTYPE html>
+        frameWindow.document.open();
+        frameWindow.document.write(`<!DOCTYPE html>
 <html lang="fr">
   <head>
     <meta charset="utf-8" />
@@ -279,21 +286,23 @@ export function ReceiptPreviewDialog({
     </script>
   </body>
 </html>`);
-      frameWindow.document.close();
-      frameWindow.addEventListener("afterprint", cleanup);
-      window.setTimeout(cleanup, 60_000);
-      toast.success(
-        copies > 1
-          ? `Impression de ${copies} reçus lancée.`
-          : "Impression du reçu lancée.",
-      );
-    } catch (error) {
-      console.error("Receipt print failed:", error);
-      toast.error("Impossible d'imprimer le reçu.");
-    } finally {
-      setPrinting(false);
-    }
-  }
+        frameWindow.document.close();
+        frameWindow.addEventListener("afterprint", cleanup);
+        window.setTimeout(cleanup, 60_000);
+        toast.success(
+          count > 1
+            ? `Impression de ${count} reçus lancée.`
+            : "Impression du reçu lancée.",
+        );
+      } catch (error) {
+        console.error("Receipt print failed:", error);
+        toast.error("Impossible d'imprimer le reçu.");
+      } finally {
+        setPrinting(false);
+      }
+    },
+    [data],
+  );
 
   React.useEffect(() => {
     if (!open || !autoPrint || !data || !mounted) return;
@@ -301,10 +310,10 @@ export function ReceiptPreviewDialog({
     if (autoPrintedRef.current === invoiceNumber) return;
     const timer = window.setTimeout(() => {
       autoPrintedRef.current = invoiceNumber;
-      void handlePrint();
+      void printReceipt(automaticCopies);
     }, 600);
     return () => window.clearTimeout(timer);
-  }, [open, autoPrint, data?.invoiceNumber, mounted, copies]);
+  }, [open, autoPrint, data, mounted, automaticCopies, printReceipt]);
 
   const handleDownloadPdf = async () => {
     if (!data) return;
@@ -318,7 +327,7 @@ export function ReceiptPreviewDialog({
           ...data,
           logoUrl: logoDataUrl ?? "",
         },
-        { copies },
+        { copies: buttonCopies },
       );
       toast.success("Reçu PDF généré avec succès");
     } catch {
@@ -350,10 +359,10 @@ export function ReceiptPreviewDialog({
                 type="button"
                 variant="outline"
                 disabled={busy}
-                onClick={() => void handlePrint()}
+                onClick={() => void printReceipt(buttonCopies)}
               >
                 <Printer data-icon="inline-start" />
-                {printing ? "Préparation..." : copies > 1 ? `Imprimer (${copies})` : "Imprimer"}
+                {printing ? "Préparation..." : "Imprimer"}
               </Button>
               <Button
                 type="button"

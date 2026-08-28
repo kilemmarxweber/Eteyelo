@@ -119,7 +119,7 @@ export function generateFacturePaymentStudentPDF(
     showConversion = true,
     settlementStatus,
   } = data;
-  const copies = Math.max(1, Math.round(options?.copies ?? 2));
+  const copies = Math.max(1, Math.round(options?.copies ?? 1));
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
   const primaryColor = "#000000";
