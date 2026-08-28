@@ -1,0 +1,5 @@
+-- AlterTable
+ALTER TABLE "organizationRole" ADD COLUMN IF NOT EXISTS "label" TEXT;
+ALTER TABLE "organizationRole" ADD COLUMN IF NOT EXISTS "description" TEXT;
+ALTER TABLE "organizationRole" ADD COLUMN IF NOT EXISTS "isSystem" BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE "organizationRole" ADD COLUMN IF NOT EXISTS "sortOrder" INTEGER NOT NULL DEFAULT 100;

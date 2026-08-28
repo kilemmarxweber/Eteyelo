@@ -6550,6 +6550,10 @@ export const OrganizationRoleScalarFieldEnum = {
   organizationId: 'organizationId',
   role: 'role',
   permission: 'permission',
+  label: 'label',
+  description: 'description',
+  isSystem: 'isSystem',
+  sortOrder: 'sortOrder',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const

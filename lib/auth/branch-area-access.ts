@@ -16,35 +16,29 @@ import {
   canAccessTitulaireFichesArea,
   canManageHrDirectory,
 } from "@/lib/auth/session-roles";
+import {
+  canAccessBranchAreaFromPermissions,
+  isPermissionsFromDacEnabled,
+} from "@/lib/auth/resolve-branch-area-permission";
+import type { BranchArea } from "@/lib/auth/branch-area-permissions";
+
+export type { BranchArea };
 
 /**
  * Zones sensibles sous `.../branches/[branchId]/` (unit-09).
  * Module client-safe (pas de next/headers).
+ *
+ * P6 : si `PERMISSIONS_FROM_DAC=true`, délègue au catalogue statements ;
+ * sinon conserve les helpers session-roles (comportement actuel).
  */
-export type BranchArea =
-  | "finance"
-  | "fee_catalog"
-  | "notes"
-  | "schedule"
-  | "teaching"
-  | "pedagogy"
-  | "results"
-  | "devoirs"
-  | "library"
-  | "school_admin"
-  | "registration"
-  | "students"
-  | "hr_directory"
-  | "hr_write"
-  | "branch_org_settings"
-  | "school_ops_settings"
-  | "support_settings"
-  | "fiches";
-
 export function canAccessBranchArea(
   area: BranchArea,
   session: unknown,
 ): boolean {
+  if (isPermissionsFromDacEnabled()) {
+    return canAccessBranchAreaFromPermissions(area, session);
+  }
+
   switch (area) {
     case "finance":
       return canAccessFinanceArea(session);

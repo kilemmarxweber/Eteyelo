@@ -1,7 +1,11 @@
 import { randomUUID } from "crypto";
 import { hashPassword } from "better-auth/crypto";
 import { prisma } from "@/lib/prisma";
-import { ALL_ORG_ROLE_SLUGS, APP_ROLE, ORG_ROLE } from "@/lib/permissions";
+import { APP_ROLE, ORG_ROLE } from "@/lib/permissions";
+import {
+  formatSeedOrganizationRolesReport,
+  seedOrganizationRolePresets,
+} from "@/lib/auth/seed-organization-roles";
 
 const DEFAULT_OWNER_EMAIL = "owner@eteyelo.cd";
 const DEFAULT_OWNER_PASSWORD = "Owner123!";
@@ -53,10 +57,19 @@ export type MigrateOrganizationRolesReport = {
   }>;
   obsoleteOrganizationRolesRemoved: number;
   /**
-   * Lignes OrganizationRole pour des slugs presets (caissier, prefet, …).
-   * Better Auth Dynamic AC **fusionne** ces permissions avec les presets code :
-   * un override stale peut ré-élargir le caissier après correctif unit-02.
-   * On les retire pour que `organizationRoleStatements` soit la source de vérité.
+   * P2 : sync upsert des presets (meta + permission seed) au lieu de clear.
+   * Better Auth unionne DB ∪ code — le seed doit rester aligné sur
+   * `organizationRoleStatements` (resetPermissions) pour éviter les élargissements stale.
+   */
+  presetOrganizationRolesSeeded: {
+    created: number;
+    updatedMeta: number;
+    resetPermission: number;
+    skippedCustom: number;
+    organizationsVisited: number;
+  };
+  /**
+   * @deprecated Conservé pour compat rapports — toujours vide depuis P2.
    */
   presetOrganizationRoleOverridesCleared: Array<{
     id: string;
@@ -268,6 +281,14 @@ export async function migrateOrganizationRoles(
   let obsoleteOrganizationRolesRemoved = 0;
   const presetOrganizationRoleOverridesCleared: MigrateOrganizationRolesReport["presetOrganizationRoleOverridesCleared"] =
     [];
+  let presetOrganizationRolesSeeded: MigrateOrganizationRolesReport["presetOrganizationRolesSeeded"] =
+    {
+      created: 0,
+      updatedMeta: 0,
+      resetPermission: 0,
+      skippedCustom: 0,
+      organizationsVisited: 0,
+    };
   const superAdminPromotions: SuperAdminPromotion[] = [];
   const duplicateMembershipsRemoved: DuplicateMembershipCleanup[] = [];
   let ownerMembershipsRemoved = 0;
@@ -412,38 +433,19 @@ export async function migrateOrganizationRoles(
     }
   }
 
-  // Dynamic AC : overrides DB des presets → merge union avec le code.
-  // Retirer les lignes pour les slugs connus afin d’appliquer unit-02 (caissier restreint, etc.).
-  const presetRoleOverrides = await prisma.organizationRole.findMany({
-    where: {
-      role: {
-        in: [...ALL_ORG_ROLE_SLUGS],
-      },
-    },
-    select: {
-      id: true,
-      organizationId: true,
-      role: true,
-    },
+  // P2 : upsert presets (réécrit permission depuis le code pour purger les overrides stale).
+  // Ne plus deleteMany — customs préservés ; presets resync.
+  const seedReport = await seedOrganizationRolePresets({
+    dryRun,
+    resetPermissions: true,
   });
-
-  for (const override of presetRoleOverrides) {
-    presetOrganizationRoleOverridesCleared.push({
-      id: override.id,
-      organizationId: override.organizationId,
-      role: override.role,
-    });
-  }
-
-  if (presetOrganizationRoleOverridesCleared.length > 0 && !dryRun) {
-    await prisma.organizationRole.deleteMany({
-      where: {
-        id: {
-          in: presetOrganizationRoleOverridesCleared.map((row) => row.id),
-        },
-      },
-    });
-  }
+  presetOrganizationRolesSeeded = {
+    created: seedReport.created,
+    updatedMeta: seedReport.updatedMeta,
+    resetPermission: seedReport.resetPermission,
+    skippedCustom: seedReport.skippedCustom,
+    organizationsVisited: seedReport.organizationsVisited,
+  };
 
   const legacySuperAdmins = await prisma.user.findMany({
     where: {
@@ -595,6 +597,7 @@ export async function migrateOrganizationRoles(
     legacySlugConversions,
     organizationRoleSlugRenames,
     obsoleteOrganizationRolesRemoved,
+    presetOrganizationRolesSeeded,
     presetOrganizationRoleOverridesCleared,
     superAdminPromotions,
     duplicateMembershipsRemoved,
@@ -647,13 +650,12 @@ export function formatMigrationReport(report: MigrateOrganizationRolesReport) {
     `OrganizationRole obsolete supprimes: ${report.obsoleteOrganizationRolesRemoved}`,
   );
   lines.push(
-    `Overrides Dynamic AC presets retires: ${report.presetOrganizationRoleOverridesCleared.length}`,
+    `Presets OrganizationRole seed (P2): ${formatSeedOrganizationRolesReport({
+      dryRun: report.dryRun,
+      resetPermissions: true,
+      ...report.presetOrganizationRolesSeeded,
+    })}`,
   );
-  for (const item of report.presetOrganizationRoleOverridesCleared) {
-    lines.push(
-      `  - org ${item.organizationId}: role preset "${item.role}" (id ${item.id})`,
-    );
-  }
   lines.push("");
   lines.push(
     `Promotions super admin -> owner: ${report.superAdminPromotions.length}`,

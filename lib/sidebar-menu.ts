@@ -164,6 +164,12 @@ const staticSidebarMenu: StaticMenuItem[] = [
     roles: SCHOOL_ADMIN_ROLES,
   },
   {
+    title: "team",
+    href: "/admin/equipe",
+    icon: "users",
+    roles: SCHOOL_ADMIN_ROLES,
+  },
+  {
     title: "users",
     href: "/admin/settings",
     icon: "users",

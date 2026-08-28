@@ -7,11 +7,12 @@ import { authClient } from "@/lib/auth-client";
 import {
   canAccessBranchOrgSettings,
   canAccessSchoolOpsSettings,
+  isOrganizationOwnerSession,
 } from "@/lib/auth/session-roles";
 
-type SettingsAccessLevel = "org" | "school_ops";
+type SettingsAccessLevel = "org" | "school_ops" | "owner";
 
-/** Bloque l'accès direct aux réglages org / school_ops. */
+/** Bloque l'accès direct aux réglages org / school_ops / owner. */
 export function RequireBranchOrgSettingsAccess({
   children,
   level = "org",
@@ -27,7 +28,9 @@ export function RequireBranchOrgSettingsAccess({
   const allowed =
     level === "school_ops"
       ? canAccessSchoolOpsSettings(session)
-      : canAccessBranchOrgSettings(session);
+      : level === "owner"
+        ? isOrganizationOwnerSession(session)
+        : canAccessBranchOrgSettings(session);
 
   useEffect(() => {
     setHasMounted(true);

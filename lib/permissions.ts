@@ -118,6 +118,21 @@ export const accessControlStatements = {
   parent: ["create", "read", "update", "delete"],
   personnel: ["create", "read", "update", "delete"],
   schedule: ["create", "read", "update", "delete"],
+  /** Annuaire élèves (CRUD / lecture scoped). */
+  student: ["create", "read", "update", "delete"],
+  /** Paiement, frais, caisse — `encaisser` = opération caisse (P8). */
+  finance: ["create", "read", "update", "delete", "encaisser"],
+  /** Affectations enseignement. */
+  teaching: ["create", "read", "update", "delete", "assign"],
+  attendance: ["create", "read", "update", "delete"],
+  notes: ["create", "read", "update", "delete"],
+  results: ["create", "read", "update", "delete"],
+  devoirs: ["create", "read", "update", "delete"],
+  library: ["create", "read", "update", "delete"],
+  fiches: ["create", "read", "update", "delete"],
+  documents: ["create", "read", "update", "delete"],
+  settings: ["create", "read", "update", "delete"],
+  candidatures: ["create", "read", "update", "delete"],
   platformSupport: ["create", "read", "update", "delete"],
   organizationSupport: ["create", "read", "update", "delete"],
   platformEscalation: ["create", "read", "update", "assign", "close"],
@@ -138,6 +153,21 @@ const ORG_BUSINESS_RESOURCES = [
   "parent",
   "personnel",
   "schedule",
+] as const;
+
+/** Modules scolaires hors RH « classique » (déclarés P1 — enforcement P6–P8). */
+const SCHOOL_MODULE_RESOURCES = [
+  "student",
+  "teaching",
+  "attendance",
+  "notes",
+  "results",
+  "devoirs",
+  "library",
+  "fiches",
+  "documents",
+  "settings",
+  "candidatures",
 ] as const;
 
 /**
@@ -163,6 +193,44 @@ function withBusinessActions(actions: readonly CrudAction[]): StatementShape {
   }
 
   return shape as StatementShape;
+}
+
+/**
+ * Pack modules scolaires (hors `finance`, gérée à part selon le rôle).
+ */
+function withSchoolModuleActions(
+  actions: readonly CrudAction[],
+  options?: {
+    includeTeachingAssign?: boolean;
+    settingsActions?: readonly CrudAction[];
+    omit?: ReadonlyArray<(typeof SCHOOL_MODULE_RESOURCES)[number]>;
+  },
+): StatementShape {
+  const omit = new Set(options?.omit ?? []);
+  const shape: Record<string, readonly string[]> = {};
+
+  for (const resource of SCHOOL_MODULE_RESOURCES) {
+    if (omit.has(resource)) continue;
+    if (resource === "settings" && options?.settingsActions) {
+      shape.settings = options.settingsActions;
+      continue;
+    }
+    if (resource === "teaching" && options?.includeTeachingAssign) {
+      shape.teaching = [...actions, "assign"];
+      continue;
+    }
+    shape[resource] = actions;
+  }
+
+  return shape as StatementShape;
+}
+
+function withFinanceActions(
+  actions: readonly CrudAction[],
+  options?: { encaisser?: boolean },
+): StatementShape {
+  const finance = options?.encaisser === false ? [...actions] : [...actions, "encaisser" as const];
+  return { finance } as StatementShape;
 }
 
 /**
@@ -252,11 +320,13 @@ export const applicationRoleStatements: Record<string, StatementShape> = {
   },
 };
 
-/** Preset `ownerAc` pour le créateur ; autres rôles = grille métier 1A. */
+/** Preset `ownerAc` pour le créateur ; autres rôles = grille métier 1A + catalogue scolaire P1. */
 export const organizationRoleStatements: Record<string, StatementShape> = {
   [ORG_ROLE.OWNER]: {
     ...ownerAc.statements,
     ...withActions(CRUD_ACTIONS),
+    ...withSchoolModuleActions(CRUD_ACTIONS, { includeTeachingAssign: true }),
+    ...withFinanceActions(CRUD_ACTIONS),
     // Propriétaire org : update/archive, pas de suppression physique (owner plateforme seul).
     organization: ["update"],
     organizationSupport: ["create", "read", "update", "delete"],
@@ -265,57 +335,83 @@ export const organizationRoleStatements: Record<string, StatementShape> = {
   [ORG_ROLE.GESTIONNAIRE]: {
     // CRU : créer / lire / modifier / archiver. Jamais de suppression physique.
     ...withActions(CRU_ACTIONS),
+    ...withSchoolModuleActions(CRU_ACTIONS, { includeTeachingAssign: true }),
+    ...withFinanceActions(CRU_ACTIONS),
     organizationSupport: ["create", "read", "update"],
     platformEscalation: ["read"],
   },
   /**
-   * Préfet / Directeur (chef d’établissement) : CRU métier branche + RH.
+   * Préfet / Directeur (chef d’établissement) : CRU métier branche + RH + pédagogie.
    * Sans droits d’admin org (archive / invitations / AC dynamique).
-   * Finance gated par helpers session (pas de ressource AC dédiée).
+   * Sans finance (aligné `canAccessFinanceArea` — enforcement session jusqu’à P8).
    */
   [ORG_ROLE.PREFET]: {
     ...withBusinessActions(CRU_ACTIONS),
+    ...withSchoolModuleActions(CRU_ACTIONS, { includeTeachingAssign: true }),
   },
   [ORG_ROLE.DIRECTEUR]: {
     ...withBusinessActions(CRU_ACTIONS),
+    ...withSchoolModuleActions(CRU_ACTIONS, { includeTeachingAssign: true }),
   },
   /**
-   * Directeur des études : CRU pédagogique (teacher / schedule / inscription).
+   * Directeur des études : CRU pédagogique (teacher / schedule / inscription / notes…).
    * `personnel` / `parent` en lecture seule — pas finance.
+   * Settings partiel (ops scolaires lecture/update).
    */
   [ORG_ROLE.DIRECTEUR_ETUDES]: {
     ...withBusinessActions(CRU_ACTIONS),
+    ...withSchoolModuleActions(CRU_ACTIONS, {
+      includeTeachingAssign: true,
+      settingsActions: ["read", "update"],
+    }),
     personnel: ["read"],
     parent: ["read"],
   },
   [ORG_ROLE.TEACHER]: {
     ...organizationPluginMemberAc.statements,
     ...withActions(CREATE_READ_ACTIONS),
+    student: ["read"],
+    teaching: ["read", "assign"],
+    attendance: ["create", "read", "update"],
+    notes: ["create", "read", "update"],
+    results: ["create", "read", "update"],
+    devoirs: ["create", "read", "update"],
+    library: ["create", "read", "update"],
+    fiches: ["create", "read", "update"],
   },
   [ORG_ROLE.SUPERVISEUR]: {
     ...withActions(CRUD_ACTIONS),
+    ...withSchoolModuleActions(CRUD_ACTIONS, { includeTeachingAssign: true }),
+    ...withFinanceActions(CRUD_ACTIONS),
   },
   /**
    * Caissier : finance + inscription élèves (member:create pour comptes
    * parent/élève) + lecture annuaire. Pas de CRU sur schedule / personnel /
    * teacher / parent / branch.
    *
-   * Finance : aucune ressource `finance` / `paiement` dans
-   * `accessControlStatements` — reportée. Encaissements gated par helpers
-   * session + pages (unit-01 / unit-04 / unit-09), pas par un statement AC.
+   * `finance` déclaré en P1 ; l’enforcement menus/actions bascule en P6–P8
+   * (aujourd’hui encore helpers session).
    */
   [ORG_ROLE.CAISSIER]: {
     ...organizationPluginMemberAc.statements,
     member: ["create", "read"],
     inscription: ["create", "share", "update"],
+    student: ["read"],
+    finance: ["create", "read", "update", "encaisser"],
   },
   [ORG_ROLE.STUDENT]: {
     ...organizationPluginMemberAc.statements,
     ...withActions(READ_ACTIONS),
+    student: ["read"],
+    results: ["read"],
+    devoirs: ["create", "read"],
+    library: ["read"],
   },
   [ORG_ROLE.PARENT]: {
     ...organizationPluginMemberAc.statements,
     ...withActions(READ_ACTIONS),
+    student: ["read"],
+    results: ["read"],
   },
   [ORG_ROLE.SUPPORT]: {
     ...organizationPluginMemberAc.statements,

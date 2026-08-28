@@ -162,17 +162,17 @@ export default async function BranchesPage({ params }: BranchesPageProps) {
           </div>
 
           {isScoped ? null : (
-            <div className="flex shrink-0 flex-nowrap items-center gap-2">
+            <div className="flex w-full shrink-0 flex-wrap items-center gap-2 sm:w-auto sm:flex-nowrap sm:justify-end">
               {showMerge ? <BranchMergeHeaderButton /> : null}
               <Button
                 size="sm"
                 variant="secondary"
-                className="rounded-full bg-card text-foreground hover:bg-muted"
+                className="min-w-0 flex-1 rounded-full bg-card text-foreground hover:bg-muted sm:flex-none"
                 asChild
               >
                 <Link href={`${base}/new`}>
-                  <Plus className="mr-1.5 size-3.5" />
-                  Créer un établissement
+                  <Plus className="mr-1.5 size-3.5 shrink-0" />
+                  <span className="truncate">Créer un établissement</span>
                 </Link>
               </Button>
             </div>
@@ -182,7 +182,7 @@ export default async function BranchesPage({ params }: BranchesPageProps) {
 
       {branches.length > 0 ? (
         <section className="overflow-hidden rounded-[1.5rem] border border-border/70 bg-card shadow-sm">
-          <div className="grid grid-cols-1 gap-2 p-2 sm:grid-cols-2 sm:p-3 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-3 p-2 sm:grid-cols-2 sm:gap-2 sm:p-3 lg:grid-cols-3">
           {branches.map((branch) => (
             <BranchCard
               key={branch.id}
@@ -193,32 +193,32 @@ export default async function BranchesPage({ params }: BranchesPageProps) {
               isActive={branch.isActive}
               canDelete={canDeleteBranch}
             >
-              <div className="group flex h-full min-w-0 items-start gap-2 overflow-hidden rounded-xl border border-border/80 bg-card px-2.5 py-2.5 transition hover:border-primary/30 hover:bg-muted/40 hover:shadow-sm">
-                <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                  <School className="size-3.5" />
+              <div className="flex h-full min-w-0 items-start gap-2.5 px-3 py-3 sm:px-2.5 sm:py-2.5 sm:pr-24">
+                <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground sm:size-8">
+                  <School className="size-4 sm:size-3.5" />
                 </span>
 
                 <span className="min-w-0 flex-1">
-                  <span className="flex items-center gap-1.5 pr-[6.5rem]">
+                  <span className="flex min-w-0 items-center gap-1.5">
                     <span className="truncate text-sm font-semibold text-foreground">
                       {branch.name}
                     </span>
                     <ArrowRight className="size-3.5 shrink-0 text-muted-foreground opacity-0 transition group-hover:translate-x-0.5 group-hover:opacity-100" />
                   </span>
                   {branch.description ? (
-                    <span className="mt-0.5 block w-full whitespace-normal break-words text-xs leading-snug text-muted-foreground">
+                    <span className="mt-0.5 line-clamp-2 block w-full break-words text-xs leading-snug text-muted-foreground">
                       {branch.description}
                     </span>
                   ) : null}
 
-                  <span className="mt-1 flex min-w-0 flex-col gap-1">
+                  <span className="mt-1.5 flex min-w-0 flex-col gap-1.5">
                     <BranchTypeBadge
                       typebranch={branch.typebranch}
                       cycles={branch.cycles}
-                      className="h-5 px-1.5 text-[10px]"
+                      className="h-5 max-w-full px-1.5 text-[10px]"
                     />
-                    <span className="flex flex-nowrap items-center gap-1.5">
-                      <span className="truncate text-[11px] text-muted-foreground">
+                    <span className="flex min-w-0 flex-wrap items-center gap-1.5">
+                      <span className="text-[11px] text-muted-foreground">
                         {branch.studentsCount} élève
                         {branch.studentsCount > 1 ? "s" : ""}
                       </span>

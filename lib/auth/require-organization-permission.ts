@@ -5,7 +5,10 @@ import { getCachedSession } from "@/lib/auth/get-session-cached";
 import { canAccessOrganization } from "@/lib/auth/organization-access";
 import { getUserOrganizationMembership } from "@/lib/auth/org-membership";
 import { BRANCH_LOGIN_ORG_ROLES } from "@/lib/auth/user-branch-access";
-import { canArchiveOrganizationAsMember } from "@/lib/auth/role-labels";
+import {
+  canArchiveOrganizationAsMember,
+  isOrganizationManagerMember,
+} from "@/lib/auth/role-labels";
 import {
   APP_ROLE,
   ORG_ROLE,
@@ -35,15 +38,6 @@ export type OrganizationGuardResult =
   | OrganizationGuardSuccess
   | OrganizationGuardFailure;
 
-const ORG_MANAGER_MEMBER_ROLES = new Set<string>([
-  ORG_ROLE.OWNER,
-  ORG_ROLE.GESTIONNAIRE,
-  ORG_ROLE.PREFET,
-  ORG_ROLE.DIRECTEUR,
-  ORG_ROLE.DIRECTEUR_ETUDES,
-  ORG_ROLE.SUPERVISEUR,
-]);
-
 function splitRoles(value: string | null | undefined) {
   return (value ?? "")
     .split(",")
@@ -51,11 +45,7 @@ function splitRoles(value: string | null | undefined) {
     .filter(Boolean);
 }
 
-export function isOrganizationManagerMember(role: string | null | undefined) {
-  return splitRoles(role).some((memberRole) =>
-    ORG_MANAGER_MEMBER_ROLES.has(memberRole),
-  );
-}
+export { isOrganizationManagerMember };
 
 export const getOrganizationAuthContext = cache(
   async (): Promise<OrganizationAuthContext | null> => {

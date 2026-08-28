@@ -36,9 +36,19 @@ export default function SidebarNav({
     setIsSheetOpen(false);
   };
 
+  const isItemActive = (href: string) => {
+    if (!hasMounted) return false;
+    if (pathname === href) return true;
+    // Ne pas activer « Profil » (/settings) pour toutes les sous-pages.
+    if (href.endsWith("/settings")) return false;
+    return pathname.startsWith(`${href}/`);
+  };
+
   // Évite le mismatch SSR/client (session / pathname peuvent différer au premier paint).
   const currentItem = hasMounted
-    ? items.find((item) => item.href === pathname)
+    ? [...items]
+        .filter((item) => isItemActive(item.href))
+        .sort((a, b) => b.href.length - a.href.length)[0]
     : undefined;
 
   return (
@@ -75,7 +85,7 @@ export default function SidebarNav({
                     onClick={handleLinkClick}
                     className={cn(
                       buttonVariants({ variant: "ghost" }),
-                      hasMounted && pathname === item.href
+                      isItemActive(item.href)
                         ? "bg-muted hover:bg-muted"
                         : "hover:bg-transparent hover:underline",
                       "justify-start",
@@ -105,7 +115,7 @@ export default function SidebarNav({
               href={item.href}
               className={cn(
                 buttonVariants({ variant: "ghost" }),
-                hasMounted && pathname === item.href
+                isItemActive(item.href)
                   ? "bg-muted hover:bg-muted"
                   : "hover:bg-transparent hover:underline",
                 "justify-start",

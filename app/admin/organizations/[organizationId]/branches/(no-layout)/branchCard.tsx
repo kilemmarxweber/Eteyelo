@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/dialog";
 
 const actionBtn =
-  "size-7 shrink-0 rounded-md border-0 shadow-none";
+  "size-8 shrink-0 rounded-md border-0 shadow-none sm:size-7";
 
 interface BranchCardProps {
   branchId: string;
@@ -75,18 +75,26 @@ export function BranchCard({
   };
 
   return (
-    <div className="relative min-w-0 w-full">
-      <Link
-        href={enterHref}
-        className={`group block h-full cursor-pointer ${
-          pending ? "pointer-events-none opacity-50" : ""
-        }`}
-      >
+    <div
+      className={cn(
+        "relative flex min-w-0 w-full flex-col overflow-hidden rounded-xl border border-border/80 bg-card transition hover:border-primary/30 hover:bg-muted/40 hover:shadow-sm",
+        pending && "pointer-events-none opacity-50",
+      )}
+    >
+      <Link href={enterHref} className="group block min-w-0 flex-1">
         {children}
       </Link>
 
+      {/*
+        Une seule barre d’actions :
+        - mobile : flux sous le contenu (pas de chevauchement du titre)
+        - sm+ : position absolute en coin
+      */}
       <div
-        className="absolute top-1.5 right-1.5 z-20 flex items-center gap-0.5 rounded-lg border border-border/70 bg-background/95 p-0.5 shadow-sm backdrop-blur-sm"
+        className={cn(
+          "z-20 flex items-center justify-end gap-1 border-t border-border/60 bg-muted/30 px-2.5 py-2",
+          "sm:absolute sm:top-1.5 sm:right-1.5 sm:justify-start sm:rounded-lg sm:border sm:border-border/70 sm:bg-background/95 sm:p-0.5 sm:shadow-sm sm:backdrop-blur-sm sm:border-t-0",
+        )}
         onClick={(e) => {
           e.preventDefault();
           e.stopPropagation();
@@ -128,10 +136,12 @@ export function BranchCard({
               )}
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="max-w-[calc(100vw-2rem)] sm:max-w-lg">
             <DialogHeader>
               <DialogTitle>
-                {isActive ? "Archiver l'établissement ?" : "Réactiver l'établissement ?"}
+                {isActive
+                  ? "Archiver l'établissement ?"
+                  : "Réactiver l'établissement ?"}
               </DialogTitle>
               <DialogDescription>
                 {isActive
@@ -139,19 +149,22 @@ export function BranchCard({
                   : "L'établissement redeviendra accessible dans les listes actives."}
               </DialogDescription>
             </DialogHeader>
-            <DialogFooter className="gap-2 sm:space-x-0">
+            <DialogFooter className="flex-col gap-2 sm:flex-row sm:space-x-0">
               <DialogClose asChild>
-                <Button variant="outline">Annuler</Button>
+                <Button variant="outline" className="w-full sm:w-auto">
+                  Annuler
+                </Button>
               </DialogClose>
               <Button
                 variant="outline"
                 onClick={handleArchive}
                 disabled={pending}
-                className={
+                className={cn(
+                  "w-full sm:w-auto",
                   isActive
                     ? "border-amber-200 bg-amber-100 text-amber-800 hover:bg-amber-200 hover:text-amber-900"
-                    : "border-emerald-200 bg-emerald-100 text-emerald-800 hover:bg-emerald-200 hover:text-emerald-900"
-                }
+                    : "border-emerald-200 bg-emerald-100 text-emerald-800 hover:bg-emerald-200 hover:text-emerald-900",
+                )}
               >
                 {pending && <Loader2 className="mr-2 size-4 animate-spin" />}
                 {isActive ? "Archiver" : "Réactiver"}
@@ -161,41 +174,50 @@ export function BranchCard({
         </Dialog>
 
         {canDelete ? (
-        <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-          <DialogTrigger asChild>
-            <Button
-              size="icon"
-              variant="destructive"
-              className={actionBtn}
-              title="Supprimer"
-              aria-label="Supprimer"
-            >
-              <Trash2 className="size-3.5" />
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Supprimer l&apos;établissement ?</DialogTitle>
-              <DialogDescription>
-                Cette action est irréversible. L&apos;établissement{" "}
-                <span className="font-semibold text-foreground">{branchName}</span>
-                , ses classes, élèves, parents, enseignants, années scolaires,
-                frais, paiements et tout le reste créé pour cette branche seront
-                définitivement supprimés.
-              </DialogDescription>
-            </DialogHeader>
-            <DialogFooter className="gap-2 sm:space-x-0">
-              <DialogClose asChild>
-                <Button variant="outline">Annuler</Button>
-              </DialogClose>
-              <Button variant="destructive" onClick={handleDelete} disabled={pending}>
-                {pending && <Loader2 className="mr-2 size-4 animate-spin" />}
-                <Trash2 className="mr-2 size-4" />
-                Supprimer
+          <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+            <DialogTrigger asChild>
+              <Button
+                size="icon"
+                variant="destructive"
+                className={actionBtn}
+                title="Supprimer"
+                aria-label="Supprimer"
+              >
+                <Trash2 className="size-3.5" />
               </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+            </DialogTrigger>
+            <DialogContent className="max-w-[calc(100vw-2rem)] sm:max-w-lg">
+              <DialogHeader>
+                <DialogTitle>Supprimer l&apos;établissement ?</DialogTitle>
+                <DialogDescription>
+                  Cette action est irréversible. L&apos;établissement{" "}
+                  <span className="font-semibold text-foreground">
+                    {branchName}
+                  </span>
+                  , ses classes, élèves, parents, enseignants, années scolaires,
+                  frais, paiements et tout le reste créé pour cette branche
+                  seront définitivement supprimés.
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter className="flex-col gap-2 sm:flex-row sm:space-x-0">
+                <DialogClose asChild>
+                  <Button variant="outline" className="w-full sm:w-auto">
+                    Annuler
+                  </Button>
+                </DialogClose>
+                <Button
+                  variant="destructive"
+                  onClick={handleDelete}
+                  disabled={pending}
+                  className="w-full sm:w-auto"
+                >
+                  {pending && <Loader2 className="mr-2 size-4 animate-spin" />}
+                  <Trash2 className="mr-2 size-4" />
+                  Supprimer
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         ) : null}
       </div>
     </div>

@@ -14,7 +14,7 @@ import {
   canManageOrganizationAsAppAdmin,
 } from "../lib/auth/organization-access";
 import { isOrganizationOwnerMember } from "../lib/auth/role-labels";
-import { isOrganizationManagerMember } from "../lib/auth/require-organization-permission";
+import { isOrganizationManagerMember } from "../lib/auth/role-labels";
 import { buildOrganizationsApiPayload } from "../lib/auth/post-login-routing";
 import {
   APP_ROLE,
@@ -345,11 +345,17 @@ test("nouveaux roles org exposes avec actions 1A / unit-02", () => {
     ["create", "read", "update", "delete"],
   );
   assert.deepEqual(organizationRoleStatements[ORG_ROLE.CAISSIER].member, [
+    "create",
     "read",
   ]);
   assert.deepEqual(organizationRoleStatements[ORG_ROLE.CAISSIER].inscription, [
+    "create",
     "share",
+    "update",
   ]);
+  assert.ok(
+    organizationRoleStatements[ORG_ROLE.CAISSIER].finance?.includes("encaisser"),
+  );
   assert.equal(
     organizationRoleStatements[ORG_ROLE.CAISSIER].schedule,
     undefined,
@@ -454,17 +460,18 @@ test("groupe Acces branche coherent avec statements caissier/teacher/student/par
   );
 });
 
-test("owner/gestionnaire gardent member create+update ; caissier lecture seule", () => {
+test("owner/gestionnaire gardent member create+update ; caissier create+read (inscription)", () => {
   for (const role of [ORG_ROLE.OWNER, ORG_ROLE.GESTIONNAIRE]) {
     const member = organizationRoleStatements[role].member;
     assert.ok(member?.includes("create"), `${role} member:create`);
     assert.ok(member?.includes("update"), `${role} member:update`);
   }
   assert.deepEqual(organizationRoleStatements[ORG_ROLE.CAISSIER].member, [
+    "create",
     "read",
   ]);
   assert.equal(
-    organizationRoleStatements[ORG_ROLE.CAISSIER].member?.includes("create") ??
+    organizationRoleStatements[ORG_ROLE.CAISSIER].member?.includes("update") ??
       false,
     false,
   );

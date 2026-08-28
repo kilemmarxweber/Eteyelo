@@ -16,6 +16,7 @@ import {
   IconCalendarEvent,
   IconSchool,
   IconGitMerge,
+  IconShieldLock,
 } from "@tabler/icons-react";
 
 import { Layout, LayoutBody } from "@/components/custom/layout";
@@ -27,13 +28,14 @@ import {
   canAccessSchoolOpsSettings,
   canAccessSupportSettings,
   hasSessionRole,
+  isOrganizationOwnerSession,
 } from "@/lib/auth/session-roles";
 import { ORG_ROLE } from "@/lib/permissions";
 import { getBranchTypeAction } from "../classe/classe.action";
 import SidebarNav from "./components/sidebar-nav";
 import { useTranslations } from "next-intl";
 
-type SettingsNavAccess = "always" | "org" | "school_ops" | "support";
+type SettingsNavAccess = "always" | "org" | "owner" | "school_ops" | "support";
 
 export default function Settings({ children }: { children: React.ReactNode }) {
   const t = useTranslations("settings");
@@ -63,6 +65,8 @@ export default function Settings({ children }: { children: React.ReactNode }) {
   }, [pathname]);
 
   const canSeeOrgSettings = sessionReady && canAccessBranchOrgSettings(session);
+  const canSeeOwnerSettings =
+    sessionReady && isOrganizationOwnerSession(session);
   const canSeeSchoolOps = sessionReady && canAccessSchoolOpsSettings(session);
   const canSeeSupport = sessionReady && canAccessSupportSettings(session);
   const resolvedBranchType =
@@ -126,6 +130,12 @@ export default function Settings({ children }: { children: React.ReactNode }) {
         icon: <IconKey size={18} />,
         href: "/auth/change-password",
         access: "always",
+      },
+      {
+        title: t("rolesPrivileges"),
+        icon: <IconShieldLock size={18} />,
+        href: `${settingsBasePath}/roles`,
+        access: "owner",
       },
       {
         title: t("feeTypes"),
@@ -196,6 +206,8 @@ export default function Settings({ children }: { children: React.ReactNode }) {
           return true;
         case "org":
           return canSeeOrgSettings;
+        case "owner":
+          return canSeeOwnerSettings;
         case "school_ops":
           return canSeeSchoolOps;
         case "support":
@@ -216,6 +228,7 @@ export default function Settings({ children }: { children: React.ReactNode }) {
     t,
     settingsBasePath,
     canSeeOrgSettings,
+    canSeeOwnerSettings,
     canSeeSchoolOps,
     canSeeSupport,
     showPrimaryDomains,
@@ -236,7 +249,7 @@ export default function Settings({ children }: { children: React.ReactNode }) {
           </aside>
 
           <div className="min-h-0 flex-1 overflow-hidden">
-            <div className="h-full overflow-y-auto rounded-lg border bg-card p-6">
+            <div className="h-full overflow-y-auto rounded-lg border bg-card p-3 sm:p-6">
               {children}
             </div>
           </div>

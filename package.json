@@ -22,6 +22,8 @@
     "migrate:library-s3:dry-run": "tsx scripts/migrate-library-local-to-s3.ts --dry-run",
     "test:dialog-select": "tsx scripts/test-radix-portal-dismiss.ts && node scripts/test-dialog-select-e2e.mjs",
     "test:organizations-permissions": "tsx scripts/test-organizations-permissions.ts",
+    "test:unit-e01-catalogue-ac": "tsx scripts/test-unit-e01-catalogue-ac.ts",
+    "seed:organization-roles": "tsx scripts/seed-organization-roles.ts",
     "test:session-roles": "tsx scripts/test-session-roles.ts",
     "test:unit-05-eleve": "tsx scripts/test-unit-05-eleve.ts",
     "test:unit-06-enseignant": "tsx scripts/test-unit-06-enseignant.ts",

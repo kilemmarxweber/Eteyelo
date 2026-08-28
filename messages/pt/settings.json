@@ -8,6 +8,8 @@
   "password": "Palavra-passe",
   "feeTypes": "Tipos de propinas",
   "exchangeRates": "Taxas de câmbio",
+  "rolesPrivileges": "Funções e privilégios",
+  "rolesPrivilegesDesc": "Funções da organização e respetivos direitos de acesso.",
   "publicCommunication": "Comunicação pública",
   "schoolCalendar": "Calendário escolar",
   "schoolYear": "Ano letivo",

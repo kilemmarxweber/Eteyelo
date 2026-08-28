@@ -8,6 +8,8 @@
   "password": "Mot de passe",
   "feeTypes": "Types de frais",
   "exchangeRates": "Taux de change",
+  "rolesPrivileges": "Rôles & privilèges",
+  "rolesPrivilegesDesc": "Métiers de l'organisation et leurs droits d'accès.",
   "publicCommunication": "Communication publique",
   "schoolCalendar": "Calendrier scolaire",
   "schoolYear": "Année scolaire",

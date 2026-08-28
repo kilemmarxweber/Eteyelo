@@ -20,8 +20,18 @@ export type OrganizationRoleModel = runtime.Types.Result.DefaultSelection<Prisma
 
 export type AggregateOrganizationRole = {
   _count: OrganizationRoleCountAggregateOutputType | null
+  _avg: OrganizationRoleAvgAggregateOutputType | null
+  _sum: OrganizationRoleSumAggregateOutputType | null
   _min: OrganizationRoleMinAggregateOutputType | null
   _max: OrganizationRoleMaxAggregateOutputType | null
+}
+
+export type OrganizationRoleAvgAggregateOutputType = {
+  sortOrder: number | null
+}
+
+export type OrganizationRoleSumAggregateOutputType = {
+  sortOrder: number | null
 }
 
 export type OrganizationRoleMinAggregateOutputType = {
@@ -29,6 +39,10 @@ export type OrganizationRoleMinAggregateOutputType = {
   organizationId: string | null
   role: string | null
   permission: string | null
+  label: string | null
+  description: string | null
+  isSystem: boolean | null
+  sortOrder: number | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -38,6 +52,10 @@ export type OrganizationRoleMaxAggregateOutputType = {
   organizationId: string | null
   role: string | null
   permission: string | null
+  label: string | null
+  description: string | null
+  isSystem: boolean | null
+  sortOrder: number | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -47,17 +65,33 @@ export type OrganizationRoleCountAggregateOutputType = {
   organizationId: number
   role: number
   permission: number
+  label: number
+  description: number
+  isSystem: number
+  sortOrder: number
   createdAt: number
   updatedAt: number
   _all: number
 }
 
 
+export type OrganizationRoleAvgAggregateInputType = {
+  sortOrder?: true
+}
+
+export type OrganizationRoleSumAggregateInputType = {
+  sortOrder?: true
+}
+
 export type OrganizationRoleMinAggregateInputType = {
   id?: true
   organizationId?: true
   role?: true
   permission?: true
+  label?: true
+  description?: true
+  isSystem?: true
+  sortOrder?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -67,6 +101,10 @@ export type OrganizationRoleMaxAggregateInputType = {
   organizationId?: true
   role?: true
   permission?: true
+  label?: true
+  description?: true
+  isSystem?: true
+  sortOrder?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -76,6 +114,10 @@ export type OrganizationRoleCountAggregateInputType = {
   organizationId?: true
   role?: true
   permission?: true
+  label?: true
+  description?: true
+  isSystem?: true
+  sortOrder?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -119,6 +161,18 @@ export type OrganizationRoleAggregateArgs<ExtArgs extends runtime.Types.Extensio
   /**
    * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
    * 
+   * Select which fields to average
+  **/
+  _avg?: OrganizationRoleAvgAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
+   * Select which fields to sum
+  **/
+  _sum?: OrganizationRoleSumAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
    * Select which fields to find the minimum value
   **/
   _min?: OrganizationRoleMinAggregateInputType
@@ -149,6 +203,8 @@ export type OrganizationRoleGroupByArgs<ExtArgs extends runtime.Types.Extensions
   take?: number
   skip?: number
   _count?: OrganizationRoleCountAggregateInputType | true
+  _avg?: OrganizationRoleAvgAggregateInputType
+  _sum?: OrganizationRoleSumAggregateInputType
   _min?: OrganizationRoleMinAggregateInputType
   _max?: OrganizationRoleMaxAggregateInputType
 }
@@ -158,9 +214,15 @@ export type OrganizationRoleGroupByOutputType = {
   organizationId: string
   role: string
   permission: string
+  label: string | null
+  description: string | null
+  isSystem: boolean
+  sortOrder: number
   createdAt: Date
   updatedAt: Date | null
   _count: OrganizationRoleCountAggregateOutputType | null
+  _avg: OrganizationRoleAvgAggregateOutputType | null
+  _sum: OrganizationRoleSumAggregateOutputType | null
   _min: OrganizationRoleMinAggregateOutputType | null
   _max: OrganizationRoleMaxAggregateOutputType | null
 }
@@ -188,6 +250,10 @@ export type OrganizationRoleWhereInput = {
   organizationId?: Prisma.StringFilter<"OrganizationRole"> | string
   role?: Prisma.StringFilter<"OrganizationRole"> | string
   permission?: Prisma.StringFilter<"OrganizationRole"> | string
+  label?: Prisma.StringNullableFilter<"OrganizationRole"> | string | null
+  description?: Prisma.StringNullableFilter<"OrganizationRole"> | string | null
+  isSystem?: Prisma.BoolFilter<"OrganizationRole"> | boolean
+  sortOrder?: Prisma.IntFilter<"OrganizationRole"> | number
   createdAt?: Prisma.DateTimeFilter<"OrganizationRole"> | Date | string
   updatedAt?: Prisma.DateTimeNullableFilter<"OrganizationRole"> | Date | string | null
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
@@ -198,6 +264,10 @@ export type OrganizationRoleOrderByWithRelationInput = {
   organizationId?: Prisma.SortOrder
   role?: Prisma.SortOrder
   permission?: Prisma.SortOrder
+  label?: Prisma.SortOrderInput | Prisma.SortOrder
+  description?: Prisma.SortOrderInput | Prisma.SortOrder
+  isSystem?: Prisma.SortOrder
+  sortOrder?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   organization?: Prisma.OrganizationOrderByWithRelationInput
@@ -212,6 +282,10 @@ export type OrganizationRoleWhereUniqueInput = Prisma.AtLeast<{
   organizationId?: Prisma.StringFilter<"OrganizationRole"> | string
   role?: Prisma.StringFilter<"OrganizationRole"> | string
   permission?: Prisma.StringFilter<"OrganizationRole"> | string
+  label?: Prisma.StringNullableFilter<"OrganizationRole"> | string | null
+  description?: Prisma.StringNullableFilter<"OrganizationRole"> | string | null
+  isSystem?: Prisma.BoolFilter<"OrganizationRole"> | boolean
+  sortOrder?: Prisma.IntFilter<"OrganizationRole"> | number
   createdAt?: Prisma.DateTimeFilter<"OrganizationRole"> | Date | string
   updatedAt?: Prisma.DateTimeNullableFilter<"OrganizationRole"> | Date | string | null
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
@@ -222,11 +296,17 @@ export type OrganizationRoleOrderByWithAggregationInput = {
   organizationId?: Prisma.SortOrder
   role?: Prisma.SortOrder
   permission?: Prisma.SortOrder
+  label?: Prisma.SortOrderInput | Prisma.SortOrder
+  description?: Prisma.SortOrderInput | Prisma.SortOrder
+  isSystem?: Prisma.SortOrder
+  sortOrder?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.OrganizationRoleCountOrderByAggregateInput
+  _avg?: Prisma.OrganizationRoleAvgOrderByAggregateInput
   _max?: Prisma.OrganizationRoleMaxOrderByAggregateInput
   _min?: Prisma.OrganizationRoleMinOrderByAggregateInput
+  _sum?: Prisma.OrganizationRoleSumOrderByAggregateInput
 }
 
 export type OrganizationRoleScalarWhereWithAggregatesInput = {
@@ -237,6 +317,10 @@ export type OrganizationRoleScalarWhereWithAggregatesInput = {
   organizationId?: Prisma.StringWithAggregatesFilter<"OrganizationRole"> | string
   role?: Prisma.StringWithAggregatesFilter<"OrganizationRole"> | string
   permission?: Prisma.StringWithAggregatesFilter<"OrganizationRole"> | string
+  label?: Prisma.StringNullableWithAggregatesFilter<"OrganizationRole"> | string | null
+  description?: Prisma.StringNullableWithAggregatesFilter<"OrganizationRole"> | string | null
+  isSystem?: Prisma.BoolWithAggregatesFilter<"OrganizationRole"> | boolean
+  sortOrder?: Prisma.IntWithAggregatesFilter<"OrganizationRole"> | number
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"OrganizationRole"> | Date | string
   updatedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"OrganizationRole"> | Date | string | null
 }
@@ -245,6 +329,10 @@ export type OrganizationRoleCreateInput = {
   id: string
   role: string
   permission: string
+  label?: string | null
+  description?: string | null
+  isSystem?: boolean
+  sortOrder?: number
   createdAt?: Date | string
   updatedAt?: Date | string | null
   organization: Prisma.OrganizationCreateNestedOneWithoutOrganizationrolesInput
@@ -255,6 +343,10 @@ export type OrganizationRoleUncheckedCreateInput = {
   organizationId: string
   role: string
   permission: string
+  label?: string | null
+  description?: string | null
+  isSystem?: boolean
+  sortOrder?: number
   createdAt?: Date | string
   updatedAt?: Date | string | null
 }
@@ -263,6 +355,10 @@ export type OrganizationRoleUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.StringFieldUpdateOperationsInput | string
   permission?: Prisma.StringFieldUpdateOperationsInput | string
+  label?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isSystem?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutOrganizationrolesNestedInput
@@ -273,6 +369,10 @@ export type OrganizationRoleUncheckedUpdateInput = {
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.StringFieldUpdateOperationsInput | string
   permission?: Prisma.StringFieldUpdateOperationsInput | string
+  label?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isSystem?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
@@ -282,6 +382,10 @@ export type OrganizationRoleCreateManyInput = {
   organizationId: string
   role: string
   permission: string
+  label?: string | null
+  description?: string | null
+  isSystem?: boolean
+  sortOrder?: number
   createdAt?: Date | string
   updatedAt?: Date | string | null
 }
@@ -290,6 +394,10 @@ export type OrganizationRoleUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.StringFieldUpdateOperationsInput | string
   permission?: Prisma.StringFieldUpdateOperationsInput | string
+  label?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isSystem?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
@@ -299,6 +407,10 @@ export type OrganizationRoleUncheckedUpdateManyInput = {
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.StringFieldUpdateOperationsInput | string
   permission?: Prisma.StringFieldUpdateOperationsInput | string
+  label?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isSystem?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
@@ -323,8 +435,16 @@ export type OrganizationRoleCountOrderByAggregateInput = {
   organizationId?: Prisma.SortOrder
   role?: Prisma.SortOrder
   permission?: Prisma.SortOrder
+  label?: Prisma.SortOrder
+  description?: Prisma.SortOrder
+  isSystem?: Prisma.SortOrder
+  sortOrder?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+}
+
+export type OrganizationRoleAvgOrderByAggregateInput = {
+  sortOrder?: Prisma.SortOrder
 }
 
 export type OrganizationRoleMaxOrderByAggregateInput = {
@@ -332,6 +452,10 @@ export type OrganizationRoleMaxOrderByAggregateInput = {
   organizationId?: Prisma.SortOrder
   role?: Prisma.SortOrder
   permission?: Prisma.SortOrder
+  label?: Prisma.SortOrder
+  description?: Prisma.SortOrder
+  isSystem?: Prisma.SortOrder
+  sortOrder?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -341,8 +465,16 @@ export type OrganizationRoleMinOrderByAggregateInput = {
   organizationId?: Prisma.SortOrder
   role?: Prisma.SortOrder
   permission?: Prisma.SortOrder
+  label?: Prisma.SortOrder
+  description?: Prisma.SortOrder
+  isSystem?: Prisma.SortOrder
+  sortOrder?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+}
+
+export type OrganizationRoleSumOrderByAggregateInput = {
+  sortOrder?: Prisma.SortOrder
 }
 
 export type OrganizationRoleCreateNestedManyWithoutOrganizationInput = {
@@ -391,6 +523,10 @@ export type OrganizationRoleCreateWithoutOrganizationInput = {
   id: string
   role: string
   permission: string
+  label?: string | null
+  description?: string | null
+  isSystem?: boolean
+  sortOrder?: number
   createdAt?: Date | string
   updatedAt?: Date | string | null
 }
@@ -399,6 +535,10 @@ export type OrganizationRoleUncheckedCreateWithoutOrganizationInput = {
   id: string
   role: string
   permission: string
+  label?: string | null
+  description?: string | null
+  isSystem?: boolean
+  sortOrder?: number
   createdAt?: Date | string
   updatedAt?: Date | string | null
 }
@@ -437,6 +577,10 @@ export type OrganizationRoleScalarWhereInput = {
   organizationId?: Prisma.StringFilter<"OrganizationRole"> | string
   role?: Prisma.StringFilter<"OrganizationRole"> | string
   permission?: Prisma.StringFilter<"OrganizationRole"> | string
+  label?: Prisma.StringNullableFilter<"OrganizationRole"> | string | null
+  description?: Prisma.StringNullableFilter<"OrganizationRole"> | string | null
+  isSystem?: Prisma.BoolFilter<"OrganizationRole"> | boolean
+  sortOrder?: Prisma.IntFilter<"OrganizationRole"> | number
   createdAt?: Prisma.DateTimeFilter<"OrganizationRole"> | Date | string
   updatedAt?: Prisma.DateTimeNullableFilter<"OrganizationRole"> | Date | string | null
 }
@@ -445,6 +589,10 @@ export type OrganizationRoleCreateManyOrganizationInput = {
   id: string
   role: string
   permission: string
+  label?: string | null
+  description?: string | null
+  isSystem?: boolean
+  sortOrder?: number
   createdAt?: Date | string
   updatedAt?: Date | string | null
 }
@@ -453,6 +601,10 @@ export type OrganizationRoleUpdateWithoutOrganizationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.StringFieldUpdateOperationsInput | string
   permission?: Prisma.StringFieldUpdateOperationsInput | string
+  label?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isSystem?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
@@ -461,6 +613,10 @@ export type OrganizationRoleUncheckedUpdateWithoutOrganizationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.StringFieldUpdateOperationsInput | string
   permission?: Prisma.StringFieldUpdateOperationsInput | string
+  label?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isSystem?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
@@ -469,6 +625,10 @@ export type OrganizationRoleUncheckedUpdateManyWithoutOrganizationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.StringFieldUpdateOperationsInput | string
   permission?: Prisma.StringFieldUpdateOperationsInput | string
+  label?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isSystem?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
@@ -480,6 +640,10 @@ export type OrganizationRoleSelect<ExtArgs extends runtime.Types.Extensions.Inte
   organizationId?: boolean
   role?: boolean
   permission?: boolean
+  label?: boolean
+  description?: boolean
+  isSystem?: boolean
+  sortOrder?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
@@ -490,6 +654,10 @@ export type OrganizationRoleSelectCreateManyAndReturn<ExtArgs extends runtime.Ty
   organizationId?: boolean
   role?: boolean
   permission?: boolean
+  label?: boolean
+  description?: boolean
+  isSystem?: boolean
+  sortOrder?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
@@ -500,6 +668,10 @@ export type OrganizationRoleSelectUpdateManyAndReturn<ExtArgs extends runtime.Ty
   organizationId?: boolean
   role?: boolean
   permission?: boolean
+  label?: boolean
+  description?: boolean
+  isSystem?: boolean
+  sortOrder?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
@@ -510,11 +682,15 @@ export type OrganizationRoleSelectScalar = {
   organizationId?: boolean
   role?: boolean
   permission?: boolean
+  label?: boolean
+  description?: boolean
+  isSystem?: boolean
+  sortOrder?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type OrganizationRoleOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "role" | "permission" | "createdAt" | "updatedAt", ExtArgs["result"]["organizationRole"]>
+export type OrganizationRoleOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "role" | "permission" | "label" | "description" | "isSystem" | "sortOrder" | "createdAt" | "updatedAt", ExtArgs["result"]["organizationRole"]>
 export type OrganizationRoleInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
 }
@@ -535,6 +711,16 @@ export type $OrganizationRolePayload<ExtArgs extends runtime.Types.Extensions.In
     organizationId: string
     role: string
     permission: string
+    /**
+     * Libellé UI (preset seed ou custom).
+     */
+    label: string | null
+    description: string | null
+    /**
+     * Preset système (slug non supprimable) vs rôle custom.
+     */
+    isSystem: boolean
+    sortOrder: number
     createdAt: Date
     updatedAt: Date | null
   }, ExtArgs["result"]["organizationRole"]>
@@ -965,6 +1151,10 @@ export interface OrganizationRoleFieldRefs {
   readonly organizationId: Prisma.FieldRef<"OrganizationRole", 'String'>
   readonly role: Prisma.FieldRef<"OrganizationRole", 'String'>
   readonly permission: Prisma.FieldRef<"OrganizationRole", 'String'>
+  readonly label: Prisma.FieldRef<"OrganizationRole", 'String'>
+  readonly description: Prisma.FieldRef<"OrganizationRole", 'String'>
+  readonly isSystem: Prisma.FieldRef<"OrganizationRole", 'Boolean'>
+  readonly sortOrder: Prisma.FieldRef<"OrganizationRole", 'Int'>
   readonly createdAt: Prisma.FieldRef<"OrganizationRole", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"OrganizationRole", 'DateTime'>
 }

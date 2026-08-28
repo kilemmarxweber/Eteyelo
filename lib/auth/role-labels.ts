@@ -59,6 +59,26 @@ export function isOrganizationOwnerMember(
   return normalizeMemberRole(memberRole) === ORG_ROLE.OWNER;
 }
 
+const ORG_MANAGER_MEMBER_ROLES = new Set<string>([
+  ORG_ROLE.OWNER,
+  ORG_ROLE.GESTIONNAIRE,
+  ORG_ROLE.PREFET,
+  ORG_ROLE.DIRECTEUR,
+  ORG_ROLE.DIRECTEUR_ETUDES,
+  ORG_ROLE.SUPERVISEUR,
+]);
+
+/** Rôles org avec capacité de gestion (CRU métier / école). */
+export function isOrganizationManagerMember(
+  role: string | null | undefined,
+): boolean {
+  return (role ?? "")
+    .split(",")
+    .map((memberRole) => memberRole.trim().toLowerCase())
+    .filter(Boolean)
+    .some((memberRole) => ORG_MANAGER_MEMBER_ROLES.has(memberRole));
+}
+
 function memberRolesInclude(
   memberRole: string | null | undefined,
   expected: string,

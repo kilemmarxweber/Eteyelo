@@ -20,6 +20,7 @@ import {
   canSeeCandidatureNotifications,
   canSeeInscriptionNotifications,
   canReviewAbsenceJustifications,
+  isOrganizationOwnerSession,
   isSchoolLeadershipRole,
 } from "../lib/auth/session-roles";
 import { canArchiveOrganizationAsMember } from "../lib/auth/role-labels";
@@ -160,6 +161,16 @@ test("canManageHrDirectory : chef école CRUD ; directeur des études lecture se
   );
   assert.equal(canManageHrDirectory(sessionGestionnaire), true);
   assert.equal(canManageHrDirectory(sessionTeacher), false);
+});
+
+test("settings : Rôles & privilèges réservés au propriétaire (pas au gestionnaire)", () => {
+  const sessionOwnerApp = { user: { role: APP_ROLE.OWNER } };
+  const sessionOwnerOrg = { organization: { role: ORG_ROLE.OWNER } };
+  assert.equal(isOrganizationOwnerSession(sessionOwnerApp), true);
+  assert.equal(isOrganizationOwnerSession(sessionOwnerOrg), true);
+  assert.equal(isOrganizationOwnerSession(sessionGestionnaire), false);
+  assert.equal(isOrganizationOwnerSession(sessionDirecteur), false);
+  assert.equal(canAccessBranchOrgSettings(sessionGestionnaire), true);
 });
 
 test("settings : propriétaire (owner) a org + school_ops (périodes, année, domaines)", () => {

@@ -8,6 +8,8 @@
   "password": "Password",
   "feeTypes": "Fee types",
   "exchangeRates": "Exchange rates",
+  "rolesPrivileges": "Roles & privileges",
+  "rolesPrivilegesDesc": "Organization roles and their access rights.",
   "publicCommunication": "Public communication",
   "schoolCalendar": "School calendar",
   "schoolYear": "School year",
