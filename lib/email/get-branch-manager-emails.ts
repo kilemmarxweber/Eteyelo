@@ -1,5 +1,3 @@
-import "server-only";
-
 import { ORG_ROLE } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 

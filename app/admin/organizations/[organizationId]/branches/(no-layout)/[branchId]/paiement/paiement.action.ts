@@ -31,6 +31,10 @@ import {
   getBestDiscountInfo,
   type DiscountInfo,
 } from "@/lib/payment-discount";
+import {
+  resolveOverallReceiptSettlementStatus,
+  resolveReceiptSettlementStatus,
+} from "@/lib/reports/receipt-settlement";
 
 async function loadPaidAmountsByEnrollmentAndFrais(
   branchId: string,
@@ -205,7 +209,9 @@ type ReceiptPayload = {
     section?: string;
     option?: string;
     tranche?: string;
+    settlementStatus?: "SOLDE" | "ACOMPTE" | "COMPLEMENT";
   }[];
+  settlementStatus?: "SOLDE" | "ACOMPTE" | "COMPLEMENT";
   logoUrl: string;
   exchangeRateUsdCdf: number;
   issuedPlace?: string;
@@ -1001,17 +1007,21 @@ export const createPaiementAction = action
           | "AOA"
           | undefined) ?? baseCurrency;
 
-      const receipt: ReceiptPayload = {
-        invoiceNumber: reference,
-        sender: {
-          name:
-            branding.branchName || branding.schoolName || "Établissement",
-          address: branding.address ?? "",
-        },
-        recipient: {
-          name: parentFullName || "Parent",
-        },
-        items: receiptPayments.map((payment) => ({
+      const receiptItems = receiptPayments.map((payment) => {
+        const balance = balances.find(
+          (item) =>
+            item.fraisId === payment.fraisId &&
+            item.classEnrollmentId === payment.classEnrollmentId,
+        );
+        const remainingBefore = Math.max(Number(balance?.remaining ?? payment.amount), 0);
+        const alreadyPaidBefore = Math.max(Number(balance?.alreadyPaid ?? 0), 0);
+        const settlementStatus = resolveReceiptSettlementStatus({
+          remainingBefore,
+          paidThisTime: Number(payment.amount),
+          alreadyPaidBefore,
+        });
+
+        return {
           description: payment.frais?.nameFrais ?? "Frais scolaire",
           price: Number(payment.frais?.montantFrais ?? payment.amount),
           mode: payment.method ?? "ESPECES",
@@ -1043,7 +1053,22 @@ export const createPaiementAction = action
             payment.frais?.classe?.option?.nameOption ??
             "",
           tranche: payment.frais?.semester?.label ?? "",
-        })),
+          settlementStatus,
+        };
+      });
+
+      const receipt: ReceiptPayload = {
+        invoiceNumber: reference,
+        sender: {
+          name:
+            branding.branchName || branding.schoolName || "Établissement",
+          address: branding.address ?? "",
+        },
+        recipient: {
+          name: parentFullName || "Parent",
+        },
+        items: receiptItems,
+        settlementStatus: resolveOverallReceiptSettlementStatus(receiptItems),
         logoUrl: branding.logoUrl,
         exchangeRateUsdCdf:
           branding.exchangeRateUsdCdf ?? usdCdfRate,
@@ -1413,6 +1438,31 @@ export const getAllPaiementAction = action.handler(async () => {
     orderBy: { createdAt: "desc" },
   });
 
+  const settlementById = new Map<string, "SOLDE" | "ACOMPTE" | "COMPLEMENT">();
+  const paidBeforeByKey = new Map<string, number>();
+  const chronological = [...paiements].sort((a, b) => {
+    const byDate = a.createdAt.getTime() - b.createdAt.getTime();
+    return byDate !== 0 ? byDate : a.id.localeCompare(b.id);
+  });
+
+  for (const payment of chronological) {
+    if (payment.status !== StatusPaiement.VALIDE) continue;
+    const key = `${payment.classEnrollmentId ?? ""}:${payment.fraisId ?? ""}`;
+    const alreadyPaidBefore = paidBeforeByKey.get(key) ?? 0;
+    const due = Number(payment.frais?.montantFrais ?? payment.amount);
+    const remainingBefore = Math.max(due - alreadyPaidBefore, 0);
+    const amount = Number(payment.amount);
+    settlementById.set(
+      payment.id,
+      resolveReceiptSettlementStatus({
+        remainingBefore,
+        paidThisTime: amount,
+        alreadyPaidBefore,
+      }),
+    );
+    paidBeforeByKey.set(key, alreadyPaidBefore + amount);
+  }
+
   return paiements.map((p) => ({
     id: p.id,
     amount: Number(p.amount),
@@ -1426,6 +1476,7 @@ export const getAllPaiementAction = action.handler(async () => {
     transactionRef: p.transactionRef,
     notes: p.notes,
     createdAt: p.createdAt.toISOString(),
+    settlementStatus: settlementById.get(p.id) ?? null,
 
     frais: p.frais
       ? {

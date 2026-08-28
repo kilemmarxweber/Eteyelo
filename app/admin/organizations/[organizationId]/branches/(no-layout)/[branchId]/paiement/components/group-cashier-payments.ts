@@ -33,6 +33,20 @@ export function normalizeCashierPaymentMethod(method?: string | null) {
   return value && value.length > 0 ? value : "AUTRE";
 }
 
+export function formatCashierDateTime(
+  value: string | Date,
+  locale?: string,
+): string {
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return "—";
+  const datePart = date.toLocaleDateString(locale);
+  const timePart = date.toLocaleTimeString(locale, {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+  return `${datePart} ${timePart}`;
+}
+
 export function groupCashierPaymentsByMethod<T extends CashierPaymentRow>(
   payments: T[],
 ): CashierPaymentMethodGroup<T>[] {

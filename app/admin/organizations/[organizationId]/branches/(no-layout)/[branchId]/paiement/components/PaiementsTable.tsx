@@ -38,6 +38,7 @@ import { DEFAULT_EXCHANGE_RATE_USD_CDF } from "@/lib/reports/types";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 import { useBranchPeopleLabels } from "@/hooks/use-branch-people-labels";
+import { resolveOverallReceiptSettlementStatus } from "@/lib/reports/receipt-settlement";
 import {
   exportPaiementsReportPdf,
   type PaiementReportPeriod,
@@ -71,6 +72,7 @@ function mapPaiement(p: any): IPaiement {
 
     transactionRef: p.transactionRef,
     notes: p.notes ?? undefined,
+    settlementStatus: p.settlementStatus ?? undefined,
 
     frais: p.frais
       ? {
@@ -131,7 +133,9 @@ function mapGroupedToReceipt(
           : Number(i.montantPaye),
       classe: i.classEnrollment?.nameClasse ?? "",
       codeClasse: i.classEnrollment?.codeClasse ?? "",
+      settlementStatus: i.settlementStatus,
     })),
+    settlementStatus: resolveOverallReceiptSettlementStatus(g.items),
     logoUrl: branding.logoUrl,
     exchangeRateUsdCdf:
       branding.exchangeRateUsdCdf ?? DEFAULT_EXCHANGE_RATE_USD_CDF,

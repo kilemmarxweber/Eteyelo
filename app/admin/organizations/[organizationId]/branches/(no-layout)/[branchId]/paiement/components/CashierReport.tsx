@@ -17,6 +17,7 @@ import {
 import { exportCashierReportPdf } from "./export-cashier-pdf";
 import {
   groupCashierPaymentsByMethod,
+  formatCashierDateTime,
   PAYMENT_METHOD_ORDER,
 } from "./group-cashier-payments";
 import { toast } from "sonner";
@@ -443,13 +444,10 @@ export default function CashierReport({
                         </TableCell>
                       </TableRow>
                       {group.payments.map((payment) => (
-                        <TableRow key={payment.id}>
-                          <TableCell className="px-3 py-2 tabular-nums text-muted-foreground">
-                            {new Date(payment.createdAt).toLocaleTimeString(
-                              undefined,
-                              { hour: "2-digit", minute: "2-digit" },
-                            )}
-                          </TableCell>
+                          <TableRow key={payment.id}>
+                            <TableCell className="whitespace-nowrap px-3 py-2 tabular-nums text-muted-foreground">
+                              {formatCashierDateTime(payment.createdAt)}
+                            </TableCell>
                           <TableCell className="px-3 py-2 font-medium">
                             {payment.transactionRef || "—"}
                           </TableCell>

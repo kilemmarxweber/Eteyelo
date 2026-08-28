@@ -13,6 +13,11 @@ import {
   sumReceiptBase,
   sumReceiptSecondary,
 } from "@/components/reports/receipt-format";
+import {
+  formatReceiptSettlementStatus,
+  receiptItemStatusLabel,
+  resolveOverallReceiptSettlementStatus,
+} from "@/lib/reports/receipt-settlement";
 
 export type ReceiptPreviewBodyProps = {
   data: FacturePaymentStudentData;
@@ -67,11 +72,20 @@ export function ReceiptPreviewBody({
       ? sumReceiptSecondary(data.items, secondary, secondaryOpts)
       : 0;
   const dateLabel = issuedAt.toLocaleDateString("fr-FR");
+  const overallStatus =
+    data.settlementStatus ?? resolveOverallReceiptSettlementStatus(data.items);
+  const statusLabel = formatReceiptSettlementStatus(overallStatus);
 
   return (
     <div className={cn("flex flex-col gap-4 text-sm text-foreground", className)}>
       <div className="flex flex-col gap-1">
         <p className="font-medium">Facture N°: {data.invoiceNumber}</p>
+        {statusLabel ? (
+          <p>
+            <span className="text-muted-foreground">Statut : </span>
+            <span className="font-semibold">{statusLabel}</span>
+          </p>
+        ) : null}
         <p>
           <span className="text-muted-foreground">Parent : </span>
           {data.recipient.name || "-"}
@@ -96,6 +110,7 @@ export function ReceiptPreviewBody({
                   Mnt {secondary}
                 </th>
               ) : null}
+              <th className="px-2 py-2 font-semibold">Statut</th>
             </tr>
           </thead>
           <tbody>
@@ -122,6 +137,9 @@ export function ReceiptPreviewBody({
                     )}
                   </td>
                 ) : null}
+                <td className="px-2 py-2 font-medium">
+                  {receiptItemStatusLabel(item)}
+                </td>
               </tr>
             ))}
           </tbody>

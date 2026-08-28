@@ -1,5 +1,3 @@
-import "server-only";
-
 import { prisma } from "@/lib/prisma";
 import { getBranchAbsenceReviewers } from "@/lib/email/get-branch-manager-emails";
 import { sendAbsenceLifecycleEmail } from "@/lib/email/send-absence-notification-email";

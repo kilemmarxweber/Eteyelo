@@ -10,6 +10,12 @@ import {
   sumReceiptSecondary,
   type ReceiptCurrency,
 } from "@/components/reports/receipt-format";
+import {
+  formatReceiptSettlementStatus,
+  receiptItemStatusLabel,
+  resolveOverallReceiptSettlementStatus,
+  type ReceiptSettlementStatus,
+} from "@/lib/reports/receipt-settlement";
 
 export type FacturePaymentStudentData = {
   invoiceNumber: string;
@@ -35,7 +41,10 @@ export type FacturePaymentStudentData = {
     section?: string | null;
     option?: string | null;
     tranche?: string | null;
+    settlementStatus?: ReceiptSettlementStatus | null;
   }[];
+  /** Soldé / Acompte / Complément pour tout le reçu. */
+  settlementStatus?: ReceiptSettlementStatus | null;
   /** Data URL (ou URL déjà convertie côté client) pour jsPDF. */
   logoUrl?: string;
   exchangeRateUsdCdf?: number;
@@ -104,6 +113,7 @@ export function generateFacturePaymentStudentPDF({
   quoteCurrency,
   selectedRate,
   showConversion = true,
+  settlementStatus,
 }: FacturePaymentStudentData) {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
@@ -157,10 +167,20 @@ export function generateFacturePaymentStudentPDF({
   doc.setFont("helvetica", "normal");
   doc.setTextColor(primaryColor);
   doc.text(`Facture N°: ${invoiceNumber}`, 14, 40);
-  doc.text(`Parent : ${recipient.name || "-"}`, 14, 46);
+  const overallStatus =
+    settlementStatus ?? resolveOverallReceiptSettlementStatus(items);
+  const statusLabel = formatReceiptSettlementStatus(overallStatus);
+  if (statusLabel) {
+    doc.setFont("helvetica", "bold");
+    doc.text(`Statut : ${statusLabel}`, 14, 46);
+    doc.setFont("helvetica", "normal");
+    doc.text(`Parent : ${recipient.name || "-"}`, 14, 52);
+  } else {
+    doc.text(`Parent : ${recipient.name || "-"}`, 14, 46);
+  }
 
   // --- TABLEAU DES ARTICLES ---
-  const startY = 52;
+  const startY = statusLabel ? 58 : 52;
   const head = showSecondaryColumn
     ? [
         [
@@ -170,6 +190,7 @@ export function generateFacturePaymentStudentPDF({
           `Mnt a payer ${base}`,
           `Mnt payer ${base}`,
           `Mnt ${secondary}`,
+          "Statut",
         ],
       ]
     : [
@@ -179,6 +200,7 @@ export function generateFacturePaymentStudentPDF({
           "Cycle / Classe",
           `Mnt a payer ${base}`,
           `Mnt payer ${base}`,
+          "Statut",
         ],
       ];
 
@@ -194,19 +216,21 @@ export function generateFacturePaymentStudentPDF({
     },
     columnStyles: showSecondaryColumn
       ? {
-          0: { cellWidth: 52 },
-          1: { halign: "right", cellWidth: 22 },
-          2: { cellWidth: 32 },
-          3: { halign: "right", cellWidth: 24 },
-          4: { halign: "right", cellWidth: 24 },
-          5: { halign: "right", cellWidth: 22 },
+          0: { cellWidth: 44 },
+          1: { halign: "right", cellWidth: 20 },
+          2: { cellWidth: 30 },
+          3: { halign: "right", cellWidth: 22 },
+          4: { halign: "right", cellWidth: 22 },
+          5: { halign: "right", cellWidth: 20 },
+          6: { cellWidth: 22 },
         }
       : {
-          0: { cellWidth: 65 },
-          1: { halign: "right", cellWidth: 28 },
+          0: { cellWidth: 52 },
+          1: { halign: "right", cellWidth: 24 },
           2: { cellWidth: 35 },
-          3: { halign: "right", cellWidth: 28 },
-          4: { halign: "right", cellWidth: 28 },
+          3: { halign: "right", cellWidth: 26 },
+          4: { halign: "right", cellWidth: 26 },
+          5: { cellWidth: 24 },
         },
     head,
     body: items.map((item) => {
@@ -225,6 +249,7 @@ export function generateFacturePaymentStudentPDF({
         );
         row.push(formatReceiptCurrency(secondaryAmount, secondary));
       }
+      row.push(receiptItemStatusLabel(item));
       return row;
     }),
     didDrawCell: (data) => {
@@ -250,8 +275,8 @@ export function generateFacturePaymentStudentPDF({
       ? sumReceiptSecondary(items, secondary, secondaryOpts)
       : 0;
   const tableRightX = showSecondaryColumn
-    ? 14 + 52 + 22 + 32 + 24 + 24 + 22
-    : 14 + 65 + 28 + 35 + 28 + 28;
+    ? 14 + 44 + 20 + 30 + 22 + 22 + 20
+    : 14 + 52 + 24 + 35 + 26 + 26;
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(9);

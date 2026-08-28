@@ -9,7 +9,7 @@ import {
 } from "@/lib/reports/pdf-header-footer";
 import type { SchoolReportContext } from "@/lib/reports/types";
 import { formatReportAmount } from "@/lib/reports/format-amount";
-import { groupCashierPaymentsByMethod } from "./group-cashier-payments";
+import { groupCashierPaymentsByMethod, formatCashierDateTime } from "./group-cashier-payments";
 
 export type CashierReportPdfOptions = {
   dateStart: string;
@@ -94,7 +94,7 @@ export async function buildCashierReportPdf(
 
   // 1. Encaissements groupés par mode (rupture de séquence)
   const incomeHead = [
-    "Heure",
+    "Date / heure",
     "Référence",
     "Élève",
     "Motif",
@@ -116,10 +116,7 @@ export async function buildCashierReportPdf(
 
       for (const payment of group.payments) {
         incomeBody.push([
-          new Date(payment.createdAt).toLocaleTimeString("fr-FR", {
-            hour: "2-digit",
-            minute: "2-digit",
-          }),
+          formatCashierDateTime(payment.createdAt, "fr-FR"),
           payment.transactionRef || "-",
           payment.studentName || "-",
           payment.frais?.nameFrais || "-",
@@ -177,9 +174,9 @@ export async function buildCashierReportPdf(
       halign: "center",
     },
     columnStyles: {
-      0: { cellWidth: usableWidth * 0.12, halign: "center" },
-      1: { cellWidth: usableWidth * 0.2 },
-      2: { cellWidth: usableWidth * 0.26 },
+      0: { cellWidth: usableWidth * 0.2, halign: "center" },
+      1: { cellWidth: usableWidth * 0.16 },
+      2: { cellWidth: usableWidth * 0.22 },
       3: { cellWidth: usableWidth * 0.24 },
       4: { cellWidth: usableWidth * 0.18, halign: "right" },
     },
@@ -259,17 +256,14 @@ export async function buildCashierReportPdf(
 
   if (data.expenses.length > 0) {
     const expenseHead = [
-      "Heure",
+      "Date / heure",
       "Référence",
       "Catégorie",
       "Description",
       `Montant (${currency})`,
     ];
     const expenseBody = data.expenses.map((e) => [
-      new Date(e.createdAt).toLocaleTimeString("fr-FR", {
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
+      formatCashierDateTime(e.createdAt, "fr-FR"),
       e.transactionRef || "-",
       e.category || "-",
       e.description || "-",
@@ -302,10 +296,10 @@ export async function buildCashierReportPdf(
         halign: "center",
       },
       columnStyles: {
-        0: { cellWidth: usableWidth * 0.1, halign: "center" },
-        1: { cellWidth: usableWidth * 0.2 },
-        2: { cellWidth: usableWidth * 0.18 },
-        3: { cellWidth: usableWidth * 0.34 },
+        0: { cellWidth: usableWidth * 0.2, halign: "center" },
+        1: { cellWidth: usableWidth * 0.18 },
+        2: { cellWidth: usableWidth * 0.16 },
+        3: { cellWidth: usableWidth * 0.28 },
         4: { cellWidth: usableWidth * 0.18, halign: "right" },
       },
     });

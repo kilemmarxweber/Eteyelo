@@ -18,6 +18,8 @@ export interface IPaiement {
   transactionRef: string;
   notes?: string;
 
+  settlementStatus?: "SOLDE" | "ACOMPTE" | "COMPLEMENT";
+
   frais?: {
     id: string;
     nameFrais: string;

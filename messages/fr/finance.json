@@ -122,7 +122,7 @@
     "sequenceTotal": "Sous-total {mode}",
     "grandTotal": "Total général",
     "noPayments": "Aucun encaissement sur la période.",
-    "colTime": "Heure",
+    "colTime": "Date / heure",
     "colRef": "Référence",
     "colStudent": "Élève",
     "colReason": "Motif",
