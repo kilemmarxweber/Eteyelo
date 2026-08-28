@@ -67,6 +67,7 @@ export function UpdatePersonnelDialog({
                   ? new Date(personnel.dateOfBirth)
                   : new Date(),
                 address: personnel.address,
+                image: personnel.image ?? "",
                 orgRole: personnel.role ?? ALL_ORG_ROLE_SLUGS[0],
               }}
               onUpdated={handleUpdated}

@@ -6,6 +6,7 @@ import assert from "node:assert/strict";
 import { canAccessOrganizationAdminHome } from "../lib/auth/organization-admin-home";
 import {
   canAccessFinanceArea,
+  canAccessFinanceOversight,
   canAccessRegistrationArea,
   canAccessStudentDirectory,
   canAccessTeachingArea,
@@ -37,8 +38,9 @@ const sessionDirecteur = sessionWithOrgRole(ORG_ROLE.DIRECTEUR);
 const sessionGestionnaire = sessionWithOrgRole(ORG_ROLE.GESTIONNAIRE);
 const sessionTeacher = sessionWithOrgRole(ORG_ROLE.TEACHER);
 
-test("helpers : caissier finance + inscription + lecture élèves oui, manage/teaching non", () => {
+test("helpers : caissier finance + inscription + lecture élèves oui, manage/teaching/frais non", () => {
   assert.equal(canAccessFinanceArea(sessionCaissier), true);
+  assert.equal(canAccessFinanceOversight(sessionCaissier), false);
   assert.equal(canAccessRegistrationArea(sessionCaissier), true);
   assert.equal(canAccessStudentDirectory(sessionCaissier), true);
   assert.equal(canManageOrganization(sessionCaissier), false);
@@ -48,6 +50,7 @@ test("helpers : caissier finance + inscription + lecture élèves oui, manage/te
 test("gestionnaire garde la finance ; directeur (chef école) non", () => {
   assert.equal(canAccessFinanceArea(sessionDirecteur), false);
   assert.equal(canAccessFinanceArea(sessionGestionnaire), true);
+  assert.equal(canAccessFinanceOversight(sessionGestionnaire), true);
   assert.equal(canManageOrganization(sessionDirecteur), true);
   assert.equal(canManageOrganization(sessionGestionnaire), true);
 });

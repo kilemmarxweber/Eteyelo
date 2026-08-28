@@ -8,6 +8,7 @@ import { IconDots } from "@tabler/icons-react";
 
 import { Button } from "@/components/custom/button";
 import { DataTableColumnHeader } from "@/components/data-table-column-header";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
@@ -18,6 +19,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { orgRoleLabel } from "@/lib/org-role-labels";
+import { normalizeImageSrc } from "@/lib/utils";
 import { IPersonnel } from "@/src/interfaces/Personnel";
 
 import { ResetUsersDialog } from "../../student/components/reset-users-dialog";
@@ -63,15 +65,27 @@ export const createPersonnelColumns = (
     header: "PHOTO",
     cell: ({ row }) => {
       const personnel = row.original;
+      const fullName =
+        [personnel.nom, personnel.postnom, personnel.prenom]
+          .filter(Boolean)
+          .join(" ") || "Personnel";
       const initials =
         `${personnel.nom?.[0] ?? ""}${personnel.prenom?.[0] ?? ""}`.toUpperCase() ||
         "PE";
 
       return (
         <div className="flex items-center justify-center">
-          <div className="flex size-11 items-center justify-center overflow-hidden rounded-full border border-border bg-blue-50 ring-2 ring-white">
-            <span className="text-sm font-black text-primary">{initials}</span>
-          </div>
+          <Avatar className="size-11 border border-border ring-2 ring-white">
+            {personnel.image ? (
+              <AvatarImage
+                src={normalizeImageSrc(personnel.image)}
+                alt={fullName}
+              />
+            ) : null}
+            <AvatarFallback className="bg-blue-50 text-sm font-black text-primary">
+              {initials}
+            </AvatarFallback>
+          </Avatar>
         </div>
       );
     },

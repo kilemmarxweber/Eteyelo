@@ -3,7 +3,7 @@
 import { useAppTransition as useTransition } from "@/hooks/use-app-transition";
 
 import * as React from "react";
-import { IconArchive, IconReload } from "@tabler/icons-react";
+import { IconArchive, IconReload, IconTrash } from "@tabler/icons-react";
 import { type Row } from "@tanstack/react-table";
 import { toast } from "sonner";
 
@@ -19,7 +19,10 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { IFrais } from "@/src/interfaces/Frais";
-import { archiveFrais } from "../../frais.action";
+import {
+  archiveFrais,
+  deleteFraisPermanentlyAction,
+} from "../../frais.action";
 import { useRefresh } from "@/src/hooks/RefreshContext";
 
 interface DeleteFraissDialogProps extends React.ComponentPropsWithoutRef<
@@ -28,32 +31,47 @@ interface DeleteFraissDialogProps extends React.ComponentPropsWithoutRef<
   showTrigger?: boolean;
   onSuccess?: () => void;
   Frais: Row<IFrais>["original"][];
+  /** Si true : suppression définitive (propriétaire uniquement). */
+  permanent?: boolean;
 }
 
 export function DeleteFraissDialog({
   showTrigger = true,
   onSuccess,
   Frais,
+  permanent = false,
   ...props
 }: DeleteFraissDialogProps) {
-  const [isArchivePending, startArchiveTransition] = useTransition();
-
+  const [isPending, startTransition] = useTransition();
   const { refresh } = useRefresh();
-  const handleArchive = () => {
-    startArchiveTransition(async () => {
+  const count = Frais.length;
+
+  const handleConfirm = () => {
+    startTransition(async () => {
       let hasError = false;
       for (const frais of Frais) {
-        const [, err] = await archiveFrais({
-          id: frais.id,
-        });
+        const [, err] = permanent
+          ? await deleteFraisPermanentlyAction({ id: frais.id })
+          : await archiveFrais({ id: frais.id });
         if (err) {
-          toast.error(err.message ?? "Erreur lors de la désactivation");
+          toast.error(
+            err.message ??
+              (permanent
+                ? "Erreur lors de la suppression"
+                : "Erreur lors de la désactivation"),
+          );
           hasError = true;
         }
       }
       if (!hasError) {
         toast.success(
-          Frais.length === 1 ? "Frais désactivé" : "Frais désactivés",
+          permanent
+            ? count === 1
+              ? "Frais supprimé"
+              : "Frais supprimés"
+            : count === 1
+              ? "Frais désactivé"
+              : "Frais désactivés",
         );
         refresh();
         onSuccess?.();
@@ -62,29 +80,39 @@ export function DeleteFraissDialog({
     });
   };
 
-  const count = Frais.length;
-
   return (
     <Dialog {...props}>
       {showTrigger ? (
         <DialogTrigger asChild>
           <Button variant="outline" size="sm">
-            <IconArchive className="mr-2 size-4" aria-hidden="true" />
-            Désactiver ({count})
+            {permanent ? (
+              <IconTrash className="mr-2 size-4" aria-hidden="true" />
+            ) : (
+              <IconArchive className="mr-2 size-4" aria-hidden="true" />
+            )}
+            {permanent ? `Supprimer (${count})` : `Désactiver (${count})`}
           </Button>
         </DialogTrigger>
       ) : null}
       <DialogContent>
         <DialogHeader>
           <DialogTitle>
-            {count === 1
-              ? "Désactiver le frais ?"
-              : `Désactiver ${count} frais ?`}
+            {permanent
+              ? count === 1
+                ? "Supprimer définitivement le frais ?"
+                : `Supprimer définitivement ${count} frais ?`
+              : count === 1
+                ? "Désactiver le frais ?"
+                : `Désactiver ${count} frais ?`}
           </DialogTitle>
           <DialogDescription>
-            {count === 1
-              ? "Le frais sera désactivé et masqué des listes actives mais l'historique sera conservé."
-              : "Ces frais seront désactivés et masqués des listes actives mais l'historique sera conservé."}
+            {permanent
+              ? count === 1
+                ? "Cette action est irréversible. Le frais sera effacé définitivement s'il n'a aucun paiement lié."
+                : "Cette action est irréversible. Ces frais seront effacés définitivement s'ils n'ont aucun paiement lié."
+              : count === 1
+                ? "Le frais sera désactivé et masqué des listes actives mais l'historique sera conservé."
+                : "Ces frais seront désactivés et masqués des listes actives mais l'historique sera conservé."}
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="gap-2 sm:space-x-0">
@@ -92,18 +120,24 @@ export function DeleteFraissDialog({
             <Button variant="outline">Annuler</Button>
           </DialogClose>
           <Button
-            aria-label="Désactiver la sélection"
-            variant="outline"
-            onClick={handleArchive}
-            disabled={isArchivePending}
+            aria-label={
+              permanent ? "Supprimer la sélection" : "Désactiver la sélection"
+            }
+            variant={permanent ? "destructive" : "outline"}
+            onClick={handleConfirm}
+            disabled={isPending}
           >
-            {isArchivePending && (
+            {isPending ? (
               <IconReload
                 className="mr-2 size-4 animate-spin"
                 aria-hidden="true"
               />
+            ) : permanent ? (
+              <IconTrash className="mr-2 size-4" aria-hidden="true" />
+            ) : (
+              <IconArchive className="mr-2 size-4" aria-hidden="true" />
             )}
-            Désactiver
+            {permanent ? "Supprimer définitivement" : "Désactiver"}
           </Button>
         </DialogFooter>
       </DialogContent>

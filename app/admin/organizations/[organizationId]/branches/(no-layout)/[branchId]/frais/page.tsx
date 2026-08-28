@@ -10,7 +10,7 @@ export default async function Page({
 }) {
   const { classeId } = await params;
   const { session } = await requireBranchContext();
-  await assertBranchAreaAccess("finance", session);
+  await assertBranchAreaAccess("fee_catalog", session);
 
   return <FraisClient classeId={classeId} />;
 }

@@ -1,6 +1,6 @@
-import { KLAMBOCORE_DEFAULT_IMAGE_PATH } from "@/lib/brand/klambocore-image";
 import * as React from "react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { normalizeImageSrc } from "@/lib/utils";
 import { CardHeader, CardContent, Card } from "@/components/ui/card";
 import { IPersonnel } from "@/src/interfaces/Personnel";
 import { ITeaching } from "@/src/interfaces/Teaching";
@@ -33,8 +33,13 @@ export function UserCard({ personnel, child }: UserCardProps) {
       <CardHeader className="bg-muted/50 p-6">
         <div className="flex items-center gap-4">
           <Avatar className="h-24 w-24">
-            <AvatarImage src={KLAMBOCORE_DEFAULT_IMAGE_PATH} alt="User Avatar" />
-            <AvatarFallback>{personnel.nom[0]}</AvatarFallback>
+            {personnel.image ? (
+              <AvatarImage
+                src={normalizeImageSrc(personnel.image)}
+                alt={`${personnel.prenom ?? ""} ${personnel.nom ?? ""}`.trim()}
+              />
+            ) : null}
+            <AvatarFallback>{personnel.nom?.[0] ?? "P"}</AvatarFallback>
           </Avatar>
           <div className="grid gap-1">
             <div className="text-xl font-semibold text-primary">

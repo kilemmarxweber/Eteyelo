@@ -30,6 +30,8 @@ export type ReportData = {
     studentName: string;
     method?: string | null;
     createdAt: string;
+    createdByUserId?: string | null;
+    cashierName?: string | null;
     frais?: { nameFrais: string } | null;
   }>;
   expenses: Array<{
@@ -54,6 +56,11 @@ function safeFilePart(value: string) {
 function pdfMethodLabel(method: string) {
   if (method === "AUTRE") return "Autre";
   return formatModePaiementLabel(method);
+}
+
+function pdfCashierName(name?: string | null) {
+  const value = name?.trim();
+  return value && value.length > 0 ? value : "Non renseigné";
 }
 
 function buildPeriodDetail(dateStart: string, dateEnd?: string): string {
@@ -92,12 +99,14 @@ export async function buildCashierReportPdf(
     });
   };
 
-  // 1. Encaissements groupés par mode (rupture de séquence)
+  // 1. Encaissements groupés par mode ; caissier sur chaque ligne de paiement
+  const incomeColCount = 6;
   const incomeHead = [
     "Date / heure",
     "Référence",
     "Élève",
     "Motif",
+    "Caissier",
     `Montant (${currency})`,
   ];
   type IncomeRowKind = "sequence" | "item" | "subtotal" | "grand" | "empty";
@@ -106,12 +115,12 @@ export async function buildCashierReportPdf(
   const methodGroups = groupCashierPaymentsByMethod(data.payments);
 
   if (methodGroups.length === 0) {
-    incomeBody.push(["Aucun encaissement sur la période.", "", "", "", ""]);
+    incomeBody.push(["Aucun encaissement sur la période.", "", "", "", "", ""]);
     incomeRowKinds.push("empty");
   } else {
     for (const group of methodGroups) {
       const label = pdfMethodLabel(group.method);
-      incomeBody.push([label, "", "", "", ""]);
+      incomeBody.push([label, "", "", "", "", ""]);
       incomeRowKinds.push("sequence");
 
       for (const payment of group.payments) {
@@ -120,6 +129,7 @@ export async function buildCashierReportPdf(
           payment.transactionRef || "-",
           payment.studentName || "-",
           payment.frais?.nameFrais || "-",
+          pdfCashierName(payment.cashierName),
           money(payment.amount),
         ]);
         incomeRowKinds.push("item");
@@ -130,6 +140,7 @@ export async function buildCashierReportPdf(
         "",
         "",
         "",
+        "",
         money(group.total),
       ]);
       incomeRowKinds.push("subtotal");
@@ -137,6 +148,7 @@ export async function buildCashierReportPdf(
 
     incomeBody.push([
       "Total général",
+      "",
       "",
       "",
       "",
@@ -174,18 +186,20 @@ export async function buildCashierReportPdf(
       halign: "center",
     },
     columnStyles: {
-      0: { cellWidth: usableWidth * 0.2, halign: "center" },
-      1: { cellWidth: usableWidth * 0.16 },
-      2: { cellWidth: usableWidth * 0.22 },
-      3: { cellWidth: usableWidth * 0.24 },
-      4: { cellWidth: usableWidth * 0.18, halign: "right" },
+      0: { cellWidth: usableWidth * 0.16, halign: "center" },
+      1: { cellWidth: usableWidth * 0.14 },
+      2: { cellWidth: usableWidth * 0.16 },
+      3: { cellWidth: usableWidth * 0.16 },
+      4: { cellWidth: usableWidth * 0.18 },
+      5: { cellWidth: usableWidth * 0.2, halign: "right" },
     },
     didParseCell: (data) => {
       if (data.section !== "body") return;
       const kind = incomeRowKinds[data.row.index];
+      const lastCol = incomeColCount - 1;
       if (kind === "sequence") {
         if (data.column.index === 0) {
-          data.cell.colSpan = 5;
+          data.cell.colSpan = incomeColCount;
           data.cell.styles.fillColor = [16, 185, 129];
           data.cell.styles.textColor = 255;
           data.cell.styles.fontStyle = "bold";
@@ -201,9 +215,9 @@ export async function buildCashierReportPdf(
         data.cell.styles.fontStyle = "bold";
         data.cell.styles.textColor = [15, 23, 42];
         if (data.column.index === 0) {
-          data.cell.colSpan = 4;
+          data.cell.colSpan = lastCol;
           data.cell.styles.halign = "right";
-        } else if (data.column.index < 4) {
+        } else if (data.column.index < lastCol) {
           data.cell.styles.cellWidth = 0;
           data.cell.text = [];
         } else {
@@ -216,9 +230,9 @@ export async function buildCashierReportPdf(
         data.cell.styles.fontStyle = "bold";
         data.cell.styles.textColor = 255;
         if (data.column.index === 0) {
-          data.cell.colSpan = 4;
+          data.cell.colSpan = lastCol;
           data.cell.styles.halign = "right";
-        } else if (data.column.index < 4) {
+        } else if (data.column.index < lastCol) {
           data.cell.styles.cellWidth = 0;
           data.cell.text = [];
         } else {
@@ -228,7 +242,7 @@ export async function buildCashierReportPdf(
       }
       if (kind === "empty") {
         if (data.column.index === 0) {
-          data.cell.colSpan = 5;
+          data.cell.colSpan = incomeColCount;
           data.cell.styles.halign = "center";
           data.cell.styles.fontStyle = "italic";
           data.cell.styles.textColor = [100, 116, 139];

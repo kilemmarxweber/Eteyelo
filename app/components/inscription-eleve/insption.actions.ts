@@ -2,7 +2,7 @@
 
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { isPrimaryBranch, isCtebLevel } from "@/lib/class-structure";
+import { isCtebLevel } from "@/lib/class-structure";
 import { getCtebLockDefaults } from "@/lib/class-catalog";
 import { isAtelierBranch, isCentreFormationBranch } from "@/lib/branch-capabilities";
 import { fetchPublishedBranchRegistrationInfo } from "@/lib/fetch-published-branch-registration-info";
@@ -42,6 +42,7 @@ const studentEntrySchema = z.object({
   requestedLevel: z.string().trim().min(1, "Classe ou niveau souhaite requis"),
   requestedSection: z.string().trim().optional(),
   requestedOption: z.string().trim().optional(),
+  requestedCycle: z.string().trim().optional(),
   photoUrl: z.string().trim().optional(),
   extra: studentExtraInfoSchema.optional(),
 });
@@ -79,6 +80,7 @@ const onlineRegistrationSchema = z.object({
   requestedLevel: z.string().trim().min(1, "Classe ou niveau souhaite requis"),
   requestedSection: z.string().trim().optional(),
   requestedOption: z.string().trim().optional(),
+  requestedCycle: z.string().trim().optional(),
   photoUrl: z.string().trim().optional(),
   consentAccepted: z.literal(true, {
     errorMap: () => ({ message: "Le consentement est obligatoire" }),
@@ -117,6 +119,11 @@ export async function getActiveBranches() {
       pays: true,
       image: true,
       typebranch: true,
+      cycles: {
+        where: { isActive: true },
+        select: { cycle: true, isActive: true, sortOrder: true },
+        orderBy: { sortOrder: "asc" },
+      },
     },
   });
 }
@@ -250,15 +257,15 @@ export async function registerStudentsOnline(
     };
   }
 
-  if (isPrimaryBranch(branch.typebranch)) {
-    for (const student of data.students) {
-      const age = ageFromDate(student.dateOfBirth);
-      if (age === null || age < PRIMARY_MIN_AGE) {
-        return {
-          success: false as const,
-          message: `Pour le primaire, ${studentDisplayName(student)} doit avoir au moins ${PRIMARY_MIN_AGE} ans.`,
-        };
-      }
+  for (const student of data.students) {
+    const requestedCycle = student.requestedCycle ?? branch.typebranch;
+    if (requestedCycle !== "PRIMAIRE") continue;
+    const age = ageFromDate(student.dateOfBirth);
+    if (age === null || age < PRIMARY_MIN_AGE) {
+      return {
+        success: false as const,
+        message: `Pour le primaire, ${studentDisplayName(student)} doit avoir au moins ${PRIMARY_MIN_AGE} ans.`,
+      };
     }
   }
 
@@ -287,6 +294,7 @@ export async function registerStudentsOnline(
         requestedLevel,
         requestedSection,
         requestedOption,
+        requestedCycle,
         photoUrl,
         extra,
         ...identity
@@ -305,6 +313,7 @@ export async function registerStudentsOnline(
             ...identity,
             ...(extra ?? {}),
             familyExtra,
+            ...(requestedCycle ? { requestedCycle } : {}),
           },
           guardiansData: data.guardians,
           requestedLevel,

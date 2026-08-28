@@ -119,7 +119,7 @@ export function isDirecteurEtudesRole(
 }
 
 /**
- * Finance (frais, paiement, rapports caisse).
+ * Finance (paiement, rapports caisse).
  * Gestion org + caissier. Chef d’établissement (préfet/directeur) exclu.
  */
 export function canAccessFinanceArea(
@@ -134,6 +134,21 @@ export function canAccessFinanceArea(
       ORG_ROLE.GESTIONNAIRE,
       ORG_ROLE.CAISSIER,
     ],
+    ...extraRoles,
+  );
+}
+
+/**
+ * Catalogue des frais + situation financière / impayés (vue établissement).
+ * Managers finance uniquement — le caissier encaisse sans ce pilotage.
+ */
+export function canAccessFinanceOversight(
+  session: any,
+  ...extraRoles: unknown[]
+): boolean {
+  return hasSessionRole(
+    session,
+    [...APP_MANAGER_ROLES, ORG_ROLE.OWNER, ORG_ROLE.GESTIONNAIRE],
     ...extraRoles,
   );
 }

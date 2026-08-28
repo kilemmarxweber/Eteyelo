@@ -6,6 +6,6 @@ export default async function FraisLayout({
 }: {
   children: React.ReactNode;
 }) {
-  await assertBranchAreaAccess("finance");
+  await assertBranchAreaAccess("fee_catalog");
   return <FraisSectionLayout>{children}</FraisSectionLayout>;
 }

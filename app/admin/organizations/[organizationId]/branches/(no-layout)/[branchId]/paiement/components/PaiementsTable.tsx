@@ -37,6 +37,8 @@ import type { SchoolReportContext } from "@/lib/reports/types";
 import { DEFAULT_EXCHANGE_RATE_USD_CDF } from "@/lib/reports/types";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
+import { useSession } from "@/lib/auth-client";
+import { isOrganizationOwnerSession } from "@/lib/auth/session-roles";
 import { useBranchPeopleLabels } from "@/hooks/use-branch-people-labels";
 import { resolveOverallReceiptSettlementStatus } from "@/lib/reports/receipt-settlement";
 import {
@@ -158,6 +160,10 @@ const PaiementsTable = ({
   const t = useTranslations("finance");
   const tCommon = useTranslations("common");
   const peopleLabels = useBranchPeopleLabels();
+  const { data: session, isPending: sessionPending } = useSession();
+  const [hasMounted, setHasMounted] = useState(false);
+  const canDeletePayment =
+    hasMounted && !sessionPending && isOrganizationOwnerSession(session);
   const [paiements, setPaiements] = useState<IPaiement[]>([]);
   const [loading, setLoading] = useState(true);
   const [pendingDelete, setPendingDelete] = useState<GroupedPaiement | null>(
@@ -176,6 +182,10 @@ const PaiementsTable = ({
   const [receiptIssuedAt, setReceiptIssuedAt] = useState<Date | undefined>();
   const [branding, setBranding] = useState<SchoolReportContext | null>(null);
   const [exportingPdf, setExportingPdf] = useState(false);
+
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -221,7 +231,7 @@ const PaiementsTable = ({
   };
 
   const confirmDelete = async () => {
-    if (!pendingDelete) return;
+    if (!pendingDelete || !canDeletePayment) return;
     const ids = pendingDelete.items.map((item) => item.id).filter(Boolean);
     if (ids.length === 0) {
       toast.error(t("table.deletePaymentError"));
@@ -539,14 +549,18 @@ const PaiementsTable = ({
               <Eye className="mr-2 h-4 w-4" />
               {t("table.viewReceipt")}
             </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              className="text-destructive focus:text-destructive"
-              onClick={() => setPendingDelete(g)}
-            >
-              <Trash2 className="mr-2 h-4 w-4" />
-              {t("table.deletePayment")}
-            </DropdownMenuItem>
+            {canDeletePayment ? (
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  className="text-destructive focus:text-destructive"
+                  onClick={() => setPendingDelete(g)}
+                >
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  {t("table.deletePayment")}
+                </DropdownMenuItem>
+              </>
+            ) : null}
           </DropdownMenuContent>
         </DropdownMenu>
       ),
@@ -573,12 +587,16 @@ const PaiementsTable = ({
         icon: Eye,
         onClick: () => openReceipt(g),
       },
-      {
-        label: t("table.deletePayment"),
-        icon: Trash2,
-        onClick: () => setPendingDelete(g),
-        variant: "destructive" as const,
-      },
+      ...(canDeletePayment
+        ? [
+            {
+              label: t("table.deletePayment"),
+              icon: Trash2,
+              onClick: () => setPendingDelete(g),
+              variant: "destructive" as const,
+            },
+          ]
+        : []),
     ],
   };
 

@@ -2,7 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
-import { requireFinanceBranchContext } from "@/lib/auth/require-branch-context";
+import { requireFinanceBranchContext, requireFinanceOversightBranchContext } from "@/lib/auth/require-branch-context";
 import type { Prisma } from "@/prisma/generated/prisma/client";
 import { action } from "@/lib/zsa";
 import {
@@ -24,6 +24,10 @@ import {
 } from "@/lib/school-year";
 import { resolveCycle } from "@/lib/cycle";
 import { randomUUID } from "crypto";
+import {
+  canPermanentlyDeleteInformation,
+  PERMANENT_DELETE_DENIED_MESSAGE,
+} from "@/lib/auth/session-roles";
 
 type FraisWithRelations = Prisma.FraisGetPayload<{
   include: {
@@ -126,7 +130,7 @@ function revalidateFraisPages(organizationId: string, branchId: string) {
 export const createTypeFraisAction = action
   .input(typeFraisSchema)
   .handler(async ({ input }) => {
-    const { branchId, organizationId } = await requireFinanceBranchContext();
+    const { branchId, organizationId } = await requireFinanceOversightBranchContext();
     const { nameType, description, statusType } = input;
     const codeType = await ensureUniqueIdentifier({
       base: generateCode(nameType, "TYPE", 16),
@@ -167,7 +171,7 @@ export const createTypeFraisAction = action
 export const updateTypeFraisAction = action
   .input(typeFraisSchema)
   .handler(async ({ input }) => {
-    const { branchId, organizationId } = await requireFinanceBranchContext();
+    const { branchId, organizationId } = await requireFinanceOversightBranchContext();
     const { id, nameType, description, statusType } = input;
 
     if (!id) {
@@ -235,12 +239,15 @@ export const getTypeFraisAction = action.handler(
 
 export const getTypeFraisSettingsAction = action.handler(
   async (): Promise<ITypeFrais[]> => {
-    const { branchId } = await requireFinanceBranchContext();
+    const { branchId } = await requireFinanceOversightBranchContext();
     const typeFrais = await prisma.typeFrais.findMany({
       where: {
         branchId,
       },
       orderBy: { nameType: "asc" },
+      include: {
+        _count: { select: { frais: true } },
+      },
     });
 
     return typeFrais.map((type) => ({
@@ -252,15 +259,48 @@ export const getTypeFraisSettingsAction = action.handler(
       statusType: type.statusType,
       createdAt: type.createdAt,
       updatedAt: type.updatedAt,
+      // Suppression possible s'il n'y a aucun frais lié (propriétaire + gestionnaire).
+      canDelete: type._count.frais === 0,
     }));
   },
 );
+
+export const deleteTypeFraisAction = action
+  .input(z.object({ id: z.string().min(1) }))
+  .handler(async ({ input }) => {
+    // Accès déjà limité à propriétaire / gestionnaire (finance oversight).
+    const { branchId, organizationId } =
+      await requireFinanceOversightBranchContext();
+
+    const existing = await prisma.typeFrais.findFirst({
+      where: { id: input.id, branchId },
+      select: {
+        id: true,
+        _count: { select: { frais: true } },
+      },
+    });
+    if (!existing) {
+      throw new Error("Type de frais introuvable dans cette branche.");
+    }
+    if (existing._count.frais > 0) {
+      throw new Error(
+        "Impossible de supprimer : des frais sont liés à ce type.",
+      );
+    }
+
+    await prisma.typeFrais.delete({ where: { id: existing.id } });
+    revalidateFraisPages(organizationId, branchId);
+    revalidatePath(
+      `/admin/organizations/${organizationId}/branches/${branchId}/settings/typeFrais`,
+    );
+    return { ok: true as const };
+  });
 
 export const createFraisAction = action
   .input(fraisSchema)
   .handler(async ({ input }) => {
     const { branchId, organizationId, typebranch } =
-      await requireFinanceBranchContext();
+      await requireFinanceOversightBranchContext();
     const {
       nameFrais,
       montantFrais,
@@ -348,7 +388,7 @@ export const createFraisAction = action
 export const archiveFrais = action
   .input(deleteFraisSchema)
   .handler(async ({ input }) => {
-    const { branchId, organizationId } = await requireFinanceBranchContext();
+    const { branchId, organizationId } = await requireFinanceOversightBranchContext();
 
     const frais = await prisma.frais.findFirst({
       where: {
@@ -373,13 +413,45 @@ export const archiveFrais = action
     };
   });
 
+/** Suppression définitive — propriétaire uniquement. */
+export const deleteFraisPermanentlyAction = action
+  .input(deleteFraisSchema)
+  .handler(async ({ input }) => {
+    const { branchId, organizationId, session } =
+      await requireFinanceOversightBranchContext();
+    if (!canPermanentlyDeleteInformation(session)) {
+      throw new Error(PERMANENT_DELETE_DENIED_MESSAGE);
+    }
+
+    const frais = await prisma.frais.findFirst({
+      where: { id: input.id, branchId },
+      select: {
+        id: true,
+        _count: { select: { paiement: true } },
+      },
+    });
+
+    if (!frais) {
+      throw new Error("Frais introuvable dans cette branche");
+    }
+    if (frais._count.paiement > 0) {
+      throw new Error(
+        "Impossible de supprimer : des paiements sont liés à ce frais. Désactivez-le à la place.",
+      );
+    }
+
+    await prisma.frais.delete({ where: { id: frais.id } });
+    revalidateFraisPages(organizationId, branchId);
+    return { ok: true as const };
+  });
+
 /** @deprecated Utiliser archiveFrais */
 export const deleteFrais = archiveFrais;
 
 export const updateFraisAction = action
   .input(fraisSchema)
   .handler(async ({ input }) => {
-    const { branchId, organizationId } = await requireFinanceBranchContext();
+    const { branchId, organizationId } = await requireFinanceOversightBranchContext();
     const {
       id,
       nameFrais,
@@ -510,7 +582,7 @@ export const getFraisByClassAction = action
 export const statusFraisAction = action
   .input(fraisSchema)
   .handler(async ({ input }) => {
-    const { branchId, organizationId } = await requireFinanceBranchContext();
+    const { branchId, organizationId } = await requireFinanceOversightBranchContext();
     const { id, statusFrais } = input;
 
     if (!id) {
@@ -625,7 +697,7 @@ export const calculateFraisBalanceAction = action
   });
 
 export const getFraisClassSidebarAction = action.handler(async () => {
-  const { branchId, organizationId } = await requireFinanceBranchContext();
+  const { branchId, organizationId } = await requireFinanceOversightBranchContext();
   const currentYear = await getSchoolYearForBranch(branchId);
 
   const [classes, counts] = await Promise.all([
@@ -676,7 +748,7 @@ export const getFraisClassSidebarAction = action.handler(async () => {
 export const replicateFraisAction = action
   .input(replicateFraisSchema)
   .handler(async ({ input }) => {
-    const { branchId, organizationId } = await requireFinanceBranchContext();
+    const { branchId, organizationId } = await requireFinanceOversightBranchContext();
     const { sourceClasseId, fraisIds, targetClasseIds, allOtherClasses } =
       input;
 

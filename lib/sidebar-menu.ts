@@ -69,6 +69,12 @@ const FINANCE_ROLES = [
   "accountant",
 ];
 
+/** Catalogue des frais + situation impayés — sans caissier. */
+const FINANCE_OVERSIGHT_ROLES = [
+  ...PLATFORM_MENU_ROLES,
+  ...ORG_MANAGER_ROLES,
+];
+
 const TEACHER_ROLES = [ORG_ROLE.TEACHER, "TEACHER", "teacher"];
 const TEACHER_TITULAIRE_ROLE = "TEACHER_TITULAIRE";
 
@@ -278,7 +284,7 @@ const staticSidebarMenu: StaticMenuItem[] = [
         title: "fees",
         href: "/admin/frais",
         icon: "frais",
-        roles: FINANCE_ROLES,
+        roles: FINANCE_OVERSIGHT_ROLES,
       },
       {
         title: "payment",

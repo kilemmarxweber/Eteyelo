@@ -27,6 +27,7 @@ export const userSchema = z.object({
     message: "Veuillez assigner au moins un rôle",
   }),
   email: z.string(),
+  image: z.string().trim().max(2000).optional().or(z.literal("")),
   personnelId: z.string().optional(), // 👈 ajouté
   memberId: z.string().optional(), // 👈 ajouté
 });

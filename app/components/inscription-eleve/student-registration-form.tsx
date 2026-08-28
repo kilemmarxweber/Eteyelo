@@ -62,12 +62,15 @@ import { getCtebLockDefaults } from "@/lib/class-catalog";
 import { isCentreFormationBranch, hidesProvenanceEcole } from "@/lib/branch-capabilities";
 import { getPeopleLabels } from "@/lib/people-labels";
 import {
+  branchMatchesPublicType,
+  formatPublicBranchSelectLabel,
   getEstablishmentPickerLabel,
   getEstablishmentTypeFilterLabel,
   isPublicRegistrationBranchType,
-  PUBLIC_REGISTRATION_BRANCH_TYPES,
+  listAvailablePublicBranchTypes,
   usesBranchAcademicTree,
   getPublicLevelFieldLabels,
+  type PublicRegistrationBranchType,
 } from "@/lib/public-establishment-labels";
 import {
   emptyFamilyExtraInfo,
@@ -113,6 +116,7 @@ type Branch = {
   pays: string | null;
   image: unknown;
   typebranch: ManagedBranchType;
+  cycles?: Array<{ cycle: string; isActive?: boolean; sortOrder?: number }>;
 };
 type Guardian = {
   name: string;
@@ -264,7 +268,7 @@ export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
   } | null>(null);
   const [academicChoicesLoading, setAcademicChoicesLoading] = useState(false);
   const [branchTypeFilter, setBranchTypeFilter] = useState<
-    ManagedBranchType | ""
+    PublicRegistrationBranchType | ""
   >("");
   const [form, setForm] = useState(emptyPublicForm);
   const [guardians, setGuardians] = useState<Guardian[]>([
@@ -368,7 +372,9 @@ export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
       if (typeof p.step === "number") setStep(Math.max(0, p.step));
       if (typeof p.branchTypeFilter === "string") {
         setBranchTypeFilter(
-          (p.branchTypeFilter as ManagedBranchType | "") || "",
+          isPublicRegistrationBranchType(p.branchTypeFilter)
+            ? p.branchTypeFilter
+            : "",
         );
       }
       if (typeof p.secondGuardian === "boolean") {
@@ -495,17 +501,16 @@ export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
   }, [form.branchId]);
 
   const availableBranchTypes = useMemo(
-    () =>
-      PUBLIC_REGISTRATION_BRANCH_TYPES.filter((type) =>
-        branches.some((branch) => branch.typebranch === type),
-      ),
+    () => listAvailablePublicBranchTypes(branches),
     [branches],
   );
 
   const filteredBranches = useMemo(
     () =>
       branchTypeFilter
-        ? branches.filter((branch) => branch.typebranch === branchTypeFilter)
+        ? branches.filter((branch) =>
+            branchMatchesPublicType(branch, branchTypeFilter),
+          )
         : [],
     [branches, branchTypeFilter],
   );
@@ -514,10 +519,10 @@ export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
   const establishmentLabel = getEstablishmentPickerLabel(
     branchTypeFilter || selectedBranch?.typebranch,
   );
-  /** Priorité : branche choisie, sinon filtre type (élève / apprenant / étudiant). */
-  const branchType = (selectedBranch?.typebranch ||
-    branchTypeFilter ||
-    "SECONDAIRE") as ManagedBranchType;
+  /** Priorité : cycle choisi (maternelle / primaire / secondaire), sinon type de la branche. */
+  const branchType = (branchTypeFilter ||
+    selectedBranch?.typebranch ||
+    "SECONDAIRE") as PublicRegistrationBranchType | ManagedBranchType;
   const peopleLabels = useMemo(
     () => getPeopleLabels(branchType),
     [branchType],
@@ -1036,6 +1041,7 @@ export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
           requestedLevel: entry.requestedLevel,
           requestedSection: entry.requestedSection || undefined,
           requestedOption: entry.requestedOption || undefined,
+          requestedCycle: branchTypeFilter || undefined,
           photoUrl: photoUrl || undefined,
           extra: entry.extra,
         });
@@ -1248,7 +1254,7 @@ export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
                     disabled={branchLocked}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Ecole, centre ou universite" />
+                      <SelectValue placeholder="Maternelle, primaire, secondaire…" />
                     </SelectTrigger>
                     <SelectContent>
                       {availableBranchTypes.map((type) => (
@@ -1277,7 +1283,7 @@ export function StudentRegistrationForm({ branches }: { branches: Branch[] }) {
                     <SelectContent>
                       {filteredBranches.map((branch) => (
                         <SelectItem key={branch.id} value={branch.id}>
-                          {branch.name} · {branch.ville || branch.pays || "RDC"}
+                          {formatPublicBranchSelectLabel(branch)}
                         </SelectItem>
                       ))}
                     </SelectContent>

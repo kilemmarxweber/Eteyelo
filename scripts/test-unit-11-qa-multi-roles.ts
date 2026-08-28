@@ -142,7 +142,7 @@ test("caissier : Tableau de bord caisse ; /paiement + inscription OK ; pédagogi
   assertAreas(
     ORG_ROLE.CAISSIER,
     ["finance", "students", "registration"],
-    ["notes", "schedule", "school_admin", "teaching", "pedagogy"],
+    ["notes", "schedule", "school_admin", "teaching", "pedagogy", "fee_catalog"],
   );
 });
 

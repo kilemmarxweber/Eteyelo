@@ -228,6 +228,11 @@ export async function getActiveBranchesForJobApplication() {
       pays: true,
       image: true,
       typebranch: true,
+      cycles: {
+        where: { isActive: true },
+        select: { cycle: true, isActive: true, sortOrder: true },
+        orderBy: { sortOrder: "asc" },
+      },
     },
   });
 }

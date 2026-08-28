@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 
 import {
   canAccessFinanceArea,
+  canAccessFinanceOversight,
   canAccessLibraryArea,
   canAccessNotesReadArea,
   canAccessPedagogyArea,
@@ -47,6 +48,7 @@ test("canManageOrganization(sessionCaissier) === false", () => {
 
 test("canAccessFinanceArea(sessionCaissier) === true", () => {
   assert.equal(canAccessFinanceArea(sessionCaissier), true);
+  assert.equal(canAccessFinanceOversight(sessionCaissier), false);
 });
 
 test("canAccessTeachingArea(sessionCaissier) === false", () => {

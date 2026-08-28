@@ -174,13 +174,6 @@ export function getDashboardShortcuts(
           iconKey: "users",
         },
         {
-          title: t("shortcuts.fees"),
-          description: t("shortcuts.manageFees"),
-          href: href("/frais"),
-          color: "bg-orange-500",
-          iconKey: "currency",
-        },
-        {
           title: t("shortcuts.payment"),
           description: t("shortcuts.collectPayments"),
           href: href("/paiement"),

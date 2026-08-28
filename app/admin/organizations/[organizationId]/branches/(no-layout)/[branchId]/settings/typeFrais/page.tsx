@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useAppTransition as useTransition } from "@/hooks/use-app-transition";
 import { toast } from "sonner";
-import { IconPlus, IconReportMoney } from "@tabler/icons-react";
+import { IconPlus, IconReportMoney, IconTrash } from "@tabler/icons-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -14,7 +14,10 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
-import { getTypeFraisSettingsAction } from "../../frais/frais.action";
+import {
+  deleteTypeFraisAction,
+  getTypeFraisSettingsAction,
+} from "../../frais/frais.action";
 import { TypeFraisUpForm } from "../../frais/components/type-frais-form";
 import type { ITypeFrais } from "@/src/interfaces/Frais";
 import { RequireBranchOrgSettingsAccess } from "../components/require-branch-org-settings-access";
@@ -24,6 +27,7 @@ export default function TypeFraisSettingsPage() {
   const [openCreate, setOpenCreate] = useState(false);
   const [editing, setEditing] = useState<ITypeFrais | null>(null);
   const [isPending, startTransition] = useTransition();
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const loadTypes = useCallback(() => {
     startTransition(async () => {
@@ -47,6 +51,25 @@ export default function TypeFraisSettingsPage() {
     setEditing(null);
     loadTypes();
   };
+
+  async function handleDelete(item: ITypeFrais) {
+    if (!item.canDelete) {
+      toast.error(
+        "Impossible de supprimer : des frais sont liés à ce type.",
+      );
+      return;
+    }
+    setDeletingId(item.id);
+    const [, err] = await deleteTypeFraisAction({ id: item.id });
+    setDeletingId(null);
+    if (err) {
+      toast.error(err.message);
+      return;
+    }
+    toast.success("Type de frais supprimé.");
+    if (editing?.id === item.id) setEditing(null);
+    loadTypes();
+  }
 
   return (
     <RequireBranchOrgSettingsAccess>
@@ -102,7 +125,7 @@ export default function TypeFraisSettingsPage() {
                 <th className="px-3 py-2 font-medium">Nom</th>
                 <th className="px-3 py-2 font-medium">Description</th>
                 <th className="px-3 py-2 font-medium">Statut</th>
-                <th className="px-3 py-2 text-right font-medium">Action</th>
+                <th className="px-3 py-2 text-right font-medium">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -121,15 +144,35 @@ export default function TypeFraisSettingsPage() {
                       {item.statusType ? "Actif" : "Inactif"}
                     </Badge>
                   </td>
-                  <td className="px-3 py-2 text-right">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setEditing(item)}
-                    >
-                      Modifier
-                    </Button>
+                  <td className="px-3 py-2">
+                    <div className="flex justify-end gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setEditing(item)}
+                      >
+                        Modifier
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                        disabled={!item.canDelete || deletingId === item.id}
+                        onClick={() => void handleDelete(item)}
+                        title={
+                          item.canDelete
+                            ? "Supprimer définitivement"
+                            : "Des frais sont liés à ce type"
+                        }
+                      >
+                        <IconTrash size={16} className="mr-1.5" />
+                        {deletingId === item.id
+                          ? "Suppression…"
+                          : "Supprimer"}
+                      </Button>
+                    </div>
                   </td>
                 </tr>
               ))}

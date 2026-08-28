@@ -4,8 +4,8 @@ import { revalidatePath } from "next/cache";
 import { action } from "@/lib/zsa";
 import z from "zod";
 import { paiementSchema, StatusPaiement } from "@/src/interfaces/Paiement";
-import { requireFinanceBranchContext } from "@/lib/auth/require-branch-context";
-import { resolveCashierSelfScope } from "@/lib/auth/session-roles";
+import { requireFinanceBranchContext, requireFinanceOversightBranchContext } from "@/lib/auth/require-branch-context";
+import { resolveCashierSelfScope, isOrganizationOwnerSession } from "@/lib/auth/session-roles";
 import { cycleLabel } from "@/lib/cycle";
 import { randomUUID } from "node:crypto";
 import { Prisma, CurrencyCode } from "@/prisma/generated/prisma/client";
@@ -25,6 +25,7 @@ import {
 import { DEFAULT_EXCHANGE_RATE_USD_CDF } from "@/lib/reports/types";
 import { getSchoolYearForBranch } from "@/lib/school-year";
 import { notifyParentOfPayment, notifyParentOfPaymentNow } from "@/lib/payments/notify-parent-payment";
+import { resolveUserDisplayName } from "@/lib/user-display";
 import {
   computeScopedDiscountAmount,
   EMPTY_DISCOUNT,
@@ -1238,6 +1239,15 @@ export const getCashierReportAction = action
     const payments = await prisma.familyPayment.findMany({
       where: paymentWhere,
       include: {
+        createdByUser: {
+          select: {
+            id: true,
+            name: true,
+            prenom: true,
+            email: true,
+            username: true,
+          },
+        },
         frais: {
           include: { classe: true, typeFrais: true },
         },
@@ -1325,6 +1335,10 @@ export const getCashierReportAction = action
         transactionRef: payment.transactionRef,
         notes: payment.notes,
         createdAt: payment.createdAt.toISOString(),
+        createdByUserId: payment.createdByUserId ?? null,
+        cashierName: payment.createdByUser
+          ? resolveUserDisplayName(payment.createdByUser)
+          : "",
         frais: payment.frais
           ? {
               id: payment.frais.id,
@@ -1593,6 +1607,11 @@ export const deletePaiementAction = action
   .handler(async ({ input }) => {
     const { branchId, organizationId, userId, session } =
       await requireFinanceBranchContext();
+    if (!isOrganizationOwnerSession(session)) {
+      throw new Error(
+        "Seul le propriétaire peut supprimer un paiement.",
+      );
+    }
     const cashierScope = resolveCashierSelfScope(session, userId);
     const uniqueIds = Array.from(new Set(input.ids));
 
@@ -2011,7 +2030,7 @@ function resolveUnpaidFinancialStatus(
 }
 
 export const getUnpaidReportContextAction = action.handler(async () => {
-  const { branchId, organizationId } = await requireFinanceBranchContext();
+  const { branchId, organizationId } = await requireFinanceOversightBranchContext();
 
   const [branch, { rates, baseCurrency, quoteCurrency }] = await Promise.all([
     prisma.branch.findFirst({
@@ -2041,7 +2060,7 @@ export const getUnpaidReportAction = action
     }),
   )
   .handler(async ({ input }) => {
-    const { branchId, organizationId } = await requireFinanceBranchContext();
+    const { branchId, organizationId } = await requireFinanceOversightBranchContext();
 
     const classeId = input.classeId?.trim() || null;
     const cycleFilter = input.cycle?.trim() || null;

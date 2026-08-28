@@ -2,6 +2,7 @@ import "server-only";
 
 import { KLAMBOCORE_DEFAULT_IMAGE_PATH } from "@/lib/brand/klambocore-image";
 import { getStudentCountsByBranchId } from "@/lib/branch-student-count";
+import { getBranchCycles, isSchoolCycle } from "@/lib/cycle";
 import { prisma } from "@/lib/prisma";
 import { getHomeResultSlides } from "@/lib/public-results";
 import { getBranchImage, normalizeImageSrc } from "@/lib/utils";
@@ -353,13 +354,13 @@ function buildStatsSegments(
   branches: Array<{
     id: string;
     typebranch: string;
+    cycles?: Array<{ cycle: unknown; isActive?: boolean; sortOrder?: number }>;
   }>,
   studentCountsByBranchId: Map<string, number>,
 ): HomeStatsSegment[] {
   const useFallback = branches.length === 0;
-  const schoolBranches = branches.filter(
-    (branch) =>
-      branch.typebranch === "PRIMAIRE" || branch.typebranch === "SECONDAIRE",
+  const schoolBranches = branches.filter((branch) =>
+    getBranchCycles(branch).some((cycle) => isSchoolCycle(cycle)),
   );
   const centreBranches = branches.filter(
     (branch) => branch.typebranch === "CENTRE_FORMATION",
@@ -424,6 +425,11 @@ export async function getHomeData(): Promise<HomeData> {
             ville: true,
             pays: true,
             typebranch: true,
+            cycles: {
+              where: { isActive: true },
+              select: { cycle: true, isActive: true, sortOrder: true },
+              orderBy: { sortOrder: "asc" },
+            },
             createdAt: true,
             adresse: true,
             province: true,

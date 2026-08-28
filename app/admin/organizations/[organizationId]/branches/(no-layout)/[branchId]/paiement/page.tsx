@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import PaymentClient from "./components/PaymentClient";
 import { assertBranchAreaAccess } from "@/lib/auth/assert-branch-area-access";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
+import { canAccessFinanceOversight } from "@/lib/auth/session-roles";
 import { getPeopleLabels } from "@/lib/people-labels";
 import { Badge } from "@/components/ui/badge";
 import { IconWallet } from "@tabler/icons-react";
@@ -50,6 +51,7 @@ export default async function PaymentPage({
         fraisList={fraisListResult}
         initialSearch={initialSearch}
         initialEnrollmentId={initialEnrollmentId}
+        showUnpaidReport={canAccessFinanceOversight(session)}
       />
     </BranchPageShell>
   );

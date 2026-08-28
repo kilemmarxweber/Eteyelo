@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 
+import { MemberPhotoField } from "@/app/admin/organizations/[organizationId]/members/member-photo-field";
 import { Button } from "@/components/custom/button";
 import {
   Form,
@@ -28,6 +29,7 @@ import { SearchableSelect } from "@/components/ui/searchable-select";
 import { orgRoleLabel } from "@/lib/org-role-labels";
 import { ALL_ORG_ROLE_SLUGS } from "@/lib/permissions";
 import { cn } from "@/lib/utils";
+import { MAX_IMAGE_UPLOAD_BYTES, uploadFile } from "@/lib/upload-file";
 import generateUsername from "@/src/hooks/generateUsername";
 import { updatePersonnelSchema, userSchema } from "@/src/interfaces/Personnel";
 
@@ -63,6 +65,7 @@ const emptyValues: PersonnelFormValues = {
   address: "",
   orgRole: "",
   dateOfBirth: new Date(),
+  image: "",
 };
 
 export function PersonnelUpForm({
@@ -80,6 +83,10 @@ export function PersonnelUpForm({
   const isDialog = layout === "dialog";
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(
+    initialData?.image?.trim() || null,
+  );
 
   const sexeToUi: Record<string, "masculin" | "feminin"> = {
     M: "masculin",
@@ -101,9 +108,40 @@ export function PersonnelUpForm({
           dateOfBirth: initialData.dateOfBirth
             ? new Date(initialData.dateOfBirth)
             : new Date(),
+          image: initialData.image ?? "",
         }
       : emptyValues,
   });
+
+  const fullName = [
+    form.watch("name"),
+    form.watch("postnom"),
+    form.watch("prenom"),
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  useEffect(() => {
+    return () => {
+      if (photoPreview?.startsWith("blob:")) URL.revokeObjectURL(photoPreview);
+    };
+  }, [photoPreview]);
+
+  function handlePickPhoto(file: File) {
+    if (!file.type.startsWith("image/")) {
+      toast.error("Choisissez une image (JPEG, PNG, WebP…).");
+      return;
+    }
+    if (file.size > MAX_IMAGE_UPLOAD_BYTES) {
+      toast.error("Image trop volumineuse (max. 5 Mo).");
+      return;
+    }
+    setPhotoPreview((current) => {
+      if (current?.startsWith("blob:")) URL.revokeObjectURL(current);
+      return URL.createObjectURL(file);
+    });
+    setPhotoFile(file);
+  }
 
   useEffect(() => {
     const nom = form.getValues("name");
@@ -123,8 +161,21 @@ export function PersonnelUpForm({
     setIsLoading(true);
     setErrorMessage("");
 
+    let image = data.image?.trim() || "";
+    if (photoFile) {
+      const uploaded = await uploadFile(photoFile);
+      if (!uploaded.ok) {
+        setIsLoading(false);
+        setErrorMessage(uploaded.message);
+        toast.error(uploaded.message);
+        return;
+      }
+      image = uploaded.url;
+    }
+
     const payload = {
       ...data,
+      image,
       dateOfBirth:
         mode === "create"
           ? new Date()
@@ -143,6 +194,11 @@ export function PersonnelUpForm({
 
         toast.success("Personnel créé avec succès");
         form.reset({ ...emptyValues, dateOfBirth: new Date() });
+        setPhotoFile(null);
+        setPhotoPreview((current) => {
+          if (current?.startsWith("blob:")) URL.revokeObjectURL(current);
+          return null;
+        });
         onCreated?.();
         onPersonnelCreated?.();
       } else {
@@ -372,6 +428,15 @@ export function PersonnelUpForm({
                     </FormControl>
                   </FormItem>
                 )}
+              />
+            </div>
+
+            <div className="sm:col-span-2">
+              <MemberPhotoField
+                previewUrl={photoPreview}
+                onPickFile={handlePickPhoto}
+                disabled={isLoading}
+                fullName={fullName}
               />
             </div>
 

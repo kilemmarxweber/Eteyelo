@@ -65,10 +65,11 @@ export function LevelSectionOptionFields({
   required = true,
 }: Props) {
   const branchType = normalizeBranchType(typebranch);
-  const primary = isPrimaryBranch(typebranch);
-  const secondary = branchType === "SECONDAIRE";
-  const usesBranchTree = usesBranchAcademicTree(branchType);
-  const fieldLabels = getPublicLevelFieldLabels(branchType);
+  const maternelle = typebranch === "MATERNELLE";
+  const primary = isPrimaryBranch(typebranch) || maternelle;
+  const secondary = !maternelle && branchType === "SECONDAIRE";
+  const usesBranchTree = usesBranchAcademicTree(typebranch);
+  const fieldLabels = getPublicLevelFieldLabels(typebranch);
   const levels = getClassLevelsForBranch(typebranch);
 
   const showSection =

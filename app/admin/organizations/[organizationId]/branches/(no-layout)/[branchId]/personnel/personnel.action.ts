@@ -134,6 +134,7 @@ export const createPersonnelAction = action
         organizationId,
         branchId,
         email: emailLower,
+        image: data.image?.trim() || undefined,
       });
       if (!result.ok) {
         return {
@@ -430,6 +431,7 @@ export const getPersonnelsAction = action.handler(
         username: user?.username ?? "",
         telephone: user?.telephone ?? "",
         address: user?.address ?? "",
+        image: user?.image ?? "",
         statusUser: user?.statusUser ?? true,
 
         // metadata
@@ -483,6 +485,7 @@ export const updatePersonnelAction = action
           address: data.address,
           sexe: data.sexe === "masculin" ? "M" : "F",
           dateOfBirth: data.dateOfBirth,
+          ...(data.image?.trim() ? { image: data.image.trim() } : {}),
         },
       });
 

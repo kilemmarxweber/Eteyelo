@@ -10,6 +10,8 @@ export interface ITypeFrais {
   statusType: boolean;
   createdAt: Date;
   updatedAt: Date;
+  /** Présent sur la page paramètres : suppression possible (owner + aucun frais lié). */
+  canDelete?: boolean;
 }
 
 export interface IFrais {

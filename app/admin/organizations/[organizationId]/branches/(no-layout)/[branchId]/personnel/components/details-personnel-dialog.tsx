@@ -2,6 +2,7 @@
 
 import * as React from "react";
 
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import {
@@ -11,6 +12,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { orgRoleLabel } from "@/lib/org-role-labels";
+import { normalizeImageSrc } from "@/lib/utils";
 import { IPersonnel } from "@/src/interfaces/Personnel";
 import { PersonnelBadgePanel } from "./personnel-badge-panel";
 
@@ -52,13 +54,27 @@ export function DetailsPersonnelDialog({
 
         <Card className="space-y-4 border-border p-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <h2 className="text-lg font-semibold text-foreground">
-                {fullName || "Personnel"}
-              </h2>
-              <p className="text-sm text-muted-foreground">
-                {personnel.username || "Code non défini"}
-              </p>
+            <div className="flex min-w-0 items-center gap-3">
+              <Avatar className="size-14 shrink-0">
+                {personnel.image ? (
+                  <AvatarImage
+                    src={normalizeImageSrc(personnel.image)}
+                    alt={fullName || "Personnel"}
+                  />
+                ) : null}
+                <AvatarFallback>
+                  {`${personnel.nom?.[0] ?? ""}${personnel.prenom?.[0] ?? ""}`.toUpperCase() ||
+                    "PE"}
+                </AvatarFallback>
+              </Avatar>
+              <div className="min-w-0">
+                <h2 className="text-lg font-semibold text-foreground">
+                  {fullName || "Personnel"}
+                </h2>
+                <p className="text-sm text-muted-foreground">
+                  {personnel.username || "Code non défini"}
+                </p>
+              </div>
             </div>
 
             <div className="flex flex-wrap gap-2">

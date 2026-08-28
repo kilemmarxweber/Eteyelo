@@ -63,6 +63,8 @@ type CashierReportData = {
     method?: string | null;
     studentName: string;
     createdAt: string;
+    createdByUserId?: string | null;
+    cashierName?: string | null;
     frais?: { nameFrais: string } | null;
   }>;
   expenses: Array<{
@@ -425,6 +427,7 @@ export default function CashierReport({
                   <TableHead className="h-9 px-3">{t("cashier.colRef")}</TableHead>
                   <TableHead className="h-9 px-3">{t("cashier.colStudent")}</TableHead>
                   <TableHead className="h-9 px-3">{t("cashier.colReason")}</TableHead>
+                  <TableHead className="h-9 px-3">{t("cashier.colCashier")}</TableHead>
                   <TableHead className="h-9 px-3 text-right">
                     {t("cashier.colAmount")}
                   </TableHead>
@@ -437,17 +440,17 @@ export default function CashierReport({
                     <Fragment key={group.method}>
                       <TableRow className="bg-emerald-50 hover:bg-emerald-50 dark:bg-emerald-950/40 dark:hover:bg-emerald-950/40">
                         <TableCell
-                          colSpan={5}
+                          colSpan={6}
                           className="px-3 py-2 text-sm font-semibold text-emerald-800 dark:text-emerald-300"
                         >
                           {label}
                         </TableCell>
                       </TableRow>
                       {group.payments.map((payment) => (
-                          <TableRow key={payment.id}>
-                            <TableCell className="whitespace-nowrap px-3 py-2 tabular-nums text-muted-foreground">
-                              {formatCashierDateTime(payment.createdAt)}
-                            </TableCell>
+                        <TableRow key={payment.id}>
+                          <TableCell className="whitespace-nowrap px-3 py-2 tabular-nums text-muted-foreground">
+                            {formatCashierDateTime(payment.createdAt)}
+                          </TableCell>
                           <TableCell className="px-3 py-2 font-medium">
                             {payment.transactionRef || "—"}
                           </TableCell>
@@ -457,14 +460,21 @@ export default function CashierReport({
                           <TableCell className="px-3 py-2 text-muted-foreground">
                             {payment.frais?.nameFrais || "—"}
                           </TableCell>
+                          <TableCell className="px-3 py-2">
+                            {payment.cashierName?.trim() ||
+                              t("cashier.unknownCashier")}
+                          </TableCell>
                           <TableCell className="px-3 py-2 text-right tabular-nums">
-                            {formatReportAmount(payment.amount, baseCurrency)}
+                            {formatReportAmount(
+                              payment.amount,
+                              baseCurrency,
+                            )}
                           </TableCell>
                         </TableRow>
                       ))}
                       <TableRow className="bg-muted/60 hover:bg-muted/60">
                         <TableCell
-                          colSpan={4}
+                          colSpan={5}
                           className="px-3 py-2 text-right text-sm font-semibold"
                         >
                           {t("cashier.sequenceTotal", { mode: label })}
@@ -480,7 +490,7 @@ export default function CashierReport({
               <TableFooter className="border-0 bg-foreground text-background">
                 <TableRow className="bg-foreground text-background hover:bg-foreground">
                   <TableCell
-                    colSpan={4}
+                    colSpan={5}
                     className="px-3 py-2.5 text-right text-sm font-semibold"
                   >
                     {t("cashier.grandTotal")}

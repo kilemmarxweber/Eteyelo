@@ -21,12 +21,14 @@ type Props = {
   fraisList: any[];
   initialSearch?: string;
   initialEnrollmentId?: string;
+  showUnpaidReport?: boolean;
 };
 
 export default function PaymentClient({
   fraisList,
   initialSearch = "",
   initialEnrollmentId = "",
+  showUnpaidReport = true,
 }: Props) {
   const t = useTranslations("finance");
   const peopleLabels = useBranchPeopleLabels();
@@ -96,9 +98,11 @@ export default function PaymentClient({
                 onToggleExpenseForm={() => setShowExpenseForm(true)}
               />
             </div>
-            <div className="animate-fade-up animate-delay-150">
-              <UnpaidReportLazy refreshKey={refreshKey} />
-            </div>
+            {showUnpaidReport ? (
+              <div className="animate-fade-up animate-delay-150">
+                <UnpaidReportLazy refreshKey={refreshKey} />
+              </div>
+            ) : null}
             <div className="animate-fade-up animate-delay-225 overflow-hidden rounded-2xl border border-border/70 bg-card p-3 shadow-sm ring-1 ring-black/[0.02] sm:p-5">
               <PaiementsTableLazy
                 refreshKey={refreshKey}

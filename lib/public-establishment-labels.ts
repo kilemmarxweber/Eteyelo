@@ -3,18 +3,31 @@ import {
   normalizeBranchType,
 } from "@/lib/academic-structure";
 import { getBranchTypeLabel } from "@/lib/branch-capabilities";
+import {
+  cycleLabel,
+  getBranchCycles,
+  isSchoolCycle,
+  type BranchCycleInput,
+  type Cycle,
+} from "@/lib/cycle";
 import { getTrainingLabels } from "@/lib/training-labels";
 
-/** Types proposés sur l'inscription publique (hors atelier). */
+/** Cycles / types proposés sur l'inscription et la candidature publiques (hors atelier). */
 export const PUBLIC_REGISTRATION_BRANCH_TYPES = [
+  "MATERNELLE",
   "PRIMAIRE",
   "SECONDAIRE",
   "CENTRE_FORMATION",
   "UNIVERSITE",
-] as const satisfies readonly ManagedBranchType[];
+] as const;
 
 export type PublicRegistrationBranchType =
   (typeof PUBLIC_REGISTRATION_BRANCH_TYPES)[number];
+
+export type PublicBranchForFilter = {
+  typebranch?: unknown;
+  cycles?: BranchCycleInput[] | null;
+};
 
 export function isPublicRegistrationBranchType(
   value: unknown,
@@ -25,8 +38,51 @@ export function isPublicRegistrationBranchType(
   );
 }
 
+export function getPublicBranchCycles(branch: PublicBranchForFilter): Cycle[] {
+  return getBranchCycles(branch);
+}
+
+/** Une école multi-cycle apparaît pour chaque cycle qu'elle couvre. */
+export function branchMatchesPublicType(
+  branch: PublicBranchForFilter,
+  filter: PublicRegistrationBranchType,
+): boolean {
+  return getPublicBranchCycles(branch).includes(filter as Cycle);
+}
+
+export function listAvailablePublicBranchTypes(
+  branches: PublicBranchForFilter[],
+): PublicRegistrationBranchType[] {
+  return PUBLIC_REGISTRATION_BRANCH_TYPES.filter((type) =>
+    branches.some((branch) => branchMatchesPublicType(branch, type)),
+  );
+}
+
+export function formatPublicBranchSelectLabel(
+  branch: {
+    name: string;
+    ville?: string | null;
+    pays?: string | null;
+  } & PublicBranchForFilter,
+  options?: { includeLocation?: boolean },
+): string {
+  const location = branch.ville?.trim() || branch.pays?.trim() || "";
+  const schoolCycles = getPublicBranchCycles(branch).filter(isSchoolCycle);
+  const cyclePart =
+    schoolCycles.length > 1
+      ? ` · ${schoolCycles.map((cycle) => cycleLabel(cycle)).join(", ")}`
+      : "";
+  if (options?.includeLocation === false) {
+    return `${branch.name}${cyclePart}`;
+  }
+  return location
+    ? `${branch.name} · ${location}${cyclePart}`
+    : `${branch.name}${cyclePart}`;
+}
+
 /** Libellé singulier du sélecteur d'établissement (École, Centre, Université…). */
 export function getEstablishmentPickerLabel(typebranch: unknown): string {
+  if (typebranch === "MATERNELLE") return "École";
   const type = normalizeBranchType(typebranch) as ManagedBranchType;
 
   switch (type) {
@@ -52,6 +108,14 @@ export function usesBranchAcademicTree(typebranch: unknown): boolean {
 }
 
 export function getPublicLevelFieldLabels(typebranch: unknown) {
+  if (typebranch === "MATERNELLE") {
+    return {
+      level: "Classe",
+      section: "Section",
+      option: "Option",
+    };
+  }
+
   const type = normalizeBranchType(typebranch) as ManagedBranchType;
   const training = getTrainingLabels(type);
 

@@ -42,10 +42,13 @@ import { CameraCaptureDialog } from "@/components/camera-capture-dialog";
 import type { ManagedBranchType } from "@/lib/academic-structure";
 import { isPrimaryBranch } from "@/lib/class-structure";
 import {
+  branchMatchesPublicType,
+  formatPublicBranchSelectLabel,
   getEstablishmentPickerLabel,
   getEstablishmentTypeFilterLabel,
   isPublicRegistrationBranchType,
-  PUBLIC_REGISTRATION_BRANCH_TYPES,
+  listAvailablePublicBranchTypes,
+  type PublicRegistrationBranchType,
 } from "@/lib/public-establishment-labels";
 
 type Branch = {
@@ -54,6 +57,7 @@ type Branch = {
   ville: string | null;
   pays: string | null;
   typebranch: ManagedBranchType;
+  cycles?: Array<{ cycle: string; isActive?: boolean; sortOrder?: number }>;
 };
 
 const STEPS = [
@@ -73,7 +77,7 @@ export function JobApplicationForm({ branches }: { branches: Branch[] }) {
   const [cvFile, setCvFile] = useState<File | null>(null);
   const [coverLetterFile, setCoverLetterFile] = useState<File | null>(null);
   const [branchTypeFilter, setBranchTypeFilter] = useState<
-    ManagedBranchType | ""
+    PublicRegistrationBranchType | ""
   >("");
   const [form, setForm] = useState({
     branchId: "",
@@ -113,17 +117,16 @@ export function JobApplicationForm({ branches }: { branches: Branch[] }) {
   );
 
   const availableBranchTypes = useMemo(
-    () =>
-      PUBLIC_REGISTRATION_BRANCH_TYPES.filter((type) =>
-        branches.some((branch) => branch.typebranch === type),
-      ),
+    () => listAvailablePublicBranchTypes(branches),
     [branches],
   );
 
   const filteredBranches = useMemo(
     () =>
       branchTypeFilter
-        ? branches.filter((branch) => branch.typebranch === branchTypeFilter)
+        ? branches.filter((branch) =>
+            branchMatchesPublicType(branch, branchTypeFilter),
+          )
         : [],
     [branches, branchTypeFilter],
   );
@@ -132,9 +135,9 @@ export function JobApplicationForm({ branches }: { branches: Branch[] }) {
   const establishmentLabel = getEstablishmentPickerLabel(
     branchTypeFilter || selectedBranch?.typebranch,
   );
-  const branchType = (selectedBranch?.typebranch ||
-    branchTypeFilter ||
-    "SECONDAIRE") as ManagedBranchType;
+  const branchType = (branchTypeFilter ||
+    selectedBranch?.typebranch ||
+    "SECONDAIRE") as PublicRegistrationBranchType | ManagedBranchType;
 
   const update = (
     key: keyof typeof form,
@@ -374,7 +377,7 @@ export function JobApplicationForm({ branches }: { branches: Branch[] }) {
                     onValueChange={onBranchTypeChange}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Ecole, centre ou universite" />
+                      <SelectValue placeholder="Maternelle, primaire, secondaire…" />
                     </SelectTrigger>
                     <SelectContent>
                       {availableBranchTypes.map((type) => (
@@ -404,8 +407,7 @@ export function JobApplicationForm({ branches }: { branches: Branch[] }) {
                     <SelectContent>
                       {filteredBranches.map((branch) => (
                         <SelectItem key={branch.id} value={branch.id}>
-                          {branch.name}
-                          {branch.ville ? ` — ${branch.ville}` : ""}
+                          {formatPublicBranchSelectLabel(branch)}
                         </SelectItem>
                       ))}
                     </SelectContent>

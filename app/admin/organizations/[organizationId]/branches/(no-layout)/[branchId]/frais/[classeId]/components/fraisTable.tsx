@@ -4,7 +4,7 @@ import { getFraisByClassAction, getFraisAction } from "../../frais.action";
 import { ResponsiveDataTable } from "@/components/ui/responsive-data-table";
 import { SearchAndFilter } from "@/components/ui/search-and-filter";
 import { Button } from "@/components/ui/button";
-import { Edit, Trash2, MoreHorizontal, Copy } from "lucide-react";
+import { Edit, Trash2, MoreHorizontal, Copy, Archive } from "lucide-react";
 import { IconChevronLeft, IconChevronRight } from "@tabler/icons-react";
 import {
   DropdownMenu,
@@ -16,8 +16,14 @@ import {
 import { UpdateFraisDialog } from "./edit-Frais-dialog";
 import { DeleteFraissDialog } from "./delete-Frais-dialog";
 import { ReplicateFraisDialog } from "./replicate-Frais-dialog";
+import { useSession } from "@/lib/auth-client";
+import { isOrganizationOwnerSession } from "@/lib/auth/session-roles";
 
 const FraissList = ({ params }: { params: { classeId: string } }) => {
+  const { data: session, isPending: sessionPending } = useSession();
+  const [hasMounted, setHasMounted] = useState(false);
+  const canPurgePermanently =
+    hasMounted && !sessionPending && isOrganizationOwnerSession(session);
   const [fraiss, setFraiss] = useState<IFrais[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -25,8 +31,13 @@ const FraissList = ({ params }: { params: { classeId: string } }) => {
   const ITEMS_PER_PAGE = 5;
   const [showUpdateDialog, setShowUpdateDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showPurgeDialog, setShowPurgeDialog] = useState(false);
   const [showReplicateDialog, setShowReplicateDialog] = useState(false);
   const [selectedFrais, setSelectedFrais] = useState<IFrais | null>(null);
+
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
 
   useEffect(() => {
     const fetchFraiss = async () => {
@@ -73,6 +84,11 @@ const FraissList = ({ params }: { params: { classeId: string } }) => {
   const handleDelete = (frais: IFrais) => {
     setSelectedFrais(frais);
     setShowDeleteDialog(true);
+  };
+
+  const handlePurge = (frais: IFrais) => {
+    setSelectedFrais(frais);
+    setShowPurgeDialog(true);
   };
 
   const handleReplicate = (frais: IFrais) => {
@@ -139,9 +155,18 @@ const FraissList = ({ params }: { params: { classeId: string } }) => {
               onClick={() => handleDelete(frais)}
               className="text-destructive"
             >
-              <Trash2 className="mr-2 h-4 w-4" />
+              <Archive className="mr-2 h-4 w-4" />
               Désactiver
             </DropdownMenuItem>
+            {canPurgePermanently ? (
+              <DropdownMenuItem
+                onClick={() => handlePurge(frais)}
+                className="text-destructive"
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
+                Supprimer
+              </DropdownMenuItem>
+            ) : null}
           </DropdownMenuContent>
         </DropdownMenu>
       ),
@@ -180,10 +205,20 @@ const FraissList = ({ params }: { params: { classeId: string } }) => {
       },
       {
         label: "Désactiver",
-        icon: Trash2,
+        icon: Archive,
         onClick: () => handleDelete(frais),
         variant: "destructive" as const,
       },
+      ...(canPurgePermanently
+        ? [
+            {
+              label: "Supprimer",
+              icon: Trash2,
+              onClick: () => handlePurge(frais),
+              variant: "destructive" as const,
+            },
+          ]
+        : []),
     ],
   };
   const start = page * ITEMS_PER_PAGE;
@@ -274,6 +309,15 @@ const FraissList = ({ params }: { params: { classeId: string } }) => {
             Frais={[selectedFrais]}
             showTrigger={false}
           />
+          {canPurgePermanently ? (
+            <DeleteFraissDialog
+              open={showPurgeDialog}
+              onOpenChange={setShowPurgeDialog}
+              Frais={[selectedFrais]}
+              showTrigger={false}
+              permanent
+            />
+          ) : null}
           <ReplicateFraisDialog
             open={showReplicateDialog}
             onOpenChange={setShowReplicateDialog}

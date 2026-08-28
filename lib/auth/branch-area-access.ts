@@ -2,6 +2,7 @@ import {
   canAccessBranchOrgSettings,
   canAccessDevoirsArea,
   canAccessFinanceArea,
+  canAccessFinanceOversight,
   canAccessLibraryArea,
   canAccessNotesReadArea,
   canAccessPedagogyArea,
@@ -22,6 +23,7 @@ import {
  */
 export type BranchArea =
   | "finance"
+  | "fee_catalog"
   | "notes"
   | "schedule"
   | "teaching"
@@ -46,6 +48,8 @@ export function canAccessBranchArea(
   switch (area) {
     case "finance":
       return canAccessFinanceArea(session);
+    case "fee_catalog":
+      return canAccessFinanceOversight(session);
     case "notes":
       return canAccessNotesReadArea(session);
     case "schedule":

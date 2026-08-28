@@ -73,6 +73,13 @@ test("caissier : dashboard, registration, finance, users/student, help — pas c
   assertIncludes(usersSubs, ["student"], "caissier utilisateurs");
   assertExcludes(usersSubs, ["staff", "teacher", "parent"], "caissier utilisateurs");
   assert.equal(hasMenuTitle(session, "finance"), true);
+
+  const finance = buildStaticSideLinks(session, BRANCH_PATH, "PRIMAIRE").find(
+    (item) => item.title === "finance",
+  );
+  const financeSubs = (finance?.sub ?? []).map((item) => item.title);
+  assertIncludes(financeSubs, ["payment"], "caissier finance");
+  assertExcludes(financeSubs, ["fees"], "caissier finance");
 });
 
 test("élève : dashboard, results, library — pas grades/schedule/sheets / finance", () => {

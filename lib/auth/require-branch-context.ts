@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { getCachedSession } from "@/lib/auth/get-session-cached";
 import {
   canAccessFinanceArea,
+  canAccessFinanceOversight,
   canManageHrDirectory,
 } from "@/lib/auth/session-roles";
 import { prisma } from "@/lib/prisma";
@@ -106,10 +107,19 @@ export async function requireBranchContext(
   };
 }
 
-/** Branche active + droit finance (frais / paiement / caisse). */
+/** Branche active + droit finance (paiement / caisse). */
 export async function requireFinanceBranchContext() {
   const ctx = await requireBranchContext();
   if (!canAccessFinanceArea(ctx.session)) {
+    throw new Error("Action non autorisée");
+  }
+  return ctx;
+}
+
+/** Catalogue des frais + situation impayés — sans caissier. */
+export async function requireFinanceOversightBranchContext() {
+  const ctx = await requireFinanceBranchContext();
+  if (!canAccessFinanceOversight(ctx.session)) {
     throw new Error("Action non autorisée");
   }
   return ctx;
