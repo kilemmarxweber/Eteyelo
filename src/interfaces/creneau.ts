@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { Day } from "@/prisma/generated/prisma/client";
 import {
   CRENEAU_WEEKDAY_OPTIONS,
   DEFAULT_CRENEAU_WORKING_DAYS,
@@ -12,7 +13,7 @@ export interface ICreneau {
   durationCourse: number;
   recreationHour: string;
   recreationDuration: number;
-  workingDays?: string[];
+  workingDays?: Day[];
   isArchived?: boolean;
   classesCount?: number;
   createdAt: Date;
@@ -35,8 +36,8 @@ export const defaultCreneauValues = {
   durationCourse: 45,
   recreationHour: "",
   recreationDuration: 15,
-  workingDays: [...DEFAULT_CRENEAU_WORKING_DAYS],
-} as const;
+  workingDays: [...DEFAULT_CRENEAU_WORKING_DAYS] as Day[],
+};
 
 const creneauFieldsSchema = z.object({
   id: z.string().optional(),

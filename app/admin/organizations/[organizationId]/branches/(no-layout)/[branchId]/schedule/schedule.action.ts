@@ -980,6 +980,7 @@ export const regenerateScheduleForClasseAction = action
               durationCourse: true,
               recreationHour: true,
               recreationDuration: true,
+              workingDays: true,
             },
           },
         },

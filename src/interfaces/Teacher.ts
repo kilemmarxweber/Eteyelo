@@ -48,10 +48,7 @@ export const teacherSchema = z
     email: z.string().optional(),
     address: z.string().trim().min(1, { message: "Veuillez saisir l'adresse" }),
     image: z.string().trim().max(2000).optional().or(z.literal("")),
-  cycles: z
-    .array(z.string())
-    .optional()
-    .default([]),
+  cycles: z.array(z.string()),
   /** Titulaire / superviseur de classe (crée une affectation Teaching). */
   estTitulaire: z.boolean().optional(),
   classeId: z.string().optional(),

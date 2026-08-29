@@ -32,7 +32,7 @@ export const userSchema = z.object({
   image: z.string().trim().max(2000).optional().or(z.literal("")),
   personnelId: z.string().optional(), // 👈 ajouté
   memberId: z.string().optional(), // 👈 ajouté
-  cycles: z.array(z.string()).optional().default([]),
+  cycles: z.array(z.string()),
 });
 
 export const updatePersonnelSchema = userSchema.extend({

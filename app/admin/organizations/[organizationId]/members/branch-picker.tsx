@@ -112,7 +112,7 @@ export function MemberBranchPicker({
                   <span className="mt-1 flex min-w-0 flex-col gap-1">
                     <BranchTypeBadge
                       typebranch={branch.typebranch}
-                      cycles={cycleValues}
+                      cycles={cycleValues.map((cycle) => ({ cycle }))}
                       className="h-5 px-1.5 text-[10px]"
                     />
                     {branch.isMultiCycle ? (

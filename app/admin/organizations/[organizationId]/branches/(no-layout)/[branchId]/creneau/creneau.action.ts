@@ -121,7 +121,12 @@ export const updateCreneauAction = action
 
 // ACTION POUR ARCHIVER UN CRENEAU
 export const archiveCreneauAction = action
-  .input(creneauSchema)
+  .input(
+    z.object({
+      id: z.string().min(1),
+      nameCreneau: z.string().min(1),
+    }),
+  )
   .handler(async ({ input }) => {
     const { branchId, organizationId, userId } = await requireBranchContext();
     const { id, nameCreneau } = input;

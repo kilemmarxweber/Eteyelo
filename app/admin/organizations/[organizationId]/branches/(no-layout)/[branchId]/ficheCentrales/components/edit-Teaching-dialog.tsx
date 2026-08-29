@@ -56,6 +56,7 @@ export function UpdateStudentDialog({
             titulaire: teaching.titulaire,
             schoolYearId: teaching.schoolYearId ?? "",
             coursId: teaching.coursId ?? "",
+            weeklyHours: teaching.weeklyHours ?? 45,
           }} // Pass the teaching data for editing
           classeId={teaching.classeId}
           onUpdated={handleUpdate}
