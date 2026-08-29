@@ -1068,6 +1068,8 @@ export const regenerateScheduleForClasseAction = action
         teacherId: true,
         titulaire: true,
         weeklyHours: true,
+        consecutiveSlots: true,
+        preferredDays: true,
         cours: { select: { nameCours: true } },
       },
     });
@@ -1192,6 +1194,8 @@ export const regenerateScheduleForClasseAction = action
       ),
       titulaire: Boolean(t.titulaire),
       weeklyMinutes: t.weeklyHours ?? 0,
+      consecutiveSlots: t.consecutiveSlots,
+      preferredDays: t.preferredDays,
     }));
 
     const { placed, failures, attempts, foundComplete } =

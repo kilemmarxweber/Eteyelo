@@ -6,7 +6,10 @@ import {
   canAccessBranchArea,
   type BranchArea,
 } from "@/lib/auth/branch-area-access";
+import { isPermissionsFromDacEnabled } from "@/lib/auth/branch-area-permissions";
 import { getCachedSession } from "@/lib/auth/get-session-cached";
+import { loadOrganizationRoleStatements } from "@/lib/auth/org-role-permissions";
+import { canAccessBranchAreaFromPermissions } from "@/lib/auth/resolve-branch-area-permission";
 
 export type { BranchArea };
 export { canAccessBranchArea };
@@ -37,9 +40,22 @@ function resolveBranchHome(
   return `/admin/organizations/${orgId}/branches/${brId}`;
 }
 
+function resolveOrganizationId(
+  session: any,
+  organizationId?: string | null,
+): string | null {
+  return (
+    organizationId ??
+    session?.organization?.id ??
+    session?.session?.activeOrganizationId ??
+    null
+  );
+}
+
 /**
  * Refuse l’accès serveur à une zone branche.
  * Préférer cet helper aux checks ad hoc dans chaque page/layout.
+ * Lit OrganizationRole.permission (DB) quand le DAC est actif.
  */
 export async function assertBranchAreaAccess(
   area: BranchArea,
@@ -55,7 +71,21 @@ export async function assertBranchAreaAccess(
     redirect("/auth/sign-in");
   }
 
-  if (canAccessBranchArea(area, resolved)) {
+  const orgId = resolveOrganizationId(resolved, options?.organizationId);
+  let allowed = false;
+
+  if (isPermissionsFromDacEnabled() && orgId) {
+    const roleStatements = await loadOrganizationRoleStatements(orgId);
+    allowed = canAccessBranchAreaFromPermissions(
+      area,
+      resolved,
+      roleStatements,
+    );
+  } else {
+    allowed = canAccessBranchArea(area, resolved);
+  }
+
+  if (allowed) {
     return resolved as NonNullable<Awaited<ReturnType<typeof getCachedSession>>>;
   }
 
@@ -79,4 +109,23 @@ export async function assertBranchAreaAccess(
   }
 
   notFound();
+}
+
+/** Check zone avec permissions DB (sans redirect). */
+export async function canAccessBranchAreaAsync(
+  area: BranchArea,
+  session: unknown,
+  organizationId?: string | null,
+): Promise<boolean> {
+  if (!isPermissionsFromDacEnabled()) {
+    return canAccessBranchArea(area, session);
+  }
+
+  const orgId = resolveOrganizationId(session, organizationId);
+  if (!orgId) {
+    return canAccessBranchAreaFromPermissions(area, session);
+  }
+
+  const roleStatements = await loadOrganizationRoleStatements(orgId);
+  return canAccessBranchAreaFromPermissions(area, session, roleStatements);
 }

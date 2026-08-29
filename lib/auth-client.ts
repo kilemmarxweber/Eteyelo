@@ -14,6 +14,11 @@ import {
   organizationRoles,
 } from "@/lib/permissions";
 
+/** Aligné serveur : owner en static, autres rôles via DAC / DB. */
+const organizationRolesForClient = {
+  [ORG_ROLE.OWNER]: organizationRoles[ORG_ROLE.OWNER],
+} as typeof organizationRoles;
+
 function resolveAuthBaseURL(): string {
   if (typeof window !== "undefined") {
     return window.location.origin;
@@ -35,7 +40,7 @@ export const authClient = createAuthClient({
     organizationClient({
       dynamicAccessControl: { enabled: true },
       ac: authAccessControl,
-      roles: organizationRoles,
+      roles: organizationRolesForClient,
     }),
     customSessionClient<typeof auth>(),
     // Ajoute ce plugin pour inférer les champs additionnels

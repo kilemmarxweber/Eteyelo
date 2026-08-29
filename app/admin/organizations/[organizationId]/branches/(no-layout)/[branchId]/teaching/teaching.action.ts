@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
 import { action } from "@/lib/zsa";
 import { Prisma } from "@/prisma/generated/prisma/client";
-import { ITeaching, teachingSchema } from "@/src/interfaces/Teaching";
+import { ITeaching, teachingSchema, consecutiveSlotsSchema, teachingWeekdaySchema } from "@/src/interfaces/Teaching";
 import { z } from "zod";
 import { canManageOrganization } from "@/lib/auth/session-roles";
 import { activeCoursStatusFilter } from "@/lib/active-cours";
@@ -404,6 +404,8 @@ export const getTeachingClassCoursesAction = action
               statusTeaching: true,
               titulaire: true,
               weeklyHours: true,
+              consecutiveSlots: true,
+              preferredDays: true,
               updatedAt: true,
             },
           })
@@ -418,6 +420,8 @@ const quickAssignmentSchema = z.object({
   coursIds: z.array(z.string().min(1)).min(1).max(200),
   teacherId: z.string().min(1),
   weeklyHours: z.coerce.number().positive().max(600).optional(),
+  consecutiveSlots: consecutiveSlotsSchema,
+  preferredDays: z.array(teachingWeekdaySchema).optional(),
 });
 
 async function assertTeacherMatchesClasseCycle(params: {
@@ -507,7 +511,15 @@ export const saveQuickAssignmentsAction = action.input(quickAssignmentSchema).ha
 
   const existing = await prisma.teaching.findMany({
     where: { classeId: input.classeId, schoolYearId: schoolYear.id, coursId: { in: input.coursIds } },
-    select: { id: true, coursId: true, teacherId: true, weeklyHours: true, Schedule: { where: { isArchived: false }, select: { day: true, hour: true } } },
+    select: {
+      id: true,
+      coursId: true,
+      teacherId: true,
+      weeklyHours: true,
+      consecutiveSlots: true,
+      preferredDays: true,
+      Schedule: { where: { isArchived: false }, select: { day: true, hour: true } },
+    },
   });
   const targetSchedules = await prisma.schedule.findMany({
     where: { isArchived: false, teaching: { teacherId: input.teacherId, schoolYearId: schoolYear.id } },
@@ -531,14 +543,35 @@ export const saveQuickAssignmentsAction = action.input(quickAssignmentSchema).ha
     input.weeklyHours != null && input.weeklyHours > 0
       ? input.weeklyHours
       : undefined;
+  const placementData = {
+    ...(weeklyHours != null ? { weeklyHours } : {}),
+    ...(input.consecutiveSlots !== undefined
+      ? {
+          consecutiveSlots:
+            input.consecutiveSlots == null || input.consecutiveSlots <= 1
+              ? null
+              : input.consecutiveSlots,
+        }
+      : {}),
+    ...(input.preferredDays !== undefined
+      ? { preferredDays: input.preferredDays }
+      : {}),
+  };
+  const teachingSelect = {
+    id: true,
+    classeId: true,
+    coursId: true,
+    teacherId: true,
+    schoolYearId: true,
+    statusTeaching: true,
+    titulaire: true,
+    weeklyHours: true,
+    consecutiveSlots: true,
+    preferredDays: true,
+    updatedAt: true,
+  } as const;
   const saved = await prisma.$transaction(input.coursIds.map(coursId => {
     const current = existingMap.get(coursId);
-    const hoursData =
-      weeklyHours != null
-        ? { weeklyHours }
-        : current?.weeklyHours == null
-          ? {}
-          : {};
     return current
       ? prisma.teaching.update({
           where: { id: current.id },
@@ -546,19 +579,9 @@ export const saveQuickAssignmentsAction = action.input(quickAssignmentSchema).ha
             teacherId: input.teacherId,
             statusTeaching: true,
             branchId,
-            ...hoursData,
+            ...placementData,
           },
-          select: {
-            id: true,
-            classeId: true,
-            coursId: true,
-            teacherId: true,
-            schoolYearId: true,
-            statusTeaching: true,
-            titulaire: true,
-            weeklyHours: true,
-            updatedAt: true,
-          },
+          select: teachingSelect,
         })
       : prisma.teaching.create({
           data: {
@@ -568,19 +591,9 @@ export const saveQuickAssignmentsAction = action.input(quickAssignmentSchema).ha
             teacherId: input.teacherId,
             schoolYearId: schoolYear.id,
             statusTeaching: true,
-            ...(weeklyHours != null ? { weeklyHours } : {}),
+            ...placementData,
           },
-          select: {
-            id: true,
-            classeId: true,
-            coursId: true,
-            teacherId: true,
-            schoolYearId: true,
-            statusTeaching: true,
-            titulaire: true,
-            weeklyHours: true,
-            updatedAt: true,
-          },
+          select: teachingSelect,
         });
   }));
   await syncTeacherDossierExperienceYears({
@@ -591,16 +604,19 @@ export const saveQuickAssignmentsAction = action.input(quickAssignmentSchema).ha
   return saved;
 });
 
-const updateWeeklyHoursSchema = z.object({
+const updatePlacementPrefsSchema = z.object({
   teachingId: z.string().min(1),
-  weeklyHours: z.coerce.number().positive().max(600),
+  weeklyHours: z.coerce.number().positive().max(600).optional(),
+  consecutiveSlots: consecutiveSlotsSchema,
+  preferredDays: z.array(teachingWeekdaySchema).optional(),
 });
 
 export const updateTeachingWeeklyHoursAction = action
-  .input(updateWeeklyHoursSchema)
+  .input(updatePlacementPrefsSchema)
   .handler(async ({ input }) => {
     const { branchId, organizationId, session } = await requireBranchContext();
     requireManageTeaching(session);
+
     const teaching = await prisma.teaching.findFirst({
       where: {
         id: input.teachingId,
@@ -611,9 +627,31 @@ export const updateTeachingWeeklyHoursAction = action
       select: { id: true },
     });
     if (!teaching) throw new Error("Affectation introuvable");
+
+    if (
+      input.weeklyHours == null &&
+      input.consecutiveSlots === undefined &&
+      input.preferredDays === undefined
+    ) {
+      throw new Error("Aucune préférence à enregistrer");
+    }
+
     const updated = await prisma.teaching.update({
       where: { id: teaching.id },
-      data: { weeklyHours: input.weeklyHours },
+      data: {
+        ...(input.weeklyHours != null ? { weeklyHours: input.weeklyHours } : {}),
+        ...(input.consecutiveSlots !== undefined
+          ? {
+              consecutiveSlots:
+                input.consecutiveSlots == null || input.consecutiveSlots <= 1
+                  ? null
+                  : input.consecutiveSlots,
+            }
+          : {}),
+        ...(input.preferredDays !== undefined
+          ? { preferredDays: input.preferredDays }
+          : {}),
+      },
       select: {
         id: true,
         classeId: true,
@@ -623,6 +661,8 @@ export const updateTeachingWeeklyHoursAction = action
         statusTeaching: true,
         titulaire: true,
         weeklyHours: true,
+        consecutiveSlots: true,
+        preferredDays: true,
         updatedAt: true,
       },
     });
@@ -796,7 +836,7 @@ export const createTeachingAction = action
   .handler(async ({ input }) => {
     const { branchId, organizationId, userId, session } =
       await requireBranchContext();
-    const { teacherId, classeId, coursId, schoolYearId, titulaire, weeklyHours } =
+    const { teacherId, classeId, coursId, schoolYearId, titulaire, weeklyHours, consecutiveSlots, preferredDays } =
       input;
     const accessibleCycles = await resolveViewerAccessibleCycles({
       branchId,
@@ -828,6 +868,11 @@ export const createTeachingAction = action
           schoolYearId,
           titulaire,
           weeklyHours,
+          consecutiveSlots:
+            consecutiveSlots == null || consecutiveSlots <= 1
+              ? null
+              : consecutiveSlots,
+          preferredDays: preferredDays ?? [],
           branchId,
         },
       });
@@ -877,7 +922,7 @@ export const updateTeachingAction = action
   .handler(async ({ input }) => {
     const { branchId, organizationId, userId, session } =
       await requireBranchContext();
-    const { id, teacherId, classeId, coursId, schoolYearId, titulaire, weeklyHours } =
+    const { id, teacherId, classeId, coursId, schoolYearId, titulaire, weeklyHours, consecutiveSlots, preferredDays } =
       input;
 
     if (!id) throw new Error("ID requis");
@@ -911,6 +956,11 @@ export const updateTeachingAction = action
         schoolYearId,
         titulaire,
         weeklyHours,
+        consecutiveSlots:
+          consecutiveSlots == null || consecutiveSlots <= 1
+            ? null
+            : consecutiveSlots,
+        preferredDays: preferredDays ?? [],
         branchId,
       },
       where: {

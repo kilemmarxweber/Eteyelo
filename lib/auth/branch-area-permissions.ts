@@ -45,7 +45,7 @@ export const BRANCH_AREA_PERMISSION: Record<
   devoirs: { devoirs: ["read"] },
   library: { library: ["read"] },
   school_admin: { student: ["read"] },
-  registration: { inscription: ["create"] },
+  registration: { inscription: ["read", "create"] },
   students: { student: ["read"] },
   hr_directory: { personnel: ["read"] },
   hr_write: { personnel: ["update"] },
@@ -56,5 +56,11 @@ export const BRANCH_AREA_PERMISSION: Record<
 };
 
 export function isPermissionsFromDacEnabled(): boolean {
-  return process.env.PERMISSIONS_FROM_DAC === "true";
+  const raw = process.env.PERMISSIONS_FROM_DAC?.trim().toLowerCase();
+  // Désactiver explicitement : false / 0. Sinon activé pour que la matrice
+  // Rôles & privilèges (OrganizationRole) pilote les accès zone.
+  if (raw === "false" || raw === "0" || raw === "off" || raw === "no") {
+    return false;
+  }
+  return true;
 }

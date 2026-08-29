@@ -483,6 +483,8 @@ export const TeachingScalarFieldEnum = {
   titulaire: 'titulaire',
   statusTeaching: 'statusTeaching',
   weeklyHours: 'weeklyHours',
+  consecutiveSlots: 'consecutiveSlots',
+  preferredDays: 'preferredDays',
   branchId: 'branchId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',

@@ -526,6 +526,10 @@ model Teaching {
   /// Volume hebdomadaire en minutes pour cette affectation (ex. 135).
   /// Nombre de séances = ceil(weeklyHours / durationCourse de la vacation).
   weeklyHours       Float?
+  /// Nombre de périodes d'affilée à placer ensemble (2–4). Null / 1 = séances isolées.
+  consecutiveSlots  Int?
+  /// Jours préférés pour la génération auto (vide = tous les jours ouvrés du créneau).
+  preferredDays     Day[]               @default([])
   branchId          String?
   branch            Branch?             @relation(fields: [branchId], references: [id], onDelete: Cascade)
   teacher           Teacher?            @relation(fields: [teacherId], references: [id])

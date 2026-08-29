@@ -232,6 +232,7 @@ export const updateOrganizationRoleAction = action
     }
 
     revalidatePath(rolesPath(input.organizationId));
+    revalidatePath(`/admin/organizations/${input.organizationId}`, "layout");
     return { ok: true as const };
   });
 

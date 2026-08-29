@@ -26,10 +26,10 @@ export type { BranchArea };
 
 /**
  * Zones sensibles sous `.../branches/[branchId]/` (unit-09).
- * Module client-safe (pas de next/headers).
+ * Module client-safe (pas de next/headers / prisma).
  *
- * P6 : si `PERMISSIONS_FROM_DAC=true`, délègue au catalogue statements ;
- * sinon conserve les helpers session-roles (comportement actuel).
+ * DAC sync = seed code. Pour OrganizationRole DB : `assertBranchAreaAccess`
+ * ou `canAccessBranchAreaAsync` (server-only).
  */
 export function canAccessBranchArea(
   area: BranchArea,
@@ -81,3 +81,4 @@ export function canAccessBranchArea(
     }
   }
 }
+

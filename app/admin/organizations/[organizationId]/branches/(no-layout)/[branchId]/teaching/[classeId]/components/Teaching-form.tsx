@@ -13,6 +13,13 @@ import {
 } from "@/components/ui/form";
 import { Button } from "@/components/custom/button";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useTheme } from "next-themes";
@@ -45,6 +52,8 @@ import { getCoursAction } from "../../../cours/cours.action";
 import { useSession } from "@/lib/auth-client";
 import { getClassesByIdAction } from "../../../classe/classe.action";
 import { resolveCycle, type Cycle } from "@/lib/cycle";
+import { CRENEAU_WEEKDAY_OPTIONS } from "@/lib/creneau-working-days";
+import { MultiSelect } from "../../../paiement/components/MultiSelect";
 
 interface EnrollmentUpFormProps extends HTMLAttributes<HTMLDivElement> {
   onSuccess?: () => void;
@@ -93,6 +102,8 @@ export function EnrollmentUpForm({
       coursId: initialData?.coursId ?? "",
       classeId: initialData?.classeId ?? classeId ?? "",
       weeklyHours: initialData?.weeklyHours ?? undefined,
+      consecutiveSlots: initialData?.consecutiveSlots ?? null,
+      preferredDays: initialData?.preferredDays ?? [],
     },
   });
 
@@ -162,6 +173,8 @@ export function EnrollmentUpForm({
           coursId: "",
           classeId,
           weeklyHours: undefined,
+          consecutiveSlots: null,
+          preferredDays: [],
         });
         onCreated?.();
       } else {
@@ -354,10 +367,71 @@ export function EnrollmentUpForm({
             />
             <FormField
               control={form.control}
+              name="consecutiveSlots"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Périodes d&apos;affilée</FormLabel>
+                  <Select
+                    value={String(field.value ?? 1)}
+                    onValueChange={(value) =>
+                      field.onChange(value === "1" ? null : Number(value))
+                    }
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="1 (isolées)" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="1">1 — séances isolées</SelectItem>
+                      <SelectItem value="2">
+                        2 — ex. 7h30→8h15 puis 8h15→9h00
+                      </SelectItem>
+                      <SelectItem value="3">3 périodes d&apos;affilée</SelectItem>
+                      <SelectItem value="4">4 périodes d&apos;affilée</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    La génération auto place ces périodes à la suite sur le même
+                    jour.
+                  </p>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="preferredDays"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Jours préférés</FormLabel>
+                  <FormControl>
+                    <MultiSelect
+                      options={CRENEAU_WEEKDAY_OPTIONS.map((day) => ({
+                        value: day.value,
+                        label: day.label,
+                      }))}
+                      value={field.value ?? []}
+                      onValueChange={field.onChange}
+                      placeholder="Tous les jours ouvrés"
+                      searchable={false}
+                      maxCount={3}
+                    />
+                  </FormControl>
+                  <p className="text-xs text-muted-foreground">
+                    Vide = n&apos;importe quel jour ouvrable du créneau. Sinon la
+                    génération se limite à ces jours.
+                  </p>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
               name="schoolYearId"
               render={({ field }) => (
                 <FormItem className="flex flex-col">
-                  <FormLabel>L'année scolaire</FormLabel>
+                  <FormLabel>L&apos;année scolaire</FormLabel>
                   <Popover>
                     <PopoverTrigger asChild>
                       <FormControl>

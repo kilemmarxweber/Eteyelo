@@ -18,9 +18,11 @@ export default function OrganizationRolesPage() {
       <div>
         <h1 className="text-xl font-semibold">Rôles & privilèges</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Contrôle d&apos;accès dynamique (Better Auth). Une modification est
-          prise en compte immédiatement pour les permissions DAC ; les menus
-          branche basculent progressivement (phases P6–P8).
+          Contrôle d&apos;accès dynamique (Better Auth). Après Enregistrer,
+          les permissions OrganizationRole s&apos;appliquent aux zones protégées
+          (finance, notes, RH…). Rechargez la session / la page de l&apos;utilisateur
+          concerné pour voir l&apos;effet. Les menus sidebar restent encore en partie
+          basés sur le nom du rôle.
         </p>
       </div>
 

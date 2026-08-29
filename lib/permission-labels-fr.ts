@@ -77,7 +77,7 @@ export const PERMISSION_MATRIX_GROUPS: PermissionMatrixGroup[] = [
   {
     id: "organisation",
     label: "Organisation",
-    resources: ["organization", "invitation", "member", "team", "ac", "branch"],
+    resources: ["organization", "invitation", "member", "ac", "branch"],
   },
   {
     id: "etablissement",

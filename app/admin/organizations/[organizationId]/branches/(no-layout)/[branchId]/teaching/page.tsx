@@ -53,6 +53,8 @@ import {
   updateTeachingWeeklyHoursAction,
 } from "./teaching.action";
 import type { Cycle } from "@/lib/cycle";
+import { CRENEAU_WEEKDAY_OPTIONS } from "@/lib/creneau-working-days";
+import { MultiSelect } from "../paiement/components/MultiSelect";
 
 type Workspace = NonNullable<
   Awaited<ReturnType<typeof getTeachingWorkspaceAction>>[0]
@@ -78,6 +80,8 @@ export default function TeachingWorkspacePage() {
   const [selectedCourses, setSelectedCourses] = useState<string[]>([]);
   const [bulkTeacherId, setBulkTeacherId] = useState("");
   const [bulkWeeklyHours, setBulkWeeklyHours] = useState("");
+  const [bulkConsecutiveSlots, setBulkConsecutiveSlots] = useState("1");
+  const [bulkPreferredDays, setBulkPreferredDays] = useState<string[]>([]);
   const [savingCourseId, setSavingCourseId] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
@@ -268,10 +272,15 @@ export default function TeachingWorkspacePage() {
     courseIds: string[],
     teacherId: string,
     weeklyHours?: number,
+    consecutiveSlots?: number | null,
+    preferredDays?: string[],
   ) {
     if (!data || !classCourses || !selectedClassId || !teacherId || !courseIds.length)
       return;
     const previous = classCourses.teachings;
+    const consecutive =
+      consecutiveSlots != null && consecutiveSlots > 1 ? consecutiveSlots : null;
+    const days = (preferredDays ?? []).filter(Boolean);
     const tempRows = courseIds.map((coursId) => ({
       id: `temp-${coursId}`,
       classeId: selectedClassId,
@@ -281,6 +290,8 @@ export default function TeachingWorkspacePage() {
       statusTeaching: true,
       titulaire: false,
       weeklyHours: weeklyHours ?? null,
+      consecutiveSlots: consecutive,
+      preferredDays: days,
       updatedAt: new Date(),
     }));
     updateClassTeachings(selectedClassId, [
@@ -300,6 +311,10 @@ export default function TeachingWorkspacePage() {
         coursIds: courseIds,
         teacherId,
         ...(weeklyHours != null && weeklyHours > 0 ? { weeklyHours } : {}),
+        consecutiveSlots: consecutive,
+        preferredDays: days as Array<
+          "Lundi" | "Mardi" | "Mercredi" | "Jeudi" | "Vendredi" | "Samedi"
+        >,
       });
       setSavingCourseId(null);
       if (error || !saved) {
@@ -355,9 +370,69 @@ export default function TeachingWorkspacePage() {
       }
       updateClassTeachings(
         selectedClassId,
-        previous.map((item) => (item.id === teachingId ? updated : item)),
+        previous.map((item) => (item.id === teachingId ? { ...item, ...updated } : item)),
       );
       toast.success("Minutes / semaine enregistrées");
+    });
+  }
+
+  function savePlacementPrefs(
+    teachingId: string,
+    coursId: string,
+    prefs: {
+      consecutiveSlots?: number | null;
+      preferredDays?: string[];
+    },
+  ) {
+    if (!classCourses || !selectedClassId) return;
+    const previous = classCourses.teachings;
+    const consecutive =
+      prefs.consecutiveSlots != null && prefs.consecutiveSlots > 1
+        ? prefs.consecutiveSlots
+        : null;
+    const days = prefs.preferredDays;
+    updateClassTeachings(
+      selectedClassId,
+      previous.map((item) =>
+        item.id === teachingId
+          ? {
+              ...item,
+              ...(prefs.consecutiveSlots !== undefined
+                ? { consecutiveSlots: consecutive }
+                : {}),
+              ...(days !== undefined ? { preferredDays: days } : {}),
+            }
+          : item,
+      ),
+    );
+    setSavingCourseId(coursId);
+    startTransition(async () => {
+      const [updated, error] = await updateTeachingWeeklyHoursAction({
+        teachingId,
+        ...(prefs.consecutiveSlots !== undefined
+          ? { consecutiveSlots: consecutive }
+          : {}),
+        ...(days !== undefined
+          ? {
+              preferredDays: days as Array<
+                "Lundi" | "Mardi" | "Mercredi" | "Jeudi" | "Vendredi" | "Samedi"
+              >,
+            }
+          : {}),
+      });
+      setSavingCourseId(null);
+      if (error || !updated) {
+        updateClassTeachings(selectedClassId, previous);
+        toast.error(error?.message ?? "Mise à jour impossible");
+        return;
+      }
+      updateClassTeachings(
+        selectedClassId,
+        previous.map((item) =>
+          item.id === teachingId ? { ...item, ...updated } : item,
+        ),
+      );
+      toast.success("Contraintes d'horaire enregistrées");
     });
   }
 
@@ -544,16 +619,46 @@ export default function TeachingWorkspacePage() {
                       className="w-28"
                       title="Minutes / semaine (ex. 135)"
                     />
+                    <Select
+                      value={bulkConsecutiveSlots}
+                      onValueChange={setBulkConsecutiveSlots}
+                    >
+                      <SelectTrigger className="w-[120px]" title="Périodes d'affilée">
+                        <SelectValue placeholder="Affilé" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="1">1 isolée</SelectItem>
+                        <SelectItem value="2">2 d&apos;affilée</SelectItem>
+                        <SelectItem value="3">3 d&apos;affilée</SelectItem>
+                        <SelectItem value="4">4 d&apos;affilée</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <div className="min-w-[180px] max-w-[240px]">
+                      <MultiSelect
+                        options={CRENEAU_WEEKDAY_OPTIONS.map((day) => ({
+                          value: day.value,
+                          label: day.short,
+                        }))}
+                        value={bulkPreferredDays}
+                        onValueChange={setBulkPreferredDays}
+                        placeholder="Jours"
+                        searchable={false}
+                        maxCount={2}
+                      />
+                    </div>
                     <Button
                       disabled={!bulkTeacherId || savingCourseId === "bulk"}
                       onClick={() => {
                         const hours = Number(bulkWeeklyHours);
+                        const consecutive = Number(bulkConsecutiveSlots);
                         applyAssignments(
                           selectedCourses,
                           bulkTeacherId,
                           Number.isFinite(hours) && hours > 0
                             ? hours
                             : undefined,
+                          Number.isFinite(consecutive) ? consecutive : 1,
+                          bulkPreferredDays,
                         );
                       }}
                     >
@@ -628,17 +733,13 @@ export default function TeachingWorkspacePage() {
                 </div>
               </div>
               <p className="mt-2 text-xs text-muted-foreground">
-                Cochez les cours, choisissez un enseignant du cycle
-                {selectedClass?.cycleLabel
-                  ? ` « ${selectedClass.cycleLabel} »`
-                  : ""}
-                , renseignez les minutes / semaine (ex. 135), puis affectez. Seuls les
-                enseignants de ce cycle apparaissent. La génération d&apos;horaire
-                divise ce volume par la durée de la vacation (30 ou 45 min).
+                Minutes / semaine, périodes d&apos;affilée (2–4) et jours
+                préférés pilotent la génération automatique d&apos;horaire.
+                Ex. 2 d&apos;affilée = 7h30→8h15 puis 8h15→9h00 le même jour.
               </p>
             </div>
             <div className="min-h-0 flex-1 overflow-auto">
-              <table className="w-full min-w-[780px] text-sm">
+              <table className="w-full min-w-[1100px] text-sm">
                 <thead className="sticky top-0 bg-background text-left shadow-sm">
                   <tr>
                     <th className="p-3">
@@ -662,7 +763,9 @@ export default function TeachingWorkspacePage() {
                     </th>
                     <th className="p-3">Cours</th>
                     <th className="p-3">Enseignant</th>
-                    <th className="p-3 w-[110px]">min/sem</th>
+                    <th className="p-3 w-[100px]">min/sem</th>
+                    <th className="p-3 w-[120px]">Affilée</th>
+                    <th className="p-3 min-w-[160px]">Jours</th>
                     <th className="p-3">État</th>
                     <th className="p-3 w-[1%]">Actions</th>
                   </tr>
@@ -704,12 +807,15 @@ export default function TeachingWorkspacePage() {
                                 return;
                               }
                               const hours = Number(bulkWeeklyHours);
+                              const consecutive = Number(bulkConsecutiveSlots);
                               applyAssignments(
                                 [course.id],
                                 teacherId,
                                 Number.isFinite(hours) && hours > 0
                                   ? hours
                                   : undefined,
+                                Number.isFinite(consecutive) ? consecutive : 1,
+                                bulkPreferredDays,
                               );
                             }}
                             disabled={isSaving}
@@ -746,6 +852,65 @@ export default function TeachingWorkspacePage() {
                                   next,
                                 );
                               }}
+                            />
+                          ) : (
+                            <span className="text-xs text-muted-foreground">—</span>
+                          )}
+                        </td>
+                        <td className="p-3">
+                          {assignment ? (
+                            <Select
+                              value={String(assignment.consecutiveSlots ?? 1)}
+                              onValueChange={(value) => {
+                                const next = Number(value);
+                                const prev = assignment.consecutiveSlots ?? 1;
+                                if (next === prev || (next <= 1 && !assignment.consecutiveSlots)) {
+                                  return;
+                                }
+                                savePlacementPrefs(assignment.id, course.id, {
+                                  consecutiveSlots: next <= 1 ? null : next,
+                                });
+                              }}
+                              disabled={isSaving}
+                            >
+                              <SelectTrigger className="h-9 w-[100px]">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="1">1</SelectItem>
+                                <SelectItem value="2">2</SelectItem>
+                                <SelectItem value="3">3</SelectItem>
+                                <SelectItem value="4">4</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          ) : (
+                            <span className="text-xs text-muted-foreground">—</span>
+                          )}
+                        </td>
+                        <td className="p-3">
+                          {assignment ? (
+                            <MultiSelect
+                              options={CRENEAU_WEEKDAY_OPTIONS.map((day) => ({
+                                value: day.value,
+                                label: day.short,
+                              }))}
+                              value={(assignment.preferredDays ?? []) as string[]}
+                              onValueChange={(days) => {
+                                const prev = (assignment.preferredDays ?? []) as string[];
+                                if (
+                                  prev.length === days.length &&
+                                  prev.every((day) => days.includes(day))
+                                ) {
+                                  return;
+                                }
+                                savePlacementPrefs(assignment.id, course.id, {
+                                  preferredDays: days,
+                                });
+                              }}
+                              placeholder="Tous"
+                              searchable={false}
+                              maxCount={2}
+                              disabled={isSaving}
                             />
                           ) : (
                             <span className="text-xs text-muted-foreground">—</span>

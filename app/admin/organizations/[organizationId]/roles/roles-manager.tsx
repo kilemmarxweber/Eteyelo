@@ -85,21 +85,21 @@ function RoleMatrixEditor({
                         return (
                           <label
                             key={`${resource}:${a}`}
-                            className="flex items-center gap-2 text-sm"
+                            className="flex cursor-pointer items-center gap-2 text-sm"
                           >
                             <Checkbox
                               checked={checked}
                               disabled={disabled}
-                              onCheckedChange={(v) =>
+                              onCheckedChange={(v) => {
                                 onChange(
                                   toggleAction(
                                     permission,
                                     resource,
                                     a,
-                                    Boolean(v),
+                                    v === true,
                                   ),
-                                )
-                              }
+                                );
+                              }}
                             />
                             <span title={permissionLabelFr(resource, a)}>
                               {actionLabelFr(a)}
@@ -164,7 +164,12 @@ export function OrganizationRolesManager({
 
   function openEdit(item: OrgRoleListItem) {
     setEditing(item);
-    setDraftPermission({ ...item.permission });
+    // Copie profonde des tableaux d’actions (évite de muter l’item listé).
+    const permissionCopy: Record<string, string[]> = {};
+    for (const [key, actions] of Object.entries(item.permission)) {
+      permissionCopy[key] = [...actions];
+    }
+    setDraftPermission(permissionCopy);
     setDraftLabel(item.label);
     setDraftDescription(item.description);
   }
@@ -184,7 +189,9 @@ export function OrganizationRolesManager({
       toast.error(err.message);
       return;
     }
-    toast.success("Rôle enregistré.");
+    toast.success(
+      "Rôle enregistré. Les utilisateurs de ce rôle voient les nouveaux droits après rechargement.",
+    );
     setEditing(null);
     await load();
   }
@@ -405,7 +412,7 @@ export function OrganizationRolesManager({
             <RoleMatrixEditor
               permission={draftPermission}
               disabled={editing?.locked}
-              onChange={setDraftPermission}
+              onChange={(next) => setDraftPermission(next)}
             />
           </div>
           <div className="flex shrink-0 flex-wrap gap-2 border-t px-5 py-3 sm:px-6">

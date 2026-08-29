@@ -28,6 +28,15 @@ import {
   organizationRoles,
 } from "@/lib/permissions";
 
+/**
+ * Better Auth fusionne (union) les rôles statiques avec OrganizationRole DB.
+ * Pour que décocher un privilège retire réellement le droit, seuls les rôles
+ * non éditables restent en static — le reste vient de la DB (seed + matrice UI).
+ */
+const organizationRolesForPlugin = {
+  [ORG_ROLE.OWNER]: organizationRoles[ORG_ROLE.OWNER],
+} as typeof organizationRoles;
+
 const authOptions = {
   database: prismaAdapter(prisma, {
     provider: "postgresql",
@@ -202,7 +211,7 @@ const authOptions = {
       dynamicAccessControl: {
         enabled: true,
       },
-      roles: organizationRoles,
+      roles: organizationRolesForPlugin,
       organizationHooks: {
         beforeCreateOrganization: async ({ organization }) => {
           const name = organization.name?.trim();

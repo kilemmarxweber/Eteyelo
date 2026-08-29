@@ -117,7 +117,7 @@ export const ALL_ORG_ROLE_SLUGS = [
 export const accessControlStatements = {
   ...adminPluginSchemaStatements,
   ...organizationPluginSchemaStatements,
-  inscription: ["create", "share", "update", "delete"],
+  inscription: ["create", "read", "share", "update", "delete"],
   member: ["create", "read", "update", "delete"],
   branch: ["create", "read", "update", "delete"],
   teacher: ["create", "read", "update", "delete"],
@@ -188,14 +188,18 @@ function withBusinessActions(actions: readonly CrudAction[]): StatementShape {
     shape[resource] = actions;
   }
 
-  const inscriptionActions: Array<"create" | "share" | "update" | "delete"> =
-    [];
+  const inscriptionActions: Array<
+    "create" | "read" | "share" | "update" | "delete"
+  > = [];
   if (actionSet.has("create")) inscriptionActions.push("create");
+  if (actionSet.has("read") || actionSet.has("create")) {
+    inscriptionActions.push("read");
+  }
   if (actionSet.has("read")) inscriptionActions.push("share");
   if (actionSet.has("update")) inscriptionActions.push("update");
   if (actionSet.has("delete")) inscriptionActions.push("delete");
   if (inscriptionActions.length > 0) {
-    shape.inscription = inscriptionActions;
+    shape.inscription = [...new Set(inscriptionActions)];
   }
 
   return shape as StatementShape;
@@ -414,7 +418,7 @@ export const organizationRoleStatements: Record<string, StatementShape> = {
   [ORG_ROLE.CAISSIER]: {
     ...organizationPluginMemberAc.statements,
     member: ["create", "read"],
-    inscription: ["create", "share", "update"],
+    inscription: ["create", "read", "share", "update"],
     student: ["read"],
     finance: ["create", "read", "update", "encaisser"],
   },

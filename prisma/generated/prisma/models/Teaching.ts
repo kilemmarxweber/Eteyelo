@@ -28,10 +28,12 @@ export type AggregateTeaching = {
 
 export type TeachingAvgAggregateOutputType = {
   weeklyHours: number | null
+  consecutiveSlots: number | null
 }
 
 export type TeachingSumAggregateOutputType = {
   weeklyHours: number | null
+  consecutiveSlots: number | null
 }
 
 export type TeachingMinAggregateOutputType = {
@@ -42,6 +44,7 @@ export type TeachingMinAggregateOutputType = {
   titulaire: boolean | null
   statusTeaching: boolean | null
   weeklyHours: number | null
+  consecutiveSlots: number | null
   branchId: string | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -56,6 +59,7 @@ export type TeachingMaxAggregateOutputType = {
   titulaire: boolean | null
   statusTeaching: boolean | null
   weeklyHours: number | null
+  consecutiveSlots: number | null
   branchId: string | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -70,6 +74,8 @@ export type TeachingCountAggregateOutputType = {
   titulaire: number
   statusTeaching: number
   weeklyHours: number
+  consecutiveSlots: number
+  preferredDays: number
   branchId: number
   createdAt: number
   updatedAt: number
@@ -80,10 +86,12 @@ export type TeachingCountAggregateOutputType = {
 
 export type TeachingAvgAggregateInputType = {
   weeklyHours?: true
+  consecutiveSlots?: true
 }
 
 export type TeachingSumAggregateInputType = {
   weeklyHours?: true
+  consecutiveSlots?: true
 }
 
 export type TeachingMinAggregateInputType = {
@@ -94,6 +102,7 @@ export type TeachingMinAggregateInputType = {
   titulaire?: true
   statusTeaching?: true
   weeklyHours?: true
+  consecutiveSlots?: true
   branchId?: true
   createdAt?: true
   updatedAt?: true
@@ -108,6 +117,7 @@ export type TeachingMaxAggregateInputType = {
   titulaire?: true
   statusTeaching?: true
   weeklyHours?: true
+  consecutiveSlots?: true
   branchId?: true
   createdAt?: true
   updatedAt?: true
@@ -122,6 +132,8 @@ export type TeachingCountAggregateInputType = {
   titulaire?: true
   statusTeaching?: true
   weeklyHours?: true
+  consecutiveSlots?: true
+  preferredDays?: true
   branchId?: true
   createdAt?: true
   updatedAt?: true
@@ -223,6 +235,8 @@ export type TeachingGroupByOutputType = {
   titulaire: boolean | null
   statusTeaching: boolean | null
   weeklyHours: number | null
+  consecutiveSlots: number | null
+  preferredDays: $Enums.Day[]
   branchId: string | null
   createdAt: Date
   updatedAt: Date
@@ -260,6 +274,8 @@ export type TeachingWhereInput = {
   titulaire?: Prisma.BoolNullableFilter<"Teaching"> | boolean | null
   statusTeaching?: Prisma.BoolNullableFilter<"Teaching"> | boolean | null
   weeklyHours?: Prisma.FloatNullableFilter<"Teaching"> | number | null
+  consecutiveSlots?: Prisma.IntNullableFilter<"Teaching"> | number | null
+  preferredDays?: Prisma.EnumDayNullableListFilter<"Teaching">
   branchId?: Prisma.StringNullableFilter<"Teaching"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Teaching"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Teaching"> | Date | string
@@ -283,6 +299,8 @@ export type TeachingOrderByWithRelationInput = {
   titulaire?: Prisma.SortOrderInput | Prisma.SortOrder
   statusTeaching?: Prisma.SortOrderInput | Prisma.SortOrder
   weeklyHours?: Prisma.SortOrderInput | Prisma.SortOrder
+  consecutiveSlots?: Prisma.SortOrderInput | Prisma.SortOrder
+  preferredDays?: Prisma.SortOrder
   branchId?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -310,6 +328,8 @@ export type TeachingWhereUniqueInput = Prisma.AtLeast<{
   titulaire?: Prisma.BoolNullableFilter<"Teaching"> | boolean | null
   statusTeaching?: Prisma.BoolNullableFilter<"Teaching"> | boolean | null
   weeklyHours?: Prisma.FloatNullableFilter<"Teaching"> | number | null
+  consecutiveSlots?: Prisma.IntNullableFilter<"Teaching"> | number | null
+  preferredDays?: Prisma.EnumDayNullableListFilter<"Teaching">
   branchId?: Prisma.StringNullableFilter<"Teaching"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Teaching"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Teaching"> | Date | string
@@ -333,6 +353,8 @@ export type TeachingOrderByWithAggregationInput = {
   titulaire?: Prisma.SortOrderInput | Prisma.SortOrder
   statusTeaching?: Prisma.SortOrderInput | Prisma.SortOrder
   weeklyHours?: Prisma.SortOrderInput | Prisma.SortOrder
+  consecutiveSlots?: Prisma.SortOrderInput | Prisma.SortOrder
+  preferredDays?: Prisma.SortOrder
   branchId?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -355,6 +377,8 @@ export type TeachingScalarWhereWithAggregatesInput = {
   titulaire?: Prisma.BoolNullableWithAggregatesFilter<"Teaching"> | boolean | null
   statusTeaching?: Prisma.BoolNullableWithAggregatesFilter<"Teaching"> | boolean | null
   weeklyHours?: Prisma.FloatNullableWithAggregatesFilter<"Teaching"> | number | null
+  consecutiveSlots?: Prisma.IntNullableWithAggregatesFilter<"Teaching"> | number | null
+  preferredDays?: Prisma.EnumDayNullableListFilter<"Teaching">
   branchId?: Prisma.StringNullableWithAggregatesFilter<"Teaching"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Teaching"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Teaching"> | Date | string
@@ -366,6 +390,8 @@ export type TeachingCreateInput = {
   titulaire?: boolean | null
   statusTeaching?: boolean | null
   weeklyHours?: number | null
+  consecutiveSlots?: number | null
+  preferredDays?: Prisma.TeachingCreatepreferredDaysInput | $Enums.Day[]
   createdAt?: Date | string
   updatedAt?: Date | string
   branch?: Prisma.BranchCreateNestedOneWithoutTeachingInput
@@ -387,6 +413,8 @@ export type TeachingUncheckedCreateInput = {
   titulaire?: boolean | null
   statusTeaching?: boolean | null
   weeklyHours?: number | null
+  consecutiveSlots?: number | null
+  preferredDays?: Prisma.TeachingCreatepreferredDaysInput | $Enums.Day[]
   branchId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -402,6 +430,8 @@ export type TeachingUpdateInput = {
   titulaire?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   statusTeaching?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   weeklyHours?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  consecutiveSlots?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  preferredDays?: Prisma.TeachingUpdatepreferredDaysInput | $Enums.Day[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branch?: Prisma.BranchUpdateOneWithoutTeachingNestedInput
@@ -423,6 +453,8 @@ export type TeachingUncheckedUpdateInput = {
   titulaire?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   statusTeaching?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   weeklyHours?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  consecutiveSlots?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  preferredDays?: Prisma.TeachingUpdatepreferredDaysInput | $Enums.Day[]
   branchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -441,6 +473,8 @@ export type TeachingCreateManyInput = {
   titulaire?: boolean | null
   statusTeaching?: boolean | null
   weeklyHours?: number | null
+  consecutiveSlots?: number | null
+  preferredDays?: Prisma.TeachingCreatepreferredDaysInput | $Enums.Day[]
   branchId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -452,6 +486,8 @@ export type TeachingUpdateManyMutationInput = {
   titulaire?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   statusTeaching?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   weeklyHours?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  consecutiveSlots?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  preferredDays?: Prisma.TeachingUpdatepreferredDaysInput | $Enums.Day[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -464,6 +500,8 @@ export type TeachingUncheckedUpdateManyInput = {
   titulaire?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   statusTeaching?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   weeklyHours?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  consecutiveSlots?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  preferredDays?: Prisma.TeachingUpdatepreferredDaysInput | $Enums.Day[]
   branchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -499,6 +537,8 @@ export type TeachingCountOrderByAggregateInput = {
   titulaire?: Prisma.SortOrder
   statusTeaching?: Prisma.SortOrder
   weeklyHours?: Prisma.SortOrder
+  consecutiveSlots?: Prisma.SortOrder
+  preferredDays?: Prisma.SortOrder
   branchId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -507,6 +547,7 @@ export type TeachingCountOrderByAggregateInput = {
 
 export type TeachingAvgOrderByAggregateInput = {
   weeklyHours?: Prisma.SortOrder
+  consecutiveSlots?: Prisma.SortOrder
 }
 
 export type TeachingMaxOrderByAggregateInput = {
@@ -517,6 +558,7 @@ export type TeachingMaxOrderByAggregateInput = {
   titulaire?: Prisma.SortOrder
   statusTeaching?: Prisma.SortOrder
   weeklyHours?: Prisma.SortOrder
+  consecutiveSlots?: Prisma.SortOrder
   branchId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -531,6 +573,7 @@ export type TeachingMinOrderByAggregateInput = {
   titulaire?: Prisma.SortOrder
   statusTeaching?: Prisma.SortOrder
   weeklyHours?: Prisma.SortOrder
+  consecutiveSlots?: Prisma.SortOrder
   branchId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -539,6 +582,7 @@ export type TeachingMinOrderByAggregateInput = {
 
 export type TeachingSumOrderByAggregateInput = {
   weeklyHours?: Prisma.SortOrder
+  consecutiveSlots?: Prisma.SortOrder
 }
 
 export type TeachingNullableScalarRelationFilter = {
@@ -686,12 +730,21 @@ export type TeachingUncheckedUpdateManyWithoutTeacherNestedInput = {
   deleteMany?: Prisma.TeachingScalarWhereInput | Prisma.TeachingScalarWhereInput[]
 }
 
+export type TeachingCreatepreferredDaysInput = {
+  set: $Enums.Day[]
+}
+
 export type NullableFloatFieldUpdateOperationsInput = {
   set?: number | null
   increment?: number
   decrement?: number
   multiply?: number
   divide?: number
+}
+
+export type TeachingUpdatepreferredDaysInput = {
+  set?: $Enums.Day[]
+  push?: $Enums.Day | $Enums.Day[]
 }
 
 export type TeachingCreateNestedManyWithoutCoursInput = {
@@ -829,6 +882,8 @@ export type TeachingCreateWithoutAttendanceSessionInput = {
   titulaire?: boolean | null
   statusTeaching?: boolean | null
   weeklyHours?: number | null
+  consecutiveSlots?: number | null
+  preferredDays?: Prisma.TeachingCreatepreferredDaysInput | $Enums.Day[]
   createdAt?: Date | string
   updatedAt?: Date | string
   branch?: Prisma.BranchCreateNestedOneWithoutTeachingInput
@@ -849,6 +904,8 @@ export type TeachingUncheckedCreateWithoutAttendanceSessionInput = {
   titulaire?: boolean | null
   statusTeaching?: boolean | null
   weeklyHours?: number | null
+  consecutiveSlots?: number | null
+  preferredDays?: Prisma.TeachingCreatepreferredDaysInput | $Enums.Day[]
   branchId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -879,6 +936,8 @@ export type TeachingUpdateWithoutAttendanceSessionInput = {
   titulaire?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   statusTeaching?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   weeklyHours?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  consecutiveSlots?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  preferredDays?: Prisma.TeachingUpdatepreferredDaysInput | $Enums.Day[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branch?: Prisma.BranchUpdateOneWithoutTeachingNestedInput
@@ -899,6 +958,8 @@ export type TeachingUncheckedUpdateWithoutAttendanceSessionInput = {
   titulaire?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   statusTeaching?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   weeklyHours?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  consecutiveSlots?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  preferredDays?: Prisma.TeachingUpdatepreferredDaysInput | $Enums.Day[]
   branchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -913,6 +974,8 @@ export type TeachingCreateWithoutClasseInput = {
   titulaire?: boolean | null
   statusTeaching?: boolean | null
   weeklyHours?: number | null
+  consecutiveSlots?: number | null
+  preferredDays?: Prisma.TeachingCreatepreferredDaysInput | $Enums.Day[]
   createdAt?: Date | string
   updatedAt?: Date | string
   branch?: Prisma.BranchCreateNestedOneWithoutTeachingInput
@@ -932,6 +995,8 @@ export type TeachingUncheckedCreateWithoutClasseInput = {
   titulaire?: boolean | null
   statusTeaching?: boolean | null
   weeklyHours?: number | null
+  consecutiveSlots?: number | null
+  preferredDays?: Prisma.TeachingCreatepreferredDaysInput | $Enums.Day[]
   branchId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -979,6 +1044,8 @@ export type TeachingScalarWhereInput = {
   titulaire?: Prisma.BoolNullableFilter<"Teaching"> | boolean | null
   statusTeaching?: Prisma.BoolNullableFilter<"Teaching"> | boolean | null
   weeklyHours?: Prisma.FloatNullableFilter<"Teaching"> | number | null
+  consecutiveSlots?: Prisma.IntNullableFilter<"Teaching"> | number | null
+  preferredDays?: Prisma.EnumDayNullableListFilter<"Teaching">
   branchId?: Prisma.StringNullableFilter<"Teaching"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Teaching"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Teaching"> | Date | string
@@ -990,6 +1057,8 @@ export type TeachingCreateWithoutSchoolYearInput = {
   titulaire?: boolean | null
   statusTeaching?: boolean | null
   weeklyHours?: number | null
+  consecutiveSlots?: number | null
+  preferredDays?: Prisma.TeachingCreatepreferredDaysInput | $Enums.Day[]
   createdAt?: Date | string
   updatedAt?: Date | string
   branch?: Prisma.BranchCreateNestedOneWithoutTeachingInput
@@ -1009,6 +1078,8 @@ export type TeachingUncheckedCreateWithoutSchoolYearInput = {
   titulaire?: boolean | null
   statusTeaching?: boolean | null
   weeklyHours?: number | null
+  consecutiveSlots?: number | null
+  preferredDays?: Prisma.TeachingCreatepreferredDaysInput | $Enums.Day[]
   branchId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1050,6 +1121,8 @@ export type TeachingCreateWithoutTeacherInput = {
   titulaire?: boolean | null
   statusTeaching?: boolean | null
   weeklyHours?: number | null
+  consecutiveSlots?: number | null
+  preferredDays?: Prisma.TeachingCreatepreferredDaysInput | $Enums.Day[]
   createdAt?: Date | string
   updatedAt?: Date | string
   branch?: Prisma.BranchCreateNestedOneWithoutTeachingInput
@@ -1069,6 +1142,8 @@ export type TeachingUncheckedCreateWithoutTeacherInput = {
   titulaire?: boolean | null
   statusTeaching?: boolean | null
   weeklyHours?: number | null
+  consecutiveSlots?: number | null
+  preferredDays?: Prisma.TeachingCreatepreferredDaysInput | $Enums.Day[]
   branchId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1110,6 +1185,8 @@ export type TeachingCreateWithoutCoursInput = {
   titulaire?: boolean | null
   statusTeaching?: boolean | null
   weeklyHours?: number | null
+  consecutiveSlots?: number | null
+  preferredDays?: Prisma.TeachingCreatepreferredDaysInput | $Enums.Day[]
   createdAt?: Date | string
   updatedAt?: Date | string
   branch?: Prisma.BranchCreateNestedOneWithoutTeachingInput
@@ -1130,6 +1207,8 @@ export type TeachingUncheckedCreateWithoutCoursInput = {
   titulaire?: boolean | null
   statusTeaching?: boolean | null
   weeklyHours?: number | null
+  consecutiveSlots?: number | null
+  preferredDays?: Prisma.TeachingCreatepreferredDaysInput | $Enums.Day[]
   branchId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1170,6 +1249,8 @@ export type TeachingCreateWithoutScheduleInput = {
   titulaire?: boolean | null
   statusTeaching?: boolean | null
   weeklyHours?: number | null
+  consecutiveSlots?: number | null
+  preferredDays?: Prisma.TeachingCreatepreferredDaysInput | $Enums.Day[]
   createdAt?: Date | string
   updatedAt?: Date | string
   branch?: Prisma.BranchCreateNestedOneWithoutTeachingInput
@@ -1190,6 +1271,8 @@ export type TeachingUncheckedCreateWithoutScheduleInput = {
   titulaire?: boolean | null
   statusTeaching?: boolean | null
   weeklyHours?: number | null
+  consecutiveSlots?: number | null
+  preferredDays?: Prisma.TeachingCreatepreferredDaysInput | $Enums.Day[]
   branchId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1220,6 +1303,8 @@ export type TeachingUpdateWithoutScheduleInput = {
   titulaire?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   statusTeaching?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   weeklyHours?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  consecutiveSlots?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  preferredDays?: Prisma.TeachingUpdatepreferredDaysInput | $Enums.Day[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branch?: Prisma.BranchUpdateOneWithoutTeachingNestedInput
@@ -1240,6 +1325,8 @@ export type TeachingUncheckedUpdateWithoutScheduleInput = {
   titulaire?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   statusTeaching?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   weeklyHours?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  consecutiveSlots?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  preferredDays?: Prisma.TeachingUpdatepreferredDaysInput | $Enums.Day[]
   branchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1254,6 +1341,8 @@ export type TeachingCreateWithoutCalendarEventInput = {
   titulaire?: boolean | null
   statusTeaching?: boolean | null
   weeklyHours?: number | null
+  consecutiveSlots?: number | null
+  preferredDays?: Prisma.TeachingCreatepreferredDaysInput | $Enums.Day[]
   createdAt?: Date | string
   updatedAt?: Date | string
   branch?: Prisma.BranchCreateNestedOneWithoutTeachingInput
@@ -1274,6 +1363,8 @@ export type TeachingUncheckedCreateWithoutCalendarEventInput = {
   titulaire?: boolean | null
   statusTeaching?: boolean | null
   weeklyHours?: number | null
+  consecutiveSlots?: number | null
+  preferredDays?: Prisma.TeachingCreatepreferredDaysInput | $Enums.Day[]
   branchId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1304,6 +1395,8 @@ export type TeachingUpdateWithoutCalendarEventInput = {
   titulaire?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   statusTeaching?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   weeklyHours?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  consecutiveSlots?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  preferredDays?: Prisma.TeachingUpdatepreferredDaysInput | $Enums.Day[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branch?: Prisma.BranchUpdateOneWithoutTeachingNestedInput
@@ -1324,6 +1417,8 @@ export type TeachingUncheckedUpdateWithoutCalendarEventInput = {
   titulaire?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   statusTeaching?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   weeklyHours?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  consecutiveSlots?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  preferredDays?: Prisma.TeachingUpdatepreferredDaysInput | $Enums.Day[]
   branchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1338,6 +1433,8 @@ export type TeachingCreateWithoutFicheInput = {
   titulaire?: boolean | null
   statusTeaching?: boolean | null
   weeklyHours?: number | null
+  consecutiveSlots?: number | null
+  preferredDays?: Prisma.TeachingCreatepreferredDaysInput | $Enums.Day[]
   createdAt?: Date | string
   updatedAt?: Date | string
   branch?: Prisma.BranchCreateNestedOneWithoutTeachingInput
@@ -1358,6 +1455,8 @@ export type TeachingUncheckedCreateWithoutFicheInput = {
   titulaire?: boolean | null
   statusTeaching?: boolean | null
   weeklyHours?: number | null
+  consecutiveSlots?: number | null
+  preferredDays?: Prisma.TeachingCreatepreferredDaysInput | $Enums.Day[]
   branchId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1388,6 +1487,8 @@ export type TeachingUpdateWithoutFicheInput = {
   titulaire?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   statusTeaching?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   weeklyHours?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  consecutiveSlots?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  preferredDays?: Prisma.TeachingUpdatepreferredDaysInput | $Enums.Day[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branch?: Prisma.BranchUpdateOneWithoutTeachingNestedInput
@@ -1408,6 +1509,8 @@ export type TeachingUncheckedUpdateWithoutFicheInput = {
   titulaire?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   statusTeaching?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   weeklyHours?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  consecutiveSlots?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  preferredDays?: Prisma.TeachingUpdatepreferredDaysInput | $Enums.Day[]
   branchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1422,6 +1525,8 @@ export type TeachingCreateWithoutBranchInput = {
   titulaire?: boolean | null
   statusTeaching?: boolean | null
   weeklyHours?: number | null
+  consecutiveSlots?: number | null
+  preferredDays?: Prisma.TeachingCreatepreferredDaysInput | $Enums.Day[]
   createdAt?: Date | string
   updatedAt?: Date | string
   teacher?: Prisma.TeacherCreateNestedOneWithoutTeachingInput
@@ -1442,6 +1547,8 @@ export type TeachingUncheckedCreateWithoutBranchInput = {
   titulaire?: boolean | null
   statusTeaching?: boolean | null
   weeklyHours?: number | null
+  consecutiveSlots?: number | null
+  preferredDays?: Prisma.TeachingCreatepreferredDaysInput | $Enums.Day[]
   createdAt?: Date | string
   updatedAt?: Date | string
   coursId: string
@@ -1484,6 +1591,8 @@ export type TeachingCreateManyClasseInput = {
   titulaire?: boolean | null
   statusTeaching?: boolean | null
   weeklyHours?: number | null
+  consecutiveSlots?: number | null
+  preferredDays?: Prisma.TeachingCreatepreferredDaysInput | $Enums.Day[]
   branchId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1495,6 +1604,8 @@ export type TeachingUpdateWithoutClasseInput = {
   titulaire?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   statusTeaching?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   weeklyHours?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  consecutiveSlots?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  preferredDays?: Prisma.TeachingUpdatepreferredDaysInput | $Enums.Day[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branch?: Prisma.BranchUpdateOneWithoutTeachingNestedInput
@@ -1514,6 +1625,8 @@ export type TeachingUncheckedUpdateWithoutClasseInput = {
   titulaire?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   statusTeaching?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   weeklyHours?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  consecutiveSlots?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  preferredDays?: Prisma.TeachingUpdatepreferredDaysInput | $Enums.Day[]
   branchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1531,6 +1644,8 @@ export type TeachingUncheckedUpdateManyWithoutClasseInput = {
   titulaire?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   statusTeaching?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   weeklyHours?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  consecutiveSlots?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  preferredDays?: Prisma.TeachingUpdatepreferredDaysInput | $Enums.Day[]
   branchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1544,6 +1659,8 @@ export type TeachingCreateManySchoolYearInput = {
   titulaire?: boolean | null
   statusTeaching?: boolean | null
   weeklyHours?: number | null
+  consecutiveSlots?: number | null
+  preferredDays?: Prisma.TeachingCreatepreferredDaysInput | $Enums.Day[]
   branchId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1555,6 +1672,8 @@ export type TeachingUpdateWithoutSchoolYearInput = {
   titulaire?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   statusTeaching?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   weeklyHours?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  consecutiveSlots?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  preferredDays?: Prisma.TeachingUpdatepreferredDaysInput | $Enums.Day[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branch?: Prisma.BranchUpdateOneWithoutTeachingNestedInput
@@ -1574,6 +1693,8 @@ export type TeachingUncheckedUpdateWithoutSchoolYearInput = {
   titulaire?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   statusTeaching?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   weeklyHours?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  consecutiveSlots?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  preferredDays?: Prisma.TeachingUpdatepreferredDaysInput | $Enums.Day[]
   branchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1591,6 +1712,8 @@ export type TeachingUncheckedUpdateManyWithoutSchoolYearInput = {
   titulaire?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   statusTeaching?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   weeklyHours?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  consecutiveSlots?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  preferredDays?: Prisma.TeachingUpdatepreferredDaysInput | $Enums.Day[]
   branchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1604,6 +1727,8 @@ export type TeachingCreateManyTeacherInput = {
   titulaire?: boolean | null
   statusTeaching?: boolean | null
   weeklyHours?: number | null
+  consecutiveSlots?: number | null
+  preferredDays?: Prisma.TeachingCreatepreferredDaysInput | $Enums.Day[]
   branchId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1615,6 +1740,8 @@ export type TeachingUpdateWithoutTeacherInput = {
   titulaire?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   statusTeaching?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   weeklyHours?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  consecutiveSlots?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  preferredDays?: Prisma.TeachingUpdatepreferredDaysInput | $Enums.Day[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branch?: Prisma.BranchUpdateOneWithoutTeachingNestedInput
@@ -1634,6 +1761,8 @@ export type TeachingUncheckedUpdateWithoutTeacherInput = {
   titulaire?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   statusTeaching?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   weeklyHours?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  consecutiveSlots?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  preferredDays?: Prisma.TeachingUpdatepreferredDaysInput | $Enums.Day[]
   branchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1651,6 +1780,8 @@ export type TeachingUncheckedUpdateManyWithoutTeacherInput = {
   titulaire?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   statusTeaching?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   weeklyHours?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  consecutiveSlots?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  preferredDays?: Prisma.TeachingUpdatepreferredDaysInput | $Enums.Day[]
   branchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1665,6 +1796,8 @@ export type TeachingCreateManyCoursInput = {
   titulaire?: boolean | null
   statusTeaching?: boolean | null
   weeklyHours?: number | null
+  consecutiveSlots?: number | null
+  preferredDays?: Prisma.TeachingCreatepreferredDaysInput | $Enums.Day[]
   branchId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1675,6 +1808,8 @@ export type TeachingUpdateWithoutCoursInput = {
   titulaire?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   statusTeaching?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   weeklyHours?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  consecutiveSlots?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  preferredDays?: Prisma.TeachingUpdatepreferredDaysInput | $Enums.Day[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branch?: Prisma.BranchUpdateOneWithoutTeachingNestedInput
@@ -1695,6 +1830,8 @@ export type TeachingUncheckedUpdateWithoutCoursInput = {
   titulaire?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   statusTeaching?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   weeklyHours?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  consecutiveSlots?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  preferredDays?: Prisma.TeachingUpdatepreferredDaysInput | $Enums.Day[]
   branchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1712,6 +1849,8 @@ export type TeachingUncheckedUpdateManyWithoutCoursInput = {
   titulaire?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   statusTeaching?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   weeklyHours?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  consecutiveSlots?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  preferredDays?: Prisma.TeachingUpdatepreferredDaysInput | $Enums.Day[]
   branchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1725,6 +1864,8 @@ export type TeachingCreateManyBranchInput = {
   titulaire?: boolean | null
   statusTeaching?: boolean | null
   weeklyHours?: number | null
+  consecutiveSlots?: number | null
+  preferredDays?: Prisma.TeachingCreatepreferredDaysInput | $Enums.Day[]
   createdAt?: Date | string
   updatedAt?: Date | string
   coursId: string
@@ -1735,6 +1876,8 @@ export type TeachingUpdateWithoutBranchInput = {
   titulaire?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   statusTeaching?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   weeklyHours?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  consecutiveSlots?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  preferredDays?: Prisma.TeachingUpdatepreferredDaysInput | $Enums.Day[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   teacher?: Prisma.TeacherUpdateOneWithoutTeachingNestedInput
@@ -1755,6 +1898,8 @@ export type TeachingUncheckedUpdateWithoutBranchInput = {
   titulaire?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   statusTeaching?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   weeklyHours?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  consecutiveSlots?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  preferredDays?: Prisma.TeachingUpdatepreferredDaysInput | $Enums.Day[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   coursId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1772,6 +1917,8 @@ export type TeachingUncheckedUpdateManyWithoutBranchInput = {
   titulaire?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   statusTeaching?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   weeklyHours?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  consecutiveSlots?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  preferredDays?: Prisma.TeachingUpdatepreferredDaysInput | $Enums.Day[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   coursId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1843,6 +1990,8 @@ export type TeachingSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   titulaire?: boolean
   statusTeaching?: boolean
   weeklyHours?: boolean
+  consecutiveSlots?: boolean
+  preferredDays?: boolean
   branchId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -1867,6 +2016,8 @@ export type TeachingSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exte
   titulaire?: boolean
   statusTeaching?: boolean
   weeklyHours?: boolean
+  consecutiveSlots?: boolean
+  preferredDays?: boolean
   branchId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -1886,6 +2037,8 @@ export type TeachingSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exte
   titulaire?: boolean
   statusTeaching?: boolean
   weeklyHours?: boolean
+  consecutiveSlots?: boolean
+  preferredDays?: boolean
   branchId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -1905,13 +2058,15 @@ export type TeachingSelectScalar = {
   titulaire?: boolean
   statusTeaching?: boolean
   weeklyHours?: boolean
+  consecutiveSlots?: boolean
+  preferredDays?: boolean
   branchId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   coursId?: boolean
 }
 
-export type TeachingOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "teacherId" | "classeId" | "schoolYearId" | "titulaire" | "statusTeaching" | "weeklyHours" | "branchId" | "createdAt" | "updatedAt" | "coursId", ExtArgs["result"]["teaching"]>
+export type TeachingOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "teacherId" | "classeId" | "schoolYearId" | "titulaire" | "statusTeaching" | "weeklyHours" | "consecutiveSlots" | "preferredDays" | "branchId" | "createdAt" | "updatedAt" | "coursId", ExtArgs["result"]["teaching"]>
 export type TeachingInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   branch?: boolean | Prisma.Teaching$branchArgs<ExtArgs>
   teacher?: boolean | Prisma.Teaching$teacherArgs<ExtArgs>
@@ -1964,6 +2119,14 @@ export type $TeachingPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
      * Nombre de séances = ceil(weeklyHours / durationCourse de la vacation).
      */
     weeklyHours: number | null
+    /**
+     * Nombre de périodes d'affilée à placer ensemble (2–4). Null / 1 = séances isolées.
+     */
+    consecutiveSlots: number | null
+    /**
+     * Jours préférés pour la génération auto (vide = tous les jours ouvrés du créneau).
+     */
+    preferredDays: $Enums.Day[]
     branchId: string | null
     createdAt: Date
     updatedAt: Date
@@ -2407,6 +2570,8 @@ export interface TeachingFieldRefs {
   readonly titulaire: Prisma.FieldRef<"Teaching", 'Boolean'>
   readonly statusTeaching: Prisma.FieldRef<"Teaching", 'Boolean'>
   readonly weeklyHours: Prisma.FieldRef<"Teaching", 'Float'>
+  readonly consecutiveSlots: Prisma.FieldRef<"Teaching", 'Int'>
+  readonly preferredDays: Prisma.FieldRef<"Teaching", 'Day[]'>
   readonly branchId: Prisma.FieldRef<"Teaching", 'String'>
   readonly createdAt: Prisma.FieldRef<"Teaching", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Teaching", 'DateTime'>

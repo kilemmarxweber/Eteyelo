@@ -1,6 +1,6 @@
 /**
- * Résolution permission locale depuis les presets code (+ future DAC DB).
- * Utilisé quand `PERMISSIONS_FROM_DAC=true`.
+ * Résolution permission depuis OrganizationRole (DB) + repli seed code.
+ * Utilisé quand `PERMISSIONS_FROM_DAC` n’est pas désactivé.
  */
 
 import { getSessionRoles } from "@/lib/auth/session-roles";
@@ -10,22 +10,17 @@ import {
   type BranchArea,
 } from "@/lib/auth/branch-area-permissions";
 import {
+  getStatementsForRole,
+  type RoleStatements,
+} from "@/lib/auth/org-role-permission-shared";
+import {
   ORG_ROLE,
-  organizationRoleStatements,
   hasPlatformSupportPrivileges,
 } from "@/lib/permissions";
 
-type Statements = Record<string, readonly string[] | undefined>;
-
-function statementsForRole(slug: string): Statements | null {
-  const org = organizationRoleStatements[slug];
-  if (org) return org as Statements;
-  return null;
-}
-
 /** Au moins une action requise présente. */
 export function roleAllowsAny(
-  statements: Statements | null | undefined,
+  statements: RoleStatements | null | undefined,
   resource: string,
   actions: string[],
 ): boolean {
@@ -36,7 +31,7 @@ export function roleAllowsAny(
 
 /** Toutes les actions requises présentes. */
 export function roleAllowsAll(
-  statements: Statements | null | undefined,
+  statements: RoleStatements | null | undefined,
   resource: string,
   actions: string[],
 ): boolean {
@@ -48,10 +43,13 @@ export function roleAllowsAll(
 /**
  * True si un des rôles session couvre la permission de la zone.
  * Bypass owner plateforme / support.
+ *
+ * @param roleStatements Map DB (OrganizationRole) — si absente, repli seed code.
  */
 export function canAccessBranchAreaFromPermissions(
   area: BranchArea,
   session: unknown,
+  roleStatements?: Map<string, RoleStatements> | null,
 ): boolean {
   const roles = getSessionRoles(session);
   const appRole = [...roles].find((r) =>
@@ -68,13 +66,16 @@ export function canAccessBranchAreaFromPermissions(
   if (!required) return false;
 
   for (const slug of roles) {
-    const statements = statementsForRole(slug);
+    const statements = getStatementsForRole(slug, roleStatements);
     if (!statements) continue;
 
     let ok = true;
     for (const [resource, actions] of Object.entries(required)) {
-      // Zones finance : read OU encaisser suffit pour entrer.
-      if (resource === "finance" && area === "finance") {
+      // Zones finance / inscription : une des actions suffit pour entrer.
+      if (
+        (resource === "finance" && area === "finance") ||
+        (resource === "inscription" && area === "registration")
+      ) {
         if (!roleAllowsAny(statements, resource, actions)) {
           ok = false;
           break;

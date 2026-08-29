@@ -59,6 +59,8 @@ export function UpdateStudentDialog({
             schoolYearId: teaching.schoolYearId ?? "",
             coursId: teaching.coursId ?? "",
             weeklyHours: teaching.weeklyHours ?? 45,
+            consecutiveSlots: teaching.consecutiveSlots ?? null,
+            preferredDays: teaching.preferredDays ?? [],
           }}
           onUpdated={handleUpdate}
           onSuccess={handleSuccess}

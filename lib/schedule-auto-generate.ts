@@ -150,6 +150,10 @@ export type PlacementCandidate = {
   sessionsNeeded: number;
   titulaire: boolean;
   weeklyMinutes: number;
+  /** Périodes d'affilée (1–4). */
+  consecutiveSlots?: number | null;
+  /** Jours cibles ; vide = tous les jours ouvrés. */
+  preferredDays?: Day[] | null;
 };
 
 export type PlacementResult = {
@@ -161,6 +165,53 @@ export type PlacementResult = {
     reason: string;
   }>;
 };
+
+/**
+ * Blocs de N créneaux consécutifs dans la grille (ex. 07:30 + 08:15 si durée 45).
+ * Deux créneaux sont consécutifs si le suivant commence exactement à fin = début + durée.
+ */
+export function findConsecutiveSlotBlocks(
+  courseSlots: string[],
+  blockSize: number,
+  durationMinutes: number,
+): string[][] {
+  const size = Math.min(4, Math.max(1, Math.floor(blockSize) || 1));
+  if (size <= 1) {
+    return courseSlots.map((slot) => [slot]);
+  }
+  if (!(durationMinutes > 0) || courseSlots.length < size) return [];
+
+  const mins = courseSlots.map(parseHmToMinutes);
+  const blocks: string[][] = [];
+  for (let i = 0; i <= courseSlots.length - size; i += 1) {
+    let ok = true;
+    for (let k = 1; k < size; k += 1) {
+      if (mins[i + k] !== mins[i] + k * durationMinutes) {
+        ok = false;
+        break;
+      }
+    }
+    if (ok) blocks.push(courseSlots.slice(i, i + size));
+  }
+  return blocks;
+}
+
+export function normalizeConsecutiveSlots(
+  value: number | null | undefined,
+): number {
+  if (value == null || !Number.isFinite(value)) return 1;
+  return Math.min(4, Math.max(1, Math.floor(value)));
+}
+
+function resolveCandidateDays(
+  workDays: Day[],
+  preferredDays: Day[] | null | undefined,
+): Day[] {
+  if (!preferredDays?.length) return workDays;
+  const preferred = new Set(preferredDays);
+  const filtered = workDays.filter((day) => preferred.has(day));
+  return filtered;
+}
 
 export function shuffleInPlace<T>(items: T[]): T[] {
   for (let i = items.length - 1; i > 0; i -= 1) {
@@ -197,7 +248,9 @@ export function teacherIntervalConflicts(params: {
  * - évite les créneaux déjà pris par la classe ;
  * - évite tout chevauchement horaire de l'enseignant (autres classes, cycles,
  *   branches de l'organisation) via intervalles start/end ;
- * - répartit 1 séance / jour par passe ; ordre aléatoire à chaque appel.
+ * - place des blocs d'affilée (consecutiveSlots 2–4) quand demandé ;
+ * - restreint aux preferredDays s'ils sont renseignés ;
+ * - répartit 1 bloc / jour par passe ; ordre aléatoire à chaque appel.
  */
 export function placeTeachingsGreedy(params: {
   candidates: PlacementCandidate[];
@@ -245,45 +298,123 @@ export function placeTeachingsGreedy(params: {
     let remaining = candidate.sessionsNeeded;
     const teacherBusy =
       occupiedTeachers.get(candidate.teacherId) ?? [];
+    const blockSize = normalizeConsecutiveSlots(candidate.consecutiveSlots);
+    const daysPool = resolveCandidateDays(workDays, candidate.preferredDays);
+
+    if (!daysPool.length) {
+      failures.push({
+        teachingId: candidate.teachingId,
+        courseName: candidate.courseName,
+        missing: remaining,
+        reason:
+          "Aucun des jours préférés n'est ouvrable pour cette vacation.",
+      });
+      continue;
+    }
+
+    const blocks = findConsecutiveSlotBlocks(
+      params.courseSlots,
+      blockSize,
+      duration,
+    );
+
+    if (blockSize > 1 && !blocks.length) {
+      failures.push({
+        teachingId: candidate.teachingId,
+        courseName: candidate.courseName,
+        missing: remaining,
+        reason: `Impossible de former ${blockSize} périodes d'affilée sur cette vacation (grille / récréation).`,
+      });
+      continue;
+    }
+
+    const tryPlaceBlock = (day: Day, block: string[]): boolean => {
+      const starts = block.map(parseHmToMinutes);
+      const blockStart = starts[0]!;
+      const blockEnd = starts[starts.length - 1]! + duration;
+
+      for (const hourHm of block) {
+        if (occupiedClass.has(slotKey(day, hourHm))) return false;
+      }
+      const conflict = teacherIntervalConflicts({
+        day,
+        startMin: blockStart,
+        endMin: blockEnd,
+        busy: teacherBusy,
+      });
+      if (conflict) return false;
+
+      for (const hourHm of block) {
+        occupiedClass.add(slotKey(day, hourHm));
+        placed.push({
+          teachingId: candidate.teachingId,
+          day,
+          hourHm,
+        });
+      }
+      teacherBusy.push({
+        day,
+        startMin: blockStart,
+        endMin: blockEnd,
+        label: candidate.courseName,
+      });
+      remaining -= block.length;
+      return true;
+    };
 
     while (remaining > 0) {
       let placedThisRound = 0;
-      const days = shuffledCopy(workDays);
-      for (const day of days) {
-        if (remaining <= 0) break;
-        const hours = shuffledCopy(params.courseSlots);
-        for (const hourHm of hours) {
-          const key = slotKey(day, hourHm);
-          if (occupiedClass.has(key)) continue;
+      const days = shuffledCopy(daysPool);
 
-          const startMin = parseHmToMinutes(hourHm);
-          const endMin = startMin + duration;
-          const conflict = teacherIntervalConflicts({
-            day,
-            startMin,
-            endMin,
-            busy: teacherBusy,
-          });
-          if (conflict) continue;
-
-          occupiedClass.add(key);
-          teacherBusy.push({
-            day,
-            startMin,
-            endMin,
-            label: candidate.courseName,
-          });
-          placed.push({
-            teachingId: candidate.teachingId,
-            day,
-            hourHm,
-          });
-          remaining -= 1;
-          placedThisRound += 1;
-          break;
+      if (blockSize > 1 && remaining >= blockSize) {
+        for (const day of days) {
+          if (remaining < blockSize) break;
+          for (const block of shuffledCopy(blocks)) {
+            if (tryPlaceBlock(day, block)) {
+              placedThisRound += 1;
+              break;
+            }
+          }
+        }
+      } else {
+        const singleBlocks =
+          blockSize === 1
+            ? blocks
+            : findConsecutiveSlotBlocks(params.courseSlots, 1, duration);
+        for (const day of days) {
+          if (remaining <= 0) break;
+          for (const block of shuffledCopy(singleBlocks)) {
+            if (tryPlaceBlock(day, block)) {
+              placedThisRound += 1;
+              break;
+            }
+          }
         }
       }
-      if (placedThisRound === 0) break;
+
+      if (placedThisRound === 0) {
+        // Reste < taille de bloc : tenter des séances isolées pour finir.
+        if (blockSize > 1 && remaining > 0 && remaining < blockSize) {
+          let placedRemainder = 0;
+          const singles = findConsecutiveSlotBlocks(
+            params.courseSlots,
+            1,
+            duration,
+          );
+          for (const day of shuffledCopy(daysPool)) {
+            if (remaining <= 0) break;
+            for (const block of shuffledCopy(singles)) {
+              if (tryPlaceBlock(day, block)) {
+                placedRemainder += 1;
+                break;
+              }
+            }
+          }
+          if (placedRemainder === 0) break;
+          continue;
+        }
+        break;
+      }
     }
 
     occupiedTeachers.set(candidate.teacherId, teacherBusy);
@@ -294,7 +425,9 @@ export function placeTeachingsGreedy(params: {
         courseName: candidate.courseName,
         missing: remaining,
         reason:
-          "Pas assez de créneaux libres : classe saturée ou enseignant déjà pris (autre classe, autre cycle ou autre établissement) sur ces plages.",
+          blockSize > 1
+            ? `Pas assez de plages pour ${blockSize} périodes d'affilée (classe saturée, jours préférés, ou enseignant déjà pris).`
+            : "Pas assez de créneaux libres : classe saturée ou enseignant déjà pris (autre classe, autre cycle ou autre établissement) sur ces plages.",
       });
     }
   }
