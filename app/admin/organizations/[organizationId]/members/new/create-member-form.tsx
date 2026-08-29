@@ -11,6 +11,7 @@ import { toast } from "sonner";
 
 import { ALL_ORG_ROLE_SLUGS } from "@/lib/permissions";
 import { orgRoleLabel } from "@/lib/org-role-labels";
+import { isCycleGlobalRole } from "@/lib/auth/cycle-global-roles";
 import { formatPersonFullName } from "@/lib/person-full-name";
 import { MAX_IMAGE_UPLOAD_BYTES, uploadFile } from "@/lib/upload-file";
 import { Button } from "@/components/ui/button";
@@ -46,11 +47,32 @@ type Props = {
   branches: MemberBranchOption[];
 };
 
+function initialBranchCycles(
+  branchIds: string[],
+  branches: MemberBranchOption[],
+): Record<string, string[]> {
+  const next: Record<string, string[]> = {};
+  for (const id of branchIds) {
+    const branch = branches.find((b) => b.id === id);
+    if (!branch) continue;
+    if (!branch.isMultiCycle && branch.cycles[0]) {
+      next[id] = [branch.cycles[0].value];
+    } else {
+      next[id] = [];
+    }
+  }
+  return next;
+}
+
 export function CreateMemberForm({ organizationId, branches }: Props) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [cyclesError, setCyclesError] = useState<string | undefined>();
+
+  const defaultBranchIds =
+    branches.length === 1 ? [branches[0]!.id] : [];
 
   const form = useForm<CreateOrgMemberFormInput>({
     resolver: zodResolver(createOrgMemberFormSchema),
@@ -62,17 +84,21 @@ export function CreateMemberForm({ organizationId, branches }: Props) {
       prenom: "",
       dateOfBirth: undefined,
       orgRole: ALL_ORG_ROLE_SLUGS[2],
-      branchIds: branches.length === 1 ? [branches[0]!.id] : [],
+      branchIds: defaultBranchIds,
+      branchCycles: initialBranchCycles(defaultBranchIds, branches),
     },
   });
 
   const branchIds = useWatch({ control: form.control, name: "branchIds" }) ?? [];
+  const branchCycles =
+    useWatch({ control: form.control, name: "branchCycles" }) ?? {};
   const nom = useWatch({ control: form.control, name: "nom" }) ?? "";
   const postnom = useWatch({ control: form.control, name: "postnom" }) ?? "";
   const prenom = useWatch({ control: form.control, name: "prenom" }) ?? "";
   const email = useWatch({ control: form.control, name: "email" }) ?? "";
   const orgRole = useWatch({ control: form.control, name: "orgRole" }) ?? "";
   const fullName = formatPersonFullName({ name: nom, postnom, prenom });
+  const showCycles = !isCycleGlobalRole(orgRole);
 
   useEffect(() => {
     return () => {
@@ -98,12 +124,40 @@ export function CreateMemberForm({ organizationId, branches }: Props) {
     setPhotoFile(file);
   }
 
+  function validateCycles(
+    selected: string[],
+    cycles: Record<string, string[]>,
+    role: string,
+  ): string | undefined {
+    if (isCycleGlobalRole(role)) return undefined;
+    for (const branchId of selected) {
+      const branch = branches.find((b) => b.id === branchId);
+      if (!branch?.isMultiCycle) continue;
+      if (!cycles[branchId]?.length) {
+        return `Sélectionnez au moins un cycle pour « ${branch.name} ».`;
+      }
+    }
+    return undefined;
+  }
+
   function onSubmit(values: CreateOrgMemberFormInput) {
     const selected = values.branchIds ?? [];
     if (selected.length === 0) {
       toast.error("Sélectionnez au moins une branche.");
       return;
     }
+
+    const cycleErr = validateCycles(
+      selected,
+      values.branchCycles ?? {},
+      values.orgRole,
+    );
+    if (cycleErr) {
+      setCyclesError(cycleErr);
+      toast.error(cycleErr);
+      return;
+    }
+    setCyclesError(undefined);
 
     startTransition(async () => {
       let image = "";
@@ -124,6 +178,7 @@ export function CreateMemberForm({ organizationId, branches }: Props) {
         image,
         organizationId,
         branchIds: selected,
+        branchCycles: values.branchCycles,
       });
 
       if (!res.ok) {
@@ -301,7 +356,11 @@ export function CreateMemberForm({ organizationId, branches }: Props) {
         <MemberFormSection
           icon={Building2}
           title="Affectation"
-          description="Le membre ne pourra ouvrir que les établissements cochés."
+          description={
+            showCycles
+              ? "Choisissez la ou les branches, puis le(s) cycle(s) pour chaque établissement multi-cycle."
+              : "Le membre ne pourra ouvrir que les établissements cochés."
+          }
         >
           <MemberBranchPicker
             branches={branches}
@@ -309,8 +368,15 @@ export function CreateMemberForm({ organizationId, branches }: Props) {
             onChange={(ids) =>
               form.setValue("branchIds", ids, { shouldDirty: true })
             }
+            branchCycles={branchCycles}
+            onBranchCyclesChange={(next) => {
+              form.setValue("branchCycles", next, { shouldDirty: true });
+              if (cyclesError) setCyclesError(undefined);
+            }}
+            showCycles={showCycles}
             disabled={pending}
             error={form.formState.errors.branchIds?.message}
+            cyclesError={cyclesError}
           />
         </MemberFormSection>
       </MemberFormLayout>

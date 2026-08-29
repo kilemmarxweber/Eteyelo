@@ -50,7 +50,9 @@ import {
   getTeachingClassCoursesAction,
   removeQuickAssignmentsAction,
   saveQuickAssignmentsAction,
+  updateTeachingWeeklyHoursAction,
 } from "./teaching.action";
+import type { Cycle } from "@/lib/cycle";
 
 type Workspace = NonNullable<
   Awaited<ReturnType<typeof getTeachingWorkspaceAction>>[0]
@@ -75,6 +77,7 @@ export default function TeachingWorkspacePage() {
   const [page, setPage] = useState(0);
   const [selectedCourses, setSelectedCourses] = useState<string[]>([]);
   const [bulkTeacherId, setBulkTeacherId] = useState("");
+  const [bulkWeeklyHours, setBulkWeeklyHours] = useState("");
   const [savingCourseId, setSavingCourseId] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
@@ -199,6 +202,35 @@ export default function TeachingWorkspacePage() {
     0,
   );
 
+  const selectedClassPreview = data?.classes.find(
+    (item) => item.id === selectedClassId,
+  );
+  const classCycle = selectedClassPreview?.cycle as Cycle | undefined;
+  const teachersForClass = useMemo(() => {
+    const teachers = data?.teachers ?? [];
+    if (!classCycle) return teachers;
+    return teachers.filter((teacher) => {
+      const cycles = teacher.cycles ?? [];
+      return cycles.length === 0 || cycles.includes(classCycle);
+    });
+  }, [classCycle, data?.teachers]);
+
+  useEffect(() => {
+    if (
+      bulkTeacherId &&
+      bulkTeacherId !== "all" &&
+      !teachersForClass.some((teacher) => teacher.id === bulkTeacherId)
+    ) {
+      setBulkTeacherId("");
+    }
+    if (
+      teacherFilter !== "all" &&
+      !teachersForClass.some((teacher) => teacher.id === teacherFilter)
+    ) {
+      setTeacherFilter("all");
+    }
+  }, [bulkTeacherId, teacherFilter, teachersForClass]);
+
   function updateClassTeachings(
     classeId: string,
     nextTeachings: ClassCourses["teachings"],
@@ -232,7 +264,11 @@ export default function TeachingWorkspacePage() {
     });
   }
 
-  function applyAssignments(courseIds: string[], teacherId: string) {
+  function applyAssignments(
+    courseIds: string[],
+    teacherId: string,
+    weeklyHours?: number,
+  ) {
     if (!data || !classCourses || !selectedClassId || !teacherId || !courseIds.length)
       return;
     const previous = classCourses.teachings;
@@ -244,6 +280,7 @@ export default function TeachingWorkspacePage() {
       schoolYearId: data.schoolYear?.id ?? "",
       statusTeaching: true,
       titulaire: false,
+      weeklyHours: weeklyHours ?? null,
       updatedAt: new Date(),
     }));
     updateClassTeachings(selectedClassId, [
@@ -262,6 +299,7 @@ export default function TeachingWorkspacePage() {
         classeId: selectedClassId,
         coursIds: courseIds,
         teacherId,
+        ...(weeklyHours != null && weeklyHours > 0 ? { weeklyHours } : {}),
       });
       setSavingCourseId(null);
       if (error || !saved) {
@@ -286,6 +324,40 @@ export default function TeachingWorkspacePage() {
           ? `${courseIds.length} cours affectés`
           : "Cours affecté",
       );
+    });
+  }
+
+  function saveWeeklyHours(teachingId: string, coursId: string, value: string) {
+    const weeklyHours = Number(value);
+    if (!Number.isFinite(weeklyHours) || weeklyHours <= 0) {
+      toast.error("Indiquez un volume en minutes / semaine valide (> 0).");
+      return;
+    }
+    if (!classCourses || !selectedClassId) return;
+    const previous = classCourses.teachings;
+    updateClassTeachings(
+      selectedClassId,
+      previous.map((item) =>
+        item.id === teachingId ? { ...item, weeklyHours } : item,
+      ),
+    );
+    setSavingCourseId(coursId);
+    startTransition(async () => {
+      const [updated, error] = await updateTeachingWeeklyHoursAction({
+        teachingId,
+        weeklyHours,
+      });
+      setSavingCourseId(null);
+      if (error || !updated) {
+        updateClassTeachings(selectedClassId, previous);
+        toast.error(error?.message ?? "Mise à jour impossible");
+        return;
+      }
+      updateClassTeachings(
+        selectedClassId,
+        previous.map((item) => (item.id === teachingId ? updated : item)),
+      );
+      toast.success("Minutes / semaine enregistrées");
     });
   }
 
@@ -453,19 +525,37 @@ export default function TeachingWorkspacePage() {
                   </p>
                 </div>
                 {selectedCourses.length > 0 && (
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <TeacherPicker
-                      teachers={data.teachers}
+                      teachers={teachersForClass}
                       value={bulkTeacherId}
                       onChange={setBulkTeacherId}
                       placeholder="Enseignant pour le lot"
                       className="w-56"
                     />
+                    <Input
+                      type="number"
+                      min={15}
+                      max={600}
+                      step={15}
+                      value={bulkWeeklyHours}
+                      onChange={(e) => setBulkWeeklyHours(e.target.value)}
+                      placeholder="min/sem"
+                      className="w-28"
+                      title="Minutes / semaine (ex. 135)"
+                    />
                     <Button
                       disabled={!bulkTeacherId || savingCourseId === "bulk"}
-                      onClick={() =>
-                        applyAssignments(selectedCourses, bulkTeacherId)
-                      }
+                      onClick={() => {
+                        const hours = Number(bulkWeeklyHours);
+                        applyAssignments(
+                          selectedCourses,
+                          bulkTeacherId,
+                          Number.isFinite(hours) && hours > 0
+                            ? hours
+                            : undefined,
+                        );
+                      }}
                     >
                       Affecter ({selectedCourses.length})
                     </Button>
@@ -495,7 +585,7 @@ export default function TeachingWorkspacePage() {
                   />
                 </div>
                 <TeacherPicker
-                  teachers={data.teachers}
+                  teachers={teachersForClass}
                   value={teacherFilter}
                   onChange={setTeacherFilter}
                   placeholder="Tous les enseignants"
@@ -538,8 +628,13 @@ export default function TeachingWorkspacePage() {
                 </div>
               </div>
               <p className="mt-2 text-xs text-muted-foreground">
-                Cochez les cours un par un, ou tous d&apos;un coup, puis
-                choisissez l&apos;enseignant pour les affecter.
+                Cochez les cours, choisissez un enseignant du cycle
+                {selectedClass?.cycleLabel
+                  ? ` « ${selectedClass.cycleLabel} »`
+                  : ""}
+                , renseignez les minutes / semaine (ex. 135), puis affectez. Seuls les
+                enseignants de ce cycle apparaissent. La génération d&apos;horaire
+                divise ce volume par la durée de la vacation (30 ou 45 min).
               </p>
             </div>
             <div className="min-h-0 flex-1 overflow-auto">
@@ -567,6 +662,7 @@ export default function TeachingWorkspacePage() {
                     </th>
                     <th className="p-3">Cours</th>
                     <th className="p-3">Enseignant</th>
+                    <th className="p-3 w-[110px]">min/sem</th>
                     <th className="p-3">État</th>
                     <th className="p-3 w-[1%]">Actions</th>
                   </tr>
@@ -600,20 +696,60 @@ export default function TeachingWorkspacePage() {
                         </td>
                         <td className="p-3">
                           <TeacherPicker
-                            teachers={data.teachers}
+                            teachers={teachersForClass}
                             value={assignment?.teacherId ?? ""}
                             onChange={(teacherId) => {
                               if (!teacherId) {
                                 if (assignment) removeAssignments([course.id]);
                                 return;
                               }
-                              applyAssignments([course.id], teacherId);
+                              const hours = Number(bulkWeeklyHours);
+                              applyAssignments(
+                                [course.id],
+                                teacherId,
+                                Number.isFinite(hours) && hours > 0
+                                  ? hours
+                                  : undefined,
+                              );
                             }}
                             disabled={isSaving}
                             placeholder="Affecter un enseignant"
                             allowClear={Boolean(assignment)}
                             className="w-64"
                           />
+                        </td>
+                        <td className="p-3">
+                          {assignment ? (
+                            <Input
+                              type="number"
+                              min={15}
+                              max={600}
+                              step={15}
+                              defaultValue={assignment.weeklyHours ?? ""}
+                              key={`${assignment.id}-${assignment.weeklyHours ?? "empty"}`}
+                              disabled={isSaving}
+                              className="h-9 w-[88px]"
+                              placeholder="135"
+                              title="Minutes / semaine"
+                              onBlur={(e) => {
+                                const next = e.target.value;
+                                const prev = assignment.weeklyHours;
+                                if (
+                                  next === "" ||
+                                  (prev != null && Number(next) === prev)
+                                ) {
+                                  return;
+                                }
+                                saveWeeklyHours(
+                                  assignment.id,
+                                  course.id,
+                                  next,
+                                );
+                              }}
+                            />
+                          ) : (
+                            <span className="text-xs text-muted-foreground">—</span>
+                          )}
                         </td>
                         <td className="p-3">
                           <Badge
@@ -680,7 +816,7 @@ function TeacherPicker({
   allowAll,
   allowClear,
 }: {
-  teachers: Array<{ id: string; name: string }>;
+  teachers: Array<{ id: string; name: string; cycles?: Cycle[] }>;
   value: string;
   onChange: (teacherId: string) => void;
   placeholder: string;

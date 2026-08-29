@@ -242,6 +242,11 @@ export type DiscountRule = Prisma.DiscountRuleModel
  */
 export type Transaction = Prisma.TransactionModel
 /**
+ * Model GradeModificationRequest
+ * Demande de modification de notes (devoir / évaluation) — validation direction.
+ */
+export type GradeModificationRequest = Prisma.GradeModificationRequestModel
+/**
  * Model AbsenceCase
  * Absence auto (aucun scan / pointage) + justification / retour.
  */
@@ -326,6 +331,11 @@ export type Partnaire = Prisma.PartnaireModel
  * 
  */
 export type BranchMember = Prisma.BranchMemberModel
+/**
+ * Model BranchMemberCycle
+ * Cycles autorisés pour un membre dans une branche (ACL multi-cycle).
+ */
+export type BranchMemberCycle = Prisma.BranchMemberCycleModel
 /**
  * Model StudentBranchLink
  * 

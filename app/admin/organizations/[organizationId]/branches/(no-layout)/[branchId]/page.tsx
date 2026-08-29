@@ -17,7 +17,7 @@ import {
   hidesParentManagement,
   usesFinanceForBranch,
 } from "@/lib/branch-capabilities";
-import { getBranchCycles, type Cycle, type DashboardCycleStat } from "@/lib/cycle";
+import { getBranchCycles, formatBranchCyclesLabel, type Cycle, type DashboardCycleStat } from "@/lib/cycle";
 import { cn } from "@/lib/utils";
 import type { DashboardVariant } from "@/lib/auth/dashboard-variant";
 import {
@@ -200,16 +200,11 @@ export default function AdminDashboard() {
       isActive: true,
     })),
   });
-  const cycleLabels = resolvedCycles.map((cycle) =>
-    t(`branchTypes.${cycle}` as never),
-  );
-  const branchTypeLabel =
-    cycleLabels.length === 0
-      ? ""
-      : new Intl.ListFormat(locale, {
-          style: "long",
-          type: "conjunction",
-        }).format(cycleLabels);
+  const branchTypeLabel = formatBranchCyclesLabel(resolvedCycles, {
+    locale,
+    typebranch,
+    prefix: false,
+  });
   const showFinanceCapability = usesFinanceForBranch(typebranch);
   const showParents = !hidesParentManagement(typebranch);
   const showRevenue =
@@ -500,7 +495,6 @@ export default function AdminDashboard() {
             <BranchTypeBadge
               typebranch={typebranch}
               cycles={resolvedCycles}
-              fullLabel
             />
             <EducationSystemBadge educationSystem={educationSystem} />
           </span>

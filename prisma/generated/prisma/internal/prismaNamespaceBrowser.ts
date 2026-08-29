@@ -91,6 +91,7 @@ export const ModelName = {
   PaymentEvent: 'PaymentEvent',
   DiscountRule: 'DiscountRule',
   Transaction: 'Transaction',
+  GradeModificationRequest: 'GradeModificationRequest',
   AbsenceCase: 'AbsenceCase',
   AppNotification: 'AppNotification',
   Session: 'Session',
@@ -108,6 +109,7 @@ export const ModelName = {
   JobApplication: 'JobApplication',
   Partnaire: 'Partnaire',
   BranchMember: 'BranchMember',
+  BranchMemberCycle: 'BranchMemberCycle',
   StudentBranchLink: 'StudentBranchLink',
   IssuedDocument: 'IssuedDocument',
   BranchInvitation: 'BranchInvitation',
@@ -475,6 +477,7 @@ export const TeachingScalarFieldEnum = {
   schoolYearId: 'schoolYearId',
   titulaire: 'titulaire',
   statusTeaching: 'statusTeaching',
+  weeklyHours: 'weeklyHours',
   branchId: 'branchId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
@@ -521,6 +524,7 @@ export const ScheduleScalarFieldEnum = {
   hour: 'hour',
   teachingId: 'teachingId',
   createdBy: 'createdBy',
+  source: 'source',
   isArchived: 'isArchived',
   archivedAt: 'archivedAt',
   archivedById: 'archivedById',
@@ -794,6 +798,28 @@ export const TransactionScalarFieldEnum = {
 export type TransactionScalarFieldEnum = (typeof TransactionScalarFieldEnum)[keyof typeof TransactionScalarFieldEnum]
 
 
+export const GradeModificationRequestScalarFieldEnum = {
+  id: 'id',
+  branchId: 'branchId',
+  organizationId: 'organizationId',
+  ficheId: 'ficheId',
+  requestedById: 'requestedById',
+  status: 'status',
+  justification: 'justification',
+  evidenceUrl: 'evidenceUrl',
+  previousNotes: 'previousNotes',
+  proposedNotes: 'proposedNotes',
+  contextLabel: 'contextLabel',
+  reviewComment: 'reviewComment',
+  reviewedById: 'reviewedById',
+  reviewedAt: 'reviewedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type GradeModificationRequestScalarFieldEnum = (typeof GradeModificationRequestScalarFieldEnum)[keyof typeof GradeModificationRequestScalarFieldEnum]
+
+
 export const AbsenceCaseScalarFieldEnum = {
   id: 'id',
   branchId: 'branchId',
@@ -834,6 +860,7 @@ export const AppNotificationScalarFieldEnum = {
   body: 'body',
   href: 'href',
   absenceCaseId: 'absenceCaseId',
+  gradeModificationRequestId: 'gradeModificationRequestId',
   readAt: 'readAt',
   createdAt: 'createdAt'
 } as const
@@ -1144,6 +1171,16 @@ export const BranchMemberScalarFieldEnum = {
 } as const
 
 export type BranchMemberScalarFieldEnum = (typeof BranchMemberScalarFieldEnum)[keyof typeof BranchMemberScalarFieldEnum]
+
+
+export const BranchMemberCycleScalarFieldEnum = {
+  id: 'id',
+  branchMemberId: 'branchMemberId',
+  cycle: 'cycle',
+  createdAt: 'createdAt'
+} as const
+
+export type BranchMemberCycleScalarFieldEnum = (typeof BranchMemberCycleScalarFieldEnum)[keyof typeof BranchMemberCycleScalarFieldEnum]
 
 
 export const StudentBranchLinkScalarFieldEnum = {

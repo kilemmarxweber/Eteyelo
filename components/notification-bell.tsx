@@ -17,6 +17,7 @@ import {
   ClipboardList,
   Undo2,
   Banknote,
+  FilePenLine,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -51,6 +52,7 @@ import {
   AbsenceCaseDialog,
   type AbsenceCaseDialogData,
 } from "@/components/absence-case-dialog";
+import { GradeModificationReviewDialog } from "@/components/fiche-scores-dialog";
 
 type RegistrationRow = {
   id: string;
@@ -91,6 +93,7 @@ type AbsenceRow = {
   createdAt: Date | string;
   kind: "absence";
   case: AbsenceCaseDialogData | null;
+  gradeModificationRequestId?: string | null;
 };
 
 type NotificationItem = RegistrationRow | JobRow | AbsenceRow;
@@ -293,7 +296,8 @@ function AbsenceNotificationRow({
     ? "Vu"
     : item.type === "ABSENCE"
       ? "Justifier"
-      : item.type === "JUSTIFICATION_SUBMITTED"
+      : item.type === "JUSTIFICATION_SUBMITTED" ||
+          item.type === "GRADE_MODIFICATION_SUBMITTED"
         ? "Examiner"
         : "Voir";
 
@@ -303,11 +307,15 @@ function AbsenceNotificationRow({
         className={
           isPayment
             ? "flex size-9 shrink-0 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-600"
-            : "flex size-9 shrink-0 items-center justify-center rounded-full bg-rose-500/10 text-rose-600"
+            : item.type.startsWith("GRADE_MODIFICATION")
+              ? "flex size-9 shrink-0 items-center justify-center rounded-full bg-indigo-500/10 text-indigo-600"
+              : "flex size-9 shrink-0 items-center justify-center rounded-full bg-rose-500/10 text-rose-600"
         }
       >
         {isPayment ? (
           <Banknote className="size-4" />
+        ) : item.type.startsWith("GRADE_MODIFICATION") ? (
+          <FilePenLine className="size-4" />
         ) : item.type === "RETURN" ? (
           <Undo2 className="size-4" />
         ) : (
@@ -355,6 +363,9 @@ export function NotificationBell() {
     mode: "justify" | "review" | "view";
     caseRow: AbsenceCaseDialogData;
   } | null>(null);
+  const [gradeDialogRequestId, setGradeDialogRequestId] = useState<
+    string | null
+  >(null);
 
   const branchBase =
     params.organizationId && params.branchId
@@ -400,6 +411,7 @@ export function NotificationBell() {
           createdAt: row.createdAt,
           kind: "absence" as const,
           case: row.case,
+          gradeModificationRequestId: row.gradeModificationRequestId,
         }),
       );
 
@@ -705,6 +717,21 @@ export function NotificationBell() {
                           }).then(() => void loadRequests());
                           return;
                         }
+                        if (
+                          row.type === "GRADE_MODIFICATION_SUBMITTED" ||
+                          row.type === "GRADE_MODIFICATION_DECISION"
+                        ) {
+                          if (row.gradeModificationRequestId) {
+                            setGradeDialogRequestId(
+                              row.gradeModificationRequestId,
+                            );
+                          }
+                          void markAbsenceNotificationReadAction({
+                            notificationId: row.id,
+                          }).then(() => void loadRequests());
+                          setOpen(false);
+                          return;
+                        }
                         if (!row.case) return;
                         const mode =
                           row.type === "ABSENCE" &&
@@ -741,6 +768,14 @@ export function NotificationBell() {
         }}
         mode={absenceDialog?.mode ?? "view"}
         caseRow={absenceDialog?.caseRow ?? null}
+        onDone={() => void loadRequests()}
+      />
+      <GradeModificationReviewDialog
+        open={Boolean(gradeDialogRequestId)}
+        onOpenChange={(next) => {
+          if (!next) setGradeDialogRequestId(null);
+        }}
+        requestId={gradeDialogRequestId}
         onDone={() => void loadRequests()}
       />
     </>

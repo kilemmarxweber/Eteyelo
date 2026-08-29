@@ -53,6 +53,7 @@ export const getAbsenceInboxAction = action.handler(async () => {
       body: row.body,
       createdAt: row.createdAt,
       absenceCaseId: row.absenceCaseId,
+      gradeModificationRequestId: row.gradeModificationRequestId,
       case: row.absenceCase
         ? {
             id: row.absenceCase.id,

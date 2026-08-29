@@ -899,14 +899,6 @@ export type EnumCurrencyCodeFieldUpdateOperationsInput = {
   set?: $Enums.CurrencyCode
 }
 
-export type NullableFloatFieldUpdateOperationsInput = {
-  set?: number | null
-  increment?: number
-  decrement?: number
-  multiply?: number
-  divide?: number
-}
-
 export type EnumPaymentMethodFieldUpdateOperationsInput = {
   set?: $Enums.PaymentMethod
 }

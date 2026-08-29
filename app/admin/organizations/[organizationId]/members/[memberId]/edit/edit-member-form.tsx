@@ -8,6 +8,7 @@ import { Building2, KeyRound, Shield, UserRound } from "lucide-react";
 import { toast } from "sonner";
 import { ALL_ORG_ROLE_SLUGS } from "@/lib/permissions";
 import { orgRoleLabel } from "@/lib/org-role-labels";
+import { isCycleGlobalRole } from "@/lib/auth/cycle-global-roles";
 import { formatPersonFullName } from "@/lib/person-full-name";
 import { MAX_IMAGE_UPLOAD_BYTES, uploadFile } from "@/lib/upload-file";
 import { Badge } from "@/components/ui/badge";
@@ -79,7 +80,11 @@ export function EditMemberForm({ organizationId, memberId, branches }: Props) {
   const [email, setEmail] = useState("");
   const [emailError, setEmailError] = useState<string | undefined>();
   const [branchIds, setBranchIds] = useState<string[]>([]);
+  const [branchCycles, setBranchCycles] = useState<Record<string, string[]>>(
+    {},
+  );
   const [branchError, setBranchError] = useState<string | undefined>();
+  const [cyclesError, setCyclesError] = useState<string | undefined>();
   const [nom, setNom] = useState("");
   const [postnom, setPostnom] = useState("");
   const [prenom, setPrenom] = useState("");
@@ -92,6 +97,8 @@ export function EditMemberForm({ organizationId, memberId, branches }: Props) {
   const [pendingRemove, startRemove] = useTransition();
   const [showResetDialog, setShowResetDialog] = useState(false);
   const [confirmRemove, setConfirmRemove] = useState(false);
+
+  const showCycles = !isCycleGlobalRole(role);
 
   const load = useCallback(async () => {
     try {
@@ -120,6 +127,19 @@ export function EditMemberForm({ organizationId, memberId, branches }: Props) {
       setNameError(undefined);
       if (assignedRes.ok) {
         setBranchIds(assignedRes.branchIds);
+        const cycles = { ...assignedRes.branchCycles };
+        for (const id of assignedRes.branchIds) {
+          const branch = branches.find((b) => b.id === id);
+          if (
+            branch &&
+            !branch.isMultiCycle &&
+            branch.cycles[0] &&
+            !(cycles[id]?.length)
+          ) {
+            cycles[id] = [branch.cycles[0].value];
+          }
+        }
+        setBranchCycles(cycles);
       } else {
         toast.error(assignedRes.message);
       }
@@ -134,7 +154,7 @@ export function EditMemberForm({ organizationId, memberId, branches }: Props) {
       toast.error("Erreur réseau.");
       setMember(null);
     }
-  }, [organizationId, memberId]);
+  }, [organizationId, memberId, branches]);
 
   useEffect(() => {
     void load();
@@ -167,7 +187,11 @@ export function EditMemberForm({ organizationId, memberId, branches }: Props) {
       setEmailError("Adresse email invalide.");
       return;
     }
-    if (nom.trim().length < 2 || postnom.trim().length < 2 || prenom.trim().length < 2) {
+    if (
+      nom.trim().length < 2 ||
+      postnom.trim().length < 2 ||
+      prenom.trim().length < 2
+    ) {
       setNameError("Nom, postnom et prénom sont requis (2 caractères min.).");
       return;
     }
@@ -179,10 +203,23 @@ export function EditMemberForm({ organizationId, memberId, branches }: Props) {
       setBranchError("Sélectionnez au moins une branche.");
       return;
     }
+    if (showCycles) {
+      for (const branchId of branchIds) {
+        const branch = branches.find((b) => b.id === branchId);
+        if (!branch?.isMultiCycle) continue;
+        if (!branchCycles[branchId]?.length) {
+          const msg = `Sélectionnez au moins un cycle pour « ${branch.name} ».`;
+          setCyclesError(msg);
+          toast.error(msg);
+          return;
+        }
+      }
+    }
     setEmailError(undefined);
     setNameError(undefined);
     setDobError(undefined);
     setBranchError(undefined);
+    setCyclesError(undefined);
     startTransition(async () => {
       let image = member?.user.image ?? "";
       if (photoFile) {
@@ -198,6 +235,7 @@ export function EditMemberForm({ organizationId, memberId, branches }: Props) {
         memberId,
         orgRole: role,
         branchIds,
+        branchCycles,
         email: nextEmail,
         nom: nom.trim(),
         postnom: postnom.trim(),
@@ -457,7 +495,11 @@ export function EditMemberForm({ organizationId, memberId, branches }: Props) {
           <MemberFormSection
             icon={Building2}
             title="Affectation"
-            description="Cochez les établissements auxquels ce membre peut accéder."
+            description={
+              showCycles
+                ? "Cochez les établissements, puis le(s) cycle(s) pour chaque établissement multi-cycle."
+                : "Cochez les établissements auxquels ce membre peut accéder."
+            }
           >
             <MemberBranchPicker
               branches={branches}
@@ -466,8 +508,15 @@ export function EditMemberForm({ organizationId, memberId, branches }: Props) {
                 setBranchIds(ids);
                 if (ids.length > 0) setBranchError(undefined);
               }}
+              branchCycles={branchCycles}
+              onBranchCyclesChange={(next) => {
+                setBranchCycles(next);
+                if (cyclesError) setCyclesError(undefined);
+              }}
+              showCycles={showCycles}
               disabled={busy}
               error={branchError}
+              cyclesError={cyclesError}
             />
           </MemberFormSection>
         </MemberFormLayout>

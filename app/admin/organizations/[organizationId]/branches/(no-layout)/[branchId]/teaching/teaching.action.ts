@@ -14,6 +14,12 @@ import {
   getConfiguredCoursIdsForClasse,
 } from "@/lib/course-ponderation";
 import { syncTeacherDossierExperienceYears } from "@/lib/teacher-assignment-years";
+import { cycleLabel, resolveCycle, type Cycle } from "@/lib/cycle";
+import {
+  buildBranchMemberDirectoryWhere,
+  isCycleGlobalRole,
+  sessionCanViewAllDirectoryUsers,
+} from "@/lib/auth/cycle-scope";
 
 const teachingInclude = {
   teacher: {
@@ -99,8 +105,28 @@ async function requireConfiguredCoursesForClasse(params: {
 }
 
 export const getTeachingWorkspaceAction = action.handler(async () => {
-  const { branchId, organizationId } = await requireBranchContext();
-  const [classes, teachers, schoolYear, ponderations, teachings] =
+  const { branchId, organizationId, userId, session } =
+    await requireBranchContext();
+
+  const [orgMember, viewerBm] = await Promise.all([
+    prisma.member.findFirst({
+      where: { userId, organizationId },
+      select: { role: true },
+    }),
+    prisma.branchMember.findFirst({
+      where: { branchId, member: { userId, organizationId } },
+      select: { id: true },
+    }),
+  ]);
+  const seeAll = sessionCanViewAllDirectoryUsers(session, orgMember?.role);
+  const seeWholeBranch = !seeAll && isCycleGlobalRole(orgMember?.role);
+  const directoryWhere = await buildBranchMemberDirectoryWhere({
+    viewerBranchMemberId: viewerBm?.id ?? null,
+    seeAll,
+    seeWholeBranch,
+  });
+
+  const [classes, teachers, schoolYear, ponderations, teachings, branch] =
     await Promise.all([
       prisma.classe.findMany({
         where: {
@@ -115,6 +141,7 @@ export const getTeachingWorkspaceAction = action.handler(async () => {
           codeClasse: true,
           optionId: true,
           level: true,
+          cycle: true,
           option: {
             select: {
               nameOption: true,
@@ -126,8 +153,13 @@ export const getTeachingWorkspaceAction = action.handler(async () => {
       prisma.teacher.findMany({
         where: {
           branchMember: {
-            branchId,
-            branch: { organizationId },
+            AND: [
+              {
+                branchId,
+                branch: { organizationId },
+              },
+              ...(directoryWhere ? [directoryWhere] : []),
+            ],
           },
         },
         orderBy: { createdAt: "asc" },
@@ -135,6 +167,7 @@ export const getTeachingWorkspaceAction = action.handler(async () => {
           id: true,
           branchMember: {
             select: {
+              memberCycles: { select: { cycle: true } },
               member: {
                 select: {
                   user: {
@@ -182,6 +215,10 @@ export const getTeachingWorkspaceAction = action.handler(async () => {
           statusTeaching: true,
         },
       }),
+      prisma.branch.findFirst({
+        where: { id: branchId, organizationId },
+        select: { typebranch: true },
+      }),
     ]);
 
   const assignedByClass = new Map<string, Set<string>>();
@@ -203,14 +240,20 @@ export const getTeachingWorkspaceAction = action.handler(async () => {
       const assignedCount = assignedIds
         ? [...assignedIds].filter((coursId) => configuredIds.has(coursId)).length
         : 0;
+      const cycle = resolveCycle(classe, branch);
       return {
         ...classe,
+        cycle,
+        cycleLabel: cycleLabel(cycle),
         configuredCount: configuredIds.size,
         assignedCount,
       };
     }),
     teachers: teachers.map((teacher) => ({
       id: teacher.id,
+      cycles: (teacher.branchMember?.memberCycles ?? []).map(
+        (row) => row.cycle as Cycle,
+      ),
       name:
         [
           teacher.branchMember?.member.user.name,
@@ -290,6 +333,7 @@ export const getTeachingClassCoursesAction = action
               schoolYearId: true,
               statusTeaching: true,
               titulaire: true,
+              weeklyHours: true,
               updatedAt: true,
             },
           })
@@ -303,7 +347,57 @@ const quickAssignmentSchema = z.object({
   classeId: z.string().min(1),
   coursIds: z.array(z.string().min(1)).min(1).max(200),
   teacherId: z.string().min(1),
+  weeklyHours: z.coerce.number().positive().max(600).optional(),
 });
+
+async function assertTeacherMatchesClasseCycle(params: {
+  branchId: string;
+  organizationId: string;
+  classeId: string;
+  teacherId: string;
+}) {
+  const [classe, teacher, branch] = await Promise.all([
+    prisma.classe.findFirst({
+      where: {
+        id: params.classeId,
+        branchId: params.branchId,
+        branch: { organizationId: params.organizationId },
+      },
+      select: { cycle: true },
+    }),
+    prisma.teacher.findFirst({
+      where: {
+        id: params.teacherId,
+        branchMember: {
+          branchId: params.branchId,
+          branch: { organizationId: params.organizationId },
+        },
+      },
+      select: {
+        branchMember: {
+          select: { memberCycles: { select: { cycle: true } } },
+        },
+      },
+    }),
+    prisma.branch.findFirst({
+      where: { id: params.branchId, organizationId: params.organizationId },
+      select: { typebranch: true },
+    }),
+  ]);
+  if (!classe || !teacher || !branch) {
+    throw new Error("Contexte d'affectation invalide ou incomplet");
+  }
+  const classCycle = resolveCycle(classe, branch);
+  const teacherCycles = (teacher.branchMember?.memberCycles ?? []).map(
+    (row) => row.cycle as Cycle,
+  );
+  // Sans cycles renseignés = legacy (accès complet) jusqu'à restriction explicite.
+  if (teacherCycles.length > 0 && !teacherCycles.includes(classCycle)) {
+    throw new Error(
+      `Cet enseignant n'est pas affecté au cycle ${cycleLabel(classCycle)}. Choisissez un enseignant de ce cycle.`,
+    );
+  }
+}
 
 export const saveQuickAssignmentsAction = action.input(quickAssignmentSchema).handler(async ({ input }) => {
   const { branchId, organizationId, session } = await requireBranchContext();
@@ -313,6 +407,12 @@ export const saveQuickAssignmentsAction = action.input(quickAssignmentSchema).ha
     organizationId,
     classeId: input.classeId,
     coursIds: input.coursIds,
+  });
+  await assertTeacherMatchesClasseCycle({
+    branchId,
+    organizationId,
+    classeId: input.classeId,
+    teacherId: input.teacherId,
   });
   const [classe, teacher, courses, schoolYear] = await Promise.all([
     prisma.classe.findFirst({ where: { id: input.classeId, branchId, branch: { organizationId }, OR: [{ statusClasse: true }, { statusClasse: null }] }, select: { id: true } }),
@@ -324,7 +424,7 @@ export const saveQuickAssignmentsAction = action.input(quickAssignmentSchema).ha
 
   const existing = await prisma.teaching.findMany({
     where: { classeId: input.classeId, schoolYearId: schoolYear.id, coursId: { in: input.coursIds } },
-    select: { id: true, coursId: true, teacherId: true, Schedule: { where: { isArchived: false }, select: { day: true, hour: true } } },
+    select: { id: true, coursId: true, teacherId: true, weeklyHours: true, Schedule: { where: { isArchived: false }, select: { day: true, hour: true } } },
   });
   const targetSchedules = await prisma.schedule.findMany({
     where: { isArchived: false, teaching: { teacherId: input.teacherId, schoolYearId: schoolYear.id } },
@@ -344,11 +444,61 @@ export const saveQuickAssignmentsAction = action.input(quickAssignmentSchema).ha
   }
 
   const existingMap = new Map(existing.map(item => [item.coursId, item]));
+  const weeklyHours =
+    input.weeklyHours != null && input.weeklyHours > 0
+      ? input.weeklyHours
+      : undefined;
   const saved = await prisma.$transaction(input.coursIds.map(coursId => {
     const current = existingMap.get(coursId);
+    const hoursData =
+      weeklyHours != null
+        ? { weeklyHours }
+        : current?.weeklyHours == null
+          ? {}
+          : {};
     return current
-      ? prisma.teaching.update({ where: { id: current.id }, data: { teacherId: input.teacherId, statusTeaching: true, branchId }, select: { id: true, classeId: true, coursId: true, teacherId: true, schoolYearId: true, statusTeaching: true, titulaire: true, updatedAt: true } })
-      : prisma.teaching.create({ data: { branchId, classeId: input.classeId, coursId, teacherId: input.teacherId, schoolYearId: schoolYear.id, statusTeaching: true }, select: { id: true, classeId: true, coursId: true, teacherId: true, schoolYearId: true, statusTeaching: true, titulaire: true, updatedAt: true } });
+      ? prisma.teaching.update({
+          where: { id: current.id },
+          data: {
+            teacherId: input.teacherId,
+            statusTeaching: true,
+            branchId,
+            ...hoursData,
+          },
+          select: {
+            id: true,
+            classeId: true,
+            coursId: true,
+            teacherId: true,
+            schoolYearId: true,
+            statusTeaching: true,
+            titulaire: true,
+            weeklyHours: true,
+            updatedAt: true,
+          },
+        })
+      : prisma.teaching.create({
+          data: {
+            branchId,
+            classeId: input.classeId,
+            coursId,
+            teacherId: input.teacherId,
+            schoolYearId: schoolYear.id,
+            statusTeaching: true,
+            ...(weeklyHours != null ? { weeklyHours } : {}),
+          },
+          select: {
+            id: true,
+            classeId: true,
+            coursId: true,
+            teacherId: true,
+            schoolYearId: true,
+            statusTeaching: true,
+            titulaire: true,
+            weeklyHours: true,
+            updatedAt: true,
+          },
+        });
   }));
   await syncTeacherDossierExperienceYears({
     teacherId: input.teacherId,
@@ -357,6 +507,45 @@ export const saveQuickAssignmentsAction = action.input(quickAssignmentSchema).ha
   revalidateTeachingPages(organizationId, branchId);
   return saved;
 });
+
+const updateWeeklyHoursSchema = z.object({
+  teachingId: z.string().min(1),
+  weeklyHours: z.coerce.number().positive().max(600),
+});
+
+export const updateTeachingWeeklyHoursAction = action
+  .input(updateWeeklyHoursSchema)
+  .handler(async ({ input }) => {
+    const { branchId, organizationId, session } = await requireBranchContext();
+    requireManageTeaching(session);
+    const teaching = await prisma.teaching.findFirst({
+      where: {
+        id: input.teachingId,
+        branchId,
+        branch: { organizationId },
+        OR: [{ statusTeaching: true }, { statusTeaching: null }],
+      },
+      select: { id: true },
+    });
+    if (!teaching) throw new Error("Affectation introuvable");
+    const updated = await prisma.teaching.update({
+      where: { id: teaching.id },
+      data: { weeklyHours: input.weeklyHours },
+      select: {
+        id: true,
+        classeId: true,
+        coursId: true,
+        teacherId: true,
+        schoolYearId: true,
+        statusTeaching: true,
+        titulaire: true,
+        weeklyHours: true,
+        updatedAt: true,
+      },
+    });
+    revalidateTeachingPages(organizationId, branchId);
+    return updated;
+  });
 
 const removeAssignmentSchema = z.object({
   classeId: z.string().min(1),
@@ -499,13 +688,20 @@ export const createTeachingAction = action
   .input(teachingSchema)
   .handler(async ({ input }) => {
     const { branchId, organizationId } = await requireBranchContext();
-    const { teacherId, classeId, coursId, schoolYearId, titulaire } = input;
+    const { teacherId, classeId, coursId, schoolYearId, titulaire, weeklyHours } =
+      input;
 
     await requireConfiguredCoursesForClasse({
       branchId,
       organizationId,
       classeId,
       coursIds: [coursId],
+    });
+    await assertTeacherMatchesClasseCycle({
+      branchId,
+      organizationId,
+      classeId,
+      teacherId,
     });
 
     try {
@@ -516,6 +712,7 @@ export const createTeachingAction = action
           coursId,
           schoolYearId,
           titulaire,
+          weeklyHours,
           branchId,
         },
       });
@@ -564,7 +761,8 @@ export const updateTeachingAction = action
   .input(teachingSchema)
   .handler(async ({ input }) => {
     const { branchId, organizationId } = await requireBranchContext();
-    const { id, teacherId, classeId, coursId, schoolYearId, titulaire } = input;
+    const { id, teacherId, classeId, coursId, schoolYearId, titulaire, weeklyHours } =
+      input;
 
     if (!id) throw new Error("ID requis");
 
@@ -575,6 +773,12 @@ export const updateTeachingAction = action
       classeId,
       coursIds: [coursId],
     });
+    await assertTeacherMatchesClasseCycle({
+      branchId,
+      organizationId,
+      classeId,
+      teacherId,
+    });
 
     const teaching = await prisma.teaching.update({
       data: {
@@ -583,6 +787,7 @@ export const updateTeachingAction = action
         coursId,
         schoolYearId,
         titulaire,
+        weeklyHours,
         branchId,
       },
       where: {

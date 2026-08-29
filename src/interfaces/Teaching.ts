@@ -17,6 +17,7 @@ export interface ITeaching
   coursId: string;
   titulaire: boolean;
   statusTeaching: boolean;
+  weeklyHours?: number | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -27,4 +28,8 @@ export const teachingSchema = z.object({
   coursId: z.string().min(1, "Veuillez selectionner un cours"),
   schoolYearId: z.string().min(1, "Veuillez selectionner l'annee scolaire"),
   titulaire: z.boolean().optional(),
+  weeklyHours: z.coerce
+    .number({ invalid_type_error: "Indiquez les minutes / semaine" })
+    .positive("Les minutes / semaine doivent être > 0")
+    .max(600, "Maximum 600 min / semaine pour une affectation"),
 });

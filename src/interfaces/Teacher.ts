@@ -23,6 +23,8 @@ export interface ITeacher
   estTitulaire?: boolean;
   classeId?: string;
   coursId?: string;
+  /** Cycles ACL du membre dans la branche (création / édition). */
+  cycles?: string[];
 }
 
 export const teacherSchema = z
@@ -46,11 +48,16 @@ export const teacherSchema = z
     email: z.string().optional(),
     address: z.string().trim().min(1, { message: "Veuillez saisir l'adresse" }),
     image: z.string().trim().max(2000).optional().or(z.literal("")),
-    /** Titulaire / superviseur de classe (crée une affectation Teaching). */
-    estTitulaire: z.boolean().optional(),
-    classeId: z.string().optional(),
-    coursId: z.string().optional(),
-  })
+  cycles: z
+    .array(z.string())
+    .optional()
+    .default([]),
+  /** Titulaire / superviseur de classe (crée une affectation Teaching). */
+  estTitulaire: z.boolean().optional(),
+  classeId: z.string().optional(),
+  coursId: z.string().optional(),
+  weeklyHours: z.coerce.number().positive().optional(),
+})
   .superRefine((data, ctx) => {
     if (!data.estTitulaire) return;
 

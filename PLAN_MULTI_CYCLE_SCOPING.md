@@ -2,8 +2,23 @@
 
 > Objectif : dans un établissement multi-cycles (Maternelle / Primaire / Secondaire), chaque agent ne voit que les données de **son/ses cycle(s)** ; **caisse** et **inscriptions** restent **uniques** pour toute la branche ; l’affectation enseignant saisit les **heures/semaine** pour **régénérer** l’emploi du temps selon le créneau ; un **même cours** peut servir plusieurs cycles sans duplication ; un **enseignant** peut enseigner dans **plusieurs branches** de l’organisation, sans jamais être placé **à la même heure** sur deux branches.
 
-**Statut :** plan à exécuter (non implémenté)  
-**Date :** 2026-08-28 (rev. création users + cycle obligatoire ; enseignants multi-branches ; cours multi-cycles)  
+**Statut :** exécution en cours (fondation livrée)  
+**Date :** 2026-08-28 (rev. exécution démarrée)
+
+### Progression
+
+| Phase | Statut |
+|-------|--------|
+| 0 Cadrage | ✅ figé dans le code (`CYCLE_GLOBAL_ROLES`) |
+| 1 BranchMemberCycle + création teacher/personnel | ✅ schéma + UI + assign |
+| 2 Cours multi-cycles sans duplication | ⏳ (déjà via pondération/classe — pas de `cycle` unique sur Cours) |
+| 3 ACL listes / annuaire users | ✅ owner+gestionnaire voient tout ; autres = même cycle (caissier = branche) |
+| 4 Caisse / inscription uniques | ✅ déjà le cas (à ne pas cloisonner) |
+| 5 weeklyHours Teaching | ✅ champ + formulaire affectation |
+| 5b Conflits multi-branches | ✅ `assertTeacherFreeAt` branché sur schedule |
+| 6 Régénération horaire auto | ⏳ à faire |
+| 7 UX sélecteur cycle | ⏳ à faire |
+| 8 Recette | ⏳ |
 **Contexte actuel :** `BranchCycle` + `cycle` sur classes/sections/options/périodes existent ; personnes et ACL sont encore **branch-scoped** ; caisse/inscription déjà partagées ; `Teaching` sans heures/semaine ; `Schedule` manuel ; conflit horaire enseignant **intra-branche seulement** (`schedule.action.ts`) ; création member / teacher / personnel **sans** choix de cycle.
 
 ---
@@ -35,6 +50,7 @@ Dans une branche **multi-cycle**, à la création / invitation / profil branche 
 |--------|---------------------|--------|
 | **Propriétaire** (`OWNER`) | Non demandé | **Tous** les cycles |
 | **Gestionnaire** (`GESTIONNAIRE`) | Non demandé | **Tous** les cycles |
+| **Agent de bureau** (`AGENT_BUREAU`) | Non demandé | **Tous** les cycles (comme gestionnaire, **sans finance ni notes**) |
 | **Caissier** (`CAISSIER`) | Non demandé | **Tous** les cycles (caisse unique) |
 | **Member** (autres rôles org / agents) | **Obligatoire** (≥ 1 cycle) | Uniquement ses cycles |
 | **Teacher** | **Obligatoire** (≥ 1 cycle) | Uniquement ses cycles (+ enseignements) |
@@ -281,7 +297,8 @@ Pour chaque module, appliquer `where cycle IN memberCycles` (ou via relation cla
 **But :** saisie métier avant auto-horaire, dans la logique enseignant.
 
 - [ ] Ajouter sur `Teaching` :
-  - `weeklyHours Float` (ou `Int`) = volume pour **cette** affectation classe×cours×année.
+  - `weeklyHours Float` = volume en **minutes** / semaine pour cette affectation (ex. 135).
+  - Séances = `ceil(weeklyHours / durationCourse)` où `durationCourse` vient de la vacation de la classe (30 min prim/mat, 45 min sec typiquement).
 - [ ] Somme des teachings (toutes branches du même `User`, année courante) = **charge globale** affichée à l’affectation.
 - [ ] UI affectation (`teaching`) : champ obligatoire « Heures / semaine ».
 - [ ] Validation : `weeklyHours > 0` ; cohérent avec `durationCourse` du créneau de la classe.
@@ -350,7 +367,7 @@ assertTeacherFreeAt({ userId, day, startMin, endMin, excludeScheduleId? })
 1. Charger les **busy slots** de chaque enseignant concerné (toutes branches).
 2. Découper la semaine en slots disponibles par classe (grille créneau − récréation − busy enseignant).
 3. Ordonner les teachings par priorité (titulaire, plus d’heures, moins de slots libres).
-4. Placer `ceil(weeklyHours / (durationCourse/60))` séances.
+4. Placer `ceil(weeklyMinutes / durationCourse)` séances, **réparties** (1/jour puis 2ᵉ passe…) — ex. 135 min ÷ 45 min → Lun/Mar/Mer.
 5. Mode **régénérer** : ne touche **que** les `Schedule` `source: AUTO` de **cette** branche/cycle/année ; **jamais** les horaires d’une autre branche.
 
 **Schéma complémentaire :**

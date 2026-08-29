@@ -37,6 +37,11 @@ import {
   isStandardFicheType,
   isValidatedFicheCote,
 } from "@/lib/fiche-type-options";
+import {
+  formatFicheInterventionLabel,
+  numberFichesByType,
+} from "@/lib/grade-modification-shared";
+import { FicheScoresDialog } from "@/components/fiche-scores-dialog";
 
 /* ===== DYNAMIC ===== */
 const TeacherCombobox = dynamic(
@@ -94,6 +99,12 @@ export default function FicheSaisieClient({
   const [isLoading, setIsLoading] = useState(false);
   const [typeFiche, setTypeFiche] = useState<FicheTypes | null>(null);
   const [lessonSearch, setLessonSearch] = useState("");
+  const [viewFiche, setViewFiche] = useState<{
+    id: string;
+    sequence: number;
+    subjectName: string;
+    typeFiche: string;
+  } | null>(null);
 
   const selectedTeacher = teachers.find((t) => t.id === selectedTeacherId);
   const selectedLesson = selectedTeacher?.lessons.find(
@@ -843,19 +854,29 @@ export default function FicheSaisieClient({
                   <ul className="divide-y rounded-xl border bg-background">
                     {visibleLessons.map((lesson) => {
                       const selected = selectedLessonId === lesson.id;
-                      const existingOfType =
+                      const yearScoped = (lesson.fiches ?? []).filter(
+                        (f) =>
+                          (!selectedYearId || f.anneeId === selectedYearId) &&
+                          (!typeFiche || f.typeFiche === typeFiche),
+                      );
+                      const numberedAll = numberFichesByType(
+                        yearScoped.map((f) => ({
+                          ...f,
+                          dateCreated: f.dateCreated,
+                        })),
+                      );
+                      const numbered =
                         canFilter && typeFiche
-                          ? (lesson.fiches?.filter(
+                          ? numberedAll.filter(
                               (f) =>
-                                f.typeFiche === typeFiche &&
-                                f.anneeId === selectedYearId &&
-                                (f.periodId === selectedPeriodId ||
-                                  f.periodeName ===
-                                    (period?.rawLabel ?? period?.label)),
-                            ).length ?? 0)
-                          : 0;
+                                f.periodId === selectedPeriodId ||
+                                f.periodeName ===
+                                  (period?.rawLabel ?? period?.label),
+                            )
+                          : numberedAll;
+                      const existingOfType = numbered.length;
                       return (
-                        <li key={lesson.id}>
+                        <li key={lesson.id} className="space-y-0">
                           <button
                             type="button"
                             onClick={() => setSelectedLessonId(lesson.id)}
@@ -889,6 +910,56 @@ export default function FicheSaisieClient({
                               </Badge>
                             </div>
                           </button>
+
+                          {selected && numbered.length > 0 ? (
+                            <ul className="space-y-1 border-t bg-muted/10 px-3 py-2">
+                              {numbered.map((fiche) => {
+                                const label = formatFicheInterventionLabel({
+                                  typeFiche: fiche.typeFiche,
+                                  sequence: fiche.sequence,
+                                  subjectName: lesson.subjectName,
+                                });
+                                const dateLabel = new Intl.DateTimeFormat(
+                                  "fr-FR",
+                                  { dateStyle: "medium" },
+                                ).format(new Date(fiche.dateCreated));
+                                return (
+                                  <li key={fiche.id}>
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        setViewFiche({
+                                          id: fiche.id,
+                                          sequence: fiche.sequence,
+                                          subjectName: lesson.subjectName,
+                                          typeFiche: fiche.typeFiche,
+                                        })
+                                      }
+                                      className="flex w-full items-start justify-between gap-2 rounded-lg border bg-background px-2.5 py-2 text-left text-xs transition hover:border-primary/40 hover:bg-primary/5"
+                                    >
+                                      <span className="min-w-0">
+                                        <span className="block font-medium text-foreground">
+                                          {label}
+                                        </span>
+                                        <span className="text-muted-foreground">
+                                          {dateLabel}
+                                          {fiche.status
+                                            ? " · validé"
+                                            : " · ouvert"}
+                                        </span>
+                                      </span>
+                                      <Badge
+                                        variant="outline"
+                                        className="shrink-0 font-normal"
+                                      >
+                                        Voir
+                                      </Badge>
+                                    </button>
+                                  </li>
+                                );
+                              })}
+                            </ul>
+                          ) : null}
                         </li>
                       );
                     })}
@@ -935,6 +1006,17 @@ export default function FicheSaisieClient({
             </Card>
           </div>
         </Card>
+      <FicheScoresDialog
+        open={Boolean(viewFiche)}
+        onOpenChange={(next) => {
+          if (!next) setViewFiche(null);
+        }}
+        ficheId={viewFiche?.id ?? null}
+        sequence={viewFiche?.sequence ?? 1}
+        subjectName={viewFiche?.subjectName ?? ""}
+        typeFiche={viewFiche?.typeFiche ?? "Devoir"}
+        onSubmitted={() => router.refresh()}
+      />
     </BranchPageShell>
   );
 }

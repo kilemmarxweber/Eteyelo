@@ -14,6 +14,12 @@ import {
   stashAdminCreatedUserPlainPassword,
 } from "@/lib/admin-created-user-password";
 import { generateSecurePassword } from "@/lib/generate-password";
+import { assignBranchMemberCycles } from "@/lib/auth/cycle-scope";
+import {
+  buildBranchMemberDirectoryWhere,
+  isCycleGlobalRole,
+  sessionCanViewAllDirectoryUsers,
+} from "@/lib/auth/cycle-scope";
 import { requireBranchContext, requireHrWriteBranchContext } from "@/lib/auth/require-branch-context";
 import {
   buildSchoolReportContext,
@@ -156,6 +162,13 @@ export const createPersonnelAction = action
         memberId: result.memberId,
         branchId,
         role: "DIRECTOR",
+      });
+
+      await assignBranchMemberCycles({
+        branchMemberId,
+        branchId,
+        orgRole: data.orgRole,
+        cycles: data.cycles,
       });
 
       // =========================
@@ -388,15 +401,42 @@ export const getPersonnelPresenceStatsAction = action.handler(async () => {
 
 export const getPersonnelsAction = action.handler(
   async (): Promise<IPersonnel[]> => {
-    const { branchId, organizationId } = await getCurrentBranch();
+    const { branchId, organizationId, userId, session } =
+      await requireBranchContext();
+
+    const [orgMember, branchMember] = await Promise.all([
+      prisma.member.findFirst({
+        where: { userId, organizationId },
+        select: { role: true },
+      }),
+      prisma.branchMember.findFirst({
+        where: { branchId, member: { userId, organizationId } },
+        select: { id: true },
+      }),
+    ]);
+
+    const seeAll = sessionCanViewAllDirectoryUsers(session, orgMember?.role);
+    const seeWholeBranch =
+      !seeAll && isCycleGlobalRole(orgMember?.role);
+    const directoryWhere = await buildBranchMemberDirectoryWhere({
+      viewerBranchMemberId: branchMember?.id ?? null,
+      seeAll,
+      seeWholeBranch,
+    });
+
     const personnels = await prisma.personnel.findMany({
       where: {
         branchMember: {
-          branchId,
-          isActive: true,
-          branch: {
-            organizationId,
-          },
+          AND: [
+            {
+              branchId,
+              isActive: true,
+              branch: {
+                organizationId,
+              },
+            },
+            ...(directoryWhere ? [directoryWhere] : []),
+          ],
         },
       },
       include: {
@@ -407,6 +447,7 @@ export const getPersonnelsAction = action.handler(
                 user: true,
               },
             },
+            memberCycles: { select: { cycle: true } },
           },
         },
       },
@@ -443,6 +484,9 @@ export const getPersonnelsAction = action.handler(
 
         // role org
         role: member?.role ?? "",
+        cycles: (personnel.branchMember?.memberCycles ?? []).map(
+          (row) => row.cycle,
+        ),
       };
     });
   },
@@ -508,6 +552,16 @@ export const updatePersonnelAction = action
         member,
       };
     });
+
+    const branchMemberId = personnel.branchMember?.id;
+    if (branchMemberId) {
+      await assignBranchMemberCycles({
+        branchMemberId,
+        branchId,
+        orgRole,
+        cycles: data.cycles,
+      });
+    }
 
     return result;
   });

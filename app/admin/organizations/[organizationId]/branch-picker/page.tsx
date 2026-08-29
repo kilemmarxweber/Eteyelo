@@ -42,7 +42,7 @@ export default async function BranchPickerPage({ params }: BranchPickerPageProps
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-2xl flex-col gap-5 px-4 py-6 sm:px-6">
+    <div className="mx-auto flex w-full max-w-7xl flex-col gap-5 px-4 py-6 sm:px-6">
       {context.appRole === APP_ROLE.OWNER || context.appRole === APP_ROLE.ADMIN ? (
         <BackLink
           href={`/admin/organizations/${organizationId}`}
@@ -50,15 +50,15 @@ export default async function BranchPickerPage({ params }: BranchPickerPageProps
         />
       ) : null}
 
-      <div className="space-y-2">
+      <div className="w-full max-w-7xl space-y-2">
         <div className="inline-flex items-center gap-2 rounded-full bg-blue-950/10 px-3 py-1 text-xs font-semibold text-foreground">
           <School className="size-3.5" />
           Choix de branche
         </div>
-        <h1 className="text-2xl font-bold text-foreground">
+        <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
           Selectionnez votre etablissement
         </h1>
-        <p className="text-sm leading-relaxed text-muted-foreground">
+        <p className="w-full max-w-7xl text-sm leading-relaxed text-muted-foreground sm:text-base">
           Votre compte est rattache a plusieurs branches. Choisissez celle que
           vous souhaitez utiliser pour cette session.
         </p>

@@ -34,6 +34,14 @@ const PRESET_META: Record<string, Omit<OrgRolePresetMeta, "slug">> = {
     sortOrder: 10,
     locked: false,
   },
+  [ORG_ROLE.AGENT_BUREAU]: {
+    label: "Agent de bureau",
+    description:
+      "Comme le gestionnaire : tous les cycles et l'annuaire, sans finance ni notes.",
+    isSystem: true,
+    sortOrder: 15,
+    locked: false,
+  },
   [ORG_ROLE.PREFET]: {
     label: "Préfet",
     description: "Chef d'établissement (secondaire/humanités) — pédagogie + RH.",

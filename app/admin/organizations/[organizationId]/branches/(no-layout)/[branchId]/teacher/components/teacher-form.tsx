@@ -35,10 +35,12 @@ import generateUsername from "@/src/hooks/generateUsername";
 import { IClasse } from "@/src/interfaces/Classe";
 import { ICours } from "@/src/interfaces/Cours";
 import { teacherSchema } from "@/src/interfaces/Teacher";
+import { MemberCyclesField } from "@/components/member-cycles-field";
 import { DateOfBirthPicker } from "@/components/date-of-birth-picker";
 
 import { getClassesAction } from "../../classe/classe.action";
 import { getCoursAction } from "../../cours/cours.action";
+import { getBranchCyclesForFormsAction } from "../../settings/branch-cycles.action";
 import { createTeacherAction, updateTeacherAction } from "../teacher.action";
 
 interface TeacherUpFormProps extends HTMLAttributes<HTMLDivElement> {
@@ -63,6 +65,10 @@ export function TeacherUpForm({
   const [errorMessage, setErrorMessage] = useState("");
   const [classes, setClasses] = useState<IClasse[]>([]);
   const [courses, setCourses] = useState<ICours[]>([]);
+  const [cycleOptions, setCycleOptions] = useState<
+    { value: string; label: string }[]
+  >([]);
+  const [isMultiCycle, setIsMultiCycle] = useState(false);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(
     initialData?.image?.trim() || null,
@@ -101,6 +107,7 @@ export function TeacherUpForm({
           classeId: initialData.classeId ?? "",
           coursId: initialData.coursId ?? "",
           image: initialData.image ?? "",
+          cycles: initialData.cycles ?? [],
         }
       : {
           username: "",
@@ -116,6 +123,7 @@ export function TeacherUpForm({
           classeId: "",
           coursId: "",
           image: "",
+          cycles: [],
         },
   });
 
@@ -168,12 +176,23 @@ export function TeacherUpForm({
       }
     }
 
+    async function loadCycles() {
+      const [data, err] = await getBranchCyclesForFormsAction();
+      if (cancelled || err || !data) return;
+      setCycleOptions(data.cycles);
+      setIsMultiCycle(data.isMultiCycle);
+      if (!data.isMultiCycle && data.cycles[0] && !form.getValues("cycles")?.length) {
+        form.setValue("cycles", [data.cycles[0].value]);
+      }
+    }
+
     void loadClasses();
+    void loadCycles();
 
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [form]);
 
   useEffect(() => {
     if (!estTitulaire) {
@@ -212,6 +231,11 @@ export function TeacherUpForm({
     setErrorMessage("");
 
     const estTitulaire = Boolean(data.estTitulaire);
+    if (isMultiCycle && (!data.cycles || data.cycles.length === 0)) {
+      setErrorMessage("Sélectionnez au moins un cycle.");
+      setIsLoading(false);
+      return;
+    }
     let image = data.image?.trim() || "";
     if (photoFile) {
       const uploaded = await uploadFile(photoFile);
@@ -448,6 +472,24 @@ export function TeacherUpForm({
                 fullName={fullName}
               />
             </div>
+
+            {isMultiCycle ? (
+              <div className="sm:col-span-2">
+                <MemberCyclesField
+                  options={cycleOptions}
+                  value={form.watch("cycles") ?? []}
+                  onChange={(next) =>
+                    form.setValue("cycles", next, { shouldValidate: true })
+                  }
+                  isMultiCycle={isMultiCycle}
+                />
+                {isMultiCycle && (form.watch("cycles")?.length ?? 0) === 0 ? (
+                  <p className="mt-1 text-xs text-destructive">
+                    Sélectionnez au moins un cycle.
+                  </p>
+                ) : null}
+              </div>
+            ) : null}
 
             <FormField
               control={form.control}

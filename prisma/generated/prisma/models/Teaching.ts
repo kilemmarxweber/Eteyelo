@@ -20,8 +20,18 @@ export type TeachingModel = runtime.Types.Result.DefaultSelection<Prisma.$Teachi
 
 export type AggregateTeaching = {
   _count: TeachingCountAggregateOutputType | null
+  _avg: TeachingAvgAggregateOutputType | null
+  _sum: TeachingSumAggregateOutputType | null
   _min: TeachingMinAggregateOutputType | null
   _max: TeachingMaxAggregateOutputType | null
+}
+
+export type TeachingAvgAggregateOutputType = {
+  weeklyHours: number | null
+}
+
+export type TeachingSumAggregateOutputType = {
+  weeklyHours: number | null
 }
 
 export type TeachingMinAggregateOutputType = {
@@ -31,6 +41,7 @@ export type TeachingMinAggregateOutputType = {
   schoolYearId: string | null
   titulaire: boolean | null
   statusTeaching: boolean | null
+  weeklyHours: number | null
   branchId: string | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -44,6 +55,7 @@ export type TeachingMaxAggregateOutputType = {
   schoolYearId: string | null
   titulaire: boolean | null
   statusTeaching: boolean | null
+  weeklyHours: number | null
   branchId: string | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -57,6 +69,7 @@ export type TeachingCountAggregateOutputType = {
   schoolYearId: number
   titulaire: number
   statusTeaching: number
+  weeklyHours: number
   branchId: number
   createdAt: number
   updatedAt: number
@@ -65,6 +78,14 @@ export type TeachingCountAggregateOutputType = {
 }
 
 
+export type TeachingAvgAggregateInputType = {
+  weeklyHours?: true
+}
+
+export type TeachingSumAggregateInputType = {
+  weeklyHours?: true
+}
+
 export type TeachingMinAggregateInputType = {
   id?: true
   teacherId?: true
@@ -72,6 +93,7 @@ export type TeachingMinAggregateInputType = {
   schoolYearId?: true
   titulaire?: true
   statusTeaching?: true
+  weeklyHours?: true
   branchId?: true
   createdAt?: true
   updatedAt?: true
@@ -85,6 +107,7 @@ export type TeachingMaxAggregateInputType = {
   schoolYearId?: true
   titulaire?: true
   statusTeaching?: true
+  weeklyHours?: true
   branchId?: true
   createdAt?: true
   updatedAt?: true
@@ -98,6 +121,7 @@ export type TeachingCountAggregateInputType = {
   schoolYearId?: true
   titulaire?: true
   statusTeaching?: true
+  weeklyHours?: true
   branchId?: true
   createdAt?: true
   updatedAt?: true
@@ -143,6 +167,18 @@ export type TeachingAggregateArgs<ExtArgs extends runtime.Types.Extensions.Inter
   /**
    * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
    * 
+   * Select which fields to average
+  **/
+  _avg?: TeachingAvgAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
+   * Select which fields to sum
+  **/
+  _sum?: TeachingSumAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
    * Select which fields to find the minimum value
   **/
   _min?: TeachingMinAggregateInputType
@@ -173,6 +209,8 @@ export type TeachingGroupByArgs<ExtArgs extends runtime.Types.Extensions.Interna
   take?: number
   skip?: number
   _count?: TeachingCountAggregateInputType | true
+  _avg?: TeachingAvgAggregateInputType
+  _sum?: TeachingSumAggregateInputType
   _min?: TeachingMinAggregateInputType
   _max?: TeachingMaxAggregateInputType
 }
@@ -184,11 +222,14 @@ export type TeachingGroupByOutputType = {
   schoolYearId: string
   titulaire: boolean | null
   statusTeaching: boolean | null
+  weeklyHours: number | null
   branchId: string | null
   createdAt: Date
   updatedAt: Date
   coursId: string
   _count: TeachingCountAggregateOutputType | null
+  _avg: TeachingAvgAggregateOutputType | null
+  _sum: TeachingSumAggregateOutputType | null
   _min: TeachingMinAggregateOutputType | null
   _max: TeachingMaxAggregateOutputType | null
 }
@@ -218,6 +259,7 @@ export type TeachingWhereInput = {
   schoolYearId?: Prisma.StringFilter<"Teaching"> | string
   titulaire?: Prisma.BoolNullableFilter<"Teaching"> | boolean | null
   statusTeaching?: Prisma.BoolNullableFilter<"Teaching"> | boolean | null
+  weeklyHours?: Prisma.FloatNullableFilter<"Teaching"> | number | null
   branchId?: Prisma.StringNullableFilter<"Teaching"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Teaching"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Teaching"> | Date | string
@@ -240,6 +282,7 @@ export type TeachingOrderByWithRelationInput = {
   schoolYearId?: Prisma.SortOrder
   titulaire?: Prisma.SortOrderInput | Prisma.SortOrder
   statusTeaching?: Prisma.SortOrderInput | Prisma.SortOrder
+  weeklyHours?: Prisma.SortOrderInput | Prisma.SortOrder
   branchId?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -266,6 +309,7 @@ export type TeachingWhereUniqueInput = Prisma.AtLeast<{
   schoolYearId?: Prisma.StringFilter<"Teaching"> | string
   titulaire?: Prisma.BoolNullableFilter<"Teaching"> | boolean | null
   statusTeaching?: Prisma.BoolNullableFilter<"Teaching"> | boolean | null
+  weeklyHours?: Prisma.FloatNullableFilter<"Teaching"> | number | null
   branchId?: Prisma.StringNullableFilter<"Teaching"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Teaching"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Teaching"> | Date | string
@@ -288,13 +332,16 @@ export type TeachingOrderByWithAggregationInput = {
   schoolYearId?: Prisma.SortOrder
   titulaire?: Prisma.SortOrderInput | Prisma.SortOrder
   statusTeaching?: Prisma.SortOrderInput | Prisma.SortOrder
+  weeklyHours?: Prisma.SortOrderInput | Prisma.SortOrder
   branchId?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   coursId?: Prisma.SortOrder
   _count?: Prisma.TeachingCountOrderByAggregateInput
+  _avg?: Prisma.TeachingAvgOrderByAggregateInput
   _max?: Prisma.TeachingMaxOrderByAggregateInput
   _min?: Prisma.TeachingMinOrderByAggregateInput
+  _sum?: Prisma.TeachingSumOrderByAggregateInput
 }
 
 export type TeachingScalarWhereWithAggregatesInput = {
@@ -307,6 +354,7 @@ export type TeachingScalarWhereWithAggregatesInput = {
   schoolYearId?: Prisma.StringWithAggregatesFilter<"Teaching"> | string
   titulaire?: Prisma.BoolNullableWithAggregatesFilter<"Teaching"> | boolean | null
   statusTeaching?: Prisma.BoolNullableWithAggregatesFilter<"Teaching"> | boolean | null
+  weeklyHours?: Prisma.FloatNullableWithAggregatesFilter<"Teaching"> | number | null
   branchId?: Prisma.StringNullableWithAggregatesFilter<"Teaching"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Teaching"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Teaching"> | Date | string
@@ -317,6 +365,7 @@ export type TeachingCreateInput = {
   id?: string
   titulaire?: boolean | null
   statusTeaching?: boolean | null
+  weeklyHours?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   branch?: Prisma.BranchCreateNestedOneWithoutTeachingInput
@@ -337,6 +386,7 @@ export type TeachingUncheckedCreateInput = {
   schoolYearId: string
   titulaire?: boolean | null
   statusTeaching?: boolean | null
+  weeklyHours?: number | null
   branchId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -351,6 +401,7 @@ export type TeachingUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   titulaire?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   statusTeaching?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  weeklyHours?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branch?: Prisma.BranchUpdateOneWithoutTeachingNestedInput
@@ -371,6 +422,7 @@ export type TeachingUncheckedUpdateInput = {
   schoolYearId?: Prisma.StringFieldUpdateOperationsInput | string
   titulaire?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   statusTeaching?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  weeklyHours?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   branchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -388,6 +440,7 @@ export type TeachingCreateManyInput = {
   schoolYearId: string
   titulaire?: boolean | null
   statusTeaching?: boolean | null
+  weeklyHours?: number | null
   branchId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -398,6 +451,7 @@ export type TeachingUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   titulaire?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   statusTeaching?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  weeklyHours?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -409,6 +463,7 @@ export type TeachingUncheckedUpdateManyInput = {
   schoolYearId?: Prisma.StringFieldUpdateOperationsInput | string
   titulaire?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   statusTeaching?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  weeklyHours?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   branchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -443,10 +498,15 @@ export type TeachingCountOrderByAggregateInput = {
   schoolYearId?: Prisma.SortOrder
   titulaire?: Prisma.SortOrder
   statusTeaching?: Prisma.SortOrder
+  weeklyHours?: Prisma.SortOrder
   branchId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   coursId?: Prisma.SortOrder
+}
+
+export type TeachingAvgOrderByAggregateInput = {
+  weeklyHours?: Prisma.SortOrder
 }
 
 export type TeachingMaxOrderByAggregateInput = {
@@ -456,6 +516,7 @@ export type TeachingMaxOrderByAggregateInput = {
   schoolYearId?: Prisma.SortOrder
   titulaire?: Prisma.SortOrder
   statusTeaching?: Prisma.SortOrder
+  weeklyHours?: Prisma.SortOrder
   branchId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -469,10 +530,15 @@ export type TeachingMinOrderByAggregateInput = {
   schoolYearId?: Prisma.SortOrder
   titulaire?: Prisma.SortOrder
   statusTeaching?: Prisma.SortOrder
+  weeklyHours?: Prisma.SortOrder
   branchId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   coursId?: Prisma.SortOrder
+}
+
+export type TeachingSumOrderByAggregateInput = {
+  weeklyHours?: Prisma.SortOrder
 }
 
 export type TeachingNullableScalarRelationFilter = {
@@ -620,6 +686,14 @@ export type TeachingUncheckedUpdateManyWithoutTeacherNestedInput = {
   deleteMany?: Prisma.TeachingScalarWhereInput | Prisma.TeachingScalarWhereInput[]
 }
 
+export type NullableFloatFieldUpdateOperationsInput = {
+  set?: number | null
+  increment?: number
+  decrement?: number
+  multiply?: number
+  divide?: number
+}
+
 export type TeachingCreateNestedManyWithoutCoursInput = {
   create?: Prisma.XOR<Prisma.TeachingCreateWithoutCoursInput, Prisma.TeachingUncheckedCreateWithoutCoursInput> | Prisma.TeachingCreateWithoutCoursInput[] | Prisma.TeachingUncheckedCreateWithoutCoursInput[]
   connectOrCreate?: Prisma.TeachingCreateOrConnectWithoutCoursInput | Prisma.TeachingCreateOrConnectWithoutCoursInput[]
@@ -754,6 +828,7 @@ export type TeachingCreateWithoutAttendanceSessionInput = {
   id?: string
   titulaire?: boolean | null
   statusTeaching?: boolean | null
+  weeklyHours?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   branch?: Prisma.BranchCreateNestedOneWithoutTeachingInput
@@ -773,6 +848,7 @@ export type TeachingUncheckedCreateWithoutAttendanceSessionInput = {
   schoolYearId: string
   titulaire?: boolean | null
   statusTeaching?: boolean | null
+  weeklyHours?: number | null
   branchId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -802,6 +878,7 @@ export type TeachingUpdateWithoutAttendanceSessionInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   titulaire?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   statusTeaching?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  weeklyHours?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branch?: Prisma.BranchUpdateOneWithoutTeachingNestedInput
@@ -821,6 +898,7 @@ export type TeachingUncheckedUpdateWithoutAttendanceSessionInput = {
   schoolYearId?: Prisma.StringFieldUpdateOperationsInput | string
   titulaire?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   statusTeaching?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  weeklyHours?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   branchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -834,6 +912,7 @@ export type TeachingCreateWithoutClasseInput = {
   id?: string
   titulaire?: boolean | null
   statusTeaching?: boolean | null
+  weeklyHours?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   branch?: Prisma.BranchCreateNestedOneWithoutTeachingInput
@@ -852,6 +931,7 @@ export type TeachingUncheckedCreateWithoutClasseInput = {
   schoolYearId: string
   titulaire?: boolean | null
   statusTeaching?: boolean | null
+  weeklyHours?: number | null
   branchId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -898,6 +978,7 @@ export type TeachingScalarWhereInput = {
   schoolYearId?: Prisma.StringFilter<"Teaching"> | string
   titulaire?: Prisma.BoolNullableFilter<"Teaching"> | boolean | null
   statusTeaching?: Prisma.BoolNullableFilter<"Teaching"> | boolean | null
+  weeklyHours?: Prisma.FloatNullableFilter<"Teaching"> | number | null
   branchId?: Prisma.StringNullableFilter<"Teaching"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Teaching"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Teaching"> | Date | string
@@ -908,6 +989,7 @@ export type TeachingCreateWithoutSchoolYearInput = {
   id?: string
   titulaire?: boolean | null
   statusTeaching?: boolean | null
+  weeklyHours?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   branch?: Prisma.BranchCreateNestedOneWithoutTeachingInput
@@ -926,6 +1008,7 @@ export type TeachingUncheckedCreateWithoutSchoolYearInput = {
   classeId: string
   titulaire?: boolean | null
   statusTeaching?: boolean | null
+  weeklyHours?: number | null
   branchId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -966,6 +1049,7 @@ export type TeachingCreateWithoutTeacherInput = {
   id?: string
   titulaire?: boolean | null
   statusTeaching?: boolean | null
+  weeklyHours?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   branch?: Prisma.BranchCreateNestedOneWithoutTeachingInput
@@ -984,6 +1068,7 @@ export type TeachingUncheckedCreateWithoutTeacherInput = {
   schoolYearId: string
   titulaire?: boolean | null
   statusTeaching?: boolean | null
+  weeklyHours?: number | null
   branchId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1024,6 +1109,7 @@ export type TeachingCreateWithoutCoursInput = {
   id?: string
   titulaire?: boolean | null
   statusTeaching?: boolean | null
+  weeklyHours?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   branch?: Prisma.BranchCreateNestedOneWithoutTeachingInput
@@ -1043,6 +1129,7 @@ export type TeachingUncheckedCreateWithoutCoursInput = {
   schoolYearId: string
   titulaire?: boolean | null
   statusTeaching?: boolean | null
+  weeklyHours?: number | null
   branchId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1082,6 +1169,7 @@ export type TeachingCreateWithoutScheduleInput = {
   id?: string
   titulaire?: boolean | null
   statusTeaching?: boolean | null
+  weeklyHours?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   branch?: Prisma.BranchCreateNestedOneWithoutTeachingInput
@@ -1101,6 +1189,7 @@ export type TeachingUncheckedCreateWithoutScheduleInput = {
   schoolYearId: string
   titulaire?: boolean | null
   statusTeaching?: boolean | null
+  weeklyHours?: number | null
   branchId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1130,6 +1219,7 @@ export type TeachingUpdateWithoutScheduleInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   titulaire?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   statusTeaching?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  weeklyHours?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branch?: Prisma.BranchUpdateOneWithoutTeachingNestedInput
@@ -1149,6 +1239,7 @@ export type TeachingUncheckedUpdateWithoutScheduleInput = {
   schoolYearId?: Prisma.StringFieldUpdateOperationsInput | string
   titulaire?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   statusTeaching?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  weeklyHours?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   branchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1162,6 +1253,7 @@ export type TeachingCreateWithoutCalendarEventInput = {
   id?: string
   titulaire?: boolean | null
   statusTeaching?: boolean | null
+  weeklyHours?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   branch?: Prisma.BranchCreateNestedOneWithoutTeachingInput
@@ -1181,6 +1273,7 @@ export type TeachingUncheckedCreateWithoutCalendarEventInput = {
   schoolYearId: string
   titulaire?: boolean | null
   statusTeaching?: boolean | null
+  weeklyHours?: number | null
   branchId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1210,6 +1303,7 @@ export type TeachingUpdateWithoutCalendarEventInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   titulaire?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   statusTeaching?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  weeklyHours?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branch?: Prisma.BranchUpdateOneWithoutTeachingNestedInput
@@ -1229,6 +1323,7 @@ export type TeachingUncheckedUpdateWithoutCalendarEventInput = {
   schoolYearId?: Prisma.StringFieldUpdateOperationsInput | string
   titulaire?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   statusTeaching?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  weeklyHours?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   branchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1242,6 +1337,7 @@ export type TeachingCreateWithoutFicheInput = {
   id?: string
   titulaire?: boolean | null
   statusTeaching?: boolean | null
+  weeklyHours?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   branch?: Prisma.BranchCreateNestedOneWithoutTeachingInput
@@ -1261,6 +1357,7 @@ export type TeachingUncheckedCreateWithoutFicheInput = {
   schoolYearId: string
   titulaire?: boolean | null
   statusTeaching?: boolean | null
+  weeklyHours?: number | null
   branchId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1290,6 +1387,7 @@ export type TeachingUpdateWithoutFicheInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   titulaire?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   statusTeaching?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  weeklyHours?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branch?: Prisma.BranchUpdateOneWithoutTeachingNestedInput
@@ -1309,6 +1407,7 @@ export type TeachingUncheckedUpdateWithoutFicheInput = {
   schoolYearId?: Prisma.StringFieldUpdateOperationsInput | string
   titulaire?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   statusTeaching?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  weeklyHours?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   branchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1322,6 +1421,7 @@ export type TeachingCreateWithoutBranchInput = {
   id?: string
   titulaire?: boolean | null
   statusTeaching?: boolean | null
+  weeklyHours?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   teacher?: Prisma.TeacherCreateNestedOneWithoutTeachingInput
@@ -1341,6 +1441,7 @@ export type TeachingUncheckedCreateWithoutBranchInput = {
   schoolYearId: string
   titulaire?: boolean | null
   statusTeaching?: boolean | null
+  weeklyHours?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   coursId: string
@@ -1382,6 +1483,7 @@ export type TeachingCreateManyClasseInput = {
   schoolYearId: string
   titulaire?: boolean | null
   statusTeaching?: boolean | null
+  weeklyHours?: number | null
   branchId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1392,6 +1494,7 @@ export type TeachingUpdateWithoutClasseInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   titulaire?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   statusTeaching?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  weeklyHours?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branch?: Prisma.BranchUpdateOneWithoutTeachingNestedInput
@@ -1410,6 +1513,7 @@ export type TeachingUncheckedUpdateWithoutClasseInput = {
   schoolYearId?: Prisma.StringFieldUpdateOperationsInput | string
   titulaire?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   statusTeaching?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  weeklyHours?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   branchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1426,6 +1530,7 @@ export type TeachingUncheckedUpdateManyWithoutClasseInput = {
   schoolYearId?: Prisma.StringFieldUpdateOperationsInput | string
   titulaire?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   statusTeaching?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  weeklyHours?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   branchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1438,6 +1543,7 @@ export type TeachingCreateManySchoolYearInput = {
   classeId: string
   titulaire?: boolean | null
   statusTeaching?: boolean | null
+  weeklyHours?: number | null
   branchId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1448,6 +1554,7 @@ export type TeachingUpdateWithoutSchoolYearInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   titulaire?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   statusTeaching?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  weeklyHours?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branch?: Prisma.BranchUpdateOneWithoutTeachingNestedInput
@@ -1466,6 +1573,7 @@ export type TeachingUncheckedUpdateWithoutSchoolYearInput = {
   classeId?: Prisma.StringFieldUpdateOperationsInput | string
   titulaire?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   statusTeaching?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  weeklyHours?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   branchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1482,6 +1590,7 @@ export type TeachingUncheckedUpdateManyWithoutSchoolYearInput = {
   classeId?: Prisma.StringFieldUpdateOperationsInput | string
   titulaire?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   statusTeaching?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  weeklyHours?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   branchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1494,6 +1603,7 @@ export type TeachingCreateManyTeacherInput = {
   schoolYearId: string
   titulaire?: boolean | null
   statusTeaching?: boolean | null
+  weeklyHours?: number | null
   branchId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1504,6 +1614,7 @@ export type TeachingUpdateWithoutTeacherInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   titulaire?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   statusTeaching?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  weeklyHours?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branch?: Prisma.BranchUpdateOneWithoutTeachingNestedInput
@@ -1522,6 +1633,7 @@ export type TeachingUncheckedUpdateWithoutTeacherInput = {
   schoolYearId?: Prisma.StringFieldUpdateOperationsInput | string
   titulaire?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   statusTeaching?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  weeklyHours?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   branchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1538,6 +1650,7 @@ export type TeachingUncheckedUpdateManyWithoutTeacherInput = {
   schoolYearId?: Prisma.StringFieldUpdateOperationsInput | string
   titulaire?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   statusTeaching?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  weeklyHours?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   branchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1551,6 +1664,7 @@ export type TeachingCreateManyCoursInput = {
   schoolYearId: string
   titulaire?: boolean | null
   statusTeaching?: boolean | null
+  weeklyHours?: number | null
   branchId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1560,6 +1674,7 @@ export type TeachingUpdateWithoutCoursInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   titulaire?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   statusTeaching?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  weeklyHours?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branch?: Prisma.BranchUpdateOneWithoutTeachingNestedInput
@@ -1579,6 +1694,7 @@ export type TeachingUncheckedUpdateWithoutCoursInput = {
   schoolYearId?: Prisma.StringFieldUpdateOperationsInput | string
   titulaire?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   statusTeaching?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  weeklyHours?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   branchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1595,6 +1711,7 @@ export type TeachingUncheckedUpdateManyWithoutCoursInput = {
   schoolYearId?: Prisma.StringFieldUpdateOperationsInput | string
   titulaire?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   statusTeaching?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  weeklyHours?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   branchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1607,6 +1724,7 @@ export type TeachingCreateManyBranchInput = {
   schoolYearId: string
   titulaire?: boolean | null
   statusTeaching?: boolean | null
+  weeklyHours?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   coursId: string
@@ -1616,6 +1734,7 @@ export type TeachingUpdateWithoutBranchInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   titulaire?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   statusTeaching?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  weeklyHours?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   teacher?: Prisma.TeacherUpdateOneWithoutTeachingNestedInput
@@ -1635,6 +1754,7 @@ export type TeachingUncheckedUpdateWithoutBranchInput = {
   schoolYearId?: Prisma.StringFieldUpdateOperationsInput | string
   titulaire?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   statusTeaching?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  weeklyHours?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   coursId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1651,6 +1771,7 @@ export type TeachingUncheckedUpdateManyWithoutBranchInput = {
   schoolYearId?: Prisma.StringFieldUpdateOperationsInput | string
   titulaire?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   statusTeaching?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  weeklyHours?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   coursId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1721,6 +1842,7 @@ export type TeachingSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   schoolYearId?: boolean
   titulaire?: boolean
   statusTeaching?: boolean
+  weeklyHours?: boolean
   branchId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -1744,6 +1866,7 @@ export type TeachingSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exte
   schoolYearId?: boolean
   titulaire?: boolean
   statusTeaching?: boolean
+  weeklyHours?: boolean
   branchId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -1762,6 +1885,7 @@ export type TeachingSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exte
   schoolYearId?: boolean
   titulaire?: boolean
   statusTeaching?: boolean
+  weeklyHours?: boolean
   branchId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -1780,13 +1904,14 @@ export type TeachingSelectScalar = {
   schoolYearId?: boolean
   titulaire?: boolean
   statusTeaching?: boolean
+  weeklyHours?: boolean
   branchId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   coursId?: boolean
 }
 
-export type TeachingOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "teacherId" | "classeId" | "schoolYearId" | "titulaire" | "statusTeaching" | "branchId" | "createdAt" | "updatedAt" | "coursId", ExtArgs["result"]["teaching"]>
+export type TeachingOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "teacherId" | "classeId" | "schoolYearId" | "titulaire" | "statusTeaching" | "weeklyHours" | "branchId" | "createdAt" | "updatedAt" | "coursId", ExtArgs["result"]["teaching"]>
 export type TeachingInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   branch?: boolean | Prisma.Teaching$branchArgs<ExtArgs>
   teacher?: boolean | Prisma.Teaching$teacherArgs<ExtArgs>
@@ -1834,6 +1959,11 @@ export type $TeachingPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     schoolYearId: string
     titulaire: boolean | null
     statusTeaching: boolean | null
+    /**
+     * Volume hebdomadaire en minutes pour cette affectation (ex. 135).
+     * Nombre de séances = ceil(weeklyHours / durationCourse de la vacation).
+     */
+    weeklyHours: number | null
     branchId: string | null
     createdAt: Date
     updatedAt: Date
@@ -2276,6 +2406,7 @@ export interface TeachingFieldRefs {
   readonly schoolYearId: Prisma.FieldRef<"Teaching", 'String'>
   readonly titulaire: Prisma.FieldRef<"Teaching", 'Boolean'>
   readonly statusTeaching: Prisma.FieldRef<"Teaching", 'Boolean'>
+  readonly weeklyHours: Prisma.FieldRef<"Teaching", 'Float'>
   readonly branchId: Prisma.FieldRef<"Teaching", 'String'>
   readonly createdAt: Prisma.FieldRef<"Teaching", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Teaching", 'DateTime'>

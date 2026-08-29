@@ -31,6 +31,17 @@ export type DashboardVariant =
  * Priorité : études → chef école → gestion org (finance) → métier branche.
  */
 export function resolveDashboardVariant(session: any): DashboardVariant {
+  if (
+    hasSessionRole(session, [
+      ORG_ROLE.AGENT_BUREAU,
+      "agent_bureau",
+      "membre_bureau",
+    ])
+  ) {
+    // Comme le gestionnaire pour le pilotage école, sans finance (ni notes côté menus).
+    return "prefet";
+  }
+
   if (canManageOrganization(session)) {
     if (isDirecteurEtudesRole(session)) return "directeur_etudes";
     if (isSchoolLeadershipRole(session)) return "directeur";

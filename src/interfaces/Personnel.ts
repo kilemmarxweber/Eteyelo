@@ -10,6 +10,8 @@ export interface IPersonnel extends Omit<
   personnelId: string; // 👈 ajouté
   memberId: string; // 👈 ajouté
   userId: string; // 👈 ajouté
+  /** Cycles ACL du membre dans la branche (création / édition). */
+  cycles?: string[];
 }
 
 export const userSchema = z.object({
@@ -30,6 +32,7 @@ export const userSchema = z.object({
   image: z.string().trim().max(2000).optional().or(z.literal("")),
   personnelId: z.string().optional(), // 👈 ajouté
   memberId: z.string().optional(), // 👈 ajouté
+  cycles: z.array(z.string()).optional().default([]),
 });
 
 export const updatePersonnelSchema = userSchema.extend({

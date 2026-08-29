@@ -37,6 +37,19 @@ import { orgRoleToBranchRole } from "@/lib/auth/org-role-to-branch-role";
 import { ensureBranchMemberRoleProfiles } from "@/lib/auth/ensure-branch-member-profile";
 import { ORG_ROLE } from "@/lib/permissions";
 import type { BranchRole } from "@/prisma/generated/prisma/enums";
+import {
+  assignBranchMemberCycles,
+  canViewAllDirectoryUsers,
+  isCycleGlobalRole,
+  sessionCanViewAllDirectoryUsers,
+} from "@/lib/auth/cycle-scope";
+import {
+  cycleLabel,
+  getBranchCycles,
+  isMultiCycleBranch,
+  normalizeCycle,
+  type Cycle,
+} from "@/lib/cycle";
 
 function errMessage(err: unknown): string {
   if (
@@ -108,8 +121,17 @@ async function syncMemberBranches(params: {
   organizationId: string;
   branchIds: string[];
   branchRole: BranchRole;
+  orgRole?: string | null;
+  branchCycles?: Record<string, string[]> | null;
 }): Promise<{ ok: true } | { ok: false; message: string }> {
-  const { memberId, organizationId, branchIds, branchRole } = params;
+  const {
+    memberId,
+    organizationId,
+    branchIds,
+    branchRole,
+    orgRole,
+    branchCycles,
+  } = params;
   const selected = new Set(branchIds);
 
   const existing = await prisma.branchMember.findMany({
@@ -176,6 +198,28 @@ async function syncMemberBranches(params: {
     return { ok: false, message: errMessage(e) };
   }
 
+  const branchMembers = await prisma.branchMember.findMany({
+    where: {
+      memberId,
+      branchId: { in: branchIds },
+      branch: { organizationId },
+    },
+    select: { id: true, branchId: true },
+  });
+
+  for (const bm of branchMembers) {
+    try {
+      await assignBranchMemberCycles({
+        branchMemberId: bm.id,
+        branchId: bm.branchId,
+        orgRole,
+        cycles: branchCycles?.[bm.branchId] ?? [],
+      });
+    } catch (e) {
+      return { ok: false, message: errMessage(e) };
+    }
+  }
+
   for (const branchId of branchIds) {
     revalidatePath(
       `/admin/organizations/${organizationId}/branches/${branchId}/teacher`,
@@ -239,6 +283,7 @@ export async function createOrganizationMemberAction(
     organizationId,
     branchId,
     branchIds: requestedBranchIds,
+    branchCycles,
     email,
     name,
     orgRole,
@@ -370,6 +415,8 @@ export async function createOrganizationMemberAction(
         organizationId,
         branchIds: assignedBranchIds,
         branchRole: orgRoleToBranchRole(orgRole),
+        orgRole,
+        branchCycles,
       });
       if (!synced.ok) {
         return synced;
@@ -408,6 +455,7 @@ export async function updateOrganizationMemberAction(
     memberId,
     orgRole,
     branchIds,
+    branchCycles,
     email,
     nom,
     postnom,
@@ -443,6 +491,8 @@ export async function updateOrganizationMemberAction(
       organizationId,
       branchIds: branches.ids,
       branchRole: orgRoleToBranchRole(orgRole),
+      orgRole,
+      branchCycles,
     });
     if (!synced.ok) {
       return synced;
@@ -853,6 +903,8 @@ export type MemberBranchOption = {
   name: string;
   code: string | null;
   typebranch: string;
+  cycles: { value: string; label: string }[];
+  isMultiCycle: boolean;
 };
 
 export async function listOrganizationActiveBranchesAction(
@@ -871,10 +923,36 @@ export async function listOrganizationActiveBranchesAction(
   try {
     const branches = await prisma.branch.findMany({
       where: { organizationId, isActive: true },
-      select: { id: true, name: true, code: true, typebranch: true },
+      select: {
+        id: true,
+        name: true,
+        code: true,
+        typebranch: true,
+        cycles: {
+          where: { isActive: true },
+          select: { cycle: true, sortOrder: true, isActive: true },
+          orderBy: { sortOrder: "asc" },
+        },
+      },
       orderBy: { name: "asc" },
     });
-    return { ok: true, branches };
+    return {
+      ok: true,
+      branches: branches.map((branch) => {
+        const cycles = getBranchCycles(branch);
+        return {
+          id: branch.id,
+          name: branch.name,
+          code: branch.code,
+          typebranch: String(branch.typebranch),
+          cycles: cycles.map((cycle) => ({
+            value: cycle,
+            label: cycleLabel(cycle),
+          })),
+          isMultiCycle: isMultiCycleBranch(branch),
+        };
+      }),
+    };
   } catch (e) {
     return { ok: false, message: errMessage(e) };
   }
@@ -884,7 +962,7 @@ export async function listOrganizationMemberAssignedBranchesAction(
   organizationId: string,
   memberId: string,
 ): Promise<
-  | { ok: true; branchIds: string[] }
+  | { ok: true; branchIds: string[]; branchCycles: Record<string, string[]> }
   | { ok: false; message: string }
 > {
   const guard = await guardOrganizationMemberPermission(organizationId, {
@@ -901,10 +979,23 @@ export async function listOrganizationMemberAssignedBranchesAction(
         member: { organizationId },
         branch: { organizationId, isActive: true },
       },
-      select: { branchId: true },
+      select: {
+        branchId: true,
+        memberCycles: { select: { cycle: true } },
+      },
       orderBy: { createdAt: "asc" },
     });
-    return { ok: true, branchIds: rows.map((row) => row.branchId) };
+    const branchCycles: Record<string, string[]> = {};
+    for (const row of rows) {
+      branchCycles[row.branchId] = row.memberCycles.map((c) =>
+        normalizeCycle(c.cycle),
+      );
+    }
+    return {
+      ok: true,
+      branchIds: rows.map((row) => row.branchId),
+      branchCycles,
+    };
   } catch (e) {
     return { ok: false, message: errMessage(e) };
   }
@@ -924,6 +1015,35 @@ export async function listOrganizationMembersAction(
   }
 
   try {
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    });
+    const viewerUserId = session?.user?.id;
+    const viewerMember = viewerUserId
+      ? await prisma.member.findFirst({
+          where: { userId: viewerUserId, organizationId },
+          select: {
+            id: true,
+            role: true,
+            userId: true,
+            branchMember: {
+              where: { branch: { organizationId, isActive: true } },
+              select: {
+                branchId: true,
+                memberCycles: { select: { cycle: true } },
+              },
+            },
+          },
+        })
+      : null;
+
+    const seeAll = sessionCanViewAllDirectoryUsers(
+      session,
+      viewerMember?.role,
+    );
+    const viewerIsCaissier =
+      !seeAll && isCycleGlobalRole(viewerMember?.role);
+
     const members = await prisma.member.findMany({
       where: { organizationId },
       select: {
@@ -945,6 +1065,8 @@ export async function listOrganizationMembersAction(
         branchMember: {
           where: { branch: { organizationId, isActive: true } },
           select: {
+            branchId: true,
+            memberCycles: { select: { cycle: true } },
             branch: { select: { id: true, name: true } },
           },
           orderBy: { createdAt: "asc" },
@@ -953,9 +1075,50 @@ export async function listOrganizationMembersAction(
       orderBy: [{ isArchived: "asc" }, { createdAt: "desc" }],
     });
 
+    const viewerBranchIds = new Set(
+      (viewerMember?.branchMember ?? []).map((row) => row.branchId),
+    );
+    const viewerCyclesByBranch = new Map<string, Set<Cycle>>();
+    for (const row of viewerMember?.branchMember ?? []) {
+      viewerCyclesByBranch.set(
+        row.branchId,
+        new Set(row.memberCycles.map((c) => normalizeCycle(c.cycle))),
+      );
+    }
+
+    const visible = seeAll
+      ? members
+      : members.filter((member) => {
+          if (member.userId === viewerUserId) return true;
+          if (canViewAllDirectoryUsers(member.role)) return true;
+
+          const sharedBranches = member.branchMember.filter((bm) =>
+            viewerBranchIds.has(bm.branchId),
+          );
+          if (!sharedBranches.length) return false;
+
+          // Même branche : caissier voit tous les users de ses branches.
+          if (viewerIsCaissier) return true;
+
+          return sharedBranches.some((bm) => {
+            const viewerCycles =
+              viewerCyclesByBranch.get(bm.branchId) ?? new Set();
+            const targetCycles = new Set(
+              bm.memberCycles.map((c) => normalizeCycle(c.cycle)),
+            );
+            if (viewerCycles.size === 0 && targetCycles.size === 0) {
+              return true;
+            }
+            for (const cycle of viewerCycles) {
+              if (targetCycles.has(cycle)) return true;
+            }
+            return false;
+          });
+        });
+
     return {
       ok: true,
-      members: members.map((member) => ({
+      members: visible.map((member) => ({
         id: member.id,
         userId: member.userId,
         role: member.role,

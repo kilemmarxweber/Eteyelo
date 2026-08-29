@@ -18,6 +18,11 @@ import {
   isOrganizationOwnerSession,
 } from "@/lib/auth/session-roles";
 import { deactivatePersonInBranch, ensureActiveBranchMember } from "@/lib/branch-member-status";
+import {
+  buildBranchMemberDirectoryWhere,
+  isCycleGlobalRole,
+  sessionCanViewAllDirectoryUsers,
+} from "@/lib/auth/cycle-scope";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
 import {
   buildSchoolReportContext,
@@ -41,13 +46,15 @@ export async function getCurrentBranch() {
         organizationId,
       },
     },
-    select: { role: true },
+    select: { id: true, role: true },
   });
 
   return {
     branchId,
     organizationId,
     userId,
+    session,
+    branchMemberId: branchMember?.id ?? null,
     canManageParents: canManageParentRecords(session, branchMember?.role),
     canPurgePermanently: isOrganizationOwnerSession(session, branchMember?.role),
   };
@@ -379,15 +386,34 @@ export const getParentEnrollmentStatsAction = action.handler(async () => {
 });
 
 export const getParentsAction = action.handler(async (): Promise<IParent[]> => {
-  const { branchId, organizationId } = await getCurrentBranch();
+  const { branchId, organizationId, userId, session, branchMemberId } =
+    await getCurrentBranch();
+
+  const orgMember = await prisma.member.findFirst({
+    where: { userId, organizationId },
+    select: { role: true },
+  });
+  const seeAll = sessionCanViewAllDirectoryUsers(session, orgMember?.role);
+  const seeWholeBranch = !seeAll && isCycleGlobalRole(orgMember?.role);
+  const directoryWhere = await buildBranchMemberDirectoryWhere({
+    viewerBranchMemberId: branchMemberId,
+    seeAll,
+    seeWholeBranch,
+  });
+
   const parents = await prisma.parent.findMany({
     where: {
       branchMember: {
-        branchId,
-        isActive: true,
-        member: {
-          organizationId,
-        },
+        AND: [
+          {
+            branchId,
+            isActive: true,
+            member: {
+              organizationId,
+            },
+          },
+          ...(directoryWhere ? [directoryWhere] : []),
+        ],
       },
     },
     include: {

@@ -47,6 +47,8 @@ model User {
   platformEscalationsRequested PlatformSupportEscalation[] @relation("EscalationRequester")
   absenceCases             AbsenceCase[]        @relation("AbsenceCaseSubject")
   reviewedAbsenceCases     AbsenceCase[]        @relation("AbsenceCaseReviewer")
+  gradeModificationRequests GradeModificationRequest[] @relation("GradeModificationRequester")
+  reviewedGradeModifications GradeModificationRequest[] @relation("GradeModificationReviewer")
   appNotifications         AppNotification[]
   familyPaymentsCreated    FamilyPayment[]  @relation("FamilyPaymentCreatedBy")
   cashierExpensesCreated   CashierExpense[] @relation("CashierExpenseCreatedBy")
@@ -511,6 +513,9 @@ model Teaching {
   schoolYearId      String
   titulaire         Boolean?
   statusTeaching    Boolean?
+  /// Volume hebdomadaire en minutes pour cette affectation (ex. 135).
+  /// Nombre de séances = ceil(weeklyHours / durationCourse de la vacation).
+  weeklyHours       Float?
   branchId          String?
   branch            Branch?             @relation(fields: [branchId], references: [id], onDelete: Cascade)
   teacher           Teacher?            @relation(fields: [teacherId], references: [id])
@@ -587,6 +592,8 @@ model Schedule {
   hour         DateTime  @db.Time
   teachingId   String?
   createdBy    String?
+  /// MANUAL = saisie humaine ; AUTO = régénération horaire.
+  source       ScheduleSource @default(MANUAL)
   isArchived   Boolean   @default(false)
   archivedAt   DateTime?
   archivedById String?
@@ -599,6 +606,12 @@ model Schedule {
   @@index([teachingId])
   @@index([createdBy])
   @@index([isArchived])
+  @@index([source])
+}
+
+enum ScheduleSource {
+  MANUAL
+  AUTO
 }
 
 enum Day {
@@ -745,6 +758,7 @@ model fiche {
   teacher        Teacher  @relation(fields: [teacherId], references: [id], map: "Fiche_teacherId_fkey")
   branchId             String
   branch               Branch             @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  gradeModificationRequests GradeModificationRequest[]
 
   @@index([lessonId], map: "Fiche_lessonId_fkey")
   @@index([periodId], map: "Fiche_periodId_fkey")
@@ -1094,6 +1108,44 @@ enum AppNotificationType {
   JUSTIFICATION_DECISION
   RETURN
   PAYMENT
+  GRADE_MODIFICATION_SUBMITTED
+  GRADE_MODIFICATION_DECISION
+}
+
+enum GradeModificationStatus {
+  PENDING_REVIEW
+  ACCEPTED
+  REJECTED
+}
+
+/// Demande de modification de notes (devoir / évaluation) — validation direction.
+model GradeModificationRequest {
+  id              String                   @id @default(cuid())
+  branchId        String
+  branch          Branch                   @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  organizationId  String
+  ficheId         String
+  fiche           fiche                    @relation(fields: [ficheId], references: [id], onDelete: Cascade)
+  requestedById   String
+  requestedBy     User                     @relation("GradeModificationRequester", fields: [requestedById], references: [id], onDelete: Cascade)
+  status          GradeModificationStatus  @default(PENDING_REVIEW)
+  justification   String
+  evidenceUrl     String
+  previousNotes   String                   @db.Text
+  proposedNotes   String                   @db.Text
+  contextLabel    String
+  reviewComment   String?
+  reviewedById    String?
+  reviewedBy      User?                    @relation("GradeModificationReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+  reviewedAt      DateTime?
+  createdAt       DateTime                 @default(now())
+  updatedAt       DateTime                 @updatedAt
+  notifications   AppNotification[]
+
+  @@index([branchId, status])
+  @@index([ficheId, status])
+  @@index([requestedById, status])
+  @@index([organizationId, status])
 }
 
 /// Absence auto (aucun scan / pointage) + justification / retour.
@@ -1150,12 +1202,15 @@ model AppNotification {
   href          String?
   absenceCaseId String?
   absenceCase   AbsenceCase?        @relation(fields: [absenceCaseId], references: [id], onDelete: Cascade)
+  gradeModificationRequestId String?
+  gradeModificationRequest   GradeModificationRequest? @relation(fields: [gradeModificationRequestId], references: [id], onDelete: Cascade)
   readAt        DateTime?
   createdAt     DateTime            @default(now())
 
   @@index([userId, readAt])
   @@index([branchId, userId, createdAt])
   @@index([absenceCaseId])
+  @@index([gradeModificationRequestId])
 }
 
 enum StudentCategory {
@@ -1396,6 +1451,7 @@ model Branch {
   primaryDomains       BranchPrimaryDomain[]
   absenceCases         AbsenceCase[]
   appNotifications     AppNotification[]
+  gradeModificationRequests GradeModificationRequest[]
   /// En-tête listing finalistes Excel : province, centre, établissement, option, gestion…
   examExportMeta       Json?
 
@@ -1637,6 +1693,7 @@ model BranchMember {
   schedule Schedule[]
   personel Personnel[]
   student Student[]
+  memberCycles BranchMemberCycle[]
   branch Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
   member Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
 
@@ -1648,6 +1705,19 @@ model BranchMember {
   @@index([branchId, role])
   @@index([memberId, role])
   @@index([branchId, isActive])
+}
+
+/// Cycles autorisés pour un membre dans une branche (ACL multi-cycle).
+model BranchMemberCycle {
+  id             String       @id @default(cuid())
+  branchMemberId String
+  cycle          Cycle
+  branchMember   BranchMember @relation(fields: [branchMemberId], references: [id], onDelete: Cascade)
+  createdAt      DateTime     @default(now())
+
+  @@unique([branchMemberId, cycle])
+  @@index([branchMemberId])
+  @@index([cycle])
 }
 
 enum BranchRole {

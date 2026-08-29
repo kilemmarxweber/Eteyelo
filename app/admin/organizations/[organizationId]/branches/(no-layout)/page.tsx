@@ -17,6 +17,7 @@ import { isRestrictedGestionnaire } from "@/lib/auth/role-labels";
 import { prisma } from "@/lib/prisma";
 import { BranchCard } from "./branchCard";
 import { BranchTypeBadge, EducationSystemBadge } from "@/components/branch/branch-type-badge";
+import { formatBranchCyclesLabel, isMultiCycleBranch } from "@/lib/cycle";
 import {
   BranchMergeHeaderButton,
   BranchStructureMergeProvider,
@@ -193,47 +194,57 @@ export default async function BranchesPage({ params }: BranchesPageProps) {
               isActive={branch.isActive}
               canDelete={canDeleteBranch}
             >
-              <div className="flex h-full min-w-0 items-start gap-2.5 px-3 py-3 sm:px-2.5 sm:py-2.5 sm:pr-24">
-                <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground sm:size-8">
-                  <School className="size-4 sm:size-3.5" />
-                </span>
-
-                <span className="min-w-0 flex-1">
-                  <span className="flex min-w-0 items-center gap-1.5">
-                    <span className="truncate text-sm font-semibold text-foreground">
-                      {branch.name}
-                    </span>
-                    <ArrowRight className="size-3.5 shrink-0 text-muted-foreground opacity-0 transition group-hover:translate-x-0.5 group-hover:opacity-100" />
+              <div className="flex h-full min-w-0 flex-col gap-1.5 px-3 py-3 sm:px-2.5 sm:py-2.5">
+                <div className="flex min-w-0 items-start gap-2.5 sm:pr-24">
+                  <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground sm:size-8">
+                    <School className="size-4 sm:size-3.5" />
                   </span>
-                  {branch.description ? (
-                    <span className="mt-0.5 line-clamp-2 block w-full break-words text-xs leading-snug text-muted-foreground">
-                      {branch.description}
+
+                  <span className="min-w-0 flex-1">
+                    <span className="flex min-w-0 items-center gap-1.5">
+                      <span className="truncate text-sm font-semibold text-foreground">
+                        {branch.name}
+                      </span>
+                      <ArrowRight className="size-3.5 shrink-0 text-muted-foreground opacity-0 transition group-hover:translate-x-0.5 group-hover:opacity-100" />
+                    </span>
+                  </span>
+                </div>
+
+                {branch.description ? (
+                  <p className="w-full break-words text-xs leading-snug text-muted-foreground">
+                    {branch.description}
+                  </p>
+                ) : null}
+
+                <div className="flex min-w-0 flex-col gap-1.5">
+                  <BranchTypeBadge
+                    typebranch={branch.typebranch}
+                    cycles={branch.cycles}
+                    className="h-5 max-w-full px-1.5 text-[10px]"
+                  />
+                  {isMultiCycleBranch(branch) ? (
+                    <span className="text-[11px] leading-snug text-muted-foreground">
+                      {formatBranchCyclesLabel(branch.cycles, {
+                        typebranch: branch.typebranch,
+                      })}
                     </span>
                   ) : null}
-
-                  <span className="mt-1.5 flex min-w-0 flex-col gap-1.5">
-                    <BranchTypeBadge
-                      typebranch={branch.typebranch}
-                      cycles={branch.cycles}
-                      className="h-5 max-w-full px-1.5 text-[10px]"
+                  <span className="flex min-w-0 flex-wrap items-center gap-1.5">
+                    <span className="text-[11px] text-muted-foreground">
+                      {branch.studentsCount} élève
+                      {branch.studentsCount > 1 ? "s" : ""}
+                    </span>
+                    <EducationSystemBadge
+                      educationSystem={branch.educationSystem}
+                      className="h-5 px-1.5 text-[10px]"
                     />
-                    <span className="flex min-w-0 flex-wrap items-center gap-1.5">
-                      <span className="text-[11px] text-muted-foreground">
-                        {branch.studentsCount} élève
-                        {branch.studentsCount > 1 ? "s" : ""}
-                      </span>
-                      <EducationSystemBadge
-                        educationSystem={branch.educationSystem}
-                        className="h-5 px-1.5 text-[10px]"
-                      />
-                      <span
-                        className={`shrink-0 rounded px-1.5 py-px text-[10px] font-semibold ${branch.isActive ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300" : "bg-muted text-muted-foreground"}`}
-                      >
-                        {branch.isActive ? "Actif" : "Archive"}
-                      </span>
+                    <span
+                      className={`shrink-0 rounded px-1.5 py-px text-[10px] font-semibold ${branch.isActive ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300" : "bg-muted text-muted-foreground"}`}
+                    >
+                      {branch.isActive ? "Actif" : "Archive"}
                     </span>
                   </span>
-                </span>
+                </div>
               </div>
             </BranchCard>
           ))}

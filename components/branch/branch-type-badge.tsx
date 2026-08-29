@@ -1,6 +1,5 @@
 import { Badge } from "@/components/ui/badge";
-import { getBranchTypeShortLabel } from "@/lib/branch-capabilities";
-import { normalizeBranchType, type ManagedBranchType } from "@/lib/academic-structure";
+import { normalizeBranchType } from "@/lib/academic-structure";
 import {
   cycleCompactLabel,
   cycleLabel,
@@ -103,10 +102,9 @@ export function BranchTypeBadge({
   }
 
   const cycle = resolved[0] ?? normalizeBranchType(typebranch);
-  const singleLabel =
-    cycle === "MATERNELLE"
-      ? cycleLabel(cycle)
-      : getBranchTypeShortLabel(cycle as ManagedBranchType);
+  const singleLabel = fullLabel
+    ? cycleLabel(cycle)
+    : cycleCompactLabel(cycle);
   return (
     <Badge
       variant="secondary"
@@ -119,9 +117,6 @@ export function BranchTypeBadge({
 }
 
 function cycleStatShortLabel(cycle: Cycle) {
-  if (cycle === "MATERNELLE") return "Mat";
-  if (cycle === "PRIMAIRE") return "Prim";
-  if (cycle === "SECONDAIRE") return "Sec";
   return cycleCompactLabel(cycle);
 }
 

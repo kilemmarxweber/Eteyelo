@@ -26,6 +26,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { SearchableSelect } from "@/components/ui/searchable-select";
+import { MemberCyclesField } from "@/components/member-cycles-field";
+import { isCycleGlobalRole } from "@/lib/auth/cycle-global-roles";
 import { orgRoleLabel } from "@/lib/org-role-labels";
 import { ALL_ORG_ROLE_SLUGS } from "@/lib/permissions";
 import { cn } from "@/lib/utils";
@@ -38,6 +40,7 @@ import {
   createPersonnelAction,
   updatePersonnelAction,
 } from "../personnel.action";
+import { getBranchCyclesForFormsAction } from "../../settings/branch-cycles.action";
 
 type PersonnelFormValues =
   | z.infer<typeof userSchema>
@@ -67,6 +70,7 @@ const emptyValues: PersonnelFormValues = {
   orgRole: "",
   dateOfBirth: undefined as unknown as Date,
   image: "",
+  cycles: [],
 };
 
 export function PersonnelUpForm({
@@ -84,6 +88,10 @@ export function PersonnelUpForm({
   const isDialog = layout === "dialog";
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [cycleOptions, setCycleOptions] = useState<
+    { value: string; label: string }[]
+  >([]);
+  const [isMultiCycle, setIsMultiCycle] = useState(false);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(
     initialData?.image?.trim() || null,
@@ -110,9 +118,14 @@ export function PersonnelUpForm({
             ? new Date(initialData.dateOfBirth)
             : (undefined as unknown as Date),
           image: initialData.image ?? "",
+          cycles: initialData.cycles ?? [],
         }
       : emptyValues,
   });
+
+  const selectedOrgRole = form.watch("orgRole");
+  const needsCycles =
+    isMultiCycle && !isCycleGlobalRole(selectedOrgRole);
 
   const fullName = [
     form.watch("name"),
@@ -127,6 +140,22 @@ export function PersonnelUpForm({
       if (photoPreview?.startsWith("blob:")) URL.revokeObjectURL(photoPreview);
     };
   }, [photoPreview]);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const [data, err] = await getBranchCyclesForFormsAction();
+      if (cancelled || err || !data) return;
+      setCycleOptions(data.cycles);
+      setIsMultiCycle(data.isMultiCycle);
+      if (!data.isMultiCycle && data.cycles[0] && !form.getValues("cycles")?.length) {
+        form.setValue("cycles", [data.cycles[0].value]);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [form]);
 
   function handlePickPhoto(file: File) {
     if (!file.type.startsWith("image/")) {
@@ -161,6 +190,16 @@ export function PersonnelUpForm({
   async function onSubmit(data: PersonnelFormValues) {
     setIsLoading(true);
     setErrorMessage("");
+
+    if (
+      isMultiCycle &&
+      !isCycleGlobalRole(data.orgRole) &&
+      (!data.cycles || data.cycles.length === 0)
+    ) {
+      setErrorMessage("Sélectionnez au moins un cycle.");
+      setIsLoading(false);
+      return;
+    }
 
     let image = data.image?.trim() || "";
     if (photoFile) {
@@ -362,6 +401,19 @@ export function PersonnelUpForm({
                 </FormItem>
               )}
             />
+
+            {needsCycles ? (
+              <div className="sm:col-span-2">
+                <MemberCyclesField
+                  options={cycleOptions}
+                  value={form.watch("cycles") ?? []}
+                  onChange={(next) =>
+                    form.setValue("cycles", next, { shouldValidate: true })
+                  }
+                  isMultiCycle={isMultiCycle}
+                />
+              </div>
+            ) : null}
 
             <FormField
               control={form.control}

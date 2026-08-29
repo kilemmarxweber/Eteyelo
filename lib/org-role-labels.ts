@@ -9,6 +9,7 @@ export const ORG_ROLE_LABEL: Record<
 > = {
   [ORG_ROLE.OWNER]: "Propriétaire",
   [ORG_ROLE.GESTIONNAIRE]: "Gestionnaire",
+  [ORG_ROLE.AGENT_BUREAU]: "Agent de bureau",
   [ORG_ROLE.PREFET]: "Préfet",
   [ORG_ROLE.DIRECTEUR]: "Directeur",
   [ORG_ROLE.DIRECTEUR_ETUDES]: "Directeur des études",

@@ -12,6 +12,12 @@ import { Prisma } from "@/prisma/generated/prisma/client";
 import { z } from "zod";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
 import {
+  classeCycleWhere,
+  isCycleGlobalRole,
+  resolveAccessibleCycles,
+} from "@/lib/auth/cycle-scope";
+import { getSessionRoles } from "@/lib/auth/session-roles";
+import {
   buildClassCode,
   buildClassName,
   isCtebLevel,
@@ -341,9 +347,33 @@ function transformClasse(classe: any): IClasse {
 
 export const getClassesAction = action.handler(async (): Promise<IClasse[]> => {
   try {
-    const { branchId } = await requireBranchContext();
+    const { branchId, userId, session, organizationId } =
+      await requireBranchContext();
+    const roles = getSessionRoles(session);
+    const orgRole =
+      [...roles].find((role) => isCycleGlobalRole(role)) ??
+      [...roles][0] ??
+      null;
+
+    const branchMember = await prisma.branchMember.findFirst({
+      where: {
+        branchId,
+        member: { userId, organizationId },
+      },
+      select: { id: true },
+    });
+
+    const accessible = await resolveAccessibleCycles({
+      branchId,
+      branchMemberId: branchMember?.id,
+      orgRole,
+    });
+
     const classes = await prisma.classe.findMany({
-      where: { branchId },
+      where: {
+        branchId,
+        ...classeCycleWhere(accessible),
+      },
       include: {
         option: true,
         creneau: true,

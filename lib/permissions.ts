@@ -66,6 +66,11 @@ export const ORG_ROLE = {
   OWNER: "owner",
   GESTIONNAIRE: "gestionnaire",
   /**
+   * Agent / membre de bureau — pilotage large comme le gestionnaire,
+   * **sans** finance ni notes.
+   */
+  AGENT_BUREAU: "agent_bureau",
+  /**
    * Chef d’établissement — alias secondaire/humanités de `directeur`.
    * Mêmes permissions (pédagogie + finance + RH).
    */
@@ -97,6 +102,7 @@ export const SCHOOL_HEAD_ORG_ROLES = [
 export const ALL_ORG_ROLE_SLUGS = [
   ORG_ROLE.OWNER,
   ORG_ROLE.GESTIONNAIRE,
+  ORG_ROLE.AGENT_BUREAU,
   ORG_ROLE.PREFET,
   ORG_ROLE.DIRECTEUR,
   ORG_ROLE.DIRECTEUR_ETUDES,
@@ -341,6 +347,19 @@ export const organizationRoleStatements: Record<string, StatementShape> = {
     platformEscalation: ["read"],
   },
   /**
+   * Agent de bureau (membre de bureau) : comme le gestionnaire,
+   * sans finance et sans notes.
+   */
+  [ORG_ROLE.AGENT_BUREAU]: {
+    ...withActions(CRU_ACTIONS),
+    ...withSchoolModuleActions(CRU_ACTIONS, {
+      includeTeachingAssign: true,
+      omit: ["notes"],
+    }),
+    organizationSupport: ["create", "read", "update"],
+    platformEscalation: ["read"],
+  },
+  /**
    * Préfet / Directeur (chef d’établissement) : CRU métier branche + RH + pédagogie.
    * Sans droits d’admin org (archive / invitations / AC dynamique).
    * Sans finance (aligné `canAccessFinanceArea` — enforcement session jusqu’à P8).
@@ -470,6 +489,7 @@ export const ORGANIZATION_ROLE_GROUPS = [
     slugs: [
       ORG_ROLE.OWNER,
       ORG_ROLE.GESTIONNAIRE,
+      ORG_ROLE.AGENT_BUREAU,
       ORG_ROLE.PREFET,
       ORG_ROLE.DIRECTEUR,
       ORG_ROLE.DIRECTEUR_ETUDES,

@@ -9,6 +9,14 @@
 * 🟢 You can import this file directly.
 */
 
+export const ScheduleSource = {
+  MANUAL: 'MANUAL',
+  AUTO: 'AUTO'
+} as const
+
+export type ScheduleSource = (typeof ScheduleSource)[keyof typeof ScheduleSource]
+
+
 export const Day = {
   Dimanche: 'Dimanche',
   Lundi: 'Lundi',
@@ -159,10 +167,21 @@ export const AppNotificationType = {
   JUSTIFICATION_SUBMITTED: 'JUSTIFICATION_SUBMITTED',
   JUSTIFICATION_DECISION: 'JUSTIFICATION_DECISION',
   RETURN: 'RETURN',
-  PAYMENT: 'PAYMENT'
+  PAYMENT: 'PAYMENT',
+  GRADE_MODIFICATION_SUBMITTED: 'GRADE_MODIFICATION_SUBMITTED',
+  GRADE_MODIFICATION_DECISION: 'GRADE_MODIFICATION_DECISION'
 } as const
 
 export type AppNotificationType = (typeof AppNotificationType)[keyof typeof AppNotificationType]
+
+
+export const GradeModificationStatus = {
+  PENDING_REVIEW: 'PENDING_REVIEW',
+  ACCEPTED: 'ACCEPTED',
+  REJECTED: 'REJECTED'
+} as const
+
+export type GradeModificationStatus = (typeof GradeModificationStatus)[keyof typeof GradeModificationStatus]
 
 
 export const StudentCategory = {

@@ -70,6 +70,7 @@ export function UpdateTeacherDialog({
                 estTitulaire: teacher.estTitulaire ?? false,
                 classeId: teacher.classeId ?? "",
                 coursId: teacher.coursId ?? "",
+                cycles: teacher.cycles ?? [],
               }}
               onTeacherUpdate={handleUpdated}
             />

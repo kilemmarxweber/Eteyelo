@@ -30,6 +30,7 @@ export type ScheduleMinAggregateOutputType = {
   hour: Date | null
   teachingId: string | null
   createdBy: string | null
+  source: $Enums.ScheduleSource | null
   isArchived: boolean | null
   archivedAt: Date | null
   archivedById: string | null
@@ -43,6 +44,7 @@ export type ScheduleMaxAggregateOutputType = {
   hour: Date | null
   teachingId: string | null
   createdBy: string | null
+  source: $Enums.ScheduleSource | null
   isArchived: boolean | null
   archivedAt: Date | null
   archivedById: string | null
@@ -56,6 +58,7 @@ export type ScheduleCountAggregateOutputType = {
   hour: number
   teachingId: number
   createdBy: number
+  source: number
   isArchived: number
   archivedAt: number
   archivedById: number
@@ -71,6 +74,7 @@ export type ScheduleMinAggregateInputType = {
   hour?: true
   teachingId?: true
   createdBy?: true
+  source?: true
   isArchived?: true
   archivedAt?: true
   archivedById?: true
@@ -84,6 +88,7 @@ export type ScheduleMaxAggregateInputType = {
   hour?: true
   teachingId?: true
   createdBy?: true
+  source?: true
   isArchived?: true
   archivedAt?: true
   archivedById?: true
@@ -97,6 +102,7 @@ export type ScheduleCountAggregateInputType = {
   hour?: true
   teachingId?: true
   createdBy?: true
+  source?: true
   isArchived?: true
   archivedAt?: true
   archivedById?: true
@@ -183,6 +189,7 @@ export type ScheduleGroupByOutputType = {
   hour: Date
   teachingId: string | null
   createdBy: string | null
+  source: $Enums.ScheduleSource
   isArchived: boolean
   archivedAt: Date | null
   archivedById: string | null
@@ -217,6 +224,7 @@ export type ScheduleWhereInput = {
   hour?: Prisma.DateTimeFilter<"Schedule"> | Date | string
   teachingId?: Prisma.StringNullableFilter<"Schedule"> | string | null
   createdBy?: Prisma.StringNullableFilter<"Schedule"> | string | null
+  source?: Prisma.EnumScheduleSourceFilter<"Schedule"> | $Enums.ScheduleSource
   isArchived?: Prisma.BoolFilter<"Schedule"> | boolean
   archivedAt?: Prisma.DateTimeNullableFilter<"Schedule"> | Date | string | null
   archivedById?: Prisma.StringNullableFilter<"Schedule"> | string | null
@@ -232,6 +240,7 @@ export type ScheduleOrderByWithRelationInput = {
   hour?: Prisma.SortOrder
   teachingId?: Prisma.SortOrderInput | Prisma.SortOrder
   createdBy?: Prisma.SortOrderInput | Prisma.SortOrder
+  source?: Prisma.SortOrder
   isArchived?: Prisma.SortOrder
   archivedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   archivedById?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -251,6 +260,7 @@ export type ScheduleWhereUniqueInput = Prisma.AtLeast<{
   hour?: Prisma.DateTimeFilter<"Schedule"> | Date | string
   teachingId?: Prisma.StringNullableFilter<"Schedule"> | string | null
   createdBy?: Prisma.StringNullableFilter<"Schedule"> | string | null
+  source?: Prisma.EnumScheduleSourceFilter<"Schedule"> | $Enums.ScheduleSource
   isArchived?: Prisma.BoolFilter<"Schedule"> | boolean
   archivedAt?: Prisma.DateTimeNullableFilter<"Schedule"> | Date | string | null
   archivedById?: Prisma.StringNullableFilter<"Schedule"> | string | null
@@ -266,6 +276,7 @@ export type ScheduleOrderByWithAggregationInput = {
   hour?: Prisma.SortOrder
   teachingId?: Prisma.SortOrderInput | Prisma.SortOrder
   createdBy?: Prisma.SortOrderInput | Prisma.SortOrder
+  source?: Prisma.SortOrder
   isArchived?: Prisma.SortOrder
   archivedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   archivedById?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -285,6 +296,7 @@ export type ScheduleScalarWhereWithAggregatesInput = {
   hour?: Prisma.DateTimeWithAggregatesFilter<"Schedule"> | Date | string
   teachingId?: Prisma.StringNullableWithAggregatesFilter<"Schedule"> | string | null
   createdBy?: Prisma.StringNullableWithAggregatesFilter<"Schedule"> | string | null
+  source?: Prisma.EnumScheduleSourceWithAggregatesFilter<"Schedule"> | $Enums.ScheduleSource
   isArchived?: Prisma.BoolWithAggregatesFilter<"Schedule"> | boolean
   archivedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Schedule"> | Date | string | null
   archivedById?: Prisma.StringNullableWithAggregatesFilter<"Schedule"> | string | null
@@ -296,6 +308,7 @@ export type ScheduleCreateInput = {
   id?: string
   day: $Enums.Day
   hour: Date | string
+  source?: $Enums.ScheduleSource
   isArchived?: boolean
   archivedAt?: Date | string | null
   archivedById?: string | null
@@ -311,6 +324,7 @@ export type ScheduleUncheckedCreateInput = {
   hour: Date | string
   teachingId?: string | null
   createdBy?: string | null
+  source?: $Enums.ScheduleSource
   isArchived?: boolean
   archivedAt?: Date | string | null
   archivedById?: string | null
@@ -322,6 +336,7 @@ export type ScheduleUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   day?: Prisma.EnumDayFieldUpdateOperationsInput | $Enums.Day
   hour?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  source?: Prisma.EnumScheduleSourceFieldUpdateOperationsInput | $Enums.ScheduleSource
   isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -337,6 +352,7 @@ export type ScheduleUncheckedUpdateInput = {
   hour?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   teachingId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  source?: Prisma.EnumScheduleSourceFieldUpdateOperationsInput | $Enums.ScheduleSource
   isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -350,6 +366,7 @@ export type ScheduleCreateManyInput = {
   hour: Date | string
   teachingId?: string | null
   createdBy?: string | null
+  source?: $Enums.ScheduleSource
   isArchived?: boolean
   archivedAt?: Date | string | null
   archivedById?: string | null
@@ -361,6 +378,7 @@ export type ScheduleUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   day?: Prisma.EnumDayFieldUpdateOperationsInput | $Enums.Day
   hour?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  source?: Prisma.EnumScheduleSourceFieldUpdateOperationsInput | $Enums.ScheduleSource
   isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -374,6 +392,7 @@ export type ScheduleUncheckedUpdateManyInput = {
   hour?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   teachingId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  source?: Prisma.EnumScheduleSourceFieldUpdateOperationsInput | $Enums.ScheduleSource
   isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -403,6 +422,7 @@ export type ScheduleCountOrderByAggregateInput = {
   hour?: Prisma.SortOrder
   teachingId?: Prisma.SortOrder
   createdBy?: Prisma.SortOrder
+  source?: Prisma.SortOrder
   isArchived?: Prisma.SortOrder
   archivedAt?: Prisma.SortOrder
   archivedById?: Prisma.SortOrder
@@ -416,6 +436,7 @@ export type ScheduleMaxOrderByAggregateInput = {
   hour?: Prisma.SortOrder
   teachingId?: Prisma.SortOrder
   createdBy?: Prisma.SortOrder
+  source?: Prisma.SortOrder
   isArchived?: Prisma.SortOrder
   archivedAt?: Prisma.SortOrder
   archivedById?: Prisma.SortOrder
@@ -429,6 +450,7 @@ export type ScheduleMinOrderByAggregateInput = {
   hour?: Prisma.SortOrder
   teachingId?: Prisma.SortOrder
   createdBy?: Prisma.SortOrder
+  source?: Prisma.SortOrder
   isArchived?: Prisma.SortOrder
   archivedAt?: Prisma.SortOrder
   archivedById?: Prisma.SortOrder
@@ -482,6 +504,10 @@ export type EnumDayFieldUpdateOperationsInput = {
   set?: $Enums.Day
 }
 
+export type EnumScheduleSourceFieldUpdateOperationsInput = {
+  set?: $Enums.ScheduleSource
+}
+
 export type ScheduleCreateNestedManyWithoutBranchMemberInput = {
   create?: Prisma.XOR<Prisma.ScheduleCreateWithoutBranchMemberInput, Prisma.ScheduleUncheckedCreateWithoutBranchMemberInput> | Prisma.ScheduleCreateWithoutBranchMemberInput[] | Prisma.ScheduleUncheckedCreateWithoutBranchMemberInput[]
   connectOrCreate?: Prisma.ScheduleCreateOrConnectWithoutBranchMemberInput | Prisma.ScheduleCreateOrConnectWithoutBranchMemberInput[]
@@ -528,6 +554,7 @@ export type ScheduleCreateWithoutTeachingInput = {
   id?: string
   day: $Enums.Day
   hour: Date | string
+  source?: $Enums.ScheduleSource
   isArchived?: boolean
   archivedAt?: Date | string | null
   archivedById?: string | null
@@ -541,6 +568,7 @@ export type ScheduleUncheckedCreateWithoutTeachingInput = {
   day: $Enums.Day
   hour: Date | string
   createdBy?: string | null
+  source?: $Enums.ScheduleSource
   isArchived?: boolean
   archivedAt?: Date | string | null
   archivedById?: string | null
@@ -583,6 +611,7 @@ export type ScheduleScalarWhereInput = {
   hour?: Prisma.DateTimeFilter<"Schedule"> | Date | string
   teachingId?: Prisma.StringNullableFilter<"Schedule"> | string | null
   createdBy?: Prisma.StringNullableFilter<"Schedule"> | string | null
+  source?: Prisma.EnumScheduleSourceFilter<"Schedule"> | $Enums.ScheduleSource
   isArchived?: Prisma.BoolFilter<"Schedule"> | boolean
   archivedAt?: Prisma.DateTimeNullableFilter<"Schedule"> | Date | string | null
   archivedById?: Prisma.StringNullableFilter<"Schedule"> | string | null
@@ -594,6 +623,7 @@ export type ScheduleCreateWithoutBranchMemberInput = {
   id?: string
   day: $Enums.Day
   hour: Date | string
+  source?: $Enums.ScheduleSource
   isArchived?: boolean
   archivedAt?: Date | string | null
   archivedById?: string | null
@@ -607,6 +637,7 @@ export type ScheduleUncheckedCreateWithoutBranchMemberInput = {
   day: $Enums.Day
   hour: Date | string
   teachingId?: string | null
+  source?: $Enums.ScheduleSource
   isArchived?: boolean
   archivedAt?: Date | string | null
   archivedById?: string | null
@@ -645,6 +676,7 @@ export type ScheduleCreateManyTeachingInput = {
   day: $Enums.Day
   hour: Date | string
   createdBy?: string | null
+  source?: $Enums.ScheduleSource
   isArchived?: boolean
   archivedAt?: Date | string | null
   archivedById?: string | null
@@ -656,6 +688,7 @@ export type ScheduleUpdateWithoutTeachingInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   day?: Prisma.EnumDayFieldUpdateOperationsInput | $Enums.Day
   hour?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  source?: Prisma.EnumScheduleSourceFieldUpdateOperationsInput | $Enums.ScheduleSource
   isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -669,6 +702,7 @@ export type ScheduleUncheckedUpdateWithoutTeachingInput = {
   day?: Prisma.EnumDayFieldUpdateOperationsInput | $Enums.Day
   hour?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  source?: Prisma.EnumScheduleSourceFieldUpdateOperationsInput | $Enums.ScheduleSource
   isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -681,6 +715,7 @@ export type ScheduleUncheckedUpdateManyWithoutTeachingInput = {
   day?: Prisma.EnumDayFieldUpdateOperationsInput | $Enums.Day
   hour?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  source?: Prisma.EnumScheduleSourceFieldUpdateOperationsInput | $Enums.ScheduleSource
   isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -693,6 +728,7 @@ export type ScheduleCreateManyBranchMemberInput = {
   day: $Enums.Day
   hour: Date | string
   teachingId?: string | null
+  source?: $Enums.ScheduleSource
   isArchived?: boolean
   archivedAt?: Date | string | null
   archivedById?: string | null
@@ -704,6 +740,7 @@ export type ScheduleUpdateWithoutBranchMemberInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   day?: Prisma.EnumDayFieldUpdateOperationsInput | $Enums.Day
   hour?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  source?: Prisma.EnumScheduleSourceFieldUpdateOperationsInput | $Enums.ScheduleSource
   isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -717,6 +754,7 @@ export type ScheduleUncheckedUpdateWithoutBranchMemberInput = {
   day?: Prisma.EnumDayFieldUpdateOperationsInput | $Enums.Day
   hour?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   teachingId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  source?: Prisma.EnumScheduleSourceFieldUpdateOperationsInput | $Enums.ScheduleSource
   isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -729,6 +767,7 @@ export type ScheduleUncheckedUpdateManyWithoutBranchMemberInput = {
   day?: Prisma.EnumDayFieldUpdateOperationsInput | $Enums.Day
   hour?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   teachingId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  source?: Prisma.EnumScheduleSourceFieldUpdateOperationsInput | $Enums.ScheduleSource
   isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   archivedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -744,6 +783,7 @@ export type ScheduleSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   hour?: boolean
   teachingId?: boolean
   createdBy?: boolean
+  source?: boolean
   isArchived?: boolean
   archivedAt?: boolean
   archivedById?: boolean
@@ -759,6 +799,7 @@ export type ScheduleSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exte
   hour?: boolean
   teachingId?: boolean
   createdBy?: boolean
+  source?: boolean
   isArchived?: boolean
   archivedAt?: boolean
   archivedById?: boolean
@@ -774,6 +815,7 @@ export type ScheduleSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exte
   hour?: boolean
   teachingId?: boolean
   createdBy?: boolean
+  source?: boolean
   isArchived?: boolean
   archivedAt?: boolean
   archivedById?: boolean
@@ -789,6 +831,7 @@ export type ScheduleSelectScalar = {
   hour?: boolean
   teachingId?: boolean
   createdBy?: boolean
+  source?: boolean
   isArchived?: boolean
   archivedAt?: boolean
   archivedById?: boolean
@@ -796,7 +839,7 @@ export type ScheduleSelectScalar = {
   updatedAt?: boolean
 }
 
-export type ScheduleOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "day" | "hour" | "teachingId" | "createdBy" | "isArchived" | "archivedAt" | "archivedById" | "createdAt" | "updatedAt", ExtArgs["result"]["schedule"]>
+export type ScheduleOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "day" | "hour" | "teachingId" | "createdBy" | "source" | "isArchived" | "archivedAt" | "archivedById" | "createdAt" | "updatedAt", ExtArgs["result"]["schedule"]>
 export type ScheduleInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   branchMember?: boolean | Prisma.Schedule$branchMemberArgs<ExtArgs>
   teaching?: boolean | Prisma.Schedule$teachingArgs<ExtArgs>
@@ -822,6 +865,10 @@ export type $SchedulePayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     hour: Date
     teachingId: string | null
     createdBy: string | null
+    /**
+     * MANUAL = saisie humaine ; AUTO = régénération horaire.
+     */
+    source: $Enums.ScheduleSource
     isArchived: boolean
     archivedAt: Date | null
     archivedById: string | null
@@ -1257,6 +1304,7 @@ export interface ScheduleFieldRefs {
   readonly hour: Prisma.FieldRef<"Schedule", 'DateTime'>
   readonly teachingId: Prisma.FieldRef<"Schedule", 'String'>
   readonly createdBy: Prisma.FieldRef<"Schedule", 'String'>
+  readonly source: Prisma.FieldRef<"Schedule", 'ScheduleSource'>
   readonly isArchived: Prisma.FieldRef<"Schedule", 'Boolean'>
   readonly archivedAt: Prisma.FieldRef<"Schedule", 'DateTime'>
   readonly archivedById: Prisma.FieldRef<"Schedule", 'String'>

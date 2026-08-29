@@ -10,12 +10,19 @@ const namePart = z
   .min(2, "Au moins 2 caractères.")
   .max(80, "Trop long.");
 
+/** Cycles choisis par établissement (branchId → cycle values). */
+const branchCyclesSchema = z
+  .record(z.string().min(1), z.array(z.string().min(1)))
+  .optional();
+
 export const createOrgMemberSchema = z.object({
   organizationId: z.string().min(1),
   /** Branche d’affectation — utilisée pour l’email de bienvenue. */
   branchId: z.string().min(1).optional(),
   /** Établissements autorisés (formulaire membres). `branchId` reste pour les flux métier. */
   branchIds: z.array(z.string().min(1)).optional(),
+  /** Cycles d’affectation par branche (requis en multi-cycle si rôle non transverse). */
+  branchCycles: branchCyclesSchema,
   email: z
     .string()
     .trim()
@@ -58,6 +65,7 @@ export const updateOrgMemberSchema = z.object({
   branchIds: z
     .array(z.string().min(1))
     .min(1, "Sélectionnez au moins une branche."),
+  branchCycles: branchCyclesSchema,
   email: z
     .string()
     .trim()

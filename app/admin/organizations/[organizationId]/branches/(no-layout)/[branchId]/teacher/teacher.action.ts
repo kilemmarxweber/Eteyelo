@@ -7,6 +7,12 @@ import {
   stashAdminCreatedUserPlainPassword,
 } from "@/lib/admin-created-user-password";
 import {
+  assignBranchMemberCycles,
+  buildBranchMemberDirectoryWhere,
+  isCycleGlobalRole,
+  sessionCanViewAllDirectoryUsers,
+} from "@/lib/auth/cycle-scope";
+import {
   canManageOrganization,
   getSessionRoles,
   hasSessionRole,
@@ -318,6 +324,13 @@ export const createTeacherAction = action
         role: "TEACHER",
       });
 
+      await assignBranchMemberCycles({
+        branchMemberId,
+        branchId,
+        orgRole: "teacher",
+        cycles: input.cycles,
+      });
+
       let teacher = await prisma.teacher.findUnique({
         where: { branchMemberId },
       });
@@ -469,23 +482,45 @@ export const getTeachersAction = action.handler(
       userId: sessionUserId,
       canManageTeachers,
       isTeacher,
+      branchMemberId,
     } = await getCurrentBranch();
 
     if (!canManageTeachers && !isTeacher) {
       return [];
     }
 
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    });
+    const orgMember = await prisma.member.findFirst({
+      where: { userId: sessionUserId, organizationId },
+      select: { role: true },
+    });
+    const seeAll = sessionCanViewAllDirectoryUsers(session, orgMember?.role);
+    const seeWholeBranch =
+      !seeAll && isCycleGlobalRole(orgMember?.role);
+    const directoryWhere = await buildBranchMemberDirectoryWhere({
+      viewerBranchMemberId: branchMemberId,
+      seeAll,
+      seeWholeBranch,
+    });
+
     const { typebranch } = await getBranchTypeContext(branchId, organizationId);
 
     const teachers = await prisma.teacher.findMany({
       where: {
         branchMember: {
-          branchId,
-          isActive: true,
-          member: {
-            organizationId,
-            ...(canManageTeachers ? {} : { userId: sessionUserId }),
-          },
+          AND: [
+            {
+              branchId,
+              isActive: true,
+              member: {
+                organizationId,
+                ...(canManageTeachers ? {} : { userId: sessionUserId }),
+              },
+            },
+            ...(directoryWhere ? [directoryWhere] : []),
+          ],
         },
       },
       include: {
@@ -496,6 +531,7 @@ export const getTeachersAction = action.handler(
                 user: true,
               },
             },
+            memberCycles: { select: { cycle: true } },
           },
         },
         teaching: {
@@ -594,6 +630,9 @@ export const getTeachersAction = action.handler(
         estTitulaire: Boolean(titulaireTeaching),
         classeId: titulaireTeaching?.classeId ?? "",
         coursId: titulaireTeaching?.coursId ?? "",
+        cycles: (teacher.branchMember?.memberCycles ?? []).map(
+          (row) => row.cycle,
+        ),
       };
     });
   },
@@ -783,6 +822,15 @@ export const updateTeacherAction = action
         classeId: input.classeId,
         coursId: input.coursId,
       });
+
+      if (teacher.branchMemberId) {
+        await assignBranchMemberCycles({
+          branchMemberId: teacher.branchMemberId,
+          branchId,
+          orgRole: "teacher",
+          cycles: input.cycles,
+        });
+      }
     }
 
     return {

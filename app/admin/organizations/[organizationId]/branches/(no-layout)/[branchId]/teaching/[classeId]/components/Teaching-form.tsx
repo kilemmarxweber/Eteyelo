@@ -1,5 +1,5 @@
 "use client";
-import { HTMLAttributes, useState, useEffect } from "react";
+import { HTMLAttributes, useState, useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -12,6 +12,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Button } from "@/components/custom/button";
+import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useTheme } from "next-themes";
@@ -42,6 +43,8 @@ import { getSchoolYearsAction } from "../../../schoolYear/schoolYear.action";
 import { ICours } from "@/src/interfaces/Cours";
 import { getCoursAction } from "../../../cours/cours.action";
 import { useSession } from "@/lib/auth-client";
+import { getClassesByIdAction } from "../../../classe/classe.action";
+import { resolveCycle, type Cycle } from "@/lib/cycle";
 
 interface EnrollmentUpFormProps extends HTMLAttributes<HTMLDivElement> {
   onSuccess?: () => void;
@@ -65,12 +68,22 @@ export function EnrollmentUpForm({
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [Teachers, setTeachers] = useState<ITeacher[]>([]);
+  const [classCycle, setClassCycle] = useState<Cycle | null>(null);
   const [Cours, setCours] = useState<ICours[]>([]);
   const [SchoolYears, setSchoolYears] = useState<ISchoolYear[]>([]);
   const { data: session } = useSession();
   const branchId = session?.branch?.id ?? session?.session?.activeBranchId;
+  const branchType = session?.branch?.typebranch;
   const currentSchoolYearId =
     SchoolYears.find((schoolYear) => schoolYear.isCurrentYear)?.id ?? "";
+
+  const teachersForCycle = useMemo(() => {
+    if (!classCycle) return Teachers;
+    return Teachers.filter((teacher) => {
+      const cycles = (teacher.cycles ?? []) as Cycle[];
+      return cycles.length === 0 || cycles.includes(classCycle);
+    });
+  }, [Teachers, classCycle]);
 
   const form = useForm<z.infer<typeof teachingSchema>>({
     resolver: zodResolver(teachingSchema),
@@ -79,6 +92,7 @@ export function EnrollmentUpForm({
       teacherId: initialData?.teacherId ?? "",
       coursId: initialData?.coursId ?? "",
       classeId: initialData?.classeId ?? classeId ?? "",
+      weeklyHours: initialData?.weeklyHours ?? undefined,
     },
   });
 
@@ -119,7 +133,15 @@ export function EnrollmentUpForm({
       setTeachers(rawTeachers);
     };
     fecthTeachers();
-  }, [branchId, classeId]);
+    const fetchClasseCycle = async () => {
+      const [classes, err] = await getClassesByIdAction({ id: classeId });
+      if (err || !classes?.[0]) return;
+      setClassCycle(
+        resolveCycle(classes[0], { typebranch: branchType }),
+      );
+    };
+    fetchClasseCycle();
+  }, [branchId, branchType, classeId]);
   async function onSubmit(data: z.infer<typeof teachingSchema>) {
     setIsLoading(true);
     setErrorMessage("");
@@ -139,6 +161,7 @@ export function EnrollmentUpForm({
           teacherId: "",
           coursId: "",
           classeId,
+          weeklyHours: undefined,
         });
         onCreated?.();
       } else {
@@ -196,7 +219,7 @@ export function EnrollmentUpForm({
                           )}
                         >
                           {field.value
-                            ? Teachers.find(
+                            ? teachersForCycle.find(
                                 (teacher) => teacher.id === field.value,
                               )?.username
                             : "Entrez le code du teacher "}
@@ -210,7 +233,7 @@ export function EnrollmentUpForm({
                         <CommandList>
                           <CommandEmpty>No teacher found.</CommandEmpty>
                           <CommandGroup>
-                            {Teachers.map((teacher) => (
+                            {teachersForCycle.map((teacher) => (
                               <CommandItem
                                 value={teacher.username}
                                 key={teacher?.username}
@@ -293,6 +316,38 @@ export function EnrollmentUpForm({
                       </Command>
                     </PopoverContent>
                   </Popover>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="weeklyHours"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Minutes / semaine *</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      min={15}
+                      max={600}
+                      step={15}
+                      placeholder="Ex. 135"
+                      value={field.value ?? ""}
+                      onChange={(event) =>
+                        field.onChange(
+                          event.target.value === ""
+                            ? undefined
+                            : Number(event.target.value),
+                        )
+                      }
+                    />
+                  </FormControl>
+                  <p className="text-xs text-muted-foreground">
+                    Volume en minutes selon la vacation de la classe (ex. 135
+                    min ÷ 45 min = 3 séances sur 3 jours ; primaire / maternelle
+                    souvent 30 min par période).
+                  </p>
                   <FormMessage />
                 </FormItem>
               )}

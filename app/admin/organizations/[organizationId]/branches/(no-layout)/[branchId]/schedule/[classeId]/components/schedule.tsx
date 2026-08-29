@@ -21,7 +21,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { AlertTriangle, Download, Plus, Trash2 } from "lucide-react";
+import { AlertTriangle, Download, Plus, Sparkles, Trash2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -37,6 +37,7 @@ import {
   getScheduleCreneauByClasseAction,
   getScheduleReportContextAction,
   getSchedulesByClasseAction,
+  regenerateScheduleForClasseAction,
 } from "../../schedule.action";
 import { ICours } from "@/src/interfaces/Cours";
 import { z } from "zod";
@@ -133,6 +134,8 @@ export default function Schedule({
   const [reportContext, setReportContext] =
     useState<ScheduleReportContext | null>(null);
   const [exporting, setExporting] = useState(false);
+  const [generating, setGenerating] = useState(false);
+  const [confirmGenerateOpen, setConfirmGenerateOpen] = useState(false);
   const [cellTarget, setCellTarget] = useState<CellTarget | null>(null);
   const [selectedCours, setSelectedCours] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<Horaire | null>(null);
@@ -370,6 +373,43 @@ export default function Schedule({
     }
   }
 
+  async function handleGenerateSchedule() {
+    if (!canCreateSchedule || !classeId || !hasCreneau) return;
+    setConfirmGenerateOpen(false);
+    setGenerating(true);
+    try {
+      const [result, err] = await regenerateScheduleForClasseAction({
+        classeId,
+      });
+      if (err || !result) {
+        toast.error(err?.message ?? "Generation impossible");
+        return;
+      }
+      await loadHoraires();
+      onScheduleAction?.();
+      if (result.foundComplete) {
+        toast.success(
+          result.attempts > 1
+            ? `Horaire complet trouve apres ${result.attempts} propositions (${result.placed} seance(s)).`
+            : `Horaire genere : ${result.placed} seance(s) placee(s).`,
+        );
+      } else if (result.failures.length) {
+        toast.warning(
+          `Meilleure proposition apres ${result.attempts} essais : ${result.placed} seance(s). ${result.failures.length} cours incomplete(s) (enseignants deja pris ailleurs ou vacation saturee). Regenerer pour reessayer.`,
+        );
+      } else {
+        toast.success(
+          `Nouvelle proposition : ${result.placed} seance(s) placee(s).`,
+        );
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Erreur lors de la generation de l'horaire");
+    } finally {
+      setGenerating(false);
+    }
+  }
+
   return (
     <>
       <Card
@@ -395,16 +435,29 @@ export default function Schedule({
                 </p>
               )}
             </div>
-            <Button
-              type="button"
-              onClick={handleExportPdf}
-              disabled={
-                loading || exporting || horaires.length === 0 || !reportContext
-              }
-            >
-              <Download className="mr-2 size-4" />
-              {exporting ? "Generation..." : "Telecharger"}
-            </Button>
+            <div className="flex flex-wrap items-center gap-2">
+              {canCreateSchedule && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setConfirmGenerateOpen(true)}
+                  disabled={loading || generating || !hasCreneau || !classeId}
+                >
+                  <Sparkles className="mr-2 size-4" />
+                  {generating ? "Generation..." : "Generer horaire"}
+                </Button>
+              )}
+              <Button
+                type="button"
+                onClick={handleExportPdf}
+                disabled={
+                  loading || exporting || horaires.length === 0 || !reportContext
+                }
+              >
+                <Download className="mr-2 size-4" />
+                {exporting ? "Generation..." : "Telecharger"}
+              </Button>
+            </div>
           </div>
         </CardHeader>
 
@@ -613,6 +666,51 @@ export default function Schedule({
               onClick={assignCourse}
             >
               {saving ? "Enregistrement..." : "Placer"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={confirmGenerateOpen}
+        onOpenChange={(open) => {
+          if (!generating) setConfirmGenerateOpen(open);
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Generer une nouvelle proposition d&apos;horaire ?</DialogTitle>
+            <DialogDescription>
+              Les seances generees automatiquement (AUTO) de cette classe seront
+              remplacees par une nouvelle disposition aleatoire basee sur les
+              minutes / semaine et la vacation. Les placements manuels sont
+              conserves. L&apos;occupation de chaque enseignant est respectee
+              sur les autres classes, cycles et etablissements de
+              l&apos;organisation.
+            </DialogDescription>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Si une proposition bloque des cours, le systeme enchaine
+            automatiquement d&apos;autres dispositions (jusqu&apos;a ~50 essais)
+            pour liberer une place, tout en evitant les conflits enseignants
+            (autres classes, cycles et etablissements). Vous pourrez regenerer
+            manuellement pour une autre variante.
+          </p>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              disabled={generating}
+              onClick={() => setConfirmGenerateOpen(false)}
+            >
+              Annuler
+            </Button>
+            <Button
+              type="button"
+              disabled={generating}
+              onClick={handleGenerateSchedule}
+            >
+              {generating ? "Generation..." : "Confirmer et generer"}
             </Button>
           </DialogFooter>
         </DialogContent>

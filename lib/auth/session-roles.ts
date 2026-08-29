@@ -78,6 +78,7 @@ const APP_MANAGER_ROLES = [APP_ROLE.OWNER, APP_ROLE.ADMIN] as const;
 const ORG_MANAGER_ROLES = [
   ORG_ROLE.OWNER,
   ORG_ROLE.GESTIONNAIRE,
+  ORG_ROLE.AGENT_BUREAU,
   ORG_ROLE.PREFET,
   ORG_ROLE.DIRECTEUR,
   ORG_ROLE.DIRECTEUR_ETUDES,
@@ -187,6 +188,7 @@ export function canAccessPedagogyArea(
       ...APP_MANAGER_ROLES,
       ORG_ROLE.OWNER,
       ORG_ROLE.GESTIONNAIRE,
+      ORG_ROLE.AGENT_BUREAU,
       ORG_ROLE.PREFET,
       ORG_ROLE.DIRECTEUR,
       ORG_ROLE.DIRECTEUR_ETUDES,
@@ -514,13 +516,22 @@ export function canReadScheduleArea(
 export const canAccessScheduleReadArea = canReadScheduleArea;
 
 /**
- * Notes : managers + teacher (saisie).
+ * Notes : managers + teacher (saisie), **sauf** agent de bureau.
  * Parent / élève n’accèdent plus à /notes via le menu Cursus.
  */
 export function canAccessNotesReadArea(
   session: any,
   ...extraRoles: unknown[]
 ): boolean {
+  if (
+    hasSessionRole(
+      session,
+      [ORG_ROLE.AGENT_BUREAU, "agent_bureau", "membre_bureau"],
+      ...extraRoles,
+    )
+  ) {
+    return false;
+  }
   return (
     canManageOrganization(session, ...extraRoles) ||
     hasSessionRole(session, [ORG_ROLE.TEACHER, "TEACHER"], ...extraRoles)

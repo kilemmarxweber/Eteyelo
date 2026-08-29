@@ -43,6 +43,7 @@ type LessonType = {
     periodeName: string;
     typeFiche: string;
     anneeId: string;
+    dateCreated: string;
   }[];
 };
 
@@ -188,7 +189,9 @@ export default async function NotesPage({
               periodeName: true,
               typeFiche: true,
               anneeId: true,
+              dateCreated: true,
             },
+            orderBy: { dateCreated: "asc" },
           },
         },
       },
@@ -338,6 +341,7 @@ export default async function NotesPage({
             periodeName: f.periodeName,
             typeFiche: f.typeFiche,
             anneeId: f.anneeId,
+            dateCreated: f.dateCreated.toISOString(),
           })) || [],
       });
     }
@@ -372,6 +376,7 @@ export default async function NotesPage({
             periodeName: f.periodeName,
             typeFiche: f.typeFiche,
             anneeId: f.anneeId,
+            dateCreated: f.dateCreated.toISOString(),
           })),
         };
       }),

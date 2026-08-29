@@ -69,6 +69,7 @@ export function UpdatePersonnelDialog({
                 address: personnel.address,
                 image: personnel.image ?? "",
                 orgRole: personnel.role ?? ALL_ORG_ROLE_SLUGS[0],
+                cycles: personnel.cycles ?? [],
               }}
               onUpdated={handleUpdated}
               onPersonnelUpdate={handleUpdated}

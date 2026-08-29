@@ -224,18 +224,47 @@ export function cycleLabel(cycle: unknown): string {
   return getCycleCapabilities(cycle).label;
 }
 
-/** Libellé court pour badges côte à côte (liste des établissements). */
+/** Libellé court pour badges / listes d’établissements multi-cycles. */
 export function cycleCompactLabel(cycle: unknown): string {
   switch (normalizeCycle(cycle)) {
     case "MATERNELLE":
-      return "MAT";
+      return "Mat";
     case "PRIMAIRE":
-      return "PRIM";
+      return "Prim";
     case "SECONDAIRE":
-      return "SEC";
+      return "Sec&Hum";
     default:
       return getCycleCapabilities(cycle).shortLabel;
   }
+}
+
+/**
+ * Libellé lisible des cycles d’une branche.
+ * Ex. multi : « Cycle Mat, Prim et Sec&Hum » ; mono : « Cycle Sec&Hum ».
+ */
+export function formatBranchCyclesLabel(
+  cycles: unknown[] | null | undefined,
+  options?: {
+    locale?: string;
+    typebranch?: unknown;
+    prefix?: boolean;
+  },
+): string {
+  const resolved = getBranchCycles({
+    typebranch: options?.typebranch,
+    cycles: (cycles ?? []).map((item) =>
+      typeof item === "string" || typeof item === "number"
+        ? { cycle: item, isActive: true }
+        : (item as BranchCycleInput),
+    ),
+  });
+  const labels = resolved.map((cycle) => cycleCompactLabel(cycle));
+  if (labels.length === 0) return "";
+  const joined = new Intl.ListFormat(options?.locale ?? "fr", {
+    style: "short",
+    type: "conjunction",
+  }).format(labels);
+  return options?.prefix === false ? joined : `Cycle ${joined}`;
 }
 
 export function cycleSectionLabel(cycle: unknown): string {

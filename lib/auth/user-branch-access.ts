@@ -31,6 +31,7 @@ export const SCHOOL_LEADERSHIP_LOGIN_ORG_ROLES = new Set<string>([
 /** Gestionnaire : entre dans les établissements BranchMember qu’il gère (sans fallback 1ʳᵉ branche org). */
 export const GESTIONNAIRE_LOGIN_ORG_ROLES = new Set<string>([
   ORG_ROLE.GESTIONNAIRE,
+  ORG_ROLE.AGENT_BUREAU,
 ]);
 
 export type UserBranchMembership = {
@@ -69,6 +70,7 @@ export function buildGestionnaireLandingPath(
 function mapBranchMemberships(
   memberships: Array<{
     branchId: string;
+    memberCycles?: Array<{ cycle: string }>;
     branch: {
       name: string;
       typebranch: TypeBrache;
@@ -76,12 +78,23 @@ function mapBranchMemberships(
     };
   }>,
 ): UserBranchMembership[] {
-  return memberships.map((membership) => ({
-    branchId: membership.branchId,
-    branchName: membership.branch.name,
-    typebranch: membership.branch.typebranch,
-    cycles: membership.branch.cycles,
-  }));
+  return memberships.map((membership) => {
+    const assigned = membership.memberCycles ?? [];
+    return {
+      branchId: membership.branchId,
+      branchName: membership.branch.name,
+      typebranch: membership.branch.typebranch,
+      // Afficher uniquement le(s) cycle(s) d'affectation (SEC / PRIM / …).
+      cycles:
+        assigned.length > 0
+          ? assigned.map((row) => ({
+              cycle: row.cycle,
+              isActive: true,
+              sortOrder: 0,
+            }))
+          : membership.branch.cycles,
+    };
+  });
 }
 
 /** Branches liées via BranchRole enseignant / parent / élève / caissier. */
@@ -104,6 +117,7 @@ export async function getUserBranchMemberships(
     },
     select: {
       branchId: true,
+      memberCycles: { select: { cycle: true } },
       branch: {
         select: {
           name: true,
@@ -143,6 +157,7 @@ export async function getAnyUserBranchMemberships(
     },
     select: {
       branchId: true,
+      memberCycles: { select: { cycle: true } },
       branch: {
         select: {
           name: true,

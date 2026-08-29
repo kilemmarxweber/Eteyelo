@@ -36,6 +36,7 @@ export type Fiche = {
   periodeName?: string;
   typeFiche: string;
   anneeId: string;
+  dateCreated: string;
 };
 
 export type TeacherLesson = {

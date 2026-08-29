@@ -437,6 +437,7 @@ export const ModelName = {
   PaymentEvent: 'PaymentEvent',
   DiscountRule: 'DiscountRule',
   Transaction: 'Transaction',
+  GradeModificationRequest: 'GradeModificationRequest',
   AbsenceCase: 'AbsenceCase',
   AppNotification: 'AppNotification',
   Session: 'Session',
@@ -454,6 +455,7 @@ export const ModelName = {
   JobApplication: 'JobApplication',
   Partnaire: 'Partnaire',
   BranchMember: 'BranchMember',
+  BranchMemberCycle: 'BranchMemberCycle',
   StudentBranchLink: 'StudentBranchLink',
   IssuedDocument: 'IssuedDocument',
   BranchInvitation: 'BranchInvitation',
@@ -483,7 +485,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "parent" | "student" | "attendanceSession" | "studentAttendance" | "teacherAttendance" | "personnelAttendance" | "parentFeedback" | "studentGrade" | "personnel" | "frais" | "typeFrais" | "classe" | "creneau" | "option" | "section" | "schoolYear" | "classEnrollment" | "teacher" | "teaching" | "cours" | "coursOptionPonderation" | "schedule" | "calendarEvent" | "eventType" | "semester" | "period" | "periodResultLock" | "fiche" | "invoice" | "paymentBatch" | "familyPayment" | "cashierExpense" | "cashierOpeningBalance" | "exchangeRate" | "paymentAllocation" | "mobileMoneyTransaction" | "paymentEvent" | "discountRule" | "transaction" | "absenceCase" | "appNotification" | "session" | "account" | "verification" | "organization" | "organizationRole" | "member" | "invitation" | "branch" | "branchCycle" | "branchPrimaryDomain" | "branchRegistrationInfo" | "registrationRequest" | "jobApplication" | "partnaire" | "branchMember" | "studentBranchLink" | "issuedDocument" | "branchInvitation" | "libraryBook" | "platformSupportAgent" | "organizationSupportAgent" | "organizationSupportBranchScope" | "platformSupportEscalation" | "onlineAssignment" | "onlineQuestion" | "onlineQuestionOption" | "onlineSubmission" | "onlineAnswer" | "onlineSubmissionFile"
+    modelProps: "user" | "parent" | "student" | "attendanceSession" | "studentAttendance" | "teacherAttendance" | "personnelAttendance" | "parentFeedback" | "studentGrade" | "personnel" | "frais" | "typeFrais" | "classe" | "creneau" | "option" | "section" | "schoolYear" | "classEnrollment" | "teacher" | "teaching" | "cours" | "coursOptionPonderation" | "schedule" | "calendarEvent" | "eventType" | "semester" | "period" | "periodResultLock" | "fiche" | "invoice" | "paymentBatch" | "familyPayment" | "cashierExpense" | "cashierOpeningBalance" | "exchangeRate" | "paymentAllocation" | "mobileMoneyTransaction" | "paymentEvent" | "discountRule" | "transaction" | "gradeModificationRequest" | "absenceCase" | "appNotification" | "session" | "account" | "verification" | "organization" | "organizationRole" | "member" | "invitation" | "branch" | "branchCycle" | "branchPrimaryDomain" | "branchRegistrationInfo" | "registrationRequest" | "jobApplication" | "partnaire" | "branchMember" | "branchMemberCycle" | "studentBranchLink" | "issuedDocument" | "branchInvitation" | "libraryBook" | "platformSupportAgent" | "organizationSupportAgent" | "organizationSupportBranchScope" | "platformSupportEscalation" | "onlineAssignment" | "onlineQuestion" | "onlineQuestionOption" | "onlineSubmission" | "onlineAnswer" | "onlineSubmissionFile"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -3447,6 +3449,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    GradeModificationRequest: {
+      payload: Prisma.$GradeModificationRequestPayload<ExtArgs>
+      fields: Prisma.GradeModificationRequestFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.GradeModificationRequestFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GradeModificationRequestPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.GradeModificationRequestFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GradeModificationRequestPayload>
+        }
+        findFirst: {
+          args: Prisma.GradeModificationRequestFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GradeModificationRequestPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.GradeModificationRequestFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GradeModificationRequestPayload>
+        }
+        findMany: {
+          args: Prisma.GradeModificationRequestFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GradeModificationRequestPayload>[]
+        }
+        create: {
+          args: Prisma.GradeModificationRequestCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GradeModificationRequestPayload>
+        }
+        createMany: {
+          args: Prisma.GradeModificationRequestCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.GradeModificationRequestCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GradeModificationRequestPayload>[]
+        }
+        delete: {
+          args: Prisma.GradeModificationRequestDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GradeModificationRequestPayload>
+        }
+        update: {
+          args: Prisma.GradeModificationRequestUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GradeModificationRequestPayload>
+        }
+        deleteMany: {
+          args: Prisma.GradeModificationRequestDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.GradeModificationRequestUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.GradeModificationRequestUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GradeModificationRequestPayload>[]
+        }
+        upsert: {
+          args: Prisma.GradeModificationRequestUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GradeModificationRequestPayload>
+        }
+        aggregate: {
+          args: Prisma.GradeModificationRequestAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateGradeModificationRequest>
+        }
+        groupBy: {
+          args: Prisma.GradeModificationRequestGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.GradeModificationRequestGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.GradeModificationRequestCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.GradeModificationRequestCountAggregateOutputType> | number
+        }
+      }
+    }
     AbsenceCase: {
       payload: Prisma.$AbsenceCasePayload<ExtArgs>
       fields: Prisma.AbsenceCaseFieldRefs
@@ -4702,6 +4778,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.BranchMemberCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.BranchMemberCountAggregateOutputType> | number
+        }
+      }
+    }
+    BranchMemberCycle: {
+      payload: Prisma.$BranchMemberCyclePayload<ExtArgs>
+      fields: Prisma.BranchMemberCycleFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.BranchMemberCycleFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BranchMemberCyclePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.BranchMemberCycleFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BranchMemberCyclePayload>
+        }
+        findFirst: {
+          args: Prisma.BranchMemberCycleFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BranchMemberCyclePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.BranchMemberCycleFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BranchMemberCyclePayload>
+        }
+        findMany: {
+          args: Prisma.BranchMemberCycleFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BranchMemberCyclePayload>[]
+        }
+        create: {
+          args: Prisma.BranchMemberCycleCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BranchMemberCyclePayload>
+        }
+        createMany: {
+          args: Prisma.BranchMemberCycleCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.BranchMemberCycleCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BranchMemberCyclePayload>[]
+        }
+        delete: {
+          args: Prisma.BranchMemberCycleDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BranchMemberCyclePayload>
+        }
+        update: {
+          args: Prisma.BranchMemberCycleUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BranchMemberCyclePayload>
+        }
+        deleteMany: {
+          args: Prisma.BranchMemberCycleDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.BranchMemberCycleUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.BranchMemberCycleUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BranchMemberCyclePayload>[]
+        }
+        upsert: {
+          args: Prisma.BranchMemberCycleUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BranchMemberCyclePayload>
+        }
+        aggregate: {
+          args: Prisma.BranchMemberCycleAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateBranchMemberCycle>
+        }
+        groupBy: {
+          args: Prisma.BranchMemberCycleGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.BranchMemberCycleGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.BranchMemberCycleCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.BranchMemberCycleCountAggregateOutputType> | number
         }
       }
     }
@@ -6115,6 +6265,7 @@ export const TeachingScalarFieldEnum = {
   schoolYearId: 'schoolYearId',
   titulaire: 'titulaire',
   statusTeaching: 'statusTeaching',
+  weeklyHours: 'weeklyHours',
   branchId: 'branchId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
@@ -6161,6 +6312,7 @@ export const ScheduleScalarFieldEnum = {
   hour: 'hour',
   teachingId: 'teachingId',
   createdBy: 'createdBy',
+  source: 'source',
   isArchived: 'isArchived',
   archivedAt: 'archivedAt',
   archivedById: 'archivedById',
@@ -6434,6 +6586,28 @@ export const TransactionScalarFieldEnum = {
 export type TransactionScalarFieldEnum = (typeof TransactionScalarFieldEnum)[keyof typeof TransactionScalarFieldEnum]
 
 
+export const GradeModificationRequestScalarFieldEnum = {
+  id: 'id',
+  branchId: 'branchId',
+  organizationId: 'organizationId',
+  ficheId: 'ficheId',
+  requestedById: 'requestedById',
+  status: 'status',
+  justification: 'justification',
+  evidenceUrl: 'evidenceUrl',
+  previousNotes: 'previousNotes',
+  proposedNotes: 'proposedNotes',
+  contextLabel: 'contextLabel',
+  reviewComment: 'reviewComment',
+  reviewedById: 'reviewedById',
+  reviewedAt: 'reviewedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type GradeModificationRequestScalarFieldEnum = (typeof GradeModificationRequestScalarFieldEnum)[keyof typeof GradeModificationRequestScalarFieldEnum]
+
+
 export const AbsenceCaseScalarFieldEnum = {
   id: 'id',
   branchId: 'branchId',
@@ -6474,6 +6648,7 @@ export const AppNotificationScalarFieldEnum = {
   body: 'body',
   href: 'href',
   absenceCaseId: 'absenceCaseId',
+  gradeModificationRequestId: 'gradeModificationRequestId',
   readAt: 'readAt',
   createdAt: 'createdAt'
 } as const
@@ -6784,6 +6959,16 @@ export const BranchMemberScalarFieldEnum = {
 } as const
 
 export type BranchMemberScalarFieldEnum = (typeof BranchMemberScalarFieldEnum)[keyof typeof BranchMemberScalarFieldEnum]
+
+
+export const BranchMemberCycleScalarFieldEnum = {
+  id: 'id',
+  branchMemberId: 'branchMemberId',
+  cycle: 'cycle',
+  createdAt: 'createdAt'
+} as const
+
+export type BranchMemberCycleScalarFieldEnum = (typeof BranchMemberCycleScalarFieldEnum)[keyof typeof BranchMemberCycleScalarFieldEnum]
 
 
 export const StudentBranchLinkScalarFieldEnum = {
@@ -7250,6 +7435,20 @@ export type ListEnumDayFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaMo
 
 
 /**
+ * Reference to a field of type 'ScheduleSource'
+ */
+export type EnumScheduleSourceFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ScheduleSource'>
+    
+
+
+/**
+ * Reference to a field of type 'ScheduleSource[]'
+ */
+export type ListEnumScheduleSourceFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ScheduleSource[]'>
+    
+
+
+/**
  * Reference to a field of type 'Json'
  */
 export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Json'>
@@ -7344,6 +7543,20 @@ export type EnumDiscountScopeFieldRefInput<$PrismaModel> = FieldRefInputType<$Pr
  * Reference to a field of type 'DiscountScope[]'
  */
 export type ListEnumDiscountScopeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DiscountScope[]'>
+    
+
+
+/**
+ * Reference to a field of type 'GradeModificationStatus'
+ */
+export type EnumGradeModificationStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'GradeModificationStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'GradeModificationStatus[]'
+ */
+export type ListEnumGradeModificationStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'GradeModificationStatus[]'>
     
 
 
@@ -7831,6 +8044,7 @@ export type GlobalOmitConfig = {
   paymentEvent?: Prisma.PaymentEventOmit
   discountRule?: Prisma.DiscountRuleOmit
   transaction?: Prisma.TransactionOmit
+  gradeModificationRequest?: Prisma.GradeModificationRequestOmit
   absenceCase?: Prisma.AbsenceCaseOmit
   appNotification?: Prisma.AppNotificationOmit
   session?: Prisma.SessionOmit
@@ -7848,6 +8062,7 @@ export type GlobalOmitConfig = {
   jobApplication?: Prisma.JobApplicationOmit
   partnaire?: Prisma.PartnaireOmit
   branchMember?: Prisma.BranchMemberOmit
+  branchMemberCycle?: Prisma.BranchMemberCycleOmit
   studentBranchLink?: Prisma.StudentBranchLinkOmit
   issuedDocument?: Prisma.IssuedDocumentOmit
   branchInvitation?: Prisma.BranchInvitationOmit

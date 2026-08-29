@@ -5,7 +5,6 @@ import {
   calculateBulletinPercentage,
   sumBulletinMaxima,
 } from "@/lib/bulletin-maxima";
-import { countBranchStudents } from "@/lib/branch-student-count";
 import {
   getDashboardDataBlocks,
   resolveDashboardVariant,
@@ -28,7 +27,14 @@ import {
   type DiscountInfo,
 } from "@/lib/payment-discount";
 import { buildStudentAnnouncementsData } from "@/lib/student-announcements";
-import { getBranchCycles, buildDashboardCycleStats } from "@/lib/cycle";
+import { getBranchCycles, buildDashboardCycleStats, normalizeCycle } from "@/lib/cycle";
+import {
+  canViewAllDirectoryUsers,
+  classeCycleWhere,
+  getBranchMemberCycles,
+  isCycleGlobalRole,
+  resolveAccessibleCycles,
+} from "@/lib/auth/cycle-scope";
 
 const BRANCH_CYCLE_SELECT = {
   where: { isActive: true },
@@ -190,12 +196,24 @@ export async function getAdminStats({
   organizationId,
 }: z.infer<typeof adminStatsSchema>) {
   try {
-    const { session, branchId: activeBranchId } = await requireBranchContext();
+    const { session, branchId: activeBranchId, userId } =
+      await requireBranchContext();
     const blocks = getDashboardDataBlocks(resolveDashboardVariant(session));
 
     if (!blocks.schoolStats || activeBranchId !== branchId) {
       return { error: "UNAUTHORIZED" as const };
     }
+
+    const [orgMember, viewerBm] = await Promise.all([
+      prisma.member.findFirst({
+        where: { userId, organizationId },
+        select: { role: true },
+      }),
+      prisma.branchMember.findFirst({
+        where: { branchId, member: { userId, organizationId } },
+        select: { id: true },
+      }),
+    ]);
 
     // Chef école (préfet/directeur) : stats sans revenus ; gestionnaire conserve la finance.
     const includeRevenue = blocks.revenue && canAccessFinanceArea(session);
@@ -227,6 +245,29 @@ export async function getAdminStats({
         error: "Branch not found",
       };
     }
+
+    const branchCyclesForScope = getBranchCycles(branch);
+    let accessibleCycles = await resolveAccessibleCycles({
+      branchId,
+      branchMemberId: viewerBm?.id ?? null,
+      orgRole: orgMember?.role,
+    });
+    if (
+      !canViewAllDirectoryUsers(orgMember?.role) &&
+      !isCycleGlobalRole(orgMember?.role)
+    ) {
+      const assigned = viewerBm?.id
+        ? await getBranchMemberCycles(viewerBm.id)
+        : [];
+      accessibleCycles =
+        assigned.length > 0
+          ? assigned.filter((cycle) => branchCyclesForScope.includes(cycle))
+          : [normalizeCycle(branch.typebranch)];
+    }
+    if (accessibleCycles.length === 0) {
+      accessibleCycles = [normalizeCycle(branch.typebranch)];
+    }
+    const classScope = classeCycleWhere(accessibleCycles);
     // =========================
     // SCHOOL YEAR
     // =========================
@@ -257,11 +298,11 @@ export async function getAdminStats({
           isSelected: true,
         },
       });
-      const activatedCycles = getBranchCycles(branch);
+      const activatedCycles = accessibleCycles;
       const classRows =
         activatedCycles.length > 1
           ? await prisma.classe.findMany({
-              where: { branchId: branch.id },
+              where: { branchId: branch.id, ...classScope },
               select: { cycle: true },
             })
           : [];
@@ -313,6 +354,7 @@ export async function getAdminStats({
           branchId: branch.id,
           statusEnrollment: true,
           createdAt: { lte: endCurrent },
+          classe: classScope,
         },
       }),
       prisma.classEnrollment.groupBy({
@@ -322,6 +364,7 @@ export async function getAdminStats({
           branchId: branch.id,
           statusEnrollment: true,
           createdAt: { lte: endPrev },
+          classe: classScope,
         },
       }),
       prisma.classEnrollment.groupBy({
@@ -331,6 +374,7 @@ export async function getAdminStats({
           branchId: branch.id,
           statusEnrollment: true,
           createdAt: { lte: endCurrent },
+          classe: classScope,
         },
       }),
       prisma.classEnrollment.groupBy({
@@ -340,6 +384,7 @@ export async function getAdminStats({
           branchId: branch.id,
           statusEnrollment: true,
           createdAt: { lte: endPrev },
+          classe: classScope,
         },
       }),
       prisma.teaching.groupBy({
@@ -349,6 +394,7 @@ export async function getAdminStats({
           branchId: branch.id,
           statusTeaching: true,
           createdAt: { lte: endCurrent },
+          classe: classScope,
         },
       }),
       prisma.teaching.groupBy({
@@ -358,26 +404,70 @@ export async function getAdminStats({
           branchId: branch.id,
           statusTeaching: true,
           createdAt: { lte: endPrev },
+          classe: classScope,
         },
       }),
-      countBranchStudents({
-        branchId: branch.id,
-        createdBefore: endCurrent,
-      }),
-      countBranchStudents({
-        branchId: branch.id,
-        createdBefore: endPrev,
-      }),
+      prisma.classEnrollment
+        .groupBy({
+          by: ["studentId"],
+          where: {
+            branchId: branch.id,
+            statusEnrollment: true,
+            schoolYear: { isCurrentYear: true },
+            createdAt: { lte: endCurrent },
+            classe: classScope,
+          },
+        })
+        .then((rows) => rows.length),
+      prisma.classEnrollment
+        .groupBy({
+          by: ["studentId"],
+          where: {
+            branchId: branch.id,
+            statusEnrollment: true,
+            schoolYear: { isCurrentYear: true },
+            createdAt: { lte: endPrev },
+            classe: classScope,
+          },
+        })
+        .then((rows) => rows.length),
       prisma.classe.count({
-        where: { branchId: branch.id },
+        where: { branchId: branch.id, ...classScope },
       }),
       prisma.teacher.count({
         where: {
           branchMember: { branchId: branch.id },
+          OR: [
+            {
+              branchMember: {
+                memberCycles: {
+                  some: { cycle: { in: accessibleCycles } },
+                },
+              },
+            },
+            {
+              teaching: {
+                some: {
+                  schoolYearId: currentYear.id,
+                  statusTeaching: true,
+                  classe: classScope,
+                },
+              },
+            },
+          ],
         },
       }),
       prisma.cours.count({
-        where: { branchId: branch.id },
+        where: {
+          branchId: branch.id,
+          teaching: {
+            some: {
+              schoolYearId: currentYear.id,
+              statusTeaching: true,
+              classe: classScope,
+            },
+          },
+        },
       }),
       includeRevenue
         ? prisma.familyPayment.aggregate({
@@ -420,12 +510,12 @@ export async function getAdminStats({
       }),
     ]);
 
-    const activatedCycles = getBranchCycles(branch);
+    const activatedCycles = accessibleCycles;
     const [classCycleRows, enrollmentCycleRows, teachingCycleRows, paymentCycleRows] =
       activatedCycles.length > 1
         ? await Promise.all([
             prisma.classe.findMany({
-              where: { branchId: branch.id },
+              where: { branchId: branch.id, ...classScope },
               select: { cycle: true },
             }),
             prisma.classEnrollment.findMany({
@@ -434,6 +524,7 @@ export async function getAdminStats({
                 branchId: branch.id,
                 statusEnrollment: true,
                 createdAt: { lte: endCurrent },
+                classe: classScope,
               },
               select: {
                 studentId: true,
@@ -444,6 +535,7 @@ export async function getAdminStats({
               where: {
                 schoolYearId: currentYear.id,
                 branchId: branch.id,
+                classe: classScope,
               },
               select: {
                 teacherId: true,
@@ -1501,7 +1593,38 @@ export async function getBranchDashboardData(params: {
   const organizationId = params.organizationId;
   const typebranch = branch.typebranch;
   const educationSystem = branch.educationSystem;
-  const cycles = getBranchCycles(branch);
+  const branchCycles = getBranchCycles(branch);
+
+  const [orgMember, viewerBm] = await Promise.all([
+    prisma.member.findFirst({
+      where: { userId, organizationId },
+      select: { role: true },
+    }),
+    prisma.branchMember.findFirst({
+      where: { branchId, member: { userId, organizationId } },
+      select: { id: true },
+    }),
+  ]);
+
+  let cycles = branchCycles;
+  if (
+    canViewAllDirectoryUsers(orgMember?.role) ||
+    isCycleGlobalRole(orgMember?.role)
+  ) {
+    cycles = branchCycles;
+  } else if (viewerBm?.id) {
+    const assigned = await getBranchMemberCycles(viewerBm.id);
+    cycles =
+      assigned.length > 0
+        ? assigned.filter((cycle) => branchCycles.includes(cycle))
+        : // Legacy : pas encore de BranchMemberCycle → cycle = type de la branche
+          [normalizeCycle(typebranch)];
+  } else {
+    cycles = [normalizeCycle(typebranch)];
+  }
+  if (cycles.length === 0) {
+    cycles = [normalizeCycle(typebranch)];
+  }
 
   const variant: DashboardVariant = resolveDashboardVariant(session);
   const blocks = getDashboardDataBlocks(variant);
@@ -1564,11 +1687,22 @@ export async function getBranchDashboardData(params: {
     typebranch:
       (statsRecord.typebranch as string | null | undefined) ?? typebranch,
     educationSystem,
-    cycles:
-      Array.isArray(statsRecord.cycles) && statsRecord.cycles.length > 0
-        ? (statsRecord.cycles as typeof cycles)
-        : cycles,
-    stats: blocks.schoolStats ? stats : null,
+    cycles,
+    stats: blocks.schoolStats
+      ? stats && typeof stats === "object"
+        ? {
+            ...(stats as Record<string, unknown>),
+            cycles,
+            byCycle: Array.isArray((stats as { byCycle?: unknown }).byCycle)
+              ? (
+                  (stats as { byCycle: Array<{ cycle: string }> }).byCycle ?? []
+                ).filter((row) =>
+                  cycles.includes(row.cycle as (typeof cycles)[number]),
+                )
+              : (stats as { byCycle?: unknown }).byCycle,
+          }
+        : stats
+      : null,
     metrics:
       blocks.pedagogyMetrics &&
       metrics &&

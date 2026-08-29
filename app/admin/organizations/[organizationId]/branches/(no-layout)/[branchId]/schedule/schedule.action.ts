@@ -23,6 +23,19 @@ import {
 } from "@/lib/reports/resolve-school-branding";
 import { scheduleHourToMinutes } from "@/lib/timezone";
 import {
+  generateCourseStartSlots,
+  sessionsNeededFromWeeklyHours,
+  placeTeachingsWithRetries,
+  slotKey,
+  formatMinutesToHm,
+  type TeacherBusyInterval,
+} from "@/lib/schedule-auto-generate";
+import {
+  assertTeacherFreeAt,
+  getTeacherUserId,
+  listTeacherBusySlots,
+} from "@/lib/teacher-availability";
+import {
   CYCLE_SORT_ORDER,
   cycleLabel,
   normalizeCycle,
@@ -295,6 +308,20 @@ async function assertScheduleSlotAvailable(params: {
         : `Conflit d'horaire : l'enseignant a déjà un cours en ${otherClass} le ${day} à ${hourLabel}.`,
     );
   }
+
+  // Inter-branches + multi-cycles + chevauchement de durée (même User).
+  const classeCreneau = await prisma.classe.findFirst({
+    where: { id: classeId, branchId: ctx.branchId },
+    select: { creneau: { select: { durationCourse: true } } },
+  });
+  await assertTeacherFreeAt({
+    teacherId,
+    organizationId: ctx.organizationId,
+    day,
+    startMin: slotMinutes,
+    durationMinutes: classeCreneau?.creneau?.durationCourse ?? undefined,
+    excludeScheduleId,
+  });
 }
 
 function teacherAssignmentFilter(ctx: ScheduleContext) {
@@ -914,4 +941,259 @@ export const getScheduleClasseByIdAction = action
         : undefined,
     }));
     return tranformedClasses;
+  });
+
+const regenerateScheduleSchema = z.object({
+  classeId: z.string().min(1),
+});
+
+/**
+ * Régénère les créneaux AUTO d'une classe à partir des weeklyHours.
+ * Conserve les séances MANUAL. Respecte conflits classe / enseignant (multi-branches).
+ */
+export const regenerateScheduleForClasseAction = action
+  .input(regenerateScheduleSchema)
+  .handler(async ({ input }) => {
+    const ctx = await getScheduleContext();
+    assertScheduleWriteAccess(ctx, "CREATE");
+    await assertClasseInBranch(ctx, input.classeId);
+
+    const [classe, schoolYear] = await Promise.all([
+      prisma.classe.findFirst({
+        where: {
+          id: input.classeId,
+          branchId: ctx.branchId,
+          branch: { organizationId: ctx.organizationId },
+        },
+        select: {
+          id: true,
+          nameClasse: true,
+          creneau: {
+            select: {
+              startTime: true,
+              endTime: true,
+              durationCourse: true,
+              recreationHour: true,
+              recreationDuration: true,
+            },
+          },
+        },
+      }),
+      prisma.schoolYear.findFirst({
+        where: {
+          branchId: ctx.branchId,
+          branch: { organizationId: ctx.organizationId },
+          isCurrentYear: true,
+          isArchived: false,
+        },
+        select: { id: true },
+      }),
+    ]);
+
+    if (!classe?.creneau) {
+      throw new Error(
+        "Aucune vacation assignée à cette classe. Configurez d'abord le créneau.",
+      );
+    }
+    if (!schoolYear) {
+      throw new Error("Aucune année scolaire courante.");
+    }
+
+    const durationCourse = classe.creneau.durationCourse || 0;
+    if (!(durationCourse > 0)) {
+      throw new Error("Durée de cours invalide sur le créneau.");
+    }
+
+    const toHm = (date: Date | null | undefined) =>
+      date
+        ? date.toISOString().split("T")[1].slice(0, 5)
+        : "";
+
+    const courseSlots = generateCourseStartSlots({
+      startTime: toHm(classe.creneau.startTime),
+      endTime: toHm(classe.creneau.endTime),
+      durationCourse,
+      recreationHour: toHm(classe.creneau.recreationHour),
+      recreationDuration: classe.creneau.recreationDuration ?? 0,
+    });
+
+    if (!courseSlots.length) {
+      throw new Error("Impossible de générer les périodes à partir du créneau.");
+    }
+
+    const teachings = await prisma.teaching.findMany({
+      where: scopedTeachingWhere(ctx, {
+        classeId: input.classeId,
+        schoolYearId: schoolYear.id,
+      }),
+      select: {
+        id: true,
+        teacherId: true,
+        titulaire: true,
+        weeklyHours: true,
+        cours: { select: { nameCours: true } },
+      },
+    });
+
+    const withHours = teachings.filter(
+      (t) => t.weeklyHours != null && t.weeklyHours > 0 && t.teacherId,
+    );
+    if (!withHours.length) {
+      throw new Error(
+        "Aucune affectation avec minutes / semaine. Renseignez le volume (ex. 135) sur la page Affectations.",
+      );
+    }
+
+    // Supprimer uniquement les séances AUTO de cette classe (pas les MANUAL, pas les autres classes).
+    await prisma.schedule.deleteMany({
+      where: {
+        source: "AUTO",
+        isArchived: false,
+        teaching: {
+          classeId: input.classeId,
+          schoolYearId: schoolYear.id,
+          OR: [{ branchId: ctx.branchId }, { branchId: null }],
+        },
+      },
+    });
+
+    const remaining = await prisma.schedule.findMany({
+      where: {
+        isArchived: false,
+        teaching: {
+          classeId: input.classeId,
+          schoolYearId: schoolYear.id,
+        },
+      },
+      select: { day: true, hour: true },
+    });
+
+    const occupiedClassSlots = new Set(
+      remaining.map((row) =>
+        slotKey(
+          row.day,
+          formatMinutesToHm(scheduleHourToMinutes(row.hour)),
+        ),
+      ),
+    );
+
+    const occupiedTeacherIntervals = new Map<string, TeacherBusyInterval[]>();
+
+    for (const teaching of withHours) {
+      const teacherId = teaching.teacherId!;
+      if (occupiedTeacherIntervals.has(teacherId)) continue;
+      const userId = await getTeacherUserId(teacherId);
+      if (!userId) {
+        occupiedTeacherIntervals.set(teacherId, []);
+        continue;
+      }
+      // Toutes les séances du même User : autres classes / cycles / branches.
+      // On exclut la classe en cours (ses AUTO viennent d'être effacés ; les MANUAL
+      // de cette classe sont réinjectés juste après pour la durée exacte).
+      const busy = await listTeacherBusySlots({
+        userId,
+        organizationId: ctx.organizationId,
+        excludeClasseId: input.classeId,
+      });
+      occupiedTeacherIntervals.set(
+        teacherId,
+        busy.map((slot) => ({
+          day: slot.day,
+          startMin: slot.startMin,
+          endMin: slot.endMin,
+          label: [slot.courseName, slot.className, slot.cycleLabel, slot.branchName]
+            .filter(Boolean)
+            .join(" · "),
+        })),
+      );
+    }
+
+    // Créneaux MANUAL conservés sur cette classe → occupés pour la classe + l'enseignant
+    const manualWithTeacher = await prisma.schedule.findMany({
+      where: {
+        isArchived: false,
+        source: "MANUAL",
+        teaching: {
+          classeId: input.classeId,
+          schoolYearId: schoolYear.id,
+        },
+      },
+      select: {
+        day: true,
+        hour: true,
+        teaching: {
+          select: {
+            teacherId: true,
+            cours: { select: { nameCours: true } },
+          },
+        },
+      },
+    });
+    for (const row of manualWithTeacher) {
+      const teacherId = row.teaching?.teacherId;
+      if (!teacherId) continue;
+      const startMin = scheduleHourToMinutes(row.hour);
+      const list = occupiedTeacherIntervals.get(teacherId) ?? [];
+      list.push({
+        day: row.day,
+        startMin,
+        endMin: startMin + durationCourse,
+        label: row.teaching?.cours?.nameCours
+          ? `${row.teaching.cours.nameCours} (manuel)`
+          : "Placement manuel",
+      });
+      occupiedTeacherIntervals.set(teacherId, list);
+    }
+
+    const candidates = withHours.map((t) => ({
+      teachingId: t.id,
+      teacherId: t.teacherId!,
+      courseName: t.cours?.nameCours ?? "Cours",
+      sessionsNeeded: sessionsNeededFromWeeklyHours(
+        t.weeklyHours,
+        durationCourse,
+      ),
+      titulaire: Boolean(t.titulaire),
+      weeklyMinutes: t.weeklyHours ?? 0,
+    }));
+
+    const { placed, failures, attempts, foundComplete } =
+      placeTeachingsWithRetries(
+        {
+          candidates,
+          courseSlots,
+          durationCourseMinutes: durationCourse,
+          occupiedClassSlots,
+          occupiedTeacherIntervals,
+        },
+        { maxAttempts: 48 },
+      );
+
+    if (placed.length) {
+      await prisma.schedule.createMany({
+        data: placed.map((item) => {
+          const [h, m] = item.hourHm.split(":").map(Number);
+          return {
+            day: item.day,
+            hour: new Date(Date.UTC(2000, 1, 1, h, m)),
+            teachingId: item.teachingId,
+            source: "AUTO" as const,
+            createdBy: ctx.branchMemberId ?? undefined,
+          };
+        }),
+      });
+    }
+
+    revalidateSchedulePages(ctx);
+
+    return {
+      classeName: classe.nameClasse,
+      placed: placed.length,
+      failures,
+      attempts,
+      foundComplete,
+      skippedWithoutHours: teachings.length - withHours.length,
+      durationCourse,
+      courseSlots: courseSlots.length,
+    };
   });

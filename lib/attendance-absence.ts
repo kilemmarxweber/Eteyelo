@@ -1018,6 +1018,15 @@ export async function listUnreadAppNotifications(params: {
       absenceCase: {
         include: { user: { select: userContactSelect } },
       },
+      gradeModificationRequest: {
+        select: {
+          id: true,
+          status: true,
+          contextLabel: true,
+          justification: true,
+          evidenceUrl: true,
+        },
+      },
     },
     orderBy: { createdAt: "desc" },
     take: 30,
