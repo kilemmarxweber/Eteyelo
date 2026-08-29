@@ -1014,7 +1014,7 @@ export type $CreneauPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     recreationHour: Date
     recreationDuration: number
     /**
-     * Jours ouvrables pour l'emploi du temps (ex. sans samedi).
+     * Jours ouvrables (Lundi–Samedi par défaut).
      */
     workingDays: $Enums.Day[]
     isArchived: boolean

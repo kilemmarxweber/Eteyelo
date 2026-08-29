@@ -14,7 +14,7 @@ const adapter = new PrismaPg({
  * Bump when Prisma schema fields change so the cached client is rebuilt in dev.
  * Also used to bust Turbopack module cache after `prisma generate`.
  */
-const PRISMA_CLIENT_VERSION = "branch-multi-cycles-1";
+const PRISMA_CLIENT_VERSION = "creneau-working-days-1";
 
 const globalForPrisma = globalThis as unknown as {
   prisma?: PrismaClient;

@@ -377,6 +377,8 @@ model Creneau {
   durationCourse     Int
   recreationHour     DateTime @db.Time
   recreationDuration Int
+  /// Jours ouvrables (Lundi–Samedi par défaut).
+  workingDays        Day[]    @default([Lundi, Mardi, Mercredi, Jeudi, Vendredi, Samedi])
   isArchived         Boolean  @default(false)
   archivedAt         DateTime?
   archivedById       String?
