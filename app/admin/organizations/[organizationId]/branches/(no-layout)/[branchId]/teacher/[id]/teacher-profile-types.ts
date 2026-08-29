@@ -103,11 +103,12 @@ export type TeacherProfileStats = {
   excused: number;
   attendanceTotal: number;
   presenceRate: number;
+  punctualityRate: number;
   notesCount: number;
   assignmentsCount: number;
   courseCount: number;
   classCount: number;
-  /** Score 0–100 basé sur cours affectés. */
+  /** Score 0–100 basé sur cours affectés / donnés. */
   coursesRate: number;
   /** Score 0–100 basé sur interventions (fiches / devoirs). */
   interventionsRate: number;

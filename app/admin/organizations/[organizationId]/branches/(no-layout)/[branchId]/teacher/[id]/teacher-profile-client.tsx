@@ -260,7 +260,10 @@ export function TeacherProfileClient({
               size="icon"
               className="mt-0.5 size-9 shrink-0 border-primary/25 bg-background/70 text-primary hover:bg-primary/10 hover:text-primary"
             >
-              <Link href={profile.listHref} aria-label="Retour à la liste">
+              <Link
+                href={profile.dashboardHref}
+                aria-label="Retour au tableau de bord"
+              >
                 <ArrowLeft className="size-4" />
               </Link>
             </Button>
@@ -778,7 +781,7 @@ export function TeacherProfileClient({
               <ScoreRing value={profile.stats.score} />
             </div>
             <p className="mt-3 text-center text-xs text-muted-foreground">
-              Assiduité, ponctualité et activité pédagogique
+              Présence, cours donnés et interventions effectuées
             </p>
             <div className="mt-4 space-y-3">
               <PerfRow
@@ -787,15 +790,15 @@ export function TeacherProfileClient({
               />
               <PerfRow
                 label="Ponctualité"
-                value={
-                  profile.stats.present + profile.stats.late > 0
-                    ? Math.round(
-                        (profile.stats.present /
-                          (profile.stats.present + profile.stats.late)) *
-                          100,
-                      )
-                    : 0
-                }
+                value={profile.stats.punctualityRate}
+              />
+              <PerfRow
+                label={`Cours donnés (${profile.stats.courseCount})`}
+                value={profile.stats.coursesRate}
+              />
+              <PerfRow
+                label={`Interventions (${profile.stats.notesCount + profile.stats.assignmentsCount})`}
+                value={profile.stats.interventionsRate}
               />
             </div>
           </Card>
