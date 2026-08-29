@@ -192,6 +192,13 @@ export default async function NotesPage({
               ],
             },
             { classe: classScope },
+            // Notes = cours bulletin uniquement (pas les postes d'horaire).
+            {
+              cours: {
+                kind: "SUBJECT",
+                parentCoursId: null,
+              },
+            },
           ],
         },
         include: {
@@ -201,6 +208,7 @@ export default async function NotesPage({
             select: {
               id: true,
               nameCours: true,
+              kind: true,
             },
           },
 

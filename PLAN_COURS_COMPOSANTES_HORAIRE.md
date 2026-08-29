@@ -2,10 +2,20 @@
 
 > Objectif : pouvoir **découper un cours** (ex. Français) en **plusieurs postes visibles** sur l’**horaire** et dans les **affectations** (écriture, récitation, rédaction…), tout en gardant **un seul cours « Français »** pour la **saisie de notes**, la **fiche de cote** et le **calcul de moyenne** (somme / agrégation des sous-parties → une note / un max / une pondération bulletin).
 
-**Statut :** brouillon — à lire et améliorer ensemble  
+| **Statut :** exécution V1 démarrée (Option A + N1 + enseignant unique)  
 **Date :** 2026-08-29  
 **Lié à :** `PLAN_MULTI_CYCLE_SCOPING.md` (weeklyHours, Teaching, Schedule) ; pondération `CoursOptionPonderation` ; fiches `fiche` / notes
 
+### Progression V1
+
+| Phase | Statut |
+|-------|--------|
+| 1 Schéma + helpers | ✅ |
+| 2 CRUD postes catalogue | ✅ |
+| 3 Filtre pondération parents | ✅ |
+| 4 Affectation expand + sync enseignant | ✅ (UI groupée basique via données parent) |
+| 5 Libellés horaire | ✅ |
+| 6–8 Présences / N2 / recette | ⏳ |
 ---
 
 ## 0. Problème métier (exemple)

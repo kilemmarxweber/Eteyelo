@@ -22,6 +22,7 @@ import {
   schoolReportBranchSelect,
 } from "@/lib/reports/resolve-school-branding";
 import { scheduleHourToMinutes } from "@/lib/timezone";
+import { formatScheduleCoursLabel } from "@/lib/cours-components";
 import {
   generateCourseStartSlots,
   sessionsNeededFromWeeklyHours,
@@ -532,7 +533,11 @@ export const getSchedulesByClasseAction = action
         teaching: {
           include: {
             classe: true,
-            cours: true,
+            cours: {
+              include: {
+                parentCours: { select: { nameCours: true } },
+              },
+            },
             schoolYear: true,
             teacher: {
               include: {
@@ -579,7 +584,12 @@ export const getSchedulesByClasseAction = action
       cours: {
         id: schedule.teaching?.cours?.id || "",
         codeCours: schedule.teaching?.cours?.codeCours || "",
-        nameCours: schedule.teaching?.cours?.nameCours || "",
+        nameCours: formatScheduleCoursLabel({
+          nameCours: schedule.teaching?.cours?.nameCours || "",
+          parentNameCours: schedule.teaching?.cours?.parentCours?.nameCours,
+          kind: schedule.teaching?.cours?.kind,
+          parentCoursId: schedule.teaching?.cours?.parentCoursId,
+        }),
       },
     }));
   });

@@ -9,6 +9,14 @@
 * 🟢 You can import this file directly.
 */
 
+export const CoursKind = {
+  SUBJECT: 'SUBJECT',
+  SCHEDULE_COMPONENT: 'SCHEDULE_COMPONENT'
+} as const
+
+export type CoursKind = (typeof CoursKind)[keyof typeof CoursKind]
+
+
 export const ScheduleSource = {
   MANUAL: 'MANUAL',
   AUTO: 'AUTO'

@@ -381,6 +381,23 @@ export type FloatNullableWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedFloatNullableFilter<$PrismaModel>
 }
 
+export type EnumCoursKindFilter<$PrismaModel = never> = {
+  equals?: $Enums.CoursKind | Prisma.EnumCoursKindFieldRefInput<$PrismaModel>
+  in?: $Enums.CoursKind[] | Prisma.ListEnumCoursKindFieldRefInput<$PrismaModel>
+  notIn?: $Enums.CoursKind[] | Prisma.ListEnumCoursKindFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumCoursKindFilter<$PrismaModel> | $Enums.CoursKind
+}
+
+export type EnumCoursKindWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.CoursKind | Prisma.EnumCoursKindFieldRefInput<$PrismaModel>
+  in?: $Enums.CoursKind[] | Prisma.ListEnumCoursKindFieldRefInput<$PrismaModel>
+  notIn?: $Enums.CoursKind[] | Prisma.ListEnumCoursKindFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumCoursKindWithAggregatesFilter<$PrismaModel> | $Enums.CoursKind
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumCoursKindFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumCoursKindFilter<$PrismaModel>
+}
+
 export type EnumDayFilter<$PrismaModel = never> = {
   equals?: $Enums.Day | Prisma.EnumDayFieldRefInput<$PrismaModel>
   in?: $Enums.Day[] | Prisma.ListEnumDayFieldRefInput<$PrismaModel>
@@ -1410,6 +1427,23 @@ export type NestedFloatNullableWithAggregatesFilter<$PrismaModel = never> = {
   _sum?: Prisma.NestedFloatNullableFilter<$PrismaModel>
   _min?: Prisma.NestedFloatNullableFilter<$PrismaModel>
   _max?: Prisma.NestedFloatNullableFilter<$PrismaModel>
+}
+
+export type NestedEnumCoursKindFilter<$PrismaModel = never> = {
+  equals?: $Enums.CoursKind | Prisma.EnumCoursKindFieldRefInput<$PrismaModel>
+  in?: $Enums.CoursKind[] | Prisma.ListEnumCoursKindFieldRefInput<$PrismaModel>
+  notIn?: $Enums.CoursKind[] | Prisma.ListEnumCoursKindFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumCoursKindFilter<$PrismaModel> | $Enums.CoursKind
+}
+
+export type NestedEnumCoursKindWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.CoursKind | Prisma.EnumCoursKindFieldRefInput<$PrismaModel>
+  in?: $Enums.CoursKind[] | Prisma.ListEnumCoursKindFieldRefInput<$PrismaModel>
+  notIn?: $Enums.CoursKind[] | Prisma.ListEnumCoursKindFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumCoursKindWithAggregatesFilter<$PrismaModel> | $Enums.CoursKind
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumCoursKindFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumCoursKindFilter<$PrismaModel>
 }
 
 export type NestedEnumDayFilter<$PrismaModel = never> = {

@@ -38,6 +38,8 @@ interface MultiSelectProps {
   disabled?: boolean;
   /** Affiche uniquement le placeholder (ou un compteur), pas les badges des éléments sélectionnés */
   hideSelected?: boolean;
+  /** Libellé du compteur quand hideSelected est actif (défaut : frais). */
+  selectedCountLabel?: (count: number) => string;
 }
 
 export function MultiSelect({
@@ -51,6 +53,8 @@ export function MultiSelect({
   className,
   disabled = false,
   hideSelected = false,
+  selectedCountLabel = (count) =>
+    `${count} frais sélectionné${count > 1 ? "s" : ""}`,
 }: MultiSelectProps) {
   const [open, setOpen] = React.useState(false);
   const [search, setSearch] = React.useState("");
@@ -91,11 +95,18 @@ export function MultiSelect({
           disabled={disabled}
           className={cn("w-full justify-between min-h-9 text-sm", className)}
         >
-          <div className="flex gap-1 flex-wrap items-center">
+          <div className="flex min-w-0 gap-1 flex-wrap items-center">
             {selected.length === 0 || hideSelected ? (
-              <span className="text-muted-foreground">
+              <span
+                className={cn(
+                  "truncate",
+                  (selected.length === 0 || hideSelected) &&
+                    selected.length === 0 &&
+                    "text-muted-foreground",
+                )}
+              >
                 {selected.length > 0 && hideSelected
-                  ? `${selected.length} frais sélectionné${selected.length > 1 ? "s" : ""}`
+                  ? selectedCountLabel(selected.length)
                   : placeholder}
               </span>
             ) : (

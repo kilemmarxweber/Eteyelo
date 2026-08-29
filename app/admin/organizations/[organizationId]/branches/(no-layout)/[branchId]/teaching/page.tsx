@@ -239,9 +239,20 @@ export default function TeachingWorkspacePage() {
     classeId: string,
     nextTeachings: ClassCourses["teachings"],
   ) {
+    const visibleIds = new Set(
+      (
+        classCache[classeId]?.courses ??
+        (classeId === selectedClassId ? classCourses?.courses : undefined) ??
+        []
+      ).map((course) => course.id),
+    );
     const assignedCount = new Set(
       nextTeachings
-        .filter((item) => item.statusTeaching !== false)
+        .filter(
+          (item) =>
+            item.statusTeaching !== false &&
+            (visibleIds.size === 0 || visibleIds.has(item.coursId)),
+        )
         .map((item) => item.coursId),
     ).size;
     setData((current) =>
@@ -250,7 +261,13 @@ export default function TeachingWorkspacePage() {
             ...current,
             classes: current.classes.map((classe) =>
               classe.id === classeId
-                ? { ...classe, assignedCount }
+                ? {
+                    ...classe,
+                    assignedCount,
+                    ...(visibleIds.size > 0
+                      ? { configuredCount: visibleIds.size }
+                      : {}),
+                  }
                 : classe,
             ),
           }
@@ -586,27 +603,29 @@ export default function TeachingWorkspacePage() {
 
           <Card className="flex min-h-0 flex-col overflow-hidden">
             <div className="border-b p-4">
-              <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
-                <div>
+              <div className="flex flex-col gap-1">
+                <div className="min-w-0">
                   <h2 className="text-lg font-semibold">
                     {selectedClass?.nameClasse ?? "Sélectionnez une classe"}
                   </h2>
                   <p className="text-sm text-muted-foreground">
                     {assignedCount} cours affecté(s) · {unassignedCount} sans
                     enseignant
-                    {selectedClass
-                      ? ` · ${selectedClass.configuredCount} cours pondéré(s)`
-                      : ""}
+                    {classCourses
+                      ? ` · ${courses.length} ligne(s)`
+                      : selectedClass
+                        ? ` · ${selectedClass.configuredCount} ligne(s)`
+                        : ""}
                   </p>
                 </div>
                 {selectedCourses.length > 0 && (
-                  <div className="flex flex-wrap items-center gap-2">
+                  <div className="mt-2 flex w-full flex-nowrap items-center gap-2 overflow-x-auto">
                     <TeacherPicker
                       teachers={teachersForClass}
                       value={bulkTeacherId}
                       onChange={setBulkTeacherId}
                       placeholder="Enseignant pour le lot"
-                      className="w-56"
+                      className="h-9 min-w-[9rem] flex-1"
                     />
                     <Input
                       type="number"
@@ -615,15 +634,18 @@ export default function TeachingWorkspacePage() {
                       step={15}
                       value={bulkWeeklyHours}
                       onChange={(e) => setBulkWeeklyHours(e.target.value)}
-                      placeholder="min/sem"
-                      className="w-28"
+                      placeholder="min"
+                      className="h-9 w-[4.25rem] shrink-0 px-1.5 text-center tabular-nums"
                       title="Minutes / semaine (ex. 135)"
                     />
                     <Select
                       value={bulkConsecutiveSlots}
                       onValueChange={setBulkConsecutiveSlots}
                     >
-                      <SelectTrigger className="w-[120px]" title="Périodes d'affilée">
+                      <SelectTrigger
+                        className="h-9 w-[5.5rem] shrink-0 px-2"
+                        title="Périodes d'affilée"
+                      >
                         <SelectValue placeholder="Affilé" />
                       </SelectTrigger>
                       <SelectContent>
@@ -633,7 +655,7 @@ export default function TeachingWorkspacePage() {
                         <SelectItem value="4">4 d&apos;affilée</SelectItem>
                       </SelectContent>
                     </Select>
-                    <div className="min-w-[180px] max-w-[240px]">
+                    <div className="w-[4.5rem] shrink-0">
                       <MultiSelect
                         options={CRENEAU_WEEKDAY_OPTIONS.map((day) => ({
                           value: day.value,
@@ -643,10 +665,13 @@ export default function TeachingWorkspacePage() {
                         onValueChange={setBulkPreferredDays}
                         placeholder="Jours"
                         searchable={false}
-                        maxCount={2}
+                        hideSelected
+                        selectedCountLabel={(count) => String(count)}
+                        className="h-9 px-2"
                       />
                     </div>
                     <Button
+                      className="shrink-0"
                       disabled={!bulkTeacherId || savingCourseId === "bulk"}
                       onClick={() => {
                         const hours = Number(bulkWeeklyHours);
@@ -666,6 +691,7 @@ export default function TeachingWorkspacePage() {
                     </Button>
                     {selectedAssignedCourses.length > 0 && (
                       <Button
+                        className="shrink-0"
                         variant="outline"
                         disabled={savingCourseId === "bulk"}
                         onClick={() =>
@@ -739,10 +765,10 @@ export default function TeachingWorkspacePage() {
               </p>
             </div>
             <div className="min-h-0 flex-1 overflow-auto">
-              <table className="w-full min-w-[1100px] text-sm">
+              <table className="w-full min-w-[920px] text-sm">
                 <thead className="sticky top-0 bg-background text-left shadow-sm">
                   <tr>
-                    <th className="p-3">
+                    <th className="p-2">
                       <label className="inline-flex cursor-pointer items-center gap-2">
                         <Checkbox
                           checked={
@@ -761,25 +787,22 @@ export default function TeachingWorkspacePage() {
                         </span>
                       </label>
                     </th>
-                    <th className="p-3">Cours</th>
-                    <th className="p-3">Enseignant</th>
-                    <th className="p-3 w-[100px]">min/sem</th>
-                    <th className="p-3 w-[120px]">Affilée</th>
-                    <th className="p-3 min-w-[160px]">Jours</th>
-                    <th className="p-3">État</th>
-                    <th className="p-3 w-[1%]">Actions</th>
+                    <th className="p-2">Cours</th>
+                    <th className="p-2 w-[11rem]">Enseignant</th>
+                    <th className="p-2 w-[4.5rem]">min/sem</th>
+                    <th className="p-2 w-[4.5rem]">Affilée</th>
+                    <th className="p-2 w-[4.5rem]">Jours</th>
+                    <th className="p-2 w-[6.5rem]">État</th>
+                    <th className="p-2 w-[1%]">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {rows.map((course) => {
                     const assignment = assignmentMap.get(course.id);
-                    const teacher = data.teachers.find(
-                      (item) => item.id === assignment?.teacherId,
-                    );
                     const isSaving = savingCourseId === course.id;
                     return (
                       <tr key={course.id} className="border-t">
-                        <td className="p-3">
+                        <td className="p-2">
                           <Checkbox
                             checked={selectedCourses.includes(course.id)}
                             onCheckedChange={(checked) =>
@@ -791,13 +814,21 @@ export default function TeachingWorkspacePage() {
                             }
                           />
                         </td>
-                        <td className="p-3">
+                        <td className="p-2">
                           <p className="font-medium">{course.nameCours}</p>
                           <p className="text-xs text-muted-foreground">
                             {course.codeCours}
+                            {(course as { parentNameCours?: string | null })
+                              .parentNameCours
+                              ? ` · ${(course as { parentNameCours?: string | null }).parentNameCours}`
+                              : ""}
+                            {(course as { kind?: string }).kind ===
+                            "SCHEDULE_COMPONENT"
+                              ? " · poste horaire"
+                              : ""}
                           </p>
                         </td>
-                        <td className="p-3">
+                        <td className="p-2">
                           <TeacherPicker
                             teachers={teachersForClass}
                             value={assignment?.teacherId ?? ""}
@@ -819,12 +850,12 @@ export default function TeachingWorkspacePage() {
                               );
                             }}
                             disabled={isSaving}
-                            placeholder="Affecter un enseignant"
+                            placeholder="Affecter…"
                             allowClear={Boolean(assignment)}
-                            className="w-64"
+                            className="h-9 w-full max-w-[11rem]"
                           />
                         </td>
-                        <td className="p-3">
+                        <td className="p-2">
                           {assignment ? (
                             <Input
                               type="number"
@@ -834,7 +865,7 @@ export default function TeachingWorkspacePage() {
                               defaultValue={assignment.weeklyHours ?? ""}
                               key={`${assignment.id}-${assignment.weeklyHours ?? "empty"}`}
                               disabled={isSaving}
-                              className="h-9 w-[88px]"
+                              className="h-9 w-[4.25rem] px-1.5 text-center tabular-nums"
                               placeholder="135"
                               title="Minutes / semaine"
                               onBlur={(e) => {
@@ -857,7 +888,7 @@ export default function TeachingWorkspacePage() {
                             <span className="text-xs text-muted-foreground">—</span>
                           )}
                         </td>
-                        <td className="p-3">
+                        <td className="p-2">
                           {assignment ? (
                             <Select
                               value={String(assignment.consecutiveSlots ?? 1)}
@@ -873,7 +904,7 @@ export default function TeachingWorkspacePage() {
                               }}
                               disabled={isSaving}
                             >
-                              <SelectTrigger className="h-9 w-[100px]">
+                              <SelectTrigger className="h-9 w-[4.25rem] px-2">
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent>
@@ -887,7 +918,7 @@ export default function TeachingWorkspacePage() {
                             <span className="text-xs text-muted-foreground">—</span>
                           )}
                         </td>
-                        <td className="p-3">
+                        <td className="p-2">
                           {assignment ? (
                             <MultiSelect
                               options={CRENEAU_WEEKDAY_OPTIONS.map((day) => ({
@@ -909,14 +940,16 @@ export default function TeachingWorkspacePage() {
                               }}
                               placeholder="Tous"
                               searchable={false}
-                              maxCount={2}
+                              hideSelected
+                              selectedCountLabel={(count) => String(count)}
                               disabled={isSaving}
+                              className="h-9 max-w-[4.5rem] px-2"
                             />
                           ) : (
                             <span className="text-xs text-muted-foreground">—</span>
                           )}
                         </td>
-                        <td className="p-3">
+                        <td className="p-2">
                           <Badge
                             variant={assignment ? "success" : "warning"}
                             icon={
@@ -927,12 +960,10 @@ export default function TeachingWorkspacePage() {
                               )
                             }
                           >
-                            {assignment
-                              ? (teacher?.name ?? "Affecté")
-                              : "Non affecté"}
+                            {assignment ? "Affecté" : "Non affecté"}
                           </Badge>
                         </td>
-                        <td className="p-3">
+                        <td className="p-2">
                           {assignment ? (
                             <Button
                               type="button"

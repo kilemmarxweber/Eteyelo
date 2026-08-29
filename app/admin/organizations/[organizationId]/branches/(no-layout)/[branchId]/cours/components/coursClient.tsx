@@ -48,8 +48,14 @@ export default function Cours({
   const [stats, setStats] = useState({ total: 0, active: 0, inactive: 0 });
   const [importing, startImport] = useTransition();
   const { refreshKey, refresh } = useRefresh();
-  const { data: session } = useSession();
-  const canCreate = canManageOrganization(session);
+  const { data: session, isPending } = useSession();
+  const [hasMounted, setHasMounted] = useState(false);
+  const sessionReady = hasMounted && !isPending;
+  const canCreate = sessionReady && canManageOrganization(session);
+
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
 
   useEffect(() => {
     void (async () => {

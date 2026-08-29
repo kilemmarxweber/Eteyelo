@@ -524,6 +524,10 @@ export function buildStaticSideLinks(
   pathname: string,
   typebranch?: unknown,
   cycles?: unknown,
+  options?: {
+    /** Masquer ces hrefs logiques `/admin/...` (ex. registration sans inscription:read). */
+    hideHrefs?: string[];
+  },
 ): SideLink[] {
   const context = resolveNavigationContext(pathname);
   const roles = filterRolesForContext(
@@ -533,11 +537,19 @@ export function buildStaticSideLinks(
   const branchBasePath = resolveBranchBasePath(pathname);
   const resolvedTypebranch = typebranch ?? session?.branch?.typebranch;
   const resolvedCycles = cycles ?? resolvedTypebranch;
+  const hide = new Set(options?.hideHrefs ?? []);
 
   return staticSidebarMenu
-    .map((item) =>
-      mapMenuItem(item, roles, branchBasePath, resolvedTypebranch, resolvedCycles),
-    )
+    .map((item) => {
+      if (hide.has(item.href)) return null;
+      return mapMenuItem(
+        item,
+        roles,
+        branchBasePath,
+        resolvedTypebranch,
+        resolvedCycles,
+      );
+    })
     .filter(Boolean) as SideLink[];
 }
 

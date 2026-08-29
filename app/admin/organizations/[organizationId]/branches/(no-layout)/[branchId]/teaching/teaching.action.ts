@@ -13,6 +13,11 @@ import {
   configuredCoursIdsForClass,
   getConfiguredCoursIdsForClasse,
 } from "@/lib/course-ponderation";
+import {
+  COURS_KIND,
+  expandConfiguredCoursIdsForSchedule,
+  syncTeacherForParentComponentGroup,
+} from "@/lib/cours-components";
 import { syncTeacherDossierExperienceYears } from "@/lib/teacher-assignment-years";
 import { cycleLabel, resolveCycle, type Cycle } from "@/lib/cycle";
 import {
@@ -127,13 +132,20 @@ async function requireConfiguredCoursesForClasse(params: {
   });
   if (!classe) throw new Error("Classe introuvable dans cette branche");
 
+  const configuredParents = await getConfiguredCoursIdsForClasse({
+    branchId: params.branchId,
+    optionId: classe.optionId,
+    level: classe.level,
+  });
   const configured = new Set(
-    await getConfiguredCoursIdsForClasse({
+    await expandConfiguredCoursIdsForSchedule({
       branchId: params.branchId,
-      optionId: classe.optionId,
-      level: classe.level,
+      configuredParentIds: configuredParents,
     }),
   );
+  // Autoriser aussi le parent bulletin (Teaching notes N1) s'il est pondéré.
+  for (const parentId of configuredParents) configured.add(parentId);
+
   if (!configured.size) {
     throw new Error(
       "Aucun cours pondéré pour cette classe. Configurez d'abord les pondérations.",
@@ -292,14 +304,56 @@ export const getTeachingWorkspaceAction = action.handler(async () => {
     assignedByClass.set(item.classeId, current);
   }
 
+  // Compter comme la grille d'affectation : postes d'horaire (composants),
+  // pas les Teachings parents créés pour les notes (N1).
+  const allConfiguredParentIds = [
+    ...new Set(
+      classes.flatMap((classe) => [
+        ...configuredCoursIdsForClass(ponderations, classe),
+      ]),
+    ),
+  ];
+  const scheduleComponents =
+    allConfiguredParentIds.length > 0
+      ? await prisma.cours.findMany({
+          where: {
+            branchId,
+            parentCoursId: { in: allConfiguredParentIds },
+            kind: COURS_KIND.SCHEDULE_COMPONENT,
+            ...activeCoursStatusFilter,
+          },
+          select: { id: true, parentCoursId: true },
+        })
+      : [];
+  const scheduleKidsByParent = new Map<string, string[]>();
+  for (const row of scheduleComponents) {
+    if (!row.parentCoursId) continue;
+    const list = scheduleKidsByParent.get(row.parentCoursId) ?? [];
+    list.push(row.id);
+    scheduleKidsByParent.set(row.parentCoursId, list);
+  }
+  function scheduleIdsForParents(parentIds: Iterable<string>): Set<string> {
+    const ids = new Set<string>();
+    for (const parentId of parentIds) {
+      const kids = scheduleKidsByParent.get(parentId);
+      if (kids?.length) {
+        for (const id of kids) ids.add(id);
+      } else {
+        ids.add(parentId);
+      }
+    }
+    return ids;
+  }
+
   return {
     classes: classes.map((classe) => {
-      const configuredIds = new Set(
+      const configuredIds = scheduleIdsForParents(
         configuredCoursIdsForClass(ponderations, classe),
       );
       const assignedIds = assignedByClass.get(classe.id);
       const assignedCount = assignedIds
-        ? [...assignedIds].filter((coursId) => configuredIds.has(coursId)).length
+        ? [...configuredIds].filter((coursId) => assignedIds.has(coursId))
+            .length
         : 0;
       const cycle = resolveCycle(classe, branch);
       return {
@@ -365,26 +419,39 @@ export const getTeachingClassCoursesAction = action
     ]);
     if (!classe) throw new Error("Classe introuvable dans cette branche");
 
-    const configuredIds = await getConfiguredCoursIdsForClasse({
+    const configuredParentIds = await getConfiguredCoursIdsForClasse({
       branchId,
       optionId: classe.optionId,
       level: classe.level,
     });
 
-    if (!configuredIds.length) {
+    if (!configuredParentIds.length) {
       return { classeId: classe.id, courses: [], teachings: [] };
     }
+
+    const scheduleCoursIds = await expandConfiguredCoursIdsForSchedule({
+      branchId,
+      configuredParentIds,
+    });
 
     const [courses, teachings] = await Promise.all([
       prisma.cours.findMany({
         where: {
-          id: { in: configuredIds },
+          id: { in: scheduleCoursIds },
           branchId,
           branch: { organizationId },
           ...activeCoursStatusFilter,
         },
-        orderBy: { nameCours: "asc" },
-        select: { id: true, nameCours: true, codeCours: true },
+        orderBy: [{ sortOrder: "asc" }, { nameCours: "asc" }],
+        select: {
+          id: true,
+          nameCours: true,
+          codeCours: true,
+          kind: true,
+          parentCoursId: true,
+          sortOrder: true,
+          parentCours: { select: { id: true, nameCours: true } },
+        },
       }),
       schoolYear
         ? prisma.teaching.findMany({
@@ -393,7 +460,7 @@ export const getTeachingClassCoursesAction = action
               branch: { organizationId },
               classeId: classe.id,
               schoolYearId: schoolYear.id,
-              coursId: { in: configuredIds },
+              coursId: { in: scheduleCoursIds },
             },
             select: {
               id: true,
@@ -412,7 +479,19 @@ export const getTeachingClassCoursesAction = action
         : Promise.resolve([]),
     ]);
 
-    return { classeId: classe.id, courses, teachings };
+    return {
+      classeId: classe.id,
+      courses: courses.map((course) => ({
+        id: course.id,
+        nameCours: course.nameCours,
+        codeCours: course.codeCours,
+        kind: course.kind,
+        parentCoursId: course.parentCoursId,
+        parentNameCours: course.parentCours?.nameCours ?? null,
+        sortOrder: course.sortOrder,
+      })),
+      teachings,
+    };
   });
 
 const quickAssignmentSchema = z.object({
@@ -596,6 +675,56 @@ export const saveQuickAssignmentsAction = action.input(quickAssignmentSchema).ha
           select: teachingSelect,
         });
   }));
+  for (const coursId of input.coursIds) {
+    await syncTeacherForParentComponentGroup({
+      branchId,
+      coursId,
+      classeId: input.classeId,
+      schoolYearId: schoolYear.id,
+      teacherId: input.teacherId,
+    });
+  }
+  // Teaching parent pour notes (N1) si le groupe a des postes.
+  const componentParents = await prisma.cours.findMany({
+    where: {
+      id: { in: input.coursIds },
+      branchId,
+      kind: "SCHEDULE_COMPONENT",
+      parentCoursId: { not: null },
+    },
+    select: { parentCoursId: true },
+  });
+  const parentIds = [
+    ...new Set(
+      componentParents
+        .map((row) => row.parentCoursId)
+        .filter((id): id is string => Boolean(id)),
+    ),
+  ];
+  for (const parentCoursId of parentIds) {
+    await prisma.teaching.upsert({
+      where: {
+        classeId_schoolYearId_coursId: {
+          classeId: input.classeId,
+          schoolYearId: schoolYear.id,
+          coursId: parentCoursId,
+        },
+      },
+      create: {
+        branchId,
+        classeId: input.classeId,
+        schoolYearId: schoolYear.id,
+        coursId: parentCoursId,
+        teacherId: input.teacherId,
+        statusTeaching: true,
+      },
+      update: {
+        teacherId: input.teacherId,
+        statusTeaching: true,
+        branchId,
+      },
+    });
+  }
   await syncTeacherDossierExperienceYears({
     teacherId: input.teacherId,
     branchId,

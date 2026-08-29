@@ -27,10 +27,12 @@ export type AggregateCours = {
 }
 
 export type CoursAvgAggregateOutputType = {
+  sortOrder: number | null
   domainOrder: number | null
 }
 
 export type CoursSumAggregateOutputType = {
+  sortOrder: number | null
   domainOrder: number | null
 }
 
@@ -40,6 +42,9 @@ export type CoursMinAggregateOutputType = {
   nameCours: string | null
   description: string | null
   statusCours: boolean | null
+  kind: $Enums.CoursKind | null
+  parentCoursId: string | null
+  sortOrder: number | null
   primaryDomain: string | null
   primarySection: string | null
   domainOrder: number | null
@@ -54,6 +59,9 @@ export type CoursMaxAggregateOutputType = {
   nameCours: string | null
   description: string | null
   statusCours: boolean | null
+  kind: $Enums.CoursKind | null
+  parentCoursId: string | null
+  sortOrder: number | null
   primaryDomain: string | null
   primarySection: string | null
   domainOrder: number | null
@@ -68,6 +76,9 @@ export type CoursCountAggregateOutputType = {
   nameCours: number
   description: number
   statusCours: number
+  kind: number
+  parentCoursId: number
+  sortOrder: number
   primaryDomain: number
   primarySection: number
   domainOrder: number
@@ -79,10 +90,12 @@ export type CoursCountAggregateOutputType = {
 
 
 export type CoursAvgAggregateInputType = {
+  sortOrder?: true
   domainOrder?: true
 }
 
 export type CoursSumAggregateInputType = {
+  sortOrder?: true
   domainOrder?: true
 }
 
@@ -92,6 +105,9 @@ export type CoursMinAggregateInputType = {
   nameCours?: true
   description?: true
   statusCours?: true
+  kind?: true
+  parentCoursId?: true
+  sortOrder?: true
   primaryDomain?: true
   primarySection?: true
   domainOrder?: true
@@ -106,6 +122,9 @@ export type CoursMaxAggregateInputType = {
   nameCours?: true
   description?: true
   statusCours?: true
+  kind?: true
+  parentCoursId?: true
+  sortOrder?: true
   primaryDomain?: true
   primarySection?: true
   domainOrder?: true
@@ -120,6 +139,9 @@ export type CoursCountAggregateInputType = {
   nameCours?: true
   description?: true
   statusCours?: true
+  kind?: true
+  parentCoursId?: true
+  sortOrder?: true
   primaryDomain?: true
   primarySection?: true
   domainOrder?: true
@@ -221,6 +243,9 @@ export type CoursGroupByOutputType = {
   nameCours: string
   description: string | null
   statusCours: boolean | null
+  kind: $Enums.CoursKind
+  parentCoursId: string | null
+  sortOrder: number
   primaryDomain: string | null
   primarySection: string | null
   domainOrder: number | null
@@ -258,6 +283,9 @@ export type CoursWhereInput = {
   nameCours?: Prisma.StringFilter<"Cours"> | string
   description?: Prisma.StringNullableFilter<"Cours"> | string | null
   statusCours?: Prisma.BoolNullableFilter<"Cours"> | boolean | null
+  kind?: Prisma.EnumCoursKindFilter<"Cours"> | $Enums.CoursKind
+  parentCoursId?: Prisma.StringNullableFilter<"Cours"> | string | null
+  sortOrder?: Prisma.IntFilter<"Cours"> | number
   primaryDomain?: Prisma.StringNullableFilter<"Cours"> | string | null
   primarySection?: Prisma.StringNullableFilter<"Cours"> | string | null
   domainOrder?: Prisma.IntNullableFilter<"Cours"> | number | null
@@ -265,6 +293,8 @@ export type CoursWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"Cours"> | Date | string
   branchId?: Prisma.StringFilter<"Cours"> | string
   teaching?: Prisma.TeachingListRelationFilter
+  parentCours?: Prisma.XOR<Prisma.CoursNullableScalarRelationFilter, Prisma.CoursWhereInput> | null
+  components?: Prisma.CoursListRelationFilter
   period?: Prisma.PeriodListRelationFilter
   branch?: Prisma.XOR<Prisma.BranchScalarRelationFilter, Prisma.BranchWhereInput>
   coursPonderations?: Prisma.CoursOptionPonderationListRelationFilter
@@ -277,6 +307,9 @@ export type CoursOrderByWithRelationInput = {
   nameCours?: Prisma.SortOrder
   description?: Prisma.SortOrderInput | Prisma.SortOrder
   statusCours?: Prisma.SortOrderInput | Prisma.SortOrder
+  kind?: Prisma.SortOrder
+  parentCoursId?: Prisma.SortOrderInput | Prisma.SortOrder
+  sortOrder?: Prisma.SortOrder
   primaryDomain?: Prisma.SortOrderInput | Prisma.SortOrder
   primarySection?: Prisma.SortOrderInput | Prisma.SortOrder
   domainOrder?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -284,6 +317,8 @@ export type CoursOrderByWithRelationInput = {
   updatedAt?: Prisma.SortOrder
   branchId?: Prisma.SortOrder
   teaching?: Prisma.TeachingOrderByRelationAggregateInput
+  parentCours?: Prisma.CoursOrderByWithRelationInput
+  components?: Prisma.CoursOrderByRelationAggregateInput
   period?: Prisma.periodOrderByRelationAggregateInput
   branch?: Prisma.BranchOrderByWithRelationInput
   coursPonderations?: Prisma.CoursOptionPonderationOrderByRelationAggregateInput
@@ -301,6 +336,9 @@ export type CoursWhereUniqueInput = Prisma.AtLeast<{
   nameCours?: Prisma.StringFilter<"Cours"> | string
   description?: Prisma.StringNullableFilter<"Cours"> | string | null
   statusCours?: Prisma.BoolNullableFilter<"Cours"> | boolean | null
+  kind?: Prisma.EnumCoursKindFilter<"Cours"> | $Enums.CoursKind
+  parentCoursId?: Prisma.StringNullableFilter<"Cours"> | string | null
+  sortOrder?: Prisma.IntFilter<"Cours"> | number
   primaryDomain?: Prisma.StringNullableFilter<"Cours"> | string | null
   primarySection?: Prisma.StringNullableFilter<"Cours"> | string | null
   domainOrder?: Prisma.IntNullableFilter<"Cours"> | number | null
@@ -308,6 +346,8 @@ export type CoursWhereUniqueInput = Prisma.AtLeast<{
   updatedAt?: Prisma.DateTimeFilter<"Cours"> | Date | string
   branchId?: Prisma.StringFilter<"Cours"> | string
   teaching?: Prisma.TeachingListRelationFilter
+  parentCours?: Prisma.XOR<Prisma.CoursNullableScalarRelationFilter, Prisma.CoursWhereInput> | null
+  components?: Prisma.CoursListRelationFilter
   period?: Prisma.PeriodListRelationFilter
   branch?: Prisma.XOR<Prisma.BranchScalarRelationFilter, Prisma.BranchWhereInput>
   coursPonderations?: Prisma.CoursOptionPonderationListRelationFilter
@@ -320,6 +360,9 @@ export type CoursOrderByWithAggregationInput = {
   nameCours?: Prisma.SortOrder
   description?: Prisma.SortOrderInput | Prisma.SortOrder
   statusCours?: Prisma.SortOrderInput | Prisma.SortOrder
+  kind?: Prisma.SortOrder
+  parentCoursId?: Prisma.SortOrderInput | Prisma.SortOrder
+  sortOrder?: Prisma.SortOrder
   primaryDomain?: Prisma.SortOrderInput | Prisma.SortOrder
   primarySection?: Prisma.SortOrderInput | Prisma.SortOrder
   domainOrder?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -342,6 +385,9 @@ export type CoursScalarWhereWithAggregatesInput = {
   nameCours?: Prisma.StringWithAggregatesFilter<"Cours"> | string
   description?: Prisma.StringNullableWithAggregatesFilter<"Cours"> | string | null
   statusCours?: Prisma.BoolNullableWithAggregatesFilter<"Cours"> | boolean | null
+  kind?: Prisma.EnumCoursKindWithAggregatesFilter<"Cours"> | $Enums.CoursKind
+  parentCoursId?: Prisma.StringNullableWithAggregatesFilter<"Cours"> | string | null
+  sortOrder?: Prisma.IntWithAggregatesFilter<"Cours"> | number
   primaryDomain?: Prisma.StringNullableWithAggregatesFilter<"Cours"> | string | null
   primarySection?: Prisma.StringNullableWithAggregatesFilter<"Cours"> | string | null
   domainOrder?: Prisma.IntNullableWithAggregatesFilter<"Cours"> | number | null
@@ -356,12 +402,16 @@ export type CoursCreateInput = {
   nameCours: string
   description?: string | null
   statusCours?: boolean | null
+  kind?: $Enums.CoursKind
+  sortOrder?: number
   primaryDomain?: string | null
   primarySection?: string | null
   domainOrder?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   teaching?: Prisma.TeachingCreateNestedManyWithoutCoursInput
+  parentCours?: Prisma.CoursCreateNestedOneWithoutComponentsInput
+  components?: Prisma.CoursCreateNestedManyWithoutParentCoursInput
   period?: Prisma.periodCreateNestedManyWithoutSubjectInput
   branch: Prisma.BranchCreateNestedOneWithoutCoursInput
   coursPonderations?: Prisma.CoursOptionPonderationCreateNestedManyWithoutCoursInput
@@ -374,6 +424,9 @@ export type CoursUncheckedCreateInput = {
   nameCours: string
   description?: string | null
   statusCours?: boolean | null
+  kind?: $Enums.CoursKind
+  parentCoursId?: string | null
+  sortOrder?: number
   primaryDomain?: string | null
   primarySection?: string | null
   domainOrder?: number | null
@@ -381,6 +434,7 @@ export type CoursUncheckedCreateInput = {
   updatedAt?: Date | string
   branchId: string
   teaching?: Prisma.TeachingUncheckedCreateNestedManyWithoutCoursInput
+  components?: Prisma.CoursUncheckedCreateNestedManyWithoutParentCoursInput
   period?: Prisma.periodUncheckedCreateNestedManyWithoutSubjectInput
   coursPonderations?: Prisma.CoursOptionPonderationUncheckedCreateNestedManyWithoutCoursInput
   onlineAssignments?: Prisma.OnlineAssignmentUncheckedCreateNestedManyWithoutCoursInput
@@ -392,12 +446,16 @@ export type CoursUpdateInput = {
   nameCours?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusCours?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  kind?: Prisma.EnumCoursKindFieldUpdateOperationsInput | $Enums.CoursKind
+  sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
   primaryDomain?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   primarySection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   domainOrder?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   teaching?: Prisma.TeachingUpdateManyWithoutCoursNestedInput
+  parentCours?: Prisma.CoursUpdateOneWithoutComponentsNestedInput
+  components?: Prisma.CoursUpdateManyWithoutParentCoursNestedInput
   period?: Prisma.periodUpdateManyWithoutSubjectNestedInput
   branch?: Prisma.BranchUpdateOneRequiredWithoutCoursNestedInput
   coursPonderations?: Prisma.CoursOptionPonderationUpdateManyWithoutCoursNestedInput
@@ -410,6 +468,9 @@ export type CoursUncheckedUpdateInput = {
   nameCours?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusCours?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  kind?: Prisma.EnumCoursKindFieldUpdateOperationsInput | $Enums.CoursKind
+  parentCoursId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
   primaryDomain?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   primarySection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   domainOrder?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -417,6 +478,7 @@ export type CoursUncheckedUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
   teaching?: Prisma.TeachingUncheckedUpdateManyWithoutCoursNestedInput
+  components?: Prisma.CoursUncheckedUpdateManyWithoutParentCoursNestedInput
   period?: Prisma.periodUncheckedUpdateManyWithoutSubjectNestedInput
   coursPonderations?: Prisma.CoursOptionPonderationUncheckedUpdateManyWithoutCoursNestedInput
   onlineAssignments?: Prisma.OnlineAssignmentUncheckedUpdateManyWithoutCoursNestedInput
@@ -428,6 +490,9 @@ export type CoursCreateManyInput = {
   nameCours: string
   description?: string | null
   statusCours?: boolean | null
+  kind?: $Enums.CoursKind
+  parentCoursId?: string | null
+  sortOrder?: number
   primaryDomain?: string | null
   primarySection?: string | null
   domainOrder?: number | null
@@ -442,6 +507,8 @@ export type CoursUpdateManyMutationInput = {
   nameCours?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusCours?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  kind?: Prisma.EnumCoursKindFieldUpdateOperationsInput | $Enums.CoursKind
+  sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
   primaryDomain?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   primarySection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   domainOrder?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -455,6 +522,9 @@ export type CoursUncheckedUpdateManyInput = {
   nameCours?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusCours?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  kind?: Prisma.EnumCoursKindFieldUpdateOperationsInput | $Enums.CoursKind
+  parentCoursId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
   primaryDomain?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   primarySection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   domainOrder?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -466,6 +536,21 @@ export type CoursUncheckedUpdateManyInput = {
 export type CoursScalarRelationFilter = {
   is?: Prisma.CoursWhereInput
   isNot?: Prisma.CoursWhereInput
+}
+
+export type CoursNullableScalarRelationFilter = {
+  is?: Prisma.CoursWhereInput | null
+  isNot?: Prisma.CoursWhereInput | null
+}
+
+export type CoursListRelationFilter = {
+  every?: Prisma.CoursWhereInput
+  some?: Prisma.CoursWhereInput
+  none?: Prisma.CoursWhereInput
+}
+
+export type CoursOrderByRelationAggregateInput = {
+  _count?: Prisma.SortOrder
 }
 
 export type CoursBranchIdCodeCoursCompoundUniqueInput = {
@@ -484,6 +569,9 @@ export type CoursCountOrderByAggregateInput = {
   nameCours?: Prisma.SortOrder
   description?: Prisma.SortOrder
   statusCours?: Prisma.SortOrder
+  kind?: Prisma.SortOrder
+  parentCoursId?: Prisma.SortOrder
+  sortOrder?: Prisma.SortOrder
   primaryDomain?: Prisma.SortOrder
   primarySection?: Prisma.SortOrder
   domainOrder?: Prisma.SortOrder
@@ -493,6 +581,7 @@ export type CoursCountOrderByAggregateInput = {
 }
 
 export type CoursAvgOrderByAggregateInput = {
+  sortOrder?: Prisma.SortOrder
   domainOrder?: Prisma.SortOrder
 }
 
@@ -502,6 +591,9 @@ export type CoursMaxOrderByAggregateInput = {
   nameCours?: Prisma.SortOrder
   description?: Prisma.SortOrder
   statusCours?: Prisma.SortOrder
+  kind?: Prisma.SortOrder
+  parentCoursId?: Prisma.SortOrder
+  sortOrder?: Prisma.SortOrder
   primaryDomain?: Prisma.SortOrder
   primarySection?: Prisma.SortOrder
   domainOrder?: Prisma.SortOrder
@@ -516,6 +608,9 @@ export type CoursMinOrderByAggregateInput = {
   nameCours?: Prisma.SortOrder
   description?: Prisma.SortOrder
   statusCours?: Prisma.SortOrder
+  kind?: Prisma.SortOrder
+  parentCoursId?: Prisma.SortOrder
+  sortOrder?: Prisma.SortOrder
   primaryDomain?: Prisma.SortOrder
   primarySection?: Prisma.SortOrder
   domainOrder?: Prisma.SortOrder
@@ -525,17 +620,8 @@ export type CoursMinOrderByAggregateInput = {
 }
 
 export type CoursSumOrderByAggregateInput = {
+  sortOrder?: Prisma.SortOrder
   domainOrder?: Prisma.SortOrder
-}
-
-export type CoursListRelationFilter = {
-  every?: Prisma.CoursWhereInput
-  some?: Prisma.CoursWhereInput
-  none?: Prisma.CoursWhereInput
-}
-
-export type CoursOrderByRelationAggregateInput = {
-  _count?: Prisma.SortOrder
 }
 
 export type CoursCreateNestedOneWithoutTeachingInput = {
@@ -550,6 +636,68 @@ export type CoursUpdateOneRequiredWithoutTeachingNestedInput = {
   upsert?: Prisma.CoursUpsertWithoutTeachingInput
   connect?: Prisma.CoursWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.CoursUpdateToOneWithWhereWithoutTeachingInput, Prisma.CoursUpdateWithoutTeachingInput>, Prisma.CoursUncheckedUpdateWithoutTeachingInput>
+}
+
+export type CoursCreateNestedOneWithoutComponentsInput = {
+  create?: Prisma.XOR<Prisma.CoursCreateWithoutComponentsInput, Prisma.CoursUncheckedCreateWithoutComponentsInput>
+  connectOrCreate?: Prisma.CoursCreateOrConnectWithoutComponentsInput
+  connect?: Prisma.CoursWhereUniqueInput
+}
+
+export type CoursCreateNestedManyWithoutParentCoursInput = {
+  create?: Prisma.XOR<Prisma.CoursCreateWithoutParentCoursInput, Prisma.CoursUncheckedCreateWithoutParentCoursInput> | Prisma.CoursCreateWithoutParentCoursInput[] | Prisma.CoursUncheckedCreateWithoutParentCoursInput[]
+  connectOrCreate?: Prisma.CoursCreateOrConnectWithoutParentCoursInput | Prisma.CoursCreateOrConnectWithoutParentCoursInput[]
+  createMany?: Prisma.CoursCreateManyParentCoursInputEnvelope
+  connect?: Prisma.CoursWhereUniqueInput | Prisma.CoursWhereUniqueInput[]
+}
+
+export type CoursUncheckedCreateNestedManyWithoutParentCoursInput = {
+  create?: Prisma.XOR<Prisma.CoursCreateWithoutParentCoursInput, Prisma.CoursUncheckedCreateWithoutParentCoursInput> | Prisma.CoursCreateWithoutParentCoursInput[] | Prisma.CoursUncheckedCreateWithoutParentCoursInput[]
+  connectOrCreate?: Prisma.CoursCreateOrConnectWithoutParentCoursInput | Prisma.CoursCreateOrConnectWithoutParentCoursInput[]
+  createMany?: Prisma.CoursCreateManyParentCoursInputEnvelope
+  connect?: Prisma.CoursWhereUniqueInput | Prisma.CoursWhereUniqueInput[]
+}
+
+export type EnumCoursKindFieldUpdateOperationsInput = {
+  set?: $Enums.CoursKind
+}
+
+export type CoursUpdateOneWithoutComponentsNestedInput = {
+  create?: Prisma.XOR<Prisma.CoursCreateWithoutComponentsInput, Prisma.CoursUncheckedCreateWithoutComponentsInput>
+  connectOrCreate?: Prisma.CoursCreateOrConnectWithoutComponentsInput
+  upsert?: Prisma.CoursUpsertWithoutComponentsInput
+  disconnect?: Prisma.CoursWhereInput | boolean
+  delete?: Prisma.CoursWhereInput | boolean
+  connect?: Prisma.CoursWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.CoursUpdateToOneWithWhereWithoutComponentsInput, Prisma.CoursUpdateWithoutComponentsInput>, Prisma.CoursUncheckedUpdateWithoutComponentsInput>
+}
+
+export type CoursUpdateManyWithoutParentCoursNestedInput = {
+  create?: Prisma.XOR<Prisma.CoursCreateWithoutParentCoursInput, Prisma.CoursUncheckedCreateWithoutParentCoursInput> | Prisma.CoursCreateWithoutParentCoursInput[] | Prisma.CoursUncheckedCreateWithoutParentCoursInput[]
+  connectOrCreate?: Prisma.CoursCreateOrConnectWithoutParentCoursInput | Prisma.CoursCreateOrConnectWithoutParentCoursInput[]
+  upsert?: Prisma.CoursUpsertWithWhereUniqueWithoutParentCoursInput | Prisma.CoursUpsertWithWhereUniqueWithoutParentCoursInput[]
+  createMany?: Prisma.CoursCreateManyParentCoursInputEnvelope
+  set?: Prisma.CoursWhereUniqueInput | Prisma.CoursWhereUniqueInput[]
+  disconnect?: Prisma.CoursWhereUniqueInput | Prisma.CoursWhereUniqueInput[]
+  delete?: Prisma.CoursWhereUniqueInput | Prisma.CoursWhereUniqueInput[]
+  connect?: Prisma.CoursWhereUniqueInput | Prisma.CoursWhereUniqueInput[]
+  update?: Prisma.CoursUpdateWithWhereUniqueWithoutParentCoursInput | Prisma.CoursUpdateWithWhereUniqueWithoutParentCoursInput[]
+  updateMany?: Prisma.CoursUpdateManyWithWhereWithoutParentCoursInput | Prisma.CoursUpdateManyWithWhereWithoutParentCoursInput[]
+  deleteMany?: Prisma.CoursScalarWhereInput | Prisma.CoursScalarWhereInput[]
+}
+
+export type CoursUncheckedUpdateManyWithoutParentCoursNestedInput = {
+  create?: Prisma.XOR<Prisma.CoursCreateWithoutParentCoursInput, Prisma.CoursUncheckedCreateWithoutParentCoursInput> | Prisma.CoursCreateWithoutParentCoursInput[] | Prisma.CoursUncheckedCreateWithoutParentCoursInput[]
+  connectOrCreate?: Prisma.CoursCreateOrConnectWithoutParentCoursInput | Prisma.CoursCreateOrConnectWithoutParentCoursInput[]
+  upsert?: Prisma.CoursUpsertWithWhereUniqueWithoutParentCoursInput | Prisma.CoursUpsertWithWhereUniqueWithoutParentCoursInput[]
+  createMany?: Prisma.CoursCreateManyParentCoursInputEnvelope
+  set?: Prisma.CoursWhereUniqueInput | Prisma.CoursWhereUniqueInput[]
+  disconnect?: Prisma.CoursWhereUniqueInput | Prisma.CoursWhereUniqueInput[]
+  delete?: Prisma.CoursWhereUniqueInput | Prisma.CoursWhereUniqueInput[]
+  connect?: Prisma.CoursWhereUniqueInput | Prisma.CoursWhereUniqueInput[]
+  update?: Prisma.CoursUpdateWithWhereUniqueWithoutParentCoursInput | Prisma.CoursUpdateWithWhereUniqueWithoutParentCoursInput[]
+  updateMany?: Prisma.CoursUpdateManyWithWhereWithoutParentCoursInput | Prisma.CoursUpdateManyWithWhereWithoutParentCoursInput[]
+  deleteMany?: Prisma.CoursScalarWhereInput | Prisma.CoursScalarWhereInput[]
 }
 
 export type CoursCreateNestedOneWithoutCoursPonderationsInput = {
@@ -666,11 +814,15 @@ export type CoursCreateWithoutTeachingInput = {
   nameCours: string
   description?: string | null
   statusCours?: boolean | null
+  kind?: $Enums.CoursKind
+  sortOrder?: number
   primaryDomain?: string | null
   primarySection?: string | null
   domainOrder?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  parentCours?: Prisma.CoursCreateNestedOneWithoutComponentsInput
+  components?: Prisma.CoursCreateNestedManyWithoutParentCoursInput
   period?: Prisma.periodCreateNestedManyWithoutSubjectInput
   branch: Prisma.BranchCreateNestedOneWithoutCoursInput
   coursPonderations?: Prisma.CoursOptionPonderationCreateNestedManyWithoutCoursInput
@@ -683,12 +835,16 @@ export type CoursUncheckedCreateWithoutTeachingInput = {
   nameCours: string
   description?: string | null
   statusCours?: boolean | null
+  kind?: $Enums.CoursKind
+  parentCoursId?: string | null
+  sortOrder?: number
   primaryDomain?: string | null
   primarySection?: string | null
   domainOrder?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   branchId: string
+  components?: Prisma.CoursUncheckedCreateNestedManyWithoutParentCoursInput
   period?: Prisma.periodUncheckedCreateNestedManyWithoutSubjectInput
   coursPonderations?: Prisma.CoursOptionPonderationUncheckedCreateNestedManyWithoutCoursInput
   onlineAssignments?: Prisma.OnlineAssignmentUncheckedCreateNestedManyWithoutCoursInput
@@ -716,11 +872,15 @@ export type CoursUpdateWithoutTeachingInput = {
   nameCours?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusCours?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  kind?: Prisma.EnumCoursKindFieldUpdateOperationsInput | $Enums.CoursKind
+  sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
   primaryDomain?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   primarySection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   domainOrder?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  parentCours?: Prisma.CoursUpdateOneWithoutComponentsNestedInput
+  components?: Prisma.CoursUpdateManyWithoutParentCoursNestedInput
   period?: Prisma.periodUpdateManyWithoutSubjectNestedInput
   branch?: Prisma.BranchUpdateOneRequiredWithoutCoursNestedInput
   coursPonderations?: Prisma.CoursOptionPonderationUpdateManyWithoutCoursNestedInput
@@ -733,15 +893,207 @@ export type CoursUncheckedUpdateWithoutTeachingInput = {
   nameCours?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusCours?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  kind?: Prisma.EnumCoursKindFieldUpdateOperationsInput | $Enums.CoursKind
+  parentCoursId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
   primaryDomain?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   primarySection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   domainOrder?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
+  components?: Prisma.CoursUncheckedUpdateManyWithoutParentCoursNestedInput
   period?: Prisma.periodUncheckedUpdateManyWithoutSubjectNestedInput
   coursPonderations?: Prisma.CoursOptionPonderationUncheckedUpdateManyWithoutCoursNestedInput
   onlineAssignments?: Prisma.OnlineAssignmentUncheckedUpdateManyWithoutCoursNestedInput
+}
+
+export type CoursCreateWithoutComponentsInput = {
+  id?: string
+  codeCours: string
+  nameCours: string
+  description?: string | null
+  statusCours?: boolean | null
+  kind?: $Enums.CoursKind
+  sortOrder?: number
+  primaryDomain?: string | null
+  primarySection?: string | null
+  domainOrder?: number | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  teaching?: Prisma.TeachingCreateNestedManyWithoutCoursInput
+  parentCours?: Prisma.CoursCreateNestedOneWithoutComponentsInput
+  period?: Prisma.periodCreateNestedManyWithoutSubjectInput
+  branch: Prisma.BranchCreateNestedOneWithoutCoursInput
+  coursPonderations?: Prisma.CoursOptionPonderationCreateNestedManyWithoutCoursInput
+  onlineAssignments?: Prisma.OnlineAssignmentCreateNestedManyWithoutCoursInput
+}
+
+export type CoursUncheckedCreateWithoutComponentsInput = {
+  id?: string
+  codeCours: string
+  nameCours: string
+  description?: string | null
+  statusCours?: boolean | null
+  kind?: $Enums.CoursKind
+  parentCoursId?: string | null
+  sortOrder?: number
+  primaryDomain?: string | null
+  primarySection?: string | null
+  domainOrder?: number | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  branchId: string
+  teaching?: Prisma.TeachingUncheckedCreateNestedManyWithoutCoursInput
+  period?: Prisma.periodUncheckedCreateNestedManyWithoutSubjectInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedCreateNestedManyWithoutCoursInput
+  onlineAssignments?: Prisma.OnlineAssignmentUncheckedCreateNestedManyWithoutCoursInput
+}
+
+export type CoursCreateOrConnectWithoutComponentsInput = {
+  where: Prisma.CoursWhereUniqueInput
+  create: Prisma.XOR<Prisma.CoursCreateWithoutComponentsInput, Prisma.CoursUncheckedCreateWithoutComponentsInput>
+}
+
+export type CoursCreateWithoutParentCoursInput = {
+  id?: string
+  codeCours: string
+  nameCours: string
+  description?: string | null
+  statusCours?: boolean | null
+  kind?: $Enums.CoursKind
+  sortOrder?: number
+  primaryDomain?: string | null
+  primarySection?: string | null
+  domainOrder?: number | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  teaching?: Prisma.TeachingCreateNestedManyWithoutCoursInput
+  components?: Prisma.CoursCreateNestedManyWithoutParentCoursInput
+  period?: Prisma.periodCreateNestedManyWithoutSubjectInput
+  branch: Prisma.BranchCreateNestedOneWithoutCoursInput
+  coursPonderations?: Prisma.CoursOptionPonderationCreateNestedManyWithoutCoursInput
+  onlineAssignments?: Prisma.OnlineAssignmentCreateNestedManyWithoutCoursInput
+}
+
+export type CoursUncheckedCreateWithoutParentCoursInput = {
+  id?: string
+  codeCours: string
+  nameCours: string
+  description?: string | null
+  statusCours?: boolean | null
+  kind?: $Enums.CoursKind
+  sortOrder?: number
+  primaryDomain?: string | null
+  primarySection?: string | null
+  domainOrder?: number | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  branchId: string
+  teaching?: Prisma.TeachingUncheckedCreateNestedManyWithoutCoursInput
+  components?: Prisma.CoursUncheckedCreateNestedManyWithoutParentCoursInput
+  period?: Prisma.periodUncheckedCreateNestedManyWithoutSubjectInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedCreateNestedManyWithoutCoursInput
+  onlineAssignments?: Prisma.OnlineAssignmentUncheckedCreateNestedManyWithoutCoursInput
+}
+
+export type CoursCreateOrConnectWithoutParentCoursInput = {
+  where: Prisma.CoursWhereUniqueInput
+  create: Prisma.XOR<Prisma.CoursCreateWithoutParentCoursInput, Prisma.CoursUncheckedCreateWithoutParentCoursInput>
+}
+
+export type CoursCreateManyParentCoursInputEnvelope = {
+  data: Prisma.CoursCreateManyParentCoursInput | Prisma.CoursCreateManyParentCoursInput[]
+  skipDuplicates?: boolean
+}
+
+export type CoursUpsertWithoutComponentsInput = {
+  update: Prisma.XOR<Prisma.CoursUpdateWithoutComponentsInput, Prisma.CoursUncheckedUpdateWithoutComponentsInput>
+  create: Prisma.XOR<Prisma.CoursCreateWithoutComponentsInput, Prisma.CoursUncheckedCreateWithoutComponentsInput>
+  where?: Prisma.CoursWhereInput
+}
+
+export type CoursUpdateToOneWithWhereWithoutComponentsInput = {
+  where?: Prisma.CoursWhereInput
+  data: Prisma.XOR<Prisma.CoursUpdateWithoutComponentsInput, Prisma.CoursUncheckedUpdateWithoutComponentsInput>
+}
+
+export type CoursUpdateWithoutComponentsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  codeCours?: Prisma.StringFieldUpdateOperationsInput | string
+  nameCours?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  statusCours?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  kind?: Prisma.EnumCoursKindFieldUpdateOperationsInput | $Enums.CoursKind
+  sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
+  primaryDomain?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  primarySection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  domainOrder?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  teaching?: Prisma.TeachingUpdateManyWithoutCoursNestedInput
+  parentCours?: Prisma.CoursUpdateOneWithoutComponentsNestedInput
+  period?: Prisma.periodUpdateManyWithoutSubjectNestedInput
+  branch?: Prisma.BranchUpdateOneRequiredWithoutCoursNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUpdateManyWithoutCoursNestedInput
+  onlineAssignments?: Prisma.OnlineAssignmentUpdateManyWithoutCoursNestedInput
+}
+
+export type CoursUncheckedUpdateWithoutComponentsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  codeCours?: Prisma.StringFieldUpdateOperationsInput | string
+  nameCours?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  statusCours?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  kind?: Prisma.EnumCoursKindFieldUpdateOperationsInput | $Enums.CoursKind
+  parentCoursId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
+  primaryDomain?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  primarySection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  domainOrder?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  branchId?: Prisma.StringFieldUpdateOperationsInput | string
+  teaching?: Prisma.TeachingUncheckedUpdateManyWithoutCoursNestedInput
+  period?: Prisma.periodUncheckedUpdateManyWithoutSubjectNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedUpdateManyWithoutCoursNestedInput
+  onlineAssignments?: Prisma.OnlineAssignmentUncheckedUpdateManyWithoutCoursNestedInput
+}
+
+export type CoursUpsertWithWhereUniqueWithoutParentCoursInput = {
+  where: Prisma.CoursWhereUniqueInput
+  update: Prisma.XOR<Prisma.CoursUpdateWithoutParentCoursInput, Prisma.CoursUncheckedUpdateWithoutParentCoursInput>
+  create: Prisma.XOR<Prisma.CoursCreateWithoutParentCoursInput, Prisma.CoursUncheckedCreateWithoutParentCoursInput>
+}
+
+export type CoursUpdateWithWhereUniqueWithoutParentCoursInput = {
+  where: Prisma.CoursWhereUniqueInput
+  data: Prisma.XOR<Prisma.CoursUpdateWithoutParentCoursInput, Prisma.CoursUncheckedUpdateWithoutParentCoursInput>
+}
+
+export type CoursUpdateManyWithWhereWithoutParentCoursInput = {
+  where: Prisma.CoursScalarWhereInput
+  data: Prisma.XOR<Prisma.CoursUpdateManyMutationInput, Prisma.CoursUncheckedUpdateManyWithoutParentCoursInput>
+}
+
+export type CoursScalarWhereInput = {
+  AND?: Prisma.CoursScalarWhereInput | Prisma.CoursScalarWhereInput[]
+  OR?: Prisma.CoursScalarWhereInput[]
+  NOT?: Prisma.CoursScalarWhereInput | Prisma.CoursScalarWhereInput[]
+  id?: Prisma.StringFilter<"Cours"> | string
+  codeCours?: Prisma.StringFilter<"Cours"> | string
+  nameCours?: Prisma.StringFilter<"Cours"> | string
+  description?: Prisma.StringNullableFilter<"Cours"> | string | null
+  statusCours?: Prisma.BoolNullableFilter<"Cours"> | boolean | null
+  kind?: Prisma.EnumCoursKindFilter<"Cours"> | $Enums.CoursKind
+  parentCoursId?: Prisma.StringNullableFilter<"Cours"> | string | null
+  sortOrder?: Prisma.IntFilter<"Cours"> | number
+  primaryDomain?: Prisma.StringNullableFilter<"Cours"> | string | null
+  primarySection?: Prisma.StringNullableFilter<"Cours"> | string | null
+  domainOrder?: Prisma.IntNullableFilter<"Cours"> | number | null
+  createdAt?: Prisma.DateTimeFilter<"Cours"> | Date | string
+  updatedAt?: Prisma.DateTimeFilter<"Cours"> | Date | string
+  branchId?: Prisma.StringFilter<"Cours"> | string
 }
 
 export type CoursCreateWithoutCoursPonderationsInput = {
@@ -750,12 +1102,16 @@ export type CoursCreateWithoutCoursPonderationsInput = {
   nameCours: string
   description?: string | null
   statusCours?: boolean | null
+  kind?: $Enums.CoursKind
+  sortOrder?: number
   primaryDomain?: string | null
   primarySection?: string | null
   domainOrder?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   teaching?: Prisma.TeachingCreateNestedManyWithoutCoursInput
+  parentCours?: Prisma.CoursCreateNestedOneWithoutComponentsInput
+  components?: Prisma.CoursCreateNestedManyWithoutParentCoursInput
   period?: Prisma.periodCreateNestedManyWithoutSubjectInput
   branch: Prisma.BranchCreateNestedOneWithoutCoursInput
   onlineAssignments?: Prisma.OnlineAssignmentCreateNestedManyWithoutCoursInput
@@ -767,6 +1123,9 @@ export type CoursUncheckedCreateWithoutCoursPonderationsInput = {
   nameCours: string
   description?: string | null
   statusCours?: boolean | null
+  kind?: $Enums.CoursKind
+  parentCoursId?: string | null
+  sortOrder?: number
   primaryDomain?: string | null
   primarySection?: string | null
   domainOrder?: number | null
@@ -774,6 +1133,7 @@ export type CoursUncheckedCreateWithoutCoursPonderationsInput = {
   updatedAt?: Date | string
   branchId: string
   teaching?: Prisma.TeachingUncheckedCreateNestedManyWithoutCoursInput
+  components?: Prisma.CoursUncheckedCreateNestedManyWithoutParentCoursInput
   period?: Prisma.periodUncheckedCreateNestedManyWithoutSubjectInput
   onlineAssignments?: Prisma.OnlineAssignmentUncheckedCreateNestedManyWithoutCoursInput
 }
@@ -800,12 +1160,16 @@ export type CoursUpdateWithoutCoursPonderationsInput = {
   nameCours?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusCours?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  kind?: Prisma.EnumCoursKindFieldUpdateOperationsInput | $Enums.CoursKind
+  sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
   primaryDomain?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   primarySection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   domainOrder?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   teaching?: Prisma.TeachingUpdateManyWithoutCoursNestedInput
+  parentCours?: Prisma.CoursUpdateOneWithoutComponentsNestedInput
+  components?: Prisma.CoursUpdateManyWithoutParentCoursNestedInput
   period?: Prisma.periodUpdateManyWithoutSubjectNestedInput
   branch?: Prisma.BranchUpdateOneRequiredWithoutCoursNestedInput
   onlineAssignments?: Prisma.OnlineAssignmentUpdateManyWithoutCoursNestedInput
@@ -817,6 +1181,9 @@ export type CoursUncheckedUpdateWithoutCoursPonderationsInput = {
   nameCours?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusCours?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  kind?: Prisma.EnumCoursKindFieldUpdateOperationsInput | $Enums.CoursKind
+  parentCoursId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
   primaryDomain?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   primarySection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   domainOrder?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -824,6 +1191,7 @@ export type CoursUncheckedUpdateWithoutCoursPonderationsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
   teaching?: Prisma.TeachingUncheckedUpdateManyWithoutCoursNestedInput
+  components?: Prisma.CoursUncheckedUpdateManyWithoutParentCoursNestedInput
   period?: Prisma.periodUncheckedUpdateManyWithoutSubjectNestedInput
   onlineAssignments?: Prisma.OnlineAssignmentUncheckedUpdateManyWithoutCoursNestedInput
 }
@@ -834,12 +1202,16 @@ export type CoursCreateWithoutPeriodInput = {
   nameCours: string
   description?: string | null
   statusCours?: boolean | null
+  kind?: $Enums.CoursKind
+  sortOrder?: number
   primaryDomain?: string | null
   primarySection?: string | null
   domainOrder?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   teaching?: Prisma.TeachingCreateNestedManyWithoutCoursInput
+  parentCours?: Prisma.CoursCreateNestedOneWithoutComponentsInput
+  components?: Prisma.CoursCreateNestedManyWithoutParentCoursInput
   branch: Prisma.BranchCreateNestedOneWithoutCoursInput
   coursPonderations?: Prisma.CoursOptionPonderationCreateNestedManyWithoutCoursInput
   onlineAssignments?: Prisma.OnlineAssignmentCreateNestedManyWithoutCoursInput
@@ -851,6 +1223,9 @@ export type CoursUncheckedCreateWithoutPeriodInput = {
   nameCours: string
   description?: string | null
   statusCours?: boolean | null
+  kind?: $Enums.CoursKind
+  parentCoursId?: string | null
+  sortOrder?: number
   primaryDomain?: string | null
   primarySection?: string | null
   domainOrder?: number | null
@@ -858,6 +1233,7 @@ export type CoursUncheckedCreateWithoutPeriodInput = {
   updatedAt?: Date | string
   branchId: string
   teaching?: Prisma.TeachingUncheckedCreateNestedManyWithoutCoursInput
+  components?: Prisma.CoursUncheckedCreateNestedManyWithoutParentCoursInput
   coursPonderations?: Prisma.CoursOptionPonderationUncheckedCreateNestedManyWithoutCoursInput
   onlineAssignments?: Prisma.OnlineAssignmentUncheckedCreateNestedManyWithoutCoursInput
 }
@@ -883,35 +1259,22 @@ export type CoursUpdateManyWithWhereWithoutPeriodInput = {
   data: Prisma.XOR<Prisma.CoursUpdateManyMutationInput, Prisma.CoursUncheckedUpdateManyWithoutPeriodInput>
 }
 
-export type CoursScalarWhereInput = {
-  AND?: Prisma.CoursScalarWhereInput | Prisma.CoursScalarWhereInput[]
-  OR?: Prisma.CoursScalarWhereInput[]
-  NOT?: Prisma.CoursScalarWhereInput | Prisma.CoursScalarWhereInput[]
-  id?: Prisma.StringFilter<"Cours"> | string
-  codeCours?: Prisma.StringFilter<"Cours"> | string
-  nameCours?: Prisma.StringFilter<"Cours"> | string
-  description?: Prisma.StringNullableFilter<"Cours"> | string | null
-  statusCours?: Prisma.BoolNullableFilter<"Cours"> | boolean | null
-  primaryDomain?: Prisma.StringNullableFilter<"Cours"> | string | null
-  primarySection?: Prisma.StringNullableFilter<"Cours"> | string | null
-  domainOrder?: Prisma.IntNullableFilter<"Cours"> | number | null
-  createdAt?: Prisma.DateTimeFilter<"Cours"> | Date | string
-  updatedAt?: Prisma.DateTimeFilter<"Cours"> | Date | string
-  branchId?: Prisma.StringFilter<"Cours"> | string
-}
-
 export type CoursCreateWithoutBranchInput = {
   id?: string
   codeCours: string
   nameCours: string
   description?: string | null
   statusCours?: boolean | null
+  kind?: $Enums.CoursKind
+  sortOrder?: number
   primaryDomain?: string | null
   primarySection?: string | null
   domainOrder?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   teaching?: Prisma.TeachingCreateNestedManyWithoutCoursInput
+  parentCours?: Prisma.CoursCreateNestedOneWithoutComponentsInput
+  components?: Prisma.CoursCreateNestedManyWithoutParentCoursInput
   period?: Prisma.periodCreateNestedManyWithoutSubjectInput
   coursPonderations?: Prisma.CoursOptionPonderationCreateNestedManyWithoutCoursInput
   onlineAssignments?: Prisma.OnlineAssignmentCreateNestedManyWithoutCoursInput
@@ -923,12 +1286,16 @@ export type CoursUncheckedCreateWithoutBranchInput = {
   nameCours: string
   description?: string | null
   statusCours?: boolean | null
+  kind?: $Enums.CoursKind
+  parentCoursId?: string | null
+  sortOrder?: number
   primaryDomain?: string | null
   primarySection?: string | null
   domainOrder?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   teaching?: Prisma.TeachingUncheckedCreateNestedManyWithoutCoursInput
+  components?: Prisma.CoursUncheckedCreateNestedManyWithoutParentCoursInput
   period?: Prisma.periodUncheckedCreateNestedManyWithoutSubjectInput
   coursPonderations?: Prisma.CoursOptionPonderationUncheckedCreateNestedManyWithoutCoursInput
   onlineAssignments?: Prisma.OnlineAssignmentUncheckedCreateNestedManyWithoutCoursInput
@@ -966,12 +1333,16 @@ export type CoursCreateWithoutOnlineAssignmentsInput = {
   nameCours: string
   description?: string | null
   statusCours?: boolean | null
+  kind?: $Enums.CoursKind
+  sortOrder?: number
   primaryDomain?: string | null
   primarySection?: string | null
   domainOrder?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   teaching?: Prisma.TeachingCreateNestedManyWithoutCoursInput
+  parentCours?: Prisma.CoursCreateNestedOneWithoutComponentsInput
+  components?: Prisma.CoursCreateNestedManyWithoutParentCoursInput
   period?: Prisma.periodCreateNestedManyWithoutSubjectInput
   branch: Prisma.BranchCreateNestedOneWithoutCoursInput
   coursPonderations?: Prisma.CoursOptionPonderationCreateNestedManyWithoutCoursInput
@@ -983,6 +1354,9 @@ export type CoursUncheckedCreateWithoutOnlineAssignmentsInput = {
   nameCours: string
   description?: string | null
   statusCours?: boolean | null
+  kind?: $Enums.CoursKind
+  parentCoursId?: string | null
+  sortOrder?: number
   primaryDomain?: string | null
   primarySection?: string | null
   domainOrder?: number | null
@@ -990,6 +1364,7 @@ export type CoursUncheckedCreateWithoutOnlineAssignmentsInput = {
   updatedAt?: Date | string
   branchId: string
   teaching?: Prisma.TeachingUncheckedCreateNestedManyWithoutCoursInput
+  components?: Prisma.CoursUncheckedCreateNestedManyWithoutParentCoursInput
   period?: Prisma.periodUncheckedCreateNestedManyWithoutSubjectInput
   coursPonderations?: Prisma.CoursOptionPonderationUncheckedCreateNestedManyWithoutCoursInput
 }
@@ -1016,12 +1391,16 @@ export type CoursUpdateWithoutOnlineAssignmentsInput = {
   nameCours?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusCours?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  kind?: Prisma.EnumCoursKindFieldUpdateOperationsInput | $Enums.CoursKind
+  sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
   primaryDomain?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   primarySection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   domainOrder?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   teaching?: Prisma.TeachingUpdateManyWithoutCoursNestedInput
+  parentCours?: Prisma.CoursUpdateOneWithoutComponentsNestedInput
+  components?: Prisma.CoursUpdateManyWithoutParentCoursNestedInput
   period?: Prisma.periodUpdateManyWithoutSubjectNestedInput
   branch?: Prisma.BranchUpdateOneRequiredWithoutCoursNestedInput
   coursPonderations?: Prisma.CoursOptionPonderationUpdateManyWithoutCoursNestedInput
@@ -1033,6 +1412,9 @@ export type CoursUncheckedUpdateWithoutOnlineAssignmentsInput = {
   nameCours?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusCours?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  kind?: Prisma.EnumCoursKindFieldUpdateOperationsInput | $Enums.CoursKind
+  parentCoursId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
   primaryDomain?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   primarySection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   domainOrder?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1040,8 +1422,83 @@ export type CoursUncheckedUpdateWithoutOnlineAssignmentsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
   teaching?: Prisma.TeachingUncheckedUpdateManyWithoutCoursNestedInput
+  components?: Prisma.CoursUncheckedUpdateManyWithoutParentCoursNestedInput
   period?: Prisma.periodUncheckedUpdateManyWithoutSubjectNestedInput
   coursPonderations?: Prisma.CoursOptionPonderationUncheckedUpdateManyWithoutCoursNestedInput
+}
+
+export type CoursCreateManyParentCoursInput = {
+  id?: string
+  codeCours: string
+  nameCours: string
+  description?: string | null
+  statusCours?: boolean | null
+  kind?: $Enums.CoursKind
+  sortOrder?: number
+  primaryDomain?: string | null
+  primarySection?: string | null
+  domainOrder?: number | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  branchId: string
+}
+
+export type CoursUpdateWithoutParentCoursInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  codeCours?: Prisma.StringFieldUpdateOperationsInput | string
+  nameCours?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  statusCours?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  kind?: Prisma.EnumCoursKindFieldUpdateOperationsInput | $Enums.CoursKind
+  sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
+  primaryDomain?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  primarySection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  domainOrder?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  teaching?: Prisma.TeachingUpdateManyWithoutCoursNestedInput
+  components?: Prisma.CoursUpdateManyWithoutParentCoursNestedInput
+  period?: Prisma.periodUpdateManyWithoutSubjectNestedInput
+  branch?: Prisma.BranchUpdateOneRequiredWithoutCoursNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUpdateManyWithoutCoursNestedInput
+  onlineAssignments?: Prisma.OnlineAssignmentUpdateManyWithoutCoursNestedInput
+}
+
+export type CoursUncheckedUpdateWithoutParentCoursInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  codeCours?: Prisma.StringFieldUpdateOperationsInput | string
+  nameCours?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  statusCours?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  kind?: Prisma.EnumCoursKindFieldUpdateOperationsInput | $Enums.CoursKind
+  sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
+  primaryDomain?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  primarySection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  domainOrder?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  branchId?: Prisma.StringFieldUpdateOperationsInput | string
+  teaching?: Prisma.TeachingUncheckedUpdateManyWithoutCoursNestedInput
+  components?: Prisma.CoursUncheckedUpdateManyWithoutParentCoursNestedInput
+  period?: Prisma.periodUncheckedUpdateManyWithoutSubjectNestedInput
+  coursPonderations?: Prisma.CoursOptionPonderationUncheckedUpdateManyWithoutCoursNestedInput
+  onlineAssignments?: Prisma.OnlineAssignmentUncheckedUpdateManyWithoutCoursNestedInput
+}
+
+export type CoursUncheckedUpdateManyWithoutParentCoursInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  codeCours?: Prisma.StringFieldUpdateOperationsInput | string
+  nameCours?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  statusCours?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  kind?: Prisma.EnumCoursKindFieldUpdateOperationsInput | $Enums.CoursKind
+  sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
+  primaryDomain?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  primarySection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  domainOrder?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  branchId?: Prisma.StringFieldUpdateOperationsInput | string
 }
 
 export type CoursUpdateWithoutPeriodInput = {
@@ -1050,12 +1507,16 @@ export type CoursUpdateWithoutPeriodInput = {
   nameCours?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusCours?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  kind?: Prisma.EnumCoursKindFieldUpdateOperationsInput | $Enums.CoursKind
+  sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
   primaryDomain?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   primarySection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   domainOrder?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   teaching?: Prisma.TeachingUpdateManyWithoutCoursNestedInput
+  parentCours?: Prisma.CoursUpdateOneWithoutComponentsNestedInput
+  components?: Prisma.CoursUpdateManyWithoutParentCoursNestedInput
   branch?: Prisma.BranchUpdateOneRequiredWithoutCoursNestedInput
   coursPonderations?: Prisma.CoursOptionPonderationUpdateManyWithoutCoursNestedInput
   onlineAssignments?: Prisma.OnlineAssignmentUpdateManyWithoutCoursNestedInput
@@ -1067,6 +1528,9 @@ export type CoursUncheckedUpdateWithoutPeriodInput = {
   nameCours?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusCours?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  kind?: Prisma.EnumCoursKindFieldUpdateOperationsInput | $Enums.CoursKind
+  parentCoursId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
   primaryDomain?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   primarySection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   domainOrder?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1074,6 +1538,7 @@ export type CoursUncheckedUpdateWithoutPeriodInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branchId?: Prisma.StringFieldUpdateOperationsInput | string
   teaching?: Prisma.TeachingUncheckedUpdateManyWithoutCoursNestedInput
+  components?: Prisma.CoursUncheckedUpdateManyWithoutParentCoursNestedInput
   coursPonderations?: Prisma.CoursOptionPonderationUncheckedUpdateManyWithoutCoursNestedInput
   onlineAssignments?: Prisma.OnlineAssignmentUncheckedUpdateManyWithoutCoursNestedInput
 }
@@ -1084,6 +1549,9 @@ export type CoursUncheckedUpdateManyWithoutPeriodInput = {
   nameCours?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusCours?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  kind?: Prisma.EnumCoursKindFieldUpdateOperationsInput | $Enums.CoursKind
+  parentCoursId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
   primaryDomain?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   primarySection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   domainOrder?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1098,6 +1566,9 @@ export type CoursCreateManyBranchInput = {
   nameCours: string
   description?: string | null
   statusCours?: boolean | null
+  kind?: $Enums.CoursKind
+  parentCoursId?: string | null
+  sortOrder?: number
   primaryDomain?: string | null
   primarySection?: string | null
   domainOrder?: number | null
@@ -1111,12 +1582,16 @@ export type CoursUpdateWithoutBranchInput = {
   nameCours?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusCours?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  kind?: Prisma.EnumCoursKindFieldUpdateOperationsInput | $Enums.CoursKind
+  sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
   primaryDomain?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   primarySection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   domainOrder?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   teaching?: Prisma.TeachingUpdateManyWithoutCoursNestedInput
+  parentCours?: Prisma.CoursUpdateOneWithoutComponentsNestedInput
+  components?: Prisma.CoursUpdateManyWithoutParentCoursNestedInput
   period?: Prisma.periodUpdateManyWithoutSubjectNestedInput
   coursPonderations?: Prisma.CoursOptionPonderationUpdateManyWithoutCoursNestedInput
   onlineAssignments?: Prisma.OnlineAssignmentUpdateManyWithoutCoursNestedInput
@@ -1128,12 +1603,16 @@ export type CoursUncheckedUpdateWithoutBranchInput = {
   nameCours?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusCours?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  kind?: Prisma.EnumCoursKindFieldUpdateOperationsInput | $Enums.CoursKind
+  parentCoursId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
   primaryDomain?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   primarySection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   domainOrder?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   teaching?: Prisma.TeachingUncheckedUpdateManyWithoutCoursNestedInput
+  components?: Prisma.CoursUncheckedUpdateManyWithoutParentCoursNestedInput
   period?: Prisma.periodUncheckedUpdateManyWithoutSubjectNestedInput
   coursPonderations?: Prisma.CoursOptionPonderationUncheckedUpdateManyWithoutCoursNestedInput
   onlineAssignments?: Prisma.OnlineAssignmentUncheckedUpdateManyWithoutCoursNestedInput
@@ -1145,6 +1624,9 @@ export type CoursUncheckedUpdateManyWithoutBranchInput = {
   nameCours?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusCours?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  kind?: Prisma.EnumCoursKindFieldUpdateOperationsInput | $Enums.CoursKind
+  parentCoursId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
   primaryDomain?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   primarySection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   domainOrder?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1159,6 +1641,7 @@ export type CoursUncheckedUpdateManyWithoutBranchInput = {
 
 export type CoursCountOutputType = {
   teaching: number
+  components: number
   period: number
   coursPonderations: number
   onlineAssignments: number
@@ -1166,6 +1649,7 @@ export type CoursCountOutputType = {
 
 export type CoursCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   teaching?: boolean | CoursCountOutputTypeCountTeachingArgs
+  components?: boolean | CoursCountOutputTypeCountComponentsArgs
   period?: boolean | CoursCountOutputTypeCountPeriodArgs
   coursPonderations?: boolean | CoursCountOutputTypeCountCoursPonderationsArgs
   onlineAssignments?: boolean | CoursCountOutputTypeCountOnlineAssignmentsArgs
@@ -1186,6 +1670,13 @@ export type CoursCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extens
  */
 export type CoursCountOutputTypeCountTeachingArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.TeachingWhereInput
+}
+
+/**
+ * CoursCountOutputType without action
+ */
+export type CoursCountOutputTypeCountComponentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.CoursWhereInput
 }
 
 /**
@@ -1216,6 +1707,9 @@ export type CoursSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   nameCours?: boolean
   description?: boolean
   statusCours?: boolean
+  kind?: boolean
+  parentCoursId?: boolean
+  sortOrder?: boolean
   primaryDomain?: boolean
   primarySection?: boolean
   domainOrder?: boolean
@@ -1223,6 +1717,8 @@ export type CoursSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   updatedAt?: boolean
   branchId?: boolean
   teaching?: boolean | Prisma.Cours$teachingArgs<ExtArgs>
+  parentCours?: boolean | Prisma.Cours$parentCoursArgs<ExtArgs>
+  components?: boolean | Prisma.Cours$componentsArgs<ExtArgs>
   period?: boolean | Prisma.Cours$periodArgs<ExtArgs>
   branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
   coursPonderations?: boolean | Prisma.Cours$coursPonderationsArgs<ExtArgs>
@@ -1236,12 +1732,16 @@ export type CoursSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   nameCours?: boolean
   description?: boolean
   statusCours?: boolean
+  kind?: boolean
+  parentCoursId?: boolean
+  sortOrder?: boolean
   primaryDomain?: boolean
   primarySection?: boolean
   domainOrder?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   branchId?: boolean
+  parentCours?: boolean | Prisma.Cours$parentCoursArgs<ExtArgs>
   branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["cours"]>
 
@@ -1251,12 +1751,16 @@ export type CoursSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   nameCours?: boolean
   description?: boolean
   statusCours?: boolean
+  kind?: boolean
+  parentCoursId?: boolean
+  sortOrder?: boolean
   primaryDomain?: boolean
   primarySection?: boolean
   domainOrder?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   branchId?: boolean
+  parentCours?: boolean | Prisma.Cours$parentCoursArgs<ExtArgs>
   branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["cours"]>
 
@@ -1266,6 +1770,9 @@ export type CoursSelectScalar = {
   nameCours?: boolean
   description?: boolean
   statusCours?: boolean
+  kind?: boolean
+  parentCoursId?: boolean
+  sortOrder?: boolean
   primaryDomain?: boolean
   primarySection?: boolean
   domainOrder?: boolean
@@ -1274,9 +1781,11 @@ export type CoursSelectScalar = {
   branchId?: boolean
 }
 
-export type CoursOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "codeCours" | "nameCours" | "description" | "statusCours" | "primaryDomain" | "primarySection" | "domainOrder" | "createdAt" | "updatedAt" | "branchId", ExtArgs["result"]["cours"]>
+export type CoursOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "codeCours" | "nameCours" | "description" | "statusCours" | "kind" | "parentCoursId" | "sortOrder" | "primaryDomain" | "primarySection" | "domainOrder" | "createdAt" | "updatedAt" | "branchId", ExtArgs["result"]["cours"]>
 export type CoursInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   teaching?: boolean | Prisma.Cours$teachingArgs<ExtArgs>
+  parentCours?: boolean | Prisma.Cours$parentCoursArgs<ExtArgs>
+  components?: boolean | Prisma.Cours$componentsArgs<ExtArgs>
   period?: boolean | Prisma.Cours$periodArgs<ExtArgs>
   branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
   coursPonderations?: boolean | Prisma.Cours$coursPonderationsArgs<ExtArgs>
@@ -1284,9 +1793,11 @@ export type CoursInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   _count?: boolean | Prisma.CoursCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type CoursIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  parentCours?: boolean | Prisma.Cours$parentCoursArgs<ExtArgs>
   branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
 }
 export type CoursIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  parentCours?: boolean | Prisma.Cours$parentCoursArgs<ExtArgs>
   branch?: boolean | Prisma.BranchDefaultArgs<ExtArgs>
 }
 
@@ -1294,6 +1805,8 @@ export type $CoursPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   name: "Cours"
   objects: {
     teaching: Prisma.$TeachingPayload<ExtArgs>[]
+    parentCours: Prisma.$CoursPayload<ExtArgs> | null
+    components: Prisma.$CoursPayload<ExtArgs>[]
     period: Prisma.$periodPayload<ExtArgs>[]
     branch: Prisma.$BranchPayload<ExtArgs>
     coursPonderations: Prisma.$CoursOptionPonderationPayload<ExtArgs>[]
@@ -1305,6 +1818,18 @@ export type $CoursPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     nameCours: string
     description: string | null
     statusCours: boolean | null
+    /**
+     * SUBJECT = matière bulletin ; SCHEDULE_COMPONENT = poste d'horaire uniquement.
+     */
+    kind: $Enums.CoursKind
+    /**
+     * Parent bulletin si kind = SCHEDULE_COMPONENT.
+     */
+    parentCoursId: string | null
+    /**
+     * Ordre d'affichage des postes sous le parent.
+     */
+    sortOrder: number
     /**
      * Code domaine bulletin primaire (BranchPrimaryDomain.code) — null si non classé
      */
@@ -1715,6 +2240,8 @@ readonly fields: CoursFieldRefs;
 export interface Prisma__CoursClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   teaching<T extends Prisma.Cours$teachingArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Cours$teachingArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TeachingPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  parentCours<T extends Prisma.Cours$parentCoursArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Cours$parentCoursArgs<ExtArgs>>): Prisma.Prisma__CoursClient<runtime.Types.Result.GetResult<Prisma.$CoursPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  components<T extends Prisma.Cours$componentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Cours$componentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CoursPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   period<T extends Prisma.Cours$periodArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Cours$periodArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$periodPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   branch<T extends Prisma.BranchDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.BranchDefaultArgs<ExtArgs>>): Prisma.Prisma__BranchClient<runtime.Types.Result.GetResult<Prisma.$BranchPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   coursPonderations<T extends Prisma.Cours$coursPonderationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Cours$coursPonderationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CoursOptionPonderationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -1753,6 +2280,9 @@ export interface CoursFieldRefs {
   readonly nameCours: Prisma.FieldRef<"Cours", 'String'>
   readonly description: Prisma.FieldRef<"Cours", 'String'>
   readonly statusCours: Prisma.FieldRef<"Cours", 'Boolean'>
+  readonly kind: Prisma.FieldRef<"Cours", 'CoursKind'>
+  readonly parentCoursId: Prisma.FieldRef<"Cours", 'String'>
+  readonly sortOrder: Prisma.FieldRef<"Cours", 'Int'>
   readonly primaryDomain: Prisma.FieldRef<"Cours", 'String'>
   readonly primarySection: Prisma.FieldRef<"Cours", 'String'>
   readonly domainOrder: Prisma.FieldRef<"Cours", 'Int'>
@@ -2181,6 +2711,49 @@ export type Cours$teachingArgs<ExtArgs extends runtime.Types.Extensions.Internal
   take?: number
   skip?: number
   distinct?: Prisma.TeachingScalarFieldEnum | Prisma.TeachingScalarFieldEnum[]
+}
+
+/**
+ * Cours.parentCours
+ */
+export type Cours$parentCoursArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Cours
+   */
+  select?: Prisma.CoursSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Cours
+   */
+  omit?: Prisma.CoursOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.CoursInclude<ExtArgs> | null
+  where?: Prisma.CoursWhereInput
+}
+
+/**
+ * Cours.components
+ */
+export type Cours$componentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Cours
+   */
+  select?: Prisma.CoursSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Cours
+   */
+  omit?: Prisma.CoursOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.CoursInclude<ExtArgs> | null
+  where?: Prisma.CoursWhereInput
+  orderBy?: Prisma.CoursOrderByWithRelationInput | Prisma.CoursOrderByWithRelationInput[]
+  cursor?: Prisma.CoursWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.CoursScalarFieldEnum | Prisma.CoursScalarFieldEnum[]
 }
 
 /**

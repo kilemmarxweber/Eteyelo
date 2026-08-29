@@ -71,11 +71,8 @@ export function canAccessBranchAreaFromPermissions(
 
     let ok = true;
     for (const [resource, actions] of Object.entries(required)) {
-      // Zones finance / inscription : une des actions suffit pour entrer.
-      if (
-        (resource === "finance" && area === "finance") ||
-        (resource === "inscription" && area === "registration")
-      ) {
+      // Zones finance : read OU encaisser suffit pour entrer.
+      if (resource === "finance" && area === "finance") {
         if (!roleAllowsAny(statements, resource, actions)) {
           ok = false;
           break;

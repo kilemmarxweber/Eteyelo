@@ -45,7 +45,7 @@ export const BRANCH_AREA_PERMISSION: Record<
   devoirs: { devoirs: ["read"] },
   library: { library: ["read"] },
   school_admin: { student: ["read"] },
-  registration: { inscription: ["read", "create"] },
+  registration: { inscription: ["read"] },
   students: { student: ["read"] },
   hr_directory: { personnel: ["read"] },
   hr_write: { personnel: ["update"] },

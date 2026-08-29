@@ -10,6 +10,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { CoursUpForm } from "./cours-form";
+import { CoursComponentsPanel } from "./cours-components-panel";
 import { ICours } from "@/src/interfaces/Cours";
 
 interface UpdateCoursDialogProps extends React.ComponentPropsWithoutRef<
@@ -34,27 +35,38 @@ export function UpdateCoursDialog({
 
   return (
     <Dialog {...props}>
-      <DialogContent>
+      <DialogContent
+        size="lg"
+        className="max-h-[min(90dvh,52rem)] gap-4 overflow-y-auto"
+      >
         <DialogHeader>
           <DialogTitle>Modifier le cours</DialogTitle>
           <DialogDescription>
             {isPrimary
               ? "Modifiez le nom, la description ou le domaine du bulletin."
-              : "Modifiez le nom ou la description du cours. Le dialogue restera ouvert en cas d'erreur."}
+              : "Modifiez le nom ou la description du cours. Ajoutez des postes d'horaire si besoin."}
           </DialogDescription>
         </DialogHeader>
-        <CoursUpForm
-          mode="update"
-          isPrimary={isPrimary}
-          initialData={{
-            id: cours.id,
-            codeCours: cours.codeCours,
-            nameCours: cours.nameCours,
-            description: cours.description,
-            primaryDomain: cours.primaryDomain ?? null,
-          }}
-          onUpdated={handleUpdate}
-        />
+        <div className="grid w-full min-w-0 gap-4">
+          <CoursUpForm
+            mode="update"
+            layout="dialog"
+            isPrimary={isPrimary}
+            className="w-full min-w-0"
+            initialData={{
+              id: cours.id,
+              codeCours: cours.codeCours,
+              nameCours: cours.nameCours,
+              description: cours.description,
+              primaryDomain: cours.primaryDomain ?? null,
+            }}
+            onUpdated={handleUpdate}
+          />
+          <CoursComponentsPanel
+            parentCoursId={cours.id}
+            parentName={cours.nameCours}
+          />
+        </div>
       </DialogContent>
     </Dialog>
   );

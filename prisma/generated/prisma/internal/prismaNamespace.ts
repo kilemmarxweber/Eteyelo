@@ -6288,6 +6288,9 @@ export const CoursScalarFieldEnum = {
   nameCours: 'nameCours',
   description: 'description',
   statusCours: 'statusCours',
+  kind: 'kind',
+  parentCoursId: 'parentCoursId',
+  sortOrder: 'sortOrder',
   primaryDomain: 'primaryDomain',
   primarySection: 'primarySection',
   domainOrder: 'domainOrder',
@@ -7438,6 +7441,20 @@ export type ListEnumDayFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaMo
  * Reference to a field of type 'Day'
  */
 export type EnumDayFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Day'>
+    
+
+
+/**
+ * Reference to a field of type 'CoursKind'
+ */
+export type EnumCoursKindFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'CoursKind'>
+    
+
+
+/**
+ * Reference to a field of type 'CoursKind[]'
+ */
+export type ListEnumCoursKindFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'CoursKind[]'>
     
 
 

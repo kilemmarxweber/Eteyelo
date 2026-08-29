@@ -3,7 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { action } from "@/lib/zsa";
-import { ICours, coursSchema } from "@/src/interfaces/Cours";
+import { ICours, coursSchema, coursComponentSchema } from "@/src/interfaces/Cours";
 import { Prisma } from "@/prisma/generated/prisma/client";
 import z from "zod";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
@@ -22,6 +22,12 @@ import {
 } from "@/lib/extended-course-import";
 import { activeCoursStatusFilter } from "@/lib/active-cours";
 import { getConfiguredCoursIdsForClasse } from "@/lib/course-ponderation";
+import {
+  COURS_KIND,
+  expandConfiguredCoursIdsForSchedule,
+  gradeableCoursFilter,
+  slugifyComponentCodePart,
+} from "@/lib/cours-components";
 
 function requireCoursManagement(session: unknown) {
   if (!canManageOrganization(session as Parameters<typeof canManageOrganization>[0])) {
@@ -126,6 +132,8 @@ export const createCoursAction = action
           codeCours,
           branchId,
           statusCours: true,
+          kind: COURS_KIND.SUBJECT,
+          parentCoursId: null,
           ...(primaryFields ?? {}),
         },
       });
@@ -309,6 +317,8 @@ export const getCoursAction = action
       .object({
         includeInactive: z.boolean().optional(),
         classeId: z.string().optional(),
+        /** Inclure les postes d'horaire (défaut: parents bulletin seulement). */
+        includeComponents: z.boolean().optional(),
       })
       .optional(),
   )
@@ -316,6 +326,7 @@ export const getCoursAction = action
   try {
     const { branchId } = await requireBranchContext();
     const includeInactive = input?.includeInactive ?? false;
+    const includeComponents = input?.includeComponents ?? false;
     let configuredIds: string[] | null = null;
     if (input?.classeId) {
       const classe = await prisma.classe.findFirst({
@@ -325,10 +336,14 @@ export const getCoursAction = action
       if (!classe) {
         throw new Error("Classe introuvable dans cette branche");
       }
-      configuredIds = await getConfiguredCoursIdsForClasse({
+      const parentIds = await getConfiguredCoursIdsForClasse({
         branchId,
         optionId: classe.optionId,
         level: classe.level,
+      });
+      configuredIds = await expandConfiguredCoursIdsForSchedule({
+        branchId,
+        configuredParentIds: parentIds,
       });
       if (!configuredIds.length) return [];
     }
@@ -336,16 +351,27 @@ export const getCoursAction = action
       where: {
         branchId,
         ...(includeInactive ? {} : activeCoursStatusFilter),
-        ...(configuredIds ? { id: { in: configuredIds } } : {}),
+        ...(configuredIds
+          ? { id: { in: configuredIds } }
+          : includeComponents
+            ? {}
+            : gradeableCoursFilter),
       },
-      include: { _count: { select: { teaching: true } } },
+      include: {
+        _count: { select: { teaching: true, components: true } },
+        parentCours: { select: { nameCours: true } },
+      },
+      orderBy: [{ sortOrder: "asc" }, { nameCours: "asc" }],
     });
 
     const transformedCourses: ICours[] = Cours.map(
-      ({ _count, ...cours }) => ({
+      ({ _count, parentCours, ...cours }) => ({
         ...cours,
         description: cours.description || "",
         teachingsCount: _count.teaching,
+        componentsCount: _count.components,
+        parentNameCours: parentCours?.nameCours ?? null,
+        kind: cours.kind,
       }),
     );
     return transformedCourses;
@@ -353,6 +379,201 @@ export const getCoursAction = action
     throw new Error(error.message);
   }
 });
+
+export const getCoursComponentsAction = action
+  .input(z.object({ parentCoursId: z.string().min(1) }))
+  .handler(async ({ input }): Promise<ICours[]> => {
+    const { branchId } = await requireBranchContext();
+    const parent = await prisma.cours.findFirst({
+      where: {
+        id: input.parentCoursId,
+        branchId,
+        ...gradeableCoursFilter,
+      },
+      select: { id: true, nameCours: true },
+    });
+    if (!parent) throw new Error("Cours parent introuvable");
+
+    const rows = await prisma.cours.findMany({
+      where: {
+        branchId,
+        parentCoursId: parent.id,
+        kind: COURS_KIND.SCHEDULE_COMPONENT,
+      },
+      include: { _count: { select: { teaching: true } } },
+      orderBy: [{ sortOrder: "asc" }, { nameCours: "asc" }],
+    });
+
+    return rows.map(({ _count, ...cours }) => ({
+      ...cours,
+      description: cours.description || "",
+      teachingsCount: _count.teaching,
+      parentNameCours: parent.nameCours,
+      kind: cours.kind,
+    }));
+  });
+
+export const createCoursComponentAction = action
+  .input(coursComponentSchema)
+  .handler(async ({ input }) => {
+    const { branchId, organizationId, session } = await requireBranchContext();
+    requireCoursManagement(session);
+
+    const parent = await prisma.cours.findFirst({
+      where: {
+        id: input.parentCoursId,
+        branchId,
+        ...gradeableCoursFilter,
+      },
+      select: { id: true, nameCours: true, codeCours: true },
+    });
+    if (!parent) throw new Error("Cours parent introuvable");
+
+    const label = input.nameCours.trim();
+    let nameCours = label;
+    const nameTaken = await prisma.cours.findFirst({
+      where: {
+        branchId,
+        nameCours: { equals: nameCours, mode: "insensitive" },
+      },
+      select: { id: true },
+    });
+    if (nameTaken) {
+      nameCours = `${parent.nameCours} — ${label}`;
+      const stillTaken = await prisma.cours.findFirst({
+        where: {
+          branchId,
+          nameCours: { equals: nameCours, mode: "insensitive" },
+        },
+        select: { id: true },
+      });
+      if (stillTaken) {
+        throw new Error("Un poste avec ce nom existe déjà");
+      }
+    }
+
+    const codeBase =
+      (input.codeCours?.trim() ||
+        `${parent.codeCours}-${slugifyComponentCodePart(label) || "POSTE"}`)
+        .slice(0, 24);
+    const codeCours = await ensureUniqueIdentifier({
+      base: codeBase,
+      separator: "",
+      exists: async (value) =>
+        Boolean(
+          await prisma.cours.findFirst({
+            where: { branchId, codeCours: value },
+            select: { id: true },
+          }),
+        ),
+    });
+
+    const maxOrder = await prisma.cours.aggregate({
+      where: {
+        branchId,
+        parentCoursId: parent.id,
+        kind: COURS_KIND.SCHEDULE_COMPONENT,
+      },
+      _max: { sortOrder: true },
+    });
+
+    const component = await prisma.cours.create({
+      data: {
+        branchId,
+        nameCours,
+        codeCours,
+        description: null,
+        statusCours: input.statusCours ?? true,
+        kind: COURS_KIND.SCHEDULE_COMPONENT,
+        parentCoursId: parent.id,
+        sortOrder: input.sortOrder ?? (maxOrder._max.sortOrder ?? -1) + 1,
+      },
+    });
+    revalidateCoursPages(organizationId, branchId);
+    return component;
+  });
+
+export const updateCoursComponentAction = action
+  .input(coursComponentSchema)
+  .handler(async ({ input }) => {
+    const { branchId, organizationId, session } = await requireBranchContext();
+    requireCoursManagement(session);
+    if (!input.id) throw new Error("Identifiant du poste manquant");
+
+    const existing = await prisma.cours.findFirst({
+      where: {
+        id: input.id,
+        branchId,
+        kind: COURS_KIND.SCHEDULE_COMPONENT,
+        parentCoursId: input.parentCoursId,
+      },
+      select: { id: true, parentCoursId: true },
+    });
+    if (!existing?.parentCoursId) throw new Error("Poste introuvable");
+
+    const parent = await prisma.cours.findFirst({
+      where: { id: existing.parentCoursId, branchId },
+      select: { nameCours: true },
+    });
+
+    const label = input.nameCours.trim();
+    let nameCours = label;
+    const nameTaken = await prisma.cours.findFirst({
+      where: {
+        branchId,
+        id: { not: existing.id },
+        nameCours: { equals: nameCours, mode: "insensitive" },
+      },
+      select: { id: true },
+    });
+    if (nameTaken && parent) {
+      nameCours = `${parent.nameCours} — ${label}`;
+    }
+
+    const component = await prisma.cours.update({
+      where: { id: existing.id },
+      data: {
+        nameCours,
+        ...(input.sortOrder != null ? { sortOrder: input.sortOrder } : {}),
+        ...(input.statusCours != null ? { statusCours: input.statusCours } : {}),
+      },
+    });
+    revalidateCoursPages(organizationId, branchId);
+    return component;
+  });
+
+export const deleteCoursComponentAction = action
+  .input(z.object({ id: z.string().min(1) }))
+  .handler(async ({ input }) => {
+    const { branchId, organizationId, session } = await requireBranchContext();
+    requireCoursManagement(session);
+
+    const existing = await prisma.cours.findFirst({
+      where: {
+        id: input.id,
+        branchId,
+        kind: COURS_KIND.SCHEDULE_COMPONENT,
+      },
+      select: { id: true },
+    });
+    if (!existing) throw new Error("Poste introuvable");
+
+    const teachingsCount = await prisma.teaching.count({
+      where: {
+        coursId: existing.id,
+        OR: [{ statusTeaching: true }, { statusTeaching: null }],
+      },
+    });
+    if (teachingsCount > 0) {
+      throw new Error(
+        "Impossible de supprimer ce poste : des affectations y sont encore liées.",
+      );
+    }
+
+    await prisma.cours.delete({ where: { id: existing.id } });
+    revalidateCoursPages(organizationId, branchId);
+    return { ok: true as const };
+  });
 // GET ONE COURS
 export const getCourseAction = action
   .input(

@@ -561,6 +561,14 @@ model Cours {
   description String?
   teaching    Teaching[]
   statusCours Boolean?
+  /// SUBJECT = matière bulletin ; SCHEDULE_COMPONENT = poste d'horaire uniquement.
+  kind          CoursKind @default(SUBJECT)
+  /// Parent bulletin si kind = SCHEDULE_COMPONENT.
+  parentCoursId String?
+  parentCours   Cours?    @relation("CoursComponents", fields: [parentCoursId], references: [id], onDelete: Cascade)
+  components    Cours[]   @relation("CoursComponents")
+  /// Ordre d'affichage des postes sous le parent.
+  sortOrder     Int       @default(0)
   /// Code domaine bulletin primaire (BranchPrimaryDomain.code) — null si non classé
   primaryDomain  String?
   /// Section affichée sous le domaine (ex. LANGUES CONGOLAISES) — null = pas de sous-en-tête
@@ -576,8 +584,15 @@ model Cours {
   onlineAssignments OnlineAssignment[]
   @@index([branchId])
   @@index([branchId, primaryDomain])
+  @@index([parentCoursId])
+  @@index([branchId, kind])
   @@unique([branchId, codeCours])
   @@unique([branchId, nameCours])
+}
+
+enum CoursKind {
+  SUBJECT
+  SCHEDULE_COMPONENT
 }
 model CoursOptionPonderation {
   id          String   @id @default(cuid())

@@ -26,6 +26,7 @@ import {
   resolveAccessibleCycles,
 } from "@/lib/auth/cycle-scope";
 import { activeCoursStatusFilter } from "@/lib/active-cours";
+import { gradeableCoursFilter } from "@/lib/cours-components";
 
 function requireManagePermission(session: unknown) {
   if (!canManageOrganization(session as Parameters<typeof canManageOrganization>[0])) {
@@ -46,7 +47,7 @@ async function requireCoursAndOptionInBranch(params: {
         branchId: params.branchId,
         ...activeCoursStatusFilter,
       },
-      select: { id: true },
+      select: { id: true, kind: true, parentCoursId: true },
     }),
     optionIds.length
       ? prisma.option.findMany({
@@ -57,6 +58,11 @@ async function requireCoursAndOptionInBranch(params: {
   ]);
 
   if (!cours) throw new Error("Cours introuvable dans cette branche");
+  if (cours.kind === "SCHEDULE_COMPONENT" || cours.parentCoursId) {
+    throw new Error(
+      "Les postes d'horaire ne se pondèrent pas. Pondérez le cours bulletin parent.",
+    );
+  }
   if (!optionIds.length || options.length !== optionIds.length) {
     throw new Error("Option introuvable dans cette branche");
   }
@@ -200,7 +206,7 @@ export const getCoursPonderationOptionPageDataAction = action.handler(
         },
       }),
       prisma.cours.findMany({
-        where: { branchId, ...activeCoursStatusFilter },
+        where: { branchId, ...activeCoursStatusFilter, ...gradeableCoursFilter },
         orderBy: { nameCours: "asc" },
         select: { id: true, nameCours: true, codeCours: true, statusCours: true },
       }),

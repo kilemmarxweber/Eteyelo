@@ -15,6 +15,7 @@ import { authClient } from "@/lib/auth-client";
 import { buildStaticSideLinks } from "@/lib/sidebar-menu";
 import { getBranchCycles, type Cycle } from "@/lib/cycle";
 import { getBranchNameAction } from "@/app/admin/organizations/[organizationId]/branches/(no-layout)/branche.action";
+import { getSidebarPermissionFlagsAction } from "@/lib/auth/sidebar-permission-flags.action";
 import { NotificationBell } from "@/components/notification-bell";
 import { OwnerBranchesLink } from "@/components/owner-branches-link";
 import { Search } from "@/components/search";
@@ -42,6 +43,8 @@ export default function Sidebar({
     undefined,
   );
   const [branchLoaded, setBranchLoaded] = useState(false);
+  /** false = masquer Inscription tant que non confirmé (inscription:read). */
+  const [inscriptionRead, setInscriptionRead] = useState(false);
   /** Évite un mismatch d’hydratation : useSession() peut différer SSR vs 1er paint client,
    * ce qui change le nombre de Collapsible/DropdownMenu (useId) avant UserNav. */
   const [menuReady, setMenuReady] = useState(false);
@@ -52,12 +55,33 @@ export default function Sidebar({
     setMenuReady(true);
   }, []);
 
+  useEffect(() => {
+    if (!menuReady || !session?.user?.id) {
+      setInscriptionRead(false);
+      return;
+    }
+    let ignore = false;
+    void getSidebarPermissionFlagsAction()
+      .then((flags) => {
+        if (!ignore) setInscriptionRead(flags.inscriptionRead);
+      })
+      .catch(() => {
+        if (!ignore) setInscriptionRead(false);
+      });
+    return () => {
+      ignore = true;
+    };
+  }, [menuReady, session?.user?.id, session?.organization?.id, session?.session?.activeOrganizationId]);
+
   const sessionForLinks = menuReady ? session : null;
   const rawLinks = buildStaticSideLinks(
     sessionForLinks,
     pathname,
     menuReady ? branchType : undefined,
     menuReady ? (branchCycles ?? branchType) : undefined,
+    {
+      hideHrefs: inscriptionRead ? [] : ["/admin/registration"],
+    },
   );
   const links = useMemo(() => {
     const translate = (items: SideLink[]): SideLink[] =>
