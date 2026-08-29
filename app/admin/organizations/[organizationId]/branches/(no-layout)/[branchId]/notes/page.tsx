@@ -1,14 +1,13 @@
-import { Suspense } from "react";
-import { prisma } from "@/lib/prisma";
-import FicheSaisieClient from "./FicheSaisieClient";
-import NotesReadClient from "./NotesReadClient";
-import { notFound } from "next/navigation";
-import { ORG_ROLE } from "@/lib/permissions";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
 import {
   canManageOrganization,
   hasSessionRole,
 } from "@/lib/auth/session-roles";
+import {
+  classeCycleWhere,
+  primaryOrgRoleFromSession,
+  resolveAccessibleCycles,
+} from "@/lib/auth/cycle-scope";
 import {
   enforceNotesAreaAccess,
   isCursusSelfScopedRole,
@@ -23,6 +22,12 @@ import {
 import { UNIVERSITY_NOTES_LABELS } from "@/lib/university-lmd-labels";
 import { getPeopleLabels } from "@/lib/people-labels";
 import { buildStudentNotesReadData } from "@/lib/student-notes-read";
+import { prisma } from "@/lib/prisma";
+import { ORG_ROLE } from "@/lib/permissions";
+import { Suspense } from "react";
+import FicheSaisieClient from "./FicheSaisieClient";
+import NotesReadClient from "./NotesReadClient";
+import { notFound } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
@@ -113,6 +118,23 @@ export default async function NotesPage({
     notFound();
   }
 
+  const [orgMember, viewerBm] = await Promise.all([
+    prisma.member.findFirst({
+      where: { userId, organizationId },
+      select: { role: true },
+    }),
+    prisma.branchMember.findFirst({
+      where: { branchId, member: { userId, organizationId } },
+      select: { id: true },
+    }),
+  ]);
+  const accessibleCycles = await resolveAccessibleCycles({
+    branchId,
+    branchMemberId: viewerBm?.id ?? null,
+    orgRole: primaryOrgRoleFromSession(session, orgMember?.role),
+  });
+  const classScope = classeCycleWhere(accessibleCycles);
+
   const teacherWhere = canManage
     ? {
         branchMember: {
@@ -169,6 +191,7 @@ export default async function NotesPage({
                 },
               ],
             },
+            { classe: classScope },
           ],
         },
         include: {

@@ -21,6 +21,10 @@ import {
   canPermanentlyDeleteInformation,
   PERMANENT_DELETE_DENIED_MESSAGE,
 } from "@/lib/auth/session-roles";
+import {
+  primaryOrgRoleFromSession,
+  resolveAccessibleCycles,
+} from "@/lib/auth/cycle-scope";
 import { activeCoursStatusFilter } from "@/lib/active-cours";
 
 function requireManagePermission(session: unknown) {
@@ -63,11 +67,12 @@ async function requireOptionsInBranch(branchId: string, optionIds: string[]) {
   if (!unique.length) throw new Error("Option introuvable dans cette branche");
   const options = await prisma.option.findMany({
     where: { id: { in: unique }, branchId },
-    select: { id: true },
+    select: { id: true, cycle: true },
   });
   if (options.length !== unique.length) {
     throw new Error("Option introuvable dans cette branche");
   }
+  return options;
 }
 
 function revalidateCoursPonderationOptionPages(
@@ -85,12 +90,92 @@ const PONDERATION_CYCLES = [
   "SECONDAIRE",
 ] as const satisfies readonly Cycle[];
 
+async function resolveViewerPonderationCycles(params: {
+  branchId: string;
+  organizationId: string;
+  userId: string;
+  session: unknown;
+  branchCycles: Cycle[];
+}): Promise<Cycle[]> {
+  const [orgMember, branchMember] = await Promise.all([
+    prisma.member.findFirst({
+      where: {
+        userId: params.userId,
+        organizationId: params.organizationId,
+      },
+      select: { role: true },
+    }),
+    prisma.branchMember.findFirst({
+      where: {
+        branchId: params.branchId,
+        member: {
+          userId: params.userId,
+          organizationId: params.organizationId,
+        },
+      },
+      select: { id: true },
+    }),
+  ]);
+
+  const accessible = await resolveAccessibleCycles({
+    branchId: params.branchId,
+    branchMemberId: branchMember?.id ?? null,
+    orgRole: primaryOrgRoleFromSession(params.session, orgMember?.role),
+  });
+
+  return params.branchCycles.filter(
+    (cycle): cycle is Cycle =>
+      (PONDERATION_CYCLES as readonly string[]).includes(cycle) &&
+      accessible.includes(cycle),
+  );
+}
+
+async function assertViewerCanEditOptionCycles(params: {
+  branchId: string;
+  organizationId: string;
+  userId: string;
+  session: unknown;
+  branchCycles: Cycle[];
+  optionIds: string[];
+}) {
+  const options = await requireOptionsInBranch(
+    params.branchId,
+    params.optionIds,
+  );
+  const accessible = await resolveViewerPonderationCycles({
+    branchId: params.branchId,
+    organizationId: params.organizationId,
+    userId: params.userId,
+    session: params.session,
+    branchCycles: params.branchCycles,
+  });
+
+  for (const option of options) {
+    if (
+      !option.cycle ||
+      !(PONDERATION_CYCLES as readonly string[]).includes(option.cycle)
+    ) {
+      continue;
+    }
+    if (!accessible.includes(option.cycle as Cycle)) {
+      throw new Error(
+        "Vous n'avez pas accès à la pondération de ce cycle.",
+      );
+    }
+  }
+}
+
 export const getCoursPonderationOptionPageDataAction = action.handler(
   async () => {
-    const { branchId, cycles, educationSystem } = await requireBranchContext();
-    const activated = cycles.filter((cycle): cycle is Cycle =>
-      (PONDERATION_CYCLES as readonly string[]).includes(cycle),
-    );
+    const { branchId, cycles, educationSystem, organizationId, userId, session } =
+      await requireBranchContext();
+    const activated = await resolveViewerPonderationCycles({
+      branchId,
+      organizationId,
+      userId,
+      session,
+      branchCycles: cycles,
+    });
 
     const [options, cours, ponderations, schoolYear] = await Promise.all([
       prisma.option.findMany({
@@ -259,12 +344,21 @@ function resolvePonderationLevels(input: {
 export const createCoursOptionPonderationAction = action
   .input(coursOptionPonderationSchema)
   .handler(async ({ input }) => {
-    const { branchId, organizationId, session } = await requireBranchContext();
+    const { branchId, organizationId, session, userId, cycles } =
+      await requireBranchContext();
     requireManagePermission(session);
     const optionIds = resolvePonderationOptionIds(input);
     await requireCoursAndOptionInBranch({
       branchId,
       coursId: input.coursId,
+      optionIds,
+    });
+    await assertViewerCanEditOptionCycles({
+      branchId,
+      organizationId,
+      userId,
+      session,
+      branchCycles: cycles,
       optionIds,
     });
 
@@ -310,12 +404,21 @@ export const createCoursOptionPonderationAction = action
 export const saveCoursOptionPonderationAction = action
   .input(coursOptionPonderationSchema)
   .handler(async ({ input }) => {
-    const { branchId, organizationId, session } = await requireBranchContext();
+    const { branchId, organizationId, session, userId, cycles } =
+      await requireBranchContext();
     requireManagePermission(session);
     const optionIds = resolvePonderationOptionIds(input);
     await requireCoursAndOptionInBranch({
       branchId,
       coursId: input.coursId,
+      optionIds,
+    });
+    await assertViewerCanEditOptionCycles({
+      branchId,
+      organizationId,
+      userId,
+      session,
+      branchCycles: cycles,
       optionIds,
     });
 
@@ -352,11 +455,20 @@ export const saveCoursOptionPonderationAction = action
 export const updateCoursOptionPonderationAction = action
   .input(coursOptionPonderationSchema)
   .handler(async ({ input }) => {
-    const { branchId, organizationId, session } = await requireBranchContext();
+    const { branchId, organizationId, session, userId, cycles } =
+      await requireBranchContext();
     requireManagePermission(session);
     await requireCoursAndOptionInBranch({
       branchId,
       coursId: input.coursId,
+      optionIds: [input.optionId],
+    });
+    await assertViewerCanEditOptionCycles({
+      branchId,
+      organizationId,
+      userId,
+      session,
+      branchCycles: cycles,
       optionIds: [input.optionId],
     });
 
@@ -397,7 +509,8 @@ export const deleteCoursOptionPonderationAction = action
     }),
   )
   .handler(async ({ input }) => {
-    const { branchId, organizationId, session } = await requireBranchContext();
+    const { branchId, organizationId, session, userId, cycles } =
+      await requireBranchContext();
     requireManagePermission(session);
     if (!canPermanentlyDeleteInformation(session)) {
       throw new Error(PERMANENT_DELETE_DENIED_MESSAGE);
@@ -406,11 +519,19 @@ export const deleteCoursOptionPonderationAction = action
     if (input.id) {
       const existing = await prisma.coursOptionPonderation.findFirst({
         where: { id: input.id, branchId },
-        select: { id: true },
+        select: { id: true, optionId: true },
       });
       if (!existing) {
         throw new Error("Ponderation introuvable dans cette branche");
       }
+      await assertViewerCanEditOptionCycles({
+        branchId,
+        organizationId,
+        userId,
+        session,
+        branchCycles: cycles,
+        optionIds: [existing.optionId],
+      });
 
       await prisma.coursOptionPonderation.delete({
         where: { id: input.id },
@@ -426,6 +547,14 @@ export const deleteCoursOptionPonderationAction = action
     const optionIds = resolvePonderationOptionIds({
       optionId: input.optionId ?? "",
       optionIds: input.optionIds,
+    });
+    await assertViewerCanEditOptionCycles({
+      branchId,
+      organizationId,
+      userId,
+      session,
+      branchCycles: cycles,
+      optionIds,
     });
     const levels = resolvePonderationLevels({ levels: input.levels });
     await prisma.coursOptionPonderation.deleteMany({
@@ -443,7 +572,8 @@ export const deleteCoursOptionPonderationAction = action
 export const mergeCoursOptionPonderationAction = action
   .input(mergeCoursOptionPonderationSchema)
   .handler(async ({ input }) => {
-    const { branchId, organizationId, session } = await requireBranchContext();
+    const { branchId, organizationId, session, userId, cycles } =
+      await requireBranchContext();
     requireManagePermission(session);
 
     const sourceLevel = normalizePonderationLevel(input.sourceLevel);
@@ -467,10 +597,19 @@ export const mergeCoursOptionPonderationAction = action
       throw new Error("Sélectionnez un niveau non pondéré à fusionner.");
     }
 
-    await requireOptionsInBranch(branchId, [
+    const optionIds = [
       input.sourceOptionId,
       ...targets.map((target) => target.optionId),
-    ]);
+    ];
+    await requireOptionsInBranch(branchId, optionIds);
+    await assertViewerCanEditOptionCycles({
+      branchId,
+      organizationId,
+      userId,
+      session,
+      branchCycles: cycles,
+      optionIds,
+    });
 
     const sourceRows = await prisma.coursOptionPonderation.findMany({
       where: {

@@ -17,7 +17,10 @@ import { syncTeacherDossierExperienceYears } from "@/lib/teacher-assignment-year
 import { cycleLabel, resolveCycle, type Cycle } from "@/lib/cycle";
 import {
   buildBranchMemberDirectoryWhere,
+  classeCycleWhere,
   isCycleGlobalRole,
+  primaryOrgRoleFromSession,
+  resolveAccessibleCycles,
   sessionCanViewAllDirectoryUsers,
 } from "@/lib/auth/cycle-scope";
 
@@ -54,18 +57,71 @@ function requireManageTeaching(session: unknown) {
   }
 }
 
+async function resolveViewerAccessibleCycles(params: {
+  branchId: string;
+  organizationId: string;
+  userId: string;
+  session: unknown;
+}): Promise<Cycle[]> {
+  const [orgMember, branchMember] = await Promise.all([
+    prisma.member.findFirst({
+      where: {
+        userId: params.userId,
+        organizationId: params.organizationId,
+      },
+      select: { role: true },
+    }),
+    prisma.branchMember.findFirst({
+      where: {
+        branchId: params.branchId,
+        member: {
+          userId: params.userId,
+          organizationId: params.organizationId,
+        },
+      },
+      select: { id: true },
+    }),
+  ]);
+
+  return resolveAccessibleCycles({
+    branchId: params.branchId,
+    branchMemberId: branchMember?.id ?? null,
+    orgRole: primaryOrgRoleFromSession(params.session, orgMember?.role),
+  });
+}
+
+function classeWhereForViewerCycles(
+  branchId: string,
+  organizationId: string,
+  cycles: Cycle[],
+) {
+  return {
+    branchId,
+    branch: { organizationId },
+    AND: [
+      { OR: [{ statusClasse: true }, { statusClasse: null }] },
+      cycles.length === 0
+        ? { id: "__none__" }
+        : classeCycleWhere(cycles),
+    ],
+  };
+}
+
 async function requireConfiguredCoursesForClasse(params: {
   branchId: string;
   organizationId: string;
   classeId: string;
   coursIds: string[];
+  accessibleCycles: Cycle[];
 }) {
   const classe = await prisma.classe.findFirst({
     where: {
       id: params.classeId,
-      branchId: params.branchId,
-      branch: { organizationId: params.organizationId },
-      OR: [{ statusClasse: true }, { statusClasse: null }],
+      ...classeWhereForViewerCycles(
+        params.branchId,
+        params.organizationId,
+        params.accessibleCycles,
+      ),
     },
     select: { id: true, optionId: true, level: true },
   });
@@ -125,15 +181,20 @@ export const getTeachingWorkspaceAction = action.handler(async () => {
     seeAll,
     seeWholeBranch,
   });
+  const accessibleCycles = await resolveAccessibleCycles({
+    branchId,
+    branchMemberId: viewerBm?.id ?? null,
+    orgRole: primaryOrgRoleFromSession(session, orgMember?.role),
+  });
 
   const [classes, teachers, schoolYear, ponderations, teachings, branch] =
     await Promise.all([
       prisma.classe.findMany({
-        where: {
+        where: classeWhereForViewerCycles(
           branchId,
-          branch: { organizationId },
-          OR: [{ statusClasse: true }, { statusClasse: null }],
-        },
+          organizationId,
+          accessibleCycles,
+        ),
         orderBy: { nameClasse: "asc" },
         select: {
           id: true,
@@ -272,14 +333,23 @@ export const getTeachingWorkspaceAction = action.handler(async () => {
 export const getTeachingClassCoursesAction = action
   .input(z.object({ classeId: z.string().min(1) }))
   .handler(async ({ input }) => {
-    const { branchId, organizationId } = await requireBranchContext();
+    const { branchId, organizationId, userId, session } =
+      await requireBranchContext();
+    const accessibleCycles = await resolveViewerAccessibleCycles({
+      branchId,
+      organizationId,
+      userId,
+      session,
+    });
     const [classe, schoolYear] = await Promise.all([
       prisma.classe.findFirst({
         where: {
           id: input.classeId,
-          branchId,
-          branch: { organizationId },
-          OR: [{ statusClasse: true }, { statusClasse: null }],
+          ...classeWhereForViewerCycles(
+            branchId,
+            organizationId,
+            accessibleCycles,
+          ),
         },
         select: { id: true, optionId: true, level: true },
       }),
@@ -400,13 +470,20 @@ async function assertTeacherMatchesClasseCycle(params: {
 }
 
 export const saveQuickAssignmentsAction = action.input(quickAssignmentSchema).handler(async ({ input }) => {
-  const { branchId, organizationId, session } = await requireBranchContext();
+  const { branchId, organizationId, session, userId } = await requireBranchContext();
   requireManageTeaching(session);
+  const accessibleCycles = await resolveViewerAccessibleCycles({
+    branchId,
+    organizationId,
+    userId,
+    session,
+  });
   await requireConfiguredCoursesForClasse({
     branchId,
     organizationId,
     classeId: input.classeId,
     coursIds: input.coursIds,
+    accessibleCycles,
   });
   await assertTeacherMatchesClasseCycle({
     branchId,
@@ -415,7 +492,13 @@ export const saveQuickAssignmentsAction = action.input(quickAssignmentSchema).ha
     teacherId: input.teacherId,
   });
   const [classe, teacher, courses, schoolYear] = await Promise.all([
-    prisma.classe.findFirst({ where: { id: input.classeId, branchId, branch: { organizationId }, OR: [{ statusClasse: true }, { statusClasse: null }] }, select: { id: true } }),
+    prisma.classe.findFirst({
+      where: {
+        id: input.classeId,
+        ...classeWhereForViewerCycles(branchId, organizationId, accessibleCycles),
+      },
+      select: { id: true },
+    }),
     prisma.teacher.findFirst({ where: { id: input.teacherId, branchMember: { branchId, branch: { organizationId } } }, select: { id: true } }),
     prisma.cours.findMany({ where: { id: { in: input.coursIds }, branchId, branch: { organizationId }, ...activeCoursStatusFilter }, select: { id: true } }),
     prisma.schoolYear.findFirst({ where: { branchId, branch: { organizationId }, isCurrentYear: true, isArchived: false }, select: { id: true } }),
@@ -556,8 +639,15 @@ const removeAssignmentSchema = z.object({
 export const removeQuickAssignmentsAction = action
   .input(removeAssignmentSchema)
   .handler(async ({ input }) => {
-    const { branchId, organizationId, session } = await requireBranchContext();
+    const { branchId, organizationId, session, userId } =
+      await requireBranchContext();
     requireManageTeaching(session);
+    const accessibleCycles = await resolveViewerAccessibleCycles({
+      branchId,
+      organizationId,
+      userId,
+      session,
+    });
 
     const schoolYear = await prisma.schoolYear.findFirst({
       where: {
@@ -570,7 +660,12 @@ export const removeQuickAssignmentsAction = action
     });
     if (!schoolYear) throw new Error("Aucune année scolaire en cours");
 
-    await requireClasseInBranch(input.classeId, branchId);
+    await requireClasseInBranch({
+      classeId: input.classeId,
+      branchId,
+      organizationId,
+      accessibleCycles,
+    });
 
     const teachings = await prisma.teaching.findMany({
       where: {
@@ -609,9 +704,21 @@ export const removeQuickAssignmentsAction = action
     return { removed: teachings.length, ids: teachings.map((t) => t.id) };
   });
 
-async function requireClasseInBranch(classeId: string, branchId: string) {
+async function requireClasseInBranch(params: {
+  classeId: string;
+  branchId: string;
+  organizationId: string;
+  accessibleCycles: Cycle[];
+}) {
   const classe = await prisma.classe.findFirst({
-    where: { id: classeId, branchId },
+    where: {
+      id: params.classeId,
+      ...classeWhereForViewerCycles(
+        params.branchId,
+        params.organizationId,
+        params.accessibleCycles,
+      ),
+    },
     select: { id: true },
   });
 
@@ -687,15 +794,23 @@ function mapTeaching(teaching: TeachingWithRelations): ITeaching {
 export const createTeachingAction = action
   .input(teachingSchema)
   .handler(async ({ input }) => {
-    const { branchId, organizationId } = await requireBranchContext();
+    const { branchId, organizationId, userId, session } =
+      await requireBranchContext();
     const { teacherId, classeId, coursId, schoolYearId, titulaire, weeklyHours } =
       input;
+    const accessibleCycles = await resolveViewerAccessibleCycles({
+      branchId,
+      organizationId,
+      userId,
+      session,
+    });
 
     await requireConfiguredCoursesForClasse({
       branchId,
       organizationId,
       classeId,
       coursIds: [coursId],
+      accessibleCycles,
     });
     await assertTeacherMatchesClasseCycle({
       branchId,
@@ -760,18 +875,26 @@ export const deleteTeachingAction = archiveTeachingAction;
 export const updateTeachingAction = action
   .input(teachingSchema)
   .handler(async ({ input }) => {
-    const { branchId, organizationId } = await requireBranchContext();
+    const { branchId, organizationId, userId, session } =
+      await requireBranchContext();
     const { id, teacherId, classeId, coursId, schoolYearId, titulaire, weeklyHours } =
       input;
 
     if (!id) throw new Error("ID requis");
 
+    const accessibleCycles = await resolveViewerAccessibleCycles({
+      branchId,
+      organizationId,
+      userId,
+      session,
+    });
     await requireTeachingInBranch(id, branchId);
     await requireConfiguredCoursesForClasse({
       branchId,
       organizationId,
       classeId,
       coursIds: [coursId],
+      accessibleCycles,
     });
     await assertTeacherMatchesClasseCycle({
       branchId,
@@ -808,16 +931,34 @@ export const getTeachingByClassAction = action
   )
   .handler(async ({ input }): Promise<ITeaching[]> => {
     try {
-      const { branchId } = await requireBranchContext();
+      const { branchId, organizationId, userId, session } =
+        await requireBranchContext();
       const { classeId } = input;
+      const accessibleCycles = await resolveViewerAccessibleCycles({
+        branchId,
+        organizationId,
+        userId,
+        session,
+      });
 
-      await requireClasseInBranch(classeId, branchId);
+      await requireClasseInBranch({
+        classeId,
+        branchId,
+        organizationId,
+        accessibleCycles,
+      });
 
       const teachings = await prisma.teaching.findMany({
         include: teachingInclude,
         where: {
           classeId,
-          classe: { branchId },
+          classe: {
+            ...classeWhereForViewerCycles(
+              branchId,
+              organizationId,
+              accessibleCycles,
+            ),
+          },
           OR: [{ statusTeaching: true }, { statusTeaching: null }],
           cours: {
             branchId,

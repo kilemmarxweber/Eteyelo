@@ -186,13 +186,6 @@ export function getDashboardShortcuts(
           iconKey: "notes",
         },
         {
-          title: t("shortcuts.attendance"),
-          description: t("shortcuts.attendanceMyClasses"),
-          href: href("/attendance"),
-          color: "bg-emerald-500",
-          iconKey: "attendance",
-        },
-        {
           title: t("shortcuts.results"),
           description: t("shortcuts.classResults"),
           href: href("/results"),

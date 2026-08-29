@@ -37,6 +37,11 @@ import {
   schoolReportBranchSelect,
 } from "@/lib/reports/resolve-school-branding";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
+import {
+  classeCycleWhere,
+  primaryOrgRoleFromSession,
+  resolveAccessibleCycles,
+} from "@/lib/auth/cycle-scope";
 import { z } from "zod";
 import {
   familyExtraInfoSchema,
@@ -72,6 +77,7 @@ export async function getCurrentBranch() {
     userId,
     typebranch,
     educationSystem,
+    session,
     branchMemberId: branchMember?.id ?? null,
     branchMemberRole: branchMember?.role ?? null,
     roles,
@@ -543,19 +549,48 @@ export const getStudentsAction = action.handler(
       branchId,
       organizationId,
       branchMemberId,
+      branchMemberRole,
       canManageStudents,
       canReadStudents,
       isParent,
       isStudent,
       isTeacher,
       typebranch,
+      userId,
+      session,
     } = await getCurrentBranch();
 
     const canListAllStudents = canManageStudents || canReadStudents;
 
+    const orgMember = await prisma.member.findFirst({
+      where: { userId, organizationId },
+      select: { role: true },
+    });
+    const accessibleCycles = await resolveAccessibleCycles({
+      branchId,
+      branchMemberId,
+      orgRole: primaryOrgRoleFromSession(
+        session,
+        orgMember?.role ?? branchMemberRole,
+      ),
+    });
+    const classScope = classeCycleWhere(accessibleCycles);
+    const enrollmentInAccessibleCycle = {
+      some: {
+        branchId,
+        statusEnrollment: true,
+        schoolYear: { isCurrentYear: true, isArchived: false },
+        classe: classScope,
+      },
+    };
+
     if (requiresStudentImport(typebranch)) {
       const links = await prisma.studentBranchLink.findMany({
-        where: { targetBranchId: branchId, isActive: true },
+        where: {
+          targetBranchId: branchId,
+          isActive: true,
+          student: { classEnrollment: enrollmentInAccessibleCycle },
+        },
         include: {
           sourceBranch: { select: { id: true, name: true } },
           student: {
@@ -587,6 +622,7 @@ export const getStudentsAction = action.handler(
                   isActive: true,
                   member: { organizationId },
                 },
+                classEnrollment: enrollmentInAccessibleCycle,
               }
             : { id: "__no_student_access__" },
           include: {
@@ -595,7 +631,11 @@ export const getStudentsAction = action.handler(
           },
         }),
         prisma.studentBranchLink.findMany({
-          where: { targetBranchId: branchId, isActive: true },
+          where: {
+            targetBranchId: branchId,
+            isActive: true,
+            student: { classEnrollment: enrollmentInAccessibleCycle },
+          },
           include: {
             sourceBranch: { select: { id: true, name: true } },
             student: {
@@ -632,7 +672,10 @@ export const getStudentsAction = action.handler(
 
     const students = await prisma.student.findMany({
       where: canListAllStudents
-        ? baseWhere
+        ? {
+            ...baseWhere,
+            classEnrollment: enrollmentInAccessibleCycle,
+          }
         : isParent && branchMemberId
           ? {
               ...baseWhere,
@@ -651,7 +694,10 @@ export const getStudentsAction = action.handler(
                   classEnrollment: {
                     some: {
                       branchId,
+                      statusEnrollment: true,
+                      schoolYear: { isCurrentYear: true, isArchived: false },
                       classe: {
+                        ...classScope,
                         teaching: {
                           some: {
                             OR: [{ branchId }, { branchId: null }],

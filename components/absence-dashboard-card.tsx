@@ -84,7 +84,12 @@ function CaseList({
   );
 }
 
-export function AbsenceDashboardSection() {
+export function AbsenceDashboardSection({
+  showMine = true,
+}: {
+  /** Absences personnelles à justifier — pas pour direction / préfet / caissier. */
+  showMine?: boolean;
+}) {
   const t = useTranslations("dashboard");
   const [mine, setMine] = useState<AbsenceCaseDialogData[]>([]);
   const [pending, setPending] = useState<AbsenceCaseDialogData[]>([]);
@@ -98,43 +103,54 @@ export function AbsenceDashboardSection() {
     const [data] = await getAbsenceDashboardAction();
     if (!data) return;
     setCanReview(data.canReview);
-    setMine(data.mine);
+    setMine(showMine ? data.mine : []);
     setPending(data.pending);
   }
 
   useEffect(() => {
     void load();
-  }, []);
+  }, [showMine]);
 
-  const openMine = mine.filter(
-    (row) => row.status === "OPEN" || row.status === "REJECTED",
-  );
-  const returns = mine.filter((row) => row.status === "ACCEPTED");
-  const waiting = mine.filter((row) => row.status === "PENDING_REVIEW");
+  const openMine = showMine
+    ? mine.filter((row) => row.status === "OPEN" || row.status === "REJECTED")
+    : [];
+  const returns = showMine
+    ? mine.filter((row) => row.status === "ACCEPTED")
+    : [];
+  const waiting = showMine
+    ? mine.filter((row) => row.status === "PENDING_REVIEW")
+    : [];
 
-  if (openMine.length === 0 && waiting.length === 0 && returns.length === 0 && pending.length === 0) {
+  if (
+    openMine.length === 0 &&
+    waiting.length === 0 &&
+    returns.length === 0 &&
+    pending.length === 0
+  ) {
     return null;
   }
 
   return (
     <>
       <div className="grid gap-4 lg:grid-cols-2">
-        <CaseList
-          title={t("absence.mine")}
-          description={t("absence.mineDesc")}
-          rows={[...openMine, ...waiting]}
-          actionLabel={t("absence.viewJustify")}
-          onOpen={(row) =>
-            setDialog({
-              mode:
-                row.status === "OPEN" || row.status === "REJECTED"
-                  ? "justify"
-                  : "view",
-              caseRow: row,
-            })
-          }
-        />
-        {returns.length > 0 ? (
+        {showMine ? (
+          <CaseList
+            title={t("absence.mine")}
+            description={t("absence.mineDesc")}
+            rows={[...openMine, ...waiting]}
+            actionLabel={t("absence.viewJustify")}
+            onOpen={(row) =>
+              setDialog({
+                mode:
+                  row.status === "OPEN" || row.status === "REJECTED"
+                    ? "justify"
+                    : "view",
+                caseRow: row,
+              })
+            }
+          />
+        ) : null}
+        {showMine && returns.length > 0 ? (
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-sm">

@@ -12,13 +12,11 @@ import { deleteBranchAction, setBranchActiveAction } from "./branche.action";
 import { toast } from "sonner";
 import {
   Dialog,
-  DialogClose,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 
 const actionBtn =
@@ -44,31 +42,35 @@ export function BranchCard({
   children,
 }: BranchCardProps) {
   const router = useRouter();
-  const [pending, startTransition] = useTransition();
+  const [archivePending, startArchive] = useTransition();
+  const [deletePending, startDelete] = useTransition();
   const [archiveOpen, setArchiveOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const busy = archivePending || deletePending;
 
   const handleArchive = () => {
-    startTransition(async () => {
+    startArchive(async () => {
       const result = await setBranchActiveAction(branchId, !isActive);
       if (result.error) {
         toast.error(result.error);
         return;
       }
-      toast.success(isActive ? "Etablissement archive." : "Etablissement reactive.");
+      toast.success(
+        isActive ? "Établissement archivé." : "Établissement réactivé.",
+      );
       setArchiveOpen(false);
       router.refresh();
     });
   };
 
   const handleDelete = () => {
-    startTransition(async () => {
+    startDelete(async () => {
       const result = await deleteBranchAction(branchId);
       if (result.error) {
         toast.error(result.error);
         return;
       }
-      toast.success("Etablissement supprime.");
+      toast.success("Établissement supprimé.");
       setDeleteOpen(false);
       router.refresh();
     });
@@ -78,18 +80,13 @@ export function BranchCard({
     <div
       className={cn(
         "relative flex min-w-0 w-full flex-col overflow-hidden rounded-xl border border-border/80 bg-card transition hover:border-primary/30 hover:bg-muted/40 hover:shadow-sm",
-        pending && "pointer-events-none opacity-50",
+        busy && "pointer-events-none opacity-50",
       )}
     >
       <Link href={enterHref} className="group block min-w-0 flex-1">
         {children}
       </Link>
 
-      {/*
-        Une seule barre d’actions :
-        - mobile : flux sous le contenu (pas de chevauchement du titre)
-        - sm+ : position absolute en coin
-      */}
       <div
         className={cn(
           "z-20 flex items-center justify-end gap-1 border-t border-border/60 bg-muted/30 px-2.5 py-2",
@@ -115,111 +112,134 @@ export function BranchCard({
           </Link>
         </Button>
 
-        <Dialog open={archiveOpen} onOpenChange={setArchiveOpen}>
-          <DialogTrigger asChild>
+        <Button
+          type="button"
+          size="icon"
+          variant="ghost"
+          className={cn(
+            actionBtn,
+            isActive
+              ? "bg-amber-100 text-amber-700 hover:bg-amber-200 hover:text-amber-800 dark:bg-amber-950 dark:text-amber-300 dark:hover:bg-amber-900 dark:hover:text-amber-200"
+              : "bg-emerald-100 text-emerald-700 hover:bg-emerald-200 hover:text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 dark:hover:bg-emerald-900 dark:hover:text-emerald-200",
+          )}
+          title={isActive ? "Archiver" : "Réactiver"}
+          aria-label={isActive ? "Archiver" : "Réactiver"}
+          onClick={(event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            setArchiveOpen(true);
+          }}
+        >
+          {isActive ? (
+            <Archive className="size-3.5" />
+          ) : (
+            <RotateCcw className="size-3.5" />
+          )}
+        </Button>
+
+        {canDelete ? (
+          <Button
+            type="button"
+            size="icon"
+            variant="destructive"
+            className={actionBtn}
+            title="Supprimer"
+            aria-label="Supprimer"
+            onClick={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              setDeleteOpen(true);
+            }}
+          >
+            <Trash2 className="size-3.5" />
+          </Button>
+        ) : null}
+      </div>
+
+      <Dialog open={archiveOpen} onOpenChange={setArchiveOpen}>
+        <DialogContent size="sm">
+          <DialogHeader>
+            <DialogTitle>
+              {isActive
+                ? "Archiver l'établissement ?"
+                : "Réactiver l'établissement ?"}
+            </DialogTitle>
+            <DialogDescription>
+              {isActive
+                ? "L'établissement sera masqué des listes actives, mais toutes ses données et son historique seront conservés."
+                : "L'établissement redeviendra accessible dans les listes actives."}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
             <Button
-              size="icon"
-              variant="ghost"
-              className={cn(
-                actionBtn,
-                isActive
-                  ? "bg-amber-100 text-amber-700 hover:bg-amber-200 hover:text-amber-800 dark:bg-amber-950 dark:text-amber-300 dark:hover:bg-amber-900 dark:hover:text-amber-200"
-                  : "bg-emerald-100 text-emerald-700 hover:bg-emerald-200 hover:text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 dark:hover:bg-emerald-900 dark:hover:text-emerald-200",
-              )}
-              title={isActive ? "Archiver" : "Réactiver"}
-              aria-label={isActive ? "Archiver" : "Réactiver"}
+              type="button"
+              variant="outline"
+              onClick={() => setArchiveOpen(false)}
+              disabled={archivePending}
             >
-              {isActive ? (
-                <Archive className="size-3.5" />
-              ) : (
-                <RotateCcw className="size-3.5" />
-              )}
+              Annuler
             </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-[calc(100vw-2rem)] sm:max-w-lg">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleArchive}
+              disabled={archivePending}
+              className={cn(
+                isActive
+                  ? "border-amber-200 bg-amber-100 text-amber-800 hover:bg-amber-200 hover:text-amber-900"
+                  : "border-emerald-200 bg-emerald-100 text-emerald-800 hover:bg-emerald-200 hover:text-emerald-900",
+              )}
+            >
+              {archivePending ? (
+                <Loader2 className="mr-2 size-4 animate-spin" />
+              ) : null}
+              {isActive ? "Archiver" : "Réactiver"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {canDelete ? (
+        <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+          <DialogContent size="sm">
             <DialogHeader>
-              <DialogTitle>
-                {isActive
-                  ? "Archiver l'établissement ?"
-                  : "Réactiver l'établissement ?"}
-              </DialogTitle>
+              <DialogTitle>Supprimer l&apos;établissement ?</DialogTitle>
               <DialogDescription>
-                {isActive
-                  ? "L'établissement sera masqué des listes actives, mais toutes ses données et son historique seront conservés."
-                  : "L'établissement redeviendra accessible dans les listes actives."}
+                Cette action est irréversible. L&apos;établissement{" "}
+                <span className="font-semibold text-foreground">
+                  {branchName}
+                </span>
+                , ses classes, élèves, parents, enseignants, années scolaires,
+                frais, paiements et tout le reste créé pour cette branche
+                seront définitivement supprimés.
               </DialogDescription>
             </DialogHeader>
-            <DialogFooter className="flex-col gap-2 sm:flex-row sm:space-x-0">
-              <DialogClose asChild>
-                <Button variant="outline" className="w-full sm:w-auto">
-                  Annuler
-                </Button>
-              </DialogClose>
+            <DialogFooter>
               <Button
+                type="button"
                 variant="outline"
-                onClick={handleArchive}
-                disabled={pending}
-                className={cn(
-                  "w-full sm:w-auto",
-                  isActive
-                    ? "border-amber-200 bg-amber-100 text-amber-800 hover:bg-amber-200 hover:text-amber-900"
-                    : "border-emerald-200 bg-emerald-100 text-emerald-800 hover:bg-emerald-200 hover:text-emerald-900",
-                )}
+                onClick={() => setDeleteOpen(false)}
+                disabled={deletePending}
               >
-                {pending && <Loader2 className="mr-2 size-4 animate-spin" />}
-                {isActive ? "Archiver" : "Réactiver"}
+                Annuler
+              </Button>
+              <Button
+                type="button"
+                variant="destructive"
+                onClick={handleDelete}
+                disabled={deletePending}
+              >
+                {deletePending ? (
+                  <Loader2 className="mr-2 size-4 animate-spin" />
+                ) : (
+                  <Trash2 className="mr-2 size-4" />
+                )}
+                {deletePending ? "Suppression…" : "Supprimer"}
               </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
-
-        {canDelete ? (
-          <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-            <DialogTrigger asChild>
-              <Button
-                size="icon"
-                variant="destructive"
-                className={actionBtn}
-                title="Supprimer"
-                aria-label="Supprimer"
-              >
-                <Trash2 className="size-3.5" />
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-[calc(100vw-2rem)] sm:max-w-lg">
-              <DialogHeader>
-                <DialogTitle>Supprimer l&apos;établissement ?</DialogTitle>
-                <DialogDescription>
-                  Cette action est irréversible. L&apos;établissement{" "}
-                  <span className="font-semibold text-foreground">
-                    {branchName}
-                  </span>
-                  , ses classes, élèves, parents, enseignants, années scolaires,
-                  frais, paiements et tout le reste créé pour cette branche
-                  seront définitivement supprimés.
-                </DialogDescription>
-              </DialogHeader>
-              <DialogFooter className="flex-col gap-2 sm:flex-row sm:space-x-0">
-                <DialogClose asChild>
-                  <Button variant="outline" className="w-full sm:w-auto">
-                    Annuler
-                  </Button>
-                </DialogClose>
-                <Button
-                  variant="destructive"
-                  onClick={handleDelete}
-                  disabled={pending}
-                  className="w-full sm:w-auto"
-                >
-                  {pending && <Loader2 className="mr-2 size-4 animate-spin" />}
-                  <Trash2 className="mr-2 size-4" />
-                  Supprimer
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-        ) : null}
-      </div>
+      ) : null}
     </div>
   );
 }

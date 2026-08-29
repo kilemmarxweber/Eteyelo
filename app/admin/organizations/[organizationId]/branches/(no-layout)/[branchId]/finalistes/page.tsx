@@ -4,16 +4,20 @@ import { IconFileSpreadsheet } from "@tabler/icons-react";
 import { BranchPageShell } from "@/components/layout/branch-page-shell";
 import { Badge } from "@/components/ui/badge";
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
-import { isPrimaryBranch } from "@/lib/branch-capabilities";
+import { isBranchRouteAllowed } from "@/lib/branch-route-guard";
 
 import { FinalistesClient } from "./components/finalistes-client";
 
 export const dynamic = "force-dynamic";
 
 export default async function FinalistesPage() {
-  const { organizationId, branchId, typebranch } = await requireBranchContext();
+  const { organizationId, branchId, typebranch, cycles } =
+    await requireBranchContext();
 
-  if (!isPrimaryBranch(typebranch)) {
+  // Multi-cycle : autoriser si PRIMAIRE est parmi les cycles (pas seulement typebranch).
+  if (
+    !isBranchRouteAllowed("/finalistes", cycles.length ? cycles : typebranch)
+  ) {
     redirect(
       `/admin/organizations/${organizationId}/branches/${branchId}/results`,
     );

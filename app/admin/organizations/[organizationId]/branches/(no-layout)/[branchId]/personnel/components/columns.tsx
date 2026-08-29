@@ -26,6 +26,7 @@ import { ResetUsersDialog } from "../../student/components/reset-users-dialog";
 import { AddPersonnelRole } from "./add-personnelrole-dialog";
 import { DeletePersonalDialog } from "./delete-personal-dialog";
 import { DetailsPersonnelDialog } from "./details-personnel-dialog";
+import { MakePersonnelTeacherDialog } from "./make-personnel-teacher-dialog";
 import { openOverlayAfterMenuDismiss } from "@/lib/radix-portal-dismiss";
 
 export type PersonnelTableActions = {
@@ -205,6 +206,8 @@ export const createPersonnelColumns = (
         React.useState(false);
       const [showResetTaskDialog, setShowResetTaskDialog] =
         React.useState(false);
+      const [showMakeTeacherDialog, setShowMakeTeacherDialog] =
+        React.useState(false);
 
       const params = useParams<{ organizationId: string; branchId: string }>();
       const personnel = row.original;
@@ -222,6 +225,12 @@ export const createPersonnelColumns = (
               <AddPersonnelRole
                 open={showPersonnalRoleSheet}
                 onOpenChange={setShowPersonnalRoleSheet}
+                personnel={personnel}
+                onSuccess={handleSuccess}
+              />
+              <MakePersonnelTeacherDialog
+                open={showMakeTeacherDialog}
+                onOpenChange={setShowMakeTeacherDialog}
                 personnel={personnel}
                 onSuccess={handleSuccess}
               />
@@ -270,7 +279,7 @@ export const createPersonnelColumns = (
               </Button>
             </DropdownMenuTrigger>
 
-            <DropdownMenuContent align="end" className="w-44">
+            <DropdownMenuContent align="end" className="w-48">
               <DropdownMenuItem onSelect={() => setShowDetailsTaskDialog(true)}>
                 Détails
               </DropdownMenuItem>
@@ -300,6 +309,14 @@ export const createPersonnelColumns = (
                   >
                     Réinitialiser
                   </DropdownMenuItem>
+
+                  {!isArchived && !personnel.alsoTeacher ? (
+                    <DropdownMenuItem
+                      onSelect={() => setShowMakeTeacherDialog(true)}
+                    >
+                      Rendre enseignant
+                    </DropdownMenuItem>
+                  ) : null}
 
                   <DropdownMenuSeparator />
 

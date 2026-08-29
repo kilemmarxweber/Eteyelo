@@ -30,6 +30,7 @@ import { normalizeImageSrc } from "@/lib/utils";
 import { ResetUsersDialog } from "../../student/components/reset-users-dialog";
 import { DeleteTeacherDialog } from "./delete-teacher-dialog";
 import { DetailsTeacherDialog } from "./details-teacher-dialog";
+import { MakeTeacherPersonnelDialog } from "./make-teacher-personnel-dialog";
 import { openOverlayAfterMenuDismiss } from "@/lib/radix-portal-dismiss";
 
 export type TeacherTableActions = {
@@ -224,6 +225,8 @@ export const createTeacherColumns = (
         React.useState(false);
       const [showResetTaskDialog, setShowResetTaskDialog] =
         React.useState(false);
+      const [showMakePersonnelDialog, setShowMakePersonnelDialog] =
+        React.useState(false);
       const params = useParams<{ organizationId: string; branchId: string }>();
       const isArchived = row.original.statusUser === false;
 
@@ -241,6 +244,12 @@ export const createTeacherColumns = (
           />
           {canManageTeachers ? (
             <>
+              <MakeTeacherPersonnelDialog
+                open={showMakePersonnelDialog}
+                onOpenChange={setShowMakePersonnelDialog}
+                teacher={row.original}
+                onSuccess={handleSuccess}
+              />
               <DeleteTeacherDialog
                 open={showDeleteTaskDialog}
                 onOpenChange={setShowDeleteTaskDialog}
@@ -279,7 +288,7 @@ export const createTeacherColumns = (
                 <IconDots className="size-4" aria-hidden="true" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-40">
+            <DropdownMenuContent align="end" className="w-48">
               <DropdownMenuItem onSelect={() => setShowDetailsTaskDialog(true)}>
                 Details
               </DropdownMenuItem>
@@ -301,6 +310,13 @@ export const createTeacherColumns = (
                   >
                     Reinitialiser
                   </DropdownMenuItem>
+                  {!isArchived && !row.original.alsoPersonnel ? (
+                    <DropdownMenuItem
+                      onSelect={() => setShowMakePersonnelDialog(true)}
+                    >
+                      Rendre personnel
+                    </DropdownMenuItem>
+                  ) : null}
                   <DropdownMenuSeparator />
                   {!isArchived ? (
                     <DropdownMenuItem

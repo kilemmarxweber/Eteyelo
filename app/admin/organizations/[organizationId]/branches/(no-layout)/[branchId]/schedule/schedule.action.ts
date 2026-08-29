@@ -43,6 +43,11 @@ import {
   normalizeCycle,
   type Cycle,
 } from "@/lib/cycle";
+import {
+  classeCycleWhere,
+  primaryOrgRoleFromSession,
+  resolveAccessibleCycles,
+} from "@/lib/auth/cycle-scope";
 
 type ScheduleContext = {
   branchId: string;
@@ -50,6 +55,8 @@ type ScheduleContext = {
   userId: string;
   branchMemberId: string | null;
   teacherId: string | null;
+  /** Cycles visibles pour le membre connecté (comme pondération). */
+  accessibleCycles: Cycle[];
   /** Admin : toutes les classes. Enseignant : uniquement ses affectations. */
   canManageSchedules: boolean;
   canCreateSchedules: boolean;
@@ -118,6 +125,10 @@ async function getScheduleContext(): Promise<ScheduleContext> {
     },
     select: { id: true, role: true },
   });
+  const orgMember = await prisma.member.findFirst({
+    where: { userId, organizationId },
+    select: { role: true },
+  });
   const canManageSchedules = canManageOrganization(session, branchMember?.role);
 
   const teacher = !canManageSchedules
@@ -132,12 +143,19 @@ async function getScheduleContext(): Promise<ScheduleContext> {
       })
     : null;
 
+  const accessibleCycles = await resolveAccessibleCycles({
+    branchId,
+    branchMemberId: branchMember?.id ?? null,
+    orgRole: primaryOrgRoleFromSession(session, orgMember?.role),
+  });
+
   return {
     branchId,
     organizationId,
     userId,
     branchMemberId: branchMember?.id ?? null,
     teacherId: teacher?.id ?? null,
+    accessibleCycles,
     canManageSchedules,
     canCreateSchedules: canManageSchedules,
     canUpdateSchedules: canManageSchedules,
@@ -326,6 +344,15 @@ async function assertScheduleSlotAvailable(params: {
   });
 }
 
+function cycleScopedClasseWhere(ctx: ScheduleContext) {
+  if (ctx.accessibleCycles.length === 0) {
+    return { id: "__none__" as const };
+  }
+  return {
+    AND: [classeCycleWhere(ctx.accessibleCycles)],
+  };
+}
+
 function teacherAssignmentFilter(ctx: ScheduleContext) {
   if (ctx.canManageSchedules || !ctx.teacherId) return {};
   return {
@@ -349,6 +376,7 @@ async function assertClasseInBranch(ctx: ScheduleContext, classeId: string) {
       id: classeId,
       branchId: ctx.branchId,
       branch: { organizationId: ctx.organizationId },
+      ...cycleScopedClasseWhere(ctx),
       ...teacherAssignmentFilter(ctx),
     },
     select: { id: true },
@@ -784,6 +812,7 @@ export const getScheduleOptionsAction = action.handler(
         branchId: ctx.branchId,
         branch: { organizationId: ctx.organizationId },
         OR: [{ statusClasse: true }, { statusClasse: null }],
+        ...cycleScopedClasseWhere(ctx),
         ...teacherAssignmentFilter(ctx),
       },
       include: {
@@ -919,6 +948,8 @@ export const getScheduleClasseByIdAction = action
         id: input.id,
         branchId: ctx.branchId,
         branch: { organizationId: ctx.organizationId },
+        ...cycleScopedClasseWhere(ctx),
+        ...teacherAssignmentFilter(ctx),
       },
       include: {
         option: true,

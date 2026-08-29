@@ -12,6 +12,8 @@ export interface IPersonnel extends Omit<
   userId: string; // 👈 ajouté
   /** Cycles ACL du membre dans la branche (création / édition). */
   cycles?: string[];
+  /** Profil enseignant actif en plus du profil personnel. */
+  alsoTeacher?: boolean;
 }
 
 export const userSchema = z.object({

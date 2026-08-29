@@ -166,6 +166,13 @@ async function syncMemberBranches(params: {
     };
   }
 
+  const previousRolesByBranchMemberId: Record<string, BranchRole> = {};
+  for (const row of existing) {
+    if (selected.has(row.branchId)) {
+      previousRolesByBranchMemberId[row.id] = row.role;
+    }
+  }
+
   await prisma.$transaction(async (tx) => {
     const toDeleteIds = existing
       .filter((row) => !selected.has(row.branchId))
@@ -177,23 +184,36 @@ async function syncMemberBranches(params: {
     for (const branchId of branchIds) {
       const found = existing.find((row) => row.branchId === branchId);
       if (found) {
-        if (!branchMemberHasLinkedProfile(found._count)) {
-          await tx.branchMember.update({
-            where: { id: found.id },
-            data: { role: branchRole },
-          });
-        }
+        // Toujours aligner le BranchRole + réactiver le lien branche
+        // (Teacher.isActive / Personnel.isActive gèrent le profil métier).
+        await tx.branchMember.update({
+          where: { id: found.id },
+          data: {
+            role: branchRole,
+            isActive: true,
+            deactivatedAt: null,
+          },
+        });
         continue;
       }
 
       await tx.branchMember.create({
-        data: { memberId, branchId, role: branchRole },
+        data: {
+          memberId,
+          branchId,
+          role: branchRole,
+          isActive: true,
+        },
       });
     }
   });
 
   try {
-    await ensureBranchMemberRoleProfiles({ memberId, organizationId });
+    await ensureBranchMemberRoleProfiles({
+      memberId,
+      organizationId,
+      previousRolesByBranchMemberId,
+    });
   } catch (e) {
     return { ok: false, message: errMessage(e) };
   }

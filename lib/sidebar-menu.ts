@@ -104,8 +104,8 @@ const LIBRARY_ROLES = [
 /** Setup cours / pondérations — school admin uniquement (enseignant = horaire dashboard). */
 const COURSE_ROLES = [...SCHOOL_ADMIN_ROLES];
 
-/** Présences : school admin + enseignant (ses classes — unit-06/10). */
-const PRESENCE_ROLES = [...SCHOOL_ADMIN_ROLES, ...TEACHER_ROLES];
+/** Présences (classes) : school admin uniquement — pas le menu enseignant. */
+const PRESENCE_ROLES = [...SCHOOL_ADMIN_ROLES];
 
 /** Pointage / rapport perso : staff école + enseignant + caissier (hors élève/parent/propriétaire). */
 const MY_PRESENCE_ROLES = [
@@ -178,12 +178,6 @@ const staticSidebarMenu: StaticMenuItem[] = [
     title: "candidatures",
     href: "/admin/candidatures",
     icon: "candidatures",
-    roles: SCHOOL_ADMIN_ROLES,
-  },
-  {
-    title: "team",
-    href: "/admin/equipe",
-    icon: "users",
     roles: SCHOOL_ADMIN_ROLES,
   },
   {

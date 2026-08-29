@@ -4,7 +4,7 @@ import { z } from "zod";
 
 import { requireBranchContext } from "@/lib/auth/require-branch-context";
 import { canManageOrganization } from "@/lib/auth/session-roles";
-import { isPrimaryBranch } from "@/lib/branch-capabilities";
+import { isBranchRouteAllowed } from "@/lib/branch-route-guard";
 import {
   emptyExamExportMeta,
   examExportMetaSchema,
@@ -15,6 +15,12 @@ import { branchDocumentName } from "@/lib/branch-document-name";
 import { prisma } from "@/lib/prisma";
 import { action } from "@/lib/zsa";
 import type { Prisma } from "@/prisma/generated/prisma/client";
+
+function assertFinalistesBranchAccess(cycles: unknown[], typebranch: unknown) {
+  if (!isBranchRouteAllowed("/finalistes", cycles.length ? cycles : typebranch)) {
+    throw new Error("Réservé aux établissements avec cycle primaire.");
+  }
+}
 
 function formatFullName(
   name?: string | null,
@@ -48,12 +54,10 @@ function sessionFromYear(nameYear: string, endYear?: Date | null) {
 }
 
 export const getFinalistesWorkspaceAction = action.handler(async () => {
-  const { branchId, organizationId, session, typebranch } =
+  const { branchId, organizationId, session, typebranch, cycles } =
     await requireBranchContext();
 
-  if (!isPrimaryBranch(typebranch)) {
-    throw new Error("Réservé aux branches primaire.");
-  }
+  assertFinalistesBranchAccess(cycles, typebranch);
 
   const canManage = canManageOrganization(session);
 
@@ -123,12 +127,10 @@ const listFinalistesSchema = z.object({
 export const listFinalistesAction = action
   .input(listFinalistesSchema)
   .handler(async ({ input }) => {
-    const { branchId, organizationId, typebranch } =
+    const { branchId, organizationId, typebranch, cycles } =
       await requireBranchContext();
 
-    if (!isPrimaryBranch(typebranch)) {
-      throw new Error("Réservé aux branches primaire.");
-    }
+    assertFinalistesBranchAccess(cycles, typebranch);
 
     const schoolYear = await prisma.schoolYear.findFirst({
       where: { id: input.schoolYearId, branchId },
@@ -305,12 +307,10 @@ export const listFinalistesAction = action
 export const saveExamExportMetaAction = action
   .input(examExportMetaSchema)
   .handler(async ({ input }) => {
-    const { branchId, organizationId, session, typebranch } =
+    const { branchId, organizationId, session, typebranch, cycles } =
       await requireBranchContext();
 
-    if (!isPrimaryBranch(typebranch)) {
-      throw new Error("Réservé aux branches primaire.");
-    }
+    assertFinalistesBranchAccess(cycles, typebranch);
     if (!canManageOrganization(session)) {
       throw new Error("Permission insuffisante.");
     }

@@ -27,6 +27,8 @@ export type AggregateTeacher = {
 export type TeacherMinAggregateOutputType = {
   id: string | null
   branchMemberId: string | null
+  isActive: boolean | null
+  deactivatedAt: Date | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -34,6 +36,8 @@ export type TeacherMinAggregateOutputType = {
 export type TeacherMaxAggregateOutputType = {
   id: string | null
   branchMemberId: string | null
+  isActive: boolean | null
+  deactivatedAt: Date | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -41,6 +45,8 @@ export type TeacherMaxAggregateOutputType = {
 export type TeacherCountAggregateOutputType = {
   id: number
   branchMemberId: number
+  isActive: number
+  deactivatedAt: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -50,6 +56,8 @@ export type TeacherCountAggregateOutputType = {
 export type TeacherMinAggregateInputType = {
   id?: true
   branchMemberId?: true
+  isActive?: true
+  deactivatedAt?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -57,6 +65,8 @@ export type TeacherMinAggregateInputType = {
 export type TeacherMaxAggregateInputType = {
   id?: true
   branchMemberId?: true
+  isActive?: true
+  deactivatedAt?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -64,6 +74,8 @@ export type TeacherMaxAggregateInputType = {
 export type TeacherCountAggregateInputType = {
   id?: true
   branchMemberId?: true
+  isActive?: true
+  deactivatedAt?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -144,6 +156,8 @@ export type TeacherGroupByArgs<ExtArgs extends runtime.Types.Extensions.Internal
 export type TeacherGroupByOutputType = {
   id: string
   branchMemberId: string | null
+  isActive: boolean
+  deactivatedAt: Date | null
   createdAt: Date
   updatedAt: Date
   _count: TeacherCountAggregateOutputType | null
@@ -172,6 +186,8 @@ export type TeacherWhereInput = {
   NOT?: Prisma.TeacherWhereInput | Prisma.TeacherWhereInput[]
   id?: Prisma.StringFilter<"Teacher"> | string
   branchMemberId?: Prisma.StringNullableFilter<"Teacher"> | string | null
+  isActive?: Prisma.BoolFilter<"Teacher"> | boolean
+  deactivatedAt?: Prisma.DateTimeNullableFilter<"Teacher"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Teacher"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Teacher"> | Date | string
   teaching?: Prisma.TeachingListRelationFilter
@@ -185,6 +201,8 @@ export type TeacherWhereInput = {
 export type TeacherOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   branchMemberId?: Prisma.SortOrderInput | Prisma.SortOrder
+  isActive?: Prisma.SortOrder
+  deactivatedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   teaching?: Prisma.TeachingOrderByRelationAggregateInput
@@ -201,6 +219,8 @@ export type TeacherWhereUniqueInput = Prisma.AtLeast<{
   AND?: Prisma.TeacherWhereInput | Prisma.TeacherWhereInput[]
   OR?: Prisma.TeacherWhereInput[]
   NOT?: Prisma.TeacherWhereInput | Prisma.TeacherWhereInput[]
+  isActive?: Prisma.BoolFilter<"Teacher"> | boolean
+  deactivatedAt?: Prisma.DateTimeNullableFilter<"Teacher"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Teacher"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Teacher"> | Date | string
   teaching?: Prisma.TeachingListRelationFilter
@@ -214,6 +234,8 @@ export type TeacherWhereUniqueInput = Prisma.AtLeast<{
 export type TeacherOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   branchMemberId?: Prisma.SortOrderInput | Prisma.SortOrder
+  isActive?: Prisma.SortOrder
+  deactivatedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.TeacherCountOrderByAggregateInput
@@ -227,12 +249,16 @@ export type TeacherScalarWhereWithAggregatesInput = {
   NOT?: Prisma.TeacherScalarWhereWithAggregatesInput | Prisma.TeacherScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"Teacher"> | string
   branchMemberId?: Prisma.StringNullableWithAggregatesFilter<"Teacher"> | string | null
+  isActive?: Prisma.BoolWithAggregatesFilter<"Teacher"> | boolean
+  deactivatedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Teacher"> | Date | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Teacher"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Teacher"> | Date | string
 }
 
 export type TeacherCreateInput = {
   id?: string
+  isActive?: boolean
+  deactivatedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   teaching?: Prisma.TeachingCreateNestedManyWithoutTeacherInput
@@ -246,6 +272,8 @@ export type TeacherCreateInput = {
 export type TeacherUncheckedCreateInput = {
   id?: string
   branchMemberId?: string | null
+  isActive?: boolean
+  deactivatedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   teaching?: Prisma.TeachingUncheckedCreateNestedManyWithoutTeacherInput
@@ -257,6 +285,8 @@ export type TeacherUncheckedCreateInput = {
 
 export type TeacherUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   teaching?: Prisma.TeachingUpdateManyWithoutTeacherNestedInput
@@ -270,6 +300,8 @@ export type TeacherUpdateInput = {
 export type TeacherUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   branchMemberId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   teaching?: Prisma.TeachingUncheckedUpdateManyWithoutTeacherNestedInput
@@ -282,12 +314,16 @@ export type TeacherUncheckedUpdateInput = {
 export type TeacherCreateManyInput = {
   id?: string
   branchMemberId?: string | null
+  isActive?: boolean
+  deactivatedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
 
 export type TeacherUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -295,6 +331,8 @@ export type TeacherUpdateManyMutationInput = {
 export type TeacherUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   branchMemberId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -312,6 +350,8 @@ export type TeacherScalarRelationFilter = {
 export type TeacherCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   branchMemberId?: Prisma.SortOrder
+  isActive?: Prisma.SortOrder
+  deactivatedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -319,6 +359,8 @@ export type TeacherCountOrderByAggregateInput = {
 export type TeacherMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   branchMemberId?: Prisma.SortOrder
+  isActive?: Prisma.SortOrder
+  deactivatedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -326,6 +368,8 @@ export type TeacherMaxOrderByAggregateInput = {
 export type TeacherMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   branchMemberId?: Prisma.SortOrder
+  isActive?: Prisma.SortOrder
+  deactivatedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -458,6 +502,8 @@ export type TeacherUpdateOneRequiredWithoutOnlineAssignmentsNestedInput = {
 
 export type TeacherCreateWithoutAttendanceSessionInput = {
   id?: string
+  isActive?: boolean
+  deactivatedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   teaching?: Prisma.TeachingCreateNestedManyWithoutTeacherInput
@@ -470,6 +516,8 @@ export type TeacherCreateWithoutAttendanceSessionInput = {
 export type TeacherUncheckedCreateWithoutAttendanceSessionInput = {
   id?: string
   branchMemberId?: string | null
+  isActive?: boolean
+  deactivatedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   teaching?: Prisma.TeachingUncheckedCreateNestedManyWithoutTeacherInput
@@ -496,6 +544,8 @@ export type TeacherUpdateToOneWithWhereWithoutAttendanceSessionInput = {
 
 export type TeacherUpdateWithoutAttendanceSessionInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   teaching?: Prisma.TeachingUpdateManyWithoutTeacherNestedInput
@@ -508,6 +558,8 @@ export type TeacherUpdateWithoutAttendanceSessionInput = {
 export type TeacherUncheckedUpdateWithoutAttendanceSessionInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   branchMemberId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   teaching?: Prisma.TeachingUncheckedUpdateManyWithoutTeacherNestedInput
@@ -518,6 +570,8 @@ export type TeacherUncheckedUpdateWithoutAttendanceSessionInput = {
 
 export type TeacherCreateWithoutTeacherAttendanceInput = {
   id?: string
+  isActive?: boolean
+  deactivatedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   teaching?: Prisma.TeachingCreateNestedManyWithoutTeacherInput
@@ -530,6 +584,8 @@ export type TeacherCreateWithoutTeacherAttendanceInput = {
 export type TeacherUncheckedCreateWithoutTeacherAttendanceInput = {
   id?: string
   branchMemberId?: string | null
+  isActive?: boolean
+  deactivatedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   teaching?: Prisma.TeachingUncheckedCreateNestedManyWithoutTeacherInput
@@ -556,6 +612,8 @@ export type TeacherUpdateToOneWithWhereWithoutTeacherAttendanceInput = {
 
 export type TeacherUpdateWithoutTeacherAttendanceInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   teaching?: Prisma.TeachingUpdateManyWithoutTeacherNestedInput
@@ -568,6 +626,8 @@ export type TeacherUpdateWithoutTeacherAttendanceInput = {
 export type TeacherUncheckedUpdateWithoutTeacherAttendanceInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   branchMemberId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   teaching?: Prisma.TeachingUncheckedUpdateManyWithoutTeacherNestedInput
@@ -578,6 +638,8 @@ export type TeacherUncheckedUpdateWithoutTeacherAttendanceInput = {
 
 export type TeacherCreateWithoutTeachingInput = {
   id?: string
+  isActive?: boolean
+  deactivatedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   branchMember?: Prisma.BranchMemberCreateNestedOneWithoutTeacherInput
@@ -590,6 +652,8 @@ export type TeacherCreateWithoutTeachingInput = {
 export type TeacherUncheckedCreateWithoutTeachingInput = {
   id?: string
   branchMemberId?: string | null
+  isActive?: boolean
+  deactivatedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   fiche?: Prisma.ficheUncheckedCreateNestedManyWithoutTeacherInput
@@ -616,6 +680,8 @@ export type TeacherUpdateToOneWithWhereWithoutTeachingInput = {
 
 export type TeacherUpdateWithoutTeachingInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branchMember?: Prisma.BranchMemberUpdateOneWithoutTeacherNestedInput
@@ -628,6 +694,8 @@ export type TeacherUpdateWithoutTeachingInput = {
 export type TeacherUncheckedUpdateWithoutTeachingInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   branchMemberId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   fiche?: Prisma.ficheUncheckedUpdateManyWithoutTeacherNestedInput
@@ -638,6 +706,8 @@ export type TeacherUncheckedUpdateWithoutTeachingInput = {
 
 export type TeacherCreateWithoutFicheInput = {
   id?: string
+  isActive?: boolean
+  deactivatedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   teaching?: Prisma.TeachingCreateNestedManyWithoutTeacherInput
@@ -650,6 +720,8 @@ export type TeacherCreateWithoutFicheInput = {
 export type TeacherUncheckedCreateWithoutFicheInput = {
   id?: string
   branchMemberId?: string | null
+  isActive?: boolean
+  deactivatedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   teaching?: Prisma.TeachingUncheckedCreateNestedManyWithoutTeacherInput
@@ -676,6 +748,8 @@ export type TeacherUpdateToOneWithWhereWithoutFicheInput = {
 
 export type TeacherUpdateWithoutFicheInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   teaching?: Prisma.TeachingUpdateManyWithoutTeacherNestedInput
@@ -688,6 +762,8 @@ export type TeacherUpdateWithoutFicheInput = {
 export type TeacherUncheckedUpdateWithoutFicheInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   branchMemberId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   teaching?: Prisma.TeachingUncheckedUpdateManyWithoutTeacherNestedInput
@@ -698,6 +774,8 @@ export type TeacherUncheckedUpdateWithoutFicheInput = {
 
 export type TeacherCreateWithoutBranchMemberInput = {
   id?: string
+  isActive?: boolean
+  deactivatedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   teaching?: Prisma.TeachingCreateNestedManyWithoutTeacherInput
@@ -709,6 +787,8 @@ export type TeacherCreateWithoutBranchMemberInput = {
 
 export type TeacherUncheckedCreateWithoutBranchMemberInput = {
   id?: string
+  isActive?: boolean
+  deactivatedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   teaching?: Prisma.TeachingUncheckedCreateNestedManyWithoutTeacherInput
@@ -750,12 +830,16 @@ export type TeacherScalarWhereInput = {
   NOT?: Prisma.TeacherScalarWhereInput | Prisma.TeacherScalarWhereInput[]
   id?: Prisma.StringFilter<"Teacher"> | string
   branchMemberId?: Prisma.StringNullableFilter<"Teacher"> | string | null
+  isActive?: Prisma.BoolFilter<"Teacher"> | boolean
+  deactivatedAt?: Prisma.DateTimeNullableFilter<"Teacher"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Teacher"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Teacher"> | Date | string
 }
 
 export type TeacherCreateWithoutOnlineAssignmentsInput = {
   id?: string
+  isActive?: boolean
+  deactivatedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   teaching?: Prisma.TeachingCreateNestedManyWithoutTeacherInput
@@ -768,6 +852,8 @@ export type TeacherCreateWithoutOnlineAssignmentsInput = {
 export type TeacherUncheckedCreateWithoutOnlineAssignmentsInput = {
   id?: string
   branchMemberId?: string | null
+  isActive?: boolean
+  deactivatedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   teaching?: Prisma.TeachingUncheckedCreateNestedManyWithoutTeacherInput
@@ -794,6 +880,8 @@ export type TeacherUpdateToOneWithWhereWithoutOnlineAssignmentsInput = {
 
 export type TeacherUpdateWithoutOnlineAssignmentsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   teaching?: Prisma.TeachingUpdateManyWithoutTeacherNestedInput
@@ -806,6 +894,8 @@ export type TeacherUpdateWithoutOnlineAssignmentsInput = {
 export type TeacherUncheckedUpdateWithoutOnlineAssignmentsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   branchMemberId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   teaching?: Prisma.TeachingUncheckedUpdateManyWithoutTeacherNestedInput
@@ -816,12 +906,16 @@ export type TeacherUncheckedUpdateWithoutOnlineAssignmentsInput = {
 
 export type TeacherCreateManyBranchMemberInput = {
   id?: string
+  isActive?: boolean
+  deactivatedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
 
 export type TeacherUpdateWithoutBranchMemberInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   teaching?: Prisma.TeachingUpdateManyWithoutTeacherNestedInput
@@ -833,6 +927,8 @@ export type TeacherUpdateWithoutBranchMemberInput = {
 
 export type TeacherUncheckedUpdateWithoutBranchMemberInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   teaching?: Prisma.TeachingUncheckedUpdateManyWithoutTeacherNestedInput
@@ -844,6 +940,8 @@ export type TeacherUncheckedUpdateWithoutBranchMemberInput = {
 
 export type TeacherUncheckedUpdateManyWithoutBranchMemberInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -918,6 +1016,8 @@ export type TeacherCountOutputTypeCountOnlineAssignmentsArgs<ExtArgs extends run
 export type TeacherSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   branchMemberId?: boolean
+  isActive?: boolean
+  deactivatedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   teaching?: boolean | Prisma.Teacher$teachingArgs<ExtArgs>
@@ -932,6 +1032,8 @@ export type TeacherSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
 export type TeacherSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   branchMemberId?: boolean
+  isActive?: boolean
+  deactivatedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   branchMember?: boolean | Prisma.Teacher$branchMemberArgs<ExtArgs>
@@ -940,6 +1042,8 @@ export type TeacherSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
 export type TeacherSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   branchMemberId?: boolean
+  isActive?: boolean
+  deactivatedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   branchMember?: boolean | Prisma.Teacher$branchMemberArgs<ExtArgs>
@@ -948,11 +1052,13 @@ export type TeacherSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
 export type TeacherSelectScalar = {
   id?: boolean
   branchMemberId?: boolean
+  isActive?: boolean
+  deactivatedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type TeacherOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "branchMemberId" | "createdAt" | "updatedAt", ExtArgs["result"]["teacher"]>
+export type TeacherOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "branchMemberId" | "isActive" | "deactivatedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["teacher"]>
 export type TeacherInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   teaching?: boolean | Prisma.Teacher$teachingArgs<ExtArgs>
   branchMember?: boolean | Prisma.Teacher$branchMemberArgs<ExtArgs>
@@ -982,6 +1088,11 @@ export type $TeacherPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     branchMemberId: string | null
+    /**
+     * Profil enseignant actif dans la branche (indépendant du profil personnel).
+     */
+    isActive: boolean
+    deactivatedAt: Date | null
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["teacher"]>
@@ -1415,6 +1526,8 @@ export interface Prisma__TeacherClient<T, Null = never, ExtArgs extends runtime.
 export interface TeacherFieldRefs {
   readonly id: Prisma.FieldRef<"Teacher", 'String'>
   readonly branchMemberId: Prisma.FieldRef<"Teacher", 'String'>
+  readonly isActive: Prisma.FieldRef<"Teacher", 'Boolean'>
+  readonly deactivatedAt: Prisma.FieldRef<"Teacher", 'DateTime'>
   readonly createdAt: Prisma.FieldRef<"Teacher", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Teacher", 'DateTime'>
 }

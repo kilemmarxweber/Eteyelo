@@ -9,7 +9,10 @@ import {
 import {
   assignBranchMemberCycles,
   buildBranchMemberDirectoryWhere,
+  classeCycleWhere,
   isCycleGlobalRole,
+  primaryOrgRoleFromSession,
+  resolveAccessibleCycles,
   sessionCanViewAllDirectoryUsers,
 } from "@/lib/auth/cycle-scope";
 import {
@@ -35,13 +38,16 @@ import {
   ITeacher,
   teacherSchema,
 } from "@/src/interfaces/Teacher";
-import { deactivatePersonInBranch, ensureActiveBranchMember } from "@/lib/branch-member-status";
+import { ensureActiveBranchMember } from "@/lib/branch-member-status";
+import {
+  deactivateTeacherProfile,
+  ensurePersonnelOnTeacherBranchMember,
+} from "@/lib/dual-staff-profile";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import {
   getBranchCycles,
   isSchoolCycle,
-  normalizeCycle,
   resolveCycle,
   type SchoolCycle,
 } from "@/lib/cycle";
@@ -213,22 +219,19 @@ async function getBranchTypeContext(branchId: string, organizationId: string) {
   };
 }
 
-function classeWhereForCycle(
+function classeWhereForCycles(
   branchId: string,
   organizationId: string,
-  cycle: SchoolCycle | undefined,
-  typebranch: unknown,
+  cycles: SchoolCycle[],
 ) {
-  const base = { branchId, branch: { organizationId } };
-  if (!cycle) return base;
-  const fallback = normalizeCycle(typebranch);
-  if (cycle === fallback) {
-    return {
-      ...base,
-      OR: [{ cycle }, { cycle: null }],
-    };
+  if (cycles.length === 0) {
+    return { branchId, branch: { organizationId }, id: "__none__" };
   }
-  return { ...base, cycle };
+  return {
+    branchId,
+    branch: { organizationId },
+    ...classeCycleWhere(cycles),
+  };
 }
 
 function uniqueNames(values: string[]) {
@@ -403,14 +406,16 @@ export const archiveTeacherAction = action
     }
 
     try {
-      await deactivatePersonInBranch({
+      const result = await deactivateTeacherProfile({
+        teacherId: teacher.id,
         branchMemberId: teacher.branchMemberId,
       });
 
       return {
         success: true,
-        message:
-          "Enseignant désactivé dans cette branche. L'historique est conservé.",
+        message: result.keptBranchActive
+          ? "Enseignant désactivé. Le profil personnel reste actif dans cette branche."
+          : "Enseignant désactivé dans cette branche. L'historique est conservé.",
       };
     } catch (error) {
       return {
@@ -451,16 +456,21 @@ export const deleteTeacherPermanentlyAction = action
         };
       }
 
-      await deactivatePersonInBranch({
+      const result = await deactivateTeacherProfile({
+        teacherId: teacher.id,
         branchMemberId: teacher.branchMemberId,
       });
       revalidatePath(
         `/admin/organizations/${organizationId}/branches/${branchId}/teacher`,
       );
+      revalidatePath(
+        `/admin/organizations/${organizationId}/branches/${branchId}/personnel`,
+      );
       return {
         ok: true as const,
-        message:
-          "Enseignant désactivé dans cette branche. Il reste membre de l'organisation ; l'historique est conservé.",
+        message: result.keptBranchActive
+          ? "Enseignant désactivé. Le profil personnel reste actif ; l'historique est conservé."
+          : "Enseignant désactivé dans cette branche. Il reste membre de l'organisation ; l'historique est conservé.",
       };
     } catch (error: unknown) {
       return {
@@ -473,6 +483,77 @@ export const deleteTeacherPermanentlyAction = action
 
 /** @deprecated Utiliser archiveTeacherAction */
 export const deleteTeacherAction = archiveTeacherAction;
+
+/** Ajoute (ou réactive) le profil Personnel sur un enseignant existant. */
+export const makeTeacherAlsoPersonnelAction = action
+  .input(
+    z.object({
+      teacherId: z.string().min(1),
+      orgRole: z.string().min(1),
+    }),
+  )
+  .handler(async ({ input }) => {
+    const { branchId, organizationId, canManageTeachers } =
+      await getCurrentBranch();
+
+    if (!canManageTeachers) {
+      return { ok: false as const, message: "Action non autorisée" };
+    }
+
+    const teacher = await prisma.teacher.findFirst({
+      where: {
+        id: input.teacherId,
+        isActive: true,
+        branchMember: { branchId, isActive: true },
+      },
+      select: {
+        id: true,
+        branchMemberId: true,
+        branchMember: {
+          select: {
+            memberId: true,
+            personel: { select: { id: true, isActive: true } },
+          },
+        },
+      },
+    });
+
+    if (!teacher?.branchMemberId || !teacher.branchMember?.memberId) {
+      return { ok: false as const, message: "Enseignant introuvable" };
+    }
+
+    const existingPersonnel = teacher.branchMember.personel?.[0];
+    if (existingPersonnel?.isActive) {
+      return {
+        ok: false as const,
+        message: "Cet enseignant est déjà aussi personnel",
+      };
+    }
+
+    try {
+      await ensurePersonnelOnTeacherBranchMember({
+        branchMemberId: teacher.branchMemberId,
+        memberId: teacher.branchMember.memberId,
+        orgRole: input.orgRole,
+      });
+      revalidatePath(
+        `/admin/organizations/${organizationId}/branches/${branchId}/teacher`,
+      );
+      revalidatePath(
+        `/admin/organizations/${organizationId}/branches/${branchId}/personnel`,
+      );
+      return {
+        ok: true as const,
+        message:
+          "Profil personnel ajouté. La personne est désormais enseignant et personnel.",
+      };
+    } catch (error) {
+      return {
+        ok: false as const,
+        message: errMessage(error) || "Impossible d'ajouter le profil personnel",
+      };
+    }
+  });
 
 export const getTeachersAction = action.handler(
   async (): Promise<ITeacher[]> => {
@@ -509,6 +590,7 @@ export const getTeachersAction = action.handler(
 
     const teachers = await prisma.teacher.findMany({
       where: {
+        isActive: true,
         branchMember: {
           AND: [
             {
@@ -532,6 +614,7 @@ export const getTeachersAction = action.handler(
               },
             },
             memberCycles: { select: { cycle: true } },
+            personel: { select: { id: true, isActive: true } },
           },
         },
         teaching: {
@@ -566,6 +649,9 @@ export const getTeachersAction = action.handler(
       const cycleAssignmentCount: Record<string, number> = {};
       const classesByCycle: Record<string, string[]> = {};
       const coursesByCycle: Record<string, string[]> = {};
+      const alsoPersonnel = (teacher.branchMember?.personel ?? []).some(
+        (row) => row.isActive,
+      );
 
       for (const item of teacher.teaching) {
         const cycle = resolveCycle(item.classe, { typebranch });
@@ -609,7 +695,8 @@ export const getTeachersAction = action.handler(
         email: user?.email || "",
         username: user?.username || "",
         telephone: user?.telephone || "",
-        statusUser: teacher.branchMember?.isActive ?? true,
+        statusUser: teacher.isActive && (teacher.branchMember?.isActive ?? true),
+        alsoPersonnel,
         createdAt: teacher.createdAt,
         updatedAt: teacher.updatedAt,
         address: user?.address || "",
@@ -653,17 +740,47 @@ export const getTeacherDashboardStatsAction = action
       userId,
       canManageTeachers,
       isTeacher,
+      branchMemberId,
     } = await getCurrentBranch();
 
     if (!canManageTeachers && !isTeacher) {
       throw new Error("Action non autorisee");
     }
 
-    const { typebranch, schoolCycles } = await getBranchTypeContext(
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    });
+    const orgMember = await prisma.member.findFirst({
+      where: { userId, organizationId },
+      select: { role: true },
+    });
+    const seeAll = sessionCanViewAllDirectoryUsers(session, orgMember?.role);
+    const seeWholeBranch = !seeAll && isCycleGlobalRole(orgMember?.role);
+    const directoryWhere = await buildBranchMemberDirectoryWhere({
+      viewerBranchMemberId: branchMemberId,
+      seeAll,
+      seeWholeBranch,
+    });
+
+    const { schoolCycles } = await getBranchTypeContext(
       branchId,
       organizationId,
     );
-    const cycle = input?.cycle;
+    const accessibleCycles = (
+      await resolveAccessibleCycles({
+        branchId,
+        branchMemberId,
+        orgRole: primaryOrgRoleFromSession(session, orgMember?.role),
+      })
+    ).filter(isSchoolCycle);
+    const visibleCycles = schoolCycles.filter((cycle) =>
+      accessibleCycles.includes(cycle),
+    );
+    const requestedCycle = input?.cycle;
+    if (requestedCycle && !visibleCycles.includes(requestedCycle)) {
+      throw new Error("Cycle non autorisé");
+    }
+    const scopedCycles = requestedCycle ? [requestedCycle] : visibleCycles;
 
     const activeTeachingWhere = {
       OR: [{ statusTeaching: true }, { statusTeaching: null }],
@@ -673,17 +790,23 @@ export const getTeacherDashboardStatsAction = action
         isArchived: false,
         branch: { organizationId },
       },
-      classe: classeWhereForCycle(branchId, organizationId, cycle, typebranch),
+      classe: classeWhereForCycles(branchId, organizationId, scopedCycles),
       cours: { branchId, branch: { organizationId } },
     };
     const teacherScope = {
+      isActive: true as const,
       branchMember: {
-        branchId,
-        isActive: true,
-        member: {
-          organizationId,
-          ...(canManageTeachers ? {} : { userId }),
-        },
+        AND: [
+          {
+            branchId,
+            isActive: true,
+            member: {
+              organizationId,
+              ...(canManageTeachers ? {} : { userId }),
+            },
+          },
+          ...(directoryWhere ? [directoryWhere] : []),
+        ],
       },
     };
 
@@ -700,7 +823,7 @@ export const getTeacherDashboardStatsAction = action
       coveredCourseRows,
     ] = await Promise.all([
       prisma.teacher.count({
-        where: cycle ? assignedWhere : teacherScope,
+        where: requestedCycle ? assignedWhere : teacherScope,
       }),
       prisma.teacher.count({ where: assignedWhere }),
       prisma.teaching.count({
@@ -735,7 +858,7 @@ export const getTeacherDashboardStatsAction = action
       averageAssignments: assigned
         ? Number((totalAssignments / assigned).toFixed(1))
         : 0,
-      cycles: schoolCycles,
+      cycles: visibleCycles,
     };
   });
 

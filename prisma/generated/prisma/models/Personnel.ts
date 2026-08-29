@@ -27,6 +27,8 @@ export type AggregatePersonnel = {
 export type PersonnelMinAggregateOutputType = {
   id: string | null
   branchMemberId: string | null
+  isActive: boolean | null
+  deactivatedAt: Date | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -34,6 +36,8 @@ export type PersonnelMinAggregateOutputType = {
 export type PersonnelMaxAggregateOutputType = {
   id: string | null
   branchMemberId: string | null
+  isActive: boolean | null
+  deactivatedAt: Date | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -41,6 +45,8 @@ export type PersonnelMaxAggregateOutputType = {
 export type PersonnelCountAggregateOutputType = {
   id: number
   branchMemberId: number
+  isActive: number
+  deactivatedAt: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -50,6 +56,8 @@ export type PersonnelCountAggregateOutputType = {
 export type PersonnelMinAggregateInputType = {
   id?: true
   branchMemberId?: true
+  isActive?: true
+  deactivatedAt?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -57,6 +65,8 @@ export type PersonnelMinAggregateInputType = {
 export type PersonnelMaxAggregateInputType = {
   id?: true
   branchMemberId?: true
+  isActive?: true
+  deactivatedAt?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -64,6 +74,8 @@ export type PersonnelMaxAggregateInputType = {
 export type PersonnelCountAggregateInputType = {
   id?: true
   branchMemberId?: true
+  isActive?: true
+  deactivatedAt?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -144,6 +156,8 @@ export type PersonnelGroupByArgs<ExtArgs extends runtime.Types.Extensions.Intern
 export type PersonnelGroupByOutputType = {
   id: string
   branchMemberId: string
+  isActive: boolean
+  deactivatedAt: Date | null
   createdAt: Date
   updatedAt: Date
   _count: PersonnelCountAggregateOutputType | null
@@ -172,6 +186,8 @@ export type PersonnelWhereInput = {
   NOT?: Prisma.PersonnelWhereInput | Prisma.PersonnelWhereInput[]
   id?: Prisma.StringFilter<"Personnel"> | string
   branchMemberId?: Prisma.StringFilter<"Personnel"> | string
+  isActive?: Prisma.BoolFilter<"Personnel"> | boolean
+  deactivatedAt?: Prisma.DateTimeNullableFilter<"Personnel"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Personnel"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Personnel"> | Date | string
   branchMember?: Prisma.XOR<Prisma.BranchMemberNullableScalarRelationFilter, Prisma.BranchMemberWhereInput> | null
@@ -181,6 +197,8 @@ export type PersonnelWhereInput = {
 export type PersonnelOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   branchMemberId?: Prisma.SortOrder
+  isActive?: Prisma.SortOrder
+  deactivatedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   branchMember?: Prisma.BranchMemberOrderByWithRelationInput
@@ -193,6 +211,8 @@ export type PersonnelWhereUniqueInput = Prisma.AtLeast<{
   AND?: Prisma.PersonnelWhereInput | Prisma.PersonnelWhereInput[]
   OR?: Prisma.PersonnelWhereInput[]
   NOT?: Prisma.PersonnelWhereInput | Prisma.PersonnelWhereInput[]
+  isActive?: Prisma.BoolFilter<"Personnel"> | boolean
+  deactivatedAt?: Prisma.DateTimeNullableFilter<"Personnel"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Personnel"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Personnel"> | Date | string
   branchMember?: Prisma.XOR<Prisma.BranchMemberNullableScalarRelationFilter, Prisma.BranchMemberWhereInput> | null
@@ -202,6 +222,8 @@ export type PersonnelWhereUniqueInput = Prisma.AtLeast<{
 export type PersonnelOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   branchMemberId?: Prisma.SortOrder
+  isActive?: Prisma.SortOrder
+  deactivatedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.PersonnelCountOrderByAggregateInput
@@ -215,12 +237,16 @@ export type PersonnelScalarWhereWithAggregatesInput = {
   NOT?: Prisma.PersonnelScalarWhereWithAggregatesInput | Prisma.PersonnelScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"Personnel"> | string
   branchMemberId?: Prisma.StringWithAggregatesFilter<"Personnel"> | string
+  isActive?: Prisma.BoolWithAggregatesFilter<"Personnel"> | boolean
+  deactivatedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Personnel"> | Date | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Personnel"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Personnel"> | Date | string
 }
 
 export type PersonnelCreateInput = {
   id?: string
+  isActive?: boolean
+  deactivatedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   branchMember?: Prisma.BranchMemberCreateNestedOneWithoutPersonelInput
@@ -230,6 +256,8 @@ export type PersonnelCreateInput = {
 export type PersonnelUncheckedCreateInput = {
   id?: string
   branchMemberId: string
+  isActive?: boolean
+  deactivatedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   personnelAttendance?: Prisma.PersonnelAttendanceUncheckedCreateNestedManyWithoutPersonnelInput
@@ -237,6 +265,8 @@ export type PersonnelUncheckedCreateInput = {
 
 export type PersonnelUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branchMember?: Prisma.BranchMemberUpdateOneWithoutPersonelNestedInput
@@ -246,6 +276,8 @@ export type PersonnelUpdateInput = {
 export type PersonnelUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   branchMemberId?: Prisma.StringFieldUpdateOperationsInput | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   personnelAttendance?: Prisma.PersonnelAttendanceUncheckedUpdateManyWithoutPersonnelNestedInput
@@ -254,12 +286,16 @@ export type PersonnelUncheckedUpdateInput = {
 export type PersonnelCreateManyInput = {
   id?: string
   branchMemberId: string
+  isActive?: boolean
+  deactivatedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
 
 export type PersonnelUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -267,6 +303,8 @@ export type PersonnelUpdateManyMutationInput = {
 export type PersonnelUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   branchMemberId?: Prisma.StringFieldUpdateOperationsInput | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -279,6 +317,8 @@ export type PersonnelScalarRelationFilter = {
 export type PersonnelCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   branchMemberId?: Prisma.SortOrder
+  isActive?: Prisma.SortOrder
+  deactivatedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -286,6 +326,8 @@ export type PersonnelCountOrderByAggregateInput = {
 export type PersonnelMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   branchMemberId?: Prisma.SortOrder
+  isActive?: Prisma.SortOrder
+  deactivatedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -293,6 +335,8 @@ export type PersonnelMaxOrderByAggregateInput = {
 export type PersonnelMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   branchMemberId?: Prisma.SortOrder
+  isActive?: Prisma.SortOrder
+  deactivatedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -365,6 +409,8 @@ export type PersonnelUncheckedUpdateManyWithoutBranchMemberNestedInput = {
 
 export type PersonnelCreateWithoutPersonnelAttendanceInput = {
   id?: string
+  isActive?: boolean
+  deactivatedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   branchMember?: Prisma.BranchMemberCreateNestedOneWithoutPersonelInput
@@ -373,6 +419,8 @@ export type PersonnelCreateWithoutPersonnelAttendanceInput = {
 export type PersonnelUncheckedCreateWithoutPersonnelAttendanceInput = {
   id?: string
   branchMemberId: string
+  isActive?: boolean
+  deactivatedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -395,6 +443,8 @@ export type PersonnelUpdateToOneWithWhereWithoutPersonnelAttendanceInput = {
 
 export type PersonnelUpdateWithoutPersonnelAttendanceInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branchMember?: Prisma.BranchMemberUpdateOneWithoutPersonelNestedInput
@@ -403,12 +453,16 @@ export type PersonnelUpdateWithoutPersonnelAttendanceInput = {
 export type PersonnelUncheckedUpdateWithoutPersonnelAttendanceInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   branchMemberId?: Prisma.StringFieldUpdateOperationsInput | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type PersonnelCreateWithoutBranchMemberInput = {
   id?: string
+  isActive?: boolean
+  deactivatedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   personnelAttendance?: Prisma.PersonnelAttendanceCreateNestedManyWithoutPersonnelInput
@@ -416,6 +470,8 @@ export type PersonnelCreateWithoutBranchMemberInput = {
 
 export type PersonnelUncheckedCreateWithoutBranchMemberInput = {
   id?: string
+  isActive?: boolean
+  deactivatedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   personnelAttendance?: Prisma.PersonnelAttendanceUncheckedCreateNestedManyWithoutPersonnelInput
@@ -453,18 +509,24 @@ export type PersonnelScalarWhereInput = {
   NOT?: Prisma.PersonnelScalarWhereInput | Prisma.PersonnelScalarWhereInput[]
   id?: Prisma.StringFilter<"Personnel"> | string
   branchMemberId?: Prisma.StringFilter<"Personnel"> | string
+  isActive?: Prisma.BoolFilter<"Personnel"> | boolean
+  deactivatedAt?: Prisma.DateTimeNullableFilter<"Personnel"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Personnel"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Personnel"> | Date | string
 }
 
 export type PersonnelCreateManyBranchMemberInput = {
   id?: string
+  isActive?: boolean
+  deactivatedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
 
 export type PersonnelUpdateWithoutBranchMemberInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   personnelAttendance?: Prisma.PersonnelAttendanceUpdateManyWithoutPersonnelNestedInput
@@ -472,6 +534,8 @@ export type PersonnelUpdateWithoutBranchMemberInput = {
 
 export type PersonnelUncheckedUpdateWithoutBranchMemberInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   personnelAttendance?: Prisma.PersonnelAttendanceUncheckedUpdateManyWithoutPersonnelNestedInput
@@ -479,6 +543,8 @@ export type PersonnelUncheckedUpdateWithoutBranchMemberInput = {
 
 export type PersonnelUncheckedUpdateManyWithoutBranchMemberInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -517,6 +583,8 @@ export type PersonnelCountOutputTypeCountPersonnelAttendanceArgs<ExtArgs extends
 export type PersonnelSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   branchMemberId?: boolean
+  isActive?: boolean
+  deactivatedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   branchMember?: boolean | Prisma.Personnel$branchMemberArgs<ExtArgs>
@@ -527,6 +595,8 @@ export type PersonnelSelect<ExtArgs extends runtime.Types.Extensions.InternalArg
 export type PersonnelSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   branchMemberId?: boolean
+  isActive?: boolean
+  deactivatedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   branchMember?: boolean | Prisma.Personnel$branchMemberArgs<ExtArgs>
@@ -535,6 +605,8 @@ export type PersonnelSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ext
 export type PersonnelSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   branchMemberId?: boolean
+  isActive?: boolean
+  deactivatedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   branchMember?: boolean | Prisma.Personnel$branchMemberArgs<ExtArgs>
@@ -543,11 +615,13 @@ export type PersonnelSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ext
 export type PersonnelSelectScalar = {
   id?: boolean
   branchMemberId?: boolean
+  isActive?: boolean
+  deactivatedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type PersonnelOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "branchMemberId" | "createdAt" | "updatedAt", ExtArgs["result"]["personnel"]>
+export type PersonnelOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "branchMemberId" | "isActive" | "deactivatedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["personnel"]>
 export type PersonnelInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   branchMember?: boolean | Prisma.Personnel$branchMemberArgs<ExtArgs>
   personnelAttendance?: boolean | Prisma.Personnel$personnelAttendanceArgs<ExtArgs>
@@ -569,6 +643,11 @@ export type $PersonnelPayload<ExtArgs extends runtime.Types.Extensions.InternalA
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     branchMemberId: string
+    /**
+     * Profil personnel actif dans la branche (indépendant du profil enseignant).
+     */
+    isActive: boolean
+    deactivatedAt: Date | null
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["personnel"]>
@@ -998,6 +1077,8 @@ export interface Prisma__PersonnelClient<T, Null = never, ExtArgs extends runtim
 export interface PersonnelFieldRefs {
   readonly id: Prisma.FieldRef<"Personnel", 'String'>
   readonly branchMemberId: Prisma.FieldRef<"Personnel", 'String'>
+  readonly isActive: Prisma.FieldRef<"Personnel", 'Boolean'>
+  readonly deactivatedAt: Prisma.FieldRef<"Personnel", 'DateTime'>
   readonly createdAt: Prisma.FieldRef<"Personnel", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Personnel", 'DateTime'>
 }

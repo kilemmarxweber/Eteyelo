@@ -157,7 +157,7 @@ test("menu enseignant : pas Finance / Enseignement / Utilisateurs ; dossier via 
   assert.ok(titles.includes("dashboard"));
   assert.ok(titles.includes("myPresence"));
   assert.ok(titles.includes("cursus"));
-  assert.ok(titles.includes("attendance"));
+  assert.ok(!titles.includes("attendance"), "enseignant : Présences retiré");
   assert.ok(!titles.includes("finance"), "enseignant ne doit pas voir Finance");
   assert.ok(!titles.includes("classes"), "enseignant ne doit pas voir Classes");
   assert.ok(!titles.includes("registration"));

@@ -317,6 +317,8 @@ export type StudentGradeScalarFieldEnum = (typeof StudentGradeScalarFieldEnum)[k
 export const PersonnelScalarFieldEnum = {
   id: 'id',
   branchMemberId: 'branchMemberId',
+  isActive: 'isActive',
+  deactivatedAt: 'deactivatedAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -464,6 +466,8 @@ export type ClassEnrollmentScalarFieldEnum = (typeof ClassEnrollmentScalarFieldE
 export const TeacherScalarFieldEnum = {
   id: 'id',
   branchMemberId: 'branchMemberId',
+  isActive: 'isActive',
+  deactivatedAt: 'deactivatedAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const

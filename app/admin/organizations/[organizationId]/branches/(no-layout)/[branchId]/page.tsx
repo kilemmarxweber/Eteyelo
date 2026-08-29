@@ -34,7 +34,6 @@ import {
   SchoolStatsSection,
   ShortcutsSection,
   StudentIdentitySection,
-  TeacherSpaceSection,
 } from "./dashboard-sections";
 import { AbsenceDashboardSection } from "@/components/absence-dashboard-card";
 import { refreshNotificationBell } from "@/lib/notification-events";
@@ -543,15 +542,6 @@ export default function AdminDashboard() {
             />
           ) : null}
 
-          {variant === "teacher" ? (
-            <TeacherSpaceSection
-              loading={loading}
-              classes={teacher?.classes ?? []}
-              todayCourses={teacher?.todayCourses ?? []}
-              assignmentCount={teacher?.assignmentCount ?? 0}
-            />
-          ) : null}
-
           {variant === "student" ? (
             <StudentIdentitySection
               loading={loading}
@@ -562,7 +552,9 @@ export default function AdminDashboard() {
             />
           ) : null}
 
-          <AbsenceDashboardSection />
+          <AbsenceDashboardSection
+            showMine={variant === "teacher" || variant === "student"}
+          />
 
           {variant === "parent" ? (
             <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(260px,0.9fr)]">

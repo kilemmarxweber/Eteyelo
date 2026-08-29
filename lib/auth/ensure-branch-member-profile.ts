@@ -1,13 +1,24 @@
 import { prisma } from "@/lib/prisma";
 import { BranchRole } from "@/prisma/generated/prisma/enums";
 
+function isPersonnelBranchRole(role: BranchRole): boolean {
+  return (
+    role === BranchRole.DIRECTOR ||
+    role === BranchRole.ADMIN ||
+    role === BranchRole.CAISSIER
+  );
+}
+
 /**
- * Crée le profil métier (enseignant, élève, parent, personnel)
- * attendu par les listes « Utilisateurs » de la branche.
+ * Aligne les profils métier sur le BranchRole.
+ * Teacher.isActive / Personnel.isActive : soft-désactivation lors d’un
+ * changement Enseignant ↔ Personnel (édition membre), sans supprimer l’historique.
  */
 export async function ensureBranchMemberRoleProfiles(params: {
   memberId: string;
   organizationId: string;
+  /** Ancien BranchRole par branchMemberId (avant syncMemberBranches). */
+  previousRolesByBranchMemberId?: Record<string, BranchRole>;
 }): Promise<void> {
   const rows = await prisma.branchMember.findMany({
     where: {
@@ -35,9 +46,80 @@ export async function ensureBranchMemberRoleProfiles(params: {
       branchId: row.branchId,
       organizationId: params.organizationId,
       role: row.role,
+      previousRole: params.previousRolesByBranchMemberId?.[row.id],
       counts: row._count,
     });
   }
+}
+
+async function ensureActiveTeacherProfile(branchMemberId: string) {
+  const existing = await prisma.teacher.findUnique({
+    where: { branchMemberId },
+    select: { id: true, isActive: true },
+  });
+  if (!existing) {
+    await prisma.teacher.create({
+      data: { branchMemberId, isActive: true },
+    });
+    return;
+  }
+  if (!existing.isActive) {
+    await prisma.teacher.update({
+      where: { id: existing.id },
+      data: { isActive: true, deactivatedAt: null },
+    });
+  }
+}
+
+async function ensureActivePersonnelProfile(branchMemberId: string) {
+  const existing = await prisma.personnel.findUnique({
+    where: { branchMemberId },
+    select: { id: true, isActive: true },
+  });
+  if (!existing) {
+    await prisma.personnel.create({
+      data: { branchMemberId, isActive: true },
+    });
+    return;
+  }
+  if (!existing.isActive) {
+    await prisma.personnel.update({
+      where: { id: existing.id },
+      data: { isActive: true, deactivatedAt: null },
+    });
+  }
+}
+
+/** Soft-désactive le(s) profil(s) enseignant sans toucher au BranchMember. */
+async function softDeactivateTeachersOnBranchMember(branchMemberId: string) {
+  const teachers = await prisma.teacher.findMany({
+    where: { branchMemberId, isActive: true },
+    select: { id: true },
+  });
+  if (teachers.length === 0) return;
+
+  const now = new Date();
+  for (const teacher of teachers) {
+    await prisma.teacher.update({
+      where: { id: teacher.id },
+      data: { isActive: false, deactivatedAt: now },
+    });
+    await prisma.teaching.updateMany({
+      where: {
+        teacherId: teacher.id,
+        OR: [{ statusTeaching: true }, { statusTeaching: null }],
+      },
+      data: { statusTeaching: false },
+    });
+  }
+}
+
+/** Soft-désactive le(s) profil(s) personnel sans toucher au BranchMember. */
+async function softDeactivatePersonnelOnBranchMember(branchMemberId: string) {
+  await prisma.personnel.updateMany({
+    where: { branchMemberId, isActive: true },
+    data: { isActive: false, deactivatedAt: new Date() },
+  });
 }
 
 async function ensureProfileForBranchMember(params: {
@@ -45,6 +127,7 @@ async function ensureProfileForBranchMember(params: {
   branchId: string;
   organizationId: string;
   role: BranchRole;
+  previousRole?: BranchRole;
   counts: {
     teacher: number;
     student: number;
@@ -52,13 +135,18 @@ async function ensureProfileForBranchMember(params: {
     personel: number;
   };
 }) {
-  switch (params.role) {
+  const from = params.previousRole;
+  const to = params.role;
+  const switchedTeacherToPersonnel =
+    from === BranchRole.TEACHER && isPersonnelBranchRole(to);
+  const switchedPersonnelToTeacher =
+    from != null && isPersonnelBranchRole(from) && to === BranchRole.TEACHER;
+
+  switch (to) {
     case BranchRole.TEACHER:
-      if (params.counts.teacher === 0) {
-        await prisma.teacher.createMany({
-          data: [{ branchMemberId: params.branchMemberId }],
-          skipDuplicates: true,
-        });
+      await ensureActiveTeacherProfile(params.branchMemberId);
+      if (switchedPersonnelToTeacher) {
+        await softDeactivatePersonnelOnBranchMember(params.branchMemberId);
       }
       return;
     case BranchRole.STUDENT:
@@ -84,11 +172,10 @@ async function ensureProfileForBranchMember(params: {
     case BranchRole.DIRECTOR:
     case BranchRole.ADMIN:
     case BranchRole.CAISSIER:
-      if (params.counts.personel === 0) {
-        await prisma.personnel.createMany({
-          data: [{ branchMemberId: params.branchMemberId }],
-          skipDuplicates: true,
-        });
+      // Personnel d’abord pour garder le BranchMember actif après soft-désactivation enseignant.
+      await ensureActivePersonnelProfile(params.branchMemberId);
+      if (switchedTeacherToPersonnel) {
+        await softDeactivateTeachersOnBranchMember(params.branchMemberId);
       }
       return;
     default:

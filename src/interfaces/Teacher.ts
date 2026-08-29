@@ -25,6 +25,8 @@ export interface ITeacher
   coursId?: string;
   /** Cycles ACL du membre dans la branche (création / édition). */
   cycles?: string[];
+  /** Profil personnel actif en plus du profil enseignant. */
+  alsoPersonnel?: boolean;
 }
 
 export const teacherSchema = z

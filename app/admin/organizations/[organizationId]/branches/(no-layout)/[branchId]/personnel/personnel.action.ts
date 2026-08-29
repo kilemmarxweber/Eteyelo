@@ -25,7 +25,11 @@ import {
   buildSchoolReportContext,
   schoolReportBranchSelect,
 } from "@/lib/reports/resolve-school-branding";
-import { deactivatePersonInBranch, ensureActiveBranchMember } from "@/lib/branch-member-status";
+import { ensureActiveBranchMember } from "@/lib/branch-member-status";
+import {
+  deactivatePersonnelProfile,
+  ensureTeacherOnPersonnelBranchMember,
+} from "@/lib/dual-staff-profile";
 import { revalidatePath } from "next/cache";
 
 function errMessage(err: unknown): string {
@@ -202,7 +206,7 @@ export const createPersonnelAction = action
     }
   });
 
-//archivePersonal — désactive dans la branche uniquement
+//archivePersonal — désactive le profil personnel (garde enseignant si actif)
 export const archivePersonalAction = action
   .input(z.object({ ids: z.array(z.string()) }))
   .handler(async ({ input }) => {
@@ -220,7 +224,8 @@ export const archivePersonalAction = action
     });
 
     for (const personnel of personnels) {
-      await deactivatePersonInBranch({
+      await deactivatePersonnelProfile({
+        personnelId: personnel.id,
         branchMemberId: personnel.branchMemberId,
       });
     }
@@ -258,14 +263,16 @@ export const deletePersonnelPermanentlyAction = action
           continue;
         }
 
-        await deactivatePersonInBranch({
+        const result = await deactivatePersonnelProfile({
+          personnelId: personnel.id,
           branchMemberId: personnel.branchMemberId,
         });
         results.push({
           id: personnelId,
           ok: true,
-          message:
-            "Personnel désactivé dans cette branche. Historique conservé.",
+          message: result.keptBranchActive
+            ? "Personnel désactivé. Le profil enseignant reste actif."
+            : "Personnel désactivé dans cette branche. Historique conservé.",
         });
       } catch (error: unknown) {
         results.push({
@@ -278,6 +285,9 @@ export const deletePersonnelPermanentlyAction = action
 
     revalidatePath(
       `/admin/organizations/${organizationId}/branches/${branchId}/personnel`,
+    );
+    revalidatePath(
+      `/admin/organizations/${organizationId}/branches/${branchId}/teacher`,
     );
 
     const failed = results.filter((result) => !result.ok);
@@ -297,6 +307,67 @@ export const deletePersonnelPermanentlyAction = action
           : `${input.ids.length - failed.length} désactivé(s), ${failed.length} en échec.`,
       results,
     };
+  });
+
+/** Ajoute (ou réactive) le profil Enseignant sur un personnel existant. */
+export const makePersonnelAlsoTeacherAction = action
+  .input(z.object({ personnelId: z.string().min(1) }))
+  .handler(async ({ input }) => {
+    const { branchId, organizationId } = await requireHrWriteBranchContext();
+
+    const personnel = await prisma.personnel.findFirst({
+      where: {
+        id: input.personnelId,
+        isActive: true,
+        branchMember: { branchId, isActive: true },
+      },
+      select: {
+        id: true,
+        branchMemberId: true,
+        branchMember: {
+          select: {
+            memberId: true,
+            teacher: { select: { id: true, isActive: true } },
+          },
+        },
+      },
+    });
+
+    if (!personnel?.branchMember?.memberId) {
+      return { ok: false as const, message: "Personnel introuvable" };
+    }
+
+    const existingTeacher = personnel.branchMember.teacher?.[0];
+    if (existingTeacher?.isActive) {
+      return {
+        ok: false as const,
+        message: "Ce personnel est déjà aussi enseignant",
+      };
+    }
+
+    try {
+      await ensureTeacherOnPersonnelBranchMember({
+        branchMemberId: personnel.branchMemberId,
+        memberId: personnel.branchMember.memberId,
+      });
+      revalidatePath(
+        `/admin/organizations/${organizationId}/branches/${branchId}/personnel`,
+      );
+      revalidatePath(
+        `/admin/organizations/${organizationId}/branches/${branchId}/teacher`,
+      );
+      return {
+        ok: true as const,
+        message:
+          "Profil enseignant ajouté. La personne est désormais personnel et enseignant.",
+      };
+    } catch (error) {
+      return {
+        ok: false as const,
+        message:
+          errMessage(error) || "Impossible d'ajouter le profil enseignant",
+      };
+    }
   });
 
 export const updatePersonnelFullAction = action
@@ -371,20 +442,47 @@ export const updatePersonnelFullAction = action
   });
 
 export const getPersonnelPresenceStatsAction = action.handler(async () => {
-  const { branchId, organizationId } = await getCurrentBranch();
+  const { branchId, organizationId, userId, session } =
+    await requireBranchContext();
+
+  const [orgMember, branchMember] = await Promise.all([
+    prisma.member.findFirst({
+      where: { userId, organizationId },
+      select: { role: true },
+    }),
+    prisma.branchMember.findFirst({
+      where: { branchId, member: { userId, organizationId } },
+      select: { id: true },
+    }),
+  ]);
+  const seeAll = sessionCanViewAllDirectoryUsers(session, orgMember?.role);
+  const seeWholeBranch = !seeAll && isCycleGlobalRole(orgMember?.role);
+  const directoryWhere = await buildBranchMemberDirectoryWhere({
+    viewerBranchMemberId: branchMember?.id ?? null,
+    seeAll,
+    seeWholeBranch,
+  });
 
   const start = new Date();
   start.setHours(0, 0, 0, 0);
   const end = new Date();
   end.setHours(23, 59, 59, 999);
 
+  const personnelBranchWhere = {
+    AND: [
+      {
+        branchId,
+        branch: { organizationId },
+      },
+      ...(directoryWhere ? [directoryWhere] : []),
+    ],
+  };
+
   const [totalExpected, present] = await Promise.all([
     prisma.personnel.count({
       where: {
-        branchMember: {
-          branchId,
-          branch: { organizationId },
-        },
+        isActive: true,
+        branchMember: personnelBranchWhere,
       },
     }),
     prisma.personnelAttendance.count({
@@ -392,6 +490,10 @@ export const getPersonnelPresenceStatsAction = action.handler(async () => {
         branchId,
         date: { gte: start, lte: end },
         status: { in: ["PRESENT", "LATE"] },
+        personnel: {
+          isActive: true,
+          branchMember: personnelBranchWhere,
+        },
       },
     }),
   ]);
@@ -426,6 +528,7 @@ export const getPersonnelsAction = action.handler(
 
     const personnels = await prisma.personnel.findMany({
       where: {
+        isActive: true,
         branchMember: {
           AND: [
             {
@@ -448,6 +551,7 @@ export const getPersonnelsAction = action.handler(
               },
             },
             memberCycles: { select: { cycle: true } },
+            teacher: { select: { id: true, isActive: true } },
           },
         },
       },
@@ -456,6 +560,9 @@ export const getPersonnelsAction = action.handler(
     return personnels.map((personnel) => {
       const member = personnel.branchMember?.member;
       const user = member?.user;
+      const alsoTeacher = (personnel.branchMember?.teacher ?? []).some(
+        (row) => row.isActive,
+      );
 
       return {
         // 🔥 IDs essentiels pour update
@@ -475,7 +582,9 @@ export const getPersonnelsAction = action.handler(
         telephone: user?.telephone ?? "",
         address: user?.address ?? "",
         image: user?.image ?? "",
-        statusUser: personnel.branchMember?.isActive ?? true,
+        statusUser:
+          personnel.isActive && (personnel.branchMember?.isActive ?? true),
+        alsoTeacher,
 
         // metadata
         createdAt: personnel.createdAt,

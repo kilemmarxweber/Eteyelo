@@ -272,11 +272,15 @@ model Personnel {
   id                  String                @id @default(cuid())
   branchMemberId              String
   branchMember                BranchMember?                 @relation(fields: [branchMemberId], references: [id], onDelete: Cascade)
+  /// Profil personnel actif dans la branche (indépendant du profil enseignant).
+  isActive            Boolean               @default(true)
+  deactivatedAt       DateTime?
   createdAt           DateTime              @default(now())
   updatedAt           DateTime              @updatedAt
   personnelAttendance PersonnelAttendance[]
 
   @@unique([branchMemberId])
+  @@index([isActive])
 }
 
 model Frais {
@@ -498,6 +502,9 @@ model Teacher {
   branchMemberId            String?
   teaching          Teaching[]
   branchMember              BranchMember?               @relation(fields: [branchMemberId], references: [id])
+  /// Profil enseignant actif dans la branche (indépendant du profil personnel).
+  isActive          Boolean             @default(true)
+  deactivatedAt     DateTime?
   createdAt         DateTime            @default(now())
   updatedAt         DateTime            @updatedAt
   fiche             fiche[]
@@ -506,6 +513,7 @@ model Teacher {
   onlineAssignments OnlineAssignment[]
 
   @@unique([branchMemberId])
+  @@index([isActive])
 }
 
 model Teaching {

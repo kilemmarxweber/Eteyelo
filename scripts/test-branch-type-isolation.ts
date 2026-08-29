@@ -151,6 +151,15 @@ test("routes documents isolees par type de branche", () => {
     getBranchRouteRedirect("/finalistes", "SECONDAIRE", org, base)?.includes("/results"),
   );
   assert.equal(getBranchRouteRedirect("/finalistes", "PRIMAIRE", org, base), null);
+  assert.equal(
+    getBranchRouteRedirect(
+      "/finalistes",
+      ["MATERNELLE", "PRIMAIRE", "SECONDAIRE"],
+      org,
+      base,
+    ),
+    null,
+  );
 
   assert.ok(
     getBranchRouteRedirect("/attestations", "SECONDAIRE", org, base)?.includes("/results"),

@@ -34,8 +34,10 @@ export async function getTeacherIdForUser(
 ): Promise<string | null> {
   const teacher = await prisma.teacher.findFirst({
     where: {
+      isActive: true,
       branchMember: {
         branchId,
+        isActive: true,
         member: { userId },
       },
     },
@@ -50,8 +52,10 @@ export async function getPersonnelIdForUser(
 ): Promise<string | null> {
   const personnel = await prisma.personnel.findFirst({
     where: {
+      isActive: true,
       branchMember: {
         branchId,
+        isActive: true,
         member: { userId },
       },
     },
@@ -69,8 +73,10 @@ export async function getTeacherAssignedTeachingIds(
       OR: [{ statusTeaching: true }, { statusTeaching: null }],
       AND: [teachingBranchFilter(branchId)],
       teacher: {
+        isActive: true,
         branchMember: {
           branchId,
+          isActive: true,
           member: { userId },
         },
       },
@@ -89,8 +95,10 @@ export async function getTeacherAssignedClassIds(
       OR: [{ statusTeaching: true }, { statusTeaching: null }],
       AND: [teachingBranchFilter(branchId)],
       teacher: {
+        isActive: true,
         branchMember: {
           branchId,
+          isActive: true,
           member: { userId },
         },
       },
@@ -159,8 +167,10 @@ export async function assertClassRosterAccess(params: {
         },
       ],
       teacher: {
+        isActive: true,
         branchMember: {
           branchId,
+          isActive: true,
           member: { userId },
         },
       },
@@ -206,8 +216,10 @@ export async function assertTitulaireClassAccess(params: {
         },
       ],
       teacher: {
+        isActive: true,
         branchMember: {
           branchId,
+          isActive: true,
           member: { userId },
         },
       },
